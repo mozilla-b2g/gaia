@@ -11,6 +11,29 @@ if (!window.navigator.mozKeyboard) {
       console.log('moz sendKey: (' + charCode + ', ' + keyCode + ')');
     }
   };
+} else {
+  var focusChangeTimeout = 0;
+  var focusChangeDelay = 20;
+  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+
+    var typeToSkip = ['select-one', 'select-multiple', 'date',
+                        'time', 'datetime', 'datetime-local'];
+    var type = evt.detail.type;
+    // Skip the <select> element and inputs with type of date/time,
+    // handled in system app for now
+    // Also workaround an issue that type might be empty
+    if (!type || typeToSkip.indexOf(type) != -1)
+      return;
+
+    clearTimeout(focusChangeTimeout);
+    focusChangeTimeout = setTimeout(function switchKeyboard() {
+      if (type === 'blur') {
+        IMEController.hideIME();
+      } else {
+        IMEController.showIME(type);
+      }
+    }, focusChangeDelay);
+  };
 }
 
 // in charge of initiate the controller and be aware about settings changes
@@ -34,7 +57,7 @@ const IMEManager = {
     'dvorak': ['en-Dvorak'],
     'spanish' : ['es'],
     'portuguese' : ['pt_BR'],
-    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
+    'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
@@ -107,9 +130,15 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+
     SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
+    SettingsListener.observe('language.current', 'en-US', function(value) {
+      var language = value;
+      IMEController.setLanguage(language);
     });
 
     for (var key in this.keyboardSettingGroups) {
@@ -124,13 +153,6 @@ const IMEManager = {
         );
       })(key);
     }
-
-    // Handle event from system app, i.e. keyboard manager
-    // Now this is for keyboard demo only
-    window.addEventListener('message', function receiver(evt) {
-      var event = JSON.parse(evt.data);
-      IMEManager.handleEvent(event);
-    });
   },
 
   uninit: function km_uninit() {
@@ -151,14 +173,6 @@ const IMEManager = {
   handleEvent: function km_handleEvent(evt) {
     var target = evt.target;
     switch (evt.type) {
-      case 'showime':
-        IMEController.showIME(evt.detail.type);
-        break;
-
-      case 'hideime':
-        IMEController.hideIME();
-        break;
-
       case 'resize':
         var currentWidth = window.innerWidth;
         var currentHeight = window.innerHeight;
@@ -170,11 +184,11 @@ const IMEManager = {
 
         this._formerWidth = currentWidth;
         this._formerHeight = currentHeight;
-      break;
+        break;
 
       case 'unload':
         this.uninit();
-      break;
+        break;
     }
   }
 };
@@ -199,20 +213,6 @@ function getWindowLeft(obj) {
 }
 
 var SettingsListener = {
-  _callbacks: {},
-
-  init: function sl_init() {
-    if ('mozSettings' in navigator && navigator.mozSettings)
-      navigator.mozSettings.onsettingchange = this.onchange.bind(this);
-  },
-
-  onchange: function sl_onchange(evt) {
-    var callback = this._callbacks[evt.settingName];
-    if (callback) {
-      callback(evt.settingValue);
-    }
-  },
-
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -226,11 +226,11 @@ var SettingsListener = {
         req.result[name] : defaultValue);
     }));
 
-    this._callbacks[name] = callback;
+    settings.addObserver(name, function settingChanged(evt) {
+      callback(evt.settingValue);
+    });
   }
 };
-
-SettingsListener.init();
 
 window.addEventListener('load', function initIMEManager(evt) {
   window.removeEventListener('load', initIMEManager);

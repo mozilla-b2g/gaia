@@ -42,8 +42,8 @@
  * setting a CSS class, which sets the CSS left property to position them
  * offscreen (the classes are defined differently for RTL and LTR
  * languages).  When the user pans left or right (and when the current
- * image isn't zoomed in) the app uses -moz-tranform to translate all
- * three frames left or right so that the user sees one photo moving off
+ * image isn't zoomed in) the app sets the left property of the div that
+ * contains all three frames so that the user sees one photo moving off
  * screen and the other one moving on. When the user lifts their finger,
  * the app uses a CSS transition to slide the current photo back into
  * place (if the pan wasn't far enough) or to complete the transition to
@@ -57,7 +57,7 @@
  * time, the css classes on these frames are changed to reposition them
  * and CSS handles the transition animation for us, animating both the
  * change in the left property caused by the class change, and the change
- * in the -moz-transform property which is set back to the empty string.
+ * in the transform property which is set back to the empty string.
  *
  * The trickiest code has to do with handling zooms and pans while the
  * photo is zoomed in.  If the photo isn't zoomed in, then any pan ends
@@ -97,12 +97,6 @@
  *   - Edit mode and its sub modes
  *   - Pick a photo mode (when invoked via web activities?)
  *
- * TODO:
- *   we need a way to get photos from the camera and to store them on the device
- *   the ability to download photos from the web might be nice, too.
- *   we should probably have a way to organize photos into albums
- *   Do we want users to be able to rotate photos to tell the
- *     gallery app how to display them?
  */
 
 //
@@ -115,7 +109,7 @@ const TRANSITION_FRACTION = 0.25;
 // This is the speed of our default transitions in pixels/ms.
 // Swipe faster than this to transition faster. But we'll
 // never go slower (except slide show transitions).
-const TRANSITION_SPEED = 1.8;
+const TRANSITION_SPEED = 0.75;
 
 var currentPhotoIndex = 0;       // What photo is currently displayed
 
@@ -129,11 +123,14 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
+var pickView = $('pick-view');
 var editView = $('edit-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
-var views = [thumbnailListView, thumbnailSelectView, photoView, editView];
+var views = [
+  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+];
 var currentView;
 
 // These three divs hold the previous, current and next photos
@@ -165,14 +162,53 @@ var languageDirection;
 // Each array element is an object that includes a filename and metadata
 var images = [];
 
-var photodb = new MediaDB('pictures', metadataParser, {
-  indexes: ['metadata.date'],
-  mimeTypes: ['image/jpeg', 'image/png']
+// The MediaDB object that manages the filesystem and the database of metadata
+// See init()
+var photodb;
+
+
+// The localized event is the main entry point for the app.
+// We don't do anything until we receive it.
+window.addEventListener('localized', function showBody() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+
+  // Now initialize the rest of the app
+  init();
 });
 
-photodb.onready = function() {
-  createThumbnailList();  // Display thumbnails for the images we know about
-  photodb.scan();         // Go look for more.
+function init() {
+  photodb = new MediaDB('pictures', metadataParser, {
+    indexes: ['date'],
+    mimeTypes: ['image/jpeg', 'image/png']
+  });
+
+  // This is called when DeviceStorage becomes unavailable because the
+  // sd card is removed or because it is mounted for USB mass storage
+  // This may be called before onready if it is unavailable to begin with
+  photodb.onunavailable = function(why) {
+    if (why === 'unavailable')
+      showOverlay('nocard');
+    else if (why === 'shared')
+      showOverlay('cardinuse');
+  }
+
+  photodb.onready = function() {
+    // Hide the nocard overlay if it is displayed
+    if (currentOverlay === 'nocard')
+      showOverlay(null);
+
+    createThumbnailList();  // Display thumbnails for the images we know about
+
+    // Each time we become ready there may be an entirely new set of
+    // photos in device storage (new SD card, or USB mass storage transfer)
+    // so we have to rescan each time.
+    scan();
+  };
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
@@ -180,21 +216,50 @@ photodb.onready = function() {
   // we come back to gallery we should be able to find the new photo.
   // Eventually DeviceStorage will do notifications and MediaDB will
   // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      photodb.scan();
+  document.addEventListener('mozvisibilitychange', function vc() {
+    if (!document.mozHidden && photodb.ready) {
+      scan();
     }
   });
-};
 
-photodb.onchange = function(type, files) {
-  if (type === 'deleted') {
-    files.forEach(function(f) { imageDeleted(f); });
-  }
-  else if (type === 'created') {
-    files.forEach(function(f) { imageCreated(f); });
-  }
-};
+  // Notification of files that are added or deleted.
+  // Eventually device storage will let us know about these.
+  // For now we have to call scan(), which will trigger this function.
+  photodb.onchange = function(type, files) {
+    if (type === 'deleted') {
+      files.forEach(imageDeleted);
+    }
+    else if (type === 'created') {
+      files.forEach(imageCreated);
+    }
+  };
+
+  // Start off in thumbnail list view, unless there is a pending activity
+  // request message. In that case, the message handler will set the
+  // initial view
+  if (!navigator.mozHasPendingMessage('activity'))
+    setView(thumbnailListView);
+
+  // Register a handler for activities
+  navigator.mozSetMessageHandler('activity', webActivityHandler);
+}
+
+function scan() {
+  //
+  // XXX: is it too intrusive to display the scan overlay every time?
+  //
+  // Can I do it on first launch only and after that
+  // display some smaller scanning indicator that does not prevent
+  // the user from using the app right away?
+  //
+  showOverlay('scanning');   // Tell the user we're scanning
+  photodb.scan(function() {  // Run this function when scan is complete
+    if (images.length === 0)
+      showOverlay('nopix');
+    else
+      showOverlay(null);     // Hide the overlay
+  });
+}
 
 function imageDeleted(fileinfo) {
   // Find the deleted file in our images array
@@ -230,8 +295,14 @@ function imageDeleted(fileinfo) {
   // If we're in single photo display mode, then the only way this function,
   // gets called is when we delete the currently displayed photo.  This means
   // that we need to redisplay.
-  if (currentView === photoView) {
+  if (currentView === photoView && images.length > 0) {
     showPhoto(currentPhotoIndex);
+  }
+
+  // If there are no more photos show the "no pix" overlay
+  if (images.length === 0) {
+    setView(thumbnailListView);
+    showOverlay('nopix');
   }
 }
 
@@ -248,10 +319,15 @@ function deleteImage(n) {
 function imageCreated(fileinfo) {
   var insertPosition;
 
+  // If we were showing the 'no pictures' overlay, hide it
+  if (currentOverlay === 'nopix')
+    showOverlay(null);
+
   // If this new image is newer than the first one, it goes first
   // This is the most common case for photos, screenshots, and edits
-  if (fileinfo.date > images[0].date)
+  if (images.length === 0 || fileinfo.date > images[0].date) {
     insertPosition = 0;
+  }
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
@@ -269,7 +345,10 @@ function imageCreated(fileinfo) {
   // Create a thumbnail for this image and insert it at the right spot
   var thumbnail = createThumbnail(insertPosition);
   var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
+  if (thumbnailElts.length === 0)
+    thumbnails.appendChild(thumbnail);
+  else
+    thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
 
   // increment the index of each of the thumbnails after the new one
   for (var i = insertPosition; i < thumbnailElts.length; i++) {
@@ -342,11 +421,11 @@ function setView(view) {
   // In particular, we've got to move the thumbnails list into each view
   switch (view) {
   case thumbnailListView:
-    view.appendChild(thumbnails);
+    thumbnailListView.appendChild(thumbnails);
     thumbnails.style.width = '';
     break;
   case thumbnailSelectView:
-    view.appendChild(thumbnails);
+    thumbnailSelectView.appendChild(thumbnails);
     thumbnails.style.width = '';
     // Set the view header to a localized string
     updateSelectionState();
@@ -361,7 +440,10 @@ function setView(view) {
     // XXX: avoid using hardcoded 50px per image?
     thumbnails.style.width = (images.length * 50) + 'px';
     break;
-
+  case pickView:
+    pickView.appendChild(thumbnails);
+    thumbnails.style.width = '';
+    break;
   case editView:
     // We don't display the thumbnails in edit view.
     // the editPhoto() function does the necessary setup and
@@ -374,16 +456,17 @@ function setView(view) {
 }
 
 function createThumbnailList() {
+  // If thumbnails already exist, erase everything and start over
+  if (thumbnails.firstChild !== null) {
+    thumbnails.textContent = '';
+    images = [];
+  }
+
   // Enumerate existing image entries in the database and add thumbnails
-  // List the all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+  // List them all, and sort them in descending order by date.
+  photodb.enumerate('date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
-
-    // If this is the first image we've found,
-    // remove the 'no images' message
-    if (images.length === 0)
-      $('nophotos').classList.add('hidden');
 
     images.push(imagedata);                             // remember the image
     var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
@@ -408,31 +491,74 @@ function createThumbnail(imagenum) {
 }
 
 //
+// Web Activities
+//
+
+// Register this with navigator.mozSetMessageHandler
+function webActivityHandler(activityRequest) {
+  if (pendingPick)
+    cancelPick();
+
+  var activityName = activityRequest.source.name;
+
+  switch (activityName) {
+  case 'browse':
+    // The 'browse' activity is just the way we launch the app
+    // There's nothing else to do here.
+    setView(thumbnailListView);
+    break;
+  case 'pick':
+    startPick(activityRequest);
+    break;
+  }
+}
+
+var pendingPick;
+
+function startPick(activityRequest) {
+  pendingPick = activityRequest;
+  setView(pickView);
+}
+
+function finishPick(filename) {
+  pendingPick.postResult({
+    type: 'image/jpeg',
+    filename: filename
+  });
+  pendingPick = null;
+  setView(thumbnailListView);
+}
+
+function cancelPick() {
+  pendingPick.postError('pick cancelled');
+  pendingPick = null;
+  setView(thumbnailListView);
+}
+
+// XXX
+// If the user goes to the homescreen or switches to another app
+// the pick request is implicitly cancelled
+// Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
+// is fixed and replace it with an onerror handler on the activity to
+// switch out of pickView.
+window.addEventListener('mozvisiblitychange', function() {
+  if (document.mozHidden && pendingPick)
+    cancelPick();
+});
+
+
+//
 // Event handlers
 //
 
-// Wait for the "localized" event before displaying the document content
-window.addEventListener('localized', function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-
-  // Start off in thumbnail list view.
-  // XXX: if we're invoked by a web activity, we may want to
-  // start in some different mode
-  setView(thumbnailListView);
-});
-
 // Each of the photoFrame <div> elements may be subject to animated
 // transitions. So give them transitionend event handlers that
-// remove the -moz-transition style property when the transition ends.
+// remove the transition style property when the transition ends.
 // This helps prevent unexpected transitions.
 function removeTransition(event) {
-  event.target.style.MozTransition = '';
+  event.target.style.transition = null;
 }
+
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
 nextPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -441,8 +567,10 @@ nextPhotoFrame.addEventListener('transitionend', removeTransition);
 // This will generate tap, pan, swipe and transform events
 new GestureDetector(photoFrames).startDetecting();
 
-// Clicking on a thumbnail displays the photo
-// FIXME: add a transition here
+// Clicking on a thumbnail does different things depending on the view.
+// In thumbnail list mode, it displays the image. In thumbanilSelect mode
+// it selects the image. In pick mode, it finishes the pick activity
+// with the image filename
 thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   var target = evt.target;
   if (!target || !target.classList.contains('thumbnail'))
@@ -454,6 +582,9 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   else if (currentView === thumbnailSelectView) {
     target.classList.toggle('selected');
     updateSelectionState();
+  }
+  else if (currentView === pickView) {
+    finishPick(images[parseInt(target.dataset.index)].name);
   }
 });
 
@@ -490,6 +621,24 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
+// Clicking on the pick cancel button cancels the pick activity, which sends
+// us back to thumbail list view
+$('pick-cancel-button').onclick = function() {
+  cancelPick();
+};
+
+// The camera buttons should both launch the camera app
+$('photos-camera-button').onclick =
+  $('thumbnails-camera-button').onclick = function() {
+    var a = new MozActivity({
+      name: 'record',
+      data: {
+        type: 'photos'
+      }
+    });
+  };
+
+
 // Clicking on the delete button in thumbnail select mode deletes all
 // selected photos
 $('thumbnails-delete-button').onclick = function() {
@@ -523,16 +672,77 @@ $('photos-edit-button').onclick = function() {
   editPhoto(currentPhotoIndex);
 };
 
+// In single-photo mode, the share button shares the current photo
+$('photos-share-button').onclick = function() {
+  var image = images[currentPhotoIndex];
+  var filename = image.name;
+  shareFiles([filename]);
+};
+
+// Clicking on the share button in select mode shares all selected images
+$('thumbnails-share-button').onclick = function() {
+  var selected = thumbnails.querySelectorAll('.selected.thumbnail');
+  if (selected.length === 0)
+    return;
+  var filenames = [];
+  for (var i = 0; i < selected.length; i++) {
+    var index = parseInt(selected[i].dataset.index);
+    filenames.push(images[index].name);
+  }
+
+  shareFiles(filenames);
+};
+
+/*
+ * Share one or more images using Web Activities.
+ *
+ * XXX
+ * This is a preliminary implementation with two bug workarounds:
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
+ * we just use a type of "image" since the activity handler app can't
+ * register an array of the image mime types it accepts
+ *
+ * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
+ * we can share blobs directly, this function just shares filenames.
+ * This means that the app on the receiving end has to use device storage
+ * to get the actual file. Since that requires special permissions
+ * it might not be what we want.  We could change this code to use a
+ * data url and pass the whole image as a long, long string. Because this
+ * is sub-optimal and unstable, I'm using the activity name "share-filenames"
+ * instead of the more generic "share".
+ */
+function shareFiles(filenames) {
+  var a = new MozActivity({
+    name: 'share-filenames',
+    data: {
+      type: 'image',
+      filenames: filenames
+    }
+  });
+
+  a.onerror = function(e) {
+    if (a.error.name === 'NO_PROVIDER') {
+      var msg = navigator.mozL10n.get('share-noprovider');
+      alert(msg);
+    }
+    else {
+      console.log('share activity error:', a.error.name);
+    }
+  };
+}
+
+
 // In edit mode, clicking the Cancel button goes back to single photo mode
 $('edit-cancel-button').onclick = function() {
   exitEditMode();
 };
 
-
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
   // Abandon any current pan or zoom and reset the current photo view
   photoState.reset();
+  photoState.setFramesPosition();
 
   // Also reset the size and position of the previous and next photos
   resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
@@ -545,11 +755,7 @@ window.addEventListener('resize', function resizeHandler(evt) {
     var imagedata = images[n];
     var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
                        photoView.offsetWidth, photoView.offsetHeight);
-    var style = img.style;
-    style.width = fit.width + 'px';
-    style.height = fit.height + 'px';
-    style.left = fit.left + 'px';
-    style.top = fit.top + 'px';
+    positionImage(img, fit);
   }
 });
 
@@ -565,9 +771,7 @@ photoFrames.addEventListener('pan', function(event) {
 
   photoState.pan(event.detail.relative.dx,
                  event.detail.relative.dy);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 });
 
 // When the user lifts their finger after panning we get this event
@@ -625,15 +829,12 @@ photoFrames.addEventListener('swipe', function(event) {
     // Otherwise, just restore the current photo by undoing
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
-    var transition = 'all ' + time + 'ms linear';
-    previousPhotoFrame.style.MozTransition = transition;
-    currentPhotoFrame.style.MozTransition = transition;
-    nextPhotoFrame.style.MozTransition = transition;
 
+    currentPhotoFrame.style.transition =
+      nextPhotoFrame.style.transition =
+      previousPhotoFrame.style.transition = 'translate ' + time + 'ms ease';
     photoState.swipe = 0;
-    photoState.setFrameStyles(currentPhotoFrame,
-                              previousPhotoFrame,
-                              nextPhotoFrame);
+    photoState.setFramesPosition();
 
     // Ignore  pan and zoom gestures while the transition happens
     transitioning = true;
@@ -644,17 +845,12 @@ photoFrames.addEventListener('swipe', function(event) {
 // Quick zoom in and out with dbltap events
 photoFrames.addEventListener('dbltap', function(e) {
   var scale;
-  if (photoState.scale > 1)      // If already zoomed in,
-    scale = 1 / photoState.scale;  // zoom out to starting scale
-  else                           // Otherwise
-    scale = 2;                   // Zoom in by a factor of 2
+  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
+    scale = photoState.fit.baseScale / photoState.scale; // zoom back out
+  else                                                   // Otherwise
+    scale = 2;                                           // zoom in
 
-  currentPhoto.style.MozTransition = 'all 100ms linear';
-  currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.MozTransition = '';
-    currentPhoto.removeEventListener('transitionend', handler);
-  });
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
 });
 
 // We also support pinch-to-zoom
@@ -677,11 +873,13 @@ photoFrames.addEventListener('transform', function(e) {
 // now we use the same three <img> elements and just change their src
 // attributes.
 function displayImageInFrame(n, frame) {
-  // Make sure n is in range
-  if (n < 0 || n >= images.length)
-    return;
-
   var img = frame.firstChild;
+
+  // Make sure n is in range
+  if (n < 0 || n >= images.length) {
+    img.src = null;
+    return;
+  }
 
   // Asynchronously set the image url
   var imagedata = images[n];
@@ -695,11 +893,13 @@ function displayImageInFrame(n, frame) {
   var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
                      photoView.offsetWidth, photoView.offsetHeight);
 
-  var style = img.style;
-  style.width = fit.width + 'px';
-  style.height = fit.height + 'px';
-  style.left = fit.left + 'px';
-  style.top = fit.top + 'px';
+  positionImage(img, fit);
+}
+
+function positionImage(img, fit) {
+  img.style.transform =
+    'translate(' + fit.left + 'px,' + fit.top + 'px) ' +
+    'scale(' + fit.scale + ')';
 }
 
 // figure out the size and position of an image based on its size
@@ -718,7 +918,8 @@ function fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
     height: height,
     left: Math.floor((viewportWidth - width) / 2),
     top: Math.floor((viewportHeight - height) / 2),
-    scale: scale
+    scale: scale,
+    baseScale: scale
   };
 }
 
@@ -738,9 +939,7 @@ function showPhoto(n) {
   photoState = new PhotoState(currentPhoto,
                               images[n].metadata.width,
                               images[n].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 }
 
 // Transition to the next photo, animating it over the specified time (ms).
@@ -754,12 +953,10 @@ function nextPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Set transitions for the visible photos
-  var transition = 'left ' + time + 'ms linear, ' +
-    '-moz-transform ' + time + 'ms linear';
-  previousPhotoFrame.style.MozTransition = '';  // Not visible
-  currentPhotoFrame.style.MozTransition = transition;
-  nextPhotoFrame.style.MozTransition = transition;
+  // Set transitions for the visible photo frames and the photoFrames element
+  var transition = 'transform ' + time + 'ms ease';
+  currentPhotoFrame.style.transition = transition;
+  nextPhotoFrame.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -790,26 +987,23 @@ function nextPhoto(time) {
   photoState = new PhotoState(currentPhoto,
                               images[currentPhotoIndex].metadata.width,
                               images[currentPhotoIndex].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 
   // Update the image for the new next photo
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
-  // When the transition is done, restore the previous photo state
-  previousPhotoFrame.addEventListener('transitionend', function done(e) {
+  // When the transition is done, cleanup
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
+    this.removeEventListener('transitionend', done);
+
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
-
-    // FIXME: I want a jquery-style once() utility for auto removal
-    this.removeEventListener('transitionend', done);
   });
 }
 
 // Just like nextPhoto() but in the other direction
 function previousPhoto(time) {
-  // If already displaying the first one, do nothing.
+  // if already displaying the first one, do nothing.
   if (currentPhotoIndex === 0)
     return;
 
@@ -817,12 +1011,10 @@ function previousPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Transition the two visible photos
-  var transition = 'left ' + time + 'ms linear, ' +
-    '-moz-transform ' + time + 'ms linear';
-  previousPhotoFrame.style.MozTransition = transition;
-  currentPhotoFrame.style.MozTransition = transition;
-  nextPhotoFrame.style.MozTransition = ''; // Not visible
+  // Set transitions for the visible photo frames and the photoFrames element
+  var transition = 'transform ' + time + 'ms ease';
+  previousPhotoFrame.style.transition = transition;
+  currentPhotoFrame.style.transition = transition;
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -852,20 +1044,17 @@ function previousPhoto(time) {
   photoState = new PhotoState(currentPhoto,
                               images[currentPhotoIndex].metadata.width,
                               images[currentPhotoIndex].metadata.height);
-  photoState.setFrameStyles(currentPhotoFrame,
-                            previousPhotoFrame,
-                            nextPhotoFrame);
+  photoState.setFramesPosition();
 
   // Preload the new previous photo
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
-  // When the transition is done, restore the previous photo state
-  nextPhotoFrame.addEventListener('transitionend', function done(e) {
+  // When the transition is done do some cleanup
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
+    this.removeEventListener('transitionend', done);
+
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
-
-    // FIXME: I want a jquery-style once() utility for auto removal
-    this.removeEventListener('transitionend', done);
   });
 }
 
@@ -947,13 +1136,12 @@ function PhotoState(img, width, height) {
   this.reset();
 }
 
+PhotoState.BORDER_WIDTH = 3;  // Border between photos
+
 // An internal method called by reset(), zoom() and pan() to
 // set the size and position of the image element.
 PhotoState.prototype._reposition = function() {
-  this.img.style.width = this.width + 'px';
-  this.img.style.height = this.height + 'px';
-  this.img.style.top = this.top + 'px';
-  this.img.style.left = this.left + 'px';
+  positionImage(this.img, this.fit);
 };
 
 // Compute the default size and position of the photo
@@ -964,13 +1152,8 @@ PhotoState.prototype.reset = function() {
   this.viewportHeight = photoFrames.offsetHeight;
 
   // Compute the default size and position of the image
-  var fit = fitImage(this.photoWidth, this.photoHeight,
-                     this.viewportWidth, this.viewportHeight);
-  this.baseScale = fit.scale;
-  this.width = fit.width;
-  this.height = fit.height;
-  this.top = fit.top;
-  this.left = fit.left;
+  this.fit = fitImage(this.photoWidth, this.photoHeight,
+                      this.viewportWidth, this.viewportHeight);
 
   // Start off with no zoom
   this.scale = 1;
@@ -985,65 +1168,79 @@ PhotoState.prototype.reset = function() {
 // the image pixels at (centerX, centerY) remain at that position.
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, centerX, centerY) {
-  // Never zoom in farther than 2x the native resolution of the image
-  if (this.baseScale * this.scale * scale > 2) {
-    scale = 2 / (this.baseScale * this.scale);
+// If time is specified and non-zero, then we set a CSS transition
+// to animate the zoom.
+PhotoState.prototype.zoom = function(scale, centerX, centerY, time) {
+  // Never zoom in farther than the native resolution of the image
+  if (this.fit.scale * scale > 1) {
+    scale = 1 / (this.fit.scale);
   }
   // And never zoom out to make the image smaller than it would normally be
-  else if (this.scale * scale < 1) {
-    scale = 1 / this.scale;
+  else if (this.fit.scale * scale < this.fit.baseScale) {
+    scale = this.fit.baseScale / this.fit.scale;
   }
 
-  this.scale = this.scale * scale;
+  this.fit.scale = this.fit.scale * scale;
 
   // Change the size of the photo
-  this.width = Math.floor(this.photoWidth * this.baseScale * this.scale);
-  this.height = Math.floor(this.photoHeight * this.baseScale * this.scale);
+  this.fit.width = Math.floor(this.photoWidth * this.fit.scale);
+  this.fit.height = Math.floor(this.photoHeight * this.fit.scale);
 
   // centerX and centerY are in viewport coordinates.
   // These are the photo coordinates displayed at that point in the viewport
-  var photoX = centerX - this.left;
-  var photoY = centerY - this.top;
+  var photoX = centerX - this.fit.left;
+  var photoY = centerY - this.fit.top;
 
   // After zooming, these are the new photo coordinates.
-  // Note we just use the relative scale amount here, not this.scale
+  // Note we just use the relative scale amount here, not this.fit.scale
   var photoX = Math.floor(photoX * scale);
   var photoY = Math.floor(photoY * scale);
 
   // To keep that point still, here are the new left and top values we need
-  this.left = centerX - photoX;
-  this.top = centerY - photoY;
+  this.fit.left = centerX - photoX;
+  this.fit.top = centerY - photoY;
 
   // Now make sure we didn't pan too much: If the image fits on the
   // screen, center it. If the image is bigger than the screen, then
   // make sure we haven't gone past any edges
-  if (this.width <= this.viewportWidth) {
-    this.left = (this.viewportWidth - this.width) / 2;
+  if (this.fit.width <= this.viewportWidth) {
+    this.fit.left = (this.viewportWidth - this.fit.width) / 2;
   }
   else {
     // Don't let the left of the photo be past the left edge of the screen
-    if (this.left > 0)
-      this.left = 0;
+    if (this.fit.left > 0)
+      this.fit.left = 0;
 
     // Right of photo shouldn't be to the left of the right edge
-    if (this.left + this.width < this.viewportWidth) {
-      this.left = this.viewportWidth - this.width;
+    if (this.fit.left + this.fit.width < this.viewportWidth) {
+      this.fit.left = this.viewportWidth - this.fit.width;
     }
   }
 
-  if (this.height <= this.viewportHeight) {
-    this.top = (this.viewportHeight - this.height) / 2;
+  if (this.fit.height <= this.viewportHeight) {
+    this.fit.top = (this.viewportHeight - this.fit.height) / 2;
   }
   else {
     // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
+    if (this.fit.top > 0)
+      this.fit.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight) {
-      this.top = this.viewportHeight - this.height;
+    if (this.fit.top + this.fit.height < this.viewportHeight) {
+      this.fit.top = this.viewportHeight - this.fit.height;
     }
+  }
+
+  // If a time was specified, set up a transition so that the
+  // call to reposition below is animated
+  if (time) {
+    // If a time was specfied, animate the transformation
+    this.img.style.transition = 'transform ' + time + 'ms ease';
+    var self = this;
+    this.img.addEventListener('transitionend', function done(e) {
+      self.img.removeEventListener('transitionend', done);
+      self.img.style.transition = null;
+    });
   }
 
   this._reposition();
@@ -1052,54 +1249,54 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
 PhotoState.prototype.pan = function(dx, dy) {
   // Handle panning in the y direction first, since it is easier.
   // Don't pan in the y direction if we already fit on the screen
-  if (this.height > this.viewportHeight) {
-    this.top += dy;
+  if (this.fit.height > this.viewportHeight) {
+    this.fit.top += dy;
 
     // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
+    if (this.fit.top > 0)
+      this.fit.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight)
-      this.top = this.viewportHeight - this.height;
+    if (this.fit.top + this.fit.height < this.viewportHeight)
+      this.fit.top = this.viewportHeight - this.fit.height;
   }
 
   // Now handle the X dimension. In this case, we have to handle panning within
   // a zoomed image, and swiping to transition from one photo to the next
   // or previous.
-  if (this.width <= this.viewportWidth) {
+  if (this.fit.width <= this.viewportWidth) {
     // In this case, the photo isn't zoomed in, so we're just doing swiping
     this.swipe += dx;
   }
   else {
     if (this.swipe === 0) {
-      this.left += dx;
+      this.fit.left += dx;
 
       // If this would take the left edge of the photo past the
       // left edge of the screen, then we've got to do a swipe
-      if (this.left > 0) {
-        this.swipe += this.left;
-        this.left = 0;
+      if (this.fit.left > 0) {
+        this.swipe += this.fit.left;
+        this.fit.left = 0;
       }
 
       // Or, if this would take the right edge of the photo past the
       // right edge of the screen, then we've got to swipe the other way
-      if (this.left + this.width < this.viewportWidth) {
-        this.swipe += this.left + this.width - this.viewportWidth;
-        this.left = this.viewportWidth - this.width;
+      if (this.fit.left + this.fit.width < this.viewportWidth) {
+        this.swipe += this.fit.left + this.fit.width - this.viewportWidth;
+        this.fit.left = this.viewportWidth - this.fit.width;
       }
     }
     else if (this.swipe > 0) {
       this.swipe += dx;
       if (this.swipe < 0) {
-        this.left += this.swipe;
+        this.fit.left += this.swipe;
         this.swipe = 0;
       }
     }
     else if (this.swipe < 0) {
       this.swipe += dx;
       if (this.swipe > 0) {
-        this.left += this.swipe;
+        this.fit.left += this.swipe;
         this.swipe = 0;
       }
     }
@@ -1108,12 +1305,14 @@ PhotoState.prototype.pan = function(dx, dy) {
   this._reposition();
 };
 
-PhotoState.prototype.setFrameStyles = function(/*frames...*/) {
-  var translate = 'translate(' + this.swipe + 'px)';
-  for (var i = 0; i < arguments.length; i++)
-    arguments[i].style.MozTransform = translate;
+PhotoState.prototype.setFramesPosition = function() {
+  // XXX we ignore rtl languages for now.
+  currentPhotoFrame.style.transform = 'translateX(' + this.swipe + 'px)';
+  nextPhotoFrame.style.transform = 'translateX(' +
+    (this.viewportWidth + PhotoState.BORDER_WIDTH + this.swipe) + 'px)';
+  previousPhotoFrame.style.transform = 'translateX(' +
+    (-(this.viewportWidth + PhotoState.BORDER_WIDTH) + this.swipe) + 'px)';
 };
-
 
 var editedPhotoIndex;
 var editedPhotoURL; // The blob URL of the photo we're currently editing
@@ -1121,9 +1320,13 @@ var editSettings;
 var imageEditor;
 
 var editOptionButtons =
-  Array.slice($('edit-options').querySelectorAll('a.button'), 0);
+  Array.slice($('edit-options').querySelectorAll('a.radio.button'), 0);
+
+var editBgImageButtons =
+  Array.slice($('edit-options').querySelectorAll('a.bgimage.button'), 0);
 
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
+
 
 function editPhoto(n) {
   editedPhotoIndex = n;
@@ -1134,9 +1337,8 @@ function editPhoto(n) {
       x: 0, y: 0, w: images[n].metadata.width, h: images[n].metadata.height
     },
     gamma: 1,
-    effect: 'none',
     borderWidth: 0,
-    borderColor: '#fff'
+    borderColor: [0, 0, 0, 0]
   };
 
   // Start looking up the image file
@@ -1145,13 +1347,21 @@ function editPhoto(n) {
     // preview image and all the buttons that need it.
     editedPhotoURL = URL.createObjectURL(file);
 
+    // Create the image editor object
+    // This has to come after setView or the canvas size is wrong.
     imageEditor = new ImageEditor(editedPhotoURL,
                                   $('edit-preview-area'),
                                   editSettings);
 
+    // Configure the exposure tool as the first one shown
+    setEditTool('exposure');
+
+    // Set the exposure slider to its default value
+    exposureSlider.setExposure(0);
+
     // Set the background for all of the image buttons
     var backgroundImage = 'url(' + editedPhotoURL + ')';
-    editOptionButtons.forEach(function(b) {
+    editBgImageButtons.forEach(function(b) {
       b.style.backgroundImage = backgroundImage;
     });
   });
@@ -1159,38 +1369,48 @@ function editPhoto(n) {
   // Display the edit screen
   setView(editView);
 
-  // Configure the exposure tool as the first one shown
-  setEditTool('exposure');
-
-  // Set the exposure slider to its default value
-  exposureSlider.setExposure(0);
 
   // Set the default option buttons to correspond to those edits
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
+  $('edit-crop-aspect-free').classList.add('selected');
   $('edit-effect-none').classList.add('selected');
   $('edit-border-none').classList.add('selected');
-
 }
 
-// Effects and border buttons call this
+// Crop, Effect and border buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
   // highlight the button that has just been chosen. These
   // buttons have radio behavior
   var parent = this.parentNode;
-  var buttons = parent.querySelectorAll('a.button');
+  var buttons = parent.querySelectorAll('a.radio.button');
   Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
   this.classList.add('selected');
 
-  if (this.dataset.effect)
-    editSettings.effect = this.dataset.effect;
-  if (this.dataset.borderWidth) {
-    editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+  if (this === $('edit-crop-aspect-free'))
+    imageEditor.setCropAspectRatio();
+  else if (this === $('edit-crop-aspect-portrait'))
+    imageEditor.setCropAspectRatio(2, 3);
+  else if (this === $('edit-crop-aspect-landscape'))
+    imageEditor.setCropAspectRatio(3, 2);
+  else if (this === $('edit-crop-aspect-square'))
+    imageEditor.setCropAspectRatio(1, 1);
+  else if (this.dataset.effect) {
+    editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
+    imageEditor.edit();
   }
-  if (this.dataset.borderColor) {
-    editSettings.borderColor = this.dataset.borderColor;
+  else {
+    if (this.dataset.borderWidth) {
+      editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
+    }
+    if (this.dataset.borderColor === 'white') {
+      editSettings.borderColor = [1, 1, 1, 1];
+    }
+    else if (this.dataset.borderColor === 'black') {
+      editSettings.borderColor = [0, 0, 0, 1];
+    }
+    imageEditor.edit();
   }
-  imageEditor.edit(editSettings);
 }
 
 /*
@@ -1282,7 +1502,7 @@ $('exposure-slider').onchange = function() {
   var factor = -1;  // XXX: adjust this factor to get something reasonable.
   var gamma = Math.pow(2, stops * factor);
   editSettings.gamma = gamma;
-  imageEditor.edit(editSettings);
+  imageEditor.edit();
 };
 
 function setEditTool(tool) {
@@ -1292,11 +1512,23 @@ function setEditTool(tool) {
   var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
 
+  // If we were in crop mode, perform the crop and then
+  // exit crop mode. If the user tapped the Crop button then we'll go
+  // right back into crop mode, but this means that the Crop button both
+  // acts as a mode switch button and a "do the crop now" button.
+  imageEditor.cropImage();
+  imageEditor.hideCropOverlay();
+
   // Now select and show the correct set based on tool
   switch (tool) {
   case 'exposure':
     $('edit-exposure-button').classList.add('selected');
     $('exposure-slider').classList.remove('hidden');
+    break;
+  case 'crop':
+    $('edit-crop-button').classList.add('selected');
+    $('edit-crop-options').classList.remove('hidden');
+    imageEditor.showCropOverlay();
     break;
   case 'effect':
     $('edit-effect-button').classList.add('selected');
@@ -1310,8 +1542,19 @@ function setEditTool(tool) {
 }
 
 $('edit-exposure-button').onclick = function() { setEditTool('exposure'); };
+$('edit-crop-button').onclick = function() { setEditTool('crop'); };
 $('edit-effect-button').onclick = function() { setEditTool('effect'); };
 $('edit-border-button').onclick = function() { setEditTool('border'); };
+$('edit-crop-none').onclick = function() {
+  // Switch to free-form cropping
+  Array.forEach($('edit-crop-options').querySelectorAll('a.radio.button'),
+                function(b) { b.classList.remove('selected'); });
+  $('edit-crop-aspect-free').classList.add('selected');
+  imageEditor.setCropAspectRatio(); // freeform
+
+  // And revert to full-size image
+  imageEditor.undoCrop();
+};
 
 function exitEditMode(saved) {
   // Revoke the blob URL we've been using
@@ -1319,7 +1562,7 @@ function exitEditMode(saved) {
   editedPhotoURL = null;
 
   // close the editor object
-  imageEditor.close();
+  imageEditor.destroy();
   imageEditor = null;
 
   // We came in to edit mode from photoView.  If the user cancels the edit
@@ -1345,7 +1588,7 @@ function exitEditMode(saved) {
 // change event when we manually add something to it or at least have that
 // option
 $('edit-save-button').onclick = function() {
-  imageEditor.getFullSizeBlob(editSettings, 'image/jpeg', function(blob) {
+  imageEditor.getFullSizeBlob('image/jpeg', function(blob) {
 
     var original = images[editedPhotoIndex].name;
     var basename, extension, filename;
@@ -1383,3 +1626,34 @@ $('edit-save-button').onclick = function() {
     exitEditMode(true);
   });
 };
+
+//
+// Overlay messages
+//
+var currentOverlay;  // The id of the current overlay or null if none.
+
+//
+// If id is null then hide the overlay. Otherwise, look up the localized
+// text for the specified id and display the overlay with that text.
+// Supported ids include:
+//
+//   nocard: no sdcard is installed in the phone
+//   cardinuse: the sdcard is being used by USB mass storage
+//   nopix: no pictures found
+//   scanning: the app is scanning for new photos
+//
+// Localization is done using the specified id with "-title" and "-text"
+// suffixes.
+//
+function showOverlay(id) {
+  currentOverlay = id;
+
+  if (id === null) {
+    $('overlay').classList.add('hidden');
+    return;
+  }
+
+  $('overlay-title').textContent = navigator.mozL10n.get(id + '-title');
+  $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
+  $('overlay').classList.remove('hidden');
+}

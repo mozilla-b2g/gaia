@@ -7,8 +7,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mozbrowser",
-    "systemXHR"
+    "browser",
+    "systemXHR",
+    "settings"
   ],
   "locales": {
     "ar": {

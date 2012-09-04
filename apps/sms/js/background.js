@@ -6,8 +6,6 @@
     return;
 
   /* === Setup === */
-  SettingsListener.init();
-
   var ringtonePlayer = new Audio();
 
   /* === Settings === */
@@ -23,6 +21,10 @@
 
   mozSms.addEventListener('received', function received(evt) {
     var message = evt.message;
+    // The black list includes numbers for which notifications should not
+    // progress to the user. Se blackllist.js for more information.
+    if (BlackList.has(message.sender))
+      return;
 
     if (activeSMSSound) {
       var ringtonePlayer = new Audio();
@@ -53,7 +55,17 @@
         app.launch();
       };
 
-      NotificationHelper.send(message.sender, message.body, iconURL, notiClick);
+      ContactDataManager.getContactData(message.sender,
+      function gotContact(contact) {
+        var sender;
+        if (contact && contact.length > 0) {
+          sender = contact[0].name;
+        } else {
+          sender = message.sender;
+        }
+
+        NotificationHelper.send(sender, message.body, iconURL, notiClick);
+      });
     };
   });
 }());

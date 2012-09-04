@@ -1,7 +1,14 @@
 (function(window) {
 
   var Month = Calendar.Template.create({
-    busy: '<span class="{value}">&nbsp;</span>',
+    busy: '<span class="' +
+              'busytime-{_id} ' +
+              'busy-length-{length} ' +
+              'busy-{start} ' +
+              'calendar-id-{calendarId} calendar-color calendar-display' +
+            '">' +
+            '&nbsp;' +
+          '</span>',
 
     currentMonth: [
       '<span class="month">{month}</span>',
@@ -24,7 +31,7 @@
     ].join(''),
 
     month: [
-      '<section id="{id}" class="month">',
+      '<section id="{id}" class="month {additionalClass}">',
         '{content|s}',
       '</section>'
     ].join(''),

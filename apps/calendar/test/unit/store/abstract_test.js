@@ -17,11 +17,6 @@ suite('store/abstract', function() {
     // persist stuff.
     subject._store = 'accounts';
 
-    subject._createModel = function(object, id) {
-      object._id = id;
-      return object;
-    };
-
     db.open(function(err) {
       assert.ok(!err);
       done();
@@ -42,6 +37,10 @@ suite('store/abstract', function() {
     }
   });
 
+  teardown(function() {
+    db.close();
+  });
+
   test('initialization', function() {
     assert.equal(subject.db, db);
     assert.instanceOf(subject, Calendar.Responder);
@@ -53,6 +52,7 @@ suite('store/abstract', function() {
     var events;
     var id;
     var object;
+    var addDepsCalled;
 
     function watchEvent(event, done) {
       subject.once(event, function() {
@@ -71,8 +71,13 @@ suite('store/abstract', function() {
     }
 
     setup(function(done) {
+      addDepsCalled = null;
       object = this.object;
       events = {};
+
+      subject._addDependents = function() {
+        addDepsCalled = arguments;
+      }
 
       if (this.persist !== false) {
         subject.persist(object, function(err, key) {
@@ -149,6 +154,7 @@ suite('store/abstract', function() {
 
     suite('update', function() {
       var id = 'uniq';
+
       suiteSetup(function() {
         this.persist = true;
         this.object = { providerType: 'local', _id: 'uniq' };
@@ -193,6 +199,8 @@ suite('store/abstract', function() {
       });
 
       test('db persistance', function(done) {
+        assert.equal(addDepsCalled[0], object);
+
         get(id, function(err, result) {
           if (err) {
             done(err);
@@ -232,7 +240,7 @@ suite('store/abstract', function() {
       removeDepsCalled = false;
 
       subject._removeDependents = function() {
-        removeDepsCalled = true;
+        removeDepsCalled = arguments;
       };
 
       subject.remove(id, function() {
@@ -251,7 +259,9 @@ suite('store/abstract', function() {
 
     test('remove', function() {
       assert.ok(callbackCalled);
-      assert.ok(removeDepsCalled);
+      assert.equal(removeDepsCalled[0], id);
+      assert.instanceOf(removeDepsCalled[1], IDBTransaction);
+
       assert.ok(!subject._cached[id], 'should remove cached account');
     });
 

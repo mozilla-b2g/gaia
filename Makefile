@@ -38,13 +38,19 @@ HOMESCREEN?=$(SCHEME)system.$(GAIA_DOMAIN)
 
 BUILD_APP_NAME?=*
 
-REPORTER=Spec
+REPORTER?=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
 
-GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
+ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
+  $(shell mkdir -p outoftree_apps \
+    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
+      $(foreach appdir,$(wildcard $(dir)/*),\
+        && ln -sf $(appdir) outoftree_apps/)))
+  GAIA_APP_SRCDIRS += outoftree_apps
+endif
 
-GAIA_APP_RELATIVEPATH=$(foreach dir, $(GAIA_APP_SRCDIRS), $(wildcard $(dir)/*))
+GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
@@ -90,6 +96,9 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+ifeq (${SYS}/${ARCH},Darwin/i386)
+ARCH=x86_64
+endif
 SEP=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
@@ -107,6 +116,7 @@ DOWNLOAD_CMD = wget
 endif
 
 # Test agent setup
+TEST_COMMON=test_apps/test-agent/common
 TEST_AGENT_DIR=tools/test-agent/
 ifeq ($(strip $(NODEJS)),)
 	NODEJS := `which node`
@@ -130,19 +140,38 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
+# Settings database setup
+DB_TARGET_PATH = /data/local/indexedDB
+DB_SOURCE_PATH = profile/indexedDB/chrome
+
 # Generate profile/
-profile: preferences permissions test-agent-config offline extensions
+profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
+	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
+	then \
+	  echo "Settings DB does not exists, creating an initial one:"; \
+	  $(call run-js-command, settings); \
+	fi ;
+
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
+app-makefiles:
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
+		do \
+			make -C `dirname $$mfile`; \
+		done; \
+	done;
+
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
-webapp-manifests:
+webapp-manifests: install-xulrunner-sdk
 	@echo "Generated webapps"
 	@mkdir -p profile/webapps
-	$(call run-js-command, webapp-manifests)
+	@$(call run-js-command, webapp-manifests)
 	@cat profile/webapps/webapps.json
 	@echo "Done"
 
@@ -150,33 +179,11 @@ webapp-manifests:
 webapp-zip: stamp-commit-hash
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
+	@rm -rf apps/system/camera
+	@cp -r apps/camera apps/system/camera
+	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
-	@for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.webapp ]; \
-		then \
-			n=$$(basename $$d); \
-			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
-			then \
-				dirname=$$n.$(GAIA_DOMAIN); \
-				mkdir -p profile/webapps/$$dirname; \
-				cdir=`pwd`; \
-				for f in `grep -r shared/js $$d` ;\
-				do \
-					if [[ "$$f" == *shared/js* ]] ;\
-					then \
-						file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1;`; \
-						mkdir -p $$d/shared/js ;\
-						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
-					fi \
-				done; \
-				cd $$d; \
-				zip -r application.zip *; \
-				cd $$cdir; \
-				mv $$d/application.zip profile/webapps/$$dirname/application.zip; \
-			fi \
-		fi \
-	done;
+	@$(call run-js-command, webapp-zip)
 	@echo "Done"
 endif
 
@@ -186,7 +193,7 @@ offline: webapp-manifests webapp-zip
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -222,49 +229,53 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
+	rm -rf xulrunner-sdk
+	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+	unzip xulrunner*.zip && rm xulrunner*.zip
 else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
+endif
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
 
 define run-js-command
-	@echo "run-js-command $1";                                                  \
+	echo "run-js-command $1";                                                   \
 	JS_CONSTS='                                                                 \
 	const GAIA_DIR = "$(CURDIR)"; const PROFILE_DIR = "$(CURDIR)$(SEP)profile"; \
 	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
-	const GAIA_APP_RELATIVEPATH = "$(GAIA_APP_RELATIVEPATH)";                   \
-	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";';                               \
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" "build/$(strip $1).js"
+	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
+	const GAIA_ENGINE = "xpcshell";                                             \
+	';                                                                          \
+	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
 settingsdb: install-xulrunner-sdk
 	@echo "B2G pre-populate settings DB."
-	$(call run-js-command, settings)
+	@$(call run-js-command, settings)
 
-DB_TARGET_PATH = /data/local/indexedDB
-ifneq ($(SYS),Darwin)
-DB_SOURCE_PATH = $(CURDIR)/build/indexeddb
-else
-DB_SOURCE_PATH = profile/indexedDB/chrome
-endif
 .PHONY: install-settingsdb
 install-settingsdb: settingsdb install-xulrunner-sdk
 	$(ADB) start-server
+	@echo 'Stoping b2g'
+	$(ADB) shell stop b2g
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
 	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	$(ADB) shell kill $(shell $(ADB) shell toolbox ps | grep "b2g" | awk '{ print $$2; }')
+	@echo 'Starting b2g'
+	$(ADB) shell start b2g
 	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, preferences)
+	@$(call run-js-command, preferences)
 	if [ -f custom-prefs.js ]; \
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
@@ -273,10 +284,17 @@ preferences: install-xulrunner-sdk
 
 
 # Generate profile/permissions.sqlite
-permissions: install-xulrunner-sdk
+permissions: webapp-manifests install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
-	$(call run-js-command, permissions)
+	@$(call run-js-command, permissions)
+	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
+
+# Generate profile/
+applications-data: install-xulrunner-sdk
+	@echo "Generating application data..."
+	test -d profile || mkdir -p profile
+	@$(call run-js-command, applications-data)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
@@ -301,6 +319,11 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
+TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+.PHONY: test-integration
+test-integration:
+	@test_apps/test-agent/common/test/bin/test $(TESTS)
+
 .PHONY: tests
 tests: webapp-manifests offline
 	echo "Checking if the mozilla build has tests enabled..."
@@ -318,16 +341,20 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
-	mkdir -p common/vendor/test-agent/
-	mkdir -p common/vendor/marionette-client/
-	mkdir -p common/vendor/chai/
-	rm -f common/vendor/test-agent/test-agent*.js
-	rm -f common/vendor/marionette-client/*.js
-	rm -f common/vendor/chai/*.js
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js common/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css common/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js common/vendor/marionette-client/
-	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js common/vendor/chai/
+	mkdir -p $(TEST_COMMON)/vendor/test-agent/
+	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
+	mkdir -p $(TEST_COMMON)/vendor/chai/
+	rm -Rf tools/xpcwindow
+	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
+	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
+	rm -f $(TEST_COMMON)/vendor/chai/*.js
+	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
+	rm -R tools/xpcwindow/vendor/
+
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
+	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
 # for use with the test agent GUI
@@ -351,19 +378,29 @@ test-agent-config: test-agent-bootstrap-apps
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		  mkdir -p $$d/test/unit ; \
 		  mkdir -p $$d/test/integration ; \
-			cp -f ./common/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
-			cp -f ./common/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
+			cp -f $(TEST_COMMON)/test/boilerplate/_proxy.html $$d/test/unit/_proxy.html; \
+			cp -f $(TEST_COMMON)/test/boilerplate/_sandbox.html $$d/test/unit/_sandbox.html; \
 	done
 	@echo "Done bootstrapping test proxies/sandboxes";
+
 # Temp make file method until we can switch
 # over everything in test
+ifneq ($(strip $(APP)),)
+APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
+endif
 .PHONY: test-agent-test
 test-agent-test:
+ifneq ($(strip $(APP)),)
+	@echo 'Running tests for $(APP)';
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER) $(APP_TEST_LIST)
+else
+	@echo 'Running all tests';
 	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --reporter $(REPORTER)
+endif
 
 .PHONY: test-agent-server
 test-agent-server: common-install
@@ -401,7 +438,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
@@ -442,7 +479,7 @@ forward:
 
 # update the manifest.appcache files to match what's actually there
 update-offline-manifests:
-	for d in `find ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
+	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
 	do \
 		rm -rf $$d/manifest.appcache ;\
 		if [ -f $$d/manifest.webapp ] ;\
@@ -521,3 +558,8 @@ purge:
 	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
+
+# clean out build products
+clean:
+	rm -rf profile xulrunner-sdk
+

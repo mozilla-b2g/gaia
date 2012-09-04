@@ -4,64 +4,145 @@
  * This is Music Application of Gaia
  */
 
-// Here we use the MediaDB.js which gallery is using
-// to index our music contents with metadata parsed.
-// So the behaviors of musicdb are the same as the MediaDB in gallery
-var musicdb = new MediaDB('music', metadataParser, {
-  indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
-  // mp3 mediaType: 'audio/mpeg'
-  // ogg mediaType: 'video/ogg'
-  // empty mediaType: no mp3 mediaType on B2G device
-  // desktop build does not has this issue
-  mimeTypes: ['audio/mpeg', 'video/ogg', '']
-});
-musicdb.onready = function() {
-  buildUI();  // List files we already know about
-  musicdb.scan();  // Go look for more.
+// The MediaDB object that manages the filesystem and the database of metadata
+// See init()
+var musicdb;
+var isEmpty = true;
+
+function init() {
+  // Here we use the mediadb.js which gallery is using (in shared/js/)
+  // to index our music contents with metadata parsed.
+  // So the behaviors of musicdb are the same as the MediaDB in gallery
+  musicdb = new MediaDB('music', metadataParser, {
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
+    // mp3 mediaType: 'audio/mpeg'
+    // ogg mediaType: 'video/ogg'
+    // empty mediaType: no mp3 mediaType on B2G device
+    // desktop build does not have this issue
+    mimeTypes: ['audio/mpeg', 'video/ogg', '']
+  });
+
+  // This is called when DeviceStorage becomes unavailable because the
+  // sd card is removed or because it is mounted for USB mass storage
+  // This may be called before onready if it is unavailable to begin with
+  musicdb.onunavailable = function(why) {
+    if (why === 'unavailable')
+      showOverlay('nocard');
+    else if (why === 'shared')
+      showOverlay('cardinuse');
+  }
+
+  musicdb.onready = function() {
+    // Hide the nocard overlay if it is displayed
+    if (currentOverlay === 'nocard')
+      showOverlay(null);
+
+    showCurrentView();  // Display song covers we know about
+
+    // Each time we become ready there may be an entirely new set of
+    // music in device storage (new SD card, or USB mass storage transfer)
+    // so we have to rescan each time.
+    scan();
+  };
 
   // Since DeviceStorage doesn't send notifications yet, we're going
   // to rescan the files every time our app becomes visible again.
   // Eventually DeviceStorage will do notifications and MediaDB will
   // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      musicdb.scan();
+  document.addEventListener('mozvisibilitychange', function vc() {
+    if (!document.mozHidden && musicdb.ready) {
+      scan();
     }
   });
-};
-musicdb.onchange = function(type, files) {
-  rebuildUI();
-};
 
-function buildUI() {
+  // Notification of files that are added or deleted.
+  // Eventually device storage will let us know about these.
+  // For now we have to call scan(), which will trigger this function.
+  musicdb.onchange = function(type, files) {
+    if (type === 'deleted') {
+      // TODO handle deleted files
+      showCurrentView();
+    }
+    else if (type === 'created') {
+      // TODO handle new files
+      showCurrentView();
+    }
+  };
+}
+
+function scan() {
+  //
+  // XXX: is it too intrusive to display the scan overlay every time?
+  //
+  // Can I do it on first launch only and after that
+  // display some smaller scanning indicator that does not prevent
+  // the user from using the app right away?
+  //
+  showOverlay('scanning');   // Tell the user we're scanning
+  musicdb.scan(function() {  // Run this function when scan is complete
+    if (isEmpty)
+      showOverlay('nosongs');
+    else
+      showOverlay(null);     // Hide the overlay
+  });
+}
+
+//
+// Overlay messages
+//
+var currentOverlay;  // The id of the current overlay or null if none.
+
+//
+// If id is null then hide the overlay. Otherwise, look up the localized
+// text for the specified id and display the overlay with that text.
+// Supported ids include:
+//
+//   nocard: no sdcard is installed in the phone
+//   cardinuse: the sdcard is being used by USB mass storage
+//   nosongs: no songs found
+//   scanning: the app is scanning for new photos
+//
+// Localization is done using the specified id with "-title" and "-text"
+// suffixes.
+//
+function showOverlay(id) {
+  currentOverlay = id;
+
+  var title = navigator.mozL10n.get(id + '-title');
+  var text = navigator.mozL10n.get(id + '-text');
+
+  if (id === null) {
+    document.getElementById('overlay').classList.add('hidden');
+    return;
+  }
+
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-text').textContent = text;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+function showCurrentView() {
+  TilesView.clean();
   // Enumerate existing song entries in the database
   // List the all, and sort them in ascending order by artist.
   var option = 'artist';
 
   musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    ListView.update.bind(ListView, option));
-}
+                    TilesView.update.bind(TilesView));
 
-//
-// XXX
-// This is kind of a hack. Our onchange handler is dumb and just
-// tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in
-// a row, so these flags prevent two enumerations from happening in parallel.
-// Ideally, we'd just handle the changes individually.
-//
-var buildingUI = false;
-var needsRebuild = false;
-function rebuildUI() {
-  if (buildingUI) {
-    needsRebuild = true;
-    return;
+  switch (TabBar.option) {
+    case 'playlist':
+      // TODO update the predefined playlists
+      break;
+    case 'artist':
+    case 'album':
+      changeMode(MODE_LIST);
+      ListView.clean();
+
+      musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                        ListView.update.bind(ListView, TabBar.option));
+      break;
   }
-
-  buildingUI = true;
-  ListView.clean();
-  // This is asynchronous, but will set buildingUI to false when done
-  buildUI();
 
 }
 
@@ -70,9 +151,17 @@ var MODE_TILES = 1;
 var MODE_LIST = 2;
 var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
-var currentMode;
+var currentMode, fromMode;
 
 function changeMode(mode) {
+  if (mode === currentMode)
+    return;
+
+  if (fromMode >= mode) {
+    fromMode = mode - 1;
+  } else {
+    fromMode = currentMode;
+  }
   currentMode = mode;
 
   document.body.classList.remove('tiles-mode');
@@ -95,6 +184,11 @@ function changeMode(mode) {
       break;
   }
 }
+
+// We have two types of the playing sources
+// These are for player to know which source type is playing
+var TYPE_MIX = 'mix';
+var TYPE_LIST = 'list';
 
 // Title Bar
 var TitleBar = {
@@ -125,11 +219,7 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            if (currentMode === MODE_SUBLIST) {
-              changeMode(MODE_LIST);
-            } else if (currentMode === MODE_PLAYER) {
-              changeMode(MODE_SUBLIST);
-            }
+            changeMode(fromMode);
 
             break;
           case 'title-text':
@@ -153,8 +243,97 @@ var TilesView = {
     return this._view = document.getElementById('views-tiles');
   },
 
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
+
   init: function tv_init() {
+    this.dataSource = [];
+    this.index = 0;
+
     this.view.addEventListener('click', this);
+  },
+
+  clean: function tv_clean() {
+    this.dataSource = [];
+    this.index = 0;
+    this.view.innerHTML = '';
+    this.view.scrollTop = 0;
+
+    isEmpty = true;
+    showOverlay('nosongs');
+  },
+
+  setItemImage: function tv_setItemImage(item, image) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (!image)
+      return;
+
+    item.addEventListener('load', cropImage);
+    item.src = createBase64URL(image);
+  },
+
+  update: function tv_update(result) {
+    if (result === null)
+      return;
+
+    // If we were showing the 'no songs' overlay, hide it
+    if (currentOverlay === 'nosongs')
+      showOverlay(null);
+
+    isEmpty = false;
+
+    this.dataSource.push(result);
+
+    var container = document.createElement('div');
+    container.className = 'tile-container';
+
+    var tile = document.createElement('div');
+
+    var defaultImage = document.createElement('div');
+    defaultImage.textContent = result.metadata.title ||
+      navigator.mozL10n.get('unknownTitle');
+
+    var img = document.createElement('img');
+    img.className = 'tile-image';
+
+    var image = result.metadata.picture;
+    this.setItemImage(img, image);
+
+    // There are 6 tiles in one group
+    // and the first tile is the main-tile
+    // so we mod 6 to find out who is the main-tile
+    if (this.index % 6 === 0) {
+      tile.classList.add('main-tile');
+      defaultImage.classList.add('main-tile-default-image');
+    } else {
+      tile.classList.add('sub-tile');
+      defaultImage.classList.add('sub-tile-default-image');
+    }
+
+    // Since 6 tiles are in one group
+    // the even group will be floated to left
+    // the odd group will be floated to right
+    if (Math.floor(this.index / 6) % 2 === 0) {
+      tile.classList.add('float-left');
+    } else {
+      tile.classList.add('float-right');
+    }
+
+    tile.classList.add('color-' + this.index % 7);
+
+    container.dataset.index = this.index;
+
+    container.appendChild(defaultImage);
+    container.appendChild(img);
+    tile.appendChild(container);
+    this.view.appendChild(tile);
+
+    this.index++;
   },
 
   handleEvent: function tv_handleEvent(evt) {
@@ -164,12 +343,25 @@ var TilesView = {
         if (!target)
           return;
 
-        changeMode(MODE_LIST);
+        if (target.dataset.index) {
+          var handler = tv_playSong.bind(this);
+
+          target.addEventListener('transitionend', handler);
+        }
 
         break;
 
       default:
         return;
+    }
+
+    function tv_playSong() {
+      PlayerView.setSourceType(TYPE_MIX);
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.play(target);
+
+      changeMode(MODE_PLAYER);
+      target.removeEventListener('transitionend', handler);
     }
   }
 };
@@ -214,9 +406,6 @@ var ListView = {
   update: function lv_update(option, result) {
     if (result === null)
       return;
-
-    if (this.dataSource.length === 0)
-      document.getElementById('nosongs').style.display = 'none';
 
     this.dataSource.push(result);
 
@@ -422,6 +611,7 @@ var SubListView = {
           return;
 
         if (target.dataset.index) {
+          PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
 
@@ -469,9 +659,8 @@ var PlayerView = {
     this.album = document.getElementById('player-cover-album');
 
     this.timeoutID;
-    this.caption = document.getElementById('player-cover-caption');
+    this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
-    this.coverControl = document.getElementById('player-cover-buttons');
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
@@ -494,6 +683,10 @@ var PlayerView = {
     this.audio.addEventListener('ended', this);
   },
 
+  setSourceType: function pv_setSourceType(type) {
+    this.sourceType = type;
+  },
+
   // This function is for the animation on the album art (cover).
   // The info (album, artist) will initially show up when a song being played,
   // if users does not tap the album art (cover) again,
@@ -501,22 +694,14 @@ var PlayerView = {
   // however, if a user taps before 5 seconds ends,
   // then the timeout will be cleared to keep the info on screen.
   showInfo: function pv_showInfo() {
-    this.caption.classList.remove('resetSilde');
-    this.caption.classList.add('slideDown');
-
-    this.coverControl.classList.remove('resetSilde');
-    this.coverControl.classList.add('slideUp');
+    this.cover.classList.add('slideOut');
 
     if (this.timeoutID)
       window.clearTimeout(this.timeoutID);
 
     this.timeoutID = window.setTimeout(
       function pv_hideInfo() {
-        this.caption.classList.remove('slideDown');
-        this.caption.classList.add('resetSilde');
-
-        this.coverControl.classList.remove('slideUp');
-        this.coverControl.classList.add('resetSilde');
+        this.cover.classList.remove('slideOut');
       }.bind(this),
       5000
     );
@@ -592,7 +777,8 @@ var PlayerView = {
   },
 
   next: function pv_next() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -603,7 +789,8 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -722,6 +909,7 @@ var TabBar = {
   },
 
   init: function tab_init() {
+    this.option = '';
     this.view.addEventListener('click', this);
   },
 
@@ -729,7 +917,7 @@ var TabBar = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        var option = target.dataset.option;
+        this.option = target.dataset.option;
         if (!target)
           return;
 
@@ -748,15 +936,15 @@ var TabBar = {
               }
             };
 
-            ListView.update(option, data);
+            ListView.update(this.option, data);
             break;
           case 'tabs-artists':
           case 'tabs-albums':
             changeMode(MODE_LIST);
             ListView.clean();
 
-            musicdb.enumerate('metadata.' + option, null, 'nextunique',
-              ListView.update.bind(ListView, option));
+            musicdb.enumerate('metadata.' + this.option, null, 'nextunique',
+              ListView.update.bind(ListView, this.option));
 
             break;
           case 'tabs-more':
@@ -798,7 +986,7 @@ window.addEventListener('DOMContentLoaded', function() {
           evt.preventDefault();
           break;
         case MODE_PLAYER:
-          changeMode(MODE_LIST);
+          changeMode(MODE_SUBLIST);
           evt.preventDefault();
           break;
       }
@@ -813,4 +1001,6 @@ window.addEventListener('localized', function showBody() {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
+
+  init();
 });

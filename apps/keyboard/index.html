@@ -11,7 +11,7 @@
   <link rel="stylesheet" type="text/css" href="style/keyboard.css">
 </head>
 <body>
-  <div id="keyboard" class="hide" data-hidden="true" onmousedown="return false;"></div>
+  <div id="keyboard" class="hide" data-hidden="true" onmousedown="this.setCapture(false); return false;"></div>
   <!-- This is to pre-load styles for keys avoiding flickering -->
   <div class="cache">
       <button class="keyboard-key"><span class="visual-wrapper"><span>C</span></span></button>

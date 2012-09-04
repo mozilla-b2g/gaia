@@ -2,9 +2,10 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
-  requireApp('calendar/js/templates/month.js');
-  requireApp('calendar/js/views/month_child.js');
-  requireApp('calendar/js/views/month.js');
+  requireLib('timespan.js');
+  requireLib('templates/month.js');
+  requireLib('views/month_child.js');
+  requireLib('views/month.js');
 });
 
 suite('views/month', function() {
@@ -31,8 +32,11 @@ suite('views/month', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="month-view"><div class="monthView"></div>',
-      '<div class="monthHeader"></div></div>'
+      '<div id="current-month-year">',
+      '</div>',
+      '<div id="month-view">',
+        '<div id="month-displays"></div>',
+      '</div>'
     ].join('');
 
     document.body.appendChild(div);
@@ -42,40 +46,38 @@ suite('views/month', function() {
     busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.Month({
-      app: app,
-      monthSelector: '#test .monthView',
-      currentMonthSelector: '#test .monthHeader'
+      app: app
     });
 
   });
 
   test('initialization', function() {
-    assert.equal(subject.monthSelector, '#test .monthView');
-    assert.equal(subject.currentMonthSelector, '#test .monthHeader');
     assert.instanceOf(subject, Calendar.View);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
 
+  test('#container', function() {
+    assert.ok(subject.container);
+  });
+
+  test('#currentMonth', function() {
+    assert.ok(subject.currentMonth);
+  });
+
   suite('events', function() {
 
-    test('currentMonthChange', function() {
-      var calledUpdate = null,
-          calledActivateMonth = null;
-
-      subject.updateCurrentMonth = function() {
-        calledUpdate = true;
-      };
+    test('monthChange', function() {
+      var calledActivateMonth = null;
 
       subject.activateMonth = function(month) {
         calledActivateMonth = month;
       };
 
       var date = new Date(2012, 1, 1);
-      controller.setCurrentMonth(date);
+      controller.move(date);
 
-      assert.isTrue(calledUpdate);
-      assert.equal(calledActivateMonth, date);
+      assert.deepEqual(calledActivateMonth, date);
     });
 
   });
@@ -84,54 +86,23 @@ suite('views/month', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
 
-  test('#monthsDisplayElement', function() {
-    var el = document.querySelector('#test .monthView');
-
-    assert.equal(
-      subject.monthsDisplayElement(),
-      el
-    );
-  });
-
-  test('#currentMonthElement', function() {
-    var el = document.querySelector('#test .monthHeader');
-
-    assert.equal(
-      subject.currentMonthElement(),
-      el
-    );
-  });
-
-  test('#_renderCurrentMonth', function() {
-    //September 2012
-    controller.setCurrentMonth(new Date(2012, 8, 1));
-    var result = subject._renderCurrentMonth();
-
-    assert.ok(result);
-
-    assert.include(
-      result,
-      '2012',
-      'should render year'
-    );
-
-    assert.include(
-      result,
-      subject.monthNames[8],
-      'should render September'
-    );
-  });
-
   suite('month navigators', function() {
     var calledWith, now;
+    var realActivateMonth;
 
     setup(function() {
+      if (!realActivateMonth) {
+        realActivateMonth = subject.activateMonth;
+      }
+
       calledWith = null;
       subject.activateMonth = function(mo) {
         calledWith = mo;
+        realActivateMonth.apply(this, arguments);
       };
+
       subject.render();
-      now = controller.currentMonth;
+      now = controller.month;
     });
 
     test('#next', function() {
@@ -180,18 +151,24 @@ suite('views/month', function() {
 
   suite('#activateMonth', function() {
     var date = new Date(2012, 1, 1),
+        datePrev = new Date(2012, 0, 1),
+        dateNext = new Date(2012, 2, 1),
         container,
-        id;
+        id,
+        idNext,
+        idPrev;
 
     setup(function() {
-      controller.currentMonth = date;
+      controller.move(date);
       id = Calendar.Calc.getMonthId(date);
+      idPrev = Calendar.Calc.getMonthId(datePrev);
+      idNext = Calendar.Calc.getMonthId(dateNext);
       subject.activateMonth(date);
       container = document.getElementById('test');
     });
 
     test('should append new month into dom', function() {
-      var el = subject.monthsDisplayElement().children[0];
+      var el = subject.container.children[1];
 
       assert.ok(subject.children[id]);
 
@@ -201,10 +178,32 @@ suite('views/month', function() {
       );
     });
 
+    test('should append previous month into dom', function() {
+       var el = subject.container.children[0];
+
+       assert.ok(subject.children[idPrev]);
+
+       assert.equal(
+         el.id,
+         subject.children[idPrev].element.id
+       );
+     });
+
+     test('should append next month into dom', function() {
+        var el = subject.container.children[2];
+
+        assert.ok(subject.children[idNext]);
+
+        assert.equal(
+          el.id,
+          subject.children[idNext].element.id
+        );
+      });
+
     test('when trying to re-render an existing calendar', function() {
       subject.activateMonth(date);
-      var els = container.querySelectorAll('.monthView > section');
-      assert.length(els, 1, 'should not re-render calendar');
+      var els = subject.container.children;
+      assert.length(els, 3, 'should not re-render calendar');
     });
 
     suite('when there is an active month', function() {
@@ -214,34 +213,65 @@ suite('views/month', function() {
         subject.activateMonth(newDate);
       });
 
-      test('hides old month and displays new one', function() {
-        var els = container.querySelectorAll('.monthView > section');
-        assert.length(els, 2);
+      test('goes to the next month and renders one more', function() {
+        var els = subject.container.children;
+        assert.length(els, 4);
 
-        assert.ok(els[0].classList.contains('inactive'));
-        assert.ok(!els[1].classList.contains('inactive'));
+        assert.ok(!els[0].classList.contains('active'));
+        assert.ok(els[3].classList.contains('active'));
       });
 
       test('when going back', function() {
         subject.activateMonth(date);
-        var els = container.querySelectorAll('.monthView > section');
-        assert.length(els, 2);
+        var els = subject.container.children;
+        assert.length(els, 4);
 
-        assert.ok(!els[0].classList.contains('inactive'));
-        assert.ok(els[1].classList.contains('inactive'));
+        assert.ok(els[0].classList.contains('active'));
+        assert.ok(!els[3].classList.contains('inactive'));
       });
     });
 
   });
 
-  test('#updateCurrentMonth', function() {
-    controller.setCurrentMonth(new Date(2012, 8, 1));
-    subject.updateCurrentMonth();
+  suite('controller: purge event', function() {
 
-    assert.include(
-      subject.currentMonthElement().innerHTML,
-      subject._renderCurrentMonth()
-    );
+    var date;
+    var childId, child2Id, child3Id;
+
+    setup(function() {
+      date = new Date(2012, 8, 1);
+      controller.move(date);
+      subject.activateMonth(date);
+
+      childId = Object.keys(subject.children)[0];
+      child2Id = Object.keys(subject.children)[1];
+      child3Id = Object.keys(subject.children)[2];
+    });
+
+    test('should remove after purge', function() {
+      var child = subject.children[childId],
+          child2 = subject.children[child2Id],
+          child3 = subject.children[child3Id];
+      assert.ok(child);
+      assert.ok(child.element);
+
+      assert.ok(child2);
+      assert.ok(child2.element);
+
+      assert.ok(child3);
+      assert.ok(child3.element);
+
+      controller.emit('purge', child.timespan);
+      controller.emit('purge', child2.timespan);
+      controller.emit('purge', child3.timespan);
+
+      assert.ok(!child.element);
+      assert.ok(!child2.element);
+      assert.ok(!child3.element);
+
+      assert.deepEqual(subject.children, {});
+    });
+
   });
 
   suite('#render', function() {
@@ -252,21 +282,25 @@ suite('views/month', function() {
     });
 
     test('rendered elements', function() {
-      var container = subject.monthsDisplayElement(),
+      var container = subject.container,
           now = new Date();
 
-      now.setDate(1);
+      now = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1
+      );
 
       subject.render();
 
       assert.ok(subject.currentChild.element);
 
       assert.equal(
-        container.children[0].id,
+        container.children[1].id,
         subject.currentChild.element.id
       );
 
-      assert.deepEqual(controller.currentMonth.valueOf(), now.valueOf());
+      assert.deepEqual(controller.month.valueOf(), now.valueOf());
     });
 
   });

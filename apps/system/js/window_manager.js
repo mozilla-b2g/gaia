@@ -48,14 +48,17 @@
 'use strict';
 
 var WindowManager = (function() {
+  var homescreen = null;
+
   // Hold Home key for 1 second to bring up the app switcher.
   // Should this be a setting?
   var kLongPressInterval = 1000;
 
   // Some document elements we use
-  var statusbar = document.getElementById('statusbar');
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
+  var dialogOverlay = document.getElementById('dialog-overlay');
+  var screenElement = document.getElementById('screen');
 
   //
   // The set of running apps.
@@ -132,8 +135,17 @@ var WindowManager = (function() {
     var frame = app.frame;
     var manifest = app.manifest;
 
-    frame.style.width = window.innerWidth + 'px';
-    frame.style.height = window.innerHeight - statusbar.offsetHeight + 'px';
+    var cssWidth = window.innerWidth + 'px';
+    var cssHeight = window.innerHeight - StatusBar.height + 'px';
+
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight + 'px';
+
+    frame.style.width =
+      dialogOverlay.style.width = cssWidth;
+
+    frame.style.height =
+      dialogOverlay.style.height = cssHeight;
   }
 
   var openFrame = null;
@@ -145,7 +157,8 @@ var WindowManager = (function() {
   // animations.
   var sprite = document.createElement('div');
   sprite.id = 'windowSprite';
-  document.body.appendChild(sprite);
+  sprite.dataset.zIndexLevel = 'window-sprite';
+  screenElement.appendChild(sprite);
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
@@ -160,6 +173,7 @@ var WindowManager = (function() {
       classes.add('faded');
       setTimeout(openCallback);
     } else if (classes.contains('faded') && prop === 'opacity') {
+
       openFrame.setVisible(true);
       openFrame.focus();
 
@@ -176,6 +190,7 @@ var WindowManager = (function() {
       classes.remove('open');
       classes.remove('close');
 
+      screenElement.classList.remove('fullscreen-app');
       setTimeout(closeCallback);
     }
   });
@@ -184,9 +199,21 @@ var WindowManager = (function() {
   function openWindow(origin, callback) {
     var app = runningApps[origin];
     openFrame = app.frame;
+
     openCallback = callback || function() {};
 
-    sprite.className = 'open';
+    if (origin === homescreen) {
+      openCallback();
+      windows.classList.add('active');
+      openFrame.classList.add('homescreen');
+      openFrame.setVisible(true);
+      openFrame.focus();
+    } else {
+      if (app.manifest.fullscreen)
+        screenElement.classList.add('fullscreen-app');
+
+      sprite.className = 'open';
+    }
   }
 
   function closeWindow(origin, callback) {
@@ -210,19 +237,14 @@ var WindowManager = (function() {
     sprite.classList.add('close');
   }
 
-  //last time app was launched,
-  //needed to display them in proper
-  //order on CardsView
-  function updateLaunchTime(origin) {
-    if (!runningApps[origin])
-      return;
-
-    runningApps[origin].launchTime = Date.now();
-  }
-
   // Switch to a different app
-  function setDisplayedApp(origin, callback, url) {
+  function setDisplayedApp(origin, callback, disposition) {
+    if (origin == null)
+      origin = homescreen;
     var currentApp = displayedApp, newApp = origin;
+    disposition = disposition || 'window';
+
+    var homescreenFrame = runningApps[homescreen].frame;
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -230,38 +252,45 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: homescreen->app
-    else if (currentApp == null && newApp) {
+    // Case 2: null->homescreen || homescreen->app
+    else if ((!currentApp && newApp == homescreen) ||
+             (currentApp == homescreen && newApp)) {
+      if (!currentApp)
+        homescreenFrame.setVisible(true);
       setAppSize(newApp);
-      updateLaunchTime(newApp);
-      openWindow(newApp, callback);
+      openWindow(newApp,
+                 !currentApp ?
+                 callback :
+                 function setHomescreenVisible() {
+                   // Move the homescreen into the background only
+                   // after the transition completes, since it's
+                   // visible during the transition.
+                   homescreenFrame.setVisible(false);
+                   callback();
+                 });
     }
     // Case 3: app->homescreen
-    else if (currentApp && newApp == null) {
-      // Animate the window close
+    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
+      // Animate the window close.  Ensure the homescreen is in the
+      // foreground since it will be shown during the animation.
+      homescreenFrame.setVisible(true);
+      setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
-    // Case 4: homescreen-to-homescreen transition
-    else if (currentApp == null && newApp == null) {
-      // XXX Until the HOME button works as an activity, just
-      // send a message to the homescreen so he nows about the
-      // home key.
-      var home = document.getElementById('homescreen');
-      home.contentWindow.postMessage('home', home.src);
-    }
-    // Case 5: app-to-app transition
+    // Case 4: app-to-app transition
     else {
-      // XXX Note: Hack for demo when current app want to set specific hash
-      //           url in newApp(e.g. contact trigger SMS message list page).
-      var frame = runningApps[newApp].frame;
-      if (url && frame.src != url) {
-        frame.src = url;
-      }
       setAppSize(newApp);
-      updateLaunchTime(newApp);
       closeWindow(currentApp, function closeWindow() {
         openWindow(newApp, callback);
       });
+    }
+
+    // Set homescreen as active,
+    // to control the z-index between homescreen & keyboard iframe
+    if ((newApp == homescreen) && homescreenFrame) {
+      homescreenFrame.classList.add('active');
+    } else {
+      homescreenFrame.classList.remove('active');
     }
 
     // Lock orientation as needed
@@ -271,11 +300,12 @@ var WindowManager = (function() {
       setOrientationForApp(newApp);
     }
 
-    // Exit fullscreen mode if we're going to the homescreen
-    if (newApp === null && document.mozFullScreen) {
-      document.mozCancelFullScreen();
-    }
+    // Record the time when app was launched,
+    // need this to display apps in proper order on CardsView.
+    if (newApp)
+      runningApps[newApp].launchTime = Date.now();
 
+    // Set displayedApp to the new value
     displayedApp = origin;
 
     // Update the loading icon since the displayedApp is changed
@@ -307,25 +337,19 @@ var WindowManager = (function() {
     }
   }
 
-  function appendFrame(origin, url, name, manifest, manifestURL, background) {
+  var isOutOfProcessDisabled = false;
+  SettingsListener.observe('debug.oop.disabled', false, function(value) {
+    isOutOfProcessDisabled = value;
+  });
+
+  function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
     frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.dataset.frameType = 'window';
     frame.dataset.frameOrigin = origin;
-
-    if (manifest.hackNetworkBound) {
-      var style = 'font-family: OpenSans,sans-serif;' +
-                  'text-align: center;' +
-                  'color: white;' +
-                  'margin-top: 100px;';
-
-      frame.src = 'data:text/html,' +
-        '<body style="background-color: black">' +
-        '  <h3 style="' + style + '">' + localizedLoading + '</h3>' +
-        '</body>';
-    }
+    frame.src = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -336,153 +360,51 @@ var WindowManager = (function() {
     frame.setAttribute('mozbrowser', 'true');
     frame.setAttribute('mozapp', manifestURL);
 
-    // Run these apps out of process by default (except when OOP is
-    // forced off).  This is temporary: all apps will be out of
-    // process.
+    // These apps currently have bugs preventing them from being
+    // run out of process. All other apps will be run OOP.
     //
-    // When we're down to just esoteric bugs here (like edge cases in
-    // telephony API), this needs to become a blacklist.
-    var outOfProcessWhitelist = [
-      // Crash when placing call
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761925
-      // Cross-process fullscreen
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=684620
-      // Nested content processes
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761935
-      // Stop audio when app dies
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=761936
-      // w->mApp Assertion
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775576
-      // Gallery App crash (in IndexedDB)
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775591
-      // Electrolysize b2g-bluetooth
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=755943
-      // VolumeService doesn't work when called OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775833
-      // Message App crashes when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=775997
-      // Dialer doesn't seem to see touches when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776069
-      // ICS camera support
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=740997
-      // Marketplace app doesn't seem to work when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776086
+    var outOfProcessBlackList = [
+      // Bugs that are shared among multiple apps are listed here.
+      // Bugs that affect only specific apps should be listed under
+      // the apps themselves.
+      //
       // Keyboard always shows up alpha when app using keyboard is run OOP
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
       // Keyboard doesn't show up correctly when app run OOP
       //   https://github.com/mozilla-b2g/gaia/issues/2656
-      // UI Test app - Insert Fake Contacts hangs when run OOP (or not OOP)
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776128
-      // UI Test - window.open doesn't work properly when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776129
-      // UI Test app - window.close test causes seg fault when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776132
-      // UI Test App - Notifications don't work properly when run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776134
+      // Layers masking across processes doesn't work
+      //   https://bugzilla.mozilla.org/show_bug.cgi?id=783106
 
-      //'Browser',
-      // - Needs Nested Content Process (bug 761935) for OOP
+      'Browser',
+      // Requires nested content processes (bug 761935)
 
-      'Calculator',
-      'Calendar',
+      'Cost Control',
+      // ?????
 
-      //'Camera',
-      // - Camera app doesn't work yet on otoro - bug 740997
-      // - When run OOP, VolumeService dies - bug 775833
-      //   Cross-process camera control
-      //   Cross-process preview stream
-
-      //'Clock',
-      //  - OOP - asserts on w->mApp (bug 775576)
-
-      //'Contacts',
-      // System message handler (for WebActivities) doesn't get called
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=777195
-      // Keyboard always shows up alpha when app using keyboard is run OOP
-      // - bug 776118
-
-      'CrystalSkull',
-
-      'CubeVid',
-      // - Doesn't crash when run OOP, but audio is extremely choppy
-      //   Stop audio when app dies
-
-      //'Cut The Rope',
-      // - Doesn't seem to work when non-OOP so didn't test OOP
-      // - couldn't test OOP - since wifi wasn't working
-      //   Mouse click not delivered
-      //   Stop audio when app dies
-
-      'Dev Marketplace',
-
-      //'Dialer',
-      // - Dialer doesn't seem to see touches when running OOP - bug 776069
-
-      //'E-Mail',
-      // - SSL/TLS support can only happen in the main process although the TCP
-      //   support without security will accidentally work OOP:
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=770778
-
-      'FM Radio',
-
-      'Galactians2',  // Install from Dev Marketplace
-
-      //'Gallery',
-      // - When running OOP, doesn't detect any photos or crashes - bug 775591
-      // - When running OOP, VolumeService dies - bug 775833
+      'E-Mail',
+      // SSL/TLS support can only happen in the main process although
+      // the TCP support without security will accidentally work OOP
+      // (bug 770778)
 
       'Homescreen',
-      'Keyboard',
+      // - Repaints are being starved during panning (bug 761933)
+      // - Homescreen needs to draw the system wallpaper itself (#3639)
 
-      //'Marketplace',
-      // - When running OOP - After trying to Login/Register, never get to
-      //   persona scren - bug 776086
-      // - When running OOP - Sometimes get w->mApp assert (bug 775576)
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
 
-      //'Messages',
-      // - crashes when launched OOP on otoro - bug 775997
+      // /!\ Also remove it from outOfProcessBlackList of background_service.js
+      // Once this app goes OOP. (can be done by reverting a commit)
+      'Messages',
+      // Crashes when launched OOP (bug 775997)
 
-      //'Music',
-      // - When running OOP, VolumeService dies - bug 775833
-
-      'PenguinPop',
-
-      //'Settings',
-      // Most of settings seems to work OOP.
-      // However, apprarently bluetooth doesn't - bug 755943
-
-      //'Staging Marketplace',
-      // - When running OOP - After trying to Login/Register, never get to
-      //   persona scren - bug 776086
-      // - When running OOP - After trying to Login/Register, got white screen
-      // - Works ok when running non-OOP
-
-      //'System',
-
-      'Tasks',
-      'Template',
-      //'Test Agent',
-      'TowerJelly'
-
-      //'UI tests',
-      // Keyboard always shows up alpha when app using keyboard is running OOP
-      //   - bug 776118
-      // Insert Fake Contacts hangs when running OOP (or not OOP)
-      //   - bug 776128
-      // UI Test - window.open doesn't work properly when running OOP
-      //   - bug 776129
-      // UI Test app - window.close test causes seg fault when running OOP
-      //   - bug 776132
-      // UI Test App - Notifications don't work properly when running OOP
-      //   - bug 776134
-
-      //'Video',
-      // - When running OOP, VolumeService dies - bug 775833
-      //   OOP - Assertion failure: w->mApp,
-      //         at /home/work/B2G-otoro/gecko/dom/base/nsGlobalWindow.cpp:10697
-      //   Stop audio when app dies
+      'Settings'
+      // Bluetooth is not remoted yet (bug 755943)
     ];
-    if (outOfProcessWhitelist.indexOf(name) >= 0) {
+
+    if (!isOutOfProcessDisabled &&
+        outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
@@ -491,9 +413,6 @@ var WindowManager = (function() {
     }
 
     // Add the iframe to the document
-    // Note that we have not yet set its src property.
-    // In order for the open animation to be smooth, we don't
-    // actually set src until the open has finished.
     windows.appendChild(frame);
 
     // And map the app origin to the info we need for the app
@@ -501,26 +420,10 @@ var WindowManager = (function() {
       name: name,
       manifest: manifest,
       frame: frame,
-      launchTime: Date.now()
+      launchTime: 0
     };
 
     numRunningApps++;
-
-    // Launching this application without bring it to the foreground
-    if (background) {
-      frame.src = url;
-      return;
-    }
-
-    // Now animate the window opening and actually set the iframe src
-    // when that is done.
-    setDisplayedApp(origin, function() {
-      frame.src = url;
-
-      if (manifest.fullscreen) {
-        frame.mozRequestFullScreen();
-      }
-    });
   }
 
 
@@ -549,21 +452,32 @@ var WindowManager = (function() {
       return;
 
     var app = Applications.getByOrigin(origin);
-    var name = app.manifest.name;
+    if (!app)
+      return;
 
+    var name = app.manifest.name;
 
     // Check if it's a virtual app from a entry point.
     // If so, change the app name and origin to the
     // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
+      var givenPath = e.detail.url.substr(e.detail.origin.length);
+
+      // Workaround here until the bug (to be filed) is fixed
+      // Basicly, gecko is sending the URL without launch_path sometimes
       for (var ep in entryPoints) {
+        var currentEp = entryPoints[ep];
+        var path = givenPath;
+        if (path.indexOf('?') != -1) {
+          path = path.substr(0, path.indexOf('?'));
+        }
+
         //Remove the origin and / to find if if the url is the entry point
-        var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 &&
-            (ep + entryPoints[ep].launch_path) == path) {
-          origin = origin + '/' + ep;
-          name = entryPoints[ep].name;
+        if (path.indexOf('/' + ep) == 0 &&
+            (currentEp.launch_path == path)) {
+          origin = origin + currentEp.launch_path;
+          name = currentEp.name;
         }
       }
     }
@@ -572,13 +486,12 @@ var WindowManager = (function() {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
       case 'webapps-launch':
-        if (isRunning(origin)) {
-          setDisplayedApp(origin, null, e.detail.url);
-          return;
+        if (!isRunning(origin)) {
+          appendFrame(origin, e.detail.url,
+                      name, app.manifest, app.manifestURL);
         }
 
-        appendFrame(origin, e.detail.url,
-                    name, app.manifest, app.manifestURL);
+        setDisplayedApp(origin, null, 'window');
         break;
 
       // System Message Handler API is asking us to open the specific URL
@@ -586,31 +499,46 @@ var WindowManager = (function() {
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
         if (isRunning(origin)) {
-          var frame = getAppFrame(origin);
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
-          if (displayedApp === origin)
-            return;
+          if (displayedApp !== origin) {
+            var frame = getAppFrame(origin);
 
-          // If the app is opened and it is loaded to the correct page,
-          // then there is nothing to do.
-          if (frame.src !== e.detail.url) {
-            // Rewrite the URL of the app frame to the requested URL.
-            // XXX: We could ended opening URls not for the app frame
-            // in the app frame. But we don't care.
-            frame.src = e.detail.url;
+            // If the app is opened and it is loaded to the correct page,
+            // then there is nothing to do.
+            if (frame.src !== e.detail.url) {
+              // Rewrite the URL of the app frame to the requested URL.
+              // XXX: We could ended opening URls not for the app frame
+              // in the app frame. But we don't care.
+              frame.src = e.detail.url;
+            }
           }
         } else {
-          if (!app)
-            return;
-
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           appendFrame(origin, e.detail.url,
-                      app.manifest.name, app.manifest, app.manifestURL, true);
+                      name, app.manifest, app.manifestURL);
         }
 
-        setDisplayedApp(origin);
+        // If nothing is opened yet, consider the first application opened
+        // as the homescreen.
+        if (!homescreen) {
+          homescreen = origin;
+          var frame = runningApps[homescreen].frame;
+          return;
+        }
+
+        // We will only bring web activity handling apps to the foreground
+        // (either disposition: inline or disposition: window)
+        if (!e.detail.isActivity)
+          return;
+
+        var disposition = e.detail.target.disposition || 'window';
+        if (disposition == 'window')
+          UtilityTray.hide();
+
+        setDisplayedApp(origin, null, disposition);
+
         break;
     }
   });
@@ -638,7 +566,7 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp)
-      setDisplayedApp(null);
+      setDisplayedApp(homescreen);
 
     var app = runningApps[origin];
     windows.removeChild(app.frame);
@@ -653,14 +581,19 @@ var WindowManager = (function() {
     // If there aren't any origin, that means we are moving to
     // the homescreen. Let's hide the icon.
     if (!origin) {
-      loadingIcon.hidden = true;
+      loadingIcon.classList.remove('app-loading');
       return;
     }
 
     // Actually update the icon.
     // Hide it if the loading property is not true.
     var app = runningApps[origin];
-    loadingIcon.hidden = !app.frame.dataset.loading;
+
+    if (app.frame.dataset.loading) {
+      loadingIcon.classList.add('app-loading');
+    } else {
+      loadingIcon.classList.remove('app-loading');
+    }
   };
 
   // Listen for mozbrowserloadstart to update the loading status
@@ -712,17 +645,36 @@ var WindowManager = (function() {
     // Note that for this to work, the lockscreen and other overlays must
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
-    setDisplayedApp(null);
-    if (CardsView.cardSwitcherIsShown())
-      CardsView.hideCardSwitcher();
+    if (document.mozFullScreen) {
+      document.mozCancelFullScreen();
+    } else if (displayedApp !== homescreen) {
+      setDisplayedApp(homescreen);
+    } else {
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'application/x-application-list'
+        }
+      });
+    }
   });
 
   window.addEventListener('holdhome', function(e) {
     if (!LockScreen.locked &&
         !CardsView.cardSwitcherIsShown()) {
+      SleepMenu.hide();
       CardsView.showCardSwitcher();
     }
   });
+
+  // With all important event handlers in place, we can now notify
+  // Gecko that we're ready for certain system services to send us
+  // messages (e.g. the radio).
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('mozContentEvent', true, true, {
+    type: 'system-app-ready'
+  });
+  window.dispatchEvent(event);
 
   // Return the object that holds the public API
   return {
@@ -741,4 +693,3 @@ var WindowManager = (function() {
     setDisplayedApp: setDisplayedApp
   };
 }());
-

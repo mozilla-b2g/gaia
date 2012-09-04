@@ -65,8 +65,18 @@ const IMERender = (function() {
     var inputType = flags.inputType || 'text';
 
     layout.upperCase = layout.upperCase || {};
+
+    var first = true;
+
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
-      content += '<div class="keyboard-row">';
+
+      var firstRow = '';
+      if (first) {
+        firstRow = ' first-row';
+        first = false;
+      }
+
+      content += '<div class="keyboard-row' + firstRow + '">';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -406,7 +416,7 @@ const IMERender = (function() {
           var visualKey = key.querySelector('.visual-wrapper');
 
           _keyArray.push({
-            code: key.dataset.keycode,
+            code: key.dataset.keycode | 0,
             x: visualKey.offsetLeft,
             y: visualKey.offsetTop,
             width: visualKey.clientWidth,

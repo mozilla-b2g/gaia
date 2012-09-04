@@ -197,6 +197,13 @@ var apps = {
     "receipt": null,
     "installTime": 132333986000,
     "manifestURL": "http://video.localhost.org:8080/manifest.webapp"
+  },
+  "pdfjs": {
+    "origin": rootPath.replace('%%%', 'pdfjs'),
+    "installOrigin": "http://pdfjs.localhost.org:8080",
+    "receipt": null,
+    "installTime": 132333986000,
+    "manifestURL": "http://pdfjs.localhost.org:8080/manifest.webapp"
   }
 }
 })();

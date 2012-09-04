@@ -13,7 +13,7 @@
       element: '#modify-account-view',
       form: '#modify-account-view form',
       fields: '*[name]',
-      saveButton: '#modify-account-view .save-icon',
+      saveButton: '#modify-account-view .save',
       errors: '#modify-account-view .errors'
     },
 
@@ -97,27 +97,18 @@
      */
     _persistForm: function(callback) {
       var self = this;
+      var store = self.app.store('Account');
 
       this._clearErrors();
       this.updateModel();
-      this.model.setup(function(err, success) {
+
+      store.verifyAndPersist(this.model, function(err, id, model) {
         if (err) {
           self._displayError(err);
           callback(err);
           return;
         }
-
-        // XXX: Handle Errors
-        var store = self.app.store('Account');
-        store.persist(self.model, function(err, success) {
-          // unblock user
-          if (err) {
-            self._displayError(err);
-            callback(err);
-            return;
-          }
-          callback(null, success);
-        });
+        callback(null, model);
       });
     },
 
@@ -171,6 +162,7 @@
       var list = this.element.classList;
 
       list.remove(this.type);
+
       list.remove('preset-' + this.model.preset);
       list.remove('provider-' + this.model.providerType);
 
@@ -180,12 +172,10 @@
       this.saveButton.removeEventListener('click', this.save);
     },
 
-    oninactive: function() {
-      Calendar.View.prototype.oninactive.apply(this, arguments);
-      this.destroy();
-    },
-
     dispatch: function(data) {
+      if (this.model)
+        this.destroy();
+
       var provider;
       var autoSubmit;
       var params = data.params;
@@ -198,8 +188,8 @@
         this.completeUrl = '/settings/';
       }
 
-      if (this.model.hasOwnProperty('provider')) {
-        provider = this.model.provider;
+      if (this.model && this.model.providerType) {
+        provider = this.app.provider(this.model.providerType);
         autoSubmit = !provider.useCredentials && !provider.useUrl;
       }
 

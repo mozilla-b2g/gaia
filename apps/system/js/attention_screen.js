@@ -34,6 +34,21 @@ var AttentionScreen = {
     // Popup Manager to handle this event
     evt.stopPropagation();
 
+    // Canceling any full screen web content
+    if (document.mozFullScreen)
+      document.mozCancelFullScreen();
+
+    // Check if the app has the permission to open attention screens
+    var origin = evt.target.dataset.frameOrigin;
+    var app = Applications.getByOrigin(origin);
+
+    if (!app || !this._hasAttentionPermission(app))
+      return;
+
+    // Hide sleep menu/list menu if it is shown now
+    ListMenu.hide();
+    SleepMenu.hide();
+
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
@@ -72,11 +87,13 @@ var AttentionScreen = {
       }
     }
 
-    this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('active-statusbar');
     this.attentionScreen.classList.remove('status-mode');
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
+
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0)
+      this.attentionScreen.classList.remove('displayed');
 
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff(true);
@@ -110,6 +127,7 @@ var AttentionScreen = {
         this._screenInitiallyDisabled = false;
 
         this.dispatchEvent('status-active');
+
         this.mainScreen.classList.add('active-statusbar');
 
         var attentionScreen = this.attentionScreen;
@@ -135,6 +153,18 @@ var AttentionScreen = {
         break;
       }
     }
+  },
+
+  _hasAttentionPermission: function as_hasAttentionPermission(app) {
+    if (!app || !app.manifest.permissions)
+      return false;
+
+    var keys = Object.keys(app.manifest.permissions);
+    var permissions = keys.map(function map_perm(key) {
+      return app.manifest.permissions[key];
+    });
+
+    return (permissions.indexOf('attention') != -1);
   }
 };
 

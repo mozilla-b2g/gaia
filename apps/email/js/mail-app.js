@@ -43,14 +43,9 @@ var App = {
 
           // Push the navigation cards
           Cards.pushCard(
-            'account-picker', 'default', 'none',
-            {
-              acctsSlice: acctsSlice,
-              curAccount: account
-            });
-          Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
+              acctsSlice: acctsSlice,
               curAccount: account,
               foldersSlice: foldersSlice,
               curFolder: inboxFolder
@@ -61,6 +56,10 @@ var App = {
             {
               folder: inboxFolder
             });
+          if (activityCallback) {
+            activityCallback();
+            activityCallback = null;
+          }
         };
       }
       // - no accounts, show the setup page!
@@ -69,7 +68,9 @@ var App = {
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
-          {});
+          {
+            allowBack: false
+          });
       }
     };
   }
@@ -90,11 +91,13 @@ function hookStartup() {
   }
 
   window.addEventListener('localized', function() {
+    console.log('got localized!');
     gotLocalized = true;
     if (gotMailAPI)
       doInit();
   }, false);
   window.addEventListener('mailapi', function(event) {
+    console.log('got MailAPI!');
     MailAPI = event.mailAPI;
     gotMailAPI = true;
     if (gotLocalized)
@@ -103,3 +106,86 @@ function hookStartup() {
 }
 hookStartup();
 
+var queryURI = function _queryURI(uri) {
+  function addressesToArray(addresses) {
+    if (!addresses)
+      return [''];
+    addresses = addresses.split(';');
+    var addressesArray = addresses.filter(function notEmpty(addr) {
+      return addr.trim() != '';
+    });
+    return addressesArray;
+  }
+  var mailtoReg = /^mailto:(.*)/i;
+
+  if (uri.match(mailtoReg)) {
+    uri = uri.match(mailtoReg)[1];
+    var parts = uri.split('?');
+    var subjectReg = /(?:^|&)subject=([^\&]*)/i,
+    bodyReg = /(?:^|&)body=([^\&]*)/i,
+    ccReg = /(?:^|&)cc=([^\&]*)/i,
+    bccReg = /(?:^|&)bcc=([^\&]*)/i;
+    var to = addressesToArray(decodeURIComponent(parts[0])),
+    subject,
+    body,
+    cc,
+    bcc;
+
+    if (parts.length == 2) {
+      var data = parts[1];
+      if (data.match(subjectReg))
+        subject = decodeURIComponent(data.match(subjectReg)[1]);
+      if (data.match(bodyReg))
+        body = decodeURIComponent(data.match(bodyReg)[1]);
+      if (data.match(ccReg))
+        cc = addressesToArray(decodeURIComponent(data.match(ccReg)[1]));
+      if (parts[1].match(bccReg))
+        bcc = addressesToArray(decodeURIComponent(data.match(bccReg)[1]));
+    }
+      return [to, subject, body, cc, bcc];
+
+  }
+
+};
+
+var activityCallback = null;
+if ('mozSetMessageHandler' in window.navigator) {
+  window.navigator.mozSetMessageHandler('activity',
+                                        function actHandle(activity) {
+    var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
+    var sendMail = function actHandleMail() {
+      if (!to)
+        return;
+
+      var folderToUse = Cards._cardStack[Cards
+        ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      var composer = MailAPI.beginMessageComposition(
+        null, folderToUse, null,
+        function() {
+          /* to/cc/bcc/subject/body all have default values that shouldn't be
+          clobbered if they are not specified in the URI*/
+          if (to)
+            composer.to = to;
+          if (subject)
+            composer.subject = subject;
+          if (body)
+            composer.body = body;
+          if (cc)
+            composer.cc = cc;
+          if (bcc)
+            composer.bcc = bcc;
+          Cards.pushCard('compose',
+            'default', 'immediate', { composer: composer });
+        });
+
+    };
+
+    if (document.readyState == 'complete') {
+      sendMail();
+    } else {
+      activityCallback = sendMail;
+    }
+
+    activity.postResult({ status: 'accepted' });
+  });
+}

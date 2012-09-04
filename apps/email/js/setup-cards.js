@@ -13,6 +13,12 @@
 var MAIL_SERVICES = [
   // XXX fill these in once enough stuff is working...
   {
+    name: 'HotmaiL AccounT',
+    l10nId: 'setup-hotmail-account',
+    domain: 'hotmail.com',
+    hideDisplayName: true
+  },
+  {
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
     domain: ''
@@ -29,6 +35,14 @@ var MAIL_SERVICES = [
  */
 function SetupPickServiceCard(domNode, mode, args) {
   this.domNode = domNode;
+
+  // The back button should only be enabled if there is at least one other
+  // account already in existence.
+  if (args.allowBack) {
+    var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
+    backButton.addEventListener('click', this.onBack.bind(this), false);
+    backButton.classList.remove('collapsed');
+  }
 
   this.servicesContainer =
     domNode.getElementsByClassName('sup-services-container')[0];
@@ -50,6 +64,13 @@ SetupPickServiceCard.prototype = {
 
       this.servicesContainer.appendChild(serviceNode);
     }
+  },
+
+  onBack: function(event) {
+    // nuke this card.
+    Cards.removeCardAndSuccessors(null, 'none');
+    // Trigger the startup logic again to show the already existing account.
+    App.showMessageViewOrSetup();
   },
 
   onServiceClick: function(serviceNode, event) {
@@ -89,11 +110,15 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
   this.nameNode.setAttribute('placeholder',
                              mozL10n.get('setup-info-name-placeholder'));
+  if (args.serviceDef.hideDisplayName)
+    this.nameNode.classList.add('collapsed');
+
   this.emailNode = this.domNode.getElementsByClassName('sup-info-email')[0];
   this.emailNode.setAttribute('placeholder',
                               mozL10n.get('setup-info-email-placeholder'));
   // XXX this should maybe be a magic separate label?
   this.emailNode.value = args.serviceDef.domain;
+
   this.passwordNode =
     this.domNode.getElementsByClassName('sup-info-password')[0];
   this.passwordNode.setAttribute(
@@ -139,6 +164,8 @@ Cards.defineCardWithDefaultMode(
  * Show a spinner until success, or errors when there is failure.
  */
 function SetupProgressCard(domNode, mode, args) {
+  this.domNode = domNode;
+
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
 
@@ -219,7 +246,9 @@ SetupDoneCard.prototype = {
     // given that the user has an account now.
     Cards.pushCard(
       'setup-pick-service', 'default', 'immediate',
-      {});
+      {
+        allowBack: true
+      });
   },
   onShowMail: function() {
     // Nuke this card
@@ -301,6 +330,11 @@ function SettingsMainCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('tng-account-add')[0]
     .addEventListener('click', this.onClickAddAccount.bind(this), false);
+
+  this._secretButtonClickCount = 0;
+  this._secretButtonTimer = null;
+  domNode.getElementsByClassName('tng-email-lib-version')[0]
+    .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }
 SettingsMainCard.prototype = {
   onClose: function() {
@@ -315,7 +349,7 @@ SettingsMainCard.prototype = {
     var account;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        account = msgSlice.items[i];
+        account = this.acctsSlice.items[i];
         accountsContainer.removeChild(account.element);
       }
     }
@@ -375,7 +409,26 @@ SettingsMainCard.prototype = {
     Cards.removeCardAndSuccessors(null, 'none');
     Cards.pushCard(
       'setup-pick-service', 'default', 'immediate',
-      {});
+      {
+        allowBack: true
+      });
+  },
+
+  onClickSecretButton: function() {
+    if (this._secretButtonTimer === null) {
+      this._secretButtonTimer = window.setTimeout(
+        function() {
+          self._secretButtonTimer = null;
+          self._secretButtonClickCount = 0;
+        }.bind(this), 2000);
+    }
+
+    if (++this._secretButtonClickCount >= 5) {
+      window.clearTimeout(this._secretButtonTimer);
+      this._secretButtonTimer = null;
+      this._secretButtonClickCount = 0;
+      Cards.pushCard('settings-debug', 'default', 'animate', {}, 'right');
+    }
   },
 
   die: function() {
@@ -394,6 +447,8 @@ Cards.defineCardWithDefaultMode(
 function SettingsAccountCard(domNode, mode, args) {
 }
 SettingsAccountCard.prototype = {
+  die: function() {
+  }
 };
 Cards.defineCardWithDefaultMode(
     'settings-account',
@@ -407,8 +462,74 @@ Cards.defineCardWithDefaultMode(
  * be shipped after initial dogfooding.
  */
 function SettingsDebugCard(domNode, mode, args) {
+  this.domNode = domNode;
+
+  domNode.getElementsByClassName('tng-close-btn')[0]
+    .addEventListener('click', this.onClose.bind(this), false);
+
+  // - hookup buttons
+  domNode.getElementsByClassName('tng-dbg-reset')[0]
+    .addEventListener('click', window.location.reload.bind(window.location),
+                      false);
+
+  domNode.getElementsByClassName('tng-dbg-dump-storage')[0]
+    .addEventListener('click', this.dumpLog.bind(this, 'storage'), false);
+
+  this.loggingButton = domNode.getElementsByClassName('tng-dbg-logging')[0];
+  this.dangerousLoggingButton =
+    domNode.getElementsByClassName('tng-dbg-dangerous-logging')[0];
+
+  this.loggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true, true), false);
+  this.dangerousLoggingButton.addEventListener(
+    'click', this.cycleLogging.bind(this, true, 'dangerous'), false);
+  this.cycleLogging(false);
+
+  // - hookup
 }
 SettingsDebugCard.prototype = {
+  onClose: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  dumpLog: function(target) {
+    MailAPI.debugSupport('dumpLog', target);
+  },
+
+  cycleLogging: function(doChange, changeValue) {
+    var value = MailAPI.config.debugLogging;
+    if (doChange) {
+      if (changeValue === true)
+        value = !value;
+      // only upgrade to dangerous from enabled...
+      else if (changeValue === 'dangerous' && value === true)
+        value = 'dangerous';
+      else if (changeValue === 'dangerous' && value === 'dangerous')
+        value = true;
+      // (ignore dangerous button if not enabled)
+      else
+        return;
+      MailAPI.debugSupport('setLogging', value);
+    }
+    var label, dangerLabel;
+    if (value === true) {
+      label = 'Logging is ENABLED; toggle';
+      dangerLabel = 'Logging is SAFE; toggle';
+    }
+    else if (value === 'dangerous') {
+      label = 'Logging is ENABLED; toggle';
+      dangerLabel = 'Logging DANGEROUSLY ENTRAINS USER DATA; toggle';
+    }
+    else {
+      label = 'Logging is DISABLED; toggle';
+      dangerLabel = '(enable logging to access this secret button)';
+    }
+    this.loggingButton.textContent = label;
+    this.dangerousLoggingButton.textContent = dangerLabel;
+  },
+
+  die: function() {
+  }
 };
 Cards.defineCardWithDefaultMode(
     'settings-debug',

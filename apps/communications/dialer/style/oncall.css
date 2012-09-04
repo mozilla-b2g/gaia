@@ -1,0 +1,580 @@
+html, body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
+  color: white;
+  background: transparent;
+}
+
+html * {
+  overflow: hidden;
+}
+
+.font-regular {
+  font-family: 'Open Sans';
+}
+
+.font-semibold {
+  font-family: 'Open Sans';
+  font-weight: 600;
+}
+
+.font-light {
+  font-family: 'Open Sans';
+}
+
+#phone-number-view {
+  width:100%;
+  border:0;
+  background:transparent;
+  text-align: left;
+  cursor:none;
+  -moz-user-select: none;
+}
+
+.grid-wrapper {
+  width:100%;
+  height:100%;
+}
+
+.grid-v-align {
+  vertical-align:middle;
+}
+
+.grid-row {
+  display:table-row;
+}
+
+.grid-cell {
+  display:table-cell;
+}
+
+.grid {
+  display:table;
+  table-layout:fixed;
+}
+
+#keypad-callbar.hide,
+#keypad-hide-bar.hide,
+#callbar-answer.hide,
+#callbar-hang-up.hide {
+  display: none;
+}
+
+.grid-row.transparent {
+  visibility: hidden;
+}
+
+.layout-row {
+  display:table-row;
+}
+
+.layout-cell {
+  display:table-cell;
+}
+
+.layout-centered {
+  vertical-align:middle;
+}
+
+.center {
+  text-align:center;
+}
+
+#views {
+  position: absolute;
+  top: 100%;
+  height: 100%;
+  width: 100%;
+  border-radius: 10px;
+  z-index: -1;
+}
+
+#views.show {
+  top: 0;
+  z-index: 500;
+}
+
+#views > .view {
+  height: 100%;
+  width: 100%;
+}
+
+body.hidden *[data-l10n-id] {
+  visibility: hidden;
+}
+
+#call-screen {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 10px;
+  background: LightGray;
+  -moz-transform: translateY(-100%);
+  z-index: 100;
+}
+
+#call-screen.animate {
+  -moz-transition: -moz-transform 0.5s ease;
+}
+
+#call-screen.prerender {
+  -moz-transform: translateY(-moz-calc(-100% + 1px));
+}
+
+#call-screen.displayed {
+  -moz-transform: translateY(0);
+}
+
+#call-screen.displayed.prerender {
+  -moz-transform: translateY(-1px);
+}
+
+#main-container {
+  position: relative;
+  height: 100%;
+
+  background-image: url("images/Generic_image.png");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+}
+
+#actions-container {
+  position: absolute;
+  bottom: 0;
+
+  width: 100%;
+  height: 15.5rem;
+}
+
+#call-options {
+  height:9.5rem;
+}
+
+#co-advanced {
+  opacity: 1.0;
+  height: 9.5rem;
+}
+
+.co-advanced-option {
+  background: rgba(0,0,0,.8);
+  height: 9.5rem;
+  width: 100%;
+  border: 0;
+  border-top: 1px solid #3A3A3A;
+  border-bottom: 1px solid #3A3A3A;
+  border-right: 1px solid #3A3A3A;
+}
+
+#co-advanced span.grid-cell:last-child .co-advanced-option {
+  border-right: 0px;
+}
+
+#mute > span {
+  display:inline-block;
+  background-color: #DDD;
+  background:url('images/ActionIcon_40x40_mute.png');
+  background-size: 4rem 4rem;
+  width:4rem;
+  height:4rem;
+  opacity: 1.0;
+}
+
+#mute.mute > span {
+  background:url('images/ActionIcon_40x40_mute_active.png');
+}
+
+button[disabled] .icon-keypad-visibility {
+  opacity: 0.6;
+}
+
+.icon-keypad-visibility {
+  display:inline-block;
+  background-color: #DDD;
+  background:url('images/ActionIcon_40x40_dialpad.png') ;
+  background-size: 4rem 4rem;
+  width:4rem;
+  height:4rem;
+  opacity: 1.0;
+}
+
+#speaker span {
+  display:inline-block;
+  background-color: #DDD;
+  background:url('images/ActionIcon_40x40_bluetooth.png') ;
+  background-size: 4rem 4rem;
+  width:4rem;
+  height:4rem;
+  opacity: 1.0;
+}
+
+#speaker.speak  > span {
+  background:url('images/ActionIcon_40x40_bluetooth_active.png');
+}
+
+#callbar {
+  background:rgba(0,0,0,.8);
+  opacity: 1.0;
+}
+
+#callbar-hang-up {
+  float: left;
+  height: 6.5rem;
+  width: 50%;
+}
+
+#callbar-hang-up.full-space {
+  width: 100%;
+}
+
+#callbar-answer {
+  height: 6.5rem;
+  width: 50%;
+}
+
+.callbar-button {
+  height: 4rem;
+  border:0;
+  border-radius:.3rem;
+  display: block;
+}
+
+#callbar-hang-up-action {
+  background: -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%); 
+  opacity: 1.0;
+  margin: 1rem .5rem 1.5rem 1.5rem;
+}
+
+#callbar-hang-up.full-space > #callbar-hang-up-action {
+  margin: 1rem 1.5rem 1.5rem 1.5rem;
+}
+
+#callbar-hang-up-action > div {
+  margin: 0 auto;
+  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-repeat: no-repeat;
+  background-size: 4rem 4rem;
+  background-position: center;
+  width: 4rem;
+  height: 4rem;
+}
+
+#callbar-start-call-action {
+  background: -moz-linear-gradient(top, #84C82C 1%, #5F9B0A 100%);
+  opacity: 1.0;
+  margin: 1rem 1.5rem 1.5rem .5rem;
+}
+
+#callbar-start-call-action > div {
+  margin: 0 auto;
+  background-image: url('images/ActionIcon_40x40_pickup.png');
+  background-repeat: no-repeat;
+  background-size: 4rem 4rem;
+  background-position: center;
+  width: 4rem;
+  height: 4rem;
+}
+
+/* Multiple call handling */
+#calls {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 14rem;
+
+  z-index: 500;
+}
+#calls[data-count="1"] {
+  height: 22rem;
+}
+
+#calls > section {
+  position: relative;
+  height: 7rem;
+
+  font-size: 1.8em;
+  line-height: 7rem;
+  background-color: #01c5ed;
+
+  transition: opacity 0.3s linear;
+  opacity: 1;
+}
+
+#calls > section div {
+  padding-left: 2rem;
+  padding-right: 1.5rem;
+}
+
+#calls[data-count="1"] > section {
+  height: 22rem;
+  background-color: transparent;
+}
+#calls[data-count="1"] > section .number {
+  height: 6rem;
+  padding: 2rem;
+
+  background: #01c5ed;
+  font-size: 1.6em;
+  line-height: 6rem;
+  color: black;
+}
+#calls[data-count="1"] > section .duration {
+  position: absolute;
+  top: 12rem;
+  left: 0;
+  height: 8rem;
+  padding: 2rem;
+
+  font-size: 2.6em;
+  font-weight: 300;
+  line-height: 8rem;
+}
+
+#calls > section.held {
+  background-color: #1c1818;
+  background-image: url('images/DialerIcon_35x35_paused.png');
+  background-position: center right 1.5rem;
+  background-repeat: no-repeat;
+
+  opacity: 0.7;
+}
+
+#calls > section .number {
+  font-size: 1.5em;
+  text-overflow: ellipsis;
+}
+
+#calls > section .duration {
+  position: absolute;
+  top: 0;
+  right: 0.5rem;
+}
+
+#calls > section.held .duration {
+  display: none;
+}
+
+#calls > section .fake-number {
+  position: absolute;
+  line-height: 0;
+  visibility: hidden;
+}
+
+#calls > section .duration > .direction {
+  display: none;
+}
+
+#calls[data-count="1"] > section .duration > .direction {
+  display: inline-block;
+  width: 3.5rem;
+  height: 3.5rem;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 3.5rem 3.5rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.incoming > div {
+  background-image: url('images/DialerIcon_35x35_calling.png');
+  padding: 4.825rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.outgoing > div {
+  background-image: url('images/DialerIcon_35x35_calling_out.png');
+  padding: 4.825rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
+  background-image: url('images/DialerIcon_35x35_incoming.png');
+  padding: 7.65rem 0rem 0rem 0rem;
+}
+
+#calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
+  background-image: url('images/DialerIcon_35x35_outgoing.png');
+  padding: 7.65rem 0rem 0rem 0rem;
+}
+
+
+#incoming-container {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 23rem;
+
+  transform: translateY(23rem);
+  transition: transform 0.3s ease-in-out;
+
+  z-index: 500;
+}
+
+#incoming-container header {
+  width: -moz-calc(100% - 3rem);
+  margin: 1.5rem;
+
+  background: rgba(28, 24, 24, 0.75);
+}
+
+#incoming-container section {
+  height: 12.5rem;
+  margin-top: 3.5rem;
+
+  background-color: #1c1818;
+  background-image:  url("images/incoming-call.png");
+  background-position: top 2rem right 1.5rem;
+  background-repeat: no-repeat;
+}
+
+#incoming-container.displayed {
+  transform: translateY(0);
+}
+
+#incoming-container span[role="button"] {
+  height: 4rem;
+  border:0;
+  border-radius:.3rem;
+  display: block;
+
+  text-align: center;
+  font-size: 1.5em;
+  line-height: 4rem;
+  font-weight: 700;
+}
+
+#incoming-answer,
+#incoming-end {
+  width: 50%;
+  float: left;
+
+  font-size: 0.9em;
+}
+
+#incoming-answer > span {
+  background: url('images/ActionIcon_40x40_pause.png'),
+              -moz-linear-gradient(top, #00b3d9 1%, #00d3ff 100%);
+  background-position: center, center;
+  background-repeat: no-repeat, repeat;
+
+  opacity: 1.0;
+  margin: 1rem 1rem 1rem 0.5rem;
+}
+
+#incoming-end > span {
+  background: url('images/ActionIcon_40x40_hangup.png'),
+              -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
+  background-position: center, center;
+  background-repeat: no-repeat, repeat;
+
+  opacity: 1.0;
+  margin: 1rem 0.5rem 1rem 1rem;
+}
+
+#incoming-info > span {
+  display: block;
+  font-size: 1.8em;
+  font-weight: 300;
+  line-height: 6rem;
+  margin: 0 1.5rem;
+  height: 5rem;
+  border-bottom: 1px #333030 solid;
+}
+
+#incoming-ignore > span {
+  background: -moz-linear-gradient(top, #424040 1%, #676767 100%);
+  opacity: 1.0;
+  margin: 1.5rem;
+}
+
+/* == Screen turn off hack == */
+
+#screen-off {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: black;
+  z-index: 1000;
+  display: none;
+}
+
+#screen-off.displayed {
+  display: block;
+}
+
+/* Handling the status bar mode */
+@media screen and (max-height: 40px) {
+  body {
+    background-image: url('images/green-noise-bg.png');
+    background-repeat: repeat-x;
+  }
+
+  #call-screen {
+    background: transparent;
+
+    border-radius: 0;
+    border-bottom: 1px #4c6700 solid;
+  }
+
+  #main-container {
+    display: none;
+  }
+
+  #calls > section.held {
+    display: none;
+  }
+
+  #calls > section,
+  #calls[data-count="1"] > section {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    font-size: 1.8em;
+  }
+  #calls > section .number,
+  #calls[data-count="1"] > section .number {
+    width: -moz-calc(100% - 10rem);
+    height: -moz-calc(100% - 2rem);
+    padding: 1rem;
+    margin-left: 3rem;
+
+    font-size: 1.1em;
+    line-height: 100%;
+    color: white;
+    background-color: transparent;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  #calls > section .duration,
+  #calls[data-count="1"] > section .duration {
+    position: absolute;
+    top: 0;
+    left: auto;
+    right: 0;
+    width: 100%;
+    height: -moz-calc(100% - 2rem);
+    padding: 1rem;
+    text-align: right;
+
+    font-size: 1em;
+    line-height: 100%;
+  }
+
+  #calls[data-count="1"] > section .duration .direction {
+    display: block;
+    position: absolute;
+
+    top: 4px;
+    left: 5px;
+  }
+}

@@ -1,21 +1,17 @@
 'use strict';
 
 var KeyboardManager = (function() {
-  function debug(str) {
-    dump('  +++ KeyboardManager.js +++ : ' + str + '\n');
-  }
-
   // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  var KEYBOARD_URL = document.location.protocol + '//keyboard.' + domain;
 
-  if (KEYBOARD_URL.substring(0, 6) == 'app://') { // B2G bug 773884
-    KEYBOARD_URL += '/index.html';
+  var keyboardURL = document.location.protocol + '//keyboard.' + domain;
+  if (keyboardURL.substring(0, 6) == 'app://') { // B2G bug 773884
+    keyboardURL += '/index.html';
   }
 
   var keyboardFrame = document.getElementById('keyboard-frame');
-  keyboardFrame.src = KEYBOARD_URL;
+  keyboardFrame.src = keyboardURL;
 
   var keyboardOverlay = document.getElementById('keyboard-overlay');
 
@@ -23,26 +19,42 @@ var KeyboardManager = (function() {
   // without postMessages between Keyboard and System
   window.addEventListener('message', function receiver(evt) {
     var message = JSON.parse(evt.data);
+    if (message.action === 'hideKeyboard') {
+      keyboardFrame.classList.add('hide');
+      keyboardFrame.classList.remove('visible');
+      return;
+    }
+
     if (message.action !== 'updateHeight')
       return;
 
     var app = WindowManager.getDisplayedApp();
-    if (!app && !TrustedDialog.trustedDialogIsShown())
-      return;
 
-    var currentApp;
-    if (TrustedDialog.trustedDialogIsShown()) {
-      currentApp = TrustedDialog.getFrame();
-    } else {
+    var currentApp, appHeight;
+    if (ModalDialog.isVisible() || PopupManager.isVisible()) {
+      // XXX: As system has no iframe, we calc the height separately
+      currentApp = document.getElementById('dialog-overlay');
+      appHeight = window.innerHeight;
+
+    } else if (app) {
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
+      appHeight = currentApp.getBoundingClientRect().height;
+
+    } else {
+      console.error('There is no current application, nor modal dialog, ' +
+                    'nor popup. The resize event is acting on nothing.');
+      return;
     }
 
-    var height = (parseInt(currentApp.style.height) -
-                  message.keyboardHeight);
+    var height = appHeight - message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
+      // To reset dialog height
+      if (ModalDialog.isVisible() || PopupManager.isVisible())
+        currentApp.style.height = height + 'px';
+
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
       return;
@@ -50,53 +62,18 @@ var KeyboardManager = (function() {
 
     if (!keyboardFrame.classList.contains('hide')) {
       currentApp.style.height = height + 'px';
-      keyboardOverlay.style.height = (height + 20) + 'px';
+      keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
       keyboardOverlay.hidden = false;
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
         currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + 20) + 'px';
+        keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
       });
     }
   });
-
-  var previousKeyboardType = null;
-
-  var kKeyboardDelay = 20;
-  var updateKeyboardTimeout = 0;
-
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    var currentType = evt.detail.type;
-    if (previousKeyboardType === currentType)
-      return;
-    previousKeyboardType = currentType;
-    clearTimeout(updateKeyboardTimeout);
-
-    var message = {};
-
-    switch (previousKeyboardType) {
-      case 'blur':
-        message.type = 'hideime';
-        break;
-
-      default:
-        message.type = 'showime';
-        message.detail = evt.detail;
-        break;
-    }
-
-    var keyboardWindow = keyboardFrame.contentWindow;
-    updateKeyboardTimeout = setTimeout(function updateKeyboard() {
-      if (message.type === 'hideime') {
-        keyboardFrame.classList.add('hide');
-        keyboardFrame.classList.remove('visible');
-      }
-      keyboardWindow.postMessage(JSON.stringify(message), KEYBOARD_URL);
-    }, kKeyboardDelay);
-  };
 })();
 

@@ -13,21 +13,37 @@
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
-  min-height: 536px;
+  min-height: 53.6rem;
 }
 
 /* Have enough scroll space to have the search bit pull out. */
 .msg-list-scroll-padding-top {
-  height: 56px;
+  height: 5.6rem;
 }
 /* Have enough space at the bottom for the last message to not be under the
    action bar. */
 .msg-list-scroll-padding-bottom {
-  height: 80px;
+  height: 8rem;
+}
+
+.msg-messages-sync-container {
+  min-height: 4.8rem;
+  height: 4.8rem;
+}
+.msg-messages-sync-more {
+  vertical-align: 50%;
+}
+.msg-messages-syncing {
+  vertical-align: 50%;
+}
+.msg-messages-syncing-spinner {
+  width: 1.6rem;
+  height: 1.6rem;
+  background-image: url('style/images/spinner-from-statusbar.gif');
 }
 
 .msg-search-tease-bar {
-  height: 24px;
+  height: 2.4rem;
   background-color: #eee;
   border-radius: 4px;
   text-align: center;
@@ -39,7 +55,7 @@
 .msg-header-item {
   display: block;
   position: relative;
-  height: 80px;
+  height: 8rem;
   overflow: hidden;
   border-bottom: 1px solid gray;
   vertical-align: 0%;
@@ -49,59 +65,84 @@
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: .5rem;
+  top: 50%;
   display: inline-block;
-  height: 100%;
-  width: 12px;
+  height: .9rem;
+  width: .9rem;
+  margin-top: -.45rem;
+  border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background-color: orange;
+  background-color: #52B6CC;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 12px;
-  width: 248px;
+  left: 1.9rem;
+  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
+  width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
+  font-size: 1.6rem;
+  line-height: 2.5rem;
 }
 .msg-header-icons-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 260px;
-  width: 32px;
+  right: 2.8rem; /* The width of the avatar-section. */
+  width: 2rem;
   height: 100%;
+  padding-top: 2.5rem;
 }
 .msg-header-avatar-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 292px;
-  width: 28px;
+  left: 29.2rem;
+  width: 2.8rem;
   height: 100%;
 }
 
+.msg-header-author-and-date {
+  display: table;
+  table-layout: fixed;
+  width: -moz-available;
+}
 .msg-header-author {
   font-size: 110%;
   color: black;
+  display: table-cell;
+  width: -moz-available;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-date {
+  color: gray;
+  display: table-cell;
+  width: -moz-min-content;
+  white-space: nowrap;
+  margin-left: 1ch;
 }
 .msg-header-date-unread {
-  color: orange;
+  color: #1D8399;
 }
 .msg-header-subject {
   display: block;
   color: black;
   font-weight: bold;
-  text-overflow: ellipsis;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
   color: gray;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-header-star {
@@ -122,17 +163,27 @@
 
 .msg-envelope-bar {
   border-bottom: 1px solid gray;
+  font-size: 1.5rem;
 }
+
 .msg-envelope-date {
-  float: right;
+  font-size: 1rem;
+  text-align: right;
 }
 .msg-envelope-line {
   display: block;
+  margin: 0.8rem;
 }
 .msg-envelope-key {
-  font-weight: bold;
+
 }
+
+.msg-envelope-key::after {
+  content: ":";
+}
+
 .msg-envelope-from-line {
+  margin-top: 0;
 }
 .msg-envelope-to-line {
 }
@@ -143,7 +194,7 @@
 
 .msg-envelope-subject {
   font-weight: bold;
-  margin: 0;
+  margin: 0.8rem;
 }
 
 .msg-body-container {
@@ -156,11 +207,11 @@
 
 .msg-peep-bubble {
   display: inline-block;
-  background-color: #7a81c3;
-  border: 1px solid #585c8b;
-  border-radius: 6px;
-  color: white;
-  padding: 2px;
+  background: -moz-linear-gradient(top, #FFFFFF, #DDDDDD);
+  border: 1px solid #CCCCCC;
+  border-radius: 1rem;
+  margin: 1px 0;
+  padding: 2px 0.8rem;
   font-size: 80%;
 }
 .msg-peep-name {
@@ -170,12 +221,14 @@
 }
 
 .msg-attachment-item {
+  list-style-type: none;
 }
 .msg-attachment-icon {
 }
 .msg-attachment-filename {
 }
-.msg-attachment-filetype {
+.msg-attachment-filesize {
+  color: gray;
 }
 
 .msg-body-content {
@@ -225,4 +278,82 @@
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
   margin: 4px 0px;
+}
+
+.msg-reader-load-infobar {
+  position: absolute;
+  color: white;
+  font-size: 1.2rem;
+  left: 0;
+  bottom: 4.9rem;
+  width: 100%;
+  height: 2.2rem;
+  padding: 0.5rem;
+  background-color: rgba(16, 16, 16, 0.8);
+}
+
+.msg-edit-btn {
+  position: absolute;
+  right: 6rem;
+}
+
+.msg-refresh-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/refresh.png") no-repeat scroll center transparent;
+}
+
+.msg-search-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/search.png") no-repeat scroll center transparent;
+  position: absolute;
+  right: 0px;
+}
+
+.msg-btn-active {
+  background-color: rgb(0, 138, 170) !important;
+}
+
+.msg-star-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/star.png") no-repeat scroll center transparent;
+}
+
+.msg-mark-read-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/mark.png") no-repeat scroll center transparent;
+}
+
+.msg-delete-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/delete.png") no-repeat scroll center transparent;
+}
+
+.msg-move-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/move.png") no-repeat scroll center transparent;
+}
+
+.msg-forward-btn {
+  border: none;
+  width: 6rem;
+  background: url("images/icons/forward.png") no-repeat scroll center transparent;
+}
+
+.msg-reply-btn {
+  font-size: 1.5rem;
+  width: auto;
+  padding: 0px 1rem;
+}
+
+.msg-reply-all-btn {
+  right: 6rem;
+  font-size: 1.5rem;
+  width: auto;
+  padding: 0px 1rem;
 }

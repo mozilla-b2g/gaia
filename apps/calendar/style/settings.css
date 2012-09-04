@@ -1,17 +1,21 @@
 /* calendar settings */
 
-body[data-path^="/settings/"][role="app"] #wrapper {
+body[data-path^="/settings/"] #wrapper {
   position: relative;
-  -moz-transform: translateX(75%);
+  -moz-transform: translateX(80%);
   box-shadow: 1px 1px 5px 5px #222;
   z-index: 2;
 
   -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
-body[role="app"] #wrapper {
+body #wrapper {
   -moz-transform: translateX(0%);
   -moz-transition: -moz-transform 0.1s ease-in-out;
+}
+
+body[data-path^="/settings/"] #time-header {
+  margin-left: 0;
 }
 
 #settings.active {
@@ -19,51 +23,86 @@ body[role="app"] #wrapper {
 }
 
 #settings {
-  height: 100%;
-  width: 75%;
-  position: absolute;
-  background-color: #303540;
-  color: white;
   font-size: 1.6rem;
+  color: white;
+  display: none;
+  width: 80%;
+}
+
+body[data-path^="/settings/"] #settings {
+  z-index: 4;
 }
 
 #settings header h1 {
   width: -moz-calc(100% - 30px);
 }
 
-#settings > section {
-  display: none;
-}
 
-#settings > section.active {
+#settings .calendars label > span {
   display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: -moz-calc(100% - 20px);
 }
 
-#settings header {
-  background: #242931;
-  padding: 0.9rem 1rem;
-  font-size: 2.1rem;
-  font-weight: normal;
-  box-shadow: none;
-  border-bottom: 1px solid #454B53;
+#settings .calendars label > span {
+  line-height: 100%;
+  display: block;
+  float: left;
 }
 
 #settings .calendars label {
   display: block;
-  padding: 2rem 1.6rem;
-  border-bottom: 1px solid #454B53;
+  padding: 1.6rem;
+  border-bottom: 1px solid #7E8C91;
   -moz-user-select: none;
+  -moz-box-flex: 1;
   user-select: none;
+  width: 100%;
 }
 
-#settings a.settings {
+#settings .calendars li,
+#settings .calendars ol {
+  height: 100%;
+}
+
+#settings .calendars li {
+  width: 100%;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+}
+
+#settings .calendars .calendar-color {
+  height: 10px;
+  width: 0.5rem;
+  display: block;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.2) 0%,
+    rgba(255,255,255,0) 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  )
+}
+
+#settings > menu {
   position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  text-indent: -1000em;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
-  width: 30px;
-  height: 30px;
+  bottom: 0px;
+  height: 40px;
+  padding: 5px 0px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+#settings .sync.active {
+  display: none;
+}
+
+#settings .settings {
+  width: 5.5rem;
+  height: 4rem;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
+  text-indent: -9999rem;
+  display: block;
 }
 
 #settings .calendars input[type="checkbox"] {
@@ -79,57 +118,7 @@ body[role="app"] #wrapper {
 
 #settings .calendars input[type="checkbox"]+span {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   float: right;
-}
-
-/* advanced settings */
-
-#advanced-setting-selection:target {
-  position: absolute;
-  bottom: 5.5rem;
-  left: 1.5rem;
-  display: block;
-  width: 20rem;
-  background: white;
-  border: 1px solid black;
-}
-
-#advanced-setting-selection {
-  display: none
-}
-
-#advanced-setting-selection li {
-  border-bottom: 1px solid #CCC;
-}
-
-#advanced-setting-selection a {
-  color: black;
-  display: block;
-  padding: 1rem;
-}
-
-#advanced-settings-view > header h1 {
-  width: -moz-calc(100% - 40px);
-}
-
-#advanced-settings-view > section {
-  margin-top: 1rem;
-  font-size: 1.5rem;
-}
-
-#advanced-settings-view > section h2 {
-  padding: 1rem;
-  background-color: #CCC;
-}
-
-#advanced-settings-view > section ol li a.remove {
-  color: red;
-  padding: 1rem;
-}
-
-#advanced-settings-view > section ol li {
-  border-bottom: 1px solid #CCC;
-  padding: 2rem;
 }

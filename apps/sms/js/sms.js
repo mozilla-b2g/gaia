@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -46,7 +46,9 @@ var MessageManager = {
           MessageManager.markMessageRead(event.message.id, true, function() {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
-          ThreadUI.appendMessage(event.message);
+          ThreadUI.appendMessage(event.message, function() {
+              Utils.updateHeaders();
+            });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
         }
@@ -57,10 +59,15 @@ var MessageManager = {
         var threadMessages = document.getElementById('thread-messages');
         switch (window.location.hash) {
           case '#new':
+            var messageInput = document.getElementById('message-to-send');
+            var receiverInput = document.getElementById('receiver-input');
             document.getElementById('messages-container').innerHTML = '';
-            document.getElementById('message-to-send').innerHTML = '';
+            messageInput.innerHTML = '';
+            receiverInput.value = '';
             threadMessages.classList.add('new');
-            MessageManager.slide();
+            MessageManager.slide(function() {
+              messageInput.focus();
+            });
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
@@ -91,7 +98,11 @@ var MessageManager = {
               } else {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
-                  filter, null, MessageManager.slide);
+                  filter, null, function() {
+                   MessageManager.slide(function() {
+                      document.getElementById('message-to-send').focus();
+                    });
+                  });
               }
             }
           break;
@@ -157,14 +168,14 @@ var MessageManager = {
     };
   },
 
-  send: function mm_send(number, text, callback) {
+  send: function mm_send(number, text, callback, errorHandler) {
     var req = navigator.mozSms.send(number, text);
     req.onsuccess = function onsuccess() {
       callback(req.result);
     };
 
     req.onerror = function onerror() {
-      callback(null);
+      errorHandler(number);
     };
   },
 
@@ -183,7 +194,7 @@ var MessageManager = {
 
   /*
     TODO: If the messages could not be deleted completely,
-    conversation list page will also update withot notification currently.
+    conversation list page will also update without notification currently.
     May need more infomation for user that the messages were not
     removed completely.
   */
@@ -228,40 +239,94 @@ var ThreadListUI = {
     delete this.view;
     return this.view = document.getElementById('thread-list-container');
   },
-  get deleteAllButton() {
-    delete this.deleteAllButton;
-    return this.deleteAllButton =
-    document.getElementById('delete-all-threads');
+  get selectAllButton() {
+    delete this.selectAllButton;
+    return this.selectAllButton = document.getElementById('select-all-threads');
   },
-  get deleteSelectedButton() {
-    delete this.deleteSelectedButton;
-    return this.deleteSelectedButton =
-    document.getElementById('delete-selected-threads');
+  get deselectAllButton() {
+    delete this.deselectAllButton;
+    return this.deselectAllButton =
+                                document.getElementById('deselect-all-threads');
   },
-  get doneButton() {
-    delete this.doneButton;
-    return this.doneButton = document.getElementById('thread-done-button');
+  get deleteButton() {
+    delete this.deleteButton;
+    return this.deleteButton = document.getElementById('threads-delete-button');
   },
   get iconEdit() {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
   },
+  get editHeader() {
+    delete this.editHeader;
+    return this.editHeader = document.getElementById('list-edit-title');
+  },
 
   init: function thlui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
-    this.deleteAllButton.addEventListener('click',
-      this.deleteAllThreads.bind(this));
-    this.deleteSelectedButton.addEventListener('click',
-      this.deleteThreads.bind(this));
-    this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.selectedInputList = [];
+    this.selectAllButton.addEventListener('click',
+                                          this.selectAllThreads.bind(this));
+    this.deselectAllButton.addEventListener('click',
+                                            this.deselectAllThreads.bind(this));
+    this.deleteButton.addEventListener('click',
+                                       this.executeDeletion.bind(this));
+    this.view.addEventListener('click', this);
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var element =
-      this.view.querySelector('a[data-num="' + number + '"] div.name');
-    if (element) {
-      element.innerHTML = contact[0].name;
+    var choosenContact = contact[0];
+    var name =
+            this.view.querySelector('a[data-num="' + number + '"] div.name');
+    var selector = 'a[data-num="' + number + '"] div.photo img';
+    var photo = this.view.querySelector(selector);
+    if (name && choosenContact.name && choosenContact.name != '') {
+      name.innerHTML = choosenContact.name;
+    }
+
+    if (photo && choosenContact.photo && choosenContact.photo[0]) {
+      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+      photo.src = photoURL;
+    }
+  },
+
+  handleEvent: function thlui_handleEvent(evt) {
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          ThreadListUI.clickInput(evt.target);
+          ThreadListUI.checkInputs();
+        }
+        break;
+    }
+  },
+
+  clickInput: function thlui_clickInput(target) {
+    if (target.checked) {
+      ThreadListUI.selectedInputList.push(target);
+    } else {
+      ThreadListUI.selectedInputList.splice(
+                ThreadListUI.selectedInputList.indexOf(target), 1);
+    }
+  },
+
+  checkInputs: function thlui_checkInputs() {
+    var selected = ThreadListUI.selectedInputList.length;
+    var allInputs =
+            ThreadListUI.view.querySelectorAll('input[type="checkbox"]');
+    if (selected == allInputs.length) {
+      ThreadListUI.selectAllButton.classList.add('disabled');
+    } else {
+      ThreadListUI.selectAllButton.classList.remove('disabled');
+    }
+    if (selected > 0) {
+      ThreadListUI.deselectAllButton.classList.remove('disabled');
+      ThreadListUI.deleteButton.classList.remove('disabled');
+      this.editHeader.innerHTML = _('selected', {n: selected});
+    } else {
+      ThreadListUI.deselectAllButton.classList.add('disabled');
+      ThreadListUI.deleteButton.classList.add('disabled');
+      this.editHeader.innerHTML = _('editMode');
     }
   },
 
@@ -272,81 +337,89 @@ var ThreadListUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = _('editMode');
+    this.deselectAllButton.classList.add('disabled');
+    this.selectAllButton.classList.remove('disabled');
+    this.deleteButton.classList.add('disabled');
   },
 
-  deleteAllThreads: function thlui_deleteAllThreads() {
-    var response = window.confirm('Delete all conversations\n' +
-                                  'Are you sure you want to do this?');
-    if (response) {
-      this.delNumList = [];
-      this.pendingDelList = [];
-      var inputs = this.view.querySelectorAll('input[type="checkbox"]');
-      for (var i = 0; i < inputs.length; i++) {
-        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      }
-      // We get ALL the messages
-      MessageManager.getMessages(function deleteAll(messages) {
-        for (var i = 0; i < messages.length; i++) {
-          if (messages[i].delivery == 'sent' ||
-           messages[i].delivery == 'received') {
-            ThreadListUI.delNumList.push(messages[i].id);
-          } else { //pending
-            ThreadListUI.pendingDelList.push(messages[i]);
-          }
-        }
-        ThreadListUI.executeDeletion();
-      });
+  selectAllThreads: function thlui_selectAllThreads() {
+    var inputs =
+            this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = true;
+      ThreadListUI.clickInput(inputs[i]);
     }
+    ThreadListUI.checkInputs();
   },
 
-  deleteThreads: function thlui_deleteThreads() {
-    this.delNumList = []; //clean the lists before adding stuff
-    this.pendingDelList = [];
+  deselectAllThreads: function thlui_deselectAllThreads() {
     var inputs = this.view.querySelectorAll('input[type="checkbox"]:checked');
     for (var i = 0; i < inputs.length; i++) {
-      inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      var filter = MessageManager.createFilter(inputs[i].value);
-      MessageManager.getMessages(function gotMessages(messages) {
-        for (var j = 0; j < messages.length; j++) {
-          if (messages[j].delivery == 'sent' ||
-              messages[j].delivery == 'received') {
-            ThreadListUI.delNumList.push(parseFloat(messages[j].id));
-          } else {
-            ThreadListUI.pendingDelList.push(messages[j]);
-          }
-        }
-      }, filter);
+      inputs[i].checked = false;
+      ThreadListUI.clickInput(inputs[i]);
     }
+    ThreadListUI.checkInputs();
   },
 
   executeDeletion: function thlui_executeDeletion() {
-    WaitingScreen.show();
-    MessageManager.deleteMessages(ThreadListUI.delNumList, function repaint() {
-      //TODO Change this functionality with Steve code
-      //TODO Steve will add delete pending in deleteMessages!
-      if (ThreadListUI.pendingDelList.length > 0) {
-        for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
-          if (i == ThreadListUI.pendingDelList.length - 1) {
-            PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i],
-              function() {
-              MessageManager.getMessages(function recoverMessages(messages) {
-                ThreadListUI.renderThreads(messages);
-                WaitingScreen.hide();
-                window.location.hash = '#thread-list';
-              });
-            });
-          } else {
-            PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i]);
-          }
-        }
-      } else {
-        MessageManager.getMessages(function recoverMessages(messages) {
-          ThreadListUI.renderThreads(messages);
-          WaitingScreen.hide();
-          window.location.hash = '#thread-list';
-        });
+    var response = window.confirm(_('deleteThreads-confirmation'));
+    if (response) {
+      WaitingScreen.show();
+      this.delNumList = [];
+      this.pendingDelList = [];
+      var filters = [];
+      var inputs = ThreadListUI.selectedInputList;
+      for (var i = 0; i < inputs.length; i++) {
+        var filter = MessageManager.createFilter(inputs[i].value);
+        filters.push(filter);
       }
-    });
+      var fillList = function fillList(filters, callback) {
+        var currentFilter = filters.pop();
+        MessageManager.getMessages(function gotMessages(messages) {
+          for (var j = 0; j < messages.length; j++) {
+            if (messages[j].delivery == 'sending') {
+              ThreadListUI.pendingDelList.push(messages[j]);
+            } else {
+              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
+            }
+          }
+          if (filters.length > 0) {
+            fillList(filters, callback);
+          } else {
+            MessageManager.deleteMessages(ThreadListUI.delNumList,
+                                          function() {
+              if (ThreadListUI.pendingDelList.length > 0) {
+                for (var j = 0; j < ThreadListUI.pendingDelList.length; j++) {
+                  if (j == ThreadListUI.pendingDelList.length - 1) {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j], function() {
+                      MessageManager.getMessages(
+                        function recoverMessages(messages) {
+                          ThreadListUI.renderThreads(messages);
+                          WaitingScreen.hide();
+                          window.location.hash = '#thread-list';
+                      });
+                    });
+                  } else {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j]);
+                  }
+                }
+              } else {
+                MessageManager.getMessages(function recoverMessages(messages) {
+                  ThreadListUI.renderThreads(messages);
+                  WaitingScreen.hide();
+                  window.location.hash = '#thread-list';
+                });
+              }
+            });
+          }
+        }, currentFilter);
+      };
+      fillList(filters, fillList);
+    }
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
@@ -391,13 +464,16 @@ var ThreadListUI = {
       for (var i = 0; i < unreadThreads.length; i++) {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
+      // Boot update of headers
+      Utils.updateHeaderScheduler();
+
     } else {
       var noResultHTML = '<div id="no-result-container">' +
-                          '<div id="no-result-message">' +
-                          '<p>no messages recorded</p>' +
-                          '<p>start communicating now</p>' +
-                          '</div>' +
-                          '</div>';
+            ' <div id="no-result-message">' +
+            '   <p>' + _('noMessages-title') + '</p>' +
+            '   <p>' + _('noMessages-text') + '</p>' +
+            ' </div>' +
+            '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
       ThreadListUI.iconEdit.classList.add('disabled');
     }
@@ -441,18 +517,19 @@ var ThreadListUI = {
             '    <img src="">' +
             '    </div>' +
             '  </a>' +
-            '  <div class="checkbox-container">' +
+            '  <label class="checkbox-container">' +
             '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
-            '  </div>';
+            '  </label>';
     // Update HTML and append
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0)
+      if (contact && contact.length > 0) {
         ThreadListUI.updateMsgWithContact(thread.num, contact);
+      }
     });
   },
 
@@ -463,8 +540,6 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -478,9 +553,9 @@ var ThreadUI = {
     return this.view = document.getElementById('messages-container');
   },
 
-  get num() {
-    delete this.number;
-    return this.number = document.getElementById('receiver-tel');
+  get contactInput() {
+    delete this.contactInput;
+    return this.contactInput = document.getElementById('receiver-input');
   },
 
   get clearButton() {
@@ -508,21 +583,21 @@ var ThreadUI = {
     return this.pickButton = document.getElementById('icon-contact');
   },
 
-  get deleteAllButton() {
+  get selectAllButton() {
     delete this.deleteAllButton;
     return this.deleteAllButton =
-    document.getElementById('delete-all-messages');
+                                document.getElementById('select-all-messages');
   },
 
-  get deleteSelectedButton() {
-    delete this.deleteSelecteButton;
-    return this.deleteSelecteButton =
-    document.getElementById('delete-selected-messages');
+  get deselectAllButton() {
+    delete this.deselectAllButton;
+    return this.deselectAllButton =
+                              document.getElementById('deselect-all-messages');
   },
 
-  get doneButton() {
+  get deleteButton() {
     delete this.doneButton;
-    return this.doneButton = document.getElementById('messages-done-button');
+    return this.doneButton = document.getElementById('messages-delete-button');
   },
 
   get headerTitle() {
@@ -530,19 +605,33 @@ var ThreadUI = {
     return this.headerTitle = document.getElementById('header-text');
   },
 
+  get editHeader() {
+      delete this.editHeader;
+      return this.editHeader = document.getElementById('messages-edit-title');
+  },
+
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
+    this.selectedInputList = [];
+    // TODO: Please replace the pending icon with exclamation mark.
+    this.sendIcons = {
+      sending: 'style/images/spinningwheel_small_animation.gif',
+      pending: 'style/images/icons/clear.png'
+    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
-    this.deleteAllButton.addEventListener('click',
-      this.deleteAllMessages.bind(this));
-    this.deleteSelectedButton.addEventListener('click',
-      this.deleteMessages.bind(this));
+    this.selectAllButton.addEventListener('click',
+      this.selectAllMessages.bind(this));
+    this.deselectAllButton.addEventListener('click',
+      this.deselectAllMessages.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
-    this.doneButton.addEventListener('click', this.executeDeletion.bind(this));
+    this.contactInput.addEventListener('input', this.searchContact.bind(this));
+    this.deleteButton.addEventListener('click',
+                                       this.executeDeletion.bind(this));
     this.headerTitle.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
+    this.view.addEventListener('click', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -577,7 +666,8 @@ var ThreadUI = {
     // offset height to keep original height, otherwise we use scroll height
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
-      input.offsetHeight + 'px' : input.scrollHeight + 8 + 'px';
+      input.offsetHeight / Utils.getFontSize() + 'rem' :
+      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
 
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.
@@ -597,20 +687,37 @@ var ThreadUI = {
     // Append 'time-update' state
     headerHTML.setAttribute('data-time-update', true);
     headerHTML.setAttribute('data-time', timestamp);
-    // Boot update of headers
-    Utils.updateHeaders();
-    // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
   updateHeaderData: function thui_updateHeaderData(number) {
-    ThreadUI.title.innerHTML = number;
+    var self = this;
+    self.title.innerHTML = number;
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadUI.title.innerHTML = contact[0].name;
+      //TODO what if return multiple contacts?
+      var carrierTag = document.getElementById('contact-carrier');
+      if (contact.length > 0) { // we have a contact
+        var name = contact[0].name,
+            phone = contact[0].tel[0];
+        // Check which of the contacts phone we are using
+        for (var i = 0; i < contact[0].tel.length; i++) {
+          if (contact[0].tel[i].value == number) {
+            phone = contact[0].tel[i];
+          }
+        }
+        if (name && name != '') { // contact with name
+          self.title.innerHTML = name;
+          carrierTag.innerHTML =
+                  phone.type + ' | ' +
+                  (phone.carrier || _('carrier-unknown'));
+    // TODO check if contact has different numbers with same type and carrier
+        } else { // no name of contact
+          carrierTag.innerHTML = phone.type;
+        }
+      } else { // we don't have a contact
+        carrierTag.style.display = 'none';
       }
     });
   },
@@ -636,12 +743,14 @@ var ThreadUI = {
         MessageManager.getMessages(ThreadListUI.renderThreads);
       });
     }
+    // Boot update of headers
+    Utils.updateHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
     }
   },
-  appendMessage: function thui_appendMessage(message) {
+  appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
     }
@@ -655,33 +764,47 @@ var ThreadUI = {
       message.delivery == 'sending');
     var className = (outgoing ? 'sent' : 'received');
     var timestamp = message.timestamp.getTime();
-    var bodyText = message.body.split('\n')[0];
+    var bodyText = message.body;
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
-    var htmlStructure = '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
-    // Add 'gif' if necessary
+    var htmlStructure = '';
+    // Adding edit options to the left side
     if (message.delivery == 'sending') {
-      htmlStructure += '<span class="message-option">' +
-      '<img src="style/images/spinningwheel_small_animation.gif" class="gif">' +
-                        '</span>';
       //Add edit options for pending
-      htmlStructure += '<span class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
                         '" type="checkbox">' +
                         '  <span></span>' +
-                      '</span>';
+                      '</label>';
     } else {
       //Add edit options
-      htmlStructure += '<span class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="message-option msg-checkbox">' +
                         '  <input value="id_' + message.id +
                         '" type="checkbox">' +
                         '  <span></span>' +
-                      '</span>';
+                      '</label>';
+    }
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                        '<div class="bubble">' + bodyHTML + '</div>' +
+                        '</span>';
+
+    // Add 'gif' if necessary
+    if (message.delivery == 'sending') {
+      htmlStructure += '<span class="message-option">' +
+      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
+        ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
+    if (message.error) {
+      messageDOM.addEventListener('click', function() {
+        var hash = window.location.hash;
+        if (hash != '#edit') {
+          ThreadUI.resendMessage(message);
+        }
+      });
+    }
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
     if (tmpIndex > ThreadUI.headerIndex) {
@@ -692,6 +815,9 @@ var ThreadUI = {
     ThreadUI.view.appendChild(messageDOM);
     // Scroll to bottom
     ThreadUI.scrollViewToBottom();
+    if (callback && callback instanceof Function) {
+      callback();
+    }
   },
 
   cleanForm: function thui_cleanForm() {
@@ -702,23 +828,47 @@ var ThreadUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
+    this.selectedInputList = [];
+    this.editHeader.innerHTML = _('editMode');
+    this.selectAllButton.classList.remove('disabled');
+    this.deselectAllButton.classList.add('disabled');
+    this.deleteButton.classList.add('disabled');
   },
 
   clearContact: function thui_clearContact() {
-    this.num.value = '';
+    this.contactInput.value = '';
+    this.view.innerHTML = '';
   },
 
-  deleteAllMessages: function thui_deleteAllMessages() {
-    var response = window.confirm('Delete all messages\n' +
-                                  'Are you sure you want to do this?');
+  selectAllMessages: function thui_selectAllMessages() {
+    var inputs =
+            this.view.querySelectorAll('input[type="checkbox"]:not(:checked)');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = true;
+      ThreadUI.clickInput(inputs[i]);
+    }
+    ThreadUI.checkInputs();
+  },
+
+  deselectAllMessages: function thui_deselectAllMessages() {
+    var inputs =
+            this.view.querySelectorAll('input[type="checkbox"]:checked');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].checked = false;
+      ThreadUI.clickInput(inputs[i]);
+    }
+    ThreadUI.checkInputs();
+  },
+
+  executeDeletion: function thui_executeDeletion() {
+    var response = window.confirm(_('deleteMessages-confirmation'));
     if (response) {
+      WaitingScreen.show();
       this.delNumList = [];
       this.pendingDelList = [];
       var tempTSList = [];
-
-      var inputs = this.view.querySelectorAll('input[type="checkbox"]');
+      var inputs = ThreadUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
-        inputs[i].parentNode.parentNode.classList.add('undo-candidate');
         var inputValue = inputs[i].value;
         if (inputValue.indexOf('ts_') != -1) {
           var valueParsed = inputValue.replace('ts_', '');
@@ -737,237 +887,338 @@ var ThreadUI = {
             }
           }
         }
-        ThreadUI.executeDeletion();
-      });
-    }
-  },
-
-  deleteMessages: function thui_deleteMessages() {
-    ThreadUI.delNumList = [];
-    ThreadUI.pendingDelList = [];
-    var tempTSList = [];
-    var inputs = ThreadUI.view.querySelectorAll(
-      'input[type="checkbox"]:checked');
-    for (var i = 0; i < inputs.length; i++) {
-      inputs[i].parentNode.parentNode.classList.add('undo-candidate');
-      var inputValue = inputs[i].value;
-      if (inputValue.indexOf('ts_') != -1) {
-        var valueParsed = inputValue.replace('ts_', '');
-        tempTSList.push(parseFloat(valueParsed));
-      } else {
-        var valueParsed = inputValue.replace('id_', '');
-        ThreadUI.delNumList.push(parseFloat(valueParsed));
-      }
-    }
-    MessageManager.getMessages(function(messages) {
-      for (var i = 0; i < messages.length; i++) {
-        var message = messages[i];
-        if (message.delivery == 'sending') {
-          if (tempTSList.indexOf(message.timestamp.getTime()) != -1) {
-            ThreadUI.pendingDelList.push(message);
-          }
-        }
-      }
-    });
-  },
-
-  executeDeletion: function thui_executeDeletion() {
-    if (ThreadUI.delNumList.length + ThreadUI.pendingDelList.length > 0) {
-      MessageManager.deleteMessages(ThreadUI.delNumList, function() {
-        //TODO Change this functionality with Steve code
-        WaitingScreen.show();
-        if (ThreadUI.pendingDelList.length > 0) {
-          for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
-            if (i == ThreadUI.pendingDelList.length - 1) {
-              // Once everything is removed
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
-                function() {
-                  var filter = MessageManager.createFilter(
-                    MessageManager.currentNum);
-                  MessageManager.getMessages(function(messages) {
-                    if (messages.length > 0) {
-                      // If there are messages yet
-                      ThreadUI.renderMessages(messages);
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        WaitingScreen.hide();
-                        window.history.back();
-                      });
-                    }else {
-                      // If there are no more messages (delete all)
-                      ThreadUI.view.innerHTML = '';
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        var mainWrapper =
-                          document.getElementById('main-wrapper');
-                        WaitingScreen.hide();
-                        mainWrapper.classList.remove('edit');
-                        window.location.hash = '#thread-list';
-                      });
-
-                    }
-                },filter);
-              });
-            } else {
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+        // Now we have our lists filled, we start the deletion
+        MessageManager.deleteMessages(ThreadUI.delNumList, function() {
+          if (ThreadUI.pendingDelList.length > 0) {
+            for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
+              if (i == ThreadUI.pendingDelList.length - 1) {
+                // Once everything is removed
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
+                  function() {
+                    var filter = MessageManager.createFilter(
+                      MessageManager.currentNum);
+                    MessageManager.getMessages(function(messages) {
+                      if (messages.length > 0) {
+                        // If there are messages yet
+                        ThreadUI.renderMessages(messages);
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          WaitingScreen.hide();
+                          window.history.back();
+                        });
+                      }else {
+                        // If there are no more messages (delete all)
+                        ThreadUI.view.innerHTML = '';
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          var mainWrapper =
+                            document.getElementById('main-wrapper');
+                          WaitingScreen.hide();
+                          mainWrapper.classList.remove('edit');
+                          window.location.hash = '#thread-list';
+                        });
+                      }
+                  },filter);
+                });
+              } else {
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+              }
             }
-          }
-        }else {
-          var filter = MessageManager.createFilter(MessageManager.currentNum);
-          MessageManager.getMessages(function recoverMessages(messages) {
-            if (messages.length > 0) {
-              ThreadUI.renderMessages(messages);
-              WaitingScreen.hide();
-              window.history.back();
-            }else {
-              ThreadUI.view.innerHTML = '';
-              MessageManager.getMessages(ThreadListUI.renderThreads,
-                                         null, null, function() {
-                var mainWrapper = document.getElementById('main-wrapper');
+          }else {
+            var filter = MessageManager.createFilter(MessageManager.currentNum);
+            MessageManager.getMessages(function recoverMessages(messages) {
+              if (messages.length > 0) {
+                ThreadUI.renderMessages(messages);
                 WaitingScreen.hide();
-                mainWrapper.classList.remove('edit');
-                window.location.hash = '#thread-list';
-              });
+                window.history.back();
+              }else {
+                ThreadUI.view.innerHTML = '';
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  var mainWrapper = document.getElementById('main-wrapper');
+                  WaitingScreen.hide();
+                  mainWrapper.classList.remove('edit');
+                  window.location.hash = '#thread-list';
+                });
+              }
+            },filter);
+          }
+        });
 
-            }
-
-          },filter);
-        }
 
       });
+    }
+  },
+
+  clickInput: function thui_clickInput(target) {
+    if (target.checked) {
+      ThreadUI.selectedInputList.push(target);
     } else {
-      window.history.back();
+      ThreadUI.selectedInputList.splice(
+                      ThreadUI.selectedInputList.indexOf(target), 1);
+    }
+  },
+
+  checkInputs: function thui_checkInputs() {
+    var selected = ThreadUI.selectedInputList.length;
+    var allInputs = this.view.querySelectorAll('input[type="checkbox"]');
+    if (selected == allInputs.length) {
+      ThreadUI.selectAllButton.classList.add('disabled');
+    } else {
+      ThreadUI.selectAllButton.classList.remove('disabled');
+    }
+    if (selected > 0) {
+      ThreadUI.deselectAllButton.classList.remove('disabled');
+      ThreadUI.deleteButton.classList.remove('disabled');
+      this.editHeader.innerHTML = _('selected', {n: selected});
+    } else {
+      ThreadUI.deselectAllButton.classList.add('disabled');
+      ThreadUI.deleteButton.classList.add('disabled');
+      this.editHeader.innerHTML = _('editMode');
     }
   },
 
   handleEvent: function thui_handleEvent(evt) {
-    //TODO We will use for updating height of input if necessary
+    switch (evt.type) {
+      case 'click':
+        if (evt.target.type == 'checkbox') {
+          ThreadUI.clickInput(evt.target);
+          ThreadUI.checkInputs();
+        }
+      break;
+    }
   },
   cleanFields: function thui_cleanFields() {
-    this.num.value = '';
+    this.contactInput.value = '';
     this.input.value = '';
     this.updateInputHeight();
   },
 
-  sendMessage: function thui_sendMessage() {
-    // Retrieve num depending on hash
-    var hash = window.location.hash;
-    // Depending where we are, we get different num
-    if (hash == '#new') {
-      var num = this.num.value;
-    } else {
-      var num = MessageManager.getNumFromHash();
-    }
-    // Retrieve text
-    var text = this.input.value;
-    // If we have something to send
-    if (num != '' && text != '') {
-      // Create 'PendingMessage'
-      var tempDate = new Date();
-      var message = {
-        sender: null,
-        receiver: num,
-        delivery: 'sending',
-        body: text,
-        read: 1,
-        timestamp: tempDate
-      };
+  sendMessage: function thui_sendMessage(resendText) {
+    var settings = window.navigator.mozSettings,
+        throwGeneralError;
 
-
-
-
-      var self = this;
-      // Save the message into pendind DB before send.
-      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        if (!msg) {
-          // TODO: We need to handle the pending message save failed.
-          console.log('Message app - pending message save failed!');
-          PendingMsgManager.saveToMsgDB(message, this);
-        } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
-          // Update ThreadListUI when new message in pending database.
-          if (window.location.hash == '#new') {
-            window.location.hash = '#num=' + num;
-          } else {
-            // Append to DOM
-            ThreadUI.appendMessage(message);
+    throwGeneralError = function() {
+      CustomDialog.show(
+        _('sendGeneralErrorTitle'),
+        _('sendGeneralErrorBody'),
+        {
+          title: _('sendGeneralErrorBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
           }
-          MessageManager.getMessages(ThreadListUI.renderThreads);
         }
+      );
+    };
 
-      });
+    if (settings) {
 
-      MessageManager.send(num, text, function onsent(msg) {
-        if (!msg) {
-          var resendConfirmStr = _('resendConfirmDialogMsg');
-          var result = confirm(resendConfirmStr);
-          if (!result) {
-            // Remove the message from pending message DB before resend.
-            PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
-              var filter = MessageManager.createFilter(num);
-              MessageManager.getMessages(function(messages) {
-                if (messages.length > 0) {
-                  ThreadUI.renderMessages(messages);
-                  MessageManager.getMessages(ThreadListUI.renderThreads);
-                } else {
-                  MessageManager.getMessages(ThreadListUI.renderThreads,
-                                             null, null, function() {
-                    window.location.hash = '#thread-list';
-                  });
+      var req = settings.getLock().get('ril.radio.disabled');
+      req.addEventListener('success', (function onsuccess() {
+        var status = req.result['ril.radio.disabled'];
 
+        // Retrieve num depending on hash
+        var hash = window.location.hash;
+        // Depending where we are, we get different num
+        if (hash == '#new') {
+          var num = this.contactInput.value;
+        } else {
+          var num = MessageManager.getNumFromHash();
+        }
+        // Retrieve text
+        var text = this.input.value || resendText;
+        // If we have something to send
+        if (num != '' && text != '') {
+          // Create 'PendingMessage'
+          var tempDate = new Date();
+          var message = {
+            sender: null,
+            receiver: num,
+            delivery: 'sending',
+            body: text,
+            read: 1,
+            timestamp: tempDate
+          };
+          var self = this;
+          if (!status) {
+            message.error = false;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
+              MessageManager.send(num, text, function onsent(msg) {
+                var root = document.getElementById(message.timestamp.getTime());
+                if (root) {
+                  root.removeChild(root.childNodes[2]);
+                  var inputs = root.querySelectorAll('input[type="checkbox"]');
+                  if (inputs) {
+                    inputs[0].value = 'id_' + msg.id;
+                  }
                 }
-              }, filter, true);
+                // Remove the message from pending message DB since it
+                // could be sent successfully.
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    if (!msg) {
+                      //TODO: Handle message delete failed in pending DB.
+                    }
+                });
+              }, function onerror() {
+                var root = document.getElementById(message.timestamp.getTime());
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    message.error = true;
+                    PendingMsgManager.saveToMsgDB(message,
+                      function onsave(msg) {
+                        var filter = MessageManager.createFilter(
+                          message.receiver);
+                        MessageManager.getMessages(function(messages) {
+                          ThreadUI.renderMessages(messages);
+                          MessageManager.getMessages(
+                            ThreadListUI.renderThreads);
+                        }, filter);
+                    });
+                });
+              });
             });
-            window.setTimeout(self.sendMessage.bind(self), 500);
-            return;
           } else {
-            // TODO We found that there is no resend!
-            // Steve, could you take a look?!
+            message.error = true;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
+              CustomDialog.show(
+                _('sendFlightModeTitle'),
+                _('sendFlightModeBody'),
+                {
+                  title: _('sendFlightModeBtnOk'),
+                  callback: function() {
+                    CustomDialog.hide();
+                  }
+                }
+              );
+              MessageManager.getMessages(ThreadListUI.renderThreads);
+            });
           }
-        } else {
-          var root = document.getElementById(message.timestamp.getTime());
-          if (root) {
-
-            root.removeChild(root.childNodes[1]);
-            var inputs = root.querySelectorAll('input[type="checkbox"]');
-            if (inputs) {
-              inputs[0].value = 'id_' + msg.id;
-            }
-
-          }
-
-
-          // Remove the message from pending message DB since it could be sent
-          // successfully.
-          PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
-            if (!msg) {
-              //TODO: Handle message delete failed in pending DB.
-            }
-          });
         }
+      }).bind(this));
+
+      req.addEventListener('error', function onerror() {
+        throwGeneralError();
+      });
+    } else {
+      throwGeneralError();
+    }
+  },
+
+  resendMessage: function thui_resendMessage(message) {
+    var resendConfirmStr = _('resend-confirmation');
+    var result = confirm(resendConfirmStr);
+    if (result) {
+      // Remove the message from pending message DB before resend.
+      PendingMsgManager.deleteFromMsgDB(message, function ondelete(msg) {
+        var filter = MessageManager.createFilter(message.receiver);
+        MessageManager.getMessages(function(messages) {
+          ThreadUI.renderMessages(messages);
+          MessageManager.getMessages(ThreadListUI.renderThreads);
+          ThreadUI.sendMessage(message.body);
+        }, filter, true);
       });
     }
   },
 
+  renderContactData: function thui_renderContactData(contact) {
+    // Retrieve info from thread
+    var phoneType = ContactDataManager.phoneType;
+    var name = contact.name.toString();
+    var tels = contact.tel;
+    for (var i = 0; i < tels.length; i++) {
+      var input = this.contactInput.value;
+      var number = tels[i].value.toString();
+      var reg = new RegExp(input, 'ig');
+      if (!(name.match(reg) || (number.match(reg)))) {
+        continue;
+      }
+      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
+      // Create DOM element
+      var threadHTML = document.createElement('div');
+      threadHTML.classList.add('item');
+      if (name == '') {
+        nameHTML = 'Unknown';
+      }
+      var carrier = tels[i].carrier;
+      //TODO Implement algorithm for this part following Wireframes
+      // Create HTML structure
+      var structureHTML =
+              '  <a href="#num=' + tels[i].value + '">' +
+              '    <div class="name">' + nameHTML + '</div>' +
+              '    <div class="type">' + tels[i].type + ' ' + numHTML +
+              '    </div>' +
+              '  </a>';
+      // Update HTML and append
+      threadHTML.innerHTML = structureHTML;
+      ThreadUI.view.appendChild(threadHTML);
+    }
+  },
+
+  searchContact: function thui_searchContact() {
+    var input = this.contactInput;
+    var string = input.value;
+    var self = this;
+    this.view.innerHTML = '';
+    if (!string) {
+      return;
+    }
+    ContactDataManager.searchContactData(string, function gotContact(contacts) {
+      if (!contacts || contacts.length == 0) {
+        return;
+      }
+      contacts.forEach(self.renderContactData.bind(self));
+    });
+  },
+
   pickContact: function thui_pickContact() {
     try {
+      var reopenSelf = function reopenSelf(number) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+          app.launch();
+          if (number) {
+            window.location.hash = '#num=' + number;
+          }
+        };
+      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
           type: 'webcontacts/contact'
         }
       });
-      activity.onsuccess = function() {
+      activity.onsuccess = function success() {
         var number = this.result.number;
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          if (number) {
-            var app = evt.target.result;
-            app.launch();
-            window.location.hash = '#num=' + number;
-          }
-        };
+        reopenSelf(number);
       }
+      activity.onerror = function error() {
+        reopenSelf();
+      }
+
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1034,3 +1285,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
+

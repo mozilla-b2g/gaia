@@ -1,28 +1,33 @@
 html, body {
-  height: 100%;
   margin: 0;
   padding: 0;
 }
 
-body {
-  background-image: url('images/start-background.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+html {
+  height: 100%;
+  background-image: url('images/start-page-logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
   background-repeat: no-repeat, no-repeat;
-  background-position: center center, top left;
+  background-position: top right;
+}
+
+body {
   overflow: hidden;
-  padding: 0 10px;
   font-family: 'Open Sans', sans-serif;
+  color: #3e4041;
 }
 
 h1 {
-  margin: 5px;
+  font-size: 24px;
+  margin: 10px 15px;
 }
 
-h1 {
-  font-size: 16px;
+h3 {
+  font-size: 14px;
+  margin: 0 0 15px 15px;
 }
 
 #top-sites {
-  width: 260px;
+  width: 290px;
   margin: 0 auto;
   overflow: hidden;
 }
@@ -36,25 +41,35 @@ h1 {
   list-style-type: none;
   text-align: center;
   float: left;
-  margin: 5px;
+  position: relative;
+  border-bottom: 2px solid #CCC;
+  margin-bottom: 20px;
+}
+
+#thumbnails li:nth-child(2n) {
+  margin-left: 10px;
 }
 
 #thumbnails li a {
   display: block;
-  width: 120px;
-  height: 80px;
-  background-color: rgba(42, 42, 42, 0.5);
-  background-size: 120px auto;
+  width: 140px;
+  height: 100px;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
 }
 
 #thumbnails li span {
-  font-size: 14px;
+  font-size: 12px;
   display: block;
-  width: 120px;
+  width: 140px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  bottom: 0px;
+  padding: 3px;
 }
 
 .hidden {

@@ -1,0 +1,355 @@
+/* ----------------------------------
+ * HEADERS: default
+ * ---------------------------------- */
+
+body[role="application"] section[role="region"] > header {
+  position: relative;
+  z-index: 10;
+  height: 5rem;
+  color: #fff;
+  background: url(images/ui/header.png) repeat-x left top;
+}
+
+body[role="application"] section[role="region"] > header:after {
+  content: "";
+  height: 0.3rem;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: url(images/ui/shadow.png) repeat-x left top;
+  background-size: auto 100%;
+}
+
+body[role="application"] section[role="region"] > header h1 {
+  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0 0 0 3rem;
+  height: 100%
+}
+
+body[role="application"] section[role="region"] > header h1 sup {
+  background: url(images/icons/fav-star.png) no-repeat center center;
+  background-size: 100% auto;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: inline-block;
+  vertical-align: text-top;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+body[role="application"] section[role="region"] > header h1 em {
+  font: bold 1.5rem/1em "Open Sans", Sans-serif;
+}
+
+body[role="application"] section[role="region"] > header form {
+  display: block;
+  overflow: hidden;
+  padding: 1.1rem;
+  margin-left: 2.5rem;
+}
+
+body[role="application"] section[role="region"] > header label {
+  position: relative; display: block;
+}
+
+body[role="application"] section[role="region"] > header input[type=text] {
+  width: 100%;
+  height: 2.7rem;
+  -moz-box-sizing: border-box;
+  padding: 0 0.5rem;
+  border: solid 1px #9d4123;
+  border-top-color: #a6501e;
+  border-radius: 0.3rem;
+  background: #fff url(images/ui/shadow.png) repeat-x left -1px;
+  font: 1.35rem/1em "Open Sans", Sans-serif;
+}
+
+body[role="application"] section[role="region"] > header form .clear {
+  text-indent: -9999px;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  height: auto;
+  margin: 0;
+  background: url(images/icons/clear.png) no-repeat center center;
+}
+
+ /* Generic set of actions in toolbar */
+ body[role="application"] section[role="region"] > header menu[type="toolbar"] {
+  height: 100%;
+  float: right;
+}
+
+ body[role="application"] section[role="region"] > header menu[type="toolbar"] a, 
+ body[role="application"] section[role="region"] > header menu[type="toolbar"] button { 
+  height: 4.9rem; 
+  min-width: 5rem;
+  width: auto;
+  margin-bottom: 0;
+  line-height: 4.9rem;
+  float: left; 
+  background: none; 
+  padding: 0 1.75rem; 
+  -moz-box-sizing: border-box;
+  text-align: center;
+  text-shadow: none;
+}
+
+body[role="application"] section[role="region"] > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header menu[type="toolbar"] button:last-child {
+  background: url(images/ui/separator.png) no-repeat left center;
+}
+
+ body[role="application"] section[role="region"] > header menu[type="toolbar"] {
+  padding: 0;
+  margin: 0;
+}
+
+body[role="application"] section[role="region"] > header a,
+body[role="application"] section[role="region"] > header button {
+  border: none;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
+  color: #fff;
+}
+
+body[role="application"] section[role="region"] > header a:first-letter,
+body[role="application"] section[role="region"] > header button:first-letter {
+  text-transform: uppercase;
+}
+  
+/* Icon definitions */
+body[role="application"] section[role="region"] > header .icon {
+  display: inline-block;
+  float: none;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  text-indent: -9999px;
+  overflow: hidden;
+  position: relative;
+  height: 4.9rem;
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-add {
+  background-image: url(images/icons/add.png);
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-edit {
+  background-image: url(images/icons/edit.png);
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-close {
+  background-image: url(images/icons/close.png);
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-back {
+  background-image: url(images/icons/back.png);
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-menu {
+  background-image: url(images/icons/menu.png);
+}
+
+body[role="application"] section[role="region"] > header .icon.icon-user {
+  background-image: url(images/icons/user.png);
+}
+
+/* Navigation links (back, cancel, etc) */
+body[role="application"] section[role="region"] > header > button,
+body[role="application"] section[role="region"] > header > a {
+  position: absolute;
+  left: 0;
+  width: 4rem;
+  height: 4.9rem;
+  background: url(images/ui/separator-large.png) no-repeat 2rem center;
+  overflow: hidden;
+  text-align: center;
+}
+
+body[role="application"] section[role="region"] > header > button .icon,
+body[role="application"] section[role="region"] > header > a .icon {
+  overflow: visible;
+  text-indent: -9999px;
+  position: static;
+  margin-left: -3rem;
+  height: 4.9rem;
+}
+
+body[role="application"] section[role="region"] > header > button .icon:after,
+body[role="application"] section[role="region"] > header > a .icon:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 2rem;
+  height: 4.9rem;
+  background: #9d3d26 url(images/ui/negative.png) repeat-x left top;
+}
+
+body[role="application"] section[role="region"] > header > a .icon.icon-menu, 
+body[role="application"] section[role="region"] > header > button .icon.icon-menu {
+  background-position: -1rem center;
+}
+
+
+/* ----------------------------------
+ * HEADERS: subheader
+ * ---------------------------------- */
+body[role="application"] section[role="region"] > header[aria-level="2"] {
+  background: url(images/ui/subheader.png) repeat left bottom;
+  border-bottom: solid 1px #e6e6e6;
+  z-index: 0;
+  padding: 0.4rem 0;
+  height: auto;
+  color: #424242;
+}
+
+body[role="application"] section[role="region"] > header[aria-level="2"]:after {
+  display: none;
+}
+
+body[role="application"] section[role="region"] > header[aria-level="2"] h2, 
+body[role="application"] section[role="region"] > header[aria-level="2"] h3 {
+  font-family: "Open Sans", Sans-serif;
+  font-weight: lighter;
+  margin: 0 0 0 3rem;
+}
+
+body[role="application"] section[role="region"] > header[aria-level="2"] h2 { font-size: 1.8rem; }
+body[role="application"] section[role="region"] > header[aria-level="2"] h3 { font-size: 1.4rem; }
+body[role="application"] section[role="region"] > header[aria-level="2"] p { 
+  font-family: "Open Sans", Sans-serif;
+  font-weight: 600;
+  margin: 0 3rem;
+  font-size: 1.3rem;
+  line-height: 1.8rem;
+}
+
+
+/* ----------------------------------
+ * HEADERS: search
+ * ---------------------------------- */
+body[role="application"] section[role="region"] > header + form.search {
+  height: 3rem;
+  background: url(images/ui/search.png) repeat-x left bottom;
+  padding: 0.5rem 2.4rem 0 2.4rem;
+}
+
+body[role="application"] section[role="region"] > header + form.search input[type="text"] {
+  width: 100%;
+  background: #fff;
+  border: 1px solid #b8b8b8;
+  border-radius: 0.3rem;
+  height: 2.2rem;
+  line-height: 2.2rem;
+  font-family: "Open Sans", Sans-serif;
+  font-weight: 600;
+  color: #333;
+  text-indent: 0.5rem;
+  font-size: 1.3rem;
+}
+
+body[role="application"] section[role="region"] > header + form.search input[type="text"]:-moz-placeholder {
+  color: #777;
+}
+
+
+/* ----------------------------------
+ * HEADERS: dark
+ * ---------------------------------- */
+body[role="application"] section[role="region"][data-theme="dark"] > header,
+body[role="application"] section[role="region"] > header[data-theme="dark"] {
+  background: url(images/ui/dark/header.png) repeat-x left top;
+}
+
+/* Navigation links (back, cancel, etc) */
+body[role="application"] section[role="region"][data-theme="dark"] > header > a .icon:after,
+body[role="application"] section[role="region"] > header[data-theme="dark"] > a .icon:after,
+body[role="application"] section[role="region"][data-theme="dark"] > header > button .icon:after,
+body[role="application"] section[role="region"]> header[data-theme="dark"]  > button .icon:after {
+  background: #26272c url(images/ui/dark/negative.png) repeat-x left top;
+}
+
+body[role="application"] section[role="region"][data-theme="dark"] > header[aria-level="2"],
+body[role="application"] section[role="region"] > header[aria-level="2"][data-theme="dark"] {
+  background: #7f7f7f url(images/ui/dark/subheader.png) repeat-x left bottom;
+  color: #c5c5c5;
+}
+
+
+/* ----------------------------------
+ * HEADERS: overlay
+ * ---------------------------------- */
+body[role="application"] section[role="region"] > header[data-theme="overlay"],
+body[role="application"] section[role="region"][data-theme="overlay"] > header {
+  background: url(images/ui/overlay/header.png) repeat left top;
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+}
+
+body[role="application"] section[role="region"] > header[data-theme="overlay"] > button .icon:after,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header> button .icon:after,
+body[role="application"] section[role="region"] > header[data-theme="overlay"] > a .icon:after,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header > a .icon:after {
+  background: none;
+}
+
+body[role="application"] section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header[data-theme="overlay"] menu[type="toolbar"] button:last-child,
+body[role="application"] section[role="region"][data-theme="overlay"]  > header menu[type="toolbar"] button:last-child {
+  background-image: url(images/ui/overlay/separator.png);
+}
+
+
+/* ----------------------------------
+ * HEADERS: organic
+ * ---------------------------------- */
+body[role="application"] section[role="region"][data-theme="organic"] > header,
+body[role="application"] section[role="region"] > header[data-theme="organic"] {
+  background: url(images/ui/organic/header.png) repeat-x left top,  url(images/ui/organic/pattern.png) repeat left top;
+}
+
+body[role="application"] section[role="region"][data-theme="organic"] > header:after,
+body[role="application"] section[role="region"] > header[data-theme="organic"]:after {
+  margin-top: -1px;
+}
+
+/* Navigation links (back, cancel, etc) */
+body[role="application"] section[role="region"][data-theme="organic"] > header > a .icon:after,
+body[role="application"] section[role="region"] > header[data-theme="organic"] > a .icon:after,
+body[role="application"] section[role="region"][data-theme="organic"] > header > button .icon:after,
+body[role="application"] section[role="region"]> header[data-theme="organic"]  > button .icon:after {
+  /*background: -moz-linear-gradient(top, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.25));*/
+  background: url(images/ui/organic/negative.png) repeat-x left top;
+}
+
+body[role="application"] section[role="region"][data-theme="organic"] > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header[data-theme="organic"] menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"][data-theme="organic"] > header menu[type="toolbar"] button:last-child,
+body[role="application"] section[role="region"]> header[data-theme="organic"] menu[type="toolbar"] button:last-child {
+  background-image: url(images/ui/organic/separator.png);
+}
+
+body[role="application"] section[role="region"][data-theme="organic"] > header[aria-level="2"],
+body[role="application"] section[role="region"] > header[aria-level="2"][data-theme="organic"] {
+  background: #7f7f7f url(images/ui/organic/subheader.png) repeat-x left bottom;
+  color: #fff;
+}
