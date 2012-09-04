@@ -1,16 +1,5 @@
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cu = Components.utils;
-
-var Services = {};
-
-Cu.import('resource://gre/modules/XPCOMUtils.jsm');
-
-XPCOMUtils.defineLazyServiceGetter(Services, 'env',
-                                   '@mozilla.org/process/environment;1',
-                                   'nsIEnvironment');
-
-var reporter = Services.env.get('REPORTER') || 'Spec';
+var env = window.xpcModule.require('env');
+var reporter = env.get('REPORTER') || 'Spec';
 
 window.parent = window;
 window.location.host = 'localhost';
@@ -37,7 +26,6 @@ Common = window.CommonResourceLoader = {
 
 
 require('/common/vendor/mocha/mocha.js');
-require('/common/vendor/marionette-client/marionette.js');
 process.stdout.write = window.xpcDump;
 
 //Hack to format errors
@@ -97,6 +85,7 @@ mocha.reporters.Base.list = function(failures) {
 
 };
 
+
 if (!(reporter in mocha.reporters)) {
   var reporters = Object.keys(mocha.reporters);
   var idx = reporters.indexOf('Base');
@@ -119,12 +108,11 @@ if (!(reporter in mocha.reporters)) {
     reporter: mocha.reporters[reporter]
   });
 
-  require('helper.js');
+  require('integration_helper.js')
 
-  window.xpcArgv.forEach(function(test) {
+  window.xpcArgv.slice(2).forEach(function(test) {
     require(test);
   });
-
 
   mocha.run(function() {
     window.xpcEventLoop.stop();

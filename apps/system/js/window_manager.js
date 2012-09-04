@@ -239,8 +239,12 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback, disposition) {
+    if (origin == null)
+      origin = homescreen;
     var currentApp = displayedApp, newApp = origin;
     disposition = disposition || 'window';
+
+    var homescreenFrame = runningApps[homescreen].frame;
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -251,12 +255,25 @@ var WindowManager = (function() {
     // Case 2: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
+      if (!currentApp)
+        homescreenFrame.setVisible(true);
       setAppSize(newApp);
-      openWindow(newApp, callback);
+      openWindow(newApp,
+                 !currentApp ?
+                 callback :
+                 function setHomescreenVisible() {
+                   // Move the homescreen into the background only
+                   // after the transition completes, since it's
+                   // visible during the transition.
+                   homescreenFrame.setVisible(false);
+                   callback();
+                 });
     }
     // Case 3: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
-      // Animate the window close
+      // Animate the window close.  Ensure the homescreen is in the
+      // foreground since it will be shown during the animation.
+      homescreenFrame.setVisible(true);
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
@@ -270,7 +287,6 @@ var WindowManager = (function() {
 
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
-    var homescreenFrame = runningApps[homescreen].frame;
     if ((newApp == homescreen) && homescreenFrame) {
       homescreenFrame.classList.add('active');
     } else {
@@ -321,6 +337,11 @@ var WindowManager = (function() {
     }
   }
 
+  var isOutOfProcessDisabled = false;
+  SettingsListener.observe('debug.oop.disabled', false, function(value) {
+    isOutOfProcessDisabled = value;
+  });
+
   function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
     frame.id = 'appframe' + nextAppId++;
@@ -357,11 +378,8 @@ var WindowManager = (function() {
       'Browser',
       // Requires nested content processes (bug 761935)
 
-      'Camera',
-      // Can't open camera HAL from content processes (bug 782456)
-
-      'Clock',
-      // Crashing when dismissing the alert window (bug 785166)
+      'Cost Control',
+      // ?????
 
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
@@ -372,26 +390,21 @@ var WindowManager = (function() {
       // - Repaints are being starved during panning (bug 761933)
       // - Homescreen needs to draw the system wallpaper itself (#3639)
 
+      'Image Uploader',
+      // Cannot upload files when OOP
+      // bug 783878
+
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages',
       // Crashes when launched OOP (bug 775997)
 
-      'Settings',
+      'Settings'
       // Bluetooth is not remoted yet (bug 755943)
-
-      'Video',
-      // No videos seem to be found when running OOP (i.e. no video
-      // list) (bug 782460)
-
-      'Image Uploader',
-      // Cannot upload files when OOP
-      // bug 783878
-
-      'Cost Control'
     ];
 
-    if (outOfProcessBlackList.indexOf(name) === -1) {
+    if (!isOutOfProcessDisabled &&
+        outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
@@ -449,13 +462,22 @@ var WindowManager = (function() {
     // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
+      var givenPath = e.detail.url.substr(e.detail.origin.length);
+
+      // Workaround here until the bug (to be filed) is fixed
+      // Basicly, gecko is sending the URL without launch_path sometimes
       for (var ep in entryPoints) {
+        var currentEp = entryPoints[ep];
+        var path = givenPath;
+        if (path.indexOf('?') != -1) {
+          path = path.substr(0, path.indexOf('?'));
+        }
+
         //Remove the origin and / to find if if the url is the entry point
-        var path = e.detail.url.substr(e.detail.origin.length + 1);
-        if (path.indexOf(ep) == 0 &&
-            (ep + entryPoints[ep].launch_path) == path) {
-          origin = origin + '/' + ep;
-          name = entryPoints[ep].name;
+        if (path.indexOf('/' + ep) == 0 &&
+            (currentEp.launch_path == path)) {
+          origin = origin + currentEp.launch_path;
+          name = currentEp.name;
         }
       }
     }
@@ -623,9 +645,7 @@ var WindowManager = (function() {
     // Note that for this to work, the lockscreen and other overlays must
     // be included in index.html before this one, so they can register their
     // event handlers before we do.
-    if (CardsView.cardSwitcherIsShown()) {
-      CardsView.hideCardSwitcher();
-    } else if (document.mozFullScreen) {
+    if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
@@ -646,6 +666,15 @@ var WindowManager = (function() {
       CardsView.showCardSwitcher();
     }
   });
+
+  // With all important event handlers in place, we can now notify
+  // Gecko that we're ready for certain system services to send us
+  // messages (e.g. the radio).
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('mozContentEvent', true, true, {
+    type: 'system-app-ready'
+  });
+  window.dispatchEvent(event);
 
   // Return the object that holds the public API
   return {

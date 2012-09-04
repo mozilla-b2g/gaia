@@ -88,7 +88,7 @@ ComposeCard.prototype = {
     this.composer.cc = frobAddressNode(this.ccNode);
     this.composer.bcc = frobAddressNode(this.bccNode);
     this.composer.subject = this.subjectNode.value;
-    this.composer.body.text = this.bodyNode.value;
+    this.composer.body.text = this.textBodyNode.value;
     // The HTML representation cannot currently change in our UI, so no
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
@@ -145,9 +145,40 @@ ComposeCard.prototype = {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
-  onContactAdd: function(evt) {
-    evt.target.classList.remove('show');
-    // TODO: Open cantact picker.
+  onContactAdd: function(event) {
+    var contactBtn = event.target;
+    contactBtn.classList.remove('show');
+    try {
+      var reopenSelf = function reopenSelf(obj) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+          app.launch();
+          if (obj.email) {
+            // TODO: We need to add name icon in the input field
+            //       and save the email in array intead of query the input
+            //       value directly.
+            var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
+            emt.value += emt.value ? (',' + obj.email) : obj.email;
+          }
+        };
+      };
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/email'
+        }
+      });
+      activity.onsuccess = function success() {
+        var number = this.result.number;
+        reopenSelf(this.result);
+      }
+      activity.onerror = function error() {
+        reopenSelf();
+      }
+
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   },
 
   die: function() {

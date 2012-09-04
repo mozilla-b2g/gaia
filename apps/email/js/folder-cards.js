@@ -54,7 +54,7 @@ FolderPickerCard.prototype = {
     var account;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        account = msgSlice.items[i];
+        account = this.acctsSlice.items[i];
         accountsContainer.removeChild(account.element);
       }
     }
@@ -122,7 +122,6 @@ FolderPickerCard.prototype = {
 
     this.accountsContainer.classList.remove('show');
     this.foldersContainer.classList.add('show');
-    //Cards.tellCard(['folder-picker', 'navigation'], { account: account });
   },
 
   onShowHideAccounts: function() {
@@ -157,7 +156,7 @@ FolderPickerCard.prototype = {
     var folder;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        folder = msgSlice.items[i];
+        folder = this.foldersSlice.items[i];
         foldersContainer.removeChild(folder.element);
       }
     }

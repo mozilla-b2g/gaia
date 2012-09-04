@@ -27,7 +27,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
 
 ApplicationMock.prototype = {
   launch: function _launch(startPoint) {
-    this.app.launch(this.entry_point + this.manifest.launch_path);
+    this.app.launch(this.entry_point);
   },
 
   uninstall: function _uninstall() {
