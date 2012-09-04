@@ -32,7 +32,6 @@ suite('dialer/handled_call', function() {
   var realCallScreen;
   var realL10n;
   var realUtils;
-
   var phoneNumber;
 
   suiteSetup(function() {
