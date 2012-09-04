@@ -5,7 +5,7 @@ var MockUtils = {
   mCalledGetPhoneNumberAdditionalInfo: false,
 
   prettyDate: function ut_prettyDate(time) {
-    this.mCalledPrettyDate = true;  
+    this.mCalledPrettyDate = true;
   },
 
   headerDate: function ut_headerDate(time) {
@@ -16,8 +16,9 @@ var MockUtils = {
     this.mCalledGetDayDate = true;
   },
 
-  getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(phoneNumber, associatedContact) {
-    this.mCalledGetPhoneNumberAdditionalInfo = true
+  getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
+    phoneNumber, associatedContact) {
+    this.mCalledGetPhoneNumberAdditionalInfo = true;
   },
 
   mTearDown: function tearDown() {
