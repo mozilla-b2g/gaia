@@ -176,7 +176,7 @@ webapp-manifests: install-xulrunner-sdk
 	@echo "Done"
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip: stamp-commit-hash
+webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@rm -rf apps/system/camera
