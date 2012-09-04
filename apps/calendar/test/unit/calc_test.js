@@ -198,7 +198,6 @@ suite('calendar/calc', function() {
         date.getDate() + 1
       );
 
-      end.setMilliseconds(-1);
       var out = subject.spanOfDay(date, true);
 
       assert.deepEqual(out, new Calendar.Timespan(
@@ -216,7 +215,6 @@ suite('calendar/calc', function() {
 
       var end = new Date(start.valueOf());
       end.setDate(end.getDate() + 1);
-      end.setMilliseconds(-1);
 
       var out = subject.spanOfDay(date);
 

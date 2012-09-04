@@ -21,6 +21,7 @@ manifest.appcache
 /showcase_apps/*/test/unit/_proxy.html
 
 /profile/
+/.xulrunner-url
 /xulrunner/
 /xulrunner-sdk/
 /tools/test-agent/node_modules

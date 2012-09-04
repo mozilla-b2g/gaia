@@ -71,6 +71,10 @@ html, body {
   background-image: url(images/grid.png);
 }
 
+#gallery-button[disabled=disabled] {
+  display: none;
+}
+
 #capture-button[disabled=disabled] {
   opacity: 0.5;
 }
@@ -136,22 +140,26 @@ html, body {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   z-index: 50;
-  top: -50px;
+  -moz-transform: translateY(0px);
   left: 0;
   right: 0;
-  height: 30px;
   padding: 10px;
+  min-height: 30px;
   background: rgba(0, 0, 0, 0.8);
 }
 
+#film-strip.hidden {
+  -moz-transform: translateY(-50px);
+}
+
 #film-strip img {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   border: 2px solid grey;
   margin-right: 10px;
 }
 
-#film-strip img:first-child {
+#film-strip img:last-child {
   border-color: orange;
 }
 
@@ -181,4 +189,119 @@ html, body {
 #focus-ring[data-state=fail] {
   border: 4px solid rgba(255, 0, 0, 0.3);
   display: block;
+}
+
+/*
+ * The overlay is where we display messages like Scanning, No Videos,
+ * No SD card and SD Card in Use along with instructions for resolving
+ * the issue.  The user can't interact with the app while the overlay
+ * is displayed.
+ */
+#overlay {
+  /* it takes up the whole screen */
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+
+  /* almost transparent gray */
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+}
+
+/*
+ * The overlay content area holds the text of the overlay.
+ * It has borders and a less transparent background so that
+ * the overlay text shows up more clearly
+ */
+#overlay-content {
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  font-family: "Open Sans", sans-serif;
+  color: #fff;
+  -moz-user-select: none;
+}
+
+#overlay-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+#overlay-text {
+  font-size: 18px;
+}
+
+.hidden {
+  display: none;
+}
+
+#hud {
+  position: absolute;
+  top: 20px;
+  height: 75px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+}
+
+#hud a {
+  position: absolute;
+  z-index: 50;
+  height: 75px;
+  width: 75px;
+  border: 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url(images/hud_button_underlay.png);
+}
+
+#hud a:after {
+  content: " ";
+  display: block;
+  position: relative;
+  z-index: 60;
+  height: 75px;
+  width: 75px;
+  background: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+#hud a:active {
+  background-image: url(images/hud_button_underlay_focus.png);
+}
+
+#toggle-camera {
+  right: 20px;
+}
+
+#toggle-flash {
+  left: 20px;
+}
+
+#toggle-camera[data-mode=back]:after {
+  background-image: url(images/toggle_front.png);
+}
+#toggle-camera[data-mode=front]:after {
+  background-image: url(images/toggle_back.png);
+}
+
+#toggle-flash[data-mode=on]:after {
+  background-image: url(images/flash_on.png);
+}
+#toggle-flash[data-mode=off]:after {
+  background-image: url(images/flash_off.png);
+}
+#toggle-flash[data-mode=auto]:after {
+  background-image: url(images/flash_auto.png);
+}
+#toggle-flash[data-mode=torch]:after {
+  background-image: url(images/flash_torch.png);
 }

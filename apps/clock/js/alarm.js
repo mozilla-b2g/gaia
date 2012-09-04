@@ -21,6 +21,12 @@ var ClockView = {
     return this.analogClock = document.getElementById('analog-clock');
   },
 
+  get analogClockSVGBody() {
+    delete this.analogClockSVGBody;
+    return this.analogClockSVGBody =
+      document.getElementById('analog-clock-svg-body');
+  },
+
   get time() {
     delete this.time;
     return this.time = document.getElementById('clock-time');
@@ -29,6 +35,11 @@ var ClockView = {
   get hourState() {
     delete this.hourState;
     return this.hourState = document.getElementById('clock-hour24-state');
+  },
+
+  get dayDate() {
+    delete this.dayDate;
+    return this.dayDate = document.getElementById('clock-day-date');
   },
 
   get day() {
@@ -46,24 +57,21 @@ var ClockView = {
     return this.alarmNewBtn = document.getElementById('alarm-new');
   },
 
-  get digitalClockBG() {
-    delete this.digitalClockBG;
-    return this.digitalClockBG = document.getElementById('digital-clock-bg');
-  },
-
-  get digitalClockDisplay() {
-    delete this.digitalClockDisplay;
-    return this.digitalClockDisplay =
-      document.getElementById('digital-clock-display');
+  get digitalClockBackground() {
+    delete this.digitalClockBackground;
+    return this.digitalClockBackground =
+      document.getElementById('digital-clock-background');
   },
 
   init: function cv_init() {
     this.updateDaydate();
     this.updateDigitalClock();
+
     this._clockMode = 'digital';
     this.digitalClock.classList.add('visible'); /* digital clock is default */
-    this.digitalClockBG.classList.add('visible');
+    this.digitalClockBackground.classList.add('visible');
     this.analogClock.classList.remove('visible');
+    this.resizeAnalogClock();
     document.addEventListener('mozvisibilitychange', this);
     this.digitalClock.addEventListener('click', this);
   },
@@ -107,19 +115,10 @@ var ClockView = {
     var sec = now.getSeconds(); // Seconds
     var min = now.getMinutes(); // Minutes
     var hour = (now.getHours() % 12) + min / 60; // Fractional hours
-    var secangle = sec * 6; // 6 degrees per second
-    var minangle = min * 6; // 6 degrees per minute
-    var hourangle = hour * 30; // 30 degrees per hour
-
-    // Get SVG elements for the hands of the clock
-    var sechand = document.getElementById('secondhand');
-    var minhand = document.getElementById('minutehand');
-    var hourhand = document.getElementById('hourhand');
-
-    // Set an SVG attribute on them to move them around the clock face
-    sechand.setAttribute('transform', 'rotate(' + secangle + ',50,50)');
-    minhand.setAttribute('transform', 'rotate(' + minangle + ',50,50)');
-    hourhand.setAttribute('transform', 'rotate(' + hourangle + ',50,50)');
+    this.setTransform('secondhand', sec * 6); // 6 degrees per second
+    // Inverse angle 180 degrees for rect hands
+    this.setTransform('minutehand', min * 6 - 180); // 6 degrees per minute
+    this.setTransform('hourhand', hour * 30 - 180); // 30 degrees per hour
 
     // Update the clock again in 1 minute
     var self = this;
@@ -127,6 +126,13 @@ var ClockView = {
     window.setTimeout(function cv_updateAnalogClockTimeout() {
       self.updateAnalogClock();
     }, (1000 - now.getMilliseconds()));
+  },
+
+  setTransform: function cv_setTransform(id, angle) {
+    // Get SVG elements for the hands of the clock
+    var hand = document.getElementById(id);
+    // Set an SVG attribute on them to move them around the clock face
+    hand.setAttribute('transform', 'rotate(' + angle + ',0,0)');
   },
 
   handleEvent: function cv_handleEvent(evt) {
@@ -158,21 +164,21 @@ var ClockView = {
             window.clearTimeout(this._updateDigitalClockTimeout);
             this.digitalClock.removeEventListener('click', this);
             this.digitalClock.classList.remove('visible');
-            this.digitalClockBG.classList.remove('visible');
+            this.digitalClockBackground.classList.remove('visible');
             this.updateAnalogClock();
             this._clockMode = 'analog';
             this.analogClock.classList.add('visible');
             this.analogClock.addEventListener('click', this);
             break;
 
-          case 'analog-clock':
+          case 'analog-clock-svg':
             window.clearTimeout(this._updateAnalogClockTimeout);
             this.analogClock.removeEventListener('click', this);
             this.analogClock.classList.remove('visible');
             this.updateDigitalClock();
             this._clockMode = 'digital';
             this.digitalClock.classList.add('visible');
-            this.digitalClockBG.classList.add('visible');
+            this.digitalClockBackground.classList.add('visible');
             this.digitalClock.addEventListener('click', this);
             break;
         }
@@ -180,20 +186,46 @@ var ClockView = {
     }
   },
 
+  calAnalogClockType: function cv_calAnalogClockType(count) {
+    if (count <= 1) {
+      count = 1;
+    } else if (count >= 4) {
+      count = 4;
+    }
+    return count;
+  },
+
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    var height = this.clockView.offsetHeight -
-                 this.date.offsetHeight -
-                 this.alarmNewBtn.offsetTop -
-                 this.alarmNewBtn.offsetHeight -
-                 AlarmList.alarms.offsetHeight;
-    this.analogClock.style.height = height + 'px';
+    this.resizeAnalogClockBackground();
+    // Remove previous style
+    for (var i = 1; i <= 4; i++) {
+      var oldStyle = 'alarm' + i;
+      if (this.analogClockSVGBody.classList.contains(oldStyle))
+        this.analogClockSVGBody.classList.remove(oldStyle);
+    }
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var newStyle = 'alarm' + type;
+    this.analogClockSVGBody.classList.add(newStyle);
+  },
+
+  resizeAnalogClockBackground: function cv_resizeAnalogClockBackground() {
+    // Disable previous background
+    for (var i = 1; i <= 4; i++) {
+      var id = 'analog-clock-background-cache' + i;
+      var element = document.getElementById(id);
+      if (element.classList.contains('visible'))
+        element.classList.remove('visible');
+    }
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var id = 'analog-clock-background-cache' + type;
+    document.getElementById(id).classList.add('visible');
   },
 
   showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
     if (enabled) {
-      this.digitalClockDisplay.classList.add('alarm-set-indicator');
+      this.hourState.classList.add('alarm-set-indicator');
     } else {
-      this.digitalClockDisplay.classList.remove('alarm-set-indicator');
+      this.hourState.classList.remove('alarm-set-indicator');
     }
    }
 };
@@ -202,6 +234,7 @@ var AlarmList = {
 
   alarmList: [],
   refreshing: false,
+  _previousAlarmCount: 0,
 
   get alarms() {
     delete this.alarms;
@@ -293,7 +326,11 @@ var AlarmList = {
     });
 
     this.alarms.innerHTML = content;
-    ClockView.resizeAnalogClock();
+    if (this._previousAlarmCount != this.getAlarmCount()) {
+      this._previousAlarmCount = this.getAlarmCount();
+      ClockView.resizeAnalogClock();
+    }
+
     this.refreshing = false;
   },
 
@@ -303,6 +340,10 @@ var AlarmList = {
         return this.alarmList[i];
     }
     return null;
+  },
+
+  getAlarmCount: function al_getAlarmCount() {
+    return this.alarmList.length;
   },
 
   updateAlarmEnableState: function al_updateAlarmEnableState(enabled, alarm) {
