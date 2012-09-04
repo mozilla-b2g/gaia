@@ -2,10 +2,17 @@
  * Extend CSS for Gaia UI Building Blocks
  * -------------------------------------- */
 
-.toggle {
+/* ----------------------------------
+ * LISTS: extend
+ * ---------------------------------- */
+.switch {
   display: inline;
 }
 
+body[role="application"] li .aside {
+  width: 6.5rem;
+}
+
 body[role="application"] li .aside.end {
-  right: 2rem;
+  right: 1.2rem;
 }

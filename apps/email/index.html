@@ -9,10 +9,12 @@
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/headers/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/lists/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
-  <link rel="stylesheet" type="text/css" href="style/bb/extend.css">
+  <!-- Include shared building blocks -->
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
+  <!-- Include extend building blocks -->
+  <link rel="stylesheet" type="text/css" href="style/bb-extend.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <!-- Shared code -->
@@ -405,17 +407,18 @@
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->
-      <section class="card-settings-main card" role="region" data-theme="organic">
-        <header class="tng-main-header" aria-level="1">
+      <section class="card-settings-main card skin-organic" role="region">
+        <header class="tng-main-header">
           <menu type="toolbar" class="tng-close-btn">
             <button data-l10n-id="settings-done">Done</button>
           </menu>
           <h1 class="tng-main-header-label"
               data-l10n-id="settings-main-header">MaiL SettingS</h1>
         </header>
-        <section class="scrollregion-below-header" role="region" data-theme="organic">
-          <header class="tng-main-accounts-label" aria-level="2">
-            <p data-l10n-id="settings-account-section">AccountS</p>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <header class="collapsed"></header>
+          <header class="tng-main-accounts-label">
+            <h2 data-l10n-id="settings-account-section">AccountS</h2>
           </header>
           <div class="tng-accounts-container"></div>
             <li>
@@ -423,8 +426,8 @@
                 <dl><dt data-l10n-id="settings-account-add">AdD AccounT</dt></dl>
               </a>
             </li>
-          <header class="tng-main-about-label" aria-level="2">
-            <p data-l10n-id="settings-general-section">GeneraL SettingS</p>
+          <header class="tng-main-about-label">
+            <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
           </header>
           <ul>
             <li>
@@ -433,7 +436,7 @@
             </li>
             <li>
               <em class="aside end">
-                <label class="toggle">
+                <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
@@ -442,7 +445,7 @@
             </li>
             <li>
               <em class="aside end">
-                <label class="toggle">
+                <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
@@ -451,7 +454,7 @@
             </li>
             <li>
               <em class="aside end">
-                <label class="toggle">
+                <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
