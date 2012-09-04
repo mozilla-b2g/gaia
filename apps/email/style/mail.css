@@ -153,9 +153,6 @@ button::-moz-focus-inner {
   height: 4.8rem;
   background-color: rgba(0, 0, 0, 0.6);
 }
-.bottom-toolbar.bottom-edit-toolbar {
-  background-color: rgba(0, 0, 64, 0.4);
-}
 .bottom-btn {
   height: 4.8rem;
 }

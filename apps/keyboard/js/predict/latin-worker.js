@@ -212,10 +212,7 @@ function String2Codes(codes, word) {
 
 // Convert an array of char codes back into a string.
 function Codes2String(codes) {
-  var s = '';
-  for (var n = 0; n < codes.length; ++n)
-    s += String.fromCharCode(codes[n]);
-  return s;
+  return String.fromCharCode.apply(String, codes);
 }
 
 // Map an array of codes to the base letters, eliminating any diacritics.

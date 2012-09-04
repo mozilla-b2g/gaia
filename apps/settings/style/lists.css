@@ -206,6 +206,7 @@ ul li progress {
 #root li [data-l10n-id="wifi"]              { background-image: url(images/settings_wifi.png); }
 #root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings_network.png); }
 #root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
+#root li [data-l10n-id="hotspot"]           { background-image: url(images/settings_hotspot.png); }
 #root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
 #root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }

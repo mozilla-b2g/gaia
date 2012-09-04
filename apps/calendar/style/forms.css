@@ -41,10 +41,6 @@ fieldset ol {
   padding: 0px;
 }
 
-fieldset li {
-  height: 3rem;
-}
-
 label[role="listbox"] select:focus option.default {
   display: none;
 }
@@ -70,21 +66,16 @@ label[role="checkbox"] span {
 
 /* for calendar */
 
-fieldset {
-  height: -moz-calc(100% - 2.95rem);
-}
-
 fieldset ol {
   height: 100%;
 }
 
 fieldset li {
-  border-bottom: 1px solid #CCC;
   padding: 0.25rem;
 }
 
 fieldset li {
-  padding: 0.8rem 0.8rem 0;
+  margin: 1rem 2rem;
 }
 
 fieldset li.location {
