@@ -135,10 +135,9 @@
   position: absolute;
   top: 0;
   left: 0;
-  height: 12rem;
   width: 100%;
   -moz-box-sizing: border-box;
-  padding: 1.5rem 2.4rem 1.2rem 1.6rem;
+  padding: 1.5rem 1.6rem 1.2rem 1.6rem;
   color: #fff;
   text-shadow: 0 0 3px #333;
   transform: translateY(-10rem);
@@ -157,7 +156,7 @@
 
 #lockscreen-connstate {
   background-color: #546578;
-  max-width: -moz-calc(100% - 4rem - 1.6rem);
+  max-width: 100%;
   display: inline-block;
   border-radius: 0.4rem;
   margin-bottom: 0.5rem;
