@@ -18,7 +18,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
-    gBluetoothInfoBlock.textContent = value ? _('enabled') : _('disabled');
+    gBluetoothInfoBlock.textContent =
+      value ? _('bt-status-nopaired') : _('bt-status-turnoff');
     gBluetoothCheckBox.checked = value;
   }
 
@@ -56,16 +57,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var visibleName = document.querySelector('#bluetooth-device-name');
     var visibleCheckBox =
       document.querySelector('#bluetooth-visible-device input');
-    var renameItem = document.querySelector('#bluetooth-advanced');
-    var renameButton = document.querySelector('#bluetooth-advanced button');
+    var advancedItem = document.querySelector('#bluetooth-advanced');
+    var advancedButton = document.querySelector('#bluetooth-advanced button');
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
       setDiscoverable(this.checked);
     };
 
-    renameButton.onclick = function renameClicked() {
-      renameDialog.show();
+    advancedButton.onclick = function renameClicked() {
+      //renameDialog.show();
+      window.location.hash = '#bluetooth-advanced-menu';
     };
 
     // Wrapper rename dialog to be interactive.
@@ -111,10 +113,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // immediatly UI update, DOM element manipulation.
     function updateDeviceInfo(show) {
       if (show) {
-        renameItem.hidden = false;
+        advancedItem.hidden = false;
         visibleItem.hidden = false;
       } else {
-        renameItem.hidden = true;
+        advancedItem.hidden = true;
         visibleItem.hidden = true;
       }
     }
@@ -192,13 +194,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         clear();
         enableMsg.hidden = true;
         searchingItem.hidden = false;
-        searchAgainBtn.hidden = true;
 
       } else {
         clear();
         enableMsg.hidden = false;
         searchingItem.hidden = true;
-        searchAgainBtn.hidden = false;
       }
     }
 
@@ -227,7 +227,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
         pairIndex = req.result;
-        //pairIndex[0] = {name: 'evelyn', address: '88:53:46:77:0F:53'};
+        pairIndex[0] = {name: 'evelyn', address: '88:53:46:77:0F:53'};
         var i = length = pairIndex.length;
         for (var i = 0; i < length; i++) {
           pairList.appendChild(newListItem(pairIndex[i]));

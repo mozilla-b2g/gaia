@@ -410,10 +410,6 @@
           <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
         </li>
       </ul>
-      <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
-      <ul id="bluetooth-paired-devices">
-        <!-- filled by bluetooth.js -->
-      </ul>
       <h2 data-l10n-id="bluetoothDevices">Devices</h2>
       <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
         Turn Bluetooth on to pair with devices that are
@@ -426,19 +422,33 @@
         <li hidden id="bluetooth-searching">
           <a data-l10n-id="scanning">Searching…</a>
         </li>
-      </ul>
-      <ul id="bluetooth-search-again" hidden>
-        <li>
+        <li hidden id="bluetooth-search-again">
           <button data-l10n-id="searchDeviceAgain">Search Again</button>
         </li>
       </ul>
       <ul id="bluetooth-advanced">
         <li>
-          <button data-l10n-id="renameDevice">Rename Device</button>
+          <button data-l10n-id="bt-advanced-settings">Advanced Settings</button>
         </li>
       </ul>
     </section>
-
+    <!-- Connectivity :: Bluetooth Advanced Settings -->
+    <section role="document" id="bluetooth-advanced-menu">
+      <header>
+        <h1>
+          <a href="#bluetooth" data-l10n-id="bt-advanced-settings">Advanced Settings</a>
+        </h1>
+      </header>
+      <ul id="bluetooth-rename">
+        <li>
+          <button data-l10n-id="renameDevice">Rename Device</button>
+        </li>
+      </ul>
+      <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
+      <ul id="bluetooth-paired-devices">
+        <!-- filled by bluetooth.js -->
+      </ul>
+    </section>
     <!-- Connectivity :: Bluetooth :: Rename Device Dialog -->
     <form role="dialog" action="#bluetooth" id="bluetooth-rename">
       <header>
