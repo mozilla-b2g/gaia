@@ -561,5 +561,5 @@ purge:
 
 # clean out build products
 clean:
-	rm -rf profile xulrunner-sdk
+	rm -rf profile xulrunner-sdk .xulrunner-url
 
