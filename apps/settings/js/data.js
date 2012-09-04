@@ -118,58 +118,68 @@ window.addEventListener('load', function getCarrierSettings() {
   }
 
   // update APN fields
-  function refreshAPNList() {
+  function checkAPNDataBase() {
     if (!gNetwork)
       return;
 
-    // empty the APN list
-    var apnList = document.getElementById('apnSettings-list');
-    var lastItem = apnList.lastElementChild;
-    while (lastItem.previousElementSibling) {
-      apnList.removeChild(apnList.firstElementChild);
+    function refreshAPNList() {
+      var results = queryAPN(gAPNDocument,
+          gNetwork.mcc, gNetwork.mnc, 'internet');
+
+      // empty the APN list
+      var apnList = document.getElementById('apnSettings-list');
+      var lastItem = apnList.lastElementChild;
+      while (lastItem.previousElementSibling) {
+        apnList.removeChild(apnList.firstElementChild);
+      }
+
+      // fill the APN list
+      for (var i = 0; i < results.length; i++) {
+        apnList.insertBefore(createAPNItem(results[i]), lastItem);
+      }
+
+      // find the current APN
+      lastItem.querySelector('input').checked = true;
+      var settings = window.navigator.mozSettings;
+      if (settings && !gUserChosenAPN) {
+        var radios = apnList.querySelectorAll('input[type="radio"]');
+        var found = false;
+        var key = 'APN.name';
+        for (var i = 0; i < radios.length; i++) {
+          (function(radio) {
+            var request = settings.getLock().get(key);
+            request.onsuccess = function() {
+              if (request.result[key] != undefined) {
+                radio.checked = (request.result[key] === radio.value);
+                found = found || radio.checked;
+              }
+            };
+          })(radios[i]);
+        }
+      }
+      document.getElementById('apnSettings').onchange = function onChange(event) {
+        gUserChosenAPN = true;
+        if (event.target.type == 'text') {
+          lastItem.querySelector('input').checked = true;
+        }
+      };
     }
 
-    // load the APN database
+    // load the APN database if required
     if (!gAPNDocument) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', APN_FILE, false); // synchronous (boo!)
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
+          gAPNDocument = xhr.responseXML;
+          refreshAPNList();
+        }
+      };
       xhr.send();
-      gAPNDocument = xhr.responseXML;
+    } else {
+      refreshAPNList();
     }
-    var results = queryAPN(gAPNDocument,
-        gNetwork.mcc, gNetwork.mnc, 'internet');
-
-    // fill the APN list
-    for (var i = 0; i < results.length; i++) {
-      apnList.insertBefore(createAPNItem(results[i]), lastItem);
-    }
-
-    // find the current APN
-    lastItem.querySelector('input').checked = true;
-    var settings = window.navigator.mozSettings;
-    if (settings && !gUserChosenAPN) {
-      var radios = apnList.querySelectorAll('input[type="radio"]');
-      var found = false;
-      var key = 'APN.name';
-      for (var i = 0; i < radios.length; i++) {
-        (function(radio) {
-          var request = settings.getLock().get(key);
-          request.onsuccess = function() {
-            if (request.result[key] != undefined) {
-              radio.checked = (request.result[key] === radio.value);
-              found = found || radio.checked;
-            }
-          };
-        })(radios[i]);
-      }
-    }
-    document.getElementById('apnSettings').onchange = function onChange(event) {
-      gUserChosenAPN = true;
-      if (event.target.type == 'text') {
-        lastItem.querySelector('input').checked = true;
-      }
-    };
-  };
+  }
 
   // update data connection by toggling it off and on again
   function refreshDataConnection() {
@@ -217,7 +227,7 @@ window.addEventListener('load', function getCarrierSettings() {
     document.getElementById('dataNetwork-desc').textContent = shortName;
 
     // fill the APN list
-    refreshAPNList();
+    checkAPNDataBase();
 
     // toggle advanced settings when required
     var advSettings = document.getElementById('apnSettings-advanced');
