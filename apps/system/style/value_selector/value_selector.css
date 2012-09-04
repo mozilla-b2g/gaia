@@ -67,16 +67,13 @@
   border-color: #00acce;
 }
 
-
-#value-selector button.active {
-  background: white;
-  color: black;
+/*active class used to complement the "return false" in onmousedown effect */
+#value-selector button.active,
+button.affirmative.active {
+    border-color: #008aaa;
+    background: #008aaa;
+    color: #333;
 }
-
-
-
-
-
 
 #value-selector-container li > label {
     pointer-events: none;
@@ -86,6 +83,11 @@
   padding-right: 0.5rem;
   color: #00abcd;
   background: url(../bb/menus_dialogs/value_selector/images/icons/checked.png) content-box right center no-repeat;
+}
+
+#value-selector-container li.active label span {
+    background: none repeat scroll 0 0 #00ABCC;
+    color: #FFFFFF !important;
 }
 
 #time-picker-popup {

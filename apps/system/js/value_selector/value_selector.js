@@ -58,6 +58,7 @@ var ValueSelector = {
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
+    ActiveEffectHelper.enableActive(this._containers['select']);
 
     this._popups['select'] =
       document.getElementById('select-option-popup');
@@ -71,6 +72,9 @@ var ValueSelector = {
     this._buttons['time'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
+
+    ActiveEffectHelper.enableActive(this._buttons['select']);
+    ActiveEffectHelper.enableActive(this._buttons['time']);
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -355,5 +359,60 @@ var TimePicker = {
     return hour + ':' + minute;
   }
 };
+
+var ActiveEffectHelper = (function() {
+
+  function _setActive(element, isActive) {
+    if (isActive) {
+      element.classList.add('active');
+    } else {
+      element.classList.remove('active');
+    }
+  }
+
+  function _onMouseDown(evt) {
+    console.log('mousedown: ' + evt.target);
+    var target = evt.target;
+
+    _setActive(target, true);
+    target.addEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseUp(evt) {
+    console.log('mouseup: ' + evt.target);
+    var target = evt.target;
+
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseLeave(evt) {
+    console.log('mouseLeave: ' + evt.target);
+    var target = evt.target;
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  var _events = {
+    'mousedown': _onMouseDown,
+    'mouseup': _onMouseUp
+  };
+
+  function _enableActive(element) {
+    // Attach event listeners
+    for (var event in _events) {
+      var callback = _events[event] || null;
+      if (callback) {
+        console.log('bind event: ' + event);
+        element.addEventListener(event, callback);
+      }
+    }
+  }
+
+  return {
+    enableActive: _enableActive
+  };
+
+})();
 
 ValueSelector.init();
