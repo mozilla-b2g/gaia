@@ -76,6 +76,8 @@
         new Calendar.Router(Calendar.Test.FakePage)
       );
 
+      Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
+
       return Calendar.App;
     },
 
@@ -186,6 +188,7 @@
     resource.setAttribute('type', 'application/l10n');
     document.head.appendChild(resource);
   }
+
 
   l10nLink('/locales/locales.ini');
   l10nLink('/shared/locales/date.ini');
