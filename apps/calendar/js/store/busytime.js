@@ -172,11 +172,11 @@ Calendar.ns('Store').Busytime = (function() {
       var end = event.remote.endDate;
 
       if (!(end instanceof Date)) {
-        end = new Date(time);
+        end = new Date(end);
       }
 
       if (!(start instanceof Date)) {
-        start = new Date(time);
+        start = new Date(start);
       }
 
       var result = {
