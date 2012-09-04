@@ -1,16 +1,53 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+
+/**
+ * Debug note: to test this app in a desktop browser, you'll have to set
+ * the `dom.mozSettings.enabled' preference to false.
+ */
 
 var Settings = {
   init: function settings_init() {
     this.loadGaiaCommit();
 
     var settings = window.navigator.mozSettings;
+    if (!settings) // e.g. when debugging on a browser...
+      return;
+
+    settings.onsettingchange = function settingChanged(event) {
+      var key = event.settingName;
+      var value = event.settingValue;
+
+      var checkbox =
+          document.querySelector('input[type="checkbox"][name="' + key + '"]');
+      if (checkbox) {
+        if (checkbox.checked == value)
+          return;
+        checkbox.checked = value;
+        return;
+      }
+
+      var progressBar =
+          document.querySelector('[data-name="' + key + '"]');
+      if (progressBar) {
+        var intValue = Math.ceil(value * 10);
+        if (progressBar.value == intValue)
+          return;
+        progressBar.value = intValue;
+        return;
+      }
+
+      // XXX: if there are more values needs to be synced.
+    };
+
+    // preset all inputs that have a `name' attribute
     var transaction = settings.getLock();
 
-    var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    // preset all checkboxes
+    var rule = 'input[type="checkbox"]:not([data-ignore])';
+    var checkboxes = document.querySelectorAll(rule);
     for (var i = 0; i < checkboxes.length; i++) {
       (function(checkbox) {
         var key = checkbox.name;
@@ -25,6 +62,7 @@ var Settings = {
       })(checkboxes[i]);
     }
 
+    // preset all radio buttons
     var radios = document.querySelectorAll('input[type="radio"]');
     for (var i = 0; i < radios.length; i++) {
       (function(radio) {
@@ -40,6 +78,24 @@ var Settings = {
       })(radios[i]);
     }
 
+    // preset all text inputs
+    var rule = 'input[type="text"]:not([data-ignore])';
+    var texts = document.querySelectorAll(rule);
+    for (var i = 0; i < texts.length; i++) {
+      (function(text) {
+        var key = text.name;
+        if (!key)
+          return;
+
+        var request = transaction.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined)
+            text.value = request.result[key];
+        };
+      })(texts[i]);
+    }
+
+    // preset all progress indicators
     var progresses = document.querySelectorAll('progress');
     for (var i = 0; i < progresses.length; i++) {
       (function(progress) {
@@ -54,11 +110,39 @@ var Settings = {
         };
       })(progresses[i]);
     }
+
+    // handle web activity
+    navigator.mozSetMessageHandler('activity',
+      function settings_handleActivity(activityRequest) {
+        var name = activityRequest.source.name;
+        switch (name) {
+          case 'configure':
+            var section = activityRequest.source.data.section || 'root';
+
+            // Validate if the section exists
+            var actualSection = document.getElementById(section);
+            if (!actualSection || actualSection.tagName !== 'SECTION') {
+              var msg = 'Trying to open an unexistent section: ' + section;
+              console.warn(msg);
+              activityRequest.postError(msg);
+              return;
+            }
+
+            // Go to that section
+            setTimeout(function settings_goToSection() {
+              document.location.hash = section;
+            });
+            break;
+        }
+      }
+    );
   },
-  handleEvent: function(evt) {
+
+  handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
-    if (!key)
+    var settings = window.navigator.mozSettings;
+    if (!key || !settings)
       return;
 
     switch (evt.type) {
@@ -66,11 +150,13 @@ var Settings = {
         var value;
         if (input.type === 'checkbox') {
           value = input.checked;
-        } else if (input.type == 'radio') {
+        } else if ((input.type == 'radio') ||
+                   (input.type == 'text') ||
+                   (input.type == 'password')) {
           value = input.value;
         }
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
 
       case 'click':
@@ -80,29 +166,33 @@ var Settings = {
         var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
 
         var value = position / input.max;
-        navigator.mozPower.screenBrightness = value;
+        value = Math.max(0, Math.min(1, value));
         input.value = position;
 
-        var cset = { }; cset[key] = value;
-        window.navigator.mozSettings.getLock().set(cset);
+        var cset = {}; cset[key] = value;
+        settings.getLock().set(cset);
         break;
     }
   },
-  loadGaiaCommit: function() {
+
+  loadGaiaCommit: function settings_loadGaiaCommit() {
+    var GAIA_COMMIT = 'gaia-commit.txt';
+
     function dateToUTC(d) {
       var arr = [];
       [
-        d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+        d.getUTCFullYear(), (d.getUTCMonth() + 1), d.getUTCDate(),
         d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
       ].forEach(function(n) {
         arr.push((n >= 10) ? n : '0' + n);
       });
       return arr.splice(0, 3).join('-') + ' ' + arr.join(':');
     }
+
     var req = new XMLHttpRequest();
     req.onreadystatechange = (function(e) {
       if (req.readyState === 4) {
-        if (req.status === 200) {
+        if (req.status === 0 || req.status === 200) {
           var data = req.responseText.split('\n');
           var dispDate = document.getElementById('gaia-commit-date');
           var disp = document.getElementById('gaia-commit-hash');
@@ -117,9 +207,70 @@ var Settings = {
         }
       }
     }).bind(this);
-    req.open('GET', 'gaia-commit.txt', true/*async*/);
+
+    req.open('GET', GAIA_COMMIT, true); // async
     req.responseType = 'text';
     req.send();
+  },
+
+  openDialog: function settings_openDialog(dialogID) {
+    var settings = window.navigator.mozSettings;
+    var dialog = document.getElementById(dialogID);
+    var fields = dialog.querySelectorAll('input[data-setting]');
+
+    /**
+      * In Settings dialog boxes, we don't want the input fields to be preset
+      * by Settings.init() and we don't want them to set the related settings
+      * without any user validation.
+      *
+      * So instead of assigning a `name' attribute to these inputs, a
+      * `data-setting' attribute is used and the input values are set
+      * explicitely when the dialog is shown.  If the dialog is validated
+      * (submit), their values are stored into B2G settings.
+      */
+
+    // show dialog box
+    function open() {
+      reset(); // preset all fields
+      dialog.style.display = 'block';
+    }
+
+    // hide dialog box
+    function close() {
+      dialog.style.display = 'none';
+      return false;
+    }
+
+    // initialize all setting fields in the dialog box
+    function reset() {
+      if (settings) {
+        for (var i = 0; i < fields.length; i++) {
+          var input = fields[i];
+          var key = input.dataset.setting;
+          var request = settings.getLock().get(key);
+          request.onsuccess = function() {
+            input.value = request.result[key] || '';
+          };
+        }
+      }
+    }
+
+    // validate all settings in the dialog box
+    function submit() {
+      if (settings) {
+        for (var i = 0; i < fields.length; i++) {
+          var input = fields[i];
+          var cset = {};
+          cset[input.dataset.setting] = input.value;
+          settings.getLock().set(cset);
+        }
+      }
+      return close();
+    }
+
+    dialog.onsubmit = submit;
+    dialog.onreset = close;
+    open();
   }
 };
 
@@ -150,8 +301,8 @@ window.addEventListener('keyup', function goBack(event) {
 
 // set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showPanel() {
-  document.documentElement.lang = document.mozL10n.language.code;
-  document.documentElement.dir = document.mozL10n.language.direction;
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {
@@ -166,12 +317,4 @@ window.addEventListener('localized', function showPanel() {
     });
   }
 });
-
-// translate Settings UI if a new locale is selected
-if ('mozSettings' in navigator && navigator.mozSettings) {
-  navigator.mozSettings.onsettingchange = function(event) {
-    if (event.settingName == 'language.current')
-      document.mozL10n.language.code = event.settingValue;
-  };
-}
 

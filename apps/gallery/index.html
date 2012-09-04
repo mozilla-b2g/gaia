@@ -1,42 +1,223 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
-    <link rel="resource" type="application/l10n" href="locale/gallery.properties" />
-    <script>
-      var host = document.location.host;
-      var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-      var src = 'http://' + domain + '/webapi.js';
-      document.write('<script src="' + src + '"><\/script>');
-    </script>
-    </script>
-    <script defer src="js/gestures.js"></script>
-    <script defer src="js/gallery.js"></script>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
+    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/MetadataParser.js"></script>
+    <script type="text/javascript" defer src="js/ImageEditor.js"></script>
+    <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
   <body class="hidden">
-    <header id="header">
-      <h1 data-l10n-id="pictures">Pictures</h1>
-    </header>
+    <!-- This element gets inserted into the different view elements --> 
+    <!-- It gets styled differently depending on what its parent is -->
+    <ul id="thumbnails">
+      <!-- Thumbnails inserted here -->
+    </ul>
 
-    <!-- Thumbnails inserted here -->
-    <ul id="thumbnails"></ul>
-
-    <!-- Photos inserted here -->
-    <div id="photos" class="hidden">
-      <!-- the current photo plus next and previous waiting in the wings -->
-      <div class="photoFrame previousPhoto"></div>
-      <div class="photoFrame currentPhoto"></div>
-      <div class="photoFrame nextPhoto"></div>
+    <div id="thumbnail-list-view" class="hidden">
+      <div id="thumbnails-bottom">
+        <a id="thumbnails-camera-button" class="button"></a>
+        <a id="thumbnails-select-button" class="button"></a>
+      </div>
     </div>
 
-    <div id="player-controls" class="hidden">
-      <a id="back-button" class="button" href="#"></a>
-      <a id="play-button" class="button" href="#"></a>
+    <div id="thumbnail-select-view" class="hidden">
+      <div id="thumbnails-select-top">
+        <a id="thumbnails-cancel-button" class="button"></a>
+        <div id="thumbnails-number-selected"></div>
+      </div>
+
+      <div id="thumbnails-select-bottom">
+        <a id="thumbnails-delete-button" class="button"></a>
+        <a id="thumbnails-share-button" class="button"></a>
+      </div>
     </div>
 
+    <div id="photo-view" class="hidden">
+      <div id="photo-frames">
+        <!-- the current photo plus next and previous waiting in the wings -->
+        <div class="photoFrame previousPhoto"><img></div>
+        <div class="photoFrame currentPhoto"><img></div>
+        <div class="photoFrame nextPhoto"><img></div>
+      </div>
+
+      <div id="photos-overlay">
+        <div id="photos-overlay-top">
+          <div id="photos-filmstrip"><!-- thumbnails here --></div>
+          <a id="photos-back-button" class="button"></a>
+        </div>
+        <div id="photos-overlay-bottom">
+          <a id="photos-camera-button" class="button"></a>
+          <a id="photos-edit-button" class="button"></a>
+          <a id="photos-share-button" class="button"></a>
+          <a id="photos-delete-button" class="button"></a>
+        </div>
+      </div>
+    </div>
+
+    <div id="pick-view" class="hidden">
+      <div id="pick-top">
+        <a id="pick-cancel-button" class="button"></a>
+        <div id="pick-header" data-l10n-id="pickoneimage"></div>
+      </div>
+    </div>
+    
+    <div id="edit-view" class="hidden">
+      <div id="edit-header">
+        <a id="edit-cancel-button" class="button"></a>
+        <div id="edit-title" data-l10n-id="edit"></div>
+        <a id="edit-save-button" class="button"></a>
+      </div>
+
+      <!-- preview of edited photo goes here -->
+      <!-- canvas elements are dynamically inserted here -->
+      <div id="edit-preview-area">
+      </div>
+
+      <!-- this holds different options for different editing modes -->
+      <!-- only one set of options will be visible at a time -->
+      <div id="edit-options">
+        <div id="exposure-slider" class="edit-options-bar hidden">
+          <div id="sliderbar">
+            <hr id="sliderline"/>
+            <div id="sliderthumb"></div>
+          </div>
+          <div id="sliderlabels">
+            <div id="slider-3" class="sliderlabel" data-label="-3"></div>
+            <div id="slider-2" class="sliderlabel" data-label="-2"></div>
+            <div id="slider-1" class="sliderlabel" data-label="-1"></div>
+            <div id="slider0" class="sliderlabel" data-label="0"></div>
+            <div id="slider1" class="sliderlabel" data-label="+1"></div>
+            <div id="slider2" class="sliderlabel" data-label="+2"></div>
+            <div id="slider3" class="sliderlabel" data-label="+3"></div>
+          </div>
+        </div>
+
+        <div id="edit-crop-options" class="edit-options-bar hidden"> 
+          <a id="edit-crop-none" class="button"
+             data-l10n-id="original"></a>
+          <a id="edit-crop-aspect-free" class="selected radio button"
+             data-l10n-id="freeform"></a>
+          <a id="edit-crop-aspect-portrait" class="radio button"
+             data-l10n-id="portrait"></a>
+          <a id="edit-crop-aspect-landscape" class="radio button"
+             data-l10n-id="landscape"></a>
+          <a id="edit-crop-aspect-square" class="radio button"
+             data-l10n-id="square"></a>
+        </div>
+
+        <div id="edit-effect-options" class="edit-options-bar hidden"> 
+          <a id="edit-effect-none" class="selected radio button bgimage"
+             data-effect="none" data-l10n-id="original"></a>
+          <a id="edit-effect-bw" class="radio button filter-bw bgimage"
+             data-effect="bw" data-l10n-id="blackandwhite"></a>
+          <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
+             data-effect="sepia" data-l10n-id="sepia"></a>
+        </div>
+
+        <div id="edit-border-options" class="edit-options-bar hidden"> 
+          <a id="edit-border-none" class="selected radio button bgimage"
+             data-border-width="0"></a>
+          <a id="edit-border-thin-white" class="radio button bgimage"
+             data-border-width=".015" data-border-color="white"></a>
+          <a id="edit-border-thick-white" class="radio button bgimage"
+             data-border-width=".03" data-border-color="white"></a>
+          <a id="edit-border-thin-black" class="radio button bgimage"
+             data-border-width=".015" data-border-color="black"></a>
+          <a id="edit-border-thick-black" class="radio button bgimage"
+             data-border-width=".03" data-border-color="black"></a>
+        </div>
+      </div>
+
+      <!-- buttons for selecting the type of edit to perform -->
+      <div id="edit-toolbar">
+        <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
+        <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
+        <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
+        <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
+      </div>
+    </div>
+
+    <!-- display messages like "Scanning", "No Photos" and "No SD Card" here -->
+    <div id="overlay" class="hidden">
+      <div id="overlay-content">
+        <h1 id="overlay-title"></h1>
+        <p id="overlay-text"><p>
+      </div>
+    </div>
+
+    <!-- Some SVG filters we use -->
+    <svg id="filters" width="0" height="0">
+      <filter id="filter-bw">
+        <feColorMatrix type="matrix"
+                       values="0.2126 0.7152 0.0722 0 0
+                               0.2126 0.7152 0.0722 0 0
+                               0.2126 0.7152 0.0722 0 0
+                               0      0      0      1 0"/>
+      </filter>
+      <filter id="filter-sepia">
+        <feColorMatrix type="matrix"
+                       values="0.393 0.769 0.189 0 0
+                               0.349 0.686 0.168 0 0
+                               0.272 0.534 0.131 0 0
+                               0     0     0     1 0"/>
+      </filter>
+    </svg>
+
+    <!-- A WebGL vertex shader program. Required by js/ImageEditor.js -->
+    <script id="edit-vertex-shader" type="x-glsl/vertex-shader">
+      attribute vec2 src_pixel;   // pixel position in the image  
+      attribute vec2 dest_pixel;  // pixel position on the canvas
+      uniform vec2 canvas_size;   // size of destination canvas in pixels
+      uniform vec2 image_size;    // size of source image in pixels
+      varying vec2 src_position;  // pass image position to the fragment shader
+
+      void main() {
+        gl_Position = vec4(((dest_pixel/canvas_size)*2.0 - 1.0) * vec2(1, -1),
+                           0, 1);
+        src_position = src_pixel / image_size;
+      }
+    </script>
+
+    <!-- A WebGL fragment shader program. Required by js/ImageEditor.js -->
+    <script id="edit-fragment-shader" type="x-glsl/fragment-shader">
+      precision mediump float;
+      uniform sampler2D image;
+      uniform float border_width;
+      uniform vec4 border_color;
+      uniform vec2 dest_size;     // size of the destination rectangle 
+      uniform vec2 dest_origin;   // upper-left corner of destination rectangle
+      uniform vec4 gamma;
+      uniform mat4 matrix;
+      varying vec2 src_position;  // from the vertex shader
+
+      void main() {
+        // Use border color if we're over the border 
+        if (gl_FragCoord.x < dest_origin.x + border_width || 
+            gl_FragCoord.y < dest_origin.y + border_width ||
+            gl_FragCoord.x > dest_origin.x + dest_size.x - border_width ||
+            gl_FragCoord.y > dest_origin.y + dest_size.y - border_width)
+        {
+          gl_FragColor = border_color;
+          return;
+        }
+  
+        // Otherwise take the image clor, apply gamma correction and 
+        // the color manipulation matrix.
+        vec4 color = texture2D(image, src_position);
+        gl_FragColor = pow(color, gamma) * matrix;
+      }
+    </script>
   </body>
 </html>
+

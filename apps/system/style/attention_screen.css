@@ -1,0 +1,55 @@
+#attention-screen {
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  -moz-transition: -moz-transform 0.5s ease;
+  display: none;
+}
+
+#attention-screen.displayed {
+  display: block;
+}
+
+#screen.active-statusbar #attention-screen {
+  -moz-transform: translateY(-moz-calc(-100% + 40px));
+}
+
+#screen.active-statusbar #attention-screen.status-mode {
+  height: 40px;
+  -moz-transform: translateY(0px);
+}
+
+#attention-screen.status-mode > iframe {
+  margin-top: 0;
+  height: 100%;
+}
+
+#attention-screen > iframe {
+  border: 0;
+  width: 100%;
+  /* we have the 20px status bar on top */
+  height: -moz-calc(100% - 20px);
+  margin-top: 20px;
+
+  background-color: transparent;
+
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#attention-screen > #attention-bar {
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  /* Status bar height * 2 */
+  height: 40px;
+  z-index: 2;
+  display: none;
+}
+
+#screen.active-statusbar #attention-screen > #attention-bar {
+  display: block;
+}

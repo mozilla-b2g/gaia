@@ -1,0 +1,94 @@
+html, body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
+  color: white;
+  background: rgba(0,0,0,.8);
+}
+
+html * {
+  overflow: hidden;
+}
+
+#message {
+  height: -moz-calc(100% - 7rem - 4em);
+  padding: 2em;
+  overflow: scroll;
+
+  font-size: 2em;
+}
+
+#answer {
+  height: -moz-calc(100% - 7rem - 4em);
+  padding: 2em;
+
+  text-align: center;
+}
+
+#answer input {
+  width: 100%;
+  height: 3rem;
+  margin: 1em 0;
+  border: 1px lightGray solid;
+
+  font-size: 3em;
+  color: white;
+  background: rgba(0,0,0,.7);
+}
+
+#answer button {
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
+  margin: 1rem;
+  border: 0;
+
+  border-radius: 6px;
+
+  font-size: 3em;
+  color: white;
+  font-weight: 900;
+}
+
+#close {
+  position: absolute;
+  width: -moz-calc(50% - 2rem);
+  left: 0;
+  bottom: 0;
+
+  background: -moz-linear-gradient(top, #ff0000 0%, #ce0000 100%);
+  margin: 1rem;
+
+  border-radius: 6px;
+}
+
+#close > div {
+  margin: 0 auto;
+  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-repeat: no-repeat;
+  background-size: 4rem 4rem;
+  background-position: center;
+  width: 100%;
+  height: 4rem;
+}
+
+#reply {
+  position: absolute;
+  width: -moz-calc(50% - 2rem);
+  right: 0;
+  bottom: 0;
+
+  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
+  margin: 1rem;
+
+  border-radius: 6px;
+}
+
+#reply > div {
+  line-height: 4rem;
+  font-size: 2em;
+  text-align: center;
+  font-weight: 900;
+}

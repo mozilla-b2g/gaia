@@ -40,6 +40,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// GAIA-
+Components.utils.import('resource://gre/modules/Services.jsm');
+const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
+const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
+// -GAIA
+
 /*
  * An implementation of an HTTP server both as a loadable script and as an XPCOM
  * component.  See the accompanying README file for user documentation on
@@ -764,7 +770,7 @@ nsHttpServer.prototype =
     {
       // not throwing because this is specified as being usually (but not
       // always) asynchronous
-      dump("!!! error running onStopped callback: " + e + "\n");
+      dumpn("!!! error running onStopped callback: " + e + "\n");
     }
   },
 
@@ -787,10 +793,6 @@ nsHttpServer.prototype =
     // Fire a pending server-stopped notification if it's our responsibility.
     if (!this._hasOpenConnections() && this._socketClosed)
       this._notifyStopped();
-    // Bug 508125: Add a GC here else we'll use gigabytes of memory running
-    // mochitests. We can't rely on xpcshell doing an automated GC, as that
-    // would interfere with testing GC stuff...
-    gc();
   },
 
   /**
@@ -1424,10 +1426,17 @@ RequestReader.prototype =
           var hostPort = request._headers.getHeader("Host");
           var colon = hostPort.indexOf(":");
           var host = (colon < 0) ? hostPort : hostPort.substring(0, colon);
-          if (host != '@GAIA_DOMAIN@' && host.indexOf('.') != -1) {
+          if (host != GAIA_DOMAIN && host.indexOf(".") != -1) {
             var oldPath = request._path;
-            request._path = '/apps/' + host.split('.')[0] + oldPath;
-            dump(request._path + '\n');
+            var applicationName = host.split(".")[0];
+
+            // For convenience when debugging, load JS files commonly
+            // used from a common place.
+            var filePath = this._findRealPath(applicationName);
+            if (oldPath.indexOf('/shared/js/') === 0) {
+              filePath += '/../..';
+            }
+            request._path = filePath + oldPath;
           }
         } catch (e) {
           dump(e);
@@ -1442,6 +1451,30 @@ RequestReader.prototype =
       this._handleError(e);
       return false;
     }
+  },
+
+  /**
+   * Try to find out real path of apps,
+   * according to GAIA_APP_RELATIVEPATH provided by Makefile. 
+   */ 
+  _findRealPath: function(appName) {
+    if (this._realPath) {
+      return this._realPath[appName];
+    }
+
+    this._realPath = {};
+
+    var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
+    for (var i = 0; i < appPathList.length; i++) {
+      var currentAppName = appPathList[i].split('/')[1];
+
+      if (!currentAppName) {
+        continue;
+      }
+
+      this._realPath[currentAppName] = appPathList[i];
+    }
+    return '/' + this._realPath[appName];
   },
 
   /**
@@ -2678,11 +2711,11 @@ ServerHandler.prototype =
         }
         catch (e)
         {
-          dump("*** error running SJS at " + file.path + ": " +
-               e + " on line " +
-               (e instanceof Error
-               ? e.lineNumber + " in httpd.js"
-               : (e.lineNumber - line)) + "\n");
+          dumpn("*** error running SJS at " + file.path + ": " +
+                e + " on line " +
+                (e instanceof Error
+                ? e.lineNumber + " in httpd.js"
+                : (e.lineNumber - line)) + "\n");
           throw HTTP_500;
         }
       }

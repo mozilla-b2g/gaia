@@ -1,0 +1,124 @@
+/* calendar settings */
+
+body[data-path^="/settings/"] #wrapper {
+  position: relative;
+  -moz-transform: translateX(80%);
+  box-shadow: 1px 1px 5px 5px #222;
+  z-index: 2;
+
+  -moz-transition: -moz-transform 0.1s ease-in-out;
+}
+
+body #wrapper {
+  -moz-transform: translateX(0%);
+  -moz-transition: -moz-transform 0.1s ease-in-out;
+}
+
+body[data-path^="/settings/"] #time-header {
+  margin-left: 0;
+}
+
+#settings.active {
+  display: block;
+}
+
+#settings {
+  font-size: 1.6rem;
+  color: white;
+  display: none;
+  width: 80%;
+}
+
+body[data-path^="/settings/"] #settings {
+  z-index: 4;
+}
+
+#settings header h1 {
+  width: -moz-calc(100% - 30px);
+}
+
+
+#settings .calendars label > span {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: -moz-calc(100% - 20px);
+}
+
+#settings .calendars label > span {
+  line-height: 100%;
+  display: block;
+  float: left;
+}
+
+#settings .calendars label {
+  display: block;
+  padding: 1.6rem;
+  border-bottom: 1px solid #7E8C91;
+  -moz-user-select: none;
+  -moz-box-flex: 1;
+  user-select: none;
+  width: 100%;
+}
+
+#settings .calendars li,
+#settings .calendars ol {
+  height: 100%;
+}
+
+#settings .calendars li {
+  width: 100%;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+}
+
+#settings .calendars .calendar-color {
+  height: 10px;
+  width: 0.5rem;
+  display: block;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.2) 0%,
+    rgba(255,255,255,0) 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  )
+}
+
+#settings > menu {
+  position: absolute;
+  bottom: 0px;
+  height: 40px;
+  padding: 5px 0px;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+#settings .sync.active {
+  display: none;
+}
+
+#settings .settings {
+  width: 5.5rem;
+  height: 4rem;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
+  text-indent: -9999rem;
+  display: block;
+}
+
+#settings .calendars input[type="checkbox"] {
+ display: none;
+}
+
+
+#settings .calendars input[type="checkbox"]:checked + span {
+  width: 14px;
+  height: 14px;
+  background: transparent url('/style/icons/checkmark.png') no-repeat;
+}
+
+#settings .calendars input[type="checkbox"]+span {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  float: right;
+}

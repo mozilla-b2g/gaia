@@ -1,0 +1,31 @@
+Jspinyin is a simplified/traditional Chinese input method for gaia and is licensed under the Apache Version 2.0, 2012. The original code is based on the Google PinyinIME project as part of the android project hosted at: 
+http://android.googlesource.com/platform/packages/inputmethods/PinyinIME.
+
+Database JSON files:
+
+1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
+
+2. Install simplified-traditional Chinese conversion tool
+   $ sudo apt-get install cconv
+
+3. Clone a copy of PinyinIME at http://android.googlesource.com/platform/packages/inputmethods/PinyinIME
+
+4. Run the following commands to create the simplifed Chinese database JSON files:
+   $ cp [PathToPinyinIME]/jni/data/rawdict_utf16_65105_freq.txt data/
+   $ cd data
+   $ make
+
+./db.json will be updated.
+
+
+Running tests:
+
+1. Install SpiderMonkey JavaScript Shell(http://ftp.mozilla.org/pub/mozilla.org/firefox/nightly/latest-trunk/)
+
+2. Run the tests:
+   $ cd tests
+   $ make
+
+3. Clean up the temporary files of the tests:
+   $ cd tests
+   $ make clean

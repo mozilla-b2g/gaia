@@ -1,77 +1,72 @@
 'use strict';
 
-(function () {
+(function() {
+  var mozSms = navigator.mozSms;
+  if (!mozSms)
+    return;
 
-var mozSms = navigator.mozSms;
-var mozNotification = navigator.mozNotification;
-var mozSettings = navigator.mozSettings;
+  /* === Setup === */
+  var ringtonePlayer = new Audio();
 
-if (!mozSms || !mozNotification || !mozSettings)
-  return;
+  /* === Settings === */
+  var activeSMSSound = true;
+  SettingsListener.observe('sms.ring.received', true, function(value) {
+    activeSMSSound = !!value;
+  });
 
-var activeSMSSound;
-var activateSMSVibration;
-var ringSettingName = 'sms.ring.received';
-var vibrationSettingName = 'sms.vibration.received';
+  var activateSMSVibration = false;
+  SettingsListener.observe('sms.vibration.received', true, function(value) {
+    activateSMSVibration = !!value;
+  });
 
-mozSettings.onsettingchange = function onchange(evt) {
-  switch (evt.settingName) {
-    case ringSettingName:
-      activeSMSSound = evt.settingValue;
-      break;
-    case vibrationSettingName:
-      activateSMSVibration = evt.settingValue;
-      break;
-  }
-};
+  mozSms.addEventListener('received', function received(evt) {
+    var message = evt.message;
+    // The black list includes numbers for which notifications should not
+    // progress to the user. Se blackllist.js for more information.
+    if (BlackList.has(message.sender))
+      return;
 
-mozSettings.getLock().get(ringSettingName)
-    .addEventListener('success', (function onsuccess(evt) {
-  activeSMSSound = evt.target.result[ringSettingName];
-}));
-
-mozSettings.getLock().get(vibrationSettingName)
-    .addEventListener('success', (function onsuccess(evt) {
-  activateSMSVibration = evt.target.result[vibrationSettingName];
-}));
-
-mozSms.addEventListener('received', function received(evt) {
-  var message = evt.message;
-
-  if (activeSMSSound) {
-    var ringtonePlayer = new Audio();
-    ringtonePlayer.src = 'style/ringtones/sms.wav';
-    ringtonePlayer.play();
-    window.setTimeout(function smsRingtoneEnder() {
-      ringtonePlayer.pause();
-      ringtonePlayer.src = '';
-    }, 500);
-  }
-
-  if (activateSMSVibration) {
-    if ('mozVibrate' in navigator) {
-      navigator.mozVibrate([200, 200, 200, 200]);
+    if (activeSMSSound) {
+      var ringtonePlayer = new Audio();
+      ringtonePlayer.src = 'style/ringtones/sms.wav';
+      ringtonePlayer.play();
+      window.setTimeout(function smsRingtoneEnder() {
+        ringtonePlayer.pause();
+        ringtonePlayer.src = '';
+      }, 500);
     }
-  }
 
-  var notification = mozNotification.createNotification(
-    message.sender, message.body
-  );
-  notification.onclick = function notiClick() {
+    if (activateSMSVibration && 'vibrate' in navigator) {
+      navigator.vibrate([200, 200, 200, 200]);
+    }
 
-    // Switch to the clicked message conversation panel
-    // XXX: we somehow need to get access to the window object
-    // of the original web app to do this.
-    // window.parent.location.hash = '#num=' + message.sender;
-
-    // Asking to launch itself
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
-      app.launch();
+
+      var iconURL = NotificationHelper.getIconURI(app);
+
+      var notiClick = function() {
+        // Switch to the clicked message conversation panel
+        // XXX: we somehow need to get access to the window object
+        // of the original web app to do this.
+        // window.parent.location.hash = '#num=' + message.sender;
+
+        // Asking to launch itself
+        app.launch();
+      };
+
+      ContactDataManager.getContactData(message.sender,
+      function gotContact(contact) {
+        var sender;
+        if (contact && contact.length > 0) {
+          sender = contact[0].name;
+        } else {
+          sender = message.sender;
+        }
+
+        NotificationHelper.send(sender, message.body, iconURL, notiClick);
+      });
     };
-  };
-
-  notification.show();
-});
-
+  });
 }());
+

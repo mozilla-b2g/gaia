@@ -233,14 +233,14 @@ function testApp(url, testfunc) {
       }, 1100);
 
       // Wait until the task switcher has some tasks in it
-      let closeselector = '#taskManager > ul > li > a';
+      let closeselector = '#cardsView > ul > li > a';
       yield until(
         function() contentDoc.querySelectorAll(closeselector).length > 0,
         nextStep);
 
       // Find all the close buttons in the task switcher
       // There should only be one task open, but click all buttons if more.
-      var closebtns = contentDoc.querySelectorAll('#taskManager > ul > li > a');
+      var closebtns = contentDoc.querySelectorAll('#cardsView > ul > li > a');
       silentOK(closebtns.length === 1,
                closebtns.length + ' tasks running; expected 1.');
       for (var i = 0; i < closebtns.length; i++) {

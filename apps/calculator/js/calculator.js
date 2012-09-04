@@ -4,7 +4,9 @@ var Calculator = {
 
   BACKSPACE_TIMEOUT: 750,
 
-  display: document.getElementById('display'),
+  display: document.querySelector('#display b'),
+
+  isDecimalSeparatorPresent: false,
 
   backSpaceTimeout: null,
   errorTimeout: null,
@@ -17,10 +19,17 @@ var Calculator = {
 
   updateDisplay: function calculator_updateDisplay() {
     if (this.stack.length === 0) {
-      this.display.value = '0';
-      return;
+      this.display.innerHTML = '0';
+    } else {
+      var infinite = new RegExp((1 / 0) + '', 'g');
+      var outval = this.stack.join('').replace(infinite, '∞');
+      this.display.innerHTML = outval;
     }
-    this.display.value = this.stack.join('');
+
+    var valWidth = this.display.offsetWidth;
+    var screenWidth = this.display.parentNode.offsetWidth;
+    var scaleFactor = Math.min(1, (screenWidth - 16) / valWidth);
+    this.display.style.MozTransform = 'scale(' + scaleFactor + ')';
   },
 
   isOperator: function calculator_isOperator(val) {
@@ -28,6 +37,14 @@ var Calculator = {
   },
 
   appendValue: function calculator_appendValue(value) {
+
+    // To avoid decimal separator repetition
+    if (value === '.' && this.isDecimalSeparatorPresent) {
+      return;
+    } else if (value === '.') {
+      this.isDecimalSeparatorPresent = true;
+    }
+
     if (this.toClear) {
       this.stack = [];
       this.toClear = false;
@@ -41,12 +58,14 @@ var Calculator = {
 
     // Subtraction can also be used as a negative value
     if (value === '-' && this.stack[this.stack.length - 1] !== '-') {
-      return this.appendValue(value);
+      this.appendValue(value);
+      return;
     }
 
     if (this.stack.length === 0) {
-      return false;
+      return;
     }
+
     // New operators will overwrite any current operators, because subtraction
     // is allowed after other operators there may be more than 1
     while (this.isOperator(this.stack[this.stack.length - 1])) {
@@ -61,7 +80,7 @@ var Calculator = {
   backSpace: function calculator_backSpace() {
     this.clearBackspaceTimeout();
     this.startBackspaceTimeout();
-    this.stack = this.stack.slice(0, -1);
+    this.stack.splice(this.stack.length - 1, 1);
     this.updateDisplay();
   },
 
@@ -94,24 +113,24 @@ var Calculator = {
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
-      this.display.classList.add('error');
+      this.display.parentNode.classList.add('error');
       if (this.errorTimeout === null) {
         this.errorTimeout = window.setTimeout(function calc_errorTimeout(self) {
-          self.display.classList.remove('error');
+          self.display.parentNode.classList.remove('error');
           self.errorTimeout = null;
         }, 300, this);
       }
     }
   },
 
-  clearBackspaceTimeout: function() {
+  clearBackspaceTimeout: function calculator_clearBackspaceTimeout() {
     if (this.backSpaceTimeout !== null) {
       window.clearTimeout(this.backSpaceTimeout);
       this.backSpaceTimeout = null;
     }
   },
 
-  startBackspaceTimeout: function() {
+  startBackspaceTimeout: function calculator_startBackspaceTimeout() {
     this.backSpaceTimeout = window.setTimeout(function fullBackSpace(self) {
       self.stack = [];
       self.toClear = false;
@@ -120,25 +139,31 @@ var Calculator = {
     }, this.BACKSPACE_TIMEOUT, this);
   },
 
-  precedence: function(val) {
+  precedence: function calculator_precedence(val) {
     if (['-', '+'].indexOf(val) !== -1) {
       return 2;
     }
     if (['*', '/'].indexOf(val) !== -1) {
       return 3;
     }
+
+    return null;
   },
 
   // This is a basic implementation of the shunting yard algorithm
   // described http://en.wikipedia.org/wiki/Shunting-yard_algorithm
   // Currently functions are unimplemented and only operators with
   // left association are used
-  infix2postfix: function(infix) {
+  infix2postfix: function calculator_infix2postfix(infix) {
     // We cant know up till this point whether - is for negation or subtraction
     // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
-    infix = infix.replace(/(.)?(-)([0-9.]+)/g, function(match, pre, _, num) {
-      return Calculator.isOperator(match[0]) ? pre + '(0-' + num + ')' : match;
-    });
+    infix = infix.replace(
+      /(([^0-9])-|^-)([0-9.]+)/g,
+      function(match, _, pre, num) {
+        pre = pre || '';
+        return pre + '(0-' + num + ')';
+      }
+    );
 
     // basic tokenisation to ensure we group numbers with >1 digit together
     var tokens = infix.match(/[0-9.]+|\*|\/|\+|\-|\(|\)/g);
@@ -150,18 +175,20 @@ var Calculator = {
         output.push(parseFloat(token, 10));
       }
 
-      var precedence = this.precedence;
       var isOperator = this.isOperator;
       if (isOperator(token)) {
+        var precedence = this.precedence;
         while (isOperator(stack[stack.length - 1]) &&
                precedence(token) <= precedence(stack[stack.length - 1])) {
           output.push(stack.pop());
         }
         stack.push(token);
       }
+
       if (token === '(') {
         stack.push(token);
       }
+
       if (token === ')') {
         while (stack.length && stack[stack.length - 1] !== '(') {
           output.push(stack.pop());
@@ -185,7 +212,7 @@ var Calculator = {
     '/': function(a, b) { return a / b; }
   },
 
-  evaluatePostfix: function(postfix) {
+  evaluatePostfix: function calculator_evaluatePostfix(postfix) {
     var stack = [];
 
     postfix.forEach(function evaluatePostFix_inner(token) {
@@ -195,10 +222,15 @@ var Calculator = {
         var op2 = stack.pop();
         var op1 = stack.pop();
         var result = this.evaluate[token](op1, op2);
+        if (isNaN(result))
+          throw ({ type: 'error', msg: 'Value is ' + result });
         stack.push(result);
       }
     }, this);
-    return stack.pop();
+    var finalResult = stack.pop();
+    if (isNaN(finalResult))
+      throw ({ type: 'error', msg: 'Value is ' + finalResult });
+    return finalResult;
   },
 
   init: function calculator_init() {
@@ -208,29 +240,37 @@ var Calculator = {
   },
 
   handleEvent: function calculator_handleEvent(evt) {
+    var target = evt.target;
     switch (evt.type) {
-    case 'mousedown':
-      var value = evt.target.value;
-      switch (evt.target.dataset.type) {
-      case 'value':
-        this.appendValue(value);
-        break;
-      case 'operator':
-        this.appendOperator(value);
-        break;
-      case 'command':
-        if (value === '=') {
-          this.calculate();
-        } else if (value === 'C') {
-          this.backSpace();
+      case 'mousedown':
+        var value = target.value;
+        switch (target.dataset.type) {
+          case 'value':
+            this.appendValue(value);
+            break;
+          case 'operator':
+            this.appendOperator(value);
+            this.isDecimalSeparatorPresent = false;
+            break;
+          case 'command':
+            switch (value) {
+              case '=':
+                this.calculate();
+                this.isDecimalSeparatorPresent = false;
+                break;
+              case 'C':
+                if (this.stack[this.stack.length - 1])
+                  this.isDecimalSeparatorPresent = false;
+                this.backSpace();
+                break;
+            }
+            break;
         }
         break;
-      }
-      break;
 
-    case 'mouseup':
-      this.clearBackspaceTimeout();
-      break;
+      case 'mouseup':
+        this.clearBackspaceTimeout();
+        break;
     }
   }
 };
@@ -257,7 +297,9 @@ Calculator.test = function() {
     ['4+-5', -1],
     ['-5*6', -30],
     ['-5.5*6', -33],
-    ['-5.5*-6.4', 35.2]
+    ['-5.5*-6.4', 35.2],
+    ['-6-6-6', -18],
+    ['6-6-6', -6]
   ];
 
   var passed = formulas.every(run);

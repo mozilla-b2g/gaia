@@ -1,6 +1,0 @@
-<?xml version="1.0"?>
-
-<overlay id="gaia-httpd" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <script type="application/x-javascript" src="chrome://httpd.js/content/loader.js"/>
-</overlay>
-

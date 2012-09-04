@@ -1,28 +1,183 @@
 <!DOCTYPE html>
-<html manifest="manifest.appcache">
+<html>
   <head>
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
-
-    <link rel="stylesheet" href="style/browser.css" type="text/css" />
-    <script type="text/javascript" src="js/browser.js"></script>
+    <link rel="stylesheet" href="style/browser.css" type="text/css">
+    <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <!-- Shared code -->
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
-  <body>
-    <menu type="toolbar" id="toolbar-start">
-      <form id="url-bar">
-        <input type="url" id="url-input" value="http://www.google.com/m"></input>
-        <input type="image" id="url-button" src="style/images/go.png"></input>
-      </form>
-    </menu>
-    <iframe id="browser-content" mozbrowser>
-    </iframe>
+  <body class="page-screen">
 
-    <div id="shade" class="hidden"></div>
-    <menu type="toolbar" id="toolbar-end">
-      <button type="button" value="" id="back-button" alt="Back" title="" disabled="true"></button>
-      <button type="button" value="" id="forward-button" alt="Forward" title="" disabled="true"></button>
+    <div id="main-screen">
+
+      <menu type="toolbar" id="toolbar-start">
+        <form id="url-bar" novalidate>
+          <input type="image" id="ssl-indicator" value="" />
+          <input type="url" id="url-input" placeholder="Enter Search or Address"
+                 data-l10n-id="enter-search-or-address" />
+          <input type="image" id="url-button" value="" />
+        </form>
+      </menu>
+
+      <div id="frames">
+        <div id="awesomescreen">
+          <nav data-role="tabs" id="tab-headers">
+            <ul role="tablist">
+              <li role="tab">
+                <a id="top-sites-tab" href="#" class="selected"
+                   data-l10n-id="top-sites">Top Sites</a>
+              </li>
+              <li role="tab">
+                <a id="bookmarks-tab" href="#"
+                   data-l10n-id="bookmarks">Bookmarks</a>
+              </li>
+              <li role="tab">
+                <a id="history-tab" href="#"
+                   data-l10n-id="history">History</a>
+              </li>
+            </ul>
+          </nav>
+          <section id="top-sites" role="tabpanel" class="selected">
+          </section>
+          <section id="bookmarks" role="tabpanel">
+          </section>
+          <section id="history" role="tabpanel">
+          </section>
+        </div>
+
+        <div id="crashscreen">
+          <span id="sad-face">:(</span><br />
+          <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
+          <button data-l10n-id="try-reloading" id="try-reloading">
+            Try Reloading
+          </button>
+        </div>
+
+        <div id="screen">
+          <div id="modal-dialog">
+            <div id="modal-dialog-table">
+              <div id="modal-dialog-tablecell">
+                <div id="modal-dialog-alert">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-alert-message"></span>
+                  </div>
+                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
+                </div>
+
+                <div id="modal-dialog-confirm">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-confirm-message"></span>
+                  </div>
+                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+
+                <div id="modal-dialog-prompt">
+                  <div class="modal-dialog-message-container">
+                    <span id="modal-dialog-prompt-message"></span>
+                    <input id="modal-dialog-prompt-input" />
+                  </div>
+                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <menu type="toolbar" id="toolbar-end">
+        <button type="button" value="" id="back-button" alt="Back"
+                title="" disabled="true"></button>
+        <button type="button" value="" id="forward-button" alt="Forward"
+                title="" disabled="true"></button>
+        <button type="button" value="" id="bookmark-button" alt="Bookmark"
+                title=""></button>
+      </menu>
+
+      <menu id="bookmark-menu" type="list" class="hidden">
+        <li><a id="bookmark-menu-add" href="#" data-l10n-id="bookmark">Bookmark</a></li>
+        <li><a id="bookmark-menu-remove" href="#" data-l10n-id="unbookmark">Unbookmark</a></li>
+        <li><a id="bookmark-menu-edit" href="#" data-l10n-id="edit-bookmark">Edit Bookmark</a></li>
+        <li><a id="bookmark-menu-add-home" href="#" data-l10n-id="add-link-to-home">Add Link to Home</a></li>
+        <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+      </menu>    
+    </div>
+
+    <div id="tray">
+      <menu type="toolbar" id="tray-toolbar">
+        <button type="button" id="settings-button"></button>
+      </menu>
+      <div id="tabs-list"></div>
+    </div>
+    <div id="throbber"></div>
+    <div id="tabs-badge"></div>
+
+    <form id="bookmark-entry-sheet" role="dialog" class="hidden">
+      <header>
+        <button type="reset" id="bookmark-entry-sheet-cancel" data-l10n-id="cancel">Cancel</button>
+        <button type="submit" id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
+        <h2 data-l10n-id="edit-bookmark">Edit Bookmark</h2>
+      </header>
+      <label for="bookmark-title" data-l10n-id="page-title"></label>
+      <input type="text" id="bookmark-title"></input>
+      <label for="bookmark-url" data-l10n-id="address">Address</label>
+      <input type="url" id="bookmark-url"></input>
+      <input type="hidden" id="bookmark-previous-url"></input>
+    </form>  
+
+    <div id="settings">
+      <header id="settings-header">
+        <menu type="toolbar">
+          <button id="settings-done-button"></button>
+        </menu>
+        <h1 data-l10n-id="firefox-settings">Firefox Settings</h1>
+      </header>
+      <ul>
+        <li>
+          <button id="about-firefox-button"
+                  data-l10n-id="about-firefox">About Firefox</button>
+        </li>
+      </ul>
+      <h3 data-l10n-id="privacy-and-security">Privacy & Security</h3>
+      <ul>
+        <li id="enable-cookies">
+          <label>
+            <input type="checkbox" name="enable-cookies" disabled="disabled" />
+            <span data-l10n-id="enable-cookies" disabled="disabled">Enable Cookies</span>
+          </label>
+        </li>
+        <li>
+          <button id="clear-history-button"
+                  data-l10n-id="clear-history">Clear History</button>
+        </li>
+        <li>
+          <button id="clear-private-data-button" disabled="disabled"
+                  data-l10n-id="clear-private-data">Clear Private Data</button>
+        </li>
+
+      </ul>
+    </div>
+
+    <script src="js/GestureDetector.js"></script>
+    <script src="js/places.js"></script>
+    <script src="js/date_helper.js"></script>
+    <script src="js/modal_dialog.js"></script>
+    <script src="js/browser.js"></script>
+
   </body>
 
 </html>
+
