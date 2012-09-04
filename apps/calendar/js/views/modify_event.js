@@ -3,9 +3,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
   function ModifyEvent(options) {
     Calendar.View.apply(this, arguments);
 
-    //XXX: Maybe this should live on app?
-    this.dateFormat = navigator.mozL10n.DateTimeFormat();
-
     this.store = this.app.store('Event');
     this._changeToken = 0;
     this._fields = Object.create(null);
@@ -58,7 +55,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _updateForm: function() {
       var model = this.model;
       var remote = model.remote;
-      var fmt = this.dateFormat;
+      var fmt = this.app.dateFormat;
 
       var startDate = remote.startDate;
       var endDate = remote.endDate;
