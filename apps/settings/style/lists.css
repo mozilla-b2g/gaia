@@ -122,10 +122,12 @@ ul li > small:not(:empty) + a {
   height: 100%;
 }
 
-label:not([for]) input + span {
+label:not([for]) input + span,
+label.switch input[type="checkbox"] + span {
 	left: auto;
 	right: 1rem;
 }
+
 
 /******************************************************************************
  * brightness level
