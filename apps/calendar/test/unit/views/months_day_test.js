@@ -461,9 +461,14 @@ suite('views/months_day', function() {
     subject.date = date;
     subject._updateHeader();
 
+    var month = date.toLocaleFormat('%B');
+    var day = date.toLocaleFormat('%A');
+
+    console.log(el.innerHTML)
+
     assert.include(el.innerHTML, '11');
-    assert.include(el.innerHTML, 'May');
-    assert.include(el.innerHTML, 'Friday');
+    assert.include(el.innerHTML, month);
+    assert.include(el.innerHTML, day);
   });
 
   test('#render', function() {

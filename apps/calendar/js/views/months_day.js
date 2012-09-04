@@ -30,38 +30,6 @@
      * the view.
      */
     _changeToken: 0,
-
-    /**
-     * Hack this should be localized.
-     */
-    dayNames: [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday'
-    ],
-
-    /**
-     * Hack this should be localized.
-     */
-    monthNames: [
-      'January',
-      'Feburary',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ],
-
     _initEvents: function() {
       var self = this;
       this.controller.on('selectedDayChange', this);
@@ -159,12 +127,16 @@
 
     _updateHeader: function() {
       var date = this.date;
-      var header = [
-        this.dayNames[date.getDay()],
-        this.monthNames[date.getMonth()],
-        date.getDate()
-      ].join(' ');
 
+      var l10n = navigator.mozL10n;
+
+      var dayName = l10n.get('weekday-' + date.getDay() + '-long');
+      var monthName = l10n.get('month-' + date.getMonth() + '-long');
+
+      dayName = dayName || date.toLocaleFormat('%A');
+      monthName = monthName || date.toLocaleFormat('%B');
+
+      var header = dayName + ' ' + monthName + ' ' + date.getDate();
       this.header.textContent = header;
     },
 
