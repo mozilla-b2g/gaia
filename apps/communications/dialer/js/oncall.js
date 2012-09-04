@@ -7,6 +7,7 @@ var CallScreen = {
   views: document.getElementById('views'),
 
   calls: document.getElementById('calls'),
+
   get activeCall() {
     delete this.activeCall;
     return this.activeCall = this.calls.querySelector(':not(.held)');
@@ -38,17 +39,17 @@ var CallScreen = {
     this.answerButton.addEventListener('mouseup',
                                     OnCallHandler.answer.bind(OnCallHandler));
     this.rejectButton.addEventListener('mouseup',
-                                    OnCallHandler.end.bind(OnCallHandler));
+                                    OnCallHandler.end);
 
     this.incomingAnswer.addEventListener('mouseup',
-                              OnCallHandler.holdAndAnswer.bind(OnCallHandler));
+                              OnCallHandler.holdAndAnswer);
     this.incomingEnd.addEventListener('mouseup',
-                              OnCallHandler.endAndAnswer.bind(OnCallHandler));
+                              OnCallHandler.endAndAnswer);
     this.incomingIgnore.addEventListener('mouseup',
-                                    OnCallHandler.ignore.bind(OnCallHandler));
+                                    OnCallHandler.ignore);
 
     this.calls.addEventListener('click',
-                                OnCallHandler.toggleCalls.bind(OnCallHandler));
+                                OnCallHandler.toggleCalls);
 
   },
 
@@ -149,201 +150,117 @@ var CallScreen = {
   }
 };
 
-var OnCallHandler = {
-  CALLS_LIMIT: 2, // Changing this will probably require some markup changes
+var OnCallHandler = (function onCallHandler() {
+  // Changing this will probably require markup changes
+  var CALLS_LIMIT = 2;
+  var _ = navigator.mozL10n.get;
 
-  handledCalls: [],
-  _telephony: window.navigator.mozTelephony,
+  var handledCalls = [];
+  var telephony = window.navigator.mozTelephony;
 
-  _displayed: false,
-  _closing: false,
+  var displayed = false;
+  var closing = false;
 
-  setup: function och_setup() {
+  /* === Ringtone player === */
+  var ringtonePlayer = new Audio();
+  ringtonePlayer.loop = true;
+
+  /* === Settings === */
+  var activePhoneSound = true;
+  SettingsListener.observe('phone.ring.incoming', true, function(value) {
+    activePhoneSound = !!value;
+  });
+
+  var selectedPhoneSound = '';
+  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
+    selectedPhoneSound = 'style/ringtones/' + value;
+    ringtonePlayer.src = selectedPhoneSound;
+  });
+
+  var activateVibration = true;
+  SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+    activateVibration = !!value;
+  });
+
+  /* === Setup === */
+  function setup() {
     // Animating the screen in the viewport.
-    this.toggleScreen();
+    toggleScreen();
 
     ProximityHandler.enable();
 
-    var telephony = this._telephony;
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
       // Set it to false.
       telephony.muted = false;
 
-      var self = this;
-      var callsChanged = function och_callsChanged(evt) {
-        // Adding any new calls to handledCalls
-        telephony.calls.forEach(function callIterator(call) {
-          if (call.state == 'incoming' || call.state == 'dialing') {
-            var alreadyAdded = self.handledCalls.some(function hcIterator(hc) {
-              return (hc.call == call);
-            });
-
-            if (!alreadyAdded) {
-              self._addCall(call);
-            }
-          }
-        });
-
-        // Removing any ended calls to handledCalls
-        self.handledCalls.forEach(function handledCallIterator(hc, index) {
-          var stillHere = telephony.calls.some(function hcIterator(call) {
-            return (call == hc.call);
-          });
-
-          if (!stillHere) {
-            self._removeCall(index);
-            return;
-          }
-        });
-
-        // Letting the layout know how many calls we're handling
-        CallScreen.calls.dataset.count = self.handledCalls.length;
-      };
-
       // Needs to be called at least once
-      callsChanged();
-      telephony.oncallschanged = callsChanged;
+      onCallsChanged();
+      telephony.oncallschanged = onCallsChanged;
 
       // If the call was ended before we got here we can close
       // right away.
-      if (this.handledCalls.length === 0) {
-        this._close(false);
+      if (handledCalls.length === 0) {
+        exitCallScreen(false);
       }
     }
-  },
+  }
 
-  answer: function ch_answer() {
-    // We should always have only 1 call here
-    if (!this.handledCalls.length)
-      return;
-
-    this.handledCalls[0].call.answer();
-    CallScreen.render('connected');
-  },
-
-  holdAndAnswer: function och_holdAndAnswer() {
-    var lastCallIndex = this.handledCalls.length - 1;
-
-    this._telephony.active.hold();
-    this.handledCalls[lastCallIndex].call.answer();
-
-    CallScreen.hideIncoming();
-  },
-
-  endAndAnswer: function och_endAndAnswer() {
-    var callToEnd = this._telephony.active;
-    this.holdAndAnswer();
-
-    callToEnd.onheld = function hangUpAfterHold() {
-      callToEnd.hangUp();
-    };
-
-    CallScreen.hideIncoming();
-  },
-
-  toggleCalls: function och_toggleCalls() {
-    if (this.handledCalls.length < 2)
-      return;
-
-    this._telephony.active.hold();
-  },
-
-  ignore: function ch_ignore() {
-    var ignoreIndex = this.handledCalls.length - 1;
-    this.handledCalls[ignoreIndex].call.hangUp();
-
-    CallScreen.hideIncoming();
-  },
-
-  end: function ch_end() {
-    // If there is an active call we end this one
-    if (this._telephony.active) {
-      this._telephony.active.hangUp();
-      return;
-    }
-
-    // If not we're rejecting the last incoming call
-    if (!this.handledCalls.length) {
-      this.toggleScreen();
-      return;
-    }
-
-    var lastCallIndex = this.handledCalls.length - 1;
-    this.handledCalls[lastCallIndex].call.hangUp();
-  },
-
-  unmute: function ch_unmute() {
-    this._telephony.muted = false;
-  },
-
-  toggleMute: function ch_toggleMute() {
-    this._telephony.muted = !this._telephony.muted;
-  },
-
-  turnSpeakerOff: function ch_turnSpeakeroff() {
-    this._telephony.speakerEnabled = false;
-  },
-
-  toggleSpeaker: function ch_toggleSpeaker() {
-    this._telephony.speakerEnabled = !this._telephony.speakerEnabled;
-  },
-
-  toggleScreen: function ch_toggleScreen() {
-    CallScreen.screen.classList.remove('animate');
-    CallScreen.screen.classList.toggle('prerender');
-
-    var displayed = this._displayed;
-    this._displayed = !this._displayed;
-
-    var self = this;
-    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
-      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
-
-      window.setTimeout(function cs_transitionNextLoop() {
-        CallScreen.screen.classList.add('animate');
-        CallScreen.screen.classList.toggle('displayed');
-        CallScreen.screen.classList.toggle('prerender');
-
-        CallScreen.screen.addEventListener('transitionend', function trWait() {
-          CallScreen.screen.removeEventListener('transitionend', trWait);
-          // We did animate the call screen off the viewport
-          // now closing the window.
-          if (displayed) {
-            self.closeWindow();
-          }
+  /* === Handled calls === */
+  function onCallsChanged() {
+    // Adding any new calls to handledCalls
+    telephony.calls.forEach(function callIterator(call) {
+      if (call.state == 'incoming' || call.state == 'dialing') {
+        var alreadyAdded = handledCalls.some(function hcIterator(hc) {
+          return (hc.call == call);
         });
-      });
+
+        if (!alreadyAdded) {
+          addCall(call);
+        }
+      }
     });
-  },
 
-  closeWindow: function och_closeWindow() {
-    var origin = document.location.protocol + '//' +
-      document.location.host;
-    window.opener.postMessage('closing', origin);
-    window.close();
-  },
+    // Removing any ended calls to handledCalls
+    handledCalls.forEach(function handledCallIterator(hc, index) {
+      var stillHere = telephony.calls.some(function hcIterator(call) {
+        return (call == hc.call);
+      });
 
-  _addCall: function och_addCall(call) {
+      if (!stillHere) {
+        removeCall(index);
+        return;
+      }
+    });
+
+    // Letting the layout know how many calls we're handling
+    CallScreen.calls.dataset.count = handledCalls.length;
+  }
+
+  function addCall(call) {
     // Once we already have 1 call, we only care about incomings
-    if (this.handledCalls.length && (call.state != 'incoming'))
+    if (handledCalls.length && (call.state != 'incoming'))
       return;
 
     // No more room
-    if (this.handledCalls.length >= this.CALLS_LIMIT) {
+    if (handledCalls.length >= CALLS_LIMIT) {
       call.hangUp();
       return;
     }
 
-    var node = CallScreen.calls.children[this.handledCalls.length];
+    var node = CallScreen.calls.children[handledCalls.length];
     var hc = new HandledCall(call, node);
-    this.handledCalls.push(hc);
+    handledCalls.push(hc);
 
-    if (this.handledCalls.length > 1) {
+    // This is the initial incoming call, need to ring !
+    if (call.state === 'incoming' && handledCalls.length === 1) {
+      handleFirstIncoming(call);
+    }
+
+    if (handledCalls.length > 1) {
       // signaling the user of the new call
       navigator.vibrate([100, 100, 100]);
 
-      var _ = navigator.mozL10n.get;
       var number = (call.number.length ? call.number : _('unknown'));
       Contacts.findByNumber(number, function lookupContact(contact) {
         if (contact && contact.name) {
@@ -356,43 +273,227 @@ var OnCallHandler = {
 
       CallScreen.showIncoming();
     } else {
-      if (window.location.hash.split('?')[1] === 'locked' &&
+      if (window.location.hash === '#locked' &&
           (call.state == 'incoming')) {
         CallScreen.render('incoming-locked');
       } else {
         CallScreen.render(call.state);
       }
     }
-  },
+  }
 
-  _removeCall: function och_removeCall(index) {
-    this.handledCalls.splice(index, 1);
+  function removeCall(index) {
+    handledCalls.splice(index, 1);
 
-    if (this.handledCalls.length > 0) {
+    if (handledCalls.length > 0) {
       // Resuming the first remaining call
-      this.handledCalls[0].call.resume();
+      handledCalls[0].call.resume();
       CallScreen.hideIncoming();
       return;
     }
 
-    this._close(true);
-  },
+    exitCallScreen(true);
+  }
 
-  _close: function och_close(animate) {
-    if (this._closing)
+  function handleFirstIncoming(call) {
+    var screenLock = navigator.requestWakeLock('screen');
+
+    var vibrateInterval = 0;
+    if (activateVibration) {
+      vibrateInterval = window.setInterval(function vibrate() {
+        if ('vibrate' in navigator) {
+          navigator.vibrate([200]);
+        }
+      }, 600);
+    }
+
+    if (activePhoneSound && selectedPhoneSound) {
+      ringtonePlayer.play();
+    }
+
+    call.addEventListener('statechange', function callStateChange() {
+      call.removeEventListener('statechange', callStateChange);
+
+      ringtonePlayer.pause();
+      window.clearInterval(vibrateInterval);
+
+      if (screenLock) {
+        screenLock.unlock();
+        screenLock = null;
+      }
+
+      // The call wasn't picked up
+      if (call.state == 'disconnected') {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+
+          var iconURL = NotificationHelper.getIconURI(app);
+
+          var notiClick = function() {
+            // Asking to launch itself
+            app.launch('#recents-view');
+          };
+
+          Contacts.findByNumber(call.number, function lookup(contact) {
+            var title = _('missedCall');
+            var sender = call.number.length ?
+                          call.number : _('unknown');
+
+            if (contact && contact.name) {
+              sender = contact.name;
+            }
+
+            var body = _('from', {sender: sender});
+
+            NotificationHelper.send(title, body, iconURL, notiClick);
+          });
+        };
+      }
+    });
+  }
+
+  /* === Call Screen === */
+  function toggleScreen() {
+    displayed = !displayed;
+
+    CallScreen.screen.classList.remove('animate');
+    CallScreen.screen.classList.toggle('prerender');
+
+    window.addEventListener('MozAfterPaint', function ch_finishAfterPaint() {
+      window.removeEventListener('MozAfterPaint', ch_finishAfterPaint);
+
+      window.setTimeout(function cs_transitionNextLoop() {
+        CallScreen.screen.classList.add('animate');
+        CallScreen.screen.classList.toggle('displayed');
+        CallScreen.screen.classList.toggle('prerender');
+
+        CallScreen.screen.addEventListener('transitionend', function trWait() {
+          CallScreen.screen.removeEventListener('transitionend', trWait);
+          // We did animate the call screen off the viewport
+          // now closing the window.
+          if (!displayed) {
+            closeWindow();
+          }
+        });
+      });
+    });
+  }
+
+  function exitCallScreen(animate) {
+    if (closing)
       return;
 
     ProximityHandler.disable();
 
-    this._closing = true;
+    closing = true;
 
     if (animate) {
-      this.toggleScreen();
+      toggleScreen();
     } else {
-      this.closeWindow();
+      closeWindow();
     }
   }
-};
+
+  function closeWindow() {
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+    window.opener.postMessage('closing', origin);
+    window.close();
+  }
+
+  /* === User Actions === */
+  function answer() {
+    // We should always have only 1 call here
+    if (!handledCalls.length)
+      return;
+
+    handledCalls[0].call.answer();
+    CallScreen.render('connected');
+  }
+
+  function holdAndAnswer() {
+    var lastCallIndex = handledCalls.length - 1;
+
+    telephony.active.hold();
+    handledCalls[lastCallIndex].call.answer();
+
+    CallScreen.hideIncoming();
+  }
+
+  function endAndAnswer() {
+    var callToEnd = telephony.active;
+    holdAndAnswer();
+
+    callToEnd.onheld = function hangUpAfterHold() {
+      callToEnd.hangUp();
+    };
+
+    CallScreen.hideIncoming();
+  }
+
+  function toggleCalls() {
+    if (handledCalls.length < 2)
+      return;
+
+    telephony.active.hold();
+  }
+
+  function ignore() {
+    var ignoreIndex = handledCalls.length - 1;
+    handledCalls[ignoreIndex].call.hangUp();
+
+    CallScreen.hideIncoming();
+  }
+
+  function end() {
+    // If there is an active call we end this one
+    if (telephony.active) {
+      telephony.active.hangUp();
+      return;
+    }
+
+    // If not we're rejecting the last incoming call
+    if (!handledCalls.length) {
+      toggleScreen();
+      return;
+    }
+
+    var lastCallIndex = handledCalls.length - 1;
+    handledCalls[lastCallIndex].call.hangUp();
+  }
+
+  function unmute() {
+    telephony.muted = false;
+  }
+
+  function turnSpeakerOff() {
+    telephony.speakerEnabled = false;
+  }
+
+  function toggleMute() {
+    telephony.muted = !telephony.muted;
+  }
+
+  function toggleSpeaker() {
+    telephony.speakerEnabled = !telephony.speakerEnabled;
+  }
+
+  return {
+    setup: setup,
+
+    answer: answer,
+    holdAndAnswer: holdAndAnswer,
+    endAndAnswer: endAndAnswer,
+    toggleCalls: toggleCalls,
+    ignore: ignore,
+    end: end,
+
+    toggleMute: toggleMute,
+    toggleSpeaker: toggleSpeaker,
+    unmute: unmute,
+    turnSpeakerOff: turnSpeakerOff
+  };
+})();
 
 window.addEventListener('localized', function callSetup(evt) {
   window.removeEventListener('localized', callSetup);
