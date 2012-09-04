@@ -2,88 +2,12 @@ Calendar.ns('Views').DayBased = (function() {
 
   var Calc = Calendar.Calc;
   var hoursOfOccurance = Calendar.Calc.hoursOfOccurance;
+  var OrderedMap = Calendar.OrderedMap;
 
   /**
    * Ordered map for storing relevant
    * details of day based views.
    */
-  function OrderedMap(list, compare) {
-    if (typeof(compare) === 'undefined') {
-      compare = Calendar.compare;
-    }
-
-    this.compare = function(a, b) {
-      return compare(a[0], b[0]);
-    };
-
-    if (list) {
-      this.items = list.sort(this.compare);
-    } else {
-      this.items = [];
-    }
-  };
-
-  OrderedMap.prototype = {
-    _compare: function(a, b) {
-      return this.compare(a[0], b[0]);
-    },
-
-    has: function(value) {
-      var idx = this.indexOf(value);
-      return this.indexOf(value) !== null;
-    },
-
-    insertIndexOf: function(value) {
-      return Calendar.binsearch.insert(
-        this.items,
-        [value],
-        this.compare
-      );
-    },
-
-    indexOf: function(value) {
-      return Calendar.binsearch.find(
-        this.items,
-        [value],
-        this.compare
-      );
-    },
-
-    set: function(key, value) {
-      var arr = [key, value];
-
-      var idx = Calendar.binsearch.insert(
-        this.items,
-        arr,
-        this.compare
-      );
-
-      this.items.splice(idx, 0, arr);
-
-      return value;
-    },
-
-    get: function(item) {
-      var idx = this.indexOf(item);
-      if (idx !== null) {
-        return this.items[idx][1];
-      }
-      return null;
-    },
-
-    remove: function(key) {
-      var idx = this.indexOf(key);
-
-      if (idx !== null) {
-        this.items.splice(idx, 1);
-      }
-    },
-
-    get length() {
-      return this.items.length;
-    }
-  };
-
   function DayBased() {
     Calendar.View.apply(this, arguments);
 
@@ -93,8 +17,6 @@ Calendar.ns('Views').DayBased = (function() {
 
     this._resetHourCache();
   }
-
-  DayBased.OrderedMap = OrderedMap;
 
   DayBased.prototype = {
     __proto__: Calendar.View.prototype,
