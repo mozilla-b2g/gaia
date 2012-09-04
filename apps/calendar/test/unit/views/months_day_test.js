@@ -464,8 +464,6 @@ suite('views/months_day', function() {
     var month = date.toLocaleFormat('%B');
     var day = date.toLocaleFormat('%A');
 
-    console.log(el.innerHTML)
-
     assert.include(el.innerHTML, '11');
     assert.include(el.innerHTML, month);
     assert.include(el.innerHTML, day);
