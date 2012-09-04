@@ -1231,7 +1231,7 @@ var ThreadUI = {
   activateContact: function thui_activateContact() {
     var options = {};
     // Call to 'new' or 'view' depending on existence of contact
-    if (this.title.getAttribute('data-is-contact') == 'true') {
+    if (this.title.dataset.isContact == 'true') {
       //TODO modify this when 'view' activity is available on contacts
       // options = {
       //   name: 'view',
@@ -1245,7 +1245,7 @@ var ThreadUI = {
         data: {
           type: 'webcontacts/contact',
           params: {
-            'tel': this.title.getAttribute('data-phone-number')
+            'tel': this.title.dataset.phoneNumber
           }
         }
       };
