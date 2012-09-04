@@ -541,12 +541,7 @@ var Contacts = (function() {
       }
     }
     return true;
-  }
-
-  var isFavorite = function isFavorite(contact) {
-    return contact != null & contact.category != null &&
-              contact.category.indexOf('favorite') != -1;
-  }
+  };
 
   var goToSelectTag = function goToSelectTag(event) {
     var target = event.currentTarget.children[0];
