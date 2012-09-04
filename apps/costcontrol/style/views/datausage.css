@@ -1,30 +1,28 @@
 /* DATAUSAGE VIEW */
 #datausage-tab .content {
-  padding: 1rem 1.5rem;
-  background: #fff;
-  border-bottom: solid 1px #d7d8d6;
+  padding: 1rem 0;
 }
 
 
 /* DATA TOGGLE */
-#datausage-tab  .toggle-data {
+#datausage-tab .toggle-data {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0 1.5rem;
   overflow: hidden;
 }
 
-#datausage-tab  .toggle-data li {
+#datausage-tab .toggle-data li {
   float: left;
   width: calc(100%/2);
   position: relative;
 }
 
-#datausage-tab  .toggle-data li :-moz-any(label, span) {
+#datausage-tab .toggle-data li :-moz-any(label, span) {
   display: block;
 }
 
-#datausage-tab  .toggle-data li input {
+#datausage-tab .toggle-data li input {
   position: absolute;
   pointer-events: none;
   left: 0;
@@ -32,7 +30,7 @@
   opacity: 0;
 }
 
-#datausage-tab  .toggle-data li span {
+#datausage-tab .toggle-data li span {
   height: 2.5rem;
   border: solid 1px #b2b2b2;
   background: #fafafa url(../images/app/ui/datausage/toggle-bg.png) repeat-x left bottom;
@@ -42,20 +40,20 @@
   padding: 1rem 1rem 1rem 4rem;
 }
 
-#datausage-tab  .toggle-data li:first-child span {
+#datausage-tab .toggle-data li:first-child span {
   border-radius: 0.3rem 0 0 0.3rem;
 }
 
-#datausage-tab  .toggle-data li:last-child span {
+#datausage-tab .toggle-data li:last-child span {
   border-radius: 0 0.3rem 0.3rem 0;
 }
 
-#datausage-tab  .toggle-data li:last-child {
+#datausage-tab .toggle-data li:last-child {
   margin-left: -1px;
 }
 
 /* Color legend (square) */
-#datausage-tab  .toggle-data li span:before {
+#datausage-tab .toggle-data li span:before {
   content: "";
   width: 2rem;
   height: 2rem;
@@ -68,7 +66,7 @@
   transition: background 0.2s ease;
 }
 
-#datausage-tab  .toggle-data li span em {
+#datausage-tab .toggle-data li span em {
   font-style: normal;
   font-weight: normal;
   font-size: 1.4rem;
@@ -76,29 +74,28 @@
 }
 
 /* Active state */
-#datausage-tab  .toggle-data li input:checked + span {
+#datausage-tab .toggle-data li input:checked + span {
   background: url(../images/app/ui/datausage/toggle-sh.png) repeat-x left top;
 }
 
-#datausage-tab  .toggle-data li:first-child input:checked + span:before {
+#datausage-tab .toggle-data li:first-child input:checked + span:before {
   background: #009d89;
   border-color: #086b5e;
 }
 
-#datausage-tab  .toggle-data li:last-child input:checked + span:before {
+#datausage-tab .toggle-data li:last-child input:checked + span:before {
   background: #cbd936;
   border-color: #aab71d;
 }
 
-#datausage-tab  .toggle-data li input:checked + span em {
+#datausage-tab .toggle-data li input:checked + span em {
   opacity: 1;
 }
-
 
 /* GRAPHS */
 #datausage-tab section.graph {
   position: relative;
-  height: 16.5rem;
+  height: 30rem;
 }
 
 #datausage-tab section.graph canvas {
@@ -106,108 +103,8 @@
   left: 0;
   top: 1rem;
   width: 100%;
-  opacity: 0.75;
+  height: 100%;
 }
-
-
-/* DATA USAGE PER APP (SETTINGS EXTENDED) */
-#datausage-tab section.settings header {
-  border-bottom: solid 1px #d7d8d6;
-  overflow: hidden;
-  padding: 1rem;
-}
-
-#datausage-tab section.settings header :-moz-any(h1, p) {
-  font-weight: 600;
-  font-size: 1.4rem;
-}
-
-#datausage-tab section.settings header h1 {
-  float: left;
-}
-
-#datausage-tab section.settings header p {
-  float: right;
-}
-
-#datausage-tab section.settings li {
-  padding-left: 1.5rem;
-  font-size: 1.4rem;
-  font-weight: 600;
-  height: 3rem;
-}
-
-/* App icon */
-#datausage-tab section.settings li img {
-  float: left;
-  width: 3rem;
-  height: 3rem;
-  margin-right: 1rem;
-  background: #fff; /* Must be removed when we got app icons */
-}
-
-/* textual overview */
-#datausage-tab section.settings li p {
-  overflow: hidden;
-  margin-right: 8rem;
-}
-
-#datausage-tab section.settings li p em {
-  float: right;
-  font-style: normal;
-}
-
-#datausage-tab section.settings li p em sub {
-  vertical-align: baseline;
-  font-size: 1rem;
-  text-transform: uppercase;
-}
-
-#datausage-tab section.settings li p strong {
-  font-weight: 600;
-}
-
-#datausage-tab section.settings li p strong .mobile {
-  color: #009D89;
-  margin-right: 1rem;
-}
-
-#datausage-tab section.settings li p strong .wifi {
-  color: #CBD936;
-}
-
-#datausage-tab section.settings li .consumption {
-  position: relative;
-  height: 0.3rem;
-  display: block;
-}
-
-/* Progress bars */
-#datausage-tab section.settings li .consumption progress {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 2;
-  width: 100%;
-  background: transparent;
-}
-
-#datausage-tab section.settings li .consumption progress.max {
-  z-index: 1;
-}
-
-
-#datausage-tab section.settings li .consumption progress.mobile::-moz-progress-bar {
-  background: #009D89;
-}
-
-#datausage-tab section.settings li .consumption progress.wifi::-moz-progress-bar {
-  background: #CBD936;
-}
-
-
-
-
 
 
 
