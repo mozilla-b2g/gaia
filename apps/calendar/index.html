@@ -11,14 +11,17 @@
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
+  <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
 
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+  <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
   <!--- shared -->
   <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
   <script src="/shared/js/desktop.js" type="text/javascript" charset="utf-8"></script>
   <script src="/shared/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
+  <script src="/shared/js/l10n_date.js"></script>
 
   <!--- vendor -->
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
@@ -66,6 +69,7 @@
 
   <!--- views -->
   <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/time_header.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day_based.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
@@ -85,57 +89,67 @@
   <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
-<body role="app" class="loading" onload="Calendar.App.init();">
+<body role="application" class="loading" onload="Calendar.App.init();">
 
-<section id="settings">
+<nav class="skin-organic" id="settings" role="region">
 
   <header>
+    <menu type="toolbar">
+      <a href="/select-preset/">
+        <span class="icon icon-add">Create Account</span>
+      </a>
+    </menu>
     <h1 data-l10n-id="settings-header">Calendars</h1>
-    <a class="add-icon" href="/select-preset/">Create Account</a>
   </header>
 
 
   <ol class="calendars">
   </ol>
-  
-  <menu>
-    <a href="/advanced-settings/" data-l10n-id="advanced-settings" class="settings">
-      Account Settings
-    </a>
 
-    <button class="sync">
-      Sync
-    </button>
-  </menu>
+  <div role="toolbar">
+    <ul>
+      <li>
+        <a class="settings" href="/advanced-settings/" data-l10n-id="advanced-settings">
+          Account Settings
+        </a>
+      </li>
+    </ul>
 
-</section>
+    <ul class="end">
+      <li>
+        <button class="sync update">
+          Sync
+        </button>
+      </li>
+    </ul>
+  </div>
+
+</nav>
 
 
 <div id="wrapper">
 
 
-<header id="top-toolbar">
-  <a data-l10n-id="settings-show"
-     id="show-settings"
-     href="/settings/">
-    Show Settings
-  </a>
+<section role="region">
+  <header id="time-header">
+    <button class="settings">
+      <span class="icon icon-menu">Show Settings</span>
+    </button>
 
-  <a data-l10n-id="settings-hide"
-     id="hide-settings"
-     href="javascript: Calendar.App.resetState()">
-     Hide Settings
-  </a>
+    <menu type="toolbar">
+      <button>
+        <span data-l10n-id="add-event" class="icon icon-add" href="/add">
+          Add Event
+        </span>
+      </button>
+    </menu>
 
-  <h1 id="current-month-year">
-  </h1>
+    <h1 id="current-month-year">
+    </h1>
+  </header>
+</section>
 
-  <a data-l10n-id="add-event" role="button" class="new-event" href="/add">
-    Add Event
-  </a>
-</header>
-
-<section id="views">
+<section id="views" role="region">
 
   <section id="month-view">
     <!--- title row all the days this will be static -->
@@ -159,69 +173,78 @@
 
   </section>
 
-  <section class="fullscreen-view" id="create-account-view">
+  <section class="fullscreen-view skin-organic" id="create-account-view" role="region">
     <header>
-      <a data-l10n-id="cancel"
-         role="button"
-         class="cancel-icon"
-         href="javascript: window.history.go(-1);">
-        Cancel
+      <a data-l10n-id="cancel" href="javascript: window.history.go(-1);">
+        <span class="icon icon-back">Cancel</span>
       </a>
 
       <h1 data-l10n-id="add-account">
-        Add Account
+        Add an account
       </h1>
     </header>
 
-    <p>
-      Please select the type of
-      account you would like to add.
-    </p>
-
-    <ol id="create-account-presets">
+    <ol id="create-account-presets" class="link-list">
     </ol>
   </section>
 
-  <section class="fullscreen-view in-progress" id="advanced-settings-view">
+  <section
+      class="fullscreen-view in-progress skin-organic"
+      role="region"
+      id="advanced-settings-view">
+
     <header>
+      <menu type="toolbar">
+        <a href="/settings/" data-l10n-id="done">
+          <span>Done</span>
+        </a>
+      </menu>
       <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
-      <a class="done-icon"
-        data-l10n-id="done"
-        href="/settings/">Done</a>
     </header>
 
     <div class="errors"></div>
 
-    <section class="account">
+    <header>
       <h2 data-l10n-id="account-list-header">
         Accounts
       </h2>
-      <ol class="account-list">
-      </ol>
-    </section>
+      </header>
+
+    <ol class="account-list link-list">
+    </ol>
 
   </section>
 
-  <section class="fullscreen-view" id="modify-account-view">
+  <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
     <header>
-      <a class="back-icon" data-l10n-id="back" href="javascript: window.history.go(-1);">
-        Back
+      <a href="javascript: window.history.go(-1);">
+        <span data-l10n-id="back" class="icon icon-back">Back</span>
       </a>
+
+      <menu type="toolbar">
+        <button class="save">
+          <span data-l10n-id="save">Save</span>
+        </button>
+      </menu>
+
       <h1 data-l10n-id="account-header">Account</h1>
-      <a class="save-icon" data-l10n-id="save">Save</a>
     </header>
     <div class="errors"></div>
     <form>
       <fieldset>
         <ol>
           <li class="user">
-            <input name="user" data-l10n-id="field-user" placeholder="Username:" />
+            <input name="user" data-l10n-id="field-user" placeholder="Username" />
           </li>
           <li class="password">
-            <input name="password" data-l10n-id="field-password" placeholder="Password:" type="password" />
+            <input name="password" data-l10n-id="field-password" placeholder="Password" type="password" />
           </li>
           <li class="fullUrl">
-            <input name="fullUrl" data-l10n-id="field-fullUrl" placeholder="Url:" />
+            <input name="fullUrl"
+              type="url"
+              data-l10n-id="field-fullUrl"
+              placeholder="URL" />
+
           </li>
         </ol>
       </fieldset>
@@ -234,7 +257,7 @@
   When a day is selected you have
   access to the details here
   -->
-  <section id="months-day-view">
+  <section id="months-day-view" role="region">
     <h1 id="selected-day-title" class="day-title"></h1>
 
     <section id="event-list" class="day-events">
@@ -249,7 +272,7 @@
     [Week] Coming soon...
   </section>
 
-  <section class="fullscreen-view" id="add-event-view">
+  <section class="fullscreen-view" id="add-event-view" role="region">
     <header>
       <a data-l10n-id="cancel"
          role="button"
@@ -330,10 +353,6 @@
 
 <section id="bottom-toolbar">
   <menu id="view-selector">
-    <li class="toggle toggle-settings">
-      <a data-l10n-id="hide"
-         href="javascript: Calendar.App.resetState();">Hide</a>
-    </li>
     <li class="today">
       <a href="#today">Today</a>
     </li>
