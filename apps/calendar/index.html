@@ -9,7 +9,6 @@
   <link rel="stylesheet" type="text/css" href="/style/events.css">
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
-  <link rel="stylesheet" type="text/css" href="/style/toolbars.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
 
@@ -32,6 +31,7 @@
 
   <!--- utils -->
   <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ordered_map.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/format.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/batch.js" type="text/javascript" charset="utf-8"></script>
@@ -71,6 +71,7 @@
   <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/time_header.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day_based.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/time_parent.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
@@ -119,7 +120,7 @@
     <ul class="end">
       <li>
         <button class="sync update">
-          Sync
+          <span class="icon">Sync</span>
         </button>
       </li>
     </ul>
@@ -127,11 +128,7 @@
 
 </nav>
 
-
-<div id="wrapper">
-
-
-<section role="region">
+<section id="time-views" role="region">
   <header id="time-header">
     <button class="settings">
       <span class="icon icon-menu">Show Settings</span>
@@ -148,117 +145,15 @@
     <h1 id="current-month-year">
     </h1>
   </header>
-</section>
-
-<section id="views" role="region">
 
   <section id="month-view">
-    <!--- title row all the days this will be static -->
-    <ol id="month-days" role="row">
-      <li data-l10n-id="days-sun" role="column">sun</li>
-      <li data-l10n-id="days-mon" role="column">mon</li>
-      <li data-l10n-id="days-tue" role="column">tue</li>
-      <li data-l10n-id="days-wed" role="column">wed</li>
-      <li data-l10n-id="days-thu" role="column">thu</li>
-      <li data-l10n-id="days-fri" role="column">fri</li>
-      <li data-l10n-id="days-sat" role="column">sat</li>
-    </ol>
-    <!---
-      month grid there may be multiple of these
-      in the DOM at any one time for caching.
-      only one will ever be displayed.
-      -->
-    <section id="month-displays">
-
-    </section>
-
-  </section>
-
-  <section class="fullscreen-view skin-organic" id="create-account-view" role="region">
-    <header>
-      <a data-l10n-id="cancel" href="javascript: window.history.go(-1);">
-        <span class="icon icon-back">Cancel</span>
-      </a>
-
-      <h1 data-l10n-id="add-account">
-        Add an account
-      </h1>
-    </header>
-
-    <ol id="create-account-presets" class="link-list">
-    </ol>
-  </section>
-
-  <section
-      class="fullscreen-view in-progress skin-organic"
-      role="region"
-      id="advanced-settings-view">
-
-    <header>
-      <menu type="toolbar">
-        <a href="/settings/" data-l10n-id="done">
-          <span>Done</span>
-        </a>
-      </menu>
-      <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
-    </header>
-
-    <div class="errors"></div>
-
-    <header>
-      <h2 data-l10n-id="account-list-header">
-        Accounts
-      </h2>
-      </header>
-
-    <ol class="account-list link-list">
-    </ol>
-
-  </section>
-
-  <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
-    <header>
-      <a href="javascript: window.history.go(-1);">
-        <span data-l10n-id="back" class="icon icon-back">Back</span>
-      </a>
-
-      <menu type="toolbar">
-        <button class="save">
-          <span data-l10n-id="save">Save</span>
-        </button>
-      </menu>
-
-      <h1 data-l10n-id="account-header">Account</h1>
-    </header>
-    <div class="errors"></div>
-    <form>
-      <fieldset>
-        <ol>
-          <li class="user">
-            <input name="user" data-l10n-id="field-user" placeholder="Username" />
-          </li>
-          <li class="password">
-            <input name="password" data-l10n-id="field-password" placeholder="Password" type="password" />
-          </li>
-          <li class="fullUrl">
-            <input name="fullUrl"
-              type="url"
-              data-l10n-id="field-fullUrl"
-              placeholder="URL" />
-
-          </li>
-        </ol>
-      </fieldset>
-    </form>
-    <div class="during-progress">
-    </div>
   </section>
 
   <!---
   When a day is selected you have
   access to the details here
   -->
-  <section id="months-day-view" role="region">
+  <section id="months-day-view">
     <h1 id="selected-day-title" class="day-title"></h1>
 
     <section id="event-list" class="day-events">
@@ -273,63 +168,6 @@
     [Week] Coming soon...
   </section>
 
-  <section class="fullscreen-view" id="modify-event-view" role="region">
-    <header>
-
-      <a href="javascript: window.history.go(-1);">
-         <span data-l10n-id="cancel" class="icon icon-back">
-           Cancel
-         </span
-      </a>
-
-      <menu type="toolbar">
-        <a href="#">
-          <span data-l10n-id="save">Save</span>
-        </a>
-      </menu>
-
-      <h1 data-l10n-id="add-event-header">
-        Create Event
-      </h1>
-    </header>
-
-    <form>
-      <ol>
-        <li class="title">
-          <input name="title" readonly data-l10n-id="event-title" placeholder="Title" />
-        </li>
-
-        <li class="location">
-          <input name="location" readonly data-l10n-id="event-location" placeholder="Where?" />
-        </li>
-
-        <li class="start-date">
-          <input name="startDate" data-l10n-id="event-start-date"  placeholder="Date" readonly type="date" />
-        </li>
-
-        <li class="start-time">
-          <input type="time" data-l10n-id="event-start-time"  placeholder="Start Time" readonly name="startTime" />
-        </li>
-
-        <li class="end-date">
-          <input name="endDate" data-l10n-id="event-end-date"  placeholder="Date" readonly type="date" />
-        </li>
-
-        <li class="end-time">
-          <input type="time" data-l10n-id="event-end-time" placeholder="End Time" readonly name="endTime" />
-        </li>
-
-        <li class="notes">
-          <textarea class="fieldbox" readonly name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
-        </li>
-
-      </ol>
-    </form>
-  </section>
-</section>
-
-
-<section id="bottom-toolbar">
   <menu id="view-selector">
     <li class="today">
       <a href="#today">Today</a>
@@ -350,7 +188,143 @@
   </menu>
 </section>
 
-</div>
+
+
+<section class="fullscreen-view skin-organic" id="create-account-view" role="region">
+  <header>
+    <a data-l10n-id="cancel" href="javascript: window.history.go(-1);">
+      <span class="icon icon-back">Cancel</span>
+    </a>
+
+    <h1 data-l10n-id="add-account">
+      Add an account
+    </h1>
+  </header>
+
+  <ol id="create-account-presets" class="link-list">
+  </ol>
+</section>
+
+<section
+    class="fullscreen-view in-progress skin-organic"
+    role="region"
+    id="advanced-settings-view">
+
+  <header>
+    <menu type="toolbar">
+      <a href="/settings/" data-l10n-id="done">
+        <span>Done</span>
+      </a>
+    </menu>
+    <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
+  </header>
+
+  <div class="errors"></div>
+
+  <header>
+    <h2 data-l10n-id="account-list-header">
+      Accounts
+    </h2>
+    </header>
+
+  <ol class="account-list link-list">
+  </ol>
+
+</section>
+
+<section class="fullscreen-view" id="modify-event-view" role="region">
+  <header>
+
+    <a href="javascript: window.history.go(-1);">
+       <span data-l10n-id="cancel" class="icon icon-back">
+         Cancel
+       </span
+    </a>
+
+    <menu type="toolbar">
+      <a href="#">
+        <span data-l10n-id="save">Save</span>
+      </a>
+    </menu>
+
+    <h1 data-l10n-id="add-event-header">
+      Create Event
+    </h1>
+  </header>
+
+  <form>
+    <ol>
+      <li class="title">
+        <input name="title" readonly data-l10n-id="event-title" placeholder="Title" />
+      </li>
+
+      <li class="location">
+        <input name="location" readonly data-l10n-id="event-location" placeholder="Where?" />
+      </li>
+
+      <li class="start-date">
+        <input name="startDate" data-l10n-id="event-start-date"  placeholder="Date" readonly type="date" />
+      </li>
+
+      <li class="start-time">
+        <input type="time" data-l10n-id="event-start-time"  placeholder="Start Time" readonly name="startTime" />
+      </li>
+
+      <li class="end-date">
+        <input name="endDate" data-l10n-id="event-end-date"  placeholder="Date" readonly type="date" />
+      </li>
+
+      <li class="end-time">
+        <input type="time" data-l10n-id="event-end-time" placeholder="End Time" readonly name="endTime" />
+      </li>
+
+      <li class="notes">
+        <textarea class="fieldbox" readonly name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
+      </li>
+
+    </ol>
+  </form>
+</section>
+
+<section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
+  <header>
+    <a href="javascript: window.history.go(-1);">
+      <span data-l10n-id="back" class="icon icon-back">Back</span>
+    </a>
+
+    <menu type="toolbar">
+      <button class="save">
+        <span data-l10n-id="save">Save</span>
+      </button>
+    </menu>
+
+    <h1 data-l10n-id="account-header">Account</h1>
+  </header>
+  <div class="errors"></div>
+  <form>
+    <fieldset>
+      <ol>
+        <li class="user">
+          <input name="user" data-l10n-id="field-user" placeholder="Username" />
+        </li>
+        <li class="password">
+          <input name="password" data-l10n-id="field-password" placeholder="Password" type="password" />
+        </li>
+        <li class="full-url">
+          <input name="fullUrl"
+            type="url"
+            data-l10n-id="field-full-url"
+            placeholder="URL" />
+
+        </li>
+      </ol>
+    </fieldset>
+  </form>
+  <div class="during-progress">
+  </div>
+</section>
+
+
 </body>
 </html>
 
