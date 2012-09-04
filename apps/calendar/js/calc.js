@@ -1,5 +1,26 @@
-(function(window) {
-  Calendar.Calc = {
+Calendar.Calc = (function() {
+
+  const SECOND = 1000;
+  const MINUTE = (SECOND * 60);
+  const HOUR = MINUTE * 60;
+
+  var Calc = {
+
+    ALLDAY: 'allday',
+
+    /**
+     * MS in a second
+     */
+    SECOND: SECOND,
+    /**
+     * MS in a minute
+     */
+    MINUTE: MINUTE,
+
+    /**
+     * MS in an hour
+     */
+    HOUR: HOUR,
 
     PAST: 'past',
 
@@ -16,6 +37,11 @@
       return new Date();
     },
 
+    daysInWeek: function() {
+      //XXX: We need to localize this...
+      return 7;
+    },
+
     /**
      * Checks is given date is today.
      *
@@ -23,7 +49,197 @@
      * @return {Boolean} true when today.
      */
     isToday: function(date) {
-      return this.isSameDate(date, this.today);
+      return Calc.isSameDate(date, Calc.today);
+    },
+
+    offsetMinutesToMs: function(offset) {
+      return offset * (60 * 1000);
+    },
+
+    /**
+     * Intended to be used in combination
+     * with hoursOfOccurance used to sort
+     * hours. ALLDAY is always first.
+     */
+    compareHours: function(a, b) {
+      var result;
+
+      // to cover the case of a is allday
+      // and b is also allday
+      if (a === b) {
+        return 0;
+      }
+
+      if (a === Calc.ALLDAY) {
+        return -1;
+      }
+
+      if (b === Calc.ALLDAY) {
+        return 1;
+      }
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Given a start and end date will
+     * calculate which hours given
+     * event occurs (in order from allday -> 23).
+     *
+     * When an event occurs all of the given
+     * date will return only "allday"
+     *
+     * @param {Date} day point for all day calculations.
+     * @param {Date} start start point of given span.
+     * @param {Date} end point of given span.
+     * @return {Array} end end point of given span.
+     */
+    hoursOfOccurance: function(day, start, end) {
+      // beginning reference point (start of given date)
+      var refStart = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate()
+      );
+
+      var refEnd = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate() + 1
+      );
+
+      refEnd.setMilliseconds(-1);
+
+      var startBefore = start <= refStart;
+      var endsAfter = end >= refEnd;
+
+      if (startBefore && endsAfter) {
+        return [Calc.ALLDAY];
+      }
+
+      start = (startBefore) ? refStart : start;
+      end = (endsAfter) ? refEnd : end;
+
+      var curHour = start.getHours();
+      var lastHour = end.getHours();
+      var hours = [];
+
+      // using < not <= because we only
+      // want to include the last hour if
+      // it contains some minutes or seconds.
+      for (; curHour < lastHour; curHour++) {
+        hours.push(curHour);
+      }
+
+      //XXX: just minutes would probably be fine?
+      //     seconds are here for consistency.
+      if (end.getMinutes() || end.getSeconds()) {
+        hours.push(end.getHours());
+      }
+
+      return hours;
+    },
+
+    /**
+     * Calculates the difference between
+     * two points in hours.
+     *
+     * @param {Date|Numeric} start start hour.
+     * @param {Date|Numeric} end end hour.
+     */
+    hourDiff: function(start, end) {
+      start = (start instanceof Date) ? start.valueOf() : start;
+      end = (end instanceof Date) ? end.valueOf() : end;
+
+      start = start / HOUR;
+      end = end / HOUR;
+
+      return end - start;
+    },
+
+    /**
+     * Creates timespan for given day.
+     *
+     * @param {Date} date date of span.
+     * @param {Boolean} includeTime uses given date
+     *                           as the start time of the timespan
+     *                           rather then the absolute start of
+     *                           the day of the given date.
+     */
+    spanOfDay: function(date, includeTime) {
+      if (typeof(includeTime) === 'undefined') {
+        date = Calc.createDay(date);
+      }
+
+      var end = Calc.createDay(date);
+      end.setDate(end.getDate() + 1);
+
+      return new Calendar.Timespan(
+        date,
+        end
+      );
+    },
+
+    /**
+     * Creates timespan for a given month.
+     * Starts at the first week that occurs
+     * in the given month. Ends at the
+     * last day, minute, second of given month.
+     */
+    spanOfMonth: function(month) {
+      month = new Date(
+        month.getFullYear(),
+        month.getMonth(),
+        1
+      );
+
+      var startDay = Calc.getWeekStartDate(month);
+
+      var endDay = new Date(
+        month.getFullYear(),
+        month.getMonth() + 1,
+        1
+      );
+
+      endDay.setMilliseconds(-1);
+      endDay = Calc.getWeekEndDate(endDay);
+
+      return new Calendar.Timespan(
+        startDay,
+        endDay
+      );
+    },
+
+    /**
+     * Take a date and convert it to UTC-0 time
+     * removing offset.
+     */
+    utcMs: function(date) {
+      var offset = Calc.offsetMinutesToMs(
+        date.getTimezoneOffset()
+      );
+
+      return date.valueOf() - offset;
+    },
+
+    fromUtcMs: function(ms, offset) {
+      if (typeof(offset) === 'undefined') {
+        // no offset relative position in time.
+        var utcDate = new Date(ms);
+        return new Date(
+          utcDate.getUTCFullYear(),
+          utcDate.getUTCMonth(),
+          utcDate.getUTCDate(),
+          utcDate.getUTCHours(),
+          utcDate.getUTCMinutes(),
+          utcDate.getUTCSeconds()
+        );
+      } else {
+        // when there is an offset it is an absolute
+        // position in time.
+        ms = ms + Calc.offsetMinutesToMs(offset);
+        return new Date(ms);
+      }
     },
 
     /**
@@ -100,9 +316,9 @@
 
     createDay: function(date, day, month, year) {
       return new Date(
-        year || date.getFullYear(),
-        month || date.getMonth(),
-        day || date.getDate()
+        typeof year !== 'undefined' ? year : date.getFullYear(),
+        typeof month !== 'undefined' ? month : date.getMonth(),
+        typeof day !== 'undefined' ? day : date.getDate()
       );
     },
 
@@ -116,13 +332,13 @@
       var currentDay = date.getDay();
       var startDay = date.getDate() - currentDay;
 
-      return this.createDay(date, startDay);
+      return Calc.createDay(date, startDay);
     },
 
     getWeekEndDate: function(date) {
       // TODO: There are localization problems
       // with this approach as we assume a 7 day week.
-      var start = this.getWeekStartDate(date);
+      var start = Calc.getWeekStartDate(date);
       start.setDate(start.getDate() + 7);
       start.setMilliseconds(-1);
 
@@ -162,7 +378,7 @@
           );
         }
 
-        if (!this.isSameDate(next, end)) {
+        if (!Calc.isSameDate(next, end)) {
           list.push(next);
           continue;
         }
@@ -187,7 +403,7 @@
      */
     getWeeksDays: function(startDate) {
       //local day position
-      var weeksDayStart = this.getWeekStartDate(startDate);
+      var weeksDayStart = Calc.getWeekStartDate(startDate);
       var result = [weeksDayStart];
 
       for (var i = 1; i < 7; i++) {
@@ -208,7 +424,7 @@
      * @return {Boolean} true when date is in the past.
      */
     isPast: function(date) {
-      return (date.valueOf() < this.today.valueOf());
+      return (date.valueOf() < Calc.today.valueOf());
     },
 
     /**
@@ -218,38 +434,39 @@
      * @return {Boolean} true when date is in the future.
      */
     isFuture: function(date) {
-      return !this.isPast(date);
+      return !Calc.isPast(date);
     },
 
-    /*
+    /**
      * Based on the input date
      * will return one of the following states
      *
      *  past, present, future
      *
      * @param {Date} day for compare.
-     * @param {Date} month today's date.
+     * @param {Date} month comparison month.
      * @return {String} state.
      */
     relativeState: function(day, month) {
       var states;
+      //var today = Calc.today;
 
       // 1. the date is today (real time)
-      if (this.isToday(day)) {
-        return this.PRESENT;
+      if (Calc.isToday(day)) {
+        return Calc.PRESENT;
       }
 
       // 2. the date is in the past (real time)
-      if (this.isPast(day)) {
-        states = this.PAST;
+      if (Calc.isPast(day)) {
+        states = Calc.PAST;
       // 3. the date is in the future (real time)
       } else {
-        states = this.FUTURE;
+        states = Calc.FUTURE;
       }
 
       // 4. the date is not in the current month (relative time)
       if (day.getMonth() !== month.getMonth()) {
-        states += ' ' + this.OTHER_MONTH;
+        states += ' ' + Calc.OTHER_MONTH;
       }
 
       return states;
@@ -257,4 +474,6 @@
 
   };
 
-}(this));
+  return Calc;
+
+}());

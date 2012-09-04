@@ -39,7 +39,7 @@ suite('GestureDetector', function() {
         'tap', 'dbltap',
         'pan', 'swipe',
         'holdstart', 'holdmove', 'holdend',
-        'transform'
+        'transform', 'transformend'
       ].forEach(function(type) {
         element.addEventListener(type, function(e) { events.push(e); });
       });
@@ -223,7 +223,7 @@ suite('GestureDetector', function() {
                                   p.scale, p.duration, checkpinch);
           function checkpinch() {
             done(function() {
-              assert.match(eventseq(), /(transform )*transform/);
+              assert.match(eventseq(), /(transform )+transformend/);
               var e = events[events.length - 1];
               var d = e.detail;
               between(d.absolute.scale, 0.95 * p.scale, 1.05 * p.scale);

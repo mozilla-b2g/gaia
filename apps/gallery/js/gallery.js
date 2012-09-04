@@ -183,7 +183,7 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['metadata.date'],
+    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -464,7 +464,7 @@ function createThumbnailList() {
 
   // Enumerate existing image entries in the database and add thumbnails
   // List them all, and sort them in descending order by date.
-  photodb.enumerate('metadata.date', null, 'prev', function(imagedata) {
+  photodb.enumerate('date', null, 'prev', function(imagedata) {
     if (imagedata === null) // No more images
       return;
 
@@ -558,7 +558,7 @@ window.addEventListener('mozvisiblitychange', function() {
 function removeTransition(event) {
   event.target.style.transition = null;
 }
-photoFrames.addEventListener('transitionend', removeTransition);
+
 previousPhotoFrame.addEventListener('transitionend', removeTransition);
 currentPhotoFrame.addEventListener('transitionend', removeTransition);
 nextPhotoFrame.addEventListener('transitionend', removeTransition);
@@ -742,6 +742,7 @@ $('edit-cancel-button').onclick = function() {
 window.addEventListener('resize', function resizeHandler(evt) {
   // Abandon any current pan or zoom and reset the current photo view
   photoState.reset();
+  photoState.setFramesPosition();
 
   // Also reset the size and position of the previous and next photos
   resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
@@ -754,11 +755,7 @@ window.addEventListener('resize', function resizeHandler(evt) {
     var imagedata = images[n];
     var fit = fitImage(imagedata.metadata.width, imagedata.metadata.height,
                        photoView.offsetWidth, photoView.offsetHeight);
-    var style = img.style;
-    style.width = fit.width + 'px';
-    style.height = fit.height + 'px';
-    style.left = fit.left + 'px';
-    style.top = fit.top + 'px';
+    positionImage(img, fit);
   }
 });
 
@@ -833,7 +830,9 @@ photoFrames.addEventListener('swipe', function(event) {
     // the translations we added during panning
     var time = Math.abs(pastEdge) / TRANSITION_SPEED;
 
-    photoFrames.style.transition = 'left ' + time + 'ms linear';
+    currentPhotoFrame.style.transition =
+      nextPhotoFrame.style.transition =
+      previousPhotoFrame.style.transition = 'translate ' + time + 'ms ease';
     photoState.swipe = 0;
     photoState.setFramesPosition();
 
@@ -846,17 +845,12 @@ photoFrames.addEventListener('swipe', function(event) {
 // Quick zoom in and out with dbltap events
 photoFrames.addEventListener('dbltap', function(e) {
   var scale;
-  if (photoState.scale > 1)      // If already zoomed in,
-    scale = 1 / photoState.scale;  // zoom out to starting scale
-  else                           // Otherwise
-    scale = 2;                   // Zoom in by a factor of 2
+  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
+    scale = photoState.fit.baseScale / photoState.scale; // zoom back out
+  else                                                   // Otherwise
+    scale = 2;                                           // zoom in
 
-  currentPhoto.style.transition = 'all 100ms linear';
-  currentPhoto.addEventListener('transitionend', function handler() {
-    currentPhoto.style.transition = null;
-    currentPhoto.removeEventListener('transitionend', handler);
-  });
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY);
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
 });
 
 // We also support pinch-to-zoom
@@ -884,7 +878,6 @@ function displayImageInFrame(n, frame) {
   // Make sure n is in range
   if (n < 0 || n >= images.length) {
     img.src = null;
-    img.style.width = img.style.height = 0;
     return;
   }
 
@@ -900,11 +893,13 @@ function displayImageInFrame(n, frame) {
   var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
                      photoView.offsetWidth, photoView.offsetHeight);
 
-  var style = img.style;
-  style.width = fit.width + 'px';
-  style.height = fit.height + 'px';
-  style.left = fit.left + 'px';
-  style.top = fit.top + 'px';
+  positionImage(img, fit);
+}
+
+function positionImage(img, fit) {
+  img.style.transform =
+    'translate(' + fit.left + 'px,' + fit.top + 'px) ' +
+    'scale(' + fit.scale + ')';
 }
 
 // figure out the size and position of an image based on its size
@@ -923,7 +918,8 @@ function fitImage(photoWidth, photoHeight, viewportWidth, viewportHeight) {
     height: height,
     left: Math.floor((viewportWidth - width) / 2),
     top: Math.floor((viewportHeight - height) / 2),
-    scale: scale
+    scale: scale,
+    baseScale: scale
   };
 }
 
@@ -957,14 +953,10 @@ function nextPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Hide the previous photo
-  previousPhotoFrame.classList.add('hidden');
-
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms ease';
   currentPhotoFrame.style.transition = transition;
   nextPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the classes
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1001,14 +993,11 @@ function nextPhoto(time) {
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
   // When the transition is done, cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
-
-    // Make the new next photo visible again
-    nextPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1022,14 +1011,10 @@ function previousPhoto(time) {
   transitioning = true;
   setTimeout(function() { transitioning = false; }, time);
 
-  // Hide the next photo
-  nextPhotoFrame.classList.add('hidden');
-
   // Set transitions for the visible photo frames and the photoFrames element
-  var transition = 'left ' + time + 'ms linear';
+  var transition = 'transform ' + time + 'ms ease';
   previousPhotoFrame.style.transition = transition;
   currentPhotoFrame.style.transition = transition;
-  photoFrames.style.transition = transition;
 
   // Remove the frame classes since we're about to cycle the frames
   previousPhotoFrame.classList.remove('previousPhoto');
@@ -1065,14 +1050,11 @@ function previousPhoto(time) {
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
   // When the transition is done do some cleanup
-  photoFrames.addEventListener('transitionend', function done(e) {
+  currentPhotoFrame.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
 
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
-
-    // Make the new previous photo visible again
-    previousPhotoFrame.classList.remove('hidden');
   });
 }
 
@@ -1154,13 +1136,12 @@ function PhotoState(img, width, height) {
   this.reset();
 }
 
+PhotoState.BORDER_WIDTH = 3;  // Border between photos
+
 // An internal method called by reset(), zoom() and pan() to
 // set the size and position of the image element.
 PhotoState.prototype._reposition = function() {
-  this.img.style.width = this.width + 'px';
-  this.img.style.height = this.height + 'px';
-  this.img.style.top = this.top + 'px';
-  this.img.style.left = this.left + 'px';
+  positionImage(this.img, this.fit);
 };
 
 // Compute the default size and position of the photo
@@ -1171,13 +1152,8 @@ PhotoState.prototype.reset = function() {
   this.viewportHeight = photoFrames.offsetHeight;
 
   // Compute the default size and position of the image
-  var fit = fitImage(this.photoWidth, this.photoHeight,
-                     this.viewportWidth, this.viewportHeight);
-  this.baseScale = fit.scale;
-  this.width = fit.width;
-  this.height = fit.height;
-  this.top = fit.top;
-  this.left = fit.left;
+  this.fit = fitImage(this.photoWidth, this.photoHeight,
+                      this.viewportWidth, this.viewportHeight);
 
   // Start off with no zoom
   this.scale = 1;
@@ -1192,65 +1168,79 @@ PhotoState.prototype.reset = function() {
 // the image pixels at (centerX, centerY) remain at that position.
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
-PhotoState.prototype.zoom = function(scale, centerX, centerY) {
-  // Never zoom in farther than 2x the native resolution of the image
-  if (this.baseScale * this.scale * scale > 2) {
-    scale = 2 / (this.baseScale * this.scale);
+// If time is specified and non-zero, then we set a CSS transition
+// to animate the zoom.
+PhotoState.prototype.zoom = function(scale, centerX, centerY, time) {
+  // Never zoom in farther than the native resolution of the image
+  if (this.fit.scale * scale > 1) {
+    scale = 1 / (this.fit.scale);
   }
   // And never zoom out to make the image smaller than it would normally be
-  else if (this.scale * scale < 1) {
-    scale = 1 / this.scale;
+  else if (this.fit.scale * scale < this.fit.baseScale) {
+    scale = this.fit.baseScale / this.fit.scale;
   }
 
-  this.scale = this.scale * scale;
+  this.fit.scale = this.fit.scale * scale;
 
   // Change the size of the photo
-  this.width = Math.floor(this.photoWidth * this.baseScale * this.scale);
-  this.height = Math.floor(this.photoHeight * this.baseScale * this.scale);
+  this.fit.width = Math.floor(this.photoWidth * this.fit.scale);
+  this.fit.height = Math.floor(this.photoHeight * this.fit.scale);
 
   // centerX and centerY are in viewport coordinates.
   // These are the photo coordinates displayed at that point in the viewport
-  var photoX = centerX - this.left;
-  var photoY = centerY - this.top;
+  var photoX = centerX - this.fit.left;
+  var photoY = centerY - this.fit.top;
 
   // After zooming, these are the new photo coordinates.
-  // Note we just use the relative scale amount here, not this.scale
+  // Note we just use the relative scale amount here, not this.fit.scale
   var photoX = Math.floor(photoX * scale);
   var photoY = Math.floor(photoY * scale);
 
   // To keep that point still, here are the new left and top values we need
-  this.left = centerX - photoX;
-  this.top = centerY - photoY;
+  this.fit.left = centerX - photoX;
+  this.fit.top = centerY - photoY;
 
   // Now make sure we didn't pan too much: If the image fits on the
   // screen, center it. If the image is bigger than the screen, then
   // make sure we haven't gone past any edges
-  if (this.width <= this.viewportWidth) {
-    this.left = (this.viewportWidth - this.width) / 2;
+  if (this.fit.width <= this.viewportWidth) {
+    this.fit.left = (this.viewportWidth - this.fit.width) / 2;
   }
   else {
     // Don't let the left of the photo be past the left edge of the screen
-    if (this.left > 0)
-      this.left = 0;
+    if (this.fit.left > 0)
+      this.fit.left = 0;
 
     // Right of photo shouldn't be to the left of the right edge
-    if (this.left + this.width < this.viewportWidth) {
-      this.left = this.viewportWidth - this.width;
+    if (this.fit.left + this.fit.width < this.viewportWidth) {
+      this.fit.left = this.viewportWidth - this.fit.width;
     }
   }
 
-  if (this.height <= this.viewportHeight) {
-    this.top = (this.viewportHeight - this.height) / 2;
+  if (this.fit.height <= this.viewportHeight) {
+    this.fit.top = (this.viewportHeight - this.fit.height) / 2;
   }
   else {
     // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
+    if (this.fit.top > 0)
+      this.fit.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight) {
-      this.top = this.viewportHeight - this.height;
+    if (this.fit.top + this.fit.height < this.viewportHeight) {
+      this.fit.top = this.viewportHeight - this.fit.height;
     }
+  }
+
+  // If a time was specified, set up a transition so that the
+  // call to reposition below is animated
+  if (time) {
+    // If a time was specfied, animate the transformation
+    this.img.style.transition = 'transform ' + time + 'ms ease';
+    var self = this;
+    this.img.addEventListener('transitionend', function done(e) {
+      self.img.removeEventListener('transitionend', done);
+      self.img.style.transition = null;
+    });
   }
 
   this._reposition();
@@ -1259,54 +1249,54 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY) {
 PhotoState.prototype.pan = function(dx, dy) {
   // Handle panning in the y direction first, since it is easier.
   // Don't pan in the y direction if we already fit on the screen
-  if (this.height > this.viewportHeight) {
-    this.top += dy;
+  if (this.fit.height > this.viewportHeight) {
+    this.fit.top += dy;
 
     // Don't let the top of the photo be below the top of the screen
-    if (this.top > 0)
-      this.top = 0;
+    if (this.fit.top > 0)
+      this.fit.top = 0;
 
     // bottom of photo shouldn't be above the bottom of screen
-    if (this.top + this.height < this.viewportHeight)
-      this.top = this.viewportHeight - this.height;
+    if (this.fit.top + this.fit.height < this.viewportHeight)
+      this.fit.top = this.viewportHeight - this.fit.height;
   }
 
   // Now handle the X dimension. In this case, we have to handle panning within
   // a zoomed image, and swiping to transition from one photo to the next
   // or previous.
-  if (this.width <= this.viewportWidth) {
+  if (this.fit.width <= this.viewportWidth) {
     // In this case, the photo isn't zoomed in, so we're just doing swiping
     this.swipe += dx;
   }
   else {
     if (this.swipe === 0) {
-      this.left += dx;
+      this.fit.left += dx;
 
       // If this would take the left edge of the photo past the
       // left edge of the screen, then we've got to do a swipe
-      if (this.left > 0) {
-        this.swipe += this.left;
-        this.left = 0;
+      if (this.fit.left > 0) {
+        this.swipe += this.fit.left;
+        this.fit.left = 0;
       }
 
       // Or, if this would take the right edge of the photo past the
       // right edge of the screen, then we've got to swipe the other way
-      if (this.left + this.width < this.viewportWidth) {
-        this.swipe += this.left + this.width - this.viewportWidth;
-        this.left = this.viewportWidth - this.width;
+      if (this.fit.left + this.fit.width < this.viewportWidth) {
+        this.swipe += this.fit.left + this.fit.width - this.viewportWidth;
+        this.fit.left = this.viewportWidth - this.fit.width;
       }
     }
     else if (this.swipe > 0) {
       this.swipe += dx;
       if (this.swipe < 0) {
-        this.left += this.swipe;
+        this.fit.left += this.swipe;
         this.swipe = 0;
       }
     }
     else if (this.swipe < 0) {
       this.swipe += dx;
       if (this.swipe > 0) {
-        this.left += this.swipe;
+        this.fit.left += this.swipe;
         this.swipe = 0;
       }
     }
@@ -1316,9 +1306,13 @@ PhotoState.prototype.pan = function(dx, dy) {
 };
 
 PhotoState.prototype.setFramesPosition = function() {
-  photoFrames.style.left = this.swipe + 'px';
+  // XXX we ignore rtl languages for now.
+  currentPhotoFrame.style.transform = 'translateX(' + this.swipe + 'px)';
+  nextPhotoFrame.style.transform = 'translateX(' +
+    (this.viewportWidth + PhotoState.BORDER_WIDTH + this.swipe) + 'px)';
+  previousPhotoFrame.style.transform = 'translateX(' +
+    (-(this.viewportWidth + PhotoState.BORDER_WIDTH) + this.swipe) + 'px)';
 };
-
 
 var editedPhotoIndex;
 var editedPhotoURL; // The blob URL of the photo we're currently editing

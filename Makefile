@@ -183,37 +183,7 @@ ifneq ($(DEBUG),1)
 	@cp -r apps/camera apps/system/camera
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
-	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.webapp ]; \
-		then \
-			n=$$(basename $$d); \
-			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
-			then \
-				dirname=$$n.$(GAIA_DOMAIN); \
-				mkdir -p profile/webapps/$$dirname; \
-				cdir=`pwd`; \
-				for f in `grep -r shared/js $$d` ;\
-				do \
-					if [[ "$$f" == *shared/js* ]] ;\
-					then \
-						if [[ "$$f" == */shared/js* ]] ;\
-						then \
-							file_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-						else \
-							file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-						fi; \
-						mkdir -p $$d/shared/js ;\
-						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
-					fi \
-				done; \
-				cd $$d; \
-				zip -r application.zip *; \
-				cd $$cdir; \
-				mv $$d/application.zip profile/webapps/$$dirname/application.zip; \
-			fi \
-		fi \
-	done;
+	@$(call run-js-command, webapp-zip)
 	@echo "Done"
 endif
 
@@ -223,7 +193,7 @@ offline: webapp-manifests webapp-zip
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -259,11 +229,17 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
+	rm -rf xulrunner-sdk
+	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+	unzip xulrunner*.zip && rm xulrunner*.zip
 else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
+endif
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
 
 define run-js-command
@@ -308,7 +284,7 @@ preferences: install-xulrunner-sdk
 
 
 # Generate profile/permissions.sqlite
-permissions: install-xulrunner-sdk
+permissions: webapp-manifests install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, permissions)
@@ -373,6 +349,8 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
+	rm -R tools/xpcwindow/vendor/
+
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
@@ -460,7 +438,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
@@ -584,3 +562,4 @@ purge:
 # clean out build products
 clean:
 	rm -rf profile xulrunner-sdk
+

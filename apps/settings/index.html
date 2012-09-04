@@ -4,13 +4,19 @@
     <meta charset="utf-8"/>
     <meta http-equiv="pragma" content="no-cache"/>
     <title>Settings</title>
-    <link rel="stylesheet" type="text/css" media="screen" href="style/lists.css"/>
-    <link rel="stylesheet" type="text/css" media="screen" href="style/dialogs.css"/>
-    <link rel="stylesheet" type="text/css" media="screen" href="style/settings.css"/>
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/lists.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dialogs.css"/>
+    <link rel="stylesheet" type="text/css" href="style/settings.css"/>
+
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
-    <!-- Shared code -->
     <script type="application/javascript" src="shared/js/l10n.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/settings.js"></script>
     <script type="application/javascript" defer src="js/data.js"></script>
@@ -46,6 +52,10 @@
         <li>
           <small id="bluetooth-desc"></small>
           <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+        </li>
+        <li>
+          <small id="hotspot-desc"></small>
+          <a href="#hotspot" data-l10n-id="hotspot">HotSpot</a>
         </li>
       </ul>
 
@@ -153,9 +163,9 @@
           <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
           <a data-l10n-id="networkNotification">Network notification</a>
         </li>
-        <li hidden id="wps-pbc-button">
-          <small id="wifi-wps-desc">Automatic wireless network configuration</small>
-          <a data-l10n-id="wpsPbcMessage">WPS button connection</a>
+        <li hidden id="wps-column">
+          <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
+          <a data-l10n-id="wpsMessage">Connect with WPS</a>
         </li>
       </ul>
 
@@ -189,8 +199,8 @@
         <dd data-security>WPA-PSK</dd>
         <dt data-l10n-id="signalStrength">signal strength:</dt>
         <dd data-signal>good</dd>
-        <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
-        <dd hidden data-speed></dd>
+        <dt data-l10n-id="linkSpeed">link speed:</dt>
+        <dd data-speed></dd>
       </dl>
 
       <!-- disconnect from network -->
@@ -212,8 +222,6 @@
         <dd data-security>WPA-EAP</dd>
         <dt data-l10n-id="signalStrength">signal strength:</dt>
         <dd data-signal>good</dd>
-        <dt hidden data-l10n-id="linkSpeed">link speed:</dt>
-        <dd hidden data-speed></dd>
       </dl>
 
       <!-- identity/password input -->
@@ -231,6 +239,39 @@
       </label>
 
       <!-- connect to network -->
+      <footer>
+        <button type="submit" data-l10n-id="ok">OK</button>
+      </footer>
+    </form>
+
+    <!-- Connectivity :: Wi-Fi :: WPS Dialog -->
+    <form role="dialog" action="#wifi" id="wifi-wps">
+      <header>
+        <button type="reset" data-l10n-id="back">Back</button>
+        <h2> Wi-Fi Protected Setup </h2>
+      </header>
+
+      <label>
+        <span data-l10n-id="wpsMethodSelection">Select WPS method</span>
+      </label>
+      <label>
+        <input type="radio" name="wifi.wps.method" value="pbc" checked />
+        <span data-l10n-id="wpsPbcLabel">Button connection</span>
+      </label>
+      <label>
+        <input type="radio" name="wifi.wps.method" value="myPin" />
+        <span data-l10n-id="wpsMyPinLabel">My PIN connection</span>
+      </label>
+      <label>
+        <input type="radio" name="wifi.wps.method" value="apPin" />
+        <span data-l10n-id="wpsApPinLabel">AP PIN connection</span>
+      </label>
+      <label id="wifi-wps-pin-area">
+        <span data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</span>
+        <input type="text" />
+      </label>
+
+      <!-- start WPS -->
       <footer>
         <button type="submit" data-l10n-id="ok">OK</button>
       </footer>
@@ -412,6 +453,62 @@
       </label>
     </form>
 
+    <!-- Connectivity :: hotspot -->
+    <section role="document" id="hotspot">
+      <header>
+        <h1>
+          <a href="#root" data-l10n-id="hotspot">HotSpot</a>
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="tethering.wifi.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wifihotspot">Wifi HotSpot</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="tethering.usb.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="usbtethering">USB HotSpot</a>
+        </li>
+      </ul>
+
+      <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <ul>
+        <li>
+          <button onclick="Settings.openDialog('hotspotSettings');"
+            data-l10n-id="hotspotSettings">HotSpot Settings</button>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: WifiHotSpot :: Settings Dialog -->
+    <form role="dialog" action="#hotspot" id="hotspotSettings">
+      <header>
+        <button data-l10n-id="back" type="reset">Back</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
+        <h2 data-l10n-id="hotspotSettings">HotSpot Settings </h2>
+      </header>
+
+      <!-- wifi hotspot settings -->
+      <label>
+        <span data-l10n-id="ssid">SSID</span>
+        <input type="text" data-setting="tethering.wifi.ssid" />
+      </label>
+      <label>
+        <span data-l10n-id="encryption">encryption</span>
+        <input type="text" data-setting="tethering.wifi.security.type" />
+      </label>
+      <label>
+        <span data-l10n-id="password">password</span>
+        <input type="text" data-setting="tethering.wifi.security.password" />
+      </label>
+    </form>
 
     <!-- Personalization :: Sound -->
     <section role="document" id="sounds">
@@ -896,6 +993,20 @@
             <span></span>
           </label>
           <a data-l10n-id="log-animations">Log slow animations</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.dev-mode"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="dev-mode">Developer Mode</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.oop.disabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="oop.disabled">Disable Out-Of-Process</a>
         </li>
        </ul>
     </section>

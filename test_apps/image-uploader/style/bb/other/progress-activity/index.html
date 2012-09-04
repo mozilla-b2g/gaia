@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="style.css">
+
+    <!--
+      This <style> and <link> is only used for the example code, is no needed for the real case use
+    -->
+    <link rel="stylesheet" href="../../fonts.css">
+    <style>
+ html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+        }
+        body { background: none; }
+       h2.bb-docs {
+          font-size: 1.8rem;
+          font-family: "Open Sans", Sans-serif;
+          font-weight: lighter;
+          color: #666;
+          margin: 10px 0;
+          background-color: #f5f5f5;
+          padding: 0.4rem 0.4rem 0.4rem 3rem;
+          border: solid 1px #e8e8e8;
+        }
+    </style>
+    <title>Progress & Activity Indicators</title>
+    <meta type="description" content="Providing user with visual feedback that a process is active">
+    <meta type="requires" content="None">
+    <meta type="target" content="html">  
+</head>
+
+<body role="application">
+
+    <section role="region">
+      <h2 class="bb-docs">Progress tag with out 'value' property ( Activity indicator )</h2>
+      <progress></progress>
+      <progress data-theme="dark"></progress>
+      <progress class="spinner"></progress>
+
+      <h2 class="bb-docs">Progress tag with 'value' property</h2>
+      <progress value="80" max="100"></progress>
+
+       <h2 class="bb-docs">Progress with labels</h2>
+     <p role="status">
+        <progress></progress>
+         <span>Loading messages from server</span>
+      </p>
+
+      <p role="status">
+       <span>80%</span>
+        <progress value="80" max="100"></progress>
+      </p>
+
+      <p role="status" data-theme="dark">
+        <progress></progress>
+         <span>Loading messages from server</span>
+      </p>
+
+      <p role="status" data-theme="dark">
+       <span>80%</span>
+        <progress value="80" max="100"></progress>
+      </p>
+    </section>
+
+</body>
+</html>
