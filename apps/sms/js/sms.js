@@ -80,7 +80,7 @@ var MessageManager = {
               MessageManager.slide();
             }
             // Update the data for next time we enter a thread
-            ThreadUI.title.removeAttribute('is-contact');
+            ThreadUI.title.removeAttribute('data-is-contact');
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -694,7 +694,7 @@ var ThreadUI = {
     var self = this;
     self.title.innerHTML = number;
     // Add data to contact activity interaction
-    self.title.setAttribute('phone-number', number);
+    self.title.setAttribute('data-phone-number', number);
 
     ContactDataManager.getContactData(number, function gotContact(contact) {
       //TODO what if return multiple contacts?
@@ -709,7 +709,7 @@ var ThreadUI = {
           }
         }
         // Add data values for contact activity interaction
-        self.title.setAttribute('is-contact', true);
+        self.title.setAttribute('data-is-contact', true);
 
         if (name && name != '') { // contact with name
           self.title.innerHTML = name;
@@ -1231,7 +1231,7 @@ var ThreadUI = {
   activateContact: function thui_activateContact() {
     var options = {};
     // Call to 'new' or 'view' depending on existence of contact
-    if (this.title.getAttribute('is-contact') == 'true') {
+    if (this.title.getAttribute('data-is-contact') == 'true') {
       //TODO modify this when 'view' activity is available on contacts
       // options = {
       //   name: 'view',
@@ -1245,7 +1245,7 @@ var ThreadUI = {
         data: {
           type: 'webcontacts/contact',
           params: {
-            'tel': this.title.getAttribute('phone-number')
+            'tel': this.title.getAttribute('data-phone-number')
           }
         }
       };
