@@ -80,7 +80,7 @@ var MessageManager = {
               MessageManager.slide();
             }
             // Update the data for next time we enter a thread
-            ThreadUI.title.removeAttribute('data-is-contact');
+            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -540,8 +540,8 @@ var ThreadListUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -683,8 +683,8 @@ var ThreadUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -694,7 +694,7 @@ var ThreadUI = {
     var self = this;
     self.title.innerHTML = number;
     // Add data to contact activity interaction
-    self.title.setAttribute('data-phone-number', number);
+    self.title.dataset.phoneNumber = number;
 
     ContactDataManager.getContactData(number, function gotContact(contact) {
       //TODO what if return multiple contacts?
@@ -709,7 +709,7 @@ var ThreadUI = {
           }
         }
         // Add data values for contact activity interaction
-        self.title.setAttribute('data-is-contact', true);
+        self.title.dataset.isContact = true;
 
         if (name && name != '') { // contact with name
           self.title.innerHTML = name;
