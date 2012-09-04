@@ -20,7 +20,6 @@ var PopupManager = {
     window.addEventListener('mozbrowseropenwindow', this);
     window.addEventListener('mozbrowserclose', this);
     window.addEventListener('appwillclose', this);
-
     window.addEventListener('home', this);
   },
 

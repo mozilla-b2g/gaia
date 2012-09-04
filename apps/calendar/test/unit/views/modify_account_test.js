@@ -41,7 +41,7 @@ suite('views/modify_account', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
-        '<button class="save-icon">save</button>',
+        '<button class="save">save</button>',
         '<div class="errors"></div>',
         '<form>',
           '<input name="user" />',
@@ -308,6 +308,13 @@ suite('views/modify_account', function() {
 
     test('existing', function() {
       var calledWith;
+      var destroyed;
+
+      subject.model = {};
+      subject.destroy = function() {
+        destroyed = true;
+      }
+
       subject._updateModel = function() {
         calledWith = arguments;
         return model;
@@ -317,6 +324,7 @@ suite('views/modify_account', function() {
         params: { id: '1' }
       });
 
+      assert.ok(destroyed, 'should destroy previous state');
       assert.equal(subject.completeUrl, '/settings/');
       assert.equal(calledWith[0], '1');
       assert.equal(subject.model, model);

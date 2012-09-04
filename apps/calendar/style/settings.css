@@ -1,31 +1,32 @@
 /* calendar settings */
 
-body[data-path^="/settings/"][role="app"] #wrapper {
+body[data-path^="/settings/"] #wrapper {
   position: relative;
-  -moz-transform: translateX(75%);
+  -moz-transform: translateX(80%);
   box-shadow: 1px 1px 5px 5px #222;
   z-index: 2;
 
   -moz-transition: -moz-transform 0.1s ease-in-out;
 }
 
-body[role="app"] #wrapper {
+body #wrapper {
   -moz-transform: translateX(0%);
   -moz-transition: -moz-transform 0.1s ease-in-out;
+}
+
+body[data-path^="/settings/"] #time-header {
+  margin-left: 0;
 }
 
 #settings.active {
   display: block;
 }
 
-
 #settings {
-  height: 100%;
-  width: 75%;
-  position: absolute;
-  background: transparent url('./ui/drawer.png');
-  color: white;
   font-size: 1.6rem;
+  color: white;
+  display: none;
+  width: 80%;
 }
 
 body[data-path^="/settings/"] #settings {
@@ -36,33 +37,6 @@ body[data-path^="/settings/"] #settings {
   width: -moz-calc(100% - 30px);
 }
 
-#settings > section {
-  display: none;
-}
-
-#settings > section.active {
-  display: block;
-}
-
-#settings header {
-  background: transparent url(ui/header.png) repeat-x left top;
-  padding: 1.2rem 1rem;
-  font-size: 2.1rem;
-  font-weight: normal;
-  box-shadow: none;
-  border-bottom: 1px solid #454B53;
-}
-
-#settings header:after {
-  content: "";
-  height: 0.3rem;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: url(ui/shadow-header.png) repeat-x left top;
-  background-size: auto 100%;
-}
 
 #settings .calendars label > span {
   display: block;
@@ -119,27 +93,16 @@ body[data-path^="/settings/"] #settings {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-#settings .settings,
-#settings .sync {
-  position: absolute;
-  text-indent: -1000em;
-  width: 30px;
-  height: 30px;
-}
-
-
 #settings .sync.active {
   display: none;
 }
 
 #settings .settings {
-  left: 1rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat;
-}
-
-#settings .sync {
-  right: 1rem;
-  background: transparent url('/style/icons/ActionIcons_30x30_refresh.png') no-repeat;
+  width: 5.5rem;
+  height: 4rem;
+  background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
+  text-indent: -9999rem;
+  display: block;
 }
 
 #settings .calendars input[type="checkbox"] {
@@ -158,54 +121,4 @@ body[data-path^="/settings/"] #settings {
   width: 14px;
   height: 14px;
   float: right;
-}
-
-/* advanced settings */
-
-#advanced-setting-selection:target {
-  position: absolute;
-  bottom: 5.5rem;
-  left: 1.5rem;
-  display: block;
-  width: 20rem;
-  background: white;
-  border: 1px solid black;
-}
-
-#advanced-setting-selection {
-  display: none
-}
-
-#advanced-setting-selection li {
-  border-bottom: 1px solid #CCC;
-}
-
-#advanced-setting-selection a {
-  color: black;
-  display: block;
-  padding: 1rem;
-}
-
-#advanced-settings-view > header h1 {
-  width: -moz-calc(100% - 40px);
-}
-
-#advanced-settings-view > section {
-  margin-top: 1rem;
-  font-size: 1.5rem;
-}
-
-#advanced-settings-view > section h2 {
-  padding: 1rem;
-  background-color: #CCC;
-}
-
-#advanced-settings-view > section ol li a.remove {
-  color: red;
-  padding: 1rem;
-}
-
-#advanced-settings-view > section ol li {
-  border-bottom: 1px solid #CCC;
-  padding: 2rem;
 }
