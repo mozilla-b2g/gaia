@@ -562,7 +562,6 @@ button[disabled] .icon-keypad-visibility {
     height: -moz-calc(100% - 2rem);
     padding: 1rem;
     text-align: right;
-
     font-size: 1em;
     line-height: 100%;
   }
