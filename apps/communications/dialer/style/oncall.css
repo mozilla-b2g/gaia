@@ -141,7 +141,6 @@ body.hidden *[data-l10n-id] {
 #main-container {
   position: relative;
   height: 100%;
-
   background-image: url("images/Generic_image.png");
   background-repeat: no-repeat;
   background-size: cover;
@@ -151,7 +150,6 @@ body.hidden *[data-l10n-id] {
 #actions-container {
   position: absolute;
   bottom: 0;
-
   width: 100%;
   height: 15.5rem;
 }
@@ -318,31 +316,31 @@ button[disabled] .icon-keypad-visibility {
   height: 22rem;
   background-color: transparent;
 }
+
 #calls[data-count="1"] > section .number {
   height: 4rem;
   padding: 2rem 2rem 0 2rem;
-
   background: #01c5ed;
   font-size: 1.6em;
   line-height: 4rem;
   color: black;
 }
+
 #calls[data-count="1"] > section .additionalContactInfo {
   height: 2rem;
   padding: 0 2rem 2rem 2rem;
-
   background: #01c5ed;
   font-size: 1.4rem;
   line-height: 2rem;
   color: white;
 }
+
 #calls[data-count="1"] > section .duration {
   position: absolute;
   top: 12rem;
   left: 0;
   height: 8rem;
   padding: 2rem;
-
   font-size: 2.6em;
   font-weight: 300;
   line-height: 8rem;
@@ -353,7 +351,6 @@ button[disabled] .icon-keypad-visibility {
   background-image: url('images/DialerIcon_35x35_paused.png');
   background-position: center right 1.5rem;
   background-repeat: no-repeat;
-
   opacity: 0.7;
 }
 
@@ -386,7 +383,6 @@ button[disabled] .icon-keypad-visibility {
   display: inline-block;
   width: 3.5rem;
   height: 3.5rem;
-
   background-repeat: no-repeat;
   background-position: center;
   background-size: 3.5rem 3.5rem;
@@ -418,24 +414,20 @@ button[disabled] .icon-keypad-visibility {
   bottom: 0;
   width: 100%;
   height: 23rem;
-
   transform: translateY(23rem);
   transition: transform 0.3s ease-in-out;
-
   z-index: 500;
 }
 
 #incoming-container header {
   width: -moz-calc(100% - 3rem);
   margin: 1.5rem;
-
   background: rgba(28, 24, 24, 0.75);
 }
 
 #incoming-container section {
   height: 12.5rem;
   margin-top: 3.5rem;
-
   background-color: #1c1818;
   background-image:  url("images/incoming-call.png");
   background-position: top 2rem right 1.5rem;
@@ -451,7 +443,6 @@ button[disabled] .icon-keypad-visibility {
   border:0;
   border-radius:.3rem;
   display: block;
-
   text-align: center;
   font-size: 1.5em;
   line-height: 4rem;
@@ -462,7 +453,6 @@ button[disabled] .icon-keypad-visibility {
 #incoming-end {
   width: 50%;
   float: left;
-
   font-size: 0.9em;
 }
 
@@ -471,7 +461,6 @@ button[disabled] .icon-keypad-visibility {
               -moz-linear-gradient(top, #00b3d9 1%, #00d3ff 100%);
   background-position: center, center;
   background-repeat: no-repeat, repeat;
-
   opacity: 1.0;
   margin: 1rem 1rem 1rem 0.5rem;
 }
@@ -481,7 +470,6 @@ button[disabled] .icon-keypad-visibility {
               -moz-linear-gradient(top, #ff0000 1%, #ce0000 100%);
   background-position: center, center;
   background-repeat: no-repeat, repeat;
-
   opacity: 1.0;
   margin: 1rem 0.5rem 1rem 1rem;
 }
@@ -548,22 +536,22 @@ button[disabled] .icon-keypad-visibility {
     background-color: transparent;
     font-size: 1.8em;
   }
+
   #calls > section .number,
   #calls[data-count="1"] > section .number {
     width: -moz-calc(100% - 10rem);
     height: -moz-calc(100% - 2rem);
     padding: 1rem;
     margin-left: 3rem;
-
     font-size: 1.1em;
     line-height: 100%;
     color: white;
     background-color: transparent;
-
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
   #calls > section .duration,
   #calls[data-count="1"] > section .duration {
     position: absolute;
@@ -574,7 +562,6 @@ button[disabled] .icon-keypad-visibility {
     height: -moz-calc(100% - 2rem);
     padding: 1rem;
     text-align: right;
-
     font-size: 1em;
     line-height: 100%;
   }
@@ -582,7 +569,6 @@ button[disabled] .icon-keypad-visibility {
   #calls[data-count="1"] > section .duration .direction {
     display: block;
     position: absolute;
-
     top: 4px;
     left: 5px;
   }

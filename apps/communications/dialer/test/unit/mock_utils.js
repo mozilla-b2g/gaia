@@ -30,3 +30,4 @@ var MockUtils = {
     this.mCalledGetPhoneNumberAdditionalInfo = false;
   }
 };
+
