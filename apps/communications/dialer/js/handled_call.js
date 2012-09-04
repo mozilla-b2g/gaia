@@ -90,7 +90,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       node.textContent = contact.name;
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
-      additionalContactInfo.textContent = additionalInfo != undefined ?
+      additionalContactInfo.textContent = additionalInfo ?
         additionalInfo : '';
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];

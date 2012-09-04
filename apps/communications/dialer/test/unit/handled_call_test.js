@@ -176,14 +176,6 @@ suite('dialer/handled_call', function() {
 
     test('additional contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
-
-      var additionalInfoNode = document.querySelector('.additionalContactInfo');
-
-      if (phoneNumber % 2 == 0) {
-        assert.equal(phoneNumber, additionalInfoNode.textContent);
-      } else {
-        assert.equal('', additionalInfoNode.textContent); 
-      }
     });
   });
 
@@ -285,5 +277,24 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.recentsEntry.type, 'incoming-connected');
       });
     });
+  });
+
+  suite('additional information', function() {
+    
+    test('check additional info present', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('888', additionalInfoNode.textContent);
+    })
+
+    test('check without additional info', function() {
+      mockCall = new MockCall('999', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('', additionalInfoNode.textContent);
+    })
   });
 });
