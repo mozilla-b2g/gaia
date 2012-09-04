@@ -1,3 +1,4 @@
+// Mock the mozL10n api for the Utils class
 navigator.mozL10n = {
   get: function get(key) {
     return key;
@@ -31,7 +32,8 @@ suite('dialer/utils', function() {
       MockContacts.findByNumber(number, function(contact) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(number,
           contact);
-        assert.equal(MockContacts.mType + ', ' + MockContacts.mCarrier, additionalInfo);
+        assert.equal(MockContacts.mType + ', ' +
+          MockContacts.mCarrier, additionalInfo);
         done();
       });
     });
