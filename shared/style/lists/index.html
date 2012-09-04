@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="../switches/style.css">
+  <link rel="stylesheet" href="style.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../fonts.css">
+  <style>
+ html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+        }
+        body { background: none; }
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "Open Sans", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+    #bb-docs-toggle { vertical-align: middle; }
+  </style>
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function(){
+      document.getElementById("bb-docs-toggle").addEventListener("click", function(){
+        var target = document.querySelector("ul[data-state]");
+        if ( target.getAttribute("data-state") == "edit" ) {
+            target.setAttribute("data-state", "");
+        } else {
+            target.setAttribute("data-state", "edit");
+        }
+      })
+    });
+  </script>
+
+  <title>Lists</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+  <meta name="requires" content="other/switches/style.css (only for edit mode) ">
+  <meta name="target" content="html">  
+</head>
+
+<body role="application">
+
+  <section role="region">
+       <h2 class="bb-docs">Calendar</h2>
+      <ul>
+          <li data-state="tagged" data-tag="A">
+            <a href="#">
+              <em class="aside">
+                 <time>9AM</time>
+             </em>
+             <dl>
+               <dt>Paper Due</dt>
+             </dl>
+            </a>
+          </li>
+
+          <li data-state="tagged" data-tag="B">
+            <em class="aside">
+              <time>11AM</time>
+            </em>
+            <dl>
+              <dt>Paper Due</dt>
+              <dd><span>Madrid. Steve, Sergi, Victoria, Silvia, E...</span></dd>
+            </dl>
+          </li>
+      </ul>
+
+      <h2 class="bb-docs">Call log</h2>
+      <ul>
+          <li>
+            <em class="aside">
+              <span class="icon icon-callout">Outgoing call</span>
+            </em>
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt>Mark Alfenito <em>(2)</em></dt>
+              <dd>
+                <time>5:43PM</time>
+                <span>Mobile, Vivo</span>
+              </dd>
+            </dl>
+          </li>
+
+          <li aria-disabled="true">
+            <em class="aside">
+              <span class="icon icon-callout">Outgoing call</span>
+            </em>
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt>Mark Alfenito <em>(2)</em></dt>
+              <dd>
+                <time>5:43PM</time>
+                <span>Mobile, Vivo</span>
+              </dd>
+            </dl>
+          </li>
+      </ul>
+
+      <h2 class="bb-docs">Press state ( click on the item! )</h2>
+      <ul>
+          <li data-state="new">
+            <a href="#">
+              <em class="aside">
+                <span class="icon icon-smsin">Missed call</span>
+              </em>
+              <em class="aside end">
+                <span class="icon icon-arrowaction">Missed call</span>
+              </em>
+              <dl>
+                <dt>Mark Alfenito <em>(2)</em></dt>
+                <dd>
+                  <time>5:43PM</time>
+                  <span>Mobile, Vivo</span>
+                </dd>
+              </dl>
+            </a>
+          </li>
+      </ul>
+
+    <h2 class="bb-docs">Contacts</h2>
+       <ul>
+          <li data-state="marked">
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt>Margherita <strong>Gomez</strong></dt>
+              <dd>
+                <span>Family</span>
+              </dd>
+            </dl>
+          </li>
+
+           <li>
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt>Margherita <strong>Gomez</strong></dt>
+              <dd>
+                <span>Family</span>
+              </dd>
+            </dl>
+          </li>
+        </ul>
+
+        <h2 class="bb-docs">Edit mode <button id="bb-docs-toggle">toggle</button></h2>
+        <ul data-state="edit">
+          <li>
+            <img src="images/dummy.jpg">
+            <label class="check negative">
+              <input type="checkbox" checked="checked">
+              <span></span>
+            </label>
+            <dl>
+              <dt>Margherita <strong>Gomez</strong></dt>
+              <dd>
+                <span>Family</span>
+              </dd>
+            </dl>
+          </li>
+
+          <li>
+            <img src="images/dummy.jpg">
+            <label class="check negative">
+              <input type="checkbox">
+              <span></span>
+            </label>
+            <dl>
+              <dt>Margherita <strong>Gomez</strong></dt>
+              <dd>
+                <span>Family</span>
+              </dd>
+            </dl>
+          </li>
+
+          <li>
+            <label class="check negative">
+                <input type="checkbox" />
+                <span></span>
+            </label>
+            <a href="#">
+              <em class="aside">
+                <span class="icon icon-smsin">Missed call</span>
+              </em>
+              <em class="aside end">
+                <span class="icon icon-arrowaction">Missed call</span>
+              </em>
+              <dl>
+                <dt>MarkAlfenito <em>(2)</em></dt>
+                <dd>
+                  <time>5:43PM</time>
+                  <span>Mobile, Vivo</span>
+                </dd>
+              </dl>
+            </a>
+          </li>
+        </ul>
+
+        <h2 class="bb-docs">Search results</h2>
+         <ul>
+           <li>
+            <a href="#">
+              <em class="aside">
+                <span class="icon icon-smsin">Missed call</span>
+              </em>
+              <em class="aside end">
+                <span class="icon icon-arrowaction">Missed call</span>
+              </em>
+              <dl>
+                <dt><mark>Mark</mark> Alfenito <em>(2)</em></dt>
+                <dd>
+                  <time>5:43PM</time>
+                  <span>Mobile, <mark>Vivo</mark></span>
+                </dd>
+              </dl>
+            </a>
+          </li>
+
+          <li data-state="marked">
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt><mark>Marg</mark>herita <strong>Gomez</strong></dt>
+              <dd>
+                <span>Family</span>
+              </dd>
+            </dl>
+          </li>
+
+           <li>
+            <img src="images/dummy.jpg">
+            <dl>
+              <dt><mark>Ma</mark>rgherita
+                    <strong><mark>Go</mark>mez</strong></dt>
+              <dd>
+                <span><mark>Fa</mark>mily</span>
+              </dd>
+            </dl>
+          </li>
+        </ul>
+
+        <h2 class="bb-docs">Overlay theme</h2>
+        <!-- This div is only for example pruposal, basically is for having some background image
+                to getting work the alpha in the overlay theme -->
+        <div style="background: url(images/example-notifications.png),
+          url(images/dummy.jpg) no-repeat center center; background-size: 100% auto;">
+          <ul class="overlay">
+             <li data-state="new">
+              <a href="#">
+                <em class="aside">
+                  <span class="icon icon-smsin">Missed call</span>
+                </em>
+                <em class="aside end">
+                    <time>5:43PM</time>
+                </em>
+                <dl>
+                  <dt>Mark Alfenito</dt>
+                  <dd>
+                    <span>Fancy a nice dinner?</span>
+                  </dd>
+                </dl>
+              </a>
+            </li>
+
+           <li data-state="new">
+              <a href="#">
+                <em class="aside">
+                  <span class="icon icon-smsin">Missed call</span>
+                </em>
+                <em class="aside end">
+                    <time>5:43PM</time>
+                </em>
+                <dl>
+                  <dt>Mark Alfenito</dt>
+                  <dd>
+                    <span>Fancy a nice dinner?</span>
+                  </dd>
+                </dl>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+  </section>
+
+</body>
+</html>
