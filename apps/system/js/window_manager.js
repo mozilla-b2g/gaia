@@ -261,7 +261,7 @@ var WindowManager = (function() {
       openWindow(newApp,
                  !currentApp ?
                  callback :
-                 function () {
+                 function setHomescreenVisible() {
                    // Move the homescreen into the background only
                    // after the transition completes, since it's
                    // visible during the transition.
@@ -671,7 +671,9 @@ var WindowManager = (function() {
   // Gecko that we're ready for certain system services to send us
   // messages (e.g. the radio).
   var event = document.createEvent('CustomEvent');
-  event.initCustomEvent('mozContentEvent', true, true, { type: 'system-app-ready' });
+  event.initCustomEvent('mozContentEvent', true, true, {
+    type: 'system-app-ready'
+  });
   window.dispatchEvent(event);
 
   // Return the object that holds the public API
