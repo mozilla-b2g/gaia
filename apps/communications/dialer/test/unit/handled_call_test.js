@@ -32,6 +32,7 @@ suite('dialer/handled_call', function() {
   var realCallScreen;
   var realL10n;
   var realUtils;
+  var phoneNumber;
 
   suiteSetup(function() {
     realContacts = window.Contacts;
@@ -52,6 +53,8 @@ suite('dialer/handled_call', function() {
 
     realUtils = window.Utils;
     window.Utils = MockUtils;
+
+    phoneNumber = Math.floor(Math.random() * 10000);
   });
 
   suiteTeardown(function() {
@@ -83,7 +86,7 @@ suite('dialer/handled_call', function() {
 
     document.body.appendChild(fakeNode);
 
-    mockCall = new MockCall('12345', 'dialing');
+    mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall, fakeNode);
   });
 
@@ -94,6 +97,7 @@ suite('dialer/handled_call', function() {
     MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockUtils.mTearDown();
   });
 
   suite('initialization', function() {
@@ -271,6 +275,24 @@ suite('dialer/handled_call', function() {
         mockCall._disconnect();
         assert.equal(subject.recentsEntry.type, 'incoming-connected');
       });
+    });
+  });
+
+  suite('additional information', function() {
+    test('check additional info present', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('888', additionalInfoNode.textContent);
+    });
+
+    test('check without additional info', function() {
+      mockCall = new MockCall('999', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('', additionalInfoNode.textContent);
     });
   });
 });

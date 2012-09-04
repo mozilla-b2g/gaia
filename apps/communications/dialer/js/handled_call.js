@@ -10,7 +10,7 @@ function HandledCall(aCall, aNode) {
   this.durationNode = aNode.querySelector('.duration span');
   this.directionNode = aNode.querySelector('.duration .direction');
   this.numberNode = aNode.querySelector('.number');
-  this.additionalContactInfo = aNode.querySelector('.additionalContactInfo');
+  this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
 
   aCall.addEventListener('statechange', this);
 
@@ -68,7 +68,7 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
 HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var number = this.call.number;
   var node = this.numberNode;
-  var additionalContactInfo = this.additionalContactInfo;
+  var additionalInfoNode = this.additionalInfoNode;
 
   if (!number.length) {
     var _ = navigator.mozL10n.get;
@@ -88,8 +88,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
       node.textContent = contact.name;
-      additionalContactInfo.textContent = Utils.getPhoneNumberAdditionalInfo(
+      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
+      additionalInfoNode.textContent = additionalInfo ?
+        additionalInfo : '';
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
         CallScreen.setCallerContactImage(self.photo);
