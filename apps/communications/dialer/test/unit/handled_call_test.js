@@ -33,6 +33,8 @@ suite('dialer/handled_call', function() {
   var realL10n;
   var realUtils;
 
+  var phoneNumber;
+
   suiteSetup(function() {
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
@@ -52,6 +54,8 @@ suite('dialer/handled_call', function() {
 
     realUtils = window.Utils;
     window.Utils = MockUtils;
+
+    phoneNumber = Math.floor(Math.random() * 10000);
   });
 
   suiteTeardown(function() {
@@ -83,7 +87,7 @@ suite('dialer/handled_call', function() {
 
     document.body.appendChild(fakeNode);
 
-    mockCall = new MockCall('12345', 'dialing');
+    mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall, fakeNode);
   });
 
@@ -94,6 +98,7 @@ suite('dialer/handled_call', function() {
     MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockUtils.mTearDown();
   });
 
   suite('initialization', function() {
@@ -171,6 +176,14 @@ suite('dialer/handled_call', function() {
 
     test('additional contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+
+      var additionalInfoNode = document.querySelector('.additionalContactInfo');
+
+      if (phoneNumber % 2 == 0) {
+        assert.equal(phoneNumber, additionalInfoNode.textContent);
+      } else {
+        assert.equal('', additionalInfoNode.textContent); 
+      }
     });
   });
 

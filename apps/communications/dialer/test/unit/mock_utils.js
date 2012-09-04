@@ -19,6 +19,8 @@ var MockUtils = {
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
     phoneNumber, associatedContact) {
     this.mCalledGetPhoneNumberAdditionalInfo = true;
+
+    return phoneNumber % 2 == 0 ? phoneNumber : undefined;
   },
 
   mTearDown: function tearDown() {

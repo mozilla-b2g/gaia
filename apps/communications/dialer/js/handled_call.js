@@ -88,8 +88,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
       node.textContent = contact.name;
-      additionalContactInfo.textContent = Utils.getPhoneNumberAdditionalInfo(
+      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
+      additionalContactInfo.textContent = additionalInfo != undefined ?
+        additionalInfo : '';
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
         CallScreen.setCallerContactImage(self.photo);
