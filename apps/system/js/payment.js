@@ -45,7 +45,7 @@ var Payment = (function Payment() {
             var requestElement = frameDocument.createElement('li');
             var button = frameDocument.createElement('button');
             button.setAttribute('value', requests[i].type);
-            var requestText = "Pay with " + requests[i].providerName + "\n" +
+            var requestText = 'Pay with ' + requests[i].providerName + '\n' +
                               requests[i].productName + '\n' +
                               requests[i].productDescription + '\n' +
                               requests[i].productPrice[0].amount + ' ' +
@@ -68,7 +68,7 @@ var Payment = (function Payment() {
 
         // The payment request confirmation screen is shown within the trusted
         // UI.
-        PopupManager.open("payment-confirmation", frame,
+        PopupManager.open('payment-confirmation', frame,
                           kPaymentConfirmationScreen, true);
         break;
 
@@ -85,7 +85,7 @@ var Payment = (function Payment() {
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
         frame.src = e.detail.uri;
-        frame.addEventListener('mozbrowserloadstart', function onLoadStart(evt) {
+        frame.addEventListener('mozbrowserloadstart', function loadStart(evt) {
           // After creating the new frame containing the payment provider buy
           // flow, we send it back to chrome so the payment callbacks can be
           // injected.
@@ -95,10 +95,10 @@ var Payment = (function Payment() {
             frame: evt.target
           });
           window.dispatchEvent(event);
-        })
+        });
 
         // The payment flow is shown within the trusted UI.
-        PopupManager.open("PaymentFlow", frame, e.detail.uri, true);
+        PopupManager.open('PaymentFlow', frame, e.detail.uri, true);
         break;
 
       case 'close-payment-flow-dialog':
