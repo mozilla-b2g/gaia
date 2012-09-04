@@ -250,11 +250,7 @@ setService(function cc_setupCostControlService() {
       _handledCalls.push(telCall);
 
       // Anotate start timestamp
-      // TODO: startime shoud be initialized to null cause can be
-      // a disconnection without connecting (operator message, no coverage)
-      // Lets this as is for the sake of testing.
-      // INMHO: this is a conceptual mistake in states.
-      var starttime = (new Date()).getTime();
+      var starttime = null;
       telCall.onconnected = function cc_onTelCallConnected() {
         starttime = (new Date()).getTime();
       };
