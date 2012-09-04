@@ -197,6 +197,13 @@ function addVideo(videodata) {
   if (poster) {
     thumbnail.appendChild(poster);
   }
+
+  if (!videodata.metadata.watched) {
+    var unread = document.createElement('div');
+    unread.classList.add('unwatched');
+    thumbnail.appendChild(unread);
+  }
+
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
 
@@ -335,6 +342,9 @@ function showPlayer(data, autoPlay) {
     if (autoPlay) {
       play();
     }
+
+    currentVideo.metadata.watched = true;
+    videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
   });
 }
 
