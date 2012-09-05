@@ -14,14 +14,14 @@ var Applications = {
 
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;
-      self.installedApps[newapp.origin] = newapp;
+      self.installedApps[newapp.manifestURL] = newapp;
 
       self.fireApplicationInstallEvent(newapp);
     };
 
     apps.mgmt.onuninstall = function a_uninstall(evt) {
       var deletedapp = evt.application;
-      delete self.installedApps[deletedapp.origin];
+      delete self.installedApps[deletedapp.manifestURL];
 
       self.fireApplicationUninstallEvent(deletedapp);
     }
@@ -29,15 +29,19 @@ var Applications = {
     apps.mgmt.getAll().onsuccess = function(evt) {
       var apps = evt.target.result;
       apps.forEach(function(app) {
-        self.installedApps[app.origin] = app;
+        self.installedApps[app.manifestURL] = app;
       });
 
       self.fireApplicationReadyEvent();
     };
   },
 
-  getByOrigin: function a_getByOrigin(origin) {
-    return this.installedApps[origin];
+  getByManifestURL: function a_getByManifestURL(manifestURL) {
+    if (manifestURL in this.installedApps) {
+      return this.installedApps[manifestURL];
+    }
+
+    return null;
   },
 
   fireApplicationReadyEvent: function a_fireAppReadyEvent() {
