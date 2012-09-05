@@ -526,7 +526,7 @@ function finishPick(filename) {
     filename: filename
   });
   pendingPick = null;
-  setView(thumbnailListView);
+  //setView(thumbnailListView);
 }
 
 function cancelPick() {

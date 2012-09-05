@@ -62,6 +62,15 @@ SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
   var url = 'url(resources/images/backgrounds/' + value + ')';
   document.getElementById('screen').style.backgroundImage = url;
+
+  var storage = navigator.getDeviceStorage('pictures');
+  storage.get(value).onsuccess = function(e) {
+    var blob = e.target.result;
+    var path = URL.createObjectURL(blob);
+    var url = 'url(' + path + ')';
+    document.getElementById('screen').style.backgroundImage = url;
+    URL.revokeObjectURL(url);
+  };
 });
 
 window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
