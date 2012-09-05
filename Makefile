@@ -20,6 +20,7 @@
 ###############################################################################
 -include local.mk
 
+WGET_OPTS?=''
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -112,7 +113,7 @@ DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
-DOWNLOAD_CMD = wget
+DOWNLOAD_CMD = wget $(WGET_OPTS)
 endif
 
 # Test agent setup
