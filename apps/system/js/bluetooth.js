@@ -46,13 +46,16 @@ var Bluetooth = {
   //XXX hack due to the following bugs.
   hackForTest: function(enabled) {
     if (enabled) {
+      var self = this;
       var bluetooth = window.navigator.mozBluetooth;
       //XXX there is no "bluetooth.onenabled" callback can be hooked.
       //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
       if (!bluetooth.enabled) {
-        setTimeout(initDefaultAdapter, 5000);
+        setTimeout(function onTimeout() {
+          self.initDefaultAdapter();
+        }, 5000);
       } else {
-        initDefaultAdapter();
+        this.initDefaultAdapter();
       }
     }
   },
