@@ -3,6 +3,25 @@
 
 'use strict';
 
+// Utility functions
+function getWindowTop(obj) {
+  var top;
+  top = obj.offsetTop;
+  while (!!(obj = obj.offsetParent)) {
+    top += obj.offsetTop;
+  }
+  return top;
+}
+
+function getWindowLeft(obj) {
+  var left;
+  left = obj.offsetLeft;
+  while (!!(obj = obj.offsetParent)) {
+    left += obj.offsetLeft;
+  }
+  return left;
+}
+
 // Data Usage is in charge of display detailed information about data
 // consumption per application and interface.
 var TAB_DATA_USAGE = 'datausage-tab';
@@ -82,6 +101,49 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
       appVManager.changeViewTo(TAB_DATA_USAGE);
     });
+
+    var controls = document.getElementById('limits-layer');
+
+    // TODO: Hack ultrawarro, mejorar el scope
+    (function() {
+      var offsetX = getWindowLeft(controls);
+      var offsetY = getWindowTop(controls);
+
+      function checkContent(x, y, threshold) {
+        threshold = threshold || 0;
+        var context = controls.getContext('2d');
+        var data = context.getImageData(x - offsetX, y - offsetY, 1, 1).data;
+        return data[3] > threshold;
+      }
+
+      var element, elementX, elementY;
+      controls.addEventListener('click', function(event) {
+        element = event.target;
+        if (!checkContent(event.clientX, event.clientY))
+          return;
+          
+        if (pressing) {
+          console.log('limitClicked');
+        }
+      });
+
+      var pressing, longPressTimeout;
+      controls.addEventListener('mousedown', function(event) {
+        if (!checkContent(event.clientX, event.clientY))
+          return;
+
+        pressing = true;
+        longPressTimeout = setTimeout(function() {
+          pressing = false;
+          console.log('setLimit');
+        }, 500);
+      });
+
+      controls.addEventListener('mouseup', function(event) {
+        clearTimeout(longPressTimeout);
+      });
+
+    }());
 
     _updateUI();
   }
@@ -259,25 +321,26 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     }
   }
 
-  function _drawAxisLayer(options) {
-    function pad(value) {
-      if (value === 0)
-        return '0MB';
+  function _pad(value) {
+    if (value === 0)
+      return '0MB';
 
-      if (value < 1000) {
-        var str = (10 * Math.ceil(value/10)) + 'M';
-        switch(str.length) {
-          case 2:
-            return '00' + str;
-          case 3:
-            return '0' + str;
-          default:
-            return str;
-        }
+    if (value < 1000) {
+      var str = (10 * Math.ceil(value/10)) + 'M';
+      switch(str.length) {
+        case 2:
+          return '00' + str;
+        case 3:
+          return '0' + str;
+        default:
+          return str;
       }
-
-      return (value / 1000).toFixed(1) + 'G';
     }
+
+    return (value / 1000).toFixed(1) + 'G';
+  }
+
+  function _drawAxisLayer(options) {
 
     var canvas = document.getElementById('axis-layer');
     var height = canvas.height = options.height;
@@ -295,7 +358,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.textAlign = 'start';
     for (var y = options.originY, value = 0;
          y > 0; y -= step, value += dataStep) {
-      ctx.fillText(pad(value), marginLeft, y - marginBottom);
+      ctx.fillText(_pad(value), marginLeft, y - marginBottom);
     }
 
     // Now the X axis
@@ -320,10 +383,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var ctx = canvas.getContext('2d');
 
     // Compute the X offset
-    var lower = options.axis.X.lower.getTime();
-    var upper = options.axis.X.upper.getTime() - lower;
-    var today = options.axis.X.today.getTime() - lower;
-    var offsetX = Math.round(today / upper * width);
+    var offsetX = options.axis.X.get(options.axis.X.today);
 
     // Draw the vertical line
     ctx.beginPath();
@@ -365,7 +425,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var maxWidth = widthTop.width > widthBottom ? widthTop : widthBottom;
     var marginSide = 10;
     var radiusTop = 3;
-    var radiusBottom = 5;
+    var radiusBottom = 3;
 
     var topRight = {
       x: offsetX + (maxWidth / 2) + marginSide,
@@ -412,7 +472,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.lineTo(topLeft.x, topLeft.y + radiusTop);
 
     // Here a trick to simplify this:
-    // it is the same as the beginnign but to the other direction
+    // it is the same as the beginnign but to the other X direction
     ctx.moveTo(offsetX, options.originY);
     ctx.lineTo(topLeft.x + radiusTop, topLeft.y);
     ctx.arcTo(
@@ -421,6 +481,179 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       radiusTop
     );
 
+    ctx.stroke();
+  }
+
+  function _drawLimits(options) {
+    var canvas = document.getElementById('limits-layer');
+    var height = canvas.height = options.height;
+    var width = canvas.width = options.width;
+    var ctx = canvas.getContext('2d');
+    ctx.font = '600 ' + 12 + 'px Arial';
+
+    // The limit line
+    var marginLeft = 4;
+    var marginTop = 1;
+    var offsetY = Math.floor(options.axis.Y.get(options.limits.value));
+    ctx.beginPath();
+    ctx.strokeStyle = 'red';
+    ctx.moveTo(0, offsetY + 0.5);
+    ctx.lineTo(width, offsetY + 0.5);
+    ctx.stroke();
+
+    // The left marker
+    var fontsize = 12;
+    var tag = _pad(options.limits.value);
+    var tagWidth = ctx.measureText(tag).width;
+    var semiHeight = fontsize / 2 + marginTop;
+
+    var topLeft = {
+      x: 0,
+      y: offsetY - semiHeight - marginTop
+    };
+    var topRight = {
+      x: marginLeft + tagWidth + marginLeft,
+      y: topLeft.y
+    };
+    var arrowVertex = {
+      x: topRight.x + marginLeft,
+      y: offsetY
+    };
+    var bottomRight = {
+      x: topRight.x,
+      y: offsetY + semiHeight + marginTop
+    };
+    var bottomLeft = {
+      x: topLeft.x,
+      y: bottomRight.y
+    };
+
+    ctx.beginPath();
+    ctx.fillStyle = 'red';
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(topRight.x, topRight.y);
+    ctx.lineTo(arrowVertex.x, arrowVertex.y);
+    ctx.lineTo(bottomRight.x, bottomRight.y);
+    ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    ctx.lineTo(topLeft.x, topLeft.y);
+
+    // The shadow
+    ctx.shadowColor = '#888';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    ctx.fill();
+
+    // And the text
+    ctx.shadowColor = 'transparent';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'start';
+    ctx.fillStyle = 'white';
+    ctx.fillText(tag, marginLeft, offsetY + marginTop);
+
+    // The right mark
+    tag = _('limit').toUpperCase();
+    tagWidth = ctx.measureText(tag).width;
+    topLeft = {
+      x: width - marginLeft - tagWidth - marginLeft,
+      y: offsetY - semiHeight - marginTop
+    };
+    arrowVertex = {
+      x: topLeft.x - marginLeft,
+      y: offsetY
+    };
+    topRight = {
+      x: width,
+      y: topLeft.y
+    };
+    bottomRight = {
+      x: topRight.x,
+      y: offsetY + semiHeight + marginTop
+    };
+    bottomLeft = {
+      x: topLeft.x,
+      y: bottomRight.y
+    };
+
+    ctx.beginPath();
+    ctx.fillStyle = 'red';
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(topRight.x, topRight.y);
+    ctx.lineTo(bottomRight.x, bottomRight.y);
+    ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    ctx.lineTo(arrowVertex.x, arrowVertex.y);
+    ctx.lineTo(topLeft.x, topLeft.y);
+
+    // The shadow
+    ctx.shadowColor = '#888';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    ctx.fill();
+
+    // And the text
+    ctx.shadowColor = 'transparent';
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'end';
+    ctx.fillStyle = 'white';
+    ctx.fillText(tag, width - marginLeft, offsetY + marginTop);
+
+    // Now the warning
+    offsetY = Math.floor(options.axis.Y.get(options.limits.warningValue));
+
+    // The right mark
+    tag = Math.round(options.limits.warning * 100) + '%';
+    topLeft = {
+      x: width - marginLeft - tagWidth - marginLeft,
+      y: offsetY - semiHeight - marginTop
+    };
+    arrowVertex = {
+      x: topLeft.x - marginLeft,
+      y: offsetY
+    };
+    topRight = {
+      x: width,
+      y: topLeft.y
+    };
+    bottomRight = {
+      x: topRight.x,
+      y: offsetY + semiHeight + marginTop
+    };
+    bottomLeft = {
+      x: topLeft.x,
+      y: bottomRight.y
+    };
+
+    ctx.beginPath();
+    ctx.fillStyle = 'white';
+    ctx.strokeStyle = 'red';
+    ctx.shadowColor = 'transparent';
+    ctx.moveTo(topLeft.x, topLeft.y);
+    ctx.lineTo(topRight.x, topRight.y);
+    ctx.lineTo(bottomRight.x, bottomRight.y);
+    ctx.lineTo(bottomLeft.x, bottomLeft.y);
+    ctx.lineTo(arrowVertex.x, arrowVertex.y);
+    ctx.lineTo(topLeft.x, topLeft.y);
+    ctx.stroke();
+    ctx.fill();
+
+    // The text
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'start';
+    ctx.fillStyle = 'red';
+    ctx.fillText(tag, arrowVertex.x + 2 * marginLeft, offsetY + marginTop);
+
+    // And the dashed line
+    var lineLength = 5;
+    var gapLength = 2;
+    ctx.strokeStyle = 'red';
+    ctx.beginPath();
+    for (var x = arrowVertex.x, y = offsetY + 0.5; x > 0; x -= gapLength) {
+      ctx.moveTo(x, y);
+      ctx.lineTo(x -= lineLength, y);
+    }
     ctx.stroke();
   }
 
@@ -439,7 +672,12 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         X: {
           lower: new Date(2012, 0, 1),
           upper: new Date(2012, 0, 31),
-          today: new Date(2012, 0, 21)
+          today: new Date(2012, 0, 21),
+          get: function cc_dataToXPx(value) {
+            var projection = (value.getTime() - this.lower.getTime()) /
+                              (this.upper.getTime() - this.lower.getTime() );
+            return projection * options.width;
+          }
         },
         Y: {
           lower: 0,
@@ -458,8 +696,17 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
             return (this.step = this.get(this.maxValue));
           },
           get: function cc_dataToYPx(value) {
-            return options.originY * (1 - value / this.upper);
+            var projection = (value - this.lower) / (this.upper - this.lower);
+            return options.originY * ( 1 - projection );
           }
+        }
+      },
+      limits: {
+        value: 2000,
+        warning: 0.80,
+        get warningValue() {
+          delete this.warningValue;
+          return (this.warningValue = this.value * this.warning);
         }
       }
     };
@@ -467,6 +714,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     _drawBackgroundLayer(options);
     _drawAxisLayer(options);
     _drawTodayLayer(options);
+    _drawLimits(options);
   }
 
 /*  function _updateUI() {
