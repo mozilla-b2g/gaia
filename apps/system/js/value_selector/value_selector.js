@@ -206,6 +206,12 @@ var ValueSelector = {
 
     var optionHTML = '';
 
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      return span.innerHTML;
+    }
+
     for (var i = 0, n = options.length; i < n; i++) {
 
       var checked = options[i].selected ? ' class="selected"' : '';
@@ -213,7 +219,7 @@ var ValueSelector = {
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
                      '<label> <span>' +
-                     options[i].text +
+                     escapeHTML(options[i].text) +
                      '</span></label>' +
                     '</li>';
     }
