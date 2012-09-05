@@ -79,6 +79,8 @@ var MessageManager = {
             } else {
               MessageManager.slide();
             }
+            // Update the data for next time we enter a thread
+            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -470,8 +472,8 @@ var ThreadListUI = {
     } else {
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
-            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
-            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            '   <p>' + _('noMessages-title') + '</p>' +
+            '   <p>' + _('noMessages-text') + '</p>' +
             ' </div>' +
             '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
@@ -538,8 +540,8 @@ var ThreadListUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -600,10 +602,6 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-  get headerTitle() {
-    delete this.headerTitle;
-    return this.headerTitle = document.getElementById('header-text');
-  },
 
   get editHeader() {
       delete this.editHeader;
@@ -629,7 +627,7 @@ var ThreadUI = {
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
-    this.headerTitle.addEventListener('click', this.activateContact.bind(this));
+    this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
   },
@@ -685,8 +683,8 @@ var ThreadUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -695,24 +693,36 @@ var ThreadUI = {
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
     self.title.innerHTML = number;
+    // Add data to contact activity interaction
+    self.title.dataset.phoneNumber = number;
+
     ContactDataManager.getContactData(number, function gotContact(contact) {
       //TODO what if return multiple contacts?
       var carrierTag = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
         var name = contact[0].name,
-            phone = contact[0].tel[0];
-        // Check which of the contacts phone we are using
+            phone = contact[0].tel[0],
+            carrierToShow = phone.carrier;
+        // Check which of the contacts phone number we are using
         for (var i = 0; i < contact[0].tel.length; i++) {
           if (contact[0].tel[i].value == number) {
             phone = contact[0].tel[i];
+            carrierToShow = phone.carrier;
           }
         }
+        // Add data values for contact activity interaction
+        self.title.dataset.isContact = true;
+
         if (name && name != '') { // contact with name
+          for (var i = 0; i < contact[0].tel.length; i++) {
+            if (contact[0].tel[i].value !== phone.value &&
+                contact[0].tel[i].type == phone.type &&
+                contact[0].tel[i].carrier == phone.carrier) {
+              carrierToShow = phone.value;
+            }
+          }
           self.title.innerHTML = name;
-          carrierTag.innerHTML =
-                  phone.type + ' | ' +
-                  (phone.carrier || _('carrier-unknown'));
-    // TODO check if contact has different numbers with same type and carrier
+          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
         } else { // no name of contact
           carrierTag.innerHTML = phone.type;
         }
@@ -1080,8 +1090,11 @@ var ThreadUI = {
                       function onsave(msg) {
                         var filter = MessageManager.createFilter(
                           message.receiver);
-                        MessageManager.getMessages(
-                          ThreadUI.renderMessages, filter);
+                        MessageManager.getMessages(function(messages) {
+                          ThreadUI.renderMessages(messages);
+                          MessageManager.getMessages(
+                            ThreadListUI.renderThreads);
+                        }, filter);
                     });
                 });
               });
@@ -1222,14 +1235,30 @@ var ThreadUI = {
   },
 
   activateContact: function thui_activateContact() {
-    try {
-      //TODO: We should provide correct params for contact activiy handler.
-      var activity = new MozActivity({
+    var options = {};
+    // Call to 'new' or 'view' depending on existence of contact
+    if (this.title.dataset.isContact == 'true') {
+      //TODO modify this when 'view' activity is available on contacts
+      // options = {
+      //   name: 'view',
+      //   data: {
+      //     type: 'webcontacts/contact'
+      //   }
+      // };
+    } else {
+      options = {
         name: 'new',
         data: {
-          type: 'webcontacts/contact'
+          type: 'webcontacts/contact',
+          params: {
+            'tel': this.title.dataset.phoneNumber
+          }
         }
-      });
+      };
+    }
+
+    try {
+      var activity = new MozActivity(options);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1282,3 +1311,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
+

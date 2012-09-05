@@ -39,21 +39,22 @@ var Bluetooth = {
         return;
       }
 
-      if (bluetooth.enabled == value)
-        return;
-
-      var req = bluetooth.setEnabled(value);
-      req.onsuccess = function bt_enabledSuccess() {
-        self.initDefaultAdapter();
-      };
-      req.onerror = function bt_enabledError() {
-        // roll back the setting value to notify the UIs
-        // that bluetooth has failed to enable.
-        settings.getLock().set({
-          'bluetooth.enabled': !value
-        });
-      };
+      self.hackForTest(value);
     });
+  },
+
+  //XXX hack due to the following bugs.
+  hackForTest: function(enabled) {
+    if (enabled) {
+      var bluetooth = window.navigator.mozBluetooth;
+      //XXX there is no "bluetooth.onenabled" callback can be hooked.
+      //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
+      if (!bluetooth.enabled) {
+        setTimeout(initDefaultAdapter, 5000);
+      } else {
+        initDefaultAdapter();
+      }
+    }
   },
 
   initDefaultAdapter: function bt_initDefaultAdapter() {

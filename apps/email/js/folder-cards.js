@@ -122,7 +122,6 @@ FolderPickerCard.prototype = {
 
     this.accountsContainer.classList.remove('show');
     this.foldersContainer.classList.add('show');
-    //Cards.tellCard(['folder-picker', 'navigation'], { account: account });
   },
 
   onShowHideAccounts: function() {
