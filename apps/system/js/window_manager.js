@@ -164,36 +164,179 @@ var WindowManager = (function() {
   // We're going to do two transitions, so it gets called twice.
   sprite.addEventListener('transitionend', function spriteTransition(e) {
     var prop = e.propertyName;
-    var classes = sprite.classList;
+    switch (sprite.className) {
+      case 'opening':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
 
-    if (sprite.className === 'open' && prop.indexOf('transform') != -1) {
-      openFrame.classList.add('active');
-      windows.classList.add('active');
+        openFrame.classList.add('active');
+        windows.classList.add('active');
 
-      classes.add('faded');
-      setTimeout(openCallback);
-    } else if (classes.contains('faded') && prop === 'opacity') {
+        sprite.className = 'opened';
+        break;
 
-      openFrame.setVisible(true);
-      openFrame.focus();
+      case 'opened':
+        openFrame.setVisible(true);
+        openFrame.focus();
 
-      // Dispatch a 'appopen' event,
-      // Modal dialog would use this.
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
-      openFrame.dispatchEvent(evt);
+        // Dispatch an 'appopen' event.
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
+        openFrame.dispatchEvent(evt);
 
-    } else if (classes.contains('close') && prop === 'color') {
-      closeFrame.classList.remove('active');
-      windows.classList.remove('active');
-    } else if (classes.contains('close') && prop.indexOf('transform') != -1) {
-      classes.remove('open');
-      classes.remove('close');
+        setTimeout(openCallback);
 
-      screenElement.classList.remove('fullscreen-app');
-      setTimeout(closeCallback);
+        sprite.style.background = '';
+        sprite.className = '';
+
+        break;
+
+      case 'closing':
+        closeFrame.classList.remove('active');
+        windows.classList.remove('active');
+
+        screenElement.classList.remove('fullscreen-app');
+
+        sprite.className = 'closed';
+        break;
+
+      case 'closed':
+        // transitionend will be called twice since we touched two properties.
+        // Only responsive to the property that takes the longest to transit
+        if (prop !== 'transform')
+          return;
+
+        setTimeout(closeCallback);
+
+        sprite.style.background = '';
+        sprite.className = '';
+
+        break;
     }
   });
+
+  // On-disk database for window manager.
+  // It's only for app screenshots right now.
+  var database = null;
+
+  (function openDatabase() {
+    var DB_VERSION = 1;
+    var DB_NAME = 'window_manager';
+
+    var req = window.indexedDB.open(DB_NAME, DB_VERSION);
+    req.onerror = function() {
+      console.error('Window Manager: opening database failed.');
+    };
+    req.onupgradeneeded = function databaseUpgradeneeded() {
+      database = req.result;
+
+      if (database.objectStoreNames.contains('screenshots'))
+        database.deleteObjectStore('screenshots');
+
+      var store =
+        database.createObjectStore('screenshots', { keyPath: 'origin' });
+    };
+
+    req.onsuccess = function databaseSuccess() {
+      database = req.result;
+    };
+  })();
+
+  function getAppScreenshot(origin, callback) {
+    if (!callback)
+      return;
+
+    var app = runningApps[origin];
+
+    if (!app.launchTime) {
+      // The frame is just being append and app content is just being loaded,
+      // let's get the screenshot from the database instead.
+      if (!database) {
+        console.warn(
+          'Window Manager: Neither database nor app frame is ' +
+          'ready for getting screenshot.');
+
+        callback();
+        return;
+      }
+
+      var req = database.transaction('screenshots')
+                .objectStore('screenshots').get(origin);
+      req.onsuccess = function() {
+        if (!req.result) {
+          console.log('Window Manager: No screenshot in database. ' +
+             'This is expected from a fresh installed app.');
+          callback();
+
+          return;
+        }
+
+        callback(req.result.screenshot);
+      }
+      req.onerror = function(evt) {
+        console.warn('Window Manager: get screenshot from database failed.');
+        callback();
+      };
+
+      return;
+    }
+
+    var req = app.frame.getScreenshot();
+
+    // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    var timer = setTimeout(function getScreenshotTimeout() {
+      console.warn('Window Manager: getScreenshot timeout.');
+      callback();
+    }, 500);
+
+    req.onsuccess = function(evt) {
+      clearTimeout(timer);
+      var result = evt.target.result;
+      callback(result);
+
+      // Save the screenshot to database
+      if (!database)
+        return;
+
+      var txn = database.transaction('screenshots', 'readwrite');
+      txn.onerror = function() {
+        console.warn(
+          'Window Manager: transaction error while trying to save screenshot.');
+      };
+      var store = txn.objectStore('screenshots');
+      var req = store.put({
+        origin: origin,
+        screenshot: result
+      });
+      req.onerror = function(evt) {
+        console.warn(
+          'Window Manager: put error while trying to save screenshot.');
+      };
+
+    };
+
+    req.onerror = function(evt) {
+      clearTimeout(timer);
+      console.warn('Window Manager: getScreenshot failed.');
+      callback();
+    };
+  }
+
+  function deleteAppScreenshot(origin) {
+    var txn = database.transaction('screenshots');
+    var store = txn.objectStore('screenshots');
+
+    store.delete(origin);
+  }
+
+  function afterPaint(callback) {
+    window.addEventListener('MozAfterPaint', function afterPainted() {
+      window.removeEventListener('MozAfterPaint', afterPainted);
+      setTimeout(callback);
+    });
+  }
 
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
@@ -212,7 +355,23 @@ var WindowManager = (function() {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
-      sprite.className = 'open';
+      // Get the screenshot of the app and put it on the sprite
+      // before starting the transition
+      sprite.className = 'before-open';
+      getAppScreenshot(origin, function(screenshot) {
+        if (!screenshot) {
+          sprite.className = 'opening';
+          return;
+        }
+
+        sprite.style.background = '#fff url(' + screenshot + ')';
+        // Make sure Gecko paint the sprite first
+        afterPaint(function() {
+
+          // Start the transition
+          sprite.className = 'opening';
+        });
+      });
     }
   }
 
@@ -232,9 +391,17 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // And begin the transition
-    sprite.classList.remove('faded');
-    sprite.classList.add('close');
+    // Get the screenshot of the app and put it on the sprite
+    // before starting the transition
+    sprite.className = 'before-close';
+    getAppScreenshot(origin, function(screenshot) {
+      sprite.style.background = '#fff url(' + screenshot + ')';
+      // Make sure Gecko paint the sprite first
+      afterPaint(function() {
+        // Start the transition
+        sprite.className = 'closing';
+      });
+    });
   }
 
   // Switch to a different app
@@ -302,6 +469,8 @@ var WindowManager = (function() {
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
+    // We would also need this to determined the freshness of the frame
+    // for making screenshots.
     if (newApp)
       runningApps[newApp].launchTime = Date.now();
 
@@ -336,11 +505,6 @@ var WindowManager = (function() {
       screen.mozUnlockOrientation();
     }
   }
-
-  var isOutOfProcessDisabled = false;
-  SettingsListener.observe('debug.oop.disabled', false, function(value) {
-    isOutOfProcessDisabled = value;
-  });
 
   function appendFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
@@ -403,8 +567,7 @@ var WindowManager = (function() {
       // Bluetooth is not remoted yet (bug 755943)
     ];
 
-    if (!isOutOfProcessDisabled &&
-        outOfProcessBlackList.indexOf(name) === -1) {
+    if (outOfProcessBlackList.indexOf(name) === -1) {
       // FIXME: content shouldn't control this directly
       frame.setAttribute('remote', 'true');
       console.info('%%%%% Launching', name, 'as remote (OOP)');
@@ -557,6 +720,8 @@ var WindowManager = (function() {
   // if the application is being uninstalled, we ensure it stop running here.
   window.addEventListener('applicationuninstall', function(e) {
     kill(e.detail.application.origin);
+
+    deleteAppScreenshot(e.detail.application.origin);
   });
 
   // Stop running the app with the specified origin
