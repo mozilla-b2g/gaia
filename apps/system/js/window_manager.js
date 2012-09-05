@@ -59,10 +59,6 @@ var WindowManager = (function() {
   // app we launch through web activity during boot
   var homescreen = null;
 
-  // Hold Home key for 1 second to bring up the app switcher.
-  // Should this be a setting?
-  var kLongPressInterval = 1000;
-
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
