@@ -17,28 +17,35 @@ contacts.Details = (function() {
       emailsTemplate,
       addressesTemplate,
       socialTemplate,
+      notesTemplate,
       isFbContact,
       editContactButton,
       cover,
       favoriteMessage,
       detailsInner,
-      TAG_OPTIONS;
+      TAG_OPTIONS,
+      dom,
+      fb,
+      Contacts;
 
-  var init = function cd_init() {
-    contactDetails = document.getElementById('contact-detail');
-    listContainer = document.getElementById('details-list');
-    star = document.getElementById('favorite-star');
-    detailsName = document.getElementById('contact-name-title');
-    orgTitle = document.getElementById('org-title');
-    birthdayTemplate = document.getElementById('birthday-template-#i#');
-    phonesTemplate = document.getElementById('phone-details-template-#i#');
-    emailsTemplate = document.getElementById('email-details-template-#i#');
-    addressesTemplate = document.getElementById('address-details-template-#i#');
-    socialTemplate = document.getElementById('social-template-#i#');
-    editContactButton = document.getElementById('edit-contact-button');
-    cover = document.getElementById('cover-img');
-    detailsInner = document.getElementById('contact-detail-inner');
-    favoriteMessage = document.getElementById('toggle-favorite').children[0];
+  var init = function cd_init(currentDom) {
+    Contacts = window.Contacts;
+    dom = currentDom || document;
+    contactDetails = dom.querySelector('#contact-detail');
+    listContainer = dom.querySelector('#details-list');
+    star = dom.querySelector('#favorite-star');
+    detailsName = dom.querySelector('#contact-name-title');
+    orgTitle = dom.querySelector('#org-title');
+    birthdayTemplate = dom.querySelector('#birthday-template-\\#i\\#');
+    phonesTemplate = dom.querySelector('#phone-details-template-\\#i\\#');
+    emailsTemplate = dom.querySelector('#email-details-template-\\#i\\#');
+    addressesTemplate = dom.querySelector('#address-details-template-\\#i\\#');
+    socialTemplate = dom.querySelector('#social-template-\\#i\\#');
+    editContactButton = dom.querySelector('#edit-contact-button');
+    cover = dom.querySelector('#cover-img');
+    detailsInner = dom.querySelector('#contact-detail-inner');
+    favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
     initPullEffect(cover);
     TAG_OPTIONS = {
       'phone-type' : [
@@ -61,6 +68,21 @@ contacts.Details = (function() {
         {value: _('work')}
       ]
     };
+  };
+
+  var setContactsObject = function cd_setContacts(contactsObject) {
+    Contacts = contactsObject;
+  }
+  var setContact = function cd_setContact(currentContact) {
+    contact = currentContact;
+  };
+
+  var setContainer = function cd_setContainer(container) {
+    listContainer = container;
+  };
+
+  var setFb = function cd_setContainer(fbManager) {
+    fb = fbManager;
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -103,9 +125,8 @@ contacts.Details = (function() {
   };
 
   var render = function cd_render(currentContact, tags) {
-    contact = currentContact;
+    contact = currentContact || contact;
     TAG_OPTIONS = tags || TAG_OPTIONS;
-
     isFbContact = fb.isFbContact(contact);
 
     // Initially enabled and only disabled if necessary
@@ -143,7 +164,6 @@ contacts.Details = (function() {
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
-
     renderFavorite();
     renderOrg();
     renderBday();
@@ -223,7 +243,7 @@ contacts.Details = (function() {
   };
 
   var renderOrg = function cd_renderOrg() {
-    if (contact.org && contact.org[0] != '') {
+    if (contact.org && contact.org.length > 0 && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
     } else {
@@ -332,7 +352,6 @@ contacts.Details = (function() {
     var title = document.createElement('h2');
     title.textContent = _('comments');
     container.appendChild(title);
-    var notesTemplate = document.getElementById('note-details-template-#i#');
     for (var i = 0; i < contact.note.length; i++) {
       var currentNote = contact.note[i];
       var noteField = {
@@ -365,7 +384,10 @@ contacts.Details = (function() {
 
   return {
     'init': init,
+    'setContact': setContact,
+    'setContactsObject': setContactsObject,
+    'setFb': setFb,
     'toggleFavorite': toggleFavorite,
     'render': render
-  }
+  };
 })();
