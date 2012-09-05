@@ -319,13 +319,8 @@ var ScreenManager = {
     }
 
     this.idleObserver.time = time;
-    // XXX: wrap addIdleObserver in try catch to workaround
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=781076
-    try {
-      navigator.addIdleObserver(this.idleObserver);
-    } catch (e) {
-      console.log(e);
-    }
+    navigator.addIdleObserver(this.idleObserver);
+    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
