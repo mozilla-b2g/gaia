@@ -456,6 +456,12 @@ suite('views/day_child', function() {
     var html = el.innerHTML;
     assert.ok(html);
 
+    assert.include(
+      html,
+      subject._formatHour('allday'),
+      'should have all day'
+    );
+
     for (; hour < 24; hour++) {
       assert.include(
         html,

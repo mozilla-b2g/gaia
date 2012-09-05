@@ -305,6 +305,7 @@ Calendar.ns('Views').DayChild = (function() {;
 
       if (this.renderAllHours) {
         var hour = 0;
+        this.createHour('allday');
         for (; hour < 24; hour++) {
           this.createHour(hour);
         }
