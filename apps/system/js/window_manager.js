@@ -59,6 +59,10 @@ var WindowManager = (function() {
   // app we launch through web activity during boot
   var homescreen = null;
 
+  // Screenshot in sprite -- to use, or not to use,
+  // that's the question.
+  var useScreenshotInSprite = false;
+
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
@@ -370,7 +374,7 @@ var WindowManager = (function() {
       getAppScreenshot(origin, function(screenshot, isCached) {
         sprite.dataset.mask = isCached;
 
-        if (!screenshot) {
+        if (!screenshot || !useScreenshotInSprite) {
           sprite.dataset.mask = false;
           sprite.className = 'opening';
           return;
@@ -409,7 +413,7 @@ var WindowManager = (function() {
     getAppScreenshot(origin, function(screenshot, isCached) {
       sprite.dataset.mask = isCached;
 
-      if (!screenshot) {
+      if (!screenshot || !useScreenshotInSprite) {
         sprite.dataset.mask = false;
         sprite.className = 'closing';
         return;
