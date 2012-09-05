@@ -220,6 +220,7 @@ button::-moz-focus-inner {
   height: -moz-calc(100% - 8rem);
   -moz-transition: height .15s ease-in;
   position: absolute;
+  width: 100%;
 }
 
 .view-body-inner {
