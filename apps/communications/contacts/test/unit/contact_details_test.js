@@ -41,7 +41,9 @@ var subject,
     TAG_OPTIONS,
     dom,
     fb,
-    Contacts;
+    Contacts,
+    realContacts,
+    realFb;
 
 function clone(object) {
   var newObj = {};
@@ -54,14 +56,16 @@ function clone(object) {
 suite('Render contact', function() {
 
   suiteSetup(function() {
+    realContacts = window.Contacts;
+    window.Contacts = MockContactsApp;
+    realFb = window.fb;
+    window.fb = MockFb;
     dom = document.createElement('section');
     dom.id = 'view-contact-details';
     dom.innerHTML = MockDetailsDom;
     container = dom.querySelector('#details-list');
     subject = contacts.Details;
-    subject.setFb(fb);
     subject.init(dom);
-    subject.setContactsObject(MockContacts);
     realL10n = navigator.mozL10n;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
@@ -80,6 +84,8 @@ suite('Render contact', function() {
   });
 
   suiteTeardown(function() {
+    window.Contacts = realContacts;
+    window.fb = realFb;
   });
 
   setup(function() {

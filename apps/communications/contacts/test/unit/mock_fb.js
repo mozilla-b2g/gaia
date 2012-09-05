@@ -1,15 +1,15 @@
 'use strict';
 
-var fb = {};
-fb.Contact = function(deviceContact, cid) {
+var MockFb = {};
+MockFb.Contact = function(deviceContact, cid) {
   this.deviceContact = deviceContact;
   this.cid = cid;
 };
 
-fb.isFbContact = function(contact) {
+MockFb.isFbContact = function(contact) {
     return false;
 };
 
-fb.isFbLinked = function(contact) {
+MockFb.isFbLinked = function(contact) {
     return false;
 };

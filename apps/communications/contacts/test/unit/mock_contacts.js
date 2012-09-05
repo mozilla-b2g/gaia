@@ -1,6 +1,6 @@
 'use strict';
 
-var MockContacts = {
+var MockContactsApp = {
   getLength: function(prop) {
     return prop.length;
   },

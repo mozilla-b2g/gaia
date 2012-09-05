@@ -24,13 +24,9 @@ contacts.Details = (function() {
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
-      dom,
-      fb,
-      Contacts;
+      dom;
 
   var init = function cd_init(currentDom) {
-    Contacts = window.Contacts;
-    fb = window.fb;
     dom = currentDom || document;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
@@ -71,19 +67,12 @@ contacts.Details = (function() {
     };
   };
 
-  var setContactsObject = function cd_setContacts(contactsObject) {
-    Contacts = contactsObject;
-  }
   var setContact = function cd_setContact(currentContact) {
     contact = currentContact;
   };
 
   var setContainer = function cd_setContainer(container) {
     listContainer = container;
-  };
-
-  var setFb = function cd_setContainer(fbManager) {
-    fb = fbManager;
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
@@ -383,8 +372,6 @@ contacts.Details = (function() {
   return {
     'init': init,
     'setContact': setContact,
-    'setContactsObject': setContactsObject,
-    'setFb': setFb,
     'toggleFavorite': toggleFavorite,
     'render': render
   };
