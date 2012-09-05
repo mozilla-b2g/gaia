@@ -61,6 +61,8 @@ var _charMap; // diacritics table (mapping diacritics to the base letter)
 var _start; // starting position of the trie in _dict
 var _nearbyKeys; // nearby keys for any given key
 var _currentWord = ''; // the word currently being edited
+var _delimiter = 32; // charcode for whitespace
+var _maxWordLength = 16;
 
 // Send a log message to the main thread since we can't output to the console
 // directly.
@@ -205,20 +207,26 @@ const LookupPrefix = (function() {
 
 // Generate an array of char codes from a word.
 function String2Codes(codes, word) {
-  for (var n = 0; n < codes.length; ++n)
+  for (var n = 0; n < word.length; ++n)
     codes[n] = word.charCodeAt(n);
+  codes[n] = _delimiter;
   return codes;
 }
 
 // Convert an array of char codes back into a string.
 function Codes2String(codes) {
-  return String.fromCharCode.apply(String, codes);
+  var n = 0;
+  var s = '';
+  while (codes[n] != _delimiter)
+    s += String.fromCharCode(codes[n++]);
+  return s;
 }
 
 // Map an array of codes to the base letters, eliminating any diacritics.
 function MapCodesToBaseLetters(codes) {
-  for (var n = 0; n < codes.length; ++n)
-    codes[n] = _charMap[codes[n]];
+  var n = 0;
+  while (codes[n] != _delimiter)
+    codes[n] = _charMap[codes[n++]];
   return codes;
 }
 
@@ -229,12 +237,14 @@ function Check(input, prefixes, candidates) {
   // you change one without the other this will break very badly.
   var h1 = 0;
   var h2 = 0xdeadbeef;
-  for (var n = 0; n < input.length; ++n) {
+  var n = 0;
+  while (input[n] != _delimiter) {
     var ch = input[n];
     h1 = h1 * 33 + ch;
     h1 = h1 & 0xffffffff;
     h2 = h2 * 73 ^ ch;
     h2 = h2 & 0xffffffff;
+    n++;
   }
   if (Filter(h1) && Filter(h2)) {
     var prefix = Codes2String(input);
@@ -251,8 +261,8 @@ function Check(input, prefixes, candidates) {
 
 // Generate all candidates with an edit distance of 1.
 function EditDistance1(input, prefixes, candidates) {
-  var length = input.length;
-  for (var n = 0; n < length; ++n) {
+  var n = 0;
+  while (input[n] != _delimiter) {
     var original = input[n];
     var nearby = _nearbyKeys[String.fromCharCode(original)];
     for (var i = 0; i < nearby.length; ++i) {
@@ -260,15 +270,14 @@ function EditDistance1(input, prefixes, candidates) {
       Check(input, prefixes, candidates);
     }
     input[n] = original;
+    n++;
   }
 }
 
 // Generate all candidates with an edit distance of 2.
 function EditDistance2(input, prefixes, candidates) {
-  var length = input.length;
-  if (length < 4)
-    return;
-  for (var n = 0; n < length; ++n) {
+  var n = 0;
+  while (input[n] != _delimiter) {
     var original = input[n];
     var nearby = _nearbyKeys[String.fromCharCode(original)];
     for (var i = 0; i < nearby.length; ++i) {
@@ -276,43 +285,50 @@ function EditDistance2(input, prefixes, candidates) {
       EditDistance1(input, prefixes, candidates);
     }
     input[n] = original;
+    n++;
   }
 }
 
 // Generate all candidates with a missing character.
 function Omission1Candidates(input, prefixes, candidates) {
-  var length = Math.min(input.length, _prefixLimit - 1);
-  var input2 = Uint32Array(length + 1);
-  for (var n = 1; n <= length; ++n) {
-    for (var i = 0; i < n; ++i)
-      input2[i] = input[i];
-    while (i < length)
-      input2[i + 1] = input[i++];
+  var input2 = Uint32Array(_maxWordLength);
+  var n, j, i;
+  n = 1;
+  while (input[n - 1] != _delimiter && n != _prefixLimit - 1) {
+    j = 0;
+    while (input[j - 1] != _delimiter && n != _prefixLimit - 1) {
+      i = j < n ? j : j + 1;
+      input2[i] = input[j++];
+    }
+    input2[i + 1] = _delimiter;
     for (var ch in _nearbyKeys) {
       input2[n] = ch.charCodeAt(0);
       Check(input2, prefixes, candidates);
     }
+    n++;
   }
 }
 
 // Generate all candidates with a single extra character.
 function Deletion1Candidates(input, prefixes, candidates) {
-  var length = input.length;
-  var input2 = Uint32Array(length - 1);
-  for (var n = 1; n < length; ++n) {
+  var input2 = Uint32Array(_maxWordLength);
+  var n = 1;
+  while (input[n] != _delimiter) {
     for (var i = 0; i < n; ++i)
       input2[i] = input[i];
     ++i;
-    while (i < length)
+    while (input[i] != _delimiter)
       input2[i - 1] = input[i++];
+    input2[i - 1] = _delimiter;
     Check(input2, prefixes, candidates);
+    n++;
   }
 }
 
 // Generate all candidates with neighboring letters swaped.
 function TranspositionCandidates(input, prefixes, candidates) {
-  var length = input.length;
-  for (var n = 1; n < length; ++n) {
+  var n = 0;
+  while (input[n] != _delimiter) {
     // Swap the current letter with the previous letter.
     var a = input[n - 1];
     var b = input[n];
@@ -322,13 +338,14 @@ function TranspositionCandidates(input, prefixes, candidates) {
     // Restore the original prefix.
     input[n - 1] = a;
     input[n] = b;
+    n++;
   }
 }
 
 const LevenshteinDistance = (function() {
   var s_matrix = [];
-  var s_a = Uint32Array(64);
-  var s_b = Uint32Array(64);
+  var s_a = Uint32Array(_maxWordLength);
+  var s_b = Uint32Array(_maxWordLength);
 
   return function(a, b) {
     var a_length = a.length;
@@ -338,13 +355,6 @@ const LevenshteinDistance = (function() {
       return b_length;
     if (!b_length)
       return a_length;
-
-    // Make sure the static typed arrays we use are long enough to hold the
-    // strings.
-    if (s_a.length < a_length)
-      s_a = Uint32Array(a_length);
-    if (s_b.length < b_length)
-      s_b = Uint32Array(b_length);
 
     // Convert both strings to base letters, eliminating all diacritics.
     a = MapCodesToBaseLetters(String2Codes(s_a, a));
@@ -440,16 +450,19 @@ function GetPrefix(word) {
 // hash them via the bloom filter.
 //
 function Predict(word) {
+  if (word.length >= _maxWordLength - 1)
+    return;
   // This is the list where we will collect all the candidate words.
   var candidates = [];
   // Check for the current input, edit distance 1 and 2 and single letter
   // omission and deletion in the prefix.
   var prefix = GetPrefix(word);
-  var input = String2Codes(new Uint32Array(prefix.length), prefix);
+  var input = String2Codes(new Uint32Array(prefix.length + 1), prefix);
   var prefixes = new Set();
   Check(input, prefixes, candidates);
   EditDistance1(input, prefixes, candidates);
-  EditDistance2(input, prefixes, candidates);
+  if (word.length > 3)
+    EditDistance2(input, prefixes, candidates);
   Omission1Candidates(input, prefixes, candidates);
   Deletion1Candidates(input, prefixes, candidates);
   TranspositionCandidates(input, prefixes, candidates);
