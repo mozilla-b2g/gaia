@@ -135,17 +135,17 @@ section[role="region"] > header:first-child a:active,
 section[role="region"] > header:first-child button:active,
 section[role="region"] > header:first-child a:focus,
 section[role="region"] > header:first-child button:focus {
-  outline: none!important;
-  border: none!important;
+  outline: none !important;
+  border: none !important;
 }
 
 section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
 section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
 section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
-  background: #008aaa!important;
+  background: #008aaa !important;
   transition: background 0.2s ease;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.2)!important;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Disabled state */
