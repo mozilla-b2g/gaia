@@ -22,6 +22,7 @@
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
   <link rel="stylesheet" type="text/css" href="style/views/settings.css">
   <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
   <link rel="stylesheet" type="text/css" href="style/views/balance.css">
@@ -138,7 +139,7 @@
     </section>
 
     <!-- The top up input -->
-    <section role="region" id="topup-view" class="view topup" data-viewport="bottom">
+    <section role="region" id="topup-view" class="view" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
            <button id="topup-send-button" data-l10n-id="send">Send</button>
@@ -160,6 +161,36 @@
       </section>
       <form>
         <input id="topup-code-input" type="number" autofocus></input>
+      </form>
+    </section>
+
+    <!-- Data usage limits -->
+    <section role="region" id="datalimits-view" class="view" data-viewport="bottom">
+      <header data-theme="organic">
+        <menu type="toolbar">
+           <button id="topup-send-button" data-l10n-id="send">Send</button>
+        </menu>
+        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
+        <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
+      </header>
+      <section class="content">
+        <div class="info">
+          <h2 data-l10n-id="enter-a-data-limit">Enter a mobile data usage limit</h2>
+          <p id="datalimit-explanation" data-l10n-id="datalimit-explanation">
+            Connection speeds reduces after limit.
+            <br/>
+            It will be used as a reference to check against actual mobile data usage.
+          </p>
+        </div>
+      </section>
+      <form class="buttons-list">
+        <button>
+          <span class="end launch"></span>
+          GB
+        </button>
+        <label for="topup-code-input">
+          <input id="topup-code-input" type="number" autofocus>
+        </label>
       </form>
     </section>
 
