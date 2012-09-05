@@ -50,7 +50,7 @@ Icon.prototype = {
     var icon = this.icon = document.createElement('div');
 
     // Image
-    var canvas = this.canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'presentation');
     canvas.width = 68;
     canvas.height = 68;
