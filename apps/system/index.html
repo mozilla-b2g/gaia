@@ -123,6 +123,10 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
+    <!-- include building blocks -->
+    <link rel="stylesheet" type="text/css" href="style/bb/menus_dialogs/core.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/menus_dialogs/value_selector/style.css">
+
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
 
@@ -313,38 +317,48 @@
 
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
-
-        <div class="table-wrapper">
-          <div class="table-cell">
-            <!-- overlay for select element -->
-            <div id="value-selector-container" onmousedown="return false;">
-            </div>
-
-            <!-- Time Picker -->
-            <div id="picker-bar" onmousedown="return false;">
-              <h3 data-l10n-id="select-time">Select time</h3>
-              <div id="picker-container">
-                <div id="value-indicator-bottom"></div>
-                <div id="picker-bar-background"></div>
-                <div class="left-picker-separator"></div>
-                <div id="value-indicator-wrapper">
-                  <div id="value-indicator-hover-time">:</div>
-                  <div id="value-indicator-hover"></div>
-                </div>
-                <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
-                <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
-                <div class="right-picker-separator"></div>
-                <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
-                <div id="picker-bar-gradient"></div>
-              </div>
-            </div>
+        <!-- popup of options for select element -->
+        <div id="select-option-popup" role="dialog">
+          <div id="value-selector-container" onmousedown="return false;">
+            <h3 data-l10n-id="choose-option">Choose your option</h3>
+            <ol role="listbox">
+            </ol>
+          </div>
+          <div id="select-options-buttons">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel-button">Cancel</button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
           </div>
         </div>
 
-          <div id="value-selector-buttons">
-            <button id="value-selector-cancel" data-l10n-id="cancel">Cancel</button>
-            <button id="value-selector-confirm" class="affirmative" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+        <!-- Time Picker -->
+        <div id="time-picker-popup" hidden>
+          <div class="table-wrapper">
+            <div class="table-cell">
+              <div id="picker-bar" onmousedown="return false;">
+                <h3 data-l10n-id="select-time">Select time</h3>
+                <div id="picker-container">
+                  <div id="value-indicator-bottom"></div>
+                  <div id="picker-bar-background"></div>
+                  <div class="left-picker-separator"></div>
+                  <div id="value-indicator-wrapper">
+                    <div id="value-indicator-hover-time">:</div>
+                    <div id="value-indicator-hover"></div>
+                  </div>
+                  <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
+                  <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
+                  <div class="right-picker-separator"></div>
+                  <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
+                  <div id="picker-bar-gradient"></div>
+                </div>
+              </div>
+            </div>
           </div>
+          <div id="time-picker-buttons">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel-button">Cancel</button>
+            <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </div>
+        </div>
+
       </div>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
