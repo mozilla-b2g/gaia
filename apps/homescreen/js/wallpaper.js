@@ -7,8 +7,10 @@
   wallpaper.onclick = function onWallpaperClick() {
     var a = new MozActivity({name: 'pick', data: {type: 'image/jpeg', preload: true}});
     a.onsuccess = function onWallpaperSuccess() {
+      console.log(a.result.filename,'====');
     };
     a.onerror = function onWallpaperError() {
+      console.warn('pick fial====');
     };
   };
 
