@@ -58,6 +58,7 @@ var WindowManager = (function() {
   // Holds the origin of the home screen, which should be the first
   // app we launch through web activity during boot
   var homescreen = null;
+  var homescreenURL = '';
 
   // Screenshot in sprite -- to use, or not to use,
   // that's the question.
@@ -428,12 +429,25 @@ var WindowManager = (function() {
     });
   }
 
+  // Ensure the homescreen is loaded and return its frame.  Restarts
+  // the homescreen app if it was killed in the background.
+  function ensureHomescreen() {
+    if (!isRunning(homescreen)) {
+      var app = Applications.getByOrigin(homescreen);
+      appendFrame(homescreen, homescreenURL,
+                  app.manifest.name, app.manifest, app.manifestURL);
+      setAppSize(homescreen);
+      openWindow(homescreen, null);
+    }
+    return runningApps[homescreen].frame;
+  }
+
   // Switch to a different app
   function setDisplayedApp(origin, callback, disposition) {
     var currentApp = displayedApp, newApp = origin || homescreen;
     disposition = disposition || 'window';
 
-    var homescreenFrame = runningApps[homescreen].frame;
+    var homescreenFrame = ensureHomescreen();
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -452,7 +466,7 @@ var WindowManager = (function() {
         // Move the homescreen into the background only
         // after the transition completes, since it's
         // visible during the transition.
-        if (!currentApp)
+        if (currentApp)
           homescreenFrame.setVisible(false);
 
         if (callback)
@@ -564,23 +578,17 @@ var WindowManager = (function() {
       //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
       // Keyboard doesn't show up correctly when app run OOP
       //   https://github.com/mozilla-b2g/gaia/issues/2656
-      // Layers masking across processes doesn't work
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=783106
 
       'Browser',
       // Requires nested content processes (bug 761935)
 
       'Cost Control',
-      // ?????
+      // Cross-process SMS (bug 775997)
 
       'E-Mail',
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
       // (bug 770778)
-
-      'Homescreen',
-      // - Repaints are being starved during panning (bug 761933)
-      // - Homescreen needs to draw the system wallpaper itself (#3639)
 
       'Image Uploader',
       // Cannot upload files when OOP
@@ -712,18 +720,22 @@ var WindowManager = (function() {
               frame.src = e.detail.url;
             }
           }
-        } else {
+        } else if (origin !== homescreen) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           appendFrame(origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
+        } else {
+          ensureHomescreen();
         }
 
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
         if (!homescreen) {
           homescreen = origin;
-          var frame = runningApps[homescreen].frame;
+          // Save the entry URL so that we can restart the homescreen
+          // later, if necessary.
+          homescreenURL = e.detail.url;
           return;
         }
 
