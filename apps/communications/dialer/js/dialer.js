@@ -18,7 +18,13 @@ var CallHandler = {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          this.startDial(number);
+          if (navigator.mozMobileConnection &&
+              navigator.mozMobileConnection.voice &&
+              navigator.mozMobileConnection.voice.emergencyCallsOnly) {
+            this.startDialEmergency(number);
+          } else {
+            this.startDial(number);
+          }
         } else {
           CustomDialog.show(
             _('callFlightModeTitle'),
@@ -64,6 +70,46 @@ var CallHandler = {
           };
           call.onconnected = cb;
           call.ondisconnected = cb;
+        }
+      }
+    }
+  },
+
+  startDialEmergency: function ch_startDial(number) {
+    if (this._isUSSD(number)) {
+      UssdManager.send(number);
+    } else {
+      var sanitizedNumber = number.replace(/-/g, '');
+      var telephony = window.navigator.mozTelephony;
+      if (telephony) {
+        var call = telephony.dialEmergency(sanitizedNumber);
+
+        if (call) {
+          var cb = function clearPhoneView() {
+            KeypadManager.updatePhoneNumber('');
+          };
+          call.onconnected = cb;
+          call.ondisconnected = cb;
+
+          call.onerror = function onerror(event) {
+            var erName = event.call.error.name, emgcyDialogBody;
+            if (erName === 'BadNumberError') {
+              emgcyDialogBody = 'emergencyDialogBodyBadNumber';
+            } else if (erName === 'DeviceNotAcceptedError') {
+              emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+            }
+
+            CustomDialog.show(
+              _('emergencyDialogTitle'),
+              _(emgcyDialogBody),
+              {
+                title: _('emergencyDialogBtnOk'),
+                callback: function() {
+                  CustomDialog.hide();
+                }
+              }
+            );
+          };
         }
       }
     }
