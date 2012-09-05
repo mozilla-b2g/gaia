@@ -7,11 +7,12 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
-    "mozbrowser",
+    "browser",
     "mozApps",
     "webapps",
     "device-storage",
-    "devicestorage"
+    "devicestorage",
+    "settings"
   ],
   "locales": {
     "ar": {
@@ -64,5 +65,17 @@
     }
   },
   "default_locale": "en-US",
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "activities": {
+    "save-bookmark": {
+      "filters": {
+        "type": "url"
+      }
+    },
+    "view": {
+      "filters": {
+        "type": "application/x-application-list"
+      }
+    }
+  }
 }

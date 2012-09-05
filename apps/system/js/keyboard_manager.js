@@ -31,23 +31,22 @@ var KeyboardManager = (function() {
     var app = WindowManager.getDisplayedApp();
 
     var currentApp, appHeight;
-    if (TrustedDialog.isVisible()) {
-      currentApp = TrustedDialog.getFrame();
-      appHeight = currentApp.getBoundingClientRect().height;
-
-    } else if (ModalDialog.isVisible()) {
+    if (ModalDialog.isVisible() || PopupManager.isVisible()) {
       // XXX: As system has no iframe, we calc the height separately
       currentApp = document.getElementById('dialog-overlay');
       appHeight = window.innerHeight;
 
     } else if (app) {
+      // XXX: The correct approach here should be firing keyboardchange
+      // for WindowManager to handle the resize, instead of exposing
+      // this internal method.
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
       appHeight = currentApp.getBoundingClientRect().height;
 
     } else {
-      console.error('There is no current application, nor trusted dialog ' +
-                    'nor modal dialog. The resize event is acting on nothing.');
+      console.error('There is no current application, nor modal dialog, ' +
+                    'nor popup. The resize event is acting on nothing.');
       return;
     }
 
@@ -55,6 +54,10 @@ var KeyboardManager = (function() {
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
+      // To reset dialog height
+      if (ModalDialog.isVisible() || PopupManager.isVisible())
+        currentApp.style.height = height + 'px';
+
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
       return;
@@ -75,20 +78,5 @@ var KeyboardManager = (function() {
       });
     }
   });
-
-  window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-    var currentType = evt.detail.type;
-    if (currentType.indexOf('select') == -1)
-      return;
-
-    switch (currentType) {
-      case 'select-one':
-      case 'select-multiple':
-        var event = document.createEvent('CustomEvent');
-        event.initCustomEvent('select', true, true, evt.detail);
-        window.dispatchEvent(event);
-        break;
-    }
-  };
 })();
 

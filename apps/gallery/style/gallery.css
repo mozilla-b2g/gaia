@@ -9,7 +9,7 @@ html {
 }
 
 body {
-  background-color: #000;
+  background-color: #444;
   color: #fff;
   font-family: "Open Sans", sans-serif;
   font-size: 20px;
@@ -33,17 +33,50 @@ body {
   overflow: hidden;
 }
 
-#nophotos {
-  margin: 0;
-  margin-top: 40%;
-  padding: 0;
+/*
+ * The overlay is where we display messages like Scanning, No Photos,
+ * No SD card and SD Card in Use along with instructions for resolving
+ * the issue.  The user can't interact with the app while the overlay
+ * is displayed.
+ */
+#overlay {
+  /* it takes up the whole screen */
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  text-align: center;
+  height: 100%;
+
+  /* almost transparent gray */
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * The overlay content area holds the text of the overlay.
+ * It has borders and a less transparent background so that
+ * the overlay text shows up more clearly
+ */
+#overlay-content {
+  margin-top: 30%;
+  margin-left: 10%;
+  margin-right: 10%;
+  padding: 10%;
+  border: solid black 4px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
   font-family: "Open Sans", sans-serif;
-  font-weight: bold;
-  font-size: 26px;
   color: #fff;
   -moz-user-select: none;
+}
+
+#overlay-title {
+  text-align: center;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+#overlay-text {
+  font-size: 18px;
 }
 
 
@@ -67,8 +100,7 @@ body {
   overflow-x: hidden;
   /* If we want to scroll up and down, then apparently we have to add */
   /* some extra width to keep the scrollbar offscreen */
-  width: -moz-calc(100% + 10px);
-  background-color: #000;
+  width: calc(100% + 10px);
 }
 
 .thumbnail {
@@ -175,12 +207,12 @@ body {
   height: 100%;
   padding: 0px;
   margin: 0px;
-  overflow: hidden;
 }
 
 .photoFrame {
   position: absolute;
   top: 0px;
+  left: 0px;
   width: 100%;
   height: 100%;
   padding: 0px;
@@ -189,34 +221,14 @@ body {
   -moz-user-select: none;
 }
 
-div.currentPhoto {
-  left: 0px;
-}
-
-/* the next photo is waiting in the wings just off to the right */
-/* We use 102% instead of 100% to give a small black border between photos */
-div.nextPhoto {
-  left: 102%;
-}
-
-/* In RTL languages, the next photo is off to the left */
-*[dir=rtl] div.nextPhoto {
-  left: -102%;
-}
-
-div.previousPhoto {
-  left: -102%;
-}
-
-*[dir=rtl] div.previousPhoto {
-  left: 102%;
-}
-
 .photoFrame > img {
+  top: 0px;  /* javascript modifies this position with a transform */
+  left: 0px;
   position: relative;
   border-width: 0px;
   padding: 0px;
   margin: 0px;
+  transform-origin: 0px 0px;
   pointer-events: none;
   -moz-user-select: none;
 }
@@ -297,7 +309,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionicon_cancel.png');
 }
 
 #thumbnails-number-selected {
@@ -359,7 +371,11 @@ a.button.disabled {
   width: 50px;
   height: 100%;
   right: 0;
-  background-image: url('images/gallery.png');
+  /*
+   * XXX
+   * The dialpad icon looks kind of like a  grid of thumbnail images
+   */
+  background-image: url('images/actionicon_dialpad.png');
 }
 
 
@@ -418,7 +434,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionicon_cancel.png');
 }
 
 #pick-header {
@@ -447,7 +463,7 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/cancel.png');
+  background-image: url('images/actionicon_cancel.png');
 }
 
 #edit-title {
@@ -468,19 +484,31 @@ a.button.disabled {
   width: 25%;
   height: 100%;
   right: 0;
+  background-image: url('images/actionicon_done.png');
 }
 
 #edit-preview-area {
   position: absolute;
-  top: 60px;     /* 10 pixel top margin */
-  bottom: 110px; /* 10 pixel bottom margin */
-  left: 10px;    /* 10 pixel left margin */
-  right: 10px;   /* 10 pixel right margin */
+  left: 0;
+  right: 0;
+  top: 50px;
+  bottom: 100px;
 }
 
-#edit-preview-image {
+#edit-preview-canvas {
   position: absolute;
-  /* size and position is set by js */
+  top: 10px;
+  left: 10px;
+  width: 300px;  /* I can't do right: 10px here. Bug? */
+  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
+}
+
+#edit-crop-canvas { 
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
 }
 
 #edit-options {
@@ -489,7 +517,7 @@ a.button.disabled {
   width: 100%;
   height: 50px;
   bottom: 50px;
-  background: #ccc;
+  background: #999;
 }
 
 /* All the effect options radio buttons share these styles */
@@ -536,23 +564,23 @@ a.button.disabled {
 
 #edit-crop-none {
   left: 0;
-  background-image: url('images/crop_original.png');
+  background-image: url('images/actionicon_undo.png');
 }
 #edit-crop-aspect-free {
   left: 20%;
-  background-image: url('images/crop_freeform.png');
+  background-image: url('images/actionicon_cropfree.png');
 }
 #edit-crop-aspect-portrait {
   left: 40%;
-  background-image: url('images/crop_portrait.png');
+  background-image: url('images/actionicon_crop23.png');
 }
 #edit-crop-aspect-landscape {
   left: 60%;
-  background-image: url('images/crop_landscape.png');
+  background-image: url('images/actionicon_crop32.png');
 }
 #edit-crop-aspect-square {
   left: 80%;
-  background-image: url('images/crop_square.png');
+  background-image: url('images/actionicon_crop11.png');
 }
 
 /* instead of using images inside the buttons above, just draw boxes */
@@ -613,8 +641,8 @@ a.filter-sepia {
 /* All the border buttons share these styles */
 #edit-border-options a.radio.button {
   position: absolute;
-  width: -moz-calc(20% - 6px);
-  height: -moz-calc(100% - 6px);
+  width: calc(20% - 6px);
+  height: calc(100% - 6px);
   top: 3px;
   padding: 0;
   background-size: cover;
@@ -628,23 +656,23 @@ a.filter-sepia {
 }
 
 #edit-border-none {
-  left: -moz-calc(0% + 3px);
+  left: calc(0% + 3px);
   border: 2px solid white;  
 }
 #edit-border-thin-white {
-  left: -moz-calc(20% + 3px);
+  left: calc(20% + 3px);
   border: 2px solid white;  
 }
 #edit-border-thick-white {
-  left: -moz-calc(40% + 3px);
+  left: calc(40% + 3px);
   border: 4px solid white;
 }
 #edit-border-thin-black {
-  left: -moz-calc(60% + 3px);
+  left: calc(60% + 3px);
   border: 2px solid black;  
 }
 #edit-border-thick-black {
-  left: -moz-calc(80% + 3px);
+  left: calc(80% + 3px);
   border: 4px solid black;  
 }
 
@@ -725,7 +753,7 @@ a.filter-sepia {
   width: 40px;
   height: 40px;
   top: -10px;
-  left: -moz-calc(10% - 20px);
+  left: calc(10% - 20px);
   border-radius: 50%;
   background-color: #eee;
   text-align: center;
@@ -762,23 +790,23 @@ a.filter-sepia {
 }
 
 #slider-3 {
-  left: -moz-calc(10% + 0 * 80%/6);
+  left: calc(10% + 0 * 80%/6);
 }
 #slider-2 {
-  left: -moz-calc(10% + 1 * 80%/6);
+  left: calc(10% + 1 * 80%/6);
 }
 #slider-1 {
-  left: -moz-calc(10% + 2 * 80%/6);
+  left: calc(10% + 2 * 80%/6);
 }
 #slider0 {
-  left: -moz-calc(10% + 3 * 80%/6);
+  left: calc(10% + 3 * 80%/6);
 }
 #slider1 {
-  left: -moz-calc(10% + 4 * 80%/6);
+  left: calc(10% + 4 * 80%/6);
 }
 #slider2 {
-  left: -moz-calc(10% + 5 * 80%/6);
+  left: calc(10% + 5 * 80%/6);
 }
 #slider3 {
-  left: -moz-calc(10% + 6 * 80%/6);
+  left: calc(10% + 6 * 80%/6);
 }

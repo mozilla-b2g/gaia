@@ -15,7 +15,8 @@ var MAIL_SERVICES = [
   {
     name: 'HotmaiL AccounT',
     l10nId: 'setup-hotmail-account',
-    domain: 'hotmail.com'
+    domain: 'hotmail.com',
+    hideDisplayName: true
   },
   {
     name: 'OtheR EmaiL',
@@ -34,6 +35,14 @@ var MAIL_SERVICES = [
  */
 function SetupPickServiceCard(domNode, mode, args) {
   this.domNode = domNode;
+
+  // The back button should only be enabled if there is at least one other
+  // account already in existence.
+  if (args.allowBack) {
+    var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
+    backButton.addEventListener('click', this.onBack.bind(this), false);
+    backButton.classList.remove('collapsed');
+  }
 
   this.servicesContainer =
     domNode.getElementsByClassName('sup-services-container')[0];
@@ -55,6 +64,13 @@ SetupPickServiceCard.prototype = {
 
       this.servicesContainer.appendChild(serviceNode);
     }
+  },
+
+  onBack: function(event) {
+    // nuke this card.
+    Cards.removeCardAndSuccessors(null, 'none');
+    // Trigger the startup logic again to show the already existing account.
+    App.showMessageViewOrSetup();
   },
 
   onServiceClick: function(serviceNode, event) {
@@ -94,11 +110,15 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.nameNode = this.domNode.getElementsByClassName('sup-info-name')[0];
   this.nameNode.setAttribute('placeholder',
                              mozL10n.get('setup-info-name-placeholder'));
+  if (args.serviceDef.hideDisplayName)
+    this.nameNode.classList.add('collapsed');
+
   this.emailNode = this.domNode.getElementsByClassName('sup-info-email')[0];
   this.emailNode.setAttribute('placeholder',
                               mozL10n.get('setup-info-email-placeholder'));
   // XXX this should maybe be a magic separate label?
   this.emailNode.value = args.serviceDef.domain;
+
   this.passwordNode =
     this.domNode.getElementsByClassName('sup-info-password')[0];
   this.passwordNode.setAttribute(
@@ -144,6 +164,8 @@ Cards.defineCardWithDefaultMode(
  * Show a spinner until success, or errors when there is failure.
  */
 function SetupProgressCard(domNode, mode, args) {
+  this.domNode = domNode;
+
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
 
@@ -224,7 +246,9 @@ SetupDoneCard.prototype = {
     // given that the user has an account now.
     Cards.pushCard(
       'setup-pick-service', 'default', 'immediate',
-      {});
+      {
+        allowBack: true
+      });
   },
   onShowMail: function() {
     // Nuke this card
@@ -325,7 +349,7 @@ SettingsMainCard.prototype = {
     var account;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        account = msgSlice.items[i];
+        account = this.acctsSlice.items[i];
         accountsContainer.removeChild(account.element);
       }
     }
@@ -385,7 +409,9 @@ SettingsMainCard.prototype = {
     Cards.removeCardAndSuccessors(null, 'none');
     Cards.pushCard(
       'setup-pick-service', 'default', 'immediate',
-      {});
+      {
+        allowBack: true
+      });
   },
 
   onClickSecretButton: function() {

@@ -7,7 +7,9 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "systemXHR"
+    "systemXHR",
+    "settings",
+    "tcp-socket"
   ],
   "locales": {
     "ar": {
@@ -66,7 +68,10 @@
   },
   "activities": {
     "new": {
-      "filters": "mail"
+      "filters": {
+        "type": "mail"
+      },
+      "disposition": "window"
     }
   }
 }

@@ -1,5 +1,4 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/calendar/abstract.js');
   requireLib('models/calendar.js');
 });
 
@@ -21,17 +20,17 @@ suite('models/calendar', function() {
 
     subject = new Calendar.Models.Calendar({
       name: 'foo',
-      provider: remoteCalendar
+      remote: remoteCalendar
     });
   });
 
   suite('initialization', function() {
 
-    test('when given a provider', function() {
+    test('when given a remote', function() {
       var date = new Date();
 
       subject = new CalendarModel({
-        provider: remoteCalendar,
+        remote: remoteCalendar,
         lastEventSyncToken: '0',
         lastEventSyncDate: date
       });
@@ -77,11 +76,13 @@ suite('models/calendar', function() {
   });
 
   test('#toJSON', function() {
+    subject._id = '1';
     var expected = {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
       localDisplayed: subject.localDisplayed,
       accountId: subject.accountId,
+      _id: subject._id,
       remote: subject.remote
     };
 
@@ -93,9 +94,18 @@ suite('models/calendar', function() {
     assert.equal(subject.name, 'foo');
   });
 
-  test('#color', function() {
-    subject.remote.color = '#ccc';
-    assert.equal(subject.color, '#ccc');
+  suite('#color', function() {
+
+    test('basic getter', function() {
+      subject.remote.color = '#ccc';
+      assert.equal(subject.color, '#ccc');
+    });
+
+    test('filter hex value', function() {
+      subject.remote.color = '#7BD148FF';
+      assert.equal(subject.color, '#7BD148');
+    });
+
   });
 
   test('#description', function() {

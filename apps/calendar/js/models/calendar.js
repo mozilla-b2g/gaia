@@ -13,11 +13,6 @@
         this[key] = options[key];
       }
     }
-
-    if (this.provider && !options.hasOwnProperty('remote')) {
-      this.updateRemote(this.provider);
-      delete this.provider;
-    }
   }
 
   Cal.prototype = {
@@ -40,6 +35,9 @@
 
     /**
      * Last date of event synchronization.
+     * This is not going to be used
+     * for any kind of serious operation
+     * right now this is just for the UI.
      *
      * @type {Date}
      */
@@ -95,6 +93,12 @@
     },
 
     get color() {
+      var color = this.remote.color;
+      if (color) {
+        if (color.substr(0, 1) === '#') {
+          return color.substr(0, 7);
+        }
+      }
       return this.remote.color;
     },
 
@@ -103,13 +107,19 @@
     },
 
     toJSON: function() {
-      return {
+      var result = {
         remote: this.remote,
         accountId: this.accountId,
         localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
         lastEventSyncToken: this.lastEventSyncToken
       };
+
+      if (this._id || this._id === 0) {
+        result._id = this._id;
+      }
+
+      return result;
     }
 
   };

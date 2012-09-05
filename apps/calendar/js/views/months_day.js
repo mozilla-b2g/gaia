@@ -1,30 +1,35 @@
 (function(window) {
   var template = Calendar.Templates.Day;
+  var OrderedMap = Calendar.OrderedMap;
 
   function Day(options) {
-    Calendar.View.apply(this, arguments);
+    Calendar.Views.DayBased.apply(this, arguments);
 
     this.controller = this.app.timeController;
-
     this._initEvents();
-  }
-
-  function getEl(selectorName, elName) {
-    var selector;
-    if (!this[elName]) {
-      selector = this[selectorName];
-      this[elName] = document.body.querySelector(selector);
-    }
-    return this[elName];
   }
 
   Day.prototype = {
 
-    __proto__: Calendar.View.prototype,
+    __proto__: Calendar.Views.DayBased.prototype,
 
     selectors: {
-      element: '#months-day-view'
+      element: '#months-day-view',
+      events: '#months-day-view .day-events',
+      header: '#months-day-view .day-title'
     },
+
+    /**
+     * Signifies the state of view.
+     * We increment the change token
+     * each time we switch days.
+     *
+     * This can be used to avoid race conditions
+     * by storing a reference to the token locally
+     * then comparing it with the global state of
+     * the view.
+     */
+    _changeToken: 0,
 
     /**
      * Hack this should be localized.
@@ -57,87 +62,229 @@
       'December'
     ],
 
-    headerSelector: '#selected-day-title',
-    eventsSelector: '#event-list',
-
     _initEvents: function() {
       var self = this;
-
-      this.controller.on('selectedDayChange', function() {
-        self._updateEvents();
-        self._updateHeader();
+      this.controller.on('selectedDayChange', this);
+      this.delegate(this.events, 'click', '[data-id]', function(e, target) {
+        Calendar.App.router.show('/event/' + target.dataset.id + '/');
       });
     },
 
-    eventsElement: function() {
-      return getEl.call(this, 'eventsSelector', '_eventsEl');
+    handleEvent: function(e) {
+      switch (e.type) {
+        case 'remove':
+          this.remove(e.data);
+          break;
+        case 'add':
+          this._loadRecords(e.data);
+          break;
+        case 'selectedDayChange':
+          this.changeDate(e.data[0]);
+          break;
+      }
     },
 
-    headerElement: function() {
-      return getEl.call(this, 'headerSelector', '_headerEl');
+    get header() {
+      return this._findElement('header');
     },
 
-    _updateHeader: function(date) {
-      date = date || this.controller.selectedDay;
+    get events() {
+      return this._findElement('events');
+    },
+
+    /**
+     * Changes the date the view cares about
+     * in reality we only manage one view at
+     * a time.
+     *
+     * @param {Date} date used to calculate events & range.
+     */
+    changeDate: function(date) {
+      this._resetHourCache();
+
+      ++this._changeToken;
+
+      var controller = this.controller;
+
+      if (this.timespan) {
+        controller.removeTimeObserver(
+          this.timespan,
+          this
+        );
+      }
+
+      this.date = Calendar.Calc.createDay(date);
+      this.timespan = Calendar.Calc.spanOfDay(date);
+
+      controller.observeTime(this.timespan, this);
+
+      // clear out all children
+      this.events.innerHTML = '';
+
+      this._updateHeader();
+      this._loadRecords(this.controller.queryCache(
+        this.timespan
+      ));
+    },
+
+    /**
+     * Starts the process of loading records for display.
+     *
+     * @param {Object|Array} busytimes list or single busytime.
+     */
+    _loadRecords: function(busytimes) {
+      // find all records for range.
+      // if change state is the same
+      // then run _renderDay(list)
+      var store = this.app.store('Event');
+
+      // keep local record of original
+      // token if this changes we know
+      // we have switched dates.
+      var token = this._changeToken;
+      var self = this;
+
+      store.findByAssociated(busytimes, function(err, list) {
+        if (self._changeToken !== token) {
+          // tokens don't match we don't
+          // care about these results anymore...
+          return;
+        }
+
+        list.forEach(function(pair) {
+          this.add(pair[0], pair[1]);
+        }, self);
+      });
+    },
+
+    _updateHeader: function() {
+      var date = this.date;
       var header = [
         this.dayNames[date.getDay()],
         this.monthNames[date.getMonth()],
         date.getDate()
       ].join(' ');
 
-      this.headerElement().textContent = header;
+      this.header.textContent = header;
     },
 
-    _renderDay: function(date) {
-      var events = this.app.store('Event'),
-          eventItems = events.eventsForDay(date),
-          self = this,
-          eventHtml = [],
-          groupsByHour = [];
+    _insertElement: function(html, element, records, idx) {
+      var el;
+      var len = records.length;
 
-      if (eventItems.length === 0) {
-        return '';
+      if (idx === 0) {
+        element.insertAdjacentHTML(
+          'afterbegin', html
+        );
+        el = element.firstChild;
+      } else {
+        var lastElement = records[idx - 1][1];
+        lastElement.element.insertAdjacentHTML(
+          'afterend', html
+        );
+        el = lastElement.element.nextElementSibling;
       }
 
-      var sorted = eventItems.sort(function(a, b) {
-        var aHour = a.date.getHours(),
-            bHour = b.date.getHours();
+      return el;
+    },
 
-        if (aHour === bHour) {
-          return 0;
+    _insertRecord: function(hour, busytime, event) {
+      hour = this.hours.get(hour);
+      var records = hour.records;
+
+      var len = records.length;
+      var idx = records.insertIndexOf(busytime._id);
+
+      var html = this._renderEvent(event);
+      var eventArea = hour.element.querySelector(
+        template.hourEventsSelector
+      );
+
+      var el = this._insertElement(
+        html, eventArea, records.items, idx
+      );
+
+      var calendarId = this.calendarId(busytime);
+      hour.flags.push(calendarId);
+      hour.element.classList.add(calendarId);
+
+      return { element: el };
+    },
+
+    _removeRecord: function(busytime) {
+      var fn = Calendar.Views.DayBased.prototype._removeRecord;
+
+      fn.call(this, busytime, function(id, hour, hourNumber) {
+        var calendarClass = this.calendarId(busytime);
+
+        var flags = hour.flags;
+        var record = hour.records.get(id);
+        var el = record.element;
+
+        // handle flags
+        // we need to remove them from the list
+        // then check again to see if there
+        // are any more...
+        var idx = flags.indexOf(calendarClass);
+
+        if (idx !== -1)
+          flags.splice(idx, 1);
+
+        // if after we have removed the flag there
+        // are no more we can remove the class
+        // from the element...
+        if (flags.indexOf(calendarClass) === -1) {
+          hour.element.classList.remove(calendarClass);
         }
 
-        if (aHour < bHour) {
-          return -1;
-        } else {
-          return 1;
-        }
+        el.parentNode.removeChild(el);
 
+        // if length is one then we are just
+        // about to delete this record so its
+        // the last one.
+        if (hour.records.length === 1) {
+          this.removeHour(hourNumber);
+        }
+      });
+    },
+
+    _removeHour: function(hour) {
+      var record = this.hours.get(hour);
+      var el = record.element;
+      el.parentNode.removeChild(el);
+    },
+
+    _insertHour: function(hour) {
+      this.hours.indexOf(hour);
+
+      var len = this.hours.items.length;
+      var idx = this.hours.insertIndexOf(hour);
+
+      var html = template.hour.render({
+        displayHour: this._formatHour(hour),
+        hour: String(hour)
       });
 
-      var lastHour,
-          batch = [];
+      var el = this._insertElement(
+        html,
+        this.events,
+        this.hours.items,
+        idx
+      );
 
-      sorted.forEach(function(item) {
-        var hour = item.date.getHours();
-
-        if (hour != lastHour) {
-          lastHour = hour;
-          if (batch.length > 0) {
-            eventHtml.push(self._renderEventsForHour(batch));
-            batch = [];
-          }
-        }
-
-        batch.push(item);
-      });
-
-      eventHtml.push(self._renderEventsForHour(batch));
-
-      return eventHtml.join('');
+      return {
+        element: el,
+        records: new OrderedMap(),
+        flags: []
+      };
     },
 
     _formatHour: function(hour) {
+      if (hour === Calendar.Calc.ALLDAY) {
+        //XXX: Localize
+        return Calendar.Calc.ALLDAY;
+      }
+
       newHour = hour;
       if (hour > 12) {
         var newHour = (hour - 12) || 12;
@@ -150,29 +297,22 @@
       }
     },
 
-    _renderEventsForHour: function(group) {
-      var eventHtml = [],
-          hour = group[0].date.getHours();
+    _renderEvent: function(object) {
+      var remote = object.remote;
+      var attendees;
 
-      group.forEach(function(item) {
-        eventHtml.push(this._renderEventDetails(item.event));
-      }.bind(this));
-
-      return template.hour.render({
-        hour: hour,
-        items: eventHtml.join('')
-      });
-    },
-
-    _renderEventDetails: function(object) {
-      var name = object.name,
-          location = object.location,
-          attendees = object.attendees;
+      if (object.remote.attendees) {
+        attendees = this._renderAttendees(
+          object.remote.attendees
+        );
+      }
 
       return template.event.render({
-        title: name,
-        location: location,
-        attendees: this._renderAttendees(attendees)
+        eventId: object._id,
+        calendarId: object.calendarId,
+        title: remote.title,
+        location: remote.location,
+        attendees: attendees
       });
     },
 
@@ -184,17 +324,9 @@
       return template.attendee.renderEach(list).join(',');
     },
 
-    _updateEvents: function(date) {
-      date = date || this.controller.selectedDay;
-      var html = this._renderDay(date);
-
-      this.eventsElement().innerHTML = html;
-    },
-
     render: function() {
-      var now = new Date();
-      this._updateHeader(now);
-      this._updateEvents(now);
+      var date = Calendar.Calc.createDay(new Date());
+      this.changeDate(date);
     }
 
   };

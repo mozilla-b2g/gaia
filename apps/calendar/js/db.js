@@ -1,12 +1,13 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 2;
+  const VERSION = 5;
 
   var store = {
     events: 'events',
     accounts: 'accounts',
-    calendars: 'calendars'
+    calendars: 'calendars',
+    busytimes: 'busytimes'
   };
 
   Object.freeze(store);
@@ -146,20 +147,51 @@
         db.deleteObjectStore(existingNames[i]);
       }
 
+      // busytimes has one event, has one calendar
+      var busytimes = db.createObjectStore(
+        store.busytimes,
+        { keyPath: '_id', autoIncrement: true }
+      );
+
+      busytimes.createIndex(
+        'end',
+        'end',
+        { unique: false, multiEntry: false }
+      );
+
+      busytimes.createIndex(
+        'eventId',
+        'eventId',
+        { unique: false, multiEntry: false }
+      );
+
       // events -> belongs to calendar
-      var events = db.createObjectStore(store.events);
+      var events = db.createObjectStore(
+        store.events,
+        { keyPath: '_id' }
+      );
 
       events.createIndex(
         'calendarId',
         'calendarId',
-        { unique: false, multientry: false }
+        { unique: false, multiEntry: false }
+      );
+
+      events.createIndex(
+        'occurs',
+        'remote.occurs',
+        { unique: false, multiEntry: true }
       );
 
       // accounts -> has many calendars
-      db.createObjectStore(store.accounts, { autoIncrement: true });
+      db.createObjectStore(
+        store.accounts, { keyPath: '_id', autoIncrement: true }
+      );
 
       // calendars -> has many events
-      db.createObjectStore(store.calendars, { autoIncrement: true });
+      db.createObjectStore(
+        store.calendars, { keyPath: '_id', autoIncrement: true }
+      );
     },
 
     get version() {

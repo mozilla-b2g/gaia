@@ -22,7 +22,9 @@
     var volume = currentVolume + delta;
     currentVolume = volume = Math.max(0, Math.min(10, volume));
 
+    var overlay = document.getElementById('system-overlay');
     var notification = document.getElementById('volume');
+    var overlayClasses = overlay.classList;
     var classes = notification.classList;
     if (volume == 0) {
       classes.add('vibration');
@@ -40,9 +42,11 @@
       }
     }
 
+    overlayClasses.add('volume');
     classes.add('visible');
     window.clearTimeout(activeTimeout);
     activeTimeout = window.setTimeout(function hideSound() {
+      overlayClasses.remove('volume');
       classes.remove('visible');
     }, 1500);
 

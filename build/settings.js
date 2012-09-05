@@ -1,15 +1,9 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-/* This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 
 'use strict';
 
-const SETTINGS_DEBUG = false;
 function debug(msg) {
-  if (SETTINGS_DEBUG)
-    dump("-*- Populate SettingsDB: " + msg + "\n");
+  //dump("-*- Populate SettingsDB: " + msg + "\n");
 }
 
 dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
@@ -18,10 +12,23 @@ dump("Populate settingsdb in:" + PROFILE_DIR + "\n");
 var settings = [
  new Setting("alarm.enabled", false),
  new Setting("accessibility.invert", false),
+ new Setting("accessibility.screenreader", false),
  new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
+ new Setting("costcontrol.credit.currency", "R$"),
+ new Setting("costcontrol.balance.destination", "8000"),
+ new Setting("costcontrol.balance.text", "SALDO"),
+ new Setting("costcontrol.balance.senders", "[\"1515\"]"),
+ new Setting("costcontrol.balance.regexp", "R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?"),
+ new Setting("costcontrol.topup.destination", "7000"),
+ new Setting("costcontrol.topup.text", "&code"),
+ new Setting("costcontrol.topup.senders", "[\"1515\",\"7000\"]"),
+ new Setting("costcontrol.topup.confirmation_regexp", "Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?"),
+ new Setting("costcontrol.topup.incorrect_code_regexp", "(Favor enviar|envie novamente|Verifique) o codigo de recarga"),
  new Setting("debug.grid.enabled", false),
+ new Setting("debug.oop.disabled", false),
  new Setting("debug.fps.enabled", false),
+ new Setting("debug.log-animations.enabled", false),
  new Setting("debug.paint-flashing.enabled", false),
  new Setting("devtools.debugger.force-local", true),
  new Setting("devtools.debugger.log", false),
@@ -57,6 +64,8 @@ var settings = [
  new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
+ new Setting("ril.data.httpProxyHost", ""),
+ new Setting("ril.data.httpProxyPort", 0),
  new Setting("ril.data.mmsc", ""),
  new Setting("ril.data.mmsproxy", ""),
  new Setting("ril.data.mmsport", 0),
@@ -67,25 +76,32 @@ var settings = [
  new Setting("screen.brightness", 1),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
+ new Setting("sms.blacklist", "[\"1515\"]"),
  new Setting("tethering.usb.enabled", false),
+ new Setting("tethering.usb.ip", "192.168.0.1"),
+ new Setting("tethering.usb.prefix", "24"),
+ new Setting("tethering.usb.dhcpserver.startip", "192.168.0.10"),
+ new Setting("tethering.usb.dhcpserver.endip", "192.168.0.30"),
  new Setting("tethering.wifi.enabled", false),
+ new Setting("tethering.wifi.ip", "192.168.1.1"),
+ new Setting("tethering.wifi.prefix", "24"),
+ new Setting("tethering.wifi.dhcpserver.startip", "192.168.1.10"),
+ new Setting("tethering.wifi.dhcpserver.endip", "192.168.1.30"),
+ new Setting("tethering.wifi.ssid", "FireFoxHotSpot"),
+ new Setting("tethering.wifi.security.type", "open"),
+ new Setting("tethering.wifi.security.password", "1234567890"),
  new Setting("tethering.wifi.connectedClients", 0),
  new Setting("tethering.usb.connectedClients", 0),
  new Setting("ums.enabled", false),
- new Setting("ums.mode", ""),
+ new Setting("ums.mode", 0),
  new Setting("wifi.enabled", true),
  new Setting("wifi.notification", false)
 ];
 
 // Disable the screen timeout in DEBUG mode
-if (DEBUG) {
-  dump("Note: screen.timeout has been set to 0 because of the debug mode.\n");
-  settings[settings.length] = new Setting("screen.timeout", 0);
-} else {
-  settings[settings.length] = new Setting("screen.timeout", 60);
-}
+settings.push(new Setting("screen.timeout", DEBUG ? 0 : 60));
 
-// Ensure there is no duplicate
+// Sanity check: Ensure there is no duplicate
 for (let i in settings) {
   var settingName = settings[i].name;
   for (let j in settings) {
@@ -108,64 +124,37 @@ function Setting(aName, aValue) {
   Setting.counter++;
 }
 
-(function registerProfileDirectory() {
 
-  let directoryProvider = {
-    getFile: function provider_getFile(prop, persistent) {
-      persistent.value = true;
-      debug("prop: " + prop);
-      if (prop != "ProfD" && prop != "ProfLDS") {
-        throw Cr.NS_ERROR_FAILURE;
-      }
-
-      let file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile)
-      file.initWithPath(PROFILE_DIR);
-      return file;
+(function writeSettingsToDatabase() {
+  let callback = {
+    handle : function handle(name, result) {
+      Setting.counter--;
     },
 
-    QueryInterface: function provider_queryInterface(iid) {
-      if (iid.equals(Ci.nsIDirectoryServiceProvider) ||
-          iid.equals(Ci.nsISupports)) {
-        return this;
-      }
-      throw Cr.NS_ERROR_NO_INTERFACE;
+    handleError : function handleError(name) {
+      dump("SettingsDB Error: " + name);
+      Setting.counter--;
     }
-  };
-
-  Cc["@mozilla.org/file/directory_service;1"]
-    .getService(Ci.nsIProperties)
-    .QueryInterface(Ci.nsIDirectoryService)
-    .registerProvider(directoryProvider);
-})();
-
-let settingsDBService = Cc["@mozilla.org/settingsService;1"].getService(Ci.nsISettingsService);
-
-let callback = {
-  handle : function handle(name, result)
-  {
-    Setting.counter--;
-  },
-
-  handleError : function handleError(name)
-  {
-    dump("SettingsDB Error: " + name);
-    Setting.counter--;
   }
-}
 
-let lock = settingsDBService.getLock();
+  let settingsDBService = Cc["@mozilla.org/settingsService;1"]
+                            .getService(Ci.nsISettingsService);
+  let lock = settingsDBService.getLock();
 
-for (let i in settings) {
-  debug("add seting: " + settings[i].name + ", " + settings[i].value);
-  lock.set(settings[i].name, settings[i].value, callback);
-}
+  for (let i in settings) {
+    debug("add seting: " + settings[i].name + ", " + settings[i].value);
+    lock.set(settings[i].name, settings[i].value, callback);
+  }
 
-var thread = Components.classes["@mozilla.org/thread-manager;1"]
-                       .getService(Components.interfaces.nsIThreadManager)
-                       .currentThread;
+  if (Gaia.engine === "xpcshell") {
+    var thread = Cc["@mozilla.org/thread-manager;1"]
+                   .getService(Ci.nsIThreadManager)
+                   .currentThread;
 
-while ((Setting.counter > 0) || thread.hasPendingEvents()) {
-  thread.processNextEvent(true);
-}
+    while ((Setting.counter > 0) || thread.hasPendingEvents()) {
+      thread.processNextEvent(true);
+    }
+  }
+})();
 
 dump("SettingsDB filled.\n");

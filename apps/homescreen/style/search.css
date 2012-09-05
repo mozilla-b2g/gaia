@@ -1,6 +1,5 @@
-#search div {
-  margin: 0 auto;
-  width: 32rem;
+#search {
+  text-align: left;
 }
 
 #searchAction {

@@ -22,6 +22,7 @@ var Browser = {
   previousScreen: null,
   currentScreen: this.PAGE_SCREEN,
 
+  DEFAULT_SEARCH_PROVIDER: 'm.bing.com',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
@@ -39,13 +40,14 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    window.addEventListener('submit', this);
     window.addEventListener('keyup', this, true);
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
-    this.bookmarkButton.addEventListener('click', this.bookmark.bind(this));
+    this.bookmarkButton.addEventListener('click',
+      this.showBookmarkMenu.bind(this));
+    this.urlBar.addEventListener('submit', this);
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
@@ -72,6 +74,20 @@ var Browser = {
       this.handleCloseTab.bind(this));
     this.tryReloading.addEventListener('click',
       this.handleTryReloading.bind(this));
+    this.bookmarkMenuAdd.addEventListener('click',
+      this.addBookmark.bind(this));
+    this.bookmarkMenuRemove.addEventListener('click',
+      this.removeBookmark.bind(this));
+    this.bookmarkMenuCancel.addEventListener('click',
+      this.hideBookmarkMenu.bind(this));
+    this.bookmarkMenuEdit.addEventListener('click',
+      this.showBookmarkEntrySheet.bind(this));
+    this.bookmarkMenuAddHome.addEventListener('click',
+      this.addLinkToHome.bind(this));
+    this.bookmarkEntrySheetCancel.addEventListener('click',
+      this.hideBookmarkEntrySheet.bind(this));
+    this.bookmarkEntrySheetDone.addEventListener('click',
+      this.saveBookmark.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -119,7 +135,11 @@ var Browser = {
       'bookmark-button', 'ssl-indicator', 'tabs-badge', 'throbber', 'frames',
       'tabs-list', 'main-screen', 'settings-button', 'settings-done-button',
       'about-firefox-button', 'clear-history-button', 'crashscreen',
-      'close-tab', 'try-reloading'];
+      'close-tab', 'try-reloading', 'bookmark-menu', 'bookmark-menu-add',
+      'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
+      'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
+      'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
+      'bookmark-previous-url', 'bookmark-menu-add-home'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -435,7 +455,7 @@ var Browser = {
     var protocol = protocolRegexp.exec(url);
 
     if (isSearch) {
-      return 'http://www.bing.com/search?q=' + url;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER + '/search?q=' + url;
     }
     if (!protocol) {
       return 'http://' + url;
@@ -482,19 +502,43 @@ var Browser = {
     this.currentTab.dom.goForward();
   },
 
-  bookmark: function browser_bookmark() {
-    // If no URL, can't create a bookmark
+  addBookmark: function browser_addBookmark(e) {
+    e.preventDefault();
     if (!this.currentTab.url)
       return;
-    // If bookmarked, unbookmark
-    if (this.bookmarkButton.classList.contains('bookmarked')) {
-      Places.removeBookmark(this.currentTab.url,
-        this.refreshBookmarkButton.bind(this));
-    // If not bookmarked, bookmark
-    } else {
-      Places.addBookmark(this.currentTab.url, this.currentTab.title,
-        this.refreshBookmarkButton.bind(this));
-    }
+    Places.addBookmark(this.currentTab.url, this.currentTab.title,
+      this.refreshBookmarkButton.bind(this));
+    this.hideBookmarkMenu();
+  },
+
+  removeBookmark: function browser_removeBookmark(e) {
+    e.preventDefault();
+    if (!this.currentTab.url)
+      return;
+    Places.removeBookmark(this.currentTab.url,
+      this.refreshBookmarkButton.bind(this));
+    this.hideBookmarkMenu();
+  },
+
+  showBookmarkMenu: function browser_showBookmarkMenu() {
+    this.bookmarkMenu.classList.remove('hidden');
+    if (!this.currentTab.url)
+      return;
+    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+      if (bookmark) {
+        this.bookmarkMenuAdd.parentNode.classList.add('hidden');
+        this.bookmarkMenuRemove.parentNode.classList.remove('hidden');
+        this.bookmarkMenuEdit.parentNode.classList.remove('hidden');
+      } else {
+        this.bookmarkMenuAdd.parentNode.classList.remove('hidden');
+        this.bookmarkMenuRemove.parentNode.classList.add('hidden');
+        this.bookmarkMenuEdit.parentNode.classList.add('hidden');
+      }
+    }).bind(this));
+  },
+
+  hideBookmarkMenu: function browser_hideBookmarkMenu() {
+    this.bookmarkMenu.classList.add('hidden');
   },
 
   refreshBookmarkButton: function browser_refreshBookmarkButton() {
@@ -507,6 +551,60 @@ var Browser = {
         this.bookmarkButton.classList.remove('bookmarked');
       }
     }).bind(this));
+  },
+
+  showBookmarkEntrySheet: function browser_showBookmarkEntrySheet() {
+    if (!this.currentTab.url)
+      return;
+    this.hideBookmarkMenu();
+    this.bookmarkEntrySheet.classList.remove('hidden');
+    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+      if (!bookmark) {
+        this.hideBookmarkEntrySheet();
+        return;
+      }
+      this.bookmarkTitle.value = bookmark.title;
+      this.bookmarkUrl.value = bookmark.uri;
+      this.bookmarkPreviousUrl.value = bookmark.uri;
+    }).bind(this));
+  },
+
+  hideBookmarkEntrySheet: function browser_hideBookmarkEntrySheet() {
+    this.bookmarkEntrySheet.classList.add('hidden');
+    this.bookmarkTitle.value = '';
+    this.bookmarkUrl.value = '';
+    this.bookmarkPreviousUrl.value = '';
+  },
+
+  saveBookmark: function browser_saveBookmark() {
+    var url = this.bookmarkUrl.value;
+    var title = this.bookmarkTitle.value;
+    var previousUrl = this.bookmarkPreviousUrl.value;
+    if (url != previousUrl) {
+      Places.removeBookmark(previousUrl, this.refreshBookmarkButton.bind(this));
+      Places.updateBookmark(url, title);
+    } else {
+      Places.updateBookmark(url, title);
+    }
+    this.hideBookmarkEntrySheet();
+  },
+
+  addLinkToHome: function browser_addLinkToHome() {
+    if (!this.currentTab.url)
+      return;
+
+    Places.getPlace(this.currentTab.url, (function(place) {
+      new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: this.currentTab.url,
+          name: this.currentTab.title,
+          icon: place.iconUri
+        }
+      });
+    }).bind(this));
+    this.hideBookmarkMenu();
   },
 
   refreshButtons: function browser_refreshButtons() {
@@ -951,11 +1049,10 @@ var Browser = {
       setTimeout(showTabCompleteFun, 100);
     });
 
-    // TODO: remove setTimeout
-    //   https://bugzilla.mozilla.org/show_bug.cgi?id=774642)
-    setTimeout(function() {
-      li.style.height = '';
-    }, 50);
+    // Hack to force transition to apply synchronously
+    // http://lists.w3.org/Archives/Public/www-style/2011Mar/0729.html
+    li.clientTop;
+    li.style.height = '';
   },
 
   hideCurrentTab: function browser_hideCurrentTab() {
@@ -1042,7 +1139,7 @@ var Browser = {
     var ul = document.createElement('ul');
 
     for each(var tab in this.tabs) {
-      var li = this.generateTabLi(tab);
+      var li = this.generateTabLi(tab, multipleTabs);
       ul.appendChild(li);
     }
 
@@ -1054,13 +1151,21 @@ var Browser = {
     this.inTransition = false;
   },
 
-  generateTabLi: function browser_generateTabLi(tab) {
+  generateTabLi: function browser_generateTabLi(tab, multipleTabs) {
     var title = tab.title || tab.url || _('new-tab');
     var a = document.createElement('a');
     var li = document.createElement('li');
     var span = document.createElement('span');
     var preview = document.createElement('div');
     var text = document.createTextNode(title);
+
+    if (multipleTabs) {
+      var close = document.createElement('button');
+      close.appendChild(document.createTextNode('✕'));
+      close.classList.add('close');
+      close.setAttribute('data-id', tab.id);
+      a.appendChild(close);
+    }
 
     a.setAttribute('data-id', tab.id);
     preview.classList.add('preview');
@@ -1166,14 +1271,23 @@ var Browser = {
 
     mousedown: function tabSwipe_mousedown(e) {
       e.preventDefault();
-      this.tab = e.target;
+
+      this.isCloseButton = e.target.nodeName === 'BUTTON';
+      this.tab = this.isCloseButton ? e.target.parentNode : e.target;
       this.id = this.tab.getAttribute('data-id');
       this.containerWidth = this.tab.parentNode.clientWidth;
+
+      if (this.isCloseButton) {
+        e.stopPropagation();
+        return;
+      }
+
       // We cant delete the last tab
       this.deleteable = Object.keys(this.browser.tabs).length > 1;
       if (!this.deleteable || this.browser.inTransition) {
         return;
       }
+
       this.tab.classList.add('active');
       this.tab.style.MozTransition = '';
       this.tab.style.position = 'absolute';
@@ -1196,6 +1310,14 @@ var Browser = {
       if (this.browser.inTransition) {
         return;
       }
+      if (this.isCloseButton) {
+        this.tab.style.position = 'absolute';
+        this.tab.style.left = '0px';
+        this.tab.style.width = this.containerWidth + 'px';
+        this.deleteTab(100, this.containerWidth);
+        return;
+      }
+
       this.browser.selectTab(this.id);
       this.browser.showPageScreen();
     },
@@ -1233,6 +1355,8 @@ var Browser = {
       var browser = this.browser;
       var id = this.id;
       var li = this.tab.parentNode;
+      var self = this;
+
       // First animate the tab offscreen
       this.tab.addEventListener('transitionend', function() {
         // Then animate the space dissapearing
@@ -1240,11 +1364,21 @@ var Browser = {
           // Then delete everything
           browser.deleteTab(id);
           li.parentNode.removeChild(li);
+
+          if (Object.keys(self.browser.tabs).length === 1) {
+            var closeButtons = document.getElementsByClassName('close');
+            Array.forEach(closeButtons, function(el) {
+              el.parentNode.removeChild(el);
+            });
+          }
+
         }, true);
         li.style.MozTransition = 'height ' + 100 + 'ms linear';
         li.style.height = '0px';
       }, true);
+
       this.tab.style.MozTransition = 'left ' + time + 'ms linear';
+      this.tab.clientTop;
       this.tab.style.left = offset + 'px';
     }
   },

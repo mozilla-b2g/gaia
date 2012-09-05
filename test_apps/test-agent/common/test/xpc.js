@@ -1,3 +1,6 @@
+var env = window.xpcModule.require('env');
+var reporter = env.get('REPORTER') || 'Spec';
+
 window.parent = window;
 window.location.host = 'localhost';
 
@@ -23,7 +26,6 @@ Common = window.CommonResourceLoader = {
 
 
 require('/common/vendor/mocha/mocha.js');
-require('/common/vendor/marionette-client/marionette.js');
 process.stdout.write = window.xpcDump;
 
 //Hack to format errors
@@ -84,20 +86,37 @@ mocha.reporters.Base.list = function(failures) {
 };
 
 
+if (!(reporter in mocha.reporters)) {
+  var reporters = Object.keys(mocha.reporters);
+  var idx = reporters.indexOf('Base');
 
-mocha.setup({
-  ui: 'tdd',
-  reporter: mocha.reporters.Spec
-});
+  if (idx !== -1) {
+    reporters.splice(idx, 1);
+  }
 
-require('helper.js');
+  var allowed = reporters.join(',\t\n');
+  console.log('Error running integration tests:\n');
 
-window.xpcArgv.forEach(function(test) {
-  require(test);
-});
+  console.log(
+    'Invalid REPORTER "' + reporter + '" set use one of:\n' +
+    allowed
+  );
 
-mocha.run(function() {
-  window.xpcEventLoop.stop();
-});
+} else {
+  mocha.setup({
+    ui: 'tdd',
+    reporter: mocha.reporters[reporter]
+  });
 
-window.xpcEventLoop.start();
+  require('integration_helper.js')
+
+  window.xpcArgv.slice(2).forEach(function(test) {
+    require(test);
+  });
+
+  mocha.run(function() {
+    window.xpcEventLoop.stop();
+  });
+
+  window.xpcEventLoop.start();
+}

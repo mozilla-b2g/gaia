@@ -1,147 +1,94 @@
 
-// XXX Remove all the permission parts here once bug 774716 is resolved
+'use strict';
 
-let permissions = {
-  "power": {
-    "urls": [],
-    "pref": "dom.power.whitelist"
-  },
-  "sms": {
-    "urls": [],
-    "pref": "dom.sms.whitelist"
-  },
-  "contacts": {
-    "urls": [],
-    "pref": "dom.mozContacts.whitelist"
-  },
-  "telephony": {
-    "urls": [],
-    "pref": "dom.telephony.app.phone.url"
-  },
-  "mozBluetooth": {
-    "urls": [],
-    "pref": "dom.mozBluetooth.whitelist"
-  },
-  "voicemail": {
-    "urls": [],
-    "pref": "dom.voicemail.whitelist"
-  },
-  "mozbrowser": {
-    "urls": [],
-    "pref": "dom.mozBrowserFramesWhitelist"
-  },
-  "mozApps": {
-    "urls": [],
-    "pref": "dom.mozApps.whitelist"
-  },
-  "mobileconnection": {
-    "urls": [],
-    "pref": "dom.mobileconnection.whitelist"
-  },
-  "mozFM": {
-    "urls": [],
-    "pref": "dom.mozFMRadio.whitelist"
-  },
-  "systemXHR": {
-    "urls": [],
-    "pref": "dom.systemXHR.whitelist"
-  },
-};
-
-let content = "";
+const prefs = [];
 
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
-content += "user_pref(\"browser.manifestURL\",\"" + homescreen + "/manifest.webapp\");\n\n";
+prefs.push(["browser.manifestURL", homescreen + "/manifest.webapp"]);
 if (homescreen.substring(0,6) == "app://") { // B2G bug 773884
     homescreen += "/index.html";
 }
-content += "user_pref(\"browser.homescreenURL\",\"" + homescreen + "\");\n";
+prefs.push(["browser.homescreenURL", homescreen]);
 
-let privileges = [];
 let domains = [];
 domains.push(GAIA_DOMAIN);
 
 Gaia.webapps.forEach(function (webapp) {
-  let manifest = webapp.manifest;
-  let rootURL = webapp.url;
-
-  privileges.push(rootURL);
   domains.push(webapp.domain);
-
-  let perms = manifest.permissions;
-  if (perms) {
-    for each(let name in perms) {
-      if (!permissions[name])
-        continue;
-
-      permissions[name].urls.push(rootURL);
-
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony') {
-        permissions[name].urls.push(rootURL + '/index.html');
-
-        if (manifest.background_page)
-          permissions[name].urls.push(rootURL + manifest.background_page);
-        if (manifest.attention_page)
-          permissions[name].urls.push(rootURL + manifest.attention_page);
-      }
-    }
-  }
 });
 
 
-//XXX: only here while waiting for https://bugzilla.mozilla.org/show_bug.cgi?id=764718 to be fixed
-content += "user_pref(\"dom.allow_scripts_to_close_windows\", true);\n\n";
-
 // Probably wont be needed when https://bugzilla.mozilla.org/show_bug.cgi?id=768440 lands
-content += "user_pref(\"dom.send_after_paint_to_content\", true);\n\n";
+prefs.push(["dom.send_after_paint_to_content", true]);
 
-content += "user_pref(\"b2g.privileged.domains\", \"" + privileges.join(",") + "\");\n\n";
-content += "user_pref(\"network.http.max-connections-per-server\", 15);\n\n";
+prefs.push(["network.http.max-connections-per-server", 15]);
 
 if (LOCAL_DOMAINS) {
-  content += "user_pref(\"network.dns.localDomains\", \"" + domains.join(",") + "\");\n";
-}
-
-for (let name in permissions) {
-  let perm = permissions[name];
-  content += "user_pref(\"" + perm.pref + "\",\"" + perm.urls.join(",") + "\");\n";
+  prefs.push(["network.dns.localDomains", domains.join(",")]);
 }
 
 if (DEBUG) {
-  content += "\n";
-  content += "user_pref(\"marionette.defaultPrefs.enabled\", true);\n";
-  content += "user_pref(\"b2g.remote-js.enabled\", true);\n";
-  content += "user_pref(\"b2g.remote-js.port\", 4242);\n";
-  content += "user_pref(\"javascript.options.showInConsole\", true);\n";
-  content += "user_pref(\"nglayout.debug.disable_xul_cache\", true);\n";
-  content += "user_pref(\"browser.dom.window.dump.enabled\", true);\n";
-  content += "user_pref(\"javascript.options.strict\", true);\n";
-  content += "user_pref(\"dom.report_all_js_exceptions\", true);\n";
-  content += "user_pref(\"nglayout.debug.disable_xul_fastload\", true);\n";
-  content += "user_pref(\"extensions.autoDisableScopes\", 0);\n";
-  content += "user_pref(\"browser.startup.homepage\", \"" + homescreen + "\");\n";
+  prefs.push(["marionette.defaultPrefs.enabled", true]);
+  prefs.push(["b2g.remote-js.enabled", true]);
+  prefs.push(["b2g.remote-js.port", 4242]);
+  prefs.push(["javascript.options.showInConsole", true]);
+  prefs.push(["nglayout.debug.disable_xul_cache", true]);
+  prefs.push(["browser.dom.window.dump.enabled", true]);
+  prefs.push(["javascript.options.strict", true]);
+  prefs.push(["dom.report_all_js_exceptions", true]);
+  prefs.push(["nglayout.debug.disable_xul_fastload", true]);
+  prefs.push(["extensions.autoDisableScopes", 0]);
+  prefs.push(["browser.startup.homepage", homescreen]);
 
-  content += "user_pref(\"dom.mozBrowserFramesEnabled\", true);\n";
-  content += "user_pref(\"b2g.ignoreXFrameOptions\", true);\n";
-  content += "user_pref(\"dom.sms.enabled\", true);\n";
-  content += "user_pref(\"dom.mozContacts.enabled\", true);\n";
-  content += "user_pref(\"dom.mozSettings.enabled\", true);\n";
-  content += "user_pref(\"device.storage.enabled\", true);\n";
+  prefs.push(["dom.mozBrowserFramesEnabled", true]);
+  prefs.push(["b2g.ignoreXFrameOptions", true]);
+  prefs.push(["dom.sms.enabled", true]);
+  prefs.push(["dom.mozContacts.enabled", true]);
+  prefs.push(["dom.mozSettings.enabled", true]);
+  prefs.push(["device.storage.enabled", true]);
+  prefs.push(["devtools.chrome.enabled", true]);
+  prefs.push(["webgl.verbose", true]);
 
   // Preferences for httpd
   // (Use JSON.stringify in order to avoid taking care of `\` escaping)
-  content += "user_pref(\"extensions.gaia.dir\", " + JSON.stringify(GAIA_DIR) + ");\n";
-  content += "user_pref(\"extensions.gaia.domain\", " + JSON.stringify(GAIA_DOMAIN) + ");\n";
-  content += "user_pref(\"extensions.gaia.port\", "+ GAIA_PORT.replace(/:/g, "") + ");\n";
-  content += "user_pref(\"extensions.gaia.app_src_dirs\", " + JSON.stringify(GAIA_APP_SRCDIRS) + ");\n";
-  content += "user_pref(\"extensions.gaia.app_relative_path\", " + JSON.stringify(GAIA_APP_RELATIVEPATH) + ");\n";
-  content += "user_pref(\"extensions.gaia.locales_path\", " + JSON.stringify(GAIA_LOCALES_PATH) + ");\n";
-
-  content += "\n";
+  prefs.push(["extensions.gaia.dir", GAIA_DIR]);
+  prefs.push(["extensions.gaia.domain", GAIA_DOMAIN]);
+  prefs.push(["extensions.gaia.port", parseInt(GAIA_PORT.replace(/:/g, ""))]);
+  prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
+  prefs.push(["extensions.gaia.locales_path", GAIA_LOCALES_PATH]);
+  let appPathList = [];
+  Gaia.webapps.forEach(function (webapp) {
+    appPathList.push(webapp.sourceAppDirectoryName + '/' +
+                     webapp.sourceDirectoryName);
+  });
+  prefs.push(["extensions.gaia.app_relative_path", appPathList.join(' ')]);
 }
 
-let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
-writeContent(userJs, content);
-dump("\n" + content);
+function writePrefs() {
+  let userJs = getFile(GAIA_DIR, 'profile', 'user.js');
+  let content = prefs.map(function (entry) {
+    return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
+  }).join('\n');
+  writeContent(userJs, content + "\n");
+  dump("\n" + content + "\n");
+}
 
+function setPrefs() {
+  prefs.forEach(function(entry) {
+    if (typeof entry[1] == "string") {
+      Services.prefs.setCharPref(entry[0], entry[1]);
+    } else if (typeof entry[1] == "boolean") {
+      Services.prefs.setBoolPref(entry[0], entry[1]);
+    } else if (typeof entry[1] == "number") {
+      Services.prefs.setIntPref(entry[0], entry[1]);
+    } else {
+      throw new Error("Unsupported pref type: " + typeof entry[1]);
+    }
+  });
+}
+
+if (Gaia.engine === "xpcshell") {
+  writePrefs();
+} else if (Gaia.engine === "b2g") {
+  setPrefs();
+}

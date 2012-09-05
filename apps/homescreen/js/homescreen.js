@@ -13,12 +13,10 @@ const Homescreen = (function() {
   PaginationBar.init('.paginationScroller');
 
   function initUI() {
-    // Initialize the dock
-    DockManager.init(document.querySelector('#footer'));
-
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage(0);
+      GridManager.goToPage(GridManager.landingPageIndex);
+      DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
       DragDropManager.init();
 
@@ -30,20 +28,22 @@ const Homescreen = (function() {
     });
   }
 
-  // XXX Currently the home button communicate only with the
-  // system application. It should be an activity that will
-  // use the system message API.
+  function onHomescreenActivity() {
+    if (Homescreen.isInEditMode()) {
+      Homescreen.setMode('normal');
+      GridManager.saveState();
+      DockManager.saveState();
+      Permissions.hide();
+    } else if (GridManager.pageHelper.getCurrentPageNumber() !==
+                 GridManager.landingPageIndex) {
+      GridManager.goToPage(GridManager.landingPageIndex);
+    }
+  }
+
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (Homescreen.isInEditMode()) {
-          Homescreen.setMode('normal');
-          GridManager.saveState();
-          DockManager.saveState();
-          Permissions.hide();
-        } else if (GridManager.pageHelper.getCurrentPageNumber() !== 0) {
-          GridManager.goToPage(0);
-        }
+        onHomescreenActivity();
         break;
     }
   });
@@ -62,19 +62,17 @@ const Homescreen = (function() {
     Applications.addEventListener('ready', initUI);
   }
 
-  HomeState.init(function success(onUpgradeNeeded) {
-    if (!onUpgradeNeeded) {
+  function loadBookmarks() {
+    HomeState.getBookmarks(function(bookmarks) {
+      bookmarks.forEach(function(bookmark) {
+        Applications.addBookmark(bookmark);
+      });
       start();
-      return;
-    }
+    }, start);
+  }
 
-    // First time the database is empty -> Dock by default
-    var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
-    var protocol = window.location.protocol;
-    appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-      return protocol + '//' + name + '.' + domain;
-    });
-    HomeState.saveShortcuts(appsInDockByDef, start, start);
+  HomeState.init(function success(onUpgradeNeeded) {
+    loadBookmarks();
   }, start);
 
   // Listening for installed apps
@@ -90,6 +88,29 @@ const Homescreen = (function() {
       GridManager.uninstall(app);
     }
   });
+
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('activity',
+      function handleActivity(activity) {
+        var data = activity.source.data;
+
+        // issue 3457: Implement a UI when saving bookmarks to the homescreen
+        switch (data.type) {
+          case 'url':
+            HomeState.saveBookmark(data,
+              function home_okInstallBookmark() {
+                Applications.installBookmark(new Bookmark(data));
+              },
+              function home_errorInstallBookmark(code) {
+                console.error('Error saving bookmark ' + code);
+            });
+            break;
+          case 'application/x-application-list':
+            onHomescreenActivity();
+            break;
+        }
+      });
+  }
 
   return {
     /*

@@ -9,10 +9,12 @@
   "permissions": [
     "mobileconnection",
     "mozBluetooth",
+    "bluetooth",
     "device-storage",
     "devicestorage",
-    "websettings-readwrite",
-    "settings"
+    "settings",
+    "wifi-manage",
+    "wifi"
   ],
   "activities": {
     "configure": {

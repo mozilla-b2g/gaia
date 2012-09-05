@@ -2,13 +2,13 @@
 
   var Cal = Calendar.Template.create({
     item: [
-      '<li id="calendar-{_id}" data-id="{_id}">',
+      '<li id="calendar-{_id}" class="calendar-id-{_id}">',
+        '<div class="calendar-color"></div>',
         '<label>',
           '<span class="name">{name}</span>',
           '<input ',
+            'value="{_id}" ',
             'type="checkbox" ',
-            // this is temp until toggle actually works
-            'disabled="disabled" ',
             '{localDisplayed|bool=checked} />',
           '<span></span>',
         '</label>',

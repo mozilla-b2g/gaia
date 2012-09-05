@@ -27,7 +27,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
 
 ApplicationMock.prototype = {
   launch: function _launch(startPoint) {
-    this.app.launch(this.entry_point + this.manifest.launch_path);
+    this.app.launch(this.entry_point);
   },
 
   uninstall: function _uninstall() {
@@ -113,7 +113,11 @@ var Applications = (function() {
    * Returns all installed applications
    */
   function getAll() {
-    return installedApps;
+    var applications = [];
+    for (var app in installedApps) {
+      applications.push(installedApps[app]);
+    }
+    return applications;
   };
 
   function addEventListener(type, callback) {
@@ -183,7 +187,7 @@ var Applications = (function() {
     return protocol + '//' + name + '.' + domain;
   });
 
-  coreApplications.push('https://marketplace.mozilla.org');
+  coreApplications.push('https://marketplace.mozilla.org/telefonica/');
 
   /*
    *  Returns true if it's a core application
@@ -279,6 +283,38 @@ var Applications = (function() {
     return ready;
   }
 
+  function installBookmark(bookmark) {
+    if (!installedApps[bookmark.origin]) {
+      installedApps[bookmark.origin] = bookmark;
+
+      var icon = getIcon(bookmark.origin);
+      // No need to put data: URIs in the cache
+      if (icon && icon.indexOf('data:') == -1) {
+        try {
+          window.applicationCache.mozAdd(icon);
+        } catch (e) {}
+      }
+
+      callbacks.forEach(function(callback) {
+        if (callback.type == 'install') {
+          callback.callback(bookmark);
+        }
+      });
+    }
+  }
+
+  function addBookmark(bookmark) {
+    if (!installedApps[bookmark.origin]) {
+      installedApps[bookmark.origin] = bookmark;
+    }
+  }
+
+  function deleteBookmark(bookmark) {
+    if (installedApps[bookmark.origin]) {
+      delete installedApps[bookmark.origin];
+    }
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -290,6 +326,9 @@ var Applications = (function() {
     getIcon: getIcon,
     getManifest: getManifest,
     getInstalledApplications: getInstalledApplications,
-    isReady: isReady
+    isReady: isReady,
+    addBookmark: addBookmark,
+    deleteBookmark: deleteBookmark,
+    installBookmark: installBookmark
   };
 })();
