@@ -701,22 +701,28 @@ var ThreadUI = {
       var carrierTag = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
         var name = contact[0].name,
-            phone = contact[0].tel[0];
-        // Check which of the contacts phone we are using
+            phone = contact[0].tel[0],
+            carrierToShow = phone.carrier;
+        // Check which of the contacts phone number we are using
         for (var i = 0; i < contact[0].tel.length; i++) {
           if (contact[0].tel[i].value == number) {
             phone = contact[0].tel[i];
+            carrierToShow = phone.carrier;
           }
         }
         // Add data values for contact activity interaction
         self.title.dataset.isContact = true;
 
         if (name && name != '') { // contact with name
+          for (var i = 0; i < contact[0].tel.length; i++) {
+            if (contact[0].tel[i].value !== phone.value &&
+                contact[0].tel[i].type == phone.type &&
+                contact[0].tel[i].carrier == phone.carrier) {
+              carrierToShow = phone.value;
+            }
+          }
           self.title.innerHTML = name;
-          carrierTag.innerHTML =
-                  phone.type + ' | ' +
-                  (phone.carrier || _('carrier-unknown'));
-    // TODO check if contact has different numbers with same type and carrier
+          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
         } else { // no name of contact
           carrierTag.innerHTML = phone.type;
         }
