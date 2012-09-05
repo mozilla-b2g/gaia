@@ -963,9 +963,13 @@ var ThreadUI = {
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
       ThreadUI.selectedInputList.push(target);
+      // Adding red bubble
+      target.parentNode.parentNode.classList.add('selected');
     } else {
       ThreadUI.selectedInputList.splice(
                       ThreadUI.selectedInputList.indexOf(target), 1);
+      // Removing red bubble
+      target.parentNode.parentNode.classList.remove('selected');
     }
   },
 
