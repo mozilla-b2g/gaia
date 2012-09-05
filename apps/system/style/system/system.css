@@ -124,6 +124,12 @@ body {
   visibility: hidden;
 }
 
+#windowSprite[data-mask="true"] > div {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+}
+
 #screen.fullscreen-app > #windowSprite {
   height: 100%;
   top: 0;
@@ -237,4 +243,18 @@ iframe.backgroundWindow {
 #screen.popup #dialog-overlay {
   visibility: visible;
   pointer-events: auto;
+}
+
+#system-banner {
+  z-index: 0;
+  visibility: hidden;
+  opacity: 0;
+  -moz-transform: translateY(100%);
+  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease, visibility 0.5s ease;
+}
+
+#system-banner.visible {
+  -moz-transform: translateY(0);
+  visibility: visible;
+  opacity: 1;
 }

@@ -119,6 +119,7 @@
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/menus.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/buttons.css">
+    <link rel="stylesheet" type="text/css" href="style/themes/default/banner.css">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
@@ -166,7 +167,7 @@
     </style>
   </head>
 
-  <body onload="startup()">
+  <body onload="startup()" role="application">
     <div id="screen" class="locked">
       <div id="initlogo" data-z-index-level="initlogo"></div>
 
@@ -457,6 +458,11 @@
           <button data-l10n-id="cancel">Cancel</button>
         </menu>
       </div>
+
+      <section id="system-banner" role="dialog" class="banner"
+          data-z-index-level="system-notification-banner">
+        <p></p>
+      </section>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">

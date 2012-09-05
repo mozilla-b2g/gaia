@@ -64,6 +64,8 @@ var WindowManager = (function() {
   var windows = document.getElementById('windows');
   var dialogOverlay = document.getElementById('dialog-overlay');
   var screenElement = document.getElementById('screen');
+  var banner = document.getElementById('system-banner');
+  var bannerContainer = banner.firstElementChild;
 
   //
   // The set of running apps.
@@ -157,6 +159,7 @@ var WindowManager = (function() {
   sprite.id = 'windowSprite';
   sprite.dataset.zIndexLevel = 'window-sprite';
   screenElement.appendChild(sprite);
+  sprite.appendChild(document.createElement('div'));
 
   // This event handler is triggered when the transition ends.
   // We're going to do two transitions, so it gets called twice.
@@ -284,7 +287,7 @@ var WindowManager = (function() {
         return;
       }
 
-      callback(req.result.screenshot);
+      callback(req.result.screenshot, true);
     }
     req.onerror = function(evt) {
       console.warn('Window Manager: get screenshot from database failed.');
@@ -325,7 +328,7 @@ var WindowManager = (function() {
     req.onsuccess = function(evt) {
       clearTimeout(timer);
       var result = evt.target.result;
-      callback(result);
+      callback(result, false);
 
       putAppScreenshotToDatabase(origin, result);
     };
@@ -364,8 +367,11 @@ var WindowManager = (function() {
       // Get the screenshot of the app and put it on the sprite
       // before starting the transition
       sprite.className = 'before-open';
-      getAppScreenshot(origin, function(screenshot) {
+      getAppScreenshot(origin, function(screenshot, isCached) {
+        sprite.dataset.mask = isCached;
+
         if (!screenshot) {
+          sprite.dataset.mask = false;
           sprite.className = 'opening';
           return;
         }
@@ -400,7 +406,15 @@ var WindowManager = (function() {
     // Get the screenshot of the app and put it on the sprite
     // before starting the transition
     sprite.className = 'before-close';
-    getAppScreenshot(origin, function(screenshot) {
+    getAppScreenshot(origin, function(screenshot, isCached) {
+      sprite.dataset.mask = isCached;
+
+      if (!screenshot) {
+        sprite.dataset.mask = false;
+        sprite.className = 'closing';
+        return;
+      }
+
       sprite.style.background = '#fff url(' + screenshot + ')';
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
@@ -602,7 +616,8 @@ var WindowManager = (function() {
 
   function removeFrame(origin) {
     var app = runningApps[origin];
-    windows.removeChild(app.frame);
+    if (app.frame)
+      windows.removeChild(app.frame);
     delete runningApps[origin];
     numRunningApps--;
   }
@@ -745,6 +760,40 @@ var WindowManager = (function() {
     kill(e.detail.application.origin);
 
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
+  });
+
+  // Deal with crashed foreground app
+  window.addEventListener('mozbrowsererror', function(e) {
+    if (!'frameType' in e.target.dataset ||
+        e.target.dataset.frameType !== 'window')
+      return;
+    /*
+      detail.type = error (Server Not Found case)
+      is handled in Modal Dialog
+    */
+    if (e.detail.type !== 'fatal')
+      return;
+
+    var origin = e.target.dataset.frameOrigin;
+
+    if (displayedApp == origin) {
+      var origin = e.target.dataset.frameOrigin;
+      var _ = navigator.mozL10n.get;
+      banner.addEventListener('transitionend',
+        function onTransitionEnd(transitionEvt) {
+          if (transitionEvt.propertyName == 'visibility') {
+            window.setTimeout(function timeout() {
+              banner.removeEventListener('transitionend', onTransitionEnd);
+              banner.classList.remove('visible');
+            }, 3000);
+          }
+       });
+      banner.classList.add('visible');
+      bannerContainer.textContent = _('foreground-app-crash-notification',
+        { name: runningApps[origin].name });
+    }
+
+    kill(origin);
   });
 
   // Stop running the app with the specified origin

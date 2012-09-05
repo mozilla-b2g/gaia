@@ -40,6 +40,11 @@ var PopupManager = {
       // Save the current displayed app in order to show it after closing the
       // popup.
       this._lastDisplayedApp = WindowManager.getDisplayedApp();
+
+      // XXX: The correct approach here should be firing trustdialogshow
+      // and trustdialoghide events for WindowManager to handle the visibility,
+      // instead of exposing this internal method.
+
       // Show the homescreen.
       WindowManager.setDisplayedApp(null);
     }
