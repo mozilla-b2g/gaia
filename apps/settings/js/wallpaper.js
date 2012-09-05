@@ -3,6 +3,13 @@
 var Wallpaper = {
   elements: {},
 
+  reopenSelf: function wallpaper_reopenSelf() {
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch();
+    };
+  },
+
   getAndBindAllElements: function wallpaper_getAllElements() {
     var elementsID = ['homescreen-wallpaper', 'homescreen-cameraphotos',
       'lockscreen-wallpaper', 'lockscreen-cameraphotos'];
@@ -37,9 +44,11 @@ var Wallpaper = {
         a.onsuccess = function onWallpaperSuccess() {
           var settings = navigator.mozSettings;
           settings.getLock().set({'homescreen.wallpaper': a.result.filename});
+          reopenSelf();
         };
         a.onerror = function onWallpaperError() {
           console.warn('pick failed!');
+          reopenSelf();
         };
         break;
       case this.elements['homescreenCameraphotos']:
@@ -50,9 +59,11 @@ var Wallpaper = {
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
           settings.getLock().set({'homescreen.wallpaper': a.result.filename});
+          reopenSelf();
         };
         a.onerror = function onCameraPhotosError() {
           console.warn('pick failed!');
+          reopenSelf();
         };
         break;
       case this.elements['lockscreenWallpaper']:
@@ -63,9 +74,11 @@ var Wallpaper = {
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
           settings.getLock().set({'lockscreen.wallpaper': a.result.filename});
+          reopenSelf();
         };
         a.onerror = function onCameraPhotosError() {
           console.warn('pick failed!');
+          reopenSelf();
         };
         break;
       case this.elements['lockscreenCameraphotos']:
@@ -76,9 +89,11 @@ var Wallpaper = {
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
           settings.getLock().set({'lockscreen.wallpaper': a.result.filename});
+          reopenSelf();
         };
         a.onerror = function onCameraPhotosError() {
           console.warn('pick failed!');
+          reopenSelf();
         };
         break;
     }
