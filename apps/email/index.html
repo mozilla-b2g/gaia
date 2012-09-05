@@ -12,9 +12,6 @@
   <!-- Include shared building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
-  <link rel="stylesheet" type="text/css" href="shared/style/lists.css"/>
-  <!-- Include extend building blocks -->
-  <link rel="stylesheet" type="text/css" href="style/bb-extend.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <!-- Shared code -->
@@ -420,46 +417,42 @@
           </header>
           <div class="tng-accounts-container"></div>
             <li>
-              <a href="#" class="tng-account-add">
-                <dl><dt data-l10n-id="settings-account-add">AdD AccounT</dt></dl>
-              </a>
+              <a href="#" data-l10n-id="settings-account-add" class="tng-account-add list-text">AdD AccounT</a>
             </li>
           <header class="tng-main-about-label">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
           </header>
-          <ul>
             <li>
+              <span data-l10n-id="settings-check-mail" class="list-text">ChecK MaiL</span>
               <em class="aside end">5 min</em>
-              <dl><dt data-l10n-id="settings-check-mail">ChecK MaiL</dt></dl>
             </li>
             <li>
+              <span data-l10n-id="settings-show-images" class="list-text">AlwayS ShoW ImageS</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
               </em>
-              <dl><dt data-l10n-id="settings-show-images">AlwayS ShoW ImageS</dt></dl>
             </li>
             <li>
+              <span data-l10n-id="settings-download-attachments" class="list-text">DownloaD AttachmentS</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
               </em>
-              <dl><dt data-l10n-id="settings-download-attachments">DownloaD AttachmentS</dt></dl>
             </li>
             <li>
+              <span data-l10n-id="settings-notify-mail" class="list-text">NotifY ME OF NeW MaiL</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
                   <span></span>
                 </label>
               </em>
-              <dl><dt data-l10n-id="settings-notify-mail">NotifY ME OF NeW MaiL</dt></dl>
             </li>
-          </ul>
           <a class="tng-email-lib-version collapsed">v1</a>
         </section>
       </section>
@@ -567,9 +560,7 @@
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
       <li class="tng-account-item">
-        <a href="#">
-          <dl><dt class="tng-account-item-label"></dt></dl>
-        </a>
+        <a href="#" class="tng-account-item-label list-text"></a>
         <!-- we may want to expose some other info in this row -->
       </li>
 
