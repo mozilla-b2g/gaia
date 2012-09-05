@@ -19,6 +19,14 @@ Calendar.ns('Views').MonthsDay = (function() {
       return this._findElement('element');
     },
 
+    get events() {
+      return this._findElement('events');
+    },
+
+    get header() {
+      return this._findElement('header');
+    },
+
     _initEvents: function() {
       var self = this;
       this.controller.on('selectedDayChange', this);
@@ -27,12 +35,28 @@ Calendar.ns('Views').MonthsDay = (function() {
       });
     },
 
+    _updateHeader: function() {
+      var date = this.date;
+
+      var l10n = navigator.mozL10n;
+
+      var dayName = l10n.get('weekday-' + date.getDay() + '-long');
+      var monthName = l10n.get('month-' + date.getMonth() + '-long');
+
+      dayName = dayName || date.toLocaleFormat('%A');
+      monthName = monthName || date.toLocaleFormat('%B');
+
+      var header = dayName + ' ' + monthName + ' ' + date.getDate();
+      this.header.textContent = header;
+    },
+
     handleEvent: function(e) {
       Parent.prototype.handleEvent.apply(this, arguments);
 
       switch (e.type) {
         case 'selectedDayChange':
           this.changeDate(e.data[0]);
+          this._updateHeader();
           break;
       }
     },
@@ -43,6 +67,7 @@ Calendar.ns('Views').MonthsDay = (function() {
       this._initEvents();
       var date = Calendar.Calc.createDay(new Date());
       this.changeDate(date);
+      this._updateHeader();
     }
   };
 

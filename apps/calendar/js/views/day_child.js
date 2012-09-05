@@ -13,13 +13,14 @@ Calendar.ns('Views').DayChild = (function() {;
 
     __proto__: Calendar.Views.DayBased.prototype,
 
-    selectors: {
-      events: '.day-events',
-      header: '.day-title'
-    },
+    renderAllHours: true,
 
     get element() {
       return this._element;
+    },
+
+    get events() {
+      return this._eventsElement;
     },
 
     /**
@@ -45,12 +46,25 @@ Calendar.ns('Views').DayChild = (function() {;
       }
     },
 
-    get header() {
-      return this._findElement('header');
+    activate: function() {
+      this.element.classList.add(
+        this.activeClass
+      );
     },
 
-    get events() {
-      return this._findElement('events');
+    deactivate: function() {
+      this.element.classList.remove(
+        this.activeClass
+      );
+    },
+
+    _removeTimespanObserver: function() {
+      if (this.timespan) {
+        this.controller.removeTimeObserver(
+          this.timespan,
+          this
+        );
+      }
     },
 
     /**
@@ -67,13 +81,7 @@ Calendar.ns('Views').DayChild = (function() {;
 
       var controller = this.controller;
 
-      if (this.timespan) {
-        controller.removeTimeObserver(
-          this.timespan,
-          this
-        );
-      }
-
+      this._removeTimespanObserver();
       this.id = date.valueOf();
       this.date = Calendar.Calc.createDay(date);
       this.timespan = Calendar.Calc.spanOfDay(date);
@@ -83,7 +91,6 @@ Calendar.ns('Views').DayChild = (function() {;
       // clear out all children
       this.events.innerHTML = '';
 
-      this._updateHeader();
       this._loadRecords(this.controller.queryCache(
         this.timespan
       ));
@@ -117,21 +124,6 @@ Calendar.ns('Views').DayChild = (function() {;
           this.add(pair[0], pair[1]);
         }, self);
       });
-    },
-
-    _updateHeader: function() {
-      var date = this.date;
-
-      var l10n = navigator.mozL10n;
-
-      var dayName = l10n.get('weekday-' + date.getDay() + '-long');
-      var monthName = l10n.get('month-' + date.getMonth() + '-long');
-
-      dayName = dayName || date.toLocaleFormat('%A');
-      monthName = monthName || date.toLocaleFormat('%B');
-
-      var header = dayName + ' ' + monthName + ' ' + date.getDate();
-      this.header.textContent = header;
     },
 
     _insertElement: function(html, element, records, idx) {
@@ -290,19 +282,49 @@ Calendar.ns('Views').DayChild = (function() {;
       return template.attendee.renderEach(list).join(',');
     },
 
+    _buildElement: function() {
+      var el = document.createElement('section');
+      var events = document.createElement(
+        'section'
+      );
+
+      this._eventsElement = el;
+      this._element = el;
+      this._eventsElement.classList.add('day-events');
+
+      return el;
+    },
+
     /**
      * Creates and returns
      *
      */
     create: function() {
-      var el = document.createElement('section');
-      this._element = el;
+      var el = this._buildElement();
       this.changeDate(this.date);
+
+      if (this.renderAllHours) {
+        var hour = 0;
+        for (; hour < 24; hour++) {
+          this.createHour(hour);
+        }
+      }
 
       return el;
     },
 
-    destroy: function() {}
+    /**
+     * Remove observers and remove elements
+     * from the dom.
+     */
+    destroy: function() {
+      this._removeTimespanObserver();
+      var el = this.element;
+
+      if (el && el.parentNode) {
+        el.parentNode.removeChild(el);
+      }
+    }
   };
 
   return Day;

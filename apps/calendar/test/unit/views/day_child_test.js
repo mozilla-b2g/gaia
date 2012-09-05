@@ -7,37 +7,21 @@ requireApp('calendar/test/unit/helper.js', function() {
 });
 
 suite('views/day_child', function() {
-  var subject,
-      app,
-      controller,
-      events,
-      template,
-      busytimes;
-
-  teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
-  });
+  var subject;
+  var app;
+  var controller;
+  var events;
+  var template;
+  var viewDate = new Date(2012, 1, 15);
 
   setup(function() {
-    var div = document.createElement('div');
-    div.id = 'test';
-    div.innerHTML = [
-      '<div id="months-day-view">',
-        '<div class="day-title"></div>',
-        '<div class="day-events"></div>',
-      '</div>'
-    ].join(' ');
-
-    document.body.appendChild(div);
-
     app = testSupport.calendar.app();
     controller = app.timeController;
     events = app.store('Event');
-    busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.DayChild({
-      app: app
+      app: app,
+      date: viewDate
     });
 
     template = Calendar.Templates.Day;
@@ -50,36 +34,38 @@ suite('views/day_child', function() {
     assert.equal(subject._changeToken, 0);
   });
 
-  test('#header', function() {
-    assert.ok(subject.header);
-  });
-
   test('#events', function() {
+    subject.create();
     assert.ok(subject.events);
+
+    assert.ok(
+      subject.events.classList.contains('day-events')
+    );
+
+    assert.equal(
+      subject.events.tagName.toLowerCase(),
+      'section'
+    );
   });
 
   suite('#changeDate', function() {
     var startTime = new Date(2012, 1, 1);
     var calledLoadWith;
-    var updateCalledWith;
 
     setup(function() {
       calledLoadWith = false;
-      updateCalledWith = false;
+
+      subject.create();
 
       subject._loadRecords = function() {
         calledLoadWith = arguments;
-      }
-
-      subject._updateHeader = function() {
-        updateCalledWith = arguments;
       }
 
       subject.events.innerHTML = 'foobar';
     });
 
     test('from clean state', function() {
-      assert.equal(subject._changeToken, 0);
+      assert.equal(subject._changeToken, 1);
       var day = Calendar.Calc.createDay(startTime);
 
       subject.changeDate(startTime);
@@ -89,10 +75,9 @@ suite('views/day_child', function() {
 
       assert.deepEqual(subject.date, day);
       assert.ok(calledLoadWith, 'loads records');
-      assert.ok(updateCalledWith);
 
       assert.equal(
-        subject._changeToken, 1, 'should increment token'
+        subject._changeToken, 2, 'should increment token'
       );
 
       assert.deepEqual(
@@ -100,7 +85,9 @@ suite('views/day_child', function() {
         Calendar.Calc.spanOfDay(day)
       );
 
-      var eventIdx = controller.findTimeObserver(subject.timespan, subject);
+      var eventIdx = controller.findTimeObserver(
+        subject.timespan, subject
+      );
 
       assert.ok(
         eventIdx !== -1,
@@ -114,7 +101,7 @@ suite('views/day_child', function() {
 
       subject.changeDate(startTime);
 
-      assert.equal(subject._changeToken, 2);
+      assert.equal(subject._changeToken, 3);
 
       var eventIdx = controller.findTimeObserver(
         oldRange, subject
@@ -138,6 +125,9 @@ suite('views/day_child', function() {
         [1, 1],
         [2, 2]
       ];
+
+      // build tree without updating it
+      subject._buildElement();
 
       storeCalledWith = [];
       addCalledWith = [];
@@ -237,6 +227,9 @@ suite('views/day_child', function() {
     }
 
     setup(function() {
+      // build dom tree without updating it...
+      subject._buildElement();
+
       subject.createHour(hour);
       hourRecord = subject.hours.get(hour);
       hourElement = hourRecord.element;
@@ -350,6 +343,8 @@ suite('views/day_child', function() {
     var children;
 
     setup(function() {
+      subject._buildElement();
+
       subject.createHour(5);
       subject.createHour(7);
       subject.createHour(6);
@@ -434,20 +429,6 @@ suite('views/day_child', function() {
     assert.include(result, '>barr<');
   });
 
-  test('#_updateHeader', function() {
-    var date = new Date(2012, 4, 11);
-    var el = subject.header;
-    subject.date = date;
-    subject._updateHeader();
-
-    var month = date.toLocaleFormat('%B');
-    var day = date.toLocaleFormat('%A');
-
-    assert.include(el.innerHTML, '11');
-    assert.include(el.innerHTML, month);
-    assert.include(el.innerHTML, day);
-  });
-
   test('#create', function() {
     var date = new Date(2012, 1, 1);
     var calledWith;
@@ -459,6 +440,10 @@ suite('views/day_child', function() {
 
     subject.changeDate = function() {
       calledWith = arguments;
+      Calendar.Views.DayChild.prototype.changeDate.apply(
+        this,
+        arguments
+      );
     }
 
     var el = subject.create();
@@ -466,13 +451,74 @@ suite('views/day_child', function() {
     assert.ok(el);
     assert.equal(el.tagName.toLowerCase(), 'section');
     assert.equal(calledWith[0], date);
+
+    var hour = 0;
+    var html = el.innerHTML;
+    assert.ok(html);
+
+    for (; hour < 24; hour++) {
+      assert.include(
+        html,
+        subject._formatHour(hour),
+        'should have rendered:' + hour
+      );
+    }
   });
 
-  test('#destroy', function() {
-    var date = new Date();
-    var subject = new Calendar.Views.DayChild({
-      app: app,
-      date: date
+  suite('activate/deactivate', function() {
+    var classList;
+    setup(function() {
+      subject.date = new Date();
+      subject.create();
+      classList = subject.element.classList;
+      subject.activate();
+    });
+
+    test('#activate', function() {
+      assert.isTrue(classList.contains(
+        subject.activeClass
+      ));
+    });
+
+    test('#deactivate', function() {
+      subject.deactivate();
+      assert.isFalse(classList.contains(
+        subject.activeClass
+      ));
+    });
+  });
+
+  suite('#destroy', function() {
+    var node;
+
+    setup(function() {
+      node = subject.create();
+      document.body.appendChild(node);
+    });
+
+    teardown(function() {
+      if (node.parentNode) {
+        node.parentNode.removeChild(node);
+      }
+    });
+
+    test('removal of nodes and events', function() {
+      assert.ok(node.parentNode);
+      var observer = controller.findTimeObserver(
+        subject.timespan,
+        subject
+      );
+      assert.ok(observer > -1, 'has observer');
+
+      subject.destroy();
+      assert.ok(!node.parentNode, 'should remove parent');
+
+      observer = controller.findTimeObserver(
+        subject.timespan,
+        subject
+      );
+
+      assert.equal(observer, -1, 'removes observer');
     });
   });
 

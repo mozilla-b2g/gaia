@@ -54,12 +54,18 @@ suite('views/months_day', function() {
     test('selectedDayChange', function() {
       var date = new Date(2012, 1, 1);
       var calledWith;
-      subject.date = date;
+
+      // start with different date...
+      subject.date = new Date(2012, 1, 27);
 
       // initialize events
       subject.render();
 
       subject.changeDate = function() {
+        Calendar.Views.MonthsDay.prototype.changeDate.apply(
+          this, arguments
+        );
+
         calledWith = arguments;
       }
 
@@ -69,15 +75,46 @@ suite('views/months_day', function() {
         date,
         'should change date in view when controller changes'
       );
-    });
 
+      assert.deepEqual(
+        subject.date,
+        date
+      );
+
+      var html = subject.header.outerHTML;
+      assert.ok(html);
+      assert.include(html, date.toLocaleFormat('%A'));
+    });
+  });
+
+  test('#_updateHeader', function() {
+    var date = new Date(2012, 4, 11);
+    var el = subject.header;
+    subject.date = date;
+    subject._updateHeader();
+
+    var month = date.toLocaleFormat('%B');
+    var day = date.toLocaleFormat('%A');
+
+    assert.include(el.innerHTML, '11');
+    assert.include(el.innerHTML, month);
+    assert.include(el.innerHTML, day);
+  });
+
+  test('#header', function() {
+    assert.ok(subject.header);
   });
 
   test('#render', function() {
     var date = new Date();
     var span = Calendar.Calc.spanOfDay(date);
+
     subject.render();
     assert.deepEqual(subject.timespan, span);
+
+    var html = subject.header.outerHTML;
+    assert.ok(html);
+    assert.include(html, date.toLocaleFormat('%A'));
   });
 
   test('#onfirstseen', function() {
