@@ -190,34 +190,12 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return false;
 
-    window.removeEventListener('devicelight', this);
-    window.removeEventListener('mozfullscreenchange', this);
-
     var self = this;
-    var screenBrightness = navigator.mozPower.screenBrightness;
-
-    var dim = function scm_dim() {
-      if (!self._inTransition)
-        return;
-
-      screenBrightness -= 0.02;
-
-      if (screenBrightness < 0.1) {
-        setTimeout(function noticeTimeout() {
-          if (!self._inTransition)
-            return;
-
-          finish();
-        }, self._dimNotice);
-        return;
-      }
-
-      self.setScreenBrightness(screenBrightness, true);
-      setTimeout(dim, 10);
-    };
-
-    var finish = function scm_finish() {
+    var screenOff = function scm_screenOff() {
       self.setIdleTimeout(0);
+
+      window.removeEventListener('devicelight', this);
+      window.removeEventListener('mozfullscreenchange', this);
 
       self.screenEnabled = false;
       self._inTransition = false;
@@ -231,11 +209,18 @@ var ScreenManager = {
     };
 
     if (instant) {
-      finish();
-    } else {
-      this._inTransition = true;
-      dim();
+      screenOff();
+      return true;
     }
+
+    this.setScreenBrightness(0.1, false);
+    this._inTransition = true;
+    setTimeout(function noticeTimeout() {
+      if (!self._inTransition)
+        return;
+
+      screenOff();
+    }, self._dimNotice);
 
     return true;
   },
