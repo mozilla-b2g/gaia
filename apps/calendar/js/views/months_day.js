@@ -1,6 +1,6 @@
 (function(window) {
   var template = Calendar.Templates.Day;
-  var OrderedMap = Calendar.Views.DayBased.OrderedMap;
+  var OrderedMap = Calendar.OrderedMap;
 
   function Day(options) {
     Calendar.Views.DayBased.apply(this, arguments);
@@ -65,6 +65,9 @@
     _initEvents: function() {
       var self = this;
       this.controller.on('selectedDayChange', this);
+      this.delegate(this.events, 'click', '[data-id]', function(e, target) {
+        Calendar.App.router.show('/event/' + target.dataset.id + '/');
+      });
     },
 
     handleEvent: function(e) {
@@ -101,15 +104,7 @@
 
       ++this._changeToken;
 
-      var endDate = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        date.getDate() + 1
-      );
-
       var controller = this.controller;
-
-      endDate.setMilliseconds(-1);
 
       if (this.timespan) {
         controller.removeTimeObserver(
@@ -118,11 +113,8 @@
         );
       }
 
-      this.date = date;
-      this.timespan = new Calendar.Timespan(
-        date,
-        endDate
-      );
+      this.date = Calendar.Calc.createDay(date);
+      this.timespan = Calendar.Calc.spanOfDay(date);
 
       controller.observeTime(this.timespan, this);
 
@@ -316,6 +308,7 @@
       }
 
       return template.event.render({
+        eventId: object._id,
         calendarId: object.calendarId,
         title: remote.title,
         location: remote.location,
@@ -332,7 +325,8 @@
     },
 
     render: function() {
-      this.changeDate(new Date());
+      var date = Calendar.Calc.createDay(new Date());
+      this.changeDate(date);
     }
 
   };
