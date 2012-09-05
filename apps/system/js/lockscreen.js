@@ -828,6 +828,17 @@ var LockScreen = {
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
+
+    var storage = navigator.getDeviceStorage('pictures');
+    storage.get(value).onsuccess = function(e) {
+      var blob = e.target.result;
+      var path = URL.createObjectURL(blob);
+      var url = 'url(' + path + ')';
+      for (var i = 0; i < panels.length; i++) {
+        panels[i].style.backgroundImage = url;
+      }
+      URL.revokeObjectURL(url);
+    };
   },
 
   getAllElements: function ls_getAllElements() {

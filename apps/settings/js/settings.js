@@ -160,6 +160,7 @@ var Settings = {
         break;
 
       case 'click':
+      console.log('=====');
         if (input.tagName.toLowerCase() != 'progress')
           return;
         var rect = input.getBoundingClientRect();
