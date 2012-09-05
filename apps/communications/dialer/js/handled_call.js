@@ -79,7 +79,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var voicemail = navigator.mozVoicemail;
   if (voicemail) {
     if (voicemail.number == number) {
-      node.textContent = voicemail.displayName;
+      node.textContent = voicemail.displayName ?
+        voicemail.displayName : number;
       return;
     }
   }

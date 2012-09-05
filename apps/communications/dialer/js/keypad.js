@@ -472,6 +472,19 @@ var KeypadManager = {
      var voicemail = navigator.mozVoicemail;
      if (voicemail && voicemail.number) {
        CallHandler.call(voicemail.number);
+       return;
      }
+     var settings = navigator.mozSettings;
+     if (!settings) {
+      return;
+     }
+     var transaction = settings.getLock();
+     var request = transaction.get("ro.moz.ril.iccmbdn");
+     request.onsuccess = function() {
+       if (request.result["ro.moz.ril.iccmbdn"]) {
+         CallHandler.call(request.result["ro.moz.ril.iccmbdn"]);
+       }
+     };
+     request.onerror = function() {};
   }
 };
