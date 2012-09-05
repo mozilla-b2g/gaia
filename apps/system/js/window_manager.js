@@ -433,16 +433,17 @@ var WindowManager = (function() {
       if (!currentApp)
         homescreenFrame.setVisible(true);
       setAppSize(newApp);
-      openWindow(newApp,
-                 !currentApp ?
-                 callback :
-                 function setHomescreenVisible() {
-                   // Move the homescreen into the background only
-                   // after the transition completes, since it's
-                   // visible during the transition.
-                   homescreenFrame.setVisible(false);
-                   callback();
-                 });
+
+      openWindow(newApp, function windowOpened() {
+        // Move the homescreen into the background only
+        // after the transition completes, since it's
+        // visible during the transition.
+        if (!currentApp)
+          homescreenFrame.setVisible(false);
+
+        if (callback)
+          callback();
+      });
     }
     // Case 3: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
