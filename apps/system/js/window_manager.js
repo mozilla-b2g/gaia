@@ -923,7 +923,7 @@ var WindowManager = (function() {
   // messages (e.g. the radio).
   var event = document.createEvent('CustomEvent');
   event.initCustomEvent('mozContentEvent', true, true, {
-    type: 'system-app-ready'
+    type: 'system-message-listener-ready'
   });
   window.dispatchEvent(event);
 
