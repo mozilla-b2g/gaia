@@ -350,14 +350,10 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
 }
 
-.log-item.isContact .call-log-contact-photo {
+.log-item.isContact.contact-photo-available .call-log-contact-photo {
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
-}
-
-.log-item.noContactPhoto .call-log-contact-photo {
-  background-image: none;
 }
 
 .call-log-selection {
