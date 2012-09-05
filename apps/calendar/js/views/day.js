@@ -4,13 +4,12 @@ Calendar.ns('Views').Day = (function() {
 
   function Day() {
     Parent.apply(this, arguments);
-
-    this._initEvents();
   }
 
   Day.prototype = {
     __proto__: Parent.prototype,
     panThreshold: 50,
+    childThreshold: 3,
 
     scale: 'day',
 
@@ -20,6 +19,10 @@ Calendar.ns('Views').Day = (function() {
 
     _initEvents: function() {
       Parent.prototype._initEvents.call(this);
+
+      this.delegate(this.element, 'click', '[data-id]', function(e, target) {
+        Calendar.App.router.show('/event/' + target.dataset.id + '/');
+      });
     },
 
     handleEvent: function(e) {
