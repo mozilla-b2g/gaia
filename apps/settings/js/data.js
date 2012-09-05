@@ -168,7 +168,7 @@ window.addEventListener('load', function getCarrierSettings() {
     // load the APN database if required
     if (!gAPNDocument) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', APN_FILE, false); // synchronous (boo!)
+      xhr.open('GET', APN_FILE, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status === 0)) {
           gAPNDocument = xhr.responseXML;
