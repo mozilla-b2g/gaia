@@ -30,6 +30,7 @@ contacts.Details = (function() {
 
   var init = function cd_init(currentDom) {
     Contacts = window.Contacts;
+    fb = window.fb;
     dom = currentDom || document;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
@@ -208,9 +209,7 @@ contacts.Details = (function() {
 
     var request = navigator.mozContacts.save(contact);
     request.onsuccess = function onsuccess() {
-      console.log('1');
       var cList = contacts.List;
-      console.log('2');
       /*
          Two contacts are returned because the enrichedContact is readonly
          and if the Contact is edited we need to prevent saving
@@ -223,7 +222,6 @@ contacts.Details = (function() {
         if (enrichedContact) {
           contactsList.refresh(enrichedContact);
         } else {
-          console.log(cList.refresh);
           cList.refresh(contact);
         }
         renderFavorite();
