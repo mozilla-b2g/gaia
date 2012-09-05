@@ -101,7 +101,6 @@ window.addEventListener('load', function getCarrierSettings() {
       rilData('user').value = item.username;
       rilData('passwd').value = item.password;
     };
-    input.setAttribute('data-ignore', '');
 
     // include the radio button element in a list item
     var span = document.createElement('span');
@@ -139,28 +138,35 @@ window.addEventListener('load', function getCarrierSettings() {
       }
 
       // find the current APN
-      lastItem.querySelector('input').checked = true;
+      var found = false;
       var settings = window.navigator.mozSettings;
       if (settings && !gUserChosenAPN) {
         var radios = apnList.querySelectorAll('input[type="radio"]');
-        var found = false;
         var key = 'APN.name';
-        for (var i = 0; i < radios.length; i++) {
-          (function(radio) {
-            var request = settings.getLock().get(key);
-            request.onsuccess = function() {
-              if (request.result[key] != undefined) {
-                radio.checked = (request.result[key] === radio.value);
-                found = found || radio.checked;
-              }
-            };
-          })(radios[i]);
-        }
+        var request = settings.getLock().get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined) {
+            for (var i = 0; i < radios.length; i++) {
+              radios[i].checked = (request.result[key] === radios[i].value);
+              found = found || radios[i].checked;
+            }
+          }
+        };
       }
+      if (!found) {
+        lastItem.querySelector('input').checked = true;
+      }
+
+      // set currrent APN to 'custom' on user modification
       document.getElementById('apnSettings').onchange = function onChange(event) {
         gUserChosenAPN = true;
         if (event.target.type == 'text') {
-          lastItem.querySelector('input').checked = true;
+          var lastInput = lastItem.querySelector('input');
+          lastInput.checked = true;
+          // send a 'change' event to update the related mozSetting
+          var evtObject = document.createEvent('Event');
+          evtObject.initEvent('change', true, false);
+          lastInput.dispatchEvent(evtObject);
         }
       };
     }
