@@ -52,7 +52,7 @@ function addToZip(zip, pathInZip, file) {
   // Case 1/ Regular file
   if (file.isFile()) {
     try {
-      debug(' + ' + pathInZip);
+      debug(' +file to zip ' + pathInZip);
 
       if (!zip.hasEntry(pathInZip)) {
         zip.addEntryFile(pathInZip,
@@ -203,19 +203,20 @@ Gaia.webapps.forEach(function(webapp) {
     // Compute the nsIFile for this shared style
     let styleFolder = Gaia.sharedFolder.clone();
     styleFolder.append('style');
-    let css = styleFolder.clone();
-    styleFolder.append(name);
+    let cssFile = styleFolder.clone();
     if (!styleFolder.exists()) {
       throw new Error('Using inexistent shared style: ' + name + ' from: ' +
                       webapp.domain);
     }
 
-    css.append(name + '.css');
-    addToZip(zip, '/shared/style/' + name + '.css', css);
+    cssFile.append(name + '.css');
+    addToZip(zip, '/shared/style/' + name + '.css', cssFile);
 
-    // Copy everything but index.html and any other html page at style root
+    // Copy everything but index.html and any other html page at style/<block>
     // folder
-    ls(styleFolder, true)
+    let subFolder = styleFolder.clone();
+    subFolder.append(name);
+    ls(subFolder, true)
       .forEach(function(file) {
         let relativePath = file.getRelativeDescriptor(styleFolder);
         // Ignore html files at style root folder

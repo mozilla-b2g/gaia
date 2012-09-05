@@ -436,15 +436,17 @@ var Recents = {
           content += '</ol></section>';
         }
         currentDay = day;
-
         content +=
           '<section data-timestamp="' + day + '">' +
-          ' <h2>' + Utils.headerDate(day) + '</h2>' +
-          ' <ol id="' + day + '" class="log-group">';
+          ' <h2 id="header-day-' + day + '">' + Utils.headerDate(day) +
+          ' </h2>' +
+          ' <ol id="list-day-' + day + '" class="log-group">';
       }
       content += this.createRecentEntry(recents[i]);
     }
     this.recentsContainer.innerHTML = content;
+
+    FixedHeader.refresh();
 
     this.updateContactDetails();
 
@@ -602,6 +604,8 @@ var Recents = {
 
 window.addEventListener('localized', function recentsSetup() {
   window.removeEventListener('localized', recentsSetup);
+    var headerSelector = '#recents-container h2';
+    FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
 });
 

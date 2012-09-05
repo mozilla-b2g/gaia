@@ -219,6 +219,12 @@ button::-moz-focus-inner {
   color: black;
   height: -moz-calc(100% - 8rem);
   -moz-transition: height .15s ease-in;
+  position: absolute;
+  width: 100%;
+}
+
+.view-body-inner {
+  height: 100%;
   overflow: auto;
 }
 
@@ -231,6 +237,7 @@ button::-moz-focus-inner {
   font-size: -moz-calc(6*0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
+  height: 1.8rem;
 }
 
 .header-noresult {
