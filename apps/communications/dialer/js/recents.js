@@ -492,8 +492,7 @@ var Recents = {
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
-      } else {
-        logItem.classList.add('noContactPhoto');
+        logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
