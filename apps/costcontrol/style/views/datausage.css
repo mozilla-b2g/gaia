@@ -106,6 +106,10 @@
   height: 100%;
 }
 
+#mobile-layer {
+  opacity: 0.8;
+}
+
 
 
 
