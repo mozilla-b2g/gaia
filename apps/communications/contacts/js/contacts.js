@@ -876,6 +876,17 @@ var Contacts = (function() {
             number: number
           }
         });
+
+        var reopenApp = function reopenApp() {
+          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+            var app = evt.target.result;
+            app.launch('contacts');
+          };
+        }
+
+        activity.onerror = function error() {
+          reopenApp();
+        }
       } catch (e) {
         console.log('WebActivities unavailable? : ' + e);
       }
