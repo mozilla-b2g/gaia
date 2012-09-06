@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Value selector, multiples value</title>
+  <meta name="description" content="Provides a way for the user to select one of more values, usually from a Form interface">
+
+  <link rel="stylesheet" href="../value_selector.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "Open Sans", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+  </style>
+</head>
+
+<body role="application">
+
+  <section role="dialog">
+    <div class="scrollable">
+      <h3>Choose your option(s)</h3>
+      <ul role="listbox" aria-multiselectable="true">
+        <li role="option">
+          <label for="option1">
+            <input type="checkbox" id="option1">
+            <span>Option 1</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option2">
+            <input type="checkbox" id="option2">
+            <span>Option 2</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option3">
+            <input type="checkbox" id="option3">
+            <span>Option 3</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option4">
+            <input type="checkbox" id="option4">
+            <span>Option 4</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option5">
+            <input type="checkbox" id="option5">
+            <span>Option 5</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option6">
+            <input type="checkbox" id="option6">
+            <span>Option 6</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option7">
+            <input type="checkbox" id="option7">
+            <span>Option 7</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option8">
+            <input type="checkbox" id="option8">
+            <span>Option 8</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option9">
+            <input type="checkbox" id="option9">
+            <span>Option 9</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <menu data-items="2">
+      <button>Cancel</button>
+      <button class="affirmative">Action</button>
+    </menu>
+  </section>
+
+</body>
+</html>

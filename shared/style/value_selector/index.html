@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Value selector, single value</title>
+  <meta name="description" content="Provides a way for the user to select one of more values, usually from a Form interfac">
+
+  <link rel="stylesheet" href="../value_selector.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "Open Sans", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+  </style>
+</head>
+
+<body role="application">
+
+  <section role="dialog">
+    <div>
+      <h3>Choose social network</h3>
+      <ul role="listbox">
+        <li role="option">
+          <label for="option1">
+            <input type="radio" name="option" id="option1">
+            <span>Twitter</span>
+          </label>
+        </li>
+        <li role="option">
+          <label for="option2">
+            <input type="radio" name="option" id="option2">
+            <span>Facebook</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <menu>
+      <button>Cancel</button>
+    </menu>
+  </section>
+
+</body>
+</html>
