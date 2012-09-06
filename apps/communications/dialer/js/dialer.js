@@ -10,22 +10,20 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
 
 var CallHandler = {
   call: function ch_call(number) {
+    console.log('Chris ****************************: CallHandler.call()');
     var settings = window.navigator.mozSettings, req;
 
     if (settings) {
+      console.log('Chris ****************************: settings');
       req = settings.getLock().get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          if (navigator.mozMobileConnection &&
-              navigator.mozMobileConnection.voice &&
-              navigator.mozMobileConnection.voice.emergencyCallsOnly) {
-            this.startDialEmergency(number);
-          } else {
-            this.startDial(number);
-          }
+          console.log('Chris ****************************: !status');
+          this.startDial(number);
         } else {
+          console.log('Chris ****************************: status');
           CustomDialog.show(
             _('callFlightModeTitle'),
             _('callFlightModeBody'),
@@ -56,35 +54,27 @@ var CallHandler = {
   },
 
   startDial: function ch_startDial(number) {
+    console.log('Chris ****************************: startDial');
     if (this._isUSSD(number)) {
       UssdManager.send(number);
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
       var telephony = window.navigator.mozTelephony;
       if (telephony) {
-        var call = telephony.dial(sanitizedNumber);
-
-        if (call) {
-          var cb = function clearPhoneView() {
-            KeypadManager.updatePhoneNumber('');
-          };
-          call.onconnected = cb;
-          call.ondisconnected = cb;
+        console.log('Chris ****************************: navigator.mozMobileConnection.voice.emergencyCallsOnly:'+navigator.mozMobileConnection.voice.emergencyCallsOnly);
+        if (navigator.mozMobileConnection &&
+            navigator.mozMobileConnection.voice &&
+            navigator.mozMobileConnection.voice.emergencyCallsOnly) {
+          console.log('Chris ****************************: emergencyCallsOnly');
+          var call = telephony.dialEmergency(sanitizedNumber);
+        } else {
+          console.log('Chris ****************************: !emergencyCallsOnly');
+          //var call = telephony.dial(sanitizedNumber);
+          var call = telephony.dialEmergency(sanitizedNumber);
         }
-      }
-    }
-  },
-
-  startDialEmergency: function ch_startDial(number) {
-    if (this._isUSSD(number)) {
-      UssdManager.send(number);
-    } else {
-      var sanitizedNumber = number.replace(/-/g, '');
-      var telephony = window.navigator.mozTelephony;
-      if (telephony) {
-        var call = telephony.dialEmergency(sanitizedNumber);
 
         if (call) {
+          console.log('Chris ****************************: call');
           var cb = function clearPhoneView() {
             KeypadManager.updatePhoneNumber('');
           };
@@ -92,6 +82,7 @@ var CallHandler = {
           call.ondisconnected = cb;
 
           call.onerror = function onerror(event) {
+            console.log('Chris ****************************: call.onerror()');
             var erName = event.call.error.name, emgcyDialogBody;
             if (erName === 'BadNumberError') {
               emgcyDialogBody = 'emergencyDialogBodyBadNumber';
@@ -101,7 +92,7 @@ var CallHandler = {
 
             CustomDialog.show(
               _('emergencyDialogTitle'),
-              _(emgcyDialogBody),
+              _(emgcyDialogBody)+'error: '+erName,
               {
                 title: _('emergencyDialogBtnOk'),
                 callback: function() {
