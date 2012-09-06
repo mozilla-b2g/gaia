@@ -95,9 +95,10 @@ if (!utils.alphaScroll) {
       // Query selector doesnt like thinks like 'XXX-#'
       // we need to parse send a \ for the hash
       if (current == '#') {
-        querySelector += '\\';
+        querySelector += 'und';
+      } else {
+        querySelector += current;
       }
-      querySelector += current;
 
       var groupContainer = doc.querySelector(querySelector);
       if (!groupContainer || groupContainer.clientHeight <= 0)
