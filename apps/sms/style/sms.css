@@ -188,6 +188,11 @@ html, body {
   text-align: left;
   position: relative;
   overflow: hidden;
+  border-bottom: 0.1rem solid #e7e7e7;
+}
+
+#thread-list-container .item:first-child {
+  /*border-top-color: transparent;*/
 }
 
 #thread-list-container .item:last-child {
@@ -202,7 +207,6 @@ html, body {
   height: 6rem;
   position: relative;
   padding: 1rem 0rem 1rem 3rem;
-  border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -225,10 +229,6 @@ html, body {
 
 #thread-list-container .item > a > * {
   pointer-events: none;
-}
-
-#thread-list-container .item > a:first-child {
-  border-top-color: transparent;
 }
 
 #thread-list-container .item > a .unread-mark {
