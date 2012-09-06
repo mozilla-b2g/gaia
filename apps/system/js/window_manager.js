@@ -180,6 +180,19 @@ var WindowManager = (function() {
         openFrame.classList.add('active');
         windows.classList.add('active');
 
+        if ('unpainted' in openFrame.dataset) {
+          openFrame.addEventListener(
+            'mozbrowserfirstpaint', function continueSprite() {
+              openFrame.removeEventListener(
+                'mozbrowserfirstpaint', continueSprite);
+
+              saveAppScreenshot(displayedApp);
+              sprite.className = 'opened';
+            });
+
+          return;
+        }
+
         sprite.className = 'opened';
         break;
 
@@ -357,7 +370,7 @@ var WindowManager = (function() {
 
     // If the frame is just being append and app content is just being loaded,
     // let's get the screenshot from the database instead.
-    if (!app || !app.launchTime) {
+    if (!app || 'unpainted' in app.frame.dataset) {
       getAppScreenshotFromDatabase(origin, callback);
       return;
     }
@@ -404,7 +417,6 @@ var WindowManager = (function() {
         sprite.style.background = '#fff url(' + screenshot + ')';
         // Make sure Gecko paint the sprite first
         afterPaint(function() {
-
           // Start the transition
           sprite.className = 'opening';
         });
@@ -576,6 +588,12 @@ var WindowManager = (function() {
     frame.dataset.frameType = 'window';
     frame.dataset.frameOrigin = origin;
     frame.src = url;
+
+    frame.dataset.unpainted = true;
+    frame.addEventListener('mozbrowserfirstpaint', function painted() {
+      frame.removeEventListener('mozbrowserfirstpaint', painted);
+      delete frame.dataset.unpainted;
+    });
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
