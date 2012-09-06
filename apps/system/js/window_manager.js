@@ -550,12 +550,10 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
-  function appendFrame(origin, url, name, manifest, manifestURL) {
+  function createFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
-    frame.id = 'appframe' + nextAppId++;
-    frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
-    frame.dataset.frameType = 'window';
+    frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
     frame.src = url;
 
@@ -613,6 +611,15 @@ var WindowManager = (function() {
     } else {
       console.info('%%%%% Launching', name, 'as local');
     }
+
+    return frame;
+  }
+
+  function appendFrame(origin, url, name, manifest, manifestURL) {
+    // Create the <iframe mozbrowser mozapp> that hosts the app
+    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    frame.id = 'appframe' + nextAppId++;
+    frame.dataset.frameType = 'window';
 
     // Add the iframe to the document
     windows.appendChild(frame);
