@@ -12,12 +12,18 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
+    <link rel="stylesheet" type="text/css" href="style/list_menu.css"/>
+
+    <!-- Building blocks -->
+    <link rel="stylesheet" type="text/css" href="style/core.css"/>
+    <link rel="stylesheet" type="text/css" href="style/menus.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
 
     <!-- Specific code -->
+    <script type="application/javascript" defer src="js/list_menu.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
@@ -1010,7 +1016,15 @@
         </li>
       </ul>
     </section>
-
   </body>
+  <div id="listmenu" role="dialog">
+    <menu class="actions">
+      <ul>
+        <li data-l10n-id="camera-photos">Camera photos</li>
+        <li data-l10n-id="wallpapers">Wallpapers</li>
+        <li data-l10n-id="cancel" data-action="cancel">Cancel</li>
+      </ul>
+    </menu>
+  </div>
 </html>
 

@@ -62,6 +62,28 @@ var Wallpaper = {
     var property = '';
     var wallpaper = false;
     switch (target) {
+      case this.elements['homescreenSnapshot']:
+        ListMenu.show(function(action){
+          var a = new MozActivity({
+            name: 'pick',
+            data: {
+              type: 'image/jpeg', 
+              wallpaper: action == 'wallpaper'
+            }
+          });
+        });
+        break;
+      case this.elements['lockscreenSnapshot']:
+        ListMenu.show(function(action){
+          var a = new MozActivity({
+            name: 'pick',
+            data: {
+              type: 'image/jpeg', 
+              wallpaper: action == 'wallpaper'
+            }
+          });
+        });
+        break;
       case this.elements['homescreenWallpaper']:
         wallpaper = true;
       case this.elements['homescreenCameraphotos']:
