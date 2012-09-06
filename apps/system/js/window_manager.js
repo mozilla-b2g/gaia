@@ -62,7 +62,7 @@ var WindowManager = (function() {
 
   // Screenshot in sprite -- to use, or not to use,
   // that's the question.
-  var useScreenshotInSprite = false;
+  var useScreenshotInSprite = true;
 
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
