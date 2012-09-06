@@ -27,6 +27,7 @@
   <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
   <link rel="stylesheet" type="text/css" href="style/views/balance.css">
   <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
+  <link rel="stylesheet" type="text/css" href="style/views/firsttime.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -341,6 +342,120 @@
       <menu data-items="1">
         <button data-l10n-id="ok" class="close-settings-dialog">Ok</button>
       </menu>
+    </section>
+
+    <!-- FIrst time experience -->
+    <section id="firsttime-view" class="view step-1" data-viewport="bottom">
+      <ol class="step-state">
+        <li>Select plan type</li>
+        <li>Set balance reminders</li>
+        <li>Set data report and alert</li>
+      </ol>
+
+      <!-- Step 1 -->
+      <section role="region" class="view step" data-viewport="">
+        <header>
+          <h1>Select plan type</h1>
+        </header>
+        <ul class="content choices">
+          <li>
+            <label for="ft_choice_prepaid">
+              <input type="radio" name="plan" id="ft_choice_prepaid">
+              <span>I'm Pre-paid / Controle</span>
+            </label>
+          </li>
+          <li>
+            <label for="ft_choice_postpaid">
+              <input type="radio" name="plan" id="ft_choice_postpaid">
+              <span>I'm Post-paid</span>
+            </label>
+          </li>
+        </ul>
+        <menu>
+          <button class="affirmative">
+            <span></span>
+            Next
+          </button>
+        </menu>
+      </section>
+
+      <!-- Step 2 -->
+      <section role="region" class="view step" data-viewport="right">
+        <header>
+          <h1>Set balance reminders</h1>
+        </header>
+       <ul class="content settings">
+        <li>
+          <label class="end switch">
+            <input type="checkbox" checked="checked">
+            <span></span>
+          </label>
+          <p>Low Balance alert</p>
+        </li>
+        <li>
+          <label class="end" for="ft-balance-alert-value">
+            R$
+            <input type="number" id="ft-balance-alert-value">
+          </label>
+          <p>Alert me when I’m under</p>
+        </li>
+      </ul>
+        <menu data-items="2">
+          <button>
+            <span></span>
+            Back
+          </button>
+          <button class="affirmative">
+            <span></span>
+            Next
+          </button>
+        </menu>
+      </section>
+
+      <!-- Step 3 -->
+      <section role="region" class="view step" data-viewport="right">
+        <header>
+          <h1>Set data report and alert</h1>
+        </header>
+       <ul class="content settings">
+        <li>
+          <div class="end buttons-list">
+            <button>
+              <span class="end launch"></span>
+              Monthly
+            </button>
+          </div>
+          <p>Reset tracking</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button>
+              <span class="end launch"></span>
+              27th
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+        <li>
+          <label class="end switch">
+            <input type="checkbox">
+            <span></span>
+          </label>
+          <p>Data use alert</p>
+        </li>
+      </ul>
+        <menu data-items="2">
+          <button>
+            <span></span>
+            Back
+          </button>
+          <button class="affirmative">
+            <span></span>
+            Let's go!
+          </button>
+        </menu>
+      </section>
+
     </section>
 
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
