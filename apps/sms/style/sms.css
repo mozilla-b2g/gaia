@@ -378,7 +378,6 @@ a.unread .unread-mark .icon-unread-mark {
   text-align: left;
   padding-left: 3rem;
   padding-top: 1rem;
-  padding-bottom: .5rem;
   font-size: -moz-calc(6 * 0.226rem);
   color: #666666;
   text-transform: uppercase;
