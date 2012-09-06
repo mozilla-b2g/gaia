@@ -226,7 +226,7 @@ contacts.List = (function() {
       }
 
       var group = getGroupName(contact);
-      counter[group] = counter[group] + 1 || 0;
+      counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0; 
 
       var listContainer = document.getElementById('contacts-list-' + group);
       var newContact = renderContact(refillContactData(contact));
