@@ -35,35 +35,6 @@
   bottom: 0;
 }
 
-
-/******************************************************************************
- * Setting dialog buttons
-<<<<<<< HEAD
-
-[role=dialog] button,
-[role=dialog] input[type=button] {
-  height: 32px;
-  margin: 11px;
-  border: 1px solid;
-  background-color: #ddd;
-  border-radius: 4px;
-  font-size: 1em;
-}
-
-[role=dialog] button:active,
-[role=dialog] input[type=button]:active {
-  background-color: #eef;
-}
-
-[role=dialog] button::-moz-focus-inner,
-[role=dialog] input[type=button]::-moz-focus-inner {
-  border: none;
-}
-
-=======
->>>>>>> upstream/master
-*/
-
 /* header buttons: small, on the sides */
 
 [role=dialog] header button {
