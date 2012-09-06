@@ -238,7 +238,13 @@ contacts.List = (function() {
       if (alreadyRendered) {
         // If already rendered, don't do anything unless one has been removed
         // We check that comparing contact.id
-        if (nodes[index] && nodes[index].dataset['uuid'] != contact.id) {
+        var currentNode = nodes[index];
+        var itemBody = currentNode.querySelector('[data-search]');
+        var searchable = itemBody.dataset['search'];
+        var newItemBody = newContact.querySelector('[data-search]');
+        var newSearchable = newItemBody.dataset['search'];
+        var hasChanged = searchable != newSearchable;
+        if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
           resetGroup(listContainer, counter[group]);
           listContainer.appendChild(newContact);
         }
