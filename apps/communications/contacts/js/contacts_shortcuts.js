@@ -52,6 +52,9 @@ if (!utils.alphaScroll) {
       for (var i = 65; i <= 90; i++) {
         alphabet.push({ letter: String.fromCharCode(i) });
       }
+      alphabet.push({ 
+        letter: '#'
+      });
       utils.templates.append(jumper, alphabet);
     }
 
