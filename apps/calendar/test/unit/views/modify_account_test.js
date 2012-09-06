@@ -10,13 +10,12 @@ suite('views/modify_account', function() {
 
   var subject;
   var account;
+  var triggerEvent;
   var app;
 
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   function hasClass(value) {
     return subject.element.classList.contains(value);
@@ -41,7 +40,7 @@ suite('views/modify_account', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
-        '<button class="save-icon">save</button>',
+        '<button class="save">save</button>',
         '<div class="errors"></div>',
         '<form>',
           '<input name="user" />',
@@ -308,6 +307,13 @@ suite('views/modify_account', function() {
 
     test('existing', function() {
       var calledWith;
+      var destroyed;
+
+      subject.model = {};
+      subject.destroy = function() {
+        destroyed = true;
+      }
+
       subject._updateModel = function() {
         calledWith = arguments;
         return model;
@@ -317,6 +323,7 @@ suite('views/modify_account', function() {
         params: { id: '1' }
       });
 
+      assert.ok(destroyed, 'should destroy previous state');
       assert.equal(subject.completeUrl, '/settings/');
       assert.equal(calledWith[0], '1');
       assert.equal(subject.model, model);

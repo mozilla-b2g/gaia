@@ -19,6 +19,10 @@
 }
 */
 
+#screen > [data-z-index-level="system-notification-banner"] {
+  z-index: 65536;
+}
+
 #screen > [data-z-index-level="system-overlay"] {
   z-index: 65536;
 }
@@ -113,7 +117,7 @@
    */
 }
 
-/**
+/*
  * set appWindow/homescreen z-index as 2 when it is active,
  * so that it will appear above the keyboard iframe (z-index 0) to allow
  * clicking on it
@@ -123,6 +127,7 @@
   z-index: 2;
 }
 
+#screen > [data-z-index-level="app"].active + section.banner[data-z-index-level="system-notification-banner"],
 #screen > [data-z-index-level="app"] > iframe.appWindow {
   z-index: 1;
 }

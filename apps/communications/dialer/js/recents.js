@@ -436,15 +436,17 @@ var Recents = {
           content += '</ol></section>';
         }
         currentDay = day;
-
         content +=
           '<section data-timestamp="' + day + '">' +
-          ' <h2>' + Utils.headerDate(day) + '</h2>' +
-          ' <ol id="' + day + '" class="log-group">';
+          ' <h2 id="header-day-' + day + '">' + Utils.headerDate(day) +
+          ' </h2>' +
+          ' <ol id="list-day-' + day + '" class="log-group">';
       }
       content += this.createRecentEntry(recents[i]);
     }
     this.recentsContainer.innerHTML = content;
+
+    FixedHeader.refresh();
 
     this.updateContactDetails();
 
@@ -490,8 +492,7 @@ var Recents = {
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
-      } else {
-        logItem.classList.add('noContactPhoto');
+        logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
@@ -502,7 +503,7 @@ var Recents = {
       logItem.dataset['contactId'] = contact.id;
     } else {
       contactPhoto.classList.add('unknownContact');
-      logItem.dataset.delete('contactId');
+      delete logItem.dataset['contactId'];
     }
   },
 
@@ -602,6 +603,8 @@ var Recents = {
 
 window.addEventListener('localized', function recentsSetup() {
   window.removeEventListener('localized', recentsSetup);
+    var headerSelector = '#recents-container h2';
+    FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
 });
 

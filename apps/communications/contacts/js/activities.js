@@ -22,10 +22,9 @@ var ActivityHandler = {
   },
 
   handle: function ah_handle(activity) {
-    this._currentActivity = activity;
-
-    switch (this.activityName) {
+    switch (activity.source.name) {
       case 'new':
+        this._currentActivity = activity;
         document.location.hash = 'view-contact-form';
         if (this._currentActivity.source.data.params) {
           var param, params = [];
@@ -37,6 +36,7 @@ var ActivityHandler = {
         }
         break;
       case 'pick':
+        this._currentActivity = activity;
         Contacts.navigation.home();
         break;
     }

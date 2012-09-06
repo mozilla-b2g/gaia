@@ -261,6 +261,6 @@ hr {
 @media screen and (max-height: 450px) and (min-height: 420px) {
  .view-jumper li {
   font-size: 1.05rem;
-  line-height: 1.25rem;
+  line-height: 1.23rem;
  }
 }

@@ -109,6 +109,7 @@ button::-moz-focus-inner {
   line-height: 5.2rem;
   margin: 0 0 0 4rem;
   font-size: 2.2rem;
+  font-weight: normal;
 }
 
 .header-btn, .header-left-btn, .header-right-btn {
@@ -226,4 +227,12 @@ button::-moz-focus-inner {
 
 .icon-account {
   background-image: url("images/icons/user.png");
+}
+
+.icon-reply {
+  background-image: url("images/icons/reply.png");
+}
+
+.icon-reply-all {
+  background-image: url("images/icons/reply-all.png");
 }
