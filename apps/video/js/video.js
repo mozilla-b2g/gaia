@@ -460,7 +460,7 @@ function dragSlider(e) {
     return;
 
   if (!isPaused) {
-    pause();
+    dom.player.pause();
   }
 
   // Capture all mouse moves and the mouse up
@@ -481,7 +481,7 @@ function dragSlider(e) {
 
     dragging = false;
     if (!isPaused) {
-      play();
+      dom.player.play();
     }
   }
 
