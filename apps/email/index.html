@@ -9,6 +9,9 @@
   <link rel="stylesheet" type="text/css" href="style/folder-cards.css">
   <link rel="stylesheet" type="text/css" href="style/compose-cards.css">
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
+  <!-- Include shared building blocks -->
+  <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+  <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <!-- Shared code -->
@@ -201,8 +204,12 @@
           </button>
           <h2 class="msg-reader-header-label header-label"
               data-l10n-id="reader-header">ReaD</h2>
-          <button class="msg-reply-all-btn header-btn">Reply alL</button>
-          <button class="msg-reply-btn header-right-btn">ReplY</button>
+          <button class="msg-reply-all-btn header-btn">
+            <span class="icon icon-reply-all"></span>
+          </button>
+          <button class="msg-reply-btn header-right-btn">
+            <span class="icon icon-reply"></span>
+          </button>
         </div>
         <div class="scrollregion-below-header">
           <div class="msg-envelope-bar">
@@ -399,26 +406,60 @@
       </div>
 
       <!-- Main settings menu, root of all (mail) settings -->
-      <div class="card-settings-main card">
-        <div class="tng-main-header top-header">
-          <button class="tng-close-btn header-left-btn"
-                  data-l10n-id="settings-close">
-            <span class="icon icon-close"></span>
-          </button>
-          <h2 class="tng-main-header-label header-label"
-              data-l10n-id="settings-main-header">MaiL SettingS</h2>
-        </div>
-        <div class="scrollregion-below-header">
-          <h3 class="tng-main-accounts-label tng-header-item"
-              data-l10n-id="settings-account-section">AccountS</h3>
+      <section class="card-settings-main card skin-organic" role="region">
+        <header class="tng-main-header">
+          <menu type="toolbar" class="tng-close-btn">
+            <button data-l10n-id="settings-done">Done</button>
+          </menu>
+          <h1 class="tng-main-header-label"
+              data-l10n-id="settings-main-header">MaiL SettingS</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <header class="collapsed"></header>
+          <header class="tng-main-accounts-label">
+            <h2 data-l10n-id="settings-account-section">AccountS</h2>
+          </header>
           <div class="tng-accounts-container"></div>
-          <a class="tng-account-add tng-item"
-             data-l10n-id="settings-account-add">AdD AccounT</a>
-          <h3 class="tng-main-about-label tng-header-item"
-              data-l10n-id="settings-about-section">AbouT</h3>
-          <a class="tng-email-lib-version tng-inert-item tng-item">v1</a>
-        </div>
-      </div>
+            <li>
+              <a href="#" data-l10n-id="settings-account-add" class="tng-account-add list-text">AdD AccounT</a>
+            </li>
+          <header class="tng-main-about-label">
+            <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
+          </header>
+            <li>
+              <span data-l10n-id="settings-check-mail" class="list-text">ChecK MaiL</span>
+              <em class="aside end">5 min</em>
+            </li>
+            <li>
+              <span data-l10n-id="settings-show-images" class="list-text">AlwayS ShoW ImageS</span>
+              <em class="aside end">
+                <label class="switch">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+            </li>
+            <li>
+              <span data-l10n-id="settings-download-attachments" class="list-text">DownloaD AttachmentS</span>
+              <em class="aside end">
+                <label class="switch">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+            </li>
+            <li>
+              <span data-l10n-id="settings-notify-mail" class="list-text">NotifY ME OF NeW MaiL</span>
+              <em class="aside end">
+                <label class="switch">
+                  <input type="checkbox" checked="checked">
+                  <span></span>
+                </label>
+              </em>
+            </li>
+          <a class="tng-email-lib-version collapsed">v1</a>
+        </section>
+      </section>
 
       <!-- Per-account settings menu; largely read-only for now -->
       <div class="card-settings-account card">
@@ -522,10 +563,10 @@
     </div>
     <!-- Widget nodes for the settings cards; styles use the tng prefix -->
     <div id="templ-tng">
-      <a class="tng-account-item tng-item">
-        <h4 class="tng-account-item-label"></h4>
+      <li class="tng-account-item">
+        <a href="#" class="tng-account-item-label list-text"></a>
         <!-- we may want to expose some other info in this row -->
-      </a>
+      </li>
 
       <ul class="tng-account-menu menu">
         <li class="tng-account-menu-delete menu-item"

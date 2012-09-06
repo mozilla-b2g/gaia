@@ -90,6 +90,91 @@ suite('view', function() {
 
   });
 
+  suite('#delegate', function() {
+    var element;
+    var triggerEvent;
+
+    suiteSetup(function() {
+      triggerEvent = testSupport.calendar.triggerEvent;
+    });
+
+    setup(function() {
+      element = document.createElement('div');
+      element.id = 'test';
+
+      var html = '<ol>' +
+                   '<li class="hit">hit</li>' +
+                   '<li class="foo">foo</li>' +
+                 '</ol>';
+
+
+      element.innerHTML = html;
+      document.body.appendChild(element);
+    });
+
+    teardown(function() {
+      element.parentNode.removeChild(element);
+    });
+
+    test('matches - fn', function(done) {
+
+      function next() {
+        if (!(--pending))
+          done();
+      }
+
+      var pending = 2;
+
+      function handleEvent(event, givenTarget) {
+        assert.ok(event);
+        assert.equal(givenTarget, target);
+
+        next();
+      }
+
+      var object = {
+        handleEvent: handleEvent
+      };
+
+      subject.delegate(element, 'click', 'li.hit', handleEvent);
+      subject.delegate(element, 'click', 'li.hit', object);
+
+      // we want to click hit
+      var target = element.querySelector('li.hit');
+      assert.ok(target);
+
+      triggerEvent(target, 'click');
+    });
+
+    test('miss - on element', function(done) {
+      subject.delegate(element, 'click', function() {
+        done(new Error('should not triger'));
+      });
+
+      setTimeout(function() {
+        done();
+      });
+
+      triggerEvent(element, 'click');
+    });
+
+    test('miss - on child', function(done) {
+      subject.delegate(element, 'click', function() {
+        done(new Error('should not triger'));
+      });
+
+      setTimeout(function() {
+        done();
+      });
+
+      var target = element.querySelector('li.foo');
+      assert.ok(target);
+
+      triggerEvent(target, 'click');
+    });
+
+  });
+
   test('#onactive', function() {
 
     var seen = 0;

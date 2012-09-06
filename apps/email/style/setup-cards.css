@@ -76,3 +76,29 @@
 .tng-account-add {
   font-style: italic;
 }
+
+li {
+  width: 100%;
+  height: 5.5rem;
+  border: solid 1px #dbd9d9;
+  border-right: none;
+  border-left: none;
+  margin: -1px 0 0;
+}
+
+.list-text {
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #000;
+  line-height: 5.5rem;
+  padding-left: 3rem;
+  font-size: 1.8rem;
+}
+
+li .aside.end {
+  position: relative;
+  float: right;
+  right: 0.5rem;
+  line-height: 5.5rem;
+}

@@ -1,5 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
+  requireLib('ordered_map.js');
   requireLib('views/day_based.js');
 });
 
@@ -8,94 +9,7 @@ suite('views/hour_based', function() {
   var OrderedMap;
 
   suiteSetup(function() {
-    OrderedMap = Calendar.Views.DayBased.OrderedMap;
-  });
-
-  suite('OrderedMap', function() {
-
-    var subject;
-
-    setup(function() {
-      subject = new OrderedMap([[8, 'foo'], [1, 'baz']], Calendar.compare);
-    });
-
-    test('initialization', function() {
-      var stored = subject.items;
-
-      assert.deepEqual(stored, [
-        [1, 'baz'],
-        [8, 'foo']
-      ]);
-    });
-
-    test('#length', function() {
-      assert.equal(subject.length, 2);
-    });
-
-    test('#has', function() {
-      assert.isFalse(subject.has(999), 'looking for item not in list');
-      assert.isTrue(subject.has(1), 'looking for valid item');
-    });
-
-    test('#get', function() {
-      assert.deepEqual(subject.get(8), 'foo');
-    });
-
-    suite('#insertIndexOf', function() {
-      test('before', function() {
-        var idx = subject.insertIndexOf(0);
-        assert.equal(idx, 0);
-      });
-
-      test('after', function() {
-        var idx = subject.insertIndexOf(10);
-        assert.equal(idx, 2);
-      });
-    });
-
-    test('#remove', function() {
-      subject.remove(8);
-      assert.ok(!subject.get(8));
-    });
-
-    test('#indexOf', function() {
-      assert.equal(subject.indexOf(8), 1);
-      assert.equal(subject.indexOf(1), 0);
-      assert.equal(subject.indexOf(77), null);
-    });
-
-    suite('#set', function() {
-
-      test('override', function() {
-        subject.set(1, 'foo');
-        assert.equal(subject.items[0][1], 'foo');
-      });
-
-      test('before', function() {
-        subject.set(0, 'zomg');
-        assert.deepEqual(
-          subject.items,
-          [
-            [0, 'zomg'],
-            [1, 'baz'],
-            [8, 'foo']
-          ]
-        );
-      });
-
-      test('after', function() {
-        subject.set(77, 'foo');
-        assert.deepEqual(
-          subject.items,
-          [
-            [1, 'baz'],
-            [8, 'foo'],
-            [77, 'foo']
-          ]
-        );
-      });
-    });
-
+    OrderedMap = Calendar.OrderedMap;
   });
 
   var subject;

@@ -36,43 +36,32 @@ Calendar.App = (function(window) {
       this.router.show(url);
     },
 
-    _init: function() {
+    _routes: function() {
       var self = this;
-      /* HACKS */
-      function setPath(data, next) {
-        document.body.setAttribute('data-path', data.canonicalPath);
-        next();
-      }
-
-      // quick hack for today button
-      var today = document.querySelector('#view-selector .today');
-
-      today.addEventListener('click', function() {
-        self.view('Month').render();
-        self.timeController.selectedDay = (new Date());
-      });
-
 
       function tempView(selector) {
         self._views[selector] = new Calendar.View(selector);
         return selector;
       }
 
-      this.syncController.observe();
-      this.timeController.observe();
+      function setPath(data, next) {
+        document.body.setAttribute('data-path', data.canonicalPath);
+        next();
+      }
 
       /* temp views */
       this.state('/day/', setPath, tempView('#day-view'));
       this.state('/week/', setPath, tempView('#week-view'));
-      this.state('/add/', setPath, tempView('#add-event-view'));
+      this.state('/add/', setPath, tempView('#modify-event-view'));
 
       /* routes */
-
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
       this.modifier(
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
+
+      this.state('/event/:id', setPath, 'ModifyEvent');
 
       this.modifier('/select-preset/', setPath, 'CreateAccount');
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
@@ -86,19 +75,44 @@ Calendar.App = (function(window) {
         });
       });
 
-      var header = this.view('TimeHeader');
-      var colors = this.view('CalendarColors');
-      colors.render();
+      this.router.start();
 
       var pathname = window.location.pathname;
-
       // default view
       if (pathname === '/index.html' || pathname === '/') {
         this.go('/month/');
       }
 
-      this.router.start();
+    },
+
+    _init: function() {
+      var self = this;
+      // quick hack for today button
+      var today = document.querySelector('#view-selector .today');
+
+      today.addEventListener('click', function(e) {
+        var date = new Date();
+        self.timeController.move(date);
+        self.timeController.selectedDay = date;
+
+        e.preventDefault();
+      });
+
+      this.dateFormat = navigator.mozL10n.DateTimeFormat();
+
+      this.syncController.observe();
+      this.timeController.observe();
+
+      this.timeController.move(new Date());
+
+      var header = this.view('TimeHeader');
+      var colors = this.view('CalendarColors');
+
+      colors.render();
+      header.render();
+
       document.body.classList.remove('loading');
+      this._routes();
     },
 
     /**

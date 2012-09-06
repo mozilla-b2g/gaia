@@ -455,7 +455,6 @@ var CardsView = (function() {
       return;
 
     hideCardSwitcher();
-    evt.stopImmediatePropagation();
   });
 
   function cv_handleEvent(evt) {

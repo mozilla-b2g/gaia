@@ -37,6 +37,9 @@ var KeyboardManager = (function() {
       appHeight = window.innerHeight;
 
     } else if (app) {
+      // XXX: The correct approach here should be firing keyboardchange
+      // for WindowManager to handle the resize, instead of exposing
+      // this internal method.
       WindowManager.setAppSize(app);
       currentApp = WindowManager.getAppFrame(app);
       appHeight = currentApp.getBoundingClientRect().height;

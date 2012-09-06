@@ -1,42 +1,61 @@
-/* calendar settings */
+/* change display of header - this css needs improvement in BB */
 
-body[data-path^="/settings/"] #wrapper {
+body[data-path^="/settings/"] section[role="region"] > header > button,
+body[data-path^="/settings/"] section[role="region"] > header > a {
+  width: 6rem;
+}
+
+body[data-path^="/settings/"] section[role="region"] > header > a .icon.icon-menu,
+body[data-path^="/settings/"] section[role="region"] > header > button .icon.icon-menu {
+  background-position: center center;
+}
+
+body[data-path^="/settings/"] section[role="region"] > header > button .icon:after,
+body[data-path^="/settings/"] section[role="region"] > header > a .icon:after {
+  width: 4rem;
+}
+
+body[data-path^="/settings/"] section[role="region"] > header > button,
+body[data-path^="/settings/"] section[role="region"] > header > a {
+  background-position: 4rem center;
+}
+
+body[data-path^="/settings/"] section[role="region"] > header h1 {
+  padding-left: 5rem;
+}
+
+body[data-path^='/event'] #time-views,
+body[data-path^='/month'] #time-views,
+body[data-path^='/day'] #time-views,
+body[data-path^='/week'] #time-views {
+  z-index: 200;
+  transform: translateX(0%);
+  transition: transform 0.5s ease-in-out;
+}
+
+
+body[data-path^='/advanced-settings'] #time-views,
+body[data-path^='/select-preset'] #time-views,
+body[data-path^='/create-account'] #time-views,
+body[data-path^='/settings'] #time-views {
   position: relative;
-  -moz-transform: translateX(80%);
+  transform: translateX(80%);
   box-shadow: 1px 1px 5px 5px #222;
-  z-index: 2;
-
-  -moz-transition: -moz-transform 0.1s ease-in-out;
-}
-
-body #wrapper {
-  -moz-transform: translateX(0%);
-  -moz-transition: -moz-transform 0.1s ease-in-out;
-}
-
-body[data-path^="/settings/"] #time-header {
-  margin-left: 0;
-}
-
-#settings.active {
-  display: block;
+  transition: transform 0.5s ease-in-out;
 }
 
 #settings {
   font-size: 1.6rem;
   color: white;
-  display: none;
   width: 80%;
+  z-index: 0;
 }
 
-body[data-path^="/settings/"] #settings {
-  z-index: 4;
-}
 
-#settings header h1 {
-  width: -moz-calc(100% - 30px);
+#settings ol.calendars {
+  height: calc(100% - 9rem);
+  overflow-y: scroll;
 }
-
 
 #settings .calendars label > span {
   display: block;
@@ -60,11 +79,6 @@ body[data-path^="/settings/"] #settings {
   -moz-box-flex: 1;
   user-select: none;
   width: 100%;
-}
-
-#settings .calendars li,
-#settings .calendars ol {
-  height: 100%;
 }
 
 #settings .calendars li {
@@ -101,14 +115,13 @@ body[data-path^="/settings/"] #settings {
   width: 5.5rem;
   height: 4rem;
   background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
-  text-indent: -9999rem;
+  font-size: 0;
   display: block;
 }
 
 #settings .calendars input[type="checkbox"] {
  display: none;
 }
-
 
 #settings .calendars input[type="checkbox"]:checked + span {
   width: 14px;
