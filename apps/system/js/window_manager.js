@@ -186,10 +186,20 @@ var WindowManager = (function() {
               openFrame.removeEventListener(
                 'mozbrowserfirstpaint', continueSprite);
 
-              saveAppScreenshot(displayedApp, function screenshotTaken() {
+              saveAppScreenshot(displayedApp, function screenshotTaken(screenshot) {
+                delete openFrame.dataset.firstLaunch;
                 sprite.className = 'opened';
               });
             });
+
+          return;
+        }
+
+        if ('firstLaunch' in openFrame.dataset) {
+          saveAppScreenshot(displayedApp, function screenshotTaken(screenshot) {
+            delete openFrame.dataset.firstLaunch;
+            sprite.className = 'opened';
+          });
 
           return;
         }
@@ -601,6 +611,7 @@ var WindowManager = (function() {
     frame.src = url;
 
     frame.dataset.unpainted = true;
+    frame.dataset.firstLaunch = true;
     frame.addEventListener('mozbrowserfirstpaint', function painted() {
       frame.removeEventListener('mozbrowserfirstpaint', painted);
       delete frame.dataset.unpainted;
