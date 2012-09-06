@@ -307,18 +307,11 @@ var WindowManager = (function() {
     store.delete(origin);
   }
 
-  // Meta method for getting app screenshot from database, or
-  // get it from the app frame and save it to database.
-  function getAppScreenshot(origin, callback) {
-    if (!callback)
-      return;
-
+  function getAppScreenshotFromFrame(origin, callback) {
     var app = runningApps[origin];
 
-    // If the frame is just being append and app content is just being loaded,
-    // let's get the screenshot from the database instead.
-    if (!app || !app.launchTime) {
-      getAppScreenshotFromDatabase(origin, callback);
+    if (!app || !app.frame) {
+      callback();
       return;
     }
 
@@ -343,6 +336,24 @@ var WindowManager = (function() {
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
+  }
+
+  // Meta method for getting app screenshot from database, or
+  // get it from the app frame and save it to database.
+  function getAppScreenshot(origin, callback) {
+    if (!callback)
+      return;
+
+    var app = runningApps[origin];
+
+    // If the frame is just being append and app content is just being loaded,
+    // let's get the screenshot from the database instead.
+    if (!app || !app.launchTime) {
+      getAppScreenshotFromDatabase(origin, callback);
+      return;
+    }
+
+    getAppScreenshotFromFrame(origin, callback);
   }
 
   function afterPaint(callback) {
