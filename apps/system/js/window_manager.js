@@ -375,7 +375,14 @@ var WindowManager = (function() {
       return;
     }
 
-    getAppScreenshotFromFrame(origin, callback);
+    getAppScreenshotFromFrame(origin, function (screenshot, isCached) {
+      if (!screenshot) {
+        getAppScreenshotFromDatabase(origin, callback);
+        return;
+      }
+
+      callback(screenshot, isCached);
+    });
   }
 
   function afterPaint(callback) {
