@@ -388,5 +388,6 @@ window.addEventListener('localized', function callSetup(evt) {
 
   KeypadManager.init();
   CallScreen.init();
+  CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
 });
