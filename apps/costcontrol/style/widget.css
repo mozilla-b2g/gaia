@@ -58,12 +58,15 @@ p.time {
 #balance-view {
   height: 100%;
   width: 100%;
+  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
 }
 
 /* Low credit warning */
 #balance-view.low-credit {
-  background-image: url('./images/widget/ui/no-credit-pattern.png');
-  background-repeat: repeat-x;
+  background-image: url('./images/widget/ui/no-credit-pattern.png'),
+                      url('./images/widget/icons/icon-go.png');
+  background-repeat: repeat-x, no-repeat;
+  background-position: center, right center;
 }
 
 /* Updating animation */
@@ -93,7 +96,7 @@ p.time {
 
 #balance-view.warning {
   background: none;
-  background-color: #737577;
+  background: #737577 url('./images/widget/icons/icon-go.png') right center no-repeat;
 }
 
 #balance-view.updating > div,
@@ -122,4 +125,5 @@ p.time {
   padding-left: 0.4rem;
   height: 100%;
   width: 100%;
+  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
 }
