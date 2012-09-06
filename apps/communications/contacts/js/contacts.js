@@ -1002,6 +1002,7 @@ var Contacts = (function() {
     //If in an activity, cancel it
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postCancel();
+      navigation.home();
     } else {
       handleBack();
     }
