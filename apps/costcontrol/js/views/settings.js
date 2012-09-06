@@ -84,8 +84,14 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
       .textContent = _(value);
   }
 
+  // Updates the UI to match the localization
+  function _localize() {
+    _updateUI();
+  }
+
   return {
     init: _init,
+    localize: _localize,
     updateUI: _updateUI
   };
 

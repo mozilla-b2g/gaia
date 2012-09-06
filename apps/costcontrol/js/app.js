@@ -82,7 +82,7 @@ function setupApp() {
     // Update UI when localized
     window.addEventListener('localized', function ccapp_onLocalized() {
       for (var viewid in Views) if (Views.hasOwnProperty(viewid))
-        Views[viewid].updateUI();
+        Views[viewid].localize();
     });
 
     if (CostControl.settings.option('plantype') === 'prepaid') {

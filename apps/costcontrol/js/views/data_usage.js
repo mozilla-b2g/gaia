@@ -27,76 +27,15 @@ function getWindowLeft(obj) {
 var TAB_DATA_USAGE = 'datausage-tab';
 appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
-  // for testing, get data for last 30 min instead of last month
-  var precision = 1000 * 60;
-  //var precision = 1000 * 60 * 60 * 24;
-
-  var end = new Date(
-    Math.floor(new Date().getTime() / precision) * precision
-  );
-
-  var start = new Date(
-    Math.floor(new Date().getTime() / precision) * precision
-  );
-
-  //start.setMonth(start.getMonth() - 1);
-  //var days = Math.floor((end - start) / (1000 * 60 * 60 * 24));
-  start.setMinutes(start.getMinutes() - 30);
-  var days = Math.floor((end - start) / precision);
-
-  //var _enabledNetworkTypes = navigator.mozNetworkStats.types;
-  var _enabledNetworkTypes = {
-    wifi: true,
-    mobile: true
-  };
-
-  // Debug data
-  var dataWifi = {
-    rxBytes: [26340, 25136, 26685, 26384, 24923, 26720, 27056, 27327, 26218,
-              27444, 27000, 45809, 45208, 27696, 25266, 28372, 27563, 31374,
-              28574, 25670, 27358, 27466, 27318, 22169, 39645, 24830, 27227,
-              26340, 24830, 0, 3759],
-
-    txBytes: [2, 72, 72, 72, 66, 72, 72, 72, 72, 72, 72, 48, 44620, 72, 72, 72,
-              72, 72, 72, 72, 72, 72, 72, 6, 3400, 72, 72, 72, 72, 0, 30],
-
-    connectionType: 'wifi',
-    startDate: start,
-    endDate: end
-  };
-
-  var dataMobile = {
-    rxBytes: [37597, 41674, 25387, 26596, 26392, 24818, 26396, 27003, 26658,
-              24898, 26564, 26328, 26615, 24860, 26340, 26592, 25952, 25537,
-              26340, 0, 0, 72959, 46493, 26508, 26844, 25042, 26664, 27255,
-              38846, 39829, 27908],
-
-    txBytes: [30, 3392, 72, 72, 72, 72, 72, 72, 72, 72, 44980, 72, 72, 72, 72,
-              72, 72, 72, 72, 0, 0, 18, 3394, 72, 72, 72, 72, 72, 36, 3400, 72],
-
-    connectionType: 'mobile',
-    startDate: start,
-    endDate: end
-  };
-
-  // Graphs colors
-  var colorMobile = {
-    stroke: '#046559',
-    fill: '#009d89',
-    axis: 'transparent',
-    grid: 'transparent'
-  };
-
-  var colorWifi = {
-    stroke: '#9ca81e',
-    fill: '#cbd936',
-    axis: 'transparent',
-    grid: 'transparent'
-  };
+  var _options;
+  var _graphicArea, _graphicPattern;
 
   // Attach event listeners for manual updates
   function _init() {
     debug('Initializing Data Usage Tab');
+    _graphicArea = document.getElementById('graphic-area');
+    _graphicPattern = document.getElementById('graphic-pattern');
+
     var dataUsageTab = document.getElementById('datausage-tab-filter');
     dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
       appVManager.changeViewTo(TAB_DATA_USAGE);
@@ -145,148 +84,95 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     }());
 
+    function getFakeValues(startDate, howMany, size, gapsize) {
+      var fakeData = [];
+      var oneDay = 1000 * 60 * 60 * 24;
+      var lastValue = 0, gapmode = 0, nomoregaps = false;
+      for (var i = 0, currentDate = startDate.getTime();
+           i < howMany;
+           i++, currentDate += oneDay) {
+
+        if (!nomoregaps && i > howMany / 2) {
+          gapmode = gapsize;
+          nomoregaps = true;
+        }
+
+        var sampleIncrement = Math.floor(Math.random() * size);
+        var sampleDate = new Date();
+        sampleDate.setTime(currentDate);
+        if (gapmode) {
+          fakeData.push({
+            date: sampleDate
+          });
+          gapmode--;
+
+        } else {
+          fakeData.push({
+            value: sampleIncrement,
+            date: sampleDate
+          });
+        }
+      }
+      return fakeData;
+    }
+
+    _options = {
+      height: _graphicArea.clientHeight,
+      width: _graphicArea.clientWidth,
+      get originY() {
+        delete this.originY;
+        return (this.originY = Math.floor(this.height * 5/6));
+      },
+      originX: 0,
+      axis: {
+        X: {
+          lower: new Date(2012, 0, 1),
+          upper: new Date(2012, 0, 31),
+          today: new Date(2012, 0, 21),
+          get: function cc_dataToXPx(value) {
+            var projection = (value.getTime() - this.lower.getTime()) /
+                              (this.upper.getTime() - this.lower.getTime() );
+            return projection * _options.width;
+          }
+        },
+        Y: {
+          lower: 0,
+          margin: 0.20,
+          maxValue: 2356000000,
+          get range() {
+            delete this.range;
+            return (this.range = this.upper - this.lower);
+          },
+          get upper() {
+            delete this.upper;
+            return (this.upper = (1 + this.margin) * this.maxValue);
+          },
+          get step() {
+            delete this.step;
+            return (this.step = this.get(this.maxValue));
+          },
+          get: function cc_dataToYPx(value) {
+            var projection = (value - this.lower) / (this.upper - this.lower);
+            return _options.originY * ( 1 - projection );
+          }
+        }
+      },
+      limits: {
+        value: 990000000,
+        warning: 0.80,
+        get warningValue() {
+          delete this.warningValue;
+          return (this.warningValue = this.value * this.warning);
+        }
+      },
+      data: {
+        wifi: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000, 5) },
+        mobile: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000 * 0.75, 5) },
+      }
+    };
+
+
     _updateUI();
-  }
-
-  function _paint(canvas, networkStats, color) {
-    var width = canvas.clientWidth;
-    var height = canvas.clientHeight;
-    var x_space = width / days;
-
-    var ctx = canvas.getContext('2d');
-    var rx = networkStats.rxBytes;
-    var tx = networkStats.txBytes;
-
-    debug('ConnectionType: ' + networkStats.connectionType);
-    debug('StartDate: ' + networkStats.startDate);
-    debug('EndDate: ' + networkStats.endDate);
-
-    if (rx && tx) {
-      debug('Data rx: ' + rx);
-      debug('Data tx: ' + tx);
-
-      // Check if data is available from start/end date, else insert '0'
-      if (networkStats.startDate > start) {
-        var offset =
-          Math.floor((networkStats.startDate - start) / precision) - 1;
-
-        debug('add ' + offset);
-        for (var i = 0; i < offset; i++) {
-          rx.unshift(0);
-          tx.unshift(0);
-        }
-      }
-
-      if (networkStats.endDate < end) {
-        var offset =
-          Math.floor((end - networkStats.startDate) / precision) - 1;
-        debug('add ' + offset);
-        for (var i = 0; i < offset; i++) {
-          rx.push(0);
-          tx.push(0);
-        }
-      }
-
-      // Normalize data
-      var sum = 0;
-      for (var i in rx)
-        sum += rx[i] + tx[i];
-
-      var scale_factor = height / sum;
-
-      // Draw rx data
-      var x = 1;
-      var y = height - ((rx[0] + tx[0]) * scale_factor);
-
-      ctx.strokeStyle = color.stroke;
-      ctx.fillStyle = color.fill;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      for (var i = 1; i < days - 1; i++) {
-        x += x_space;
-        y -= (rx[i] + tx[i]) * scale_factor;
-        ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      ctx.lineTo(x, height);
-      ctx.lineTo(0, height);
-      ctx.fill();
-
-      // Draw tx data
-      var x = 1;
-      var y = height - (tx[0] * scale_factor);
-
-      ctx.strokeStyle = color.stroke;
-      ctx.fillStyle = color.fill;
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      for (var i = 1; i < days - 1; i++) {
-        x += x_space;
-        y -= tx[i] * scale_factor;
-        ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      ctx.lineTo(x, height);
-      ctx.lineTo(0, height);
-      ctx.fill();
-    }
-
-    // Draw axis
-    ctx.strokeStyle = color.axis;
-    ctx.beginPath();
-    ctx.moveTo(1, 1);
-    ctx.lineTo(1, height);
-    ctx.lineTo(width, height);
-    ctx.stroke();
-
-    // Draw subX
-    var x = 1;
-
-    ctx.strokeStyle = color.grid;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for (var i = 1; i < days - 1; i++) {
-      x += x_space;
-      ctx.moveTo(x, height - 1);
-      ctx.lineTo(x, 0);
-    }
-    ctx.stroke();
-  }
-
-  function _overviewUI(networkStats) {
-    var rx = networkStats.rxBytes;
-    var tx = networkStats.txBytes;
-    var type = networkStats.connectionType;
-
-    //Sum bytes
-    var rxBytes = 0;
-    for (var i in rx) {
-      rxBytes += rx[i];
-    }
-
-    var txBytes = 0;
-    for (var i in tx) {
-      txBytes += tx[i];
-    }
-
-    //Default MB operations
-    var totalMB = (rxBytes + txBytes) / 1024;
-    totalMB = totalMB.toFixed();
-    var value = totalMB;
-    var unit = 'MB';
-
-    //Convert MB to GB
-    if (totalMB >= 1024) {
-     value = totalMB / 1024;
-     value = value.toFixed(1);
-     unit = 'GB';
-    }
-
-    //Apply to UI
-    document.getElementById(type + 'Overview').innerHTML = value + unit;
-
   }
 
   function _drawBackgroundLayer(options) {
@@ -406,7 +292,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.fillStyle = shadow;
     ctx.fillRect(
       offsetX + 0.5, 1.5,
-      offsetX + 0.5 + shadowLength, options.originY - 3.5
+      shadowLength, options.originY - 3.5
     );
 
     // Centered today text
@@ -684,24 +570,39 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var width = canvas.width = options.width;
     var ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = '#cbd936';
-    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'rgba(203, 217, 54, 0.7)';
     var samples = options.data.wifi.samples;
     ctx.beginPath();
     ctx.moveTo(options.originX, options.originY - 2.5);
     var sum = 0; var x, y;
+    var lastX = options.originX, lastY = options.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i]
+      if (sample.value == undefined) {
+        lastX = x = options.axis.X.get(sample.date);
+        ctx.moveTo(x,y);
+        continue;
+      }
+
       x = options.axis.X.get(sample.date);
       y = options.axis.Y.get(sum += sample.value);
+
       ctx.lineTo(x, y);
+      ctx.lineTo(x, options.originY - 2.5);
+      ctx.lineTo(lastX, options.originY - 2.5)
+      ctx.lineTo(lastX, lastY)
+      ctx.moveTo(x,y);
+      lastX = x;
+      lastY = y;
     }
     // Set max accumulation for today indicator
     options.data.wifi.sumToday = sum;
-    ctx.stroke();
-    ctx.lineTo(x, options.originY - 2.5);
-    ctx.closePath();
     ctx.fill();
+
+    var pattern = ctx.createPattern(_graphicPattern, 'repeat');
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, width, options.originY);
   }
 
   function _drawMobileGraphic(options) {
@@ -710,17 +611,30 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var width = canvas.width = options.width;
     var ctx = canvas.getContext('2d');
 
-    ctx.fillStyle = 'rgb(157, 54, 117)';
-    ctx.strokeStyle = 'white';
-    var samples = options.data.mobile.samples;
     ctx.beginPath();
-    ctx.moveTo(options.originX, options.originY - 2.5);
+    ctx.fillStyle = 'rgba(147, 21, 98, 0.65)';
+    ctx.strokeStyle = 'transparent';
+    var samples = options.data.mobile.samples;
     var sum = 0; var x, y;
+    var lastX = options.originX, lastY = options.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i]
+      if (sample.value == undefined) {
+        lastX = x = options.axis.X.get(sample.date);
+        ctx.moveTo(x,y);
+        continue;
+      }
+
       x = options.axis.X.get(sample.date);
       y = options.axis.Y.get(sum += sample.value);
+
       ctx.lineTo(x, y);
+      ctx.lineTo(x, options.originY - 2.5);
+      ctx.lineTo(lastX, options.originY - 2.5)
+      ctx.lineTo(lastX, lastY)
+      ctx.moveTo(x,y);
+      lastX = x;
+      lastY = y;
     }
     // Set max accumulation for today indicator
     options.data.mobile.sumToday = sum;
@@ -729,140 +643,68 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.shadowOffsetX = -1;
     ctx.shadowOffsetY = -1;
     ctx.stroke();
-    ctx.lineTo(x, options.originY - 2.5);
-    ctx.closePath();
     ctx.fill();
+
+    var pattern = ctx.createPattern(_graphicPattern, 'repeat');
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, width, options.originY);
   }
 
+  function _drawWarningOverlay(options) {
+    var canvas = document.getElementById('warning-layer');
+    var height = canvas.height = options.height;
+    var width = canvas.width = options.width;
+    var ctx = canvas.getContext('2d');
+
+    // No problem here
+    var mobileUsage = options.data.mobile.sumToday;
+    if (mobileUsage <= options.limits.warningValue)
+      return;
+
+    // Warning mode
+    if (mobileUsage <= options.limits.value) {
+      var limitValue = Math.round(options.axis.Y.get(options.limits.value));
+      var warningValue = Math.round(options.axis.Y.get(options.limits.warningValue));
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255, 112, 0, 0.5)';
+      ctx.fillRect(
+        options.originX, limitValue,
+        width, warningValue - limitValue
+      );
+      return;
+    }
+
+    // Limit exceeded
+    var limitValue = options.axis.Y.get(options.limits.value);
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+    ctx.fillRect(
+      options.originX, 0,
+      width, limitValue
+    );
+  }
 
   function _updateUI() {
-    var graphicArea = document.getElementById('graphic-area');
-
-    function getFakeValues(startDate, howMany, size) {
-      var fakeData = [];
-      var oneDay = 1000 * 60 * 60 * 24;
-      var lastValue = 0;
-      for (var i = 0, currentDate = startDate.getTime();
-           i < howMany;
-           i++, currentDate += oneDay) {
-
-        var sampleIncrement = Math.floor(Math.random() * size);
-        var sampleDate = new Date();
-        sampleDate.setTime(currentDate);
-        fakeData.push({
-          value: sampleIncrement,
-          date: sampleDate
-        });
-      }
-      console.log('fake!')
-      return fakeData;
-    }
-
-    var options = {
-      height: graphicArea.clientHeight,
-      width: graphicArea.clientWidth,
-      get originY() {
-        delete this.originY;
-        return (this.originY = Math.floor(this.height * 5/6));
-      },
-      originX: 0,
-      axis: {
-        X: {
-          lower: new Date(2012, 0, 1),
-          upper: new Date(2012, 0, 31),
-          today: new Date(2012, 0, 21),
-          get: function cc_dataToXPx(value) {
-            var projection = (value.getTime() - this.lower.getTime()) /
-                              (this.upper.getTime() - this.lower.getTime() );
-            return projection * options.width;
-          }
-        },
-        Y: {
-          lower: 0,
-          margin: 0.20,
-          maxValue: 2356000000,
-          get range() {
-            delete this.range;
-            return (this.range = this.upper - this.lower);
-          },
-          get upper() {
-            delete this.upper;
-            return (this.upper = (1 + this.margin) * this.maxValue);
-          },
-          get step() {
-            delete this.step;
-            return (this.step = this.get(this.maxValue));
-          },
-          get: function cc_dataToYPx(value) {
-            var projection = (value - this.lower) / (this.upper - this.lower);
-            return options.originY * ( 1 - projection );
-          }
-        }
-      },
-      limits: {
-        value: 2000000000,
-        warning: 0.80,
-        get warningValue() {
-          delete this.warningValue;
-          return (this.warningValue = this.value * this.warning);
-        }
-      },
-      data: {
-        wifi: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 100000000) },
-        mobile: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 100000000 * 0.6) },
-      }
-    };
-
-    _drawBackgroundLayer(options);
-    _drawAxisLayer(options);
-    _drawWifiGraphic(options);
-    _drawMobileGraphic(options);
-    _drawTodayLayer(options);
-    _drawLimits(options);
+    _drawBackgroundLayer(_options);
+    _drawAxisLayer(_options);
+    _drawWifiGraphic(_options);
+    _drawMobileGraphic(_options);
+    _drawWarningOverlay(_options);
+    _drawTodayLayer(_options);
+    _drawLimits(_options);
   }
 
-/*  function _updateUI() {
-
-    for (var type in _enabledNetworkTypes) if (_enabledNetworkTypes[type]) {
-
-      var color = (type === 'wifi') ? colorWifi : colorMobile;
-
-      if (DEBUGGING) {
-        var dataDebug = (type === 'wifi') ? dataWifi : dataMobile;
-        var canvas = document
-          .getElementById(dataDebug.connectionType + 'GraphCanvas');
-
-        _paint(canvas, dataDebug, color);
-        _overviewUI(dataDebug);
-
-      } else {
-        if (!('mozNetworkStats' in navigator))
-          return;
-
-        var req = navigator.mozNetworkStats.getNetworkStats({
-          startDate: start,
-          endDate: end,
-          connectionType: type
-        });
-
-        req.onsuccess = function(event) {
-          var data = event.target.result;
-          var canvas = document
-            .getElementById(data.connectionType + 'GraphCanvas');
-
-          _paint(canvas, data, color);
-          _overviewUI(data);
-        };
-
-        req.onerror = function() {
-          debug('Error requesting network stats: ' + this.error.name);
-        };
-      }
-    }
-  }*/
+  // Updates the UI to match the localization
+  function _localize() {
+  console.log('segundo');
+    _drawAxisLayer(_options);
+    _drawLimits(_options);
+  }
 
   return {
     init: _init,
+    localize: _localize,
     updateUI: _updateUI
   };
 }());
