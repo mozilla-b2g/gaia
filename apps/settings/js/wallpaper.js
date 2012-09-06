@@ -12,7 +12,8 @@ var Wallpaper = {
 
   getAndBindAllElements: function wallpaper_getAllElements() {
     var elementsID = ['homescreen-wallpaper', 'homescreen-cameraphotos',
-      'lockscreen-wallpaper', 'lockscreen-cameraphotos'];
+      'lockscreen-wallpaper', 'lockscreen-cameraphotos',
+      'lockscreen-snapshot', 'homescreen-snapshot'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -38,9 +39,11 @@ var Wallpaper = {
   },
 
   loadCurrentWallpaper: function wallpaper_loadCurrentWallpaper() {
-    this.settings.addObserver('homescreen.wallpaper', function onCallback() {
+    this.settings.addObserver('homescreen.wallpaper', function onCallback(value) {
+      this.elements.homescreenSnapshot.src = value;
     });
-    this.settings.addObserver('lockscreen.wallpaper', function onCallback() {
+    this.settings.addObserver('lockscreen.wallpaper', function onCallback(value) {
+      this.elements.lockscreenSnapshot.src = value;
     });
   },
 
@@ -50,11 +53,17 @@ var Wallpaper = {
     var self = this;
     var target = evt.target;
     var property = '';
+    var wallpaper = false;
     switch (target) {
       case this.elements['homescreenWallpaper']:
+        wallpaper = true;
+      case this.elements['homescreenCameraphotos']:
         var a = new MozActivity({
           name: 'pick',
-          data: { type: 'image/jpeg', wallpaper: true }
+          data: {
+            type: 'image/jpeg', 
+            wallpaper: wallpaper
+          }
         });
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
@@ -66,7 +75,10 @@ var Wallpaper = {
           self.reopenSelf();
         };
         break;
+
       case this.elements['lockscreenWallpaper']:
+        wallpaper = true;
+      case this.elements['lockscreenCameraphotos']:
         var a = new MozActivity({
           name: 'pick',
           data: { type: 'image/jpeg', preload: true }
