@@ -186,8 +186,9 @@ var WindowManager = (function() {
               openFrame.removeEventListener(
                 'mozbrowserfirstpaint', continueSprite);
 
-              saveAppScreenshot(displayedApp);
-              sprite.className = 'opened';
+              saveAppScreenshot(displayedApp, function screenshotTaken() {
+                sprite.className = 'opened';
+              });
             });
 
           return;
@@ -351,11 +352,12 @@ var WindowManager = (function() {
 
   // Meta method for get the screenshot from the app frame,
   // and save it to database.
-  function saveAppScreenshot(origin) {
+  function saveAppScreenshot(origin, callback) {
     getAppScreenshotFromFrame(origin, function gotScreenshot(screenshot) {
       if (!screenshot)
         return;
 
+      callback(screenshot);
       putAppScreenshotToDatabase(origin, screenshot);
     })
   }
