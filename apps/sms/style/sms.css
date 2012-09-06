@@ -515,7 +515,7 @@ a.unread .unread-mark .icon-unread-mark {
 .selected .sent .bubble {
   border-color: #B90000;
 }
-.sent .bubble:after {
+.selected .sent .bubble:after {
   background-image: url('images/selected-outgoing_9x10.png');
 }
 
