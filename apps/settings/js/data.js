@@ -37,14 +37,13 @@ var gMobileConnection = (function(window) {
 // handle data settings
 window.addEventListener('load', function getCarrierSettings() {
   var APN_FILE = 'serviceproviders.xml';
-  var gICCInfo = gMobileConnection.iccInfo;
   var gUserChosenAPN = false;
 
   // query <apn> elements matching the mcc/mnc arguments
   function queryAPN(apnDocument, usageFilter) {
     var query = '//gsm[network-id' +
-        '[@mcc=' + gICCInfo.mcc + ']' +
-        '[@mnc=' + gICCInfo.mnc + ']' +
+        '[@mcc=' + gMobileConnection.iccInfo.mcc + ']' +
+        '[@mnc=' + gMobileConnection.iccInfo.mnc + ']' +
         ']/apn';
 
     var xpe = new XPathEvaluator();
