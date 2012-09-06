@@ -1,7 +1,6 @@
 {
   "name": "Homescreen",
   "description": "Gaia Homescreen",
-  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
@@ -70,12 +69,14 @@
     "save-bookmark": {
       "filters": {
         "type": "url"
-      }
+      },
+      "launch_path": "/index.html"
     },
     "view": {
       "filters": {
         "type": "application/x-application-list"
-      }
+      },
+      "launch_path": "/index.html"
     }
   }
 }
