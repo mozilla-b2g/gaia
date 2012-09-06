@@ -92,7 +92,8 @@ body {
  * resolution and orientation (and also language direction).
  */
 
-#thumbnails {
+#thumbnails,
+#wallpaper-thumbnails {
   position: absolute;
   padding: 0;
   margin: 0;
@@ -169,6 +170,7 @@ body {
 }
 
 /* thumbnails in pick view where there is a top bar and no bottom */
+#wallpaper-view > #wallpaper-thumbnails,
 #pick-view > #thumbnails {
   top: 50px;
   left: 0;

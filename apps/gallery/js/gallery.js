@@ -125,11 +125,12 @@ var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
 var pickView = $('pick-view');
 var editView = $('edit-view');
+var wallpaperView = $('wallpaper-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+  thumbnailListView, thumbnailSelectView, photoView, pickView, editView, wallpaperView
 ];
 var currentView;
 
@@ -444,6 +445,8 @@ function setView(view) {
     pickView.appendChild(thumbnails);
     thumbnails.style.width = '';
     break;
+  case wallpaperView:
+    break;
   case editView:
     // We don't display the thumbnails in edit view.
     // the editPhoto() function does the necessary setup and
@@ -509,6 +512,8 @@ function webActivityHandler(activityRequest) {
     break;
   case 'pick':
     startPick(activityRequest);
+    if (activityRequest.source.data.wallpaper)
+      setView(wallpaperView);
     break;
   }
 }
@@ -607,6 +612,9 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   }
   else if (currentView === pickView) {
     finishPick(images[parseInt(target.dataset.index)].name);
+  }
+  else if (currentView === wallpaperView) {
+    showWallpaper();
   }
 });
 

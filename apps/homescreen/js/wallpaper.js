@@ -15,7 +15,7 @@
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        preload: true
+        wallpaper: true
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
@@ -34,7 +34,7 @@
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        preload: false
+        wallpaper: false
       }
     });
     a.onsuccess = function onCameraPhotosSuccess() {

@@ -54,7 +54,7 @@ var Wallpaper = {
       case this.elements['homescreenWallpaper']:
         var a = new MozActivity({
           name: 'pick',
-          data: { type: 'image/jpeg', preload: true }
+          data: { type: 'image/jpeg', wallpaper: true }
         });
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
