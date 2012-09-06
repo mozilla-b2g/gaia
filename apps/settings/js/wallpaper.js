@@ -39,12 +39,19 @@ var Wallpaper = {
   },
 
   loadCurrentWallpaper: function wallpaper_loadCurrentWallpaper() {
-    this.settings.addObserver('homescreen.wallpaper', function onCallback(value) {
-      this.elements.homescreenSnapshot.src = value;
-    });
-    this.settings.addObserver('lockscreen.wallpaper', function onCallback(value) {
-      this.elements.lockscreenSnapshot.src = value;
-    });
+    var self = this;
+    var settings = this.settings;
+    var reqHomescreen = settings.getLock().get('homescreen.wallpaper');
+    reqHomescreen.onsuccess = function wallpaper_getHomescreenSuccess() {
+      var url = 'url(' + reqHomescreen.result['homescreen.wallpaper'] + ')';
+      self.elements.homescreenSnapshot.style.backgroundImage = url;
+    };
+    
+    var reqLockscreen = settings.getLock().get('lockscreen.wallpaper');
+    reqLockscreen.onsuccess = function wallpaper_getLockscreenSuccess() {
+      var url = 'url(' + reqLockscreen.result['lockscreen.wallpaper'] + ')';
+      self.elements.lockscreenSnapshot.style.backgroundImage = url;
+    };
   },
 
   handleEvent: function wallpaper_handleEvent(evt) {
@@ -67,6 +74,7 @@ var Wallpaper = {
         });
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
+          self.elements.homescreenSnapshot.style.backgroundImage = 'url(' + a.result.dataurl + ')';
           settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
           self.reopenSelf();
         };
@@ -81,10 +89,11 @@ var Wallpaper = {
       case this.elements['lockscreenCameraphotos']:
         var a = new MozActivity({
           name: 'pick',
-          data: { type: 'image/jpeg', preload: true }
+          data: { type: 'image/jpeg', wallpaper: wallpaper }
         });
         a.onsuccess = function onCameraPhotosSuccess() {
           var settings = navigator.mozSettings;
+          self.elements.lockscreenSnapshot.style.backgroundImage = 'url(' + a.result.dataurl + ')';
           settings.getLock().set({'lockscreen.wallpaper': a.result.dataurl});
           self.reopenSelf();
         };

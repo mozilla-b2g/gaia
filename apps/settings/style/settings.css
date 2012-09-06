@@ -139,3 +139,10 @@ form:not([id=root]) header + * {
   float: left;
 }
 
+div.snapshot {
+  border: solid 3px grey;
+  width: 120px;
+  height: 180px;
+  background-size: 120px 180px;
+}
+
