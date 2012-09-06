@@ -61,6 +61,7 @@ window.addEventListener('localized', function onlocalized() {
 SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
   document.getElementById('screen').style.backgroundImage = 'url(' + value + ')';
+  console.log('done=====');
 });
 
 window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
