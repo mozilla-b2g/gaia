@@ -91,7 +91,15 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      var groupContainer = doc.querySelector(groupSelector + current);
+      var querySelector = groupSelector;
+      // Query selector doesnt like thinks like 'XXX-#'
+      // we need to parse send a \ for the hash
+      if (current == '#') {
+        querySelector += '\\';
+      }
+      querySelector += current;
+
+      var groupContainer = doc.querySelector(querySelector);
       if (!groupContainer || groupContainer.clientHeight <= 0)
         return;
 
