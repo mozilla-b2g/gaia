@@ -876,6 +876,17 @@ var Contacts = (function() {
             number: number
           }
         });
+
+        var reopenApp = function reopenApp() {
+          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+            var app = evt.target.result;
+            app.launch('contacts');
+          };
+        }
+
+        activity.onerror = function error() {
+          reopenApp();
+        }
       } catch (e) {
         console.log('WebActivities unavailable? : ' + e);
       }
@@ -1442,14 +1453,16 @@ fb.contacts.init(function() {
   if (window.navigator.mozSetMessageHandler && window.self == window.top) {
     var actHandler = ActivityHandler.handle.bind(ActivityHandler);
     window.navigator.mozSetMessageHandler('activity', actHandler);
-
-    document.addEventListener('mozvisibilitychange', function visibility(e) {
-      if (ActivityHandler.currentlyHandling && document.mozHidden) {
-        ActivityHandler.postCancel();
-        return;
-      }
-      Contacts.checkCancelableActivity();
-    });
   }
+  document.addEventListener('mozvisibilitychange', function visibility(e) {
+    if (ActivityHandler.currentlyHandling && document.mozHidden) {
+      ActivityHandler.postCancel();
+      return;
+    }
+    if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
+      contacts.List.load();
+    }
+    Contacts.checkCancelableActivity();
+  });
 });
 

@@ -20,6 +20,10 @@
 ###############################################################################
 -include local.mk
 
+# Headless bot does not need the full output of wget
+# and it can cause crashes in bot.io option is here so
+# -nv can be passed and turn off verbose output.
+WGET_OPTS?=
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -112,7 +116,7 @@ DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
-DOWNLOAD_CMD = wget
+DOWNLOAD_CMD = wget $(WGET_OPTS)
 endif
 
 # Test agent setup
@@ -176,7 +180,7 @@ webapp-manifests: install-xulrunner-sdk
 	@echo "Done"
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip: stamp-commit-hash
+webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@rm -rf apps/system/camera
@@ -561,5 +565,5 @@ purge:
 
 # clean out build products
 clean:
-	rm -rf profile xulrunner-sdk
+	rm -rf profile xulrunner-sdk .xulrunner-url
 

@@ -5,11 +5,13 @@
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.monthId = Calc.getMonthId(this.month);
+    this.id = this.date.valueOf();
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
-    this.timespan = Calc.spanOfMonth(this.month);
+    this.timespan = Calc.spanOfMonth(this.date);
+
+    var daysInWeek = Calc.daysInWeek();
   }
 
   Child.prototype = {
@@ -18,39 +20,6 @@
     ACTIVE: 'active',
 
     busyPrecision: (24 / 12),
-
-    queueTime: 1,
-
-    /**
-     * Hack this should be localized.
-     */
-    dayNames: [
-      'sun',
-      'mon',
-      'tue',
-      'wed',
-      'thu',
-      'fri',
-      'sat'
-    ],
-
-    /**
-     * Hack this should be localized.
-     */
-    monthNames: [
-      'January',
-      'Feburary',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ],
 
     //Override parent view...
     get element() {
@@ -66,7 +35,7 @@
         date = Calc.getDayId(date);
       }
 
-      return 'month-view-' + this.monthId + '-' + date;
+      return 'month-view-' + this.id + '-' + date;
     },
 
     _initEvents: function() {
@@ -180,7 +149,7 @@
 
       state = Calc.relativeState(
         date,
-        this.month
+        this.date
       );
 
       // register instance in map
@@ -211,21 +180,30 @@
     /**
      * Renders out the calendar headers.
      *
-     * TODO: This can be optimized so we only need
-     * to do this once
-     *
      * @return {String} returns a list of headers.
      */
     _renderDayHeaders: function _renderDayHeaders() {
-      var days;
+      if (!Child._dayHeaders) {
+        var i = 0;
+        var days = 7;
+        var name;
+        var html = '';
 
-      days = template.weekDaysHeaderDay.renderEach(
-        this.dayNames
-      );
+        for (; i < days; i++) {
+          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          html += template.weekDaysHeaderDay.render({
+            day: String(i),
+            dayName: name
+          });
+        }
 
-      return template.weekDaysHeader.render(
-        days.join('')
-      );
+        Child._dayHeaders =
+          template.weekDaysHeader.render(html);
+
+        return Child._dayHeaders;
+      }
+
+      return Child._dayHeaders;
     },
 
     /**
@@ -258,8 +236,7 @@
      * @return {String} return value.
      */
     _renderMonth: function _renderMonth() {
-      var date = this.month;
-      var id = Calc.getDayId(this.month);
+      var id = Calc.getDayId(this.date);
       var weekList = [];
 
       var week = 0;
@@ -267,20 +244,21 @@
       var days = this.timespan.daysBetween();
       var daysInWeek = Calc.daysInWeek();
       var numberOfWeeks = days.length / daysInWeek;
+      var html = '';
+
+      this.weeks = numberOfWeeks;
 
       for (week; week <= numberOfWeeks; week++) {
         slice = days.splice(
           0,
           daysInWeek
         );
-        weekList.push(this._renderWeek(slice));
+
+        if (slice.length)
+          html += this._renderWeek(slice);
       }
 
-      return template.month.render({
-        id: id,
-        content: weekList.join('\n'),
-        additionalClass: 'weeks-' + numberOfWeeks
-      });
+      return this._renderDayHeaders() + html;
     },
 
     _calculateBusytime: function(day, busytime) {
@@ -402,15 +380,17 @@
      *
      * @return {DOMElement} inserted dom node.
      */
-    attach: function(element, prepend) {
+    create: function() {
       var html = this._renderMonth();
       var controller = this.controller;
-      var position = prepend ? 'afterbegin' : 'beforeend';
+      var element = document.createElement('section');
 
-      element.insertAdjacentHTML(position, html);
-      this.element = element.children[
-        prepend ? 0 : element.children.length - 1
-      ];
+      element.id = this.id;
+      element.classList.add('month');
+      element.classList.add('weeks-' + this.weeks);
+      element.innerHTML = html;
+
+      this.element = element;
 
       controller.queryCache(this.timespan).forEach(
         this._renderBusytime,
@@ -419,14 +399,14 @@
 
       this._initEvents();
 
-      return this.element;
+      return element;
     },
 
     destroy: function() {
       this._destroyEvents();
       this._days = Object.create(null);
 
-      if (this.element) {
+      if (this.element && this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
         this.element = undefined;
       }

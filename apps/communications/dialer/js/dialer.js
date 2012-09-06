@@ -27,6 +27,11 @@ var CallHandler = {
               title: _('callFlightModeBtnOk'),
               callback: function() {
                 CustomDialog.hide();
+
+                if (CallHandler.activityCurrent) {
+                  CallHandler.activityCurrent.postError('canceled');
+                  CallHandler.activityCurrent = null;
+                }
               }
             }
           );
@@ -128,6 +133,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // instead only the one that the href match.
   if (activity.source.name != 'dial')
     return;
+
+  CallHandler.activityCurrent = activity;
 
   var number = activity.source.data.number;
   var fillNumber = function actHandleDisplay() {

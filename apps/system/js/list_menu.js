@@ -164,7 +164,6 @@ var ListMenu = {
           this.hide();
           if (this.onreturn)
             this.onreturn(null);
-          evt.stopImmediatePropagation();
         }
         break;
     }
