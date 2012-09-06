@@ -233,6 +233,16 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value);
       }
     }
+  },
+
+  reopenSelf: function reopenSelf(number) {
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch();
+      if (number) {
+        window.location.hash = '#num=' + number;
+      }
+    }
   }
 };
 
@@ -527,6 +537,10 @@ var ThreadListUI = {
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
 
+    this.loadContact(thread.num);
+  },
+
+  loadContact: function loadContact(num) {
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
       if (contact && contact.length > 0) {
@@ -1210,15 +1224,6 @@ var ThreadUI = {
 
   pickContact: function thui_pickContact() {
     try {
-      var reopenSelf = function reopenSelf(number) {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-          if (number) {
-            window.location.hash = '#num=' + number;
-          }
-        };
-      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -1227,10 +1232,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        reopenSelf(number);
+        MessageManager.reopenSelf(number);
       }
       activity.onerror = function error() {
-        reopenSelf();
+        MessageManager.reopenSelf();
       }
 
     } catch (e) {
@@ -1263,6 +1268,16 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
+      activity.onsuccess = function success() {
+        var number = this.result.number;
+        if (number) {
+          MessageManager.loadContact(number);
+        }
+        MessageManager.reopenSelf();
+      }
+      activity.onerror = function error() {
+        MessageManager.reopenSelf();
+      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
