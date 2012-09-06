@@ -406,7 +406,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.fillStyle = shadow;
     ctx.fillRect(
       offsetX + 0.5, 1.5,
-      offsetX + 0.5 + shadowLength, options.originY - 3.5
+      shadowLength, options.originY - 3.5
     );
 
     // Centered today text
@@ -734,6 +734,40 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.fill();
   }
 
+  function _drawWarningOverlay(options) {
+    var canvas = document.getElementById('warning-layer');
+    var height = canvas.height = options.height;
+    var width = canvas.width = options.width;
+    var ctx = canvas.getContext('2d');
+
+    // No problem here
+    var mobileUsage = options.data.mobile.sumToday;
+    if (mobileUsage <= options.limits.warningValue)
+      return;
+
+    // Warning mode
+    if (mobileUsage <= options.limits.value) {
+      var limitValue = Math.round(options.axis.Y.get(options.limits.value));
+      var warningValue = Math.round(options.axis.Y.get(options.limits.warningValue));
+      console.log(warningValue);
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255, 112, 0, 0.5)';
+      ctx.fillRect(
+        options.originX, limitValue,
+        width, warningValue - limitValue
+      );
+      return;
+    }
+
+    // Limit exceeded
+    var limitValue = options.axis.Y.get(options.limits.value);
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
+    ctx.fillRect(
+      options.originX, 0,
+      width, limitValue
+    );
+  }
 
   function _updateUI() {
     var graphicArea = document.getElementById('graphic-area');
@@ -800,7 +834,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         }
       },
       limits: {
-        value: 2000000000,
+        value: 990000000,
         warning: 0.80,
         get warningValue() {
           delete this.warningValue;
@@ -809,7 +843,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       },
       data: {
         wifi: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 100000000) },
-        mobile: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 100000000 * 0.6) },
+        mobile: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 100000000 * 0.8) },
       }
     };
 
@@ -817,6 +851,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     _drawAxisLayer(options);
     _drawWifiGraphic(options);
     _drawMobileGraphic(options);
+    _drawWarningOverlay(options);
     _drawTodayLayer(options);
     _drawLimits(options);
   }
