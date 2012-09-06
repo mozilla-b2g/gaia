@@ -191,10 +191,6 @@ html, body {
   border-bottom: 0.1rem solid #e7e7e7;
 }
 
-#thread-list-container .item:first-child {
-  /*border-top-color: transparent;*/
-}
-
 #thread-list-container .item:last-child {
   margin-bottom: 7rem;
 }
