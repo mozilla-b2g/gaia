@@ -1,9 +1,9 @@
 /**
  * Setting panels
- * = full-size blocks, identified by a 'document' role
+ * = full-size blocks, identified by a 'region' role
  */
 
-[role=document] {
+[role=region] {
   position: absolute;
   top: 0;
   left: 0;
@@ -11,43 +11,31 @@
   width: 100%;
   height: 100%;
   overflow-y: scroll;
-  background: url(images/document-bg.png);
 }
 
-/* list separators */
-[role=document] > h2 {
-  margin: 0;
-  padding: 0 0 0 30px;
-  height: 34px;
-  line-height: 34px;
-  font-size: 0.85em;
-  color: white;
-  background: url(images/title-bg.png) repeat-x;
-}
-
-[role=document] {
-  transition: transform 0.5s ease;
-  transform: translateX(100%);
+[role=region] {
+  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transform: translateX(100%);
 }
 
 #root {
-  transform: translateX(-100%);
+  -moz-transform: translateX(-100%);
 }
 
-#root:target, [role=document]:target {
-  transition: transform 0.5s ease;
-  transform: none;
+#root:target, [role=region]:target {
+  -moz-transition: -moz-transform 0.5s ease;
+  -moz-transform: none;
 }
 
 body.hidden #root {
-  transform: none;
-  transition: none;
+  -moz-transform: none;
+  -moz-transition: none;
 }
 
 
 /******************************************************************************
  * Table View
- * line height = 60px, border included
+ * line height = 64px, border included
  */
 
 ul {
@@ -59,10 +47,22 @@ ul {
 
 ul li {
   position: relative;
-  border-bottom: 1px solid #e6e6e3;
+  border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
+  min-height: 6rem;
+}
+
+ul li > h3 {
+  font-size:1.6rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1rem 3rem 5rem;
+}
+
+[role="region"] h3 + label {
+  top:2.5rem;
+  height: calc(100% - 2.5rem);
 }
 
 ul li.active,
@@ -77,9 +77,10 @@ ul li > a {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
-  line-height: 60px;
-  padding: 0 30px;
+  height: 6rem;
+  font-size: 1.8rem;
+  line-height: 6rem;
+  padding: 0 3rem;
 }
 
 /* text ellipsis */
@@ -89,29 +90,23 @@ ul li > label + * + * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 66px);
+  max-width: -moz-calc(100% - 6.6rem);
+  max-width: calc(100% - 6.6rem);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
-  left: 30px;
+  left: 3rem;
   top: 50%;
-  padding-top: 4px;
-  font-size: 0.65em;
+  padding-top: 0.4rem;
+  font-size: 1.2rem;
   color: #505859;
 }
 
-ul li > small + a {
+/* need for empty element like Bluetooth */
+ul li > small:not(:empty) + a {
   line-height: 44px;
-}
-
-/* action buttons */
-ul li button {
-  width: 50%;
-  height: 52px;
-  margin: 6px 30px;
-  font-size: 1em;
 }
 
 
@@ -119,7 +114,7 @@ ul li button {
  * fake input boxes for checkboxes & radio buttons
  */
 
-[role=document] label {
+[role=region] label {
   position: absolute;
   top: 0;
   left: 0;
@@ -127,39 +122,10 @@ ul li button {
   height: 100%;
 }
 
-[role=document] label > input {
-  display: none;
-}
-
-[role=document] label > span {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: block;
-  width: 40px;
-  height: 40px;
-}
-
-[role=document] label > input[type=radio] + span {
-  background: url(images/radio_off.png) no-repeat scroll center center;
-}
-
-[role=document] label > input[type=radio]:checked + span {
-  background: url(images/radio_on.png) no-repeat scroll center center;
-}
-
-[role=document] label > input[type=checkbox] + span {
-  border: 2px solid;
-  border-radius: 5px;
-  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  background-color: #eaeae4;
-}
-
-[role=document] label > input[type=checkbox]:checked + span {
-  background: url(images/checked.png) no-repeat scroll center center;
+label:not([for]) input + span,
+label.switch input[type="checkbox"] + span {
+	left: auto;
+	right: 1rem;
 }
 
 
@@ -167,10 +133,11 @@ ul li button {
  * brightness level
  */
 
-[role=document] label > progress {
-  float: right;
-  width: 150px;
-  margin: 22px 20px 0 0;
+[role=region] label > progress {
+  display: block;
+  width: calc(100% - 6rem);
+  height: 3rem;
+  margin: 1.5rem auto;
 }
 
 #brightness-level:active {
@@ -183,57 +150,6 @@ ul li button {
   max-width: -moz-calc(60% - 50px);
   max-width: calc(60% - 50px);
 }
-
-[role=document] progress {
-  width: 40%;
-  height: 40%;
-  position: absolute;
-  right: 20px;
-  top: 30%;
-}
-
-
-/******************************************************************************
- * Settings icons
- */
-
-#root li [data-l10n-id] {
-  background-repeat: no-repeat;
-  background-position: 14px center;
-}
-
-#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings_airplanemode.png); }
-#root li [data-l10n-id="wifi"]              { background-image: url(images/settings_wifi.png); }
-#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings_network.png); }
-#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
-#root li [data-l10n-id="hotspot"]           { background-image: url(images/settings_hotspot.png); }
-#root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
-#root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
-#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
-#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
-#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
-#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
-#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings_accessibility.png); }
-#root li [data-l10n-id="persona"]           { background-image: url(images/settings_persona.png); }
-#root li [data-l10n-id="mail"]              { background-image: url(images/settings_email.png); }
-#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings_phonelock.png); }
-#root li [data-l10n-id="simCardLock"]       { background-image: url(images/settings_simcardlock.png); }
-#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings_apppermissions.png); }
-#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings_donottrack.png); }
-#root li [data-l10n-id="aboutPhone"]        { background-image: url(images/settings_help.png); }
-#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings_help.png); }
-#root li [data-l10n-id="storage"]           { background-image: url(images/settings_storage.png); }
-#root li [data-l10n-id="battery"]           { background-image: url(images/settings_battery.png); }
-#root li [data-l10n-id="gps"]               { background-image: url(images/settings_gps); }
-
-#root li a {
-  padding-left: 55px;
-}
-
-#root li small {
-  left: 55px;
-}
-
 
 /******************************************************************************
  * Wi-Fi icons
@@ -249,29 +165,19 @@ ul li button {
 }
 
 /* signal levels */
-#wifi-networks .wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
-#wifi-networks .wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
-#wifi-networks .wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
-#wifi-networks .wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
-#wifi-networks .wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
+#wifi-networks .wifi-signal0 { background-image: url(images/wifi-0.png); }
+#wifi-networks .wifi-signal1 { background-image: url(images/wifi-1.png); }
+#wifi-networks .wifi-signal2 { background-image: url(images/wifi-2.png); }
+#wifi-networks .wifi-signal3 { background-image: url(images/wifi-3.png); }
+#wifi-networks .wifi-signal4 { background-image: url(images/wifi-4.png); }
 
 /* secured networks */
 #wifi-networks .wifi-secure {
-  background-image: url(images/wifi_lock.png);
+  background-image: url(images/wifi-lock.png);
 }
 
 /* searching... */
 #wifi-networks .wifi-search {
-  background-image: url(images/wifi_scan.png);
+  background-image: url(images/wifi-scan.png);
 }
 
-/******************************************************************************
- * Bluetooth 
- */
-
-#bluetooth-enable-msg {
-  padding: 5px 30px;
-  font-style: italic;
-  font-size: 0.65em;
-  color: #505859;
-}
