@@ -10,7 +10,13 @@
     return;
 
   var TelephonyCalls = [];
-
+  if (RecentsDBManager) {
+    RecentsDBManager.init(function() {
+      RecentsDBManager.prepopulateDB(function() {
+        RecentsDBManager.close();
+      });
+    });
+  }
   navigator.mozTelephony = {
     dial: function(number) {
       var TelephonyCall = {

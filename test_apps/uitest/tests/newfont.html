@@ -9,18 +9,49 @@
     }
     @font-face {
       font-family: 'TelMoz';
-      src: url('../style/fonts/TelMoz.otf');
+      font-weight: 100;
+      /* XXX: should be 150 but gecko could only accept 150. */
+      src: url('../style/fonts/TelMozTEST-wt150.otf');
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      font-weight: normal;
+      src: url('../style/fonts/TelMozTEST-wt400.otf');
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      font-weight: 500;
+      /* XXX: should be 550 but gecko could only accept 500. */
+      src: url('../style/fonts/TelMozTEST-wt550.otf');
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      font-weight: bold;
+      /* XXX: should be 700 but we only have 750 now */
+      src: url('../style/fonts/TelMozTEST-wt750.otf');
+    }
+    @font-face {
+      font-family: 'TelMoz';
+      font-weight: 900;
+      src: url('../style/fonts/TelMozTEST-wt900.otf');
     }
     p {
         font-family: 'TelMoz';
     }
     body[data-weight="regular"] p {
-    }
-    body[data-weight="medium"] p {
-      /* XXX: wait new font file */
+      font-weight: normal;
     }
     body[data-weight="bold"] p {
-      /* XXX: wait new font file */
+      font-weight: bold;
+    }
+    body[data-weight="150"] p {
+      font-weight: 100;
+    }
+    body[data-weight="550"] p {
+      font-weight: 500;
+    }
+    body[data-weight="900"] p {
+      font-weight: 900;
     }
     body.swap {
       color: white;
@@ -30,36 +61,44 @@
     <script type="text/javascript">
       function swapColor() {
         document.body.classList.toggle('swap');
-      }
-      function changeFontWeight() {
-        // XXX: wait for new font file
-        var value = selector.options[selector.selectedIndex].value;
-        document.body.dataset.weight = value;
-      }
+      };
+      window.onload = function load() {
+        document.getElementById('selector').onchange = function change() {
+          var selector = document.getElementById('selector');
+          var value = selector.options[selector.selectedIndex].value;
+          document.body.dataset.weight = value;
+        };
+      };
     </script>
   </head>
   <body>
     <h1>New Font Test</h1>
     <button onclick="swapColor()">Swap color</button>
-    <select onchange="changeFontWeight()" name="selector" disabled>
-      <option value="regular">Regular</option>
-      <option value="medium">Medium</option>
+    <select name="selector" id="selector">
+      <option value="regular" seleted=true>Regular</option>
       <option value="bold">Bold</option>
+      <option value="150">150</option>
+      <option value="550">550</option>
+      <option value="900">900</option>
     </select>
+    <h2>5pt</h2>
+    <p style="font-size: 1.77mozmm;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
     <h2>6pt</h2>
-    <p style="font-size: 0.5em;">
+    <p style="font-size: 2.12mozmm;">
+    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+    </p>
+    <h2>7pt</h2>
+    <p style="font-size: 2.47mozmm;">
     the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
     </p>
     <h2>8pt</h2>
-    <p style="font-size: 0.67em;">
+    <p style="font-size: 2.83mozmm;">
     the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
     </p>
     <h2>10pt</h2>
-    <p style="font-size: 0.83em;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
-    <h2>12pt</h2>
-    <p style="font-size: 1em;">
+    <p style="font-size: 3.53mozmm;">
     the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
     </p>
   </body>

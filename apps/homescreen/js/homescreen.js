@@ -13,12 +13,10 @@ const Homescreen = (function() {
   PaginationBar.init('.paginationScroller');
 
   function initUI() {
-    // Initialize the dock
-    DockManager.init(document.querySelector('#footer .dockWrapper'));
-
     setLocale();
     GridManager.init('.apps', function gm_init() {
       GridManager.goToPage(GridManager.landingPageIndex);
+      DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
       DragDropManager.init();
 
@@ -30,21 +28,22 @@ const Homescreen = (function() {
     });
   }
 
-  // XXX Currently the home button communicate only with the
-  // system application. It should be an activity that will
-  // use the system message API.
+  function onHomescreenActivity() {
+    if (Homescreen.isInEditMode()) {
+      Homescreen.setMode('normal');
+      GridManager.saveState();
+      DockManager.saveState();
+      Permissions.hide();
+    } else if (GridManager.pageHelper.getCurrentPageNumber() !==
+                 GridManager.landingPageIndex) {
+      GridManager.goToPage(GridManager.landingPageIndex);
+    }
+  }
+
   window.addEventListener('message', function onMessage(e) {
     switch (e.data) {
       case 'home':
-        if (Homescreen.isInEditMode()) {
-          Homescreen.setMode('normal');
-          GridManager.saveState();
-          DockManager.saveState();
-          Permissions.hide();
-        } else if (GridManager.pageHelper.getCurrentPageNumber() !==
-                   GridManager.landingPageIndex) {
-          GridManager.goToPage(GridManager.landingPageIndex);
-        }
+        onHomescreenActivity();
         break;
     }
   });
@@ -73,18 +72,7 @@ const Homescreen = (function() {
   }
 
   HomeState.init(function success(onUpgradeNeeded) {
-    if (!onUpgradeNeeded) {
-      loadBookmarks();
-      return;
-    }
-
-    // First time the database is empty -> Dock by default
-    var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
-    var protocol = window.location.protocol;
-    appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-      return protocol + '//' + name + '.' + domain;
-    });
-    HomeState.saveShortcuts(appsInDockByDef, loadBookmarks, loadBookmarks);
+    loadBookmarks();
   }, start);
 
   // Listening for installed apps
@@ -105,6 +93,7 @@ const Homescreen = (function() {
     window.navigator.mozSetMessageHandler('activity',
       function handleActivity(activity) {
         var data = activity.source.data;
+
         // issue 3457: Implement a UI when saving bookmarks to the homescreen
         switch (data.type) {
           case 'url':
@@ -115,6 +104,9 @@ const Homescreen = (function() {
               function home_errorInstallBookmark(code) {
                 console.error('Error saving bookmark ' + code);
             });
+            break;
+          case 'application/x-application-list':
+            onHomescreenActivity();
             break;
         }
       });

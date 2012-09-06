@@ -9,7 +9,8 @@
   "permissions": [
     "alarm",
     "alarms",
-    "settings"
+    "settings",
+    "attention"
   ],
   "locales": {
     "ar": {

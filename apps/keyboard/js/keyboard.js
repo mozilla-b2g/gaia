@@ -21,7 +21,8 @@ if (!window.navigator.mozKeyboard) {
     var type = evt.detail.type;
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
-    if (typeToSkip.indexOf(type) != -1)
+    // Also workaround an issue that type might be empty
+    if (!type || typeToSkip.indexOf(type) != -1)
       return;
 
     clearTimeout(focusChangeTimeout);
@@ -56,7 +57,7 @@ const IMEManager = {
     'dvorak': ['en-Dvorak'],
     'spanish' : ['es'],
     'portuguese' : ['pt_BR'],
-    'otherlatins': ['fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
+    'otherlatins': ['cz', 'fr', 'de', 'nb', 'sk', 'tr', 'es', 'pt_BR'],
     'cyrillic': ['ru', 'sr-Cyrl'],
     'hebrew': ['he'],
     'zhuyin': ['zh-Hant-Zhuyin'],
@@ -129,9 +130,15 @@ const IMEManager = {
     }).bind(this));
 
     var self = this;
+
     SettingsListener.observe('keyboard.wordsuggestion', false, function(value) {
       var wordSuggestionEnabled = !!value;
       IMEController.enableWordSuggestion(wordSuggestionEnabled);
+    });
+
+    SettingsListener.observe('language.current', 'en-US', function(value) {
+      var language = value;
+      IMEController.setLanguage(language);
     });
 
     for (var key in this.keyboardSettingGroups) {

@@ -10,6 +10,8 @@
   },
   "permissions": [
     "background",
+    "backgroundservice",
+    "attention",
     "contacts",
     "settings"
   ]

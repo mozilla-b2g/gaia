@@ -86,13 +86,8 @@ function MessageListCard(domNode, mode, args) {
   // - toolbar: edit mode
   domNode.getElementsByClassName('msg-star-btn')[0]
     .addEventListener('click', this.onStarMessages.bind(this, true), false);
-  domNode.getElementsByClassName('msg-unstar-btn')[0]
-    .addEventListener('click', this.onStarMessages.bind(this, false), false);
   domNode.getElementsByClassName('msg-mark-read-btn')[0]
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
-  domNode.getElementsByClassName('msg-mark-unread-btn')[0]
-    .addEventListener('click', this.onMarkMessagesRead.bind(this, false),
-                      false);
 
   this.editMode = false;
   this.selectedMessages = null;
@@ -157,17 +152,11 @@ MessageListCard.prototype = {
     var headerNode =
       this.domNode.getElementsByClassName('msg-listedit-header-label')[0];
     headerNode.textContent =
-      document.mozL10n.get('message-multiedit-header',
-                           { n: this.selectedMessages.length });
+      mozL10n.get('message-multiedit-header',
+                  { n: this.selectedMessages.length });
 
-    var starBtn =
-          this.domNode.getElementsByClassName('msg-star-btn')[0],
-        unstarBtn =
-          this.domNode.getElementsByClassName('msg-unstar-btn')[0],
-        readBtn =
-          this.domNode.getElementsByClassName('msg-mark-read-btn')[0],
-        unreadBtn =
-          this.domNode.getElementsByClassName('msg-mark-unread-btn')[0];
+    var starBtn = this.domNode.getElementsByClassName('msg-star-btn')[0],
+        readBtn = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
 
     // Enabling/disabling rules (not UX-signed-off):  Our bias is that people
     // want to star messages and mark messages unread (since it they naturally
@@ -182,28 +171,21 @@ MessageListCard.prototype = {
         numRead++;
     }
 
-    // Show unstar if everything is starred, otherwise star
-    if (numStarred && numStarred === this.selectedMessages.length) {
-      // show 'unstar'
-      starBtn.classList.add('collapsed');
-      unstarBtn.classList.remove('collapsed');
-    }
-    else {
-      // show 'star'
-      starBtn.classList.remove('collapsed');
-      unstarBtn.classList.add('collapsed');
-    }
-    // Show read if everything is unread, otherwise unread
-    if (this.selectedMessages.length && numRead === 0) {
-      // show 'read'
-      readBtn.classList.remove('collapsed');
-      unreadBtn.classList.add('collapsed');
-    }
-    else {
-      // show 'unread'
-      readBtn.classList.add('collapsed');
-      unreadBtn.classList.remove('collapsed');
-    }
+    // Unstar if everything is starred, otherwise star
+    this.setAsStarred = !(numStarred && numStarred ===
+                          this.selectedMessages.length);
+    // Mark read if everything is unread, otherwise unread
+    this.setAsRead = (this.selectedMessages.length && numRead === 0);
+
+    if (!this.setAsStarred)
+      starBtn.classList.add('msg-btn-active');
+    else
+      starBtn.classList.remove('msg-btn-active');
+
+    if (this.setAsRead)
+      readBtn.classList.add('msg-btn-active');
+    else
+      readBtn.classList.remove('msg-btn-active');
   },
 
   _hideSearchBoxByScrolling: function() {
@@ -520,14 +502,15 @@ MessageListCard.prototype = {
     this.messagesSlice.refresh();
   },
 
-  onStarMessages: function(/* curried by bind */ beStarred) {
-    var op = MailAPI.markMessagesStarred(this.selectedMessages, beStarred);
+  onStarMessages: function() {
+    var op = MailAPI.markMessagesStarred(this.selectedMessages,
+                                         this.setAsStarred);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
 
-  onMarkMessagesRead: function(/* curried by bind */ beRead) {
-    var op = MailAPI.markMessagesRead(this.selectedMessages, beRead);
+  onMarkMessagesRead: function() {
+    var op = MailAPI.markMessagesRead(this.selectedMessages, this.setAsRead);
     this.setEditMode(false);
     Toaster.logMutation(op);
   },
@@ -599,20 +582,25 @@ function MessageReaderCard(domNode, mode, args) {
   this.domNode = domNode;
   this.header = args.header;
   this.body = args.body;
-
-  this.buildBodyDom(domNode);
+  // The body elements for the (potentially multiple) iframes we created to hold
+  // HTML email content.
+  this.htmlBodyNodes = [];
 
   domNode.getElementsByClassName('msg-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this, false));
   domNode.getElementsByClassName('msg-reply-btn')[0]
     .addEventListener('click', this.onReply.bind(this, false));
+  domNode.getElementsByClassName('msg-reply-all-btn')[0]
+    .addEventListener('click', this.onReplyAll.bind(this, false));
 
   domNode.getElementsByClassName('msg-delete-btn')[0]
     .addEventListener('click', this.onDelete.bind(this), false);
   domNode.getElementsByClassName('msg-star-btn')[0]
-    .addEventListener('click', this.onStar.bind(this), false);
-  domNode.getElementsByClassName('msg-unread-btn')[0]
-    .addEventListener('click', this.onMarkUnread.bind(this), false);
+    .addEventListener('click', this.onToggleStar.bind(this), false);
+  domNode.getElementsByClassName('msg-mark-read-btn')[0]
+    .addEventListener('click', this.onToggleRead.bind(this), false);
+  domNode.getElementsByClassName('msg-move-btn')[0]
+    .addEventListener('click', this.onMove.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -621,6 +609,9 @@ function MessageReaderCard(domNode, mode, args) {
   this.envelopeDetailsNode =
     domNode.getElementsByClassName('msg-envelope-details')[0];
 
+  domNode.getElementsByClassName('msg-reader-load-infobar')[0]
+    .addEventListener('click', this.onLoadBarClick.bind(this), false);
+
   bindContainerHandler(
     domNode.getElementsByClassName('msg-attachments-container')[0],
     'click', this.onAttachmentClick.bind(this));
@@ -628,11 +619,21 @@ function MessageReaderCard(domNode, mode, args) {
   // - mark message read (if it is not already)
   if (!this.header.isRead)
     this.header.setRead(true);
+
+  if (this.header.isStarred)
+    domNode.getElementsByClassName('msg-star-btn')[0].classList
+           .add('msg-btn-active');
 }
 MessageReaderCard.prototype = {
+  postInsert: function() {
+    // iframes need to be linked into the DOM tree before their contentDocument
+    // can be instantiated.
+    this.buildBodyDom(this.domNode);
+  },
+
   formatFileSize: function(size) {
     // XXX: localize this!
-    const units = [ "bytes", "KB", "MB", "GB", "TB" ];
+    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
     var unitSize = size;
     var unitIndex = 0;
 
@@ -641,7 +642,7 @@ MessageReaderCard.prototype = {
       unitIndex++;
     }
     return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
-           " " + units[unitIndex];
+           ' ' + units[unitIndex];
   },
 
   onBack: function(event) {
@@ -655,20 +656,45 @@ MessageReaderCard.prototype = {
     });
   },
 
+  onReplyAll: function(event) {
+    var composer = this.header.replyToMessage('all', function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
+  },
+
   onDelete: function() {
     var op = this.header.deleteMessage();
     Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
-  onStar: function() {
-    var op = this.header.setStarred(this.header.isStarred);
+  onToggleStar: function() {
+    var button = this.domNode.getElementsByClassName('msg-star-btn')[0];
+    if (!this.header.isStarred)
+      button.classList.add('msg-btn-active');
+    else
+      button.classList.remove('msg-btn-active');
+
+    var op = this.header.setStarred(!this.header.isStarred);
     Toaster.logMutation(op);
   },
 
-  onMarkUnread: function() {
-    var op = this.header.setRead(false);
+  onToggleRead: function() {
+    var button = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
+    if (this.header.isRead)
+      button.classList.add('msg-btn-active');
+    else
+      button.classList.remove('msg-btn-active');
+
+    var op = this.header.setRead(!this.header.isRead);
     Toaster.logMutation(op);
+  },
+
+  onMove: function() {
+    //TODO: Open the folder card view and pick a folder.
+    // var op = this.header.moveMessage(folder);
+    // Toaster.logMutation(op);
   },
 
   /**
@@ -687,11 +713,104 @@ MessageReaderCard.prototype = {
     }
     // - peep click
     else {
-      // XXX view contact...
+      this.onPeepClick(target);
+    }
+  },
+
+  onPeepClick: function(target) {
+    var contents = msgNodes['contact-menu'].cloneNode(true);
+    Cards.popupMenuForNode(contents, target, ['menu-item'],
+      function(clickedNode) {
+        if (!clickedNode)
+          return;
+
+        switch (clickedNode.classList[0]) {
+          // All of these mutations are immediately reflected, easily observed
+          // and easily undone, so we don't show them as toaster actions.
+          case 'msg-contact-menu-view':
+            try {
+              //TODO: Provide correct params for contact activiy handler.
+              var email = target.querySelector('.msg-peep-address').textContent;
+              var activity = new MozActivity({
+                name: 'new',
+                data: {
+                  type: 'webcontacts/contact',
+                  params: {
+                    'email': email
+                  }
+                }
+              });
+            } catch (e) {
+              console.log('WebActivities unavailable? : ' + e);
+            }
+            break;
+          case 'msg-contact-menu-reply':
+            //TODO: We need to enter compose view with specific email address.
+            var composer = this.header.replyToMessage(null, function() {
+              Cards.pushCard('compose', 'default', 'animate',
+                             { composer: composer });
+            });
+            break;
+        }
+      }.bind(this));
+  },
+
+  onLoadBarClick: function(event) {
+    var self = this;
+    var loadBar =
+          this.domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+    if (!this.body.embeddedImagesDownloaded) {
+      this.body.downloadEmbeddedImages(function() {
+        // this gets nulled out when we get killed, so use this to bail.
+        // XXX of course, this closure will cause us to potentially hold onto
+        // a lot of garbage, so it would be better to add an
+        // 'onimagesdownloaded' to body so that the closure would end up as
+        // part of a cycle that would get collected.
+        if (!self.domNode)
+          return;
+
+        for (var i = 0; i < self.htmlBodyNodes.length; i++) {
+          self.body.showEmbeddedImages(self.htmlBodyNodes[i]);
+        }
+      });
+      // XXX really we should check for external images to display that load
+      // bar, although it's a bit silly to have both in a single e-mail.
+      loadBar.classList.add('collapsed');
+    }
+    else {
+      for (var i = 0; i < this.htmlBodyNodes.length; i++) {
+        this.body.showExternalImages(this.htmlBodyNodes[i]);
+      }
+      loadBar.classList.add('collapsed');
     }
   },
 
   onAttachmentClick: function(event) {
+  },
+
+  onHyperlinkClick: function() {
+  },
+
+  _populatePlaintextBodyNode: function(bodyNode, rep) {
+    for (var i = 0; i < rep.length; i += 2) {
+      var node = document.createElement('div'), cname;
+
+      var etype = rep[i] & 0xf, rtype = null;
+      if (etype === 0x4) {
+        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
+        if (qdepth > 8)
+          cname = MAX_QUOTE_CLASS_NAME;
+        else
+          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
+      }
+      else {
+        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
+      }
+      if (cname)
+        node.setAttribute('class', cname);
+      node.textContent = rep[i + 1];
+      bodyNode.appendChild(node);
+    }
   },
 
   buildBodyDom: function(domNode) {
@@ -733,27 +852,45 @@ MessageReaderCard.prototype = {
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
 
-    // -- Body (Plaintext)
-    var bodyNode = domNode.getElementsByClassName('msg-body-container')[0];
-    var rep = body.bodyRep;
-    for (var i = 0; i < rep.length; i += 2) {
-      var node = document.createElement('div'), cname;
+    // -- Bodies
+    var rootBodyNode = domNode.getElementsByClassName('msg-body-container')[0],
+        reps = body.bodyReps,
+        hasExternalImages = false,
+        showEmbeddedImages = body.embeddedImageCount &&
+                             body.embeddedImagesDownloaded;
+    for (var iRep = 0; iRep < reps.length; iRep += 2) {
+      var repType = reps[iRep], rep = reps[iRep + 1];
+      if (repType === 'plain') {
+        this._populatePlaintextBodyNode(rootBodyNode, rep);
+      }
+      else if (repType === 'html') {
+        var iframe = createAndInsertIframeForContent(
+          rep, rootBodyNode, null,
+          'interactive', this.onHyperlinkClick.bind(this));
+        var bodyNode = iframe.contentDocument.body;
+        this.htmlBodyNodes.push(bodyNode);
+        if (body.checkForExternalImages(bodyNode))
+          hasExternalImages = true;
+        if (showEmbeddedImages)
+          body.showEmbeddedImages(bodyNode);
+      }
+    }
 
-      var etype = rep[i] & 0xf, rtype = null;
-      if (etype === 0x4) {
-        var qdepth = (((rep[i] >> 8) & 0xff) + 1);
-        if (qdepth > 8)
-          cname = MAX_QUOTE_CLASS_NAME;
-        else
-          cname = CONTENT_QUOTE_CLASS_NAMES[qdepth];
-      }
-      else {
-        cname = CONTENT_TYPES_TO_CLASS_NAMES[etype];
-      }
-      if (cname)
-        node.setAttribute('class', cname);
-      node.textContent = rep[i + 1];
-      bodyNode.appendChild(node);
+    // -- HTML-referenced Images
+    var loadBar = domNode.getElementsByClassName('msg-reader-load-infobar')[0];
+    if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        mozL10n.get('message-download-images',
+                    { n: body.embeddedImageCount });
+    }
+    else if (hasExternalImages) {
+      loadBar.classList.remove('collapsed');
+      loadBar.textContent =
+        mozL10n.get('message-show-external-images');
+    }
+    else {
+      loadBar.classList.add('collapsed');
     }
 
     // -- Attachments (footer)
@@ -780,6 +917,7 @@ MessageReaderCard.prototype = {
   },
 
   die: function() {
+    this.domNode = null;
   }
 };
 Cards.defineCardWithDefaultMode(

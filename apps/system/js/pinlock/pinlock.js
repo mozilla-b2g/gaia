@@ -39,7 +39,7 @@ var PinLock = {
   },
 
   unlockSim: function unlockSim() {
-    if (!this.conn.cardState == 'pin_required') {
+    if (!this.conn.cardState == 'pinRequired') {
       console.log('No PIN code required.');
       this.reset();
       return;
@@ -51,21 +51,18 @@ var PinLock = {
     }
     var unlock = this.conn.unlockCardLock({lockType: 'pin', pin: this.pinCode});
     var pinLock = this;
+    /* whatever happens, we need to reset the status:
+       we got a reponse from the SIM card, so either current
+       PIN code is good and we will clear and exit, or it
+       is not and there is no point in keeping it */
     unlock.onsuccess = function() {
-      var res = unlock.result;
-      /* whatever happens, we need to reset the status:
-         we got a reponse from the SIM card, so either current
-         PIN code is good and we will clear and exit, or it
-         is not and there is no point in keeping it */
       pinLock.reset();
-      console.log('Unlocking SIM: ' + res.result);
-      if (res.result == true) {
-        pinLock.hideKeypad();
-      } else {
-        console.log('Bad PIN code! Number of retries: ' + res.retryCount);
-        this.notifyRetryCount(res.retryCount);
-      }
-    }
+      pinLock.hideKeypad();
+    };
+    unlock.onerror = function() {
+      pinLock.reset();
+      this.notifyRetryCount(unlock.result.retryCount);
+    };
     this.reset();
   },
 
@@ -73,7 +70,7 @@ var PinLock = {
     // Currently we handle an unlocked sim and an absent sim in the same way.
     // This might change in the future.
     switch (this.conn.cardState) {
-      case 'pin_required':
+      case 'pinRequired':
         this.pinCode = '';
         this.showKeypad();
         break;

@@ -1,10 +1,20 @@
 requireApp('calendar/js/calendar.js');
-
 suite('calendar', function() {
+  var subject;
+
+  setup(function() {
+    subject = Calendar;
+  });
 
   test('#ns', function() {
     var ns = Calendar.ns('Provider.Calendar');
     assert.equal(Calendar.Provider.Calendar, ns);
+  });
+
+  test('#compare', function() {
+    assert.equal(subject.compare(0, 1), -1);
+    assert.equal(subject.compare(1, 0), 1);
+    assert.equal(subject.compare(10, 10), 0);
   });
 
   // quick sanity check
@@ -16,27 +26,16 @@ suite('calendar', function() {
         fn = Calendar.binsearch.insert;
       });
 
-      function compare(a, b) {
-        if (a === b)
-          return 0;
-
-        if (a < b) {
-          return -1;
-        } else {
-          return 1;
-        }
-      }
-
       test('0', function() {
         assert.equal(
-          fn([], 1, compare),
+          fn([], 1, subject.compare),
           0
         );
       });
 
       test('8', function() {
         var list = [1, 3, 7, 9, 10];
-        var result = fn(list, 4, compare);
+        var result = fn(list, 4, subject.compare);
 
         assert.equal(result, 2);
 

@@ -7,12 +7,13 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "mozbrowser",
+    "browser",
     "power",
     "mozApps",
     "webapps",
     "mobileconnection",
     "mozBluetooth",
+    "bluetooth",
     "telephony",
     "voicemail",
     "device-storage",
@@ -22,7 +23,8 @@
     "content-camera",
     "camera",
     "geolocation",
-    "wifi-manage"
+    "wifi-manage",
+    "wifi"
   ],
   "locales": {
     "ar": {

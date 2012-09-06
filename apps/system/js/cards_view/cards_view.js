@@ -10,8 +10,8 @@
 var CardsView = (function() {
 
   //display icon of an app on top of app's card
-  var DISPLAY_APP_ICON = true;
-  var USER_DEFINED_ORDERING = true;
+  var DISPLAY_APP_ICON = false;
+  var USER_DEFINED_ORDERING = false;
   // If 'true', scrolling moves the list one card
   // at time, and snaps the list so the current card
   // is centered in the view
@@ -53,6 +53,9 @@ var CardsView = (function() {
    */
   function getIconURI(origin) {
     var icons = runningApps[origin].manifest.icons;
+    if (!icons) {
+      return null;
+    }
 
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
@@ -102,8 +105,9 @@ var CardsView = (function() {
       });
 
       // First add an item to the cardsList for each running app
-      for (var origin in runningApps)
+      for (var origin in runningApps) {
         addCard(origin, runningApps[origin]);
+      }
 
     } else { // user ordering
 
@@ -165,15 +169,20 @@ var CardsView = (function() {
         }
       }.bind(card);
 
+      if (app.frame.classList.contains('homescreen')) {
+        card.dataset['homescreen'] = true;
+      }
       card.dataset['origin'] = origin;
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
-        var appIcon = document.createElement('img');
-
-        appIcon.classList.add('appIcon');
-        appIcon.src = getIconURI(origin);
-        card.appendChild(appIcon);
+        var iconURI = getIconURI(origin);
+        if (iconURI) {
+          var appIcon = document.createElement('img');
+          appIcon.classList.add('appIcon');
+          appIcon.src = iconURI;
+          card.appendChild(appIcon);
+        }
       }
 
       var title = document.createElement('h1');
@@ -189,6 +198,10 @@ var CardsView = (function() {
 
   function runApp() {
     hideCardSwitcher();
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     WindowManager.launch(this.dataset['origin']);
   }
 
@@ -243,7 +256,8 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING &&
+        !evt.target.dataset['homescreen']) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
         // We don't want user to scroll the CardsView when one of the card is
@@ -339,6 +353,7 @@ var CardsView = (function() {
     if (
       evt.target.classList.contains('card') &&
       MANUAL_CLOSING &&
+      !evt.target.dataset['homescreen'] &&
       reorderedCard === null
     ) {
 
@@ -434,6 +449,13 @@ var CardsView = (function() {
       }
     },
   false);
+
+  window.addEventListener('home', function cv_homeEvent(evt) {
+    if (!cardSwitcherIsShown())
+      return;
+
+    hideCardSwitcher();
+  });
 
   function cv_handleEvent(evt) {
     switch (evt.type) {

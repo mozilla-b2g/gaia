@@ -9,97 +9,136 @@
   opacity: 1;
   -moz-transition: opacity 0.5s;
 }
-#videoControls button {
-  position: absolute;
-  background-color: transparent;
-  border: none;
-}
 #videoControls.hidden {
   opacity: 0;
 }
 
-/* close button */
-#close {
-  top: 16px;
-  right: 16px;
-  width: 80px;
-  height: 80px;
-  background-image: url("images/btn_close_off.png");
-  z-index: 100;
-}
-#close:active {
-  background-image: url("images/btn_close_press.png");
-}
-
 /* main control bar: play|pause, timeupdate, rwd|fwd */
 #videoBar {
-  position: relative;
-  left: -moz-calc(50% - 150px);
-  top: -moz-calc(100% - 128px);
-  height: 112px;
-  width: 300px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid gray;
-  border-radius: 16px;
-  background-color: rgba(0, 0, 0, 0.3);
-}
-
-#videoBar button {
-  width: 96px;
-  height: 96px;
-  padding: 0;
-  margin: 0;
-  top: -moz-calc(100% - 112px);
-}
-
-/* rwd/fwd buttons */
-#rwd {
+  position: absolute;
   left: 0px;
-  background-image: url("images/btn_rwd_off.png");
+  right: 0px;
+  bottom: 0px;
+  height: 50px;
+  margin: 0;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
-#rwd:active {
-  background-image: url("images/btn_rwd_press.png");
+
+#play, #play:after {
+  width: 100px;
+  height: 100px;
 }
-#fwd {
-  left: 200px;
-  background-image: url("images/btn_fwd_off.png");
+
+#play {
+  position: absolute;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: -moz-linear-gradient(top, #000 0%,#222 100%);
+  border-radius: 100px;
+  top: -23px;
+  left: 10px;
+  z-index: 20;
 }
-#fwd:active {
-  background-image: url("images/btn_fwd_press.png");
+
+#play:after {
+  background-position: center center;
+  background-size: 75%;
+  background-repeat: no-repeat;
+  content: " ";
+  display: block;
+  position: relative;
+  z-index: 10;
 }
 
 /* play/pause button */
-#play {
-  left: 100px;
+#play:after {
   background-image: url("images/btn_pause_off.png");
 }
-#play:active {
+#play:active:after {
   background-image: url("images/btn_pause_press.png");
 }
-.paused #play {
+#play.paused:after {
   background-image: url("images/btn_play_off.png");
 }
-.paused #play:active {
+#play.paused:active:after {
   background-image: url("images/btn_play_press.png");
 }
 
 /* time slider */
 #timeSlider {
-  position: relative;
-  left: 16px;
-  height: 32px;
-  width: 268px;
-}
-#elapsedTime {
   position: absolute;
-  top: -moz-calc(100% - 20px);
-  height: 4px;
-  width: 0; /* updated by script (ontimeupdate) */
-  background-color: #fff;
-  border-radius: 6px;
-}
-button#playHead {
-  display: none;
+  left: 110px;
+  top: 0px;
+  right: 0px;
+  height: 100%;
 }
 
+#timeSlider span {
+  display: block;
+  width: 45px;
+  position: absolute;
+  color: white;
+  height: 100%;
+  line-height: 50px;
+  text-align: center;
+  font-size: 15px;
+}
+
+#elapsed-text {
+  left: 10px;
+}
+#duration-text {
+  right: 10px;
+}
+
+#slider-wrapper {
+  position: absolute;
+  top: 0px;
+  left: 70px;
+  right: 70px;
+  height: 100%;
+}
+
+#slider-wrapper div {
+  position: absolute;
+  pointer-events: none;
+}
+
+.progress {
+  height: 4px;
+  width: 0%;
+  top: 50%;
+  margin-top: -2px;
+  border-radius: 6px;
+}
+
+#elapsedTime {
+  background-color: #fff;
+  z-index: 30;
+}
+
+#bufferedTime {
+  background-color: blue;
+  z-index: 20;
+}
+
+#timeBackground {
+  background-color: #333;
+  z-index: 10;
+  width: 100%;
+}
+
+#playHead {
+  display: none;
+  height: 20px;
+  width: 25px;
+  border-radius: 25px;
+  border: 0;
+  background-color: white;
+  z-index: 100;
+  top: 50%;
+  margin: -10px 0 0 -12px;
+}

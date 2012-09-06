@@ -20,15 +20,32 @@ suite('hardware keys', function() {
   }
 
   setup(function() {
-    this.timeout(4000);
+    this.timeout(10000);
     yield device.setScriptTimeout(5000);
-    yield device.goUrl('app://system.gaiamobile.org');
+    yield device.goUrl(testSupport.gaiaUrl('system'));
   });
 
   test('power button', function() {
     var isEnabled;
 
     this.timeout(10000);
+
+    // We must wait until the initial loading of the screen
+    // and the initial screenchange event to be fired before
+    // we can start sending hardware events. They will be ignored
+    // until this point (or always send wake).
+    var result = yield device.executeAsyncScript(function() {
+      var win = window.wrappedJSObject;
+      var first = true;
+
+      function notifyChange() {
+        win.removeEventListener('screenchange', notifyChange);
+        marionetteScriptFinished();
+      }
+
+      win.addEventListener('screenchange', notifyChange);
+    });
+
     yield device.setContext('chrome');
 
     isEnabled = yield isScreenEnabled();

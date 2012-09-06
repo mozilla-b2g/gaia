@@ -27,7 +27,7 @@ var ApplicationMock = function(app, launchPath, alternativeOrigin) {
 
 ApplicationMock.prototype = {
   launch: function _launch(startPoint) {
-    this.app.launch(this.entry_point + this.manifest.launch_path);
+    this.app.launch(this.entry_point);
   },
 
   uninstall: function _uninstall() {
@@ -113,7 +113,11 @@ var Applications = (function() {
    * Returns all installed applications
    */
   function getAll() {
-    return installedApps;
+    var applications = [];
+    for (var app in installedApps) {
+      applications.push(installedApps[app]);
+    }
+    return applications;
   };
 
   function addEventListener(type, callback) {
