@@ -1,7 +1,5 @@
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var contacts = window.contacts || {};
 
 contacts.Details = (function() {
@@ -24,9 +22,11 @@ contacts.Details = (function() {
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
-      dom;
+      dom,
+      _;
 
   var init = function cd_init(currentDom) {
+    _ = navigator.mozL10n.get;
     dom = currentDom || document;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');

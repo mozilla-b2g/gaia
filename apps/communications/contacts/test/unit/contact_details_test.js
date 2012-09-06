@@ -33,15 +33,8 @@ var subject,
     Contacts,
     realContacts,
     realFb,
-    mozL10n;
-
-function clone(object) {
-  var newObj = {};
-  for (var key in object) {
-    newObj[key] = object[key];
-  }
-  return newObj;
-}
+    mozL10n,
+    mockContact;
 
 suite('Render contact', function() {
 
@@ -90,7 +83,8 @@ suite('Render contact', function() {
   });
 
   setup(function() {
-    subject.setContact(MockContactAllFields);
+    mockContact = new MockContactAllFields();
+    subject.setContact(mockContact);
   });
 
   teardown(function() {
@@ -100,11 +94,11 @@ suite('Render contact', function() {
   suite('Render name', function() {
     test('with name', function() {
       subject.render();
-      assert.equal(detailsName.textContent, MockContactAllFields.name[0]);
+      assert.equal(detailsName.textContent, mockContact.name[0]);
     });
 
     test('without name', function() {
-      var contactWoName = clone(MockContactAllFields);
+      var contactWoName = new MockContactAllFields();
       contactWoName.name = null;
       subject.setContact(contactWoName);
       subject.render();
@@ -118,7 +112,7 @@ suite('Render contact', function() {
       assert.equal(false, star.classList.contains('hide'));
     });
     test('without favorite contact', function() {
-      var contactWoFav = clone(MockContactAllFields);
+      var contactWoFav = new MockContactAllFields();
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
       subject.render();
@@ -129,11 +123,11 @@ suite('Render contact', function() {
   suite('Render org', function() {
     test('with org', function() {
       subject.render();
-      assert.equal(MockContactAllFields.org[0], orgTitle.textContent);
+      assert.equal(mockContact.org[0], orgTitle.textContent);
       assert.equal(false, orgTitle.classList.contains('hide'));
     });
     test('without org', function() {
-      var contactWoOrg = clone(MockContactAllFields);
+      var contactWoOrg = new MockContactAllFields();
       contactWoOrg.org = [];
       subject.setContact(contactWoOrg);
       subject.render();
@@ -145,10 +139,10 @@ suite('Render contact', function() {
   suite('Render bday', function() {
     test('with bday', function() {
       subject.render();
-      assert.include(container.innerHTML, MockContactAllFields.bday);
+      assert.include(container.innerHTML, mockContact.bday);
     });
     test('without bday', function() {
-      var contactWoBday = clone(MockContactAllFields);
+      var contactWoBday = new MockContactAllFields();
       contactWoBday.bday = null;
       subject.setContact(contactWoBday);
       subject.render();
@@ -169,13 +163,13 @@ suite('Render contact', function() {
     test('with 1 phone', function() {
       subject.render();
       assert.include(container.innerHTML, 'phone-details-template-0');
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].value);
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].carrier);
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].type);
+      assert.include(container.innerHTML, mockContact.tel[0].value);
+      assert.include(container.innerHTML, mockContact.tel[0].carrier);
+      assert.include(container.innerHTML, mockContact.tel[0].type);
     });
 
     test('with no phones', function() {
-      var contactWoTel = clone(MockContactAllFields);
+      var contactWoTel = new MockContactAllFields();
       contactWoTel.tel = [];
       subject.setContact(contactWoTel);
       subject.render();
@@ -183,7 +177,7 @@ suite('Render contact', function() {
     });
 
     test('with null phones', function() {
-      var contactWoTel = clone(MockContactAllFields);
+      var contactWoTel = new MockContactAllFields();
       contactWoTel.tel = null;
       subject.setContact(contactWoTel);
       subject.render();
@@ -191,7 +185,7 @@ suite('Render contact', function() {
     });
 
     test('with more than 1 phone', function() {
-      var contactMultTel = clone(MockContactAllFields);
+      var contactMultTel = new MockContactAllFields();
       contactMultTel.tel[1] = contactMultTel.tel[0];
       for (var elem in contactMultTel.tel[1]) {
         var currentElem = contactMultTel.tel[1][elem] + 'dup';
@@ -201,12 +195,12 @@ suite('Render contact', function() {
       subject.render();
       assert.include(container.innerHTML, 'phone-details-template-0');
       assert.include(container.innerHTML, 'phone-details-template-1');
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].value);
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].carrier);
-      assert.include(container.innerHTML, MockContactAllFields.tel[0].type);
-      assert.include(container.innerHTML, MockContactAllFields.tel[1].value);
-      assert.include(container.innerHTML, MockContactAllFields.tel[1].carrier);
-      assert.include(container.innerHTML, MockContactAllFields.tel[1].type);
+      assert.include(container.innerHTML, contactMultTel.tel[0].value);
+      assert.include(container.innerHTML, contactMultTel.tel[0].carrier);
+      assert.include(container.innerHTML, contactMultTel.tel[0].type);
+      assert.include(container.innerHTML, contactMultTel.tel[1].value);
+      assert.include(container.innerHTML, contactMultTel.tel[1].carrier);
+      assert.include(container.innerHTML, contactMultTel.tel[1].type);
       assert.equal(-1, container.innerHTML.indexOf('phone-details-template-2'));
     });
   });
@@ -215,12 +209,12 @@ suite('Render contact', function() {
     test('with 1 email', function() {
       subject.render();
       assert.include(container.innerHTML, 'email-details-template-0');
-      assert.include(container.innerHTML, MockContactAllFields.email[0].value);
-      assert.include(container.innerHTML, MockContactAllFields.email[0].type);
+      assert.include(container.innerHTML, mockContact.email[0].value);
+      assert.include(container.innerHTML, mockContact.email[0].type);
     });
 
     test('with no emails', function() {
-      var contactWoEmail = clone(MockContactAllFields);
+      var contactWoEmail = new MockContactAllFields();
       contactWoEmail.email = [];
       subject.setContact(contactWoEmail);
       subject.render();
@@ -228,7 +222,7 @@ suite('Render contact', function() {
     });
 
     test('with null emails', function() {
-      var contactWoEmail = clone(MockContactAllFields);
+      var contactWoEmail = new MockContactAllFields();
       contactWoEmail.email = null;
       subject.setContact(contactWoEmail);
       subject.render();
@@ -236,7 +230,7 @@ suite('Render contact', function() {
     });
 
     test('with more than 1 email', function() {
-      var contactMultEmail = clone(MockContactAllFields);
+      var contactMultEmail = new MockContactAllFields();
       contactMultEmail.email[1] = contactMultEmail.email[0];
       for (var elem in contactMultEmail.email[1]) {
         var currentElem = contactMultEmail.email[1][elem] + 'dup';
@@ -246,8 +240,8 @@ suite('Render contact', function() {
       subject.render();
       assert.include(container.innerHTML, 'email-details-template-0');
       assert.include(container.innerHTML, 'email-details-template-1');
-      var email0 = MockContactAllFields.email[0];
-      var email1 = MockContactAllFields.email[1];
+      var email0 = contactMultEmail.email[0];
+      var email1 = contactMultEmail.email[1];
       assert.include(container.innerHTML, email0.value);
       assert.include(container.innerHTML, email0.type);
       assert.include(container.innerHTML, email1.value);
@@ -259,7 +253,7 @@ suite('Render contact', function() {
     test('with 1 address', function() {
       subject.render();
       assert.include(container.innerHTML, 'address-details-template-0');
-      var address0 = MockContactAllFields.adr[0];
+      var address0 = mockContact.adr[0];
       assert.include(container.innerHTML, address0.countryName);
       assert.include(container.innerHTML, address0.locality);
       assert.include(container.innerHTML, address0.postalCode);
@@ -267,7 +261,7 @@ suite('Render contact', function() {
     });
 
     test('with no addresses', function() {
-      var contactWoAddress = clone(MockContactAllFields);
+      var contactWoAddress = new MockContactAllFields();
       contactWoAddress.adr = [];
       subject.setContact(contactWoAddress);
       subject.render();
@@ -275,7 +269,7 @@ suite('Render contact', function() {
     });
 
     test('with null addresses', function() {
-      var contactWoAddress = clone(MockContactAllFields);
+      var contactWoAddress = new MockContactAllFields();
       contactWoAddress.adr = null;
       subject.setContact(contactWoAddress);
       subject.render();
@@ -283,7 +277,7 @@ suite('Render contact', function() {
     });
 
     test('with more than 1 address', function() {
-      var contactMultAddress = clone(MockContactAllFields);
+      var contactMultAddress = new MockContactAllFields();
       contactMultAddress.adr[1] = contactMultAddress.adr[0];
       for (var elem in contactMultAddress.adr[1]) {
         var currentElem = contactMultAddress.adr[1][elem] + 'dup';
@@ -293,8 +287,8 @@ suite('Render contact', function() {
       subject.render();
       assert.include(container.innerHTML, 'address-details-template-0');
       assert.include(container.innerHTML, 'address-details-template-1');
-      var address0 = MockContactAllFields.adr[0];
-      var address1 = MockContactAllFields.adr[1];
+      var address0 = contactMultAddress.adr[0];
+      var address1 = contactMultAddress.adr[1];
       assert.include(container.innerHTML, address0.countryName);
       assert.include(container.innerHTML, address0.locality);
       assert.include(container.innerHTML, address0.postalCode);
@@ -311,11 +305,11 @@ suite('Render contact', function() {
     test('with 1 note', function() {
       subject.render();
       assert.include(container.innerHTML, 'note-details-template-0');
-      assert.include(container.innerHTML, MockContactAllFields.note[0]);
+      assert.include(container.innerHTML, mockContact.note[0]);
     });
 
     test('with no notes', function() {
-      var contactWoNote = clone(MockContactAllFields);
+      var contactWoNote = new MockContactAllFields();
       contactWoNote.note = [];
       subject.setContact(contactWoNote);
       subject.render();
@@ -323,7 +317,7 @@ suite('Render contact', function() {
     });
 
     test('with null notes', function() {
-      var contactWoNote = clone(MockContactAllFields);
+      var contactWoNote = new MockContactAllFields();
       contactWoNote.note = null;
       subject.setContact(contactWoNote);
       subject.render();
@@ -331,7 +325,7 @@ suite('Render contact', function() {
     });
 
     test('with more than 1 note', function() {
-      var contactMultNote = clone(MockContactAllFields);
+      var contactMultNote = new MockContactAllFields();
       contactMultNote.note[1] = contactMultNote.note[0];
       for (var elem in contactMultNote.note[1]) {
         var currentElem = contactMultNote.note[1][elem] + 'dup';
@@ -341,8 +335,8 @@ suite('Render contact', function() {
       subject.render();
       assert.include(container.innerHTML, 'note-details-template-0');
       assert.include(container.innerHTML, 'note-details-template-1');
-      assert.include(container.innerHTML, MockContactAllFields.note[0]);
-      assert.include(container.innerHTML, MockContactAllFields.note[1]);
+      assert.include(container.innerHTML, contactMultNote.note[0]);
+      assert.include(container.innerHTML, contactMultNote.note[1]);
       assert.equal(-1, container.innerHTML.indexOf('note-details-template-2'));
     });
   });
@@ -350,10 +344,10 @@ suite('Render contact', function() {
     test('with photo', function() {
       subject.render();
       assert.isTrue(contactDetails.classList.contains('up'));
-      assert.include(dom.innerHTML, MockContactAllFields.photo[0]);
+      assert.include(dom.innerHTML, mockContact.photo[0]);
     });
     test('without photo', function() {
-      var contactWoPhoto = clone(MockContactAllFields);
+      var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = [];
       subject.setContact(contactWoPhoto);
       subject.render();
@@ -364,7 +358,7 @@ suite('Render contact', function() {
       assert.isFalse(contactDetails.classList.contains('up'));
     });
     test('with null photo', function() {
-      var contactWoPhoto = clone(MockContactAllFields);
+      var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = null;
       subject.setContact(contactWoPhoto);
       subject.render();
