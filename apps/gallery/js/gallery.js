@@ -520,13 +520,35 @@ function startPick(activityRequest) {
   setView(pickView);
 }
 
+function getBase64Image(img) {
+  var canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+
+  var ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+
+  var dataURL = canvas.toDataURL("image/png", 0.2);
+
+  return dataURL;
+}
+
 function finishPick(filename) {
-  pendingPick.postResult({
-    type: 'image/jpeg',
-    filename: filename
+  photodb.getFile(filename, function(file) {
+    var img = new Image();
+    var url = URL.createObjectURL(file);
+    img.src = url;
+    img.onload = function() { 
+      URL.revokeObjectURL(url);
+      pendingPick.postResult({
+        type: 'image/jpeg',
+        filename: filename,
+        dataurl: getBase64Image(img)
+      });
+      pendingPick = null;
+    };
   });
-  pendingPick = null;
-  //setView(thumbnailListView);
+  setView(thumbnailListView);
 }
 
 function cancelPick() {

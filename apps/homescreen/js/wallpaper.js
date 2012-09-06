@@ -20,7 +20,7 @@
     });
     a.onsuccess = function onWallpaperSuccess() {
       var settings = navigator.mozSettings;
-      settings.getLock().set({'homescreen.wallpaper': a.result.filename});
+      settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
       reopenSelf();
     };
     a.onerror = function onWallpaperError() {
@@ -39,7 +39,7 @@
     });
     a.onsuccess = function onCameraPhotosSuccess() {
       var settings = navigator.mozSettings;
-      settings.getLock().set({'homescreen.wallpaper': a.result.filename});
+      settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
       reopenSelf();
     };
     a.onerror = function onCameraPhotosError() {
