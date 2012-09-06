@@ -7,6 +7,7 @@
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -23,19 +24,21 @@
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
   </head>
-  <body class="hidden">
+  <body class="hidden skin-organic">
 
     <!-- Main List -->
-    <section role="document" id="root">
+    <section role="region" id="root">
       <header>
         <h1 data-l10n-id="settings">Settings</h1>
       </header>
 
       <!-- Main :: Network & Connectivity -->
-      <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+      <header>
+        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+      </header>
       <ul>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="ril.radio.disabled" />
             <span></span>
           </label>
@@ -60,7 +63,9 @@
       </ul>
 
       <!-- Main :: Personalization -->
-      <h2 data-l10n-id="personalization">Personalization</h2>
+      <header>
+        <h2 data-l10n-id="personalization">Personalization</h2>
+      </header>
       <ul>
         <li>
           <a href="#sounds" data-l10n-id="sound">Sound</a>
@@ -86,7 +91,9 @@
       </ul>
 
       <!-- Main :: Accounts -->
-      <h2 hidden data-l10n-id="accounts">Accounts</h2>
+      <header hidden>
+        <h2 data-l10n-id="accounts">Accounts</h2>
+      </header>
       <ul hidden>
         <li>
           <a href="#persona" data-l10n-id="persona">Persona</a>
@@ -97,7 +104,9 @@
       </ul>
 
       <!-- Main :: Security & Privacy -->
-      <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+      <header>
+        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+      </header>
       <ul>
         <li>
           <small id="phoneLock-desc"></small>
@@ -117,7 +126,9 @@
       </ul>
 
       <!-- Main :: Device -->
-      <h2 data-l10n-id="device">Device</h2>
+      <header>
+        <h2 data-l10n-id="device">Device</h2>
+      </header>
       <ul>
         <li>
           <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
@@ -140,10 +151,11 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
-    <section role="document" id="wifi">
+    <section role="region" id="wifi">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="wifi">Wi-Fi</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="wifi">
+          Wi-Fi
         </h1>
       </header>
 
@@ -169,12 +181,16 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
+      <header>
+        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
+      </header>
       <ul id="wifi-networks">
         <!-- filled by wifi.js -->
       </ul>
 
-      <h2 hidden data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <header hidden>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
       <ul hidden id="wifi-advanced">
         <li>
           <small id="macAddress-desc"></small>
@@ -278,10 +294,11 @@
     </form>
 
     <!-- Connectivity :: 3G/data -->
-    <section role="document" id="data">
+    <section role="region" id="data">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="cellularAndData">
+          Cellular &amp; Data
         </h1>
       </header>
 
@@ -306,7 +323,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
       <ul>
         <li>
           <button onclick="Settings.openDialog('apnSettings');"
@@ -386,10 +405,11 @@
     </form>
 
     <!-- Connectivity :: Bluetooth -->
-    <section role="document" id="bluetooth">
+    <section role="region" id="bluetooth">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="bluetooth">Bluetooth</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="bluetooth">
+          Bluetooth
         </h1>
       </header>
 
@@ -410,7 +430,10 @@
           <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
         </li>
       </ul>
-      <h2 data-l10n-id="bluetoothDevices">Devices</h2>
+
+      <header>
+        <h2 data-l10n-id="bluetoothDevices">Devices</h2>
+      </header>
       <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
         Turn Bluetooth on to pair with devices that are
         within range.
@@ -450,10 +473,11 @@
     </form>
 
     <!-- Connectivity :: hotspot -->
-    <section role="document" id="hotspot">
+    <section role="region" id="hotspot">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="hotspot">HotSpot</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="hotspot">
+          HotSpot
         </h1>
       </header>
 
@@ -474,7 +498,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
       <ul>
         <li>
           <button onclick="Settings.openDialog('hotspotSettings');"
@@ -507,18 +533,21 @@
     </form>
 
     <!-- Personalization :: Sound -->
-    <section role="document" id="sounds">
+    <section role="region" id="sounds">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="sound">Sound</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="sound">
+          Sound
         </h1>
       </header>
 
       <!-- Phone -->
       <ul>
         <li>
-          <a data-l10n-id="volume">Volume</a>
-          <progress data-name="audio.volume.master" value="5" max="10"></progress>
+          <h3 data-l10n-id="volume">Volume</h3>
+          <label>
+            <progress data-name="audio.volume.master" value="5" max="10"></progress>
+          </label>
         </li>
         <li>
           <label>
@@ -543,7 +572,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="phone">Phone</h2>
+      <header>
+        <h2 data-l10n-id="phone">Phone</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -568,7 +599,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="messages">Messages</h2>
+      <header>
+        <h2 data-l10n-id="messages">Messages</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -588,19 +621,20 @@
     </section>
 
     <!-- Personalization :: Brightness -->
-    <section role="document" id="brightness">
+    <section role="region" id="brightness">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="brightness">Brightness</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="brightness">
+          Brightness
         </h1>
       </header>
 
       <ul>
         <li>
+          <h3 data-l10n-id="brightness">Brightness level</h3>
           <label>
             <progress data-name="screen.brightness" value="5" max="10"></progress>
           </label>
-          <a data-l10n-id="brightness">Brightness level</a>
         </li>
         <li>
           <label>
@@ -613,14 +647,17 @@
     </section>
 
     <!-- Personalization :: Wallpaper -->
-    <section role="document" id="wallpaper">
+    <section role="region" id="wallpaper">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="wallpaper">Wallpaper</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="wallpaper">
+          Wallpaper
         </h1>
       </header>
 
-      <h2 data-l10n-id="lockScreen">Lock Screen</h2>
+      <header>
+        <h2 data-l10n-id="lockScreen">Lock Screen</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -652,7 +689,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="homeScreen">Home Screen</h2>
+      <header>
+        <h2 data-l10n-id="homeScreen">Home Screen</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -688,10 +727,11 @@
     <!-- [TODO] Personalization :: Time & Date -->
 
     <!-- Personalization :: Language & Region -->
-    <section role="document" id="languages">
+    <section role="region" id="languages">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="languageAndRegion">Language &amp; Region</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="languageAndRegion">
+          Language &amp; Region
         </h1>
       </header>
 
@@ -784,10 +824,11 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section role="document" id="keyboard">
+    <section role="region" id="keyboard">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="keyboard">Keyboard</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="keyboard">
+          Keyboard
         </h1>
       </header>
 
@@ -815,7 +856,9 @@
         </li>
       </ul>
 
-      <h2>Layouts</h2>
+      <header>
+        <h2>Layouts</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -913,10 +956,11 @@
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
-    <section role="document" id="phoneLock">
+    <section role="region" id="phoneLock">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="phoneLock">Phone Lock</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="phoneLock">
+          Phone Lock
         </h1>
       </header>
 
@@ -945,14 +989,17 @@
     <!-- [TODO] Security :: Do Not Track -->
 
     <!-- Device :: About -->
-    <section role="document" id="about">
+    <section role="region" id="about">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="aboutPhone">About Phone</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="aboutPhone">
+          About Phone
         </h1>
       </header>
 
-      <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
       <ul>
         <li>
           <small id="gaia-commit-hash"></small>
@@ -960,7 +1007,9 @@
         </li>
       </ul>
 
-      <h2 data-l10n-id="debug">Debug</h2>
+      <header>
+        <h2 data-l10n-id="debug">Debug</h2>
+      </header>
       <ul>
         <li>
           <label>
@@ -1008,10 +1057,11 @@
     </section>
 
     <!-- Device :: Storage -->
-    <section role="document" id="storage">
+    <section role="region" id="storage">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="storage">Storage</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="storage">
+          Storage
         </h1>
       </header>
 
@@ -1027,10 +1077,11 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section role="document" id="accessibility">
+    <section role="region" id="accessibility">
       <header>
-        <h1>
-          <a href="#root" data-l10n-id="accessibility">Accessibility</a>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="accessibility">
+          Accessibility
         </h1>
       </header>
 
