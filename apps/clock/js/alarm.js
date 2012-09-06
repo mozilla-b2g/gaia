@@ -692,7 +692,7 @@ var AlarmEditView = {
       minute: '00',
       enabled: true,
       repeat: '0000000',
-      sound: 'classic.wav',
+      sound: 'classic.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
