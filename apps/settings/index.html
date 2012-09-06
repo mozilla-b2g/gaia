@@ -45,7 +45,7 @@
           <a data-l10n-id="airplaneMode">Airplane Mode</a>
         </li>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="geolocation.enabled" />
             <span></span>
           </label>
@@ -168,7 +168,7 @@
 
       <ul>
         <li id="wifi-enabled">
-          <label>
+          <label class="switch">
             <input type="checkbox" />
             <span></span>
           </label>
@@ -182,7 +182,7 @@
           <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
           <a data-l10n-id="networkNotification">Network notification</a>
         </li>
-        <li hidden id="wps-column">
+        <li id="wps-column">
           <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
           <a data-l10n-id="wpsMessage">Connect with WPS</a>
         </li>
@@ -274,25 +274,36 @@
         <h2> Wi-Fi Protected Setup </h2>
       </header>
 
-      <label>
-        <span data-l10n-id="wpsMethodSelection">Select WPS method</span>
-      </label>
-      <label>
-        <input type="radio" name="wifi.wps.method" value="pbc" checked />
-        <span data-l10n-id="wpsPbcLabel">Button connection</span>
-      </label>
-      <label>
-        <input type="radio" name="wifi.wps.method" value="myPin" />
-        <span data-l10n-id="wpsMyPinLabel">My PIN connection</span>
-      </label>
-      <label>
-        <input type="radio" name="wifi.wps.method" value="apPin" />
-        <span data-l10n-id="wpsApPinLabel">AP PIN connection</span>
-      </label>
-      <label id="wifi-wps-pin-area">
-        <span data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</span>
-        <input type="text" />
-      </label>
+      <p style="clear: both;" data-l10n-id="wpsMethodSelection">Select WPS method:</p>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="wifi.wps.method" value="pbc" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsPbcLabel">Button connection</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="wifi.wps.method" value="myPin" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="wifi.wps.method" value="apPin" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
+        </li>
+        <li>
+          <label id="wifi-wps-pin-area">
+            <span data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</span>
+            <input type="text" />
+          </label>
+        </li>
+      </ul>
 
       <!-- start WPS -->
       <footer>
@@ -315,14 +326,14 @@
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
@@ -335,12 +346,16 @@
       </header>
       <ul>
         <li>
-          <button onclick="Settings.openDialog('apnSettings');"
-            data-l10n-id="apnSettings">APN Settings</button>
+          <label>
+            <button onclick="Settings.openDialog('apnSettings');"
+              data-l10n-id="apnSettings">APN Settings</button>
+          </label>
         </li>
         <li>
-          <button onclick="Settings.openDialog('mmsSettings');"
-            data-l10n-id="mmsSettings">MMS Settings</button>
+          <label>
+            <button onclick="Settings.openDialog('mmsSettings');"
+              data-l10n-id="mmsSettings">MMS Settings</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -422,7 +437,7 @@
 
       <ul>
         <li id="bluetooth-status">
-          <label>
+          <label class="switch">
             <input type="checkbox"/>
             <span></span>
           </label>
@@ -455,12 +470,16 @@
       </ul>
       <ul id="bluetooth-search-again" hidden>
         <li>
-          <button data-l10n-id="searchDeviceAgain">Search Again</button>
+          <label>
+            <button data-l10n-id="searchDeviceAgain">Search Again</button>
+          </label>
         </li>
       </ul>
       <ul id="bluetooth-advanced">
         <li>
-          <button data-l10n-id="renameDevice">Rename Device</button>
+          <label>
+            <button data-l10n-id="renameDevice">Rename Device</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -490,18 +509,18 @@
 
       <ul>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="wifihotspot">Wifi HotSpot</a>
+          <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
         </li>
         <li>
-          <label>
+          <label class="switch">
             <input type="checkbox" name="tethering.usb.enabled"/>
             <span></span>
           </label>
-          <a data-l10n-id="usbtethering">USB HotSpot</a>
+          <a data-l10n-id="usb-hotspot">USB HotSpot</a>
         </li>
       </ul>
 
@@ -510,8 +529,10 @@
       </header>
       <ul>
         <li>
-          <button onclick="Settings.openDialog('hotspotSettings');"
-            data-l10n-id="hotspotSettings">HotSpot Settings</button>
+          <label>
+            <button onclick="Settings.openDialog('hotspotSettings');"
+              data-l10n-id="hotspotSettings">HotSpot Settings</button>
+          </label>
         </li>
       </ul>
     </section>

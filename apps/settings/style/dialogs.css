@@ -2,7 +2,7 @@
  * Setting dialog boxes (fullscreen)
  */
 
-[role="dialog"] {
+[role=dialog] {
   display: none;
   position: absolute;
   top: 0;
@@ -14,20 +14,6 @@
   overflow: hidden;
   margin: 0;
   padding: 0;
-}
-
-[role="dialog"] [role="region"] {
-	height: calc(100% - 5rem);
-}
-
-[role="region"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border: 0;
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
   background: url(images/document-bg.png);
 }
 
@@ -35,7 +21,6 @@
 [role=dialog]:target {
   display: block;
 }
-
 
 [role=dialog] footer {
   text-align: center;
@@ -50,12 +35,22 @@
   bottom: 0;
 }
 
+/* header buttons: small, on the sides */
+
+[role=dialog] header button {
+  float: left;
+}
+
+[role=dialog] header button + button {
+  float: right;
+}
+
+
 /******************************************************************************
  * Setting dialog buttons
  */
 
 /* footer buttons: big, centered */
-
 [role=dialog] footer button {
   width: 120px;
   min-width: 40%;
