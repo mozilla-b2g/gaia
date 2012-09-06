@@ -88,6 +88,9 @@ function scan() {
 }
 
 function createThumbnailList() {
+
+  dom.thumbnails.innerHTML = '';
+
   if (videos.length) {
     videos = [];
   }
@@ -143,14 +146,8 @@ function metaDataParser(videofile, callback) {
     function doneSeeking() {
       URL.revokeObjectURL(url);
       try {
-        var canvas = document.createElement('canvas');
-        canvas.width = THUMBNAIL_WIDTH;
-        canvas.height = THUMBNAIL_HEIGHT;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(previewPlayer, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-        metadata.poster = canvas.mozGetAsFile('poster', 'image/jpeg');
-      }
-      catch (e) {
+        metadata.poster = captureFrame(previewPlayer);
+      } catch (e) {
         console.error('Failed to create a poster image:', e);
       }
 
@@ -158,6 +155,15 @@ function metaDataParser(videofile, callback) {
       callback(metadata);
     }
   }
+}
+
+function captureFrame(player) {
+  var canvas = document.createElement('canvas');
+  canvas.width = THUMBNAIL_WIDTH;
+  canvas.height = THUMBNAIL_HEIGHT;
+  var ctx = canvas.getContext('2d');
+  ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+  return canvas.mozGetAsFile('poster', 'image/jpeg');
 }
 
 function addVideo(videodata) {
@@ -191,6 +197,13 @@ function addVideo(videodata) {
   if (poster) {
     thumbnail.appendChild(poster);
   }
+
+  if (!videodata.metadata.watched) {
+    var unread = document.createElement('div');
+    unread.classList.add('unwatched');
+    thumbnail.appendChild(unread);
+  }
+
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
 
@@ -198,7 +211,7 @@ function addVideo(videodata) {
   thumbnail.appendChild(hr);
 
   thumbnail.addEventListener('click', function(e) {
-    showPlayer(videodata);
+    showPlayer(videodata, true);
   });
 
   dom.thumbnails.appendChild(thumbnail);
@@ -224,43 +237,19 @@ function showOverlay(id) {
 // back is Escape, which is also the "leave fullscreen mode" command).
 // It also happens when the user uses the Home button to go to the
 // homescreen or another app.
-//
-// XXX:
-// If the user switches to the homescreen, we want to pause the video,
-// of course, but we'd like to come right back to it and be able to resume
-// in place. That's a little tricky because we get the mozvisiblitychange
-// event after we get the mozfullscreenchange event. So for now, we just
-// go back to the thumbnail view and loose the user's place when the user
-// presses the Home button.
 document.addEventListener('mozfullscreenchange', function() {
   if (document.mozFullScreenElement === null)
     hidePlayer();
 });
 
-/*
- * XXX
- * This code is commented out because the mozvisibilitychange event is
- * delivered after the mozfullscreenchange event, so by the time we get
- * it the video is already paused. We either need to get gecko to deliver
- * the events in the other order, or do something clever with timers, or
- * just add code to retain the user's current playback position for resuming
- * videos from the thumbnail screen
- *
  // Pause on visibility change
- document.addEventListener('mozvisibilitychange', function visibilityChange() {
- if (document.mozHidden && playing) {
- // If we've been hidden, stop playing the video
- pause();
- }
- else {
- // If we've just become visible again, go back into fullscreen mode
- // if we are supposed to be in fullscreen
- if (playerShowing && !document.mozFullScreenElement) {
- $('videoFrame').mozRequestFullScreen();
- }
- }
- });
-*/
+document.addEventListener('mozvisibilitychange', function visibilityChange() {
+  if (document.mozHidden && playing) {
+    pause();
+  } else if (!document.mozHidden && document.mozFullScreenElement) {
+    setControlsVisibility(true);
+  }
+});
 
 function setControlsVisibility(visible) {
   dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
@@ -290,7 +279,7 @@ dom.videoControls.addEventListener('mousedown', function(event) {
   if (event.target == dom.play) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
-    hidePlayer();
+    document.mozCancelFullScreen();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else {
@@ -318,7 +307,7 @@ function setPlayerSize() {
 window.addEventListener('resize', setPlayerSize);
 
 // show video player
-function showPlayer(data) {
+function showPlayer(data, autoPlay) {
   currentVideo = data;
 
   // switch to the video player view
@@ -326,27 +315,36 @@ function showPlayer(data) {
   dom.play.classList.remove('paused');
   playerShowing = true;
 
-  dom.videoTitle.textContent = currentVideo.metadata.title;
   dom.durationText.textContent = formatDuration(currentVideo.metadata.duration);
-  dom.elapsedText.textContent = formatDuration(0);
-
-  dom.elapsedTime.style.width = '0%';
-
-  // Go into full screen mode
-  dom.videoFrame.mozRequestFullScreen();
-
-  // Show the controls briefly then fade out
-  setControlsVisibility(true);
-  controlFadeTimeout = setTimeout(function() {
-    setControlsVisibility(false);
-  }, 250);
+  dom.videoTitle.textContent = currentVideo.metadata.title;
 
   // Get the video file and start the player
   videodb.getFile(data.name, function(file) {
     var url = URL.createObjectURL(file);
     dom.player.src = url;
+
+    // TODO: Attempting to resume the video player at the correct time
+    // is currently broken
+    // dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+    timeUpdated();
+
+    // Go into full screen mode
+    dom.videoFrame.mozRequestFullScreen();
+
+    // Show the controls briefly then fade out
+    setControlsVisibility(true);
+    controlFadeTimeout = setTimeout(function() {
+      setControlsVisibility(false);
+    }, 250);
+
     setPlayerSize();
-    play();
+
+    if (autoPlay) {
+      play();
+    }
+
+    currentVideo.metadata.watched = true;
+    videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
   });
 }
 
@@ -360,24 +358,35 @@ function hidePlayer() {
   if (document.mozFullScreenElement)
     document.mozCancelFullScreen();
 
-  // switch to the video gallery view
-  dom.videoFrame.classList.add('hidden');
-  dom.videoBar.classList.remove('paused');
-  playerShowing = false;
+  // Record current information about played video
+  currentVideo.metadata.currentTime = dom.player.currentTime;
+  currentVideo.metadata.poster = captureFrame(dom.player);
 
   // stop player
   dom.player.pause();
   dom.player.currentTime = 0;
 
   // Allow the screen to blank now.
-  screenLock.unlock();
-  screenLock = null;
+  if (screenLock) {
+    screenLock.unlock();
+    screenLock = null;
+  }
+
+  videodb.updateMetadata(currentVideo.name, currentVideo.metadata, function() {
+    // switch to the video gallery view
+    createThumbnailList();
+    dom.videoFrame.classList.add('hidden');
+    dom.videoBar.classList.remove('paused');
+    playerShowing = false;
+  });
 }
 
 // If the movie ends, and no controls are showing, go back to movie list
 dom.player.addEventListener('ended', function() {
-  if (!controlShowing)
+  if (!controlShowing) {
+    dom.player.currentTime = 0;
     hidePlayer();
+  }
 });
 
 function play() {
@@ -415,7 +424,7 @@ var dragging = false;
 // the <video> elememt can't figure out its duration.
 
 // Update the progress bar and play head as the video plays
-dom.player.addEventListener('timeupdate', function() {
+function timeUpdated() {
   if (!controlShowing)
     return;
 
@@ -435,7 +444,10 @@ dom.player.addEventListener('timeupdate', function() {
   // Don't move the play head if the user is dragging it.
   if (!dragging)
     dom.playHead.style.left = percent;
-});
+}
+
+
+dom.player.addEventListener('timeupdate', timeUpdated);
 
 // handle drags on the time slider
 function dragSlider(e) {
@@ -448,7 +460,7 @@ function dragSlider(e) {
     return;
 
   if (!isPaused) {
-    pause();
+    dom.player.pause();
   }
 
   // Capture all mouse moves and the mouse up
@@ -469,7 +481,7 @@ function dragSlider(e) {
 
     dragging = false;
     if (!isPaused) {
-      play();
+      dom.player.play();
     }
   }
 
@@ -481,6 +493,8 @@ function dragSlider(e) {
     dom.player.currentTime = dom.player.duration * pos;
     dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
   }
+
+  mousemoveHandler(e);
 }
 
 // XXX if we don't have metadata about the video name
