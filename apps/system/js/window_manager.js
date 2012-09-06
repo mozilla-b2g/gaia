@@ -327,8 +327,6 @@ var WindowManager = (function() {
       clearTimeout(timer);
       var result = evt.target.result;
       callback(result, false);
-
-      putAppScreenshotToDatabase(origin, result);
     };
 
     req.onerror = function(evt) {
@@ -338,8 +336,19 @@ var WindowManager = (function() {
     };
   }
 
+  // Meta method for get the screenshot from the app frame,
+  // and save it to database.
+  function saveAppScreenshot(origin) {
+    getAppScreenshotFromFrame(origin, function gotScreenshot(screenshot) {
+      if (!screenshot)
+        return;
+
+      putAppScreenshotToDatabase(origin, screenshot);
+    })
+  }
+
   // Meta method for getting app screenshot from database, or
-  // get it from the app frame and save it to database.
+  // get it from the app frame.
   function getAppScreenshot(origin, callback) {
     if (!callback)
       return;
