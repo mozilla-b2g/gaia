@@ -226,7 +226,7 @@ contacts.List = (function() {
       }
 
       var group = getGroupName(contact);
-      counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0; 
+      counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
 
       var listContainer = document.getElementById('contacts-list-' + group);
       var newContact = renderContact(refillContactData(contact));
@@ -272,7 +272,7 @@ contacts.List = (function() {
     for (var i = 0; i < nodes.length; i++) {
       var currentGroup = nodes[i];
       var group = currentGroup.dataset['group'];
-      var currentCount = (counter[group] + 1) || 0;
+      var currentCount = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
       if (currentGroup.children.length != currentCount) {
         resetGroup(currentGroup, currentCount);
       }
