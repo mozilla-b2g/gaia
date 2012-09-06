@@ -246,11 +246,10 @@ contacts.List = (function() {
     var request = navigator.mozContacts.find(options);
 
     request.onsuccess = function favoritesCallback() {
-      //request.result is an object, transform to an array
       if (request.result.length > 0) {
         showGroup('favorites');
       }
-      for (var i in request.result) {
+      for (var i = 0; i < request.result.length; i++) {
         var contactToRender = request.result[i];
         if (fb.isFbContact(contactToRender)) {
           var fbContact = new fb.Contact(contactToRender);

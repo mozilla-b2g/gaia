@@ -352,8 +352,9 @@ Calendar.Calc = (function() {
      *
      * @param {Date} start starting day.
      * @param {Date} end ending day.
+     * @param {Boolean} includeTime include times start/end ?
      */
-    daysBetween: function(start, end) {
+    daysBetween: function(start, end, includeTime) {
       if (start > end) {
         var tmp = end;
         end = start;
@@ -361,7 +362,7 @@ Calendar.Calc = (function() {
         tmp = null;
       }
 
-      var list = [start];
+      var list = [];
       var last = start.getDate();
       var cur;
 
@@ -386,7 +387,14 @@ Calendar.Calc = (function() {
         break;
       }
 
-      list.push(end);
+      if (includeTime) {
+        list.unshift(start);
+        list.push(end);
+      } else {
+        list.unshift(this.createDay(start));
+        list.push(this.createDay(end));
+      }
+
       return list;
     },
 

@@ -227,3 +227,11 @@ button::-moz-focus-inner {
 .icon-account {
   background-image: url("images/icons/user.png");
 }
+
+.icon-reply {
+  background-image: url("images/icons/reply.png");
+}
+
+.icon-reply-all {
+  background-image: url("images/icons/reply-all.png");
+}

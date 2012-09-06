@@ -7,11 +7,6 @@
   padding: 1rem 0px;
 }
 
-.day-events {
-  font-family: 'Open Sans';
-  font-weight: light;
-}
-
 .day-events section > ol,
 .day-events section {
   overflow: hidden;
