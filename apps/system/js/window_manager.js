@@ -809,6 +809,11 @@ var WindowManager = (function() {
         { name: runningApps[origin].name });
     }
 
+    if (origin == homescreen) {
+      // We need to relaunch home screen at once.
+      kill(origin, ensureHomescreen);
+      return;
+    }
     kill(origin);
   });
 
