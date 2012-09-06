@@ -354,10 +354,12 @@ var WindowManager = (function() {
   // and save it to database.
   function saveAppScreenshot(origin, callback) {
     getAppScreenshotFromFrame(origin, function gotScreenshot(screenshot) {
+      if (callback)
+        callback(screenshot);
+
       if (!screenshot)
         return;
 
-      callback(screenshot);
       putAppScreenshotToDatabase(origin, screenshot);
     })
   }
