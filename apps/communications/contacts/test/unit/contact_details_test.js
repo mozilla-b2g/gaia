@@ -1,14 +1,3 @@
-navigator.mozL10n = {
-  get: function get(key) {
-    return key;
-  },
-  DateTimeFormat: function() {
-    this.localeFormat = function(date, format) {
-      return date;
-    }
-  }
-};
-
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 
@@ -43,7 +32,8 @@ var subject,
     fb,
     Contacts,
     realContacts,
-    realFb;
+    realFb,
+    mozL10n;
 
 function clone(object) {
   var newObj = {};
@@ -56,6 +46,17 @@ function clone(object) {
 suite('Render contact', function() {
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function get(key) {
+        return key;
+      },
+      DateTimeFormat: function() {
+        this.localeFormat = function(date, format) {
+          return date;
+        }
+      }
+    };
     realContacts = window.Contacts;
     window.Contacts = MockContactsApp;
     realFb = window.fb;
@@ -66,7 +67,6 @@ suite('Render contact', function() {
     container = dom.querySelector('#details-list');
     subject = contacts.Details;
     subject.init(dom);
-    realL10n = navigator.mozL10n;
     contactDetails = dom.querySelector('#contact-detail');
     listContainer = dom.querySelector('#details-list');
     star = dom.querySelector('#favorite-star');
@@ -86,6 +86,7 @@ suite('Render contact', function() {
   suiteTeardown(function() {
     window.Contacts = realContacts;
     window.fb = realFb;
+    window.mozL10n = realL10n;
   });
 
   setup(function() {
