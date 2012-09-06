@@ -91,7 +91,7 @@ var ListMenu = {
       var back = document.createElement('li');
       var button = document.createElement('a');
       button.setAttribute('role', 'button');
-      button.textContent = _('back-button');
+      button.textContent = _('back');
       button.href = '#' + this.currentParent;
       back.classList.add('back');
       back.appendChild(button);
@@ -99,7 +99,7 @@ var ListMenu = {
     } else {
       var cancel = document.createElement('li');
       var button = document.createElement('button');
-      button.textContent = _('cancel-button');
+      button.textContent = _('cancel');
       button.dataset.action = 'cancel';
       cancel.appendChild(button);
       containerDiv.appendChild(cancel);
@@ -164,7 +164,6 @@ var ListMenu = {
           this.hide();
           if (this.onreturn)
             this.onreturn(null);
-          evt.stopImmediatePropagation();
         }
         break;
     }

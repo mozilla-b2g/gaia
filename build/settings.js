@@ -26,6 +26,7 @@ var settings = [
  new Setting("costcontrol.topup.confirmation_regexp", "Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?"),
  new Setting("costcontrol.topup.incorrect_code_regexp", "(Favor enviar|envie novamente|Verifique) o codigo de recarga"),
  new Setting("debug.grid.enabled", false),
+ new Setting("debug.oop.disabled", false),
  new Setting("debug.fps.enabled", false),
  new Setting("debug.log-animations.enabled", false),
  new Setting("debug.paint-flashing.enabled", false),

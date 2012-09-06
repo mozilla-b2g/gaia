@@ -137,7 +137,6 @@ var SleepMenu = {
       case 'home':
         if (this.visible) {
           this.hide();
-          evt.stopImmediatePropagation();
         }
         break;
     }
