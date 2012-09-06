@@ -493,6 +493,8 @@ function dragSlider(e) {
     dom.player.currentTime = dom.player.duration * pos;
     dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
   }
+
+  mousemoveHandler(e);
 }
 
 // XXX if we don't have metadata about the video name
