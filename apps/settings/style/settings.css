@@ -6,7 +6,7 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-size: 3mozmm;
+  font-size: 10px;
   overflow: hidden !important;
   font-family: "Open Sans", sans-serif;
 }
@@ -20,43 +20,7 @@ body.hidden * {
  * Title bars
  */
 
-header {
-  height: 50px;
-}
-
-header h1, header h2 {
-  margin: 0;
-  padding: 0;
-  height: 50px;
-  line-height: 50px;
-  text-align: center;
-  font-weight: bold;
-  font-size: 1em;
-  color: white;
-  background: url(images/header-bg.png) repeat-x;
-}
-
-header h1 a {
-  display: block;
-  text-decoration: none;
-  background: url(images/header-left-arrow.png) no-repeat 20px 50%;
-  color: white;
-}
-
-header h1 a:active {
-  background-color: #444;
-}
-
 /* title bars don't scroll with the rest of the page, except for #root */
-section:not([id=root]) header h1, form:not([id=root]) header {
-  position: fixed;
-  width: 100%;
-  z-index: 2;
-}
-
-form:not([id=root]) header + * {
-  margin-top: 50px;
-}
 
 
 /******************************************************************************
@@ -68,13 +32,13 @@ form:not([id=root]) header + * {
   background-position: right 20px top 50%;
 }
 
-[dir=rtl] [role=document] > h2 {
+[dir=rtl] [role=region] > h2 {
   padding: 0 30px 0 0;
 }
 
 /* transitions */
 
-[dir=rtl] [role=document] {
+[dir=rtl] [role="region"] {
   transform: translateX(-100%);
 }
 [dir=rtl] #root {
@@ -82,7 +46,8 @@ form:not([id=root]) header + * {
 }
 
 [dir=rtl] #root:target,
-[dir=rtl] [role=document]:target {
+[dir=rtl] [role=region]:target,
+[role=dialog] [role=region] {
   transform: none;
 }
 
@@ -98,7 +63,7 @@ form:not([id=root]) header + * {
   right: 30px;
 }
 
-[dir=rtl] [role=document] label > span {
+[dir=rtl] [role=region] label > span {
   left: 10px;
   right: auto;
 }

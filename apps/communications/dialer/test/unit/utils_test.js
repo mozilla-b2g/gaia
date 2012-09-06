@@ -1,14 +1,13 @@
-// Mock the mozL10n api for the Utils class
-navigator.mozL10n = {
-  get: function get(key) {
-    return key;
-  }
-};
-
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 
 suite('dialer/utils', function() {
+  // Mock the mozL10n api for the Utils class
+  navigator.mozL10n = {
+    get: function get(key) {
+      return key;
+    }
+  };
   var subject;
   var number = '555-555-555-555';
 

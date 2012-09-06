@@ -11,23 +11,15 @@
   background-color: #eee;
   height: 100%;
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   margin: 0;
   padding: 0;
+  background: url(images/document-bg.png);
 }
 
 [role=dialog].active,
 [role=dialog]:target {
   display: block;
-}
-
-[role=dialog] > * {
-  padding: 0 20px;
-}
-
-[role=dialog] header {
-  margin-bottom: 10px;
-  padding: 0;
 }
 
 [role=dialog] footer {
@@ -46,7 +38,7 @@
 
 /******************************************************************************
  * Setting dialog buttons
- */
+<<<<<<< HEAD
 
 [role=dialog] button,
 [role=dialog] input[type=button] {
@@ -68,6 +60,10 @@
   border: none;
 }
 
+=======
+>>>>>>> upstream/master
+*/
+
 /* header buttons: small, on the sides */
 
 [role=dialog] header button {
@@ -78,8 +74,12 @@
   float: right;
 }
 
-/* footer buttons: big, centered */
 
+/******************************************************************************
+ * Setting dialog buttons
+ */
+
+/* footer buttons: big, centered */
 [role=dialog] footer button {
   width: 120px;
   min-width: 40%;

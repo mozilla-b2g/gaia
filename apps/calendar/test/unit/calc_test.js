@@ -306,24 +306,40 @@ suite('calendar/calc', function() {
     assert.equal(out, expected);
   });
 
-  test('#daysBetween', function() {
+  suite('#daysBetween', function() {
     //Nov 29th 2012
-    var start = new Date(2012, 10, 29);
-
+    var start = new Date(2012, 10, 29, 2);
     // Dec 2nd 2012
-    var end = new Date(2012, 11, 2);
+    var end = new Date(2012, 11, 2, 5);
 
-    var expected = [
-      start,
-      new Date(2012, 10, 30),
-      new Date(2012, 11, 1),
-      end
-    ];
+    test('include time', function() {
+      var expected = [
+        start,
+        new Date(2012, 10, 30),
+        new Date(2012, 11, 1),
+        end
+      ];
 
-    assert.deepEqual(
-      subject.daysBetween(start, end),
-      expected
-    );
+      assert.deepEqual(
+        subject.daysBetween(start, end, true),
+        expected
+      );
+    });
+
+    test('exclude time', function() {
+      var expected = [
+        new Date(2012, 10, 29),
+        new Date(2012, 10, 30),
+        new Date(2012, 11, 1),
+        new Date(2012, 11, 2)
+      ];
+
+      assert.deepEqual(
+        subject.daysBetween(start, end),
+        expected
+      );
+    });
+
   });
 
   suite('#getWeekEndDate', function() {
