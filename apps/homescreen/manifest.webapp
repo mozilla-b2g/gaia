@@ -9,7 +9,7 @@
   "permissions": [
     "browser",
     "mozApps",
-    "webapps",
+    "webapps-manage",
     "device-storage",
     "devicestorage",
     "settings"
