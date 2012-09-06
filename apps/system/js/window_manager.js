@@ -186,10 +186,11 @@ var WindowManager = (function() {
               openFrame.removeEventListener(
                 'mozbrowserfirstpaint', continueSprite);
 
-              saveAppScreenshot(displayedApp, function screenshotTaken(screenshot) {
-                delete openFrame.dataset.firstLaunch;
-                sprite.className = 'opened';
-              });
+              saveAppScreenshot(displayedApp,
+                function screenshotTaken(screenshot) {
+                  delete openFrame.dataset.firstLaunch;
+                  sprite.className = 'opened';
+                });
             });
 
           return;
@@ -371,7 +372,7 @@ var WindowManager = (function() {
         return;
 
       putAppScreenshotToDatabase(origin, screenshot);
-    })
+    });
   }
 
   // Meta method for getting app screenshot from database, or
@@ -389,7 +390,7 @@ var WindowManager = (function() {
       return;
     }
 
-    getAppScreenshotFromFrame(origin, function (screenshot, isCached) {
+    getAppScreenshotFromFrame(origin, function(screenshot, isCached) {
       if (!screenshot) {
         getAppScreenshotFromDatabase(origin, callback);
         return;
