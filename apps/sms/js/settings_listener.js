@@ -10,7 +10,7 @@ var SettingsListener = {
   /* lock stores here */
   _lock: null,
 
-  /* getSettingsLock: create a lock or retrive one that we saved.
+  /* getSettingsLock: create a lock or retrieve one that we saved.
   *  mozSettings.createLock() is expensive and lock should be reused
   *  whenever possible.
   */
