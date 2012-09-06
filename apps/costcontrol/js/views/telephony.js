@@ -49,8 +49,14 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     debug('CallTime: ' + CostControl.settings.option('calltime'));
   }
 
+  // Updates the UI to match the localization
+  function _localize() {
+    _updateUI();
+  }
+
   return {
     init: _init,
+    localize: _localize,
     updateUI: _updateUI
   };
 }());

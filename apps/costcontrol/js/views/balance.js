@@ -483,9 +483,15 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _btTime.textContent = _formatTime(timestamp);
   }
 
+  // Updates the UI to match the localization
+  function _localize() {
+    _updateUI();
+  }
+
   return {
     init: _init,
     updateUI: _updateUI,
+    localize: _localize,
     showTopUp: function ccapp_showTopUp() {
       appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
     }
