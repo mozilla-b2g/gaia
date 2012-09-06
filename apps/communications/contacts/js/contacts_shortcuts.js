@@ -91,7 +91,7 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      var querySelector = groupSelector + (current == '#') ? 'und' : current;
+      var querySelector = groupSelector + ((current == '#') ? 'und' : current);
 
       var groupContainer = doc.querySelector(querySelector);
       if (!groupContainer || groupContainer.clientHeight <= 0)
