@@ -72,9 +72,9 @@ var CallScreen = {
     OnCallHandler.toggleSpeaker();
   },
 
-  setSpeakerOff: function cs_setSpeakerOff() {
+  turnSpeakerOff: function cs_turnSpeakerOff() {
     this.speakerButton.classList.remove('speak');
-    OnCallHandler.setSpeakerOff();
+    OnCallHandler.turnSpeakerOff();
   },
 
   showKeypad: function cs_showKeypad() {
@@ -281,7 +281,7 @@ var OnCallHandler = {
     this._telephony.muted = !this._telephony.muted;
   },
 
-  setSpeakerOff: function ch_setSpeakeroff() {
+  turnSpeakerOff: function ch_turnSpeakeroff() {
     this._telephony.speakerEnabled = false;
   },
 
