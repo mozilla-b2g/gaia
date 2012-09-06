@@ -148,5 +148,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
       });
     });
   }
+  CallScreen.unmute();
+  CallScreen.setSpeakerOff();
   this.remove();
 };

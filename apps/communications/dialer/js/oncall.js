@@ -62,9 +62,19 @@ var CallScreen = {
     OnCallHandler.toggleMute();
   },
 
+  unmute: function cs_unmute() {
+    this.muteButton.classList.remove('mute');
+    OnCallHandler.unmute();
+  },
+
   toggleSpeaker: function cs_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     OnCallHandler.toggleSpeaker();
+  },
+
+  setSpeakerOff: function cs_setSpeakerOff() {
+    this.speakerButton.classList.remove('speak');
+    OnCallHandler.setSpeakerOff();
   },
 
   showKeypad: function cs_showKeypad() {
@@ -263,8 +273,16 @@ var OnCallHandler = {
     this.handledCalls[lastCallIndex].call.hangUp();
   },
 
+  unmute: function ch_unmute() {
+    this._telephony.muted = false;
+  },
+
   toggleMute: function ch_toggleMute() {
     this._telephony.muted = !this._telephony.muted;
+  },
+
+  setSpeakerOff: function ch_setSpeakeroff() {
+    this._telephony.speakerEnabled = false;
   },
 
   toggleSpeaker: function ch_toggleSpeaker() {
