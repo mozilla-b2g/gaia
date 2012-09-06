@@ -39,7 +39,7 @@ var PinLock = {
   },
 
   unlockSim: function unlockSim() {
-    if (!this.conn.cardState == 'pin_required') {
+    if (!this.conn.cardState == 'pinRequired') {
       console.log('No PIN code required.');
       this.reset();
       return;
@@ -70,7 +70,7 @@ var PinLock = {
     // Currently we handle an unlocked sim and an absent sim in the same way.
     // This might change in the future.
     switch (this.conn.cardState) {
-      case 'pin_required':
+      case 'pinRequired':
         this.pinCode = '';
         this.showKeypad();
         break;
