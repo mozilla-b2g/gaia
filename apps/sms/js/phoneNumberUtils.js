@@ -23,18 +23,30 @@ var PhoneNumberManager = {
     var conn = window.navigator.mozMobileConnection;
     // TODO: Here we use Brazil for default mcc. We may need to record the mcc
     //       and apply it if we could not get connection data in the future.
-    this.region = conn ? MCC_ISO3166_TABLE[conn.data.network.mcc] : 'BR';
+    this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'BR';
   },
 
-  getNumberSet: function pnm_getNumberSet(numInput) {
+  getInternationalNum: function pnm_getInternationalNum(numInput, returnOri) {
     var number = this.phoneUtil.parseAndKeepRawInput(numInput, this.region);
-    var nationalNum = this.phoneUtil.format(number, this.format.NATIONAL);
+    if (!this.phoneUtil.isValidNumber(number))
+      return returnOri ? numInput : null;
+
     var internationalNum =
           this.phoneUtil.format(number, this.format.INTERNATIONAL);
     var regex = /\D/g;
-    nationalNum = nationalNum.replace(regex, '');
     internationalNum = '+' + internationalNum.replace(regex, '');
-    return {national: nationalNum, international: internationalNum};
+    return internationalNum;
+  },
+
+  getNationalNum: function pnm_getNationalNum(numInput, returnOri) {
+    var number = this.phoneUtil.parseAndKeepRawInput(numInput, this.region);
+    if (!this.phoneUtil.isValidNumber(number))
+      return returnOri ? numInput : null;
+
+    var nationalNum = this.phoneUtil.format(number, this.format.NATIONAL);
+    var regex = /\D/g;
+    nationalNum = nationalNum.replace(regex, '');
+    return nationalNum;
   },
 
   isValidNumber: function pnm_isValidNumber(numInput) {

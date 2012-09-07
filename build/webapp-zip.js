@@ -167,16 +167,31 @@ Gaia.webapps.forEach(function(webapp) {
 
   used.js.forEach(function(path) {
     // Compute the nsIFile for this shared JS file
-    let file = Gaia.sharedFolder.clone();
-    file.append('js');
+    let jsFile = Gaia.sharedFolder.clone();
+    jsFile.append('js');
     path.split('/').forEach(function(segment) {
-      file.append(segment);
+      jsFile.append(segment);
     });
-    if (!file.exists()) {
+    if (!jsFile.exists()) {
       throw new Error('Using inexistent shared JS file: ' + path + ' from: ' +
                       webapp.domain);
     }
-    addToZip(zip, '/shared/js/' + path, file);
+    addToZip(zip, '/shared/js/' + path, jsFile);
+    //Load all files in closure-library
+    if (path == 'closure-library/base.js') {
+      let closureFolder = Gaia.sharedFolder.clone();
+      closureFolder.append('js', 'closure-library');
+      ls(closureFolder, true).forEach(function(file) {
+        let relativePath = file.getRelativeDescriptor(closureFolder);
+        // Ignore html files at style root folder
+        if (!relativePath.match(/\.js$/))
+          return;
+        // Do not process directory as `addToZip` will add files recursively
+        if (file.isDirectory())
+          return;
+        addToZip(zip, '/shared/js/' + relativePath, file);
+      });
+    }
   });
 
   used.locales.forEach(function(name) {

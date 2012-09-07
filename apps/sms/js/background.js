@@ -66,8 +66,7 @@
           // We convert the name to national number for displaying
           // notification phone number.
           var num = message.sender;
-          var sender = PhoneNumberManager.isValidNumber(num) ?
-                PhoneNumberManager.getNumberSet(num).national : num;
+          var sender = PhoneNumberManager.getNationalNum(num, true);
         }
 
         NotificationHelper.send(sender, message.body, iconURL, notiClick);

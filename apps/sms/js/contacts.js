@@ -29,8 +29,7 @@ var ContactDataManager = {
 
     // XXX: Workaround for country code threading issue.
     // We convert the number to national number to search contact.
-    var number = (!noConvert && PhoneNumberManager.isValidNumber(num)) ?
-          PhoneNumberManager.getNumberSet(num).national : num;
+    var number = noConvert ? num : PhoneNumberManager.getNationalNum(num, true);
     var options = {
       filterBy: ['tel'],
       filterOp: 'equals',

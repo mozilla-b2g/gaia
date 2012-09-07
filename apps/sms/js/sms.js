@@ -443,8 +443,7 @@ var ThreadListUI = {
         if (threadIds.indexOf(num) == -1) {
           // XXX: Workaround for country code threading issue.
           // We display national number in thread list.(if convertable).
-          var nationalNum = PhoneNumberManager.isValidNumber(num) ?
-                PhoneNumberManager.getNumberSet(num).national : num;
+          var nationalNum = PhoneNumberManager.getNationalNum(num, true);
           var thread = {
             'body': message.body,
             'name': nationalNum,
@@ -700,8 +699,7 @@ var ThreadUI = {
     var self = this;
     // XXX: Workaround for country code threading issue.
     // We convert the header to national number(if convertible).
-    var nationalNum = PhoneNumberManager.isValidNumber(number) ?
-          PhoneNumberManager.getNumberSet(number).national : number;
+    var nationalNum = PhoneNumberManager.getNationalNum(number, true);
     self.title.innerHTML = nationalNum;
     // TODO: Please verify that using the international number could work
     //       for viewing the contact detail.
@@ -1052,8 +1050,7 @@ var ThreadUI = {
           // We convert the number to international number for sending
           // and storing the message.
           var numInput = this.contactInput.value;
-          var num = PhoneNumberManager.isValidNumber(numInput) ?
-            PhoneNumberManager.getNumberSet(numInput).international : numInput;
+          var num = PhoneNumberManager.getInternationalNum(numInput, true);
         } else {
           var num = MessageManager.getNumFromHash();
         }
@@ -1201,8 +1198,7 @@ var ThreadUI = {
       // We convert the number to international for finding
       // messages in message DB.
       var num = tels[i].value;
-      var telNum = PhoneNumberManager.isValidNumber(num) ?
-            PhoneNumberManager.getNumberSet(num).international : num;
+      var telNum = PhoneNumberManager.getInternationalNum(num, true);
 
       //TODO Implement algorithm for this part following Wireframes
       // Create HTML structure
@@ -1326,8 +1322,14 @@ window.addEventListener('localized', function showBody() {
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
   var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
+    if (!number)
+      return;
+
+    // XXX: Workaround for country code threading issue.
+    // We convert the number to international number for entering
+    // the correct message thread page.
+    var num = PhoneNumberManager.getInternationalNum(number, true);
+    window.location.hash = '#num=' + num;
   }
 
   if (document.readyState == 'complete') {
