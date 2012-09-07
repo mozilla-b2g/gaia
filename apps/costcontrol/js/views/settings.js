@@ -54,7 +54,7 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
       if (_planTypeHasChanged &&
           appVManager.getCurrentView() !== TAB_DATA_USAGE) {
 
-        if (CostControl.settings.option('plantype') === 'prepaid') {
+        if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
           appVManager.changeViewTo(TAB_BALANCE);
         } else {
           appVManager.changeViewTo(TAB_TELEPHONY);
@@ -78,7 +78,8 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     // Plantype
     query = '#plantype-setup-dialog [type="radio"][value="&value"]';
     value = CostControl.settings.option('plantype');
-    query = query.replace('&value', value !== null ? value : 'prepaid');
+    query = query.replace('&value', value !== null ?
+                           value : CostControl.PLAN_PREPAID);
     document.querySelector(query).setAttribute('checked', 'checked');
     document.querySelector('#settings-view-plantype-setup .tag')
       .textContent = _(value);

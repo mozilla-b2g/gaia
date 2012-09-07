@@ -27,6 +27,7 @@ function setupWidget() {
   var _widget;
   var _balanceView, _balanceCredit, _balanceCurrency, _balanceTime;
   var _telephonyView;
+  var _plantype;
   var _isUpdating = false;
   var _onWarning = false; // warning state is true when automatic udpates are
                           // disabled or some update error occurs.
@@ -92,10 +93,13 @@ function setupWidget() {
   // Specific setup for the teelphony view
   function _configureTelephonyView() {
     _telephonyView = document.getElementById('telephony-view');
+
+    // Update UI when some of these values change or...
     CostControl.settings.observe('smscount', _updateTelephonyUI);
     CostControl.settings.observe('calltime', _updateTelephonyUI);
     CostControl.settings.observe('lastreset', _updateTelephonyUI);
 
+    // ...when the utility tray shows.
     window.addEventListener('message', function ccwidget_utilityTray(evt) {
       if (evt.data.type === 'utilitytrayshow')
         _updateTelephonyUI();
@@ -104,6 +108,13 @@ function setupWidget() {
 
   // Attach event listeners for manual updates
   function _configureWidget() {
+
+    function onPlanTypeChange(plantype) {
+      _plantype = plantype;
+      _switchView(plantype === CostControl.PLAN_PREPAID ?
+                  'balance' : 'telephony');
+    }
+
     _widget = document.getElementById('cost-control');
 
     // Listener to open application
@@ -113,20 +124,15 @@ function setupWidget() {
     _configureTelephonyView();
 
     // Observer to see which cost control or telephony is enabled
-    CostControl.settings.observe(
-      'plantype',
-      function ccwidget_onPlanTypeChange(plantype) {
-        _switchView(plantype === 'prepaid' ? 'balance' : 'telephony');
-      }
+    CostControl.settings.observe('plantype', onPlanTypeChange);
+    onPlanTypeChange(
+      CostControl.settings.option('plantype')
     );
 
     // Update UI when localized
     window.addEventListener('localized', function ccwidget_onLocalized() {
       _updateUI();
     });
-
-    var plantype = CostControl.settings.option('plantype');
-    _switchView(plantype === 'prepaid' ? 'balance' : 'telephony');
 
     _updateUI();
   }
@@ -155,8 +161,20 @@ function setupWidget() {
 
   // Request a balance update from the service
   function _requestUpdateBalance() {
+ 
+    // I prefer this check in the VIEWS to keep the service as simple as
+    // possible
+    if (_plantype !== CostControl.PLAN_PREPAID) {
+      debug('Not in prepaid, ignoring.');
+      return;
+    }
+
     if (_isUpdating)
       return;
+
+    _setUpdatingMode(true); // This is purely cosmetic to show the user
+                            // the updating starts as soon as he display
+                            // the utility tray.
 
     CostControl.requestBalance();
   }
@@ -182,9 +200,6 @@ function setupWidget() {
         if (lastUpdate === null ||
             (now - lastUpdate > CostControl.getRequestBalanceMaxDelay())) {
 
-          _setUpdatingMode(true); // This is purely cosmetic to show the user
-                                  // the updating starts as soon as he display
-                                  // the utility tray.
           _requestUpdateBalance();
         }
 

@@ -18,6 +18,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
 
   // Update balance control
+  var _plantype;
   var _isUpdating = false;
   var _onWarning = false; // warning state is true when roaming, or some
                           // inconvenient during updating process.
@@ -64,7 +65,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     var notification = navigator.mozNotification.createNotification(
       _('topup-confirmation-title'),
       _('topup-confirmation-message'),
-      '/icons/cost-control.png'
+      './style/icons/cost-control.png'
     );
     notification.show();
 
@@ -100,7 +101,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
         var notification = navigator.mozNotification.createNotification(
           _('topup-incorrectcode-title'),
           _('topup-incorrectcode-message'),
-          '/icons/cost-control.png'
+          './style/icons/cost-control.png'
         );
         notification.onclick = function ccapp_onNotificationClick() {
           var activity = new MozActivity({ name: 'costcontrol/topup' });
@@ -182,8 +183,24 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     });
   }
 
+  // Automatic updates when showing the application
+  function _configureAutomaticUpdates() {
+    document.addEventListener(
+      'mozvisibilitychange',
+      function ccapp_visibility(evt) {
+        console.log('visibility: ' + document.mozHidden);
+        if (!document.mozHidden)
+          _requestUpdateBalance();
+      }
+    );
+  }
+
   // Attach event listeners for manual updates
   function _configureUI() {
+
+    function onPlanTypeChange(plantype) {
+      _plantype = plantype;
+    }
 
     _configureBalanceTab();
     _configureTopUpScreen();
@@ -212,6 +229,12 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
         _setBalanceScreenMode(MODE_ROAMING);
       }
     };
+
+    // Observer to see which cost control or telephony is enabled
+    CostControl.settings.observe('plantype', onPlanTypeChange);
+    onPlanTypeChange(
+      CostControl.settings.option('plantype')
+    );
   }
 
   var MODE_DEFAULT = 'mode-default';
@@ -365,11 +388,20 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _init() {
     debug('Initializing Balance Tab');
     _configureUI();
+    _configureAutomaticUpdates();
     _updateUI();
   }
 
   // Request a balance update to the service
   function _requestUpdateBalance() {
+
+    // I prefer this check in the VIEWS to keep the service as simple as
+    // possible
+    if (_plantype !== CostControl.PLAN_PREPAID) {
+      debug('Not in prepaid, ignoring.');
+      return;
+    }
+
     if (_isUpdating)
       return;
 

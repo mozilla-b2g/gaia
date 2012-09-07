@@ -16,6 +16,10 @@ setService(function cc_setupCostControlService() {
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
   var LOW_LIMIT_THRESHOLD = 40;
 
+  // Constants
+  var PLAN_PREPAID = 'prepaid';
+  var PLAN_POSTPAID = 'postpaid';
+
   // Critical settings (if no present or bad configured,
   // the service is unavailable)
   var _settings = {};
@@ -360,7 +364,7 @@ setService(function cc_setupCostControlService() {
 
     // All Ok
     status.availability = true;
-    status.roaming = voice.roaming;
+    status.roaming = !voice.roaming;
     return status;
   }
 
@@ -653,7 +657,10 @@ setService(function cc_setupCostControlService() {
     },
     get settings() {
       return _appSettings;
-    }
+    },
+
+    PLAN_PREPAID: PLAN_PREPAID,
+    PLAN_POSTPAID: PLAN_POSTPAID
   };
 }());
 window[SERVICE_NAME].init();

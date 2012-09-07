@@ -85,7 +85,7 @@ function setupApp() {
         Views[viewid].localize();
     });
 
-    if (CostControl.settings.option('plantype') === 'prepaid') {
+    if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
       appVManager.changeViewTo(TAB_BALANCE);
     } else {
       appVManager.changeViewTo(TAB_TELEPHONY);
@@ -98,7 +98,7 @@ function setupApp() {
 // Selects balance view or telephony depending on plantype
 // Actually only shows / hides the filter
 function chooseView(plantype) {
-  var balance = (plantype !== 'prepaid') ? true : false;
+  var balance = (plantype !== CostControl.PLAN_PREPAID) ? true : false;
   var telephony = !balance;
   document.getElementById('balance-tab-filter')
     .setAttribute('aria-hidden', balance);
