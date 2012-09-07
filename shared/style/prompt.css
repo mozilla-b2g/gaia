@@ -13,9 +13,9 @@ section[role="dialog"] {
   left: 0;
   right: 0;
   bottom: 0;
-  white-space: nowrap;
   padding: 1.5rem 0 7rem;
   font-family: "Open Sans", Sans-serif;
+  font-size: 0;
   color: #fff;
 }
 
@@ -25,6 +25,7 @@ section[role="dialog"]:before {
   vertical-align: middle;
   width: 1px;
   height: 100%;
+  margin-left: -1px;
 }
 
 section[role="dialog"] > div {
