@@ -722,7 +722,8 @@ var ThreadUI = {
             }
           }
           self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
+          carrierTag.innerHTML = phone.type + ' | ' +
+                                (carrierToShow || phone.value);
         } else { // no name of contact
           carrierTag.innerHTML = phone.type;
         }
