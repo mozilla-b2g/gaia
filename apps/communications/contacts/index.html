@@ -4,16 +4,7 @@
     <meta charset="utf-8">
     <title> Contacts </title>
 
-    <link href="/contacts/style/css/base/fonts.css" rel="stylesheet">
-    <link href="/contacts/style/css/base/root.css" rel="stylesheet">
-    <link href="/contacts/style/css/base/app.css" rel="stylesheet">
-
-    <link href="/contacts/style/css/components/buttons.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/icons.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/layout.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/forms.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/lists.css" rel="stylesheet">
-
+    <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
     <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
@@ -75,10 +66,7 @@
 
 
           <article class="view-body">
-            <div id='fixed-container' class='fixed-title'></div>
             <div class="view-jumper">
-              <abbr class="view-jumper-current" title="Contacts by "></abbr>
-
               <ol class="view-jumper-inner">
                 <li><a href="#"><span role="button" class="icon-search"></span></a></li>
                 <li><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
@@ -101,6 +89,8 @@
               </ol>
             </div>
           </article>
+          <div id='fixed-container' class='fixed-title'></div>
+          <div id="current-jumper" class="view-jumper-current"></div>
         </div> <!-- view-inner -->
       </section>
 
@@ -406,7 +396,6 @@
       <div id="mirror-contact-form" class="view view-right" style="background-image: -moz-element(#view-contact-form);"></div>
       <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
       <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
-      <div id="current-jumper"></div>
     </div>
 
   </body>
