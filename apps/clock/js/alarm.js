@@ -392,7 +392,6 @@ var AlarmList = {
     }
 
     this.refreshing = false;
-    ClockView.showHideAlarmSetIndicator(true);
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -644,17 +643,10 @@ var AlarmEditView = {
   init: function aev_init() {
     document.getElementById('alarm-done').addEventListener('click', this);
     this.repeatMenu.addEventListener('click', this);
-    this.repeatSelect.addEventListener('blur', this);
     this.repeatSelect.addEventListener('change', this);
     this.soundMenu.addEventListener('click', this);
-    // XXX: Due to no onchange event after seleted options by value selector.
-    // So, handle 'onblur' event to refresh select tag.
-    // It's should be removed after the issue fixed.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=784590
-    this.soundSelect.addEventListener('blur', this);
     this.soundSelect.addEventListener('change', this);
     this.snoozeMenu.addEventListener('click', this);
-    this.snoozeSelect.addEventListener('blur', this);
     this.snoozeSelect.addEventListener('change', this);
     this.deleteButton.addEventListener('click', this);
     this.initTimePicker();
@@ -710,7 +702,6 @@ var AlarmEditView = {
         break;
       case 'repeat-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshRepeatMenu(this.getRepeatSelect());
             break;
@@ -721,7 +712,6 @@ var AlarmEditView = {
         break;
       case 'sound-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshSoundMenu(this.getSoundSelect());
             break;
@@ -732,7 +722,6 @@ var AlarmEditView = {
         break;
       case 'snooze-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshSnoozeMenu(this.getSnoozeSelect());
             break;
