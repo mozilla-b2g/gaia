@@ -35,8 +35,7 @@ this.asyncStorage = (function() {
   function withStore(type, f) {
     if (db) {
       f(db.transaction(STORENAME, type).objectStore(STORENAME));
-    }
-    else {
+    } else {
       var openreq = indexedDB.open(DBNAME, DBVERSION);
       openreq.onerror = function() {
         console.error("asyncStorage: can't open database:", openreq.error.name);
@@ -134,14 +133,12 @@ this.asyncStorage = (function() {
         if (n === 0) {
           // We have the first key, return it if that's what they wanted
           callback(cursor.key);
-        }
-        else {
+        } else {
           if (!advanced) {
             // Otherwise, ask the cursor to skip ahead n records
             advanced = true;
             cursor.advance(n);
-          }
-          else {
+          } else {
             // When we get here, we've got the nth key.
             callback(cursor.key);
           }
