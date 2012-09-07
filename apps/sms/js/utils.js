@@ -116,6 +116,7 @@ var Utils = {
         details.isContact = true;
 
         if (name && name != '') { // contact with name
+          // Check if other phones with same type and carrier
           for (var i = 0; i < contact[0].tel.length; i++) {
             if (contact[0].tel[i].value !== phone.value &&
                 contact[0].tel[i].type == phone.type &&
@@ -128,7 +129,7 @@ var Utils = {
                             (carrierToShow || phone.value);
         } else { // no name of contact
           details.title = number;
-          details.carrier = phone.type;
+          details.carrier = phone.type + ' | ' + (phone.carrier || '');
         }
       } else { // we don't have a contact
         details.title = number;

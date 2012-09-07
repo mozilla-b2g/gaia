@@ -698,6 +698,7 @@ var ThreadUI = {
       if (details.isContact) {
         self.title.dataset.isContact = true;
       }
+      self.title.innerHTML = details.title || number;
       var carrierTag = document.getElementById('contact-carrier');
       if (details.carrier) {
         carrierTag.innerHTML = details.carrier;
