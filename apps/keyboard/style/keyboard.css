@@ -636,10 +636,10 @@ background-position: center 2.2rem;
 /* A note to show on the key to indicate the alternative char */
 .alt-note {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
+  top: 0.5rem;
+  right: 0.5rem;
   color: #999;
-  font: 2.4rem/0rem "Keyboard Symbols", Sans-serif;
+  font: 1.6rem/1.6rem "Keyboard Symbols", Sans-serif;
 }
 
 .keyboard-key.highlighted  .alt-note {
