@@ -346,11 +346,12 @@ var Browser = {
 
       case 'mozbrowserscroll':
         if (evt.detail.top == 0) {
-          this.mainScreen.style.height = '100%';
-          this.mainScreen.style.transform = 'none';
+          this.mainScreen.style.height = '';
+          this.mainScreen.style.transform = '';
         } else if (evt.detail.top > this.SCROLL_THRESHOLD) {
           this.mainScreen.style.height = '-moz-calc(100% + 50px)';
           this.mainScreen.style.transform = 'translateY(-50px)';
+          this.mainScreen.style.transition = 'transform 0.2s ease-in-out, height 0.2s ease-in-out';
         }
         break;
       }

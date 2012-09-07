@@ -157,10 +157,7 @@ input[type="image"] {
 }
 
 #main-screen {
-  -moz-transition: 0.2s ease-in-out;
   margin: 0;
-  display: -moz-box;
-  -moz-box-orient: vertical;
   width: 100%;
   height: 100%;
   font-family: 'Open Sans', sans-serif;
@@ -190,10 +187,12 @@ input[type="image"] {
 }
 
 #toolbar-start {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
   height: 50px;
   background-color: #f9f9fb;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 #throbber {
@@ -212,6 +211,10 @@ input[type="image"] {
 #toolbar-end {
   border-top: solid 2px #a6b3bb;
   display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 .page-screen #toolbar-start {
@@ -233,9 +236,6 @@ input[type="image"] {
 }
 
 #url-bar {
-  -moz-box-flex: 1;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
   padding: 0;
   margin: 10px;
   border: solid 1px;
@@ -253,6 +253,7 @@ input[type="image"] {
   display: block;
   height: 32px;
   width: 32px;
+  float: right;
 }
 
 .awesome-screen #url-button {
@@ -286,11 +287,11 @@ input[type="image"] {
   font-size: 18px;
   height: 34px;
   margin: 0;
-  -moz-box-flex: 1;
   border: none;
   background-color: transparent;
   background: none;
   text-overflow: ellipsis;
+  width: -moz-calc(100% - 32px);
 }
 
 #url-input:invalid {
@@ -354,9 +355,10 @@ input::-moz-focus-inner {
 }
 
 #frames {
-  -moz-box-flex: 1;
   width: 100%;
-  position: relative;
+  position: absolute;
+  top: 50px;
+  bottom: 45px;
   background: white;
 }
 
@@ -516,6 +518,9 @@ li[role="listitem"] small {
   background-color: #ccd6df;
   margin-right: 50px;
   background-image: none;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .awesome-screen #tabs-badge {
