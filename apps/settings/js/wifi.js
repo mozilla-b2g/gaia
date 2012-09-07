@@ -164,7 +164,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
-    settings.getLock().set({'wifi.enabled': this.checked});
+    settings.createLock().set({'wifi.enabled': this.checked});
   };
 
   /** mozWifiManager status
@@ -706,7 +706,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   });
 
   // startup, update status
-  var req = settings.getLock().get('wifi.enabled');
+  var req = settings.createLock().get('wifi.enabled');
   req.onsuccess = function wf_getStatusSuccess() {
     lastMozSettingValue = req.result['wifi.enabled'];
     setMozSettingsEnabled(lastMozSettingValue);

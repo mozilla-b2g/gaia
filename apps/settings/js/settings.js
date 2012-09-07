@@ -43,7 +43,7 @@ var Settings = {
     };
 
     // preset all inputs that have a `name' attribute
-    var transaction = settings.getLock();
+    var lock = settings.createLock();
 
     // preset all checkboxes
     var rule = 'input[type="checkbox"]:not([data-ignore])';
@@ -54,7 +54,7 @@ var Settings = {
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             checkbox.checked = !!request.result[key];
@@ -71,7 +71,7 @@ var Settings = {
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             radio.checked = (request.result[key] === radio.value);
@@ -88,7 +88,7 @@ var Settings = {
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             text.value = request.result[key];
@@ -104,7 +104,7 @@ var Settings = {
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             progress.value = parseFloat(request.result[key]) * 10;
@@ -157,7 +157,7 @@ var Settings = {
           value = input.value;
         }
         var cset = {}; cset[key] = value;
-        settings.getLock().set(cset);
+        settings.createLock().set(cset);
         break;
 
       case 'click':
@@ -171,7 +171,7 @@ var Settings = {
         input.value = position;
 
         var cset = {}; cset[key] = value;
-        settings.getLock().set(cset);
+        settings.createLock().set(cset);
         break;
     }
   },
@@ -248,10 +248,11 @@ var Settings = {
     // initialize all setting fields in the dialog box
     function reset() {
       if (settings) {
+        var lock = settings.createLock();
         for (var i = 0; i < fields.length; i++) {
           (function(input) {
             var key = input.dataset.setting;
-            var request = settings.getLock().get(key);
+            var request = lock.get(key);
             request.onsuccess = function() {
               input.value = request.result[key] || '';
             };
@@ -269,7 +270,7 @@ var Settings = {
           var key = input.dataset.setting;
           cset[key] = input.value;
         }
-        settings.getLock().set(cset);
+        settings.createLock().set(cset);
       }
       return close();
     }

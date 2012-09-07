@@ -129,26 +129,26 @@ window.addEventListener('load', function getCarrierSettings() {
     }
 
     // find the current APN
-    var found = false;
     var settings = window.navigator.mozSettings;
     if (settings && !gUserChosenAPN) {
       var radios = apnList.querySelectorAll('input[type="radio"]');
       var key = 'APN.name';
-      var request = settings.getLock().get(key);
+      var request = settings.createLock().get(key);
       request.onsuccess = function() {
+        var found = false;
         if (request.result[key] != undefined) {
           for (var i = 0; i < radios.length; i++) {
             radios[i].checked = (request.result[key] === radios[i].value);
             found = found || radios[i].checked;
           }
         }
+        if (!found) {
+          lastItem.querySelector('input').checked = true;
+        }
       };
     }
-    if (!found) {
-      lastItem.querySelector('input').checked = true;
-    }
 
-    // set currrent APN to 'custom' on user modification
+    // set current APN to 'custom' on user modification
     document.getElementById('apnSettings').onchange = function onChange(event) {
       gUserChosenAPN = true;
       if (event.target.type == 'text') {
@@ -172,10 +172,10 @@ window.addEventListener('load', function getCarrierSettings() {
     function setDataState(state) {
       var cset = {};
       cset[key] = state;
-      settings.getLock().set(cset);
+      settings.createLock().set(cset);
     }
 
-    var request = settings.getLock().get(key);
+    var request = settings.createLock().get(key);
     request.onsuccess = function() {
       if (request.result[key]) {
         setDataState(false);    // turn data off
