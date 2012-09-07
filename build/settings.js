@@ -95,6 +95,7 @@ var settings = [
  new Setting("ums.enabled", false),
  new Setting("ums.mode", 0),
  new Setting("wifi.enabled", true),
+ new Setting("wifi.disabled_by_wakelock", false),
  new Setting("wifi.notification", false)
 ];
 
