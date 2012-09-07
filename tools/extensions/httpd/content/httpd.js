@@ -1430,10 +1430,12 @@ RequestReader.prototype =
             var oldPath = request._path;
             var applicationName = host.split(".")[0];
 
-            // For convenience when debugging, load JS files commonly
-            // used from a common place.
+            // We store things in /shared/ now.  Although there is magic in
+            // build/webapp-zip.js to handle this when DEBUG=0 and we are
+            // building packages apps, there is no provision for DEBUG=1 in
+            // the build system, so we must map things here.
             var filePath = this._findRealPath(applicationName);
-            if (oldPath.indexOf('/shared/js/') === 0) {
+            if (oldPath.indexOf('/shared/') === 0) {
               filePath += '/../..';
             }
             request._path = filePath + oldPath;

@@ -188,6 +188,7 @@ html, body {
   text-align: left;
   position: relative;
   overflow: hidden;
+  border-bottom: 0.1rem solid #e7e7e7;
 }
 
 #thread-list-container .item:last-child {
@@ -202,7 +203,6 @@ html, body {
   height: 6rem;
   position: relative;
   padding: 1rem 0rem 1rem 3rem;
-  border-top: 0.1rem solid hsla(207,22%,92%,1);
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -225,10 +225,6 @@ html, body {
 
 #thread-list-container .item > a > * {
   pointer-events: none;
-}
-
-#thread-list-container .item > a:first-child {
-  border-top-color: transparent;
 }
 
 #thread-list-container .item > a .unread-mark {
@@ -382,7 +378,6 @@ a.unread .unread-mark .icon-unread-mark {
   text-align: left;
   padding-left: 3rem;
   padding-top: 1rem;
-  padding-bottom: .5rem;
   font-size: -moz-calc(6 * 0.226rem);
   color: #666666;
   text-transform: uppercase;
@@ -520,7 +515,7 @@ a.unread .unread-mark .icon-unread-mark {
 .selected .sent .bubble {
   border-color: #B90000;
 }
-.sent .bubble:after {
+.selected .sent .bubble:after {
   background-image: url('images/selected-outgoing_9x10.png');
 }
 
