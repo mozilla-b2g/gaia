@@ -26,7 +26,7 @@
 // The public API of the module is small. It defines an WindowManager object
 // with these methods:
 //
-//    launch(origin): start, or switch to the specified app
+//    launch(origin): switch to the specified app
 //    kill(origin, callback): stop specified app
 //    reload(origin): reload the given app
 //    getDisplayedApp(origin): return the origin of the currently displayed app
@@ -58,7 +58,7 @@ var WindowManager = (function() {
   // Holds the origin of the home screen, which should be the first
   // app we launch through web activity during boot
   var homescreen = null;
-  var homescreenURL = '';
+  var homescreenManifestURL = '';
 
   // Screenshot in sprite -- to use, or not to use,
   // that's the question.
@@ -83,7 +83,7 @@ var WindowManager = (function() {
   // }
   //
   var runningApps = {};
-  var numRunningApps = 0; // start() and kill() maintain this count
+  var numRunningApps = 0; // appendFrame() and removeFrame() maintain this count
   var nextAppId = 0;      // to give each app's iframe a unique id attribute
 
   // The origin of the currently displayed app, or null if there isn't one
@@ -95,8 +95,7 @@ var WindowManager = (function() {
     return displayedApp || null;
   }
 
-  // Start the specified app if it is not already running and make it
-  // the displayed app.
+  // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
   function launch(origin) {
     // If it is already being displayed, do nothing
@@ -104,11 +103,8 @@ var WindowManager = (function() {
       return;
 
     // If the app is already running (or there is no app), just display it
-    // Otherwise, start the app
     if (!origin || isRunning(origin))
       setDisplayedApp(origin);
-    else
-      start(origin);
 
     // launch() can be called from outside the card switcher
     // hiding it if needed
@@ -433,7 +429,8 @@ var WindowManager = (function() {
   // the homescreen app if it was killed in the background.
   function ensureHomescreen() {
     if (!isRunning(homescreen)) {
-      var app = Applications.getByOrigin(homescreen);
+      var app = Applications.getByManifestURL(homescreenManifestURL);
+      var homescreenURL = app.origin + app.manifest.launch_path;
       appendFrame(homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
       setAppSize(homescreen);
@@ -636,42 +633,26 @@ var WindowManager = (function() {
     numRunningApps--;
   }
 
-  // Start running the specified app.
-  // In order to have a nice smooth open animation,
-  // we don't actually set the iframe src property until
-  // the animation has completed.
-  function start(origin) {
-    if (isRunning(origin))
-      return;
-
-    var app = Applications.getByOrigin(origin);
-
-    // TODO: is the startPoint argument implemented?
-    // and is it passed back to us in the webapps-launch method?
-    // If so, we could use that to pass a query string or fragmentid
-    // to append to the apps' URL.
-    app.launch();
-  }
-
   // There are two types of mozChromeEvent we need to handle
   // in order to launch the app for Gecko
   window.addEventListener('mozChromeEvent', function(e) {
-    var origin = e.detail.origin;
-    if (!origin)
+    var manifestURL = e.detail.manifestURL;
+    if (!manifestURL)
       return;
 
-    var app = Applications.getByOrigin(origin);
+    var app = Applications.getByManifestURL(manifestURL);
     if (!app)
       return;
 
     var name = app.manifest.name;
+    var origin = app.origin;
 
     // Check if it's a virtual app from a entry point.
     // If so, change the app name and origin to the
     // entry point.
     var entryPoints = app.manifest.entry_points;
     if (entryPoints) {
-      var givenPath = e.detail.url.substr(e.detail.origin.length);
+      var givenPath = e.detail.url.substr(origin.length);
 
       // Workaround here until the bug (to be filed) is fixed
       // Basicly, gecko is sending the URL without launch_path sometimes
@@ -735,9 +716,10 @@ var WindowManager = (function() {
         // as the homescreen.
         if (!homescreen) {
           homescreen = origin;
-          // Save the entry URL so that we can restart the homescreen
+
+          // Save the entry manifest URL so that we can restart the homescreen
           // later, if necessary.
-          homescreenURL = e.detail.url;
+          homescreenManifestURL = manifestURL;
           return;
         }
 
