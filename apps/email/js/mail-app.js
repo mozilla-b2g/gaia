@@ -43,14 +43,9 @@ var App = {
 
           // Push the navigation cards
           Cards.pushCard(
-            'account-picker', 'default', 'none',
-            {
-              acctsSlice: acctsSlice,
-              curAccount: account
-            });
-          Cards.pushCard(
             'folder-picker', 'navigation', 'none',
             {
+              acctsSlice: acctsSlice,
               curAccount: account,
               foldersSlice: foldersSlice,
               curFolder: inboxFolder
@@ -61,6 +56,10 @@ var App = {
             {
               folder: inboxFolder
             });
+          if (activityCallback) {
+            activityCallback();
+            activityCallback = null;
+          }
         };
       }
       // - no accounts, show the setup page!
@@ -69,7 +68,9 @@ var App = {
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
-          {});
+          {
+            allowBack: false
+          });
       }
     };
   }
@@ -147,6 +148,7 @@ var queryURI = function _queryURI(uri) {
 
 };
 
+var activityCallback = null;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
@@ -157,7 +159,7 @@ if ('mozSetMessageHandler' in window.navigator) {
 
       var folderToUse = Cards._cardStack[Cards
         ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
-      var composer = MailAPI.(
+      var composer = MailAPI.beginMessageComposition(
         null, folderToUse, null,
         function() {
           /* to/cc/bcc/subject/body all have default values that shouldn't be
@@ -181,10 +183,7 @@ if ('mozSetMessageHandler' in window.navigator) {
     if (document.readyState == 'complete') {
       sendMail();
     } else {
-      window.addEventListener('localized', function loadWait() {
-        window.removeEventListener('localized', loadWait);
-        sendMail();
-      });
+      activityCallback = sendMail;
     }
 
     activity.postResult({ status: 'accepted' });

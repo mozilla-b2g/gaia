@@ -20,6 +20,10 @@
 ###############################################################################
 -include local.mk
 
+# Headless bot does not need the full output of wget
+# and it can cause crashes in bot.io option is here so
+# -nv can be passed and turn off verbose output.
+WGET_OPTS?=
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -112,7 +116,7 @@ DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
-DOWNLOAD_CMD = wget
+DOWNLOAD_CMD = wget $(WGET_OPTS)
 endif
 
 # Test agent setup
@@ -145,7 +149,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: preferences permissions test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -155,6 +159,15 @@ profile: preferences permissions test-agent-config offline extensions install-xu
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
+
+app-makefiles:
+	for d in ${GAIA_APP_SRCDIRS}; \
+	do \
+		for mfile in `find $$d -mindepth 2 -maxdepth 2 -name "Makefile"` ;\
+		do \
+			make -C `dirname $$mfile`; \
+		done; \
+	done;
 
 # Generate profile/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
@@ -167,44 +180,14 @@ webapp-manifests: install-xulrunner-sdk
 	@echo "Done"
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip: stamp-commit-hash
+webapp-zip: stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@echo "Packaged webapps"
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
 	@rm apps/system/camera/manifest.webapp
 	@mkdir -p profile/webapps
-	@for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-	  if [ -f $$d/manifest.webapp ]; \
-		then \
-			n=$$(basename $$d); \
-			if [ "$(BUILD_APP_NAME)" = "$$n" -o "$(BUILD_APP_NAME)" = "*" ]; \
-			then \
-				dirname=$$n.$(GAIA_DOMAIN); \
-				mkdir -p profile/webapps/$$dirname; \
-				cdir=`pwd`; \
-				for f in `grep -r shared/js $$d` ;\
-				do \
-					if [[ "$$f" == *shared/js* ]] ;\
-					then \
-						if [[ "$$f" == */shared/js* ]] ;\
-						then \
-							file_to_copy=`echo "$$f" | cut -d'/' -f 4 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-						else \
-							file_to_copy=`echo "$$f" | cut -d'/' -f 3 | cut -d'"' -f1 | cut -d"'" -f1;`; \
-						fi; \
-						mkdir -p $$d/shared/js ;\
-						cp shared/js/$$file_to_copy $$d/shared/js/ ;\
-					fi \
-				done; \
-				cd $$d; \
-				zip -r application.zip *; \
-				cd $$cdir; \
-				mv $$d/application.zip profile/webapps/$$dirname/application.zip; \
-			fi \
-		fi \
-	done;
+	@$(call run-js-command, webapp-zip)
 	@echo "Done"
 endif
 
@@ -214,7 +197,7 @@ offline: webapp-manifests webapp-zip
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/07/2012-07-17-03-05-55-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -250,12 +233,20 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifndef USE_LOCAL_XULRUNNER_SDK
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
+	rm -rf xulrunner-sdk
+	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && unzip xulrunner*.zip && rm xulrunner*.zip)
+	unzip xulrunner*.zip && rm xulrunner*.zip
 else
-	test -d xulrunner-sdk || ($(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD) && tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2)
+	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
 endif
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
+endif
+endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
 	echo "run-js-command $1";                                                   \
@@ -299,10 +290,17 @@ preferences: install-xulrunner-sdk
 
 
 # Generate profile/permissions.sqlite
-permissions: install-xulrunner-sdk
+permissions: webapp-manifests install-xulrunner-sdk
 	@echo "Generating permissions.sqlite..."
 	test -d profile || mkdir -p profile
 	@$(call run-js-command, permissions)
+	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
+
+# Generate profile/
+applications-data: install-xulrunner-sdk
+	@echo "Generating application data..."
+	test -d profile || mkdir -p profile
+	@$(call run-js-command, applications-data)
 	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/extensions
@@ -357,6 +355,8 @@ update-common: common-install
 	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
+	rm -R tools/xpcwindow/vendor/
+
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
@@ -444,7 +444,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext,keyboard/js/predictive_text'
+	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
@@ -567,4 +567,5 @@ purge:
 
 # clean out build products
 clean:
-	rm -rf profile xulrunner-sdk
+	rm -rf profile xulrunner-sdk .xulrunner-url
+

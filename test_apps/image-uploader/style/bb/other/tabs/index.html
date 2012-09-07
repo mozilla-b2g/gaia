@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+    
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <link rel="stylesheet" href="../../fonts.css">
+  <style>
+ html, body {
+          margin: 0;
+          padding: 0;
+          font-size: 10px;
+          background-color: #fff;
+        }
+        body { background: none; }
+       h2.bb-docs {
+          font-size: 1.8rem;
+          font-family: "Open Sans", Sans-serif;
+          font-weight: lighter;
+          color: #666;
+          margin: -1px 0 0;
+          background-color: #f5f5f5;
+          padding: 0.4rem 0.4rem 0.4rem 3rem;
+          border: solid 1px #e8e8e8;
+        }
+      body[role="application"] { font-family: "System Sans"; }
+      #panel1 [role="tabpanel"] { background: url(images/dummy/calllog.png); }
+      #panel2 [role="tabpanel"] { background: url(images/dummy/contacts.png); }
+      #panel3 [role="tabpanel"] { background: url(images/dummy/dialer.png); }
+  </style> 
+  <script type="text/javascript">
+    document.addEventListener("DOMContentLoaded", function(){
+      var path = window.location.href;
+      console.log(path)
+      window.location.href = path + "#panel1";
+    });
+  </script>
+
+  <title>Tabs</title>
+  <meta type="description" content="Allows multiple instances to be contained within a single window. Tabs are used as a navigational widget for switching between sets of views. ">
+  <meta type="requires" content="none">
+  <meta type="target" content="ul[role='tablist'] li > div">  
+</head>
+<body role="application">
+
+  <section role="region">
+    <!-- if your tabs are at the top, remove data-position="bottom" -->
+    <ul role="tablist" data-items="4" data-position="bottom">
+      <li id="panel1">
+        <a role="tab" href="#panel1" class="icon icon-comms">comms</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel2">
+        <a role="tab" href="#panel2" class="icon icon-contacts">contacts</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel3">
+        <a role="tab" href="#panel3" class="icon icon-dialer">dialer</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel4" aria-disabled="true">
+        <!-- no href to disabled tab -->
+        <a role="tab">Disabled</a>
+        <div role="tabpanel"></div>
+      </li>
+    </ul>
+  </section>
+
+</body>
+</html>

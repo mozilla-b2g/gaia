@@ -17,6 +17,11 @@ var RingView = {
     return this.hourState = document.getElementById('ring-clock-hour24-state');
   },
 
+  get alarmLabel() {
+    delete this.alarmLabel;
+    return this.alarmLabel = document.getElementById('ring-alarm-label');
+  },
+
   get snoozeButton() {
     delete this.snoozeButton;
     return this.snoozeButton = document.getElementById('ring-button-snooze');
@@ -29,6 +34,7 @@ var RingView = {
 
   init: function rv_init() {
     this.updateTime();
+    this.setAlarmLabel();
     this.ring();
     this.vibrate();
     document.addEventListener('mozvisibilitychange', this);
@@ -52,12 +58,16 @@ var RingView = {
     }, (59 - d.getSeconds()) * 1000);
   },
 
+  setAlarmLabel: function rv_setAlarmLabel() {
+    this.alarmLabel.textContent = window.opener.AlarmManager.getAlarmLabel();
+  },
+
   ring: function rv_ring() {
     this._ringtonePlayer = new Audio();
     var ringtonePlayer = this._ringtonePlayer;
     ringtonePlayer.loop = true;
     // XXX Need to set the ringtone according to alarm's property of 'sound'
-    var selectedAlarmSound = 'style/ringtones/classic.wav';
+    var selectedAlarmSound = 'style/ringtones/classic.ogg';
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
     /* If user don't handle the onFire alarm,

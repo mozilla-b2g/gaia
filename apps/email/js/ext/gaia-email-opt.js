@@ -3059,7 +3059,7 @@ BufferPrototype.write  = function(string, offset, length, encoding) {
  * Do the required global namespace clobbering for our node binding friends.
  **/
 
-define('rdimap/imapclient/shim-sham',
+define('mailapi/shim-sham',
   [
     'buffer',
   ],
@@ -3111,7 +3111,7 @@ window.process = {
  *
  **/
 
-define('rdimap/imapclient/mailapi',
+define('mailapi/mailapi',
   [
     'exports'
   ],
@@ -6404,7 +6404,6 @@ var SM_STACK_FORMAT = /^(.*)@(.+):(\d+)$/;
  *
  */
 exports.transformException = function transformException(e) {
-console.warn("extransform:", e, "\n", e.stack);
   // it's conceivable someone
   if (!(e instanceof Error) &&
       // under jetpack, we are losing hard, probably because of the sandbox
@@ -6433,15 +6432,25 @@ console.warn("extransform:", e, "\n", e.stack);
     m: e.message,
     f: [],
   };
-  var sframes = stack.split("\n"), frames = o.f, match;
-  for (var i = 0; i < sframes.length; i++) {
-    if ((match = SM_STACK_FORMAT.exec(sframes[i]))) {
-      frames.push({
-        filename: simplifyFilename(match[2]),
-        lineNo: match[3],
-        funcName: match[1],
-      });
+  if (stack) {
+    var sframes = stack.split("\n"), frames = o.f, match;
+    for (var i = 0; i < sframes.length; i++) {
+      if ((match = SM_STACK_FORMAT.exec(sframes[i]))) {
+        frames.push({
+          filename: simplifyFilename(match[2]),
+          lineNo: match[3],
+          funcName: match[1],
+        });
+      }
     }
+  }
+  // otherwise this is probably an XPConnect exception...
+  else if (e.filename) {
+    o.f.push({
+      filename: e.filename,
+      lineNo: e.lineNumber,
+      funcName: '',
+    });
   }
   return o;
 };
@@ -11529,7 +11538,7 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
  *
  **/
 
-define('rdimap/imapclient/quotechew',
+define('mailapi/quotechew',
   [
     'exports'
   ],
@@ -12515,7 +12524,7 @@ return bleach;
  * that's a tall order to get right, so it's mightily postponed.
  **/
 
-define('rdimap/imapclient/htmlchew',
+define('mailapi/htmlchew',
   [
     'exports',
     'bleach'
@@ -13089,7 +13098,7 @@ exports.escapeAttrValue = function(s) {
  * message with any text/html parts, we generate an HTML block for all parts.
  **/
 
-define('rdimap/imapclient/mailchew',
+define('mailapi/mailchew',
   [
     'exports',
     './quotechew',
@@ -13315,7 +13324,7 @@ exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
  *
  **/
 
-define('rdimap/imapclient/util',
+define('mailapi/util',
   [
     'exports'
   ],
@@ -13407,7 +13416,7 @@ exports.partitionMessagesByFolderId =
  *
  **/
 
-define('rdimap/imapclient/mailbridge',
+define('mailapi/mailbridge',
   [
     'rdcommon/log',
     'mailcomposer',
@@ -14371,7 +14380,7 @@ LogReaper.prototype = {
  * The math logic is by me (asuth); hopefully it's not too embarassing.
  **/
 
-define('rdimap/imapclient/a64',
+define('mailapi/a64',
   [
     'exports'
   ],
@@ -14555,7 +14564,7 @@ exports.decodeUI64 = function d(es) {
  * we probably have the edge in comprehensibility for now.
  **/
 
-define('rdimap/imapclient/allback',
+define('mailapi/allback',
   [
     'exports'
   ],
@@ -14614,7 +14623,7 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
  *
  **/
 
-define('rdimap/imapclient/imapdb',
+define('mailapi/imap/imapdb',
   [
     'exports'
   ],
@@ -16783,7 +16792,7 @@ const CHARCODE_RBRACE = ('}').charCodeAt(0),
 
 /**
  * A buffer for us to assemble buffers so the back-end doesn't fragment them.
- * This is safe for MozTCPSocket's buffer usage because the buffer is always
+ * This is safe for mozTCPSocket's buffer usage because the buffer is always
  * consumed synchronously.  This is not necessarily safe under other semantics.
  */
 var gSendBuf = new Uint8Array(2000);
@@ -16965,10 +16974,10 @@ ImapConnection.prototype.connect = function(loginCb) {
   if (this._options.crypto === 'starttls')
     socketOptions.useSSL = 'starttls';
 
-  this._state.conn = navigator.MozTCPSocket.open(
+  this._state.conn = navigator.mozTCPSocket.open(
     this._options.host, this._options.port, socketOptions);
 
-  // XXX rely on MozTCPSocket for this?
+  // XXX rely on mozTCPSocket for this?
   this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this),
                                    this._options.connTimeout, loginCb);
 
@@ -18881,7 +18890,7 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
  * Thunderbird autoconfiguration logic.
  **/
 
-define('rdimap/imapclient/imapprobe',
+define('mailapi/imap/probe',
   [
     'imap',
     'exports'
@@ -18947,10 +18956,10 @@ ImapProber.prototype = {
  *
  **/
 
-define('rdimap/imapclient/imapchew',
+define('mailapi/imap/imapchew',
   [
-    './quotechew',
-    './htmlchew',
+    '../quotechew',
+    '../htmlchew',
     'exports'
   ],
   function(
@@ -19416,13 +19425,13 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
  *
  **/
 
-define('rdimap/imapclient/imapslice',
+define('mailapi/imap/slice',
   [
     'rdcommon/log',
     'mailparser/mailparser',
-    './a64',
-    './allback',
-    './util',
+    '../a64',
+    '../allback',
+    '../util',
     './imapchew',
     'module',
     'exports'
@@ -23156,9 +23165,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * checked before they are re-attempted.
  **/
 
-define('rdimap/imapclient/imapjobs',
+define('mailapi/imap/jobs',
   [
-    './util',
+    '../util',
     'exports'
   ],
   function(
@@ -23633,15 +23642,15 @@ HighLevelJobDriver.prototype = {
  *
  **/
 
-define('rdimap/imapclient/imapacct',
+define('mailapi/imap/account',
   [
     'imap',
     'rdcommon/log',
-    './a64',
+    '../a64',
     './imapdb',
-    './imapslice',
-    './imapjobs',
-    './util',
+    './slice',
+    './jobs',
+    '../util',
     'module',
     'exports'
   ],
@@ -24519,7 +24528,7 @@ var util = require('util'),
 function NetSocket(port, host, crypto) {
   this._host = host;
   this._port = port;
-  this._actualSock = navigator.MozTCPSocket.open(
+  this._actualSock = navigator.mozTCPSocket.open(
     host, port, { useSSL: crypto, binaryType: 'arraybuffer' });
   EventEmitter.call(this);
 
@@ -25415,7 +25424,7 @@ SMTPClient.prototype._actionStream = function(str){
  *
  **/
 
-define('rdimap/imapclient/smtpprobe',
+define('mailapi/smtp/probe',
   [
     'simplesmtp/lib/client',
     'exports'
@@ -25449,16 +25458,16 @@ SmtpProber.prototype = {
   onIdle: function() {
     console.log('onIdle!');
     if (this.onresult) {
-      console.log("PROBE:SMTP happy");
+      console.log('PROBE:SMTP happy');
       this.onresult(true);
       this.onresult = null;
     }
     this._conn.close();
   },
 
-  onBadness: function() {
+  onBadness: function(err) {
     if (this.onresult) {
-      console.warn("PROBE:SMTP sad");
+      console.warn('PROBE:SMTP sad. error: |' + err + '|');
       this.onresult(false);
       this.onresult = null;
     }
@@ -25471,7 +25480,7 @@ SmtpProber.prototype = {
  *
  **/
 
-define('rdimap/imapclient/smtpacct',
+define('mailapi/smtp/account',
   [
     'rdcommon/log',
     'simplesmtp/lib/client',
@@ -25693,7 +25702,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * Implements a fake account type for UI testing/playing only.
  **/
 
-define('rdimap/imapclient/fakeacct',
+define('mailapi/fake/account',
   [
     'mailcomposer',
     'exports'
@@ -26595,17 +26604,17 @@ FakeFolderStorage.prototype = {
     this.type = type;
     this._attrs = {};
 
-    if (typeof tag == 'string') {
+    if (typeof tag === 'string') {
       let pieces = tag.split(':');
-      if (pieces.length == 1)
+      if (pieces.length === 1)
         this.localTagName = pieces[0];
       else        [this.namespaceName, this.localTagName] = pieces;
     }
     else {
       this.tag = tag;
       Object.defineProperties(this, {
-        'namespace':     { get: function() this.tag >> 8 },
-        'localTag':      { get: function() this.tag & 0xff },
+        'namespace':     { get: function() { return this.tag >> 8; } },
+        'localTag':      { get: function() { return this.tag & 0xff; } },
         'namespaceName': { get: function() {
           return this.ownerDocument._codepages.__nsnames__[this.namespace];
         } },
@@ -26632,10 +26641,10 @@ FakeFolderStorage.prototype = {
     },
 
     getAttribute: function(attr) {
-      if (typeof attr == 'number')
+      if (typeof attr === 'number')
         attr = this.ownerDocument._codepages.__attrdata__[attr].name;
-      else if (!(attr in this._attrs) && this.namespace != null &&
-               attr.indexOf(':') == -1)
+      else if (!(attr in this._attrs) && this.namespace !== null &&
+               attr.indexOf(':') === -1)
         attr = this.namespaceName + ':' + attr;
       return this._getAttribute(this._attrs[attr]);
     },
@@ -26652,7 +26661,7 @@ FakeFolderStorage.prototype = {
           }
           array.push(hunk);
         }
-        else if (typeof hunk == 'number') {
+        else if (typeof hunk === 'number') {
           strValue += this.ownerDocument._codepages.__attrdata__[hunk].data ||
                       '';
         }
@@ -26663,11 +26672,11 @@ FakeFolderStorage.prototype = {
       if (strValue)
         array.push(strValue);
 
-      return array.length == 1 ? array[0] : array;
+      return array.length === 1 ? array[0] : array;
     },
 
     _addAttribute: function(attr) {
-      if (typeof attr == 'string') {
+      if (typeof attr === 'string') {
         if (attr in this._attrs)
           throw new ParseError('attribute '+attr+' is repeated');
         return this._attrs[attr] = [];
@@ -26693,7 +26702,7 @@ FakeFolderStorage.prototype = {
   }
 
   EndTag.prototype = {
-    get type() 'ETAG',
+    get type() { return 'ETAG'; },
   };
 
   function Text(ownerDocument, textContent) {
@@ -26702,7 +26711,7 @@ FakeFolderStorage.prototype = {
   }
 
   Text.prototype = {
-    get type() 'TEXT',
+    get type() { return 'TEXT'; },
   };
 
   function Extension(ownerDocument, subtype, index, value) {
@@ -26713,7 +26722,7 @@ FakeFolderStorage.prototype = {
   }
 
   Extension.prototype = {
-    get type() 'EXT',
+    get type() { return 'EXT'; },
   };
 
   function ProcessingInstruction(ownerDocument) {
@@ -26721,10 +26730,10 @@ FakeFolderStorage.prototype = {
   }
 
   ProcessingInstruction.prototype = {
-    get type() 'PI',
+    get type() { return 'PI'; },
 
     get target() {
-      if (typeof this.targetID == 'string')
+      if (typeof this.targetID === 'string')
         return this.targetID;
       else
         return this.ownerDocument._codepages.__attrdata__[this.targetID].name;
@@ -26732,7 +26741,7 @@ FakeFolderStorage.prototype = {
 
     _setTarget: function(target) {
       this.targetID = target;
-      if (typeof target == 'string')
+      if (typeof target === 'string')
         return this._data = [];
       else
         return this._data = [target];
@@ -26741,7 +26750,7 @@ FakeFolderStorage.prototype = {
     // XXX: this seems impolite...
     _getAttribute: Element.prototype._getAttribute,
 
-    get data() this._getAttribute(this._data),
+    get data() { return this._getAttribute(this._data); },
   };
 
   function Opaque(ownerDocument, data) {
@@ -26750,7 +26759,7 @@ FakeFolderStorage.prototype = {
   }
 
   Opaque.prototype = {
-    get type() 'OPAQUE',
+    get type() { return 'OPAQUE'; },
   };
 
   function Reader(xml, codepages) {
@@ -26846,13 +26855,13 @@ FakeFolderStorage.prototype = {
       let foundRoot = false;
 
       let appendString = (function(s) {
-        if (state == States.BODY) {
+        if (state === States.BODY) {
           if (!currentNode)
             currentNode = new Text(this, s);
           else
             currentNode.textContent += s;
         }
-        else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+        else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
           currentAttr.push(s);
         }
         // We can assume that we're in a valid state, so don't bother checking
@@ -26864,20 +26873,20 @@ FakeFolderStorage.prototype = {
       // bit, since we can eat as many tokens as we need to for each logical
       // chunk of the document.
       for (let tok in this._iter) {
-        if (tok == Tokens.SWITCH_PAGE) {
+        if (tok === Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
           if (!(codepage in this._codepages.__nsnames__))
             throw new ParseError('unknown codepage '+codepage)
         }
-        else if (tok == Tokens.END) {
-          if (state == States.BODY && depth-- > 0) {
+        else if (tok === Tokens.END) {
+          if (state === States.BODY && depth-- > 0) {
             if (currentNode) {
               yield currentNode;
               currentNode = null;
             }
             yield new EndTag(this);
           }
-          else if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI) {
+          else if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI) {
             state = States.BODY;
 
             yield currentNode;
@@ -26888,14 +26897,14 @@ FakeFolderStorage.prototype = {
             throw new ParseError('unexpected END token');
           }
         }
-        else if (tok == Tokens.ENTITY) {
-          if (state == States.BODY && depth == 0)
+        else if (tok === Tokens.ENTITY) {
+          if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected ENTITY token');
           let e = this._get_mb_uint32();
           appendString('&#'+e+';');
         }
-        else if (tok == Tokens.STR_I) {
-          if (state == States.BODY && depth == 0)
+        else if (tok === Tokens.STR_I) {
+          if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected STR_I token');
           let s = '';
           let c;
@@ -26904,8 +26913,8 @@ FakeFolderStorage.prototype = {
           }
           appendString(s);
         }
-        else if (tok == Tokens.PI) {
-          if (state != States.BODY)
+        else if (tok === Tokens.PI) {
+          if (state !== States.BODY)
             throw new ParseError('unexpected PI token');
           state = States.ATTRIBUTE_PI;
 
@@ -26913,14 +26922,14 @@ FakeFolderStorage.prototype = {
             yield currentNode;
           currentNode = new ProcessingInstruction(this);
         }
-        else if (tok == Tokens.STR_T) {
-          if (state == States.BODY && depth == 0)
+        else if (tok === Tokens.STR_T) {
+          if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected STR_T token');
           let r = this._get_mb_uint32();
           appendString(this.strings.get(r));
         }
-        else if (tok == Tokens.OPAQUE) {
-          if (state != States.BODY)
+        else if (tok === Tokens.OPAQUE) {
+          if (state !== States.BODY)
             throw new ParseError('unexpected OPAQUE token');
           let len = this._get_mb_uint32();
           let s = ''; // XXX: use a typed array here?
@@ -26939,7 +26948,7 @@ FakeFolderStorage.prototype = {
           let subtype;
           let value;
 
-          if (hi == Tokens.EXT_I_0) {
+          if (hi === Tokens.EXT_I_0) {
             subtype = 'string';
             value = '';
             let c;
@@ -26947,36 +26956,36 @@ FakeFolderStorage.prototype = {
               value += String.fromCharCode(c);
             }
           }
-          else if (hi == Tokens.EXT_T_0) {
+          else if (hi === Tokens.EXT_T_0) {
             subtype = 'integer';
             value = this._get_mb_uint32();
           }
-          else { // if (hi == Tokens.EXT_0)
+          else { // if (hi === Tokens.EXT_0)
             subtype = 'byte';
             value = null;
           }
 
           let ext = new Extension(this, subtype, lo, value);
-          if (state == States.BODY) {
+          if (state === States.BODY) {
             if (currentNode) {
               yield currentNode;
               currentNode = null;
             }
             yield ext;
           }
-          else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+          else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
             currentAttr.push(ext);
           }
         }
-        else if (state == States.BODY) {
-          if (depth == 0) {
+        else if (state === States.BODY) {
+          if (depth === 0) {
             if (foundRoot)
               throw new ParseError('multiple root nodes found');
             foundRoot = true;
           }
 
           let tag = (codepage << 8) + (tok & 0x3f);
-          if ((tok & 0x3f) == Tokens.LITERAL) {
+          if ((tok & 0x3f) === Tokens.LITERAL) {
             let r = this._get_mb_uint32();
             tag = this.strings.get(r);
           }
@@ -26997,14 +27006,14 @@ FakeFolderStorage.prototype = {
             currentNode = null;
           }
         }
-        else { // if (state == States.ATTRIBUTES || state == States.ATTRIBUTE_PI)
+        else { // if (state === States.ATTRIBUTES || state === States.ATTRIBUTE_PI)
           let attr = (codepage << 8) + tok;
           if (!(tok & 0x80)) {
-            if (tok == Tokens.LITERAL) {
+            if (tok === Tokens.LITERAL) {
               let r = this._get_mb_uint32();
               attr = this.strings.get(r);
             }
-            if (state == States.ATTRIBUTE_PI) {
+            if (state === States.ATTRIBUTE_PI) {
               if (currentAttr)
                 throw new ParseError('unexpected attribute in PI');
               currentAttr = currentNode._setTarget(attr);
@@ -27023,9 +27032,11 @@ FakeFolderStorage.prototype = {
     dump: function(indentation, header) {
       let result = '';
 
-      if (indentation == undefined)
+      if (indentation === undefined)
         indentation = 2;
-      let indent = function(level) new Array(level*indentation + 1).join(' ');
+      let indent = function(level) {
+        return new Array(level*indentation + 1).join(' ');
+      };
       let tagstack = [];
 
       if (header) {
@@ -27038,34 +27049,34 @@ FakeFolderStorage.prototype = {
 
       let newline = false;
       for (let node in this.document) {
-        if (node.type == 'TAG' || node.type == 'STAG') {
+        if (node.type === 'TAG' || node.type === 'STAG') {
           result += indent(tagstack.length) + '<' + node.tagName;
 
           for (let [k,v] in node.attributes) {
             result += ' ' + k + '="' + v + '"';
           }
 
-          if (node.type == 'STAG') {
+          if (node.type === 'STAG') {
             tagstack.push(node.tagName);
             result += '>\n';
           }
           else
             result += '/>\n';
         }
-        else if (node.type == 'ETAG') {
+        else if (node.type === 'ETAG') {
           let tag = tagstack.pop();
           result += indent(tagstack.length) + '</' + tag + '>\n';
         }
-        else if (node.type == 'TEXT') {
+        else if (node.type === 'TEXT') {
           result += indent(tagstack.length) + node.textContent + '\n';
         }
-        else if (node.type == 'PI') {
+        else if (node.type === 'PI') {
           result += indent(tagstack.length) + '<?' + node.target;
           if (node.data)
             result += ' ' + node.data;
           result += '?>\n';
         }
-        else if (node.type == 'OPAQUE') {
+        else if (node.type === 'OPAQUE') {
           result += indent(tagstack.length) + '<![CDATA[' + node.data + ']]>\n';
         }
         else {
@@ -27084,11 +27095,13 @@ FakeFolderStorage.prototype = {
     this._codepage = 0;
     this._tagStack = [];
 
-    let [major, minor] = version.split('.').map(function(x) parseInt(x));
+    let [major, minor] = version.split('.').map(function(x) {
+      return parseInt(x);
+    });
     let v = ((major - 1) << 4) + minor;
 
     let charsetNum = charset;
-    if (typeof charset == 'string') {
+    if (typeof charset === 'string') {
       charsetNum = str2mib[charset];
       if (charsetNum === undefined)
         throw new Error('unknown charset '+charset);
@@ -27098,7 +27111,7 @@ FakeFolderStorage.prototype = {
     this._write(pid);
     this._write(charsetNum);
     if (strings) {
-      let len = strings.reduce(function(x, y) x + y.length + 1, 0);
+      let len = strings.reduce(function(x, y) { return x + y.length + 1; }, 0);
       this._write_mb_uint32(len);
       for (let [,s] in Iterator(strings)) {
         for (let i = 0; i < s.length; i++)
@@ -27112,6 +27125,9 @@ FakeFolderStorage.prototype = {
   }
 
   Writer.Attribute = function(name, value) {
+    this.isValue = typeof name === 'number' && (name & 0x80);
+    if (this.isValue && value !== undefined)
+      throw new Error('Can\'t specify a value for attribute value constants');
     this.name = name;
     this.value = value;
   };
@@ -27127,11 +27143,17 @@ FakeFolderStorage.prototype = {
   Writer.Extension = function(subtype, index, data) {
     const validTypes = {
       'string':  { value:     Tokens.EXT_I_0,
-                   validator: function(data) typeof data == 'string' },
+                   validator: function(data) {
+                     return typeof data === 'string';
+                   } },
       'integer': { value:     Tokens.EXT_T_0,
-                   validator: function(data) typeof data == 'number' },
+                   validator: function(data) {
+                     return typeof data === 'number';
+                   } },
       'byte':    { value:     Tokens.EXT_0,
-                   validator: function(data) data == null || data == undefined },
+                   validator: function(data) {
+                     return data === null || data === undefined;
+                   } },
     };
 
     let info = validTypes[subtype];
@@ -27147,16 +27169,16 @@ FakeFolderStorage.prototype = {
     this.data = data;
   };
 
-  Writer.a = function(name, value) new Writer.Attribute(name, value);
-  Writer.str_t = function(index) new Writer.StringTableRef(index);
-  Writer.ent = function(code) new Writer.Entity(code);
-  Writer.ext = function(subtype, index, data) new Writer.Extension(
-    subtype, index, data);
+  Writer.a = function(name, val) { return new Writer.Attribute(name, val); };
+  Writer.str_t = function(index) { return new Writer.StringTableRef(index); };
+  Writer.ent = function(code) { return new Writer.Entity(code) };
+  Writer.ext = function(subtype, index, data) { return new Writer.Extension(
+    subtype, index, data); };
 
   Writer.prototype = {
     _write: function(tok) {
       // Expand the buffer by a factor of two if we ran out of space.
-      if (this._pos == this._buffer.length - 1) {
+      if (this._pos === this._buffer.length - 1) {
         this._rawbuf = new ArrayBuffer(this._rawbuf.byteLength * 2);
         let buffer = new Uint8Array(this._rawbuf);
 
@@ -27187,7 +27209,7 @@ FakeFolderStorage.prototype = {
     },
 
     _setCodepage: function(codepage) {
-      if (this._codepage != codepage) {
+      if (this._codepage !== codepage) {
         this._write(Tokens.SWITCH_PAGE);
         this._write(codepage);
         this._codepage = codepage;
@@ -27223,6 +27245,8 @@ FakeFolderStorage.prototype = {
     _writeAttr: function(attr) {
       if (!(attr instanceof Writer.Attribute))
         throw new Error('Expected an Attribute object');
+      if (attr.isValue)
+        throw new Error('Can\'t use attribute value constants here');
 
       if (attr.name instanceof Writer.StringTableRef) {
         this._write(Tokens.LITERAL);
@@ -27250,23 +27274,26 @@ FakeFolderStorage.prototype = {
       }
       else if (value instanceof Writer.Extension) {
         this._write(value.subtype + value.index);
-        if (value.subtype == Tokens.EXT_I_0) {
+        if (value.subtype === Tokens.EXT_I_0) {
           this._write_str(value.data);
           this._write(0x00);
         }
-        else if (value.subtype == Tokens.EXT_T_0) {
+        else if (value.subtype === Tokens.EXT_T_0) {
           this._write_mb_uint32(value.data);
         }
       }
-      else if (typeof value == 'number') {
+      else if (value instanceof Writer.Attribute) {
+        if (!value.isValue)
+          throw new Error('Unexpected Attribute object');
         if (!inAttr)
           throw new Error('Can\'t use attribute value constants outside of ' +
                           'attributes');
-        this._write(value);
+        this._setCodepage(value.name >> 8);
+        this._write(value.name & 0xff);
       }
-      else if (value != null) {
+      else if (value !== null && value !== undefined) {
         this._write(Tokens.STR_I);
-        this._write_str(value);
+        this._write_str(value.toString());
         this._write(0x00);
       }
     },
@@ -27323,7 +27350,7 @@ FakeFolderStorage.prototype = {
     opaque: function(data) {
       this._write(Tokens.OPAQUE);
       this._write_mb_uint32(data.length);
-      if (typeof data == 'string') {
+      if (typeof data === 'string') {
         this._write_str(data);
       }
       else {
@@ -27333,8 +27360,8 @@ FakeFolderStorage.prototype = {
       return this;
     },
 
-    get buffer() this._rawbuf.slice(0, this._pos),
-    get bytes() new Uint8Array(this._rawbuf, 0, this._pos),
+    get buffer() { return this._rawbuf.slice(0, this._pos); },
+    get bytes() { return new Uint8Array(this._rawbuf, 0, this._pos); },
   };
 
   function EventParser(reader) {
@@ -27347,14 +27374,14 @@ FakeFolderStorage.prototype = {
     },
 
     _pathMatches: function(a, b) {
-      return a.length == b.length && a.every(function(val, i) {
-        if (b[i] == '*')
+      return a.length === b.length && a.every(function(val, i) {
+        if (b[i] === '*')
           return true;
         else if (Array.isArray(b[i])) {
-          return b[i].indexOf(val) != -1;
+          return b[i].indexOf(val) !== -1;
         }
         else
-          return val == b[i];
+          return val === b[i];
       });
     },
 
@@ -27364,7 +27391,7 @@ FakeFolderStorage.prototype = {
       let recording = 0;
 
       for (let node in reader.document) {
-        if (node.type == 'TAG') {
+        if (node.type === 'TAG') {
           fullPath.push(node.tag);
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
@@ -27375,7 +27402,7 @@ FakeFolderStorage.prototype = {
 
           fullPath.pop();
         }
-        else if (node.type == 'STAG') {
+        else if (node.type === 'STAG') {
           fullPath.push(node.tag);
 
           for (let [,listener] in Iterator(this.listeners)) {
@@ -27384,7 +27411,7 @@ FakeFolderStorage.prototype = {
             }
           }
         }
-        else if (node.type == 'ETAG') {
+        else if (node.type === 'ETAG') {
           for (let [,listener] in Iterator(this.listeners)) {
             if (this._pathMatches(fullPath, listener.path)) {
               recording--;
@@ -27396,14 +27423,14 @@ FakeFolderStorage.prototype = {
         }
 
         if (recording) {
-          if (node.type == 'STAG') {
+          if (node.type === 'STAG') {
             node.type = 'TAG';
             node.children = [];
             if (recPath.length)
               recPath[recPath.length-1].children.push(node);
             recPath.push(node);
           }
-          else if (node.type == 'ETAG') {
+          else if (node.type === 'ETAG') {
             recPath.pop();
           }
           else {
@@ -27447,6 +27474,87 @@ FakeFolderStorage.prototype = {
   
 
   let codepages = {
+    Common: {
+      Enums: {
+        Status: {
+          InvalidContent:                                  '101',
+          InvalidWBXML:                                    '102',
+          InvalidXML:                                      '103',
+          InvalidDateTime:                                 '104',
+          InvalidCombinationOfIDs:                         '105',
+          InvalidIDs:                                      '106',
+          InvalidMIME:                                     '107',
+          DeviceIdMissingOrInvalid:                        '108',
+          DeviceTypeMissingOrInvalid:                      '109',
+          ServerError:                                     '110',
+          ServerErrorRetryLater:                           '111',
+          ActiveDirectoryAccessDenied:                     '112',
+          MailboxQuotaExceeded:                            '113',
+          MailboxServerOffline:                            '114',
+          SendQuotaExceeded:                               '115',
+          MessageRecipientUnresolved:                      '116',
+          MessageReplyNotAllowed:                          '117',
+          MessagePreviouslySent:                           '118',
+          MessageHasNoRecipient:                           '119',
+          MailSubmissionFailed:                            '120',
+          MessageReplyFailed:                              '121',
+          AttachmentIsTooLarge:                            '122',
+          UserHasNoMailbox:                                '123',
+          UserCannotBeAnonymous:                           '124',
+          UserPrincipalCouldNotBeFound:                    '125',
+          UserDisabledForSync:                             '126',
+          UserOnNewMailboxCannotSync:                      '127',
+          UserOnLegacyMailboxCannotSync:                   '128',
+          DeviceIsBlockedForThisUser:                      '129',
+          AccessDenied:                                    '130',
+          AccountDisabled:                                 '131',
+          SyncStateNotFound:                               '132',
+          SyncStateLocked:                                 '133',
+          SyncStateCorrupt:                                '134',
+          SyncStateAlreadyExists:                          '135',
+          SyncStateVersionInvalid:                         '136',
+          CommandNotSupported:                             '137',
+          VersionNotSupported:                             '138',
+          DeviceNotFullyProvisionable:                     '139',
+          RemoteWipeRequested:                             '140',
+          LegacyDeviceOnStrictPolicy:                      '141',
+          DeviceNotProvisioned:                            '142',
+          PolicyRefresh:                                   '143',
+          InvalidPolicyKey:                                '144',
+          ExternallyManagedDevicesNotAllowed:              '145',
+          NoRecurrenceInCalendar:                          '146',
+          UnexpectedItemClass:                             '147',
+          RemoteServerHasNoSSL:                            '148',
+          InvalidStoredRequest:                            '149',
+          ItemNotFound:                                    '150',
+          TooManyFolders:                                  '151',
+          NoFoldersFounds:                                 '152',
+          ItemsLostAfterMove:                              '153',
+          FailureInMoveOperation:                          '154',
+          MoveCommandDisallowedForNonPersistentMoveAction: '155',
+          MoveCommandInvalidDestinationFolder:             '156',
+          AvailabilityTooManyRecipients:                   '160',
+          AvailabilityDLLimitReached:                      '161',
+          AvailabilityTransientFailure:                    '162',
+          AvailabilityFailure:                             '163',
+          BodyPartPreferenceTypeNotSupported:              '164',
+          DeviceInformationRequired:                       '165',
+          InvalidAccountId:                                '166',
+          AccountSendDisabled:                             '167',
+          IRM_FeatureDisabled:                             '168',
+          IRM_TransientError:                              '169',
+          IRM_PermanentError:                              '170',
+          IRM_InvalidTemplateID:                           '171',
+          IRM_OperationNotPermitted:                       '172',
+          NoPicture:                                       '173',
+          PictureTooLarge:                                 '174',
+          PictureLimitReached:                             '175',
+          BodyPart_ConversationTooLarge:                   '176',
+          MaximumDevicesReached:                           '177',
+        },
+      },
+    },
+
     AirSync: {
       Tags: {
         Sync:              0x0005,
@@ -27486,6 +27594,55 @@ FakeFolderStorage.prototype = {
         ConversationMode:  0x0027,
         MaxItems:          0x0028,
         HeartbeatInterval: 0x0029,
+      },
+
+      Enums: {
+        Status: {
+          Success:            '1',
+          InvalidSyncKey:     '3',
+          ProtocolError:      '4',
+          ServerError:        '5',
+          ConversionError:    '6',
+          MatchingConflict:   '7',
+          ObjectNotFound:     '8',
+          OutOfSpace:         '9',
+          HierarchyChanged:  '12',
+          IncompleteRequest: '13',
+          InvalidInterval:   '14',
+          InvalidRequest:    '15',
+          Retry:             '16',
+        },
+        FilterType: {
+          NoFilter:        '0',
+          OneDayBack:      '1',
+          ThreeDaysBack:   '2',
+          OneWeekBack:     '3',
+          TwoWeeksBack:    '4',
+          OneMonthBack:    '5',
+          ThreeMonthsBack: '6',
+          SixMonthsBack:   '7',
+          IncompleteTasks: '8',
+        },
+        Conflict: {
+          ClientReplacesServer: '0',
+          ServerReplacesClient: '1',
+        },
+        MIMESupport: {
+          Never:     '0',
+          SMIMEOnly: '1',
+          Always:    '2',
+        },
+        MIMETruncation: {
+          TruncateAll:  '0',
+          Truncate4K:   '1',
+          Truncate5K:   '2',
+          Truncate7K:   '3',
+          Truncate10K:  '4',
+          Truncate20K:  '5',
+          Truncate50K:  '6',
+          Truncate100K: '7',
+          NoTruncate:   '8',
+        },
       },
     },
 
@@ -27614,6 +27771,45 @@ FakeFolderStorage.prototype = {
         CompleteTime:            0x023E,
         DisallowNewTimeProposal: 0x023F,
       },
+      Enums: {
+        Importance: {
+          Low:    '0',
+          Normal: '1',
+          High:   '2',
+        },
+        InstanceType: {
+          Single:             '0',
+          RecurringMaster:    '1',
+          RecurringInstance:  '2',
+          RecurringException: '3',
+        },
+        BusyStatus: {
+          Free:      '0',
+          Tentative: '1',
+          Busy:      '2',
+          Oof:       '3',
+        },
+        Recurrence_Type: {
+          Daily:             '0',
+          Weekly:             '1',
+          MonthlyNthDay:      '2',
+          Monthly:            '3',
+          YearlyNthDay:       '5',
+          YearlyNthDayOfWeek: '6',
+        },
+        /* XXX: missing Recurrence_DayOfWeek */
+        Sensitivity: {
+          Normal:       '0',
+          Personal:     '1',
+          Private:      '2',
+          Confidential: '3',
+        },
+        Status: {
+          Cleared:  '0',
+          Complete: '1',
+          Active:   '2',
+        },
+      },
     },
 
     Calendar: {
@@ -27687,6 +27883,16 @@ FakeFolderStorage.prototype = {
         Status:    0x050B,
         DstMsgId:  0x050C,
       },
+      Enums: {
+        Status: {
+          InvalidSourceID: '1',
+          InvalidDestID:   '2',
+          Success:         '3',
+          SourceIsDest:    '4',
+          MoveFailure:     '5',
+          ItemLocked:      '7',
+        },
+      },
     },
 
     ItemEstimate: {
@@ -27701,6 +27907,14 @@ FakeFolderStorage.prototype = {
         Estimate:        0x060C,
         Response:        0x060D,
         Status:          0x060E,
+      },
+      Enums: {
+        Status: {
+          Success:           '1',
+          InvalidCollection: '2',
+          NoSyncState:       '3',
+          InvalidSyncKey:    '4',
+        },
       },
     },
 
@@ -27726,6 +27940,41 @@ FakeFolderStorage.prototype = {
         FolderSync:   0x0716,
         Count:        0x0717,
       },
+      Enums: {
+        Type: {
+          Generic:         '1',
+          DefaultInbox:    '2',
+          DefaultDrafts:   '3',
+          DefaultDeleted:  '4',
+          DefaultSent:     '5',
+          DefaultOutbox:   '6',
+          DefaultTasks:    '7',
+          DefaultCalendar: '8',
+          DefaultContacts: '9',
+          DefaultNotes:   '10',
+          DefaultJournal: '11',
+          Mail:           '12',
+          Calendar:       '13',
+          Contacts:       '14',
+          Tasks:          '15',
+          Journal:        '16',
+          Notes:          '17',
+          Unknown:        '18',
+          RecipientCache: '19',
+        },
+        Status: {
+          Success:              '1',
+          FolderExists:         '2',
+          SystemFolder:         '3',
+          FolderNotFound:       '4',
+          ParentFolderNotFound: '5',
+          ServerError:          '6',
+          InvalidSyncKey:       '9',
+          MalformedRequest:    '10',
+          UnknownError:        '11',
+          CodeUnknown:         '12',
+        },
+      },
     },
 
     MeetingResponse: {
@@ -27739,6 +27988,19 @@ FakeFolderStorage.prototype = {
         Status:          0x080B,
         UserResponse:    0x080C,
         InstanceId:      0x080E,
+      },
+      Enums: {
+        Status: {
+          Success:        '1',
+          InvalidRequest: '2',
+          MailboxError:   '3',
+          ServerError:    '4',
+        },
+        UserResponse: {
+          Accepted:  '1',
+          Tentative: '2',
+          Declined:  '3',
+        },
       },
     },
 
@@ -27809,6 +28071,30 @@ FakeFolderStorage.prototype = {
         Data:                   0x0A1C,
         MaxPictures:            0x0A1D,
       },
+      Enums: {
+        Status: {
+          Success:                   '1',
+          AmbiguousRecipientFull:    '2',
+          AmbiguousRecipientPartial: '3',
+          RecipientNotFound:         '4',
+          ProtocolError:             '5',
+          ServerError:               '6',
+          InvalidSMIMECert:          '7',
+          CertLimitReached:          '8',
+        },
+        CertificateRetrieval: {
+          None: '1',
+          Full: '2',
+          Mini: '3',
+        },
+        MergedFreeBusy: {
+          Free:      '0',
+          Tentative: '1',
+          Busy:      '2',
+          Oof:       '3',
+          NoData:    '4',
+        },
+      },
     },
 
     ValidateCert: {
@@ -27819,6 +28105,27 @@ FakeFolderStorage.prototype = {
         CertificateChain: 0x0B08,
         CheckCRL:         0x0B09,
         Status:           0x0B0A,
+      },
+      Enums: {
+        Status: {
+          Success:               '1',
+          ProtocolError:         '2',
+          InvalidSignature:      '3',
+          UntrustedSource:       '4',
+          InvalidChain:          '5',
+          NotForEmail:           '6',
+          Expired:               '7',
+          InconsistentTimes:     '8',
+          IdMisused:             '9',
+          MissingInformation:   '10',
+          CAEndMismatch:        '11',
+          EmailAddressMismatch: '12',
+          Revoked:              '13',
+          ServerOffline:        '14',
+          ChainRevoked:         '15',
+          RevocationUnknown:    '16',
+          UnknownError:         '17',
+        },
       },
     },
 
@@ -27848,6 +28155,18 @@ FakeFolderStorage.prototype = {
         Id:                0x0D0B,
         Class:             0x0D0C,
         MaxFolders:        0x0D0D,
+      },
+      Enums: {
+        Status: {
+          Expired:           '1',
+          Changed:           '2',
+          MissingParameters: '3',
+          SyntaxError:       '4',
+          InvalidInterval:   '5',
+          TooManyFolders:    '6',
+          SyncFolders:       '7',
+          ServerError:       '8',
+        },
       },
     },
 
@@ -27943,6 +28262,23 @@ FakeFolderStorage.prototype = {
         MaxSize:        0x0F22,
         MaxPictures:    0x0F23,
       },
+      Enums: {
+        Status: {
+          Success:              '1',
+          InvalidRequest:       '2',
+          ServerError:          '3',
+          BadLink:              '4',
+          AccessDenied:         '5',
+          NotFound:             '6',
+          ConnectionFailure:    '7',
+          TooComplex:           '8',
+          Timeout:             '10',
+          SyncFolders:         '11',
+          EndOfRange:          '12',
+          AccessBlocked:       '13',
+          CredentialsRequired: '14',
+        },
+      },
     },
 
     GAL: {
@@ -27990,6 +28326,27 @@ FakeFolderStorage.prototype = {
         BodyPart:           0x111A,
         Status:             0x111B,
       },
+      Enums: {
+        Type: {
+          PlainText: '1',
+          HTML:      '2',
+          RTF:       '3',
+          MIME:      '4',
+        },
+        Method: {
+          Normal:          '1',
+          EmbeddedMessage: '5',
+          AttachOLE:       '6',
+        },
+        NativeBodyType: {
+          PlainText: '1',
+          HTML:      '2',
+          RTF:       '3',
+        },
+        Status: {
+          Success: '1',
+        },
+      },
     },
 
     Settings: {
@@ -28034,6 +28391,22 @@ FakeFolderStorage.prototype = {
         /* Missing tag value 0x122A */
         RightsManagementInformation: 0x122B,
       },
+      Enums: {
+        Status: {
+          Success:              '1',
+          ProtocolError:        '2',
+          AccessDenied:         '3',
+          ServerError:          '4',
+          InvalidArguments:     '5',
+          ConflictingArguments: '6',
+          DeniedByPolicy:       '7',
+        },
+        OofState: {
+          Disabled:  '0',
+          Global:    '1',
+          TimeBased: '2',
+        },
+      },
     },
 
     DocumentLibrary: {
@@ -28072,6 +28445,25 @@ FakeFolderStorage.prototype = {
         DstFldId:            0x1417,
         ConversationId:      0x1418,
         MoveAlways:          0x1419,
+      },
+      Enums: {
+        Status: {
+          Success:               '1',
+          ProtocolError:         '2',
+          ServerError:           '3',
+          BadURI:                '4',
+          AccessDenied:          '5',
+          ObjectNotFound:        '6',
+          ConnectionFailure:     '7',
+          InvalidByteRange:      '8',
+          UnknownStore:          '9',
+          EmptyFile:            '10',
+          DataTooLarge:         '11',
+          IOFailure:            '12',
+          ConversionFailure:    '14',
+          InvalidAttachment:    '15',
+          ResourceAccessDenied: '16',
+        },
       },
     },
 
@@ -28112,6 +28504,50 @@ FakeFolderStorage.prototype = {
         AccountId:             0x1611,
         FirstDayOfWeek:        0x1612,
         MeetingMessageType:    0x1613,
+      },
+      Enums: {
+        LastVerbExecuted: {
+          Unknown:       '0',
+          ReplyToSender: '1',
+          ReplyToAll:    '2',
+          Forward:       '3',
+        },
+        CalendarType: {
+          Default:                     '0',
+          Gregorian:                   '1',
+          GregorianUS:                 '2',
+          Japan:                       '3',
+          Taiwan:                      '4',
+          Korea:                       '5',
+          Hijri:                       '6',
+          Thai:                        '7',
+          Hebrew:                      '8',
+          GregorianMeFrench:           '9',
+          GregorianArabic:            '10',
+          GregorianTranslatedEnglish: '11',
+          GregorianTranslatedFrench:  '12',
+          JapaneseLunar:              '14',
+          ChineseLunar:               '15',
+          KoreanLunar:                '20',
+        },
+        FirstDayOfWeek: {
+          Sunday:    '0',
+          Monday:    '1',
+          Tuesday:   '2',
+          Wednesday: '3',
+          Thursday:  '4',
+          Friday:    '5',
+          Saturday:  '6',
+        },
+        MeetingMessageType: {
+          Unspecified:         '0',
+          InitialRequest:      '1',
+          FullUpdate:          '2',
+          InformationalUpdate: '3',
+          Outdated:            '4',
+          DelegatorsCopy:      '5',
+          Delegated:           '6',
+        },
       },
     },
 
@@ -28180,7 +28616,22 @@ FakeFolderStorage.prototype = {
 }(this, function(WBXML, ASCP) {
   
 
-  const __exports__ = ['VersionInt', 'Connection'];
+  const __exports__ = ['VersionInt', 'Connection', 'AutodiscoverError',
+                       'AutodiscoverDomainError'];
+
+  function AutodiscoverError(message) {
+      this.name = 'ActiveSync.AutodiscoverError';
+      this.message = message || '';
+  }
+  AutodiscoverError.prototype = new Error();
+  AutodiscoverError.prototype.constructor = AutodiscoverError;
+
+  function AutodiscoverDomainError(message) {
+      this.name = 'ActiveSync.AutodiscoverDomainError';
+      this.message = message || '';
+  }
+  AutodiscoverDomainError.prototype = new AutodiscoverError();
+  AutodiscoverDomainError.prototype.constructor = AutodiscoverDomainError;
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
@@ -28193,7 +28644,9 @@ FakeFolderStorage.prototype = {
   }
 
   function VersionInt(str) {
-    let [major, minor] = str.split('.').map(function(x) parseInt(x));
+    let [major, minor] = str.split('.').map(function(x) {
+      return parseInt(x);
+    });
     return (major << 16) + minor;
   }
 
@@ -28206,73 +28659,97 @@ FakeFolderStorage.prototype = {
   }
 
   Connection.prototype = {
-    get currentVersionInt() VersionInt(this.currentVersion),
+    get currentVersionInt() { return VersionInt(this.currentVersion); },
 
     _getAuth: function() {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
 
-    autodiscover: function(aCallback) {
+    autodiscover: function(aCallback, aNoRedirect) {
+      let domain = this._email.substring(this._email.indexOf('@') + 1);
+
+      this._autodiscover(domain, aNoRedirect, (function(aStatus, aConfig) {
+        if (aStatus instanceof AutodiscoverDomainError)
+          this._autodiscover('autodiscover.' + domain, aNoRedirect, aCallback);
+        else
+          aCallback(aStatus);
+      }).bind(this));
+    },
+
+    _autodiscover: function(aHost, aNoRedirect, aCallback) {
       // TODO: we need to be smarter here and do some stuff with redirects and
       // other fun stuff, but this works for hotmail, so yay.
 
       let conn = this;
 
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', 'https://m.hotmail.com/autodiscover/autodiscover.xml',
+      xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
         let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
-        let getString = function(xpath, rel) {
+
+        function getNode(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver,
+                              XPathResult.FIRST_ORDERED_NODE_TYPE, null)
+                    .singleNodeValue;
+        }
+        function getString(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
                               null).stringValue;
+        }
+
+        if (doc.documentElement.tagName === 'parsererror')
+          return aCallback(new AutodiscoverDomainError(
+            'Error parsing autodiscover response'));
+
+        let responseNode = getNode('/ad:Autodiscover/ms:Response', doc);
+        if (!responseNode)
+          return aCallback(new AutodiscoverDomainError(
+            'Missing Autodiscover Response node'));
+
+        let error = getNode('ms:Error', responseNode) ||
+                    getNode('ms:Action/ms:Error', responseNode);
+        if (error)
+          return aCallback(new AutodiscoverError(
+            getString('ms:Message/text()', error)));
+
+        let redirect = getNode('ms:Action/ms:Redirect', responseNode);
+        if (redirect) {
+          if (aNoRedirect)
+            return aCallback(new AutodiscoverError(
+              'Multiple redirects occurred during autodiscovery'));
+
+          conn._email = getString('text()', redirect);
+          return conn.autodiscover(aCallback, true);
+        }
+
+        let user = getNode('ms:User', responseNode);
+        let server = getNode('ms:Action/ms:Settings/ms:Server', responseNode);
+
+        conn.config = {
+          'user': {
+            'name':  getString('ms:DisplayName/text()',  user),
+            'email': getString('ms:EMailAddress/text()', user),
+          },
+          'server': {
+            'type': getString('ms:Type/text()', server),
+            'url':  getString('ms:Url/text()',  server),
+            'name': getString('ms:Name/text()', server),
+          }
         };
 
-        let error = doc.evaluate(
-          '/ad:Autodiscover/ms:Response/ms:Error', doc, nsResolver,
-          XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-        if (error) {
-          aCallback({
-            'error': {
-              'message': getString('ms:Message/text()', error),
-            }
-          });
-        }
-        else {
-          let user = doc.evaluate(
-            '/ad:Autodiscover/ms:Response/ms:User', doc, nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-          let server = doc.evaluate(
-            '/ad:Autodiscover/ms:Response/ms:Action/ms:Settings/ms:Server', doc,
-            nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null)
-            .singleNodeValue;
+        conn.baseURL = conn.config.server.url + '/Microsoft-Server-ActiveSync';
+        conn.options(conn.baseURL, function(aStatus, aResult) {
+          conn.connected = true;
+          conn.currentVersion = aResult.versions.slice(-1)[0];
+          conn.config.options = aResult;
 
-          conn.config = {
-            'user': {
-              'name':  getString('ms:DisplayName/text()',  user),
-              'email': getString('ms:EMailAddress/text()', user),
-            },
-            'server': {
-              'type': getString('ms:Type/text()', server),
-              'url':  getString('ms:Url/text()',  server),
-              'name': getString('ms:Name/text()', server),
-            }
-          };
-
-          conn.baseURL = conn.config.server.url +
-            '/Microsoft-Server-ActiveSync';
-          conn.options(conn.baseURL, function(aSubResult) {
-            conn.connected = true;
-            conn.currentVersion = aSubResult.versions.slice(-1)[0];
-            conn.config.options = aSubResult;
-
-            if (aCallback)
-              aCallback(conn.config);
-          });
-        }
+          if (aCallback)
+            aCallback(null, conn.config);
+        });
       };
 
       // TODO: use something like
@@ -28294,11 +28771,12 @@ FakeFolderStorage.prototype = {
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
+        // TODO: handle error codes
         let result = {
           'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
-        aCallback(result);
+        aCallback(null, result);
       };
 
       xhr.send();
@@ -28309,13 +28787,10 @@ FakeFolderStorage.prototype = {
         this._doCommandReal(aXml, aCallback);
       }
       else {
-        this.autodiscover((function (aConfig) {
-          if ('error' in aConfig) {
-            // TODO: do something here!
-            let error = new Error('Error during autodiscover: ' +
-                                  aConfig.error.message);
-            console.log(error);
-            aCallback(error);
+        this.autodiscover((function (aStatus, aConfig) {
+          if (aStatus) {
+            console.log(aStatus);
+            aCallback(aStatus);
           }
           else {
             this._doCommandReal(aXml, aCallback);
@@ -28381,14 +28856,14 @@ FakeFolderStorage.prototype = {
   return exported;
 }));
 
-define('rdimap/imapclient/asfolder',
+define('mailapi/activesync/folder',
   [
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
     'mimelib',
-    './quotechew',
-    './util',
+    '../quotechew',
+    '../util',
     'exports'
   ],
   function(
@@ -28534,7 +29009,7 @@ ActiveSyncFolderStorage.prototype = {
     let account = this.account;
 
     if (!account.conn.connected) {
-      account.conn.autodiscover(function(config) {
+      account.conn.autodiscover(function(status, config) {
         // TODO: handle errors
         folderStorage._syncFolder(callback, deferred);
       });
@@ -28546,7 +29021,9 @@ ActiveSyncFolderStorage.prototype = {
     }
 
     const as = $ascp.AirSync.Tags;
+    const asEnum = $ascp.AirSync.Enums;
     const asb = $ascp.AirSyncBase.Tags;
+    const asbEnum = $ascp.AirSyncBase.Enums;
 
     let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
@@ -28563,11 +29040,11 @@ ActiveSyncFolderStorage.prototype = {
 
     if (account.conn.currentVersionInt >= $activesync.VersionInt('12.0'))
             w.stag(asb.BodyPreference)
-               .tag(asb.Type, '1')
+               .tag(asb.Type, asbEnum.Type.PlainText)
              .etag();
 
-            w.tag(as.MIMESupport, '2')
-             .tag(as.MIMETruncation, '7')
+            w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
+             .tag(as.MIMETruncation, asEnum.MIMETruncation.NoTruncate)
            .etag()
          .etag()
        .etag()
@@ -28637,10 +29114,10 @@ ActiveSyncFolderStorage.prototype = {
 
       e.run(aResponse);
 
-      if (status === '1') { // Success
+      if (status === asEnum.Status.Success) {
         callback(added, changed, deleted);
       }
-      else if (status === '3') { // Bad sync key
+      else if (status === asEnum.Status.InvalidSyncKey) {
         console.log('ActiveSync had a bad sync key');
         // This should already be set to 0, but let's just be safe.
         folderStorage.folderMeta.syncKey = '0';
@@ -28887,17 +29364,21 @@ ActiveSyncFolderStorage.prototype = {
 
       // Handle messages that have been added
       if (added.headers.length) {
-        added.headers.sort(function(a, b) b.date - a.date);
+        added.headers.sort(function(a, b) { return b.date - a.date; });
         let addedBlocks = {};
         for (let [,header] in Iterator(added.headers)) {
-          let idx = $util.bsearchForInsert(folderStorage._headers, header,
-                                           function(a, b) b.date - a.date);
+          let idx = $util.bsearchForInsert(
+            folderStorage._headers, header, function(a, b) {
+              return b.date - a.date;
+            });
           if (!(idx in addedBlocks))
             addedBlocks[idx] = [];
           addedBlocks[idx].push(header);
         }
 
-        let keys = Object.keys(addedBlocks).sort(function(a, b) b - a);
+        let keys = Object.keys(addedBlocks).sort(function(a, b) {
+          return b - a;
+        });
         let hdrs = folderStorage._headers;
         for (let [,key] in Iterator(keys)) {
           // XXX: I feel like this is probably slower than it needs to be...
@@ -28927,12 +29408,12 @@ ActiveSyncFolderStorage.prototype = {
 
 }); // end define
 ;
-define('rdimap/imapclient/asjobs',
+define('mailapi/activesync/jobs',
   [
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
-    './util',
+    '../util',
     'exports'
   ],
   function(
@@ -29146,16 +29627,16 @@ ActiveSyncJobDriver.prototype = {
  * Implements the ActiveSync protocol for Hotmail and Exchange.
  **/
 
-define('rdimap/imapclient/activesync',
+define('mailapi/activesync/account',
   [
     'mailcomposer',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
-    './a64',
-    './asfolder',
-    './asjobs',
-    './util',
+    '../a64',
+    './folder',
+    './jobs',
+    '../util',
     'exports'
   ],
   function(
@@ -29521,19 +30002,19 @@ ActiveSyncAccount.prototype = {
  *
  **/
 
-define('rdimap/imapclient/mailuniverse',
+define('mailapi/mailuniverse',
   [
     'rdcommon/log',
     'rdcommon/logreaper',
     './a64',
     './allback',
-    './imapdb',
-    './imapprobe',
-    './imapacct',
-    './smtpprobe',
-    './smtpacct',
-    './fakeacct',
-    './activesync',
+    './imap/imapdb',
+    './imap/probe',
+    './imap/account',
+    './smtp/probe',
+    './smtp/account',
+    './fake/account',
+    './activesync/account',
     'module',
     'exports'
   ],
@@ -30232,7 +30713,8 @@ function MailUniverse(callAfterBigBang) {
             function() {
               if (--waitingCount === 0)
                 callAfterBigBang();
-            });
+            },
+            self._LOG);
           }
         // do not let callAfterBigBang get called.
         return;
@@ -30883,13 +31365,13 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * bridge hookup logic.
  **/
 
-define('rdimap/imapclient/same-frame-setup',
+define('mailapi/same-frame-setup',
   [
     './shim-sham',
     './mailapi',
     './mailbridge',
     './mailuniverse',
-    './imapslice',
+    './imap/slice',
     'exports'
   ],
   function(
@@ -30995,5 +31477,5 @@ document.enableLogSpawner = function enableLogSpawner(spawnNow) {
 ////////////////////////////////////////////////////////////////////////////////
 
 });
-require(['rdimap/imapclient/same-frame-setup'], function () {});
+require(['mailapi/same-frame-setup'], function () {});
 }());

@@ -1,0 +1,79 @@
+/* ----------------------------------
+ * STYLES FOR VALUESELECTOR
+ * Requires:
+    menu-dialoges/core.css
+    other/buttons/style.css
+ * ---------------------------------- */
+
+body[role="application"] [role="dialog"] [role="listbox"] {
+  position: relative;
+  padding: 0 4rem;
+  margin: -1rem -4rem 0;
+  max-height: 37rem;
+  /* Max height 100% doesnt work because the parent element has height auto for getting work the vertical alignment */
+  overflow: auto;
+}
+
+body[role="application"] [role="dialog"] [data-mode="scroll"] [role="listbox"] {
+  background: url(images/ui/shadow.png) repeat-x left top, url(images/ui/shadow-invert.png) repeat-x left bottom;
+  padding: 0 2.8rem 0 4rem;
+  /* 4rem - 1.2rem = 2.8rem (1.2rem scrollbar width) */
+}
+
+body[role="application"] [role="dialog"] [data-mode="scroll"] h3 {
+  margin-left: -2.5rem;
+  margin-right: -2.5rem;
+  text-indent: 2.5rem
+}
+
+body[role="application"] [role="dialog"] [role="listbox"] li {
+  margin: 0;
+  padding-bottom: 1px;
+  list-style: none;
+  border-bottom: 1px solid #666;
+  position: relative;
+  color: #fff;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: lighter;
+  font-size: 2.2rem;
+  height: 5.9rem;
+  line-height: 5.9rem;
+  color: #fff;
+  transition: background 0.2s ease;
+}
+
+body[role="application"] [role="dialog"] [role="listbox"]  li:active,
+body[role="application"] [role="dialog"] [role="listbox"]  li:active label span {
+  background: #00ABCC;
+  color: #fff!important;
+}
+
+body[role="application"] [role="dialog"] [role="listbox"]  li input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body[role="application"] [role="dialog"] [role="listbox"]  li input:checked + span,
+body[role="application"] [role="dialog"] [role="listbox"]  li[aria-checked="true"] span {
+  padding-right: 0.5rem;
+  color: #00abcd;
+  background: url(images/icons/checked.png) content-box right center no-repeat;
+}
+
+body[role="application"] [role="dialog"] [role="listbox"]  li a,
+body[role="application"] [role="dialog"] [role="listbox"]  li label {
+  border-bottom: 1px solid #000;
+  text-indent: 0.5rem;
+  outline: none;
+}
+
+body[role="application"] [role="dialog"] [role="listbox"]  li a,
+body[role="application"] [role="dialog"] [role="listbox"]  li label,
+body[role="application"] [role="dialog"] [role="listbox"]  li label span {
+  text-decoration: none;
+  display: block;
+  color: #fff;
+}

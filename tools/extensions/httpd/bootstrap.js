@@ -11,6 +11,10 @@ function startup(data, reason) {
   
   Cu.import('resource://gre/modules/Services.jsm');
   Cu.import('resource:///modules/devtools/dbg-client.jsm');
+
+  // Make sure all applications are considered launchable
+  Cu.import('resource://gre/modules/Webapps.jsm');
+  DOMApplicationRegistry.allAppsLaunchable = true;
   
   const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
   const GAIA_APP_SRCDIRS = Services.prefs.getCharPref("extensions.gaia.app_src_dirs");
@@ -50,7 +54,13 @@ function startup(data, reason) {
   
     let directories = getDirectories(baseDir);
     directories.forEach(function appendDir(name) {
-      identity.add(scheme, name + '.' + host, port);
+      // Some app names can cause a raise here, preventing other apps
+      // from being added.
+      try {
+        identity.add(scheme, name + '.' + host, port);
+      } catch (e) {
+        dump(e);
+      }
     });
   
     server.registerPathHandler('/marionette', MarionetteHandler);

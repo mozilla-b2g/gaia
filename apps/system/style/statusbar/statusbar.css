@@ -1,6 +1,5 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
-#screen.fullscreen:not(.locked) > #statusbar,
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -62,23 +61,25 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
+#statusbar-loading {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 1px;
   background: url('images/loading.gif') center center repeat-x;
-
-  -moz-transition: opacity 0.1s ease 0.2s;
-  visibility: visible;
-}
-
-#statusbar-loading {
   display: block;
   visibility: hidden;
 
   -moz-transition: none;
+  opacity: 0;
+}
+
+#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
+  visibility: visible;
+
+  -moz-transition: opacity 0.1s ease 0.2s;
+  opacity: 1;
 }
 
 #statusbar-label {
@@ -277,6 +278,10 @@
   left: 0;
   background: url('images/icons.png') no-repeat;
   background-position: -168px -40px;
+}
+
+.sb-icon-headphones {
+  background-position: -189px -40px;
 }
 
 .sb-icon-geolocation {

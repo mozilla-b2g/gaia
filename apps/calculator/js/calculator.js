@@ -5,7 +5,6 @@ var Calculator = {
   BACKSPACE_TIMEOUT: 750,
 
   display: document.querySelector('#display b'),
-  tip: document.querySelector('#tip-window'),
 
   isDecimalSeparatorPresent: false,
 
@@ -21,38 +20,16 @@ var Calculator = {
   updateDisplay: function calculator_updateDisplay() {
     if (this.stack.length === 0) {
       this.display.innerHTML = '0';
-      return;
+    } else {
+      var infinite = new RegExp((1 / 0) + '', 'g');
+      var outval = this.stack.join('').replace(infinite, '∞');
+      this.display.innerHTML = outval;
     }
-    var infinite = new RegExp((1 / 0) + '', 'g');
-    var outval = this.stack.join('').replace(infinite, '∞');
-    this.display.innerHTML = outval;
+
     var valWidth = this.display.offsetWidth;
     var screenWidth = this.display.parentNode.offsetWidth;
-    var scaleFactor = Math.min(1, screenWidth / valWidth);
+    var scaleFactor = Math.min(1, (screenWidth - 16) / valWidth);
     this.display.style.MozTransform = 'scale(' + scaleFactor + ')';
-  },
-
-  showTip: function calculator_showTip() {
-    var val = parseFloat(this.stack.join(''), 10);
-    if (!val) return;
-    function r2(n) {
-      var s = (Math.round(n * 100) / 100).toString();
-      if (s.indexOf('.') < 0) {
-        return s + '.00';
-      } else {
-        if (s.indexOf('.') == s.length - 2) {
-          s += '0';
-        }
-        return s;
-      }
-    }
-    document.getElementById('tip-15').innerHTML = r2(0.15 * val);
-    document.getElementById('tip-18').innerHTML = r2(0.18 * val);
-    document.getElementById('tip-20').innerHTML = r2(0.20 * val);
-    document.getElementById('total-15').innerHTML = r2(1.15 * val);
-    document.getElementById('total-18').innerHTML = r2(1.18 * val);
-    document.getElementById('total-20').innerHTML = r2(1.20 * val);
-    this.tip.classList.add('show');
   },
 
   isOperator: function calculator_isOperator(val) {
@@ -62,10 +39,11 @@ var Calculator = {
   appendValue: function calculator_appendValue(value) {
 
     // To avoid decimal separator repetition
-    if (value === '.' && this.isDecimalSeparatorPresent)
+    if (value === '.' && this.isDecimalSeparatorPresent) {
       return;
-    else if (value === '.')
+    } else if (value === '.') {
       this.isDecimalSeparatorPresent = true;
+    }
 
     if (this.toClear) {
       this.stack = [];
@@ -80,12 +58,14 @@ var Calculator = {
 
     // Subtraction can also be used as a negative value
     if (value === '-' && this.stack[this.stack.length - 1] !== '-') {
-      return this.appendValue(value);
+      this.appendValue(value);
+      return;
     }
 
     if (this.stack.length === 0) {
-      return false;
+      return;
     }
+
     // New operators will overwrite any current operators, because subtraction
     // is allowed after other operators there may be more than 1
     while (this.isOperator(this.stack[this.stack.length - 1])) {
@@ -143,14 +123,14 @@ var Calculator = {
     }
   },
 
-  clearBackspaceTimeout: function() {
+  clearBackspaceTimeout: function calculator_clearBackspaceTimeout() {
     if (this.backSpaceTimeout !== null) {
       window.clearTimeout(this.backSpaceTimeout);
       this.backSpaceTimeout = null;
     }
   },
 
-  startBackspaceTimeout: function() {
+  startBackspaceTimeout: function calculator_startBackspaceTimeout() {
     this.backSpaceTimeout = window.setTimeout(function fullBackSpace(self) {
       self.stack = [];
       self.toClear = false;
@@ -159,20 +139,22 @@ var Calculator = {
     }, this.BACKSPACE_TIMEOUT, this);
   },
 
-  precedence: function(val) {
+  precedence: function calculator_precedence(val) {
     if (['-', '+'].indexOf(val) !== -1) {
       return 2;
     }
     if (['*', '/'].indexOf(val) !== -1) {
       return 3;
     }
+
+    return null;
   },
 
   // This is a basic implementation of the shunting yard algorithm
   // described http://en.wikipedia.org/wiki/Shunting-yard_algorithm
   // Currently functions are unimplemented and only operators with
   // left association are used
-  infix2postfix: function(infix) {
+  infix2postfix: function calculator_infix2postfix(infix) {
     // We cant know up till this point whether - is for negation or subtraction
     // at this point we modify negation operators into (0-N) so 4+-5 -> 4+(0-5)
     infix = infix.replace(
@@ -193,18 +175,20 @@ var Calculator = {
         output.push(parseFloat(token, 10));
       }
 
-      var precedence = this.precedence;
       var isOperator = this.isOperator;
       if (isOperator(token)) {
+        var precedence = this.precedence;
         while (isOperator(stack[stack.length - 1]) &&
                precedence(token) <= precedence(stack[stack.length - 1])) {
           output.push(stack.pop());
         }
         stack.push(token);
       }
+
       if (token === '(') {
         stack.push(token);
       }
+
       if (token === ')') {
         while (stack.length && stack[stack.length - 1] !== '(') {
           output.push(stack.pop());
@@ -228,7 +212,7 @@ var Calculator = {
     '/': function(a, b) { return a / b; }
   },
 
-  evaluatePostfix: function(postfix) {
+  evaluatePostfix: function calculator_evaluatePostfix(postfix) {
     var stack = [];
 
     postfix.forEach(function evaluatePostFix_inner(token) {
@@ -256,10 +240,11 @@ var Calculator = {
   },
 
   handleEvent: function calculator_handleEvent(evt) {
+    var target = evt.target;
     switch (evt.type) {
       case 'mousedown':
-        var value = evt.target.value;
-        switch (evt.target.dataset.type) {
+        var value = target.value;
+        switch (target.dataset.type) {
           case 'value':
             this.appendValue(value);
             break;
@@ -268,19 +253,17 @@ var Calculator = {
             this.isDecimalSeparatorPresent = false;
             break;
           case 'command':
-            if (value === '=') {
-              this.calculate();
-              this.isDecimalSeparatorPresent = false;
-            } else if (value === 'C') {
-              if (this.stack[this.stack.length - 1])
+            switch (value) {
+              case '=':
+                this.calculate();
                 this.isDecimalSeparatorPresent = false;
-              this.backSpace();
-            } else if (value === 'TIP') {
-              this.showTip();
+                break;
+              case 'C':
+                if (this.stack[this.stack.length - 1])
+                  this.isDecimalSeparatorPresent = false;
+                this.backSpace();
+                break;
             }
-            break;
-          case 'close':
-            this.tip.classList.remove('show');
             break;
         }
         break;

@@ -43,7 +43,7 @@
      * @param {Function} callback node style.
      */
     load: function(callback) {
-      var pending = 3;
+      var pending = 2;
       var self = this;
 
       function next() {
@@ -61,15 +61,6 @@
       // fatal.
       function loadRecords() {
         self.getStore('Account').load(function(err) {
-          if (err) {
-            throw err;
-          }
-          next();
-        });
-
-        ///XXX: Taking a shortcut to load
-        // all this will change to just a slice (1-3 month period soon)
-        self.getStore('Busytime').load(function(err) {
           if (err) {
             throw err;
           }
