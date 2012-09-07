@@ -196,6 +196,8 @@ function init() {
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
   photodb.onunavailable = function(why) {
+    if (currentView === wallpaperView)
+      return;
     if (why === 'unavailable')
       showOverlay('nocard');
     else if (why === 'shared')

@@ -1,8 +1,9 @@
 'use strict';
 
 (function() {
-  var wallpaper = document.getElementById('wallpaper');
-  var cameraphotos = document.getElementById('cameraphotos');
+  var overlay = document.getElementById('icongrid');
+
+  // XXX: need automation app switch to activity caller itself
   var reopenSelf = function reopenSelf() {
     navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
@@ -10,12 +11,11 @@
     };
   };
 
-  wallpaper.onclick = function onWallpaperClick() {
+  overlay.addEventListener('contextmenu', function onHomescreenContextmenu() {
     var a = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg',
-        wallpaper: true
+        type: 'image/jpeg'
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
@@ -27,24 +27,5 @@
       console.warn('pick failed!');
       reopenSelf();
     };
-  };
-
-  cameraphotos.onclick = function onCameraPhotosClick() {
-    var a = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'image/jpeg',
-        wallpaper: false
-      }
-    });
-    a.onsuccess = function onCameraPhotosSuccess() {
-      var settings = navigator.mozSettings;
-      settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
-      reopenSelf();
-    };
-    a.onerror = function onCameraPhotosError() {
-      console.warn('pick failed!');
-      reopenSelf();
-    };
-  };
+  });
 })();
