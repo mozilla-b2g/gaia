@@ -82,8 +82,3 @@ function createAndSetCoverURL(img, fileinfo) {
     });
   }
 }
-
-function splitFileName(path) {
-  var stringArray = path.split('/');
-  return stringArray[stringArray.length - 1];
-}

@@ -46,6 +46,21 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     'covr': IMAGE
   };
 
+  // Start off with empty metadata
+  var metadata = {};
+
+  // If the blob has a name, use that as a default title in case 
+  // we can't find one in the file
+  if (blob.name) {
+    var p1 = blob.name.lastIndexOf('/');
+    if (p1 === -1)
+      p1 = 0;
+    var p2 = blob.name.lastIndexOf('.');
+    if (p2 === -1)
+      p2 = blob.name.length;
+    metadata[TITLE] = blob.name.substring(p1, p2);
+  }
+
   // Read the start of the file, figure out what kind it is, and call
   // the appropriate parser.  Start off with an 8kb chunk of data.
   // If the file contains album art, we'll have to go back and read
@@ -118,8 +133,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   //   http://en.wikipedia.org/wiki/ID3
   //
   function parseID3v1Metadata(footer) {
-    var metadata = {};
-
     var title = footer.getASCIIText(3, 30);
     var artist = footer.getASCIIText(33, 30);
     var album = footer.getASCIIText(63, 30);
@@ -165,7 +178,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     var needs_unsynchronization = ((id3flags & 0x80) !== 0);
     var has_extended_header = ((id3flags & 0x40) !== 0);
     var length = header.readID3Uint28BE();
-    var metadata = {};
 
     // XXX
     // For now, we just punt if unsynchronization is required.
@@ -330,7 +342,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   //   http://wiki.xiph.org/VorbisComment
   //
   function parseOggMetadata(header) {
-    var metadata = {};
     function sum(x, y) { return x + y; } // for Array.reduce() below
 
     // Ogg metadata is in the second header packet.  We need to read
@@ -398,8 +409,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // http://atomicparsley.sourceforge.net/mpeg-4files.html
   //
   function parseAACMetadata(header) {
-    var metadata = {};
-
     //
     // XXX
     // I think I could probably restructure this somehow. The atoms or "boxes"
@@ -407,7 +416,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     // Maybe nextBox() and firstChildBox() functions would be helpful.
     // Or even make these methods of BlobView?  Not sure if it is worth
     // the time to refactor, though...
-    // If the ID3 code could be structured around boxes, though, I should do it.
     //
 
     function nextAtom(view, callback) {
