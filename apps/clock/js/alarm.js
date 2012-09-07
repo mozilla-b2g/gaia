@@ -65,15 +65,15 @@ var ClockView = {
 
   init: function cv_init() {
     this.updateDaydate();
-    this.updateDigitalClock();
+    this.updateAnalogClock();
 
-    this._clockMode = 'digital';
-    this.digitalClock.classList.add('visible'); /* digital clock is default */
-    this.digitalClockBackground.classList.add('visible');
-    this.analogClock.classList.remove('visible');
+    this._clockMode = 'analog';
     this.resizeAnalogClock();
+    this.analogClock.classList.add('visible'); /* analog clock is default */
+    this.digitalClock.classList.remove('visible');
+    this.digitalClockBackground.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
-    this.digitalClock.addEventListener('click', this);
+    this.analogClock.addEventListener('click', this);
   },
 
   updateDaydate: function cv_updateDaydate() {
@@ -227,7 +227,66 @@ var ClockView = {
     } else {
       this.hourState.classList.remove('alarm-set-indicator');
     }
-   }
+  }
+};
+
+var BannerView = {
+
+  _remainHours: 0,
+  _remainMinutes: 0,
+
+  get bannerCountdown() {
+    delete this.bannerCountdown;
+    return this.bannerCountdown = document.getElementById('banner-countdown');
+  },
+
+  get remainHours() {
+    delete this.remainHours;
+    return this.remainHours =
+      document.getElementById('banner-remain-hours');
+  },
+
+  get remainMinutes() {
+    delete this.remainMinutes;
+    return this.remainMinutes =
+      document.getElementById('banner-remain-minutes');
+  },
+
+  calRemainTime: function BV_calRemainTime(targetTime) {
+    var now = new Date();
+    var remainTime = targetTime.getTime() - now.getTime();
+    this._remainHours = Math.floor(remainTime / (60 * 60 * 1000)); // per hour
+    this._remainMinutes = Math.floor((remainTime / (60 * 1000)) -
+                          (this._remainHours * 60)); // per minute
+  },
+
+  setStatus: function BV_setStatus(nextAlarmFireTime) {
+    this.calRemainTime(nextAlarmFireTime);
+    this.remainHours.innerHTML = _('nRemainHours', {n: this._remainHours});
+    this.remainMinutes.innerHTML =
+      _('nRemainMinutes', {n: this._remainMinutes});
+    this.showBannerStatus();
+    var self = this;
+    window.setTimeout(function cv_hideBannerTimeout() {
+      self.setBannerStatus(false);
+    }, 4000);
+  },
+
+  setBannerStatus: function BV_setBannerStatus(visible) {
+    if (visible) {
+      this.bannerCountdown.classList.add('visible');
+    } else {
+      this.bannerCountdown.classList.remove('visible');
+    }
+  },
+
+  showBannerStatus: function BV_showBannerStatus() {
+    this.setBannerStatus(true);
+  },
+
+  hideBannerStatus: function BV_hideBannerStatus() {
+    this.setBannerStatus(false);
+  }
 };
 
 var AlarmList = {
@@ -296,7 +355,8 @@ var AlarmList = {
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
       var isChecked = alarm.enabled ? ' checked="true"' : '';
       var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
-      var hour12state = (alarm.hour > 12) ? 'PM' : 'AM';
+      hour = (hour == 0) ? 12 : hour;
+      var hour12state = (alarm.hour >= 12) ? 'PM' : 'AM';
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
@@ -332,6 +392,7 @@ var AlarmList = {
     }
 
     this.refreshing = false;
+    ClockView.showHideAlarmSetIndicator(true);
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -421,6 +482,7 @@ var AlarmManager = {
         AlarmList.refresh();
       });
       self.updateAlarmStatusBar();
+      BannerView.setStatus(nextAlarmFireTime);
     };
     request.onerror = function(e) {
       var logInfo = bSnooze ? ' snooze' : '';
@@ -684,12 +746,13 @@ var AlarmEditView = {
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
+    var now = new Date();
     return {
       id: '', // for Alarm APP indexedDB id
       alarmId: '', // for request AlarmAPI id
       label: 'Alarm',
-      hour: '10',
-      minute: '00',
+      hour: now.getHours(), // use current hour
+      minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
       sound: 'classic.ogg',
@@ -790,7 +853,7 @@ var AlarmEditView = {
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();
-    this.alarm.snooze = this.getSnoozeSelect();
+    this.alarm.snooze = parseInt(this.getSnoozeSelect());
 
     if (!error) {
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {

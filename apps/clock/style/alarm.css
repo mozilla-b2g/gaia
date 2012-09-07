@@ -12,7 +12,8 @@ header {
   font: normal 1.3rem/4.5rem 'Open Sans',sans-serif;
   line-height: 4.5rem;
   padding-left: 4rem;
-  background: url(images/edit_header.png) repeat-x scroll left top transparent;
+  background: url(images/edit_header.png) repeat scroll left top transparent;
+  background-size: 100% 100%;
 }
 
 /* ------------- Button ------------- */
@@ -95,7 +96,7 @@ a.button.right.plus {
 a.button.right.done-button {
   background: url(images/separator_done.png) no-repeat scroll left center transparent;
   border: none;
-  background-size: auto 80%;
+  background-size: auto 100%;
   cursor: pointer;
   height: 5rem;
   top: 0;
@@ -118,6 +119,8 @@ a.abstract-menu {
   outline: 0;
   color: black;
   font: 2.4rem/2.9rem 'Open Sans',sans-serif;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 select.abstract-menu {
@@ -136,12 +139,16 @@ select.abstract-menu {
 #alarm-delete-button {
   background: -moz-linear-gradient(bottom, #900010, #c90010);
   border: none;
-  width: 100%;
+  width: 90%;
   height: 5.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: -1px -1px 0 #830B0B;
+  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
 }
 
 #alarm-delete-button:active {
-  background: -moz-linear-gradient(bottom, #fafafa, #ccc);
+  background: #890707;
 }
 
 .view label.text {
@@ -193,7 +200,7 @@ body.hidden #alarm-view {
 }
 
 #alarm {
-  background-color: #305B5E;
+  background-color: #efefeb;
 }
 
 #repeat {
@@ -216,6 +223,9 @@ li.singleline {
   height: 6.4rem;
   border-top: none;
   border-bottom: 0.1rem solid #cbcbcc;
+  padding-left: 5%;
+  padding-right: 5%;
+  width: 90%;
 }
 
 li.multiline {
@@ -228,6 +238,18 @@ li.multiline:active {
   background-color: white;
   text-shadow: none;
   color: #555;
+}
+
+li.picker {
+  height: 35rem;
+  padding-top: 0.5rem;
+  border-top: none;
+  border-bottom: none;
+}
+
+li.picker:active {
+  background-color: transparent;
+  text-shadow: none;
 }
 
 .view-alarm-lbl {
@@ -267,10 +289,10 @@ ul li:active {
 
 ul li > a {
   display: block;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  height:      6rem; /* -moz-calc(100% - 4rem); */
-  line-height: 6rem; /* -moz-calc(100% - 4rem); */
+  padding-top: 1.6rem;
+  padding-bottom: 1.6rem;
+  height:      6.8rem; /* -moz-calc(100% - 4rem); */
+  line-height: 6.8rem; /* -moz-calc(100% - 4rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -300,7 +322,7 @@ ul li > small {
 .alarmList-time {
   float: left;
   width: 41%;
-  padding-top: 1.4rem;
+  padding-top: 1.2rem;
   text-align: left;
 }
 
@@ -308,6 +330,7 @@ ul li > small {
   float: left;
   width: 50%;
   text-align: left;
+  margin-left: -0.3rem;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -375,10 +398,9 @@ ul li > small {
 }
 
 .view label > input[type=checkbox] + span.setEnabledBtn:after {
-  font: 2.15rem 'Open Sans',sans-serif;
+  font: 2.15rem/4.4rem 'Open Sans',sans-serif;
   color: #7a7a7a;
   position: absolute;
-  top: 1.3rem;
   left: 6rem;
   content: attr(data-unchecked);
 }
@@ -389,10 +411,9 @@ ul li > small {
 }
 
 .view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
-  font: 2.25rem 'Open Sans',sans-serif;
+  font: 2.25rem/4.4rem 'Open Sans',sans-serif;
   color: #0088a3;
   position: absolute;
-  top: 1.3rem;
   left: 3.3rem;
   content: attr(data-checked);
 }
@@ -455,6 +476,15 @@ input ~ *:empty {
   padding-left: 5%;
   padding-right: 5%;
   background-color: transparent;
+  background-image: none;
+}
+
+#edit-alarm.tableView {
+  background: url(images/edit_background.png) repeat scroll center center;
+  background-size: 100% 100%;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 li img {
@@ -474,34 +504,32 @@ li img {
 
 .alarmList-time span.time {
   height: auto;
-  font: 3.6rem 'Open Sans', sans-serif;
-  line-height: 3.6rem;
+  font: 4rem/4rem 'Open Sans', sans-serif;
   color: black;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 1.6rem 'Open Sans', sans-serif;
-  line-height: 1.6rem;
+  font: 2.2rem/2.2rem 'Open Sans', sans-serif;
   color: #25292a;
-  margin-left: -0.3rem;
+  margin-left: -0.4rem;
   text-transform:lowercase;
 }
 
 .alarmList-detail .label {
   height: auto;
-  font: bold 2rem/2rem 'Open Sans', sans-serif;
+  font: 2.4rem/2.4rem 'Open Sans', sans-serif;
   color: black;
   text-overflow: ellipsis;
-  padding-top: 6%;
+  padding-top: 0.5rem;
 }
 
 .alarmList-detail .repeat {
   height: auto;
-  font: 1.8rem/1.8rem 'Open Sans', sans-serif;
+  font: 2.4rem/2.4rem 'Open Sans', sans-serif;
   color: #646768;
   text-overflow: ellipsis;
-  padding-top: 0.8rem;
+  padding-top: 0.7rem;
 }
 
 .alarmList-detail .hiddenSummary {
@@ -519,10 +547,12 @@ li img {
 /* ----------- TimeSelectorView ---------- */
 #picker-bar {
   position: relative;
-  width: 90%;
-  height: 100%;
+  width: 85%;
+  height: -moz-calc(100% - 0.2rem);
   margin-left: auto;
   margin-right: auto;
+  border-bottom: solid 0.2rem;
+  -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
 }
 
 #picker-bar-gradient {
@@ -553,7 +583,7 @@ li img {
   width: 100%;
   height: 100%;
   position: relative;
-  padding-top: 15rem;
+  padding-top: 13.25rem;
 }
 
 #value-indicator-wrapper {
@@ -570,7 +600,7 @@ li img {
   border-top: solid 0.7rem;
   border-bottom: solid 0.7rem;
   position: absolute;
-  height: 6rem;
+  height: 7.2rem;
   width: 100%;
   pointer-events: none;
 }
@@ -623,12 +653,12 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 3.4rem/7.5rem 'Open Sans',sans-serif;
+  font: 3.4rem/8.5rem 'Open Sans',sans-serif;
   color: black;
   text-align: center;
   vertical-align: middle;
   width: 100%;
-  height: 7rem;
+  height: 8.5rem;
   pointer-events: none;
 }
 
@@ -672,5 +702,21 @@ div.animation-on {
 @media screen and (width: 480px) {
   html {
     font-size: 10px;
+  }
+  .alarmList-detail {
+    margin-left: 0.5rem; 
+  }
+  .alarmList-time span.time {
+    font: 3.6rem/3.6rem 'Open Sans', sans-serif;
+  }
+  .alarmList-time span.hour24-state {
+    font: 1.6rem/1.6rem 'Open Sans', sans-serif;
+    margin-left: -0.3rem;
+  }
+  .alarmList-detail .label {
+    font: 2rem/2rem 'Open Sans', sans-serif;
+  }
+  .alarmList-detail .repeat {
+    font: 1.8rem/1.8rem 'Open Sans', sans-serif;
   }
 }
