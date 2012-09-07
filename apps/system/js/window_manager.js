@@ -64,6 +64,9 @@ var WindowManager = (function() {
   // that's the question.
   var useScreenshotInSprite = false;
 
+  // keep the reference of inline activity frame here
+  var inlineActivityFrame = null;
+
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
@@ -151,6 +154,21 @@ var WindowManager = (function() {
 
     frame.style.height =
       dialogOverlay.style.height = cssHeight;
+
+    setInlineActivityFrameSize();
+  }
+
+  // Copy the dimension of the currently displayed app
+  function setInlineActivityFrameSize() {
+    if (!inlineActivityFrame)
+      return;
+
+    var app = runningApps[displayedApp];
+    var appFrame = app.frame;
+    var frame = inlineActivityFrame;
+
+    frame.style.width = appFrame.style.width;
+    frame.style.height = appFrame.style.height;
   }
 
   var openFrame = null;
@@ -443,13 +461,15 @@ var WindowManager = (function() {
   }
 
   // Switch to a different app
-  function setDisplayedApp(origin, callback, disposition) {
+  function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-    disposition = disposition || 'window';
 
     // Returns the frame reference of the home screen app.
     // Restarts the homescreen app if it was killed in the background.
     var homescreenFrame = ensureHomescreen();
+
+    // Discard any existing activity
+    stopInlineActivity();
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -635,12 +655,52 @@ var WindowManager = (function() {
     numRunningApps++;
   }
 
+  function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // Create the <iframe mozbrowser mozapp> that hosts the app
+    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    frame.classList.add('inlineActivity');
+    frame.dataset.frameType = 'inline-activity';
+    frame.addEventListener('mozbrowserfirstpaint', function painted() {
+      frame.removeEventListener('mozbrowserfirstpaint', painted);
+      frame.classList.add('active');
+      screenElement.classList.add('inline-activity');
+    });
+
+    // Discard any existing activity
+    stopInlineActivity();
+
+    // Save the reference
+    inlineActivityFrame = frame;
+
+    // Set the size
+    setInlineActivityFrameSize();
+
+    // Add the iframe to the document
+    windows.appendChild(frame);
+  }
+
   function removeFrame(origin) {
     var app = runningApps[origin];
     if (app.frame)
       windows.removeChild(app.frame);
     delete runningApps[origin];
     numRunningApps--;
+  }
+
+  function stopInlineActivity() {
+    if (!inlineActivityFrame)
+      return;
+
+    var frame = inlineActivityFrame;
+    inlineActivityFrame = null;
+
+    frame.classList.remove('active');
+    screenElement.classList.remove('inline-activity');
+
+    frame.addEventListener('transitionend', function frameTransitionend() {
+      frame.removeEventListener('transitionend', frameTransitionend);
+      windows.removeChild(frame);
+    });
   }
 
   // Start running the specified app.
@@ -714,6 +774,16 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+        if (e.detail.isActivity && e.detail.target.disposition == 'inline') {
+          // Inline activities behaves more like a dialog,
+          // let's deal them here.
+
+          startInlineActivity(origin, e.detail.url,
+                              name, app.manifest, app.manifestURL);
+
+          return;
+        }
+
         if (isRunning(origin)) {
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
@@ -749,15 +819,14 @@ var WindowManager = (function() {
         }
 
         // We will only bring web activity handling apps to the foreground
-        // (either disposition: inline or disposition: window)
         if (!e.detail.isActivity)
           return;
 
-        var disposition = e.detail.target.disposition || 'window';
-        if (disposition == 'window')
-          UtilityTray.hide();
+        // XXX: the correct way would be for UtilityTray to close itself
+        // when there is a appwillopen/appopen event.
+        UtilityTray.hide();
 
-        setDisplayedApp(origin, null, disposition);
+        setDisplayedApp(origin);
 
         break;
     }
