@@ -180,14 +180,18 @@ var WindowManager = (function() {
         openFrame.classList.add('active');
         windows.classList.add('active');
 
+        // If frame is still unpainted to this point, we will have to pause
+        // the transition and wait for the mozbrowserfirstpaint event.
         if ('unpainted' in openFrame.dataset) {
           openFrame.addEventListener(
-            'mozbrowserfirstpaint', function continueSprite() {
+            'mozbrowserfirstpaint', function continueSpriteTransition() {
               openFrame.removeEventListener(
-                'mozbrowserfirstpaint', continueSprite);
+                'mozbrowserfirstpaint', continueSpriteTransition);
 
-              saveAppScreenshot(displayedApp,
-                function screenshotTaken(screenshot) {
+              // Run getAppScreenshotFromFrame() to ensure all CSS backgrounds
+              // of the apps are loaded.
+              getAppScreenshotFromFrame(displayedApp,
+                function screenshotTaken() {
                   sprite.className = 'opened';
                 });
             });
@@ -601,10 +605,19 @@ var WindowManager = (function() {
     frame.dataset.frameOrigin = origin;
     frame.src = url;
 
+    // frames are began unpainted. This dataset value will pause the
+    // opening sprite transition so users will not see whitish screen.
     frame.dataset.unpainted = true;
     frame.addEventListener('mozbrowserfirstpaint', function painted() {
       frame.removeEventListener('mozbrowserfirstpaint', painted);
       delete frame.dataset.unpainted;
+
+      // Save the screenshot when we got mozbrowserfirstpaint event,
+      // regardless of the sprite transition state.
+      // setTimeout() here ensures that we get the screenshot with content.
+      setTimeout(function() {
+        saveAppScreenshot(origin);
+      });
     });
 
     // Note that we don't set the frame size here.  That will happen
