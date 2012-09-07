@@ -447,6 +447,8 @@ var WindowManager = (function() {
     var currentApp = displayedApp, newApp = origin || homescreen;
     disposition = disposition || 'window';
 
+    // Returns the frame reference of the home screen app.
+    // Restarts the homescreen app if it was killed in the background.
     var homescreenFrame = ensureHomescreen();
 
     // Case 1: the app is already displayed
@@ -778,7 +780,7 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
-  // Deal with crashed foreground app
+  // Deal with crashed apps
   window.addEventListener('mozbrowsererror', function(e) {
     if (!'frameType' in e.target.dataset ||
         e.target.dataset.frameType !== 'window')
@@ -792,6 +794,8 @@ var WindowManager = (function() {
 
     var origin = e.target.dataset.frameOrigin;
 
+    // If the crashing app is currently displayed, we will present
+    // the user with a banner notification.
     if (displayedApp == origin) {
       var origin = e.target.dataset.frameOrigin;
       var _ = navigator.mozL10n.get;
@@ -809,11 +813,18 @@ var WindowManager = (function() {
         { name: runningApps[origin].name });
     }
 
-    if (origin == homescreen) {
-      // We need to relaunch home screen at once.
+    // If the crashing app is the home screen app and it is the displaying app
+    // we will need to relaunch it right away.
+    // Alternatively, if home screen is not the displaying app,
+    // we will not relaunch it until the foreground app is closed.
+    // (to be dealt in setDisplayedApp(), not here)
+    if (displayedApp == homescreen) {
       kill(origin, ensureHomescreen);
       return;
     }
+
+    // Actually remove the frame, and trigger the closing transition
+    // if the app is currently displaying
     kill(origin);
   });
 
