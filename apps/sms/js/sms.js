@@ -702,7 +702,7 @@ var ThreadUI = {
       if (contact.length > 0) { // we have a contact
         var name = contact[0].name,
             phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
+            carrierToShow = phone.carrier
         // Check which of the contacts phone number we are using
         for (var i = 0; i < contact[0].tel.length; i++) {
           if (contact[0].tel[i].value == number) {
@@ -722,7 +722,8 @@ var ThreadUI = {
             }
           }
           self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
+          carrierTag.innerHTML = phone.type + ' | ' +
+                                (carrierToShow || phone.value);
         } else { // no name of contact
           carrierTag.innerHTML = phone.type;
         }
