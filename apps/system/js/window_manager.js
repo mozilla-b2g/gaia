@@ -833,13 +833,22 @@ var WindowManager = (function() {
   });
 
   // If the application tried to close themselves by calling window.close()
-  // we will handle that here
+  // we will handle that here.
+  // XXX: currently broken, see
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=789392
   window.addEventListener('mozbrowserclose', function(e) {
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in e.target.dataset)
       return;
 
-    kill(e.target.dataset.frameOrigin);
+    switch (e.target.dataset.frameType) {
+      case 'window':
+        kill(e.target.dataset.frameOrigin);
+        break;
+
+      case 'inline-activity':
+        stopInlineActivity();
+        break;
+    }
   });
 
   // If there is a new application coming in, we should switch to
@@ -858,9 +867,17 @@ var WindowManager = (function() {
 
   // Deal with crashed apps
   window.addEventListener('mozbrowsererror', function(e) {
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in e.target.dataset)
       return;
+
+    if (e.target.dataset.frameType == 'inline-activity') {
+      stopInlineActivity();
+      return;
+    }
+
+    if (e.target.dataset.frameType !== 'window')
+      return;
+
     /*
       detail.type = error (Server Not Found case)
       is handled in Modal Dialog
