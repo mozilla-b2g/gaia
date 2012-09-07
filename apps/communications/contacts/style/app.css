@@ -515,21 +515,16 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
   position: absolute;
   right: 4rem;
   top: 30%;
+  z-index: 100;
   width: 10.5rem;
   height: 10.5rem;
-  background: -moz-element(#current-jumper);
-  pointer-events: none;
-  -moz-transition: opacity;
-  opacity: 0;
-}
-
-#current-jumper {
-  width: 10.5rem;
   background: rgba(0, 0, 0, 0.7);
-  font: 6rem/10.5rem Open Sans, Sans-serif;
-  font-weight: light;
+  font: 400 6rem/10.5rem Open Sans, Sans-serif;
   color: #fff;
   text-align: center;
+  -moz-transition: opacity;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .view-jumper-inner {
