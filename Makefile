@@ -235,6 +235,7 @@ endif
 
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
@@ -245,6 +246,7 @@ else
 endif
 	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
+endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
 	echo "run-js-command $1";                                                   \

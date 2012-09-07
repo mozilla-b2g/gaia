@@ -1,6 +1,6 @@
 .fixed-title {
   position: absolute;
-  top: 0;
+  top: 5rem;
   width: 85%;
   height: 2.3rem;
   margin: 0 3rem;
@@ -8,4 +8,8 @@
   background-repeat: no-repeat;
   background-color: #f4f4f4;
   transform: translateY(-100%);
+  text-align: left;
+  color: #FF5F19;
+  font-size: 1.8rem;
+  border-bottom: 1px solid #FF5F19;
 }
