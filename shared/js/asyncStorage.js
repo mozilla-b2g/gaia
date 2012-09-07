@@ -37,14 +37,14 @@ this.asyncStorage = (function() {
       f(db.transaction(STORENAME, type).objectStore(STORENAME));
     } else {
       var openreq = indexedDB.open(DBNAME, DBVERSION);
-      openreq.onerror = function() {
+      openreq.onerror = function withStoreOnError() {
         console.error("asyncStorage: can't open database:", openreq.error.name);
       };
-      openreq.onupgradeneeded = function() {
+      openreq.onupgradeneeded = function withStoreOnUpgradeNeeded() {
         // First time setup: create an empty object store
         openreq.result.createObjectStore(STORENAME);
       };
-      openreq.onsuccess = function() {
+      openreq.onsuccess = function withStoreOnSuccess() {
         db = openreq.result;
         f(db.transaction(STORENAME, type).objectStore(STORENAME));
       };
@@ -52,63 +52,63 @@ this.asyncStorage = (function() {
   }
 
   function getItem(key, callback) {
-    withStore('readonly', function(store) {
+    withStore('readonly', function getItemBody(store) {
       var req = store.get(key);
-      req.onsuccess = function() {
+      req.onsuccess = function getItemOnSuccess() {
         var value = req.result;
         if (value === undefined)
           value = null;
         callback(value);
       };
-      req.onerror = function() {
+      req.onerror = function getItemOnError() {
         console.error('Error in asyncStorage.getItem(): ', req.error.name);
       };
     });
   }
 
   function setItem(key, value, callback) {
-    withStore('readwrite', function(store) {
+    withStore('readwrite', function setItemBody(store) {
       var req = store.put(value, key);
-      req.onsuccess = function() {
+      req.onsuccess = function setItemOnSuccess() {
         callback();
       };
-      req.onerror = function() {
+      req.onerror = function setItemOnError() {
         console.error('Error in asyncStorage.setItem(): ', req.error.name);
       };
     });
   }
 
   function removeItem(key, callback) {
-    withStore('readwrite', function(store) {
+    withStore('readwrite', function removeItemBody(store) {
       var req = store.delete(key);
-      req.onsuccess = function() {
+      req.onsuccess = function removeItemOnSuccess() {
         callback();
       };
-      req.onerror = function() {
+      req.onerror = function removeItemOnError() {
         console.error('Error in asyncStorage.removeItem(): ', req.error.name);
       };
     });
   }
 
   function clear(callback) {
-    withStore('readwrite', function(store) {
+    withStore('readwrite', function clearBody(store) {
       var req = store.clear();
-      req.onsuccess = function() {
+      req.onsuccess = function clearOnSuccess() {
         callback();
       };
-      req.onerror = function() {
+      req.onerror = function clearOnError() {
         console.error('Error in asyncStorage.clear(): ', req.error.name);
       };
     });
   }
 
   function length(callback) {
-    withStore('readonly', function(store) {
+    withStore('readonly', function lengthBody(store) {
       var req = store.count();
-      req.onsuccess = function() {
+      req.onsuccess = function lengthOnSuccess() {
         callback(req.result);
       };
-      req.onerror = function() {
+      req.onerror = function lengthOnError() {
         console.error('Error in asyncStorage.length(): ', req.error.name);
       };
     });
@@ -120,10 +120,10 @@ this.asyncStorage = (function() {
       return;
     }
 
-    withStore('readonly', function(store) {
+    withStore('readonly', function keyBody(store) {
       var advanced = false;
       var req = store.openCursor();
-      req.onsuccess = function() {
+      req.onsuccess = function keyOnSuccess() {
         var cursor = req.result;
         if (!cursor) {
           // this means there weren't enough keys
@@ -144,7 +144,7 @@ this.asyncStorage = (function() {
           }
         }
       };
-      req.onerror = function() {
+      req.onerror = function keyOnError() {
         console.error('Error in asyncStorage.key(): ', req.error.name);
       };
     });
