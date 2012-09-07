@@ -165,7 +165,7 @@ var ModalDialog = {
         break;
 
       // HTTP Authentication
-      case 'usernameandpassword':
+      case 'usernameandpasswordrequired':
         elements.authentication.classList.add('visible');
         var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
         var _ = navigator.mozL10n.get;
@@ -186,7 +186,7 @@ var ModalDialog = {
     var type = evt.detail.promptType || evt.detail.type;
     if (type == 'prompt') {
       this.elements.promptInput.blur();
-    } else if (type == 'usernameandpassword') {
+    } else if (type == 'usernameandpasswordrequired') {
       this.elements.usernameInput.blur();
       this.elements.passwordInput.blur();
     }
@@ -218,11 +218,9 @@ var ModalDialog = {
         elements.confirm.classList.remove('visible');
         break;
 
-      case 'usernameandpassword':
-        evt.detail.returnValue = {
-          username: elements.usernameInput.value,
-          password: elements.password.value
-        };
+      case 'usernameandpasswordrequired':
+        evt.detail.authenticate(elements.usernameInput.value,
+          elements.password.value);
         elements.authentication.classList.remove('visible');
         break;
 
@@ -266,8 +264,8 @@ var ModalDialog = {
         elements.confirm.classList.remove('visible');
         break;
 
-      case 'usernameandpassword':
-        evt.detail.returnValue = { ok: false };
+      case 'usernameandpasswordrequired':
+        evt.detail.cancel();
         elements.authentication.classList.remove('visible');
         break;
 
