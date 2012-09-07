@@ -88,22 +88,27 @@ section[role="region"] > header:first-child menu[type="toolbar"] {
 
 section[role="region"] > header:first-child menu[type="toolbar"] a,
 section[role="region"] > header:first-child menu[type="toolbar"] button {
-  height: 4.9rem;
+  height: 5rem;
   min-width: 5rem;
   width: auto;
   margin-bottom: 0;
-  line-height: 4.9rem;
+  border-radius: 0;
+  line-height: 5rem;
   float: left;
   background: none;
   padding: 0 1.75rem;
   -moz-box-sizing: border-box;
   text-align: center;
   text-shadow: none;
+  position: relative;
+  z-index: 5;
 }
 
 section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
   background: url(headers/images/ui/separator.png) no-repeat left center;
+  margin-left: -2px;
+  z-index: 1;
 }
 
 section[role="region"] > header:first-child menu[type="toolbar"] {
@@ -119,6 +124,34 @@ section[role="region"] > header:first-child button {
   overflow: hidden;
   font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
   color: #fff;
+  border-radius: 0;
+}
+
+
+/* Pressed state */
+section[role="region"] > header:first-child a::-moz-focus-inner,
+section[role="region"] > header:first-child button::-moz-focus-inner,
+section[role="region"] > header:first-child a:active,
+section[role="region"] > header:first-child button:active,
+section[role="region"] > header:first-child a:focus,
+section[role="region"] > header:first-child button:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
+section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
+section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
+  background: #008aaa !important;
+  transition: background 0.2s ease;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Disabled state */
+section[role="region"] > header:first-child menu[type="toolbar"] a[aria-disabled="true"],
+section[role="region"] > header:first-child menu[type="toolbar"] button[disabled]  {
+  opacity: 0.5;
 }
 
 section[role="region"] > header:first-child a:first-letter,
@@ -170,7 +203,7 @@ section[role="region"] > header:first-child > a {
   position: absolute;
   left: 0;
   width: 4rem;
-  height: 4.9rem;
+  height: 5rem;
   background: url(headers/images/ui/separator-large.png) no-repeat 2rem center;
   overflow: hidden;
   text-align: center;
@@ -268,8 +301,15 @@ section[role="region"].skin-dark > header:first-child,
 section[role="region"].skin-dark > header:first-child > a .icon:after,
 .skin-dark section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-dark > header:first-child > button .icon:after,
-section[role="region"]> header.skin-dark  > button .icon:after {
+.skin-dark section[role="region"] > header:first-child > button .icon:after {
   background: #26272c url(headers/images/ui/dark/negative.png) repeat-x 0 0;
+}
+
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:last-child,
+.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:last-child,
+.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
+  background-image: url(headers/images/ui/dark/separator.png);
 }
 
 section[role="region"].skin-dark > header,
@@ -288,7 +328,7 @@ section[role="region"].skin-organic > header:first-child,
 }
 
 section[role="region"].skin-organic > header:first-child:after,
-section[role="region"] > header:first-child.skin-organic:after {
+.skin-organic section[role="region"] > header:first-child:after {
   margin-top: -1px;
 }
 
@@ -296,7 +336,7 @@ section[role="region"] > header:first-child.skin-organic:after {
 section[role="region"].skin-organic > header:first-child > a .icon:after,
 .skin-organic section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-organic > header:first-child > button .icon:after,
-section[role="region"]> header.skin-organic  > button .icon:after {
+.skin-organic section[role="region"] > header > button .icon:after {
   background: url(headers/images/ui/organic/negative.png) repeat-x 0 0;
 }
 

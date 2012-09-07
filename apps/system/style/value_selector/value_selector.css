@@ -1,27 +1,19 @@
-#value-selector {
-  top: 20px;  /* status bar height*/
-  display: block;
-
-  /* from building blocks, core.css - [role=dialog]*/
-  background: url(../themes/default/images/ui/pattern.png) repeat left top, url(../themes/default/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  overflow: hidden;
-  position: absolute;
-  z-index: 100;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  white-space: nowrap;
-  padding: 0 0 7rem;  /*remove the top padding*/
-  font-family: "Open Sans", Sans-serif;
-  color: #fff;
+#value-selector [role="dialog"] {
+    top: 20px;
 }
 
-#value-selector[hidden] {
-  display: none;
+#value-selector [role="dialog"] [role="listbox"] {
+    max-height: 35rem;
 }
 
-#value-selector-buttons {
+#value-selector [role="dialog"] [data-mode="scroll"] [role="listbox"] {
+  /* original style: 4rem - 1.2rem = 2.8rem (1.2rem scrollbar width) */
+  /* no need to minus scrollbar width */
+  padding: 0 4rem;
+}
+
+#select-options-buttons,
+#time-picker-buttons {
   /* from building blocks, core.css - menu:not([type="toolbar"]*/
   white-space: nowrap;
   margin: 0;
@@ -75,43 +67,49 @@
   border-color: #00acce;
 }
 
-
-#value-selector button.active {
-  background: white;
-  color: black;
+/*active class used to complement the "return false" in onmousedown effect */
+#value-selector button.active,
+button.affirmative.active {
+    border-color: #008aaa;
+    background: #008aaa;
+    color: #333;
 }
 
-#value-selector-container {
- height: -moz-calc(100% - 5rem);
- overflow-y: auto;
+#value-selector-container li > label {
+    pointer-events: none;
 }
 
-#value-selector-container ol {
-  list-style: none outside none;
-  color: white;
-  padding: 0;
-  margin: 0;
-  border-top: solid 3px gray;
-  border-bottom: solid 3px gray;
+#value-selector-container li.selected span {
+  padding-right: 0.5rem;
+  color: #00abcd;
+  background: url(../bb/menus_dialogs/value_selector/images/icons/checked.png) content-box right center no-repeat;
 }
 
-#value-selector-container li {
-  border-bottom: solid 1px white;
-  padding: 1rem;
-  position: relative;
+#value-selector-container li.active label span {
+    background: none repeat scroll 0 0 #00ABCC;
+    color: #FFFFFF !important;
 }
 
-#value-selector-container li > .checkmark {
-  display: none;
+#time-picker-popup {
+  top: 0px;
+  padding: 0 0 7rem;  /*remove the top padding*/
+
+  /* from building blocks, core.css - [role=dialog]*/
+  background: url(../themes/default/images/ui/pattern.png) repeat left top, url(../themes/default/images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  overflow: hidden;
   position: absolute;
-  right: 1rem;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  white-space: nowrap;
+  padding: 0 0 7rem;  /*remove the top padding*/
+  font-family: "Open Sans", Sans-serif;
+  color: #fff;
 }
 
-#value-selector-container li.selected > .checkmark {
-  display: inline-block;
-}
-
-#value-selector h3 {
+#time-picker-popup h3 {
     font-family: 'Open Sans', Sans-serif;
     font-weight: normal;
     font-size: 1.6rem;

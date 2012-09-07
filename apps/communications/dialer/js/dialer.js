@@ -13,7 +13,16 @@ var CallHandler = {
     var settings = window.navigator.mozSettings, req;
 
     if (settings) {
-      req = settings.getLock().get('ril.radio.disabled');
+      // Once
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=788561
+      // lands, we should get rid of `getLock()` call below.
+      var settingsLock;
+      if (settings.createLock) {
+        settingsLock = settings.createLock();
+      } else {
+        settingsLock = settings.getLock();
+      }
+      req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
@@ -27,6 +36,11 @@ var CallHandler = {
               title: _('callFlightModeBtnOk'),
               callback: function() {
                 CustomDialog.hide();
+
+                if (CallHandler.activityCurrent) {
+                  CallHandler.activityCurrent.postError('canceled');
+                  CallHandler.activityCurrent = null;
+                }
               }
             }
           );
@@ -128,6 +142,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // instead only the one that the href match.
   if (activity.source.name != 'dial')
     return;
+
+  CallHandler.activityCurrent = activity;
 
   var number = activity.source.data.number;
   var fillNumber = function actHandleDisplay() {

@@ -4,6 +4,7 @@ requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_recents_db.js');
+requireApp('communications/dialer/test/unit/mock_utils.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -17,6 +18,10 @@ if (!this.CallScreen) {
   this.CallScreen = null;
 }
 
+if (!this.Utils) {
+  this.Utils = null;
+}
+
 suite('dialer/handled_call', function() {
   var subject;
   var mockCall;
@@ -26,6 +31,8 @@ suite('dialer/handled_call', function() {
   var realRecents;
   var realCallScreen;
   var realL10n;
+  var realUtils;
+  var phoneNumber;
 
   suiteSetup(function() {
     realContacts = window.Contacts;
@@ -43,6 +50,11 @@ suite('dialer/handled_call', function() {
         return key;
       }
     };
+
+    realUtils = window.Utils;
+    window.Utils = MockUtils;
+
+    phoneNumber = Math.floor(Math.random() * 10000);
   });
 
   suiteTeardown(function() {
@@ -50,6 +62,7 @@ suite('dialer/handled_call', function() {
     window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
     navigator.mozL10n = realL10n;
+    window.Utils = realUtils;
   });
 
   setup(function() {
@@ -59,6 +72,8 @@ suite('dialer/handled_call', function() {
       '<div class="number">',
       '</div>',
       '<div class="fake-number">',
+      '</div>',
+      '<div class="additionalContactInfo">',
       '</div>',
       '<div class="duration">',
         '<span></span>',
@@ -71,7 +86,7 @@ suite('dialer/handled_call', function() {
 
     document.body.appendChild(fakeNode);
 
-    mockCall = new MockCall('12345', 'dialing');
+    mockCall = new MockCall(String(phoneNumber), 'dialing');
     subject = new HandledCall(mockCall, fakeNode);
   });
 
@@ -82,6 +97,7 @@ suite('dialer/handled_call', function() {
     MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockUtils.mTearDown();
   });
 
   suite('initialization', function() {
@@ -156,11 +172,25 @@ suite('dialer/handled_call', function() {
     test('photo displaying', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
+
+    test('additional contact info', function() {
+      assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
+    });
+
+    test('mute initially off', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
+    });
+
+    test('speaker initially off', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
+    });
   });
 
   suite('on disconnect', function() {
     setup(function() {
       mockCall._connect();
+      MockCallScreen.mute();
+      MockCallScreen.turnSpeakerOn();
       mockCall._disconnect();
     });
 
@@ -168,6 +198,14 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockRecentsDBManager.mCalledInit);
       assert.equal(MockRecentsDBManager.mCalledAdd, subject.recentsEntry);
       assert.isTrue(MockRecentsDBManager.mCalledClose);
+    });
+
+    test('mute off after call', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
+    });
+
+    test('speaker off after call', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
     });
 
     test('remove listener', function() {
@@ -255,6 +293,24 @@ suite('dialer/handled_call', function() {
         mockCall._disconnect();
         assert.equal(subject.recentsEntry.type, 'incoming-connected');
       });
+    });
+  });
+
+  suite('additional information', function() {
+    test('check additional info present', function() {
+      mockCall = new MockCall('888', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('888', additionalInfoNode.textContent);
+    });
+
+    test('check without additional info', function() {
+      mockCall = new MockCall('999', 'incoming');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      var additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
+      assert.equal('', additionalInfoNode.textContent);
     });
   });
 });

@@ -1,6 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
+
   requireLib('templates/month.js');
   requireLib('views/month_child.js');
   requireLib('timespan.js');
@@ -51,7 +52,7 @@ suite('views/month_child', function() {
     busytimes = app.store('Busytime');
     subject = new Calendar.Views.MonthChild({
       app: app,
-      month: month
+      date: month
     });
 
     app.db.open(function() {
@@ -70,23 +71,34 @@ suite('views/month_child', function() {
     app.db.close();
   });
 
-  test('initialization', function() {
-    assert.equal(subject.controller, controller);
-    assert.equal(subject.month, month);
-    assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
+  suite('initialization', function() {
 
-    assert.instanceOf(
-      subject.timespan,
-      Calendar.Timespan,
-      'should create timespan'
-    );
+    function view(month) {
+      return new Calendar.Views.MonthChild({
+        app: app,
+        date: month
+      });
+    }
 
-    assert.deepEqual(subject._days, {});
+    test('sanity', function() {
+      assert.equal(subject.controller, controller);
+      assert.equal(subject.date, month);
+      assert.equal(subject.id, subject.date.valueOf());
 
-    assert.deepEqual(
-      subject.timespan,
-      Calendar.Calc.spanOfMonth(subject.month)
-    );
+      assert.instanceOf(
+        subject.timespan,
+        Calendar.Timespan,
+        'should create timespan'
+      );
+
+      assert.deepEqual(subject._days, {});
+
+      assert.deepEqual(
+        subject.timespan,
+        Calendar.Calc.spanOfMonth(subject.date)
+      );
+    });
+
   });
 
   test('#_hourToBusyUnit', function() {
@@ -269,7 +281,7 @@ suite('views/month_child', function() {
 
       subject.controller.move(month);
 
-      subject.attach(testEl);
+      subject.create(testEl);
       subject._addBusytime = function() {
         calls.push(Array.prototype.slice.call(arguments));
       };
@@ -498,9 +510,6 @@ suite('views/month_child', function() {
     });
 
     setup(function() {
-    });
-
-    setup(function() {
       controller.move(month);
       testEl.innerHTML = subject._renderDay(month);
       subject.element = testEl;
@@ -629,11 +638,21 @@ suite('views/month_child', function() {
 
   test('#_renderDayHeaders', function() {
     var result = subject._renderDayHeaders();
+    var days = 7;
+    var i = 0;
+    var id;
 
-    assert.ok(subject.dayNames.length == 7);
-    subject.dayNames.forEach(function(day) {
-      assert.include(result, day, 'result should include ' + day);
-    });
+    assert.ok(result);
+
+    for (; i < days; i++) {
+      id = 'weekday-' + i + '-short';
+
+      assert.include(
+        result,
+        id,
+        'has "' + id + '"'
+      );
+    }
   });
 
   suite('#_renderMonth', function() {
@@ -643,7 +662,7 @@ suite('views/month_child', function() {
 
       var subject = new Calendar.Views.MonthChild({
         app: app,
-        month: month
+        date: month
       });
 
       var result = subject._renderMonth();
@@ -655,7 +674,10 @@ suite('views/month_child', function() {
         );
       });
 
-      assert.ok(result, 'weeks-' + weekStartDates.length);
+      assert.equal(subject.weeks, weekStartDates.length);
+      assert.include(
+        result, subject._renderDayHeaders(), 'should have headers'
+      );
     }
 
     test('should compare header and four weeks', function() {
@@ -709,7 +731,7 @@ suite('views/month_child', function() {
     });
 
     test('access rendered day', function() {
-      subject.attach(testEl);
+      subject.create();
 
       var id = Calendar.Calc.getDayId(month);
       var result = subject._busyElement(month);
@@ -722,7 +744,7 @@ suite('views/month_child', function() {
 
   });
 
-  suite('#attach', function() {
+  suite('#create', function() {
     var slice;
     var calledCachedWith;
     var calledRenderWith;
@@ -747,13 +769,11 @@ suite('views/month_child', function() {
       };
     });
 
-    test('initial attach', function() {
+    test('initial create', function() {
       var result,
           expected = subject._renderMonth();
 
-      testEl.appendChild(document.createElement('div'));
-
-      result = subject.attach(testEl);
+      result = subject.create(testEl);
 
       assert.equal(calledCachedWith[0], subject.timespan);
       assert.deepEqual(
@@ -761,11 +781,17 @@ suite('views/month_child', function() {
         [1, 2, 3]
       );
 
-      assert.equal(result.outerHTML, expected);
-      assert.ok(testEl.children[1].id);
+      assert.equal(subject.element, result);
 
-      assert.equal(testEl.children[0].tagName.toLowerCase(), 'div');
-      assert.equal(result.id, testEl.children[1].id);
+      assert.isTrue(
+        result.classList.contains('weeks-' + subject.weeks),
+        'should add week class'
+      );
+
+      assert.equal(
+        result.innerHTML, expected,
+        'should render month'
+      );
     });
 
   });
@@ -776,7 +802,7 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.move(month);
-      subject.attach(testEl);
+      subject.create(testEl);
 
       list = subject.element.classList;
     });
@@ -799,13 +825,15 @@ suite('views/month_child', function() {
       subject._days = true;
     });
 
-    test('when not attached', function() {
+    test('when not created', function() {
       subject.destroy();
       assert.deepEqual(subject._days, {});
     });
 
-    test('when attached', function() {
-      subject.attach(testEl);
+    test('when created', function() {
+      var el = subject.create(testEl);
+      testEl.appendChild(el);
+
       assert.ok(subject.element);
 
       subject.destroy();
@@ -817,4 +845,3 @@ suite('views/month_child', function() {
   });
 
 });
-
