@@ -9,8 +9,13 @@
  * Methods in the PhoneNumberManager:
  * init - Setup up PhoneNumberUtil and mobile country code.
  *
- * getNumberSet - We set a number string no matter which types and it will
- *   return both national format and international format number.
+ * getInternationalNum - Ruturn the phone number with international format.
+ *   If the second parameter is true, it will return original input number
+ *   while input number in invalid format, otherwise return null.
+ *
+ * getNationalNum - Ruturn the phone number with national format.
+ *   If the second parameter is true, it will return original input number
+ *   while input number in invalid format, otherwise return null.
  *
  * isValidNumber - We set a number string and it will check if the phone number
  *   is valid or not.

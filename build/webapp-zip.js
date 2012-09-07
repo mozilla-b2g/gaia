@@ -177,7 +177,7 @@ Gaia.webapps.forEach(function(webapp) {
                       webapp.domain);
     }
     addToZip(zip, '/shared/js/' + path, jsFile);
-    //Load all files in closure-library
+    //Load all other js files in closure-library
     if (path == 'closure-library/base.js') {
       let closureFolder = Gaia.sharedFolder.clone();
       closureFolder.append('js', 'closure-library');
