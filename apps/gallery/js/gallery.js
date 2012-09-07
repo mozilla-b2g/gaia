@@ -125,13 +125,11 @@ var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
 var pickView = $('pick-view');
 var editView = $('edit-view');
-var wallpaperView = $('wallpaper-view');
-var wallpaperThumbnails = $('wallpaper-thumbnails');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView, wallpaperView
+  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
 ];
 var currentView;
 
@@ -164,9 +162,6 @@ var languageDirection;
 // Each array element is an object that includes a filename and metadata
 var images = [];
 
-// Default wallpaper image array
-var wallpaperImages = ['default.png', 'balloon.png', 'water.png', 'leaves.png'];
-
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var photodb;
@@ -196,8 +191,6 @@ function init() {
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
   photodb.onunavailable = function(why) {
-    if (currentView === wallpaperView)
-      return;
     if (why === 'unavailable')
       showOverlay('nocard');
     else if (why === 'shared')
@@ -451,8 +444,6 @@ function setView(view) {
     pickView.appendChild(thumbnails);
     thumbnails.style.width = '';
     break;
-  case wallpaperView:
-    break;
   case editView:
     // We don't display the thumbnails in edit view.
     // the editPhoto() function does the necessary setup and
@@ -518,8 +509,6 @@ function webActivityHandler(activityRequest) {
     break;
   case 'pick':
     startPick(activityRequest);
-    if (activityRequest.source.data.wallpaper)
-      setView(wallpaperView);
     break;
   }
 }
@@ -531,51 +520,12 @@ function startPick(activityRequest) {
   setView(pickView);
 }
 
-function getBase64Image(img) {
-  var canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-
-  var ctx = canvas.getContext("2d");
-  ctx.drawImage(img, 0, 0);
-
-  var dataURL = canvas.toDataURL("image/png", 0.2);
-
-  return dataURL;
-}
-
 function finishPick(filename) {
-  photodb.getFile(filename, function(file) {
-    var img = new Image();
-    var url = URL.createObjectURL(file);
-    img.src = url;
-    img.onload = function() { 
-      URL.revokeObjectURL(url);
-      pendingPick.postResult({
-        type: 'image/jpeg',
-        filename: filename,
-        dataurl: getBase64Image(img)
-      });
-      pendingPick = null;
-    };
+  pendingPick.postResult({
+    type: 'image/jpeg',
+    filename: filename
   });
-  setView(thumbnailListView);
-}
-
-function finishWallpaperPick(filename) {
-  var img = new Image();
-  var url = 'wallpapers/' + filename;
-  img.src = url;
-  img.onload = function() { 
-    pendingPick.postResult({
-      type: 'image/jpeg',
-      filename: filename,
-      dataurl: getBase64Image(img)
-    });
-    pendingPick = null;
-  };
-  img.onerror = function() {
-  };
+  pendingPick = null;
   setView(thumbnailListView);
 }
 
@@ -621,17 +571,10 @@ new GestureDetector(photoFrames).startDetecting();
 // In thumbnail list mode, it displays the image. In thumbanilSelect mode
 // it selects the image. In pick mode, it finishes the pick activity
 // with the image filename
-wallpaperThumbnails.addEventListener('click', function thumbnailsClick(evt) {
-  var target = evt.target;
-  if (currentView === wallpaperView) {
-    finishWallpaperPick(wallpaperImages[parseInt(target.dataset.index)]);
-  }
-});
 thumbnails.addEventListener('click', function thumbnailsClick(evt) {
   var target = evt.target;
   if (!target || !target.classList.contains('thumbnail'))
     return;
-
 
   if (currentView === thumbnailListView || currentView === photoView) {
     showPhoto(parseInt(target.dataset.index));
@@ -997,32 +940,6 @@ function showPhoto(n) {
                               images[n].metadata.width,
                               images[n].metadata.height);
   photoState.setFramesPosition();
-}
-
-function displayWallpaperImageInFrame(n, frame) {
-  var img = frame.firstChild;
-
-  // Make sure n is in range
-  if (n < 0 || n >= wallpaperImages.length) {
-    img.src = null;
-    return;
-  }
-
-  var url = 'wallpapers/' + wallpaperImages[n];
-  img.src = url;
-}
-
-function showWallpaperPhoto(n) {
-  displayWallpaperImageInFrame(n - 1, previousPhotoFrame);
-  displayWallpaperImageInFrame(n, currentPhotoFrame);
-  displayWallpaperImageInFrame(n + 1, nextPhotoFrame);
-  currentPhoto = currentPhotoFrame.firstElementChild;
-
-  // Create the PhotoState object that stores the photo pan/zoom state
-  // And use it to apply CSS styles to the photo and photo frames.
-  photoState = new PhotoState(currentPhoto,
-                              currentPhoto.width,
-                              currentPhoto.height);
 }
 
 // Transition to the next photo, animating it over the specified time (ms).
