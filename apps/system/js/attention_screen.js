@@ -57,6 +57,11 @@ var AttentionScreen = {
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
 
+    // Close the card view if visible.
+    if (this._cardsViewVisible = CardsView.cardSwitcherIsShown()) {
+      CardsView.hideCardSwitcher();
+    }
+
     // We want the user attention, so we need to turn the screen on
     // if it's off.
     this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
@@ -95,6 +100,10 @@ var AttentionScreen = {
     if (this.attentionScreen.querySelectorAll('iframe').length == 0)
       this.attentionScreen.classList.remove('displayed');
 
+    if (this._cardsViewVisible) {
+      CardsView.showCardSwitcher();
+    }
+    
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff(true);
 
