@@ -13,12 +13,8 @@ var Wallpaper = {
     this.lockscreenSnapshot = document.getElementById('lockscreen-snapshot');
     this.homescreenSnapshot = document.getElementById('homescreen-snapshot');
   },
-  
-  init: function wallpaper_init() {
-    this.settings = navigator.mozSettings;
-    if (!this.settings)
-      return;
 
+  init: function wallpaper_init() {
     this.getAllElements();
     this.loadCurrentWallpaper();
     this.bindEvent();
@@ -26,14 +22,27 @@ var Wallpaper = {
 
   loadCurrentWallpaper: function wallpaper_loadCurrentWallpaper() {
     var self = this;
-    var settings = this.settings;
-    var reqHomescreen = settings.getLock().get('homescreen.wallpaper');
+    var settings = navigator.mozSettings;
+    settings.addObserver('homescreen.wallpaper',
+      function onHomescreenChange(event) {
+        var url = 'url(' + event.settingValue + ')';
+        self.homescreenSnapshot.style.backgroundImage = url;
+    });
+
+    settings.addObserver('lockscreen.wallpaper',
+      function onLockscreenChange(event) {
+        var url = 'url(' + event.settingValue + ')';
+        self.lockscreenSnapshot.style.backgroundImage = url;
+    });
+
+    var lockGet = settings.createLock().get;
+    var reqHomescreen = lockGet('homescreen.wallpaper');
     reqHomescreen.onsuccess = function wallpaper_getHomescreenSuccess() {
       var url = 'url(' + reqHomescreen.result['homescreen.wallpaper'] + ')';
       self.homescreenSnapshot.style.backgroundImage = url;
     };
-    
-    var reqLockscreen = settings.getLock().get('lockscreen.wallpaper');
+
+    var reqLockscreen = lockGet('lockscreen.wallpaper');
     reqLockscreen.onsuccess = function wallpaper_getLockscreenSuccess() {
       var url = 'url(' + reqLockscreen.result['lockscreen.wallpaper'] + ')';
       self.lockscreenSnapshot.style.backgroundImage = url;
@@ -42,16 +51,22 @@ var Wallpaper = {
 
   bindEvent: function wallpaper_bindEvent() {
     var self = this;
-    this.homescreenSnapshot.addEventListener('click', function onHomescreenClick() {
+    var settings = navigator.mozSettings;
+    this.homescreenSnapshot.addEventListener('click',
+      function onHomescreenClick() {
       var a = new MozActivity({
         name: 'pick',
         data: {
-          type: 'image/jpeg' 
+          type: 'image/jpeg'
         }
       });
       a.onsuccess = function onCameraPhotosSuccess() {
-        self.homescreenSnapshot.style.backgroundImage = 'url(' + a.result.dataurl + ')';
-        self.settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
+        if (!a.result.dataurl)
+          return;
+
+        self.homescreenSnapshot.style.backgroundImage =
+          'url(' + a.result.dataurl + ')';
+        settings.createLock().set({'homescreen.wallpaper': a.result.dataurl});
         self.reopenSelf();
       };
       a.onerror = function onCameraPhotosError() {
@@ -60,16 +75,21 @@ var Wallpaper = {
       };
     });
 
-    this.lockscreenSnapshot.addEventListener('click', function onLockscreenClick() {
+    this.lockscreenSnapshot.addEventListener('click',
+      function onLockscreenClick() {
       var a = new MozActivity({
         name: 'pick',
         data: {
-          type: 'image/jpeg' 
+          type: 'image/jpeg'
         }
       });
       a.onsuccess = function onCameraPhotosSuccess() {
-        self.lockscreenSnapshot.style.backgroundImage = 'url(' + a.result.dataurl + ')';
-        self.settings.getLock().set({'lockscreen.wallpaper': a.result.dataurl});
+        if (!a.result.dataurl)
+          return;
+
+        self.lockscreenSnapshot.style.backgroundImage =
+          'url(' + a.result.dataurl + ')';
+        settings.createLock().set({'lockscreen.wallpaper': a.result.dataurl});
         self.reopenSelf();
       };
       a.onerror = function onCameraPhotosError() {

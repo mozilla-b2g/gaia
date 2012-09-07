@@ -19,8 +19,11 @@
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
+      if (!a.result.dataurl)
+        return;
+
       var settings = navigator.mozSettings;
-      settings.getLock().set({'homescreen.wallpaper': a.result.dataurl});
+      settings.createLock().set({'homescreen.wallpaper': a.result.dataurl});
       reopenSelf();
     };
     a.onerror = function onWallpaperError() {
