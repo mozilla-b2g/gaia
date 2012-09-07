@@ -35,14 +35,14 @@ var Wallpaper = {
         self.lockscreenSnapshot.style.backgroundImage = url;
     });
 
-    var lockGet = settings.createLock().get;
-    var reqHomescreen = lockGet('homescreen.wallpaper');
+    var lock = settings.createLock();
+    var reqHomescreen = lock.get('homescreen.wallpaper');
     reqHomescreen.onsuccess = function wallpaper_getHomescreenSuccess() {
       var url = 'url(' + reqHomescreen.result['homescreen.wallpaper'] + ')';
       self.homescreenSnapshot.style.backgroundImage = url;
     };
 
-    var reqLockscreen = lockGet('lockscreen.wallpaper');
+    var reqLockscreen = lock.get('lockscreen.wallpaper');
     reqLockscreen.onsuccess = function wallpaper_getLockscreenSuccess() {
       var url = 'url(' + reqLockscreen.result['lockscreen.wallpaper'] + ')';
       self.lockscreenSnapshot.style.backgroundImage = url;
