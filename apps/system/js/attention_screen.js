@@ -94,8 +94,10 @@ var AttentionScreen = {
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
 
-    if (this.attentionScreen.querySelectorAll('iframe').length == 0)
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
       this.attentionScreen.classList.remove('displayed');
+      this.dispatchEvent('attentionscreenhide');
+    }
 
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff(true);
@@ -104,7 +106,6 @@ var AttentionScreen = {
     // without any focused window, let's fix this.
     window.focus();
 
-    this.dispatchEvent('attentionscreenhide');
   },
 
   show: function as_show() {
