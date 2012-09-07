@@ -8,10 +8,10 @@ var MockCallScreen = {
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
   },
-  mute: function (){
+  mute: function() {
     this.mMuteOn = true;
   },
-  unmute: function (){
+  unmute: function() {
     this.mMuteOn = false;
   },
   turnSpeakerOff: function() {
