@@ -73,6 +73,15 @@
           </div>
           <ul id="alarms" class="tableView"></ul>
         </div>
+        <div id="banner-countdown" class="banner">
+          <p>
+            The Alarm is set for
+            <strong id="banner-remain-hours"></strong>
+            and
+            <strong id="banner-remain-minutes"></strong>
+            from now
+          </p>
+        </div>
       </div>
 
       <div id="stopwatch-view" class="active view" hidden="true">
@@ -138,15 +147,11 @@
           <div class="background-close"></div>
           <div class="icon-close"></div>
         </a>
-        <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit Alarm</h1>
+        <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit</h1>
         <a id="alarm-done" href="#alarm-view" class="right button done-button" data-l10n-id="done">Done</a>
       </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="label">Label<sapn>:</sapn></span>
-          <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
-        </li>
-        <li class="multiline">
+      <ul id="edit-alarm" class="tableView">
+        <li class="picker">
           <div id="picker-bar">
             <div id="picker-container">
               <div id="value-indicator-bottom"></div>
@@ -167,7 +172,11 @@
           </div>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
+          <input type="text" class="right" name="alarm.label" placeholder="Alarm"/>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
           <select id="repeat-select" multiple="true" class="abstract-menu">
             <option value="0" data-l10n-id="dayofweek-0">Monday</option>
             <option value="1" data-l10n-id="dayofweek-1">Tuesday</option>
@@ -181,7 +190,7 @@
           <p></p>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="sound">Sound<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
           <select id="sound-select" class="abstract-menu">
             <option value="classic.ogg">Classic</option>
             <option value="bosscaling.ogg">Bosscaling</option>
@@ -191,7 +200,7 @@
           <p></p>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
           <select id="snooze-select" class="abstract-menu">
             <option value="5">5 minutes</option>
             <option value="10">10 minutes</option>
