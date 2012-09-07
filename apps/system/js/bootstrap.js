@@ -62,7 +62,3 @@ SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
   document.getElementById('screen').style.backgroundImage = 'url(' + value + ')';
 });
-
-window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
-  WindowManager.setDisplayedApp(null);
-});

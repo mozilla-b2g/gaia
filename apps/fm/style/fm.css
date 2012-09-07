@@ -316,25 +316,50 @@ div#fav-list-container div.fav-list-frequency::after {
 }
 
 #power-switch {
-  background: url(images/play.png) no-repeat center center transparent;
+  background-image: url(images/play.png), url(images/reflection-72.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center, 0 0;
+}
+
+#power-switch:active {
+  background-image: url(images/play.png);
 }
 
 #power-switch[data-enabled="true"] {
-  background: url(images/stop.png) no-repeat center center transparent;
+  background-image: url(images/stop.png), url(images/reflection-72.png);
+}
+
+#power-switch[data-enabled="true"]:active {
+  background-image: url(images/stop.png);
 }
 
 a#frequency-op-seekdown {
   width: 5rem;
   height: 5rem;
   margin: 1rem 0;
-  background: url(images/seekdown.png) no-repeat center center transparent;
+  background-image: url(images/seekdown.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
+}
+
+a#frequency-op-seekdown:active {
+  background-image: url(images/seekdown.png);
 }
 
 a#frequency-op-seekup {
   width: 5rem;
   height: 5rem;
   margin: 1rem 0;
-  background: url(images/seekup.png) no-repeat center center transparent;
+  background-image: url(images/seekup.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
+}
+
+a#frequency-op-seekup:active {
+  background-image: url(images/seekup.png);
 }
 /**** end ****/
 

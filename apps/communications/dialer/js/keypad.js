@@ -23,7 +23,7 @@ SettingsListener.observe('phone.ring.keypad', true, function(value) {
 });
 
 var TonePlayer = {
-  _sampleRate: 4000,
+  _sampleRate: 8000,
 
   init: function tp_init() {
     document.addEventListener('mozvisibilitychange',
