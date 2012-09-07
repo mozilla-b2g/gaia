@@ -72,6 +72,7 @@ var settings = [
  new Setting("ril.data.roaming_enabled", false),
  new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
+ new Setting("ril.callwaiting.enabled", true),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 1),
  new Setting("sms.ring.received", true),
