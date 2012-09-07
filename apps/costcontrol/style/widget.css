@@ -1,0 +1,108 @@
+/* Resetting */
+
+html {
+  font-size: 10px;
+  font-family: 'Open Sans', sans-serif;
+}
+
+body {
+  background: black;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+#cost-control button::-moz-focus-inner {
+  border: 0;
+}
+
+/* Widget body */
+#cost-control {
+  height: 4.5rem;
+  width: 100%;
+  background-image: url('./images/widget/ui/glossy-gradient.png'),
+                url('./images/widget/ui/gray-noise-pattern.png');
+  background-repeat: repeat-x, repeat;
+  background-color: black;
+  position: relative;
+}
+
+/* Widget states */
+
+/* Low credit warning */
+#cost-control.low-credit {
+  background-image: url('./images/widget/ui/no-credit-pattern.png');
+  background-repeat: repeat-x;
+}
+
+/* Updating animation */
+#cost-control.updating #cost-control-icon {
+  background-image: url('./images/widget/icons/reload.png') !important;
+  -moz-animation: cost-control-spin 1.75s infinite linear !important;
+  -moz-animation-delay: 0.5s !important;
+}
+
+/* No automatic updates allowed */
+#cost-control.warning #cost-control-icon {
+  background-image: url('./images/widget/icons/warning.png');
+  -moz-animation: none;
+}
+
+@-moz-keyframes cost-control-spin {
+  0% { -moz-transform:rotate(0deg); }
+  100% { -moz-transform:rotate(360deg); }
+}
+
+#cost-control > div {
+  display: inline-block;
+  vertical-align: middle;
+  -moz-transform: translateX(-2.5rem);
+  -moz-transition: -moz-transform 0.5s;
+}
+
+#cost-control.warning {
+  background: none;
+  background-color: #737577;
+}
+
+#cost-control.updating > div,
+#cost-control.warning > div {
+  -moz-transform: none;
+}
+
+#cost-control.warning #cost-control-credit, 
+#cost-control.warning #cost-control-currency,
+#cost-control.warning #cost-control-time {
+  color: #2d2e2f;
+}
+
+#cost-control-currency {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+}
+
+#cost-control-credit {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: white;
+}
+
+#cost-control-time {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #AAA;
+}
+
+#cost-control-icon {
+  width: 2.1rem;
+  height: 2.1rem;
+  vertical-align: middle;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 0 0.4rem;
+}
+

@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -81,6 +81,8 @@ var MessageManager = {
             } else {
               MessageManager.slide();
             }
+            // Update the data for next time we enter a thread
+            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -170,14 +172,14 @@ var MessageManager = {
     };
   },
 
-  send: function mm_send(number, text, callback) {
+  send: function mm_send(number, text, callback, errorHandler) {
     var req = navigator.mozSms.send(number, text);
     req.onsuccess = function onsuccess() {
       callback(req.result);
     };
 
     req.onerror = function onerror() {
-      callback(null);
+      errorHandler(number);
     };
   },
 
@@ -277,10 +279,18 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var element =
+    var choosenContact = contact[0];
+    var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    if (element && contact[0].name && contact[0].name != '') {
-      element.innerHTML = contact[0].name;
+    var selector = 'a[data-num="' + number + '"] div.photo img';
+    var photo = this.view.querySelector(selector);
+    if (name && choosenContact.name && choosenContact.name != '') {
+      name.innerHTML = choosenContact.name;
+    }
+
+    if (photo && choosenContact.photo && choosenContact.photo[0]) {
+      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+      photo.src = photoURL;
     }
   },
 
@@ -363,50 +373,56 @@ var ThreadListUI = {
       WaitingScreen.show();
       this.delNumList = [];
       this.pendingDelList = [];
+      var filters = [];
       var inputs = ThreadListUI.selectedInputList;
       for (var i = 0; i < inputs.length; i++) {
         var filter = MessageManager.createFilter(inputs[i].value);
+        filters.push(filter);
+      }
+      var fillList = function fillList(filters, callback) {
+        var currentFilter = filters.pop();
         MessageManager.getMessages(function gotMessages(messages) {
           for (var j = 0; j < messages.length; j++) {
-            if (messages[j].delivery == 'sent' ||
-                messages[j].delivery == 'received') {
-              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
-            } else {
+            if (messages[j].delivery == 'sending') {
               ThreadListUI.pendingDelList.push(messages[j]);
+            } else {
+              ThreadListUI.delNumList.push(parseFloat(messages[j].id));
             }
           }
-        }, filter);
-      }
-      // Now we have all the messages from the conversations on the lists
-      MessageManager.deleteMessages(ThreadListUI.delNumList,
-                                    function repaint() {
-        //TODO Change this functionality with Steve code
-        //TODO Steve will add delete pending in deleteMessages!
-        if (ThreadListUI.pendingDelList.length > 0) {
-          for (var i = 0; i < ThreadListUI.pendingDelList.length; i++) {
-            if (i == ThreadListUI.pendingDelList.length - 1) {
-              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i],
-                function() {
+          if (filters.length > 0) {
+            fillList(filters, callback);
+          } else {
+            MessageManager.deleteMessages(ThreadListUI.delNumList,
+                                          function() {
+              if (ThreadListUI.pendingDelList.length > 0) {
+                for (var j = 0; j < ThreadListUI.pendingDelList.length; j++) {
+                  if (j == ThreadListUI.pendingDelList.length - 1) {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j], function() {
+                      MessageManager.getMessages(
+                        function recoverMessages(messages) {
+                          ThreadListUI.renderThreads(messages);
+                          WaitingScreen.hide();
+                          window.location.hash = '#thread-list';
+                      });
+                    });
+                  } else {
+                    PendingMsgManager.deleteFromMsgDB(
+                      ThreadListUI.pendingDelList[j]);
+                  }
+                }
+              } else {
                 MessageManager.getMessages(function recoverMessages(messages) {
                   ThreadListUI.renderThreads(messages);
                   WaitingScreen.hide();
                   window.location.hash = '#thread-list';
                 });
-              });
-            } else {
-              PendingMsgManager.deleteFromMsgDB(ThreadListUI.pendingDelList[i]);
-            }
+              }
+            });
           }
-        } else {
-          MessageManager.getMessages(function recoverMessages(messages) {
-            ThreadListUI.renderThreads(messages);
-            WaitingScreen.hide();
-            window.location.hash = '#thread-list';
-          });
-        }
-      });
-    } else {
-      window.location.hash = '#thread-list';
+        }, currentFilter);
+      };
+      fillList(filters, fillList);
     }
   },
 
@@ -462,8 +478,8 @@ var ThreadListUI = {
     } else {
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
-            '   <p data-l10n-id="noMessage-title">no messages recorded</p>' +
-            '   <p data-l10n-id="noMessage-text">start communicating now</p>' +
+            '   <p>' + _('noMessages-title') + '</p>' +
+            '   <p>' + _('noMessages-text') + '</p>' +
             ' </div>' +
             '</div>';
       ThreadListUI.view.innerHTML = noResultHTML;
@@ -530,8 +546,8 @@ var ThreadListUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -591,6 +607,7 @@ var ThreadUI = {
     delete this.doneButton;
     return this.doneButton = document.getElementById('messages-delete-button');
   },
+
 
   get editHeader() {
       delete this.editHeader;
@@ -672,8 +689,8 @@ var ThreadUI = {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
-    headerHTML.setAttribute('data-time-update', true);
-    headerHTML.setAttribute('data-time', timestamp);
+    headerHTML.dataset.timeUpdate = true;
+    headerHTML.dataset.time = timestamp;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     // Append to DOM
@@ -686,21 +703,44 @@ var ThreadUI = {
     var nationalNum = PhoneNumberManager.isValidNumber(number) ?
           PhoneNumberManager.getNumberSet(number).national : number;
     self.title.innerHTML = nationalNum;
+    // TODO: Please verify that using the international number could work
+    //       for viewing the contact detail.
+
+    // Add data to contact activity interaction
+    self.title.dataset.phoneNumber = number;
+
     ContactDataManager.getContactData(number, function gotContact(contact) {
-      var carrier = document.getElementById('contact-carrier');
+      //TODO what if return multiple contacts?
+      var carrierTag = document.getElementById('contact-carrier');
       if (contact.length > 0) { // we have a contact
-        if (contact[0].name && contact[0].name != '') { // contact with name
-          self.title.innerHTML = contact[0].name;
-          carrier.innerHTML =
-                  contact[0].tel[0].type + ' | ' +
-                  (contact[0].tel[0].carrier || _('carrier-unknown'));
-    // TODO check if contact has different numbers with same type and carrier
+        var name = contact[0].name,
+            phone = contact[0].tel[0],
+            carrierToShow = phone.carrier;
+        // Check which of the contacts phone number we are using
+        for (var i = 0; i < contact[0].tel.length; i++) {
+          if (contact[0].tel[i].value == number) {
+            phone = contact[0].tel[i];
+            carrierToShow = phone.carrier;
+          }
+        }
+        // Add data values for contact activity interaction
+        self.title.dataset.isContact = true;
+
+        if (name && name != '') { // contact with name
+          for (var i = 0; i < contact[0].tel.length; i++) {
+            if (contact[0].tel[i].value !== phone.value &&
+                contact[0].tel[i].type == phone.type &&
+                contact[0].tel[i].carrier == phone.carrier) {
+              carrierToShow = phone.value;
+            }
+          }
+          self.title.innerHTML = name;
+          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
         } else { // no name of contact
-          carrier.innerHTML =
-                  contact[0].tel[0].type;
+          carrierTag.innerHTML = phone.type;
         }
       } else { // we don't have a contact
-        carrier.style.display = 'none';
+        carrierTag.style.display = 'none';
       }
     });
   },
@@ -774,12 +814,20 @@ var ThreadUI = {
     // Add 'gif' if necessary
     if (message.delivery == 'sending') {
       htmlStructure += '<span class="message-option">' +
-      '<img src="' + (message.showAnimation ? ThreadUI.sendIcons.sending :
+      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
         ThreadUI.sendIcons.pending) + '" class="gif">' +
                         '</span>';
     }
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
+    if (message.error) {
+      messageDOM.addEventListener('click', function() {
+        var hash = window.location.hash;
+        if (hash != '#edit') {
+          ThreadUI.resendMessage(message);
+        }
+      });
+    }
     //Check if we need a new header
     var tmpIndex = Utils.getDayDate(timestamp);
     if (tmpIndex > ThreadUI.headerIndex) {
@@ -862,76 +910,79 @@ var ThreadUI = {
             }
           }
         }
-      });
-      // Now we have our lists filled, we start the deletion
-      MessageManager.deleteMessages(ThreadUI.delNumList, function() {
-        //TODO Change this functionality with Steve code
-        if (ThreadUI.pendingDelList.length > 0) {
-          for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
-            if (i == ThreadUI.pendingDelList.length - 1) {
-              // Once everything is removed
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
-                function() {
-                  var filter = MessageManager.createFilter(
-                    MessageManager.currentNum);
-                  MessageManager.getMessages(function(messages) {
-                    if (messages.length > 0) {
-                      // If there are messages yet
-                      ThreadUI.renderMessages(messages);
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        WaitingScreen.hide();
-                        window.history.back();
-                      });
-                    }else {
-                      // If there are no more messages (delete all)
-                      ThreadUI.view.innerHTML = '';
-                      MessageManager.getMessages(ThreadListUI.renderThreads,
-                                                 null, null, function() {
-                        var mainWrapper =
-                          document.getElementById('main-wrapper');
-                        WaitingScreen.hide();
-                        mainWrapper.classList.remove('edit');
-                        window.location.hash = '#thread-list';
-                      });
-                    }
-                },filter);
-              });
-            } else {
-              PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+        // Now we have our lists filled, we start the deletion
+        MessageManager.deleteMessages(ThreadUI.delNumList, function() {
+          if (ThreadUI.pendingDelList.length > 0) {
+            for (var i = 0; i < ThreadUI.pendingDelList.length; i++) {
+              if (i == ThreadUI.pendingDelList.length - 1) {
+                // Once everything is removed
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i],
+                  function() {
+                    var filter = MessageManager.createFilter(
+                      MessageManager.currentNum);
+                    MessageManager.getMessages(function(messages) {
+                      if (messages.length > 0) {
+                        // If there are messages yet
+                        ThreadUI.renderMessages(messages);
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          WaitingScreen.hide();
+                          window.history.back();
+                        });
+                      }else {
+                        // If there are no more messages (delete all)
+                        ThreadUI.view.innerHTML = '';
+                        MessageManager.getMessages(ThreadListUI.renderThreads,
+                                                   null, null, function() {
+                          var mainWrapper =
+                            document.getElementById('main-wrapper');
+                          WaitingScreen.hide();
+                          mainWrapper.classList.remove('edit');
+                          window.location.hash = '#thread-list';
+                        });
+                      }
+                  },filter);
+                });
+              } else {
+                PendingMsgManager.deleteFromMsgDB(ThreadUI.pendingDelList[i]);
+              }
             }
-          }
-        }else {
-          var filter = MessageManager.createFilter(MessageManager.currentNum);
-          MessageManager.getMessages(function recoverMessages(messages) {
-            if (messages.length > 0) {
-              ThreadUI.renderMessages(messages);
-              WaitingScreen.hide();
-              window.history.back();
-            }else {
-              ThreadUI.view.innerHTML = '';
-              MessageManager.getMessages(ThreadListUI.renderThreads,
-                                         null, null, function() {
-                var mainWrapper = document.getElementById('main-wrapper');
+          }else {
+            var filter = MessageManager.createFilter(MessageManager.currentNum);
+            MessageManager.getMessages(function recoverMessages(messages) {
+              if (messages.length > 0) {
+                ThreadUI.renderMessages(messages);
                 WaitingScreen.hide();
-                mainWrapper.classList.remove('edit');
-                window.location.hash = '#thread-list';
-              });
-            }
-          },filter);
-        }
+                window.history.back();
+              }else {
+                ThreadUI.view.innerHTML = '';
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  var mainWrapper = document.getElementById('main-wrapper');
+                  WaitingScreen.hide();
+                  mainWrapper.classList.remove('edit');
+                  window.location.hash = '#thread-list';
+                });
+              }
+            },filter);
+          }
+        });
+
+
       });
-    } else {// response
-      window.history.back();
     }
   },
 
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
       ThreadUI.selectedInputList.push(target);
+      // Adding red bubble
+      target.parentNode.parentNode.classList.add('selected');
     } else {
       ThreadUI.selectedInputList.splice(
                       ThreadUI.selectedInputList.indexOf(target), 1);
+      // Removing red bubble
+      target.parentNode.parentNode.classList.remove('selected');
     }
   },
 
@@ -971,98 +1022,144 @@ var ThreadUI = {
   },
 
   sendMessage: function thui_sendMessage(resendText) {
-    // Retrieve num depending on hash
-    var hash = window.location.hash;
-    // Depending where we are, we get different num
-    if (hash == '#new') {
-      // XXX: Workaround for country code threading issue.
-      // We convert the number to international number for sending
-      // and storing the message.
-      var numInput = this.contactInput.value;
-      var num = PhoneNumberManager.isValidNumber(numInput) ?
+    var settings = window.navigator.mozSettings,
+        throwGeneralError;
+
+    throwGeneralError = function() {
+      CustomDialog.show(
+        _('sendGeneralErrorTitle'),
+        _('sendGeneralErrorBody'),
+        {
+          title: _('sendGeneralErrorBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
+          }
+        }
+      );
+    };
+
+    if (settings) {
+
+      var req = settings.getLock().get('ril.radio.disabled');
+      req.addEventListener('success', (function onsuccess() {
+        var status = req.result['ril.radio.disabled'];
+
+        // Retrieve num depending on hash
+        var hash = window.location.hash;
+        // Depending where we are, we get different num
+        if (hash == '#new') {
+          // XXX: Workaround for country code threading issue.
+          // We convert the number to international number for sending
+          // and storing the message.
+          var numInput = this.contactInput.value;
+          var num = PhoneNumberManager.isValidNumber(numInput) ?
             PhoneNumberManager.getNumberSet(numInput).international : numInput;
-    } else {
-      var num = MessageManager.getNumFromHash();
-    }
-    // Retrieve text
-    var text = this.input.value || resendText;
-    // If we have something to send
-    if (num != '' && text != '') {
-      // Create 'PendingMessage'
-      var tempDate = new Date();
-      var message = {
-        sender: null,
-        receiver: num,
-        delivery: 'sending',
-        body: text,
-        read: 1,
-        timestamp: tempDate
-      };
-      var self = this;
-      // Save the message into pendind DB before send.
-      PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
-        if (!msg) {
-          // TODO: We need to handle the pending message save failed.
-          console.log('Message app - pending message save failed!');
-          PendingMsgManager.saveToMsgDB(message, this);
         } else {
-          // Clean Fields
-          ThreadUI.cleanFields();
-          // Update ThreadListUI when new message in pending database.
-          if (window.location.hash == '#new') {
-            window.location.hash = '#num=' + num;
-          } else {
-            // Append to DOM
-            message.showAnimation = true;
-            ThreadUI.appendMessage(message, function() {
-              // Retrieve the last message added to DOM
-              var root = document.getElementById(message.timestamp.getTime());
-              // Create function for resending
-              var resendCallback = function() {
-                ThreadUI.resendMessage(message);
-              };
-              // Add temporaly until sending properly
-              root.addEventListener('click', resendCallback);
-              // Call to update headers
-              Utils.updateHeaders();
-              // Call to API through MessageManager
+          var num = MessageManager.getNumFromHash();
+        }
+        // Retrieve text
+        var text = this.input.value || resendText;
+        // If we have something to send
+        if (num != '' && text != '') {
+          // Create 'PendingMessage'
+          var tempDate = new Date();
+          var message = {
+            sender: null,
+            receiver: num,
+            delivery: 'sending',
+            body: text,
+            read: 1,
+            timestamp: tempDate
+          };
+          var self = this;
+          if (!status) {
+            message.error = false;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
               MessageManager.send(num, text, function onsent(msg) {
-                if (!msg) {
-                  self.resendMessage(message);
-                } else {
-                  if (root) {
-                    // We remove 'resend' action once it is sent properly
-                    root.removeEventListener('click', resendCallback);
-                    root.removeChild(root.childNodes[2]);
-                    var inputs =
-                      root.querySelectorAll('input[type="checkbox"]');
-                    if (inputs) {
-                      inputs[0].value = 'id_' + msg.id;
-                    }
+                var root = document.getElementById(message.timestamp.getTime());
+                if (root) {
+                  root.removeChild(root.childNodes[2]);
+                  var inputs = root.querySelectorAll('input[type="checkbox"]');
+                  if (inputs) {
+                    inputs[0].value = 'id_' + msg.id;
                   }
-                  // Remove the message from pending message DB since it
-                  // could be sent successfully.
-                  PendingMsgManager.deleteFromMsgDB(message,
-                    function ondelete(msg) {
-                      if (!msg) {
-                        //TODO: Handle message delete failed in pending DB.
-                      }
-                  });
                 }
+                // Remove the message from pending message DB since it
+                // could be sent successfully.
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    if (!msg) {
+                      //TODO: Handle message delete failed in pending DB.
+                    }
+                });
+              }, function onerror() {
+                var root = document.getElementById(message.timestamp.getTime());
+                PendingMsgManager.deleteFromMsgDB(message,
+                  function ondelete(msg) {
+                    message.error = true;
+                    PendingMsgManager.saveToMsgDB(message,
+                      function onsave(msg) {
+                        var filter = MessageManager.createFilter(
+                          message.receiver);
+                        MessageManager.getMessages(function(messages) {
+                          ThreadUI.renderMessages(messages);
+                          MessageManager.getMessages(
+                            ThreadListUI.renderThreads);
+                        }, filter);
+                    });
+                });
               });
             });
+          } else {
+            message.error = true;
+            // Save the message into pendind DB before send.
+            PendingMsgManager.saveToMsgDB(message, function onsave(msg) {
+              ThreadUI.cleanFields();
+              if (window.location.hash == '#new') {
+                window.location.hash = '#num=' + num;
+              } else {
+                // Append to DOM
+                ThreadUI.appendMessage(message, function() {
+                   // Call to update headers
+                  Utils.updateHeaders();
+                });
+              }
+              CustomDialog.show(
+                _('sendFlightModeTitle'),
+                _('sendFlightModeBody'),
+                {
+                  title: _('sendFlightModeBtnOk'),
+                  callback: function() {
+                    CustomDialog.hide();
+                  }
+                }
+              );
+              MessageManager.getMessages(ThreadListUI.renderThreads);
+            });
           }
-          MessageManager.getMessages(ThreadListUI.renderThreads);
         }
+      }).bind(this));
 
+      req.addEventListener('error', function onerror() {
+        throwGeneralError();
       });
+    } else {
+      throwGeneralError();
     }
   },
 
   resendMessage: function thui_resendMessage(message) {
-    if (window.location.hash == '#edit') {
-      return;
-    }
     var resendConfirmStr = _('resend-confirmation');
     var result = confirm(resendConfirmStr);
     if (result) {
@@ -1072,16 +1169,9 @@ var ThreadUI = {
         MessageManager.getMessages(function(messages) {
           ThreadUI.renderMessages(messages);
           MessageManager.getMessages(ThreadListUI.renderThreads);
+          ThreadUI.sendMessage(message.body);
         }, filter, true);
       });
-      window.setTimeout(ThreadUI.sendMessage.bind(ThreadUI, message.body), 500);
-    } else if (message.showAnimation) {
-      // TODO: We need to replace the timestamp with ID when message deletion
-      //       refine in the future.
-      var queryStr = 'div[id="' + message.timestamp.valueOf() + '"] img.gif';
-      var emt = ThreadUI.view.querySelector(queryStr);
-      emt.src = ThreadUI.sendIcons.pending;
-      message.showAnimation = false;
     }
   },
 
@@ -1175,14 +1265,30 @@ var ThreadUI = {
   },
 
   activateContact: function thui_activateContact() {
-    try {
-      //TODO: We should provide correct params for contact activiy handler.
-      var activity = new MozActivity({
+    var options = {};
+    // Call to 'new' or 'view' depending on existence of contact
+    if (this.title.dataset.isContact == 'true') {
+      //TODO modify this when 'view' activity is available on contacts
+      // options = {
+      //   name: 'view',
+      //   data: {
+      //     type: 'webcontacts/contact'
+      //   }
+      // };
+    } else {
+      options = {
         name: 'new',
         data: {
-          type: 'webcontacts/contact'
+          type: 'webcontacts/contact',
+          params: {
+            'tel': this.title.dataset.phoneNumber
+          }
         }
-      });
+      };
+    }
+
+    try {
+      var activity = new MozActivity(options);
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1235,3 +1341,4 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
 
   activity.postResult({ status: 'accepted' });
 });
+

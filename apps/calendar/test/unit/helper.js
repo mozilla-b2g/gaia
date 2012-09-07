@@ -18,13 +18,19 @@
 
   testSupport.calendar = {
 
+    triggerEvent: function(element, eventName) {
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    },
+
     loadSample: function(file, cb) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/test/unit/fixtures/' + file, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           if (xhr.status !== 200) {
-            cb(new Error('file not found or other error', xhr));
+            cb(new Error('file not found or other error (' + file + ')', xhr));
           } else {
             cb(null, xhr.responseText);
           }
@@ -69,6 +75,8 @@
         this.db(),
         new Calendar.Router(Calendar.Test.FakePage)
       );
+
+      Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
 
       return Calendar.App;
     },
@@ -173,14 +181,20 @@
 
   /* require most of the coupled / util objects */
 
-  // HACK - disable mozL10n right now
-  //        tests that actually use it
-  //        mock it out anyway.
-  navigator.mozL10n = {
-    get: function(value) {
-      return value;
-    }
-  };
+  function l10nLink(href) {
+    var resource = document.createElement('link');
+    resource.setAttribute('href', href);
+    resource.setAttribute('rel', 'resource');
+    resource.setAttribute('type', 'application/l10n');
+    document.head.appendChild(resource);
+  }
+
+
+  l10nLink('/locales/locales.ini');
+  l10nLink('/shared/locales/date.ini');
+
+  requireApp('calendar/shared/js/l10n.js');
+  requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
   requireLib('set.js');
@@ -188,6 +202,7 @@
   requireLib('template.js');
   requireLib('interval_tree.js');
   requireLib('responder.js');
+  requireLib('time_observer.js');
   requireLib('provider/abstract.js');
   requireLib('provider/local.js');
   requireLib('store/abstract.js');

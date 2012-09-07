@@ -81,7 +81,6 @@ var PendingMsgManager = {
       callback(addRequest.result);
     }
     addRequest.onerror = function onerror() {
-      callback(null);
       // Execute save operation again if failed.
       window.setTimeout(
         pendingMgr.saveToMsgDB(msg, callback).bind(pendingMgr), 500);

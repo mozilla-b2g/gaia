@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Image Uploader</title>
+    <script type="application/javascript" src="js/ext/sha1.js"></script>
+    <script type="application/javascript" src="js/ext/oauth.js"></script>
+    <script type="application/javascript" src="js/credentials_db.js"></script>
+    <script type="application/javascript" src="js/image-uploader.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogs/core.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogs/banner/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/buttons/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/headers/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/input-areas/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/lists/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/switches/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/progress-activity/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/image-uploader.css" />
+  </head>
+  <body role="application">
+    <section role="region">
+      <header>
+        <h1>Image Uploader</h1>
+      </header>
+    </section>
+
+    <section role="region">
+      <div class="bb-docs">
+        <h2 class="bb-docs">Previews</h2>
+        <p id="previews"></p>
+      </div>
+    </section>
+
+    <section role=region" id="services">
+      <div class="bb-docs">
+        <h2 class="bb-docs">Services</h2>
+        <ul data-state="edit">
+          <li>
+            <img src="style/images/canardpc.jpg">
+            <label class="check">
+              <input type="checkbox" name="canardpc" id="upload-canardpc" />
+              <span></span>
+            </label>
+            <dl>
+              <dt>CanardPC</dt>
+              <dd><span>anonymous</span></dd>
+            </dl>
+          </li>
+          <li>
+            <img src="style/images/twitter-bird-light-bgs.png">
+            <label class="check">
+              <input type="checkbox" name="twitter" id="upload-twitter" />
+              <span></span>
+            </label>
+            <dl>
+              <dt>Twitter</dt>
+              <dd><span>auth</span></dd>
+            </dl>
+          </li>
+          <li>
+            <img src="style/images/imgur-iphone.png">
+            <label class="check">
+              <input type="checkbox" name="imgur" id="upload-imgur" />
+              <span></span>
+            </label>
+            <dl>
+              <dt>Imgur</dt>
+              <dd><span>anonymous</span></dd>
+            </dl>
+          </li>
+        </ul>
+        <div class="bb-docs" id="twitter-content">
+          <label id="label-twitter-message" for="twitter-message">Your Tweet:</label>
+          <textarea id="twitter-message" class="message" rows="3" cols="50" maxlength="140"></textarea>
+          <p id="credentials-status"></p>
+        </div>
+        <div class="bb-docs">
+          <button id="share">Share</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="dialog" class="banner" id="banner-status">
+      <p role="status">
+        <label id="uploaded" for="upload-progress"></label>
+        <progress value="0" max="100" id="upload-progress"></progress>
+      </p>
+    </section>
+
+    <section role="dialog" id="confirm-twitter-auth">
+      <div>
+          <h3>Confirmation</h3>
+          <div class="content">
+          <img src="style/images/twitter-bird-light-bgs.png">
+          <strong>Twitter</strong>
+          <small>Authorization</small>
+        </div>
+        <p>We now need that you authorize our application. A browser window
+will get you to Twitter website, where you will be able to authenticate
+yourself and to authorize us. It will give you a PIN code. Please keep it, get
+back here and fill it in the prompt.</p>
+      </div>
+      <menu data-items="2">
+        <button id="twitter-auth-cancel">Cancel</button>
+        <button id="twitter-auth-continue" class="affirmative">Continue</button>
+      </menu>
+    </section>
+
+    <section role="dialog" id="twitter-pin">
+      <div>
+          <h3>Enter PIN</h3>
+          <div class="content">
+          <img src="style/images/twitter-bird-light-bgs.png">
+          <strong>Twitter</strong>
+          <small>Authorization</small>
+        </div>
+        <p>Please enter PIN code given by Twitter:</p>
+        <input type="number" placeholder="PIN code" id="twitter-pincode">
+      </div>
+      <menu data-items="1">
+        <button id="twitter-pin-continue" class="affirmative">Continue</button>
+      </menu>
+    </section>
+
+    <section role="dialog" id="confirm-twitter-revoke">
+      <div>
+       <h3>Confirmation</h3>
+       <p>Are you sure you want to revoke this Twitter account?</p>
+      </div>
+      <menu data-items="2">
+        <button id="twitter-revoke-cancel">Cancel</button>
+        <button id="twitter-revoke-revoke" class="negative">Revoke</button>
+      </menu>
+    </section>
+
+  </body>
+</html>
+

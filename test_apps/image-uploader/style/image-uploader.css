@@ -1,0 +1,48 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  background-color: #fff;
+}
+
+body { background: none; }
+
+div.bb-docs { padding: 1rem; }
+
+h2.bb-docs {
+  font-size: 1.8rem;
+  font-family: "Open Sans", Sans-serif;
+  font-weight: lighter;
+  color: #666;
+  margin: -1px 0 0;
+  background-color: #f5f5f5;
+  padding: 0.4rem 0.4rem 0.4rem 3rem;
+  border: solid 1px #e8e8e8;
+}
+
+#twitter-message {
+  display: block;
+  width: 100%;
+  margin-bottom: 1em;
+}
+
+#twitter-content {
+  display: none;
+}
+
+#confirm-twitter-auth {
+  display: none;
+}
+
+#twitter-pin {
+  display: none;
+}
+
+#confirm-twitter-revoke {
+  display: none;
+}
+
+#banner-status {
+  position: fixed;
+  display: none;
+}

@@ -1,0 +1,290 @@
+/* ----------------------------------
+ * LISTS: default
+ * ---------------------------------- */
+body[role="application"] ul, body[role="application"] ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  font-family: "Open Sans", Sans-serif;
+}
+
+body[role="application"] li {
+  display: inline-block;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  transition: transform 0.3s ease;
+  border: solid 1px #dbd9d9;
+  border-right: none;
+  border-left: none;
+  margin: -1px 0 0;
+  position: relative;
+}
+
+body[role="application"] li > a:first-of-type,
+body[role="application"] li > a:first-of-type  {
+  text-decoration: none;
+  color: #000;
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+/* State press */
+body[role="application"] li > a:first-of-type:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background-color: #b1f1ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+body[role="application"] li > a:first-of-type:active:after {
+  opacity: 0.6;
+}
+
+body[role="application"] li .aside {
+  float: left;
+  display: inline;
+  position: relative;
+  width: 5.5rem;
+  height: 6rem;
+  text-align: center;
+}
+
+body[role="application"] li .aside.end {
+  float: right;
+}
+
+body[role="application"] li .aside:before {
+  content: "";
+  height: 100%;
+  width: 1px;
+  margin-left: -1px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+body[role="application"] li .aside time {
+  display: inline-block;
+  vertical-align: super;
+  width: 4rem;
+  padding-right: 1rem;
+  font: 1.1rem/1em "Open Sans", Sans-serif;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+body[role="application"] li img {
+  float: right;
+  display: inline;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+body[role="application"] li dl {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0.5rem 0 2rem;
+}
+
+body[role="application"] li .aside ~ dl {
+  padding-left: 0.5rem;
+}
+
+body[role="application"] li dl dt {
+  font: 1.8rem/1.2em "Open Sans", Sans-serif;
+  white-space: nowrap;
+  height: 2.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[role="application"] li dl dt strong {
+  font-weight: 600;
+  font-family: "Open Sans", Sans-serif;
+}
+
+body[role="application"] li dl dt em {
+  font-size: 1.3rem;
+  font-style: normal;
+}
+
+body[role="application"] li dl mark {
+  background-color: #cfd3d7;
+}
+
+body[role="application"] li dl dd {
+  font-size: 1.4rem;
+  color: #5b5b5b;
+  white-space: nowrap;
+  height: 1.8rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body[role="application"] li dl dd strong {
+  font-weight: 600;
+  font-family: "Open Sans", Sans-serif;
+  color: #000;
+}
+
+body[role="application"] li dl dd time {
+  font-size: 1.4rem;
+  color: #5b5b5b;
+  margin-right: 0.3rem;
+}
+
+body[role="application"] li dl dd span {
+  margin-right: 0.3rem;
+}
+
+body[role="application"] li dl dd span:last-child {
+  margin: 0;
+}
+
+/* Icon definitions */
+body[role="application"] li .icon  {
+  display: inline-block;
+  vertical-align: middle;
+  width: 3rem;
+  height: 3rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  font: 0/0 a;
+  overflow: hidden;
+  position: relative;
+}
+
+body[role="application"] li .icon.icon-arrowaction {
+  background-image: url(images/icons/arrowaction.png);
+  width:1rem;
+  height: 1rem;
+  vertical-align: bottom;
+  margin: 0 -3rem 0.5rem 0;
+}
+
+body[role="application"] li .icon.icon-callout {
+  background-image: url(images/icons/callout.png);
+  width: 2.4rem;
+  height: 2rem;
+}
+
+body[role="application"] li .icon.icon-smsin {
+  background-image: url(images/icons/smsin.png);
+  width: 2.5rem;
+  height: 2.2rem;
+}
+
+body[role="application"] li[data-state="new"] .icon.icon-smsin {
+  background-image: url(images/icons/smsin-new.png);
+  width: 2.5rem;
+  height: 2.2rem;
+}
+
+/* State edit*/
+body[role="application"] ul[data-state="edit"] li,
+body[role="application"] ol[data-state="edit"] li {
+  transform: translateX(5rem);
+}
+
+body[role="application"] ul[data-state="edit"] li > label.check,
+body[role="application"] ol[data-state="edit"] li > label.check {
+   opacity: 1;
+}
+
+body[role="application"] li > label.check {
+  transition: opacity 0.6s ease;
+  width: 5rem;
+  height: 6rem;
+  right: 100%;
+  position: absolute;
+  top: -1px;
+  z-index: 100;
+  opacity: 0;
+  border: solid 1px #DBD9D9;
+  border-left: none;
+  border-right: none;
+}
+
+/* State disabled */
+body[role="application"] li[aria-disabled="true"]:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+body[role="application"]  li[aria-disabled="true"] {
+  pointer-events:none;
+}
+
+/* State new */
+body[role="application"] li[data-state="marked"]:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1.6rem;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-left: 0.5rem;
+  background: url(images/icons/dot.png) no-repeat center;
+  background-size: 100% auto;
+}
+
+body[role="application"] li[data-state="new"] time {
+  color: #52b6cc !important;
+}
+
+/* State tagged */
+body[role="application"] li[data-state="tagged"]:after  {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: 0;
+  width: 0.4rem;
+}
+
+body[role="application"] li[data-tag="A"]:after { background-color: #e7a300; }
+body[role="application"] li[data-tag="B"]:after { background-color: #954fa7; }
+
+
+/* ----------------------------------
+ * LISTS: Overlay theme
+ * ---------------------------------- */
+body[role="application"] ul.overlay li,
+body[role="application"] ol.overlay li {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(0, 0, 0, 0.6);
+}
+
+body[role="application"] ul.overlay  li dl dt,
+body[role="application"] ol.overlay  li dl dt {
+  color: #fff;
+}
+
+body[role="application"] ul.overlay li dl dd,
+body[role="application"] ol.overlay li dl dd {
+  color: #ccc;
+}
+
+body[role="application"] ul.overlay .icon.icon-smsin,
+body[role="application"] ol.overlay .icon.icon-smsin {
+  background-image: url(images/icons/smsin-overlay.png);
+  width: 3.1rem;
+  height: 3.1rem;
+}

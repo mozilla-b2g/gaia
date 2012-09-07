@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*
@@ -7,60 +7,6 @@
 */
 
 'use strict';
-
-// WordComposer to store each key the user inputs
-var WordComposer = function WordComposer() {
-  var N = WordComposer.MAX_WORD_LENGTH;
-  this._codes = [];
-  this._typedWord = '';
-  this._xCoordinates = new Int32Array(N);
-  this._yCoordinates = new Int32Array(N);
-};
-
-/** @const The maximum word length allowed for predictive */
-WordComposer.MAX_WORD_LENGTH = 48;
-
-WordComposer.prototype = {
-  //  add a key stroke
-  add: function(primaryCode, x, y) {
-    this._codes.push(primaryCode);
-    var newIndex = this.size();
-    this._typedWord += String.fromCharCode(primaryCode);
-
-    if (newIndex < WordComposer.MAX_WORD_LENGTH) {
-      this._xCoordinates[newIndex] = x;
-      this._yCoordinates[newIndex] = y;
-    }
-  },
-
-  get lastKeyCode() {
-    var index = this.size() - 1;
-    return this._codes[index];
-  },
-
-  // reset the stored key strokes
-  reset: function() {
-    this._codes.length = 0;
-    this._typedWord = '';
-  },
-
-  // the length of the user input
-  size: function() {
-    return this._typedWord.length;
-  },
-
-  // remove the last key stroke, for delete key
-  deleteLast: function() {
-    var size = this.size();
-    if (size > 0) {
-      var lastPos = size - 1;
-      var lastChar = this._typedWord[lastPos];
-
-      this._typedWord = this._typedWord.substring(0, lastPos);
-      this._codes.pop();
-    }
-  }
-};
 
 // The controller is in charge of capture events and translate them into
 // keyboard interactions, send keys and coordinate rendering.
@@ -96,11 +42,11 @@ const IMEController = (function() {
   var _currentLayout = null;
   var _currentLayoutMode = LAYOUT_MODE_DEFAULT;
   var _currentKey = null;
-  // to log the keys and X, Y coordiniates
-  var _currentWordComposer = null;
-  var _currentInputType = 'text';
+  var _realInputType = null;
+  var _currentInputType = null;
   var _menuLockedArea = null;
   var _lastHeight = 0;
+  var _lastKeyCode = 0;
 
   var _IMEngines = {};
   function _getCurrentEngine() {
@@ -111,12 +57,12 @@ const IMEController = (function() {
   var _suggestionEngines = {};
   var _wordSuggestionEnabled = false;
   function _getCurrentSuggestionEngine() {
-
     if (Keyboards[_baseLayoutName].suggestionEngine)
       return _suggestionEngines[Keyboards[_baseLayoutName].suggestionEngine];
-
     return null;
   };
+
+  var _language = 'en-US';
 
   var _layoutParams = {};
 
@@ -187,7 +133,6 @@ const IMEController = (function() {
   function _requireSuggestion() {
     if (!_wordSuggestionEnabled)
       return '';
-
     return Keyboards[_baseLayoutName].suggestionEngine;
   }
 
@@ -761,7 +706,8 @@ const IMEController = (function() {
   }
 
   // Handle the default behavior for a pressed key
-  function _sendNormalKey(keyCode) {
+  function _sendNormalKey(keyCode, offset) {
+    _lastKeyCode = keyCode;
 
     // Redirects to IME
     if (_requireIME() &&
@@ -774,15 +720,9 @@ const IMEController = (function() {
     // Send the key
     window.navigator.mozKeyboard.sendKey(0, keyCode);
 
-    if (_requireSuggestion()) {
-      var suggestionEngine = _getCurrentSuggestionEngine();
-
-      if (suggestionEngine && suggestionEngine.click && _currentWordComposer) {
-        suggestionEngine.click(keyCode, _currentWordComposer);
-      } else {
-        debug('click func of suggestionEngine undefined in sendNormalKey');
-      }
-    }
+    if (_requireSuggestion())
+      _getCurrentSuggestionEngine().click(keyCode, offset.x,
+                                          _getKeyCoordinateY(offset.y));
 
     // Return to default layout after pressinf an uppercase
     if (_isUpperCase &&
@@ -886,10 +826,6 @@ const IMEController = (function() {
         }
 
         _reset();
-        _draw(
-          _baseLayoutName, _currentInputType,
-          _currentLayoutMode, _isUpperCase
-        );
 
         if (_requireIME()) {
           if (_getCurrentEngine().show) {
@@ -997,7 +933,7 @@ const IMEController = (function() {
           _isContinousSpacePressed = true;
 
           // Then set the keyboard uppercase for the next char
-          if (_currentInputType == 'text') {
+          if (_realInputType == 'text') {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -1016,12 +952,14 @@ const IMEController = (function() {
           _kSpaceDoubleTapTimeout
         );
 
-        // After all: treat as a normal key
-        _sendNormalKey(keyCode);
+        var lastKeyWasPeriod = (_lastKeyCode == 46);
 
-        if (_currentWordComposer.lastKeyCode == 46) {
+        // After all: treat as a normal key
+        _sendNormalKey(keyCode, _getOffset(evt));
+
+        if (lastKeyWasPeriod) {
           // Then set the keyboard uppercase for the next char
-          if (_currentInputType == 'text') {
+          if (_realInputType == 'text') {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -1033,10 +971,7 @@ const IMEController = (function() {
 
       // Normal key
       default:
-        var offset = _getOffset(evt);
-        _currentWordComposer.add(keyCode, offset.x,
-           _getKeyCoordinateY(offset.y));
-        _sendNormalKey(keyCode);
+        _sendNormalKey(keyCode, _getOffset(evt));
         break;
     }
   }
@@ -1073,11 +1008,18 @@ const IMEController = (function() {
   // Turn to default values
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = false;
-    if (_currentInputType == 'text') {
-      _isUpperCase = true;
-    }
-    _currentWordComposer.reset();
+    _isUpperCase = (_realInputType === 'text');
+    _isUpperCaseLocked = false;
+    _lastKeyCode = 0;
+
+    _draw(
+      _baseLayoutName, _currentInputType,
+      _currentLayoutMode, _isUpperCase
+    );
+
+    var query = 'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]';
+    var capsLockKey = document.querySelector(query);
+    IMERender.setUpperCaseLock(capsLockKey, _isUpperCase);
   }
 
   var _imeEvents = {
@@ -1108,12 +1050,6 @@ const IMEController = (function() {
         IMERender.ime.addEventListener(event, callback.bind(this));
     }
     _dimensionsObserver.observe(IMERender.ime, _dimensionsObserverConfig);
-
-    _currentWordComposer = new WordComposer();
-
-    if (_currentInputType == 'text') {
-      _isUpperCase = true;
-    }
   }
 
   // Finalizes the keyboard (exposed, controlled by IMEManager)
@@ -1165,11 +1101,9 @@ const IMEController = (function() {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
+      _realInputType = type;
       _currentInputType = _mapType(type);
-      _draw(
-        _baseLayoutName, _currentInputType,
-        _currentLayoutMode, _isUpperCase
-      );
+      _reset();
 
       if (_requireIME()) {
         if (_getCurrentEngine().show) {
@@ -1187,7 +1121,6 @@ const IMEController = (function() {
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
       IMERender.hideIME(imminent);
-      _reset();
     },
 
     // Controlled by IMEManager, i.e. when orientation change
@@ -1280,21 +1213,26 @@ const IMEController = (function() {
 
     loadSuggestionEngine: function km_loadSuggestionEngine(moduleName) {
       var keyboard = Keyboards[moduleName];
-      var sourceDir = './js/predictive_text/';
+      var sourceDir = './js/predict/';
       var engineName = keyboard.suggestionEngine;
 
       if (this.suggestionEngines[engineName])
         return;
 
-      this.suggestionEngines[engineName] = {};
+      // We might get a setLanguage call as the engine is loading. Ignore it.
+      // We will set the language via init anyway.
+      this.suggestionEngines[engineName] = {
+        setLanguage: function load_suggestion_engine_ignore_setLanguage() {
+        }
+      };
 
       var script = document.createElement('script');
       script.src = sourceDir + engineName + '.js';
       var self = this;
       var glue = {
+        keyboard: moduleName,
+        language: _language,
         path: sourceDir,
-        // XXX: no way to load suggestion engine with another language
-        lang: keyboard.suggestionEngineLang,
         sendCandidates: function kc_glue_sendCandidates(candidates) {
           IMERender.showCandidates(candidates);
         },
@@ -1316,24 +1254,23 @@ const IMEController = (function() {
         sendString: function(str) {
           for (var i = 0; i < str.length; i++)
             this.sendKey(str.charCodeAt(i));
+        },
+        log: function kc_glue_log(text) {
+          console.log(text);
         }
       };
 
       script.addEventListener('load', (function SuggestionEngineLoaded() {
         this.suggestionEngines[engineName].init(glue);
         this.updateLayoutParams();
-
       }).bind(this));
 
       document.body.appendChild(script);
     },
 
     updateLayoutParams: function() {
-      if (_requireSuggestion()) {
-        var suggestionEngine = _getCurrentSuggestionEngine();
-        if (suggestionEngine && suggestionEngine.setLayoutParams)
-          suggestionEngine.setLayoutParams(_layoutParams);
-      }
+      if (_requireSuggestion())
+        _getCurrentSuggestionEngine().setLayoutParams(_layoutParams);
     },
 
     enableWordSuggestion: function kc_enableWordSuggestion(enabled) {
@@ -1342,6 +1279,12 @@ const IMEController = (function() {
       var suggestionEngineName = Keyboards[_baseLayoutName].suggestionEngine;
       if (enabled && suggestionEngineName)
           this.loadSuggestionEngine(_baseLayoutName);
+    },
+
+    setLanguage: function kc_setLanguage(language) {
+      _language = language;
+      if (_requireSuggestion())
+        _getCurrentSuggestionEngine().setLanguage(language);
     }
   };
 })();

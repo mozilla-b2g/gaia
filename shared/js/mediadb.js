@@ -465,7 +465,7 @@ MediaDB.prototype = {
       var fileinfo = read.result;
 
       // Update the fileinfo metadata
-      metadata.keys.forEach(function(key) {
+      Object.keys(metadata).forEach(function(key) {
         fileinfo.metadata[key] = metadata[key];
       });
 

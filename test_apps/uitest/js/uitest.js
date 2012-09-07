@@ -45,12 +45,12 @@ var UITest = {
   handleEvent: function ut_handleEvent(ev) {
     switch (ev.type) {
       case 'click':
-        if (ev.target != this.backBtn) { 
+        if (ev.target != this.backBtn) {
           return;
         }
         if (window.location.hash) {
           window.location.hash = '';
-        }          
+        }
         break;
       case 'load':
         this.iframe.contentWindow.addEventListener('keyup', this);
@@ -69,19 +69,19 @@ var UITest = {
         break;
       case 'transitionend':
         var name = this.getNameFromHash();
-        if (document.body.classList.contains('test')) {
-          // openTest
-          this.iframe.src = './tests/' + name + '.html';
-        } else {
-          // closeTest
+        if (!name)
           this.iframe.src = 'about:blank';
-        }
         break;
     }
   },
-  openTest: function ut_openTest() {
+  openTest: function ut_openTest(name) {
     document.body.classList.add('test');
-  },
+
+    var self = this;
+    window.setTimeout(function openTestPage() {
+      self.iframe.src = './tests/' + name + '.html';
+    }, 200);
+},
   closeTest: function ut_closeTest() {
     var isOpened = document.body.classList.contains('test');
     if (!isOpened)

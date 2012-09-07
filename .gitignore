@@ -2,6 +2,7 @@
 *.rej
 *.orig
 *.swp
+.svn
 *~
 manifest.appcache
 
@@ -20,6 +21,7 @@ manifest.appcache
 /showcase_apps/*/test/unit/_proxy.html
 
 /profile/
+/.xulrunner-url
 /xulrunner/
 /xulrunner-sdk/
 /tools/test-agent/node_modules
@@ -27,3 +29,5 @@ manifest.appcache
 /mocha-test-results.html
 /custom-prefs.js
 /local.mk
+
+/tools/xpcwindow/vendor/
