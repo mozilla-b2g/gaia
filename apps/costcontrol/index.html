@@ -17,39 +17,63 @@
   <link rel="stylesheet" type="text/css" href="style/bb/progress-activity/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/switches/style.css">
 
+  <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
+  <link rel="stylesheet" type="text/css" href="style/views/settings.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
+  <link rel="stylesheet" type="text/css" href="style/views/balance.css">
+  <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <script type="text/javascript" src="shared/js/l10n.js"></script>
 
   <!-- Specific code -->
-  <script type="text/javascript" src="js/settings_listener.js"></script>
-  <script type="text/javascript" src="js/debug.js"></script>
-  <script type="text/javascript" src="js/service_utils.js"></script>
-  <script type="text/javascript" defer src="js/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/cost_control.js"></script>
+  <script type="text/javascript" src="js/utils/settings_listener.js"></script>
+  <script type="text/javascript" src="js/utils/local_settings.js"></script>
+  <script type="text/javascript" src="js/utils/debug.js"></script>
+
+  <script type="text/javascript" src="js/service/service_utils.js"></script>
+
+  <script type="text/javascript" defer src="js/views/view_manager.js"></script>
+  <script type="text/javascript" defer src="js/views/vmanagers.js"></script>
+  <script type="text/javascript" defer src="js/views/settings.js"></script>
+  <script type="text/javascript" defer src="js/views/balance.js"></script>
+  <script type="text/javascript" defer src="js/views/telephony.js"></script>
+  <script type="text/javascript" defer src="js/views/data_usage.js"></script>
+  <script type="text/javascript" defer src="js/app.js"></script>
 </head>
 
 <body role="application">
   <section role="region" class="window">
+    <!-- XXX: The order of sections is important (tabs should be place above
+    the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
 
-    <!-- The balance tab -->
-    <section role="region" id="balance-tab" class="view">
+    <!-- BALANCE TAB -->
+    <section role="region" id="balance-tab" class="view" data-viewport="behind">
       <header data-theme="organic">
         <menu type="toolbar">
-           <button><span class="icon config">configuration</span></button>
+           <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
         <h1 data-l10n-id="balance">Balance</h1>
       </header>
 
       <section class="content">
 
+        <!-- Top up countdown -->
+        <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
+          <p><span id="top-up-countdown">00:00</span> <span data-l10n-id="top-up-in-progress">Top Up in progress</span></p>
+        </div>
+
         <!-- Error messages -->
         <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
           <section id="on-roaming-message" aria-hidden="true">
-            <p data-l10n-id="on-roaming-message">Roaming - automatic balance update OFF. Additional charges may apply for update.</p>
+            <p data-l10n-id="on-roaming-message">Roaming: Automatic balance update OFF. Additional charges may apply for update.</p>
+          </section>
+          <section id="on-topup-not-confirmed" aria-hidden="true">
+            <p data-l10n-id="on-topup-not-confirmed-title">Top up not confirmed.</p>
+            <p data-l10n-id="on-topup-not-confirmed-message">Try updating your balance or retry Top up.</p>
           </section>
           <p id="balance-error-message" data-l10n-id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
         </div>
@@ -59,13 +83,13 @@
           <div class="start">
             <div id="cost-control-icon" class="icons">
                 <span class="warning"></span>
-                <progress class="spinner"></progress>
+                <progress></progress>
             </div>
 
             <time id="balance-tab-time"></time>
           </div>
           <div class="end">
-            <p><span id="balance-tab-currency"></span><span id="balance-tab-credit"></span></p>
+            <p><span id="balance-tab-currency"></span>&nbsp;<span id="balance-tab-credit"></span></p>
           </div>
         </div>
 
@@ -73,7 +97,7 @@
         <div class="buttons-list">
           <button id="balance-tab-update-button" data-l10n-id="update-button">
             <span class="end reload"></span>
-            Update
+            Update balance
           </button>
           <button id="balance-tab-topup-button" data-l10n-id="topup-button">
             <span class="end topup"></span>
@@ -81,61 +105,276 @@
           </button>
         </div>
       </section>
+    </section>
 
+    <!-- TELEPHONY TAB -->
+    <section role="region" id="telephony-tab" class="view" data-viewport="behind">
+       <header data-theme="organic">
+        <menu type="toolbar">
+           <button class="settings-button"><span class="icon config">configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="phoneactivity">Phone activity</h1>
+      </header>
+      <section class="settings">
+        <ul>
+          <li>
+            <p><span id="telephony-from-date"></span> – <span id="telephony-to-date"></span></p>
+            <dl>
+              <dt data-l10n-id="call-made">Call made</dt>
+              <dd><span id="calltime">50</span> <sub>min</sub></dd>
+              <dt data-l10n-id="sms-sent">SMS Sent</dt>
+              <dd><span id="smscount">30</span> <sub>SMS</sub></dd>
+            </dl>
+          </li>
+          <li>
+            <strong>26 <sub>Dec</sub></strong>
+            <p>Billing cycle ends</p>
+            <span class="meta">Tracking will reset on this date</span>
+          </li>
+        </ul>
+      </section>
     </section>
 
     <!-- The top up input -->
     <section role="region" id="topup-view" class="view topup" data-viewport="bottom">
       <header data-theme="organic">
         <menu type="toolbar">
-           <button id="topup-send-button">Done</button>
+           <button id="topup-send-button" data-l10n-id="send">Send</button>
         </menu>
-        <a href="#left-panel"><span id="topup-close-button" class="icon icon-close">close</span></a>
+        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
         <h1 data-l10n-id="top-up">Top Up</h1>
       </header>
       <section class="content">
         <div class="info">
           <h2 data-l10n-id="enter-top-up-code">Enter the top up code</h2>
           <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
-          <p id="topup-confirmation-explanation" aria-hidden="true" data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
           <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Last entered code was incorrect. Please, try again.</p>
           <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error">Sorry, we couldn't top up at this moment.</p>
-          <progress data-theme='dark' id="topup-in-progress" aria-hidden="true"></progress>
+          <section class="loading">
+            <progress id="topup-in-progress" aria-hidden="true"></progress>
+            <p id="topup-confirmation-explanation" aria-hidden="true" data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
+          </section>
         </div>
       </section>
       <form>
-        <input id="topup-code-input" type="number"></input>
+        <input id="topup-code-input" type="number" autofocus></input>
       </form>
     </section>
 
     <!-- Dialog for service unavailable -->
-    <section role="dialog" class="view" data-viewport="inside" id="application-error-info-dialog">
+    <section role="dialog" class="view" data-viewport="bottom" id="application-error-info-dialog">
       <div class="center">
         <h3 data-l10n-id="application-error-title">Service unavailable</h3>
         <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-info-button">Ok</button>
+        <button data-l10n-id="ok" class="close-dialog">Ok</button>
       </menu>
     </section>
 
     <!-- Dialog for application error -->
-    <section role="dialog" class="view" data-viewport="inside" id="service-unavailable-info-dialog">
+    <section role="dialog" class="view" data-viewport="bottom" id="service-unavailable-info-dialog">
       <div class="center">
         <h3 data-l10n-id="service-unavailable-title">Service unavailable</h3>
         <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="close-info-button">Ok</button>
+        <button data-l10n-id="ok" class="close-dialog">Ok</button>
+      </menu>
+    </section>
+
+    <!-- DATA USAGE TAB -->
+    <section id="datausage-tab" role="region" class="view" data-viewport="behind">
+      <header data-theme="organic">
+        <menu type="toolbar">
+           <button class="settings-button"><span class="icon config">configuration</span></button>
+        </menu>
+        <h1 data-l10n-id="settings">Data usage</h1>
+      </header>
+
+      <div class="view-scroll">
+        <section class="content">
+          <ul class="toggle-data">
+            <li id="toggleMobile">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span>3G <em id="mobileOverview">--</em></span>
+              </label>
+            </li>
+            <li id="toggleWifi">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span>WIFI <em id="wifiOverview">--</em></span>
+              </label>
+            </li>
+          </ul>
+
+          <section class="graph">
+            <canvas id="wifiGraphCanvas" aria-hidden="false"></canvas>
+            <canvas id="mobileGraphCanvas" aria-hidden="false"></canvas>
+         </section>
+        </section>
+
+        <section class="settings">
+          <header>
+            <h1>Apps by Data use</h2>
+            <p>WIFI only</p>
+          </header>
+          <ul>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">203MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.8<sub>GB</sub></em>
+                <span class="consumption">
+                  <progress max="100" value="100" class="mobile" style="width: 45%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">103MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.75<sub>GB</sub></em>
+                <span class="consumption" style="width: 90%">
+                  <progress max="100" value="100" class="mobile" style="width: 22%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+            <li>
+              <label class="end toggle">
+                <input type="checkbox">
+                <span></span>
+              </label>
+              <img>
+              <p>
+                <strong>
+                  <span class="mobile">45MB</span>
+                  <span class="wifi">647MB</span>
+                </strong>
+                <em>0.7<sub>GB</sub></em>
+                <span class="consumption" style="width: 80%">
+                  <progress max="100" value="100" class="mobile" style="width: 8%"></progress>
+                  <progress max="100" value="100" class="wifi max"></progress>
+                </span>
+              </p>
+            </li>
+          </ul>
+        </section>
+      </div>
+    </section>
+
+    <!-- SETTINGS VIEW -->
+    <section id="settings-view" role="region" class="view" data-viewport="bottom">
+      <header data-theme="organic">
+        <a id="close-settings"><span id="topup-close-button" class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <section role="region" class="buttons-list">
+        <button id="settings-view-plantype-setup">
+          <span class="end launch"></span>
+          <span class="tag">Prepaid</span>
+        </button>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Balance</p>
+        </header>
+        <ul>
+          <li>
+              <p>R$ 23.65</p>
+              <time>Today, 15:32</time>
+          </li>
+          <li>
+            <label class="end toggle">
+              <input type="checkbox" checked="checked">
+              <span></span>
+            </label>
+            <p>Low Balance alert</p>
+          </li>
+          <li>
+            <label class="end">
+              R$
+              <input type="number">
+            </label>
+            <p>Alert me when I’m under</p>
+          </li>
+        </ul>
+      </section>
+
+      <section role="region" data-theme="organic" class="settings">
+        <header aria-level="2">
+          <p>Data usage</p>
+        </header>
+        <ul>
+          <li>
+              <div class="end buttons-list">
+                <button>Reset</button>
+              </div>
+              <p>50MB</p>
+              <time>27 Nov - Today, 15:32</time>
+          </li>
+          <li>
+            <div class="end buttons-list">
+              <button>
+                <span class="end launch"></span>
+                Monthly
+              </button>
+            </div>
+            <p>Reset tracking</p>
+          </li>
+        </ul>
+      </section>
+    </section>
+
+    <!-- Plan setup dialog -->
+    <section role="dialog" class="view" data-viewport="bottom" id="plantype-setup-dialog">
+      <div class="center">
+        <h3 data-l10n-id="plantype-setup-title">My phone and internet plan is</h3>
+        <ul role="listbox">
+          <li>
+            <label>
+              <input type="radio" name="plantype-option" checked="checked" value="prepaid">
+              <span data-l10n-id="prepaid">Prepaid</span>
+            </label>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="plantype-option" value="postpaid">
+              <span data-l10n-id="postpaid">Postpaid</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      <menu data-items="1">
+        <button data-l10n-id="ok" class="close-settings-dialog">Ok</button>
       </menu>
     </section>
 
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
     <ul role="tablist" class="filter" data-items="2" data-position="bottom">
-      <li aria-selected="true"><a role="tab" href="#balance" data-l10n-id="balance">Balance</a></li>
-      <li><a role="tab" href="#datausage" data-l10n-id="data-usage">Data usage</a></li>
+      <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance" href="#">Balance</a></li>
+      <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony" href="#">Telephony</a></li>
+      <li id="datausage-tab-filter"><a role="tab" data-l10n-id="data-usage" href="#">Data usage</a></li>
     </ul>
   </section>
 </body>
 </html>
-
