@@ -522,6 +522,7 @@ var Browser = {
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
     this.bookmarkMenu.classList.remove('hidden');
+    this.tabsBadge.style.display = 'none'; // Hack until tabsBadge refactored
     if (!this.currentTab.url)
       return;
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
@@ -538,6 +539,7 @@ var Browser = {
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
+    this.tabsBadge.style.display = 'block'; // Hack until tabsBadge refactored
     this.bookmarkMenu.classList.add('hidden');
   },
 
