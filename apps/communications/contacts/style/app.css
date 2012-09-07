@@ -1,0 +1,1158 @@
+/* ROOT */
+/* Hidden elements */
+.hide, [data-template] {
+  display: none !important;
+}
+
+
+/* Global */
+html, body {
+  height: 100%;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  font: 1.6rem/2.2rem Open Sans, Sans-serif;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Text conventions */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  padding: 0;
+  font-weight: normal;
+}
+
+ul, ol, dl, dt, dd {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+}
+
+p, li {
+  -moz-hyphens: auto;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 0;
+}
+
+q {
+  quotes: none;
+  display: block;
+}
+
+pre, blockquote {
+  padding: 0;
+  margin: 0;
+}
+
+em {
+  font-style: italic;
+}
+
+address {
+  font-style: normal;
+  display: inline;
+}
+
+abbr, acronym {
+  cursor: default;
+  border: none;
+}
+
+strong {
+  font-family: Open Sans, Sans-serif;
+  font-weight: bold;
+}
+
+b {
+  font-family: Open Sans, Sans-serif;
+  font-weight: 600;
+}
+
+small {
+  font: 1.1rem/1rem Open Sans, Sans-serif;
+  color: #999;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  outline: none;
+  color: #ff4e00;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a img {
+  border: none;
+}
+
+a abbr {
+  cursor: pointer;
+}
+
+/* Icons */
+span[role="button"] {
+  font-style: normal;
+}
+
+span[role="button"] + b, span[role="button"] + span {
+  vertical-align: middle;
+}
+
+/* Tables */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+td {
+  vertical-align: top;
+}
+
+caption, th {
+  text-align: left;
+}
+
+caption {
+  text-indent: -9999rem;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Forms */
+form {
+  margin: 0;
+}
+
+fieldset {
+  margin: 2rem 0 0 0;
+  padding: 0;
+  border: none;
+}
+fieldset.first {
+  margin: 0;
+}
+
+legend {
+  padding: 0;
+  display: block;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  font: 0/0 a;
+}
+
+
+button {
+  height: auto;
+  width: auto;
+  overflow: visible;
+  display: inline-block;
+  vertical-align: middle;
+  background: none;
+  border: none;
+  outline: none;
+  font: 1.1rem/1.3rem Open Sans, Sans-serif;
+  color: #666;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: none;
+}
+
+input, textarea, select, button {
+  margin: 0;
+  padding: 0;
+  vertical-align: middle;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+}
+
+textarea {
+  resize: none;
+  overflow: auto;
+  height: 4.6rem;
+}
+
+input[type="text"], textarea {
+  font: 1.3rem/4rem Open Sans, Sans-serif;
+  font-weight: 600;
+}
+
+input[type="text"]:focus, textarea:focus {
+  border-color: #7a7a7a;
+}
+
+[contenteditable] {
+  outline: none;
+  word-wrap: break-word;
+}
+
+/* Media */
+img {
+  display: block;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+img:-moz-broken {
+  line-height: 1.1rem;
+  overflow: hidden;
+}
+
+/* HTML 5 */
+article, aside, details, figcaption, figure, footer, header, hgroup,
+menu, nav, section, video, audio, canvas, progress, meter, time {
+  display: block;
+  padding: 0;
+  margin: 0;
+}
+
+/* APP */
+/* view */
+.view, .cache, .views {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.view[data-state="active"], .cache[data-state="active"] {
+  z-index: 100;
+}
+
+.cache {
+  pointer-events: none;
+}
+
+.cache .view {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  -moz-transition: all 0.5s ease;
+  position: fixed;
+}
+
+.view-right {
+  -moz-transform: translateX(100%);
+}
+
+.view-left {
+  -moz-transform: translateX(-100%);
+}
+
+.view-top {
+  -moz-transform: translateY(-100%);
+}
+
+.view-bottom {
+  -moz-transform: translateY(100%);
+}
+
+.view-inner {
+  width: 100%;
+  height: 100%;
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Header */
+.view-header {
+  position: relative;
+  z-index: 10;
+  height: 5rem;
+  color: #fff;
+  background: #cd6623 url(/contacts/style/gphx/bitmap/default/vw-header/ui/header.png) repeat-x left bottom;
+  /* Using Images so far, but we will use gradients */
+  /*background-image: -moz-linear-gradient(top, #cd6723, #bb492d);*/
+  /*box-shadow: inset 0 -1px 0 0 rgba(0, 0, 0, 0.25), 0 2px 4px -4px rgba(0, 0, 0, 0.99);*/
+}
+/* Box shadow with images */
+.view-header:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/ui/shadow-header.png) repeat-x left top;
+  top: 100%;
+  height: 0.5rem;
+}
+.view-header h1 {
+  font: 2.2rem/4.8rem Open Sans, Sans-serif;
+  text-align: left;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0 0 0 3rem;
+  height: 5rem;
+}
+.view-header sup {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center;
+  background-size: 100% auto;
+  width: 1.2rem;
+  height: 3.2rem;
+  vertical-align: text-top;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+  float: left;
+  top: 0;
+}
+.view-header h1 em {
+  font: 1.5rem/1em Open Sans, Sans-serif;
+  font-weight: bold;
+}
+
+.view-header form {
+  display: block;
+  overflow: hidden;
+  padding: 1.1rem 1.5rem;
+}
+
+.view-header label {
+  position: relative; display: block;
+}
+
+.view-header [role="textbox"] {
+  width: 100%;
+  height: 2.7rem;
+  -moz-box-sizing: border-box;
+  padding: 0 0.5rem;
+  border: solid 1px #9d4123;
+  border-top-color: #a6501e;
+  border-radius: 0.3rem;
+  background: #fff url(/contacts/style/gphx/bitmap/default/vw-header/ui/shadow-header.png) repeat-x left -1px;
+  /*box-shadow: inset 0 2px 1px -1px rgba(0, 0, 0, 0.3);*/
+  font: 1.2rem/1em Open Sans, Sans-serif;
+}
+.view-header form .clear {
+  text-indent: 100%;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3rem;
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/clear.png) no-repeat center center;
+}
+
+
+/* Negative action (back, cancel, etc) */
+.view-header .negative {
+  position: absolute;
+  left: 0;
+  width: 4rem;
+  height: 5rem;
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/ui/separator-large.png) no-repeat 2rem center;
+  overflow: visible;
+}
+.view-header .negative [data-icon] {
+  overflow: visible;
+  text-indent: -9999px;
+  position: static;
+  margin-left: -3rem;
+}
+.view-header .negative [data-icon]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 2rem;
+  height: 5rem;
+  background: #9d3d26 url(/contacts/style/gphx/bitmap/default/vw-header/ui/negative.png) repeat-x left top;
+}
+
+/* Icon redefinition in header */
+.view-header .negative [data-icon="menu"] {
+  background-position: -0.6rem center;
+}
+
+/* Generic set of actions in toolbar */
+.view-header [role="menu"] {
+  height: 5rem; float: right;
+}
+
+.view-header [role="menuitem"] {
+  height: 5rem; float: left;
+}
+
+.view-header [role="menuitem"]:disabled {
+  opacity: 0.5;
+}
+
+.view-header [role="menuitem"]:first-child {
+  background: none; padding: 0 1.5rem;
+}
+
+.view-header [role="menuitem"],
+.view-header [role="menuitem"]:last-child {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/ui/separator.png) no-repeat left center;
+  padding: 0 1.5rem;
+}
+
+.view-header menu {
+  padding: 0;
+  margin: 0;
+}
+
+.view-header button {
+  border: none;
+  background: none;
+  padding: 0;
+  overflow: hidden;
+  font: 1.4rem/1.1em Open Sans, Sans-serif;
+  font-weight: 600;
+  color: #fff;
+}
+
+.view-header button:first-letter {
+  text-transform: uppercase;
+}
+
+/* Icon definitions */
+.view-header [data-icon] {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.view-header [data-icon="add"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/add.png);
+}
+
+.view-header [data-icon="edit"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/edit.png);
+}
+
+.view-header [data-icon="close"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/close.png);
+}
+
+.view-header [data-icon="back"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/back.png);
+}
+
+.view-header [data-icon="menu"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/menu.png);
+}
+
+.view-header [data-icon="user"] {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/user.png);
+}
+
+/* Body */
+.view-body {
+  position: relative;
+  -moz-box-flex: 1;
+  height: 0;
+}
+
+.view-body-inner {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 5;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  padding: 1.4rem 2rem;
+  background: #f4f4f4;
+  color: #333;
+  text-align: left;
+}
+
+/* Removes scroll from the view body inner */
+.view-noscroll .view-body-inner {
+  width: -moz-calc(100% + 0.8rem);
+}
+
+/* jumper: Goes directly to some point of a scrollable area */
+.view-jumper {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 1rem;
+  z-index: 10;
+}
+
+.view-jumper:active .view-jumper-inner, .view-jumper.active .view-jumper-inner  {
+  background: #999;
+}
+
+.view-jumper-current {
+  position: absolute;
+  right: 4rem;
+  top: 30%;
+  z-index: 100;
+  width: 10.5rem;
+  height: 10.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  font: 400 6rem/10.5rem Open Sans, Sans-serif;
+  color: #fff;
+  text-align: center;
+  -moz-transition: opacity;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.view-jumper-inner {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  padding: 0.3rem 0;
+  border-radius: 4rem;
+  opacity: 0.6;
+}
+
+.view-jumper li {
+  font-size: 1.1rem;
+  line-height: 1.25em;
+  text-align: center;
+  text-transform: uppercase;
+  -moz-box-flex: 1;
+  width: 4.5rem;
+}
+
+.view-jumper-inner a, .view-jumper-inner abbr {
+  display: block;
+  color: #333;
+  width: 100%;
+  text-indent: 1.5rem;
+}
+
+/* LAYOUT */
+/* ITEM: The smallest complete structure; */
+.item {
+  display: block;
+}
+
+.item:before, .item:after {
+  content: "";
+  display: table;
+}
+
+.item:after {
+  clear: both;
+}
+
+.item-media {
+  float: left;
+  margin-right: 1rem;
+}
+
+.item-media.pull-right {
+  margin-left: 1rem;
+  margin-right: 0;
+}
+
+.item-body {
+  display: table;
+}
+
+.item-body-exp {
+  display: block;
+  overflow: hidden;
+}
+
+/* PULLS: Float an element to the desired position; */
+.pull-right {
+  float: right;
+}
+
+.pull-left {
+  float: left;
+}
+
+/* STACK: inline block list items; */
+.stack {
+  letter-spacing: -0.4rem;
+  text-align: center;
+}
+
+.stack > li {
+  display: inline-block;
+  vertical-align: middle;
+  letter-spacing: 0;
+}
+
+/* ICONS */
+span[role="button"] {
+  display: inline-block;
+  vertical-align: middle;
+  width: 2.8rem;
+  height: 2.8rem;
+  font: 0/0 a;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+}
+
+
+/* header */
+span[role="button"].icon-back {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/back.png);
+  width: 1.1rem;
+  height: 2.7rem;
+}
+
+span[role="button"].icon-add {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/add.png);
+  width: 1.6rem;
+  height: 1.6rem;
+}
+
+span[role="button"].icon-edit {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/edit.png);
+  width: 1.9rem;
+  height: 2rem;
+}
+
+span[role="button"].icon-finish {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+span[role="button"].icon-fav {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+
+/* jumper */
+span[role="button"].icon-fav-dark {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/fav.png);
+  width: 1.2rem;
+  height: 1.1rem;
+}
+
+span[role="button"].icon-search {
+  background-image: url(/contacts/style/gphx/bitmap/default/vw-jumper/search.png);
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+span[role="button"].icon-fav-color {
+  background-image: url(/contacts/style/gphx/bitmap/default/block-list/fav.png);
+  width: 2rem;
+  height: 2rem;
+}
+
+/* selection list */
+span[role="button"].icon-selected {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* tabs */
+span[role="button"].icon-profile {
+  background-color: rgba(255, 255, 255, 0.5)
+}
+
+/* navigation */
+span[role="button"].icon-log {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-contacts {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-messages {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+span[role="button"].icon-grid {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* GENERIC BUTTONS */
+span[role="button"].icon-delete {
+  background-image: url(/contacts/style/gphx/bitmap/default/forms/delete.png);
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+span[role="button"].icon-addimage {
+  background-image: url(/contacts/style/gphx/bitmap/default/forms/add.png);
+  width: 2.8rem;
+  height: 2.8rem;
+}
+
+span[role="button"].icon-call {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/call.png);
+}
+
+span[role="button"].icon-message {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/sms.png);
+}
+
+span[role="button"].icon-email {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
+}
+
+span[role="button"].icon-address {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
+}
+
+
+/* arrows */
+span[role="button"].icon-arrow {
+  border: solid 0.4rem transparent;
+  width: 0;
+  height: 0;
+}
+
+span[role="button"].icon-arrow.icon-arrow-top {
+  margin-top: -0.4rem;
+  border-bottom-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-bottom {
+  margin-top: 0.4rem;
+  border-top-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-left {
+  margin-right: 0.4rem;
+  border-right-color: #333;
+}
+
+span[role="button"].icon-arrow.icon-arrow-right {
+  margin-left: 0.4rem;
+  border-left-color: #333;
+}
+
+/* BUTTONS */
+
+.action {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 4rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -moz-box-sizing: border-box;
+  font-size: 1.4rem;
+  color: #333;
+  text-align: left;
+  border-radius: 0.4rem;
+  border: solid 1px #c8c8c8;
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+}
+
+.action:hover {
+  text-decoration: none;
+}
+
+.action:active {
+  border-color: #7a7a7a;
+}
+
+.action span[role="button"] {
+  margin-right: 0.5rem;
+  margin-left: 0.5rem;
+}
+
+.action b, .action em {
+  vertical-align: middle;
+  margin: 0 0.5rem;
+}
+
+.action em {
+  color: #727272;
+  font-style: normal;
+}
+
+.action b + em, .action span[role="button"] + b {
+  margin-left: 0;
+}
+
+/* Block type (long text) */
+.action-block {
+  height: auto;
+  min-height: 4rem;
+  word-wrap: normal;
+}
+.action-block span[role="button"] {
+  float: left;
+  display: inline;
+}
+.action-block b {
+  display: block;
+  overflow: hidden;
+  line-height: 1.4em;
+}
+.action-block span {
+  display: block;
+}
+
+/* Add style */
+.action-add {
+  background: -moz-linear-gradient(bottom, #ccc, #fafafa);
+  border: solid 1px #bcbcbc;
+  box-shadow: none;
+  color: #333;
+  text-align: left;
+  padding-left: 1rem;
+}
+.action-add span.icon-add[role="button"] {
+  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
+}
+
+.action-add:active {
+  background: -moz-linear-gradient(bottom, #fafafa, #ccc);
+}
+
+/* Remove/delete style */
+.action-delete {
+  color: #fff;
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+  padding-left: 0.8rem;
+}
+
+/* FORMS */
+
+/* TEXTFIELD: we use a classname to avoid redefine with type=mail, type=number, type=text, etc...; */
+.textfield {
+  font: 1.3rem/4rem Open Sans, Sans-serif;
+  font-weight: 600;
+  border-radius: 0.3rem;
+  border: solid 1px #c8c8c8;
+  width: 100%;
+  height: 4rem;
+  padding: 0 1rem;
+  -moz-box-sizing: border-box;
+}
+
+input:-moz-placeholder {
+  color: #5b5b5b;
+}
+
+.textfield:focus {
+  border-color: #7a7a7a;
+}
+
+textarea.textfield {
+  line-height: 1.3em;
+  padding-top: 0.8rem;
+  height: 12rem;
+  overflow: auto;
+}
+
+/* SETBOX: used for grouping inputs with data asociations; */
+.setbox {
+  background: #fff; border: solid 1px #c8c8c8; border-radius: 0.3rem; overflow: hidden;
+}
+
+.setbox-title {
+  float: left;
+  display: inline;
+  width: 9.3rem;
+  height: 100%;
+  min-height: 4rem;
+  padding: 0 0.5rem 0 1.4rem;
+  position: relative;
+  -moz-box-sizing: border-box;
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+  text-transform: uppercase;
+}
+
+.setbox-title label {
+  position: relative;
+  display: block;
+}
+
+.setbox-title input {
+  border: none;
+  background: none;
+  display: block;
+  width: 100%;
+  font-size: 1.2rem;
+  line-height: 1.6rem;
+  text-transform: uppercase;
+}
+
+.setbox-title a {
+  color: #333;
+}
+
+.setbox-title a, .setbox-title:before, .setbox-title label {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.setbox-title:before {
+  content: "";
+  width: 1px;
+  height: 100%;
+  min-height: 4rem;
+  margin-left: -0.44rem;
+}
+
+.setbox-icon {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+}
+
+.setbox .setbox-icon.icon-arrow[role="button"] {
+  margin-top: -0.2rem;
+}
+
+.setbox-body {
+  display: block;
+  overflow: hidden;
+  border-left: solid 1px #ddd;
+  border-radius: 0 0.3rem 0.3rem 0;
+}
+
+.setbox-item {
+  border-bottom: solid 1px #ddd;
+}
+
+.setbox-item:last-child {
+  border-bottom: none;
+}
+
+.setbox-body .textfield {
+  border: none;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+/* FILL FLOW: general components for helping in defining basic flows in forms; */
+.fill-flow {
+  padding-right: 0;
+}
+
+/* ROW: horizontal separation for elements; */
+.fillflow-row {
+  margin-bottom: 0.5rem;
+  position: relative;
+}
+
+/* ROW ACTION */
+.fillflow-row-action {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin: -1rem 0 0 0.5rem;
+}
+
+/* MEDIA: specific ratio used in forms; */
+.fillflow-media {
+  border: solid 1px #c8c8c8;
+  margin: 0 0.5rem 0.5rem 0;
+  width: 8.8rem;
+  height: 8.3rem;
+  position: relative;
+  background-color: #fff;
+  z-index: 0;
+}
+.fillflow-media p {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  z-index: -1;
+}
+
+.fillflow-media p em {
+  display: block;
+  color: #777;
+  font-size: 1.3rem;
+  font-weight: bold;
+  font-style: normal;
+  margin-top: 1rem;
+}
+
+.fillflow-media img {
+  width: 100%;
+  height: 100%;
+  background: #fff no-repeat center center;
+  background-size: 100% auto;
+}
+
+/* LISTS */
+
+/* BLOCK-LIST: vertical elements list */
+.block-list {
+  padding-left: 1rem;
+}
+.block-item {
+  border-bottom: solid 1px #dbdbdb;
+  min-height: 6rem;
+  position: relative;
+}
+
+.block-item:last-child {
+  border-bottom: none;
+}
+
+.block-item.search:last-child {
+  border-bottom: solid 1px #dbdbdb;
+}
+
+/* Base set-up */
+.block-title {
+  font-size: 1.8rem;
+  color: #ff5f19;
+  border-bottom: solid 1px #ff5f19;
+}
+
+.block-name {
+  font-size: 1.8rem;
+  font-family: Open Sans, Sans-serif;
+  color: #333;
+  display: block;
+  margin: 1.5rem 0 0;
+  font-weight: normal;
+}
+
+.block-company {
+  margin: 0px 0px 1.5rem;
+  font-size: 1.1/1.1rem;
+  color: #666;
+}
+
+.block-category {
+  font-size: 1.4rem;
+  line-height: 1em;
+  font-style: normal;
+  color: #666;
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.block-list .checkbox {
+  display: none;
+  pointer-events: all;
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  margin: -1.1rem 1.5rem 0 0;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+.block-list .checkbox * {
+  pointer-events: all;
+}
+
+.block-list [type="checkbox"] {
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 5;
+}
+
+.block-list .checkbox i {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  background: url("/contacts/style/gphx/bitmap/default/forms/check-default.png") no-repeat center top;
+  background-size: 100% auto;
+}
+
+.block-list [type="checkbox"]:checked + span[role="button"] {
+  background-position: center bottom;
+}
+
+
+/* Selection state */
+[data-state="selection"] .block-list {
+  padding-left: 1.9rem;
+}
+
+[data-state="selection"] .block-list .checkbox {
+  display: block;
+}
+
+/* Media crop */
+.block-media {
+  width: 6rem;
+  height: 6rem;
+  text-align: right;
+  overflow: hidden;
+}
+
+.block-media img {
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat center center;
+  background-size: 100% auto;
+}
+
+/* SELECTION-LIST:  Items to be selected and used in another view */
+.selection-list {
+  border-radius: 0.3rem;
+  border: solid 1px #c8c8c8;
+  overflow: hidden;
+}
+
+.selection-list, .selection-list + .textfield {
+  margin-bottom: 1rem;
+}
+
+.selection-list > li {
+  background: #fff;
+  border-bottom: solid 1px #c8c8c8;
+  font: 1.4rem/2.6em Open Sans, Sans-serif;
+  font-weight: 600;
+}
+
+.selection-list > li:last-child {
+  border-bottom: none;
+}
+
+.selection-list > li > a {
+  display: block;
+  color: #333;
+  position: relative;
+  padding:  0 0 0 1.8rem;
+  }
+
+/* This elements defines if the item is selected or not */
+.selection-list .slcl-state[role=button] {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  margin-top: -1.3rem;
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
+}
+

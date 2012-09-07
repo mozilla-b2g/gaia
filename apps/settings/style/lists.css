@@ -1,9 +1,9 @@
 /**
  * Setting panels
- * = full-size blocks, identified by a 'document' role
+ * = full-size blocks, identified by a 'region' role
  */
 
-[role=document] {
+[role=region] {
   position: absolute;
   top: 0;
   left: 0;
@@ -14,7 +14,8 @@
   background: url(images/document-bg.png);
 }
 
-/* list separators */
+/* transitions */
+
 [role=region] {
   transition: transform 0.5s ease;
   transform: translateX(100%);
@@ -32,27 +33,6 @@
 body.hidden #root {
   transform: none;
   transition: none;
-}
-
-/* Custom styles for building blogs */
-ul li > label:not([for]) {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-ul li > label:not([for]) > span {
-  left: auto;
-  right: 1rem;
-}
-
-ul li > label.switch {
-  position: absolute;
-  right: 1rem;
-  left: auto;
-  width: 6rem;
 }
 
 
@@ -77,14 +57,14 @@ ul li {
 }
 
 ul li > h3 {
-  font-size:1.6rem;
+  font-size: 1.6rem;
   font-weight: 400;
   margin: 0;
   padding: 1rem 3rem 5rem;
 }
 
 ul li > h3 + label:not([for]) {
-  top:2.5rem;
+  top: 2.5rem;
   height: calc(100% - 2.5rem);
 }
 
@@ -106,6 +86,20 @@ ul li > a {
   padding: 0 3rem;
 }
 
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li > label:not([for]) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+ul li > label:not([for]) > span,
+ul li > label:not([for]).switch > span {
+  left: auto;
+  right: 2rem;
+}
 
 /* text ellipsis */
 ul li > label + *,
@@ -127,24 +121,28 @@ ul li > small {
   color: #505859;
 }
 
-/* need for empty element like Bluetooth */
+/* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a {
   line-height: 44px;
 }
 
-ul li button, ul li a[role="button"] {
-	display: block;
-	margin: auto;
-	position: relative;
-	top: 1rem;
-	width: calc(100% - 2rem);
+ul li button, ul li a[role=button] {
+  display: block;
+  margin: auto;
+  position: relative;
+  top: 1rem;
+  font-size: 1em;
+  line-height: 1em;
+  width: calc(100% - 5rem);
+  height: calc(100% - 2rem);
 }
+
 
 /******************************************************************************
  * brightness level
  */
 
-[role="region"] label > progress {
+[role=region] label > progress {
   display: block;
   width: calc(100% - 6rem);
   height: 3rem;
@@ -211,6 +209,12 @@ ul li button, ul li a[role="button"] {
  */
 
 #wifi-networks span {
+  position: absolute;
+  display: block;
+  width: 60px;
+  height: 60px;
+  left: auto;
+  right: 2rem;
   -moz-border-top-colors:    transparent;
   -moz-border-right-colors:  transparent;
   -moz-border-bottom-colors: transparent;
@@ -236,8 +240,9 @@ ul li button, ul li a[role="button"] {
   background-image: url(images/wifi_scan.png);
 }
 
+
 /******************************************************************************
- * Bluetooth 
+ * Bluetooth
  */
 
 #bluetooth-enable-msg {
@@ -246,3 +251,4 @@ ul li button, ul li a[role="button"] {
   font-size: 0.65em;
   color: #505859;
 }
+
