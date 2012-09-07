@@ -21,7 +21,22 @@
  *    console.log('The value of key is:', value);
  *  });
  *
- * removeItem(), clear(), length(), and key() are similar.
+ * Note that unlike localStorage, asyncStorage does not allow you to store
+ * and retrieve values by setting and querying properties directly. You
+ * cannot just write asyncStorage.key; you have to explicitly call setItem()
+ * or getItem().
+ *
+ * removeItem(), clear(), length(), and key() are like the same-named
+ * methods of localStorage, but, like getItem() and setItem() they
+ * take a callback argument.
+ *
+ * The asynchronous nature of getItem() makes it tricky to retrieve
+ * multiple values. But unlike localStorage, asyncStorage does not
+ * require the values you store to be strings.  So if you need to save
+ * multiple values and want to retrieve them together, in a single
+ * asynchronous operation, just group the values into a single
+ * object. The properties of this object may not include DOM elements,
+ * but they may include things like Blobs and typed arrays.
  *
  * Unit tests are in apps/gallery/test/unit/asyncStorage_test.js
  */

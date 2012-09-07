@@ -34,6 +34,36 @@ suite('asyncStorage', function() {
     });
   });
 
+  test('set and get object values', function(done) {
+    var object = {
+      x: 1,
+      y: 'foo',
+      z: true
+    };
+
+    function runtest() {
+      var next = t.next();
+      yield asyncStorage.setItem('myobj', object, next);
+
+      yield asyncStorage.getItem('myobj', function(value) {
+        assert.equal(object.x, value.x);
+        assert.equal(object.y, value.y);
+        assert.equal(object.z, value.z);
+        next();
+      });
+
+      yield asyncStorage.removeItem('myobj', next);
+
+      yield asyncStorage.getItem('myobj', function(value) {
+        assert.equal(value, null);
+        next();
+      });
+
+      done();
+    }
+    runtest();
+  });
+
   test('clear, length, key', function(done) {
     asyncStorage.clear(function() {
       asyncStorage.length(function(len) {
