@@ -71,6 +71,8 @@ var AttentionScreen = {
         frame.setVisible(false);
       }
     }
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   close: function as_close(evt) {
@@ -101,6 +103,8 @@ var AttentionScreen = {
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
     window.focus();
+
+    this.dispatchEvent('attentionscreenhide');
   },
 
   show: function as_show() {
@@ -116,6 +120,8 @@ var AttentionScreen = {
         self.dispatchEvent('status-inactive');
       });
     });
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   // Invoked when we get a "home" event
@@ -135,6 +141,8 @@ var AttentionScreen = {
             attentionScreen.removeEventListener('transitionend', trWait);
             attentionScreen.classList.add('status-mode');
         });
+
+        this.dispatchEvent('attentionscreenhide');
       }
     }
   },
