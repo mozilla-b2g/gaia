@@ -702,7 +702,7 @@ var ThreadUI = {
       if (contact.length > 0) { // we have a contact
         var name = contact[0].name,
             phone = contact[0].tel[0],
-            carrierToShow = phone.carrier
+            carrierToShow = phone.carrier;
         // Check which of the contacts phone number we are using
         for (var i = 0; i < contact[0].tel.length; i++) {
           if (contact[0].tel[i].value == number) {
