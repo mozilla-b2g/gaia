@@ -49,7 +49,7 @@ var FixedHeader = (function FixedHeader() {
           fixedContainer.style.transform = 'translateY(0)';
           currentlyFixed = currentHeader;
           fixedContainer.textContent = currentHeader.textContent;
-          if (currentHeader.id == "group-favorites") {
+          if (currentHeader.id == 'group-favorites') {
             fixedContainer.innerHTML = currentHeader.innerHTML;
           }
         }
