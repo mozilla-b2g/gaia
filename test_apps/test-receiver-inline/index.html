@@ -21,6 +21,7 @@
       activityRequest = request;
 
       document.getElementById('button').disabled = '';
+      document.getElementById('cancelButton').disabled = '';
     };
 
     window.onload = function () {
@@ -51,10 +52,24 @@
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
       window.close();
     };
+
+    var cancel = function cancel() {
+      if (!activityRequest) {
+        alert('There are no any pending activity request.');
+        return;
+      }
+
+      activityRequest.postError('canceled');
+
+      // close app, currently useless,
+      // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
+      window.close();
+    };
     </script>
   </head>
   <body>
     <h1>Inline Web Activities receiver</h1>
     <button onclick="go()" disabled id="button">Send "Hello Back!"</button></p>
+    <button onclick="cancel()" disabled id="cancelButton">Cancel</button></p>
   </body>
 </html>
