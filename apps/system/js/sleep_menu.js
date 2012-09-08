@@ -40,7 +40,6 @@ var SleepMenu = {
   // Generate items
   generateItems: function sm_generateItems() {
     var items = [];
-    var settings = window.navigator.mozSettings;
     var _ = navigator.mozL10n.get;
     var options = {
       airplane: {
@@ -156,12 +155,13 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
 
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({
-            'ril.radio.disabled': !this.isFlightModeEnabled
-          });
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'ril.radio.disabled': !this.isFlightModeEnabled
+        });
+
         break;
 
       // About silent and silentOff
@@ -172,29 +172,47 @@ var SleepMenu = {
       //   * Turn on ringtone no matter if ring is on or off
       //   * for sms and incoming calls.
       case 'silent':
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({'phone.ring.incoming': false});
-          settings.getLock().set({'sms.ring.received': false});
-          this.isSilentModeEnabled = true;
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'phone.ring.incoming': false
+        });
+        SettingsListener.getSettingsLock().set({
+          'sms.ring.received': false
+        });
+        this.isSilentModeEnabled = true;
+
         break;
 
       case 'silentOff':
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({'phone.ring.incoming': true});
-          settings.getLock().set({'sms.ring.received': true});
-          this.isSilentModeEnabled = false;
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'phone.ring.incoming': true
+        });
+        SettingsListener.getSettingsLock().set({
+          'sms.ring.received': true
+        });
+        this.isSilentModeEnabled = false;
+
         break;
 
       case 'restart':
-        navigator.mozPower.reboot();
+        var power = navigator.mozPower;
+        if (!power)
+          return;
+
+        power.reboot();
         break;
 
       case 'power':
-        navigator.mozPower.powerOff();
+        var power = navigator.mozPower;
+        if (!power)
+          return;
+
+        power.powerOff();
         break;
     }
   }
