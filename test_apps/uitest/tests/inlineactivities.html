@@ -31,17 +31,13 @@
       );
 
       a.onsuccess = function () {
-        // XXX: escape the first callback where we don't get the result.
-        if (!this.result.text)
-          return;
-
         reopenApp();
         document.getElementById('result').textContent = this.result.text;
       };
 
       a.onerror = function() {
         reopenApp();
-        alert('Activity failed on the requester end.');
+        document.getElementById('result').textContent = '(canceled)';
       };
     };
     </script>

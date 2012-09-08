@@ -13,7 +13,8 @@
       "filters": {
         "type": "inline"
        },
-      "disposition": "inline"
+      "disposition": "inline",
+      "returnValue": true
     }
   },
   "icons": {
