@@ -47,6 +47,7 @@
         type: 'inline',
         text: 'Hello back!'
       });
+      activityRequest = null;
 
       // close app, currently useless,
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
@@ -60,6 +61,7 @@
       }
 
       activityRequest.postError('canceled');
+      activityRequest = null;
 
       // close app, currently useless,
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
@@ -73,6 +75,7 @@
         return;
 
       activityRequest.postError('canceled');
+      activityRequest = null;
     });
 
     </script>
