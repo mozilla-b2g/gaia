@@ -127,7 +127,7 @@ hr {
 }
 
 /* Favorites handling */
-#group-favorites abbr {
+#group-favorites abbr, .fixed-title abbr {
   background: url(gphx/bitmap/default/lists/favorites.png);
   display: block;
   background-size: 100% auto;
