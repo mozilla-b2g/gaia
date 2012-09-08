@@ -70,13 +70,13 @@
       "filters": {
         "type": "url"
       },
-      "launch_path": "/index.html"
+      "href": "/index.html"
     },
     "view": {
       "filters": {
         "type": "application/x-application-list"
       },
-      "launch_path": "/index.html"
+      "href": "/index.html"
     }
   }
 }
