@@ -40,7 +40,6 @@ var SleepMenu = {
   // Generate items
   generateItems: function sm_generateItems() {
     var items = [];
-    var settings = window.navigator.mozSettings;
     var _ = navigator.mozL10n.get;
     var options = {
       airplane: {
@@ -156,7 +155,7 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
 
-        if (window.navigator.mozSettings)
+        if (!window.navigator.mozSettings)
           return;
 
         SettingsListener.getSettingsLock().set({
@@ -173,7 +172,7 @@ var SleepMenu = {
       //   * Turn on ringtone no matter if ring is on or off
       //   * for sms and incoming calls.
       case 'silent':
-        if (window.navigator.mozSettings)
+        if (!window.navigator.mozSettings)
           return;
 
         SettingsListener.getSettingsLock().set({
@@ -187,7 +186,7 @@ var SleepMenu = {
         break;
 
       case 'silentOff':
-        if (window.navigator.mozSettings)
+        if (!window.navigator.mozSettings)
           return;
 
         SettingsListener.getSettingsLock().set({
