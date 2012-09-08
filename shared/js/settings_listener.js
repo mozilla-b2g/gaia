@@ -29,15 +29,7 @@ var SettingsListener = {
     // If there isn't we return one.
     var settings = window.navigator.mozSettings;
 
-    // Once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=788561
-    // lands, we should get rid of `getLock()` call below.
-    if (settings.createLock) {
-      this._lock = settings.createLock();
-    } else {
-      this._lock = settings.getLock();
-    }
-    return this._lock;
+    return (this._lock = settings.createLock());
   },
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;

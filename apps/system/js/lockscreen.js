@@ -868,11 +868,10 @@ var LockScreen = {
   },
 
   writeSetting: function ls_writeSetting(value) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
-    settings.getLock().set({
+    SettingsListener.getSettingsLock().set({
       'lockscreen.locked': value
     });
   }
