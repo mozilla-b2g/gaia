@@ -65,6 +65,16 @@
       // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
       window.close();
     };
+
+    // When the app is being closed or killed, we will cancel the pending
+    // request.
+    document.addEventListener('mozvisibilitychange', function visibility(e) {
+      if (!document.mozHidden || !activityRequest)
+        return;
+
+      activityRequest.postError('canceled');
+    });
+
     </script>
   </head>
   <body>
