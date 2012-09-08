@@ -1492,8 +1492,9 @@ RequestReader.prototype =
   _findPropertiesPath: function(oldPath, appName, appPath) {
     var parts = oldPath.split(".");
     var localeCode = parts[parts.length - 2];
-    var path = ('/' + GAIA_LOCALES_PATH + '/' + localeCode + appPath + '/' +
-                appName + '.properties');
+    var path = ('/' + GAIA_LOCALES_PATH + '/' + localeCode + '/gaia' + 
+                appPath + '/' + appName + '.properties');
+    dumpn(path)
     var file = this._connection.server._handler._getFileForPath(path);
     if (file.exists() && file.isFile())
       return path;
