@@ -41,8 +41,11 @@ suite('asyncStorage', function() {
       z: true
     };
 
-    function runtest() {
-      var next = t.next();
+    function next() {
+      generator.next();
+    }
+
+    var generator = (function() {
       yield asyncStorage.setItem('myobj', object, next);
 
       yield asyncStorage.getItem('myobj', function(value) {
@@ -56,12 +59,10 @@ suite('asyncStorage', function() {
 
       yield asyncStorage.getItem('myobj', function(value) {
         assert.equal(value, null);
-        next();
+        done();
       });
-
-      done();
-    }
-    runtest();
+    }());
+    next();
   });
 
   test('clear, length, key', function(done) {
