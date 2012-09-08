@@ -64,6 +64,9 @@ var WindowManager = (function() {
   // that's the question.
   var useScreenshotInSprite = false;
 
+  // keep the reference of inline activity frame here
+  var inlineActivityFrame = null;
+
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
@@ -147,6 +150,21 @@ var WindowManager = (function() {
 
     frame.style.height =
       dialogOverlay.style.height = cssHeight;
+
+    setInlineActivityFrameSize();
+  }
+
+  // Copy the dimension of the currently displayed app
+  function setInlineActivityFrameSize() {
+    if (!inlineActivityFrame)
+      return;
+
+    var app = runningApps[displayedApp];
+    var appFrame = app.frame;
+    var frame = inlineActivityFrame;
+
+    frame.style.width = appFrame.style.width;
+    frame.style.height = appFrame.style.height;
   }
 
   var openFrame = null;
@@ -440,13 +458,15 @@ var WindowManager = (function() {
   }
 
   // Switch to a different app
-  function setDisplayedApp(origin, callback, disposition) {
+  function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-    disposition = disposition || 'window';
 
     // Returns the frame reference of the home screen app.
     // Restarts the homescreen app if it was killed in the background.
     var homescreenFrame = ensureHomescreen();
+
+    // Discard any existing activity
+    stopInlineActivity();
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -547,12 +567,10 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
-  function appendFrame(origin, url, name, manifest, manifestURL) {
+  function createFrame(origin, url, name, manifest, manifestURL) {
     var frame = document.createElement('iframe');
-    frame.id = 'appframe' + nextAppId++;
-    frame.className = 'appWindow';
     frame.setAttribute('mozallowfullscreen', 'true');
-    frame.dataset.frameType = 'window';
+    frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
     frame.src = url;
 
@@ -611,6 +629,15 @@ var WindowManager = (function() {
       console.info('%%%%% Launching', name, 'as local');
     }
 
+    return frame;
+  }
+
+  function appendFrame(origin, url, name, manifest, manifestURL) {
+    // Create the <iframe mozbrowser mozapp> that hosts the app
+    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    frame.id = 'appframe' + nextAppId++;
+    frame.dataset.frameType = 'window';
+
     // Add the iframe to the document
     windows.appendChild(frame);
 
@@ -625,12 +652,69 @@ var WindowManager = (function() {
     numRunningApps++;
   }
 
+  function startInlineActivity(origin, url, name, manifest, manifestURL) {
+    // Create the <iframe mozbrowser mozapp> that hosts the app
+    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    frame.classList.add('inlineActivity');
+    frame.dataset.frameType = 'inline-activity';
+    frame.addEventListener('mozbrowserfirstpaint', function painted() {
+      frame.removeEventListener('mozbrowserfirstpaint', painted);
+      frame.classList.add('active');
+      screenElement.classList.add('inline-activity');
+    });
+
+    // Discard any existing activity
+    stopInlineActivity();
+
+    // Save the reference
+    inlineActivityFrame = frame;
+
+    // Set the size
+    setInlineActivityFrameSize();
+
+    // Add the iframe to the document
+    windows.appendChild(frame);
+  }
+
   function removeFrame(origin) {
     var app = runningApps[origin];
     if (app.frame)
       windows.removeChild(app.frame);
     delete runningApps[origin];
     numRunningApps--;
+  }
+
+  function stopInlineActivity() {
+    if (!inlineActivityFrame)
+      return;
+
+    var frame = inlineActivityFrame;
+    inlineActivityFrame = null;
+
+    frame.classList.remove('active');
+    screenElement.classList.remove('inline-activity');
+
+    frame.addEventListener('transitionend', function frameTransitionend() {
+      frame.removeEventListener('transitionend', frameTransitionend);
+      windows.removeChild(frame);
+    });
+  }
+
+  // Start running the specified app.
+  // In order to have a nice smooth open animation,
+  // we don't actually set the iframe src property until
+  // the animation has completed.
+  function start(origin) {
+    if (isRunning(origin))
+      return;
+
+    var app = Applications.getByOrigin(origin);
+
+    // TODO: is the startPoint argument implemented?
+    // and is it passed back to us in the webapps-launch method?
+    // If so, we could use that to pass a query string or fragmentid
+    // to append to the apps' URL.
+    app.launch();
   }
 
   // There are two types of mozChromeEvent we need to handle
@@ -688,6 +772,16 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+        if (e.detail.isActivity && e.detail.target.disposition == 'inline') {
+          // Inline activities behaves more like a dialog,
+          // let's deal them here.
+
+          startInlineActivity(origin, e.detail.url,
+                              name, app.manifest, app.manifestURL);
+
+          return;
+        }
+
         if (isRunning(origin)) {
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
@@ -724,28 +818,36 @@ var WindowManager = (function() {
         }
 
         // We will only bring web activity handling apps to the foreground
-        // (either disposition: inline or disposition: window)
         if (!e.detail.isActivity)
           return;
 
-        var disposition = e.detail.target.disposition || 'window';
-        if (disposition == 'window')
-          UtilityTray.hide();
+        // XXX: the correct way would be for UtilityTray to close itself
+        // when there is a appwillopen/appopen event.
+        UtilityTray.hide();
 
-        setDisplayedApp(origin, null, disposition);
+        setDisplayedApp(origin);
 
         break;
     }
   });
 
   // If the application tried to close themselves by calling window.close()
-  // we will handle that here
+  // we will handle that here.
+  // XXX: currently broken, see
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=789392
   window.addEventListener('mozbrowserclose', function(e) {
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in e.target.dataset)
       return;
 
-    kill(e.target.dataset.frameOrigin);
+    switch (e.target.dataset.frameType) {
+      case 'window':
+        kill(e.target.dataset.frameOrigin);
+        break;
+
+      case 'inline-activity':
+        stopInlineActivity();
+        break;
+    }
   });
 
   // If there is a new application coming in, we should switch to
@@ -764,9 +866,17 @@ var WindowManager = (function() {
 
   // Deal with crashed apps
   window.addEventListener('mozbrowsererror', function(e) {
-    if (!'frameType' in e.target.dataset ||
-        e.target.dataset.frameType !== 'window')
+    if (!'frameType' in e.target.dataset)
       return;
+
+    if (e.target.dataset.frameType == 'inline-activity') {
+      stopInlineActivity();
+      return;
+    }
+
+    if (e.target.dataset.frameType !== 'window')
+      return;
+
     /*
       detail.type = error (Server Not Found case)
       is handled in Modal Dialog
