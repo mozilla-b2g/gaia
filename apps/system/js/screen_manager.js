@@ -276,10 +276,10 @@ var ScreenManager = {
       return;
     }
 
-    this.dim();
+    this.transitionBrightness();
   },
 
-  dim: function scm_dim() {
+  transitionBrightness: function scm_transitionBrightness() {
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
 
@@ -293,10 +293,11 @@ var ScreenManager = {
     screenBrightness += dalta;
     navigator.mozPower.screenBrightness = screenBrightness;
 
-    clearTimeout(this._dimTimer);
-    this._dimTimer = setTimeout(function() {
-      self.dim();
-    }, 10);
+    clearTimeout(this._transitionBrightnessTimer);
+    this._transitionBrightnessTimer =
+      setTimeout(function transitionBrightnessTimeout() {
+        self.transitionBrightness();
+      }, 10);
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
