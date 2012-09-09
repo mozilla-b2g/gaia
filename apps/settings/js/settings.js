@@ -43,7 +43,7 @@ var Settings = {
     };
 
     // preset all inputs that have a `name' attribute
-    var transaction = settings.getLock();
+    var lock = settings.createLock();
 
     // preset all checkboxes
     var rule = 'input[type="checkbox"]:not([data-ignore])';
@@ -54,7 +54,7 @@ var Settings = {
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             checkbox.checked = !!request.result[key];
@@ -63,14 +63,15 @@ var Settings = {
     }
 
     // preset all radio buttons
-    var radios = document.querySelectorAll('input[type="radio"]');
-    for (var i = 0; i < radios.length; i++) {
+    rule = 'input[type="radio"]:not([data-ignore])';
+    var radios = document.querySelectorAll(rule);
+    for (i = 0; i < radios.length; i++) {
       (function(radio) {
         var key = radio.name;
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             radio.checked = (request.result[key] === radio.value);
@@ -79,15 +80,15 @@ var Settings = {
     }
 
     // preset all text inputs
-    var rule = 'input[type="text"]:not([data-ignore])';
+    rule = 'input[type="text"]:not([data-ignore])';
     var texts = document.querySelectorAll(rule);
-    for (var i = 0; i < texts.length; i++) {
+    for (i = 0; i < texts.length; i++) {
       (function(text) {
         var key = text.name;
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             text.value = request.result[key];
@@ -97,13 +98,13 @@ var Settings = {
 
     // preset all progress indicators
     var progresses = document.querySelectorAll('progress');
-    for (var i = 0; i < progresses.length; i++) {
+    for (i = 0; i < progresses.length; i++) {
       (function(progress) {
         var key = progress.dataset.name;
         if (!key)
           return;
 
-        var request = transaction.get(key);
+        var request = lock.get(key);
         request.onsuccess = function() {
           if (request.result[key] != undefined)
             progress.value = parseFloat(request.result[key]) * 10;
@@ -142,7 +143,7 @@ var Settings = {
     var input = evt.target;
     var key = input.name || input.dataset.name;
     var settings = window.navigator.mozSettings;
-    if (!key || !settings)
+    if (!key || !settings || input.dataset.ignore)
       return;
 
     switch (evt.type) {
@@ -156,7 +157,7 @@ var Settings = {
           value = input.value;
         }
         var cset = {}; cset[key] = value;
-        settings.getLock().set(cset);
+        settings.createLock().set(cset);
         break;
 
       case 'click':
@@ -170,7 +171,7 @@ var Settings = {
         input.value = position;
 
         var cset = {}; cset[key] = value;
-        settings.getLock().set(cset);
+        settings.createLock().set(cset);
         break;
     }
   },
@@ -216,7 +217,8 @@ var Settings = {
   openDialog: function settings_openDialog(dialogID) {
     var settings = window.navigator.mozSettings;
     var dialog = document.getElementById(dialogID);
-    var fields = dialog.querySelectorAll('input[data-setting]');
+    var fields =
+        dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
 
     /**
       * In Settings dialog boxes, we don't want the input fields to be preset
@@ -227,6 +229,8 @@ var Settings = {
       * `data-setting' attribute is used and the input values are set
       * explicitely when the dialog is shown.  If the dialog is validated
       * (submit), their values are stored into B2G settings.
+      *
+      * XXX warning, this only supports text/password/radio input types.
       */
 
     // show dialog box
@@ -244,13 +248,15 @@ var Settings = {
     // initialize all setting fields in the dialog box
     function reset() {
       if (settings) {
+        var lock = settings.createLock();
         for (var i = 0; i < fields.length; i++) {
-          var input = fields[i];
-          var key = input.dataset.setting;
-          var request = settings.getLock().get(key);
-          request.onsuccess = function() {
-            input.value = request.result[key] || '';
-          };
+          (function(input) {
+            var key = input.dataset.setting;
+            var request = lock.get(key);
+            request.onsuccess = function() {
+              input.value = request.result[key] || '';
+            };
+          })(fields[i]);
         }
       }
     }
@@ -258,12 +264,13 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
+        var cset = {};
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
-          var cset = {};
-          cset[input.dataset.setting] = input.value;
-          settings.getLock().set(cset);
+          var key = input.dataset.setting;
+          cset[key] = input.value;
         }
+        settings.createLock().set(cset);
       }
       return close();
     }
@@ -283,7 +290,8 @@ window.addEventListener('load', function loadSettings(evt) {
 });
 
 // back button = close dialog || back to the root page
-window.addEventListener('keyup', function goBack(event) {
+// + prevent the [Return] key to validate forms
+window.addEventListener('keydown', function handleSpecialKeys(event) {
   if (document.location.hash != '#root' &&
       event.keyCode === event.DOM_VK_ESCAPE) {
     event.preventDefault();
@@ -296,6 +304,10 @@ window.addEventListener('keyup', function goBack(event) {
     } else {
       document.location.hash = 'root';
     }
+  } else if (event.keyCode === event.DOM_VK_RETURN) {
+    event.target.blur();
+    event.stopPropagation();
+    event.preventDefault();
   }
 });
 
