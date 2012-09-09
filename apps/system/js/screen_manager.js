@@ -94,7 +94,7 @@ var ScreenManager = {
     this.idleObserver.onidle = function scm_onidle() {
       self._idled = true;
       if (!self._screenWakeLocked)
-        self.turnScreenOff(false);
+        self.turnScreenOff(self._instantIdleOff);
     };
 
     // When active, cancel the idle-screen-off process
@@ -244,18 +244,18 @@ var ScreenManager = {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked
     if (LockScreen.locked) {
-      this.setIdleTimeout(10);
+      this.setIdleTimeout(10, true);
       var self = this;
       var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
         window.removeEventListener('unlock', stopShortIdleTimeout);
         window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
-        self.setIdleTimeout(self._idleTimeout);
+        self.setIdleTimeout(self._idleTimeout, false);
       };
 
       window.addEventListener('unlock', stopShortIdleTimeout);
       window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
-      this.setIdleTimeout(this._idleTimeout);
+      this.setIdleTimeout(this._idleTimeout, false);
     }
 
     this.fireScreenChangeEvent();
@@ -313,7 +313,7 @@ var ScreenManager = {
     onactive: null
   },
 
-  setIdleTimeout: function scm_setIdleTimeout(time) {
+  setIdleTimeout: function scm_setIdleTimeout(time, instant) {
     if (!('addIdleObserver' in navigator))
       return;
     navigator.removeIdleObserver(this.idleObserver);
@@ -322,6 +322,7 @@ var ScreenManager = {
       return;
     }
 
+    this._instantIdleOff = instant;
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
     this.isIdleObserverInitialized = true;
