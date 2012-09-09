@@ -373,7 +373,7 @@ html * {
 }
 
 #digital-clock {
-  margin-top: 9.8rem;
+  margin-top: 10.4rem;
   display: none;
 }
 
@@ -407,7 +407,7 @@ html * {
   background-size: 100% auto;
   width: 5.5rem;
   height: 5.5rem;
-  margin-top: 1.6rem;
+  margin-top: 2.6rem;
   margin-left: -4rem;
 }
 
@@ -455,6 +455,62 @@ html * {
   stroke-width: 0.005rem; 
   stroke: #00abcd; 
   fill: #00abcd;
+}
+/* from building blocks, core.css - [role=dialog]*/
+.banner {
+  position: absolute;
+  background: orange;
+  width: 100%;
+  height: 13rem;
+  bottom: 0;
+  vertical-align: middle;
+  text-align: center;
+  background-attachment: scroll, scroll;
+  background-clip: border-box, border-box;
+  background-color: transparent;
+  background-image: url("images/pattern.png"), url("images/gradient.png");
+  background-origin: padding-box, padding-box;
+  background-position: left top, left top;
+  background-repeat: repeat, no-repeat;
+  background-size: auto auto, 100% 100%;
+  font-family: "Open Sans",Sans-serif;
+  z-index: -1;
+  opacity: 0;
+  -moz-transition: all 600ms ease;
+}
+.banner.visible {
+  z-index: 1;
+  opacity: 1;
+  -moz-transition: all 600ms ease;
+}
+.banner:before {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  width: 1px;
+}
+.banner:after {
+  content: "";
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+  width: 1px;
+}
+.banner > p {
+  display: inline-block;
+  font-size: 2.5rem;
+  line-height: 3.75rem;
+  max-width: 75%;
+  vertical-align: middle;
+  white-space: normal;
+  color: #FFFFFF;
+  font-family: "Open Sans",Sans-serif;
+}
+.banner > p > strong {
+  color: #0995B0;
+  font-weight: normal;
+  text-transform: uppercase;
 }
 /* localization */
 body.hidden *[data-l10n-id] {

@@ -17,7 +17,7 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "content-camera", "camera", "tcp-socket", "bluetooth"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
-                            'webapps-manage', 'pin-app',
+                            'pin-app',
                             'desktop-notification'];
 
 let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]

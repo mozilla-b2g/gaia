@@ -32,7 +32,8 @@ section[role="region"] > header:first-child h1 {
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
-  margin: 0 0 0 3rem;
+  padding-left: 3rem;
+  margin: 0;
   height: 100%;
 }
 
@@ -62,7 +63,7 @@ section[role="region"] > header:first-child input[type=text] {
 }
 
 section[role="region"] > header:first-child form button[type="reset"] {
-  text-indent: -9999px;
+  font-size: 0px;
   overflow: hidden;
   position: absolute;
   right: 1rem;
@@ -162,7 +163,7 @@ section[role="region"] > header:first-child .icon {
   height: 3rem;
   margin: 0 -1rem;
   background: transparent no-repeat center center;
-  text-indent: -9999px;
+  font-size: 0;
   overflow: hidden;
   position: relative;
   height: 4.9rem;
@@ -201,8 +202,9 @@ section[role="region"] > header:first-child > a {
 
 section[role="region"] > header:first-child > button .icon,
 section[role="region"] > header:first-child > a .icon {
+  font-size: 0;
+  line-height: 3rem;
   overflow: visible;
-  text-indent: -9999px;
   position: static;
   margin-left: -3rem;
   height: 4.9rem;
@@ -241,7 +243,8 @@ section[role="region"] > header:after {
 section[role="region"] > header h2 {
   font-family: "Open Sans", Sans-serif;
   font-weight: 600;
-  margin: 0 3rem;
+  margin: 0;
+  padding: 0 3rem;
   font-size: 1.3rem;
   line-height: 1.8rem;
 }
@@ -452,10 +455,6 @@ body[role="application"] [role="toolbar"] li button:active {
 body[role="application"] [role="toolbar"] li button.update {
   background-image: url("building_blocks/toolbars/images/icons/update.png");
 }
-body[role="application"] section[role="region"][data-state="drawer"] {
-  transform: translateX(80%);
-}
-
 body[role="application"] > nav {
   position: absolute;
   width: 80%;
@@ -638,41 +637,4 @@ body[role="application"] > nav .inner > ul > li > a {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-}
-
-body[role="application"] > section[role="region"] {
-  width: -moz-calc(100%);
-  transition: all 0.25s ease;
-  position: relative;
-  left: -2rem;
-  z-index: 100;
-  padding-left: 2rem;
-}
-
-body[role="application"] section[role="region"] > header {
-  margin-left: -1.6rem;
-}
-
-body[role="application"] section[role="region"] > header > button,
-body[role="application"] section[role="region"] > header > a {
-  width: 6rem;
-}
-
-body[role="application"] section[role="region"] > header > a .icon.icon-menu,
-body[role="application"] section[role="region"] > header > button .icon.icon-menu {
-  background-position: center center;
-}
-
-body[role="application"] section[role="region"] > header > button .icon:after,
-body[role="application"] section[role="region"] > header > a .icon:after {
-  width: 4rem;
-}
-
-body[role="application"] section[role="region"] > header > button,
-body[role="application"] section[role="region"] > header > a {
-  background-position: 4rem center;
-}
-
-body[role="application"] section[role="region"] > header h1 {
-  margin-left: 5rem;
 }

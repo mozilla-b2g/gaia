@@ -63,7 +63,3 @@ SettingsListener.observe(
   var url = 'url(resources/images/backgrounds/' + value + ')';
   document.getElementById('screen').style.backgroundImage = url;
 });
-
-window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
-  WindowManager.setDisplayedApp(null);
-});

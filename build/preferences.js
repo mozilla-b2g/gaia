@@ -55,6 +55,7 @@ if (DEBUG) {
   prefs.push(["extensions.gaia.domain", GAIA_DOMAIN]);
   prefs.push(["extensions.gaia.port", parseInt(GAIA_PORT.replace(/:/g, ""))]);
   prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
+  prefs.push(["extensions.gaia.locales_debug_path", GAIA_LOCALES_PATH]);
   let appPathList = [];
   Gaia.webapps.forEach(function (webapp) {
     appPathList.push(webapp.sourceAppDirectoryName + '/' +

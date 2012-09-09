@@ -18,6 +18,12 @@
 
   testSupport.calendar = {
 
+    triggerEvent: function(element, eventName) {
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    },
+
     loadSample: function(file, cb) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/test/unit/fixtures/' + file, true);
@@ -69,6 +75,8 @@
         this.db(),
         new Calendar.Router(Calendar.Test.FakePage)
       );
+
+      Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
 
       return Calendar.App;
     },
@@ -180,6 +188,7 @@
     resource.setAttribute('type', 'application/l10n');
     document.head.appendChild(resource);
   }
+
 
   l10nLink('/locales/locales.ini');
   l10nLink('/shared/locales/date.ini');

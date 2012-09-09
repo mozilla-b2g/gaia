@@ -24,6 +24,13 @@ li {
   list-style-type: none;
   padding-bottom: 1px;
 }
+.unwatched {
+  width: 2px;
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  background: #21a6b9;
+}
 li img {
   height: 120px;
   width: 210px;

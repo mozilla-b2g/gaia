@@ -91,7 +91,7 @@ const HomeState = (function() {
       }
 
       newTxn('readwrite', function(txn, store) {
-        if (Object.prototype.toString.call(pages) === '[object Array]') {
+        if (Array.isArray(pages)) {
           store.clear();
           var len = pages.length;
           for (var i = 0; i < len; i++) {

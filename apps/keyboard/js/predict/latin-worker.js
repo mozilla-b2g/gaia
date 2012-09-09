@@ -472,19 +472,16 @@ function Predict(word) {
 
 var PredictiveText = {
   key: function PTW_key(keyCode, keyX, keyY) {
-    if (keyCode == 32) {
-      self.postMessage({ cmd: 'sendCandidates', args: [[]] });
-      _currentWord = '';
-      return;
-    }
     if (keyCode == 8) {
       _currentWord = _currentWord.substr(0, _currentWord.length - 1);
     } else {
       _currentWord += String.fromCharCode(keyCode).toLowerCase();
     }
     var wordList = [];
-    if (_currentWord.length > 0) {
-      var candidates = Predict(_currentWord);
+    var spaceIndex = _currentWord.lastIndexOf(' ');
+    spaceIndex = spaceIndex > 0 ? (spaceIndex + 1) : 0;
+    if (_currentWord.substring(spaceIndex).length > 0) {
+      var candidates = Predict(_currentWord.substring(spaceIndex));
       for (var n = 0; n < candidates.length; ++n) {
         var word = candidates[n].word;
         wordList.push([word, word]);

@@ -10,13 +10,12 @@ suite('views/modify_account', function() {
 
   var subject;
   var account;
+  var triggerEvent;
   var app;
 
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   function hasClass(value) {
     return subject.element.classList.contains(value);
