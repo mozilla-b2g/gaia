@@ -58,6 +58,7 @@ var WindowManager = (function() {
   // Holds the origin of the home screen, which should be the first
   // app we launch through web activity during boot
   var homescreen = null;
+  var homescreenURL = '';
   var homescreenManifestURL = '';
 
   // Screenshot in sprite -- to use, or not to use,
@@ -448,7 +449,6 @@ var WindowManager = (function() {
   function ensureHomescreen() {
     if (!isRunning(homescreen)) {
       var app = Applications.getByManifestURL(homescreenManifestURL);
-      var homescreenURL = app.origin + app.manifest.launch_path;
       appendFrame(homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
       setAppSize(homescreen);
@@ -811,8 +811,9 @@ var WindowManager = (function() {
         if (!homescreen) {
           homescreen = origin;
 
-          // Save the entry manifest URL so that we can restart the homescreen
-          // later, if necessary.
+          // Save the entry manifest URL and launch URL so that we can restart
+          // the homescreen later, if necessary.
+          homescreenURL = e.detail.url;
           homescreenManifestURL = manifestURL;
           return;
         }
