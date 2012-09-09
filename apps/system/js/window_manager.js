@@ -622,21 +622,6 @@ var WindowManager = (function() {
     frame.dataset.frameOrigin = origin;
     frame.src = url;
 
-    // frames are began unpainted. This dataset value will pause the
-    // opening sprite transition so users will not see whitish screen.
-    frame.dataset.unpainted = true;
-    frame.addEventListener('mozbrowserfirstpaint', function painted() {
-      frame.removeEventListener('mozbrowserfirstpaint', painted);
-      delete frame.dataset.unpainted;
-
-      // Save the screenshot when we got mozbrowserfirstpaint event,
-      // regardless of the sprite transition state.
-      // setTimeout() here ensures that we get the screenshot with content.
-      setTimeout(function() {
-        saveAppScreenshot(origin);
-      });
-    });
-
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
@@ -701,6 +686,21 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
+    // frames are began unpainted. This dataset value will pause the
+    // opening sprite transition so users will not see whitish screen.
+    frame.dataset.unpainted = true;
+    frame.addEventListener('mozbrowserfirstpaint', function painted() {
+      frame.removeEventListener('mozbrowserfirstpaint', painted);
+      delete frame.dataset.unpainted;
+
+      // Save the screenshot when we got mozbrowserfirstpaint event,
+      // regardless of the sprite transition state.
+      // setTimeout() here ensures that we get the screenshot with content.
+      setTimeout(function() {
+        saveAppScreenshot(origin);
+      });
+    });
+
     // Add the iframe to the document
     windows.appendChild(frame);
 
@@ -720,6 +720,8 @@ var WindowManager = (function() {
     var frame = createFrame(origin, url, name, manifest, manifestURL);
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
+
+    // Start the transition only until the frame is painted
     frame.addEventListener('mozbrowserfirstpaint', function painted() {
       frame.removeEventListener('mozbrowserfirstpaint', painted);
       frame.classList.add('active');
