@@ -55,11 +55,18 @@ var CallHandler = {
 
   startDial: function ch_startDial(number) {
     console.log('Chris ****************************: startDial');
+    console.log('Chris ****************************: this._isUSSD(number):'+this._isUSSD(number));
     if (this._isUSSD(number)) {
       UssdManager.send(number);
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
+      try{
+        console.log('Chris ****************************: window.navigator.mozTelephony:'+window.navigator.mozTelephony);
+      } catch(e){
+        console.log('Chris ****************************: error:'+e.message);
+      }
       var telephony = window.navigator.mozTelephony;
+      console.log('Chris ****************************: window.navigator.mozTelephony:'+window.navigator.mozTelephony);
       if (telephony) {
         console.log('Chris ****************************: navigator.mozMobileConnection.voice.emergencyCallsOnly:'+navigator.mozMobileConnection.voice.emergencyCallsOnly);
         if (navigator.mozMobileConnection &&
