@@ -246,10 +246,14 @@ var ScreenManager = {
     if (LockScreen.locked) {
       this.setIdleTimeout(10);
       var self = this;
-      window.addEventListener('unlock', function scm_unlocked() {
-        window.removeEventListener('unlock', scm_unlocked);
+      var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
+        window.removeEventListener('unlock', stopShortIdleTimeout);
+        window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
         self.setIdleTimeout(self._idleTimeout);
-      });
+      };
+
+      window.addEventListener('unlock', stopShortIdleTimeout);
+      window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
       this.setIdleTimeout(this._idleTimeout);
     }

@@ -646,6 +646,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
+          self.dispatchEvent('lockpanelchange');
           overlay.dataset.panel = panel;
         });
     });
