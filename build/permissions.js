@@ -8,16 +8,16 @@ function log(msg) {
 let permissionList = ["power", "sms", "contacts", "telephony",
                       "mozBluetooth", "browser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
-                      "background", "settings", "offline-app",
+                      "background", "backgroundservice", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
                       "fmradio", "devicestorage", "voicemail",
-                      "pin-app", "wifi-manage", "geolocation",
+                      "pin-app", "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
-                      "device-storage", "alarms", "attention",
-                      "content-camera", "tcp-socket"];
+                      "device-storage", "alarms", "alarm", "attention",
+                      "content-camera", "camera", "tcp-socket", "bluetooth"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
-                            'webapps-manage', 'pin-app',
+                            'pin-app',
                             'desktop-notification'];
 
 let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]

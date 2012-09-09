@@ -6,6 +6,8 @@
 var ValueSelector = {
 
   _containers: {},
+  _popups: {},
+  _buttons: {},
 
   debug: function(msg) {
     var debugFlag = false;
@@ -56,14 +58,23 @@ var ValueSelector = {
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
+    ActiveEffectHelper.enableActive(this._containers['select']);
 
-    this._cancelButton = document.getElementById('value-selector-cancel');
-    this._cancelButton.addEventListener('click', this);
+    this._popups['select'] =
+      document.getElementById('select-option-popup');
+    this._popups['time'] =
+      document.getElementById('time-picker-popup');
 
-    this._confirmButton = document.getElementById('value-selector-confirm');
-    this._confirmButton.addEventListener('click', this);
+    this._buttons['select'] = document.getElementById('select-options-buttons');
+    this._buttons['select'].addEventListener('click', this);
+
+    this._buttons['time'] = document.getElementById('time-picker-buttons');
+    this._buttons['time'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
+
+    ActiveEffectHelper.enableActive(this._buttons['select']);
+    ActiveEffectHelper.enableActive(this._buttons['time']);
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -79,12 +90,14 @@ var ValueSelector = {
       case 'click':
         var currentTarget = evt.currentTarget;
         switch (currentTarget) {
-          case this._cancelButton:
-            this.cancel();
-            break;
-
-          case this._confirmButton:
-            this.confirm();
+          case this._buttons['select']:
+          case this._buttons['time']:
+            var target = evt.target;
+            if (target.dataset.type == 'cancel') {
+              this.cancel();
+            } else if (target.dataset.type == 'ok') {
+              this.confirm();
+            }
             break;
 
           case this._containers['select']:
@@ -125,9 +138,9 @@ var ValueSelector = {
   showPanel: function vs_showPanel(type) {
     for (var p in this._containers) {
       if (p === type) {
-        this._containers[p].hidden = false;
+        this._popups[p].hidden = false;
       } else {
-        this._containers[p].hidden = true;
+        this._popups[p].hidden = true;
       }
     }
   },
@@ -191,7 +204,13 @@ var ValueSelector = {
 
   buildOptions: function(options) {
 
-    var optionHTML = '<ol>';
+    var optionHTML = '';
+
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      return span.innerHTML;
+    }
 
     for (var i = 0, n = options.length; i < n; i++) {
 
@@ -199,14 +218,39 @@ var ValueSelector = {
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
-                     options[i].text +
-                     '<span class="checkmark">&#10004;</span>' +
+                     '<label> <span>' +
+                     escapeHTML(options[i].text) +
+                     '</span></label>' +
                     '</li>';
     }
 
-    optionHTML += '</ol>';
+    var optionsContainer = document.querySelector(
+                             '#value-selector-container ol');
+    if (!optionsContainer)
+      return;
 
-    this._containers['select'].innerHTML = optionHTML;
+    optionsContainer.innerHTML = optionHTML;
+
+
+    // Apply different style when the options are more than 1 page
+    if (options.length > 5) {
+      this._containers['select'].dataset.mode = 'scroll';
+    } else {
+      this._containers['select'].dataset.mode = '';
+    }
+
+    // Change the title for multiple select
+    var titleL10nId = 'choose-options';
+    if (this._currentPickerType === 'select-one')
+      titleL10nId = 'choose-option';
+
+    var optionsTitle = document.querySelector(
+                       '#value-selector-container h3');
+
+    if (optionsTitle) {
+      optionsTitle.dataset.l10nId = titleL10nId;
+      optionsTitle.textContent = navigator.mozL10n.get(titleL10nId);
+    }
   },
 
   showTimePicker: function vs_showTimePicker() {
@@ -321,5 +365,60 @@ var TimePicker = {
     return hour + ':' + minute;
   }
 };
+
+var ActiveEffectHelper = (function() {
+
+  function _setActive(element, isActive) {
+    if (isActive) {
+      element.classList.add('active');
+    } else {
+      element.classList.remove('active');
+    }
+  }
+
+  function _onMouseDown(evt) {
+    console.log('mousedown: ' + evt.target);
+    var target = evt.target;
+
+    _setActive(target, true);
+    target.addEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseUp(evt) {
+    console.log('mouseup: ' + evt.target);
+    var target = evt.target;
+
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseLeave(evt) {
+    console.log('mouseLeave: ' + evt.target);
+    var target = evt.target;
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  var _events = {
+    'mousedown': _onMouseDown,
+    'mouseup': _onMouseUp
+  };
+
+  function _enableActive(element) {
+    // Attach event listeners
+    for (var event in _events) {
+      var callback = _events[event] || null;
+      if (callback) {
+        console.log('bind event: ' + event);
+        element.addEventListener(event, callback);
+      }
+    }
+  }
+
+  return {
+    enableActive: _enableActive
+  };
+
+})();
 
 ValueSelector.init();

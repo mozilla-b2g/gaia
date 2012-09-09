@@ -69,11 +69,12 @@ var ModalDialog = {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowsererror':
-        // XXX: another issue #3047
-        if (evt.detail.type == 'fatal')
-          return;
       case 'mozbrowsershowmodalprompt':
         if (evt.target.dataset.frameType != 'window')
+          return;
+
+        /* fatal case (App crashing) is handled in Window Manager */
+        if (evt.type == 'mozbrowsererror' && evt.detail.type == 'fatal')
           return;
 
         evt.preventDefault();
@@ -92,8 +93,7 @@ var ModalDialog = {
           WindowManager.kill(this.currentOrigin);
         } else if (evt.currentTarget === elements.errorReload) {
           this.cancelHandler();
-          WindowManager.kill(this.currentOrigin);
-          WindowManager.launch(this.currentOrigin);
+          WindowManager.reload(this.currentOrigin);
         } else if (evt.currentTarget === elements.confirmCancel ||
             evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();

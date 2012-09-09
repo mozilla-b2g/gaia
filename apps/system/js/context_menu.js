@@ -9,13 +9,15 @@ var ContextMenu = {
   },
 
   handleEvent: function cm_handleEvent(evt) {
-    if (evt.detail.contextmenu.items.length == 0)
+    var detail = evt.detail;
+    if (detail.contextmenu.items.length == 0)
       return;
 
-    ListMenu.request(evt.detail.contextmenu.items,
-      function sm_clickHandler(action) {
-        evt.detail.contextMenuItemSelected(action);
-    });
+    var onsuccess = function(action) {
+      detail.contextMenuItemSelected(action);
+    };
+
+    ListMenu.request(detail.contextmenu.items, '', onsuccess);
   }
 };
 
