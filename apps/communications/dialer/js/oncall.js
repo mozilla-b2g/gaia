@@ -62,9 +62,19 @@ var CallScreen = {
     OnCallHandler.toggleMute();
   },
 
+  unmute: function cs_unmute() {
+    this.muteButton.classList.remove('mute');
+    OnCallHandler.unmute();
+  },
+
   toggleSpeaker: function cs_toggleSpeaker() {
     this.speakerButton.classList.toggle('speak');
     OnCallHandler.toggleSpeaker();
+  },
+
+  turnSpeakerOff: function cs_turnSpeakerOff() {
+    this.speakerButton.classList.remove('speak');
+    OnCallHandler.turnSpeakerOff();
   },
 
   showKeypad: function cs_showKeypad() {
@@ -263,8 +273,16 @@ var OnCallHandler = {
     this.handledCalls[lastCallIndex].call.hangUp();
   },
 
+  unmute: function ch_unmute() {
+    this._telephony.muted = false;
+  },
+
   toggleMute: function ch_toggleMute() {
     this._telephony.muted = !this._telephony.muted;
+  },
+
+  turnSpeakerOff: function ch_turnSpeakeroff() {
+    this._telephony.speakerEnabled = false;
   },
 
   toggleSpeaker: function ch_toggleSpeaker() {
@@ -388,5 +406,6 @@ window.addEventListener('localized', function callSetup(evt) {
 
   KeypadManager.init();
   CallScreen.init();
+  CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
 });
