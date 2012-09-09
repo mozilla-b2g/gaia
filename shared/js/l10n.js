@@ -763,7 +763,9 @@
   function getL10nData(key, args) {
     var data = gL10nData[key];
     if (!data) {
-      consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
+      //consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
+      // XXX temporary log, to be removed after the string freeze
+      console.warn('[l10n] #' + key + ' is undefined.');
     }
 
     /** This is where l10n expressions should be processed.
@@ -842,7 +844,9 @@
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
     if (!data) {
-      consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
+      //consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
+      // XXX temporary log, to be removed after the string freeze
+      console.warn('[l10n] #' + key + ' is undefined.');
       return;
     }
 
