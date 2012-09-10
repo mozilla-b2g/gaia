@@ -49,7 +49,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // Start off with empty metadata
   var metadata = {};
 
-  // If the blob has a name, use that as a default title in case 
+  // If the blob has a name, use that as a default title in case
   // we can't find one in the file
   if (blob.name) {
     var p1 = blob.name.lastIndexOf('/');

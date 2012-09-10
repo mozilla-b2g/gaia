@@ -5,8 +5,9 @@ var BlobView = (function() {
     throw Error(msg);
   }
 
-  // Normally, you should use BlobView.get() to asynchronusly obtain a
-  // BlobView object for a Blob. This constructor is for internal use only.
+  // This constructor is for internal use only.
+  // Use the BlobView.get() factory function or the getMore instance method
+  // to obtain a BlobView object.
   function BlobView(blob, sliceOffset, sliceLength, slice, 
                     viewOffset, viewLength, littleEndian)
   {
@@ -35,8 +36,12 @@ var BlobView = (function() {
       fail('negative offset');
     if (length < 0)
       fail('negative length');
+    if (offset > blob.size)
+      fail('offset larger than blob size');
+
+    // Don't fail if the length is too big; just reduce the length
     if (offset + length > blob.size)
-      fail('blob is too small');
+      length = blob.size - offset;
 
     var slice = blob.slice(offset, offset + length);
     var reader = new FileReader();
@@ -224,6 +229,8 @@ var BlobView = (function() {
       return String.fromCharCode.apply(String, bytes);
     },
 
+    // Replace this with the StringEncoding API when we've got it.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=764234
     getUTF8Text: function(offset, len) {
       function fail() { throw new Error('Illegal UTF-8'); }
 
@@ -385,5 +392,9 @@ var BlobView = (function() {
     }
   };
 
-  return BlobView;
+  // We don't want users of this library to accidentally call the constructor
+  // instead of using the factory function, so we return a dummy object
+  // instead of the real constructor. If someone really needs to get at the
+  // real constructor, the contructor property of the prototype refers to it.
+  return { get: BlobView.get };
 }());
