@@ -692,44 +692,23 @@ var ThreadUI = {
   },
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
-    self.title.innerHTML = number;
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
-
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      //TODO what if return multiple contacts?
-      var carrierTag = document.getElementById('contact-carrier');
-      if (contact.length > 0) { // we have a contact
-        var name = contact[0].name,
-            phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
-        // Check which of the contacts phone number we are using
-        for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number) {
-            phone = contact[0].tel[i];
-            carrierToShow = phone.carrier;
-          }
-        }
-        // Add data values for contact activity interaction
+    Utils.getPhoneDetails(number, function returnedDetails(details) {
+      if (details.isContact) {
         self.title.dataset.isContact = true;
-
-        if (name && name != '') { // contact with name
-          for (var i = 0; i < contact[0].tel.length; i++) {
-            if (contact[0].tel[i].value !== phone.value &&
-                contact[0].tel[i].type == phone.type &&
-                contact[0].tel[i].carrier == phone.carrier) {
-              carrierToShow = phone.value;
-            }
-          }
-          self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
-        } else { // no name of contact
-          carrierTag.innerHTML = phone.type;
-        }
-      } else { // we don't have a contact
-        carrierTag.style.display = 'none';
+      }
+      self.title.innerHTML = details.title || number;
+      var carrierTag = document.getElementById('contact-carrier');
+      if (details.carrier) {
+        carrierTag.innerHTML = details.carrier;
+        carrierTag.classList.remove('hide');
+      } else {
+        carrierTag.classList.add('hide');
       }
     });
+
+
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
@@ -963,9 +942,13 @@ var ThreadUI = {
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
       ThreadUI.selectedInputList.push(target);
+      // Adding red bubble
+      target.parentNode.parentNode.classList.add('selected');
     } else {
       ThreadUI.selectedInputList.splice(
                       ThreadUI.selectedInputList.indexOf(target), 1);
+      // Removing red bubble
+      target.parentNode.parentNode.classList.remove('selected');
     }
   },
 

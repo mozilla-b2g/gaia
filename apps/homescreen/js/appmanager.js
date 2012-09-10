@@ -45,12 +45,11 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest || !manifest.icons) {
+      if (!manifest ||
+          (isCore(app.origin) && manifest.launch_path === undefined)) {
         return;
       }
 
-
-      // If the manifest contains entry points, iterate over them
       // and add a fake app object for each one.
       var entryPoints = manifest.entry_points;
       if (!entryPoints) {
@@ -180,7 +179,8 @@ var Applications = (function() {
   var coreApplications = [
     'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
     'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm'
+    'calendar', 'video', 'fm', 'pdfjs', 'keyboard', 'system',
+    'homescreen'
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
@@ -229,6 +229,10 @@ var Applications = (function() {
 
     // Get all sizes orderer largest to smallest
     var icons = manifest.icons;
+    if (!icons) {
+      return 'style/images/default.png';
+    }
+
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
     });

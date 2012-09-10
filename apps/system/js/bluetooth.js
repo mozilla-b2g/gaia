@@ -16,8 +16,7 @@ var Bluetooth = {
   connected: false,
 
   init: function bt_init() {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
@@ -33,7 +32,7 @@ var Bluetooth = {
         // roll back the setting value to notify the UIs
         // that Bluetooth interface is not available
         if (value) {
-          settings.getLock().set({
+          SettingsListener.getSettingsLock().set({
             'bluetooth.enabled': false
           });
         }

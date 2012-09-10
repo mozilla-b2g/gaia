@@ -4,16 +4,7 @@
     <meta charset="utf-8">
     <title> Contacts </title>
 
-    <link href="/contacts/style/css/base/fonts.css" rel="stylesheet">
-    <link href="/contacts/style/css/base/root.css" rel="stylesheet">
-    <link href="/contacts/style/css/base/app.css" rel="stylesheet">
-
-    <link href="/contacts/style/css/components/buttons.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/icons.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/layout.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/forms.css" rel="stylesheet">
-    <link href="/contacts/style/css/components/lists.css" rel="stylesheet">
-
+    <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
     <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
@@ -38,6 +29,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
@@ -74,10 +66,7 @@
 
 
           <article class="view-body">
-            <div id='fixed-container' class='fixed-title'></div>
             <div class="view-jumper">
-              <abbr class="view-jumper-current" title="Contacts by "></abbr>
-
               <ol class="view-jumper-inner">
                 <li><a href="#"><span role="button" class="icon-search"></span></a></li>
                 <li><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
@@ -100,6 +89,8 @@
               </ol>
             </div>
           </article>
+          <div id='fixed-container' class='fixed-title'></div>
+          <div id="current-jumper" class="view-jumper-current"></div>
         </div> <!-- view-inner -->
       </section>
 
@@ -193,7 +184,7 @@
                   </ul>
                 </div>
                 <hr/>
-                <button onclick='Contacts.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+                <button onclick='contacts.Details.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
                   <b>Add as favorite</b>
                 </button>
               </section>
@@ -306,7 +297,7 @@
                   </a>
                   <div class="item-body-exp">
                     <p class="fillflow-row">
-                      <label class="hide" for="givenName" data-l10n-id="labelLastName">Name:</label>
+                      <label class="hide" for="givenName" data-l10n-id="labelName">Name:</label>
                       <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
                     </p>
                     <p class="fillflow-row">
@@ -405,7 +396,6 @@
       <div id="mirror-contact-form" class="view view-right" style="background-image: -moz-element(#view-contact-form);"></div>
       <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
       <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
-      <div id="current-jumper"></div>
     </div>
 
   </body>

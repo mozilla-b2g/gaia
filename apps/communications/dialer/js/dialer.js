@@ -10,20 +10,25 @@ document.addEventListener('mozvisibilitychange', function visibility(e) {
 
 var CallHandler = {
   call: function ch_call(number) {
-    console.log('Chris ****************************: CallHandler.call()');
     var settings = window.navigator.mozSettings, req;
 
     if (settings) {
-      console.log('Chris ****************************: settings');
-      req = settings.getLock().get('ril.radio.disabled');
+      // Once
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=788561
+      // lands, we should get rid of `getLock()` call below.
+      var settingsLock;
+      if (settings.createLock) {
+        settingsLock = settings.createLock();
+      } else {
+        settingsLock = settings.getLock();
+      }
+      req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          console.log('Chris ****************************: !status');
           this.startDial(number);
         } else {
-          console.log('Chris ****************************: status');
           CustomDialog.show(
             _('callFlightModeTitle'),
             _('callFlightModeBody'),
@@ -31,6 +36,11 @@ var CallHandler = {
               title: _('callFlightModeBtnOk'),
               callback: function() {
                 CustomDialog.hide();
+
+                if (CallHandler.activityCurrent) {
+                  CallHandler.activityCurrent.postError('canceled');
+                  CallHandler.activityCurrent = null;
+                }
               }
             }
           );
@@ -54,34 +64,21 @@ var CallHandler = {
   },
 
   startDial: function ch_startDial(number) {
-    console.log('Chris ****************************: startDial');
-    console.log('Chris ****************************: this._isUSSD(number):'+this._isUSSD(number));
     if (this._isUSSD(number)) {
       UssdManager.send(number);
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
-      try{
-        console.log('Chris ****************************: window.navigator.mozTelephony:'+window.navigator.mozTelephony);
-      } catch(e){
-        console.log('Chris ****************************: error:'+e.message);
-      }
       var telephony = window.navigator.mozTelephony;
-      console.log('Chris ****************************: window.navigator.mozTelephony:'+window.navigator.mozTelephony);
       if (telephony) {
-        console.log('Chris ****************************: navigator.mozMobileConnection.voice.emergencyCallsOnly:'+navigator.mozMobileConnection.voice.emergencyCallsOnly);
         if (navigator.mozMobileConnection &&
             navigator.mozMobileConnection.voice &&
             navigator.mozMobileConnection.voice.emergencyCallsOnly) {
-          console.log('Chris ****************************: emergencyCallsOnly');
           var call = telephony.dialEmergency(sanitizedNumber);
         } else {
-          console.log('Chris ****************************: !emergencyCallsOnly');
-          //var call = telephony.dial(sanitizedNumber);
-          var call = telephony.dialEmergency(sanitizedNumber);
+          var call = telephony.dial(sanitizedNumber);
         }
 
         if (call) {
-          console.log('Chris ****************************: call');
           var cb = function clearPhoneView() {
             KeypadManager.updatePhoneNumber('');
           };
@@ -89,24 +86,29 @@ var CallHandler = {
           call.ondisconnected = cb;
 
           call.onerror = function onerror(event) {
-            console.log('Chris ****************************: call.onerror()');
-            var erName = event.call.error.name, emgcyDialogBody;
+            var erName = event.call.error.name, emgcyDialogBody,
+                errorRecognized = false;
+
             if (erName === 'BadNumberError') {
+              errorRecognized = true;
               emgcyDialogBody = 'emergencyDialogBodyBadNumber';
             } else if (erName === 'DeviceNotAcceptedError') {
+              errorRecognized = true;
               emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
             }
 
-            CustomDialog.show(
-              _('emergencyDialogTitle'),
-              _(emgcyDialogBody)+'error: '+erName,
-              {
-                title: _('emergencyDialogBtnOk'),
-                callback: function() {
-                  CustomDialog.hide();
+            if(errorRecognized){
+              CustomDialog.show(
+                _('emergencyDialogTitle'),
+                _(emgcyDialogBody),
+                {
+                  title: _('emergencyDialogBtnOk'),
+                  callback: function() {
+                    CustomDialog.hide();
+                  }
                 }
-              }
-            );
+              );
+            }
           };
         }
       }
@@ -172,6 +174,8 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // instead only the one that the href match.
   if (activity.source.name != 'dial')
     return;
+
+  CallHandler.activityCurrent = activity;
 
   var number = activity.source.data.number;
   var fillNumber = function actHandleDisplay() {

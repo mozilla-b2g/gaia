@@ -51,7 +51,7 @@ var metadataParser = (function() {
 
         metadata.album = oggfile.metadata.ALBUM;
         metadata.artist = oggfile.metadata.ARTIST;
-        metadata.title = oggfile.metadata.TITLE;
+        metadata.title = oggfile.metadata.TITLE || splitFileName(file.name);
 
         callback(metadata);
       });

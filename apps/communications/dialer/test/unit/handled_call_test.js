@@ -176,11 +176,21 @@ suite('dialer/handled_call', function() {
     test('additional contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberAdditionalInfo);
     });
+
+    test('mute initially off', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
+    });
+
+    test('speaker initially off', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
+    });
   });
 
   suite('on disconnect', function() {
     setup(function() {
       mockCall._connect();
+      MockCallScreen.mute();
+      MockCallScreen.turnSpeakerOn();
       mockCall._disconnect();
     });
 
@@ -188,6 +198,14 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockRecentsDBManager.mCalledInit);
       assert.equal(MockRecentsDBManager.mCalledAdd, subject.recentsEntry);
       assert.isTrue(MockRecentsDBManager.mCalledClose);
+    });
+
+    test('mute off after call', function() {
+      assert.isFalse(MockCallScreen.mMuteOn);
+    });
+
+    test('speaker off after call', function() {
+      assert.isFalse(MockCallScreen.mSpeakerOn);
     });
 
     test('remove listener', function() {

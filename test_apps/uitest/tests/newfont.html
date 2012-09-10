@@ -8,35 +8,22 @@
       font-size: 25px;
     }
     @font-face {
-      font-family: 'TelMoz';
-      font-weight: 100;
-      /* XXX: should be 150 but gecko could only accept 150. */
-      src: url('../style/fonts/TelMozTEST-wt150.otf');
+      font-family: 'Moz';
+      font-weight: 200;
+      src: url('../style/fonts/Moz Light.otf');
     }
     @font-face {
-      font-family: 'TelMoz';
+      font-family: 'Moz';
       font-weight: normal;
-      src: url('../style/fonts/TelMozTEST-wt400.otf');
+      src: url('../style/fonts/Moz Regular.otf');
     }
     @font-face {
-      font-family: 'TelMoz';
-      font-weight: 500;
-      /* XXX: should be 550 but gecko could only accept 500. */
-      src: url('../style/fonts/TelMozTEST-wt550.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
+      font-family: 'Moz';
       font-weight: bold;
-      /* XXX: should be 700 but we only have 750 now */
-      src: url('../style/fonts/TelMozTEST-wt750.otf');
-    }
-    @font-face {
-      font-family: 'TelMoz';
-      font-weight: 900;
-      src: url('../style/fonts/TelMozTEST-wt900.otf');
+      src: url('../style/fonts/Moz Medium.otf');
     }
     p {
-        font-family: 'TelMoz';
+        font-family: 'Moz';
     }
     body[data-weight="regular"] p {
       font-weight: normal;
@@ -44,14 +31,8 @@
     body[data-weight="bold"] p {
       font-weight: bold;
     }
-    body[data-weight="150"] p {
-      font-weight: 100;
-    }
-    body[data-weight="550"] p {
-      font-weight: 500;
-    }
-    body[data-weight="900"] p {
-      font-weight: 900;
+    body[data-weight="light"] p {
+      font-weight: 200;
     }
     body.swap {
       color: white;
@@ -76,10 +57,8 @@
     <button onclick="swapColor()">Swap color</button>
     <select name="selector" id="selector">
       <option value="regular" seleted=true>Regular</option>
-      <option value="bold">Bold</option>
-      <option value="150">150</option>
-      <option value="550">550</option>
-      <option value="900">900</option>
+      <option value="bold">Medium</option>
+      <option value="light">Light</option>
     </select>
     <h2>5pt</h2>
     <p style="font-size: 1.77mozmm;">
