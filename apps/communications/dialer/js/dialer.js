@@ -97,7 +97,7 @@ var CallHandler = {
               emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
             }
 
-            if(errorRecognized){
+            if (errorRecognized) {
               CustomDialog.show(
                 _('emergencyDialogTitle'),
                 _(emgcyDialogBody),
