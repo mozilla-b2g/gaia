@@ -185,8 +185,13 @@ input[type="image"] {
   cursor: pointer;
   -moz-user-select: none;
 }
+
 #tabs-badge:active, #tabs-badge:hover {
   color: #AAA;
+}
+
+#more-tabs {
+  font-size: 1.2em;
 }
 
 #toolbar-start {

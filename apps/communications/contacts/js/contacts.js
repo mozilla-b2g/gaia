@@ -602,9 +602,6 @@ var Contacts = (function() {
     customTag.value = '';
 
     var index = link.dataset.index;
-    if (tagList && contactTag) {
-      contactTag.textContent = TAG_OPTIONS[tagList][index].value;
-    }
 
     if (selectedTag) {
       selectedTag.removeChild(selectedTag.firstChild.nextSibling);
@@ -622,7 +619,9 @@ var Contacts = (function() {
   * tag selected or use the predefined ones
   */
   var doneTag = function doneTag() {
-    if (!selectedTag && customTag.value.length > 0 && contactTag) {
+    if (selectedTag) {
+      contactTag.textContent = selectedTag.textContent;
+    } else if (customTag.value.length > 0) {
       contactTag.textContent = customTag.value;
     }
     contactTag = null;

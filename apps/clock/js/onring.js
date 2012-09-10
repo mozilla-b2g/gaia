@@ -67,7 +67,7 @@ var RingView = {
     var ringtonePlayer = this._ringtonePlayer;
     ringtonePlayer.loop = true;
     // XXX Need to set the ringtone according to alarm's property of 'sound'
-    var selectedAlarmSound = 'style/ringtones/classic.wav';
+    var selectedAlarmSound = 'style/ringtones/classic.ogg';
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
     /* If user don't handle the onFire alarm,
