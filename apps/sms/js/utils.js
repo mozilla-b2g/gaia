@@ -95,5 +95,46 @@ var Utils = {
       this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
     }
     return this.rootFontSize;
+  },
+
+  getPhoneDetails: function ut_getPhoneDetails(number, callback) {
+    var details = {};
+    ContactDataManager.getContactData(number, function gotContact(contact) {
+      //TODO what if return multiple contacts?
+      if (contact.length > 0) { // we have a contact
+        var name = contact[0].name,
+            phone = contact[0].tel[0],
+            carrierToShow = phone.carrier;
+        // Check which of the contacts phone number we are using
+        for (var i = 0; i < contact[0].tel.length; i++) {
+          if (contact[0].tel[i].value == number) {
+            phone = contact[0].tel[i];
+            carrierToShow = phone.carrier;
+          }
+        }
+        // Add data values for contact activity interaction
+        details.isContact = true;
+
+        if (name && name != '') { // contact with name
+          // Check if other phones with same type and carrier
+          for (var i = 0; i < contact[0].tel.length; i++) {
+            if (contact[0].tel[i].value !== phone.value &&
+                contact[0].tel[i].type == phone.type &&
+                contact[0].tel[i].carrier == phone.carrier) {
+              carrierToShow = phone.value;
+            }
+          }
+          details.title = name;
+          details.carrier = phone.type + ' | ' +
+                            (carrierToShow || phone.value);
+        } else { // no name of contact
+          details.title = number;
+          details.carrier = phone.type + ' | ' + (phone.carrier || '');
+        }
+      } else { // we don't have a contact
+        details.title = number;
+      }
+      callback(details);
+    });
   }
 };
