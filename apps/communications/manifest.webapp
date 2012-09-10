@@ -9,7 +9,7 @@
   "entry_points": {
     "dialer": {
       "launch_path": "/dialer/index.html",
-      "name": "Dialer",
+      "name": "Phone",
       "icons": {
         "120": "/style/icons/Dialer.png",
         "60": "/style/icons/60/Dialer.png"
