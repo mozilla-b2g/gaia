@@ -40,6 +40,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
+      defaultAdapter.onrequestconfirmation = gDeviceList.onRequestConfirmation;
+      defaultAdapter.onrequestpincode = gDeviceList.onRequestConfirmation;
+      defaultAdapter.onrequestpasskey = gDeviceList.onRequestConfirmation;
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -190,8 +193,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
       // bind paired callback
       li.onclick = function() {
-        //XXX should call pair() here
-        //but hasn't been implemented in the backend.
+        dump("==== ask for pair: "+device.name+" "+device.address);
+        defaultAdapter.pair(device);
       };
       return li;
     }
@@ -232,13 +235,21 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       var i = openIndex.length - 1;
       while (i >= 0) {
         if (openIndex[i].address === evt.device.address) {
-          dump("==== "+openIndex[i].address+", "+evt.device.address);
           return;
         }
         i -= 1;
       }
       openList.appendChild(newListItem(evt.device));
       openIndex.push(evt.device);
+    }
+
+    function onRequestConfirmation(evt) {
+      dump("=====request pair "+evt.address+"  "+evt.passkey);
+      // prepare to pop out attention screen, ring the ringtone, vibrate
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      window.open(protocol + '//' + host + '/onpair.html',
+                  'pair_screen', 'attention');
     }
 
     function getPairedDevice() {
@@ -295,7 +306,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       update: updateDeviceList,
       initWithAdapter: initial,
       startDiscovery: startDiscovery,
-      onDeviceFound: onDeviceFound
+      onDeviceFound: onDeviceFound,
+      onRequestConfirmation: onRequestConfirmation
     };
 
   })();

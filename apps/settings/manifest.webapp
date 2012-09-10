@@ -14,7 +14,8 @@
     "devicestorage",
     "settings",
     "wifi-manage",
-    "wifi"
+    "wifi",
+    "attention"
   ],
   "activities": {
     "configure": {

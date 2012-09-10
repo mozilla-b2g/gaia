@@ -1,9 +1,9 @@
 /**
  * Setting panels
- * = full-size blocks, identified by a 'document' role
+ * = full-size blocks, identified by a 'region' role
  */
 
-[role=document] {
+[role=region] {
   position: absolute;
   top: 0;
   left: 0;
@@ -14,18 +14,9 @@
   background: url(images/document-bg.png);
 }
 
-/* list separators */
-[role=document] > h2 {
-  margin: 0;
-  padding: 0 0 0 30px;
-  height: 34px;
-  line-height: 34px;
-  font-size: 0.85em;
-  color: white;
-  background: url(images/title-bg.png) repeat-x;
-}
+/* transitions */
 
-[role=document] {
+[role=region] {
   transition: transform 0.5s ease;
   transform: translateX(100%);
 }
@@ -34,7 +25,7 @@
   transform: translateX(-100%);
 }
 
-#root:target, [role=document]:target {
+#root:target, [role=region]:target {
   transition: transform 0.5s ease;
   transform: none;
 }
@@ -59,10 +50,22 @@ ul {
 
 ul li {
   position: relative;
-  border-bottom: 1px solid #e6e6e3;
+  border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
+  min-height: 6rem;
+}
+
+ul li > h3 {
+  font-size: 1.6rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1rem 3rem 5rem;
+}
+
+ul li > h3 + label:not([for]) {
+  top: 2.5rem;
+  height: calc(100% - 2.5rem);
 }
 
 ul li.active,
@@ -78,8 +81,24 @@ ul li > a {
   color: #000;
   -moz-box-sizing: border-box;
   height: 60px;
+  font-size: 1.8rem;
   line-height: 60px;
-  padding: 0 30px;
+  padding: 0 3rem;
+}
+
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li > label:not([for]) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+ul li > label:not([for]) > span,
+ul li > label:not([for]).switch > span {
+  left: auto;
+  right: 2rem;
 }
 
 /* text ellipsis */
@@ -98,68 +117,24 @@ ul li > small {
   left: 30px;
   top: 50%;
   padding-top: 4px;
-  font-size: 0.65em;
+  font-size: 1.2rem;
   color: #505859;
 }
 
-ul li > small + a {
+/* required for empty elements like Bluetooth */
+ul li > small:not(:empty) + a {
   line-height: 44px;
 }
 
-/* action buttons */
-ul li button {
-  width: 50%;
-  height: 52px;
-  margin: 6px 30px;
-  font-size: 1em;
-}
-
-
-/******************************************************************************
- * fake input boxes for checkboxes & radio buttons
- */
-
-[role=document] label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-[role=document] label > input {
-  display: none;
-}
-
-[role=document] label > span {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+ul li button, ul li a[role=button] {
   display: block;
-  width: 40px;
-  height: 40px;
-}
-
-[role=document] label > input[type=radio] + span {
-  background: url(images/radio_off.png) no-repeat scroll center center;
-}
-
-[role=document] label > input[type=radio]:checked + span {
-  background: url(images/radio_on.png) no-repeat scroll center center;
-}
-
-[role=document] label > input[type=checkbox] + span {
-  border: 2px solid;
-  border-radius: 5px;
-  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  background-color: #eaeae4;
-}
-
-[role=document] label > input[type=checkbox]:checked + span {
-  background: url(images/checked.png) no-repeat scroll center center;
+  margin: auto;
+  position: relative;
+  top: 1rem;
+  font-size: 1em;
+  line-height: 1em;
+  width: calc(100% - 5rem);
+  height: calc(100% - 2rem);
 }
 
 
@@ -167,10 +142,11 @@ ul li button {
  * brightness level
  */
 
-[role=document] label > progress {
-  float: right;
-  width: 150px;
-  margin: 22px 20px 0 0;
+[role=region] label > progress {
+  display: block;
+  width: calc(100% - 6rem);
+  height: 3rem;
+  margin: 1.5rem auto;
 }
 
 #brightness-level:active {
@@ -184,13 +160,6 @@ ul li button {
   max-width: calc(60% - 50px);
 }
 
-[role=document] progress {
-  width: 40%;
-  height: 40%;
-  position: absolute;
-  right: 20px;
-  top: 30%;
-}
 
 
 /******************************************************************************
@@ -240,6 +209,12 @@ ul li button {
  */
 
 #wifi-networks span {
+  position: absolute;
+  display: block;
+  width: 60px;
+  height: 60px;
+  left: auto;
+  right: 2rem;
   -moz-border-top-colors:    transparent;
   -moz-border-right-colors:  transparent;
   -moz-border-bottom-colors: transparent;
@@ -265,8 +240,9 @@ ul li button {
   background-image: url(images/wifi_scan.png);
 }
 
+
 /******************************************************************************
- * Bluetooth 
+ * Bluetooth
  */
 
 #bluetooth-enable-msg {
@@ -275,3 +251,4 @@ ul li button {
   font-size: 0.65em;
   color: #505859;
 }
+

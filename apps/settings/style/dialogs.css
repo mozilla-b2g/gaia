@@ -11,23 +11,15 @@
   background-color: #eee;
   height: 100%;
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   margin: 0;
   padding: 0;
+  background: url(images/document-bg.png);
 }
 
 [role=dialog].active,
 [role=dialog]:target {
   display: block;
-}
-
-[role=dialog] > * {
-  padding: 0 20px;
-}
-
-[role=dialog] header {
-  margin-bottom: 10px;
-  padding: 0;
 }
 
 [role=dialog] footer {
@@ -43,30 +35,6 @@
   bottom: 0;
 }
 
-/******************************************************************************
- * Setting dialog buttons
- */
-
-[role=dialog] button,
-[role=dialog] input[type=button] {
-  height: 32px;
-  margin: 11px;
-  border: 1px solid;
-  background-color: #ddd;
-  border-radius: 4px;
-  font-size: 1em;
-}
-
-[role=dialog] button:active,
-[role=dialog] input[type=button]:active {
-  background-color: #eef;
-}
-
-[role=dialog] button::-moz-focus-inner,
-[role=dialog] input[type=button]::-moz-focus-inner {
-  border: none;
-}
-
 /* header buttons: small, on the sides */
 
 [role=dialog] header button {
@@ -77,8 +45,12 @@
   float: right;
 }
 
-/* footer buttons: big, centered */
 
+/******************************************************************************
+ * Setting dialog buttons
+ */
+
+/* footer buttons: big, centered */
 [role=dialog] footer button {
   width: 120px;
   min-width: 40%;

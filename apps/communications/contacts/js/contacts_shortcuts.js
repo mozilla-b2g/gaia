@@ -52,6 +52,9 @@ if (!utils.alphaScroll) {
       for (var i = 65; i <= 90; i++) {
         alphabet.push({ letter: String.fromCharCode(i) });
       }
+      alphabet.push({
+        letter: '#'
+      });
       utils.templates.append(jumper, alphabet);
     }
 
@@ -88,7 +91,9 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      var groupContainer = doc.querySelector(groupSelector + current);
+      var querySelector = groupSelector + ((current == '#') ? 'und' : current);
+
+      var groupContainer = doc.querySelector(querySelector);
       if (!groupContainer || groupContainer.clientHeight <= 0)
         return;
 
