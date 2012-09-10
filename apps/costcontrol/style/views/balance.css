@@ -74,6 +74,11 @@
 }
 
 /* LOW CREDIT STATE */
-#balance-tab.low-credit #cost-control-credit {
+#balance-tab.low-credit #balance-tab-credit,
+#balance-tab.low-credit #balance-tab-currency {
   color: #b20000;
+}
+
+#balance-tab.low-credit #balance-tab-topup-button {
+  box-shadow: 0px 0px 14px rgba(83, 125, 151, 0.75);
 }

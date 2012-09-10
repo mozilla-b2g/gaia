@@ -63,10 +63,18 @@ p.time {
 
 /* Low credit warning */
 #balance-view.low-credit {
-  background-image: url('./images/widget/ui/no-credit-pattern.png'),
-                      url('./images/widget/icons/icon-go.png');
-  background-repeat: repeat-x, no-repeat;
-  background-position: center, right center;
+  background-image: url('./images/widget/icons/icon-go.png'),
+                       url('./images/widget/ui/low-credit-pattern.png');
+  background-repeat: no-repeat, repeat-x;
+  background-position: right center, center;
+}
+
+/* No credit warning */
+#balance-view.no-credit {
+  background-image: url('./images/widget/icons/icon-go.png'),
+                       url('./images/widget/ui/no-credit-pattern.png');
+  background-repeat: no-repeat, repeat-x;
+  background-position: right center, center;
 }
 
 /* Updating animation */

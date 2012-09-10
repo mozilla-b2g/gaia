@@ -25,6 +25,7 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     CostControl.settings.observe(
       'plantype',
       function ccapp_onPlanTypeChange(value, oldValue) {
+        value = value || 'prepaid';
         _planTypeHasChanged = (value !== oldValue);
         chooseView(value);
         _updateUI();
@@ -41,11 +42,40 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     });
   }
 
+  function _onBalanceSuccess(balanceObject) {
+    // Format credit
+    var balance = balanceObject ? balanceObject.balance : null;
+    _settingsCurrency.textContent = balanceObject ?
+                                   balanceObject.currency : '';
+    _settingsCredit.textContent = formatBalance(balance);
+
+    // Format time
+    var timestamp = balanceObject ? balanceObject.timestamp : null;
+    _settingsTime.textContent = formatTime(timestamp);
+  }
+
+  function _configureLowLimitSetup() {
+    _settingsCurrency = document.getElementById('settings-currency');
+    _settingsCredit = document.getElementById('settings-credit');
+    _settingsTime = document.getElementById('settings-time');
+
+    // Keep updated the balance view
+    CostControl.setBalanceCallbacks({ onsuccess: _onBalanceSuccess });
+    _onBalanceSuccess(CostControl.getLastBalance());
+  }
+
+  // Configures the UI
+  var _settingsCurrency, _settingsCredit, _settingsTime;
+  function _configureUI() {
+    _configurePlanTypeSetup();
+    _configureLowLimitSetup();
+  }
+
   // Configure each settings' control and paint the interface
   function _init() {
-    _configurePlanTypeSetup();
-    // To close settings
+    _configureUI();
 
+    // To close settings
     var closeSettings = document.getElementById('close-settings');
     closeSettings.addEventListener('click', function cc_closeSettings() {
 
@@ -54,7 +84,9 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
       if (_planTypeHasChanged &&
           appVManager.getCurrentView() !== TAB_DATA_USAGE) {
 
-        if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
+        if (CostControl.settings.option('plantype') ===
+            CostControl.PLAN_PREPAID) {
+
           appVManager.changeViewTo(TAB_BALANCE);
         } else {
           appVManager.changeViewTo(TAB_TELEPHONY);

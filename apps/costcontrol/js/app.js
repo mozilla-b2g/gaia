@@ -16,6 +16,7 @@ if (CostControl)
 // Cost Control application is in charge of offer detailed information
 // about cost control and data ussage. At the same time it allows the user
 // to configure some aspects about consumption limits and monitoring.
+var APP;
 function setupApp() {
 
   // Configure close dialog to close the current dialog. Dialog includes
@@ -54,6 +55,11 @@ function setupApp() {
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
   function _init() {
+
+    // Request the application
+    navigator.mozApps.getSelf().onsuccess = function ccapp_getSelf(evt) {
+      APP = evt.target.result;
+    };
 
     _configureSettingsButtons();
     _configureCloseDialog();

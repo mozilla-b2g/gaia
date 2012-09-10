@@ -60,12 +60,28 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _setUpdatingMode(false);
   }
 
+  // Helper to get the icon uri
+  function _getIconURI(app) {
+    var icons = app.manifest.icons;
+    if (!icons)
+      return null;
+
+    var sizes = Object.keys(icons).map(function parse(str) {
+      return parseInt(str, 10);
+    });
+    sizes.sort(function(x, y) { return y - x; });
+
+    var HVGA = document.documentElement.clientWidth < 480;
+    var index = sizes[HVGA ? sizes.length - 1 : 0];
+    return app.installOrigin + icons[index];
+  }
+
   // On top up success, notificate and request update balance
   function _onTopUpSuccess(evt) {
     var notification = navigator.mozNotification.createNotification(
       _('topup-confirmation-title'),
       _('topup-confirmation-message'),
-      './style/icons/cost-control.png'
+      _getIconURI(APP)
     );
     notification.show();
 
@@ -101,7 +117,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
         var notification = navigator.mozNotification.createNotification(
           _('topup-incorrectcode-title'),
           _('topup-incorrectcode-message'),
-          './style/icons/cost-control.png'
+          _getIconURI(APP)
         );
         notification.onclick = function ccapp_onNotificationClick() {
           var activity = new MozActivity({ name: 'costcontrol/topup' });
@@ -455,33 +471,11 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     }
   }
 
-  // Return a time string in format (Today|Yesterday|<WeekDay>), hh:mm
-  // if timestamp is a valid date. If not, it returns Never.
-  function _formatTime(timestamp) {
-    if (!timestamp)
-      return _('never');
-
-    var time = timestamp.toLocaleFormat('%H:%M');
-    var date = timestamp.toLocaleFormat('%a');
-    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
-    var now = new Date();
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
-
-    if (nowDateDay === dateDay) {
-      date = _('today');
-    } else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 1 && dateDay === 7)) {
-      date = _('yesterday');
-    }
-
-    return date + ', ' + time;
-  }
-
   // Updates the UI with the new balance if provided, else just update the
   // balance screen with the last updated value.
   function _updateUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
-    var balance = balanceObject ? balanceObject.balance : null;
+
 
     // Warning if roaming
     var status = CostControl.getServiceStatus();
@@ -491,28 +485,20 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       _setBalanceScreenMode(MODE_ROAMING);
 
     // Check for low credit
+    var balance = balanceObject ? balanceObject.balance : null;
     if (balance && balance < CostControl.getLowLimitThreshold()) {
       _balanceTab.classList.add('low-credit');
     } else {
       _balanceTab.classList.remove('low-credit');
     }
 
-    // Format credit
-    var formattedBalance;
-    if (balance !== null) {
-      var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = '&i.&d'
-        .replace('&i', splitBalance[0])
-        .replace('&d', splitBalance[1]);
-    } else {
-      formattedBalance = '--';
-    }
+    // Format balance
     _btCurrency.textContent = balanceObject ? balanceObject.currency : '';
-    _btCredit.textContent = formattedBalance;
+    _btCredit.textContent = formatBalance(balance);
 
     // Format time
     var timestamp = balanceObject ? balanceObject.timestamp : null;
-    _btTime.textContent = _formatTime(timestamp);
+    _btTime.textContent = formatTime(timestamp);
   }
 
   // Updates the UI to match the localization

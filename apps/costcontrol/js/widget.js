@@ -242,28 +242,6 @@ function setupWidget() {
     }
   }
 
-  // Return a time string in format (Today|Yesterday|<WeekDay>), hh:mm
-  // if timestamp is a valid date. If not, it returns Never.
-  function _formatTime(timestamp) {
-    if (!timestamp)
-      return _('never');
-
-    var time = timestamp.toLocaleFormat('%H:%M');
-    var date = timestamp.toLocaleFormat('%a');
-    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
-    var now = new Date();
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
-
-    if (nowDateDay === dateDay) {
-      date = _('today');
-    } else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 1 && dateDay === 7)) {
-      date = _('yesterday');
-    }
-
-    return date + ', ' + time;
-  }
-
   // Updates the balance UI with the new balance if provided, else just update
   // the widget with the last updated balance.
   function _updateBalanceUI(balanceObject) {
@@ -273,28 +251,26 @@ function setupWidget() {
     var status = CostControl.getServiceStatus();
     _setWarningMode(status.availability && status.roaming);
 
-    // Low credit state
+    // Low credit and no credit states
+    _balanceView.classList.remove('no-credit');
+    _balanceView.classList.remove('low-credit');
+
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance && balance < CostControl.getLowLimitThreshold()) {
-      _balanceView.classList.add('low-credit');
-    } else {
-      _balanceView.classList.remove('low-credit');
+    if (balance) {
+      if (balance === 0) {
+        _balanceView.classList.add('no-credit');
+      } else if (balance < CostControl.getLowLimitThreshold()) {
+        _balanceView.classList.add('low-credit');
+      }
     }
 
     // Format credit
-    var formattedBalance = '--';
-    if (balance !== null) {
-      var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = '&i.&d'
-        .replace('&i', splitBalance[0])
-        .replace('&d', splitBalance[1]);
-    }
     _balanceCurrency.textContent = balanceObject ? balanceObject.currency : '';
-    _balanceCredit.textContent = formattedBalance;
+    _balanceCredit.textContent = formatBalance(balance);
 
     // Format time
     var timestamp = balanceObject ? balanceObject.timestamp : null;
-    _balanceTime.textContent = _formatTime(timestamp);
+    _balanceTime.textContent = formatTime(timestamp);
   }
 
   // Updates the telephony UIs reading the sms count, call time and last reset

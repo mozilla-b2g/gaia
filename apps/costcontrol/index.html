@@ -36,6 +36,7 @@
   <script type="text/javascript" src="js/utils/settings_listener.js"></script>
   <script type="text/javascript" src="js/utils/local_settings.js"></script>
   <script type="text/javascript" src="js/utils/debug.js"></script>
+  <script type="text/javascript" src="js/utils/formatting.js"></script>
 
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
@@ -276,8 +277,8 @@
       </header>
       <ul class="settings">
         <li>
-            <p>R$ 23.65</p>
-            <time>Today, 15:32</time>
+            <p><span id="settings-currency"></span> <span id=settings-credit></span></p>
+            <time id="settings-time"></time>
         </li>
         <li>
           <label class="end switch">
