@@ -1,5 +1,6 @@
 #authentication-dialog,
 #modal-dialog {
+  border: solid 3px red;
   position: absolute;
   top: 0;
   left: 0;
