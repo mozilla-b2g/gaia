@@ -3,31 +3,6 @@
 
 const prefs = [];
 
-// XXX Remove all the permission parts here once bug 774716 is resolved
-
-let permissions = {
-  "power": {
-    "urls": [],
-    "pref": "dom.power.whitelist"
-  },
-  "voicemail": {
-    "urls": [],
-    "pref": "dom.voicemail.whitelist"
-  },
-  "mozApps": {
-    "urls": [],
-    "pref": "dom.mozApps.whitelist"
-  },
-  "mozFM": {
-    "urls": [],
-    "pref": "dom.mozFMRadio.whitelist"
-  },
-  "systemXHR": {
-    "urls": [],
-    "pref": "dom.systemXHR.whitelist"
-  },
-};
-
 let homescreen = HOMESCREEN + (GAIA_PORT ? GAIA_PORT : '');
 prefs.push(["browser.manifestURL", homescreen + "/manifest.webapp"]);
 if (homescreen.substring(0,6) == "app://") { // B2G bug 773884
@@ -39,20 +14,7 @@ let domains = [];
 domains.push(GAIA_DOMAIN);
 
 Gaia.webapps.forEach(function (webapp) {
-  let manifest = webapp.manifest;
-  let rootURL = webapp.url;
-
   domains.push(webapp.domain);
-
-  let perms = manifest.permissions;
-  if (perms) {
-    for each(let name in perms) {
-      if (!permissions[name])
-        continue;
-
-      permissions[name].urls.push(rootURL);
-    }
-  }
 });
 
 
@@ -63,11 +25,6 @@ prefs.push(["network.http.max-connections-per-server", 15]);
 
 if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
-}
-
-for (let name in permissions) {
-  let perm = permissions[name];
-  prefs.push([perm.pref, perm.urls.join(",")]);
 }
 
 if (DEBUG) {
@@ -89,6 +46,7 @@ if (DEBUG) {
   prefs.push(["dom.mozContacts.enabled", true]);
   prefs.push(["dom.mozSettings.enabled", true]);
   prefs.push(["device.storage.enabled", true]);
+  prefs.push(["devtools.chrome.enabled", true]);
   prefs.push(["webgl.verbose", true]);
 
   // Preferences for httpd
@@ -97,6 +55,7 @@ if (DEBUG) {
   prefs.push(["extensions.gaia.domain", GAIA_DOMAIN]);
   prefs.push(["extensions.gaia.port", parseInt(GAIA_PORT.replace(/:/g, ""))]);
   prefs.push(["extensions.gaia.app_src_dirs", GAIA_APP_SRCDIRS]);
+  prefs.push(["extensions.gaia.locales_debug_path", GAIA_LOCALES_PATH]);
   let appPathList = [];
   Gaia.webapps.forEach(function (webapp) {
     appPathList.push(webapp.sourceAppDirectoryName + '/' +

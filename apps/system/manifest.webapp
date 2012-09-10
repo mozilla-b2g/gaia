@@ -1,7 +1,6 @@
 {
   "name": "System",
   "description": "Main System",
-  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -10,9 +9,10 @@
     "browser",
     "power",
     "mozApps",
-    "webapps",
+    "webapps-manage",
     "mobileconnection",
     "mozBluetooth",
+    "bluetooth",
     "telephony",
     "voicemail",
     "device-storage",
@@ -22,7 +22,8 @@
     "content-camera",
     "camera",
     "geolocation",
-    "wifi-manage"
+    "wifi-manage",
+    "wifi"
   ],
   "locales": {
     "ar": {

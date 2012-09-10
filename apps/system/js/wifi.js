@@ -8,6 +8,8 @@ var Wifi = {
 
   wifiEnabled: true,
 
+  wifiDisabledByWakelock: false,
+
   // Without wake lock, wait for kOffTime ms and turn wifi off
   // after the conditions are met.
   kOffTime: 60 * 1000,
@@ -20,43 +22,43 @@ var Wifi = {
     var battery = window.navigator.battery;
     battery.addEventListener('chargingchange', this);
 
-    var self = this;
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
+    // If wifi is turned off by us and phone got rebooted,
+    // bring wifi back.
+    var name = 'wifi.disabled_by_wakelock';
+    var req = SettingsListener.getSettingsLock().get(name);
+    req.onsuccess = function gotWifiDisabledByWakelock() {
+      if (!req.result[name])
+        return;
+
+      // Re-enable wifi and reset wifi.disabled_by_wakelock
+      var lock = SettingsListener.getSettingsLock();
+      lock.set({ 'wifi.enabled': true });
+      lock.set({ 'wifi.disabled_by_wakelock': false });
+    };
+
+    var self = this;
     var wifiManager = window.navigator.mozWifiManager;
 
-    // Sync the wifi.enabled mozSettings value with real API
-    // These code should be rewritten once this bug is fixed
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=729877
+    // Track the wifi.enabled mozSettings value
     SettingsListener.observe('wifi.enabled', true, function(value) {
-      if (!wifiManager) {
+      if (!wifiManager && value) {
         self.wifiEnabled = false;
 
         // roll back the setting value to notify the UIs
         // that wifi interface is not available
         if (value) {
-          settings.getLock().set({
+          SettingsListener.getSettingsLock().set({
             'wifi.enabled': false
           });
         }
+
         return;
       }
 
       self.wifiEnabled = value;
-
-      if (wifiManager.enabled == value)
-        return;
-
-      var req = wifiManager.setEnabled(value);
-      req.onerror = function wf_enabledError() {
-        // roll back the setting value to notify the UIs
-        // that wifi has failed to enable/disable.
-        settings.getLock().set({
-          'wifi.enabled': !value
-        });
-      };
     });
 
     var power = navigator.mozPower;
@@ -80,21 +82,47 @@ var Wifi = {
   maybeToggleWifi: function wifi_maybeToggleWifi() {
     var battery = window.navigator.battery;
     var wifiManager = window.navigator.mozWifiManager;
-    if (!battery || !wifiManager || !this.wifiEnabled)
+    if (!battery || !wifiManager ||
+        (!this.wifiEnabled && !this.wifiDisabledByWakelock))
       return;
+
+    var lock = SettingsListener.getSettingsLock();
 
     // Let's quietly turn off wifi if there is no wake lock and
     // the screen is off and we are not on a power source.
     if (!ScreenManager.screenEnabled &&
         !this.wifiWakeLocked && !battery.charging) {
+
+      // We don't need to do anything if wifi is not enabled currently
+      if (!this.wifiEnabled)
+        return;
+
+      // Start with a timer, only turn off wifi till timeout
       this._offTimer = setTimeout(function wifiOffTimeout() {
-        wifiManager.setEnabled(false);
+        // Actually turn off the wifi
+        lock.set({ 'wifi.enabled': false });
+
+        // Remember that it was turned off by us.
+        this.wifiDisabledByWakelock = true;
+
+        // Keep this value in disk so if the phone reboots we'll
+        // be able to turn the wifi back on.
+        lock.set({ 'wifi.disabled_by_wakelock': true });
       }, this.kOffTime);
     }
-    // ... and quietly turn it back on otherwise
+    // ... and quietly turn it back on or cancel the timer otherwise
     else {
       clearTimeout(this._offTimer);
-      wifiManager.setEnabled(true);
+
+      // We don't need to do anything if we didn't disable wifi at first place.
+      if (!this.wifiDisabledByWakelock)
+        return;
+
+      // turn wifi back on.
+      lock.set({ 'wifi.enabled': true });
+
+      this.wifiDisabledByWakelock = false;
+      lock.set({ 'wifi.disabled_by_wakelock': false });
     }
   }
 };

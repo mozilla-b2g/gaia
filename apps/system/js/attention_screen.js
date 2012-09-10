@@ -38,16 +38,16 @@ var AttentionScreen = {
     if (document.mozFullScreen)
       document.mozCancelFullScreen();
 
-    // Hide sleep menu/list menu if it is shown now
-    ListMenu.hide();
-    SleepMenu.hide();
-
     // Check if the app has the permission to open attention screens
-    var origin = evt.target.dataset.frameOrigin;
-    var app = Applications.getByOrigin(origin);
+    var manifestURL = evt.target.getAttribute('mozapp');
+    var app = Applications.getByManifestURL(manifestURL);
 
     if (!app || !this._hasAttentionPermission(app))
       return;
+
+    // Hide sleep menu/list menu if it is shown now
+    ListMenu.hide();
+    SleepMenu.hide();
 
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';
@@ -71,6 +71,8 @@ var AttentionScreen = {
         frame.setVisible(false);
       }
     }
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   close: function as_close(evt) {
@@ -87,11 +89,15 @@ var AttentionScreen = {
       }
     }
 
-    this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('active-statusbar');
     this.attentionScreen.classList.remove('status-mode');
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
+
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
+      this.attentionScreen.classList.remove('displayed');
+      this.dispatchEvent('attentionscreenhide');
+    }
 
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff(true);
@@ -99,6 +105,7 @@ var AttentionScreen = {
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
     window.focus();
+
   },
 
   show: function as_show() {
@@ -114,6 +121,8 @@ var AttentionScreen = {
         self.dispatchEvent('status-inactive');
       });
     });
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   // Invoked when we get a "home" event
@@ -125,6 +134,7 @@ var AttentionScreen = {
         this._screenInitiallyDisabled = false;
 
         this.dispatchEvent('status-active');
+
         this.mainScreen.classList.add('active-statusbar');
 
         var attentionScreen = this.attentionScreen;
@@ -132,6 +142,8 @@ var AttentionScreen = {
             attentionScreen.removeEventListener('transitionend', trWait);
             attentionScreen.classList.add('status-mode');
         });
+
+        this.dispatchEvent('attentionscreenhide');
       }
     }
   },

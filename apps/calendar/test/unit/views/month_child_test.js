@@ -1,6 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
+
   requireLib('templates/month.js');
   requireLib('views/month_child.js');
   requireLib('timespan.js');
@@ -40,7 +41,7 @@ suite('views/month_child', function() {
   });
 
   setup(function(done) {
-    this.timeout(10000);
+    this.timeout(20000);
     testEl = document.createElement('div');
     testEl.id = 'test';
     document.body.appendChild(testEl);
@@ -51,7 +52,7 @@ suite('views/month_child', function() {
     busytimes = app.store('Busytime');
     subject = new Calendar.Views.MonthChild({
       app: app,
-      month: month
+      date: month
     });
 
     app.db.open(function() {
@@ -70,23 +71,34 @@ suite('views/month_child', function() {
     app.db.close();
   });
 
-  test('initialization', function() {
-    assert.equal(subject.controller, controller);
-    assert.equal(subject.month, month);
-    assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
+  suite('initialization', function() {
 
-    assert.instanceOf(
-      subject.timespan,
-      Calendar.Timespan,
-      'should create timespan'
-    );
+    function view(month) {
+      return new Calendar.Views.MonthChild({
+        app: app,
+        date: month
+      });
+    }
 
-    assert.deepEqual(subject._days, {});
+    test('sanity', function() {
+      assert.equal(subject.controller, controller);
+      assert.equal(subject.date, month);
+      assert.equal(subject.id, subject.date.valueOf());
 
-    assert.deepEqual(
-      subject.timespan,
-      Calendar.Calc.spanOfMonth(subject.month)
-    );
+      assert.instanceOf(
+        subject.timespan,
+        Calendar.Timespan,
+        'should create timespan'
+      );
+
+      assert.deepEqual(subject._days, {});
+
+      assert.deepEqual(
+        subject.timespan,
+        Calendar.Calc.spanOfMonth(subject.date)
+      );
+    });
+
   });
 
   test('#_hourToBusyUnit', function() {
@@ -125,6 +137,22 @@ suite('views/month_child', function() {
         'should assign record id'
       );
     }
+
+    test('ends as other starts', function() {
+      var busytime = Factory('busytime', {
+        startDate: new Date(2012, 1, 1),
+        endDate: new Date(2012, 1, 2)
+      });
+
+      var date = new Date(2012, 1, 2);
+
+      var result = subject._calculateBusytime(
+        date,
+        busytime
+      );
+
+      assert.ok(!result, 'should not render time');
+    });
 
     test('whole day', function() {
       var result = subject._calculateBusytime(
@@ -253,7 +281,7 @@ suite('views/month_child', function() {
 
       subject.controller.move(month);
 
-      subject.attach(testEl);
+      subject.create(testEl);
       subject._addBusytime = function() {
         calls.push(Array.prototype.slice.call(arguments));
       };
@@ -482,9 +510,6 @@ suite('views/month_child', function() {
     });
 
     setup(function() {
-    });
-
-    setup(function() {
       controller.move(month);
       testEl.innerHTML = subject._renderDay(month);
       subject.element = testEl;
@@ -613,61 +638,84 @@ suite('views/month_child', function() {
 
   test('#_renderDayHeaders', function() {
     var result = subject._renderDayHeaders();
+    var days = 7;
+    var i = 0;
+    var id;
 
-    assert.ok(subject.dayNames.length == 7);
-    subject.dayNames.forEach(function(day) {
-      assert.include(result, day, 'result should include ' + day);
-    });
+    assert.ok(result);
+
+    for (; i < days; i++) {
+      id = 'weekday-' + i + '-short';
+
+      assert.include(
+        result,
+        id,
+        'has "' + id + '"'
+      );
+    }
   });
 
   suite('#_renderMonth', function() {
-    var days = [
-      month,
-      new Date(2012, 10, 8),
-      new Date(2012, 10, 15),
-      new Date(2012, 10, 22),
-      new Date(2012, 10, 29)
-    ];
 
-    test('should compose header and five weeks', function() {
+    function rendersWeeks(month, weekStartDates) {
       controller.move(month);
+
+      var subject = new Calendar.Views.MonthChild({
+        app: app,
+        date: month
+      });
+
       var result = subject._renderMonth();
 
-      assert.ok(result);
-
-      days.forEach(function(date) {
+      weekStartDates.forEach(function(date) {
         assert.include(
           result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-          'should include week of ' + date.getDate()
+          'should include week of ' + date.toString()
         );
       });
+
+      assert.equal(subject.weeks, weekStartDates.length);
+      assert.include(
+        result, subject._renderDayHeaders(), 'should have headers'
+      );
+    }
+
+    test('should compare header and four weeks', function() {
+      var days = [
+        new Date(2009, 1, 1),
+        new Date(2009, 1, 8),
+        new Date(2009, 1, 15),
+        new Date(2009, 1, 25)
+      ];
+
+      rendersWeeks(new Date(2009, 1, 1), days);
+    });
+
+    test('should compose header and five weeks', function() {
+      var days = [
+        month,
+        new Date(2012, 10, 8),
+        new Date(2012, 10, 15),
+        new Date(2012, 10, 22),
+        new Date(2012, 10, 29)
+      ];
+
+      rendersWeeks(month, days);
     });
 
     test('should compose header and six weeks', function() {
-      // We want to check if sixth week is rendered properly
-      // December 2012 has six weeks
-      var newMonth = new Date(2012, 11, 1);
-      var newDays = [
-        newMonth,
+      var days = [
+        new Date(2012, 11, 1),
         new Date(2012, 11, 8),
         new Date(2012, 11, 15),
         new Date(2012, 11, 22),
         new Date(2012, 11, 29),
-        new Date(2012, 12, 6)
+        new Date(2012, 12, 1)
       ];
 
-      controller.move(newDays[0]);
-      var result = subject._renderMonth();
-
-      assert.ok(result);
-
-      days.forEach(function(date) {
-        assert.include(
-          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
-          'should include week of ' + date.getDate()
-        );
-      });
+      rendersWeeks(days[0], days);
     });
+
   });
 
   suite('#_busyElement', function() {
@@ -683,7 +731,7 @@ suite('views/month_child', function() {
     });
 
     test('access rendered day', function() {
-      subject.attach(testEl);
+      subject.create();
 
       var id = Calendar.Calc.getDayId(month);
       var result = subject._busyElement(month);
@@ -696,7 +744,7 @@ suite('views/month_child', function() {
 
   });
 
-  suite('#attach', function() {
+  suite('#create', function() {
     var slice;
     var calledCachedWith;
     var calledRenderWith;
@@ -721,13 +769,11 @@ suite('views/month_child', function() {
       };
     });
 
-    test('initial attach', function() {
+    test('initial create', function() {
       var result,
           expected = subject._renderMonth();
 
-      testEl.appendChild(document.createElement('div'));
-
-      result = subject.attach(testEl);
+      result = subject.create(testEl);
 
       assert.equal(calledCachedWith[0], subject.timespan);
       assert.deepEqual(
@@ -735,11 +781,17 @@ suite('views/month_child', function() {
         [1, 2, 3]
       );
 
-      assert.equal(result.outerHTML, expected);
-      assert.ok(testEl.children[1].id);
+      assert.equal(subject.element, result);
 
-      assert.equal(testEl.children[0].tagName.toLowerCase(), 'div');
-      assert.equal(result.id, testEl.children[1].id);
+      assert.isTrue(
+        result.classList.contains('weeks-' + subject.weeks),
+        'should add week class'
+      );
+
+      assert.equal(
+        result.innerHTML, expected,
+        'should render month'
+      );
     });
 
   });
@@ -750,19 +802,19 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.move(month);
-      subject.attach(testEl);
+      subject.create(testEl);
 
       list = subject.element.classList;
     });
 
     test('#activate', function() {
       subject.activate();
-      assert.ok(!list.contains(subject.INACTIVE));
+      assert.ok(list.contains(subject.ACTIVE));
     });
 
     test('#deactivate', function() {
       subject.deactivate();
-      assert.ok(list.contains(subject.INACTIVE));
+      assert.ok(!list.contains(subject.ACTIVE));
     });
 
   });
@@ -773,13 +825,15 @@ suite('views/month_child', function() {
       subject._days = true;
     });
 
-    test('when not attached', function() {
+    test('when not created', function() {
       subject.destroy();
       assert.deepEqual(subject._days, {});
     });
 
-    test('when attached', function() {
-      subject.attach(testEl);
+    test('when created', function() {
+      var el = subject.create(testEl);
+      testEl.appendChild(el);
+
       assert.ok(subject.element);
 
       subject.destroy();
@@ -791,4 +845,3 @@ suite('views/month_child', function() {
   });
 
 });
-

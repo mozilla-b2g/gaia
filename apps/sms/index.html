@@ -12,6 +12,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/custom_dialog.js"></script>
     <script type="text/javascript" src="shared/js/desktop.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" src="js/contacts.js"></script>
@@ -19,7 +20,6 @@
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/searchUtils.js"></script>
-    <script type="text/javascript" src="js/custom_dialog.js"></script>
     <script type="text/javascript">
       if (!navigator.mozSms) {
         document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
@@ -118,7 +118,7 @@
           </section>
         </footer>
         <footer class="new-sms-form">
-          <textarea type="text" id="message-to-send" name="message-to-send"></textarea>
+          <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
           <div id="send-message-container">
             <button id="send-message" data-l10n-id="send">SEND</button>
           </div>

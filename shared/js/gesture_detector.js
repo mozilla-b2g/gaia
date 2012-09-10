@@ -279,6 +279,7 @@ var GestureDetector = (function() {
       d.vx = d.vy = null;
       d.startDistance = d.lastDistance = null;
       d.startDirection = d.lastDirection = null;
+      d.lastMidpoint = null;
       d.scaled = d.rotated = null;
     },
 
@@ -579,6 +580,7 @@ var GestureDetector = (function() {
 
         d.lastDistance = distance;
         d.lastDirection = direction;
+        d.lastMidpoint = midpoint;
       }
     },
 
@@ -599,6 +601,25 @@ var GestureDetector = (function() {
       }
       else
         return; // It was a touch we weren't tracking
+
+      // If we emitted any transform events, now we need to emit
+      // a transformend event to end the series.  The details of this
+      // event use the values from the last touchmove, and the
+      // relative amounts will 1 and 0, but they are included for
+      // completeness even though they are not useful.
+      if (d.scaled || d.rotated) {
+        d.emitEvent('transformend', {
+          absolute: { // transform details since gesture start
+            scale: d.lastDistance / d.startDistance,
+            rotate: touchRotation(d.startDirection, d.lastDirection)
+          },
+          relative: { // nothing has changed relative to the last touchmove
+            scale: 1,
+            rotate: 0
+          },
+          midpoint: d.lastMidpoint
+        });
+      }
 
       d.switchTo(afterTransformState);
     }

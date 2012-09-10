@@ -91,12 +91,12 @@ a:active {
 }
 
 #frequency[data-seek-dir="up"] {
-  background: url("images/spinner-right.png") no-repeat center bottom transparent;
+  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
 }
 
 
 #frequency[data-seek-dir="down"] {
-  background: url("images/spinner-left.png") no-repeat center bottom transparent;
+  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
 }
 
 #bookmark-button {
@@ -139,6 +139,7 @@ a:active {
 #dialer-container > div:last-child {
   border-bottom: 0.2rem solid #4D5055;
   margin-left: -50%;
+  margin-top: 7.5rem;
 }
 
 #frequency-indicator {
@@ -149,9 +150,10 @@ a:active {
   position: absolute;
   z-index: 1;
   background: url(images/selector.png) no-repeat center center transparent;
+  top: 0;
 }
 
-div.animation-on {
+div.animation-on > div {
   transition: -moz-transform 0.4s ease 0s;
 }
 
@@ -161,6 +163,8 @@ div.animation-on {
   -moz-user-select: none;
   width: 100%;
   margin-left: -0.2rem;
+  position: absolute;
+  top: 0;
 }
 
 #frequency-dialer .dialer-unit-mark-box {
@@ -170,12 +174,14 @@ div.animation-on {
 
 #frequency-dialer .dialer-unit {
   text-align: left;
-  float: left;
   height: 7.5rem;
+  position: absolute;
+  width: 320px;
 }
 
 #frequency-dialer .dialer-unit-floor {
   color: #AAA;
+  float: left;
 }
 
 #frequency-dialer .dialer-mark {
@@ -310,25 +316,50 @@ div#fav-list-container div.fav-list-frequency::after {
 }
 
 #power-switch {
-  background: url(images/play.png) no-repeat center center transparent;
+  background-image: url(images/play.png), url(images/reflection-72.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center, 0 0;
+}
+
+#power-switch:active {
+  background-image: url(images/play.png);
 }
 
 #power-switch[data-enabled="true"] {
-  background: url(images/stop.png) no-repeat center center transparent;
+  background-image: url(images/stop.png), url(images/reflection-72.png);
+}
+
+#power-switch[data-enabled="true"]:active {
+  background-image: url(images/stop.png);
 }
 
 a#frequency-op-seekdown {
   width: 5rem;
   height: 5rem;
   margin: 1rem 0;
-  background: url(images/seekdown.png) no-repeat center center transparent;
+  background-image: url(images/seekdown.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
+}
+
+a#frequency-op-seekdown:active {
+  background-image: url(images/seekdown.png);
 }
 
 a#frequency-op-seekup {
   width: 5rem;
   height: 5rem;
   margin: 1rem 0;
-  background: url(images/seekup.png) no-repeat center center transparent;
+  background-image: url(images/seekup.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
+}
+
+a#frequency-op-seekup:active {
+  background-image: url(images/seekup.png);
 }
 /**** end ****/
 
