@@ -56,6 +56,8 @@ endif
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
+GAIA_LOCALES_PATH?=locales
+
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
@@ -256,6 +258,7 @@ define run-js-command
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
+	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \

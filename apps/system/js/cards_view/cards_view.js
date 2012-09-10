@@ -457,6 +457,15 @@ var CardsView = (function() {
     hideCardSwitcher();
   });
 
+  window.addEventListener('attentionscreenshow',
+    function cv_attentionScreenShowEvent(evt) {
+    if (!cardSwitcherIsShown()) {
+      return;
+    }
+
+    hideCardSwitcher();
+  });
+
   function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':

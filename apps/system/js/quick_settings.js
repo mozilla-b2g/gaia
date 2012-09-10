@@ -48,7 +48,7 @@ var QuickSettings = {
           case this.wifi:
             var enabled = (this.wifi.dataset.enabled == 'true');
             this.wifi.dataset.enabled = !enabled;
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
             if (!enabled) {
@@ -69,7 +69,7 @@ var QuickSettings = {
             // and double click so we'll change the UI state here
             this.data.dataset.enabled = !enabled;
 
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'ril.data.enabled': !enabled
             });
 
@@ -78,7 +78,7 @@ var QuickSettings = {
           case this.bluetooth:
             var enabled = (this.bluetooth.dataset.enabled == 'true');
             this.bluetooth.dataset.enabled = !enabled;
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': !enabled
             });
             break;
@@ -141,7 +141,8 @@ var QuickSettings = {
             var host = document.location.host;
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
             var protocol = document.location.protocol + '//';
-            Applications.getByOrigin(protocol + 'settings.' + domain).launch();
+            Applications.getByManifestURL(protocol + 'settings.' +
+                                          domain + '/manifest.webapp').launch();
 
             window.addEventListener('appopen', function hideTray(evt) {
               window.removeEventListener('appopen', hideTray);
@@ -179,7 +180,7 @@ var QuickSettings = {
   // does not currently supports multiple keys in one set()
   // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
   setMozSettings: function qs_setter(keypairs) {
-    var setlock = window.navigator.mozSettings.getLock();
+    var setlock = SettingsListener.getSettingsLock();
     for (var key in keypairs) {
       var obj = {};
       obj[key] = keypairs[key];

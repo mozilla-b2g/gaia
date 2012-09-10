@@ -958,6 +958,6 @@ textarea.textfield {
   right: 0.5rem;
   top: 50%;
   margin-top: -1.3rem;
-  background: transparent url(/contacts/style/gphx/bitmap/default/lists/tick.png) no-repeat center center;
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
 }
 
