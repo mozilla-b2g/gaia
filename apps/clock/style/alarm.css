@@ -110,9 +110,9 @@ a.button.right.done-button {
 
 a.abstract-menu {
   display: block;
-  height:      auto; /* 5.4rem; -moz-calc(100% - 4rem); */
-  line-height: normal; /* 5.4rem; -moz-calc(100% - 4rem); */
-  width: -moz-calc(100% - 12rem);
+  height:      auto;   /* 5.4rem; calc(100% - 4rem); */
+  line-height: normal; /* 5.4rem; calc(100% - 4rem); */
+  width: calc(100% - 12rem);
   text-decoration: none;
   text-align: left;
   padding-left: 12rem;
@@ -176,27 +176,27 @@ select.abstract-menu {
 
 /* View - Slide Horizontal Transition */
 .view {
-  -moz-transition: -moz-transform 0.5s ease;
-  -moz-transform: translateX(100%);
+  transition: transform 0.5s ease;
+  transform: translateX(100%);
 }
 
 #alarm-view {
-  -moz-transform: translateX(-100%);
+  transform: translateX(-100%);
 }
 
 #alarm-view:target, .view:target {
-  -moz-transition: -moz-transform 0.5s ease;
-  -moz-transform: none;
+  transition: transform 0.5s ease;
+  transform: none;
 }
 
 body.hidden #alarm-view {
-  -moz-transform: none;
-  -moz-transition: none;
+  transform: none;
+  transition: none;
 }
 
 #alarm-view.active {
-  -moz-transform: none;
-  -moz-transition: none;
+  transform: none;
+  transition: none;
 }
 
 #alarm {
@@ -291,8 +291,8 @@ ul li > a {
   display: block;
   padding-top: 1.6rem;
   padding-bottom: 1.6rem;
-  height:      6.8rem; /* -moz-calc(100% - 4rem); */
-  line-height: 6.8rem; /* -moz-calc(100% - 4rem); */
+  height:      6.8rem; /* calc(100% - 4rem); */
+  line-height: 6.8rem; /* calc(100% - 4rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -304,7 +304,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   text-overflow: ellipsis;
   white-space: nowrap;
   position: absolute;
-  width: -moz-calc(100% - 13rem);
+  width: calc(100% - 13rem);
 }
 
 ul li > span {
@@ -343,7 +343,7 @@ ul li > small {
 }
 
 .view label.alarmList {
-  width: -moz-calc(13rem);
+  width: calc(13rem);
 }
 
 .view label > input {
@@ -352,7 +352,7 @@ ul li > small {
 
 .view label > span {
   position: absolute;
-  top: -moz-calc(50% - 1.7rem);
+  top: calc(50% - 1.7rem);
   right: 1.4rem;
   display: block;
   width: 6.4rem;
@@ -386,43 +386,11 @@ ul li > small {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-/* ----------- Alarm Set Enabled Button ------------- */
-.view label > input[type=checkbox] + span.setEnabledBtn {
-  width: 13rem;
-  height: 4.4rem;
-  margin: 0rem;
-  right: 0rem;
-  top: calc(50% - 2.2rem);
-  background: url(images/set_enabled_btn_off.png) no-repeat scroll center center;
-  background-size: 100% 100%;
-}
-
-.view label > input[type=checkbox] + span.setEnabledBtn:after {
-  font: 2.15rem/4.4rem 'Open Sans',sans-serif;
-  color: #7a7a7a;
-  position: absolute;
-  left: 6rem;
-  content: attr(data-unchecked);
-}
-
-.view label > input[type=checkbox]:checked + span.setEnabledBtn {
-  background: url(images/set_enabled_btn_on.png) no-repeat scroll center center;
-  background-size: 100% 100%;
-}
-
-.view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
-  font: 2.25rem/4.4rem 'Open Sans',sans-serif;
-  color: #0088a3;
-  position: absolute;
-  left: 3.3rem;
-  content: attr(data-checked);
-}
-
 /* ----------- Inputs ------------- */
 select, input, textarea {
   clear: both;
-  background:none;
-  border:0.2rem solid white;
+  background: none;
+  border: 0.2rem solid white;
   border-radius: 0.5rem;
   font-size: 1em;
 }
@@ -436,7 +404,7 @@ select.right {
 }
 
 input.right {
-  width: -moz-calc(100% - 20rem);
+  width: calc(100% - 20rem);
   margin: 0.6rem 0.8rem 0.3rem 12rem;
   height: 5rem;
   font: 2.4rem/3rem 'Open Sans',sans-serif;
@@ -444,12 +412,12 @@ input.right {
 }
 /* ----------- Input Error ---------- */
 input ~ * {
-  color:#E00;
+  color: #E00;
   margin: -1rem 0rem 0rem 2rem;
 }
 
 input ~ *:empty {
-  display:none;
+  display: none;
 }
 
 /* ----------- TableView ---------- */
@@ -459,7 +427,7 @@ input ~ *:empty {
 }
 
 .tableView {
-  height: -moz-calc(100% - 8rem - 0.3rem);
+  height: calc(100% - 8rem - 0.3rem);
   background-color: #ffffff;
   padding-left: 5%;
   padding-right: 5%;
@@ -490,7 +458,7 @@ input ~ *:empty {
 li img {
   position: absolute;
   vertical-align: middle;
-  margin-right:1rem;
+  margin-right: 1rem;
 }
 
 .description {
@@ -513,7 +481,7 @@ li img {
   font: 2.2rem/2.2rem 'Open Sans', sans-serif;
   color: #25292a;
   margin-left: -0.4rem;
-  text-transform:lowercase;
+  text-transform: lowercase;
 }
 
 .alarmList-detail .label {
@@ -548,11 +516,11 @@ li img {
 #picker-bar {
   position: relative;
   width: 85%;
-  height: -moz-calc(100% - 0.2rem);
+  height: calc(100% - 0.2rem);
   margin-left: auto;
   margin-right: auto;
   border-bottom: solid 0.2rem;
-  -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
+  -moz-border-bottom-colors: #CBCBCC #FFFFFF;
 }
 
 #picker-bar-gradient {
@@ -622,12 +590,12 @@ li img {
   position: absolute;
   width: 34%;
   height: 100%;
-  right:0;
+  right: 0;
 }
 
 div.animation-on {
-  -moz-transition-duration: 0.5s;
-  -moz-transition-property: top, left;
+  transition-duration: 0.5s;
+  transition-property: top, left;
 }
 
 #value-picker-hours {
@@ -704,7 +672,7 @@ div.animation-on {
     font-size: 10px;
   }
   .alarmList-detail {
-    margin-left: 0.5rem; 
+    margin-left: 0.5rem;
   }
   .alarmList-time span.time {
     font: 3.6rem/3.6rem 'Open Sans', sans-serif;
@@ -720,3 +688,4 @@ div.animation-on {
     font: 1.8rem/1.8rem 'Open Sans', sans-serif;
   }
 }
+
