@@ -268,7 +268,8 @@ contacts.List = (function() {
     // in the last positions of the letter, the algorithm can't
     // notice it. We need to check the difference at the end to
     // remove the remaining.
-    var nodes = groupsList.querySelectorAll('ol[data-group]');
+    var selectorString = 'ol[data-group]:not(#contacts-list-favorites)';
+    var nodes = groupsList.querySelectorAll(selectorString);
     for (var i = 0; i < nodes.length; i++) {
       var currentGroup = nodes[i];
       var group = currentGroup.dataset['group'];
@@ -301,6 +302,11 @@ contacts.List = (function() {
       sortOrder: 'ascending'
     };
 
+    // Reset previous state of favorites (if any)
+    var favoritesList = document.getElementById('contacts-list-favorites');
+    if (favoritesList != null) {
+      favoritesList.innerHTML = '';
+    }
     var request = navigator.mozContacts.find(options);
 
     request.onsuccess = function favoritesCallback() {
