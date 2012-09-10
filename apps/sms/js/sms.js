@@ -721,26 +721,31 @@ var ThreadUI = {
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
+
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
-    Utils.getPhoneDetails(number, function returnedDetails(details) {
-      if (details.isContact) {
-        self.title.dataset.isContact = true;
-      } else {
-         self.title.dataset.isContact = false;
-      }
-      self.title.innerHTML = details.title || number;
-      var carrierTag = document.getElementById('contact-carrier');
-      if (details.carrier) {
-        carrierTag.innerHTML = details.carrier;
-        carrierTag.classList.remove('hide');
-      } else {
-        carrierTag.classList.add('hide');
-      }
+    ContactDataManager.getContactData(number, function gotContact(contacts){
+      //TODO what if different contacts with same number?
+      Utils.getPhoneDetails(number,
+                            contacts[0],
+                            function returnedDetails(details) {
+        if (details.isContact) {
+          self.title.dataset.isContact = true;
+        }
+        self.title.innerHTML = details.title || number;
+        var carrierTag = document.getElementById('contact-carrier');
+        if (details.carrier) {
+          carrierTag.innerHTML = details.carrier;
+          carrierTag.classList.remove('hide');
+        } else {
+          carrierTag.classList.add('hide');
+        }
+      });
     });
   },
+
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
     ThreadUI.updateHeaderData(MessageManager.currentNum);
@@ -1174,7 +1179,6 @@ var ThreadUI = {
 
   renderContactData: function thui_renderContactData(contact) {
     // Retrieve info from thread
-    var phoneType = ContactDataManager.phoneType;
     var name = contact.name.toString();
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
@@ -1189,21 +1193,24 @@ var ThreadUI = {
       // Create DOM element
       var threadHTML = document.createElement('div');
       threadHTML.classList.add('item');
-      if (name == '') {
-        nameHTML = 'Unknown';
-      }
-      var carrier = tels[i].carrier;
-      //TODO Implement algorithm for this part following Wireframes
-      // Create HTML structure
-      var structureHTML =
-              '  <a href="#num=' + tels[i].value + '">' +
-              '    <div class="name">' + nameHTML + '</div>' +
-              '    <div class="type">' + tels[i].type + ' ' + numHTML +
-              '    </div>' +
-              '  </a>';
-      // Update HTML and append
-      threadHTML.innerHTML = structureHTML;
-      ThreadUI.view.appendChild(threadHTML);
+
+      Utils.getPhoneDetails(tels[i].value,
+                            contact,
+                            function gotDetails(details) {
+        //TODO Implement algorithm for this part following Wireframes
+        // Create HTML structure
+        var structureHTML =
+                '  <a href="#num=' + tels[i].value + '">' +
+                '    <div class="name">' + details.title + '</div>' +
+                '    <div class="type">' + details.carrier + '</div>' +
+                '    <div class="photo">' +
+                '      <img src="' + details.photo + '">' +
+                '    </div>' +
+                '  </a>';
+        // Update HTML and append
+        threadHTML.innerHTML = structureHTML;
+        ThreadUI.view.appendChild(threadHTML);
+        });
     }
   },
 
