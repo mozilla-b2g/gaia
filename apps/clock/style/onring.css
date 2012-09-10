@@ -9,8 +9,8 @@ html, body {
 
 .ring-display {
   padding: 1.2rem 1.2rem 1rem;
-  width: -moz-calc(100% - 2.4rem);
-  height: -moz-calc(100% - 2.2rem);
+  width: calc(100% - 2.4rem);
+  height: calc(100% - 2.2rem);
   position: absolute;
 }
 
@@ -56,7 +56,7 @@ html, body {
 #ring-alarm-label {
   font: lighter 4rem 'Open Sans',sans-serif;
   line-height: 10rem;
-  white-space: nowrap; 
+  white-space: nowrap;
   text-overflow: ellipsis;
 }
 
@@ -73,7 +73,7 @@ html, body {
 
 #ring-button-close {
   float: left;
-  width: -moz-calc((100% - 6.5rem) / 2 );
+  width: calc((100% - 6.5rem) / 2 );
   -moz-box-sizing: border-box;
   background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;
@@ -102,7 +102,7 @@ html, body {
 
 #ring-button-snooze {
   float: left;
-  width: -moz-calc((100% - 6.5rem) / 2 );
+  width: calc((100% - 6.5rem) / 2 );
   -moz-box-sizing: border-box;
   background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
   background-color: #00CAF2;
@@ -145,3 +145,4 @@ html, body {
     font-size: 10px;
   }
 }
+
