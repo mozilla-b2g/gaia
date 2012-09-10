@@ -13,15 +13,7 @@
 */
 var ContactDataManager = {
   contactData: {},
-  phoneType: [
-    'mobile',
-    'home',
-    'work',
-    'personal',
-    'faxHome',
-    'faxOffice',
-    'faxOther',
-    'another'],
+
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
     if (!navigator.mozSms)

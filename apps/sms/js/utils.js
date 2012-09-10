@@ -97,44 +97,52 @@ var Utils = {
     return this.rootFontSize;
   },
 
-  getPhoneDetails: function ut_getPhoneDetails(number, callback) {
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      var details = {};
-      //TODO what if return multiple contacts?
-      if (contact.length > 0) { // we have a contact
-        var name = contact[0].name,
-            phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
-        // Check which of the contacts phone number we are using
-        for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number) {
-            phone = contact[0].tel[i];
-            carrierToShow = phone.carrier;
-          }
-        }
-        // Add data values for contact activity interaction
-        details.isContact = true;
+  getPhoneDetails: function ut_getPhoneDetails(number, contact, callback) {
+    var details = {};
 
-        if (name && name != '') { // contact with name
-          // Check if other phones with same type and carrier
-          for (var i = 0; i < contact[0].tel.length; i++) {
-            if (contact[0].tel[i].value !== phone.value &&
-                contact[0].tel[i].type == phone.type &&
-                contact[0].tel[i].carrier == phone.carrier) {
-              carrierToShow = phone.value;
-            }
-          }
-          details.title = name;
-          details.carrier = phone.type + ' | ' +
-                            (carrierToShow || phone.value);
-        } else { // no name of contact
-          details.title = number;
-          details.carrier = phone.type + ' | ' + (phone.carrier || '');
+    if (contact) { // we have a contact
+      //TODO what if there are more contacts?
+      var name = contact.name,
+          phone = contact.tel[0],
+          carrierToShow = phone.carrier;
+
+      // Check which of the contacts phone number are we using
+      for (var i = 0; i < contact.tel.length; i++) {
+        if (contact.tel[i].value == number) {
+          phone = contact.tel[i];
+          carrierToShow = phone.carrier;
         }
-      } else { // we don't have a contact
-        details.title = number;
       }
-      callback(details);
-    });
+
+      // Add data values for contact activity interaction
+      details.isContact = true;
+
+      // Add photo
+      if (contact.photo && contact.photo[0]) {
+        details.photoURL = URL.createObjectURL(contact.photo[0]);
+      }
+
+      // Carrier logic
+      if (name && name != '') { // contact with name
+        // Check if other phones with same type and carrier
+        for (var i = 0; i < contact.tel.length; i++) {
+          if (contact.tel[i].value !== phone.value &&
+              contact.tel[i].type == phone.type &&
+              contact.tel[i].carrier == phone.carrier) {
+            carrierToShow = phone.value;
+          }
+        }
+        details.title = name;
+        details.carrier = phone.type + ' | ' +
+                          (carrierToShow || phone.value);
+      } else { // no name of contact
+        details.title = number;
+        details.carrier = phone.type + ' | ' + (phone.carrier || '');
+      }
+
+    } else { // we don't have a contact
+      details.title = number;
+    }
+    callback(details);
   }
 };
