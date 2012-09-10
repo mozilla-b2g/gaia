@@ -988,6 +988,7 @@ var Contacts = (function() {
       event.preventDefault();
       var elem = document.getElementById(selector);
       elem.parentNode.removeChild(elem);
+      checkDisableButton();
       return false;
     };
     return delButton;
