@@ -12,6 +12,8 @@
  * XXX Note: We presume that contact.name has only one entry.
 */
 var ContactDataManager = {
+  // TODO Add eventListener for checking if contactDB has changed.
+  // Once this will be include again 'cache'.
   contactData: {},
   phoneType: [
     'mobile',
@@ -33,29 +35,9 @@ var ContactDataManager = {
       filterValue: number
     };
 
-    var cacheResult = this.contactData[number];
-    if (typeof cacheResult !== 'undefined') {
-      var cacheArray = cacheResult ? [cacheResult] : [];
-      callback(cacheArray);
-    }
-
-    var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
-      // Update the cache before callback.
-      var cacheData = self.contactData[number];
       var result = req.result;
-      if (result.length > 0) {
-        if (cacheData && (cacheData.name[0] == dbData.name[0]))
-          return;
-
-        self.contactData[number] = result[0];
-      } else {
-        if (cacheData === null)
-          return;
-
-        self.contactData[number] = null;
-      }
       callback(result);
     };
 
