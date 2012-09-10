@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Test Receiver</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+
+
+    body {
+      background-color: #e0e0e0;
+    }
+    </style>
+    <script>
+    var activityRequest;
+
+    var webActivityHandler = function (request) {
+      activityRequest = request;
+
+      document.getElementById('button').disabled = '';
+      document.getElementById('cancelButton').disabled = '';
+    };
+
+    window.onload = function () {
+      // If the app is being loaded because a inline disposition web activity,
+      // it will came with a pending system message.
+      if (!navigator.mozHasPendingMessage('activity')) {
+        alert('This application is not intend to launch directly.');
+      } else {
+        // Register for activity system message handling.
+        // Do NOT register for message handling on the main app frame.
+        navigator.mozSetMessageHandler('activity', webActivityHandler);
+      }
+    };
+
+    var go = function go() {
+      if (!activityRequest) {
+        alert('There are no any pending activity request.');
+        return;
+      }
+
+      // Return the request
+      activityRequest.postResult({
+        type: 'inline',
+        text: 'Hello back!'
+      });
+      activityRequest = null;
+
+      // close app, currently useless,
+      // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
+      window.close();
+    };
+
+    var cancel = function cancel() {
+      if (!activityRequest) {
+        alert('There are no any pending activity request.');
+        return;
+      }
+
+      activityRequest.postError('canceled');
+      activityRequest = null;
+
+      // close app, currently useless,
+      // see https://bugzilla.mozilla.org/show_bug.cgi?id=789392
+      window.close();
+    };
+
+    // When the app is being closed or killed, we will cancel the pending
+    // request.
+    document.addEventListener('mozvisibilitychange', function visibility(e) {
+      if (!document.mozHidden || !activityRequest)
+        return;
+
+      activityRequest.postError('canceled');
+      activityRequest = null;
+    });
+
+    </script>
+  </head>
+  <body>
+    <h1>Inline Web Activities receiver</h1>
+    <button onclick="go()" disabled id="button">Send "Hello Back!"</button></p>
+    <button onclick="cancel()" disabled id="cancelButton">Cancel</button></p>
+  </body>
+</html>

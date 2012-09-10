@@ -25,7 +25,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // activate main button
   gBluetoothCheckBox.onchange = function changeBluetooth() {
-    settings.getLock().set({'bluetooth.enabled': this.checked});
+    settings.createLock().set({'bluetooth.enabled': this.checked});
   };
 
   function initialDefaultAdapter() {
@@ -36,7 +36,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       defaultAdapter = req.result;
       if (defaultAdapter == null) {
         // we can do nothing without DefaultAdapter, so set bluetooth disabled
-        settings.getLock().set({'bluetooth.enabled': false});
+        settings.createLock().set({'bluetooth.enabled': false});
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
@@ -50,7 +50,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
     req.onerror = function bt_getAdapterFailed() {
       // we can do nothing without DefaultAdapter, so set bluetooth disabled
-      settings.getLock().set({'bluetooth.enabled': false});
+      settings.createLock().set({'bluetooth.enabled': false});
     }
   }
 
@@ -332,7 +332,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   });
 
   // startup, update status
-  var req = settings.getLock().get('bluetooth.enabled');
+  var req = settings.createLock().get('bluetooth.enabled');
 
   req.onsuccess = function bt_EnabledSuccess() {
     lastMozSettingValue = req.result['bluetooth.enabled'];
