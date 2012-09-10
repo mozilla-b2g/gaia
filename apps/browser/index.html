@@ -60,53 +60,52 @@
           </button>
         </div>
 
-        <div id="screen">
-          <div id="modal-dialog">
-            <div id="modal-dialog-table">
-              <div id="modal-dialog-tablecell">
-                <div id="modal-dialog-alert">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-alert-message"></span>
-                  </div>
-                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
-                </div>
-
-                <div id="modal-dialog-confirm">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-confirm-message"></span>
-                  </div>
-                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
-                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
-                    Cancel
-                  </button>
-                </div>
-
-                <div id="modal-dialog-prompt">
-                  <div class="modal-dialog-message-container">
-                    <span id="modal-dialog-prompt-message"></span>
-                    <input id="modal-dialog-prompt-input" />
-                  </div>
-                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div id="modal-dialog-authentication">
-            <div class="modal-dialog-buttons">
-              <button id="modal-dialog-authentication-ok" data-l10n-id="ok">OK</button>
-              <button id="modal-dialog-authentication-cancel" data-l10n-id="cancel">
+        <div id="authenticationscreen">
+          <div id="authentication-dialog-http-authentication">
+            <div class="authentication-dialog-buttons">
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="ok">OK</button>
+              <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">
                 Cancel
               </button>
             </div>
-            <div class="modal-dialog-message-container">
-              <span id="modal-dialog-authentication-message"></span>
+            <div class="authentication-dialog-message-container">
+              <span id="authentication-dialog-http-authentication-message"></span>
               <span data-l10n-id="username">Username</span>
-              <input id="modal-dialog-username-input" />
+              <input id="authentication-dialog-username-input" />
               <span data-l10n-id="password">Password</span>
-              <input id="modal-dialog-password-input" type="password" />
+              <input id="authentication-dialog-password-input" type="password" />
+            </div>
+          </div>
+        </div>
+
+        <div id="screen">
+          <div id="modal-dialog">
+            <div id="modal-dialog-alert">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-alert-message"></span>
+              </div>
+              <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
+            </div>
+
+            <div id="modal-dialog-confirm">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-confirm-message"></span>
+              </div>
+              <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+              <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
+                Cancel
+              </button>
+            </div>
+
+            <div id="modal-dialog-prompt">
+              <div class="modal-dialog-message-container">
+                <span id="modal-dialog-prompt-message"></span>
+                <input id="modal-dialog-prompt-input" />
+              </div>
+              <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+              <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -189,6 +188,7 @@
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>
+    <script src="js/authentication_dialog.js"></script>
     <script src="js/browser.js"></script>
 
   </body>

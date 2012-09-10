@@ -21,9 +21,7 @@ var ModalDialog = {
   getAllElements: function md_getAllElements() {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
-      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'authentication', 'username-input', 'password-input',
-      'authentication-message', 'authentication-ok', 'authentication-cancel'];
+      'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -125,7 +123,9 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    switch (evt.detail.promptType) {
+    var type = evt.detail.promptType || 'authentication';
+
+    switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
@@ -142,7 +142,7 @@ var ModalDialog = {
         elements.confirmMessage.innerHTML = message;
         break;
 
-      case 'usernameandpassword':
+      case 'authentication':
         elements.authentication.classList.add('visible');
         var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
         var _ = navigator.mozL10n.get;
@@ -150,11 +150,16 @@ var ModalDialog = {
         elements.authenticationMessage.innerHTML = message;
         break;
     }
+
+    console.log(elements.authentication, elements.authentication.style.display, elements.authentication.classList,'=====');
   },
 
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
-    this.elements[evt.detail.promptType].classList.remove('visible');
+    if (!evt)
+      return;
+    var type = evt.detail.promptType || 'authentication';
+    this.elements[type].classList.remove('visible');
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },
@@ -165,8 +170,9 @@ var ModalDialog = {
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin];
+    var type = evt.detail.promptType || 'authentication';
 
-    switch (evt.detail.promptType) {
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -181,16 +187,15 @@ var ModalDialog = {
         elements.confirm.classList.remove('visible');
         break;
 
-      case 'usernameandpassword':
-        evt.detail.returnValue = {
-          username: elements.usernameInput.value,
-          password: elements.passwordInput.value
-        };
+      case 'authentication':
+        evt.detail.authenticate(elements.usernameInput.value,
+          elements.passwordInput.value);
         elements.authentication.classList.remove('visible');
         break;
     }
 
-    evt.detail.unblock();
+    if (evt.detail.unblock)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -201,8 +206,9 @@ var ModalDialog = {
     var evt = this.currentEvents[this.currentOrigin];
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
+    var type = evt.detail.promptType || 'authentication';
 
-    switch (evt.detail.promptType) {
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -218,9 +224,14 @@ var ModalDialog = {
         evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
         break;
+
+      case 'authentication':
+        evt.detail.cancel();
+        break;
     }
 
-    evt.detail.unblock();
+    if (evt.detail.unblock)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },

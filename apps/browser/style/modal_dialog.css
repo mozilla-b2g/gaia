@@ -1,3 +1,4 @@
+#authentication-dialog,
 #modal-dialog {
   position: absolute;
   top: 0;
@@ -7,19 +8,15 @@
   z-index: 10000;
   display: none;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
-#modal-dialog-table {
-  display: table;
+#modal-dialog:before {
+  content: "";
+  display: inline-block;
   height: 100%;
-  width: 100%;
-}
-
-#modal-dialog-tablecell {
-  display: table-cell;
-  height: 100%;
-  width: 100%;
   vertical-align: middle;
+  width: 1px;
 }
 
 #modal-dialog-alert,
@@ -32,14 +29,20 @@
   border-top: #aaa;
   border-bottom: #ddd;
   text-align: center;
-  padding: 1em;
-  -moz-box-sizing: border-box;
+  -moz-box-sizing: padding-box;
+  padding: 0 2.5rem 0 2rem;
+  vertical-align: middle;
+  white-space: normal;
   display: none;
 }
 
 #modal-dialog-authentication {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 3px red solid;
   width: 100%;
+  height: 100%;
   background: white;
   color: black;
 }
@@ -120,8 +123,13 @@
   border: 0;
 }
 
+#authentication-dialog {
+  display: none;
+}
 
 #screen.modal-dialog #modal-dialog,
+#authenticationscreen.authentication-dialog,
+#authentication-dialog.visible,
 #modal-dialog-alert.visible,
 #modal-dialog-authentication.visible,
 #modal-dialog-confirm.visible,

@@ -377,7 +377,7 @@ input::-moz-focus-inner {
   z-index: 100;
 }
 
-#awesomescreen, #crashscreen {
+#awesomescreen, #crashscreen, #authenticationscreen {
   position: absolute;
   top: 0;
   left: 0;
@@ -394,6 +394,10 @@ input::-moz-focus-inner {
 #crashscreen {
   z-index: 59;
   text-align: center;
+}
+
+#authenticationscreen {
+  z-index: 61;
 }
 
 #sad-face {
@@ -639,6 +643,7 @@ li[role="listitem"] small {
   margin-right: 10px;
 }
 
+#modal-dialog-authentication,
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt {
@@ -646,7 +651,7 @@ li[role="listitem"] small {
   margin: 0 auto !important;
 }
 
-#modal-dialog-tablecell {
+#modal-dialog {
   background: rgba(0, 0, 0, 0.5);
 }
 
