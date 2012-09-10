@@ -73,7 +73,7 @@ function ValueSelector(title, list) {
       setTitle(title);
     }
 
-    if (Object.prototype.toString.call(list) == '[object Array]') {
+    if (Array.isArray(list)) {
       data.list = list;
     }
   }

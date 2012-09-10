@@ -50,10 +50,11 @@
       classes.remove('visible');
     }, 1500);
 
-    if ('mozSettings' in navigator) {
-      navigator.mozSettings.getLock().set({
-        'audio.volume.master': currentVolume / 10
-      });
-    }
+    if (!window.navigator.mozSettings)
+      return;
+
+    SettingsListener.getSettingsLock().set({
+      'audio.volume.master': currentVolume / 10
+    });
   }
 })();

@@ -44,6 +44,7 @@
 Components.utils.import('resource://gre/modules/Services.jsm');
 const GAIA_DOMAIN = Services.prefs.getCharPref("extensions.gaia.domain");
 const GAIA_APP_RELATIVEPATH = Services.prefs.getCharPref("extensions.gaia.app_relative_path");
+const GAIA_LOCALES_PATH = Services.prefs.getCharPref("extensions.gaia.locales_debug_path");
 // -GAIA
 
 /*
@@ -1439,6 +1440,14 @@ RequestReader.prototype =
               filePath += '/../..';
             }
             request._path = filePath + oldPath;
+
+            // Handle localization files
+            if (oldPath.indexOf('.properties') !== -1 && 
+                oldPath.indexOf('en-US.properties') === -1) {
+              request._path = this._findPropertiesPath(oldPath, 
+                                                       applicationName, 
+                                                       filePath);
+            }
           }
         } catch (e) {
           dump(e);
@@ -1477,6 +1486,21 @@ RequestReader.prototype =
       this._realPath[currentAppName] = appPathList[i];
     }
     return '/' + this._realPath[appName];
+  },
+
+  /**
+   * Try finding the localization files in GAIA_LOCALES_PATH
+   */ 
+  _findPropertiesPath: function(oldPath, appName, appPath) {
+    var parts = oldPath.split(".");
+    var localeCode = parts[parts.length - 2];
+    var path = ('/' + GAIA_LOCALES_PATH + '/' + localeCode + '/gaia' + 
+                appPath + '/' + appName + '.properties');
+    dumpn(path)
+    var file = this._connection.server._handler._getFileForPath(path);
+    if (file.exists() && file.isFile())
+      return path;
+    return appPath + oldPath;
   },
 
   /**
