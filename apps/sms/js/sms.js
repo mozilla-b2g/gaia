@@ -535,9 +535,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      // if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      // }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
