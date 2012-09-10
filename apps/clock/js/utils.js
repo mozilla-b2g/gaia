@@ -10,12 +10,12 @@ function escapeHTML(str, escapeQuotes) {
 }
 
 function summarizeDaysOfWeek(bitStr) {
-  if (bitStr == '')
-    return 'None';
-
   var _ = navigator.mozL10n.get;
 
-  // Formate bits: 0123456(0000000)
+  if (bitStr == '')
+    return _('None');
+
+  // Format bits: 0123456(0000000)
   // Case: Everyday:  1111111
   // Case: Weekdays:  1111100
   // Case: Weekends:  0000011
@@ -23,8 +23,7 @@ function summarizeDaysOfWeek(bitStr) {
   // Case: Specific:  other case  (Mon, Tue, Thu)
 
   var summary = '';
-  switch (bitStr)
-  {
+  switch (bitStr) {
   case '1111111':
     summary = _('everyday');
     break;
@@ -41,12 +40,23 @@ function summarizeDaysOfWeek(bitStr) {
     var weekdays = [];
     for (var i = 0; i < bitStr.length; i++) {
       if (bitStr.substr(i, 1) == '1') {
-        weekdays.push(_('dayofweek-' + i + '-abbr'));
+        // Note: here, Monday is the first day of the week
+        // whereas in JS Date(), it's Sunday -- hence the (+1) here.
+        weekdays.push(_('weekday-' + ((i + 1) % 6) + '-short'));
       }
     }
     summary = weekdays.join(', ');
   }
   return summary;
+}
+
+function getLocaleTime(d) {
+  var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+  var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
+  return {
+    t: d.toLocaleFormat(is12hFormat ? '%I:%M' : '%H:%M').replace(/^0/, ''),
+    p: is12hFormat ? d.toLocaleFormat('%p') : ''
+  };
 }
 
 function getNextAlarmFireTime(alarm) { // get the next alarm fire time
@@ -306,3 +316,4 @@ var ValuePicker = (function() {
 
   return VP;
 }());
+

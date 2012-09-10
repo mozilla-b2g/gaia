@@ -6,10 +6,13 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
+
     <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <!-- Shared code -->
-    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" src="js/utils.js"></script>
     <script type="application/javascript" src="js/alarmsdb.js"></script>
@@ -23,10 +26,7 @@
     <div id="views">
       <div id="alarm-view" class="active view">
         <div id="clock-view">
-          <div id="clock-day-date">
-            <span id="clock-day"></span>
-            <span id="clock-date"></span>
-          </div>
+          <div id="clock-day-date"></div>
           <a id="alarm-new" href="#alarm" class="right button plus"></a>  
           <div id="analog-clock">
             <div id="analog-clock-background-cache1" class="analog-clock-background-cache"></div>
@@ -173,18 +173,18 @@
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
-          <input type="text" class="right" name="alarm.label" placeholder="Alarm"/>
+          <input type="text" class="right" data-l10n-id="alarm" name="alarm.label" placeholder="Alarm"/>
         </li>
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
           <select id="repeat-select" multiple="true" class="abstract-menu">
-            <option value="0" data-l10n-id="dayofweek-0">Monday</option>
-            <option value="1" data-l10n-id="dayofweek-1">Tuesday</option>
-            <option value="2" data-l10n-id="dayofweek-2">Wednesday</option>
-            <option value="3" data-l10n-id="dayofweek-3">Thursday</option>
-            <option value="4" data-l10n-id="dayofweek-4">Friday</option>
-            <option value="5" data-l10n-id="dayofweek-5">Saturday</option>
-            <option value="6" data-l10n-id="dayofweek-6">Sunday</option>
+            <option value="0" data-l10n-id="weekday-1-long">Monday</option>
+            <option value="1" data-l10n-id="weekday-2-long">Tuesday</option>
+            <option value="2" data-l10n-id="weekday-3-long">Wednesday</option>
+            <option value="3" data-l10n-id="weekday-4-long">Thursday</option>
+            <option value="4" data-l10n-id="weekday-5-long">Friday</option>
+            <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
+            <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
           </select>
           <a id="repeat-menu" class="abstract-menu">Never</a>
           <p></p>

@@ -44,13 +44,9 @@ var RingView = {
 
   updateTime: function rv_updateTime() {
     var d = new Date();
-
-    // XXX: respect clock format in Settings
-    var hour = d.getHours() % 12;
-    if (!hour)
-      hour = 12;
-    this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = d.toLocaleFormat('%p');
+    var time = getLocaleTime(d);
+    this.time.textContent = time.t;
+    this.hourState.textContent = time.p;
 
     var self = this;
     this._timeout = window.setTimeout(function cv_clockTimeout() {

@@ -415,14 +415,6 @@ html * {
   position: absolute;
   width: 100%;
   margin: auto;
-}
-
-#clock-day {
-  font: 100 2.5rem 'Open Sans', sans-serif;
-  line-height: 9.8rem;
-}
-
-#clock-date {
   font: normal 2.5rem 'Open Sans', sans-serif;
   line-height: 9.8rem;
 }

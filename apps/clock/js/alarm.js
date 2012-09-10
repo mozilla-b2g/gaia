@@ -42,16 +42,6 @@ var ClockView = {
     return this.dayDate = document.getElementById('clock-day-date');
   },
 
-  get day() {
-    delete this.day;
-    return this.day = document.getElementById('clock-day');
-  },
-
-  get date() {
-    delete this.date;
-    return this.date = document.getElementById('clock-date');
-  },
-
   get alarmNewBtn() {
     delete this.alarmNewBtn;
     return this.alarmNewBtn = document.getElementById('alarm-new');
@@ -78,9 +68,9 @@ var ClockView = {
 
   updateDaydate: function cv_updateDaydate() {
     var d = new Date();
-    this.day.textContent = d.toLocaleFormat('%A ');
+    var f = new navigator.mozL10n.DateTimeFormat();
     var format = navigator.mozL10n.get('dateFormat');
-    this.date.textContent = d.toLocaleFormat(format);
+    this.dayDate.textContent = f.localeFormat(d, format);
 
     var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
@@ -94,13 +84,9 @@ var ClockView = {
 
   updateDigitalClock: function cv_updateDigitalClock() {
     var d = new Date();
-
-    // XXX: respect clock format in Settings
-    var hour = d.getHours() % 12;
-    if (!hour)
-      hour = 12;
-    this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = d.toLocaleFormat('%p');
+    var time = getLocaleTime(d);
+    this.time.textContent = time.t;
+    this.hourState.textContent = time.p || '  '; // 2 non-break spaces
 
     var self = this;
     this._updateDigitalClockTimeout =
@@ -354,9 +340,10 @@ var AlarmList = {
       var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
       var isChecked = alarm.enabled ? ' checked="true"' : '';
-      var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
-      hour = (hour == 0) ? 12 : hour;
-      var hour12state = (alarm.hour >= 12) ? 'PM' : 'AM';
+      var d = new Date();
+      d.setHours(alarm.hour);
+      d.setMinutes(alarm.minute);
+      var time = getLocaleTime(d);
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
@@ -369,10 +356,8 @@ var AlarmList = {
                       alarm.id + '">' +
                  '    <div class="description">' +
                  '      <div class="alarmList-time">' +
-                 '        <span class="time">' + hour +
-                            ':' + alarm.minute + '</span>' +
-                 '        <span class="hour24-state">' +
-                            hour12state + '</span>' +
+                 '        <span class="time">' + time.t + '</span>' +
+                 '        <span class="hour24-state">' + time.p + '</span>' +
                  '      </div>' +
                  '      <div class="alarmList-detail">' +
                  '        <div class="label ' + paddingTop + '">' +
