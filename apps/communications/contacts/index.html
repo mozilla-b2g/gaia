@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <title> Contacts </title>
 
+    <!-- Buildging Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
     <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
@@ -53,11 +56,11 @@
        <iframe id="fb-extensions" hidden></iframe>
 
       <!-- Contacts List Section -->
-      <section id='view-contacts-list' data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
-        <header role="toolbar" class="view-header">
+      <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
+        <header>
           <menu type="toolbar" role="menu">
-            <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
-            <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span data-icon="add" data-l10n-id="add">add</span></button>
+            <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+            <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -92,11 +95,11 @@
       </section>
 
       <!-- Contact Details Section -->
-      <section id='view-contact-details' data-mirror="mirror-contact-details" class="view view-contact-profile">
-        <header role="toolbar" id='details-view-header' class="view-header">
-          <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
+      <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
+        <header id='details-view-header'>
+          <button class="negative" onclick="Contacts.goBack();"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" role="menu">
-            <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span data-icon="edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+            <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
           <sup id='favorite-star' class='hide'></sup>
@@ -189,9 +192,9 @@
 
 
       <!-- Edit Section -->
-      <section id='view-contact-form' data-mirror="mirror-contact-form" class="view view-edit-contact">
-        <header role="toolbar" class="view-header">
-          <button class="negative" onclick="Contacts.cancel();"><span data-icon="close" data-l10n-id="exit">Exit</span></button>
+      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">
+        <header>
+          <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
             <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
@@ -360,9 +363,9 @@
       </section>
 
       <!-- Tag selection -->
-      <section id="view-select-tag" data-mirror="mirror-contact-tags" class="view view-select-tag">
-        <header role="toolbar" class="view-header">
-          <button class="negative" onclick="Contacts.goBack();"><span data-icon="back" data-l10n-id="back">back</span></button>
+      <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
+        <header>
+          <button class="negative" onclick="Contacts.goBack();"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" role="menu" id="contact-form-actions">
             <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
           </menu>
