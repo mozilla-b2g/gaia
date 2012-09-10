@@ -23,25 +23,37 @@ var Activities = {
       this.choose('0');
     } else {
       // XXX: i10n issue of activity name
-      ListMenu.request(this._listItems(choices),
-                       this.choose.bind(this), detail.name);
+      ListMenu.request(this._listItems(choices), detail.name,
+                       this.choose.bind(this), this.cancel.bind(this));
     }
   },
 
   choose: function act_choose(choice) {
-    var event = document.createEvent('CustomEvent');
     var returnedChoice = {
       id: this._id,
-      type: 'activity-choice'
+      type: 'activity-choice',
+      value: choice
     };
 
-    // If the user cancels, the choice is -1
-    returnedChoice.value = choice || '-1';
-
-    event.initCustomEvent('mozContentEvent', true, true, returnedChoice);
-    window.dispatchEvent(event);
-
+    this._sendEvent(returnedChoice);
     delete this._id;
+  },
+
+  cancel: function act_cancel(value) {
+    var returnedChoice = {
+      id: this._id,
+      type: 'activity-choice',
+      value: -1
+    };
+
+    this._sendEvent(returnedChoice);
+    delete this._id;
+  },
+
+  _sendEvent: function act_sendEvent(value) {
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, value);
+    window.dispatchEvent(event);
   },
 
   _listItems: function act_listItems(choices) {

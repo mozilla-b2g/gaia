@@ -48,6 +48,8 @@ var NotificationScreen = {
   _toasterTimeout: null,
   _toasterGD: null,
 
+  lockscreenPreview: true,
+
   get container() {
     delete this.container;
     return this.container = document.getElementById('notifications-container');
@@ -244,8 +246,9 @@ var NotificationScreen = {
 
     this.updateStatusBarIcon(true);
 
-    // Adding it to the lockscreen if locked
-    if (LockScreen.locked) {
+    // Adding it to the lockscreen if locked and the privacy setting
+    // does not prevent it.
+    if (LockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
       this.lockScreenContainer.insertBefore(lockScreenNode,
                                this.lockScreenContainer.firstElementChild);
@@ -297,3 +300,9 @@ var NotificationScreen = {
 };
 
 NotificationScreen.init();
+
+SettingsListener.observe(
+    'lockscreen.notifications-preview.enabled', true, function(value) {
+
+  NotificationScreen.lockscreenPreview = value;
+});

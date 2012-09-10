@@ -27,21 +27,18 @@ var ListMenu = {
 
   // Pass an array of list items and handler for clicking on the items
   // Modified to fit contextmenu use case, loop into the menu items
-  request: function lm_request(list_items, handler, title) {
+  request: function lm_request(listItems, title, successCb, errorCb) {
     this.container.innerHTML = '';
     this.currentLevel = 0;
     this.internalList = [];
     this.setTitle(title);
-    this.buildMenu(list_items);
+    this.buildMenu(listItems);
     this.internalList.forEach(function render_item(item) {
       this.container.appendChild(item);
     }, this);
 
-    if (handler) {
-      this.onreturn = handler;
-    } else {
-      this.onreturn = null;
-    }
+    this.onreturn = successCb || function() {};
+    this.oncancel = errorCb || function() {};
 
     this.show();
   },
@@ -147,23 +144,23 @@ var ListMenu = {
         var cancel = evt.target.dataset.action;
         if (cancel && cancel == 'cancel') {
           this.hide();
+          this.oncancel();
           return;
         }
 
-        var action = evt.target.dataset.value;
-        if (!action) {
+        var value = evt.target.dataset.value;
+        if (!value) {
           return;
         }
+
         this.hide();
-        if (this.onreturn)
-          this.onreturn(action);
+        this.onreturn(value);
         break;
 
       case 'home':
         if (this.visible) {
           this.hide();
-          if (this.onreturn)
-            this.onreturn(null);
+          this.oncancel();
         }
         break;
     }
