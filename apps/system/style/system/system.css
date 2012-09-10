@@ -237,6 +237,7 @@ iframe.backgroundWindow {
   pointer-events: none;
 }
 
+#screen.authentication-dialog #dialog-overlay,
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
