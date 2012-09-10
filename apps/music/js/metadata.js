@@ -58,7 +58,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     var p2 = blob.name.lastIndexOf('.');
     if (p2 === -1)
       p2 = blob.name.length;
-    metadata[TITLE] = blob.name.substring(p1, p2);
+    metadata[TITLE] = blob.name.substring(p1 + 1, p2);
   }
 
   // Read the start of the file, figure out what kind it is, and call
