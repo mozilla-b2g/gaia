@@ -1031,6 +1031,14 @@ var WindowManager = (function() {
     }
   });
 
+  // Cancel dragstart event to workaround
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=783076
+  // which stops OOP home screen pannable with left mouse button on
+  // B2G/Desktop.
+  windows.addEventListener('dragstart', function (evt) {
+    evt.preventDefault();
+  }, true);
+
   window.addEventListener('holdhome', function(e) {
     if (!LockScreen.locked &&
         !CardsView.cardSwitcherIsShown()) {
