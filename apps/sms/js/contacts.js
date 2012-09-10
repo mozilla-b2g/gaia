@@ -34,7 +34,7 @@ var ContactDataManager = {
     };
 
     var cacheResult = this.contactData[number];
-    if (cacheResult != undefined) {
+    if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
     }
