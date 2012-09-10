@@ -42,30 +42,42 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     });
   }
 
-  function _onBalanceSuccess(balanceObject) {
-    // Format credit
-    var balance = balanceObject ? balanceObject.balance : null;
-    _settingsCurrency.textContent = balanceObject ?
-                                   balanceObject.currency : '';
-    _settingsCredit.textContent = formatBalance(balance);
-
-    // Format time
-    var timestamp = balanceObject ? balanceObject.timestamp : null;
-    _settingsTime.textContent = formatTime(timestamp);
-  }
-
   function _configureLowLimitSetup() {
-    _settingsCurrency = document.getElementById('settings-currency');
-    _settingsCredit = document.getElementById('settings-credit');
-    _settingsTime = document.getElementById('settings-time');
+    function onBalanceSuccess(balanceObject) {
+      // Format credit
+      var balance = balanceObject ? balanceObject.balance : null;
+      var currency = balanceObject ? balanceObject.currency : '';
+      settingsCurrency.textContent = currency;
+      settingsLowLimitCurrency.textContent = currency;
+      settingsCredit.textContent = formatBalance(balance);
+
+      // Format time
+      var timestamp = balanceObject ? balanceObject.timestamp : null;
+      settingsTime.textContent = formatTime(timestamp);
+    }
+
+    var settingsCurrency = document.getElementById('settings-currency');
+    var settingsLowLimitCurrency =
+      document.getElementById('settings-low-limit-currency');
+    var settingsCredit = document.getElementById('settings-credit');
+    var settingsTime = document.getElementById('settings-time');
 
     // Keep updated the balance view
-    CostControl.setBalanceCallbacks({ onsuccess: _onBalanceSuccess });
-    _onBalanceSuccess(CostControl.getLastBalance());
+    CostControl.setBalanceCallbacks({ onsuccess: onBalanceSuccess });
+    onBalanceSuccess(CostControl.getLastBalance());
+
+    // The switch controls the input
+    var lowLimitSwitch = document.getElementById('settings-low-limit-switch');
+    var lowLimitSetup = document.getElementById('settings-low-limit-setup');
+    var lowLimitValue = document.getElementById('settings-low-limit-value');
+    lowLimitSwitch.addEventListener('click', function ccapp_switchLowLimit() {
+      lowLimitSetup.setAttribute(
+        'aria-disabled', (!lowLimitSwitch.checked) + '');
+      lowLimitValue.disabled = !lowLimitSwitch.checked;
+    });
   }
 
   // Configures the UI
-  var _settingsCurrency, _settingsCredit, _settingsTime;
   function _configureUI() {
     _configurePlanTypeSetup();
     _configureLowLimitSetup();

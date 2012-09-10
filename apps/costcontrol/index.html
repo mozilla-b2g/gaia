@@ -282,15 +282,15 @@
         </li>
         <li>
           <label class="end switch">
-            <input type="checkbox" checked="checked">
+            <input id="settings-low-limit-switch" type="checkbox" checked="checked">
             <span></span>
           </label>
           <p>Low Balance alert</p>
         </li>
-        <li>
-          <label class="end" for="balance-alert-value">
-            R$
-            <input type="number" id="balance-alert-value">
+        <li id="settings-low-limit-setup">
+          <label class="end" for="settings-low-limit-value">
+            <span id="settings-low-limit-currency"></span>
+            <input type="number" id="settings-low-limit-value" />
           </label>
           <p>Alert me when I’m under</p>
         </li>
