@@ -98,7 +98,6 @@ var Utils = {
   },
 
   getPhoneDetails: function ut_getPhoneDetails(number, callback) {
-    //
     ContactDataManager.getContactData(number, function gotContact(contact) {
       var details = {};
       //TODO what if return multiple contacts?
