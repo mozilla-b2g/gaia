@@ -22,8 +22,9 @@
       "filters": {
         "type": "image/jpeg"
        },
-      "disposition": "window",
-      "returnValue": true
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#inlineActivity"
     }
   },
   "locales": {
