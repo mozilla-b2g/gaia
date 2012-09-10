@@ -1,7 +1,6 @@
 {
   "name": "PDF Viewer",
   "description": "Portable Document Format(PDF) Viewer",
-  "launch_path": "/content/web/viewer.html",
   "developer": {
     "name": "The pdf.js Team",
     "url": "https://github.com/mozilla/pdf.js"
@@ -22,7 +21,8 @@
     "view" : {
       "filters": {
         "type": "application/pdf"
-      }
+      },
+      "href": "/content/web/viewer.html"
     }
   },
   "permissions": [

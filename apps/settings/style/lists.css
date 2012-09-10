@@ -131,7 +131,7 @@ ul li button, ul li a[role=button] {
   margin: auto;
   position: relative;
   top: 1rem;
-  font-size: 1em;
+  font-size: 1.5rem;
   line-height: 1em;
   width: calc(100% - 5rem);
   height: calc(100% - 2rem);
@@ -156,10 +156,8 @@ ul li button, ul li a[role=button] {
 }
 
 #brightness-level a {
-  max-width: -moz-calc(60% - 50px);
   max-width: calc(60% - 50px);
 }
-
 
 
 /******************************************************************************

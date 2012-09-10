@@ -423,7 +423,8 @@ var Browser = {
   },
 
   updateTabsCount: function browser_updateTabsCount() {
-    this.tabsBadge.innerHTML = Object.keys(this.tabs).length + '&#x203A;';
+    this.tabsBadge.innerHTML = Object.keys(this.tabs).length +
+      '<span id="more-tabs">&#x203A;</span>';
   },
 
   updateSecurityIcon: function browser_updateSecurityIcon() {
