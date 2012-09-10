@@ -392,13 +392,17 @@ var favoritesList = {
 
   KEYNAME: 'favlist',
 
-  init: function() {
-    var savedList = localStorage.getItem(this.KEYNAME);
-    this._favList = !savedList ? { } : JSON.parse(savedList);
-
-    this._showListUI();
-
+  init: function(callback) {
     var self = this;
+    window.asyncStorage.getItem(this.KEYNAME, function storage_getItem(value) {
+      self._favList = value || { };
+      self._showListUI();
+
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
+
     var _container = $('fav-list-container');
     _container.addEventListener('click', function _onclick(event) {
       if (event.target.classList.contains('fav-list-remove-button')) {
@@ -413,11 +417,11 @@ var favoritesList = {
           mozFMRadio.enable(self._getElemFreq(event.target));
         }
       }
-    }, false);
+    });
   },
 
   _save: function() {
-    localStorage.setItem(this.KEYNAME, JSON.stringify(this._favList));
+    window.asyncStorage.setItem(this.KEYNAME, this._favList);
   },
 
   _showListUI: function() {
@@ -536,7 +540,7 @@ var favoritesList = {
 };
 
 function init() {
-  favoritesList.init();
+  favoritesList.init(updateFreqUI);
   frequencyDialer.init();
 
   var seeking = false;
@@ -611,7 +615,6 @@ function init() {
     }
   };
 
-  updateFreqUI();
   if (mozFMRadio.antennaAvailable) {
     // Enable FM immediately
     mozFMRadio.enable(mozFMRadio.frequencyLowerBound);
