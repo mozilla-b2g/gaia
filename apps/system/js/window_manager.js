@@ -1035,7 +1035,7 @@ var WindowManager = (function() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=783076
   // which stops OOP home screen pannable with left mouse button on
   // B2G/Desktop.
-  windows.addEventListener('dragstart', function (evt) {
+  windows.addEventListener('dragstart', function(evt) {
     evt.preventDefault();
   }, true);
 
