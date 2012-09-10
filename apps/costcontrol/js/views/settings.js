@@ -56,6 +56,14 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
       settingsTime.textContent = formatTime(timestamp);
     }
 
+    function switchLowLimit() {
+      lowLimitSetup.setAttribute(
+        'aria-disabled', (!lowLimitSwitch.checked) + '');
+      lowLimitValue.disabled = !lowLimitSwitch.checked;
+
+      CostControl.settings.option('lowlimit', lowLimitSwitch.checked);
+    }
+
     var settingsCurrency = document.getElementById('settings-currency');
     var settingsLowLimitCurrency =
       document.getElementById('settings-low-limit-currency');
@@ -66,15 +74,27 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     CostControl.setBalanceCallbacks({ onsuccess: onBalanceSuccess });
     onBalanceSuccess(CostControl.getLastBalance());
 
-    // The switch controls the input
     var lowLimitSwitch = document.getElementById('settings-low-limit-switch');
     var lowLimitSetup = document.getElementById('settings-low-limit-setup');
     var lowLimitValue = document.getElementById('settings-low-limit-value');
-    lowLimitSwitch.addEventListener('click', function ccapp_switchLowLimit() {
-      lowLimitSetup.setAttribute(
-        'aria-disabled', (!lowLimitSwitch.checked) + '');
-      lowLimitValue.disabled = !lowLimitSwitch.checked;
+
+    // Set initial values
+    lowLimitValue.value =
+      CostControl.settings.option('lowlimit_threshold') || 0;
+    lowLimitSwitch.checked = CostControl.settings.option('lowlimit') || false;
+
+    // The switch enable / disable alarm and the input sets the threshold
+    lowLimitSwitch.addEventListener('click', switchLowLimit);
+    lowLimitValue.addEventListener('change', function ccapp_setLowLimit() {
+      var value = parseFloat(lowLimitValue.value);
+      CostControl.settings.option(
+        'lowlimit_threshold', 
+        isNaN(value) ? 0 : value
+      );
     });
+
+    // Sync input and switch states
+    switchLowLimit();
   }
 
   // Configures the UI

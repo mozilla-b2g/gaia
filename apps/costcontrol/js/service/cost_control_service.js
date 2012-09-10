@@ -14,7 +14,6 @@ setService(function cc_setupCostControlService() {
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
-  var LOW_LIMIT_THRESHOLD = 80;
 
   // Constants
   var PLAN_PREPAID = 'prepaid';
@@ -650,7 +649,7 @@ setService(function cc_setupCostControlService() {
       return REQUEST_BALANCE_MAX_DELAY;
     },
     getLowLimitThreshold: function cc_getLowLimitThreshold() {
-      return LOW_LIMIT_THRESHOLD;
+      return _appSettings.option('lowlimit_threshold');
     },
     getTopUpTimeout: function cc_getTopUpTimeout() {
       return WAITING_TIMEOUT;

@@ -218,6 +218,10 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       _plantype = plantype;
     }
 
+    function justUpdateUI() {
+      _updateUI();
+    }
+
     _configureBalanceTab();
     _configureTopUpScreen();
 
@@ -248,9 +252,11 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     // Observer to see which cost control or telephony is enabled
     CostControl.settings.observe('plantype', onPlanTypeChange);
-    onPlanTypeChange(
-      CostControl.settings.option('plantype')
-    );
+    onPlanTypeChange(CostControl.settings.option('plantype'));
+
+    // Observer to detect changes on threshold limits
+    CostControl.settings.observe('lowlimit_threshold', justUpdateUI);
+    CostControl.settings.observe('lowlimit', justUpdateUI);
   }
 
   var MODE_DEFAULT = 'mode-default';
@@ -486,7 +492,9 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     // Check for low credit
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance && balance < CostControl.getLowLimitThreshold()) {
+    if (CostControl.settings.option('lowlimit') &&
+        balance && balance < CostControl.getLowLimitThreshold()) {
+
       _balanceTab.classList.add('low-credit');
     } else {
       _balanceTab.classList.remove('low-credit');

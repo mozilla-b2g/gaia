@@ -125,11 +125,14 @@ function setupWidget() {
 
     // Observer to see which cost control or telephony is enabled
     CostControl.settings.observe('plantype', onPlanTypeChange);
-    onPlanTypeChange(
-      CostControl.settings.option('plantype')
-    );
+    onPlanTypeChange(CostControl.settings.option('plantype'));
 
-    // Update UI when localized
+    // Observer to detect changes on threshold limits
+    CostControl.settings.observe('lowlimit_threshold', _updateUI);
+    CostControl.settings.observe('lowlimit', _updateUI);
+
+    // Update UI when localized: wrapped in a function to avoid sending an
+    // incorrect first parameter.
     window.addEventListener('localized', function ccwidget_onLocalized() {
       _updateUI();
     });
@@ -256,7 +259,7 @@ function setupWidget() {
     _balanceView.classList.remove('low-credit');
 
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance) {
+    if (CostControl.settings.option('lowlimit') && balance) {
       if (balance === 0) {
         _balanceView.classList.add('no-credit');
       } else if (balance < CostControl.getLowLimitThreshold()) {
