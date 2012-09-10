@@ -1,0 +1,23 @@
+{
+  "name": "Test reciever (inline)",
+  "description": "Dummy app to respond to Test web activities",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": [
+  ],
+  "activities": {
+    "test": {
+      "filters": {
+        "type": "inline"
+       },
+      "disposition": "inline",
+      "returnValue": true
+    }
+  },
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
