@@ -209,7 +209,7 @@ contacts.Details = (function() {
         contact = savedContact;
 
         if (enrichedContact) {
-          contactsList.refresh(enrichedContact);
+          cList.refresh(enrichedContact);
         } else {
           cList.refresh(contact);
         }
