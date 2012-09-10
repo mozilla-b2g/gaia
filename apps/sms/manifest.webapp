@@ -15,8 +15,8 @@
   ],
   "locales": {
     "ar": {
-      "name": "\u0631\u0633\u0627\u0626\u0644",
-      "description": "Gaia \u0631\u0633\u0627\u0626\u0644"
+      "name": "رسائل",
+      "description": "Gaia رسائل"
     },
     "ca": {
       "name": "Missatges",
@@ -27,8 +27,8 @@
       "description": "Gaia Nachrichten"
     },
     "el": {
-      "name": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1",
-      "description": "\u039c\u03b7\u03bd\u03cd\u03bc\u03b1\u03c4\u03b1 Gaia"
+      "name": "Μηνύματα",
+      "description": "Μηνύματα Gaia"
     },
     "en-US": {
       "name": "Messages",
@@ -51,16 +51,16 @@
       "description": "Mensagens do Gaia"
     },
     "ru": {
-      "name": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f",
-      "description": "\u0421\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u044f Gaia"
+      "name": "Сообщения",
+      "description": "Сообщения Gaia"
     },
     "tr": {
       "name": "Messages",
       "description": "Gaia Messages"
     },
     "zh-TW": {
-      "name": "\u8a0a\u606f",
-      "description": "Gaia \u8a0a\u606f"
+      "name": "訊息",
+      "description": "Gaia 訊息"
     }
   },
   "default_locale": "en-US",
