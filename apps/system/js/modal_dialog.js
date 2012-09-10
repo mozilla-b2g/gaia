@@ -21,7 +21,7 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'authentication', 'username-input', 'password-input',
-      'authentication-message',
+      'authentication-message', 'authentication-ok', 'authentication-cancel',
       'error', 'error-back', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
@@ -52,6 +52,7 @@ var ModalDialog = {
 
     // Bind events
     window.addEventListener('mozbrowsershowmodalprompt', this);
+    window.addEventListener('mozbrowserusernameandpasswordrequired', this);
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -70,6 +71,7 @@ var ModalDialog = {
     switch (evt.type) {
       case 'mozbrowsererror':
       case 'mozbrowsershowmodalprompt':
+      case 'mozbrowserusernameandpasswordrequired':
         if (evt.target.dataset.frameType != 'window')
           return;
 
@@ -146,7 +148,7 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    var type = evt.detail.promptType || evt.detail.type;
+    var type = evt.detail.promptType || evt.detail.type || 'usernameandpasswordrequired';
     switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
@@ -171,11 +173,12 @@ var ModalDialog = {
         var _ = navigator.mozL10n.get;
         message = _('http-authentication-message', l10nArgs);
         elements.authenticationMessage.innerHTML = message;
+        break;
 
       // Error
       case 'other':
         elements.error.classList.add('visible');
-      break;
+        break;
     }
 
     this.setHeight();
@@ -183,7 +186,7 @@ var ModalDialog = {
 
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
-    var type = evt.detail.promptType || evt.detail.type;
+    var type = evt.detail.promptType || evt.detail.type || 'usernameandpasswordrequired';
     if (type == 'prompt') {
       this.elements.promptInput.blur();
     } else if (type == 'usernameandpasswordrequired') {
@@ -202,7 +205,7 @@ var ModalDialog = {
 
     var evt = this.currentEvents[this.currentOrigin];
 
-    var type = evt.detail.promptType || evt.detail.type;
+    var type = evt.detail.promptType || evt.detail.type || 'usernameandpasswordrequired';
     switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');

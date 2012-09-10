@@ -581,7 +581,7 @@ var WindowManager = (function() {
       // Keyboard doesn't show up correctly when app run OOP
       //   https://github.com/mozilla-b2g/gaia/issues/2656
 
-      'Browser',
+      //'Browser',
       // Requires nested content processes (bug 761935)
 
       'Cost Control',
