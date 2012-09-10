@@ -302,6 +302,11 @@ contacts.List = (function() {
       sortOrder: 'ascending'
     };
 
+    // Reset previous state of favorites (if any)
+    var favoritesList = document.getElementById('contacts-list-favorites');
+    if (favoritesList != null) {
+      favoritesList.innerHTML = '';
+    }
     var request = navigator.mozContacts.find(options);
 
     request.onsuccess = function favoritesCallback() {
