@@ -25,7 +25,7 @@ contacts.List = (function() {
       renderGroupHeader(letter, letter);
     }
     renderGroupHeader('und', '#');
-    favoriteGroup = document.getElementById('group-favorites').parentNode;
+    // favoriteGroup = document.getElementById('group-favorites').parentNode;
     var selector = 'h2.block-title:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
@@ -227,7 +227,6 @@ contacts.List = (function() {
 
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
-
       var listContainer = document.getElementById('contacts-list-' + group);
       var newContact = renderContact(refillContactData(contact));
       var contactSelector = '[data-uuid="' + contact.id + '"]';
@@ -236,6 +235,7 @@ contacts.List = (function() {
       var nodes = listContainer.children;
       var length = nodes.length;
       if (alreadyRendered) {
+        console.log(contact.id + " already rendered");
         // If already rendered, don't do anything unless one has been removed
         // We check that comparing contact.id
         var currentNode = nodes[index];
@@ -245,16 +245,20 @@ contacts.List = (function() {
         var newSearchable = newItemBody.dataset['search'];
         var hasChanged = searchable != newSearchable;
         if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
+          console.log(contact.id + " has changed " + counter[group]);
           resetGroup(listContainer, counter[group]);
           listContainer.appendChild(newContact);
         }
       } else {
+        console.log(contact.id + " not rendered");
         // If the contact is not already there means is a new one or
         // the letter is empty. If the new one is not at the end of the list
         // we need to remove the following contacts
         if (length > 0 && length > index + 1) {
+          console.log(contact.id + " no es ultimo y reset");
           resetGroup(listContainer, counter[group]);
         }
+        console.log(contact.id + " Se añade");
         listContainer.appendChild(newContact);
       }
       showGroup(group);
@@ -268,6 +272,7 @@ contacts.List = (function() {
     // in the last positions of the letter, the algorithm can't
     // notice it. We need to check the difference at the end to
     // remove the remaining.
+    console.log("ENTRA EN CLEAR");
     var selectorString = 'ol[data-group]:not(#contacts-list-favorites)';
     var nodes = groupsList.querySelectorAll(selectorString);
     for (var i = 0; i < nodes.length; i++) {
@@ -285,9 +290,12 @@ contacts.List = (function() {
     // Method that removes all the contacts in a letter, starting
     // from the 'start' param
     var i = start || 0;
+    console.log(container.innerHTML);
     var length = container.children.length;
     while (length != i) {
       var current = container.children[i];
+      console.log("RESET " + current.innerHTML);
+      console.log("RESET " + container.children[0].innerHTML);
       container.removeChild(current);
       length = container.children.length;
     }
@@ -342,7 +350,7 @@ contacts.List = (function() {
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts, successCb);
+      buildContacts(contacts);
       return;
     }
 
