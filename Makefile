@@ -56,6 +56,8 @@ endif
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
+GAIA_LOCALES_PATH?=locales
+
 ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
@@ -235,6 +237,7 @@ endif
 
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
@@ -245,6 +248,7 @@ else
 endif
 	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
 endif
+endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
 	echo "run-js-command $1";                                                   \
@@ -254,6 +258,7 @@ define run-js-command
 	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
 	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
 	const GAIA_APP_SRCDIRS = "$(GAIA_APP_SRCDIRS)";                             \
+	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
 	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
 	const GAIA_ENGINE = "xpcshell";                                             \
 	';                                                                          \

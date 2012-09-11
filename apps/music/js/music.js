@@ -13,13 +13,8 @@ function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
-  musicdb = new MediaDB('music', metadataParser, {
-    indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
-    // mp3 mediaType: 'audio/mpeg'
-    // ogg mediaType: 'video/ogg'
-    // empty mediaType: no mp3 mediaType on B2G device
-    // desktop build does not have this issue
-    mimeTypes: ['audio/mpeg', 'video/ogg', '']
+  musicdb = new MediaDB('music', parseAudioMetadata, {
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title']
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -268,13 +263,13 @@ var TilesView = {
     showOverlay('nosongs');
   },
 
-  setItemImage: function tv_setItemImage(item, image) {
+  setItemImage: function tv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (!image)
+    if (!fileinfo.metadata.picture)
       return;
 
     item.addEventListener('load', cropImage);
-    item.src = createBase64URL(image);
+    createAndSetCoverURL(item, fileinfo);
   },
 
   update: function tv_update(result) {
@@ -301,8 +296,7 @@ var TilesView = {
     var img = document.createElement('img');
     img.className = 'tile-image';
 
-    var image = result.metadata.picture;
-    this.setItemImage(img, image);
+    this.setItemImage(img, result);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -395,11 +389,11 @@ var ListView = {
     this.view.scrollTop = 0;
   },
 
-  setItemImage: function lv_setItemImage(item, image) {
+  setItemImage: function lv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
+    if (fileinfo.metadata.picture) {
       item.addEventListener('load', cropImage);
-      item.src = createBase64URL(image);
+      createAndSetCoverURL(item, fileinfo);
     }
   },
 
@@ -427,8 +421,7 @@ var ListView = {
     parent.appendChild(div);
     parent.appendChild(img);
 
-    var image = result.metadata.picture;
-    this.setItemImage(img, image);
+    this.setItemImage(img, result);
 
     switch (option) {
       case 'album':
@@ -490,10 +483,9 @@ var ListView = {
 
           var index = target.dataset.index;
           var data = this.dataSource[index];
-          var image = data.metadata.picture;
 
-          if (image)
-            SubListView.setAlbumSrc(createBase64URL(image));
+          if (data.metadata.picture)
+            SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
             SubListView.setAlbumName(data.metadata.artist);
@@ -558,13 +550,15 @@ var SubListView = {
     this.view.scrollTop = 0;
   },
 
-  setAlbumSrc: function slv_setAlbumSrc(url) {
+  setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    this.albumImage.src = url;
+    createAndSetCoverURL(this.albumImage, fileinfo);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
     function slv_showImage(evt) {
+      // Don't register multiple copies
+      evt.target.removeEventListener('load', slv_showImage);
       cropImage(evt);
       this.albumImage.classList.add('fadeIn');
     };
@@ -707,20 +701,21 @@ var PlayerView = {
     );
   },
 
-  setCoverImage: function pv_setCoverImage(image) {
+  setCoverImage: function pv_setCoverImage(fileinfo) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
-      this.coverImage.src = createBase64URL(image);
-      this.coverImage.addEventListener('load', pv_showImage.bind(this));
+    if (fileinfo.metadata.picture) {
+      createAndSetCoverURL(this.coverImage, fileinfo);
+      this.coverImage.addEventListener('load', pv_showImage);
     }
 
     function pv_showImage(evt) {
+      evt.target.removeEventListener('load', pv_showImage);
       cropImage(evt);
-      this.coverImage.classList.add('fadeIn');
+      evt.target.classList.add('fadeIn');
     };
   },
 
@@ -732,7 +727,6 @@ var PlayerView = {
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
-      var image = songData.metadata.picture;
 
       TitleBar.changeTitleText((songData.metadata.title) ?
         songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
@@ -742,7 +736,7 @@ var PlayerView = {
         songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
-      this.setCoverImage(image);
+      this.setCoverImage(songData);
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
         // On B2G devices, file.type of mp3 format is missing

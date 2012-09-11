@@ -14,8 +14,8 @@
   ],
   "locales": {
     "ar": {
-      "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
-      "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
+      "name": "الساعة",
+      "description": "Gaia الساعة"
     },
     "ca": {
       "name": "Rellotge",
@@ -26,8 +26,8 @@
       "description": "Gaia Uhr"
     },
     "el": {
-      "name": "\u03a1\u03bf\u03bb\u03cc\u03b9",
-      "description": "\u03a1\u03bf\u03bb\u03cc\u03b9 Gaia"
+      "name": "Ρολόι",
+      "description": "Ρολόι Gaia"
     },
     "en-US": {
       "name": "Clock",
@@ -46,20 +46,20 @@
       "description": "Orologio di Gaia"
     },
     "pt-BR": {
-      "name": "Rel\u00f3gio",
-      "description": "Rel\u00f3gio do Gaia"
+      "name": "Relógio",
+      "description": "Relógio do Gaia"
     },
     "ru": {
-      "name": "\u0427\u0430\u0441\u044b",
-      "description": "\u0427\u0430\u0441\u044b Gaia"
+      "name": "Часы",
+      "description": "Часы Gaia"
     },
     "tr": {
       "name": "Saat",
       "description": "Gaia Saat"
     },
     "zh-TW": {
-      "name": "\u6642\u9418",
-      "description": "Gaia \u6642\u9418"
+      "name": "時鐘",
+      "description": "Gaia 時鐘"
     }
   },
   "default_locale": "en-US",

@@ -279,18 +279,27 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var choosenContact = contact[0];
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    var selector = 'a[data-num="' + number + '"] div.photo img';
-    var photo = this.view.querySelector(selector);
-    if (name && choosenContact.name && choosenContact.name != '') {
-      name.innerHTML = choosenContact.name;
-    }
+    if (contact && contact.length > 0) {
+      var choosenContact = contact[0];
+      var name =
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
+      var selector = 'a[data-num="' + number + '"] div.photo img';
+      var photo = this.view.querySelector(selector);
+      if (name && choosenContact.name && choosenContact.name != '') {
+        name.innerHTML = choosenContact.name;
+      }
 
-    if (photo && choosenContact.photo && choosenContact.photo[0]) {
-      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-      photo.src = photoURL;
+      if (photo && choosenContact.photo && choosenContact.photo[0]) {
+        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+        photo.src = photoURL;
+      }
+    } else {
+      // XXX: Workaround for country code threading issue.
+      // Display national number if number could not be matched in contact.
+      var nationalNum = PhoneNumberManager.getNationalNum(number, true);
+      name.innerHTML = nationalNum;
     }
   },
 
@@ -534,9 +543,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
@@ -700,47 +707,29 @@ var ThreadUI = {
     // XXX: Workaround for country code threading issue.
     // We convert the header to national number(if convertible).
     var nationalNum = PhoneNumberManager.getNationalNum(number, true);
-    self.title.innerHTML = nationalNum;
     // TODO: Please verify that using the international number could work
     //       for viewing the contact detail.
 
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
-
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      //TODO what if return multiple contacts?
-      var carrierTag = document.getElementById('contact-carrier');
-      if (contact.length > 0) { // we have a contact
-        var name = contact[0].name,
-            phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
-        // Check which of the contacts phone number we are using
-        for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number) {
-            phone = contact[0].tel[i];
-            carrierToShow = phone.carrier;
-          }
-        }
-        // Add data values for contact activity interaction
+    Utils.getPhoneDetails(number, function returnedDetails(details) {
+      if (details.isContact) {
         self.title.dataset.isContact = true;
-
-        if (name && name != '') { // contact with name
-          for (var i = 0; i < contact[0].tel.length; i++) {
-            if (contact[0].tel[i].value !== phone.value &&
-                contact[0].tel[i].type == phone.type &&
-                contact[0].tel[i].carrier == phone.carrier) {
-              carrierToShow = phone.value;
-            }
-          }
-          self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' + carrierToShow;
-        } else { // no name of contact
-          carrierTag.innerHTML = phone.type;
-        }
-      } else { // we don't have a contact
-        carrierTag.style.display = 'none';
+        self.title.innerHTML = details.title
+      } else {
+        self.title.dataset.isContact = false;
+        self.title.innerHTML = nationalNum;
+      }
+      var carrierTag = document.getElementById('contact-carrier');
+      if (details.carrier) {
+        carrierTag.innerHTML = details.carrier;
+        carrierTag.classList.remove('hide');
+      } else {
+        carrierTag.classList.add('hide');
       }
     });
+
+
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
