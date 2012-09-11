@@ -31,7 +31,8 @@ var subject,
     containerB,
     containerC,
     containerD,
-    containerFav;
+    containerFav,
+    list;
 
 suite('Render contacts list', function() {
 
@@ -47,6 +48,7 @@ suite('Render contacts list', function() {
         }
       }
     };
+
     realContacts = window.Contacts;
     window.Contacts = MockContactsApp;
     realFb = window.fb;
@@ -64,8 +66,9 @@ suite('Render contacts list', function() {
     groupsContainer.innerHTML += '<div id="current-jumper" ';
     groupsContainer.innerHTML += 'class="view-jumper-current"></div>';
     container.appendChild(groupsContainer);
+    list = container.querySelector("#groups-list");
     document.body.appendChild(container);
-    subject.init(container);
+    subject.init(list);
   });
 
   suiteTeardown(function() {
@@ -110,6 +113,8 @@ suite('Render contacts list', function() {
       assert.isNotNull(groupD);
       assert.isTrue(groupD.classList.contains('hide'));
       assert.equal(containerD.querySelectorAll('li').length, 0);
+      var importButton = container.querySelectorAll('#sim_import_button');
+      assert.equal(importButton.length, 0);
     });
 
     test('adding one at the beginning', function() {
@@ -268,16 +273,22 @@ suite('Render contacts list', function() {
       assert.equal(aContacts.length, 1);
       assert.equal(bContacts.length, 1);
       assert.equal(cContacts.length, 1);
-      var total = container.querySelectorAll('ol li:not(.hide)').length;
+      var total = list.querySelectorAll('h2:not(.hide)').length;
+      var totalC = list.querySelectorAll('li[data-uuid]').length;
       assert.equal(total, 3);
+      assert.equal(totalC, 3);
     });
 
     test('removing all contacts', function() {
       subject.load([]);
       assert.isTrue(groupFav.classList.contains('hide'));
       assert.equal(containerFav.querySelectorAll('li').length, 0);
-      var total = container.querySelectorAll('ol li:not(.hide)').length;
+      var importButton = container.querySelectorAll('#sim_import_button');
+      assert.equal(importButton.length, 1);
+      var total = list.querySelectorAll('h2:not(.hide)').length;
+      var totalC = list.querySelectorAll('li[data-uuid]').length;
       assert.equal(total, 0);
+      assert.equal(totalC, 0);
     });
   });
 });
