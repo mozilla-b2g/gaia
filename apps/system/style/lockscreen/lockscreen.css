@@ -268,11 +268,11 @@
   transition: opacity 0.1s linear;
 }
 
-.touched-left #lockscreen-camera-arrow {
+.touched-left #lockscreen-area-handle > span:last-child {
   background-image: url('./images/handle-arrow-left.png');
 }
 
-.touched-right #lockscreen-unlock-arrow {
+.touched-right #lockscreen-area-handle > span:last-child {
   background-image: url('./images/handle-arrow-right.png');
 }
 
