@@ -7,4 +7,4 @@ var MockFixedHeader = {
   refresh : function() {
   	return;
   }
-};
+}
