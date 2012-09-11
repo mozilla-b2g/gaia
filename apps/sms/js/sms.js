@@ -277,18 +277,24 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var choosenContact = contact[0];
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    var selector = 'a[data-num="' + number + '"] div.photo img';
-    var photo = this.view.querySelector(selector);
-    if (name && choosenContact.name && choosenContact.name != '') {
-      name.innerHTML = choosenContact.name;
-    }
+    if (contact && contact.length > 0) {
+      var choosenContact = contact[0];
+      var name =
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
+      var selector = 'a[data-num="' + number + '"] div.photo img';
+      var photo = this.view.querySelector(selector);
+      if (name && choosenContact.name && choosenContact.name != '') {
+        name.innerHTML = choosenContact.name;
+      }
 
-    if (photo && choosenContact.photo && choosenContact.photo[0]) {
-      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-      photo.src = photoURL;
+      if (photo && choosenContact.photo && choosenContact.photo[0]) {
+        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+        photo.src = photoURL;
+      }
+    } else {
+      name.innerHTML = number;
     }
   },
 
@@ -529,9 +535,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
@@ -697,6 +701,8 @@ var ThreadUI = {
     Utils.getPhoneDetails(number, function returnedDetails(details) {
       if (details.isContact) {
         self.title.dataset.isContact = true;
+      } else {
+         self.title.dataset.isContact = false;
       }
       self.title.innerHTML = details.title || number;
       var carrierTag = document.getElementById('contact-carrier');
