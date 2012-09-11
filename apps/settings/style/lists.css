@@ -139,7 +139,7 @@ ul li button, ul li a[role=button] {
 
 
 /******************************************************************************
- * brightness level
+ * Brightness level
  */
 
 [role=region] label > progress {
@@ -252,7 +252,13 @@ ul li button, ul li a[role=button] {
   color: #505859;
 }
 
+
+/******************************************************************************
+ * Battery
+ */
+
 .level-desc {
   position: absolute;
   right: 2rem;
 }
+
