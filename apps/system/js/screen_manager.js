@@ -302,7 +302,7 @@ var ScreenManager = {
     }
     this._deviceLightEnabled = enabled;
 
-    if(!this.screenEnabled)
+    if (!this.screenEnabled)
       return;
 
     if (enable) {
