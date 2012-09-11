@@ -38,7 +38,8 @@ var AuthenticationDialog = {
     this.overlay = document.getElementById('dialog-overlay');
   },
 
-  // Save the events returned by mozbrowserusernameandpasswordrequired for later use.
+  // Save the events returned by
+  // mozbrowserusernameandpasswordrequired for later use.
   // The events are stored according to webapp origin
   // e.g., 'http://uitest.gaiamobile.org': evt
   currentEvents: {},
@@ -78,7 +79,7 @@ var AuthenticationDialog = {
         break;
 
       case 'click':
-        if (evt.currentTarget === elements.httpAuthenticationCancel ) {
+        if (evt.currentTarget === elements.httpAuthenticationCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -98,7 +99,7 @@ var AuthenticationDialog = {
         // Reset currentOrigin
         this.hide();
         break;
-        
+
       case 'resize':
         if (!this.currentOrigin)
           return;
@@ -108,7 +109,7 @@ var AuthenticationDialog = {
   },
 
   setHeight: function ad_setHeight() {
-    this.overlay.style.height = window.innerHeight + 'px'; 
+    this.overlay.style.height = window.innerHeight + 'px';
   },
 
   show: function ad_show(origin) {
