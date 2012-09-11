@@ -1327,7 +1327,7 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
-    document.addEventListener('mozvisibilitychange', function waitVisibility(){
+    document.addEventListener('mozvisibilitychange', function waitVisibility() {
       document.removeEventListener('mozvisibilitychange', waitVisibility);
       activityAction();
     });
