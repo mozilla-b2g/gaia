@@ -422,27 +422,17 @@ function setView(view) {
   switch (view) {
   case thumbnailListView:
     thumbnailListView.appendChild(thumbnails);
-    thumbnails.style.width = '';
     break;
   case thumbnailSelectView:
     thumbnailSelectView.appendChild(thumbnails);
-    thumbnails.style.width = '';
     // Set the view header to a localized string
     updateSelectionState();
     break;
-  case photoView:
-    // photoView is a special case because we need to insert
-    // the thumbnails into the filmstrip container and set its width
-    $('photos-filmstrip').appendChild(thumbnails);
-    // In order to get a working scrollbar, we apparently have to specify
-    // an explict width for list of thumbnails.
-    // XXX: we need to update this when images are added or deleted.
-    // XXX: avoid using hardcoded 50px per image?
-    thumbnails.style.width = (images.length * 50) + 'px';
-    break;
   case pickView:
     pickView.appendChild(thumbnails);
-    thumbnails.style.width = '';
+    break;
+  case photoView:
+    // No thumbnails in photoView
     break;
   case editView:
     // We don't display the thumbnails in edit view.

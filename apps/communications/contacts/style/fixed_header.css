@@ -12,4 +12,5 @@
   color: #FF5F19;
   font-size: 1.8rem;
   border-bottom: 1px solid #FF5F19;
+  pointer-events: none;
 }

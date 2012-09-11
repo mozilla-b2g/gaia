@@ -177,10 +177,10 @@ var Applications = (function() {
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
   var coreApplications = [
-    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-    'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
+    'sms', 'settings', 'camera', 'gallery', 'browser',
+    'music', 'clock', 'email', 'fm', 'calculator',
     'calendar', 'video', 'fm', 'pdfjs', 'keyboard', 'system',
-    'homescreen'
+    'homescreen', 'costcontrol'
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
@@ -188,6 +188,12 @@ var Applications = (function() {
   });
 
   coreApplications.push('https://marketplace.mozilla.org/telefonica/');
+
+  var communicationsApplications = ['dialer', 'contacts'];
+  communicationsApplications.forEach(function mapCommunicationsApp(name) {
+    coreApplications.push(protocol + '//communications.' + domain + '/' +
+                          name);
+  });
 
   /*
    *  Returns true if it's a core application

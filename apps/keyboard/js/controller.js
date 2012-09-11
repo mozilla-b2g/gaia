@@ -488,12 +488,6 @@ const IMEController = (function() {
     if (!alternatives.length)
       return;
 
-    // The first alternative is ALWAYS the original key
-    alternatives.splice(
-      0, 0,
-      _isUpperCase ? uppercaseValue : value
-    );
-
     // Locked limits
     // TODO: look for [LOCKED_AREA]
     var top = getWindowTop(key);
@@ -513,7 +507,6 @@ const IMEController = (function() {
     _menuLockedArea.width = _menuLockedArea.right - _menuLockedArea.left;
     _menuLockedArea.ratio =
       _menuLockedArea.width / IMERender.menu.children.length;
-
   }
 
   // Hide alternatives.
@@ -577,6 +570,18 @@ const IMEController = (function() {
     // Key alternatives when long press
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(_currentKey);
+
+      // redirect mouse over event so that the first key in menu
+      // would be highlighted
+      if (_isShowingAlternativesMenu &&
+        _menuLockedArea &&
+        evt.pageY >= _menuLockedArea.top &&
+        evt.pageY <= _menuLockedArea.bottom &&
+        evt.pageX >= _menuLockedArea.left &&
+        evt.pageX <= _menuLockedArea.right) {
+        _redirectMouseOver(evt);
+       }
+
     }), _kAccentCharMenuTimeout);
 
     // Special keys (such as delete) response when pressing (not releasing)
@@ -606,32 +611,17 @@ const IMEController = (function() {
   // to the alternative menu keys but I would prefer another alternative
   // with better performance.
   function _onMouseMove(evt) {
-    var altCount, width, menuChildren;
-
     // Control locked zone for menu
     if (_isShowingAlternativesMenu &&
         _menuLockedArea &&
-        evt.screenY >= _menuLockedArea.top &&
-        evt.screenY <= _menuLockedArea.bottom &&
-        evt.screenX >= _menuLockedArea.left &&
-        evt.screenX <= _menuLockedArea.right) {
+        evt.pageY >= _menuLockedArea.top &&
+        evt.pageY <= _menuLockedArea.bottom &&
+        evt.pageX >= _menuLockedArea.left &&
+        evt.pageX <= _menuLockedArea.right) {
 
       clearTimeout(_hideMenuTimeout);
-      menuChildren = IMERender.menu.children;
-
-      var event = document.createEvent('MouseEvent');
-      event.initMouseEvent(
-        'mouseover', true, true, window, 0,
-        0, 0, 0, 0,
-        false, false, false, false, 0, null
-      );
-
-      menuChildren[Math.floor(
-        (evt.screenX - _menuLockedArea.left) / _menuLockedArea.ratio
-      )].dispatchEvent(event);
-      return;
+      _redirectMouseOver(evt);
     }
-
   }
 
   // When user changes to another button (it handle what happend if the user
@@ -672,7 +662,23 @@ const IMEController = (function() {
     _menuTimeout = window.setTimeout((function menuTimeout() {
       _showAlternatives(target);
     }), _kAccentCharMenuTimeout);
+  }
 
+  function _redirectMouseOver(evt) {
+    var menuChildren = IMERender.menu.children;
+
+    var event = document.createEvent('MouseEvent');
+    event.initMouseEvent(
+      'mouseover', true, true, window, 0,
+      0, 0, 0, 0,
+      false, false, false, false, 0, null
+    );
+
+    var redirectTarget = menuChildren[Math.floor(
+      (evt.pageX - _menuLockedArea.left) / _menuLockedArea.ratio)];
+
+    if (redirectTarget)
+      redirectTarget.dispatchEvent(event);
   }
 
   // When user leaves the keyboard
