@@ -79,6 +79,9 @@
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
 
+    <!-- Authentication Dialog-->
+    <script defer src="js/authentication_dialog.js"></script>
+
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
     <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
@@ -242,6 +245,28 @@
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="popup-container">
         </div>
+        <div id="authentication-dialog">
+          <!--div id="authentication-dialog-ftp" role="dialog">
+          </div-->
+          <div id="authentication-dialog-http-authentication" role="dialog">
+            <div class="authentication-dialog-message-container inner">
+              <h3 id="authentication-dialog-title"></h3>
+              <p>
+                <span id="authentication-dialog-http-authentication-message"></span>
+              </p>
+              <p>
+                <span data-l10n-id="username">Username</span>
+                <input id="authentication-dialog-http-username-input" />
+                <span data-l10n-id="password">Password</span>
+                <input id="authentication-dialog-http-password-input" type="password" />
+              </p>
+            </div>
+            <menu data-items="2">
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
+              <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">Cancel</button>
+            </menu>
+          </div>
+        </div>
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog">
             <div class="modal-dialog-message-container inner">
@@ -279,23 +304,6 @@
             <menu data-items="2">
               <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
               <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-            </menu>
-          </div>
-
-          <div id="modal-dialog-authentication" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3></h3>
-              <p>
-                <span id="modal-dialog-authentication-message"></span>
-                <span data-l10n-id="username">Username</span>
-                <input id="modal-dialog-username-input" />
-                <span data-l10n-id="password">Password</span>
-                <input id="modal-dialog-password-input" type="password" />
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
-              <button id="modal-dialog-authentication-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
           </div>
 
