@@ -25,7 +25,7 @@ contacts.List = (function() {
       renderGroupHeader(letter, letter);
     }
     renderGroupHeader('und', '#');
-    // favoriteGroup = document.getElementById('group-favorites').parentNode;
+    favoriteGroup = document.getElementById('group-favorites').parentNode;
     var selector = 'h2.block-title:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
@@ -59,7 +59,6 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
-    getFavorites();
     this.loaded = true;
   };
 
@@ -217,6 +216,8 @@ contacts.List = (function() {
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
     var counter = {};
+    var favorites = [];
+    counter['favorites'] = 0;
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -235,7 +236,6 @@ contacts.List = (function() {
       var nodes = listContainer.children;
       var length = nodes.length;
       if (alreadyRendered) {
-        console.log(contact.id + " already rendered");
         // If already rendered, don't do anything unless one has been removed
         // We check that comparing contact.id
         var currentNode = nodes[index];
@@ -245,24 +245,25 @@ contacts.List = (function() {
         var newSearchable = newItemBody.dataset['search'];
         var hasChanged = searchable != newSearchable;
         if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
-          console.log(contact.id + " has changed " + counter[group]);
           resetGroup(listContainer, counter[group]);
           listContainer.appendChild(newContact);
         }
       } else {
-        console.log(contact.id + " not rendered");
         // If the contact is not already there means is a new one or
         // the letter is empty. If the new one is not at the end of the list
         // we need to remove the following contacts
         if (length > 0 && length > index + 1) {
-          console.log(contact.id + " no es ultimo y reset");
           resetGroup(listContainer, counter[group]);
         }
-        console.log(contact.id + " Se añade");
         listContainer.appendChild(newContact);
       }
       showGroup(group);
+      if (contact.category && contact.category.indexOf('favorite') != -1) {
+        counter['favorites']
+        favorites.push(contact);
+      }
     }
+    renderFavorites(favorites);
     cleanLastElements(counter);
     FixedHeader.refresh();
   };
@@ -272,7 +273,6 @@ contacts.List = (function() {
     // in the last positions of the letter, the algorithm can't
     // notice it. We need to check the difference at the end to
     // remove the remaining.
-    console.log("ENTRA EN CLEAR");
     var selectorString = 'ol[data-group]:not(#contacts-list-favorites)';
     var nodes = groupsList.querySelectorAll(selectorString);
     for (var i = 0; i < nodes.length; i++) {
@@ -290,54 +290,39 @@ contacts.List = (function() {
     // Method that removes all the contacts in a letter, starting
     // from the 'start' param
     var i = start || 0;
-    console.log(container.innerHTML);
     var length = container.children.length;
     while (length != i) {
       var current = container.children[i];
-      console.log("RESET " + current.innerHTML);
-      console.log("RESET " + container.children[0].innerHTML);
       container.removeChild(current);
       length = container.children.length;
     }
-  }
+  };
 
-  var getFavorites = function getFavorites() {
-    var options = {
-      filterBy: ['category'],
-      filterOp: 'contains',
-      filterValue: ['favorite'],
-      sortBy: 'familyName',
-      sortOrder: 'ascending'
-    };
-
-    // Reset previous state of favorites (if any)
-    var favoritesList = document.getElementById('contacts-list-favorites');
-    if (favoritesList != null) {
-      favoritesList.innerHTML = '';
+  var renderFavorites = function renderFavorites(favorites) {
+    var group = 'contacts-list-favorites';
+    var container = document.getElementById(group);
+    container.innerHTML = "";
+    if (favorites.length == 0) {
+      hideGroup('favorites');
+      return;
     }
-    var request = navigator.mozContacts.find(options);
-
-    request.onsuccess = function favoritesCallback() {
-      if (request.result.length > 0) {
-        showGroup('favorites');
-      }
-      for (var i = 0; i < request.result.length; i++) {
-        var contactToRender = request.result[i];
-        if (fb.isFbContact(contactToRender)) {
-          var fbContact = new fb.Contact(contactToRender);
-          var freq = fbContact.getData();
-          freq.onsuccess = function() {
-            addToFavoriteList(freq.result);
-          }
-
-          freq.onerror = function() {
-            addToFavoriteList(contactToRender);
-          }
-        } else {
-                  addToFavoriteList(contactToRender);
+    for (var i = 0; i < favorites.length; i++) {
+      var contactToRender = favorites[i];
+      if (fb.isFbContact(contactToRender)) {
+        var fbContact = new fb.Contact(contactToRender);
+        var freq = fbContact.getData();
+        freq.onsuccess = function() {
+          addToFavoriteList(freq.result);
         }
+
+        freq.onerror = function() {
+          addToFavoriteList(contactToRender);
+        }
+      } else {
+        addToFavoriteList(contactToRender);
       }
     }
+    showGroup('favorites')
   };
 
   function addToFavoriteList(c) {
