@@ -20,6 +20,11 @@ var LockScreen = {
   enabled: true,
 
   /*
+  * Boolean returns wether we want a sound effect when unlocking.
+  */
+  unlockSoundEnabled: true,
+
+  /*
   * Boolean return whether if the lock screen is enabled or not.
   * Must not multate directly - use setPassCodeEnabled(val)
   * Only Settings Listener should change this value to sync with data
@@ -134,6 +139,11 @@ var LockScreen = {
         'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
     });
+
+    SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      true, function(value) {
+      self.setUnlockSoundEnabled(value);
+    });
   },
 
   /*
@@ -158,6 +168,14 @@ var LockScreen = {
       this.passCodeEnabled = val == 'false' ? false : true;
     } else {
       this.passCodeEnabled = val;
+    }
+  },
+
+  setUnlockSoundEnabled: function ls_setUnlockSoundEnabled(val) {
+    if (typeof val === 'string') {
+      this.unlockSoundEnabled = val == 'false' ? false : true;
+    } else {
+      this.unlockSoundEnabled = val;
     }
   },
 
@@ -503,8 +521,10 @@ var LockScreen = {
       if (instant)
         return;
 
-      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
-      unlockAudio.play();
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+        unlockAudio.play();
+      }
     }
   },
 
@@ -868,11 +888,10 @@ var LockScreen = {
   },
 
   writeSetting: function ls_writeSetting(value) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
-    settings.getLock().set({
+    SettingsListener.getSettingsLock().set({
       'lockscreen.locked': value
     });
   }

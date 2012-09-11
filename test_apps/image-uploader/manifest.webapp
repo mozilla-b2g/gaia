@@ -1,7 +1,6 @@
 {
   "name": "Image Uploader",
   "description": "Uploading an image to some website",
-  "launch_path": "/index.html",
   "developer": {
     "name": "lissyx",
     "url": "https://github.com/lissyx/gaia/tree/image-uploader"
@@ -15,11 +14,11 @@
       "filters": {
         "type": "image"
        },
+      "href": "/index.html",
       "disposition": "window"
     }
   },
   "icons": {
     "128": "/style/icons/share.png"
-  },
-  "hidden": "hidden"
+  }
 }

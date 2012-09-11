@@ -194,8 +194,8 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self.setIdleTimeout(0);
 
-      window.removeEventListener('devicelight', this);
-      window.removeEventListener('mozfullscreenchange', this);
+      window.removeEventListener('devicelight', self);
+      window.removeEventListener('mozfullscreenchange', self);
 
       self.screenEnabled = false;
       self._inTransition = false;
@@ -229,7 +229,9 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    window.addEventListener('devicelight', this);
+    if (this._deviceLightEnabled)
+      window.addEventListener('devicelight', this);
+
     window.addEventListener('mozfullscreenchange', this);
 
     this.setScreenBrightness(this._userBrightness, instant);
@@ -301,6 +303,15 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+
+    if (!this.screenEnabled)
+      return;
+
+    if (enable) {
+      window.addEventListener('devicelight', this);
+    } else {
+      window.removeEventListener('devicelight', this);
+    }
   },
 
   // The idleObserver that we will pass to IdleAPI
@@ -332,7 +343,4 @@ var ScreenManager = {
   }
 };
 
-window.addEventListener('load', function loadScreenManager() {
-  window.removeEventListener('load', loadScreenManager);
-  ScreenManager.init();
-});
+ScreenManager.init();

@@ -94,3 +94,4 @@ var Timer = {
     return duration;
   }
 };
+

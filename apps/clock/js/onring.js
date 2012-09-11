@@ -44,13 +44,9 @@ var RingView = {
 
   updateTime: function rv_updateTime() {
     var d = new Date();
-
-    // XXX: respect clock format in Settings
-    var hour = d.getHours() % 12;
-    if (!hour)
-      hour = 12;
-    this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = d.toLocaleFormat('%p');
+    var time = getLocaleTime(d);
+    this.time.textContent = time.t;
+    this.hourState.textContent = time.p;
 
     var self = this;
     this._timeout = window.setTimeout(function cv_clockTimeout() {
@@ -67,7 +63,7 @@ var RingView = {
     var ringtonePlayer = this._ringtonePlayer;
     ringtonePlayer.loop = true;
     // XXX Need to set the ringtone according to alarm's property of 'sound'
-    var selectedAlarmSound = 'style/ringtones/classic.wav';
+    var selectedAlarmSound = 'style/ringtones/classic.ogg';
     ringtonePlayer.src = selectedAlarmSound;
     ringtonePlayer.play();
     /* If user don't handle the onFire alarm,
@@ -129,3 +125,4 @@ var RingView = {
 };
 
 RingView.init();
+

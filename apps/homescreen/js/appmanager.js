@@ -45,12 +45,11 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest || !manifest.icons) {
+      if (!manifest ||
+          (isCore(app.origin) && manifest.launch_path === undefined)) {
         return;
       }
 
-
-      // If the manifest contains entry points, iterate over them
       // and add a fake app object for each one.
       var entryPoints = manifest.entry_points;
       if (!entryPoints) {
@@ -209,9 +208,10 @@ var Applications = (function() {
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
   var coreApplications = [
-    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-    'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm'
+    'sms', 'settings', 'camera', 'gallery', 'browser',
+    'music', 'clock', 'email', 'fm', 'calculator',
+    'calendar', 'video', 'fm', 'pdfjs', 'keyboard', 'system',
+    'homescreen', 'costcontrol'
   ];
 
   coreApplications = coreApplications.map(function mapCoreApp(name) {
@@ -219,6 +219,12 @@ var Applications = (function() {
   });
 
   coreApplications.push('https://marketplace.mozilla.org/telefonica/');
+
+  var communicationsApplications = ['dialer', 'contacts'];
+  communicationsApplications.forEach(function mapCommunicationsApp(name) {
+    coreApplications.push(protocol + '//communications.' + domain + '/' +
+                          name);
+  });
 
   /*
    *  Returns true if it's a core application
@@ -260,6 +266,10 @@ var Applications = (function() {
 
     // Get all sizes orderer largest to smallest
     var icons = manifest.icons;
+    if (!icons) {
+      return 'style/images/default.png';
+    }
+
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
     });
