@@ -352,7 +352,7 @@ suite('Render contact', function() {
       subject.setContact(contactWoPhoto);
       subject.render();
       assert.equal(cover.style.backgroundImage, '');
-      assert.equal(cover.style.overflow, 'visible');
+      assert.equal(cover.style.overflow, 'auto');
       assert.equal(contactDetails.style.transform, '');
       assert.isTrue(contactDetails.classList.contains('no-photo'));
       assert.isFalse(contactDetails.classList.contains('up'));
@@ -363,7 +363,7 @@ suite('Render contact', function() {
       subject.setContact(contactWoPhoto);
       subject.render();
       assert.equal(cover.style.backgroundImage, '');
-      assert.equal(cover.style.overflow, 'visible');
+      assert.equal(cover.style.overflow, 'auto');
       assert.equal(contactDetails.style.transform, '');
       assert.isTrue(contactDetails.classList.contains('no-photo'));
       assert.isFalse(contactDetails.classList.contains('up'));
