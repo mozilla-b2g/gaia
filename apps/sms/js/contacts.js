@@ -33,8 +33,13 @@ var ContactDataManager = {
       filterValue: number
     };
 
-    console.log(JSON.stringify(options));
-    var cacheResult = this.contactData[number];
+    try{
+      var numNormalized = PhoneNumberManager.getNationalNum(number, true);
+    }catch(e){
+      var numNormalized = number;
+    }
+    
+    var cacheResult = this.contactData[numNormalized];
     if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
@@ -45,34 +50,44 @@ var ContactDataManager = {
     req.onsuccess = function onsuccess() {
       console.log("Hemos recuperado contactos! "+req.result.length);
       // Update the cache before callback.
-      var cacheData = self.contactData[number];
+      var cacheData = self.contactData[numNormalized];
       var result = req.result;
       if (result.length > 0) {
         if (cacheData && (cacheData.name[0] == result[0].name[0])) {
           var telInfo;
           // Retrieving the info of the telephone
           for (var i = 0; i < cacheData.tel.length; i++) {
-            if (cacheData.tel[i].value == number) {
+            try{
+              var tmpNormalized = PhoneNumberManager.getNationalNum(cacheData.tel[i].value, true);
+            }catch(e){
+              var tmpNormalized = cacheData.tel[i].value;
+            }
+            if (tmpNormalized == numNormalized) {
               telInfo = cacheData.tel[i];
               break;
             }
           }
           // Check if phone type and carrier have changed
           for (var i = 0; i < result[0].tel.length; i++) {
-            if (result[0].tel[i].value == number) {
+            try{
+              var tmpNormalized = PhoneNumberManager.getNationalNum(result[0].tel[i].value, true);
+            }catch(e){
+              var tmpNormalized = result[0].tel[i].value;
+            }
+            if (tmpNormalized == numNormalized) {
               if (!(result[0].tel[i].type == telInfo.type &&
                 result[0].tel[i].carrier == telInfo.carrier)) {
-                self.contactData[number] = result[0];
+                self.contactData[numNormalized] = result[0];
               }
               break;
             }
           }
         }else {
-          self.contactData[number] = result[0];
+          self.contactData[numNormalized] = result[0];
         }
       } else {
         if (cacheData) {
-          delete self.contactData[number];
+          delete self.contactData[numNormalized];
         }
       }
       callback(result);

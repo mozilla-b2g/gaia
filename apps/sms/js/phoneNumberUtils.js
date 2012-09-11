@@ -53,14 +53,14 @@ var PhoneNumberManager = {
   },
 
   getNationalNum: function pnm_getNationalNum(numInput, returnOri) {
-    var number = this.phoneUtil.parseAndKeepRawInput(numInput, this.region);
-    if (!this.phoneUtil.isValidNumber(number))
-      return returnOri ? numInput : null;
+      var number = this.phoneUtil.parseAndKeepRawInput(numInput, this.region);
+      if (!this.phoneUtil.isValidNumber(number))
+        return returnOri ? numInput : null;
 
-    var nationalNum = this.phoneUtil.format(number, this.format.NATIONAL);
-    var regex = /\D/g;
-    nationalNum = nationalNum.replace(regex, '');
-    return nationalNum;
+      var nationalNum = this.phoneUtil.format(number, this.format.NATIONAL);
+      var regex = /\D/g;
+      nationalNum = nationalNum.replace(regex, '');
+      return nationalNum;
   },
 
   isValidNumber: function pnm_isValidNumber(numInput) {
