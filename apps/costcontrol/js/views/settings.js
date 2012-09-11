@@ -9,6 +9,7 @@ var VIEW_SETTINGS = 'settings-view';
 Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
 
   var DIALOG_PLAN_SETUP = 'plantype-setup-dialog';
+  var DIALOG_TRACKING_PERIOD_SETUP = 'tracking-period-setup-dialog';
 
   var _planTypeHasChanged = false;
 
@@ -97,10 +98,22 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     switchLowLimit();
   }
 
+  // Configures th billing cycle options
+  function _configureBillingCycleSetup() {
+
+    // Show the tracking period dialog
+    var billingPeriod =
+      document.getElementById('settings-view-tracking-period-setup');
+    billingPeriod.addEventListener('click', function() {
+      settingsVManager.changeViewTo(DIALOG_TRACKING_PERIOD_SETUP);
+    });
+  }
+
   // Configures the UI
   function _configureUI() {
     _configurePlanTypeSetup();
     _configureLowLimitSetup();
+    _configureBillingCycleSetup();
   }
 
   // Configure each settings' control and paint the interface
