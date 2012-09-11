@@ -84,9 +84,11 @@ this.asyncStorage = (function() {
   function setItem(key, value, callback) {
     withStore('readwrite', function setItemBody(store) {
       var req = store.put(value, key);
-      req.onsuccess = function setItemOnSuccess() {
-        callback();
-      };
+      if (callback) {
+        req.onsuccess = function setItemOnSuccess() {
+          callback();
+        };
+      }
       req.onerror = function setItemOnError() {
         console.error('Error in asyncStorage.setItem(): ', req.error.name);
       };
@@ -96,9 +98,11 @@ this.asyncStorage = (function() {
   function removeItem(key, callback) {
     withStore('readwrite', function removeItemBody(store) {
       var req = store.delete(key);
-      req.onsuccess = function removeItemOnSuccess() {
-        callback();
-      };
+      if (callback) {
+        req.onsuccess = function removeItemOnSuccess() {
+          callback();
+        };
+      }
       req.onerror = function removeItemOnError() {
         console.error('Error in asyncStorage.removeItem(): ', req.error.name);
       };
@@ -108,9 +112,11 @@ this.asyncStorage = (function() {
   function clear(callback) {
     withStore('readwrite', function clearBody(store) {
       var req = store.clear();
-      req.onsuccess = function clearOnSuccess() {
-        callback();
-      };
+      if (callback) {
+        req.onsuccess = function clearOnSuccess() {
+          callback();
+        };
+      }
       req.onerror = function clearOnError() {
         console.error('Error in asyncStorage.clear(): ', req.error.name);
       };
