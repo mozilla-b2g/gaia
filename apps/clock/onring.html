@@ -7,9 +7,14 @@
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
     <link rel="stylesheet" type="text/css" href="style/onring.css">
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini">
-    <script src="shared/js/l10n.js"></script>
-    <script defer src="js/onring.js"></script>
+
+    <!-- Date/Time Localization -->
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <script type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+
+    <!-- Specific code -->
+    <script type="application/javascript" defer src="js/onring.js"></script>
   </head>
   <body>
     <div class="ring-display">
