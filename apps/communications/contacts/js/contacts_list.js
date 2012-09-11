@@ -172,6 +172,7 @@ contacts.List = (function() {
   var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
     var button = document.createElement('button');
+    button.id = 'sim_import_button';
     button.setAttribute('class', 'simContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
@@ -354,7 +355,8 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0) {
+      if (request.result.length === 0 && groupsList &&
+        !groupsList.parentNode.querySelector('#sim_import_button')) {
         addImportSimButton();
       } else {
         var fbReq = fb.contacts.getAll();
