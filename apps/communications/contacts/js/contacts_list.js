@@ -259,7 +259,7 @@ contacts.List = (function() {
       }
       showGroup(group);
       if (contact.category && contact.category.indexOf('favorite') != -1) {
-        counter['favorites']
+        counter['favorites']++;
         favorites.push(contact);
       }
     }
@@ -301,7 +301,7 @@ contacts.List = (function() {
   var renderFavorites = function renderFavorites(favorites) {
     var group = 'contacts-list-favorites';
     var container = document.getElementById(group);
-    container.innerHTML = "";
+    container.innerHTML = '';
     if (favorites.length == 0) {
       hideGroup('favorites');
       return;
@@ -322,7 +322,7 @@ contacts.List = (function() {
         addToFavoriteList(contactToRender);
       }
     }
-    showGroup('favorites')
+    showGroup('favorites');
   };
 
   function addToFavoriteList(c) {
