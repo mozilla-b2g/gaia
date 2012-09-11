@@ -1302,13 +1302,7 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
         break;
       case '#edit':
         history.back();
-        var location = window.location.hash;
-        if (location.indexOf('#num=') != -1) {
-          MessageManager.activityTarget = number;
-          window.location.hash = '#thread-list';
-        } else {
-          window.location.hash = '#num=' + number;
-        }
+        activityAction();
         break;
       default:
         if (currentLocation.indexOf('#num=') != -1) {
