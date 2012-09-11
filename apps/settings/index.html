@@ -23,6 +23,7 @@
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/battery.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -141,21 +142,25 @@
       </header>
       <ul>
         <li>
-          <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
+          <a href="#about" data-l10n-id="deviceInfo">Device Information</a>
+        </li>
+        <li>
+          <small id="battery-desc"></small>
+          <a href="#battery" data-l10n-id="battery">Battery</a>
+        </li>
+        <li>
+          <small id="device-storage-desc"></small>
+          <a href="#device-storage" data-l10n-id="deviceStorage">Device Storage</a>
+        </li>
+        <li>
+          <small id="media-storage-desc"></small>
+          <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
         </li>
         <li>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
-        <li hidden>
-          <a href="#helpAndFeedback" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
-        </li>
         <li>
-          <small id="storage-desc"></small>
-          <a href="#storage" data-l10n-id="storage">Storage</a>
-        </li>
-        <li hidden>
-          <small id="battery-desc"></small>
-          <a href="#battery" data-l10n-id="battery">Battery</a>
+          <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>
     </section>
@@ -1085,12 +1090,37 @@
        </ul>
     </section>
 
-    <!-- Device :: Storage -->
-    <section role="region" id="storage">
+    <!-- Device :: Battery -->
+    <section role="region" id="battery">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="storage">
-          Storage
+        <h1 data-l10n-id="battery">
+          Battery
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
+            <span class="level-desc"></span>
+          </a>
+        </li>
+        <li>
+          <a id="battery-remaining" data-l10n-id="batteryEstLeft">Estimated Time Left
+            <span class="level-desc"></span>
+          </a>
+        </li>
+      </ul>
+      <!-- TODO -->
+
+    </section>
+
+    <!-- Device :: Device Storage -->
+    <section role="region" id="device-storage">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="deviceStorage">
+          Device Storage
         </h1>
       </header>
 
@@ -1101,6 +1131,39 @@
             <span></span>
           </label>
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Media Storage -->
+    <section role="region" id="media-storage">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="mediaStorage">
+          Media Storage
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a id="music-space"> Music
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="pictures-space"> Pictures
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="videos-space"> Movies
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="left-space"> Space Left
+            <span class="storage-space"></span>
+          </a>
         </li>
       </ul>
     </section>
@@ -1130,6 +1193,19 @@
           <a data-l10n-id="screenReader">Screen Reader</a>
         </li>
       </ul>
+    </section>
+
+    <!-- Device :: Help -->
+    <section role="region" id="help">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="helpAndFeedback">
+          Help
+        </h1>
+      </header>
+
+      <!-- TODO -->
+
     </section>
 
   </body>
