@@ -14,9 +14,10 @@ var AuthenticationDialog = {
   _confirmed: {},
 
   // Get all elements when inited.
-  getAllElements: function md_getAllElements() {
+  getAllElements: function ad_getAllElements() {
     var elementsID = ['http-authentication', 'username-input', 'password-input',
-      'http-authentication-message', 'http-authentication-ok', 'http-authentication-cancel'];
+      'http-authentication-message', 'http-authentication-ok',
+      'http-authentication-cancel'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -34,7 +35,7 @@ var AuthenticationDialog = {
 
   currentEvents: {},
 
-  init: function md_init(bindToWindow) {
+  init: function ad_init(bindToWindow) {
     // Get all elements initially.
     this.getAllElements();
     var elements = this.elements;
@@ -49,7 +50,7 @@ var AuthenticationDialog = {
   },
 
   // Default event handler
-  handleEvent: function md_handleEvent(evt, origin) {
+  handleEvent: function ad_handleEvent(evt, origin) {
     var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowserusernameandpasswordrequired':
@@ -73,7 +74,7 @@ var AuthenticationDialog = {
   },
 
   // Show relative dialog and set message/input value well
-  show: function md_show(origin) {
+  show: function ad_show(origin) {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
@@ -100,7 +101,7 @@ var AuthenticationDialog = {
     elements.usernameInput.focus();
   },
 
-  hide: function md_hide() {
+  hide: function ad_hide() {
     var evt = this.currentEvents[this.currentOrigin];
     if (!evt)
       return;
@@ -110,7 +111,7 @@ var AuthenticationDialog = {
   },
 
   // When user clicks OK button on alert/confirm/prompt
-  confirmHandler: function md_confirmHandler() {
+  confirmHandler: function ad_confirmHandler() {
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin];
@@ -127,7 +128,7 @@ var AuthenticationDialog = {
 
   // When user clicks cancel button on confirm/prompt or
   // when the user try to escape the dialog with the escape key
-  cancelHandler: function md_cancelHandler() {
+  cancelHandler: function ad_cancelHandler() {
     var evt = this.currentEvents[this.currentOrigin];
     var elements = this.elements;
 

@@ -658,7 +658,7 @@ var Browser = {
       // Hide modal dialog
       ModalDialog.hide();
       AuthenticationDialog.hide();
-      
+
       this.urlInput.value = this.currentTab.url;
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
@@ -1007,8 +1007,8 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-
-                         'showmodalprompt', 'error', 'usernameandpasswordrequired'];
+                         'showmodalprompt', 'error',
+                         'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
                               this.handleBrowserEvent(tab));
