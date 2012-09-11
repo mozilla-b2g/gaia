@@ -118,6 +118,7 @@ var PopupManager = {
     if (!this._currentPopup)
       return;
 
+    evt.stopImmediatePropagation();
     this.close();
   },
 
