@@ -502,10 +502,7 @@ function Predict(word) {
   // we need to convert the input word to lower case characters
   // to check the bloomfilter whether the word is in the trie.
   // we use the original input word to promote case matching words
-  var lowerCaseWord = '';
-  for (var i = 0, len = word.length; i < len; ++i) {
-    lowerCaseWord += word[i].toLowerCase();
-  }
+  var lowerCaseWord = word.toLowerCase();
 
   // This is the list where we will collect all the candidate words.
   var candidates = [];
