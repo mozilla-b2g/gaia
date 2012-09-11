@@ -84,8 +84,6 @@ var MessageManager = {
                 }
               });
             }
-            // Update the data for next time we enter a thread
-            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -715,13 +713,15 @@ var ThreadUI = {
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
 
-    ContactDataManager.getContactData(number, function gotContact(contacts){
+    ContactDataManager.getContactData(number, function gotContact(contacts) {
       //TODO what if different contacts with same number?
       Utils.getPhoneDetails(number,
                             contacts[0],
                             function returnedDetails(details) {
         if (details.isContact) {
           self.title.dataset.isContact = true;
+        } else {
+          delete self.title.dataset.isContact;
         }
         self.title.innerHTML = details.title || number;
         var carrierTag = document.getElementById('contact-carrier');
