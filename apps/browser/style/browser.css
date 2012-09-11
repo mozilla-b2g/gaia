@@ -4,6 +4,7 @@ html, body {
   margin: 0;
   background-color: #575E66;
   font-family: 'Open Sans', sans-serif;
+  font-size: 10px;
 }
 
 body {
@@ -55,6 +56,7 @@ input[type="image"] {
 }
 
 #tray {
+  font-size: 16px;
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   left: 50px;
@@ -217,6 +219,7 @@ input[type="image"] {
 #toolbar-end {
   border-top: solid 2px #a6b3bb;
   display: none;
+  background-image: -moz-linear-gradient(#323639, #272b2e);
 }
 
 .page-screen #toolbar-start {
@@ -304,8 +307,6 @@ input[type="image"] {
 
 menu[type="toolbar"] {
   height: 45px;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#323639, #272b2e);
   margin: 0;
   padding: 0;
 }
@@ -378,6 +379,7 @@ input::-moz-focus-inner {
 }
 
 #awesomescreen, #crashscreen {
+  font-size: 16px;
   position: absolute;
   top: 0;
   left: 0;
@@ -663,6 +665,7 @@ li[role="listitem"] small {
 }
 
 #settings {
+  font-size: 16px;
   position: absolute;
   left: 0px;
   top: 0;
@@ -695,7 +698,6 @@ li[role="listitem"] small {
 }
 
 #settings h3 {
-  font-size: 1em;
   margin: 0 30px 15px 30px;
   padding: 0;
 }
@@ -719,7 +721,7 @@ li[role="listitem"] small {
   background-color: rgba(0, 0, 0, 0.7);
 }
 
-#settings li button, #bookmark-menu li button {
+#settings li button {
   display: block;
   color: #333;
   width: 100%;
@@ -751,38 +753,12 @@ li[role="listitem"] small {
 
 /** Bookmark Menu **/
 #bookmark-menu {
-  display: block;
   position: absolute;
-  bottom: 0;
-  padding: 10px;
-  margin: 0 20px;
-  width: -moz-calc(100% - 60px);
-  background-color: #EEEFEA;
-}
-
-#bookmark-menu li {
-  list-style-type: none;
-  padding: 0;
-  border-bottom: solid 1px #999;
+  z-index: 61;
 }
 
 #bookmark-menu li.hidden {
   display: none;
-}
-
-#bookmark-menu li:last-child {
-  border: none;
-}
-
-#bookmark-menu li a {
-  display: block;
-  text-decoration: none;
-  color: #000;
-  padding: 10px;
-}
-
-#bookmark-menu li button {
-  margin-top: 10px;
 }
 
 #bookmark-menu.hidden {
@@ -791,7 +767,8 @@ li[role="listitem"] small {
 
 /* Edit bookmark entry sheet */
 
-form[role="dialog"] {
+#bookmark-entry-sheet {
+  z-index: 101;
   display: block;
   position: absolute;
   top: 0;
@@ -800,56 +777,31 @@ form[role="dialog"] {
   background-color: #EEEEEE;
 }
 
-form[role="dialog"].hidden {
+#bookmark-entry-sheet.hidden {
   display: none;
 }
 
-#bookmark-entry-sheet {
-  z-index: 101;
-}
-
-form[role="dialog"] header {
-  width: 100%;
-}
-
-form[role="dialog"] header h2 {
-  background-color: #303b3d;
-  color: #fff;
-  font-size: 1em;
-  font-weight: bold;
-  height: 50px;
-  line-height: 50px;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-}
-
-form[role="dialog"] header button {
-  background-color: #DDDDDD;
-  border: none;
-  border-radius: 5px;
-  font-size: 1em;
-  height: 30px;
-  margin: 10px;
-}
-
-form[role="dialog"] header button[type="reset"] {
-  float: left;
-}
-
-form[role="dialog"] header button[type="submit"] {
-  float: right;
-}
-
-form[role="dialog"] label {
+/* The following can be removed once we have a building block
+ * for entry sheets.
+ */
+ #bookmark-entry-sheet label {
   display: block;
-  margin-top: 15px;
-  padding: 0 12px;
-}
+  position: relaitve;
+  margin: 1rem 2rem;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+ }
 
-form[role="dialog"] input {
-  margin: 0 10px;
-  width: -moz-calc(100% - 25px);
+ #bookmark-entry-sheet input[type="text"],
+ #bookmark-entry-sheet input[type="url"] {
+  -moz-box-sizing: border-box;
+  border: 1px solid #D1D1D1;
+  border-radius: 0.3rem;
+  display: block;
+  font: 1.4rem/4rem "Open Sans", Sans-serif;
+  height: 4rem;
+  padding: 0 0.5rem;
+  width: 100%;
 }
 
 /* This is a dirty hack to hide the bottom toolbar while
