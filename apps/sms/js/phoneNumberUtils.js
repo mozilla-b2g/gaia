@@ -30,6 +30,14 @@ var PhoneNumberManager = {
     //       and apply it if we could not get connection data in the future.
     this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'ES';
   },
+  getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {
+    try{
+      var normalized = PhoneNumberManager.getNationalNum(numInput, true);
+      return normalized;
+    }catch(e){
+      return numInput;
+    }
+  },
   getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
     try{
       var nationalNum = PhoneNumberManager.getNationalNum(numInput, true);

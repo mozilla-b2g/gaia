@@ -32,13 +32,7 @@ var ContactDataManager = {
       filterOp: 'contains',
       filterValue: number
     };
-
-    try{
-      var numNormalized = PhoneNumberManager.getNationalNum(number, true);
-    }catch(e){
-      var numNormalized = number;
-    }
-    
+    var numNormalized = PhoneNumberManager.getNormalizedNumber(number);
     var cacheResult = this.contactData[numNormalized];
     if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
@@ -57,11 +51,7 @@ var ContactDataManager = {
           var telInfo;
           // Retrieving the info of the telephone
           for (var i = 0; i < cacheData.tel.length; i++) {
-            try{
-              var tmpNormalized = PhoneNumberManager.getNationalNum(cacheData.tel[i].value, true);
-            }catch(e){
-              var tmpNormalized = cacheData.tel[i].value;
-            }
+            var tmpNormalized = PhoneNumberManager.getNormalizedNumber(cacheData.tel[i].value);
             if (tmpNormalized == numNormalized) {
               telInfo = cacheData.tel[i];
               break;
@@ -69,11 +59,7 @@ var ContactDataManager = {
           }
           // Check if phone type and carrier have changed
           for (var i = 0; i < result[0].tel.length; i++) {
-            try{
-              var tmpNormalized = PhoneNumberManager.getNationalNum(result[0].tel[i].value, true);
-            }catch(e){
-              var tmpNormalized = result[0].tel[i].value;
-            }
+            var tmpNormalized = PhoneNumberManager.getNormalizedNumber(result[0].tel[i].value);
             if (tmpNormalized == numNormalized) {
               if (!(result[0].tel[i].type == telInfo.type &&
                 result[0].tel[i].carrier == telInfo.carrier)) {
