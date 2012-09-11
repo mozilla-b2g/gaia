@@ -19,6 +19,10 @@ setService(function cc_setupCostControlService() {
   var PLAN_PREPAID = 'prepaid';
   var PLAN_POSTPAID = 'postpaid';
 
+  var WEEKLY = 'weekly';
+  var MONTHLY = 'monthly';
+  var NEVER = 'never';
+
   // Critical settings (if no present or bad configured,
   // the service is unavailable)
   var _settings = {};
@@ -659,7 +663,9 @@ setService(function cc_setupCostControlService() {
     },
 
     PLAN_PREPAID: PLAN_PREPAID,
-    PLAN_POSTPAID: PLAN_POSTPAID
+    PLAN_POSTPAID: PLAN_POSTPAID,
+    WEEKLY: WEEKLY,
+    MONTHLY: MONTHLY
   };
 }());
 window[SERVICE_NAME].init();
