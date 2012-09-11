@@ -330,30 +330,29 @@ var Browser = {
         break;
 
       case 'mozbrowserusernameandpasswordrequired':
-        console.log(evt.detail.host,'=====');
-        if (!isCurrentTab) {
-          this.hideCurrentTab();
-          this.selectTab(tab.id);
-        }
-        if (this.currentScreen !== this.PAGE_SCREEN) {
-          this.showPageScreen();
-        }
-        AuthenticationDialog.handleEvent(evt, tab.id);
-        break;
+      if (!isCurrentTab) {
+        this.hideCurrentTab();
+        this.selectTab(tab.id);
+      }
+      if (this.currentScreen !== this.PAGE_SCREEN) {
+        this.showPageScreen();
+      }
+      AuthenticationDialog.handleEvent(evt, tab.id);
+      break;
 
       case 'mozbrowsershowmodalprompt':
-        if (!isCurrentTab) {
-          this.hideCurrentTab();
-          this.selectTab(tab.id);
-        }
-        if (this.currentScreen !== this.PAGE_SCREEN) {
-          this.showPageScreen();
-        }
-        ModalDialog.handleEvent(evt, tab.id);
-        break;
+      if (!isCurrentTab) {
+        this.hideCurrentTab();
+        this.selectTab(tab.id);
+      }
+      if (this.currentScreen !== this.PAGE_SCREEN) {
+        this.showPageScreen();
+      }
+      ModalDialog.handleEvent(evt, tab.id);
+      break;
 
       case 'mozbrowsererror':
-        if (evt.detail.type === 'fatal') {
+      if (evt.detail.type === 'fatal') {
           this.handleCrashedTab(tab);
         }
         break;

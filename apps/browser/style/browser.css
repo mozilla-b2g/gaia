@@ -377,7 +377,7 @@ input::-moz-focus-inner {
   z-index: 100;
 }
 
-#awesomescreen, #crashscreen, #authenticationscreen {
+#awesomescreen, #crashscreen {
   position: absolute;
   top: 0;
   left: 0;
@@ -396,7 +396,7 @@ input::-moz-focus-inner {
   text-align: center;
 }
 
-#authenticationscreen {
+#screen {
   z-index: 61;
 }
 
@@ -643,7 +643,6 @@ li[role="listitem"] small {
   margin-right: 10px;
 }
 
-#modal-dialog-authentication,
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt {

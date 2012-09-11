@@ -81,8 +81,7 @@ var ModalDialog = {
 
       case 'click':
         if (evt.currentTarget === elements.confirmCancel ||
-            evt.currentTarget === elements.promptCancel ||
-            evt.currentTarget === elements.authenticationCancel) {
+            evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -123,7 +122,7 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    var type = evt.detail.promptType || 'authentication';
+    var type = evt.detail.promptType;
 
     switch (type) {
       case 'alert':
@@ -141,24 +140,14 @@ var ModalDialog = {
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         break;
-
-      case 'authentication':
-        elements.authentication.classList.add('visible');
-        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
-        var _ = navigator.mozL10n.get;
-        message = _('http-authentication-message', l10nArgs);
-        elements.authenticationMessage.innerHTML = message;
-        break;
     }
-
-    console.log(elements.authentication, elements.authentication.style.display, elements.authentication.classList,'=====');
   },
 
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
     if (!evt)
       return;
-    var type = evt.detail.promptType || 'authentication';
+    var type = evt.detail.promptType;
     this.elements[type].classList.remove('visible');
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
@@ -170,7 +159,7 @@ var ModalDialog = {
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin];
-    var type = evt.detail.promptType || 'authentication';
+    var type = evt.detail.promptType;
 
     switch (type) {
       case 'alert':
@@ -186,12 +175,6 @@ var ModalDialog = {
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
         break;
-
-      case 'authentication':
-        evt.detail.authenticate(elements.usernameInput.value,
-          elements.passwordInput.value);
-        elements.authentication.classList.remove('visible');
-        break;
     }
 
     if (evt.detail.unblock)
@@ -206,7 +189,7 @@ var ModalDialog = {
     var evt = this.currentEvents[this.currentOrigin];
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
-    var type = evt.detail.promptType || 'authentication';
+    var type = evt.detail.promptType;
 
     switch (type) {
       case 'alert':
@@ -223,10 +206,6 @@ var ModalDialog = {
         /* return false when click cancel */
         evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
-        break;
-
-      case 'authentication':
-        evt.detail.cancel();
         break;
     }
 
