@@ -486,23 +486,29 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  if (pendingPick)
-    cancelPick();
-
   var activityName = activityRequest.source.name;
 
   switch (activityName) {
   case 'browse':
+    if (launchedAsInlineActivity)
+      return;
+
     // The 'browse' activity is just the way we launch the app
     // There's nothing else to do here.
     setView(thumbnailListView);
     break;
   case 'pick':
+    if (!launchedAsInlineActivity)
+      return;
+
+    if (pendingPick)
+      cancelPick();
     startPick(activityRequest);
     break;
   }
 }
 
+var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
 var pendingPick;
 
 function startPick(activityRequest) {

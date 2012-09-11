@@ -1028,6 +1028,8 @@ var WindowManager = (function() {
     // event handlers before we do.
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
+    } else if (inlineActivityFrame) {
+      stopInlineActivity();
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
     } else {
