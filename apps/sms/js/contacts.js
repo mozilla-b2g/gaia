@@ -26,11 +26,11 @@ var ContactDataManager = {
     // so desktop keeps working
     if (!navigator.mozSms)
       return;
-    // TODO Modificar por el equipo de Contactos!
+
     var options = {
       filterBy: ['tel'],
       filterOp: 'contains',
-      filterValue: PhoneNumberManager.getOptionalNumbers(number)
+      filterValue: number
     };
 
     console.log(JSON.stringify(options));
