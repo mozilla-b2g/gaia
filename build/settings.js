@@ -35,7 +35,7 @@ var settings = [
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.remote-port", 6000),
  new Setting("geolocation.enabled", true),
- new Setting("homescreen.ring", "classic.ogg"),
+ new Setting("dialer.ringtone", "classic.ogg"),
  new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
  new Setting("keyboard.layouts.dvorak", false),
