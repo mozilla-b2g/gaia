@@ -563,8 +563,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     // generic wifi property dialog
-    // TODO: the 'OK' button should be disabled until the password string
-    //       has a suitable length (e.g. 8..63)
     function wifiDialog(selector, callback, key) {
       var dialog = document.querySelector(selector);
       if (!dialog || !network)
@@ -615,6 +613,17 @@ window.addEventListener('localized', function wifiSettings(evt) {
           inputs[i].onblur = function showFooter() {
             footer.style.display = 'block';
           };
+        }
+
+        var submitButton = footer.querySelector('button');
+        if (key === 'WPA-PSK') {
+          password.onchange = function() {
+            submitButton.disabled = password.value.length < 8;
+          };
+          password.onchange();
+        } else {
+          password.onchange = function() {};
+          submitButton.disabled = false;
         }
       }
 
