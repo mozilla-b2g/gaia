@@ -522,8 +522,9 @@ var Browser = {
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
+    // Hack until tabsBadge refactored in #1222
     this.bookmarkMenu.classList.remove('hidden');
-    this.tabsBadge.style.display = 'none'; // Hack until tabsBadge refactored
+    this.tabsBadge.style.display = 'none'; 
     if (!this.currentTab.url)
       return;
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
@@ -540,7 +541,8 @@ var Browser = {
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
-    this.tabsBadge.style.display = 'block'; // Hack until tabsBadge refactored
+    // Hack until tabsBadge refactored in #1222
+    this.tabsBadge.style.display = 'block';
     this.bookmarkMenu.classList.add('hidden');
   },
 
