@@ -3,6 +3,20 @@
   margin: -1.4rem -2rem 1rem;
 }
 
+/* Fav star in header */
+section[role="region"] > header:first-child sup {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center;
+  background-size: 100% auto;
+  width: 1.2rem;
+  height: 3.2rem;
+  vertical-align: text-top;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+  float: left;
+  top: 0;
+}
+
 .contact-header img {
   width: 100%;
   height: 7.6rem;
