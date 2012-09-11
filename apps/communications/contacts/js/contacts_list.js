@@ -9,6 +9,7 @@ contacts.List = (function() {
       loaded = false,
       cancel = document.getElementById('cancel-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
+      searchView = document.getElementById('search-view'),
       searchBox = document.getElementById('search-contact'),
       searchNoResult = document.getElementById('no-result'),
       fastScroll = document.querySelector('.view-jumper'),
@@ -560,31 +561,16 @@ contacts.List = (function() {
     }
   }
 
-  // Toggle function to show/hide the letters header
-  var toggleGroupHeaders = function showHeaders() {
-    var headers = document.querySelectorAll('.block-title:not(.hide)');
-    if (!headers) {
-      return;
-    }
-
-    for (var i = 0; i < headers.length; i++) {
-      headers[i].classList.toggle('search-hide');
-    }
-  }
-
+  //Search mode instructions
   var exitSearchMode = function exitSearchMode() {
-    cancel.classList.add('hide');
     searchNoResult.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
     // Show elements that were hidden for the search
-    fastScroll.classList.remove('hide');
-    groupsList.classList.remove('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.remove('hide');
     }
-    toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
     var allContacts = getContactsDom();
@@ -598,7 +584,6 @@ contacts.List = (function() {
 
   var enterSearchMode = function searchMode() {
     if (!inSearchMode) {
-      cancel.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
       inSearchMode = true;
@@ -632,11 +617,9 @@ contacts.List = (function() {
   };
 
   var cleanContactsList = function cleanContactsList() {
-    fastScroll.classList.add('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.add('hide');
     }
-    toggleGroupHeaders();
   };
 
   var getContactsDom = function contactsDom() {
