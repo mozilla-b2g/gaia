@@ -122,7 +122,9 @@ var ModalDialog = {
 
     message = escapeHTML(message);
 
-    switch (evt.detail.promptType) {
+    var type = evt.detail.promptType;
+
+    switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
@@ -143,7 +145,10 @@ var ModalDialog = {
 
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
-    this.elements[evt.detail.promptType].classList.remove('visible');
+    if (!evt)
+      return;
+    var type = evt.detail.promptType;
+    this.elements[type].classList.remove('visible');
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
   },
@@ -154,8 +159,9 @@ var ModalDialog = {
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin];
+    var type = evt.detail.promptType;
 
-    switch (evt.detail.promptType) {
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -171,11 +177,8 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.isPseudo && evt.callback) {
-      evt.callback(evt.detail.returnValue);
-    }
-
-    evt.detail.unblock();
+    if (evt.detail.unblock)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
@@ -186,8 +189,9 @@ var ModalDialog = {
     var evt = this.currentEvents[this.currentOrigin];
     this.screen.classList.remove('modal-dialog');
     var elements = this.elements;
+    var type = evt.detail.promptType;
 
-    switch (evt.detail.promptType) {
+    switch (type) {
       case 'alert':
         elements.alert.classList.remove('visible');
         break;
@@ -205,64 +209,13 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.isPseudo && evt.callback) {
-      evt.callback(evt.detail.returnValue);
-    }
-
-    evt.detail.unblock();
+    if (evt.detail.unblock)
+      evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
   },
 
   originHasEvent: function(origin) {
     return origin in this.currentEvents;
-  },
-
-  // The below is for system apps to use.
-  alert: function md_alert(text, callback) {
-    this.showWithPseudoEvent({
-      type: 'alert',
-      text: text,
-      callback: callback
-    });
-  },
-
-  confirm: function md_confirm(text, callback, cancel) {
-    this.showWithPseudoEvent({
-      type: 'confirm',
-      text: text,
-      callback: callback,
-      cancel: cancel
-    });
-  },
-
-  prompt: function md_prompt(text, default_value, callback) {
-    this.showWithPseudoEvent({
-      type: 'prompt',
-      text: text,
-      initialValue: default_value,
-      callback: callback
-    });
-  },
-
-  showWithPseudoEvent: function md_showWithPseudoEvent(config) {
-    var pseudoEvt = {
-      isPseudo: true,
-      detail: {
-        unblock: null
-      }
-    };
-
-    pseudoEvt.detail.message = config.text;
-    pseudoEvt.callback = config.callback;
-    pseudoEvt.detail.promptType = config.type;
-    if (config.type == 'prompt') {
-        pseudoEvt.detail.initialValue = config.initialValue;
-    }
-
-    // Create a virtual mapping in this.currentEvents,
-    // since system-app uses the different way to call ModalDialog.
-    this.currentEvents['system'] = pseudoEvt;
-    this.show('system');
   }
 };
