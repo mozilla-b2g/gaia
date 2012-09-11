@@ -1180,30 +1180,31 @@ var ThreadUI = {
 
   renderContactData: function thui_renderContactData(contact) {
     // Retrieve info from thread
-    var name = contact.name.toString();
+    var self = this;
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
-      var input = this.contactInput.value;
-      var number = tels[i].value.toString();
-      var reg = new RegExp(input, 'ig');
-      if (!(name.match(reg) || (number.match(reg)))) {
-        continue;
-      }
-      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
-      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
-      // Create DOM element
-      var threadHTML = document.createElement('div');
-      threadHTML.classList.add('item');
-
       Utils.getPhoneDetails(tels[i].value,
                             contact,
                             function gotDetails(details) {
+        var name = details.title.toString();
+        var input = self.contactInput.value;
+        var reg = new RegExp(input, 'ig');
+        if (!(name.match(reg))) {
+          return;
+        }
+        var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+        // Create DOM element
+        var threadHTML = document.createElement('div');
+        threadHTML.classList.add('item');
+
+
         //TODO Implement algorithm for this part following Wireframes
         // Create HTML structure
         var structureHTML =
                 '  <a href="#num=' + tels[i].value + '">' +
-                '    <div class="name">' + details.title + '</div>' +
+                '    <div class="name">' + nameHTML + '</div>' +
                 '    <div class="type">' + details.carrier + '</div>' +
+                //TODO what if no photo? hide or default?
                 '    <div class="photo">' +
                 '      <img src="' + details.photo + '">' +
                 '    </div>' +
@@ -1211,7 +1212,7 @@ var ThreadUI = {
         // Update HTML and append
         threadHTML.innerHTML = structureHTML;
         ThreadUI.view.appendChild(threadHTML);
-        });
+      });
     }
   },
 
