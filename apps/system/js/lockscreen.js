@@ -140,7 +140,8 @@ var LockScreen = {
       self.setPassCodeEnabled(value);
     });
 
-    SettingsListener.observe('lockscreen.unlock-sound.enabled', true, function(value) {
+    SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      true, function(value) {
       self.setUnlockSoundEnabled(value);
     });
   },
