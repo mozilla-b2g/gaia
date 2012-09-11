@@ -194,8 +194,8 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self.setIdleTimeout(0);
 
-      window.removeEventListener('devicelight', this);
-      window.removeEventListener('mozfullscreenchange', this);
+      window.removeEventListener('devicelight', self);
+      window.removeEventListener('mozfullscreenchange', self);
 
       self.screenEnabled = false;
       self._inTransition = false;
