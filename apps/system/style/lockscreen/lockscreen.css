@@ -381,16 +381,49 @@
   }
 }
 
+/*
+  We need to duplicate the animation keyframes so
+  animation can start over when .touched-left or .touched-right happens
+*/
+
+@keyframes lockscreen-arrow-left2 {
+  from { transform: none; opacity: 1; }
+  to { transform: translateX(-7rem); opacity: 0; }
+}
+
+@keyframes lockscreen-arrow-right2 {
+  from { transform: none; opacity: 1; }
+  to { transform: translateX(7rem); opacity: 0; }
+}
+
 #lockscreen-right-arrow {
   left: -7.5rem;
   background: transparent url('./images/arrow-right.png') center center no-repeat;
   animation: lockscreen-arrow-right 2s infinite;
 }
 
+.touched-left #lockscreen-right-arrow {
+  animation: none;
+  display: none;
+}
+
+.touched-right #lockscreen-right-arrow {
+  animation: lockscreen-arrow-right2 2s infinite;
+}
+
 #lockscreen-left-arrow {
   right: -7.5rem;
   background: transparent url('./images/arrow-left.png') center center no-repeat;
   animation: lockscreen-arrow-left 2s infinite;
+}
+
+.touched-right #lockscreen-left-arrow {
+  animation: none;
+  display: none;
+}
+
+.touched-left #lockscreen-left-arrow {
+  animation: lockscreen-arrow-left2 2s infinite;
 }
 
 .lockscreen-rail {
@@ -429,8 +462,6 @@
 }
 
 .touched .lockscreen-arrow,
-.touched-left .lockscreen-arrow,
-.touched-right .lockscreen-arrow,
 #screen:not(.locked) .lockscreen-arrow,
 #lockscreen:not([data-panel="main"]) .lockscreen-arrow {
   display: none;
