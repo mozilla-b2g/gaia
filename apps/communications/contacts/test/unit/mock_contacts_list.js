@@ -34,9 +34,7 @@
           'carrier': 'TEF'
         }
       ],
-      'category': [
-        'favorite'
-      ],
+      'category': [],
       'note': [
         'Note 1'
       ],
@@ -60,11 +58,11 @@
           'value': 'test@test.com'
         }
       ],
-      'familyName': ['B'],
+      'familyName': ['BA'],
       'givenName': ['Pepito'],
       'jobTitle': [''],
       'name': [
-        'Pepito B'
+        'Pepito BA'
       ],
       'org': ['Test'],
       'tel': [
@@ -74,9 +72,7 @@
           'carrier': 'TEF'
         }
       ],
-      'category': [
-        'favorite'
-      ],
+      'category': [],
       'note': [
         'Note 1'
       ],
@@ -100,11 +96,11 @@
           'value': 'test@test.com'
         }
       ],
-      'familyName': ['C'],
+      'familyName': ['CC'],
       'givenName': ['Pepito'],
       'jobTitle': [''],
       'name': [
-        'Pepito C'
+        'Pepito CC'
       ],
       'org': ['Test'],
       'tel': [
@@ -114,9 +110,7 @@
           'carrier': 'TEF'
         }
       ],
-      'category': [
-        'favorite'
-      ],
+      'category': [],
       'note': [
         'Note 1'
       ],
