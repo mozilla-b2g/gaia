@@ -8,15 +8,10 @@
 
 .draggable > div {
   width: 100%;
-	margin-top: .8rem;
-	margin-bottom: .8rem;
+	margin-top: .4rem;
+	margin-bottom: .4rem;
   -moz-transform: scale(1.25);
   -moz-transition: -moz-transform .4s;
-}
-
-.draggable > div > img {
-  width: 6rem;
-  height: 6rem;
 }
 
 /* label wrapper */
@@ -33,7 +28,7 @@
   margin-left: -106%;
 }
 
-.overDock > div > *:not(img) {
+.overDock > div > *:not(canvas) {
 	opacity: 0;
 }
 
@@ -48,7 +43,7 @@
 @-moz-keyframes none {}
 
 /* Image and label have shaking effect */
-body[data-mode = 'edit'] ol > li > div > img {
+body[data-mode = 'edit'] ol > li > div > canvas {
   -moz-animation-name: shake;
   -moz-animation-duration: .8s;
   -moz-transform-origin: 50% 50%;
@@ -56,11 +51,10 @@ body[data-mode = 'edit'] ol > li > div > img {
   -moz-animation-timing-function: ease-out;
 }
 
-body[data-transitioning] ol > li > div > img,
-body[data-dragging] ol > li > div > img {
+body[data-transitioning] ol > li > div > canvas,
+body[data-dragging] ol > li > div > canvas {
   -moz-animation-name: none;
 }
-
 
 body[data-mode = 'normal'] ol > li span.options {
   display: none;
@@ -70,9 +64,9 @@ body[data-mode = 'edit'] ol > li[data-dragging] {
   opacity: 0;
 }
 
-body[data-dragging] ol > li {
-  opacity: 0.7;
-}
+/* body[data-dragging] ol > li {
+	opacity: 0.7;
+}*/
 
 body[data-mode = 'edit'] ol > li {
   -moz-animation-duration: .4s;

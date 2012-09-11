@@ -78,8 +78,8 @@ body[data-transitioning] .apps > div {
 .apps ol > li > div {
   height: 100%;
   width: 100%;
-	margin-top: .45rem;
-	margin-bottom: .45rem;
+	margin-top: .4rem;
+	margin-bottom: .4rem;
   pointer-events: none; /* NO touchable area */
 }
 
