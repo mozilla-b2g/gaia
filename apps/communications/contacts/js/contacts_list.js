@@ -267,6 +267,7 @@ contacts.List = (function() {
       showGroup(group);
     }
     cleanLastElements(counter);
+    checkEmptyList();
     FixedHeader.refresh();
   };
 
@@ -286,12 +287,14 @@ contacts.List = (function() {
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
     }
+  }
 
+  var checkEmptyList = function checkEmptyList() {
     // Check if we removed all the groups, and show the import contacts from SIM
-    selectorString = '#groups-list li h2:not(.hide)';
-    nodes = document.querySelectorAll(selectorString);
+    var selectorString = '#groups-list li h2:not(.hide)';
+    var nodes = document.querySelectorAll(selectorString);
     if (nodes.length == 0) {
-      //addImportSimButton();
+      addImportSimButton();
     }
   }
 
@@ -356,7 +359,7 @@ contacts.List = (function() {
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts, successCb);
+      buildContacts(contacts);
       return;
     }
 
@@ -367,16 +370,12 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0) {
-        addImportSimButton();
-      } else {
-        var fbReq = fb.contacts.getAll();
-        fbReq.onsuccess = function() {
-          buildContacts(request.result, fbReq.result);
-        }
-        fbReq.onerror = function() {
-           buildContacts(request.result);
-        }
+      var fbReq = fb.contacts.getAll();
+      fbReq.onsuccess = function() {
+        buildContacts(request.result, fbReq.result);
+      }
+      fbReq.onerror = function() {
+         buildContacts(request.result);
       }
     };
 
@@ -520,6 +519,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    checkEmptyList();
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
