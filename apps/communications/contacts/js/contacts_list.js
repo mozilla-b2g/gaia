@@ -261,7 +261,7 @@ contacts.List = (function() {
         // If the contact is not already there means is a new one or
         // the letter is empty. If the new one is not at the end of the list
         // we need to remove the following contacts
-        if (length > 0 && length > index + 1) {
+        if (length > 0 && length >= index + 1) {
           resetGroup(listContainer, counter[group]);
         }
         listContainer.appendChild(newContact);
