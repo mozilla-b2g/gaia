@@ -28,28 +28,28 @@ var gWifiManager = (function(window) {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA-EAP'],
+      capabilities: '[WPA-EAP]',
       relSignalStrength: 67,
       connected: false
     },
     'Livebox 6752': {
       ssid: 'Livebox 6752',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WEP'],
+      capabilities: '[WEP]',
       relSignalStrength: 32,
       connected: false
     },
     'Mozilla Guest': {
       ssid: 'Mozilla Guest',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: [],
+      capabilities: '',
       relSignalStrength: 98,
       connected: false
     },
     'Freebox 8953': {
       ssid: 'Freebox 8953',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA2-PSK'],
+      capabilities: '[WPA2-PSK]',
       relSignalStrength: 89,
       connected: false
     }
@@ -369,7 +369,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
       // supported authentication methods
       var small = document.createElement('small');
-      var keys = network.capabilities;
+      var keys = getKeyManagement(network.capabilities);
       if (keys && keys.length) {
         small.textContent = _('securedBy', { capabilities: keys.join(', ') });
         var secure = document.createElement('span');
@@ -500,6 +500,20 @@ window.addEventListener('localized', function wifiSettings(evt) {
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
 
+  function getKeyManagement(flags) {
+    var types = [];
+    if (!flags)
+      return types;
+
+    if (/\[WPA2?-PSK/.test(flags))
+      types.push('WPA-PSK');
+    if (/\[WPA2?-EAP/.test(flags))
+      types.push('WPA-EAP');
+    if (/\[WEP/.test(flags))
+      types.push('WEP');
+    return types;
+  }
+
   // UI to connect/disconnect
   function toggleNetwork(network) {
     if (isConnected(network)) {
@@ -512,7 +526,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       wifiConnect();
     } else {
       // offline, unknonw network: offer to connect
-      var key = getKeyManagement();
+      var key = getFirstKeyManagement(network.capabilities);
       switch (key) {
         case 'WEP':
         case 'WPA-PSK':
@@ -536,19 +550,13 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.scan();
     }
 
-    function getKeyManagement() {
-      var key = network.capabilities[0];
-      if (/WEP$/.test(key))
-        return 'WEP';
-      if (/PSK$/.test(key))
-        return 'WPA-PSK';
-      if (/EAP$/.test(key))
-        return 'WPA-EAP';
-      return '';
+    function getFirstKeyManagement(flags) {
+      var types = getKeyManagement(flags);
+      return types.length < 1 ? '' : types[0];
     }
 
     function setPassword(password, identity) {
-      var key = getKeyManagement();
+      var key = getFirstKeyManagement(network.capabilities);
       if (key == 'WEP') {
         network.wep = password;
       } else if (key == 'WPA-PSK') {
@@ -571,7 +579,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return null;
 
       // network info
-      var keys = network.capabilities;
+      var keys = getKeyManagement(network.capabilities);
       var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
       dialog.querySelector('[data-ssid]').textContent = network.ssid;
       dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
