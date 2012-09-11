@@ -226,7 +226,7 @@
 }
 
 @keyframes lockscreen-handleshake-right {
-	0%, 60% {
+	0%, 60%, 100% {
 	  transform: translateX(0);
 	}
 	20%, 40% {
@@ -239,7 +239,7 @@
 }
 
 @keyframes lockscreen-handleshake-left {
-	0%, 60% {
+	0%, 60%, 100% {
 	  transform: translateX(0);
 	}
 	20%, 40% {
