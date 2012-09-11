@@ -7,7 +7,6 @@ var MessageManager = {
   init: function mm_init() {
     // Init PhoneNumberManager for solving country code issue.
     PhoneNumberManager.init();
-    
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -133,11 +132,11 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    if(num){
+    if (num) {
       filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
     } else {
       filter.numbers = [''];
-    } 
+    }
     return filter;
   },
 
@@ -162,8 +161,6 @@ var MessageManager = {
         }
         var filterNum = filter ? filter.numbers[0] : null;
         var numNormalized = PhoneNumberManager.getNormalizedNumber(filterNum);
-        
-
         //TODO: Refine the pending message append with non-blocking method.
         PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
@@ -456,7 +453,6 @@ var ThreadListUI = {
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
         var numNormalized = PhoneNumberManager.getNormalizedNumber(num);
-        
         if (!message.read) {
           if (unreadThreads.indexOf(numNormalized) == -1) {
             unreadThreads.push(numNormalized);

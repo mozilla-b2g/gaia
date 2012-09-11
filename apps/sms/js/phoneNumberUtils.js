@@ -31,20 +31,21 @@ var PhoneNumberManager = {
     this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'ES';
   },
   getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {
-    try{
+    try {
       var normalized = PhoneNumberManager.getNationalNum(numInput, true);
       return normalized;
-    }catch(e){
+    } catch (e) {
       return numInput;
     }
   },
   getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
-    try{
+    try {
       var nationalNum = PhoneNumberManager.getNationalNum(numInput, true);
-      var internationalNum = PhoneNumberManager.getInternationalNum(numInput, true);
-      var internationalNumFormatted = internationalNum.replace('+','00');
-      return [nationalNum,internationalNum,internationalNumFormatted];
-    }catch(e){
+      var internationalNum =
+        PhoneNumberManager.getInternationalNum(numInput, true);
+      var internationalNumFormatted = internationalNum.replace('+', '00');
+      return [nationalNum, internationalNum, internationalNumFormatted];
+    } catch (e) {
       return [numInput];
     }
   },

@@ -42,7 +42,6 @@ var ContactDataManager = {
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
-      console.log("Hemos recuperado contactos! "+req.result.length);
       // Update the cache before callback.
       var cacheData = self.contactData[numNormalized];
       var result = req.result;
@@ -51,7 +50,8 @@ var ContactDataManager = {
           var telInfo;
           // Retrieving the info of the telephone
           for (var i = 0; i < cacheData.tel.length; i++) {
-            var tmpNormalized = PhoneNumberManager.getNormalizedNumber(cacheData.tel[i].value);
+            var tmpNormalized =
+              PhoneNumberManager.getNormalizedNumber(cacheData.tel[i].value);
             if (tmpNormalized == numNormalized) {
               telInfo = cacheData.tel[i];
               break;
@@ -59,7 +59,8 @@ var ContactDataManager = {
           }
           // Check if phone type and carrier have changed
           for (var i = 0; i < result[0].tel.length; i++) {
-            var tmpNormalized = PhoneNumberManager.getNormalizedNumber(result[0].tel[i].value);
+            var tmpNormalized =
+              PhoneNumberManager.getNormalizedNumber(result[0].tel[i].value);
             if (tmpNormalized == numNormalized) {
               if (!(result[0].tel[i].type == telInfo.type &&
                 result[0].tel[i].carrier == telInfo.carrier)) {
