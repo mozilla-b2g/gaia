@@ -301,6 +301,15 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+
+    if(!this.screenEnabled)
+      return;
+
+    if (enable) {
+      window.addEventListener('devicelight', this);
+    } else {
+      window.removeEventListener('devicelight', this);
+    }
   },
 
   // The idleObserver that we will pass to IdleAPI
