@@ -666,6 +666,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
+          self.dispatchEvent('lockpanelchange');
           overlay.dataset.panel = panel;
         });
     });
@@ -870,15 +871,6 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
-  },
-
-  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
-    var generatedEvent = document.createEvent('KeyboardEvent');
-    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
-                                evt.altKey, evt.shiftKey, evt.metaKey,
-                                evt.keyCode, evt.charCode);
-
-    this.camera.dispatchEvent(generatedEvent);
   },
 
   dispatchEvent: function ls_dispatchEvent(name) {
