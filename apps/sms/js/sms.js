@@ -715,7 +715,7 @@ var ThreadUI = {
     Utils.getPhoneDetails(number, function returnedDetails(details) {
       if (details.isContact) {
         self.title.dataset.isContact = true;
-        self.title.innerHTML = details.title
+        self.title.innerHTML = details.title;
       } else {
         self.title.dataset.isContact = false;
         self.title.innerHTML = nationalNum;
