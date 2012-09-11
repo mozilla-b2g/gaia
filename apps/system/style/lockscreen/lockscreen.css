@@ -381,13 +381,13 @@
   }
 }
 
-#lockscreen-unlock-arrow {
+#lockscreen-right-arrow {
   left: -7.5rem;
   background: transparent url('./images/arrow-right.png') center center no-repeat;
   animation: lockscreen-arrow-right 2s infinite;
 }
 
-#lockscreen-camera-arrow {
+#lockscreen-left-arrow {
   right: -7.5rem;
   background: transparent url('./images/arrow-left.png') center center no-repeat;
   animation: lockscreen-arrow-left 2s infinite;
