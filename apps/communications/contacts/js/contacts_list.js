@@ -3,7 +3,8 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList,
+  var _,
+      groupsList,
       favoriteGroup,
       inSearchMode = false,
       loaded = false,
@@ -16,6 +17,7 @@ contacts.List = (function() {
       scrollable = document.querySelector('#groups-container');
 
   var init = function load(element) {
+    _ = navigator.mozL10n.get;
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
 
