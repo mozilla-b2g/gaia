@@ -22,11 +22,12 @@
  *
  *   metadataParser:
  *     your metadata parser function. This function should
- *     expect two arguments. It will be called with a file to parse and
- *     a callback function.  It should read metadata from the file and then
- *     pass an object of metadata to the callback. If you omit this argument
- *     or pass null, a dummy parser that invokes the callback with an empty
- *     object will be used instead.
+ *     expect three arguments. It will be called with a file to parse and
+ *     two callback functions.  It should read metadata from the file and then
+ *     pass an object of metadata to the first callback. If parsing fails
+ *     it should pass an Error object or error message to the second callback.
+ *     If you omit this argument or pass null, a dummy parser that
+ *     invokes the callback with an empty object will be used instead.
  *
  *   options:
  *     An optional object containing additional MediaDB options.

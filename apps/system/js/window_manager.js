@@ -340,12 +340,17 @@ var WindowManager = (function() {
     var req = app.frame.getScreenshot();
 
     // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    var isTimeout = false;
     var timer = setTimeout(function getScreenshotTimeout() {
       console.warn('Window Manager: getScreenshot timeout.');
+      isTimeout = true;
       callback();
     }, 500);
 
     req.onsuccess = function(evt) {
+      if (isTimeout)
+        return;
+
       clearTimeout(timer);
       var result = evt.target.result;
       callback(result, false);
@@ -354,7 +359,11 @@ var WindowManager = (function() {
     };
 
     req.onerror = function(evt) {
+      if (isTimeout)
+        return;
+
       clearTimeout(timer);
+
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
@@ -1035,7 +1044,7 @@ var WindowManager = (function() {
   // https://bugzilla.mozilla.org/show_bug.cgi?id=783076
   // which stops OOP home screen pannable with left mouse button on
   // B2G/Desktop.
-  windows.addEventListener('dragstart', function (evt) {
+  windows.addEventListener('dragstart', function(evt) {
     evt.preventDefault();
   }, true);
 
