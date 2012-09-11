@@ -53,7 +53,7 @@
           <a data-l10n-id="gps">GPS</a>
         </li>
         <li>
-          <small id="wifi-desc" data-l10n-id="disconnected">offline</small>
+          <small id="wifi-desc" data-l10n-id="fullStatus-disconnected">offline</small>
           <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
         </li>
         <li>
@@ -1012,7 +1012,7 @@
             <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked />
             <span></span>
           </label>
-          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
+          <small data-l10n-id="passcode-lock-desc" data-l10n-id='{"code", "0000"}'>Passcode</small>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
         </li>
         <li>
@@ -1119,8 +1119,6 @@
           </a>
         </li>
       </ul>
-      <!-- TODO -->
-
     </section>
 
     <!-- Device :: Device Storage -->
@@ -1154,22 +1152,22 @@
 
       <ul>
         <li>
-          <a id="music-space"> Music
+          <a data-l10n-id="music-space"> Music
             <span class="storage-space"></span>
           </a>
         </li>
         <li>
-          <a id="pictures-space"> Pictures
+          <a data-l10n-id="pictures-space"> Pictures
             <span class="storage-space"></span>
           </a>
         </li>
         <li>
-          <a id="videos-space"> Movies
+          <a data-l10n-id="videos-space"> Movies
             <span class="storage-space"></span>
           </a>
         </li>
         <li>
-          <a id="left-space"> Space Left
+          <a data-l10n-id="left-space"> Space Left
             <span class="storage-space"></span>
           </a>
         </li>
