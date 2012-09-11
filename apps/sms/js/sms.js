@@ -133,15 +133,11 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    var nationalNum = PhoneNumberManager.getNationalNum(num, true);
-    var internationalNum = PhoneNumberManager.getInternationalNum(num, true);
-    console.log("***** NUMEROS SON "+num+' '+nationalNum+' '+internationalNum); 
     if(num){
-      filter.numbers = [nationalNum,internationalNum];
+      filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
     } else {
       filter.numbers = [''];
     } 
-    // filter.numbers = [num || ''];
     return filter;
   },
 
@@ -452,22 +448,29 @@ var ThreadListUI = {
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [], headerIndex, unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
+
         var message = messages[i];
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
+        try{
+          var numNormalized = PhoneNumberManager.getNationalNum(num, true);
+        }catch(e){
+          var numNormalized = num;
+          
+        }
         if (!message.read) {
-          if (unreadThreads.indexOf(num) == -1) {
-            unreadThreads.push(num);
+          if (unreadThreads.indexOf(numNormalized) == -1) {
+            unreadThreads.push(numNormalized);
           }
         }
-        if (threadIds.indexOf(num) == -1) {
+        if (threadIds.indexOf(numNormalized) == -1) {
           var thread = {
             'body': message.body,
-            'name': num,
-            'num': num,
+            'name': numNormalized,
+            'num': numNormalized,
             'timestamp': message.timestamp.getTime(),
             'unreadCount': !message.read ? 1 : 0,
-            'id': num
+            'id': numNormalized
           };
           if (threadIds.length == 0) {
             var currentTS = (new Date()).getTime();
@@ -480,7 +483,7 @@ var ThreadListUI = {
               headerIndex = tmpIndex;
             }
           }
-          threadIds.push(num);
+          threadIds.push(numNormalized);
           ThreadListUI.appendThread(thread);
         }
       }

@@ -3496,6 +3496,7 @@ i18n.phonenumbers.PhoneNumberUtil.prototype.parseAndKeepRawInput =
       throw i18n.phonenumbers.Error.INVALID_COUNTRY_CODE;
     }
   }
+
   return this.parseHelper_(numberToParse, defaultRegion, true, true);
 };
 

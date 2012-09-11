@@ -30,7 +30,16 @@ var PhoneNumberManager = {
     //       and apply it if we could not get connection data in the future.
     this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'ES';
   },
-
+  getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
+    try{
+      var nationalNum = PhoneNumberManager.getNationalNum(numInput, true);
+      var internationalNum = PhoneNumberManager.getInternationalNum(numInput, true);
+      var internationalNumFormatted = internationalNum.replace('+','00');
+      return [nationalNum,internationalNum,internationalNumFormatted];
+    }catch(e){
+      return [numInput];
+    }
+  },
   getInternationalNum: function pnm_getInternationalNum(numInput, returnOri) {
     var number = this.phoneUtil.parseAndKeepRawInput(numInput, this.region);
     if (!this.phoneUtil.isValidNumber(number))

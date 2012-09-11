@@ -26,13 +26,14 @@ var ContactDataManager = {
     // so desktop keeps working
     if (!navigator.mozSms)
       return;
-
+    // TODO Modificar por el equipo de Contactos!
     var options = {
       filterBy: ['tel'],
-      filterOp: 'equals',
-      filterValue: number
+      filterOp: 'contains',
+      filterValue: PhoneNumberManager.getOptionalNumbers(number)
     };
 
+    console.log(JSON.stringify(options));
     var cacheResult = this.contactData[number];
     if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
@@ -42,6 +43,7 @@ var ContactDataManager = {
     var self = this;
     var req = window.navigator.mozContacts.find(options);
     req.onsuccess = function onsuccess() {
+      console.log("Hemos recuperado contactos! "+req.result.length);
       // Update the cache before callback.
       var cacheData = self.contactData[number];
       var result = req.result;
