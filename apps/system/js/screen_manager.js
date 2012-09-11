@@ -229,7 +229,9 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    window.addEventListener('devicelight', this);
+    if (this._deviceLightEnabled)
+      window.addEventListener('devicelight', this);
+
     window.addEventListener('mozfullscreenchange', this);
 
     this.setScreenBrightness(this._userBrightness, instant);
