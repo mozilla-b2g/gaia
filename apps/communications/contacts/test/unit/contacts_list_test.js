@@ -251,10 +251,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       var importButton = container.querySelectorAll('#sim_import_button');
       assert.equal(importButton.length, 1);
-      var total = list.querySelectorAll('h2:not(.hide)').length;
-      var totalC = list.querySelectorAll('li[data-uuid]').length;
-      assert.equal(total, 0);
-      assert.equal(totalC, 0);
+      assertTotal(0, 0);
     });
   });
 });
