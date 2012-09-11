@@ -170,6 +170,11 @@ contacts.List = (function() {
 
   var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
+
+    if (container.querySelector('#sim_import_button')) {
+      return;
+    }
+
     var button = document.createElement('button');
     button.id = 'sim_import_button';
     button.setAttribute('class', 'simContacts action action-add');
@@ -267,6 +272,7 @@ contacts.List = (function() {
     }
     renderFavorites(favorites);
     cleanLastElements(counter);
+    checkEmptyList();
     FixedHeader.refresh();
   };
 
@@ -285,6 +291,15 @@ contacts.List = (function() {
         resetGroup(currentGroup, currentCount);
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
+    }
+  }
+
+  var checkEmptyList = function checkEmptyList() {
+    // Check if we removed all the groups, and show the import contacts from SIM
+    var selectorString = '#groups-list li h2:not(.hide)';
+    var nodes = document.querySelectorAll(selectorString);
+    if (nodes.length == 0) {
+      addImportSimButton();
     }
   }
 
@@ -348,17 +363,12 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0 && groupsList &&
-        !groupsList.parentNode.querySelector('#sim_import_button')) {
-        addImportSimButton();
-      } else {
-        var fbReq = fb.contacts.getAll();
-        fbReq.onsuccess = function() {
-          buildContacts(request.result, fbReq.result);
-        }
-        fbReq.onerror = function() {
-           buildContacts(request.result);
-        }
+      var fbReq = fb.contacts.getAll();
+      fbReq.onsuccess = function() {
+        buildContacts(request.result, fbReq.result);
+      }
+      fbReq.onerror = function() {
+         buildContacts(request.result);
       }
     };
 
@@ -502,6 +512,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    checkEmptyList();
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
