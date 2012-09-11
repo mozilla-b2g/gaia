@@ -1,11 +1,13 @@
 /* ----------------------------------
- * PROMPT
+ * Prompt
  * ---------------------------------- */
 
-/* MAIN DIALOG SETUP */
+/* Main dialog setup */
 section[role="dialog"] {
   background: url(prompt/images/ui/pattern.png) repeat left top, url(prompt/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -16,6 +18,8 @@ section[role="dialog"] {
   padding: 1.5rem 0 7rem;
   font-family: "Open Sans", Sans-serif;
   font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
 }
 
@@ -47,7 +51,7 @@ section[role="dialog"] h3 {
   padding: 0;
 }
 
-/* MENU & BUTTONS SETUP */
+/* Menu & buttons setup */
 section[role="dialog"] menu {
   white-space: nowrap;
   margin: 0;
@@ -115,7 +119,7 @@ section[role="dialog"] menu a.negative[role="button"] {
   border: none;
 }
 
-/* Negative Press */
+/* Negative press */
 section[role="dialog"] menu button.negative:active,
 section[role="dialog"] menu a[role="button"].negative:active {
   background-image: url(prompt/images/ui/button_negative_press.png);
@@ -159,7 +163,7 @@ section[role="dialog"] menu[data-items="2"] a[role="button"] {
   width: -moz-calc((100% - 1rem) / 2);
 }
 
-/* SPECIFIC COMPONENT CODE */
+/* Specific component code */
 section[role="dialog"] p {
   font-family: 'Open Sans', Sans-serif;
   font-weight: lighter;
