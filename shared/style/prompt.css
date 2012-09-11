@@ -32,7 +32,7 @@ section[role="dialog"]:before {
   margin-left: -1px;
 }
 
-section[role="dialog"] > div {
+section[role="dialog"] > section {
   padding: 0 2.5rem 0 2rem;
   -moz-box-sizing: padding-box;
   width: 100%;
