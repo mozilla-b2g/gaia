@@ -398,6 +398,10 @@ input::-moz-focus-inner {
   text-align: center;
 }
 
+#screen {
+  z-index: 61;
+}
+
 #sad-face {
   font-size: 72px;
   line-height: 150px;
@@ -648,7 +652,7 @@ li[role="listitem"] small {
   margin: 0 auto !important;
 }
 
-#modal-dialog-tablecell {
+#modal-dialog {
   background: rgba(0, 0, 0, 0.5);
 }
 

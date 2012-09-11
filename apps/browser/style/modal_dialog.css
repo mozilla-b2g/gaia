@@ -32,8 +32,10 @@
   border-top: #aaa;
   border-bottom: #ddd;
   text-align: center;
-  padding: 1em;
   -moz-box-sizing: border-box;
+  padding: 0 2.5rem 0 2rem;
+  vertical-align: middle;
+  white-space: normal;
   display: none;
 }
 
@@ -111,7 +113,6 @@
 #modal-dialog button::-moz-focus-inner {
   border: 0;
 }
-
 
 #screen.modal-dialog #modal-dialog,
 #modal-dialog-alert.visible,
