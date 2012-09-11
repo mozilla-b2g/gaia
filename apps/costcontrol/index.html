@@ -298,7 +298,7 @@
         </li>
       </ul>
 
-      <header>
+<!--      <header>
         <h2>Data usage</h2>
       </header>
       <ul class="settings">
@@ -318,7 +318,28 @@
           </div>
           <p>Reset tracking</p>
         </li>
+      </ul>-->
+
+      <header>
+        <h2>Phone and internet data report</h2>
+      </header>
+      <ul class="settings">
+        <li>
+          <button id="settings-view-plantype-setup">
+            <span class="end launch"></span>
+            <span class="tag">Monthly</span>
+          </button>
+          <p>Reset tracking</p>
+        </li>
+        <li>
+          <button id="settings-view-plantype-setup">
+            <span class="end launch"></span>
+            <span class="tag">26th</span>
+          </button>
+          <p>Starting on</p>
+        </li>
       </ul>
+
     </section>
 
     <!-- Plan setup dialog -->
@@ -342,6 +363,92 @@
       </div>
       <menu data-items="1">
         <button data-l10n-id="ok" class="close-settings-dialog">Ok</button>
+      </menu>
+    </section>
+
+    <!-- Billing cycle period -->
+    <section role="dialog" class="view" data-viewport="bottom" id="billing-period-setup-dialog">
+      <div class="center">
+        <h3 data-l10n-id="plantype-setup-title">Reset tracking</h3>
+        <ul role="listbox">
+          <li>
+            <label for="billing-period-option-monthly">
+              <input type="radio" id="billing-period-option-monthly" name="billing-period-option" checked="checked" value="monthly">
+              <span data-l10n-id="prepaid">Monthly</span>
+            </label>
+          </li>
+          <li>
+            <label for="billing-period-option-weekly">
+              <input type="radio" id="billing-period-option-weekly" name="billing-period-option" value="weekly">
+              <span data-l10n-id="postpaid">Weekly</span>
+            </label>
+          </li>
+          <li>
+            <label for="billing-period-option-never">
+              <input type="radio" id="billing-period-option-never" name="billing-period-option" value="never">
+              <span data-l10n-id="postpaid">Never</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      <menu data-items="2">
+        <button data-l10n-id="ok" class="close-settings-dialog">Cancel</button>
+        <button data-l10n-id="ok" class="close-settings-dialog">Set</button>
+      </menu>
+    </section>
+
+    <!-- Weekday reset dialog -->
+    <section role="dialog" class="view" data-viewport="bottom" id="weekday-reset-setup-dialog">
+      <div class="center">
+        <h3 data-l10n-id="plantype-setup-title">Select period start date</h3>
+        <ul role="listbox">
+          <li>
+            <label for="weekday-reset-option-monday">
+              <input type="radio" id="weekday-reset-option-monday" name="weekday-reset-option" checked="checked" value="1">
+              <span data-l10n-id="prepaid">Monday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-tuesday">
+              <input type="radio" id="weekday-reset-option-tuesday" name="weekday-reset-option" checked="checked" value="2">
+              <span data-l10n-id="prepaid">Tuesday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-wednesday">
+              <input type="radio" id="weekday-reset-option-wednesday" name="weekday-reset-option" checked="checked" value="3">
+              <span data-l10n-id="prepaid">Wednesday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-thursday">
+              <input type="radio" id="weekday-reset-option-thursday" name="weekday-reset-option" checked="checked" value="4">
+              <span data-l10n-id="prepaid">Thursday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-friday">
+              <input type="radio" id="weekday-reset-option-friday" name="weekday-reset-option" checked="checked" value="5">
+              <span data-l10n-id="prepaid">Friday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-saturday">
+              <input type="radio" id="weekday-reset-option-saturday" name="weekday-reset-option" checked="checked" value="6">
+              <span data-l10n-id="prepaid">Saturday</span>
+            </label>
+          </li>
+          <li>
+            <label for="weekday-reset-option-sunday">
+              <input type="radio" id="weekday-reset-option-sunday" name="weekday-reset-option" checked="checked" value="0">
+              <span data-l10n-id="prepaid">Sunday</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      <menu data-items="2">
+        <button data-l10n-id="ok" class="close-settings-dialog">Cancel</button>
+        <button data-l10n-id="ok" class="close-settings-dialog">Set day</button>
       </menu>
     </section>
 
