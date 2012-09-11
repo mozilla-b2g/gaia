@@ -5,6 +5,9 @@
 
 var MessageManager = {
   init: function mm_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
+    
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -130,7 +133,15 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    filter.numbers = [num || ''];
+    var nationalNum = PhoneNumberManager.getNationalNum(num, true);
+    var internationalNum = PhoneNumberManager.getInternationalNum(num, true);
+    console.log("***** NUMEROS SON "+num+' '+nationalNum+' '+internationalNum); 
+    if(num){
+      filter.numbers = [nationalNum,internationalNum];
+    } else {
+      filter.numbers = [''];
+    } 
+    // filter.numbers = [num || ''];
     return filter;
   },
 

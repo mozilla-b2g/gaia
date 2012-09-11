@@ -28,7 +28,7 @@ var PhoneNumberManager = {
     var conn = window.navigator.mozMobileConnection;
     // TODO: Here we use Brazil for default mcc. We may need to record the mcc
     //       and apply it if we could not get connection data in the future.
-    this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'BR';
+    this.region = conn ? MCC_ISO3166_TABLE[conn.voice.network.mcc] : 'ES';
   },
 
   getInternationalNum: function pnm_getInternationalNum(numInput, returnOri) {
