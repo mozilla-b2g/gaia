@@ -28,7 +28,6 @@
     "telephony",
     "voicemail",
     "contacts",
-    "power",
     "mobileconnection",
     "background",
     "attention",
@@ -46,7 +45,7 @@
       "filters": {
         "type": "webcontacts/contact"
        },
-      "disposition": "window",
+      "disposition": "inline",
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
