@@ -31,6 +31,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 
+    <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
@@ -65,7 +66,6 @@
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
 
-
         <article class="view-body">
           <div class="view-jumper">
             <ol class="view-jumper-inner">
@@ -80,10 +80,11 @@
           </div>
 
           <div id="groups-container" class="view-body-inner">
-            <div id="search-container">
-              <input data-cancelable type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
-              <button id='cancel-search' class="hide" onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
-            </div>
+            <form id="search-container" class="search">
+              <label for="search-contact">
+                <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+              </label>
+            </form>
             <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
             <ol class="block-list" id="groups-list">
               <!-- Group template here -->
@@ -92,6 +93,16 @@
         </article>
         <div id='fixed-container' class='fixed-title'></div>
         <div id="current-jumper" class="view-jumper-current"></div>
+
+        <section id="search-view" class="view">
+           <form id="searchview-container" class="search">
+              <label for="search-contact">
+                <input required type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
+                <button type="reset"></button>
+                <button id='cancel-search' onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
+              </label>
+            </form>
+        </section>
       </section>
 
       <!-- Contact Details Section -->
