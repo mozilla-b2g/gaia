@@ -41,7 +41,7 @@ section[role="dialog"] > div {
   white-space: normal;
 }
 
-section[role="dialog"] h3 {
+section[role="dialog"] h1 {
   font-family: 'Open Sans', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
