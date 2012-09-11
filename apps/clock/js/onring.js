@@ -125,3 +125,4 @@ var RingView = {
 };
 
 RingView.init();
+

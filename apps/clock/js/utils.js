@@ -13,7 +13,7 @@ function summarizeDaysOfWeek(bitStr) {
   var _ = navigator.mozL10n.get;
 
   if (bitStr == '')
-    return _('None');
+    return _('never');
 
   // Format bits: 0123456(0000000)
   // Case: Everyday:  1111111

@@ -805,7 +805,7 @@ var AlarmEditView = {
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
     var snooze = (snooze) ? this.getSnoozeSelect() : this.alarm.snooze;
-    this.snoozeMenu.innerHTML = _('nMinutes', {n: snooze});
+    this.snoozeMenu.textContent = _('nMinutes', {n: snooze});
   },
 
   save: function aev_save() {
@@ -876,3 +876,4 @@ window.addEventListener('localized', function showBody() {
   AlarmEditView.init();
   AlarmManager.init();
 });
+

@@ -74,7 +74,7 @@
           <ul id="alarms" class="tableView"></ul>
         </div>
         <div id="banner-countdown" class="banner">
-          <p>
+          <p> <!-- /!\ l10n alert /!\ -->
             The Alarm is set for
             <strong id="banner-remain-hours"></strong>
             and
@@ -186,7 +186,7 @@
             <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
             <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
           </select>
-          <a id="repeat-menu" class="abstract-menu">Never</a>
+          <a id="repeat-menu" data-l10n-id="never" class="abstract-menu">Never</a>
           <p></p>
         </li>
         <li class="singleline">
@@ -202,12 +202,12 @@
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
           <select id="snooze-select" class="abstract-menu">
-            <option value="5">5 minutes</option>
-            <option value="10">10 minutes</option>
-            <option value="15">15 minutes</option>
-            <option value="20">20 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'  value="5">  5 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "10"}' value="10">10 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "15"}' value="15">15 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
           </select>
-          <a id="snooze-menu" class="abstract-menu">5 minutes</a>
+          <a id="snooze-menu" class="abstract-menu" data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'>5 minutes</a>
           <p></p>
         </li>
         <li id="alarm-delete-button">
