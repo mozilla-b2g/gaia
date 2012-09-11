@@ -296,8 +296,8 @@ contacts.List = (function() {
 
   var checkEmptyList = function checkEmptyList() {
     // Check if we removed all the groups, and show the import contacts from SIM
-    var selectorString = '#groups-list li h2:not(.hide)';
-    var nodes = document.querySelectorAll(selectorString);
+    var selectorString = 'li h2:not(.hide)';
+    var nodes = groupsList.querySelectorAll(selectorString);
     if (nodes.length == 0) {
       addImportSimButton();
     }
