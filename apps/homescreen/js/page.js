@@ -12,7 +12,8 @@ var Icon = function Icon(app) {
     origin: origin,
     name: Applications.getName(origin),
     icon: Applications.getIcon(origin),
-    isHidden: Applications.getManifest(origin).hidden
+    isHidden: Applications.getManifest(origin).hidden,
+    isCore: Applications.isCore(app)
   };
 
   this.type = 'ApplicationIcon';
@@ -73,7 +74,7 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    if (!Applications.isCore(this.descriptor.origin)) {
+    if (!this.descriptor.isCore) {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';

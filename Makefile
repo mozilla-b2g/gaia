@@ -27,6 +27,7 @@ WGET_OPTS?=
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
+PRODUCTION?=0
 
 LOCAL_DOMAINS?=1
 
@@ -45,14 +46,8 @@ BUILD_APP_NAME?=*
 REPORTER?=Spec
 
 GAIA_APP_SRCDIRS?=apps test_apps showcase_apps
-
-ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
-  $(shell mkdir -p outoftree_apps \
-    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
-      $(foreach appdir,$(wildcard $(dir)/*),\
-        && ln -sf $(appdir) outoftree_apps/)))
-  GAIA_APP_SRCDIRS += outoftree_apps
-endif
+GAIA_INSTALL_PARENT?=/data/local
+ADB_REMOUNT?=0
 
 GAIA_ALL_APP_SRCDIRS=$(GAIA_APP_SRCDIRS)
 
@@ -62,9 +57,23 @@ ifeq ($(MAKECMDGOALS), demo)
 GAIA_DOMAIN=thisdomaindoesnotexist.org
 GAIA_APP_SRCDIRS=apps showcase_apps
 else ifeq ($(MAKECMDGOALS), production)
-GAIA_APP_SRCDIRS=apps
+PRODUCTION=1
 endif
 
+# PRODUCTION is also set for user and userdebug B2G builds
+ifeq ($(PRODUCTION), 1)
+GAIA_APP_SRCDIRS=apps
+GAIA_INSTALL_PARENT=/system/b2g
+ADB_REMOUNT=1
+endif
+
+ifneq ($(GAIA_OUTOFTREE_APP_SRCDIRS),)
+  $(shell mkdir -p outoftree_apps \
+    $(foreach dir,$(GAIA_OUTOFTREE_APP_SRCDIRS),\
+      $(foreach appdir,$(wildcard $(dir)/*),\
+        && ln -sf $(appdir) outoftree_apps/)))
+  GAIA_APP_SRCDIRS += outoftree_apps
+endif
 
 ###############################################################################
 # The above rules generate the profile/ folder and all its content.           #
@@ -512,7 +521,6 @@ update-offline-manifests:
 # working on just gaia itself, and you already have B2G firmware on your
 # phone, and you have adb in your path, then you can use the install-gaia
 # target to update the gaia files and reboot b2g
-PROFILE_PATH = /data/local/
 TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 install-gaia: profile
 	$(ADB) start-server
@@ -520,11 +528,15 @@ install-gaia: profile
 	$(ADB) shell stop b2g
 	$(ADB) shell rm -r /cache/*
 
+ifeq ($(ADB_REMOUNT),1)
+	$(ADB) remount
+endif
+
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)"
+	python build/install-gaia.py "$(ADB)" "$(GAIA_INSTALL_PARENT)"
 else
-	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp /data/local/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push profile/$(TARGET_FOLDER)/application.zip /data/local/$(TARGET_FOLDER)/application.zip
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
@@ -567,8 +579,8 @@ purge:
 	$(ADB) shell mkdir -p /data/local/tmp
 	$(ADB) shell rm -r /cache/*
 	$(ADB) shell rm -r /data/b2g/*
+	$(ADB) shell rm -r $(GAIA_INSTALL_PARENT)/webapps
 
 # clean out build products
 clean:
 	rm -rf profile xulrunner-sdk .xulrunner-url
-
