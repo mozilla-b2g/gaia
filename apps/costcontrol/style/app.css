@@ -226,6 +226,13 @@ section.content .error-messages {
   padding-left: 0.5rem;
 }
 
+.settings li > .end button .tag {
+  margin: 0;
+  float: none;
+  height: auto;
+  width: auto;
+}
+
 .settings li .toggle.end {
   margin-top: -2.3rem;
 }
