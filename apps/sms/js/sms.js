@@ -161,8 +161,15 @@ var MessageManager = {
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
+
+        try{
+          var numNormalized = PhoneNumberManager.getNationalNum(filterNum, true);
+        }catch(e){
+          var numNormalized = filterNum;
+        }
+
         //TODO: Refine the pending message append with non-blocking method.
-        PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
+        PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
             return;
           }
@@ -1043,15 +1050,23 @@ var ThreadUI = {
         } else {
           var num = MessageManager.getNumFromHash();
         }
+
+        try{
+          var numNormalized = PhoneNumberManager.getNationalNum(num, true);
+        }catch(e){
+          var numNormalized = num;
+        }
+
+
         // Retrieve text
         var text = this.input.value || resendText;
         // If we have something to send
-        if (num != '' && text != '') {
+        if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
           var tempDate = new Date();
           var message = {
             sender: null,
-            receiver: num,
+            receiver: numNormalized,
             delivery: 'sending',
             body: text,
             read: 1,
