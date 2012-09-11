@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
     <link rel="stylesheet" href="style/action_menu.css" type="text/css">
     <link rel="stylesheet" href="shared/style/headers.css">
+    <link rel="stylesheet" href="style/authentication_dialog.css" type="text/css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -63,6 +64,35 @@
         </div>
 
         <div id="screen">
+          <div id="authentication-dialog">
+            <div id="authentication-dialog-http-authentication">
+              <div class="authentication-dialog-buttons">
+                <h3 l10n-id="login-to-site">Log in to site</h3>
+                <button id="authentication-dialog-http-authentication-ok" data-l10n-id="ok">OK</button>
+                <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">
+                  Cancel
+                </button>
+              </div>
+              <div class="authentication-dialog-message-container">
+                <div>
+                  <span id="authentication-dialog-http-authentication-message"></span>
+                </div>
+                <div>
+                  <span data-l10n-id="username">Username</span>
+                </div>
+                <div>
+                  <input id="authentication-dialog-username-input" />
+                </div>
+                <div>
+                  <span data-l10n-id="password">Password</span>
+                </div>
+                <div>
+                  <input id="authentication-dialog-password-input" type="password" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div id="modal-dialog">
             <div id="modal-dialog-table">
               <div id="modal-dialog-tablecell">
@@ -97,7 +127,6 @@
             </div>
           </div>
         </div>
-
       </div>
 
       <menu type="toolbar" id="toolbar-end">
@@ -189,6 +218,7 @@
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>
+    <script src="js/authentication_dialog.js"></script>
     <script src="js/browser.js"></script>
 
   </body>
