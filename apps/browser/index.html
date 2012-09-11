@@ -6,6 +6,8 @@
     <title>Browser</title>
     <link rel="stylesheet" href="style/browser.css" type="text/css">
     <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <link rel="stylesheet" href="style/action_menu.css" type="text/css">
+    <link rel="stylesheet" href="shared/style/headers.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -13,7 +15,7 @@
     <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
-  <body class="page-screen">
+  <body class="page-screen" role="application">
 
     <div id="main-screen">
 
@@ -107,13 +109,19 @@
                 title=""></button>
       </menu>
 
-      <menu id="bookmark-menu" type="list" class="hidden">
-        <li><a id="bookmark-menu-add" href="#" data-l10n-id="bookmark">Bookmark</a></li>
-        <li><a id="bookmark-menu-remove" href="#" data-l10n-id="unbookmark">Unbookmark</a></li>
-        <li><a id="bookmark-menu-edit" href="#" data-l10n-id="edit-bookmark">Edit Bookmark</a></li>
-        <li><a id="bookmark-menu-add-home" href="#" data-l10n-id="add-link-to-home">Add Link to Home</a></li>
-        <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
-      </menu>    
+      <section id="bookmark-menu" role="dialog" class="hidden">
+        <menu class="actions">
+          <h3 data-l10n-id="bookmarks">Bookmarks</h3>
+          <ul>
+            <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
+            <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
+            <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button></li>
+            <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
+            <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+          </ul>
+        </menu>
+      </section>
+
     </div>
 
     <div id="tray">
@@ -125,18 +133,24 @@
     <div id="throbber"></div>
     <div id="tabs-badge"></div>
 
-    <form id="bookmark-entry-sheet" role="dialog" class="hidden">
+    <section id="bookmark-entry-sheet" role="region" class="hidden skin-dark">
       <header>
-        <button type="reset" id="bookmark-entry-sheet-cancel" data-l10n-id="cancel">Cancel</button>
-        <button type="submit" id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
-        <h2 data-l10n-id="edit-bookmark">Edit Bookmark</h2>
+        <button id="bookmark-entry-sheet-cancel">
+          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+        </button>
+        <menu type="toolbar">
+          <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
+        </menu>
+        <h1 data-l10n-id="edit-bookmark">Edit Bookmark</h1>
       </header>
-      <label for="bookmark-title" data-l10n-id="page-title"></label>
-      <input type="text" id="bookmark-title"></input>
-      <label for="bookmark-url" data-l10n-id="address">Address</label>
-      <input type="url" id="bookmark-url"></input>
+      <label data-l10n-id="page-title">
+        Page Title <input type="text" id="bookmark-title"></input>
+      </label>
+      <label data-l10n-id="address">
+        Address <input type="url" id="bookmark-url"></input>
+      </label>
       <input type="hidden" id="bookmark-previous-url"></input>
-    </form>  
+    </section>
 
     <div id="settings">
       <header id="settings-header">
