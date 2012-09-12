@@ -151,9 +151,14 @@ form[role="dialog"] menu button:first-child {
   margin: 0;
 }
 
-form[role="dialog"] menu[data-items="2"] button {
+form[role="dialog"] menu button {
   width: -moz-calc((100% - 1rem) / 2);
 }
+
+form[role="dialog"] menu button.full {
+  width: 100%;
+}
+
 
 /* Specific component code */
 form[role="dialog"] p {
