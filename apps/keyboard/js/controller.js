@@ -133,7 +133,18 @@ const IMEController = (function() {
   function _requireSuggestion() {
     if (!_wordSuggestionEnabled)
       return '';
-    return Keyboards[_baseLayoutName].suggestionEngine;
+
+    if (_realInputType == 'text' ||
+        _realInputType == 'textarea' ||
+        _realInputType == 'search') {
+      return Keyboards[_baseLayoutName].suggestionEngine;
+    }
+
+    return '';
+  }
+
+  function _requireAutoCapitalize() {
+    return (_realInputType == 'text' || _realInputType == 'textarea');
   }
 
   // Add some special keys depending on the input's type
@@ -939,7 +950,7 @@ const IMEController = (function() {
           _isContinousSpacePressed = true;
 
           // Then set the keyboard uppercase for the next char
-          if (_realInputType == 'text') {
+          if (_requireAutoCapitalize()) {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -965,7 +976,7 @@ const IMEController = (function() {
 
         if (lastKeyWasPeriod) {
           // Then set the keyboard uppercase for the next char
-          if (_realInputType == 'text') {
+          if (_requireAutoCapitalize()) {
             _isUpperCase = true;
             _draw(
               _baseLayoutName, _currentInputType,
@@ -1010,11 +1021,10 @@ const IMEController = (function() {
     return { x: x, y: y };
   }
 
-
   // Turn to default values
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = (_realInputType === 'text');
+    _isUpperCase = _requireAutoCapitalize();
     _isUpperCaseLocked = false;
     _lastKeyCode = 0;
 
