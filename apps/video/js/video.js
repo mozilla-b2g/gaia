@@ -383,7 +383,7 @@ function hidePlayer() {
 dom.player.addEventListener('ended', function() {
   if (!controlShowing) {
     dom.player.currentTime = 0;
-    hidePlayer();
+    document.mozCancelFullScreen();
   }
 });
 
