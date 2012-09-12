@@ -375,7 +375,7 @@ SettingsMainCard.prototype = {
 
       accountLabel.textContent = account.name;
       accountLabel.addEventListener('click',
-        this.onClickEnterAccount.bind(this, account.name), false);
+        this.onClickEnterAccount.bind(this, account), false);
     }
   },
 
@@ -418,11 +418,11 @@ SettingsMainCard.prototype = {
       });
   },
 
-  onClickEnterAccount: function(accountName) {
+  onClickEnterAccount: function(account) {
     Cards.pushCard(
       'settings-account', 'default', 'animate',
       {
-        accountName: accountName
+        account: account
       },
       'right');
   },
@@ -461,7 +461,7 @@ function SettingsAccountCard(domNode, mode, args) {
   this.domNode = domNode;
 
   domNode.getElementsByClassName('tng-account-header-label')[0]
-    .textContent = args.accountName;
+    .textContent = args.account.name;
 
   domNode.getElementsByClassName('tng-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
