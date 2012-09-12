@@ -24,8 +24,10 @@ var ContactDataManager = {
     'another'],
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
-    if (!navigator.mozSms)
+    if (!navigator.mozSms) {
       return;
+    }
+    var numNormalized = PhoneNumberManager.getNormalizedNumber(number);
     // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
     if (number.length < 7) {
       var options = {
@@ -37,10 +39,9 @@ var ContactDataManager = {
       var options = {
         filterBy: ['tel'],
         filterOp: 'contains',
-        filterValue: number
+        filterValue: numNormalized
       };
     }
-    var numNormalized = PhoneNumberManager.getNormalizedNumber(number);
     var cacheResult = this.contactData[numNormalized];
     if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
