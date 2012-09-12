@@ -204,7 +204,20 @@ var StatusBar = {
         return;
       }
 
-      l10nArgs.operator = conn.voice.network.shortName;
+      var voice = conn.voice;
+      var network = voice.network;
+      l10nArgs.operator = network.shortName || network.longName;
+
+      if (network.mcc == 724 &&
+        voice.cell && voice.cell.gsmLocationAreaCode) {
+        // We are in Brazil, It is legally required to show local region name
+
+        var lac = voice.cell.gsmLocationAreaCode % 100;
+        var region = MobileInfo.brazil.regions[lac];
+        if (region)
+          l10nArgs.operator += ' ' + region;
+      }
+
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
 
       label.dataset.l10nId = 'statusbarLabel';
