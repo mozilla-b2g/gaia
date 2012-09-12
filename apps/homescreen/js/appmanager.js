@@ -46,7 +46,7 @@ var Applications = (function() {
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
       if (!manifest ||
-          (isCore(app.origin) && manifest.launch_path === undefined)) {
+          (isCore(app) && manifest.launch_path === undefined)) {
         return;
       }
 
@@ -202,38 +202,14 @@ var Applications = (function() {
     }
   };
 
-  // Core applications should be flagged at some point. Not sure how?
-  var protocol = window.location.protocol;
-  var host = window.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
-  var coreApplications = [
-    'sms', 'settings', 'camera', 'gallery', 'browser',
-    'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm', 'pdfjs', 'keyboard', 'system',
-    'homescreen', 'costcontrol'
-  ];
-
-  coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return protocol + '//' + name + '.' + domain;
-  });
-
-  coreApplications.push('https://marketplace.mozilla.org/telefonica/');
-
-  var communicationsApplications = ['dialer', 'contacts'];
-  communicationsApplications.forEach(function mapCommunicationsApp(name) {
-    coreApplications.push(protocol + '//communications.' + domain + '/' +
-                          name);
-  });
-
   /*
    *  Returns true if it's a core application
    *
-   *  {String} App origin
+   *  {Object} Moz application
    *
    */
-  function isCore(origin) {
-    return coreApplications.indexOf(origin) !== -1;
+  function isCore(app) {
+    return !app.removable;
   };
 
   var deviceWidth = document.documentElement.clientWidth;

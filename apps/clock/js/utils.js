@@ -59,6 +59,15 @@ function getLocaleTime(d) {
   };
 }
 
+function isAlarmPassToday(hour, minute) { // check alarm has passed or not
+  var now = new Date();
+  if (hour > now.getHours() ||
+      (hour == now.getHours() && minute > now.getMinutes())) {
+    return false;
+  }
+  return true;
+}
+
 function getNextAlarmFireTime(alarm) { // get the next alarm fire time
   var repeat = alarm.repeat;
   var hour = alarm.hour;
@@ -67,9 +76,7 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
   var nextAlarmFireTime = new Date();
   var diffDays = 0; // calculate the diff days from now
   if (repeat == '0000000') { // one time only and alarm within 24 hours
-    // if alarm has passed already
-    // XXX compare the hour after converted it to format 24-hours
-    if (!(hour >= now.getHours() && minute > now.getMinutes()))
+    if (isAlarmPassToday(hour, minute)) // if alarm has passed already
       diffDays = 1; // alarm tomorrow
   } else { // find out the first alarm day from the repeat info.
     var weekDayFormatRepeat =
@@ -79,8 +86,8 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
     for (var i = 0; i < weekDayFormatRepeat.length; i++) {
       index = (i + weekDayOfToday) % 7;
       if (weekDayFormatRepeat.charAt(index) == '1') {
-        if (diffDays == 0) { // if alarm has passed already
-          if (hour >= now.getHours() && minute > now.getMinutes())
+        if (diffDays == 0) {
+          if (!isAlarmPassToday(hour, minute)) // if alarm has passed already
             break;
 
           diffDays++;
