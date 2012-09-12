@@ -9,8 +9,9 @@ requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 
+suite('Render contacts list', function() {
 
-var subject,
+  var subject,
     container,
     realL10n,
     realContacts,
@@ -34,28 +35,45 @@ var subject,
     containerFav,
     list;
 
-suite('Render contacts list', function() {
+  realContacts = window.Contacts;
+  realL10n = navigator.mozL10n;
+  navigator.mozL10n = {
+    get: function get(key) {
+      return key;
+    },
+    DateTimeFormat: function() {
+      this.localeFormat = function(date, format) {
+        return date;
+      }
+    }
+  };
+  window.Contacts = MockContactsApp;
+  realFb = window.fb;
+  window.fb = MockFb;
+  FixedHeader = MockFixedHeader;
+  window.utils = window.utils || {};
+  window.utils.alphaScroll = MockAlphaScroll;
+
+  function assertNoGroup(title, container) {
+    assert.isTrue(title.classList.contains('hide'));
+    assert.equal(container.querySelectorAll('li').length, 0);
+  }
+
+  function assertGroup(title, container, num) {
+    assert.isFalse(title.classList.contains('hide'));
+    assert.equal(container.querySelectorAll('li').length, num);
+    return container.querySelectorAll('li');
+  }
+
+  function assertTotal(lengthTitles, lengthContacts) {
+    var total = list.querySelectorAll('h2:not(.hide)').length;
+    var totalC = list.querySelectorAll('li[data-uuid]').length;
+    assert.equal(total, lengthTitles);
+    assert.equal(totalC, lengthContacts);
+  }
 
   suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        }
-      }
-    };
 
-    realContacts = window.Contacts;
-    window.Contacts = MockContactsApp;
-    realFb = window.fb;
-    window.fb = MockFb;
-    FixedHeader = MockFixedHeader;
-    window.utils = window.utils || {};
-    window.utils.alphaScroll = MockAlphaScroll;
     subject = contacts.List;
     container = document.createElement('div');
     var groupsContainer = document.createElement('div');
@@ -255,21 +273,3 @@ suite('Render contacts list', function() {
     });
   });
 });
-
-function assertNoGroup(title, container) {
-  assert.isTrue(title.classList.contains('hide'));
-  assert.equal(container.querySelectorAll('li').length, 0);
-}
-
-function assertGroup(title, container, num) {
-  assert.isFalse(title.classList.contains('hide'));
-  assert.equal(container.querySelectorAll('li').length, num);
-  return container.querySelectorAll('li');
-}
-
-function assertTotal(lengthTitles, lengthContacts) {
-  var total = list.querySelectorAll('h2:not(.hide)').length;
-  var totalC = list.querySelectorAll('li[data-uuid]').length;
-  assert.equal(total, lengthTitles);
-  assert.equal(totalC, lengthContacts);
-}
