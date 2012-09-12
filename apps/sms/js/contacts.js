@@ -26,12 +26,19 @@ var ContactDataManager = {
     // so desktop keeps working
     if (!navigator.mozSms)
       return;
-
-    var options = {
-      filterBy: ['tel'],
-      filterOp: 'contains',
-      filterValue: number
-    };
+    if (number.length < 7) {
+      var options = {
+        filterBy: ['tel'],
+        filterOp: 'equals',
+        filterValue: number
+      };
+    } else {
+      var options = {
+        filterBy: ['tel'],
+        filterOp: 'contains',
+        filterValue: number
+      };
+    }
     var numNormalized = PhoneNumberManager.getNormalizedNumber(number);
     var cacheResult = this.contactData[numNormalized];
     if (cacheResult) {
