@@ -15,6 +15,8 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
 
   var _planTypeHasChanged = false;
 
+  // Plantype can be PLAN_POSTPAID or PLAN_PREPAID. The general layout
+  // of the application and setings depend on this option.
   function _configurePlanTypeSetup() {
     // Get the widget
     var planSetup = document.getElementById('settings-view-plantype-setup');
@@ -46,7 +48,11 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     });
   }
 
+  // Low limit allows the user enable a visual feedback when he is running
+  // out of credit.
   function _configureLowLimitSetup() {
+
+    // Keep a passive view of the current credit
     function onBalanceSuccess(balanceObject) {
       // Format credit
       var balance = balanceObject ? balanceObject.balance : null;
@@ -60,6 +66,7 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
       settingsTime.textContent = formatTime(timestamp);
     }
 
+    // Enable / disable the settings entry for low limit value
     function switchLowLimit() {
       lowLimitSetup.setAttribute(
         'aria-disabled', (!lowLimitSwitch.checked) + '');
@@ -101,27 +108,66 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     switchLowLimit();
   }
 
-  // Configures the billing cycle options
-  function _configureBillingCycleSetup() {
+  // The tracking period is the same for PLAN_PREPAID and PLAN_POSTPAID.
+  // Differences are not visible from the view, just in the service.
+  // This is a combination of two fields, period and time.
+  function _configureTrackingPeriodSetup() {
     // Get thw widgets
-    var billingPeriod =
+    var trackingPeriod =
       document.getElementById('settings-view-tracking-period-setup');
     var resetTime =
       document.getElementById('settings-view-reset-time-setup');
 
     // Configure to enter dialog with tracking periods options
-    billingPeriod.addEventListener('click', function ccapp_onclickPeriod() {
+    trackingPeriod.addEventListener('click', function ccapp_onclickPeriod() {
       settingsVManager.changeViewTo(DIALOG_TRACKING_PERIOD_SETUP);
     });
 
     // Configure to enter dialog with weekdays or month day
     resetTime.addEventListener('click', function ccapp_onclickTime() {
-      var target =
-        CostControl.settings.option('tracking_period') === CostControl.WEEKLY ?
+      var trackingPeriod = CostControl.settings.option('tracking_period');
+      var target = trackingPeriod === CostControl.TRACKING_WEEKLY ?
         DIALOG_RESET_WEEKDAY_SETUP : DIALOG_RESET_MONTHDAY_SETUP;
 
       settingsVManager.changeViewTo(target);
     });
+
+    // Configure the tracking period dialog
+    var resetTimeItem =
+      document.getElementById('setting-item-reset-time-setup');
+
+    // Change option
+    var trackingPeriodOk = document.getElementById('tracking-period-ok');
+    trackingPeriodOk.addEventListener(
+      'click',
+      function ccapp_onTrackingPeriodOk() {
+        var selected = document.querySelector(
+          '#' + DIALOG_TRACKING_PERIOD_SETUP + ' [type="radio"]:checked');
+
+        // Disable reset time when tracking period is never
+        resetTimeItem.setAttribute(
+          'aria-disabled',
+          (selected.value === CostControl.TRACKING_NEVER) + ''
+        );
+        resetTime.disabled = (selected.value === CostControl.TRACKING_NEVER);
+
+        CostControl.settings.option('tracking_period', selected.value);
+      }
+    );
+
+    // Return to previous value
+    var trackingPeriodCancel = document.getElementById('tracking-period-cancel');
+    trackingPeriodCancel.addEventListener(
+      'click',
+      function ccapp_onTrackingPeriodCancel() {
+        var currentValue = CostControl.settings.option('tracking_period');
+        document.querySelector(
+          '#' + DIALOG_TRACKING_PERIOD_SETUP + 
+          ' [type="radio"][value="' + currentValue + '"]'
+        ).checked = true;
+        console.log('ey!');
+      }
+    );
 
     // Observers for the settings
     CostControl.settings.observe('tracking_period', _updateUI);
@@ -132,14 +178,14 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
   function _configureUI() {
     _configurePlanTypeSetup();
     _configureLowLimitSetup();
-    _configureBillingCycleSetup();
+    _configureTrackingPeriodSetup();
   }
 
   // Configure each settings' control and paint the interface
   function _init() {
     _configureUI();
 
-    // To close settings
+    // To close settings depending on plantype
     var closeSettings = document.getElementById('close-settings');
     closeSettings.addEventListener('click', function cc_closeSettings() {
 
@@ -167,28 +213,35 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     _updateUI();
   }
 
-  // Repaint settings interface reading from local settings
+  // Repaint settings interface reading from local settings and localizing
   function _updateUI() {
 
-    function updateSetting(option, defaultValue, from, to, needTranslation) {
-      var query, option, radio;
-      needTranslation = typeof needTranslation === 'undefined' ?
-                        true : needTranslation;
+    // Keep the synchronization between selection buttons and secelting dialogs
+    function syncSetting(option, defaultValue, from, to) {
+
+      // Convert parameters into id and actual options values
       from = '#' + from;
       to = '#' + to;
-
-      query = from + ' [type="radio"][value="&value"]';
       option = CostControl.settings.option(option);
-      query = query.replace('&value', option !== null ? option : defaultValue);
 
+      var template = from + ' [type="radio"][value="&value"]';
+      var query = template.replace(
+        '&value',
+        option !== null ? option : defaultValue
+      );
+
+      var radio = document.querySelector(query);
+      if (!radio)
+        query = template.replace('&value', defaultValue);
       radio = document.querySelector(query);
       radio.setAttribute('checked', 'checked');
-      document.querySelector(to + ' .tag')
-        .textContent = needTranslation ? _(radio.value) : radio.value;
+      var valueTag = document.querySelector(query + ' + span');
+      var tag = document.querySelector(to + ' .tag');
+      tag.textContent = valueTag.textContent;
     }
 
     // Plantype
-    updateSetting(
+    syncSetting(
       'plantype',
       CostControl.PLAN_PREPAID,
       DIALOG_PLAN_SETUP,
@@ -196,24 +249,22 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     );
 
     // Tracking period
-    updateSetting(
+    syncSetting(
       'tracking_period',
-      CostControl.MONTHLY,
+      CostControl.TRACKING_MONTHLY,
       DIALOG_TRACKING_PERIOD_SETUP,
       'settings-view-tracking-period-setup'
     );
 
     // Reset time
     var trackingPeriod = CostControl.settings.option('tracking_period');
-    if (trackingPeriod !== CostControl.NEVER) {
-      updateSetting(
+    if (trackingPeriod !== CostControl.TRACKING_NEVER) {
+      syncSetting(
         'reset_time',
-        trackingPeriod === CostControl.WEEKLY ? 
-        'monday' : '1',
-        trackingPeriod === CostControl.WEEKLY ? 
+        '1',
+        trackingPeriod === CostControl.TRACKING_WEEKLY ? 
         DIALOG_RESET_WEEKDAY_SETUP : DIALOG_RESET_MONTHDAY_SETUP,
-        'settings-view-reset-time-setup',
-        false
+        'settings-view-reset-time-setup'
       );
     }
   }
