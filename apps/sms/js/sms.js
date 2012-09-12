@@ -548,10 +548,6 @@ var ThreadListUI = {
     threadHTML.innerHTML = structureHTML;
     this.view.appendChild(threadHTML);
 
-    this.loadContact(thread.num);
-  },
-
-  loadContact: function loadContact(num) {
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
       ThreadListUI.updateMsgWithContact(thread.num, contact);
@@ -1261,10 +1257,6 @@ var ThreadUI = {
     try {
       var activity = new MozActivity(options);
       activity.onsuccess = function success() {
-        var number = this.result.number;
-        if (number) {
-          MessageManager.loadContact(number);
-        }
         MessageManager.reopenSelf();
       }
       activity.onerror = function error() {
