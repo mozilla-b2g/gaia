@@ -350,12 +350,6 @@ function hidePlayer() {
   if (!playerShowing)
     return;
 
-  // This method may be invoked when we're in full screen mode, or as
-  // as a result of leaving fullscreen mode. If we're still full-screen
-  // exit full screen mode
-  if (document.mozFullScreenElement)
-    document.mozCancelFullScreen();
-
   // Record current information about played video
   currentVideo.metadata.currentTime = dom.player.currentTime;
   currentVideo.metadata.poster = captureFrame(dom.player);
