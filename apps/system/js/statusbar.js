@@ -204,7 +204,8 @@ var StatusBar = {
         return;
       }
 
-      l10nArgs.operator = conn.voice.network.shortName;
+      var network = conn.voice.network;
+      l10nArgs.operator = network.shortName || network.longName;
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
 
       label.dataset.l10nId = 'statusbarLabel';
