@@ -98,7 +98,7 @@ form[role="dialog"] menu button:active {
 }
 
 /* Disabled */
-form[role="dialog"] menu button[disabled="disabled"] {
+form[role="dialog"] menu button[disabled] {
   background-image: url(prompt/images/ui/button_disabled.png);
   text-shadow: none;
 }
@@ -133,8 +133,8 @@ form[role="dialog"] menu button[type="submit"]:active {
 }
 
 /* Disabled, reset & submit) */
-form[role="dialog"] menu button[type="reset"][disabled="disabled"],
-form[role="dialog"] menu button[type="submit"][disabled="disabled"] {
+form[role="dialog"] menu button[type="reset"][disabled],
+form[role="dialog"] menu button[type="submit"][disabled] {
   background-image: url(prompt/images/ui/button_special_disabled.png);
   background-color: transparent;
   border: none;
