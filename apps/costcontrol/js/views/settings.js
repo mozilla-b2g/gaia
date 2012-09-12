@@ -112,6 +112,15 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
   // Differences are not visible from the view, just in the service.
   // This is a combination of two fields, period and time.
   function _configureTrackingPeriodSetup() {
+    function switchResetTime() {
+      var option = CostControl.settings.option('tracking_period');
+      resetTimeItem.setAttribute(
+        'aria-disabled',
+        (option === CostControl.TRACKING_NEVER) + ''
+      );
+      resetTime.disabled = (option === CostControl.TRACKING_NEVER);
+    }
+
     // Get thw widgets
     var trackingPeriod =
       document.getElementById('settings-view-tracking-period-setup');
@@ -144,14 +153,10 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
         var selected = document.querySelector(
           '#' + DIALOG_TRACKING_PERIOD_SETUP + ' [type="radio"]:checked');
 
-        // Disable reset time when tracking period is never
-        resetTimeItem.setAttribute(
-          'aria-disabled',
-          (selected.value === CostControl.TRACKING_NEVER) + ''
-        );
-        resetTime.disabled = (selected.value === CostControl.TRACKING_NEVER);
-
         CostControl.settings.option('tracking_period', selected.value);
+
+        // Disable reset time when tracking period is never
+        switchResetTime();
       }
     );
 
@@ -165,7 +170,60 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
           '#' + DIALOG_TRACKING_PERIOD_SETUP + 
           ' [type="radio"][value="' + currentValue + '"]'
         ).checked = true;
-        console.log('ey!');
+      }
+    );
+
+    switchResetTime();
+
+    // Configure the month day dialog
+    // Change option
+    var monthdayOk = document.getElementById('reset-monthday-period-ok');
+    monthdayOk.addEventListener(
+      'click',
+      function ccapp_onMonthdayOk() {
+        var selected = document.querySelector(
+          '#' + DIALOG_RESET_MONTHDAY_SETUP + ' [type="radio"]:checked');
+
+        CostControl.settings.option('reset_time', selected.value);
+      }
+    );
+
+    // Return to previous value
+    var monthdayCancel = document.getElementById('reset-monthday-period-cancel');
+    monthdayCancel.addEventListener(
+      'click',
+      function ccapp_onMonthdayCancel() {
+        var currentValue = CostControl.settings.option('reset_time');
+        document.querySelector(
+          '#' + DIALOG_RESET_MONTHDAY_SETUP + 
+          ' [type="radio"][value="' + currentValue + '"]'
+        ).checked = true;
+      }
+    );
+
+    // Configure the week day dialog
+    // Change option
+    var weekOk = document.getElementById('reset-weekday-period-ok');
+    weekOk.addEventListener(
+      'click',
+      function ccapp_onWeekdayOk() {
+        var selected = document.querySelector(
+          '#' + DIALOG_RESET_WEEKDAY_SETUP + ' [type="radio"]:checked');
+
+        CostControl.settings.option('reset_time', selected.value);
+      }
+    );
+
+    // Return to previous value
+    var weekCancel = document.getElementById('reset-weekday-period-cancel');
+    weekCancel.addEventListener(
+      'click',
+      function ccapp_onWeekdayCancel() {
+        var currentValue = CostControl.settings.option('reset_time');
+        document.querySelector(
+          '#' + DIALOG_RESET_WEEKDAY_SETUP + 
+          ' [type="radio"][value="' + currentValue + '"]'
+        ).checked = true;
       }
     );
 
