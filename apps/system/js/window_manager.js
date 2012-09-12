@@ -230,6 +230,7 @@ var WindowManager = (function() {
 
         sprite.style.background = '';
         sprite.className = '';
+        openFrame = null;
 
         break;
 
@@ -252,6 +253,34 @@ var WindowManager = (function() {
 
         sprite.style.background = '';
         sprite.className = '';
+        closeFrame = '';
+
+        break;
+
+      case 'inline-activity-opening':
+        openFrame.classList.add('active');
+
+        // If frame is still unpainted to this point, we will have to pause
+        // the transition and wait for the mozbrowserfirstpaint event.
+        if ('unpainted' in openFrame.dataset) {
+          openFrame.addEventListener(
+            'mozbrowserfirstpaint', function continueSpriteTransition() {
+              openFrame.removeEventListener(
+                'mozbrowserfirstpaint', continueSpriteTransition);
+
+              sprite.className = 'inline-activity-opened';
+            });
+
+          return;
+        }
+
+        sprite.className = 'inline-activity-opened';
+
+        break;
+
+      case 'inline-activity-opened':
+        sprite.className = '';
+        openFrame = null;
 
         break;
     }
@@ -733,11 +762,19 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
 
-    // Start the transition only until the frame is painted
+    // frames are began unpainted. This dataset value will pause the
+    // opening sprite transition so users will not see whitish screen.
+    frame.dataset.unpainted = true;
     frame.addEventListener('mozbrowserfirstpaint', function painted() {
       frame.removeEventListener('mozbrowserfirstpaint', painted);
-      frame.classList.add('active');
-      screenElement.classList.add('inline-activity');
+      delete frame.dataset.unpainted;
+
+      // Save the screenshot when we got mozbrowserfirstpaint event,
+      // regardless of the sprite transition state.
+      // setTimeout() here ensures that we get the screenshot with content.
+      setTimeout(function() {
+        saveAppScreenshot('inline:' + origin);
+      });
     });
 
     // Discard any existing activity
@@ -745,12 +782,36 @@ var WindowManager = (function() {
 
     // Save the reference
     inlineActivityFrame = frame;
+    runningApps['inline:' + origin] = { frame: frame };
 
     // Set the size
     setInlineActivityFrameSize();
 
     // Add the iframe to the document
     windows.appendChild(frame);
+
+    // Open the frame, first, store the reference
+    openFrame = frame;
+
+    // Get the screenshot of the app and put it on the sprite
+    // before starting the transition
+    sprite.className = 'before-inline-activity';
+    getAppScreenshot('inline:' + origin, function(screenshot, isCached) {
+      sprite.dataset.mask = isCached;
+
+      if (!screenshot || !useScreenshotInSprite) {
+        sprite.dataset.mask = false;
+        sprite.className = 'inline-activity-opening';
+        return;
+      }
+
+      sprite.style.background = '#fff url(' + screenshot + ')';
+      // Make sure Gecko paint the sprite first
+      afterPaint(function() {
+        // Start the transition
+        sprite.className = 'inline-activity-opening';
+      });
+    });
   }
 
   function removeFrame(origin) {
@@ -766,7 +827,9 @@ var WindowManager = (function() {
       return;
 
     var frame = inlineActivityFrame;
+    var origin = frame.dataset.frameOrigin;
     inlineActivityFrame = null;
+    delete runningApps['inline:' + origin];
 
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');

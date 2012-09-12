@@ -114,6 +114,7 @@ body {
 
 #windows > iframe.appWindow.inlineActivity.active {
   transform: translateY(0);
+  transition: none;
 }
 
 #screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
@@ -142,6 +143,28 @@ body {
 #screen.fullscreen-app > #windowSprite {
   height: 100%;
   top: 0;
+}
+
+#windowSprite.before-inline-activity {
+  transform: translateY(-moz-calc(100% - 1px));
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opening {
+  transition: transform 0.5s ease;
+
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opened {
+  transition: opacity 0.3s ease;
+
+  transform: translateY(0);
+  opacity: 0;
+  visibility: visible;
 }
 
 #windowSprite.before-open {
