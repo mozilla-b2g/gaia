@@ -7,14 +7,12 @@ function startup() {
   // We need to wait for the chrome shell to let us know when it's ok to
   // launch activities. This prevents race conditions.
   window.addEventListener('applicationready', function onApplicationready(event) {
-    navigator.mozApps.mgmt.getAll().onsuccess = function() {
-      new MozActivity({
-        name: 'view',
-        data: {
-          type: 'application/x-application-list'
-        }
-      });
-    }
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'application/x-application-list'
+      }
+    });
     window.removeEventListener('applicationready', onApplicationready);
   });
 
