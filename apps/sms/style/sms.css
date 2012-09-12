@@ -621,7 +621,7 @@ a.unread .unread-mark .icon-unread-mark {
   position: relative;
   overflow: hidden;
   height: 6rem;
-  padding: 1rem 4rem 0;
+  padding: 1rem 3rem 0;
 }
 
 #messages-container .item:last-child {
@@ -644,8 +644,9 @@ a.unread .unread-mark .icon-unread-mark {
 
 #messages-container .item > a > .name {
   color: black;
-  font-size: 2.5rem;
+  font-size: 2rem;
   line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
 }
 
 #messages-container .item > a > .type {
@@ -653,6 +654,19 @@ a.unread .unread-mark .icon-unread-mark {
   font-size: 1.6rem;
   line-height: 2rem;
   white-space: pre;
+}
+
+#messages-container .item > a > .photo {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+#messages-container .item > a > .photo img {
+  width: 100%;
 }
 
 #messages-container .item:active {

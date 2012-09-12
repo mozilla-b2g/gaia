@@ -1171,13 +1171,19 @@ var ThreadUI = {
       Utils.getPhoneDetails(tels[i].value,
                             contact,
                             function gotDetails(details) {
-        var name = details.title.toString();
+        //TODO check up with UX what is really needed here
+        var name = (contact.name || details.title).toString();
+        //TODO ask UX if we should use type+carrier or just number
+        var number = tels[i].value.toString();
         var input = self.contactInput.value;
         var reg = new RegExp(input, 'ig');
-        if (!(name.match(reg))) {
+        if (!(name.match(reg) || (number.match(reg)))) {
           return;
         }
-        var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
+        var nameHTML =
+            SearchUtils.createHighlightHTML(name.toString(), reg, 'highlight');
+        var numHTML =
+            SearchUtils.createHighlightHTML(number, reg, 'highlight');
         // Create DOM element
         var threadHTML = document.createElement('div');
         threadHTML.classList.add('item');
@@ -1188,10 +1194,10 @@ var ThreadUI = {
         var structureHTML =
                 '  <a href="#num=' + tels[i].value + '">' +
                 '    <div class="name">' + nameHTML + '</div>' +
-                '    <div class="type">' + details.carrier + '</div>' +
+                '    <div class="type">' + numHTML + '</div>' +
                 //TODO what if no photo? hide or default?
                 '    <div class="photo">' +
-                '      <img src="' + details.photo + '">' +
+                '      <img src="' + details.photoURL + '">' +
                 '    </div>' +
                 '  </a>';
         // Update HTML and append
