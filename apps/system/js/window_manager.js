@@ -824,6 +824,9 @@ var WindowManager = (function() {
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
 
+    if (openFrame == frame)
+      sprite.className = '';
+
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
 
