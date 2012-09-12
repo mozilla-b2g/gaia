@@ -9,6 +9,7 @@ contacts.List = (function() {
       loaded = false,
       cancel = document.getElementById('cancel-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
+      searchView = document.getElementById('search-view'),
       searchBox = document.getElementById('search-contact'),
       searchNoResult = document.getElementById('no-result'),
       fastScroll = document.querySelector('.view-jumper'),
@@ -170,7 +171,13 @@ contacts.List = (function() {
 
   var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
+
+    if (container.querySelector('#sim_import_button')) {
+      return;
+    }
+
     var button = document.createElement('button');
+    button.id = 'sim_import_button';
     button.setAttribute('class', 'simContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
@@ -260,6 +267,7 @@ contacts.List = (function() {
       showGroup(group);
     }
     cleanLastElements(counter);
+    checkEmptyList();
     FixedHeader.refresh();
   };
 
@@ -278,6 +286,15 @@ contacts.List = (function() {
         resetGroup(currentGroup, currentCount);
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
+    }
+  }
+
+  var checkEmptyList = function checkEmptyList() {
+    // Check if we removed all the groups, and show the import contacts from SIM
+    var selectorString = '#groups-list li h2:not(.hide)';
+    var nodes = document.querySelectorAll(selectorString);
+    if (nodes.length == 0) {
+      addImportSimButton();
     }
   }
 
@@ -342,7 +359,7 @@ contacts.List = (function() {
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts, successCb);
+      buildContacts(contacts);
       return;
     }
 
@@ -353,16 +370,12 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0) {
-        addImportSimButton();
-      } else {
-        var fbReq = fb.contacts.getAll();
-        fbReq.onsuccess = function() {
-          buildContacts(request.result, fbReq.result);
-        }
-        fbReq.onerror = function() {
-           buildContacts(request.result);
-        }
+      var fbReq = fb.contacts.getAll();
+      fbReq.onsuccess = function() {
+        buildContacts(request.result, fbReq.result);
+      }
+      fbReq.onerror = function() {
+         buildContacts(request.result);
       }
     };
 
@@ -506,6 +519,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    checkEmptyList();
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
@@ -560,31 +574,16 @@ contacts.List = (function() {
     }
   }
 
-  // Toggle function to show/hide the letters header
-  var toggleGroupHeaders = function showHeaders() {
-    var headers = document.querySelectorAll('.block-title:not(.hide)');
-    if (!headers) {
-      return;
-    }
-
-    for (var i = 0; i < headers.length; i++) {
-      headers[i].classList.toggle('search-hide');
-    }
-  }
-
+  //Search mode instructions
   var exitSearchMode = function exitSearchMode() {
-    cancel.classList.add('hide');
     searchNoResult.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
     // Show elements that were hidden for the search
-    fastScroll.classList.remove('hide');
-    groupsList.classList.remove('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.remove('hide');
     }
-    toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
     var allContacts = getContactsDom();
@@ -598,7 +597,6 @@ contacts.List = (function() {
 
   var enterSearchMode = function searchMode() {
     if (!inSearchMode) {
-      cancel.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
       inSearchMode = true;
@@ -632,11 +630,9 @@ contacts.List = (function() {
   };
 
   var cleanContactsList = function cleanContactsList() {
-    fastScroll.classList.add('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.add('hide');
     }
-    toggleGroupHeaders();
   };
 
   var getContactsDom = function contactsDom() {

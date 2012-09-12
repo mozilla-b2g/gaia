@@ -108,7 +108,8 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth + 'px', dataset);
+        content += buildKey(keyChar, className, keyWidth + 'px',
+                            dataset, key.altNote);
 
       }));
       content += '</div>';
@@ -157,8 +158,13 @@ const IMERender = (function() {
   };
 
   // Highlight a key
-  var highlightKey = function kr_updateKeyHighlight(key) {
+  var highlightKey = function kr_updateKeyHighlight(key, alternativeKey) {
     key.classList.add('highlighted');
+
+    if (alternativeKey) {
+      var spanToReplace = key.querySelector('.visual-wrapper span');
+      spanToReplace.textContent = alternativeKey;
+    }
   }
 
   // Unhighlight a key
@@ -317,8 +323,13 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
-      var cssWidth =
-        key.offsetWidth * (0.9 + 0.5 * (label.length - original.length));
+
+      var cssWidth = key.offsetWidth;
+      if (altCharsCurrent.length != 1) {
+        cssWidth = key.offsetWidth *
+                   (0.9 + 0.5 * (label.length - original.length));
+      }
+
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
       content += buildKey(label, '', cssWidth + 'px', dataset);
@@ -461,14 +472,21 @@ const IMERender = (function() {
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+
+    var altNoteHTML = '';
+    if (altNote) {
+      altNoteHTML = '<div class="alt-note">' + altNote + '</div>';
+    }
+
+
     var content = '<button class="keyboard-key ' + className + '"';
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
     content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
-               label + '</span></span></button>';
+               label + '</span>' + altNoteHTML + '</span></button>';
     return content;
   };
 
