@@ -5,6 +5,8 @@
 
 var MessageManager = {
   init: function mm_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -294,7 +296,10 @@ var ThreadListUI = {
         photo.src = photoURL;
       }
     } else {
-      name.innerHTML = number;
+      // XXX: Workaround for country code threading issue.
+      // Display national number if number could not be matched in contact.
+      var nationalNum = PhoneNumberManager.getNationalNum(number, true);
+      name.innerHTML = nationalNum;
     }
   },
 
@@ -445,9 +450,12 @@ var ThreadListUI = {
           }
         }
         if (threadIds.indexOf(num) == -1) {
+          // XXX: Workaround for country code threading issue.
+          // We display national number in thread list.(if convertable).
+          var nationalNum = PhoneNumberManager.getNationalNum(num, true);
           var thread = {
             'body': message.body,
-            'name': num,
+            'name': nationalNum,
             'num': num,
             'timestamp': message.timestamp.getTime(),
             'unreadCount': !message.read ? 1 : 0,
@@ -696,15 +704,22 @@ var ThreadUI = {
   },
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
+    // XXX: Workaround for country code threading issue.
+    // We convert the header to national number(if convertible).
+    var nationalNum = PhoneNumberManager.getNationalNum(number, true);
+    // TODO: Please verify that using the international number could work
+    //       for viewing the contact detail.
+
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
     Utils.getPhoneDetails(number, function returnedDetails(details) {
       if (details.isContact) {
         self.title.dataset.isContact = true;
+        self.title.innerHTML = details.title;
       } else {
-         self.title.dataset.isContact = false;
+        self.title.dataset.isContact = false;
+        self.title.innerHTML = nationalNum;
       }
-      self.title.innerHTML = details.title || number;
       var carrierTag = document.getElementById('contact-carrier');
       if (details.carrier) {
         carrierTag.innerHTML = details.carrier;
@@ -1020,7 +1035,11 @@ var ThreadUI = {
         var hash = window.location.hash;
         // Depending where we are, we get different num
         if (hash == '#new') {
-          var num = this.contactInput.value;
+          // XXX: Workaround for country code threading issue.
+          // We convert the number to international number for sending
+          // and storing the message.
+          var numInput = this.contactInput.value;
+          var num = PhoneNumberManager.getInternationalNum(numInput, true);
         } else {
           var num = MessageManager.getNumFromHash();
         }
@@ -1163,10 +1182,17 @@ var ThreadUI = {
         nameHTML = 'Unknown';
       }
       var carrier = tels[i].carrier;
+
+      // XXX: Workaround for country code threading issue.
+      // We convert the number to international for finding
+      // messages in message DB.
+      var num = tels[i].value;
+      var telNum = PhoneNumberManager.getInternationalNum(num, true);
+
       //TODO Implement algorithm for this part following Wireframes
       // Create HTML structure
       var structureHTML =
-              '  <a href="#num=' + tels[i].value + '">' +
+              '  <a href="#num=' + telNum + '">' +
               '    <div class="name">' + nameHTML + '</div>' +
               '    <div class="type">' + tels[i].type + ' ' + numHTML +
               '    </div>' +
@@ -1285,8 +1311,14 @@ window.addEventListener('localized', function showBody() {
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
   var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
+    if (!number)
+      return;
+
+    // XXX: Workaround for country code threading issue.
+    // We convert the number to international number for entering
+    // the correct message thread page.
+    var num = PhoneNumberManager.getInternationalNum(number, true);
+    window.location.hash = '#num=' + num;
   }
 
   if (document.readyState == 'complete') {

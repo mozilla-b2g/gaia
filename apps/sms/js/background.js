@@ -40,6 +40,7 @@
       navigator.vibrate([200, 200, 200, 200]);
     }
 
+    PhoneNumberManager.init();
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
 
@@ -61,7 +62,11 @@
         if (contact && contact.length > 0) {
           sender = contact[0].name;
         } else {
-          sender = message.sender;
+          // XXX: Workaround for country code threading issue.
+          // We convert the name to national number for displaying
+          // notification phone number.
+          var num = message.sender;
+          var sender = PhoneNumberManager.getNationalNum(num, true);
         }
 
         NotificationHelper.send(sender, message.body, iconURL, notiClick);
