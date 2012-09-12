@@ -15,14 +15,15 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     });
 
     // Observe smscount and calltime
-    CostControl.settings.observe('smscount', _updateUI);
-    CostControl.settings.observe('calltime', _updateUI);
-    CostControl.settings.observe('lastreset', _updateUI);
+    CostControl.settings.observe('smscount', _updateUICounters);
+    CostControl.settings.observe('calltime', _updateUICounters);
+    CostControl.settings.observe('lastreset', _updateUICounters);
+    CostControl.settings.observe('next_reset', _updateUITrackingInfo);
 
     _updateUI();
   }
 
-  function _updateUI() {
+  function _updateUICounters() {
     function toMinutes(milliseconds) {
       return Math.ceil(milliseconds / (1000 * 60));
     }
@@ -45,8 +46,27 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     document.getElementById('smscount').textContent =
       CostControl.settings.option('smscount');
 
-    debug('SMSCount: ' + CostControl.settings.option('smscount'));
-    debug('CallTime: ' + CostControl.settings.option('calltime'));
+  }
+
+  function _updateUITrackingInfo() {
+    var resetDate = document.getElementById('reset-date');
+    var trackingPeriod = CostControl.settings.option('tracking_period');
+    if (trackingPeriod === CostControl.TRACKING_NEVER) {
+      resetDate.textContent = _('never');
+      return;
+    }
+
+    var nextResetDate = CostControl.settings.option('next_reset') || null;
+    if (nextResetDate)
+      nextResetDate = new Date(nextResetDate);
+
+    resetDate.textContent =
+      nextResetDate.toLocaleFormat(_('short-date-format'));
+  }
+
+  function _updateUI() {
+    _updateUICounters();
+    _updateUITrackingInfo();
   }
 
   // Updates the UI to match the localization

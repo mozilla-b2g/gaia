@@ -87,7 +87,7 @@ setService(function cc_setupCostControlService() {
           }
         }
       );
-      window.dispatchEvent(_newLocalSettingsChangeEvent(key, _option(key)));
+      callback(_option(key));
     }
 
     // If only key is provided, the method return the current value for the
@@ -302,12 +302,111 @@ setService(function cc_setupCostControlService() {
     _sms.onsent = _onSMSSent; // XXX: this is bugged and not working
   }
 
+  // Recalculate the next automatic reset date in function of user preferences
+  function _recalculateNextReset() {
+    var trackingPeriod = _appSettings.option('tracking_period');
+    if (trackingPeriod === TRACKING_NEVER) {
+      _appSettings.option('next_reset', null);
+      console.info('Automatic reset disabled');
+      return;
+    }
+
+    var nextReset, today = new Date();
+
+    // Recalculate with month period
+    if (trackingPeriod === TRACKING_MONTHLY) {
+      var month, year, monthday = parseInt(_appSettings.option('reset_time'));
+      month = today.getMonth();
+      year = today.getFullYear();
+      if (today.getDate() >= monthday) {
+        month = (month + 1) % 12;
+        if (month === 0)
+          year++;
+      }
+      nextReset = new Date(year, month, monthday);
+
+    // Recalculate with week period
+    } else {
+      var oneDay = 24 * 60 * 60 * 1000;
+      var weekday = parseInt(_appSettings.option('reset_time'));
+      var daysToTarget = weekday - today.getDay();
+      if (daysToTarget <= 0)
+        daysToTarget = 7 + daysToTarget;
+      nextReset = new Date();
+      nextReset.setTime(nextReset.getTime() + oneDay * daysToTarget);
+    }
+
+    _appSettings.option('next_reset', nextReset);
+  }
+
+  function _resetStats() {
+    CostControl.settings.option('smscount', 0);
+    CostControl.settings.option('calltime', 0);
+  }
+
+  // Check if we met the next reset, if so, reset an recalculate
+  function _checkForNextReset() {
+    var nextReset = CostControl.settings.option('next_reset') || null;
+    if (!nextReset)
+      return;
+
+    nextReset = new Date(nextReset);
+    if ((new Date()).getTime() >= nextReset.getTime()) {
+      _resetStats();
+      _recalculateNextReset();
+    }
+  }
+
+  // Attach listeners to ensure the proper automatic reset date
+  var _resetCheckTimeout = 0;
+  function _configureAutoReset() {
+
+    // Get milliseconds from now until tomorrow at 00:00
+    function timeUntilTomorrow() {
+      var today = new Date();
+      var tomorrow = (new Date());
+      tomorrow.setTime(today.getTime() + oneDay); // this is tomorrow
+      tomorrow = new Date(
+        tomorrow.getFullYear(),
+        tomorrow.getMonth(),
+        tomorrow.getDate()
+      );                                            // this is tomorrow at 00:00
+      return tomorrow.getTime() - today.getTime();
+    }
+    var oneDay = 24 * 60 * 60 * 1000;
+
+    // Check if we already met the reset date
+    _checkForNextReset();
+
+    // Launch tomorrow at 00:00
+    var firstTimeout = timeUntilTomorrow();
+    _resetCheckTimeout = setTimeout(function ccapp_firstCheck() {
+      _checkForNextReset();
+
+      // Launch in the following 24h
+      _resetCheckTimeout = setInterval(function ccapp_nextCheck() {
+        _checkForNextReset()
+      }, oneDay);
+
+    }, firstTimeout);
+
+    // Observe settings that imply next reset recalculation
+    _appSettings.observe('tracking_period', _recalculateNextReset);
+    _appSettings.observe('reset_time', _recalculateNextReset);
+
+    CostControl.settings.option('smscount', 10);
+    CostControl.settings.option('calltime', 123456);
+
+    debug('Next check in ' + Math.ceil(firstTimeout / 60000) + ' minutes');
+  }
+
   // Initializes the cost control module:
   // critical parameters, automatic updates and state.dependant settings
   function _init() {
     _configureSettings();
     _configureAutomaticUpdates();
     _configureTelephony();
+    _configureAutoReset();
 
     // State dependant settings allow simultaneous updates and topping up tasks
     _state[STATE_UPDATING_BALANCE] = false;

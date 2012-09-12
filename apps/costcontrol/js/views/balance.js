@@ -204,7 +204,6 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     document.addEventListener(
       'mozvisibilitychange',
       function ccapp_visibility(evt) {
-        console.log('visibility: ' + document.mozHidden);
         if (!document.mozHidden)
           _requestUpdateBalance();
       }

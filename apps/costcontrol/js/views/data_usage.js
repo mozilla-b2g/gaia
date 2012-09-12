@@ -697,7 +697,6 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
   // Updates the UI to match the localization
   function _localize() {
-  console.log('segundo');
     _drawAxisLayer(_options);
     _drawLimits(_options);
   }
