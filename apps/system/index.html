@@ -9,6 +9,8 @@
     <script src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/custom_dialog.js"></script>
+    <script defer src="shared/js/notification_helper.js"></script>
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
@@ -117,6 +119,10 @@
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
 
+    <!-- System Updater -->
+    <script defer src="js/system_updater.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/system_updater/system_updater.css">
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
@@ -219,7 +225,17 @@
           <span data-l10n-id="notifications">Notifications</span>
           <button id="notification-clear" data-l10n-id="clear-all">Clear all</button>
         </div>
+
         <div id="notifications-container">
+          <!-- system updater -->
+          <div id="system-update-status" class="notification">
+            <div class="system-update-progress" data-l10n-id="updateProgress">System update...</div>
+            <div class="system-update-applying" data-l10n-id="applying">Applying...</div>
+            <div class="icon"></div>
+            <progress value="0" max="1"></progress>
+          </div>
+          <div id="desktop-notifications-container">
+          </div>
         </div>
 
         <!-- credit module -->
