@@ -28,6 +28,10 @@ let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
 let webapps = getJSON(getFile(PROFILE_DIR, "webapps", "webapps.json"));
 
 Gaia.webapps.forEach(function (webapp) {
+  if (!webapps[webapp.domain]) {
+    return;
+  }
+
   let manifest = webapp.manifest;
   let rootURL = webapp.url;
   let appId = webapps[webapp.domain].localId;
