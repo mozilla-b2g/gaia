@@ -370,8 +370,12 @@ SettingsMainCard.prototype = {
     var accountNode = account.element;
 
     if (firstTime) {
-      accountNode.getElementsByClassName('tng-account-item-label')[0]
-        .textContent = account.name;
+      var accountLabel =
+        accountNode.getElementsByClassName('tng-account-item-label')[0];
+
+      accountLabel.textContent = account.name;
+      accountLabel.addEventListener('click',
+        this.onClickEnterAccount.bind(this, account), false);
     }
   },
 
@@ -414,6 +418,15 @@ SettingsMainCard.prototype = {
       });
   },
 
+  onClickEnterAccount: function(account) {
+    Cards.pushCard(
+      'settings-account', 'default', 'animate',
+      {
+        account: account
+      },
+      'right');
+  },
+
   onClickSecretButton: function() {
     if (this._secretButtonTimer === null) {
       this._secretButtonTimer = window.setTimeout(
@@ -445,8 +458,19 @@ Cards.defineCardWithDefaultMode(
  * Per-account settings, maybe some metadata.
  */
 function SettingsAccountCard(domNode, mode, args) {
+  this.domNode = domNode;
+
+  domNode.getElementsByClassName('tng-account-header-label')[0]
+    .textContent = args.account.name;
+
+  domNode.getElementsByClassName('tng-back-btn')[0]
+    .addEventListener('click', this.onBack.bind(this), false);
 }
 SettingsAccountCard.prototype = {
+  onBack: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
   die: function() {
   }
 };

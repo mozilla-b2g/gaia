@@ -428,7 +428,15 @@
           </header>
             <li>
               <span data-l10n-id="settings-check-mail" class="list-text">ChecK MaiL</span>
-              <em class="aside end">5 min</em>
+              <em class="aside end">
+                <select class="mail-select">
+                  <option value="1" data-l10n-id="settings-check-three">3 Minutes</option>
+                  <option value="2" data-l10n-id="settings-check-five">5 Minutes</option>
+                  <option value="3" data-l10n-id="settings-check-ten">10 Minutes</option>
+                  <option value="4" data-l10n-id="settings-check-fifteen">15 Minutes</option>
+                  <option value="5" data-l10n-id="settings-check-manually">Manually</option>
+                </select>
+              </em>
             </li>
             <li>
               <span data-l10n-id="settings-show-images" class="list-text">AlwayS ShoW ImageS</span>
@@ -457,19 +465,47 @@
                 </label>
               </em>
             </li>
-          <a class="tng-email-lib-version collapsed">v1</a>
+          <a class="tng-email-lib-version list-text">v1</a>
         </section>
       </section>
 
       <!-- Per-account settings menu; largely read-only for now -->
-      <div class="card-settings-account card">
-        <div class="tng-account-header top-header">
-          <button class="tng-back-btn back-btn header-left-btn">
+      <section class="card-settings-account card skin-organic" role="region">
+        <header class="tng-account-header">
+          <a href="#" class="tng-back-btn back-btn header-left-btn">
             <span class="icon icon-back"></span>
-          </button>
-          <h2 class="tng-account-header-label header-label"></h2>
-        </div>
-      </div>
+          </a>
+          <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <li>
+            <span data-l10n-id="settings-default-account" class="list-text">DefaulT AccounT</span>
+            <em class="aside end">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span></span>
+              </label>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-account-type" class="list-text">AccounT TypE</span>
+            <em class="aside end">
+              <select class="mail-select">
+                    <option value="imap+smtp">IMAP+SMTP</option>
+                    <option value="activesync">ActiveSync</option>
+              </select>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-incoming-mail" class="list-text">IncominG MaiL SettingS</span>
+            <em class="aside end"></em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-outgoing-mail" class="list-text">OutgoinG MaiL SettingS</span>
+            <em class="aside end"></em>
+          </li>
+        </section>
+      </section>
 
       <!-- Developer debug page; for those in the know -->
       <div class="card-settings-debug card">

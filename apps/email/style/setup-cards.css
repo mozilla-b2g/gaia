@@ -102,3 +102,8 @@ li .aside.end {
   right: 0.5rem;
   line-height: 5.5rem;
 }
+
+.mail-select {
+  font-size: 2rem;
+  vertical-align: middle;
+}
