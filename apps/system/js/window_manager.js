@@ -259,6 +259,7 @@ var WindowManager = (function() {
 
       case 'inline-activity-opening':
         openFrame.classList.add('active');
+        screenElement.classList.add('inline-activity');
 
         // If frame is still unpainted to this point, we will have to pause
         // the transition and wait for the mozbrowserfirstpaint event.
@@ -826,6 +827,11 @@ var WindowManager = (function() {
 
     if (openFrame == frame)
       sprite.className = '';
+
+    if (!frame.classList.contains('active')) {
+      windows.removeChild(frame);
+      return;
+    }
 
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
