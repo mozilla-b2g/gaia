@@ -7,27 +7,43 @@
   <meta name="description" content="Prompts user to take a device pair request">
   <meta name="target" content="html">
   <link rel="stylesheet" href="style/prompt.css">
+  <script type="application/javascript" defer src="js/onpair.js"></script>
 </head>
-
 <body role="application">
   <section role="dialog">
     <div>
       <h3>Confirm Devices to Pair</h3>
       <div class="content">
-        <img src="style/images/settings_bluetooth.png" />
-        <strong>Macbook Air</strong>
-        <small>88:53:46:77:0F:53</small>
+        <img id="icon" src="style/images/settings_bluetooth.png" />
+        <strong id="label-name"></strong>
+        <small id="label-address"></small>
       </div>
-      <p>
-        To pair with this device, make sure
-        that both devices currently have the
-        following PIN displayed:
-      </p>
-      <p><strong>100168</strong></p>
+      <div id="confirmation-method">
+        <p>
+          To pair with this device, make sure
+          that both devices currently have the
+          following PIN displayed:
+        </p>
+        <p><strong id="passkey"></strong></p>
+      </div>
+      <div id="pin-input-method">
+        <p>
+          To pair with this device, enter
+          the PIN on the device.
+        </p>
+        <p><input type="number" id="pin-input" /></p>
+      </div>
+      <div id="passkey-input-method">
+        <p>
+          To pair with this device, enter
+          the Passkey on the device.
+        </p>
+        <p><input type="number" id="passkey-input" /></p>
+      </div>
     </div>
     <menu data-items="2">
-      <button>Cancel</button>
-      <button class="affirmative">Pair Device</button>
+      <button id="button-close">Cancel</button>
+      <button id="button-pair" class="affirmative">Pair Device</button>
     </menu>
   </section>
 

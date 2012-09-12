@@ -3,6 +3,12 @@
 
 'use strict';
 
+/*
+   gDeviceList here because child window created for pair request
+   needs to access its method via window.opener
+ */
+var gDeviceList = null;
+
 // handle BlueTooth settings
 window.addEventListener('localized', function bluetoothSettings(evt) {
   var _ = navigator.mozL10n.get;
@@ -41,8 +47,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
       defaultAdapter.onrequestconfirmation = gDeviceList.onRequestConfirmation;
-      defaultAdapter.onrequestpincode = gDeviceList.onRequestConfirmation;
-      defaultAdapter.onrequestpasskey = gDeviceList.onRequestConfirmation;
+      defaultAdapter.onrequestpincode = gDeviceList.onRequestPincode;
+      defaultAdapter.onrequestpasskey = gDeviceList.onRequestPasskey;
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -164,14 +170,35 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   })();
 
   // device list
-  var gDeviceList = (function deviceList() {
-    var pairList = document.querySelector('#bluetooth-paired-devices');
-    var openList = document.querySelector('#bluetooth-devices');
+  gDeviceList = (function deviceList() {
+    var pairList = {
+      showlist: document.getElementById('bluetooth-show-paired-devices'),
+      list: document.getElementById('bluetooth-paired-devices'),
+      index: [],
+      clear: function emptyList() {
+        while (this.list.hasChildNodes()) {
+          this.list.removeChild(this.list.lastChild);
+        }
+        while (this.showlist.hasChildNodes()) {
+          this.showlist.removeChild(this.showlist.lastChild);
+        }
+        this.index = [];
+      }
+    };
+    var openList = {
+      list: document.getElementById('bluetooth-devices'),
+      index: [],
+      clear: function emptyList() {
+        while (this.list.hasChildNodes()) {
+          this.list.removeChild(this.list.lastChild);
+        }
+        this.index = [];
+      }
+    };
     var searchAgainBtn = document.querySelector('#bluetooth-search-again');
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
-    var openIndex = [];
-    var pairIndex = [];
+    var childWindow = null;
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
@@ -179,44 +206,31 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     };
 
     // private DOM helper: create a device list item
-    function newListItem(device) {
+    function newListItem(device, desc) {
       var deviceName = document.createElement('a');
       var aName = (device.name === '') ? _('unnamed') : device.name;
       deviceName.textContent = aName;
 
-      var deviceAddress = document.createElement('small');
-      deviceAddress.textContent = device.address;
+      var deviceDesc = document.createElement('small');
+      deviceDesc.textContent = desc;
 
       var li = document.createElement('li');
-      li.appendChild(deviceAddress);
+      li.appendChild(deviceDesc); // should append this first
       li.appendChild(deviceName);
 
-      // bind paired callback
-      li.onclick = function() {
-        dump("==== ask for pair: "+device.name+" "+device.address);
-        defaultAdapter.pair(device);
-      };
       return li;
-    }
-
-    // private helper: clear the device list
-    function clear() {
-      while (openList.hasChildNodes()) {
-        openList.removeChild(openList.lastChild);
-      }
-      openIndex = [];
     }
 
 
     // immediatly UI update, DOM element manipulation.
     function updateDeviceList(show) {
       if (show) {
-        clear();
+        openList.clear();
         enableMsg.hidden = true;
         searchingItem.hidden = false;
 
       } else {
-        clear();
+        openList.clear();
         enableMsg.hidden = false;
         searchingItem.hidden = true;
       }
@@ -232,40 +246,116 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // callback function when an avaliable device found
     function onDeviceFound(evt) {
       // check duplicate
-      var i = openIndex.length - 1;
+      var device = evt.device;
+      if (findDevice(openList.index, device.address))
+        return;
+
+      // paired device has been shown on top.
+      if (findDevice(pairList.index, device.address))
+        return;
+
+      var aItem = newListItem(device, device.address);
+      // bind paired callback
+      aItem.onclick = function() {
+        aItem.querySelector('small').textContent = _('device-status-pairing');
+        var req = defaultAdapter.pair(device);
+        req.onsuccess = function bt_pairSuccess() {
+          getPairedDevice();
+          aItem.parentNode.removeChild(aItem);
+        };
+        req.onerror = function bt_pairError() {
+          if (childWindow) {
+            childWindow.close();
+          }
+          aItem.querySelector('small').textContent = device.address;
+          //XXX file a notification: not responded pair request
+        };
+      };
+      openList.list.appendChild(aItem);
+      openList.index.push(evt.device);
+    }
+
+    function findDevice(list, address) {
+      var i = list.length - 1;
       while (i >= 0) {
-        if (openIndex[i].address === evt.device.address) {
-          return;
+        if (list[i].address === address) {
+          return list[i];
         }
         i -= 1;
       }
-      openList.appendChild(newListItem(evt.device));
-      openIndex.push(evt.device);
+      return null;
     }
 
     function onRequestConfirmation(evt) {
-      dump("=====request pair "+evt.address+"  "+evt.passkey);
+      var device = findDevice(openList.index, evt.deviceAddress);
+      if (!device)
+        return;
+      var passkey = evt.passkey;
       // prepare to pop out attention screen, ring the ringtone, vibrate
       var protocol = window.location.protocol;
       var host = window.location.host;
-      window.open(protocol + '//' + host + '/onpair.html',
+      childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
+      childWindow.onload = function() {
+        childWindow.PairView.init('confirmation', device, passkey);
+      };
+    }
+
+    function onRequestPincode(evt) {
+      var device = findDevice(openList.index, evt.deviceAddress);
+      if (!device)
+        return;
+      // prepare to pop out attention screen, ring the ringtone, vibrate
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      childWindow = window.open(protocol + '//' + host + '/onpair.html',
+                  'pair_screen', 'attention');
+      childWindow.onload = function() {
+        childWindow.PairView.init('pincode', device);
+      };
+    }
+
+    function onRequestPasskey(evt) {
+      var device = findDevice(openList.index, evt.deviceAddress);
+      if (!device)
+        return;
+      // prepare to pop out attention screen, ring the ringtone, vibrate
+      var protocol = window.location.protocol;
+      var host = window.location.host;
+      childWindow = window.open(protocol + '//' + host + '/onpair.html',
+                  'pair_screen', 'attention');
+      childWindow.onload = function() {
+        childWindow.PairView.init('passkey', device);
+      };
     }
 
     function getPairedDevice() {
+      pairList.clear();
       var req = defaultAdapter.getPairedDevices();
       req.onsuccess = function bt_getPairedSuccess() {
-        //pairIndex = req.result;
-        pairIndex[0] = {name: 'headset', address: '87:32:43:19:2C:51'};
-        pairIndex[1] = {name: 'evelyn', address: '88:53:46:77:0F:53'};
-        var length = pairIndex.length;
+        pairList.index = req.result;
+        var length = pairList.index.length;
+        if (length == 0)
+          return;
         for (var i = 0; i < length; i++) {
-          dump("==== paired: "+pairIndex[i].name);
-          pairList.appendChild(newListItem(pairIndex[i]));
+          (function(device) {
+            var aItem = newListItem(device, _('device-status-paired'));
+            aItem.onclick = function() {
+              var req = defaultAdapter.unpair(device);
+              req.onsuccess = function bt_pairSuccess() {
+                getPairedDevice();
+                onDeviceFound({device: device});
+              };
+              req.onerror = function bt_pairError() {
+              };
+            };
+            pairList.list.appendChild(aItem);
+            pairList.showlist.appendChild(aItem.cloneNode(true));
+          })(pairList.index[i]);
         }
-        var text = pairIndex[0].name;
+        var text = pairList.index[0].name;
         if (length > 1) {
-          text += ", +" + (length -1) + " "+ _('bt-status-pairmore');
+          text += ', +' + (length - 1) + ' ' + _('bt-status-pairmore');
         }
         gBluetoothInfoBlock.textContent = text;
       };
@@ -301,13 +391,37 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       };
     }
 
+    function setPairingConfirmation(address) {
+      if (!defaultAdapter)
+        return;
+      defaultAdapter.setPairingConfirmation(address, true);
+    }
+
+    function setPinCode(address, pincode) {
+      if (!defaultAdapter)
+        return;
+      defaultAdapter.setPinCode(address, pincode);
+    }
+
+    function setPasskey(address, passkey) {
+      if (!defaultAdapter)
+        return;
+      var key = parseInt(passkey, 10);
+      defaultAdapter.setPasskey(address, key);
+    }
+
     // API
     return {
       update: updateDeviceList,
       initWithAdapter: initial,
       startDiscovery: startDiscovery,
       onDeviceFound: onDeviceFound,
-      onRequestConfirmation: onRequestConfirmation
+      onRequestConfirmation: onRequestConfirmation,
+      onRequestPincode: onRequestPincode,
+      onRequestPasskey: onRequestPasskey,
+      setPairingConfirmation: setPairingConfirmation,
+      setPinCode: setPinCode,
+      setPasskey: setPasskey
     };
 
   })();

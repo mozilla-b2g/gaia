@@ -2,6 +2,10 @@
  * PROMPT
  * ---------------------------------- */
 
+html, body {
+  font-size: 10px;
+} 
+
 /* MAIN DIALOG SETUP */
 section[role="dialog"] {
   background: url(images/ui/pattern.png) repeat left top, url(images/ui/gradient.png) no-repeat left top;
