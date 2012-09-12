@@ -264,13 +264,17 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var cset = {};
+        // mozSettings does not support multiple keys in the cset object
+        // with one set() call,
+        // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+        var lock = settings.createLock();
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
+          var cset = {};
           var key = input.dataset.setting;
           cset[key] = input.value;
+          lock.set(cset);
         }
-        settings.createLock().set(cset);
       }
       return close();
     }

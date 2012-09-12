@@ -45,7 +45,7 @@ var CustomDialog = (function() {
         screen.appendChild(dialog);
 
         var info = document.createElement('div');
-        info.className = 'center';
+        info.className = 'inner';
 
         if (title && title != '') {
           header = document.createElement('h3');

@@ -14,7 +14,6 @@ var MessageManager = {
     ThreadListUI.init();
     // Init first time
     this.getMessages(ThreadListUI.renderThreads);
-
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -77,7 +76,13 @@ var MessageManager = {
                 threadMessages.classList.remove('new');
               });
             } else {
-              MessageManager.slide();
+              MessageManager.slide(function() {
+                if (MessageManager.activityTarget) {
+                  window.location.hash =
+                    '#num=' + MessageManager.activityTarget;
+                  delete MessageManager.activityTarget;
+                }
+              });
             }
             // Update the data for next time we enter a thread
             delete ThreadUI.title.dataset.isContact;
@@ -277,18 +282,24 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var choosenContact = contact[0];
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    var selector = 'a[data-num="' + number + '"] div.photo img';
-    var photo = this.view.querySelector(selector);
-    if (name && choosenContact.name && choosenContact.name != '') {
-      name.innerHTML = choosenContact.name;
-    }
+    if (contact && contact.length > 0) {
+      var choosenContact = contact[0];
+      var name =
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
+      var selector = 'a[data-num="' + number + '"] div.photo img';
+      var photo = this.view.querySelector(selector);
+      if (name && choosenContact.name && choosenContact.name != '') {
+        name.innerHTML = choosenContact.name;
+      }
 
-    if (photo && choosenContact.photo && choosenContact.photo[0]) {
-      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-      photo.src = photoURL;
+      if (photo && choosenContact.photo && choosenContact.photo[0]) {
+        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+        photo.src = photoURL;
+      }
+    } else {
+      name.innerHTML = number;
     }
   },
 
@@ -529,9 +540,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
@@ -692,45 +701,25 @@ var ThreadUI = {
   },
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
-    self.title.innerHTML = number;
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
-
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      //TODO what if return multiple contacts?
-      var carrierTag = document.getElementById('contact-carrier');
-      if (contact.length > 0) { // we have a contact
-        var name = contact[0].name,
-            phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
-        // Check which of the contacts phone number we are using
-        for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number) {
-            phone = contact[0].tel[i];
-            carrierToShow = phone.carrier;
-          }
-        }
-        // Add data values for contact activity interaction
+    Utils.getPhoneDetails(number, function returnedDetails(details) {
+      if (details.isContact) {
         self.title.dataset.isContact = true;
-
-        if (name && name != '') { // contact with name
-          for (var i = 0; i < contact[0].tel.length; i++) {
-            if (contact[0].tel[i].value !== phone.value &&
-                contact[0].tel[i].type == phone.type &&
-                contact[0].tel[i].carrier == phone.carrier) {
-              carrierToShow = phone.value;
-            }
-          }
-          self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' +
-                                (carrierToShow || phone.value);
-        } else { // no name of contact
-          carrierTag.innerHTML = phone.type;
-        }
-      } else { // we don't have a contact
-        carrierTag.style.display = 'none';
+      } else {
+         self.title.dataset.isContact = false;
+      }
+      self.title.innerHTML = details.title || number;
+      var carrierTag = document.getElementById('contact-carrier');
+      if (details.carrier) {
+        carrierTag.innerHTML = details.carrier;
+        carrierTag.classList.remove('hide');
+      } else {
+        carrierTag.classList.add('hide');
       }
     });
+
+
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
@@ -1067,8 +1056,10 @@ var ThreadUI = {
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
                   Utils.updateHeaders();
+
                 });
               }
+              MessageManager.getMessages(ThreadListUI.renderThreads);
               MessageManager.send(num, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
@@ -1300,20 +1291,41 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+  var activityAction = function act_action() {
+    var currentLocation = window.location.hash;
+    switch (currentLocation) {
+      case '#thread-list':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#new':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#edit':
+        history.back();
+        activityAction();
+        break;
+      default:
+        if (currentLocation.indexOf('#num=') != -1) {
+          MessageManager.activityTarget = number;
+          window.location.hash = '#thread-list';
+        } else {
+          window.location.hash = '#num=' + number;
+        }
+        break;
+    }
+  };
 
-  if (document.readyState == 'complete') {
-    displayThread();
+  if (!document.documentElement.lang) {
+    window.addEventListener('localized', function waitLocalized() {
+      window.removeEventListener('localized', waitLocalized);
+      activityAction();
+    });
   } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
+    document.addEventListener('mozvisibilitychange', function waitVisibility() {
+      document.removeEventListener('mozvisibilitychange', waitVisibility);
+      activityAction();
     });
   }
-
   activity.postResult({ status: 'accepted' });
 });
 

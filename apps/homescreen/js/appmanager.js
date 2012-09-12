@@ -45,12 +45,11 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest || !manifest.icons) {
+      if (!manifest ||
+          (isCore(app) && manifest.launch_path === undefined)) {
         return;
       }
 
-
-      // If the manifest contains entry points, iterate over them
       // and add a fake app object for each one.
       var entryPoints = manifest.entry_points;
       if (!entryPoints) {
@@ -172,31 +171,14 @@ var Applications = (function() {
     return app ? app.manifest : null;
   };
 
-  // Core applications should be flagged at some point. Not sure how?
-  var protocol = window.location.protocol;
-  var host = window.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
-  var coreApplications = [
-    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-    'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm'
-  ];
-
-  coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return protocol + '//' + name + '.' + domain;
-  });
-
-  coreApplications.push('https://marketplace.mozilla.org/telefonica/');
-
   /*
    *  Returns true if it's a core application
    *
-   *  {String} App origin
+   *  {Object} Moz application
    *
    */
-  function isCore(origin) {
-    return coreApplications.indexOf(origin) !== -1;
+  function isCore(app) {
+    return !app.removable;
   };
 
   var deviceWidth = document.documentElement.clientWidth;
@@ -229,6 +211,10 @@ var Applications = (function() {
 
     // Get all sizes orderer largest to smallest
     var icons = manifest.icons;
+    if (!icons) {
+      return 'style/images/default.png';
+    }
+
     var sizes = Object.keys(icons).map(function parse(str) {
       return parseInt(str, 10);
     });

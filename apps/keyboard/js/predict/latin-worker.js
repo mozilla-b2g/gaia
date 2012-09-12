@@ -205,7 +205,7 @@ const LookupPrefix = (function() {
 
 // Generate an array of char codes from a word.
 function String2Codes(codes, word) {
-  for (var n = 0; n < codes.length; ++n)
+  for (var n = 0, len = word.length; n < len; ++n)
     codes[n] = word.charCodeAt(n);
   return codes;
 }
@@ -216,8 +216,8 @@ function Codes2String(codes) {
 }
 
 // Map an array of codes to the base letters, eliminating any diacritics.
-function MapCodesToBaseLetters(codes) {
-  for (var n = 0; n < codes.length; ++n)
+function MapCodesToBaseLetters(codes, length) {
+  for (var n = 0; n < length; ++n)
     codes[n] = _charMap[codes[n]];
   return codes;
 }
@@ -347,8 +347,8 @@ const LevenshteinDistance = (function() {
       s_b = Uint32Array(b_length);
 
     // Convert both strings to base letters, eliminating all diacritics.
-    a = MapCodesToBaseLetters(String2Codes(s_a, a));
-    b = MapCodesToBaseLetters(String2Codes(s_b, b));
+    a = MapCodesToBaseLetters(String2Codes(s_a, a), a.length);
+    b = MapCodesToBaseLetters(String2Codes(s_b, b), b.length);
 
     // Re-use the same array between computations to avoid excessive garbage
     // collections.

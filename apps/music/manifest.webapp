@@ -13,28 +13,28 @@
   ],
   "locales": {
     "ar": {
-      "name": "\u0645\u0648\u0633\u064a\u0642\u0649",
-      "description": "Gaia \u0645\u0648\u0633\u064a\u0642\u0649"
+      "name": "موسيقى",
+      "description": "Gaia موسيقى"
     },
     "ca": {
-      "name": "M\u00fasica",
-      "description": "M\u00fasica del Gaia"
+      "name": "Música",
+      "description": "Música del Gaia"
     },
     "de": {
       "name": "Musik",
       "description": "Gaia Musik"
     },
     "el": {
-      "name": "\u039c\u03bf\u03c5\u03c3\u03b9\u03ba\u03ae",
-      "description": "\u039c\u03bf\u03c5\u03c3\u03b9\u03ba\u03ae Gaia"
+      "name": "Μουσική",
+      "description": "Μουσική Gaia"
     },
     "en-US": {
       "name": "Music",
       "description": "Gaia Music"
     },
     "es": {
-      "name": "M\u00fasica",
-      "description": "M\u00fasica de Gaia"
+      "name": "Música",
+      "description": "Música de Gaia"
     },
     "fr": {
       "name": "Musique",
@@ -45,20 +45,20 @@
       "description": "Musica di Gaia"
     },
     "pt-BR": {
-      "name": "M\u00fasica",
-      "description": "M\u00fasicas Gaia"
+      "name": "Música",
+      "description": "Música Gaia"
     },
     "ru": {
-      "name": "\u041c\u0443\u0437\u044b\u043a\u0430",
-      "description": "\u041c\u0443\u0437\u044b\u043a\u0430 Gaia"
+      "name": "Музыка",
+      "description": "Музыка Gaia"
     },
     "tr": {
-      "name": "M\u00fczik",
-      "description": "Gaia M\u00fczik"
+      "name": "Müzik",
+      "description": "Gaia Müzik"
     },
     "zh-TW": {
-      "name": "\u97f3\u6a02",
-      "description": "Gaia \u97f3\u6a02"
+      "name": "音樂",
+      "description": "Gaia 音樂"
     }
   },
   "default_locale": "en-US",
