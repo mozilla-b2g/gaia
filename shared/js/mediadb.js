@@ -572,6 +572,25 @@ MediaDB.prototype = {
       handle.state = 'cancelling';
   },
 
+  // Find the number of records stored within an object store.
+  count: function(range, callback) {
+    if (!this.db)
+      throw Error('MediaDB is not ready yet. Use the onready callback');
+
+    // range is an optional argument
+    if (arguments.length === 1) {
+      callback = range;
+      range = undefined;
+    }
+
+    var store = this.db.transaction('files').objectStore('files');
+    var countRequest = store.count(range || null);
+
+    countRequest.onsuccess = function(e) {
+      callback(e.target.result);
+    };
+  },
+
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
   // a scan right after calling the constructor and then will proceed to
