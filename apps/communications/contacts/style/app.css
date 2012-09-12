@@ -648,6 +648,7 @@ span[role="button"].icon-arrow.icon-arrow-right {
   height: 4rem;
   padding: 0 1rem;
   -moz-box-sizing: border-box;
+  text-overflow: ellipsis;
 }
 
 input:-moz-placeholder {
