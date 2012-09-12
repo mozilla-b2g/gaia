@@ -22,8 +22,7 @@ var PairView = {
   passkeyInput: document.getElementById('passkey-input'),
 
   init: function pv_setDeviceInfo(method, device, passkey) {
-   // this._pairMethod = method;
-    this._pairMethod = 'pincode';
+    this._pairMethod = method;
     this._address = device.address;
     this.nameLabel.textContent = device.name;
     this.addressLabel.textContent = device.address;
