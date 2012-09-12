@@ -9,8 +9,23 @@ requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 
-suite('Render contacts list', function() {
+// We're going to swap those with mock objects
+// so we need to make sure they are defined.
+if (!this.Contacts) {
+  this.Contacts = null;
+}
+if (!this.fb) {
+  this.fb = null;
+}
+if (!this.FixedHeader) {
+  this.FixedHeader = null;
+}
 
+if (!this.mozL10n) {
+  this.mozL10n = null;
+}
+
+suite('Render contacts list', function() {
   var subject,
     container,
     realL10n,
@@ -19,6 +34,7 @@ suite('Render contacts list', function() {
     Contacts,
     fb,
     FixedHeader,
+    realFixedHeader,
     utils,
     realUtils,
     mockContacts,
@@ -34,25 +50,6 @@ suite('Render contacts list', function() {
     containerD,
     containerFav,
     list;
-
-  realContacts = window.Contacts;
-  realL10n = navigator.mozL10n;
-  navigator.mozL10n = {
-    get: function get(key) {
-      return key;
-    },
-    DateTimeFormat: function() {
-      this.localeFormat = function(date, format) {
-        return date;
-      }
-    }
-  };
-  window.Contacts = MockContactsApp;
-  realFb = window.fb;
-  window.fb = MockFb;
-  FixedHeader = MockFixedHeader;
-  window.utils = window.utils || {};
-  window.utils.alphaScroll = MockAlphaScroll;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -73,7 +70,26 @@ suite('Render contacts list', function() {
   }
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function get(key) {
+        return key;
+      },
+      DateTimeFormat: function() {
+        this.localeFormat = function(date, format) {
+          return date;
+        }
+      }
+    };
 
+    realContacts = window.Contacts;
+    window.Contacts = MockContactsApp;
+    realFb = window.fb;
+    window.fb = MockFb;
+    realFixedHeader = window.FixedHeader;
+    window.FixedHeader = MockFixedHeader;
+    window.utils = window.utils || {};
+    window.utils.alphaScroll = MockAlphaScroll;
     subject = contacts.List;
     container = document.createElement('div');
     var groupsContainer = document.createElement('div');
@@ -93,6 +109,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
+    window.utils = realFixedHeader;
   });
 
   setup(function() {
