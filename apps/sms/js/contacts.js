@@ -26,6 +26,7 @@ var ContactDataManager = {
     // so desktop keeps working
     if (!navigator.mozSms)
       return;
+    // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
     if (number.length < 7) {
       var options = {
         filterBy: ['tel'],
