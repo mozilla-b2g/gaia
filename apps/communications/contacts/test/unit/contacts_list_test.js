@@ -44,11 +44,13 @@ suite('Render contacts list', function() {
       groupC,
       groupD,
       groupFav,
+      groupUnd,
       containerA,
       containerB,
       containerC,
       containerD,
       containerFav,
+      containerUnd,
       list;
 
   function assertNoGroup(title, container) {
@@ -132,6 +134,8 @@ suite('Render contacts list', function() {
       containerC = container.querySelector('#contacts-list-C');
       groupD = container.querySelector('#group-D');
       containerD = container.querySelector('#contacts-list-D');
+      groupUnd = container.querySelector('#group-und');
+      containerUnd = container.querySelector('#contacts-list-und');
 
       assert.isTrue(subject.loaded);
       assertNoGroup(groupFav, containerFav);
@@ -172,6 +176,81 @@ suite('Render contacts list', function() {
       assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
       assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > 1);
       assertTotal(3, 4);
+    });
+
+    test('rendering one with no name and phone', function() {
+      var newContact = new MockContactAllFields();
+      newContact.id = '4';
+      newContact.familyName = null;
+      newContact.givenName = null;
+      newContact.name = null;
+      newContact.category = null;
+      var newList = mockContacts.concat([newContact]);
+      subject.load(newList);
+      assertNoGroup(groupFav, containerFav);
+      var cContacts = assertGroup(groupC, containerC, 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
+      var undContacts = assertGroup(groupUnd, containerUnd, 1);
+      assert.isTrue(undContacts[0].innerHTML.indexOf(newContact.tel[0].value) > 1);
+      assertTotal(4, 4);
+    });
+
+    test('rendering one with no name and email', function() {
+      var newContact = new MockContactAllFields();
+      newContact.id = '4';
+      newContact.familyName = null;
+      newContact.givenName = null;
+      newContact.name = null;
+      newContact.category = null;
+      newContact.tel = null;
+      newContact.email[0].value = 'CZ@CZ.com';
+      var newList = mockContacts.concat([newContact]);
+      subject.load(newList);
+      assertNoGroup(groupFav, containerFav);
+      var cContacts = assertGroup(groupC, containerC, 2);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
+      assert.isTrue(cContacts[1].innerHTML.indexOf('CZ@') > 1);
+      assertNoGroup(groupUnd, containerUnd);
+      assertTotal(3, 4);
+    });
+
+    test('rendering one with no name nor email', function() {
+      var newContact = new MockContactAllFields();
+      newContact.id = '4';
+      newContact.familyName = null;
+      newContact.givenName = null;
+      newContact.name = null;
+      newContact.category = null;
+      newContact.tel = null;
+      newContact.email = null;
+      var newList = mockContacts.concat([newContact]);
+      subject.load(newList);
+      assertNoGroup(groupFav, containerFav);
+      var cContacts = assertGroup(groupC, containerC, 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
+      var undContacts = assertGroup(groupUnd, containerUnd, 1);
+      assert.isTrue(undContacts[0].innerHTML.indexOf('noName') > 1);
+      assertTotal(4, 4);
+    });
+
+    test('rendering one with no name nor email and favorite', function() {
+      var newContact = new MockContactAllFields();
+      newContact.id = '4';
+      newContact.familyName = null;
+      newContact.givenName = null;
+      newContact.name = null;
+      newContact.category = ['favorite'];
+      newContact.tel = null;
+      newContact.email = null;
+      var newList = mockContacts.concat([newContact]);
+      subject.load(newList);
+      var favContacts = assertGroup(groupFav, containerFav, 1);
+      assert.isTrue(favContacts[0].innerHTML.indexOf('noName') > 1);
+      var cContacts = assertGroup(groupC, containerC, 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
+      var undContacts = assertGroup(groupUnd, containerUnd, 1);
+      assert.isTrue(undContacts[0].innerHTML.indexOf('noName') > 1);
+      assertTotal(5, 5);
     });
 
     test('adding one in the middle of a group', function() {
