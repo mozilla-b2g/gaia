@@ -1,8 +1,12 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
-// Keeping a reference on all the active notification
-// to avoid weird GC issues.
-// See https://bugzilla.mozilla.org/show_bug.cgi?id=755402
+/**
+ * Keeping a reference on all active notifications to avoid weird GC issues.
+ * See https://bugzilla.mozilla.org/show_bug.cgi?id=755402
+ */
 
 var NotificationHelper = {
   _referencesArray: [],
@@ -54,3 +58,4 @@ var NotificationHelper = {
     this._referencesArray.splice(referencesArray.indexOf(notification), 1);
   }
 };
+
