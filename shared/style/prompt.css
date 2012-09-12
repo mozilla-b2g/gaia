@@ -33,6 +33,9 @@ form[role="dialog"]:before {
 }
 
 form[role="dialog"] > section {
+  font-weight: lighter;
+  font-size: 2.2rem;
+  color: #FAFAFA;
   padding: 0 2.5rem 0 2rem;
   -moz-box-sizing: padding-box;
   width: 100%;
@@ -42,7 +45,6 @@ form[role="dialog"] > section {
 }
 
 form[role="dialog"] h1 {
-  font-family: 'Open Sans', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;
@@ -159,13 +161,8 @@ form[role="dialog"] menu button.full {
   width: 100%;
 }
 
-
 /* Specific component code */
 form[role="dialog"] p {
-  font-family: 'Open Sans', Sans-serif;
-  font-weight: lighter;
-  font-size: 2.2rem;
-  color: #FAFAFA;
   overflow: hidden;
   margin: 1rem 0 0;
   padding-top: 1rem;
@@ -183,7 +180,6 @@ form[role="dialog"] p strong {
 
 form[role="dialog"] p small {
   font-size: 1.4rem;
-  font-family: 'Open Sans', Sans-serif;
   font-weight: normal;
   color: #cbcbcb;
   display: block;
