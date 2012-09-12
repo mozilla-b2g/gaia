@@ -164,7 +164,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
-    settings.getLock().set({'wifi.enabled': this.checked});
+    settings.createLock().set({'wifi.enabled': this.checked});
   };
 
   /** mozWifiManager status
@@ -563,8 +563,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     // generic wifi property dialog
-    // TODO: the 'OK' button should be disabled until the password string
-    //       has a suitable length (e.g. 8..63)
     function wifiDialog(selector, callback, key) {
       var dialog = document.querySelector(selector);
       if (!dialog || !network)
@@ -615,6 +613,17 @@ window.addEventListener('localized', function wifiSettings(evt) {
           inputs[i].onblur = function showFooter() {
             footer.style.display = 'block';
           };
+        }
+
+        var submitButton = footer.querySelector('button');
+        if (key === 'WPA-PSK') {
+          password.onchange = function() {
+            submitButton.disabled = password.value.length < 8;
+          };
+          password.onchange();
+        } else {
+          password.onchange = function() {};
+          submitButton.disabled = false;
         }
       }
 
@@ -706,7 +715,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   });
 
   // startup, update status
-  var req = settings.getLock().get('wifi.enabled');
+  var req = settings.createLock().get('wifi.enabled');
   req.onsuccess = function wf_getStatusSuccess() {
     lastMozSettingValue = req.result['wifi.enabled'];
     setMozSettingsEnabled(lastMozSettingValue);

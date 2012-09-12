@@ -8,10 +8,12 @@
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/settings_listener.js"></script>
+    <script defer src="shared/js/custom_dialog.js"></script>
+    <script defer src="shared/js/notification_helper.js"></script>
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
-    <script defer src="js/settings_listener.js"></script>
     <script defer src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
@@ -31,22 +33,22 @@
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
     <script defer src="js/accessibility.js"></script>
-    
+
     <!-- Sleep Menu -->
     <link rel="stylesheet" type="text/css" href="style/sleep_menu/sleep_menu.css">
     <script defer src="js/sleep_menu.js"></script>
-    
+
     <!-- Cards View -->
     <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
     <script defer src="js/cards_view/cards_view.js"></script>
-    
+
     <!-- Keyboard -->
     <script defer src="js/keyboard_manager.js"></script>
-    
+
     <!-- Utility Tray -->
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
     <script defer src="js/utility_tray.js"></script>
-    
+
     <!-- Attention Screen -->
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
     <script defer src="js/attention_screen.js"></script>
@@ -54,19 +56,19 @@
     <!-- List Menu -->
     <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
     <script defer src="js/list_menu.js"></script>
-    
+
     <!-- Context Menu -->
     <script defer src="js/context_menu.js"></script>
-    
+
     <!-- Statusbar -->
     <link rel="stylesheet" type="text/css" href="style/statusbar/statusbar.css">
     <script defer src="js/statusbar.js"></script>
-    
+
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="js/mobile_info.js"></script>
     <script defer src="js/lockscreen.js"></script>
-    
+
     <!-- PIN Unlocking -->
     <link rel="stylesheet" type="text/css" href="style/pinlock/pinlock.css">
     <script defer src="js/pinlock/pinlock.js"></script>
@@ -78,7 +80,10 @@
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/prompt.css">
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
-    
+
+    <!-- Authentication Dialog-->
+    <script defer src="js/authentication_dialog.js"></script>
+
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
     <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
@@ -88,7 +93,7 @@
     <!-- Popup Manager -->
     <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
     <script defer src="js/popup_manager.js"></script>
-    
+
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
@@ -113,6 +118,10 @@
 
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
+
+    <!-- System Updater -->
+    <script defer src="js/system_updater.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/system_updater/system_updater.css">
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -216,7 +225,17 @@
           <span data-l10n-id="notifications">Notifications</span>
           <button id="notification-clear" data-l10n-id="clear-all">Clear all</button>
         </div>
+
         <div id="notifications-container">
+          <!-- system updater -->
+          <div id="system-update-status" class="notification">
+            <div class="system-update-progress" data-l10n-id="updateProgress">System update...</div>
+            <div class="system-update-applying" data-l10n-id="applying">Applying...</div>
+            <div class="icon"></div>
+            <progress value="0" max="1"></progress>
+          </div>
+          <div id="desktop-notifications-container">
+          </div>
         </div>
 
         <!-- credit module -->
@@ -241,6 +260,28 @@
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="popup-container">
+        </div>
+        <div id="authentication-dialog">
+          <!--div id="authentication-dialog-ftp" role="dialog">
+          </div-->
+          <div id="authentication-dialog-http-authentication" role="dialog">
+            <div class="authentication-dialog-message-container inner">
+              <h3 id="authentication-dialog-title"></h3>
+              <p>
+                <span id="authentication-dialog-http-authentication-message"></span>
+              </p>
+              <p>
+                <span data-l10n-id="username">Username</span>
+                <input id="authentication-dialog-http-username-input" />
+                <span data-l10n-id="password">Password</span>
+                <input id="authentication-dialog-http-password-input" type="password" />
+              </p>
+            </div>
+            <menu data-items="2">
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
+              <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">Cancel</button>
+            </menu>
+          </div>
         </div>
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog">
@@ -279,23 +320,6 @@
             <menu data-items="2">
               <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
               <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
-            </menu>
-          </div>
-
-          <div id="modal-dialog-authentication" role="dialog">
-            <div class="modal-dialog-message-container inner">
-              <h3></h3>
-              <p>
-                <span id="modal-dialog-authentication-message"></span>
-                <span data-l10n-id="username">Username</span>
-                <input id="modal-dialog-username-input" />
-                <span data-l10n-id="password">Password</span>
-                <input id="modal-dialog-password-input" type="password" />
-              </p>
-            </div>
-            <menu data-items="2">
-              <button id="modal-dialog-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
-              <button id="modal-dialog-authentication-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
           </div>
 
@@ -376,16 +400,16 @@
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-area-camera" class="lockscreen-icon lockscreen-icon-left">
-              <div id="lockscreen-camera-arrow" class="lockscreen-arrow"></div>
+              <div id="lockscreen-left-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-camera" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
             </div>
             <div id="lockscreen-area-unlock" class="lockscreen-icon lockscreen-icon-right">
-              <div id="lockscreen-unlock-arrow" class="lockscreen-arrow"></div>
+              <div id="lockscreen-right-arrow" class="lockscreen-arrow"></div>
               <div id="lockscreen-accessibility-unlock" role="button" class="lockscreen-icon-a11y-button" data-l10n-id="unlock-a11y-button" aria-label="Unlock"></div>
             </div>
             <div id="lockscreen-rail-left" class="lockscreen-rail"></div>
             <div id="lockscreen-rail-right" class="lockscreen-rail"></div>
-            <div id="lockscreen-area-handle"></div>
+            <div id="lockscreen-area-handle"><span></span><span></span></div>
           </div>
 
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
@@ -482,10 +506,9 @@
         <div id="battery">
         </div>
 
-        <div id="usb">
-        </div>
-
         <div id="volume" class="vibration">
+          <span class="vibration"></span>
+          <span class="mute-state"></span>
           <div class="active"></div>
           <div class="active"></div>
           <div class="active"></div>
@@ -496,6 +519,7 @@
           <div></div>
           <div></div>
           <div></div>
+          <span class="volume"></span>
         </div>
       </div>
     </div>

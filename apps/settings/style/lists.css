@@ -131,7 +131,7 @@ ul li button, ul li a[role=button] {
   margin: auto;
   position: relative;
   top: 1rem;
-  font-size: 1em;
+  font-size: 1.5rem;
   line-height: 1em;
   width: calc(100% - 5rem);
   height: calc(100% - 2rem);
@@ -139,7 +139,7 @@ ul li button, ul li a[role=button] {
 
 
 /******************************************************************************
- * brightness level
+ * Brightness level
  */
 
 [role=region] label > progress {
@@ -156,10 +156,8 @@ ul li button, ul li a[role=button] {
 }
 
 #brightness-level a {
-  max-width: -moz-calc(60% - 50px);
   max-width: calc(60% - 50px);
 }
-
 
 
 /******************************************************************************
@@ -190,10 +188,12 @@ ul li button, ul li a[role=button] {
 #root li [data-l10n-id="simCardLock"]       { background-image: url(images/settings_simcardlock.png); }
 #root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings_apppermissions.png); }
 #root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings_donottrack.png); }
-#root li [data-l10n-id="aboutPhone"]        { background-image: url(images/settings_help.png); }
+#root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings_aboutphone.png); }
 #root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings_help.png); }
 #root li [data-l10n-id="storage"]           { background-image: url(images/settings_storage.png); }
 #root li [data-l10n-id="battery"]           { background-image: url(images/settings_battery.png); }
+#root li [data-l10n-id="deviceStorage"],
+#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings_storage.png)}
 
 #root li a {
   padding-left: 55px;
@@ -250,5 +250,15 @@ ul li button, ul li a[role=button] {
   font-style: italic;
   font-size: 0.65em;
   color: #505859;
+}
+
+
+/******************************************************************************
+ * Battery
+ */
+
+.level-desc {
+  position: absolute;
+  right: 2rem;
 }
 
