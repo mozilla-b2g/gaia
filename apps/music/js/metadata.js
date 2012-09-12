@@ -318,16 +318,12 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       switch (encoding) {
       case 0:
         return view.readNullTerminatedLatin1Text(size);
-        break;
       case 1:
         return view.readNullTerminatedUTF16Text(size, undefined);
-        break;
       case 2:
         return view.readNullTerminatedUTF16Text(size, false);
-        break;
       case 3:
         return view.readNullTerminatedUTF8Text(size);
-        break;
       default:
         throw Error('unknown text encoding');
       }
