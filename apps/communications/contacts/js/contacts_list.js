@@ -99,7 +99,7 @@ contacts.List = (function() {
     figure.appendChild(img);
     link.appendChild(figure);
     var body = document.createElement('p');
-    body.className = 'item-body';
+    body.className = 'item-body-exp';
     var name = document.createElement('strong');
     name.className = 'block-name';
     name.innerHTML = contact.givenName;
