@@ -25,14 +25,24 @@ function startup() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
 
-  navigator.mozApps.mgmt.getAll().onsuccess = function() {
-    new MozActivity({
-      name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
-    });
-  }
+  // We need to wait for the chrome shell to let us know when it's ok to
+  // launch activities. This prevents race conditions.
+  window.addEventListener('mozChromeEvent', function onStartupChromeEvent(event) {
+    if (event.detail.type != 'webapps-registry-ready') {
+      return;
+    }
+
+    navigator.mozApps.mgmt.getAll().onsuccess = function() {
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'application/x-application-list'
+        }
+      });
+    }
+    window.removeEventListener('mozChromeEvent', onStartupChromeEvent);
+  });
+
 }
 
 /* === Shortcuts === */
