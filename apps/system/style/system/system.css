@@ -276,5 +276,4 @@ iframe.backgroundWindow {
 #system-banner.visible {
   animation: banner-bounce 4s;
   visibility: visible;
-
 }
