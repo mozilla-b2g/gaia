@@ -19,7 +19,7 @@ body[role="application"] [role="dialog"] {
   color: #FFFFFF;
   font-family: "Open Sans",Sans-serif;
   left: 0;
-  overflow: hidden;
+  overflow: auto;
   padding: 1.5rem 0 7rem;
   position: absolute;
   right: 0;
