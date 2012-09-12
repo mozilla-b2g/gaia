@@ -255,16 +255,25 @@ iframe.backgroundWindow {
   pointer-events: auto;
 }
 
+@keyframes banner-bounce {
+  from, to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  12.5%, 87.5% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 #system-banner {
   z-index: 0;
   visibility: hidden;
   opacity: 0;
-  -moz-transform: translateY(100%);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.5s ease, visibility 0.5s ease;
+  transform: translateY(100%);
 }
 
 #system-banner.visible {
-  -moz-transform: translateY(0);
+  animation: banner-bounce 4s;
   visibility: visible;
-  opacity: 1;
 }
