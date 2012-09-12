@@ -341,7 +341,7 @@ var WindowManager = (function() {
     store.delete(origin);
   }
 
-  function getAppScreenshotFromFrame(origin, callback) {
+  function getAppScreenshotFromFrame(origin, callback, longTimeout) {
     var app = runningApps[origin];
 
     if (!app || !app.frame) {
@@ -351,13 +351,16 @@ var WindowManager = (function() {
 
     var req = app.frame.getScreenshot();
 
-    // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    // This serve as a workaround of
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    // We also use this timeout to make sure transition
+    // won't stuck for too long.
     var isTimeout = false;
     var timer = setTimeout(function getScreenshotTimeout() {
       console.warn('Window Manager: getScreenshot timeout.');
       isTimeout = true;
       callback();
-    }, 500);
+    }, longTimeout ? 10 * 1000 : 800);
 
     req.onsuccess = function(evt) {
       if (isTimeout)
@@ -390,7 +393,7 @@ var WindowManager = (function() {
         return;
 
       putAppScreenshotToDatabase(origin, screenshot);
-    });
+    }, true);
   }
 
   // Meta method for getting app screenshot from database, or
