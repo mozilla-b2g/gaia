@@ -17,7 +17,7 @@
   });
 
   var selectedPhoneSound = '';
-  SettingsListener.observe('homescreen.ring', 'classic.ogg', function(value) {
+  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
     selectedPhoneSound = 'style/ringtones/' + value;
     ringtonePlayer.src = selectedPhoneSound;
   });
