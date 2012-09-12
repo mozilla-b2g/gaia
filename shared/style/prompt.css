@@ -3,7 +3,7 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-section[role="dialog"] {
+form[role="dialog"] {
   background: url(prompt/images/ui/pattern.png) repeat left top, url(prompt/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
@@ -23,7 +23,7 @@ section[role="dialog"] {
   color: #fff;
 }
 
-section[role="dialog"]:before {
+form[role="dialog"]:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -32,7 +32,7 @@ section[role="dialog"]:before {
   margin-left: -1px;
 }
 
-section[role="dialog"] > section {
+form[role="dialog"] > section {
   padding: 0 2.5rem 0 2rem;
   -moz-box-sizing: padding-box;
   width: 100%;
@@ -41,7 +41,7 @@ section[role="dialog"] > section {
   white-space: normal;
 }
 
-section[role="dialog"] h1 {
+form[role="dialog"] h1 {
   font-family: 'Open Sans', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
@@ -52,7 +52,7 @@ section[role="dialog"] h1 {
 }
 
 /* Menu & buttons setup */
-section[role="dialog"] menu {
+form[role="dialog"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -66,8 +66,7 @@ section[role="dialog"] menu {
   bottom: 0;
 }
 
-section[role="dialog"] menu button,
-section[role="dialog"] menu a[role="button"] {
+form[role="dialog"] menu button {
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
@@ -78,93 +77,86 @@ section[role="dialog"] menu a[role="button"] {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  background: #fafafa url(prompt/images/ui/button_default.png) repeat-x left bottom;
-  border: 1px solid #9f9f9f;
+  background: #b70404 url(prompt/images/ui/button.png) repeat-x left bottom;
   border-radius: 0.3rem;
+  outline: none;
+  border: none;
   font-size: 1.6rem;
   font-family: 'Open Sans', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
-  color: #333;
+  color: #fff;
+  text-shadow: -1px -1px 0 #830b0b;
   text-align: center;
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
   text-decoration: none;
-  outline: none;
 }
 
-section[role="dialog"] menu button:active,
-section[role="dialog"] menu a[role="button"]:active,
-section[role="dialog"] menu button.affirmative:active,
-section[role="dialog"] menu a.affirmative[role="button"]:active  {
-  border-color: #008aaa;
+/* Press */
+form[role="dialog"] menu button:active {
+  background-image: url(prompt/images/ui/button_press.png);
+  background-color: #890707;
+}
+
+/* Disabled */
+form[role="dialog"] menu button[disabled="disabled"] {
+  background-image: url(prompt/images/ui/button_disabled.png);
+  text-shadow: none;
+}
+
+/* Reset & submit defaults */
+form[role="dialog"] menu button[type="reset"],
+form[role="dialog"] menu button[type="submit"] {
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  color: #333;
+}
+
+/* Reset */
+form[role="dialog"] menu button[type="reset"] {
+  background-image: url(prompt/images/ui/button_reset.png);
+  background-color: #fafafa;
+  border: solid 1px #9f9f9f;
+}
+
+/* Submit */
+form[role="dialog"] menu button[type="submit"] {
+  background-image: url(prompt/images/ui/button_submit.png) ;
+  background-color: #00caf2;
+  border: 1px solid #00acce;
+}
+
+/* Pressed state, reset & submit */
+form[role="dialog"] menu button[type="reset"]:active,
+form[role="dialog"] menu button[type="submit"]:active {
+  border: solid 1px #008aaa;
   background: #008aaa;
   color: #333;
 }
 
-/* Affirmative */
-section[role="dialog"] menu button.affirmative,
-section[role="dialog"] menu a[role="button"].affirmative {
-  background-image: url(prompt/images/ui/button_affirmative.png);
-  background-color: #00caf2;
-  border-color: #00acce;
-}
-
-/* Negative */
-section[role="dialog"] menu button.negative,
-section[role="dialog"] menu a.negative[role="button"] {
-  background-image: url(prompt/images/ui/button_negative.png);
-  background-color: #b70404;
-  color: #fff;
-  text-shadow: -1px -1px 0 #830b0b;
-  border: none;
-}
-
-/* Negative press */
-section[role="dialog"] menu button.negative:active,
-section[role="dialog"] menu a[role="button"].negative:active {
-  background-image: url(prompt/images/ui/button_negative_press.png);
-  background-color: #890707;
-}
-
-/* Disabled  (default & affirmative) */
-section[role="dialog"] menu button[disabled="disabled"],
-section[role="dialog"] menu a[role="button"][aria-disabled="true"],
-section[role="dialog"] menu button[disabled="disabled"].affirmative,
-section[role="dialog"] menu a[role="button"][aria-disabled="true"].affirmative {
-  background-image: url(prompt/images/ui/button_disabled.png);
+/* Disabled, reset & submit) */
+form[role="dialog"] menu button[type="reset"][disabled="disabled"],
+form[role="dialog"] menu button[type="submit"][disabled="disabled"] {
+  background-image: url(prompt/images/ui/button_special_disabled.png);
   background-color: transparent;
   border: none;
   color: #4a4a4a;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-/* Negative disabled */
-section[role="dialog"] menu button[disabled="disabled"].negative,
-section[role="dialog"] menu a[role="button"][aria-disabled="true"].negative {
-  background-image: url(prompt/images/ui/button_negative_disabled.png);
-  color: #fff;
-  text-shadow: none;
-}
-
-section[role="dialog"] menu button:last-child,
-section[role="dialog"] menu a[role="button"]:last-child {
+form[role="dialog"] menu button:last-child {
   margin-left: 1rem;
 }
 
-section[role="dialog"] menu button,
-section[role="dialog"] menu a[role="button"],
-section[role="dialog"] menu button:first-child,
-section[role="dialog"] menu a[role="button"]:first-child {
+form[role="dialog"] menu button,
+form[role="dialog"] menu button:first-child {
   margin: 0;
 }
 
-section[role="dialog"] menu[data-items="2"] button,
-section[role="dialog"] menu[data-items="2"] a[role="button"] {
+form[role="dialog"] menu[data-items="2"] button {
   width: -moz-calc((100% - 1rem) / 2);
 }
 
 /* Specific component code */
-section[role="dialog"] p {
+form[role="dialog"] p {
   font-family: 'Open Sans', Sans-serif;
   font-weight: lighter;
   font-size: 2.2rem;
@@ -175,16 +167,16 @@ section[role="dialog"] p {
   border-top: 0.1rem solid #686868;
 }
 
-section[role="dialog"] p img {
+form[role="dialog"] p img {
   float: left;
   margin-right: 2rem;
 }
 
-section[role="dialog"] p strong {
+form[role="dialog"] p strong {
   font-weight: lighter;
 }
 
-section[role="dialog"] p small {
+form[role="dialog"] p small {
   font-size: 1.4rem;
   font-family: 'Open Sans', Sans-serif;
   font-weight: normal;
