@@ -114,12 +114,6 @@ suite('Render contacts list', function() {
     window.utils = realFixedHeader;
   });
 
-  setup(function() {
-  });
-
-  teardown(function() {
-  });
-
   suite('Render list', function() {
     test('first time', function() {
       mockContacts = new MockContactsList();
