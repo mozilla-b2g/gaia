@@ -360,15 +360,7 @@ section[role="region"] > header:first-child {
 /* ITEM: The smallest complete structure; */
 .item {
   display: block;
-}
-
-.item:before, .item:after {
-  content: "";
-  display: table;
-}
-
-.item:after {
-  clear: both;
+  overflow: hidden;
 }
 
 .item-media {
@@ -656,6 +648,7 @@ span[role="button"].icon-arrow.icon-arrow-right {
   height: 4rem;
   padding: 0 1rem;
   -moz-box-sizing: border-box;
+  text-overflow: ellipsis;
 }
 
 input:-moz-placeholder {

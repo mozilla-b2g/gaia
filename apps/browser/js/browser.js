@@ -538,7 +538,7 @@ var Browser = {
   showBookmarkMenu: function browser_showBookmarkMenu() {
     // Hack until tabsBadge refactored in #1222
     this.bookmarkMenu.classList.remove('hidden');
-    this.tabsBadge.style.display = 'none'; 
+    this.tabsBadge.style.display = 'none';
     if (!this.currentTab.url)
       return;
     Places.getBookmark(this.currentTab.url, (function(bookmark) {

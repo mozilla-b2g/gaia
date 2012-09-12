@@ -1,6 +1,7 @@
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
+#authentication-dialog,
 #authentication-dialog-http,
 #modal-dialog-error {
   display: none;
@@ -32,6 +33,7 @@
 }
 
 #screen.modal-dialog #modal-dialog,
+#screen.authentication-dialog #authentication-dialog,
 #authentication-dialog-http.visible,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
