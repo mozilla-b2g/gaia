@@ -23,6 +23,7 @@
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/battery.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -52,7 +53,7 @@
           <a data-l10n-id="gps">GPS</a>
         </li>
         <li>
-          <small id="wifi-desc" data-l10n-id="disconnected">offline</small>
+          <small id="wifi-desc" data-l10n-id="fullStatus-disconnected">offline</small>
           <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
         </li>
         <li>
@@ -82,6 +83,9 @@
         </li>
         <li>
           <a href="#wallpaper" data-l10n-id="wallpaper">Wallpaper</a>
+        </li>
+        <li>
+          <a href="#notifications" data-l10n-id="notifications">Notifications</a>
         </li>
         <li hidden>
           <small id="time-desc"></small>
@@ -138,21 +142,25 @@
       </header>
       <ul>
         <li>
-          <a href="#about" data-l10n-id="aboutPhone">About Phone</a>
+          <a href="#about" data-l10n-id="deviceInfo">Device Information</a>
+        </li>
+        <li>
+          <small id="battery-desc"></small>
+          <a href="#battery" data-l10n-id="battery">Battery</a>
+        </li>
+        <li>
+          <small id="device-storage-desc"></small>
+          <a href="#device-storage" data-l10n-id="deviceStorage">Device Storage</a>
+        </li>
+        <li>
+          <small id="media-storage-desc"></small>
+          <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
         </li>
         <li>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
-        <li hidden>
-          <a href="#helpAndFeedback" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
-        </li>
         <li>
-          <small id="storage-desc"></small>
-          <a href="#storage" data-l10n-id="storage">Storage</a>
-        </li>
-        <li hidden>
-          <small id="battery-desc"></small>
-          <a href="#battery" data-l10n-id="battery">Battery</a>
+          <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>
     </section>
@@ -254,7 +262,8 @@
       </label>
       <label for="password">
         <span data-l10n-id="password">password</span>
-        <input data-password data-ignore name="password" type="password" />
+        <input data-password data-ignore name="password" type="password"
+          maxlength="63" />
       </label>
       <label for="show-pwd">
         <input data-ignore name="show-pwd" type="checkbox" />
@@ -582,24 +591,24 @@
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="classic.ogg" checked />
+            <input type="radio" name="dialer.ringtone" value="classic.ogg" checked />
             <span></span>
           </label>
-          <a data-l10n-id="default">Default</a>
+          <a data-l10n-id="classic">Default</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="bosscaling.ogg"/>
+            <input type="radio" name="dialer.ringtone" value="old school.ogg"/>
             <span></span>
           </label>
-          <a data-l10n-id="bosscaling">Bosscaling</a>
+          <a data-l10n-id="oldSchool">Bosscaling</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="goodnight.ogg"/>
+            <input type="radio" name="dialer.ringtone" value="low bit.ogg"/>
             <span></span>
           </label>
-          <a data-l10n-id="goodmight">GoodMight</a>
+          <a data-l10n-id="lowBit">Low Bit</a>
         </li>
       </ul>
 
@@ -753,6 +762,25 @@
           <a data-l10n-id="leaves">Leaves</a>
         </li>
       </ul>
+    </section>
+
+    <!-- Personalization :: Notifications -->
+    <section role="region" id="notifications">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="notifications">
+          Notifications
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="lockscreen.notifications-preview.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="lockscreen-notifications">Show on Lock Screen</a>
+        </li>
     </section>
 
     <!-- [TODO] Personalization :: Time & Date -->
@@ -1008,8 +1036,15 @@
             <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked />
             <span></span>
           </label>
-          <small data-l10n-id="passcode-lock-desc">Passcode: 0000</small>
+          <small data-l10n-id="passcode-lock-desc" data-l10n-id='{"code", "0000"}'>Passcode</small>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="unlock-sound">Unlock Sound</a>
         </li>
       </ul>
     </section>
@@ -1023,8 +1058,8 @@
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="aboutPhone">
-          About Phone
+        <h1 data-l10n-id="deviceInfo">
+          Device Information
         </h1>
       </header>
 
@@ -1087,12 +1122,35 @@
        </ul>
     </section>
 
-    <!-- Device :: Storage -->
-    <section role="region" id="storage">
+    <!-- Device :: Battery -->
+    <section role="region" id="battery">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="storage">
-          Storage
+        <h1 data-l10n-id="battery">
+          Battery
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
+            <span class="level-desc"></span>
+          </a>
+        </li>
+        <li>
+          <a id="battery-remaining" data-l10n-id="batteryEstLeft">Estimated Time Left
+            <span class="level-desc"></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Device Storage -->
+    <section role="region" id="device-storage">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="deviceStorage">
+          Device Storage
         </h1>
       </header>
 
@@ -1107,6 +1165,39 @@
       </ul>
     </section>
 
+    <!-- Device :: Media Storage -->
+    <section role="region" id="media-storage">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="mediaStorage">
+          Media Storage
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a data-l10n-id="music-space"> Music
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="pictures-space"> Pictures
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="videos-space"> Movies
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="left-space"> Space Left
+            <span class="storage-space"></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
     <!-- Device :: Accessibility -->
     <section role="region" id="accessibility">
       <header>
@@ -1117,7 +1208,7 @@
       </header>
 
       <ul>
-        <li>
+        <li hidden>
           <label>
             <input type="checkbox" name="accessibility.invert"/>
             <span></span>
@@ -1132,6 +1223,19 @@
           <a data-l10n-id="screenReader">Screen Reader</a>
         </li>
       </ul>
+    </section>
+
+    <!-- Device :: Help -->
+    <section role="region" id="help">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="helpAndFeedback">
+          Help
+        </h1>
+      </header>
+
+      <!-- TODO -->
+
     </section>
 
   </body>

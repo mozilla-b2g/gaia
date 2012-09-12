@@ -3,6 +3,20 @@
   margin: -1.4rem -2rem 1rem;
 }
 
+/* Fav star in header */
+section[role="region"] > header:first-child sup {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center;
+  background-size: 100% auto;
+  width: 1.2rem;
+  height: 3.2rem;
+  vertical-align: text-top;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+  float: left;
+  top: 0;
+}
+
 .contact-header img {
   width: 100%;
   height: 7.6rem;
@@ -15,7 +29,7 @@
 }
 
 #contact-name-title {
-  max-width: 23rem;
+  max-width: 22rem;
   float: left;
 }
 
@@ -35,7 +49,7 @@
   background-color: #f5f5f5;
   overflow: visible;
   position: relative;
-  min-height: 100%;
+  min-height: calc(100% - 3.6rem);
 }
 
 .view-contact-profile .view-body-inner.up {
@@ -141,66 +155,103 @@ hr {
   padding-top: 2.5rem;
 }
 
-#search-contact {
-  height: 2.5rem;
-  color: #000;
-  font-family: 'Open Sans';
-  font-size: 1.2rem;
-}
-
 .search-hide {
   display: none;
 }
 
-#search-container {
+/* Common search styles */
+form.search {
   background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
   position: absolute;
-  width: -moz-calc(100% - 5.8rem);
-  padding: 0.5rem 2.5rem;
-  height: 2.5rem;
+  width: 100%;
+  -moz-box-sizing: border-box;
   top: 0;
   left: 0;
+  color: #000;
+  font-family: 'Open Sans', Sans-serif;
+  font-size: 1.2rem;
+  text-align: left;
+  pointer-events: auto;
 }
 
-#search-container button {
+form.search label {
+  display: block;
+  padding: 0.5rem 3.3rem 0.5rem 2.5rem;
+}
+
+form.search input {
+  height: 2.5rem;
+  pointer-events: none;
+}
+
+form.search button {
   line-height: 2.5rem;
-  padding: 0 2rem;
-  font-family: 'Open Sans';
+  padding: 0;
+  margin-top: -0.5rem;
+  width: 8rem;
+  height: 3.5rem;
+  font-family: 'Open Sans', Sans-serif;
   font-weight: 600;
   font-size: 1.2rem;
   color: #707070;
+  float: right;
 }
 
-#view-contacts-list.searching.transitioning #search-container {
-  position: absolute;
-}
-
-#view-contacts-list.searching #search-container {
-  position: fixed;
-  z-index: 101;
-  top: 0;
-  width: -moz-calc(100% + 0.8rem);
-  background-size: 100% 100%;
-}
-
-#view-contacts-list.searching .view-body {
+/* Search view */
+#search-view {
+  pointer-events: none;
+  transform: translateX(100%);
   z-index: 10;
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 100%;
 }
 
-#view-contacts-list.searching header {
-  top: -5rem;
+#view-contacts-list.searching #search-view {
+  transform: translateX(0);
 }
 
-#view-contacts-list.searching #search-contact {
-  width: 20rem;
+#search-view form.search label {
+  padding: 0.5rem 0 0.5rem 2.5rem;
 }
 
-#view-contacts-list.searching .block-item {
-  border-bottom: 1px solid #DBDBDB;
+#search-view form.search input {
+  pointer-events: auto;
+  width: 21.5rem;
+  box-shadow: none;
+}
+
+#search-view form.search button[type="reset"] {
+  background: url(gphx/bitmap/default/vw-header/icons/clear.png) no-repeat center center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: -0.5rem 0 -0.5rem -4rem;
+  float: none;
+  opacity: 0;
+}
+
+#search-view form.search input:valid + button[type="reset"] {
+  opacity: 1;
+}
+
+/* Searching state */
+#view-contacts-list.searching > header {
+  transform: scale(0);
+  pointer-events: none;
+}
+
+#view-contacts-list.searching .fixed-title {
+  transform: scale(0) !important;
+}
+
+#view-contacts-list.searching .view-jumper {
+  transform: scale(0);
+}
+
+#view-contacts-list.searching #groups-list h2 {
+  display: none;
+}
+
+#view-contacts-list.searching .view-body-inner {
+  height: calc(100% + 5rem);
+  margin-top: -5rem;
 }
 
 #no-result {

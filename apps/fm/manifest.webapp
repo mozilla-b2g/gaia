@@ -37,8 +37,8 @@
       "description": "Gaia FM Radio"
     },
     "fr": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
+      "name": "Radio FM",
+      "description": "Radio FM Gaia"
     },
     "it": {
       "name": "FM Radio",
@@ -57,8 +57,8 @@
       "description": "Gaia FM Radio"
     },
     "zh-TW": {
-      "name": "\u6536\u97f3\u673a",
-      "description": "\u6536\u97f3\u673a"
+      "name": "收音机",
+      "description": "收音机"
     }
   },
   "default_locale": "en-US",

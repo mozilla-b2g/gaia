@@ -198,7 +198,7 @@ window.addEventListener('load', function getCarrierSettings() {
 
   // update network information when the data connection has changed
   function updateConnection() {
-    var data = gMobileConnection.data ?  gMobileConnection.data.network : null;
+    var data = gMobileConnection.data ? gMobileConnection.data.network : null;
     if (!data || !data.mcc) {
       console.warn('GSM data network could not be found');
     }

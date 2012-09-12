@@ -27,32 +27,32 @@
   },
   "locales": {
     "ar": {
-      "name": "\u0627\u0644\u0636\u0628\u0637",
-      "description": "Gaia \u0627\u0644\u0636\u0628\u0637"
+      "name": "الضبط",
+      "description": "Gaia الضبط"
     },
     "ca": {
-      "name": "Configuraci\u00f3",
-      "description": "Configuraci\u00f3 del Gaia"
+      "name": "Configuració",
+      "description": "Configuració del Gaia"
     },
     "de": {
       "name": "Einstellungen",
       "description": "Gaia Einstellungen"
     },
     "el": {
-      "name": "\u03a1\u03c5\u03b8\u03bc\u03af\u03c3\u03b5\u03b9\u03c2",
-      "description": "\u03a1\u03c5\u03b8\u03bc\u03af\u03c3\u03b5\u03b9\u03c2 Gaia"
+      "name": "Ρυθμίσεις",
+      "description": "Ρυθμίσεις Gaia"
     },
     "en-US": {
       "name": "Settings",
       "description": "Gaia Settings"
     },
     "es": {
-      "name": "Configuraci\u00f3n",
-      "description": "Configuraci\u00f3n de Gaia"
+      "name": "Configuración",
+      "description": "Configuración de Gaia"
     },
     "fr": {
-      "name": "Param\u00e8tres",
-      "description": "Param\u00e8tres Gaia"
+      "name": "Paramètres",
+      "description": "Paramètres Gaia"
     },
     "nb-NO": {
       "name": "Innstillinger",
@@ -63,20 +63,20 @@
       "description": "Impostazioni di Gaia"
     },
     "pt-BR": {
-      "name": "Prefer\u00eancias",
-      "description": "Prefer\u00eancias do Gaia"
+      "name": "Preferências",
+      "description": "Preferências do Gaia"
     },
     "ru": {
-      "name": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438",
-      "description": "\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438 Gaia"
+      "name": "Настройки",
+      "description": "Настройки Gaia"
     },
     "tr": {
       "name": "Ayarlar",
-      "description": "Gaia Ayarlar\u0131"
+      "description": "Gaia Ayarları"
     },
     "zh-TW": {
-      "name": "\u8a2d\u5b9a",
-      "description": "Gaia \u8a2d\u5b9a"
+      "name": "設定",
+      "description": "Gaia 設定"
     }
   },
   "default_locale": "en-US",
