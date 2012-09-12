@@ -46,6 +46,8 @@ function MessageListCard(domNode, mode, args) {
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
+  this.messageEmptyTitle =
+    domNode.getElementsByClassName('msg-list-empty')[0];
   // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
@@ -360,8 +362,14 @@ MessageListCard.prototype = {
     }
 
     // - added/existing
-    if (!addedItems.length)
+    if (!addedItems.length) {
+      if (this.messagesContainer.children.length === 0) {
+        this.messageEmptyTitle.classList.add('show');
+      }
       return;
+    } else {
+      this.messageEmptyTitle.classList.remove('show');
+    }
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
