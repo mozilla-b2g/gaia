@@ -312,7 +312,7 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return;
 
-    if (enable) {
+    if (enabled) {
       window.addEventListener('devicelight', this);
     } else {
       window.removeEventListener('devicelight', this);
