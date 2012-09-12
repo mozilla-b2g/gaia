@@ -37,8 +37,6 @@ var previewPlayer = document.createElement('video');
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
-var urlToStream; // From an activity call
-
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
@@ -85,10 +83,6 @@ function scan() {
       showOverlay('novideos');
     } else {
       showOverlay(null);
-    }
-    if (urlToStream) {
-      showStreamPlayer(urlToStream, true);
-      urlToStream = null;
     }
   });
 }
@@ -354,37 +348,6 @@ function showPlayer(data, autoPlay) {
   });
 }
 
-// play a stream
-function showStreamPlayer(url, autoPlay) {
-  // switch to the video player view
-  showOverlay(null);
-  dom.videoFrame.classList.remove('hidden');
-  dom.play.classList.remove('paused');
-  playerShowing = true;
-
-  dom.player.src = url;
-
-  // TODO: Attempting to resume the video player at the correct time
-  // is currently broken
-  // dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-  timeUpdated();
-
-  // Go into full screen mode
-  dom.videoFrame.mozRequestFullScreen();
-
-  // Show the controls briefly then fade out
-  setControlsVisibility(true);
-  controlFadeTimeout = setTimeout(function() {
-    setControlsVisibility(false);
-  }, 250);
-
-  //setPlayerSize();
-
-  if (autoPlay) {
-    play();
-  }
-}
-
 function hidePlayer() {
   if (!playerShowing)
     return;
@@ -564,12 +527,4 @@ function formatDuration(duration) {
     return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
   return '';
-}
-
-function actHandle(activity) {
-  urlToStream = activity.source.data.url;
-}
-
-if (window.navigator.mozSetMessageHandler) {
-  window.navigator.mozSetMessageHandler('activity', actHandle);
 }
