@@ -3,7 +3,8 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList,
+  var _,
+      groupsList,
       favoriteGroup,
       inSearchMode = false,
       loaded = false,
@@ -16,6 +17,7 @@ contacts.List = (function() {
       scrollable = document.querySelector('#groups-container');
 
   var init = function load(element) {
+    _ = navigator.mozL10n.get;
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
 
@@ -60,7 +62,6 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
-    getFavorites();
     this.loaded = true;
   };
 
@@ -224,6 +225,8 @@ contacts.List = (function() {
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
     var counter = {};
+    var favorites = [];
+    counter['favorites'] = 0;
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -234,7 +237,6 @@ contacts.List = (function() {
 
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
-
       var listContainer = document.getElementById('contacts-list-' + group);
       var newContact = renderContact(refillContactData(contact));
       var contactSelector = '[data-uuid="' + contact.id + '"]';
@@ -259,13 +261,18 @@ contacts.List = (function() {
         // If the contact is not already there means is a new one or
         // the letter is empty. If the new one is not at the end of the list
         // we need to remove the following contacts
-        if (length > 0 && length > index + 1) {
+        if (length > 0 && length >= index + 1) {
           resetGroup(listContainer, counter[group]);
         }
         listContainer.appendChild(newContact);
       }
       showGroup(group);
+      if (contact.category && contact.category.indexOf('favorite') != -1) {
+        counter['favorites']++;
+        favorites.push(contact);
+      }
     }
+    renderFavorites(favorites);
     cleanLastElements(counter);
     checkEmptyList();
     FixedHeader.refresh();
@@ -291,8 +298,8 @@ contacts.List = (function() {
 
   var checkEmptyList = function checkEmptyList() {
     // Check if we removed all the groups, and show the import contacts from SIM
-    var selectorString = '#groups-list li h2:not(.hide)';
-    var nodes = document.querySelectorAll(selectorString);
+    var selectorString = 'li h2:not(.hide)';
+    var nodes = groupsList.querySelectorAll(selectorString);
     if (nodes.length == 0) {
       addImportSimButton();
     }
@@ -308,45 +315,33 @@ contacts.List = (function() {
       container.removeChild(current);
       length = container.children.length;
     }
-  }
+  };
 
-  var getFavorites = function getFavorites() {
-    var options = {
-      filterBy: ['category'],
-      filterOp: 'contains',
-      filterValue: ['favorite'],
-      sortBy: 'familyName',
-      sortOrder: 'ascending'
-    };
-
-    // Reset previous state of favorites (if any)
-    var favoritesList = document.getElementById('contacts-list-favorites');
-    if (favoritesList != null) {
-      favoritesList.innerHTML = '';
+  var renderFavorites = function renderFavorites(favorites) {
+    var group = 'contacts-list-favorites';
+    var container = document.getElementById(group);
+    container.innerHTML = '';
+    if (favorites.length == 0) {
+      hideGroup('favorites');
+      return;
     }
-    var request = navigator.mozContacts.find(options);
-
-    request.onsuccess = function favoritesCallback() {
-      if (request.result.length > 0) {
-        showGroup('favorites');
-      }
-      for (var i = 0; i < request.result.length; i++) {
-        var contactToRender = request.result[i];
-        if (fb.isFbContact(contactToRender)) {
-          var fbContact = new fb.Contact(contactToRender);
-          var freq = fbContact.getData();
-          freq.onsuccess = function() {
-            addToFavoriteList(freq.result);
-          }
-
-          freq.onerror = function() {
-            addToFavoriteList(contactToRender);
-          }
-        } else {
-                  addToFavoriteList(contactToRender);
+    for (var i = 0; i < favorites.length; i++) {
+      var contactToRender = favorites[i];
+      if (fb.isFbContact(contactToRender)) {
+        var fbContact = new fb.Contact(contactToRender);
+        var freq = fbContact.getData();
+        freq.onsuccess = function() {
+          addToFavoriteList(freq.result);
         }
+
+        freq.onerror = function() {
+          addToFavoriteList(contactToRender);
+        }
+      } else {
+        addToFavoriteList(contactToRender);
       }
     }
+    showGroup('favorites');
   };
 
   function addToFavoriteList(c) {
