@@ -874,13 +874,29 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
+  function showCrashBanner(origin) {
+    var app = runningApps[origin];
+    var _ = navigator.mozL10n.get;
+    banner.addEventListener('animationend', function animationend() {
+      banner.removeEventListener('animationend', animationend);
+      banner.classList.remove('visible');
+    });
+    banner.classList.add('visible');
+
+    bannerContainer.textContent = _('foreground-app-crash-notification',
+      { name: app.name });
+  }
+
   // Deal with crashed apps
   window.addEventListener('mozbrowsererror', function(e) {
     if (!'frameType' in e.target.dataset)
       return;
 
+    var origin = e.target.dataset.frameOrigin;
+
     if (e.target.dataset.frameType == 'inline-activity') {
       stopInlineActivity();
+      showCrashBanner(origin);
       return;
     }
 
@@ -894,26 +910,10 @@ var WindowManager = (function() {
     if (e.detail.type !== 'fatal')
       return;
 
-    var origin = e.target.dataset.frameOrigin;
-
     // If the crashing app is currently displayed, we will present
     // the user with a banner notification.
-    if (displayedApp == origin) {
-      var origin = e.target.dataset.frameOrigin;
-      var _ = navigator.mozL10n.get;
-      banner.addEventListener('transitionend',
-        function onTransitionEnd(transitionEvt) {
-          if (transitionEvt.propertyName == 'visibility') {
-            window.setTimeout(function timeout() {
-              banner.removeEventListener('transitionend', onTransitionEnd);
-              banner.classList.remove('visible');
-            }, 3000);
-          }
-       });
-      banner.classList.add('visible');
-      bannerContainer.textContent = _('foreground-app-crash-notification',
-        { name: runningApps[origin].name });
-    }
+    if (displayedApp == origin)
+      showCrashBanner(origin);
 
     // If the crashing app is the home screen app and it is the displaying app
     // we will need to relaunch it right away.
