@@ -69,9 +69,12 @@ suite('system/system_updater', function() {
     statusDiv = document.createElement('div');
     statusDiv.id = 'system-update-status';
     statusDiv.innerHTML = [
-      '<div data-l10n-id="updateProgress">System update...</div>',
-      '<div class="icon"></div>',
-      '<progress value="0" max="1"></progress>'
+      '<div id="system-update-status" class="notification">',
+      '  <div class="system-update-progress" data-l10n-id="updateProgress">System update...</div>',
+      '  <div class="system-update-applying" data-l10n-id="applying">Applying...</div>',
+      '  <div class="icon"></div>',
+      '  <progress value="0" max="1"></progress>',
+      '</div>'
     ].join('');
 
     document.body.appendChild(statusDiv);
@@ -186,9 +189,6 @@ suite('system/system_updater', function() {
 
       test('show the spinner', function() {
         assert.notEqual(-1, subject.updateStatus.className.indexOf('applying'));
-
-        var textNode = subject.updateStatus.querySelector('div:first-of-type');
-        assert.equal('applying', textNode.textContent);
       });
     });
   });
@@ -213,9 +213,6 @@ suite('system/system_updater', function() {
 
       assert.equal(-1, subject.updateStatus.className.indexOf('applying'));
       assert.equal(-1, subject.updateStatus.className.indexOf('displayed'));
-
-      var textNode = subject.updateStatus.querySelector('div:first-of-type');
-      assert.equal('updateAvailable', textNode.textContent);
     });
 
     test('dialog shown', function() {

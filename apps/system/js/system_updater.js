@@ -54,9 +54,6 @@ var SystemUpdater = {
 
     if (value === 1) {
       this.updateStatus.classList.add('applying');
-
-      var textNode = this.updateStatus.querySelector('div:first-of-type');
-      textNode.textContent = _('applying');
     }
   },
 
@@ -68,9 +65,6 @@ var SystemUpdater = {
 
     var progressEl = this.updateStatus.querySelector('progress');
     progressEl.value = 0;
-
-    var textNode = this.updateStatus.querySelector('div:first-of-type');
-    textNode.textContent = _('updateAvailable');
   },
 
   declineInstall: function su_declineInstall() {

@@ -9,6 +9,16 @@
   display: block;
 }
 
+#system-update-status.applying .system-update-progress,
+#system-update-status .system-update-applying {
+  display: none;
+}
+
+#system-update-status .system-update-progress,
+#system-update-status.applying .system-update-applying {
+  display: block;
+}
+
 #system-update-status progress {
   position: absolute;
   top: 35px;
@@ -56,6 +66,7 @@
 }
 
 
-#system-update-status.applying > div:first-of-type {
+#system-update-status.applying > .system-update-applying {
+  font-weight: 700;
   margin: 21px 0 0 56px;
 }
