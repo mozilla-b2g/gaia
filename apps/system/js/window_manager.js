@@ -874,8 +874,8 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
-  function showCrashBanner(origin) {
-    var app = runningApps[origin];
+  function showCrashBanner(manifestURL) {
+    var app = Applications.getByManifestURL(manifestURL);
     var _ = navigator.mozL10n.get;
     banner.addEventListener('animationend', function animationend() {
       banner.removeEventListener('animationend', animationend);
@@ -884,7 +884,7 @@ var WindowManager = (function() {
     banner.classList.add('visible');
 
     bannerContainer.textContent = _('foreground-app-crash-notification',
-      { name: app.name });
+      { name: app.manifest.name });
   }
 
   // Deal with crashed apps
@@ -893,10 +893,11 @@ var WindowManager = (function() {
       return;
 
     var origin = e.target.dataset.frameOrigin;
+    var manifestURL = e.target.getAttribute('mozapp');
 
     if (e.target.dataset.frameType == 'inline-activity') {
       stopInlineActivity();
-      showCrashBanner(origin);
+      showCrashBanner(manifestURL);
       return;
     }
 
@@ -913,7 +914,7 @@ var WindowManager = (function() {
     // If the crashing app is currently displayed, we will present
     // the user with a banner notification.
     if (displayedApp == origin)
-      showCrashBanner(origin);
+      showCrashBanner(manifestURL);
 
     // If the crashing app is the home screen app and it is the displaying app
     // we will need to relaunch it right away.
