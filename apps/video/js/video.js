@@ -59,7 +59,6 @@ function init() {
   }
 
   videodb.onready = function() {
-    createThumbnailList();
     scan();
   };
 
@@ -79,11 +78,7 @@ function init() {
 function scan() {
   showOverlay('scanning');
   videodb.scan(function() {
-    if (videos.length === 0) {
-      showOverlay('novideos');
-    } else {
-      showOverlay(null);
-    }
+    showOverlay(null);
   });
 }
 
@@ -95,10 +90,17 @@ function createThumbnailList() {
     videos = [];
   }
 
-  videodb.enumerate(function(videodata) {
-    if (videodata === null)
+  videodb.count(function(count) {
+    if (count === 0) {
+      showOverlay('novideos');
       return;
-    processVideo(videodata);
+    }
+    showOverlay(null);
+    videodb.enumerate(function(videodata) {
+      if (videodata === null)
+        return;
+      processVideo(videodata);
+    });
   });
 }
 
@@ -167,10 +169,6 @@ function captureFrame(player) {
 }
 
 function addVideo(videodata) {
-  // If this is the first video we've found,
-  // remove the "no videos" message
-  showOverlay(null);
-
   var index = videos.length;
   videos.push(videodata);
 
