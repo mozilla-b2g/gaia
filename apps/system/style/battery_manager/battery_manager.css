@@ -1,0 +1,65 @@
+#system-overlay.battery,
+#battery.visible {
+  display: block;
+}
+
+#battery {
+  display: none;
+  background-image: url('images/header_bg.png');
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  padding: 0 1em;
+  -moz-box-sizing: padding-box;
+}
+
+.icon-battery {
+  width: 40px;
+  display: inline-block;
+  background-position: center center;
+  background-image: none;
+  background-repeat: no-repeat no-repeat;
+}
+
+#battery span {
+  height: 40px;
+  line-height: 40px;
+}
+
+#battery .battery-notification {
+  display: none;
+}
+
+#battery[data-level="10"] .icon-battery {
+  background-image: url('images/battery_empty_small.png');
+}
+
+#battery[data-level="10"] .battery-notification.empty {
+  display: inline-block;
+}
+
+#battery[data-level="30"] .icon-battery {
+  background-image: url('images/battery_low_small.png');
+}
+
+#battery[data-level="30"] .battery-notification.low {
+  display: inline-block;
+}
+
+#battery[data-level="100"] .icon-battery {
+  background-image: url('images/battery_full_small.png');
+}
+
+#battery[data-level="100"] .battery-notification.full {
+  display: inline-block;
+}
+
+#battery[data-charging="false"] .battery-notification.discharging {
+  display: inline-block;
+}
+
+#battery[data-charging="true"] .battery-notification.charging {
+  display: inline-block;
+}

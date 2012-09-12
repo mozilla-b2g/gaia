@@ -23,6 +23,10 @@
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
+    
+    <!-- Battery Manager -->
+    <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
+    <script defer src="js/battery_manager.js"></script>
 
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
@@ -488,6 +492,12 @@
 
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
+          <span class="icon-battery"></span>
+          <span class="battery-notification empty" data-l10n-id="battery-empty">Battery almost empty</span>
+          <span class="battery-notification small" data-l10n-id="battery-small">Battery low</span>
+          <span class="battery-notification charging" data-l10n-id="battery-charging">Battery charing</span>
+          <span class="battery-notification discharging" data-l10n-id="battery-discharging">Battery discharing</span>
+          <span class="battery-notification full" data-l10n-id="battery-full">Battery 100% charged</span>
         </div>
 
         <div id="usb">
