@@ -61,6 +61,7 @@ var _charMap; // diacritics table (mapping diacritics to the base letter)
 var _start; // starting position of the trie in _dict
 var _nearbyKeys; // nearby keys for any given key
 var _currentWord = ''; // the word currently being edited
+var _maxSuggestions = 3; // max number of suggestions to be returned
 
 // Send a log message to the main thread since we can't output to the console
 // directly.
@@ -222,9 +223,71 @@ function MapCodesToBaseLetters(codes, length) {
   return codes;
 }
 
+// multipliers used in RankCandidate to calculate the final rank of a candidate.
+
+// promote words where prefix matches
+// ab -> promote words that start with 'ab'
+const PrefixMatchMultiplier      = 3;
+
+// promote words when case of first character matches
+const CaseMatchMultiplier        = 2;
+
+// words where accidentaly the wrong key was pressed
+// qas -> was
+// w - neighbourKeys [q,e,a,s,d]
+const EditDistanceMultiplier     = 1.8;
+
+// promote words where 2 characters are swapped
+// tihs -> this
+const TranspositionMultiplier    = 1.6;
+
+// words with a missing character
+// tis -> this
+const OmissionMultiplier         = 1.4;
+
+const DeletionMultiplier         = 1.2
+
+const RankCandidate = (function() {
+
+  return function(word, cand) {
+
+    var rank = cand.freq;
+    var length = cand.word.length;
+    var rankMultiplier = cand.rankMultiplier;
+
+    // rank words with smaller edit distance higher up
+    // e.g. editdistance = 1, then fact = 1.9
+    //      editdistance = 2, then fact = 1.8
+    var factor = 1 + ((10 - Math.min(9, cand.distance)) / 10);
+    rank *= factor;
+
+    // promote candidates where case of first character matches.
+    // e.g. A - Africa
+    //      a - and
+    if (word.charCodeAt(0) == cand.word.charCodeAt(0)) {
+      rank *= CaseMatchMultiplier;
+    }
+
+    // take input length into account
+    // length = 1 then fact = 1.1
+    //        = 2 then fact = 1.2
+    if (rankMultiplier == PrefixMatchMultiplier) {
+      var lengthFactor = 1 + ((Math.min(9, length)) / 10);
+      rank *= PrefixMatchMultiplier * lengthFactor;
+    }
+    else {
+      // TranspositionMultiplier, EditDistanceMultiplier
+      // OmissionMultiplier, DeletionMultiplier
+      rank *= rankMultiplier;
+    }
+
+    return rank;
+  };
+})();
+
 // Check a candidate word given as an array of char codes against the bloom
 // filter and if there is a match, confirm it with the prefix trie.
-function Check(input, prefixes, candidates) {
+function Check(input, prefixes, candidates, rankMultiplier) {
   // BIG FAT WARNING: The hash functions used here much match xml2dict.py. If
   // you change one without the other this will break very badly.
   var h1 = 0;
@@ -243,8 +306,11 @@ function Check(input, prefixes, candidates) {
     prefixes.add(prefix);
     var result = LookupPrefix(prefix);
     if (result) {
-      for (var n = 0; n < result.length; ++n)
-        candidates.push(result[n]);
+      for (var n = 0, len = result.length; n < len; ++n) {
+        var cand = result[n];
+        cand.rankMultiplier = rankMultiplier;
+        candidates.push(cand);
+      }
     }
   }
 }
@@ -255,25 +321,9 @@ function EditDistance1(input, prefixes, candidates) {
   for (var n = 0; n < length; ++n) {
     var original = input[n];
     var nearby = _nearbyKeys[String.fromCharCode(original)];
-    for (var i = 0; i < nearby.length; ++i) {
+    for (var i = 0, len = nearby.length; i < len; ++i) {
       input[n] = nearby[i].charCodeAt(0);
-      Check(input, prefixes, candidates);
-    }
-    input[n] = original;
-  }
-}
-
-// Generate all candidates with an edit distance of 2.
-function EditDistance2(input, prefixes, candidates) {
-  var length = input.length;
-  if (length < 4)
-    return;
-  for (var n = 0; n < length; ++n) {
-    var original = input[n];
-    var nearby = _nearbyKeys[String.fromCharCode(original)];
-    for (var i = 0; i < nearby.length; ++i) {
-      input[n] = nearby[i].charCodeAt(0);
-      EditDistance1(input, prefixes, candidates);
+      Check(input, prefixes, candidates, EditDistanceMultiplier);
     }
     input[n] = original;
   }
@@ -290,7 +340,7 @@ function Omission1Candidates(input, prefixes, candidates) {
       input2[i + 1] = input[i++];
     for (var ch in _nearbyKeys) {
       input2[n] = ch.charCodeAt(0);
-      Check(input2, prefixes, candidates);
+      Check(input2, prefixes, candidates, OmissionMultiplier);
     }
   }
 }
@@ -305,7 +355,7 @@ function Deletion1Candidates(input, prefixes, candidates) {
     ++i;
     while (i < length)
       input2[i - 1] = input[i++];
-    Check(input2, prefixes, candidates);
+    Check(input2, prefixes, candidates, DeletionMultiplier);
   }
 }
 
@@ -318,7 +368,7 @@ function TranspositionCandidates(input, prefixes, candidates) {
     var b = input[n];
     input[n - 1] = b;
     input[n] = a;
-    Check(input, prefixes, candidates);
+    Check(input, prefixes, candidates, TranspositionMultiplier);
     // Restore the original prefix.
     input[n - 1] = a;
     input[n] = b;
@@ -407,6 +457,19 @@ function GetPrefix(word) {
   return result;
 }
 
+function maintainTopCandidates(topCandidates, candidate) {
+  for (var i = 0, len = topCandidates.length; i < len; ++i) {
+    if (topCandidates[i].word == candidate.word)
+      return;
+  }
+  topCandidates.push(candidate);
+  topCandidates.sort(function (a,b) {
+    return b.rank - a.rank;
+  });
+  if (topCandidates.length > _maxSuggestions)
+    topCandidates.length = _maxSuggestions;
+}
+
 // The entry point into the prediction engine. Prediction is a three step
 // process:
 //
@@ -440,34 +503,39 @@ function GetPrefix(word) {
 // hash them via the bloom filter.
 //
 function Predict(word) {
+  // we need to convert the input word to lower case characters
+  // to check the bloomfilter whether the word is in the trie.
+  // we use the original input word to promote case matching words
+  var lowerCaseWord = word.toLowerCase();
+
   // This is the list where we will collect all the candidate words.
   var candidates = [];
   // Check for the current input, edit distance 1 and 2 and single letter
   // omission and deletion in the prefix.
-  var prefix = GetPrefix(word);
+  var prefix = GetPrefix(lowerCaseWord);
   var input = String2Codes(new Uint32Array(prefix.length), prefix);
   var prefixes = new Set();
-  Check(input, prefixes, candidates);
+  Check(input, prefixes, candidates, PrefixMatchMultiplier);
   EditDistance1(input, prefixes, candidates);
-  EditDistance2(input, prefixes, candidates);
   Omission1Candidates(input, prefixes, candidates);
   Deletion1Candidates(input, prefixes, candidates);
   TranspositionCandidates(input, prefixes, candidates);
-  // Sort the candidates by Levenshtein distance and frequency.
+
+  var finalCandidates = [];
+  // Sort the candidates by Levenshtein distance and rank.
   for (var n = 0; n < candidates.length; ++n) {
     var candidate = candidates[n];
-    var candidate_word = candidate.word;
-    var candidate_freq = candidate.freq;
-    // Calculate the distance of the word that was entered so far to the
-    // same number of letters from the candidate.
-    candidate.distance = LevenshteinDistance(word, candidate_word);
+
+    // Skip candidates equal to input and shorter candidates
+    if (candidate.word == word ||
+        candidate.word.length < word.length) {
+      continue;
+    }
+    candidate.distance = LevenshteinDistance(lowerCaseWord, candidate.word);
+    candidate.rank = RankCandidate(word, candidate);
+    maintainTopCandidates(finalCandidates, candidate);
   }
-  candidates.sort(function(a, b) {
-    if (a.distance == b.distance)
-      return b.freq - a.freq;
-    return a.distance - b.distance;
-  });
-  return candidates;
+  return finalCandidates;
 }
 
 var PredictiveText = {
@@ -475,7 +543,7 @@ var PredictiveText = {
     if (keyCode == 8) {
       _currentWord = _currentWord.substr(0, _currentWord.length - 1);
     } else {
-      _currentWord += String.fromCharCode(keyCode).toLowerCase();
+      _currentWord += String.fromCharCode(keyCode);
     }
     var wordList = [];
     var spaceIndex = _currentWord.lastIndexOf(' ');
