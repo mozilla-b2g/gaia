@@ -247,6 +247,7 @@ iframe.backgroundWindow {
 }
 
 #screen.authentication-dialog #dialog-overlay,
+#screen.authentication-dialog #authentication-dialog,
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
