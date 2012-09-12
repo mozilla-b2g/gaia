@@ -250,11 +250,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       if (findDevice(openList.index, device.address))
         return;
 
-      // paired device has been shown on top.
+      // paired device has been shown on the top.
       if (findDevice(pairList.index, device.address))
         return;
 
       var aItem = newListItem(device, device.address);
+
       // bind paired callback
       aItem.onclick = function() {
         aItem.querySelector('small').textContent = _('device-status-pairing');
@@ -286,14 +287,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       return null;
     }
 
+    // XXX The following three functions 'onRequestXXXX' should be updated to
+    // handle 'system message' from platform
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=789014
     function onRequestConfirmation(evt) {
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
       var passkey = evt.passkey;
-      // prepare to pop out attention screen, ring the ringtone, vibrate
       var protocol = window.location.protocol;
       var host = window.location.host;
+      // XXX use attention screen first, need to confirm with UX.
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
       childWindow.onload = function() {
@@ -305,7 +309,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
-      // prepare to pop out attention screen, ring the ringtone, vibrate
       var protocol = window.location.protocol;
       var host = window.location.host;
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
@@ -319,7 +322,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
-      // prepare to pop out attention screen, ring the ringtone, vibrate
       var protocol = window.location.protocol;
       var host = window.location.host;
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
