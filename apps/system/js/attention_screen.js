@@ -18,6 +18,10 @@ var AttentionScreen = {
     return this.bar = document.getElementById('attention-bar');
   },
 
+  isVisible: function as_isVisible() {
+    return this.attentionScreen.classList.contains('displayed');
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
@@ -29,6 +33,9 @@ var AttentionScreen = {
   },
 
   resize: function as_resize(evt) {
+    if (!this.isVisible())
+      return;
+
     if (evt.type == 'keyboardchange') {
       if (!this.mainScreen.classList.contains('active-statusbar')) {
         this.attentionScreen.style.height =
