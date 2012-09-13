@@ -5,6 +5,10 @@
 
 var BatteryManager = {
   TOASTER_TIMEOUT: 5000,
+  TRANSITION_SPEED: 1.8,
+  TRANSITION_FRACTION: 0.30,
+
+  _notification: null,
 
   getAllElements: function bm_getAllElements() {
     this.screen = document.getElementById('screen');
@@ -17,8 +21,9 @@ var BatteryManager = {
     var battery = window.navigator.battery;
     if (battery) {
       battery.addEventListener('levelchange', this);
+      battery.addEventListener('chargingchange', this);
     }
-    this._toasterGD = new GestureDetector(this.toaster);
+    this._toasterGD = new GestureDetector(this.notification);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
       this.notification.addEventListener(evt, this);
     }, this);
@@ -31,13 +36,16 @@ var BatteryManager = {
   handleEvent: function bm_handleEvent(evt) {
     switch (evt.type) {
       case 'levelchange':
+      case 'chargingchange':
         var battery = window.navigator.battery;
         if (!battery)
           return;
 
         var level = Math.floor(battery.level * 10) * 10;
         this.notification.dataset.level = level;
-        if (level == 10 || level == 30 || level == 100)
+        // XXX: test purpose
+        this.notification.dataset.charging = battery.charging;
+        //if (battery.charging || level == 10 || level == 30 || level == 100)
           this.display();
         break;
 
@@ -61,17 +69,16 @@ var BatteryManager = {
   
     overlayClass.add('battery');
     notificationClass.add('visible');
-    //this._toasterGD.startDetecting();
+    this._toasterGD.startDetecting();
 
     if (this._toasterTimeout)
       clearTimeout(this._toasterTimeout);
 
     this._toasterTimeout = setTimeout((function() {
-      console.log('-----=====');
       overlayClass.remove('battery');
       notificationClass.remove('visible');
       this._toasterTimeout = null;
-      //this._toasterGD.stopDetecting();
+      this._toasterGD.stopDetecting();
     }).bind(this), this.TOASTER_TIMEOUT);
   },
 
@@ -83,14 +90,11 @@ var BatteryManager = {
   // Swipe handling
   mousedown: function ns_mousedown(evt) {
     evt.preventDefault();
-    this._notification = evt.target;
-    this._containerWidth = this.container.clientWidth;
-
-    this._notification.style.MozTransition = '';
-    this._notification.style.width = evt.target.parentNode.clientWidth + 'px';
+    this._containerWidth = this.overlay.clientWidth;
   },
 
   swipe: function ns_swipe(evt) {
+    var self = this;
     var detail = evt.detail;
     var distance = detail.start.screenX - detail.end.screenX;
     var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
@@ -99,37 +103,16 @@ var BatteryManager = {
 
     if (!(farEnough || fastEnough)) {
       // Werent far or fast enough to delete, restore
-      delete this._notification;
       return;
     }
-
-    this._notification.classList.add('disappearing');
-
-    var notification = this._notification;
-    this._notification = null;
-
-    var toaster = this.overlay;
-    var self = this;
-    notification.addEventListener('transitionend', function trListener() {
-      notification.removeEventListener('transitionend', trListener);
-
-      self.closeNotification(notification);
-
-      if (notification != toaster)
-        return;
-
-      // Putting back the toaster in a clean state for the next notification
-      toaster.style.display = 'none';
-      setTimeout(function nextLoop() {
-        toaster.style.MozTransition = '';
-        toaster.style.MozTransform = '';
-        toaster.classList.remove('displayed');
-
-        setTimeout(function nextLoop() {
-          toaster.style.display = 'block';
-        });
-      });
+    
+    this.notification.addEventListener('animationend', function animationend() {
+      self.notification.removeEventListener('animationend', animationend);
+      self.notification.classList.remove('visible');
+      self.notification.classList.remove('disappearing');
+      self.overlay.classList.remove('battery');
     });
+    this.notification.classList.add('disappearing');
   },
 
   tap: function ns_tap(notificationNode) {
