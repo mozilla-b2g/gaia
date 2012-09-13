@@ -309,6 +309,7 @@ a.unread .unread-mark .icon-unread-mark {
   font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
   width: -moz-calc(100% - 7rem);
   position: relative;
