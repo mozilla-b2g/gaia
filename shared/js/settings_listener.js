@@ -10,10 +10,12 @@ var SettingsListener = {
   /* lock stores here */
   _lock: null,
 
-  /* getSettingsLock: create a lock or retrieve one that we saved.
-  *  mozSettings.createLock() is expensive and lock should be reused
-  *  whenever possible.
-  */
+  /**
+   * getSettingsLock: create a lock or retrieve one that we saved.
+   * mozSettings.createLock() is expensive and lock should be reused
+   * whenever possible.
+   */
+
   getSettingsLock: function sl_getSettingsLock() {
     // Each time there is a getSettingsLock call, we pospone the removal
     clearTimeout(this._timer);
@@ -31,6 +33,7 @@ var SettingsListener = {
 
     return (this._lock = settings.createLock());
   },
+
   observe: function sl_observe(name, defaultValue, callback) {
     var settings = window.navigator.mozSettings;
     if (!settings) {
@@ -49,3 +52,4 @@ var SettingsListener = {
     });
   }
 };
+

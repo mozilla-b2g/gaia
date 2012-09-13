@@ -349,3 +349,17 @@
   width: 6rem;
   background: url("images/icons/forward.png") no-repeat scroll center transparent;
 }
+
+.msg-list-empty {
+  position: absolute;
+  top: 40%;
+  width: 80%;
+  margin : 0 10%;
+  font-size: 2em;
+  font-weight: bolder;
+  text-align: center;
+  display: none;
+}
+.msg-list-empty.show {
+  display: block;
+}
