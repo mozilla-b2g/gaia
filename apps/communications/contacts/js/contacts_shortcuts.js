@@ -86,24 +86,25 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      current = evt.target.dataset.anchor;
+      current = evt.target.dataset;
 
       if (previous === current) {
         return;
       }
 
-      OverlayIndex.render(current);
-
-      switch (current) {
-        case 'search':
-          querySelector = '#search-container';
-        break;
-        case 'favorites':
-          querySelector = '#group-favorites';
-        break;
-        default:
-          querySelector = groupSelector + ((current == '#') ? 'und' : current);
+      // Render
+      if (evt.target.dataset.letter) {
+        overlayContent.textContent = evt.target.dataset.letter;
+      } else if(evt.target.dataset.img) {
+        overlayContent.textContent = '';
+        var img = new Image();
+        img.src = 'style/images/' + evt.target.dataset.img;
+        overlayContent.appendChild(img);
+      } else {
+        overlayContent.textContent = '';
       }
+
+      querySelector = '#' + ((current.anchor == 'group-#') ? 'group-und' : current.anchor);
 
       domTarget = doc.querySelector(querySelector);
       if (!domTarget || domTarget.clientHeight <= 0)
@@ -114,32 +115,14 @@ if (!utils.alphaScroll) {
       scrollToCallback(domTarget);
     }
 
-    var OverlayIndex = (function() {
-      var imgCache = {};
-      imgCache.favorites = new Image();
-      imgCache.favorites.src = 'style/images/star_icon_big.png';
-      imgCache.search = new Image();
-      imgCache.search.src = 'style/images/magnifier_icon_big.png';
-
-      var render = function(option) {
-        switch (option) {
-          case 'search':
-            overlayContent.textContent = '';
-            overlayContent.appendChild(imgCache.search);
-          break;
-          case 'favorites':
-            overlayContent.textContent = '';
-            overlayContent.appendChild(imgCache.favorites);
-          break;
-          default:
-          overlayContent.textContent = option;
-        }
-      }
-
-      return {
-        render: render
-      };
-    }());
+    // Cache images refered in 'data-img'es
+    var imgCache = (function(doc){
+      var images = doc.querySelectorAll("li[data-img]");
+      Object.keys(images).forEach(function(value){
+        var img = new Image();
+        img.src = 'contacts/style/images/' + images[value].dataset.img;
+      });
+    }(doc));
 
   })(document);
 }
