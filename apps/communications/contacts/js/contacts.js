@@ -1044,19 +1044,22 @@ var Contacts = (function() {
     }
   };
 
+  var isUpdated(contact1, contact2) {
+    return contact1.id == contact2.id &&
+      (contact1.updated - contact2.updated) == 0;
+  }
+
   // When a visiblity change is sent, handles and updates the
   // different views according to the app state
   var handleVisibilityChange = function handleVisibilityChange() {
+    contacts.List.load();
     switch (navigation.currentView()) {
-      case 'view-contacts-list':
-        contacts.List.load();
-        break;
       case 'view-contact-details':
         if (!currentContact) {
           return;
         }
         contacts.List.getContactById(currentContact.id, function(contact) {
-          if ((contact.updated - currentContact.updated) == 0) {
+          if (isUpdated(contact, currentContact)) {
             return;
           }
           currentContact = contact;
@@ -1068,7 +1071,7 @@ var Contacts = (function() {
           return;
         }
         contacts.List.getContactById(currentContact.id, function(contact) {
-          if ((contact.updated - currentContact.updated) == 0) {
+          if (isUpdated(contact, currentContact)) {
             return;
           }
           currentContact = contact;
