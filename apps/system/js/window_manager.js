@@ -71,7 +71,6 @@ var WindowManager = (function() {
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
-  var dialogOverlay = document.getElementById('dialog-overlay');
   var screenElement = document.getElementById('screen');
   var banner = document.getElementById('system-banner');
   var bannerContainer = banner.firstElementChild;
@@ -146,11 +145,29 @@ var WindowManager = (function() {
     if (app.manifest.fullscreen)
       cssHeight = window.innerHeight + 'px';
 
-    frame.style.width =
-      dialogOverlay.style.width = cssWidth;
+    frame.style.width = cssWidth;
 
-    frame.style.height =
-      dialogOverlay.style.height = cssHeight;
+    frame.style.height = cssHeight;
+
+    setInlineActivityFrameSize();
+  }
+
+  // App's height is relevant to keyboard height
+  function setAppHeight(keyboardHeight) {
+    var app = runningApps[displayedApp];
+    if (!app)
+      return;
+
+    var frame = app.frame;
+    var manifest = app.manifest;
+
+    var cssHeight =
+      window.innerHeight - StatusBar.height - keyboardHeight + 'px';
+
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight - keyboardHeight + 'px';
+
+    frame.style.height = cssHeight;
 
     setInlineActivityFrameSize();
   }
@@ -1077,11 +1094,15 @@ var WindowManager = (function() {
 
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
-  var appResizeEvents = ['resize', 'status-active', 'status-inactive'];
+  var appResizeEvents = ['resize', 'status-active', 'status-inactive',
+    'keyboardchange', 'keyboardhide'];
   appResizeEvents.forEach(function eventIterator(event) {
-    window.addEventListener(event, function() {
+    window.addEventListener(event, function on(evt) {
       if (displayedApp)
         setAppSize(displayedApp);
+
+      if (event == 'keyboardchange')
+        setAppHeight(evt.detail.height);
     });
   });
 

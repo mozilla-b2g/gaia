@@ -21,6 +21,8 @@ var PopupManager = {
     window.addEventListener('mozbrowserclose', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('home', this);
+    window.addEventListener('keyboardhide', this);
+    window.addEventListener('keyboardchange', this);
   },
 
   _showWait: function pm_showWait() {
@@ -60,6 +62,7 @@ var PopupManager = {
     this.container.appendChild(popup);
 
     this.screen.classList.add('popup');
+    this.setHeight(window.innerHeight);
 
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
@@ -125,6 +128,11 @@ var PopupManager = {
     return (this._currentPopup != null);
   },
 
+  setHeight: function pm_setHeight(height) {
+    if (this.isVisible())
+      this.overlay.style.height = height + 'px';
+  },
+
   handleEvent: function pm_handleEvent(evt) {
     switch (evt.type) {
       case 'mozbrowserloadstart':
@@ -135,7 +143,8 @@ var PopupManager = {
         break;
       case 'mozbrowseropenwindow':
         var detail = evt.detail;
-        // <a href="" target="_blank"> links should opened outside the application
+        // <a href="" target="_blank"> links should opened
+        // outside the application
         // itself and fire an activity to be opened into a new browser window.
         if (detail.name === '_blank') {
           new MozActivity({
@@ -161,6 +170,12 @@ var PopupManager = {
           return;
 
         this.close();
+        break;
+      case 'keyboardchange':
+        this.setHeight(window.innerHeight - evt.detail.height);
+        break;
+      case 'keyboardhide':
+        this.setHeight(window.innerHeight);
         break;
     }
   }

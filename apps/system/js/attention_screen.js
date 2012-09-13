@@ -21,9 +21,25 @@ var AttentionScreen = {
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
+    window.addEventListener('keyboardchange', this.resize.bind(this), true);
+    window.addEventListener('keyboardhide', this.resize.bind(this), true);
 
     this.bar.addEventListener('click', this.show.bind(this));
     window.addEventListener('home', this.hide.bind(this));
+  },
+
+  resize: function as_resize(evt) {
+    if (evt.type == 'keyboardchange') {
+      if (!this.mainScreen.classList.contains('active-statusbar')) {
+        this.attentionScreen.style.height =
+          window.innerHeight - evt.detail.height + 'px';
+      }
+    } else {
+      // keyboardhide
+      if (!this.mainScreen.classList.contains('active-statusbar')) {
+        this.attentionScreen.style.height = window.innerHeight + 'px';
+      }
+    }
   },
 
   open: function as_open(evt) {

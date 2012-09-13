@@ -6,15 +6,16 @@
 function startup() {
   // We need to wait for the chrome shell to let us know when it's ok to
   // launch activities. This prevents race conditions.
-  window.addEventListener('applicationready', function onApplicationready(event) {
-    new MozActivity({
-      name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
+  window.addEventListener('applicationready',
+    function onApplicationready(event) {
+      new MozActivity({
+        name: 'view',
+        data: {
+          type: 'application/x-application-list'
+        }
+      });
+      window.removeEventListener('applicationready', onApplicationready);
     });
-    window.removeEventListener('applicationready', onApplicationready);
-  });
 
   PinLock.init();
   SourceView.init();

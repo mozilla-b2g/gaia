@@ -14,21 +14,22 @@ var Applications = {
 
     // We need to wait for the chrome shell to let us know when it's ok to
     // launch activities. This prevents race conditions.
-    window.addEventListener('mozChromeEvent', function onStartupChromeEvent(event) {
-      if (event.detail.type != 'webapps-registry-ready') {
-        return;
-      }
+    window.addEventListener('mozChromeEvent',
+      function onStartupChromeEvent(event) {
+        if (event.detail.type != 'webapps-registry-ready') {
+          return;
+        }
 
-      navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
-        var apps = evt.target.result;
-        apps.forEach(function(app) {
-          self.installedApps[app.manifestURL] = app;
-        });
+        navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+          var apps = evt.target.result;
+          apps.forEach(function(app) {
+              self.installedApps[app.manifestURL] = app;
+          });
 
-        self.fireApplicationReadyEvent();
-      }
-      window.removeEventListener('mozChromeEvent', onStartupChromeEvent);
-    });
+          self.fireApplicationReadyEvent();
+        }
+        window.removeEventListener('mozChromeEvent', onStartupChromeEvent);
+      });
 
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;

@@ -54,6 +54,8 @@ var AuthenticationDialog = {
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
     window.addEventListener('resize', this);
+    window.addEventListener('keyboardchange', this);
+    window.addEventListener('keyboardhide', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -101,15 +103,22 @@ var AuthenticationDialog = {
         break;
 
       case 'resize':
+      case 'keyboardhide':
         if (!this.currentOrigin)
           return;
 
-        this.setHeight();
+        this.setHeight(window.innerHeight);
+        break;
+
+      case 'keyboardchange':
+        this.setHeight(window.innerHeight - evt.detail.height);
+        break;
     }
   },
 
-  setHeight: function ad_setHeight() {
-    this.overlay.style.height = window.innerHeight + 'px';
+  setHeight: function ad_setHeight(height) {
+    if (this.isVisible())
+      this.overlay.style.height = height + 'px';
   },
 
   show: function ad_show(origin) {
