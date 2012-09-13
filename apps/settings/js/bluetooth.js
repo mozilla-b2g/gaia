@@ -72,7 +72,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
-      settings.getLock().set({'bluetooth.visible': this.checked});
+      settings.createLock().set({'bluetooth.visible': this.checked});
       setDiscoverable(this.checked);
     };
 
@@ -130,7 +130,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         advancedItem.hidden = false;
         visibleItem.hidden = false;
         // get last user setting for device visible
-        var req = settings.getLock().get('bluetooth.visible');
+        var req = settings.createLock().get('bluetooth.visible');
         req.onsuccess = function bt_getVisibleSuccess() {
           var visible = req.result['bluetooth.visible'];
           if (typeof visible === 'undefined') {
@@ -226,11 +226,13 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     function updateDeviceList(show) {
       if (show) {
         openList.clear();
+        pairList.clear();
         enableMsg.hidden = true;
         searchingItem.hidden = false;
 
       } else {
         openList.clear();
+        pairList.clear();
         enableMsg.hidden = false;
         searchingItem.hidden = true;
       }

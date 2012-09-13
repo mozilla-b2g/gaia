@@ -38,6 +38,10 @@ var PairView = {
         break;
 
       case 'pincode':
+        // XXX hard code here because attention screen 
+        // doesn't support keyboard input now.
+        // https://github.com/mozilla-b2g/gaia/issues/4669 
+        this.pinInput.value = '0000';
         this.pinInput.focus();
         this.comfirmationItem.hidden = true;
         this.passkeyInputItem.hidden = true;
@@ -65,11 +69,11 @@ var PairView = {
                 window.opener.gDeviceList.setPairingConfirmation(this._address);
                 break;
               case 'pincode':
-                var value = pinInput.value;
+                var value = this.pinInput.value;
                 window.opener.gDeviceList.setPinCode(this._address, value);
                 break;
               case 'passkey':
-                var value = passkeyInput.value;
+                var value = this.passkeyInput.value;
                 window.opener.gDeviceList.setPasskey(this._address, value);
                 break;
 
