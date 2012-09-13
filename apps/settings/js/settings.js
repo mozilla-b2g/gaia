@@ -9,11 +9,19 @@
  */
 
 var Settings = {
+  get mozSettings() {
+    // return navigator.mozSettings when properly supported, null otherwise
+    // (e.g. when debugging on a browser...)
+    var settings = window.navigator.mozSettings;
+    return (settings && typeof(settings.createLock) == 'function') ?
+        settings : null;
+  },
+
   init: function settings_init() {
     this.loadGaiaCommit();
 
-    var settings = window.navigator.mozSettings;
-    if (!settings) // e.g. when debugging on a browser...
+    var settings = this.mozSettings;
+    if (!settings)
       return;
 
     settings.onsettingchange = function settingChanged(event) {
@@ -142,7 +150,7 @@ var Settings = {
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
-    var settings = window.navigator.mozSettings;
+    var settings = this.mozSettings;
     if (!key || !settings || input.dataset.ignore)
       return;
 
@@ -215,7 +223,7 @@ var Settings = {
   },
 
   openDialog: function settings_openDialog(dialogID) {
-    var settings = window.navigator.mozSettings;
+    var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
     var fields =
         dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
