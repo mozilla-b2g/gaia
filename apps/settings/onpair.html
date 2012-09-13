@@ -6,20 +6,27 @@
   <title>Bluetooth Pair Device</title>
   <meta name="description" content="Prompts user to take a device pair request">
   <meta name="target" content="html">
-  <link rel="stylesheet" href="style/prompt.css">
+  <link rel="stylesheet" href="shared/style/confirm.css">
   <script type="application/javascript" defer src="js/onpair.js"></script>
 </head>
+<style>
+
+form[role="dialog"] p input {
+  font-size: 1.6em;
+}
+</style>
 <body role="application">
-  <section role="dialog">
-    <div>
-      <h3>Confirm Devices to Pair</h3>
-      <div class="content">
-        <img id="icon" src="style/images/settings_bluetooth.png" />
+  <form role="dialog">
+    <section>
+      <h1 data-l10n-id="confirm-pair">Confirm Devices to Pair</h1>
+      <p>
+        <!-- will be device icon: https://github.com/mozilla-b2g/gaia/issues/4597 --!>
+        <img id="icon" src="style/images/settings_bluetooth.png"/>
         <strong id="label-name"></strong>
         <small id="label-address"></small>
-      </div>
+      </p>
       <div id="confirmation-method">
-        <p>
+        <p data-l10n-id="pair-msg-confirmation">
           To pair with this device, make sure
           that both devices currently have the
           following PIN displayed:
@@ -27,25 +34,25 @@
         <p><strong id="passkey"></strong></p>
       </div>
       <div id="pin-input-method">
-        <p>
+        <p data-l10n-id="pair-msg-pincode">
           To pair with this device, enter
           the PIN on the device.
         </p>
-        <p><input type="number" id="pin-input" /></p>
+        <p><input type="number" id="pin-input" size="4" maxlength="4" /></p>
       </div>
       <div id="passkey-input-method">
-        <p>
+        <p data-l10n-id="pair-msg-passkey">
           To pair with this device, enter
           the Passkey on the device.
         </p>
-        <p><input type="number" id="passkey-input" /></p>
+        <p><input type="number" id="passkey-input" size="6" maxlength="6" /></p>
       </div>
-    </div>
-    <menu data-items="2">
-      <button id="button-close">Cancel</button>
-      <button id="button-pair" class="affirmative">Pair Device</button>
+    </section>
+    <menu>
+      <button type="reset" id="button-close" data-l10n-id="cancel">Cancel</button>
+      <button type="submit" id="button-pair" data-l10n-id="pair">Pair</button>
     </menu>
-  </section>
+  </form>
 
 </body>
 </html>
