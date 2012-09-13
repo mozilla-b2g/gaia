@@ -463,6 +463,9 @@
         Turn Bluetooth on to pair with devices that are
         within range.
       </div>
+      <ul id="bluetooth-show-paired-devices">
+        <!-- filled by bluetooth.js -->
+      </ul>
       <ul id="bluetooth-devices">
         <!-- filled by bluetooth.js -->
       </ul>
@@ -481,9 +484,30 @@
       <ul id="bluetooth-advanced">
         <li>
           <label>
+            <button data-l10n-id="bt-advanced-settings">Advanced Settings</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Bluetooth Advanced Settings -->
+    <section role="region" id="bluetooth-advanced-menu">
+      <header>
+        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="bt-advanced-settings">
+          Advanced Settings
+        </h1>
+      </header>
+      <ul id="bluetooth-rename-btn">
+        <li>
+          <label>
             <button data-l10n-id="renameDevice">Rename Device</button>
           </label>
         </li>
+      </ul>
+      <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
+      <ul id="bluetooth-paired-devices">
+        <!-- filled by bluetooth.js -->
       </ul>
     </section>
 
