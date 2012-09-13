@@ -1,5 +1,5 @@
 /* ----------------------------------
- * BUTTONS: DEFAULT
+ * Buttons
  * ---------------------------------- */
 
 button::-moz-focus-inner {
@@ -79,18 +79,6 @@ a[role="button"][aria-disabled="true"].affirmative {
   color: #bcbcbc;
 }
 
-/* Disabled dark (default & affirmative) */
-menu button[disabled],
-menu a[role="button"][aria-disabled="true"],
-menu button[disabled].affirmative,
-menu a[role="button"][aria-disabled="true"].affirmative {
-  background-image: url(buttons/images/ui/disabled-dark.png);
-  background-color: transparent;
-  border: none;
-  color: #4a4a4a;
-  text-shadow: 0 0.1rem 0 rgba(255, 255, 255, 0.2);
-}
-
 /* Negative disabled */
 button[disabled].negative,
 a[role="button"][aria-disabled="true"].negative {
@@ -143,9 +131,7 @@ a[role="button"] span.tick {
   background-image: url(buttons/images/icons/tick.png);
 }
 
-/* ----------------------------------
- * BUTTONS: LIST
- * ---------------------------------- */
+/* List style */
 .buttons-list {
   padding: 0;
   margin: 0;
