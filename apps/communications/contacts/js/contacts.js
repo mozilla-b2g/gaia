@@ -253,7 +253,7 @@ var Contacts = (function() {
         var prompt1 = new ValueSelector(selectDataStr);
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
-              carrier = dataSet[i].carrier;
+              carrier = dataSet[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, function(itemData) {
             return function() {
               prompt1.hide();
