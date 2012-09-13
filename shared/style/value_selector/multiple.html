@@ -38,9 +38,9 @@
 
 <body role="application">
 
-  <section role="dialog">
-    <div class="scrollable">
-      <h3>Choose your option(s)</h3>
+  <form role="dialog">
+    <section class="scrollable">
+      <h1>Choose your option(s)</h1>
       <ul role="listbox" aria-multiselectable="true">
         <li role="option">
           <label for="option1">
@@ -97,12 +97,12 @@
           </label>
         </li>
       </ul>
-    </div>
+    </section>
     <menu data-items="2">
-      <button>Cancel</button>
-      <button class="affirmative">Action</button>
+      <button type="reset">Cancel</button>
+      <button type="submit">Action</button>
     </menu>
-  </section>
+  </form>
 
 </body>
 </html>
