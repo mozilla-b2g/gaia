@@ -26,10 +26,7 @@ input[type="image"] {
 }
 
 .tabs-screen #tabs-badge {
-  background-image: url('./images/add.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: transparent;
+  display: none;
 }
 
 .awesome-screen #awesomescreen {
@@ -41,10 +38,24 @@ input[type="image"] {
 }
 
 .awesome-screen #tabs-badge {
+  display: none;
+}
+
+#awesomescreen-cancel-button {
   background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 50px;
+  height: 50px;
+}
+
+.awesome-screen #awesomescreen-cancel-button {
+  display: block;
 }
 
 .settings-screen #settings {
@@ -175,7 +186,6 @@ input[type="image"] {
   top: 0;
   font-size: 22px;
   color: white;
-  z-index: 100;
   display: block;
   width: 44px;
   height: 50px;
@@ -527,7 +537,7 @@ li[role="listitem"] small {
 
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
-  margin-right: 50px;
+  padding-right: 50px;
   background-image: none;
   position: absolute;
   top: 0;
@@ -664,11 +674,21 @@ li[role="listitem"] small {
 #tray-toolbar {
   background: none;
   height: 50px;
-  padding-right: 44px;
+}
+
+#tray-toolbar button {
+  width: 60px;
 }
 
 #settings-button {
   background-image: url('images/settings.png');
+  float: right;
+  height: 50px;
+}
+
+#new-tab-button {
+  background-image: url('images/add.png'), url('images/header-divider.png');
+  background-position: center, left;
   float: right;
   height: 50px;
 }

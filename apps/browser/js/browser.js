@@ -28,7 +28,7 @@ var Browser = {
     '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
-  SCROLL_THRESHOLD: 50, // Number of pixels to scroll before hiding the address bar
+  SCROLL_THRESHOLD: 50, // pixels to scroll before hiding the address bar
 
   urlButtonMode: null,
   inTransition: false,
@@ -65,6 +65,7 @@ var Browser = {
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
     this.settingsButton.addEventListener('click',
       this.showSettingsScreen.bind(this));
+    this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
     this.aboutFirefoxButton.addEventListener('click',
@@ -89,6 +90,8 @@ var Browser = {
       this.hideBookmarkEntrySheet.bind(this));
     this.bookmarkEntrySheetDone.addEventListener('click',
       this.saveBookmark.bind(this));
+    this.awesomescreenCancelButton.addEventListener('click',
+     this.handleAwesomescreenCancel.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -141,7 +144,8 @@ var Browser = {
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url', 'bookmark-menu-add-home'];
+      'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
+      'awesomescreen-cancel-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -188,27 +192,27 @@ var Browser = {
   // Tabs badge is the button at the top right, used to show the number of tabs
   // and to create new ones
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
-    if (this.inTransition) {
+    if (this.inTransition)
       return;
-    }
-    if (this.currentScreen === this.TABS_SCREEN) {
-      this.inTransition = true;
-      var tabId = this.createTab();
-      this.showNewTabAnimation((function browser_showNewTabAnimation() {
-        this.selectTab(tabId);
-        this.showAwesomeScreen();
-      }).bind(this));
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN &&
-        this.previousScreen === this.PAGE_SCREEN) {
-      this.showPageScreen();
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN) {
-      this.deleteTab(this.currentTab.id);
-    }
     this.showTabScreen();
+  },
+
+  handleAwesomescreenCancel: function browser_handleAwesomescreenCancel(e) {
+    if (this.previousScreen === this.PAGE_SCREEN) {
+      this.showPageScreen();
+    } else {
+      this.deleteTab(this.currentTab.id);
+      this.showTabScreen();
+    }
+  },
+
+  handleNewTab: function browserHandleNewTab(e) {
+    this.inTransition = true;
+    var tabId = this.createTab();
+    this.showNewTabAnimation((function browser_showNewTabAnimation() {
+      this.selectTab(tabId);
+      this.showAwesomeScreen();
+    }).bind(this));
   },
 
   // Each browser gets their own listener
@@ -365,7 +369,8 @@ var Browser = {
         } else if (evt.detail.top > this.SCROLL_THRESHOLD) {
           this.mainScreen.style.height = '-moz-calc(100% + 50px)';
           this.mainScreen.style.transform = 'translateY(-50px)';
-          this.mainScreen.style.transition = 'transform 0.2s ease-in-out, height 0.2s ease-in-out';
+          this.mainScreen.style.transition =
+            'transform 0.2s ease-in-out,height 0.2s ease-in-out';
         }
         break;
       }
@@ -548,9 +553,7 @@ var Browser = {
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
-    // Hack until tabsBadge refactored in #1222
     this.bookmarkMenu.classList.remove('hidden');
-    this.tabsBadge.style.display = 'none';
     if (!this.currentTab.url)
       return;
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
@@ -567,8 +570,6 @@ var Browser = {
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
-    // Hack until tabsBadge refactored in #1222
-    this.tabsBadge.style.display = 'block';
     this.bookmarkMenu.classList.add('hidden');
   },
 
@@ -1023,7 +1024,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-                         'showmodalprompt', 'error', 'scroll', 
+                         'showmodalprompt', 'error', 'scroll',
                          'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
