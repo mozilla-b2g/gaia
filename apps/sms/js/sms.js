@@ -452,7 +452,8 @@ var ThreadListUI = {
         var message = messages[i];
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
-        var numNormalized = PhoneNumberManager.getNormalizedInternationalNumber(num);
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         if (!message.read) {
           if (unreadThreads.indexOf(numNormalized) == -1) {
             unreadThreads.push(numNormalized);
@@ -1038,7 +1039,8 @@ var ThreadUI = {
         } else {
           var num = MessageManager.getNumFromHash();
         }
-        var numNormalized = PhoneNumberManager.getNormalizedNumber(num);
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
         var text = this.input.value || resendText;
         // If we have something to send
