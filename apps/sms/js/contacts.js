@@ -37,13 +37,10 @@ var ContactDataManager = {
       };
     } else {
       // Based on E.164 (http://en.wikipedia.org/wiki/E.164)
-      // Some locals added a '0' at the beggining
-      if (numNormalized[0] == 0) {
-        delete numNormalized[0];
+      // Some locals added a '0' at the beggining (UK, Sweden...)
+      if (numNormalized[0] == 0 || numNormalized[0] == '0') {
+        var numNormalized = Number(numNormalized.toString().substr(1));
       }
-      console.log("****** Numeros "+number+" "+numNormalized);
-      
-
       var options = {
         filterBy: ['tel'],
         filterOp: 'contains',
@@ -62,7 +59,6 @@ var ContactDataManager = {
       // Update the cache before callback.
       var cacheData = self.contactData[numNormalized];
       var result = req.result;
-      console.log("**** "+JSON.stringify(result[0]));
       if (result.length > 0) {
         if (cacheData && (cacheData.name[0] == result[0].name[0])) {
           var telInfo;
