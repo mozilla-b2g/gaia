@@ -39,7 +39,7 @@
     if (activateSMSVibration && 'vibrate' in navigator) {
       navigator.vibrate([200, 200, 200, 200]);
     }
-
+    PhoneNumberManager.init();
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
 
