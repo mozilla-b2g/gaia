@@ -6,7 +6,7 @@
 form[role="dialog"] {
   background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
-    /* We can't use shortand with background size because is not implemented yet:
+  /* We can't use shortand with background size because is not implemented yet:
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
   overflow: hidden;
   position: absolute;
@@ -43,10 +43,7 @@ form[role="dialog"] > section {
 }
 
 form[role="dialog"] h1 {
-  font-family: 'Open Sans', Sans-serif;
-  font-weight: normal;
-  font-size: 1.6rem;
-  line-height: 1em;
+  font: 1.6rem/1em 'Open Sans', Sans-serif;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
   background: url(value_selector/images/ui/alpha.png) repeat 0 0;
@@ -174,14 +171,12 @@ form[role="dialog"] .scrollable:before {
 form[role="dialog"] [role="listbox"] li {
   margin: 0;
   padding-bottom: 1px;
+  height: 5.9rem;
   list-style: none;
-  border-bottom: 1px solid #666;
   position: relative;
-  color: #fff;
-  font-family: 'Open Sans', Sans-serif;
+  border-bottom: 1px solid #666;
   font-weight: lighter;
   font-size: 2.2rem;
-  height: 5.9rem;
   line-height: 5.9rem;
   color: #fff;
   transition: background 0.2s ease;
