@@ -1044,6 +1044,39 @@ var Contacts = (function() {
     }
   };
 
+  var handleVisibilityChange = function handleVisibilityChange() {
+    switch(navigation.currentView()) {
+      case 'view-contacts-list':
+        contacts.List.load();
+        break;
+      case 'view-contact-details':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if ((contact.updated - currentContact.updated) == 0) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+        });
+        break;
+      case 'view-contact-form':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if ((contact.updated - currentContact.updated) == 0) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+          navigation.back();
+        });
+        break;
+    }
+  };
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1064,7 +1097,8 @@ var Contacts = (function() {
     'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
-    'getLength': getLength
+    'getLength': getLength,
+    'handleVisibilityChange': handleVisibilityChange
   };
 })();
 
@@ -1079,7 +1113,7 @@ fb.contacts.init(function() {
       return;
     }
     if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-      contacts.List.load();
+      Contacts.handleVisibilityChange();
     }
     Contacts.checkCancelableActivity();
   });
