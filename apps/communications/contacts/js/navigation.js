@@ -105,7 +105,7 @@ function navigationStack(currentView) {
   };
 
   this.currentView = function currentView() {
-    return _currentView != null ? _currentView : "";
+    return _currentView != null ? _currentView : '';
   };
 
 }

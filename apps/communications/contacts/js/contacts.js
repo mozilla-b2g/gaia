@@ -1044,8 +1044,10 @@ var Contacts = (function() {
     }
   };
 
+  // When a visiblity change is sent, handles and updates the
+  // different views according to the app state
   var handleVisibilityChange = function handleVisibilityChange() {
-    switch(navigation.currentView()) {
+    switch (navigation.currentView()) {
       case 'view-contacts-list':
         contacts.List.load();
         break;
