@@ -3,6 +3,11 @@
 
 'use strict';
 
+/**
+ * This library should help debuggin Gaia on a desktop browser, where APIs like
+ * mozTelephony or mozApps are not supported.
+ */
+
 // navigator.mozTelephony
 (function(window) {
   var navigator = window.navigator;

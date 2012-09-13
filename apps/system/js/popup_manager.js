@@ -134,8 +134,21 @@ var PopupManager = {
         this.handleLoadEnd(evt);
         break;
       case 'mozbrowseropenwindow':
-        this.open(evt.detail.name, evt.detail.frameElement,
-                  evt.target.dataset.frameOrigin, false);
+        var detail = evt.detail;
+        // <a href="" target="_blank"> links should opened outside the application
+        // itself and fire an activity to be opened into a new browser window.
+        if (detail.name === '_blank') {
+          new MozActivity({
+            name: 'view',
+            data: {
+              type: 'url',
+              url: detail.url
+            }
+          });
+        } else {
+          this.open(detail.name, detail.frameElement,
+                    evt.target.dataset.frameOrigin, false);
+        }
         break;
       case 'mozbrowserclose':
         this.close(evt);

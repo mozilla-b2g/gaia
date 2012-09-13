@@ -110,6 +110,7 @@ var ScreenManager = {
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
+      self.setIdleTimeout(self._idleTimeout)
 
       if (!self._firstOn) {
         (function handleInitlogo() {
@@ -229,9 +230,6 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    if (this._deviceLightEnabled)
-      window.addEventListener('devicelight', this);
-
     window.addEventListener('mozfullscreenchange', this);
 
     this.setScreenBrightness(this._userBrightness, instant);
@@ -242,6 +240,11 @@ var ScreenManager = {
 
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
+
+    // Attaching the event listener effectively turn on the hardware
+    // device light sensor, which _must be_ done after power.screenEnabled.
+    if (this._deviceLightEnabled)
+      window.addEventListener('devicelight', this);
 
     // The screen should be turn off with shorter timeout if
     // it was never unlocked
@@ -312,7 +315,7 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return;
 
-    if (enable) {
+    if (enabled) {
       window.addEventListener('devicelight', this);
     } else {
       window.removeEventListener('devicelight', this);

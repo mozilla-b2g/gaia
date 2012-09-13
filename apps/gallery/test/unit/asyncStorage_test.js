@@ -1,4 +1,4 @@
-require('/shared/js/asyncStorage.js');
+require('/shared/js/async_storage.js');
 
 suite('asyncStorage', function() {
   test('API', function() {
@@ -110,3 +110,4 @@ suite('asyncStorage', function() {
     });
   });
 });
+

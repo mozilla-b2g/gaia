@@ -1,17 +1,20 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
-/*
+/**
  * MediaDB.js: a simple interface to DeviceStorage and IndexedDB.
  *
  * Gaia's media apps (Gallery, Music, Videos) read media files from the phone
- * using the DeviceStorage API. They need to keep track of the complete list
- * of media files, as well as the metadata (image sizes, song titles,
- * etc.) that they have extracted from those files. It would be much too slow
- * to scan the filesystem and read all the metadata from all files each time
- * the apps starts up, so the apps need to store filenames and metadata in an
- * IndexedDB database.  This library integrates both DeviceStorage and
- * IndexedDB into a single API. It keeps the database in sync with the
- * filesystem and provides notifications when files are added or deleted.
+ * using the DeviceStorage API. They need to keep track of the complete list of
+ * media files, as well as the metadata (image sizes, song titles, etc.) that
+ * they have extracted from those files. It would be much too slow to scan the
+ * filesystem and read all the metadata from all files each time the apps starts
+ * up, so the apps need to store filenames and metadata in an IndexedDB
+ * database. This library integrates both DeviceStorage and IndexedDB into a
+ * single API. It keeps the database in sync with the filesystem and provides
+ * notifications when files are added or deleted.
  *
  * Create a MediaDB object with the MediaDB() constructor. It takes three
  * arguments:
@@ -21,69 +24,67 @@
  *     "pictures", "movies" or "music".
  *
  *   metadataParser:
- *     your metadata parser function. This function should
- *     expect three arguments. It will be called with a file to parse and
- *     two callback functions.  It should read metadata from the file and then
- *     pass an object of metadata to the first callback. If parsing fails
- *     it should pass an Error object or error message to the second callback.
- *     If you omit this argument or pass null, a dummy parser that
- *     invokes the callback with an empty object will be used instead.
+ *     your metadata parser function. This function should expect three
+ *     arguments. It will be called with a file to parse and two callback
+ *     functions. It should read metadata from the file and then pass an object
+ *     of metadata to the first callback. If parsing fails it should pass an
+ *     Error object or error message to the second callback. If you omit this
+ *     argument or pass null, a dummy parser that invokes the callback with an
+ *     empty object will be used instead.
  *
  *   options:
  *     An optional object containing additional MediaDB options.
  *     Supported options are:
  *
  *       directory:
- *          a subdirectory of the DeviceStorage directory. If you are
- *          only interested in images in the screenshots/ subdirectory
- *          for example, you can set this property to "screenshots/".
+ *          a subdirectory of the DeviceStorage directory. If you are only
+ *          interested in images in the screenshots/ subdirectory for example,
+ *          you can set this property to "screenshots/".
  *
  *       mimeTypes:
- *          an array of MIME types that specifies the kind of files
- *          you are interested in and that your metadata parser function
- *          knows how to handle.
+ *          an array of MIME types that specifies the kind of files you are
+ *          interested in and that your metadata parser function knows how to
+ *          handle.
  *
  *       indexes:
- *          an array of IndexedDB key path specifications that specify
- *          which properties of each media record should be indexed. If
- *          you want to search or sort on anything other than the file name
- *          specify this property. "size", "date", "type" are valid keypaths
- *          as is "metadata.x" where x is any metadata property returned by
- *          your metadata parser.
+ *          an array of IndexedDB key path specifications that specify which
+ *          properties of each media record should be indexed. If you want to
+ *          search or sort on anything other than the file name specify this
+ *          property. "size", "date", "type" are valid keypaths as is
+ *          "metadata.x" where x is any metadata property returned by your
+ *          metadata parser.
  *
  *       version:
  *          The version of your IndexedDB database. The default value is 1
  *          Setting it to a larger value will delete all data in the database
- *          and rebuild it from scratch. If you ever change your metadata
- *          parser function or alter any of the options above, you should
- *          update the version number.
+ *          and rebuild it from scratch. If you ever change your metadata parser
+ *          function or alter any of the options above, you should update the
+ *          version number.
  *
- * A MediaDB object must asynchronously open a connection to its database,
- * and asynchronously check on the availability of device storage, which
- * means that it is not ready for use when first created.  After calling
- * the MediaDB() constructor, set the onready property of the returned object
- * to a callback function. When the database is ready for use, that function
- * will be invoked with the MediaDB object as its this value. (Note that
- * MediaDB does not define addEventListener: you can only set a single
- * onready property.)
+ * A MediaDB object must asynchronously open a connection to its database, and
+ * asynchronously check on the availability of device storage, which means that
+ * it is not ready for use when first created. After calling the MediaDB()
+ * constructor, set the onready property of the returned object to a callback
+ * function. When the database is ready for use, that function will be invoked
+ * with the MediaDB object as its this value. (Note that MediaDB does not define
+ * addEventListener: you can only set a single onready property.)
  *
- * The DeviceStorage API is not always available, and MediaDB is not
- * usable if DeviceStorage is not usable. If the user removes the SD
- * card from their phone, then DeviceStorage will not be able to read
- * or write files, obviously. Also, when a USB Mass Storage session is
- * in progress, DeviceStorage is not available either.  If
- * DeviceStorage is not available when a MediaDB object is created,
- * the onunavailable callback will be invoked instead of the onready
- * callback. Subsequently, onready will be called whenever
- * DeviceStorage becomes available, and onunavailble will be called
- * whenver DeviceStorage becomes unavailable. Media apps can handle
- * the unavailble case by displaying an informative message in an overlay
- * that prevents all user interaction with the app.
+ * The DeviceStorage API is not always available, and MediaDB is not usable if
+ * DeviceStorage is not usable. If the user removes the SD card from their
+ * phone, then DeviceStorage will not be able to read or write files, obviously.
+ * Also, when a USB Mass Storage session is in progress, DeviceStorage is not
+ * available either. If DeviceStorage is not available when a MediaDB object is
+ * created, the onunavailable callback will be invoked instead of the onready
+ * callback. Subsequently, onready will be called whenever DeviceStorage becomes
+ * available, and onunavailble will be called whenever DeviceStorage becomes
+ * unavailable. Media apps can handle the unavailble case by displaying an
+ * informative message in an overlay that prevents all user interaction with the
+ * app.
  *
  * Typically, the first thing an app will do with a MediaDB object after the
  * onready callback is called is call its enumerate() method. This gets entries
- * from the database and passes them to the specified callback. Each entry
- * that is passed to the callback is an object like this:
+ * from the database and passes them to the specified callback. Each entry that
+ * is passed to the callback is an object like this:
  *
  *   {
  *     name:     // the filename (relative to the DeviceStorage root)
@@ -93,91 +94,90 @@
  *     metadata: // whatever object the metadata parser returned
  *   }
  *
- * Note that db entries do not include the file itself, but only its name.
- * Use the getFile() method to get a File object by name.
- * If you pass only a callback to enumerate(), it calls the callback once
- * for each entry in the database and then calls the callback with an argument
- * of null to indicate that it is done.
+ * Note that db entries do not include the file itself, but only its name. Use
+ * the getFile() method to get a File object by name. If you pass only a
+ * callback to enumerate(), it calls the callback once for each entry in the
+ * database and then calls the callback with an argument of null to indicate
+ * that it is done.
  *
  * By default, entries are returned in alphabetical order by filename and all
  * entries in the database are returned. You can specify other arguments to
- * enumerate() to change the set of entries that are returned and the order
- * that they are enumerated in.  The full set of arguments are:
+ * enumerate() to change the set of entries that are returned and the order that
+ * they are enumerated in. The full set of arguments are:
  *
  *   key:
  *     A keypath specification that specifies what field to sort on.
  *     If you specify this argument, it must be one of the values in the
  *     options.indexes array passed to the MediaDB() constructor.
- *     This argument is optional. If omitted, the default is to use the
- *     file name as the key.
+ *     This argument is optional. If omitted, the default is to use the file
+ *     name as the key.
  *
  *   range:
- *     An IDBKeyRange object that optionally specifies upper and lower bounds
- *     on the specified key. This argument is optional. If omitted, all
- *     entries in the database are enumerated.
+ *     An IDBKeyRange object that optionally specifies upper and lower bounds on
+ *     the specified key. This argument is optional. If omitted, all entries in
+ *     the database are enumerated.
  *
  *   direction:
- *     One of the IndexedDB direction string "next", "nextunique", "prev"
- *     or "prevunique". This argument is optional. If omitted, the default
- *     is "next", which enumerates entries in ascending order.
+ *     One of the IndexedDB direction string "next", "nextunique", "prev" or
+ *     "prevunique". This argument is optional. If omitted, the default is
+ *     "next", which enumerates entries in ascending order.
  *
  *   callback:
- *     The function that database entries should be passed to. This
- *     argument is not optional, and is always passed as the last argument
- *     to enumerate().
+ *     The function that database entries should be passed to. This argument is
+ *     not optional, and is always passed as the last argument to enumerate().
  *
  * The enumerate() method returns database entries. These include file names,
  * but not the files themselves. enumerate() interacts solely with the
  * IndexedDB; it does not use DeviceStorage. If you want to use a media file
  * (to play a song or display a photo, for example) call the getFile() method.
- * This method takes the filename (the name property of the database entry)
- * as its first argument, and a callback as its second. It looks the named
- * file up with DeviceStorage and passes it to the callback function. You can
- * pass an optional error callback as the third argument. Any error reported
- * by DeviceStorage will be passed to this argument. If the named file does
- * not exist, the error callback will be invoked.
+ * This method takes the filename (the name property of the database entry) as
+ * its first argument, and a callback as its second. It looks the named file up
+ * with DeviceStorage and passes it to the callback function. You can pass an
+ * optional error callback as the third argument. Any error reported by
+ * DeviceStorage will be passed to this argument. If the named file does not
+ * exist, the error callback will be invoked.
  *
- * enumerate() returns an object with a 'state' property that starts out
- * as 'enumerating' and switches to 'complete' when the enumeration is done.
- * You can cancel a pending enumeration by passing this object to the
- * cancelEnumeration() method. This switches the state to 'cancelling' and
- * then it switches to 'cancelled' when the cancellation is complete. If you
- * call cancelEnumeration(), the callback function you passed to enumerate()
- * is guaranteed not to be called again.
+ * enumerate() returns an object with a 'state' property that starts out as
+ * 'enumerating' and switches to 'complete' when the enumeration is done. You
+ * can cancel a pending enumeration by passing this object to the
+ * cancelEnumeration() method. This switches the state to 'cancelling' and then
+ * it switches to 'cancelled' when the cancellation is complete. If you call
+ * cancelEnumeration(), the callback function you passed to enumerate() is
+ * guaranteed not to be called again.
  *
  * If you set the onchange property of a MediaDB object to a function, it will
  * be called whenever files are added or removed from the DeviceStorage
- * directory. The first argument passed to the onchange callback is a
- * string that specifies the type of change that has occurred:
+ * directory. The first argument passed to the onchange callback is a string
+ * that specifies the type of change that has occurred:
  *
  *   "created":
- *     Media files were added to the device. The second argument is an
- *     array of database entries describing the new files and their metadata.
- *     When DeviceStorage detects the creation of a single new file, this
- *     array will have only a single entry. When the scan() method runs, however
- *     it may detect many new files and the array can be large. Apps may
- *     want to handle these cases differently, incrementally updating their UI
- *     when single-file changes occur and completely rebuilding the UI (with
- *     a new call to enumerate() when many files are added
+ *     Media files were added to the device. The second argument is an array of
+ *     database entries describing the new files and their metadata. When
+ *     DeviceStorage detects the creation of a single new file, this array will
+ *     have only a single entry. When the scan() method runs, however it may
+ *     detect many new files and the array can be large. Apps may want to handle
+ *     these cases differently, incrementally updating their UI when single-file
+ *     changes occur and completely rebuilding the UI (with a new call to
+ *     enumerate() when many files are added.
  *
  *   "deleted":
  *     Media files were deleted from the device, and their records have been
- *     deleted from the database.  The second argument is an array of database
+ *     deleted from the database. The second argument is an array of database
  *     entries that describe the deleted files and their metadata. As with
  *     "created" changes, this array may have multiple entries when the callback
  *     is invoked as a result of a scan() call.
  *
  * Another MediaDB method is scan(). It takes no arguments and launches an
- * asynchronous scan of DeviceStorage for new, changed, and deleted file.
- * File creations and deletions are batched and reported through the onchange
- * handler.  Changes are treated as deletions followed by creations. As an
- * optimization, scan() first attempts a quick scan, looking only for files
- * that are newer than the last scan time. Any new files are reported as
- * creations, and then scan() starts a full scan to search for changed or
- * deleted files.  This means that a call to scan() may result in up to three
- * calls to onchange to report new files, deleted files and changed files.
- * This is an implementation detail, however, and apps should be prepared to
- * handle any number of calls to onchange.
+ * asynchronous scan of DeviceStorage for new, changed, and deleted file. File
+ * creations and deletions are batched and reported through the onchange
+ * handler. Changes are treated as deletions followed by creations. As an
+ * optimization, scan() first attempts a quick scan, looking only for files that
+ * are newer than the last scan time. Any new files are reported as creations,
+ * and then scan() starts a full scan to search for changed or deleted files.
+ * This means that a call to scan() may result in up to three calls to onchange
+ * to report new files, deleted files and changed files. This is an
+ * implementation detail, however, and apps should be prepared to handle any
+ * number of calls to onchange.
  *
  * Other MediaDB methods include:
  *
@@ -188,6 +188,7 @@
  *
  *  - deleteFile(): deletes the named file from device storage and the database
  */
+
 function MediaDB(mediaType, metadataParser, options) {
   this.mediaType = mediaType;
   this.metadataParser = metadataParser;
@@ -973,3 +974,4 @@ MediaDB.prototype = {
     }
   }
 };
+

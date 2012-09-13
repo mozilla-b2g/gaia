@@ -13,7 +13,8 @@ var gMobileConnection = (function(window) {
   }
 
   var initialized = false;
-  var fakeNetwork = { shortName: 'Fake Orange', mcc: 208, mnc: 1 };
+  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
+  var fakeNetwork = { shortName: 'Fake Orange F', mcc: 208, mnc: 1 };
 
   function fakeEventListener(type, callback, bubble) {
     if (initialized)
@@ -28,6 +29,7 @@ var gMobileConnection = (function(window) {
 
   return {
     addEventListener: fakeEventListener,
+    iccInfo: fakeICCInfo,
     get data() {
       return initialized ? { network: fakeNetwork } : null;
     }
@@ -129,7 +131,7 @@ window.addEventListener('load', function getCarrierSettings() {
     }
 
     // find the current APN
-    var settings = window.navigator.mozSettings;
+    var settings = Settings.mozSettings;
     if (settings && !gUserChosenAPN) {
       var radios = apnList.querySelectorAll('input[type="radio"]');
       var key = 'APN.name';
@@ -164,7 +166,7 @@ window.addEventListener('load', function getCarrierSettings() {
 
   // restart data connection by toggling it off and on again
   function restartDataConnection() {
-    var settings = window.navigator.mozSettings;
+    var settings = Settings.mozSettings;
     if (!settings)
       return;
 
@@ -204,9 +206,9 @@ window.addEventListener('load', function getCarrierSettings() {
     }
 
     // display data carrier name
-    var shortName = data ? data.shortName : '';
-    document.getElementById('data-desc').textContent = shortName;
-    document.getElementById('dataNetwork-desc').textContent = shortName;
+    var name = data ? (data.shortName || data.longName) : '';
+    document.getElementById('data-desc').textContent = name;
+    document.getElementById('dataNetwork-desc').textContent = name;
 
     // toggle advanced settings when required
     var advSettings = document.getElementById('apnSettings-advanced');

@@ -4,6 +4,18 @@
 'use strict';
 
 function startup() {
+  // We need to wait for the chrome shell to let us know when it's ok to
+  // launch activities. This prevents race conditions.
+  window.addEventListener('applicationready', function onApplicationready(event) {
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'application/x-application-list'
+      }
+    });
+    window.removeEventListener('applicationready', onApplicationready);
+  });
+
   PinLock.init();
   SourceView.init();
   Shortcuts.init();
@@ -24,15 +36,6 @@ function startup() {
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-
-  navigator.mozApps.mgmt.getAll().onsuccess = function() {
-    new MozActivity({
-      name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
-    });
-  }
 }
 
 /* === Shortcuts === */

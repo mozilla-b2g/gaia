@@ -130,7 +130,7 @@
         <li hidden>
           <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
         </li>
-        <li hidden>
+        <li>
           <small id="doNotTrack-desc"></small>
           <a href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
         </li>
@@ -348,6 +348,13 @@
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
       </ul>
 
       <header>
@@ -456,6 +463,9 @@
         Turn Bluetooth on to pair with devices that are
         within range.
       </div>
+      <ul id="bluetooth-show-paired-devices">
+        <!-- filled by bluetooth.js -->
+      </ul>
       <ul id="bluetooth-devices">
         <!-- filled by bluetooth.js -->
       </ul>
@@ -474,9 +484,30 @@
       <ul id="bluetooth-advanced">
         <li>
           <label>
+            <button data-l10n-id="bt-advanced-settings">Advanced Settings</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Bluetooth Advanced Settings -->
+    <section role="region" id="bluetooth-advanced-menu">
+      <header>
+        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="bt-advanced-settings">
+          Advanced Settings
+        </h1>
+      </header>
+      <ul id="bluetooth-rename-btn">
+        <li>
+          <label>
             <button data-l10n-id="renameDevice">Rename Device</button>
           </label>
         </li>
+      </ul>
+      <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
+      <ul id="bluetooth-paired-devices">
+        <!-- filled by bluetooth.js -->
       </ul>
     </section>
 
@@ -567,24 +598,24 @@
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="classic.ogg" checked />
+            <input type="radio" name="dialer.ringtone" value="classic.ogg" checked />
             <span></span>
           </label>
-          <a data-l10n-id="default">Default</a>
+          <a data-l10n-id="classic">Default</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="bosscaling.ogg"/>
+            <input type="radio" name="dialer.ringtone" value="old school.ogg"/>
             <span></span>
           </label>
-          <a data-l10n-id="bosscaling">Bosscaling</a>
+          <a data-l10n-id="oldSchool">Bosscaling</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="homescreen.ring" value="goodnight.ogg"/>
+            <input type="radio" name="dialer.ringtone" value="low bit.ogg"/>
             <span></span>
           </label>
-          <a data-l10n-id="goodmight">GoodMight</a>
+          <a data-l10n-id="lowBit">Low Bit</a>
         </li>
       </ul>
 
@@ -1028,7 +1059,25 @@
     <!-- [TODO] Security :: Phone Lock -->
     <!-- [TODO] Security :: SIM Card Lock -->
     <!-- [TODO] Security :: App Permissions -->
-    <!-- [TODO] Security :: Do Not Track -->
+    <!-- Security :: Do Not Track -->
+    <section role="region" id="doNotTrack">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="doNotTrack">
+          Do Not Track
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="privacy.donottrackheader.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="doNotTrack">Do Not Track</a>
+        </li>
+      </ul>
+    </section>
 
     <!-- Device :: About -->
     <section role="region" id="about">
