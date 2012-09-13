@@ -11,19 +11,20 @@
   left: 0;
   width: 100%;
   height: 40px;
-  padding: 0 1em;
-  -moz-box-sizing: padding-box;
+  padding: 0 5px;
 }
 
 .icon-battery {
   width: 40px;
+  height: 40px;
   display: inline-block;
-  background-position: center center;
   background-image: none;
+  background-position: center center;
   background-repeat: no-repeat no-repeat;
 }
 
 #battery span {
+  vertical-align: middle;
   height: 40px;
   line-height: 40px;
 }
@@ -53,13 +54,5 @@
 }
 
 #battery[data-level="100"] .battery-notification.full {
-  display: inline-block;
-}
-
-#battery[data-charging="false"] .battery-notification.discharging {
-  display: inline-block;
-}
-
-#battery[data-charging="true"] .battery-notification.charging {
   display: inline-block;
 }
