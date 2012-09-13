@@ -49,8 +49,8 @@ contacts.List = (function() {
     utils.alphaScroll.init(params);
   }
 
-  var scrollToCb = function scrollCb(groupContainer) {
-    scrollable.scrollTop = groupContainer.offsetTop;
+  var scrollToCb = function scrollCb(domTarget) {
+    scrollable.scrollTop = domTarget.offsetTop;
   }
 
   var load = function load(contacts) {
