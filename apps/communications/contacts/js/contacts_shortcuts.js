@@ -77,7 +77,7 @@ if (!utils.alphaScroll) {
     }
 
     function scrollTo(evt) {
-      var current, querySelector, domTarget;
+      var current, querySelector, domTarget, anch;
 
       evt.preventDefault();
       evt.stopPropagation();
@@ -95,7 +95,7 @@ if (!utils.alphaScroll) {
       // Render
       if (evt.target.dataset.letter) {
         overlayContent.textContent = evt.target.dataset.letter;
-      } else if(evt.target.dataset.img) {
+      } else if (evt.target.dataset.img) {
         overlayContent.textContent = '';
         var img = new Image();
         img.src = 'style/images/' + evt.target.dataset.img;
@@ -104,7 +104,8 @@ if (!utils.alphaScroll) {
         overlayContent.textContent = '';
       }
 
-      querySelector = '#' + ((current.anchor == 'group-#') ? 'group-und' : current.anchor);
+      anch = current.anchor;
+      querySelector = '#' + ((anch == 'group-#') ? 'group-und' : anch);
 
       domTarget = doc.querySelector(querySelector);
       if (!domTarget || domTarget.clientHeight <= 0)
@@ -116,9 +117,9 @@ if (!utils.alphaScroll) {
     }
 
     // Cache images refered in 'data-img'es
-    var imgCache = (function(doc){
-      var images = doc.querySelectorAll("li[data-img]");
-      Object.keys(images).forEach(function(value){
+    var imgCache = (function(doc) {
+      var images = doc.querySelectorAll('li[data-img]');
+      Object.keys(images).forEach(function(value) {
         var img = new Image();
         img.src = 'contacts/style/images/' + images[value].dataset.img;
       });
