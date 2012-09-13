@@ -130,7 +130,7 @@
         <li hidden>
           <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
         </li>
-        <li hidden>
+        <li>
           <small id="doNotTrack-desc"></small>
           <a href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
         </li>
@@ -1035,7 +1035,25 @@
     <!-- [TODO] Security :: Phone Lock -->
     <!-- [TODO] Security :: SIM Card Lock -->
     <!-- [TODO] Security :: App Permissions -->
-    <!-- [TODO] Security :: Do Not Track -->
+    <!-- Security :: Do Not Track -->
+    <section role="region" id="doNotTrack">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="doNotTrack">
+          Do Not Track
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="privacy.donottrackheader.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="doNotTrack">Do Not Track</a>
+        </li>
+      </ul>
+    </section>
 
     <!-- Device :: About -->
     <section role="region" id="about">
