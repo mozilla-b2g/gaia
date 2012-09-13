@@ -332,9 +332,12 @@ var ScreenManager = {
       return;
     navigator.removeIdleObserver(this.idleObserver);
 
-    if (time === 0) {
+    // Reset the idled state back to false.
+    this._idled = false;
+
+    // 0 is the value used to disable idle timer by user and by us.
+    if (time === 0)
       return;
-    }
 
     this._instantIdleOff = instant;
     this.idleObserver.time = time;
