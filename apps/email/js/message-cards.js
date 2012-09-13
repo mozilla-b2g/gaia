@@ -497,6 +497,13 @@ MessageListCard.prototype = {
           case 'msg-edit-menu-mark-unread':
             header.setRead(false);
             break;
+          case 'msg-edit-menu-delete':
+            op = header.deleteMessage();
+            break;
+          case 'msg-edit-menu-move':
+            //TODO: Add folder select panel and apply while move api ready.
+            //op = header.moveMessage(folderName);
+            break;
 
           // Deletion, and moves, on the other hand, require a lot of manual
           // labor, so we need to expose their undo op's.
