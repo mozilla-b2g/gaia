@@ -247,7 +247,7 @@ var Applications = (function() {
     }
 
     if ('locales' in manifest) {
-      var locale = manifest.locales[navigator.language];
+      var locale = manifest.locales[document.documentElement.lang];
       if (locale && locale.name) {
         return locale.name;
       }
