@@ -28,7 +28,8 @@ var Browser = {
     '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
-  SCROLL_THRESHOLD: 50, // pixels to scroll before hiding the address bar
+  UPPER_SCROLL_THRESHOLD: 50, // hide address bar
+  LOWER_SCROLL_THRESHOLD: 5, // show address bar
 
   urlButtonMode: null,
   inTransition: false,
@@ -227,6 +228,7 @@ var Browser = {
         if (!tab.url || tab.crashed) {
           return;
         }
+        this.showAddressBar();
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -363,18 +365,26 @@ var Browser = {
         break;
 
       case 'mozbrowserscroll':
-        if (evt.detail.top == 0) {
-          this.mainScreen.style.height = '';
-          this.mainScreen.style.transform = '';
-        } else if (evt.detail.top > this.SCROLL_THRESHOLD) {
-          this.mainScreen.style.height = '-moz-calc(100% + 50px)';
-          this.mainScreen.style.transform = 'translateY(-50px)';
-          this.mainScreen.style.transition =
-            'transform 0.2s ease-in-out,height 0.2s ease-in-out';
+        if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+          this.showAddressBar();
+        } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+          this.hideAddressBar();
         }
         break;
       }
     }).bind(this);
+  },
+
+  hideAddressBar: function browser_hideAddressBar() {
+    this.mainScreen.style.height = '-moz-calc(100% + 50px)';
+    this.mainScreen.style.transform = 'translateY(-50px)';
+    this.mainScreen.style.transition =
+      'transform 0.2s ease-in-out,height 0.2s ease-in-out';
+  },
+
+  showAddressBar: function browser_showAddressBar() {
+    this.mainScreen.style.height = '';
+    this.mainScreen.style.transform = '';
   },
 
   handleEvent: function browser_handleEvent(evt) {
