@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="style/feedback.css"/>
+
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/async_storage.js"></script>
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+  </head>
+
+  <body>
+    <section role="region" id="root">
+      <header>
+        <menu type="toolbar">
+          <button data-l10n-id="reset" onclick="reset()">Reset</button>
+          <button data-l10n-id="done" onclick="send()">Done</button>
+        </menu>
+        <h1 data-l10n-id="feedback">Feedback</h1>
+      </header>
+
+      <form id="feedback-form" data-l10n-id="feedback-url" action="" method="post">
+        <textarea id="feedback-textarea" name="feedback" data-l10n-id="input-what-happen" placeholder="Tell us what's happening"></textarea>
+        <input type="hidden" id="uuid" name="uuid" value=""></input>
+        <input type="hidden" id="build-id" name="build-id" value=""></input>
+
+        <script>
+          asyncStorage.getItem('uuid', function storage_getItem(value) {
+            var uuid = value;
+            if (!uuid) {
+              uuid = getUUID();
+              asyncStorage.setItem('uuid', uuid);
+            }
+
+            document.getElementById('uuid').value = uuid;
+          });
+
+          function getUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+              return v.toString(16);
+            });
+          }
+
+          var buildID = navigator.buildID;
+          document.getElementById('build-id').value = buildID;
+
+          function reset() {
+            document.getElementById('feedback-textarea').value = '';
+          }
+
+          function send() {
+            document.getElementById('feedback-form').submit();
+            reset();
+          }
+        </script>
+      </form>
+    </section>
+  </body>
+</html>
+
