@@ -88,6 +88,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
       node.textContent = contact.name;
+      KeypadManager.formatPhoneNumber('on-call', 'right');
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
       additionalInfoNode.textContent = additionalInfo ?
