@@ -144,7 +144,7 @@ def add(word, freq, flags):
     # doo : rhandle
     # door : handle
     # doorh : andle
-    # and so on, up until we hit the PrifixLimit
+    # and so on, up until we hit the PrefixLimit
     curLimit = 1;
     while curLimit < PrefixLimit:
         prefix = word[0:min(len(word), curLimit)]
