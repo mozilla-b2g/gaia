@@ -34,7 +34,7 @@ var ContactDataManager = {
     };
 
     var cacheResult = this.contactData[number];
-    if (typeof cacheResult !== 'undefined') {
+    if (cacheResult) {
       var cacheArray = cacheResult ? [cacheResult] : [];
       callback(cacheArray);
     }
@@ -46,15 +46,32 @@ var ContactDataManager = {
       var cacheData = self.contactData[number];
       var result = req.result;
       if (result.length > 0) {
-        if (cacheData && (cacheData.name[0] == dbData.name[0]))
-          return;
-
-        self.contactData[number] = result[0];
+        if (cacheData && (cacheData.name[0] == result[0].name[0])) {
+          var telInfo;
+          // Retrieving the info of the telephone
+          for (var i = 0; i < cacheData.tel.length; i++) {
+            if (cacheData.tel[i].value == number) {
+              telInfo = cacheData.tel[i];
+              break;
+            }
+          }
+          // Check if phone type and carrier have changed
+          for (var i = 0; i < result[0].tel.length; i++) {
+            if (result[0].tel[i].value == number) {
+              if (!(result[0].tel[i].type == telInfo.type &&
+                result[0].tel[i].carrier == telInfo.carrier)) {
+                self.contactData[number] = result[0];
+              }
+              break;
+            }
+          }
+        }else {
+          self.contactData[number] = result[0];
+        }
       } else {
-        if (cacheData === null)
-          return;
-
-        self.contactData[number] = null;
+        if (cacheData) {
+          delete self.contactData[number];
+        }
       }
       callback(result);
     };

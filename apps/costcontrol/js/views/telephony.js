@@ -57,11 +57,13 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
     }
 
     var nextResetDate = CostControl.settings.option('next_reset') || null;
-    if (nextResetDate)
-      nextResetDate = new Date(nextResetDate);
-
-    resetDate.textContent =
-      nextResetDate.toLocaleFormat(_('short-date-format'));
+    if (!nextResetDate) {
+      resetDate.textContent = '--';
+      return;
+    }
+    
+    nextResetDate = new Date(nextResetDate);
+    resetDate.textContent = nextResetDate.toLocaleFormat(_('short-date-format'));
   }
 
   function _updateUI() {

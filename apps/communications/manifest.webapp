@@ -28,7 +28,6 @@
     "telephony",
     "voicemail",
     "contacts",
-    "power",
     "mobileconnection",
     "background",
     "attention",
@@ -39,14 +38,13 @@
     "60": "/style/icons/60/Dialer.png"
   },
   "background_page": "/dialer/background.html",
-  "attention_page": "/dialer/oncall.html",
   "orientation": "portrait-primary",
   "activities": {
     "pick": {
       "filters": {
         "type": "webcontacts/contact"
        },
-      "disposition": "window",
+      "disposition": "inline",
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },

@@ -91,6 +91,8 @@ function setupApp() {
         Views[viewid].localize();
     });
 
+    var currentValue = CostControl.settings.option('plantype') ||
+                       CostControl.PLAN_PREPAID;
     if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
       appVManager.changeViewTo(TAB_BALANCE);
     } else {

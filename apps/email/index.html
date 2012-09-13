@@ -164,6 +164,8 @@
           <button class="msg-star-btn bottom-btn"></button>
           <button class="msg-mark-read-btn bottom-btn"></button>
         </div>
+        <div class="msg-list-empty" data-l10n-id="messages-folder-empty">No messagE
+        </div>
       </div>
 
       <!-- Message search UI; variant on the message list -->
@@ -215,22 +217,22 @@
           <div class="msg-envelope-bar">
             <div class="msg-envelope-date"></div>
             <div class="msg-envelope-from-line msg-envelope-line">
-              <label class="msg-envelope-key"
-                     data-l10n-id="envelope-from">FroM</label>
+              <span class="msg-envelope-key"
+                     data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details collapsed">
               <div class="msg-envelope-to-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-to">tO</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-to">tO</span>
               </div>
               <div class="msg-envelope-cc-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-cc">cC</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-cc">cC</span>
               </div>
               <div class="msg-envelope-bcc-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-bcc">BcC</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
             <h3 class="msg-envelope-subject"></h3>
@@ -266,8 +268,8 @@
         <div class="scrollregion-below-header">
           <div class="cmp-envelope-bar">
             <div class="cmp-envelope-line">
-              <label class="cmp-to-label cmp-addr-label"
-                     data-l10n-id="compose-to">tO:</label>
+              <span class="cmp-to-label cmp-addr-label"
+                     data-l10n-id="compose-to">tO:</span>
               <div class="cmp-to-container cmp-addr-container">
                 <input class="cmp-to-text cmp-addr-text" type="text" />
                 <div class="cmp-to-add cmp-contact-add"></div>
@@ -277,24 +279,24 @@
                  but there is also the case where replying itself might need
                  to expand, so we are deferring that feature -->
             <div class="cmp-envelope-line">
-              <label class="cmp-cc-label cmp-addr-label"
-                     data-l10n-id="compose-cc">cC:</label>
+              <span class="cmp-cc-label cmp-addr-label"
+                     data-l10n-id="compose-cc">cC:</span>
               <div class="cmp-cc-container cmp-addr-container">
                 <input class="cmp-cc-text cmp-addr-text" type="text" />
                 <div class="cmp-cc-add cmp-contact-add"></div>
               </div>
             </div>
             <div class="cmp-envelope-line">
-              <label class="cmp-bcc-label cmp-addr-label"
-                     data-l10n-id="compose-bcc">BcC:</label>
+              <span class="cmp-bcc-label cmp-addr-label"
+                     data-l10n-id="compose-bcc">BcC:</span>
               <div class="cmp-bcc-container cmp-addr-container">
                 <input class="cmp-bcc-text cmp-addr-text" type="text" />
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
             <div class="cmp-envelope-line">
-              <label class="cmp-subject-label"
-                     data-l10n-id="compose-subject">SubjecT:</label>
+              <span class="cmp-subject-label"
+                     data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
@@ -428,7 +430,15 @@
           </header>
             <li>
               <span data-l10n-id="settings-check-mail" class="list-text">ChecK MaiL</span>
-              <em class="aside end">5 min</em>
+              <em class="aside end">
+                <select class="mail-select">
+                  <option value="1" data-l10n-id="settings-check-three">3 Minutes</option>
+                  <option value="2" data-l10n-id="settings-check-five">5 Minutes</option>
+                  <option value="3" data-l10n-id="settings-check-ten">10 Minutes</option>
+                  <option value="4" data-l10n-id="settings-check-fifteen">15 Minutes</option>
+                  <option value="5" data-l10n-id="settings-check-manually">Manually</option>
+                </select>
+              </em>
             </li>
             <li>
               <span data-l10n-id="settings-show-images" class="list-text">AlwayS ShoW ImageS</span>
@@ -457,19 +467,47 @@
                 </label>
               </em>
             </li>
-          <a class="tng-email-lib-version collapsed">v1</a>
+          <a class="tng-email-lib-version list-text">v1</a>
         </section>
       </section>
 
       <!-- Per-account settings menu; largely read-only for now -->
-      <div class="card-settings-account card">
-        <div class="tng-account-header top-header">
-          <button class="tng-back-btn back-btn header-left-btn">
+      <section class="card-settings-account card skin-organic" role="region">
+        <header class="tng-account-header">
+          <a href="#" class="tng-back-btn back-btn header-left-btn">
             <span class="icon icon-back"></span>
-          </button>
-          <h2 class="tng-account-header-label header-label"></h2>
-        </div>
-      </div>
+          </a>
+          <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <li>
+            <span data-l10n-id="settings-default-account" class="list-text">DefaulT AccounT</span>
+            <em class="aside end">
+              <label>
+                <input type="checkbox" checked="checked">
+                <span></span>
+              </label>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-account-type" class="list-text">AccounT TypE</span>
+            <em class="aside end">
+              <select class="mail-select">
+                    <option value="imap+smtp">IMAP+SMTP</option>
+                    <option value="activesync">ActiveSync</option>
+              </select>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-incoming-mail" class="list-text">IncominG MaiL SettingS</span>
+            <em class="aside end"></em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-outgoing-mail" class="list-text">OutgoinG MaiL SettingS</span>
+            <em class="aside end"></em>
+          </li>
+        </section>
+      </section>
 
       <!-- Developer debug page; for those in the know -->
       <div class="card-settings-debug card">

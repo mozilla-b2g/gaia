@@ -15,9 +15,12 @@ span[role="button"].icon-clear {
   }
 }
 
+input.cancel-button {
+  padding-right: 3rem;
+}
+
 input[data-cancelable] {
   animation-duration: 0.001s;
   animation-name: nodeInserted;
-  padding-right: 3rem;
 }
 

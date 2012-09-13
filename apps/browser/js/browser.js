@@ -107,6 +107,7 @@ var Browser = {
     this.handleWindowResize();
 
     ModalDialog.init(false);
+    AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
@@ -323,7 +324,20 @@ var Browser = {
         this.updateTabsCount();
         if (tab.id === ModalDialog.currentOrigin) {
           ModalDialog.hide();
+        } else if (tab.id === AuthenticationDialog.currentOrigin) {
+          AuthenticationDialog.hide();
         }
+        break;
+
+      case 'mozbrowserusernameandpasswordrequired':
+        if (!isCurrentTab) {
+          this.hideCurrentTab();
+          this.selectTab(tab.id);
+        }
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        AuthenticationDialog.handleEvent(evt, tab.id);
         break;
 
       case 'mozbrowsershowmodalprompt':
@@ -522,7 +536,9 @@ var Browser = {
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
+    // Hack until tabsBadge refactored in #1222
     this.bookmarkMenu.classList.remove('hidden');
+    this.tabsBadge.style.display = 'none';
     if (!this.currentTab.url)
       return;
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
@@ -539,6 +555,8 @@ var Browser = {
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
+    // Hack until tabsBadge refactored in #1222
+    this.tabsBadge.style.display = 'block';
     this.bookmarkMenu.classList.add('hidden');
   },
 
@@ -641,6 +659,10 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
+      // Hide modal dialog
+      ModalDialog.hide();
+      AuthenticationDialog.hide();
+
       this.urlInput.value = this.currentTab.url;
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
@@ -961,6 +983,14 @@ var Browser = {
         ModalDialog.hide();
       }
     }
+
+    if (AuthenticationDialog.originHasEvent(tab.id)) {
+      if (visible) {
+        AuthenticationDialog.show(tab.id);
+      } else {
+        AuthenticationDialog.hide();
+      }
+    }
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
     if (tab.loading && !visible) {
@@ -981,8 +1011,8 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-
-                         'showmodalprompt', 'error'];
+                         'showmodalprompt', 'error',
+                         'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
                               this.handleBrowserEvent(tab));

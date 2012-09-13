@@ -3,18 +3,21 @@
 var contacts = window.contacts || {};
 
 contacts.List = (function() {
-  var groupsList,
+  var _,
+      groupsList,
       favoriteGroup,
       inSearchMode = false,
       loaded = false,
       cancel = document.getElementById('cancel-search'),
       conctactsListView = document.getElementById('view-contacts-list'),
+      searchView = document.getElementById('search-view'),
       searchBox = document.getElementById('search-contact'),
       searchNoResult = document.getElementById('no-result'),
       fastScroll = document.querySelector('.view-jumper'),
       scrollable = document.querySelector('#groups-container');
 
   var init = function load(element) {
+    _ = navigator.mozL10n.get;
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
 
@@ -59,7 +62,6 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
-    getFavorites();
     this.loaded = true;
   };
 
@@ -98,7 +100,7 @@ contacts.List = (function() {
     figure.appendChild(img);
     link.appendChild(figure);
     var body = document.createElement('p');
-    body.className = 'item-body';
+    body.className = 'item-body-exp';
     var name = document.createElement('strong');
     name.className = 'block-name';
     name.innerHTML = contact.givenName;
@@ -170,7 +172,13 @@ contacts.List = (function() {
 
   var addImportSimButton = function addImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
+
+    if (container.querySelector('#sim_import_button')) {
+      return;
+    }
+
     var button = document.createElement('button');
+    button.id = 'sim_import_button';
     button.setAttribute('class', 'simContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
@@ -217,6 +225,8 @@ contacts.List = (function() {
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
     var counter = {};
+    var favorites = [];
+    counter['favorites'] = 0;
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -227,7 +237,6 @@ contacts.List = (function() {
 
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
-
       var listContainer = document.getElementById('contacts-list-' + group);
       var newContact = renderContact(refillContactData(contact));
       var contactSelector = '[data-uuid="' + contact.id + '"]';
@@ -252,14 +261,20 @@ contacts.List = (function() {
         // If the contact is not already there means is a new one or
         // the letter is empty. If the new one is not at the end of the list
         // we need to remove the following contacts
-        if (length > 0 && length > index + 1) {
+        if (length > 0 && length >= index + 1) {
           resetGroup(listContainer, counter[group]);
         }
         listContainer.appendChild(newContact);
       }
       showGroup(group);
+      if (contact.category && contact.category.indexOf('favorite') != -1) {
+        counter['favorites']++;
+        favorites.push(contact);
+      }
     }
+    renderFavorites(favorites);
     cleanLastElements(counter);
+    checkEmptyList();
     FixedHeader.refresh();
   };
 
@@ -268,7 +283,8 @@ contacts.List = (function() {
     // in the last positions of the letter, the algorithm can't
     // notice it. We need to check the difference at the end to
     // remove the remaining.
-    var nodes = groupsList.querySelectorAll('ol[data-group]');
+    var selectorString = 'ol[data-group]:not(#contacts-list-favorites)';
+    var nodes = groupsList.querySelectorAll(selectorString);
     for (var i = 0; i < nodes.length; i++) {
       var currentGroup = nodes[i];
       var group = currentGroup.dataset['group'];
@@ -277,6 +293,15 @@ contacts.List = (function() {
         resetGroup(currentGroup, currentCount);
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
+    }
+  }
+
+  var checkEmptyList = function checkEmptyList() {
+    // Check if we removed all the groups, and show the import contacts from SIM
+    var selectorString = 'li h2:not(.hide)';
+    var nodes = groupsList.querySelectorAll(selectorString);
+    if (nodes.length == 0) {
+      addImportSimButton();
     }
   }
 
@@ -290,40 +315,33 @@ contacts.List = (function() {
       container.removeChild(current);
       length = container.children.length;
     }
-  }
+  };
 
-  var getFavorites = function getFavorites() {
-    var options = {
-      filterBy: ['category'],
-      filterOp: 'contains',
-      filterValue: ['favorite'],
-      sortBy: 'familyName',
-      sortOrder: 'ascending'
-    };
-
-    var request = navigator.mozContacts.find(options);
-
-    request.onsuccess = function favoritesCallback() {
-      if (request.result.length > 0) {
-        showGroup('favorites');
-      }
-      for (var i = 0; i < request.result.length; i++) {
-        var contactToRender = request.result[i];
-        if (fb.isFbContact(contactToRender)) {
-          var fbContact = new fb.Contact(contactToRender);
-          var freq = fbContact.getData();
-          freq.onsuccess = function() {
-            addToFavoriteList(freq.result);
-          }
-
-          freq.onerror = function() {
-            addToFavoriteList(contactToRender);
-          }
-        } else {
-                  addToFavoriteList(contactToRender);
+  var renderFavorites = function renderFavorites(favorites) {
+    var group = 'contacts-list-favorites';
+    var container = document.getElementById(group);
+    container.innerHTML = '';
+    if (favorites.length == 0) {
+      hideGroup('favorites');
+      return;
+    }
+    for (var i = 0; i < favorites.length; i++) {
+      var contactToRender = favorites[i];
+      if (fb.isFbContact(contactToRender)) {
+        var fbContact = new fb.Contact(contactToRender);
+        var freq = fbContact.getData();
+        freq.onsuccess = function() {
+          addToFavoriteList(freq.result);
         }
+
+        freq.onerror = function() {
+          addToFavoriteList(contactToRender);
+        }
+      } else {
+        addToFavoriteList(contactToRender);
       }
     }
+    showGroup('favorites');
   };
 
   function addToFavoriteList(c) {
@@ -336,7 +354,7 @@ contacts.List = (function() {
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
     if (typeof contacts !== 'undefined') {
-      buildContacts(contacts, successCb);
+      buildContacts(contacts);
       return;
     }
 
@@ -347,16 +365,12 @@ contacts.List = (function() {
 
     var request = navigator.mozContacts.find(options);
     request.onsuccess = function findCallback() {
-      if (request.result.length === 0) {
-        addImportSimButton();
-      } else {
-        var fbReq = fb.contacts.getAll();
-        fbReq.onsuccess = function() {
-          buildContacts(request.result, fbReq.result);
-        }
-        fbReq.onerror = function() {
-           buildContacts(request.result);
-        }
+      var fbReq = fb.contacts.getAll();
+      fbReq.onsuccess = function() {
+        buildContacts(request.result, fbReq.result);
+      }
+      fbReq.onerror = function() {
+         buildContacts(request.result);
       }
     };
 
@@ -500,6 +514,7 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    checkEmptyList();
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
@@ -554,31 +569,16 @@ contacts.List = (function() {
     }
   }
 
-  // Toggle function to show/hide the letters header
-  var toggleGroupHeaders = function showHeaders() {
-    var headers = document.querySelectorAll('.block-title:not(.hide)');
-    if (!headers) {
-      return;
-    }
-
-    for (var i = 0; i < headers.length; i++) {
-      headers[i].classList.toggle('search-hide');
-    }
-  }
-
+  //Search mode instructions
   var exitSearchMode = function exitSearchMode() {
-    cancel.classList.add('hide');
     searchNoResult.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
     inSearchMode = false;
     // Show elements that were hidden for the search
-    fastScroll.classList.remove('hide');
-    groupsList.classList.remove('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.remove('hide');
     }
-    toggleGroupHeaders();
 
     // Bring back to visibilitiy the contacts
     var allContacts = getContactsDom();
@@ -592,7 +592,6 @@ contacts.List = (function() {
 
   var enterSearchMode = function searchMode() {
     if (!inSearchMode) {
-      cancel.classList.remove('hide');
       conctactsListView.classList.add('searching');
       cleanContactsList();
       inSearchMode = true;
@@ -626,11 +625,9 @@ contacts.List = (function() {
   };
 
   var cleanContactsList = function cleanContactsList() {
-    fastScroll.classList.add('hide');
     if (favoriteGroup) {
       favoriteGroup.classList.add('hide');
     }
-    toggleGroupHeaders();
   };
 
   var getContactsDom = function contactsDom() {

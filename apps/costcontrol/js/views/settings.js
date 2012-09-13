@@ -165,7 +165,8 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     trackingPeriodCancel.addEventListener(
       'click',
       function ccapp_onTrackingPeriodCancel() {
-        var currentValue = CostControl.settings.option('tracking_period');
+        var currentValue = CostControl.settings.option('tracking_period') ||
+                           CostControl.TRACKING_MONTHLY;
         document.querySelector(
           '#' + DIALOG_TRACKING_PERIOD_SETUP + 
           ' [type="radio"][value="' + currentValue + '"]'
@@ -193,7 +194,7 @@ Views[VIEW_SETTINGS] = (function cc_setUpDataSettings() {
     monthdayCancel.addEventListener(
       'click',
       function ccapp_onMonthdayCancel() {
-        var currentValue = CostControl.settings.option('reset_time');
+        var currentValue = CostControl.settings.option('reset_time') || '1';
         document.querySelector(
           '#' + DIALOG_RESET_MONTHDAY_SETUP + 
           ' [type="radio"][value="' + currentValue + '"]'

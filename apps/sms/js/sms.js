@@ -14,7 +14,6 @@ var MessageManager = {
     ThreadListUI.init();
     // Init first time
     this.getMessages(ThreadListUI.renderThreads);
-
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -77,7 +76,13 @@ var MessageManager = {
                 threadMessages.classList.remove('new');
               });
             } else {
-              MessageManager.slide();
+              MessageManager.slide(function() {
+                if (MessageManager.activityTarget) {
+                  window.location.hash =
+                    '#num=' + MessageManager.activityTarget;
+                  delete MessageManager.activityTarget;
+                }
+              });
             }
             // Update the data for next time we enter a thread
             delete ThreadUI.title.dataset.isContact;
@@ -233,6 +238,16 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value);
       }
     }
+  },
+
+  reopenSelf: function reopenSelf(number) {
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch();
+      if (number) {
+        window.location.hash = '#num=' + number;
+      }
+    }
   }
 };
 
@@ -277,18 +292,24 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var choosenContact = contact[0];
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    var selector = 'a[data-num="' + number + '"] div.photo img';
-    var photo = this.view.querySelector(selector);
-    if (name && choosenContact.name && choosenContact.name != '') {
-      name.innerHTML = choosenContact.name;
-    }
+    if (contact && contact.length > 0) {
+      var choosenContact = contact[0];
+      var name =
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
+      var selector = 'a[data-num="' + number + '"] div.photo img';
+      var photo = this.view.querySelector(selector);
+      if (name && choosenContact.name && choosenContact.name != '') {
+        name.innerHTML = choosenContact.name;
+      }
 
-    if (photo && choosenContact.photo && choosenContact.photo[0]) {
-      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-      photo.src = photoURL;
+      if (photo && choosenContact.photo && choosenContact.photo[0]) {
+        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+        photo.src = photoURL;
+      }
+    } else {
+      name.innerHTML = number;
     }
   },
 
@@ -529,9 +550,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
@@ -697,6 +716,8 @@ var ThreadUI = {
     Utils.getPhoneDetails(number, function returnedDetails(details) {
       if (details.isContact) {
         self.title.dataset.isContact = true;
+      } else {
+         self.title.dataset.isContact = false;
       }
       self.title.innerHTML = details.title || number;
       var carrierTag = document.getElementById('contact-carrier');
@@ -1045,8 +1066,10 @@ var ThreadUI = {
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
                   Utils.updateHeaders();
+
                 });
               }
+              MessageManager.getMessages(ThreadListUI.renderThreads);
               MessageManager.send(num, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
@@ -1189,15 +1212,6 @@ var ThreadUI = {
 
   pickContact: function thui_pickContact() {
     try {
-      var reopenSelf = function reopenSelf(number) {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-          if (number) {
-            window.location.hash = '#num=' + number;
-          }
-        };
-      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -1206,10 +1220,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        reopenSelf(number);
+        MessageManager.reopenSelf(number);
       }
       activity.onerror = function error() {
-        reopenSelf();
+        MessageManager.reopenSelf();
       }
 
     } catch (e) {
@@ -1242,6 +1256,12 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
+      activity.onsuccess = function success() {
+        MessageManager.reopenSelf();
+      }
+      activity.onerror = function error() {
+        MessageManager.reopenSelf();
+      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1278,20 +1298,41 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+  var activityAction = function act_action() {
+    var currentLocation = window.location.hash;
+    switch (currentLocation) {
+      case '#thread-list':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#new':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#edit':
+        history.back();
+        activityAction();
+        break;
+      default:
+        if (currentLocation.indexOf('#num=') != -1) {
+          MessageManager.activityTarget = number;
+          window.location.hash = '#thread-list';
+        } else {
+          window.location.hash = '#num=' + number;
+        }
+        break;
+    }
+  };
 
-  if (document.readyState == 'complete') {
-    displayThread();
+  if (!document.documentElement.lang) {
+    window.addEventListener('localized', function waitLocalized() {
+      window.removeEventListener('localized', waitLocalized);
+      activityAction();
+    });
   } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
+    document.addEventListener('mozvisibilitychange', function waitVisibility() {
+      document.removeEventListener('mozvisibilitychange', waitVisibility);
+      activityAction();
     });
   }
-
   activity.postResult({ status: 'accepted' });
 });
 
