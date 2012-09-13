@@ -9,6 +9,9 @@
 var Applications = {
   installedApps: {},
   init: function a_init() {
+    var self = this;
+    var apps = navigator.mozApps;
+
     // We need to wait for the chrome shell to let us know when it's ok to
     // launch activities. This prevents race conditions.
     window.addEventListener('mozChromeEvent', function onStartupChromeEvent(event) {
@@ -26,9 +29,6 @@ var Applications = {
       }
       window.removeEventListener('mozChromeEvent', onStartupChromeEvent);
     });
-
-    var self = this;
-    var apps = navigator.mozApps;
 
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;
