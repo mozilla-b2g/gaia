@@ -38,6 +38,14 @@ var PhoneNumberManager = {
       return numInput;
     }
   },
+  getNormalizedInternationalNumber: function pnm_getNormalizedNumber(numInput) {
+    try {
+      var normalized = PhoneNumberManager.getInternationalNum(numInput, true);
+      return normalized;
+    } catch (e) {
+      return numInput;
+    }
+  },
   getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
     try {
       var nationalNum = PhoneNumberManager.getNationalNum(numInput, true);
