@@ -1,0 +1,127 @@
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-size: 10px;
+	margin: 0;
+	padding: 0;
+}
+
+iframe {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 1rem);
+	margin: 0;
+	padding: 0;
+}
+
+#loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+menu[type="toolbar"] {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  border-top: solid 2px #a6b3bb;
+  height: 4.5rem;
+  background-color: #fff;
+  background-image: -moz-linear-gradient(#323639, #272b2e);
+  background-repeat: no-repeat, no-repeat;
+  background-position: top center;
+  margin: 0;
+  padding: 0;
+  z-index: 1000;
+  -moz-transform: translateY(0);
+  -moz-transition: -moz-transform .2s ease-in;
+}
+
+menu.hidden {
+  -moz-transform: translateY(3.5rem);
+  background-image: url('images/circle.png'), -moz-linear-gradient(#323639, #272b2e);
+}
+
+menu.hidden button {
+  display: none;
+}
+
+menu button {
+  background-color: transparent;
+  -moz-appearance: none;
+  border: none;
+  display: block;
+  margin: 0;
+  padding: 0;
+  width: 80px;
+  height: 100%;
+  float: right;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 1;
+}
+
+#back-button {
+  background-image: url("images/back.png");
+  float: left;
+}
+
+#forward-button {
+  background-image: url("images/forward.png");
+  float: left;
+}
+
+menu button[data-disabled] {
+  opacity: .2;
+}
+
+#full-button {
+  background-image: url("images/full.png");
+}
+
+#reload-button {
+  background-image: url("images/reload.png");
+}
+
+input::-moz-focus-inner {
+  border: 0;
+}
+
+#advertisement {
+	text-align: center;
+	pointer-events: none;
+	-moz-animation-name: bounce;
+	-moz-animation-duration: 1s;
+	-moz-animation-iteration-count: infinite;
+	-moz-animation-timing-function: ease-in-out;
+	-moz-animation-direction: alternate;
+
+  z-index: 1001;
+  position: fixed;
+  bottom: 5rem;
+  left: 0;
+  width: 100%;
+  height: 4.4rem;
+}
+
+#advertisement span {
+  font-size: 2rem;
+	font-weight: bold;
+  display: block;
+	color: #000;
+}
+
+@-moz-keyframes bounce {
+	from {
+		-moz-transform: translateY(0);
+	}
+	to {
+		-moz-transform: translateY(1rem);
+	}
+}

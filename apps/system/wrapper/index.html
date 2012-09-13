@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <link rel="stylesheet" type="text/css" href="style/wrapper.css">
+    <script type="text/javascript" defer src="js/wrapper.js"></script>
+  </head>
+
+  <body>
+    <iframe id="app" src="about:blank" mozbrowser remote></iframe>
+    <img id="loading" src="style/images/progress.gif"></img>
+
+    <div id="advertisement" hidden>
+      <span>Tap to view buttonbar</span>
+      <span>&darr;</span>
+    </div>
+
+    <menu id="toolbar" type="toolbar" class="hidden">
+      <button type="button" value="" id="back-button" alt="Back" data-disabled="disabled"></button>
+      <button type="button" value="" id="forward-button" alt="Forward" data-disabled="disabled"></button>
+      <button type="button" value="" id="full-button" alt="FullScreen"></button>
+      <button type="button" value="" id="reload-button" alt="Reload"></button>
+    </menu>
+  </body>
+</html>

@@ -11,19 +11,14 @@ var Bookmark = function Bookmark(params) {
     icons: {
       60: params.icon
     },
-    default_locale: 'en-US'
+    default_locale: 'en-US',
+    wrapperMode: 'new'
   };
 };
 
 Bookmark.prototype = {
   launch: function bookmark_launch() {
-    new MozActivity({
-      name: 'view',
-      data: {
-        type: 'url',
-        url: this.origin
-      }
-    });
+    window.open(this.origin, JSON.stringify(this.manifest), 'wrapper');
   },
 
   uninstall: function bookmark_uninstall() {
