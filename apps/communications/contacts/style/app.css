@@ -702,6 +702,9 @@ textarea.textfield {
 
 .setbox-title a {
   color: #333;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 6.8rem;
 }
 
 .setbox-title a, .setbox-title:before, .setbox-title label {
