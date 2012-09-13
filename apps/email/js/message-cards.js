@@ -90,6 +90,10 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onStarMessages.bind(this, true), false);
   domNode.getElementsByClassName('msg-mark-read-btn')[0]
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
+  domNode.getElementsByClassName('msg-delete-btn')[0]
+    .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
+  domNode.getElementsByClassName('msg-move-btn')[0]
+    .addEventListener('click', this.onMoveMessages.bind(this, true), false);
 
   this.editMode = false;
   this.selectedMessages = null;
@@ -528,6 +532,22 @@ MessageListCard.prototype = {
     var op = MailAPI.markMessagesRead(this.selectedMessages, this.setAsRead);
     this.setEditMode(false);
     Toaster.logMutation(op);
+  },
+
+  onDeleteMessages: function() {
+    // TODO: Enable the batch delete when back-end api ready.
+    // var op = MailAPI.deleteMessages(this.selectedMessages,
+    //                                      this.setAsStarred);
+    // Toaster.logMutation(op);
+    this.setEditMode(false);
+  },
+
+  onMoveMessages: function() {
+    // TODO: Enable the batch move when back-end api ready.
+    // var op = MailAPI.moveMessages(this.selectedMessages,
+    //                                      this.setAsStarred);
+    // Toaster.logMutation(op);
+    this.setEditMode(false);
   },
 
   buildEditMenuForMessage: function(header) {
