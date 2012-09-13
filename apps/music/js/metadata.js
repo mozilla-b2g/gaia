@@ -53,8 +53,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // we can't find one in the file
   if (blob.name) {
     var p1 = blob.name.lastIndexOf('/');
-    if (p1 === -1)
-      p1 = 0;
     var p2 = blob.name.lastIndexOf('.');
     if (p2 === -1)
       p2 = blob.name.length;
@@ -314,22 +312,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
     function readText(view, size, encoding) {
       if (encoding === undefined) {
-        var encoding = view.readUnsignedByte();
+        encoding = view.readUnsignedByte();
         size = size - 1;
       }
       switch (encoding) {
       case 0:
         return view.readNullTerminatedLatin1Text(size);
-        break;
       case 1:
         return view.readNullTerminatedUTF16Text(size, undefined);
-        break;
       case 2:
         return view.readNullTerminatedUTF16Text(size, false);
-        break;
       case 3:
         return view.readNullTerminatedUTF8Text(size);
-        break;
+      default:
+        throw Error('unknown text encoding');
       }
     }
   }
@@ -380,7 +376,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           var tag = comment.substring(0, equal).toLowerCase().replace(' ', '');
           var propname = OGGTAGS[tag];
           if (propname) { // Do we care about this tag?
-            value = comment.substring(equal + 1);
+            var value = comment.substring(equal + 1);
             if (propname in metadata) {          // Do we already have a value?
               metadata[propname] += ' ' + value; // Then append this new one.
             }
@@ -580,8 +576,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         default:
           throw Error('unexpected type in data atom');
         }
-
       }
+      throw Error('no data atom found');
     }
   }
 }

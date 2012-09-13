@@ -47,11 +47,11 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  display: none;
+  visibility: hidden;
 }
 
 #system-overlay.volume {
-  display: block;
+  visibility: visible;
 }
 
 #windows {
@@ -247,6 +247,7 @@ iframe.backgroundWindow {
 }
 
 #screen.authentication-dialog #dialog-overlay,
+#screen.authentication-dialog #authentication-dialog,
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,

@@ -238,6 +238,16 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value);
       }
     }
+  },
+
+  reopenSelf: function reopenSelf(number) {
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch();
+      if (number) {
+        window.location.hash = '#num=' + number;
+      }
+    }
   }
 };
 
@@ -1202,15 +1212,6 @@ var ThreadUI = {
 
   pickContact: function thui_pickContact() {
     try {
-      var reopenSelf = function reopenSelf(number) {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-          if (number) {
-            window.location.hash = '#num=' + number;
-          }
-        };
-      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -1219,10 +1220,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        reopenSelf(number);
+        MessageManager.reopenSelf(number);
       }
       activity.onerror = function error() {
-        reopenSelf();
+        MessageManager.reopenSelf();
       }
 
     } catch (e) {
@@ -1255,6 +1256,12 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
+      activity.onsuccess = function success() {
+        MessageManager.reopenSelf();
+      }
+      activity.onerror = function error() {
+        MessageManager.reopenSelf();
+      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
