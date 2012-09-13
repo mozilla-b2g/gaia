@@ -12,32 +12,45 @@ var Applications = {
     var self = this;
     var apps = navigator.mozApps;
 
+    // We need to wait for the chrome shell to let us know when it's ok to
+    // launch activities. This prevents race conditions.
+    window.addEventListener('mozChromeEvent', function onStartupChromeEvent(event) {
+      if (event.detail.type != 'webapps-registry-ready') {
+        return;
+      }
+
+      navigator.mozApps.mgmt.getAll().onsuccess = function(evt) {
+        var apps = evt.target.result;
+        apps.forEach(function(app) {
+          self.installedApps[app.manifestURL] = app;
+        });
+
+        self.fireApplicationReadyEvent();
+      }
+      window.removeEventListener('mozChromeEvent', onStartupChromeEvent);
+    });
+
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;
-      self.installedApps[newapp.origin] = newapp;
+      self.installedApps[newapp.manifestURL] = newapp;
 
       self.fireApplicationInstallEvent(newapp);
     };
 
     apps.mgmt.onuninstall = function a_uninstall(evt) {
       var deletedapp = evt.application;
-      delete self.installedApps[deletedapp.origin];
+      delete self.installedApps[deletedapp.manifestURL];
 
       self.fireApplicationUninstallEvent(deletedapp);
     }
-
-    apps.mgmt.getAll().onsuccess = function(evt) {
-      var apps = evt.target.result;
-      apps.forEach(function(app) {
-        self.installedApps[app.origin] = app;
-      });
-
-      self.fireApplicationReadyEvent();
-    };
   },
 
-  getByOrigin: function a_getByOrigin(origin) {
-    return this.installedApps[origin];
+  getByManifestURL: function a_getByManifestURL(manifestURL) {
+    if (manifestURL in this.installedApps) {
+      return this.installedApps[manifestURL];
+    }
+
+    return null;
   },
 
   fireApplicationReadyEvent: function a_fireAppReadyEvent() {

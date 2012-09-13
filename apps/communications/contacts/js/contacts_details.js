@@ -209,7 +209,7 @@ contacts.Details = (function() {
         contact = savedContact;
 
         if (enrichedContact) {
-          contactsList.refresh(enrichedContact);
+          cList.refresh(enrichedContact);
         } else {
           cList.refresh(contact);
         }
@@ -354,16 +354,17 @@ contacts.Details = (function() {
   var renderPhoto = function cd_renderPhoto() {
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
-      var photoOffset = (photoPos + 1) * 10;
+      // Photo height + Header in rems
+      var photoOffset = (photoPos + 5) * 10;
       if ((detailsInner.offsetHeight + photoOffset) < cover.clientHeight) {
         cover.style.overflow = 'hidden';
       } else {
-        cover.style.overflow = 'visible';
+        cover.style.overflow = 'auto';
       }
       Contacts.updatePhoto(contact.photo[0], cover);
     } else {
       cover.style.backgroundImage = '';
-      cover.style.overflow = 'visible';
+      cover.style.overflow = 'auto';
       contactDetails.style.transform = '';
       contactDetails.classList.add('no-photo');
     }

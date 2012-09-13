@@ -32,7 +32,7 @@ body.hidden * {
   background-position: right 20px top 50%;
 }
 
-[dir=rtl] [role="region"] > h2 {
+[dir=rtl] [role=region] > h2 {
   padding: 0 30px 0 0;
 }
 
@@ -46,15 +46,15 @@ body.hidden * {
 }
 
 [dir=rtl] #root:target,
-[dir=rtl] [role="region"]:target,
-[role="dialog"] [role="region"] {
+[dir=rtl] [role=region]:target,
+[role=dialog] [role=region] {
   transform: none;
 }
 
 /* setting lists */
 
 [dir=rtl] ul li > a {
-  padding-left: auto;
+  padding-left: inherit;
   padding-right: 30px;
 }
 
@@ -63,7 +63,7 @@ body.hidden * {
   right: 30px;
 }
 
-[dir=rtl] [role="region"] label > span {
+[dir=rtl] [role=region] label > span {
   left: 10px;
   right: auto;
 }
@@ -75,7 +75,7 @@ body.hidden * {
 }
 
 [dir=rtl] #root ul li > a {
-  padding-left: auto;
+  padding-left: inherit;
   padding-right: 55px;
 }
 

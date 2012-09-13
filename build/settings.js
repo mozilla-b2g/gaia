@@ -35,7 +35,7 @@ var settings = [
  new Setting("devtools.debugger.remote-enabled", false),
  new Setting("devtools.debugger.remote-port", 6000),
  new Setting("geolocation.enabled", true),
- new Setting("homescreen.ring", 'classic.wav'),
+ new Setting("dialer.ringtone", "classic.ogg"),
  new Setting("homescreen.wallpaper", "default.png"),
  new Setting("keyboard.layouts.english", true),
  new Setting("keyboard.layouts.dvorak", false),
@@ -55,6 +55,7 @@ var settings = [
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.code", "0000"),
  new Setting("lockscreen.passcode-lock.enabled", false),
+ new Setting("lockscreen.notifications-preview.enabled", true),
  new Setting("lockscreen.enabled", true),
  new Setting("lockscreen.locked", true),
  new Setting("lockscreen.wallpaper", "balloon.png"),
@@ -72,6 +73,7 @@ var settings = [
  new Setting("ril.data.roaming_enabled", false),
  new Setting("ril.data.user", ""),
  new Setting("ril.radio.disabled", false),
+ new Setting("ril.callwaiting.enabled", true),
  new Setting("screen.automatic-brightness", true),
  new Setting("screen.brightness", 1),
  new Setting("sms.ring.received", true),
@@ -95,6 +97,7 @@ var settings = [
  new Setting("ums.enabled", false),
  new Setting("ums.mode", 0),
  new Setting("wifi.enabled", true),
+ new Setting("wifi.disabled_by_wakelock", false),
  new Setting("wifi.notification", false)
 ];
 

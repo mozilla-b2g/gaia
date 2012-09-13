@@ -1,7 +1,6 @@
 {
   "name": "System",
   "description": "Main System",
-  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -10,7 +9,7 @@
     "browser",
     "power",
     "mozApps",
-    "webapps",
+    "webapps-manage",
     "mobileconnection",
     "mozBluetooth",
     "bluetooth",
@@ -40,8 +39,8 @@
       "description": "Allgemeines System"
     },
     "el": {
-      "name": "\u03a3\u03cd\u03c3\u03c4\u03b7\u03bc\u03b1",
-      "description": "\u039a\u03cd\u03c1\u03b9\u03bf \u03a3\u03cd\u03c3\u03c4\u03b7\u03bc\u03b1"
+      "name": "Σύστημα",
+      "description": "Κύριο Σύστημα"
     },
     "en-US": {
       "name": "System",

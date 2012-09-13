@@ -94,7 +94,7 @@ var ScreenManager = {
     this.idleObserver.onidle = function scm_onidle() {
       self._idled = true;
       if (!self._screenWakeLocked)
-        self.turnScreenOff(false);
+        self.turnScreenOff(self._instantIdleOff);
     };
 
     // When active, cancel the idle-screen-off process
@@ -110,6 +110,7 @@ var ScreenManager = {
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
+      self.setIdleTimeout(self._idleTimeout)
 
       if (!self._firstOn) {
         (function handleInitlogo() {
@@ -194,8 +195,8 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self.setIdleTimeout(0);
 
-      window.removeEventListener('devicelight', this);
-      window.removeEventListener('mozfullscreenchange', this);
+      window.removeEventListener('devicelight', self);
+      window.removeEventListener('mozfullscreenchange', self);
 
       self.screenEnabled = false;
       self._inTransition = false;
@@ -229,7 +230,6 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    window.addEventListener('devicelight', this);
     window.addEventListener('mozfullscreenchange', this);
 
     this.setScreenBrightness(this._userBrightness, instant);
@@ -241,17 +241,26 @@ var ScreenManager = {
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
+    // Attaching the event listener effectively turn on the hardware
+    // device light sensor, which _must be_ done after power.screenEnabled.
+    if (this._deviceLightEnabled)
+      window.addEventListener('devicelight', this);
+
     // The screen should be turn off with shorter timeout if
     // it was never unlocked
     if (LockScreen.locked) {
-      this.setIdleTimeout(10);
+      this.setIdleTimeout(10, true);
       var self = this;
-      window.addEventListener('unlock', function scm_unlocked() {
-        window.removeEventListener('unlock', scm_unlocked);
-        self.setIdleTimeout(self._idleTimeout);
-      });
+      var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
+        window.removeEventListener('unlock', stopShortIdleTimeout);
+        window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
+        self.setIdleTimeout(self._idleTimeout, false);
+      };
+
+      window.addEventListener('unlock', stopShortIdleTimeout);
+      window.addEventListener('lockpanelchange', stopShortIdleTimeout);
     } else {
-      this.setIdleTimeout(this._idleTimeout);
+      this.setIdleTimeout(this._idleTimeout, false);
     }
 
     this.fireScreenChangeEvent();
@@ -272,10 +281,10 @@ var ScreenManager = {
       return;
     }
 
-    this.dim();
+    this.transitionBrightness();
   },
 
-  dim: function scm_dim() {
+  transitionBrightness: function scm_transitionBrightness() {
     var self = this;
     var screenBrightness = navigator.mozPower.screenBrightness;
 
@@ -289,10 +298,11 @@ var ScreenManager = {
     screenBrightness += dalta;
     navigator.mozPower.screenBrightness = screenBrightness;
 
-    clearTimeout(this._dimTimer);
-    this._dimTimer = setTimeout(function() {
-      self.dim();
-    }, 10);
+    clearTimeout(this._transitionBrightnessTimer);
+    this._transitionBrightnessTimer =
+      setTimeout(function transitionBrightnessTimeout() {
+        self.transitionBrightness();
+      }, 10);
   },
 
   setDeviceLightEnabled: function scm_setDeviceLightEnabled(enabled) {
@@ -301,6 +311,15 @@ var ScreenManager = {
       this.setScreenBrightness(this._userBrightness, false);
     }
     this._deviceLightEnabled = enabled;
+
+    if (!this.screenEnabled)
+      return;
+
+    if (enabled) {
+      window.addEventListener('devicelight', this);
+    } else {
+      window.removeEventListener('devicelight', this);
+    }
   },
 
   // The idleObserver that we will pass to IdleAPI
@@ -309,7 +328,7 @@ var ScreenManager = {
     onactive: null
   },
 
-  setIdleTimeout: function scm_setIdleTimeout(time) {
+  setIdleTimeout: function scm_setIdleTimeout(time, instant) {
     if (!('addIdleObserver' in navigator))
       return;
     navigator.removeIdleObserver(this.idleObserver);
@@ -318,6 +337,7 @@ var ScreenManager = {
       return;
     }
 
+    this._instantIdleOff = instant;
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
     this.isIdleObserverInitialized = true;
@@ -332,7 +352,4 @@ var ScreenManager = {
   }
 };
 
-window.addEventListener('load', function loadScreenManager() {
-  window.removeEventListener('load', loadScreenManager);
-  ScreenManager.init();
-});
+ScreenManager.init();
