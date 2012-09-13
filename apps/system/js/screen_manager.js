@@ -75,7 +75,7 @@ var ScreenManager = {
             if (self._screenWakeLocked) {
               // Turn screen on if wake lock is acquire
               self.turnScreenOn();
-            } else if (self._idled) {
+            } else if (self._idled && self.screenEnabled) {
               // Turn screen off if we are already idled
               // and wake lock is released
               self.turnScreenOff(false);
@@ -169,8 +169,7 @@ var ScreenManager = {
         break;
 
       case 'sleep':
-        if (!this._screenWakeLocked)
-          this.turnScreenOff(true);
+        this.turnScreenOff(true);
         break;
 
       case 'wake':
