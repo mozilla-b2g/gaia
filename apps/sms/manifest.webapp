@@ -11,6 +11,7 @@
     "contacts",
     "background",
     "backgroundservice",
+    "mobileconnection",
     "settings"
   ],
   "locales": {
