@@ -47,7 +47,7 @@ function setupApp() {
     var configButtons = document.querySelectorAll('.settings-button');
     [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
       button.addEventListener('click', function ccapp_onConfig() {
-        appVManager.changeViewTo(VIEW_SETTINGS);
+        appVManager.changeViewTo('settings-view');
       });
     });
   }
