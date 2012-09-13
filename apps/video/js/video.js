@@ -59,7 +59,6 @@ function init() {
   }
 
   videodb.onready = function() {
-    createThumbnailList();
     scan();
   };
 
@@ -79,11 +78,7 @@ function init() {
 function scan() {
   showOverlay('scanning');
   videodb.scan(function() {
-    if (videos.length === 0) {
-      showOverlay('novideos');
-    } else {
-      showOverlay(null);
-    }
+    showOverlay(null);
   });
 }
 
@@ -95,10 +90,17 @@ function createThumbnailList() {
     videos = [];
   }
 
-  videodb.enumerate(function(videodata) {
-    if (videodata === null)
+  videodb.count(function(count) {
+    if (count === 0) {
+      showOverlay('novideos');
       return;
-    processVideo(videodata);
+    }
+    showOverlay(null);
+    videodb.enumerate(function(videodata) {
+      if (videodata === null)
+        return;
+      processVideo(videodata);
+    });
   });
 }
 
@@ -167,10 +169,6 @@ function captureFrame(player) {
 }
 
 function addVideo(videodata) {
-  // If this is the first video we've found,
-  // remove the "no videos" message
-  showOverlay(null);
-
   var index = videos.length;
   videos.push(videodata);
 
@@ -352,12 +350,6 @@ function hidePlayer() {
   if (!playerShowing)
     return;
 
-  // This method may be invoked when we're in full screen mode, or as
-  // as a result of leaving fullscreen mode. If we're still full-screen
-  // exit full screen mode
-  if (document.mozFullScreenElement)
-    document.mozCancelFullScreen();
-
   // Record current information about played video
   currentVideo.metadata.currentTime = dom.player.currentTime;
   currentVideo.metadata.poster = captureFrame(dom.player);
@@ -385,7 +377,7 @@ function hidePlayer() {
 dom.player.addEventListener('ended', function() {
   if (!controlShowing) {
     dom.player.currentTime = 0;
-    hidePlayer();
+    document.mozCancelFullScreen();
   }
 });
 
@@ -500,7 +492,7 @@ function dragSlider(e) {
 // XXX if we don't have metadata about the video name
 // do the best we can with the file name
 function fileNameToVideoName(filename) {
-  filename = filename
+  filename = filename.split('/').pop()
     .replace(/\.(webm|ogv|mp4)$/, '')
     .replace(/[_\.]/g, ' ');
   return filename.charAt(0).toUpperCase() + filename.slice(1);
