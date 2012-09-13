@@ -21,7 +21,6 @@ var BatteryManager = {
     var battery = window.navigator.battery;
     if (battery) {
       battery.addEventListener('levelchange', this);
-      battery.addEventListener('chargingchange', this);
     }
     this._toasterGD = new GestureDetector(this.notification);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
@@ -36,16 +35,13 @@ var BatteryManager = {
   handleEvent: function bm_handleEvent(evt) {
     switch (evt.type) {
       case 'levelchange':
-      case 'chargingchange':
         var battery = window.navigator.battery;
         if (!battery)
           return;
 
         var level = Math.floor(battery.level * 10) * 10;
         this.notification.dataset.level = level;
-        // XXX: test purpose
-        this.notification.dataset.charging = battery.charging;
-        //if (battery.charging || level == 10 || level == 30 || level == 100)
+        if (battery.charging || level == 10 || level == 30 || level == 100)
           this.display();
         break;
 

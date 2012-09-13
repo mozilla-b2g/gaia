@@ -57,14 +57,6 @@
   display: inline-block;
 }
 
-#battery[data-charging="true"] .icon-battery {
-  background-image: url('images/battery_charging_small.png');
-}
-
-#battery[data-charging="true"] .battery-notification.full {
-  display: inline-block;
-}
-
 #battery.disappearing {
   animation: notification-disappear 1.5s;
 }
