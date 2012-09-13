@@ -107,11 +107,11 @@ var AuthenticationDialog = {
         if (!this.currentOrigin)
           return;
 
-        this.setHeight(window.innerHeight);
+        this.setHeight(window.innerHeight - StatusBar.height);
         break;
 
       case 'keyboardchange':
-        this.setHeight(window.innerHeight - evt.detail.height);
+        this.setHeight(window.innerHeight - evt.detail.height - StatusBar.height);
         break;
     }
   },
@@ -131,7 +131,8 @@ var AuthenticationDialog = {
     elements.httpAuthenticationMessage.textContent = evt.detail.realm;
     elements.httpUsernameInput.value = '';
     elements.httpPasswordInput.value = '';
-    this.setHeight();
+
+    this.setHeight(window.innerHeight - StatusBar.height);
   },
 
   hide: function ad_hide() {

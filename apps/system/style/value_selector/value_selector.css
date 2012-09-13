@@ -1,9 +1,18 @@
+#value-selector {
+  -moz-box-sizing: border-box;
+  border: solid 1px yellow;
+}
+
 #value-selector [role="dialog"] {
-    top: 20px;
+  top: 20px;
+}
+
+#screen.active-statusbar > #value-selector [role="dialog"] {
+  top: 40px;
 }
 
 #value-selector [role="dialog"] [role="listbox"] {
-    max-height: 35rem;
+  max-height: 35rem;
 }
 
 #value-selector [role="dialog"] [data-mode="scroll"] [role="listbox"] {

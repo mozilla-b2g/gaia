@@ -62,7 +62,7 @@ var PopupManager = {
     this.container.appendChild(popup);
 
     this.screen.classList.add('popup');
-    this.setHeight(window.innerHeight);
+    this.setHeight(window.innerHeight - StatusBar.height);
 
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
@@ -131,14 +131,17 @@ var PopupManager = {
   setHeight: function pm_setHeight(height) {
     if (this.isVisible())
       this.overlay.style.height = height + 'px';
+    console.log(height,'======');;
   },
 
   handleEvent: function pm_handleEvent(evt) {
     switch (evt.type) {
       case 'mozbrowserloadstart':
+        console.log('======', evt.type);
         this.handleLoadStart(evt);
         break;
       case 'mozbrowserloadend':
+        console.log('======', evt.type);
         this.handleLoadEnd(evt);
         break;
       case 'mozbrowseropenwindow':
@@ -172,10 +175,10 @@ var PopupManager = {
         this.close();
         break;
       case 'keyboardchange':
-        this.setHeight(window.innerHeight - evt.detail.height);
+        this.setHeight(window.innerHeight - StatusBar.height - evt.detail.height);
         break;
       case 'keyboardhide':
-        this.setHeight(window.innerHeight);
+        this.setHeight(window.innerHeight - StatusBar.height);
         break;
     }
   }

@@ -120,11 +120,11 @@ var ModalDialog = {
         if (!this.currentOrigin)
           return;
 
-        this.setHeight(window.innerHeight);
+        this.setHeight(window.innerHeight - StatusBar.height);
         break;
 
       case 'keyboardchange':
-        this.setHeight(window.innerHeight - evt.detail.height);
+        this.setHeight(window.innerHeight - evt.detail.height - StatusBar.height);
         break;
     }
   },
@@ -177,7 +177,7 @@ var ModalDialog = {
         break;
     }
 
-    this.setHeight();
+    this.setHeight(window.innerHeight - StatusBar.height);
   },
 
   hide: function md_hide() {
