@@ -97,7 +97,7 @@ var ScreenManager = {
         self.turnScreenOff(self._instantIdleOff);
     };
 
-    // When active, cancel the idle-screen-off process
+    // When active, cancel the idle-screen-off process & off-transition
     this.idleObserver.onactive = function scm_onactive() {
       self._idled = false;
       if (self._inTransition) {
@@ -231,8 +231,10 @@ var ScreenManager = {
 
     window.addEventListener('mozfullscreenchange', this);
 
+    // Set the brightness before the screen is on.
     this.setScreenBrightness(this._userBrightness, instant);
 
+    // Actually turn the screen on.
     var power = navigator.mozPower;
     if (power)
       power.screenEnabled = true;
@@ -246,7 +248,7 @@ var ScreenManager = {
       window.addEventListener('devicelight', this);
 
     // The screen should be turn off with shorter timeout if
-    // it was never unlocked
+    // it was never unlocked.
     if (LockScreen.locked) {
       this.setIdleTimeout(10, true);
       var self = this;
@@ -280,6 +282,8 @@ var ScreenManager = {
       return;
     }
 
+    // transitionBrightness() is a looping function that will
+    // gracefully tune the brightness to _targetBrightness for us.
     this.transitionBrightness();
   },
 
@@ -314,6 +318,9 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return;
 
+    // Disable/enable device light censor accordingly.
+    // This will also toggle the actual hardware, which
+    // must be done while the screen is on.
     if (enabled) {
       window.addEventListener('devicelight', this);
     } else {
