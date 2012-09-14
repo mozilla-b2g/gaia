@@ -99,7 +99,7 @@ var ContactDataManager = {
       return;
 
     var options = {
-      filterBy: ['tel', 'givenName'],
+      filterBy: ['tel', 'givenName', 'familyName'],
       filterOp: 'contains',
       filterValue: string
     };

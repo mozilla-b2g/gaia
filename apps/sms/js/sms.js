@@ -1186,19 +1186,22 @@ var ThreadUI = {
       Utils.getPhoneDetails(tels[i].value,
                             contact,
                             function gotDetails(details) {
-        //TODO check up with UX what is really needed here
         var name = (contact.name || details.title).toString();
         //TODO ask UX if we should use type+carrier or just number
         var number = tels[i].value.toString();
         var input = self.contactInput.value;
-        var reg = new RegExp(input, 'ig');
-        if (!(name.match(reg) || (number.match(reg)))) {
+        // For name, as long as we do a startsWith on API, we want only to show
+        // highlight of the startsWith also
+        var regName = new RegExp('\\b' + input, 'ig');
+        // For number we search in any position to avoid country code issues
+        var regNumber = new RegExp(input, 'ig');
+        if (!(name.match(regName) || number.match(regNumber))) {
           return;
         }
         var nameHTML =
-            SearchUtils.createHighlightHTML(name.toString(), reg, 'highlight');
+            SearchUtils.createHighlightHTML(name, regName, 'highlight');
         var numHTML =
-            SearchUtils.createHighlightHTML(number, reg, 'highlight');
+            SearchUtils.createHighlightHTML(number, regNumber, 'highlight');
         // Create DOM element
         var threadHTML = document.createElement('div');
         threadHTML.classList.add('item');
