@@ -4,17 +4,24 @@
 'use strict';
 
 function startup() {
-  // We need to wait for the chrome shell to let us know when it's ok to
-  // launch activities. This prevents race conditions.
-  window.addEventListener('applicationready', function onApplicationready(event) {
-    new MozActivity({
+  function launchHomescreen() {
+    var activity = new MozActivity({
       name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
+      data: { type: 'application/x-application-list' }
     });
-    window.removeEventListener('applicationready', onApplicationready);
-  });
+    activity.onerror = function homescreenLaunchError() {
+      console.error('Failed to launch home screen with activity.');
+    };
+  }
+
+  if (Applications.ready) {
+    launchHomescreen();
+  } else {
+    window.addEventListener('applicationready', function appListReady(event) {
+      window.removeEventListener('applicationready', appListReady);
+      launchHomescreen();
+    });
+  }
 
   PinLock.init();
   SourceView.init();

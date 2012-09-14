@@ -619,6 +619,8 @@ span[role="button"].icon-arrow.icon-arrow-right {
 }
 .action-block span {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Add style */
