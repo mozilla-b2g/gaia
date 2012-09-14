@@ -144,11 +144,7 @@ var QuickSettings = {
             Applications.getByManifestURL(protocol + 'settings.' +
                                           domain + '/manifest.webapp').launch();
 
-            window.addEventListener('appopen', function hideTray(evt) {
-              window.removeEventListener('appopen', hideTray);
-              UtilityTray.hide();
-            });
-
+            UtilityTray.hide();
             break;
         }
         break;
