@@ -178,6 +178,12 @@ input[type="image"] {
   position: relative;
   left: 0px;
   overflow: hidden;
+  transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
+}
+
+#main-screen.address-hidden {
+  height: calc(100% + 50px);
+  transform: translateY(-50px);
 }
 
 #tabs-badge {

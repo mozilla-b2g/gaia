@@ -228,7 +228,8 @@ var Browser = {
         if (!tab.url || tab.crashed) {
           return;
         }
-        this.showAddressBar();
+        // If address bar is hidden then show it
+        this.mainScreen.classList.remove('address-hidden');
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -366,25 +367,13 @@ var Browser = {
 
       case 'mozbrowserscroll':
         if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
-          this.showAddressBar();
+          this.mainScreen.classList.remove('address-hidden');
         } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
-          this.hideAddressBar();
+          this.mainScreen.classList.add('address-hidden');
         }
         break;
       }
     }).bind(this);
-  },
-
-  hideAddressBar: function browser_hideAddressBar() {
-    this.mainScreen.style.height = '-moz-calc(100% + 50px)';
-    this.mainScreen.style.transform = 'translateY(-50px)';
-    this.mainScreen.style.transition =
-      'transform 0.2s ease-in-out,height 0.2s ease-in-out';
-  },
-
-  showAddressBar: function browser_showAddressBar() {
-    this.mainScreen.style.height = '';
-    this.mainScreen.style.transform = '';
   },
 
   handleEvent: function browser_handleEvent(evt) {
@@ -1267,7 +1256,7 @@ var Browser = {
 
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.75,
-    DEFAULT_TRANSITION: '0.2s ease-in-out',
+    DEFAULT_TRANSITION: 'transform 0.2s ease-in-out, height 0.2s ease-in-out',
 
     gestureDetector: null,
     browser: null,
