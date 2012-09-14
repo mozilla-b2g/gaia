@@ -5,11 +5,11 @@
 
 function startup() {
   function launchHomescreen() {
-    var a = new MozActivity({
+    var activity = new MozActivity({
       name: 'view',
       data: { type: 'application/x-application-list' }
     });
-    a.onerror = function homescreenLaunchError() {
+    activity.onerror = function homescreenLaunchError() {
       console.error('Failed to launch home screen with activity.');
     };
   }
