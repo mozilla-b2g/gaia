@@ -143,6 +143,7 @@ var NavbarManager = {
     var destination = window.location.hash;
     switch (destination) {
       case '#recents-view':
+        Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
         Recents.updateLatestVisit();
         break;
