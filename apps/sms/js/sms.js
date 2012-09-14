@@ -1210,7 +1210,7 @@ var ThreadUI = {
         //TODO Implement algorithm for this part following Wireframes
         // Create HTML structure
         var structureHTML =
-                '  <a href="#num=' + tels[i].value + '">' +
+                '  <a href="#num=' + number + '">' +
                 '    <div class="name">' + nameHTML + '</div>' +
                 '    <div class="type">' + numHTML + '</div>' +
                 //TODO what if no photo? hide or default?
@@ -1229,7 +1229,6 @@ var ThreadUI = {
     var input = this.contactInput;
     var string = input.value;
     var self = this;
-    this.view.innerHTML = '';
     if (!string) {
       return;
     }
@@ -1237,6 +1236,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
+      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
