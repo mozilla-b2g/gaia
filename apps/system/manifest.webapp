@@ -16,8 +16,6 @@
     "telephony",
     "voicemail",
     "device-storage:pictures",
-    "device-storage:music",
-    "device-storage:videos",
     "settings",
     "pin-app",
     "content-camera",
