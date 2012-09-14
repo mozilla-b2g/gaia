@@ -22,7 +22,7 @@ var BatteryManager = {
     if (battery) {
       battery.addEventListener('levelchange', this);
     }
-    window.addEventListner('screenchange', this);
+    window.addEventListener('screenchange', this);
     this._toasterGD = new GestureDetector(this.notification);
     ['mousedown', 'swipe'].forEach(function(evt) {
       this.notification.addEventListener(evt, this);
@@ -50,7 +50,7 @@ var BatteryManager = {
 
         var level = Math.floor(battery.level * 10) * 10;
         this.notification.dataset.level = level;
-        if (battery.charging || level == 10 || level == 30 || level == 100)
+        if (level == 10 || level == 30 || level == 100)
           this.display();
         break;
 
