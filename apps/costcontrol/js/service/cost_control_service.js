@@ -466,7 +466,7 @@ setService(function cc_setupCostControlService() {
 
     // All Ok
     status.availability = true;
-    status.roaming = !voice.roaming;
+    status.roaming = voice.roaming;
     return status;
   }
 
