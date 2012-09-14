@@ -1,4 +1,7 @@
-#system-overlay.battery,
+#system-overlay.battery {
+  visibility: visible;
+}
+
 #battery.visible {
   display: block;
 }
