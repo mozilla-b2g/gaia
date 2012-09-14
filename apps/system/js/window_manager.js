@@ -253,7 +253,7 @@ var WindowManager = (function() {
 
         sprite.style.background = '';
         sprite.className = '';
-        closeFrame = '';
+        closeFrame = null;
 
         break;
 
