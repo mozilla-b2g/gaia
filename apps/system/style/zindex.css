@@ -62,10 +62,6 @@
   z-index: 8192;
 }
 
-#screen > [data-z-index-level="value-selector"] {
-  z-index: 8191;
-}
-
 /* Level 5: Statusbar, Utility-Tray */
 #screen > [data-z-index-level="statusbar"] {
   z-index: 4096;
@@ -102,6 +98,7 @@
 
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
+#screen > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="permission-screen"],
 #screen > [data-z-index-level="app"] > iframe.appWindow.inlineActivity {
   z-index: 1024;
