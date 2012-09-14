@@ -8,22 +8,6 @@
    needs to access its method via window.opener
  */
 var gDeviceList = null;
-navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
-  dump("=== bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey);
-//              defaultAdapter.setPairingConfirmation(message.deviceAddress, false);
-});
-navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
-    dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
-                });
-navigator.mozSetMessageHandler('bluetooth-requestpincode', function gotMessage(message) {
-                dump("[Gaia] bluetooth-requestpincode got message: " + message.deviceAddress + ", " + message.name);
-                            });
-navigator.mozSetMessageHandler('bluetooth-authorize', function gotMessage(message) {
-                dump("[Gaia] bluetooth-authorize got message: " + message.deviceAddress + ", " + message.uuid);
-                            });
-navigator.mozSetMessageHandler('bluetooth-cancel', function gotMessage(message) {
-                dump("[Gaia] bluetooth-cacel got message");
-                            });
 
 // handle BlueTooth settings
 window.addEventListener('localized', function bluetoothSettings(evt) {
@@ -63,9 +47,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         return;
       }
       defaultAdapter.ondevicefound = gDeviceList.onDeviceFound;
-      defaultAdapter.onrequestconfirmation = gDeviceList.onRequestConfirmation;
-      defaultAdapter.onrequestpincode = gDeviceList.onRequestPincode;
-      defaultAdapter.onrequestpasskey = gDeviceList.onRequestPasskey;
 
       // initial related components that need defaultAdapter.
       gMyDeviceInfo.initWithAdapter();
@@ -219,6 +200,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
+      openList.clear();
       startDiscovery();
     };
 
@@ -242,8 +224,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // immediatly UI update, DOM element manipulation.
     function updateDeviceList(show) {
       if (show) {
-        openList.clear();
-        pairList.clear();
         enableMsg.hidden = true;
         searchingItem.hidden = false;
 
@@ -258,8 +238,36 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // do default actions (start discover avaliable devices)
     // when DefaultAdapter is ready.
     function initial() {
-      startDiscovery();
+      // Bind message handler for incoming pairing requests
+      navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
+        function bt_gotConfirmationMessage(message) {
+          onRequestConfirmation(message);
+        }
+      );
+      navigator.mozSetMessageHandler('bluetooth-requestpincode',
+        function bt_gotPincodeMessage(message) {
+          onRequestPincode(message);
+        }
+      );
+
+      navigator.mozSetMessageHandler('bluetooth-requestpasskey',
+        function bt_gotPasskeyMessage(message) {
+          onRequestPasskey(message);
+        }
+      );
+
+      navigator.mozSetMessageHandler('bluetooth-cancel',
+        function bt_gotCancelMessage(message) {
+          if (childWindow) {
+            childWindow.close();
+          }
+          aItem.querySelector('small').textContent = device.address;
+          //XXX show a "pair failed" alert
+        }
+      );
+
       getPairedDevice();
+      startDiscovery();
     }
 
     // callback function when an avaliable device found
@@ -288,7 +296,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
             childWindow.close();
           }
           aItem.querySelector('small').textContent = device.address;
-          //XXX file a notification: not responded pair request
+          //XXX show a "pair failed" alert
         };
       };
       openList.list.appendChild(aItem);
@@ -306,9 +314,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       return null;
     }
 
-    // XXX The following three functions 'onRequestXXXX' should be updated to
-    // handle 'system message' from platform
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=789014
     function onRequestConfirmation(evt) {
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
@@ -437,9 +442,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       initWithAdapter: initial,
       startDiscovery: startDiscovery,
       onDeviceFound: onDeviceFound,
-      onRequestConfirmation: onRequestConfirmation,
-      onRequestPincode: onRequestPincode,
-      onRequestPasskey: onRequestPasskey,
       setPairingConfirmation: setPairingConfirmation,
       setPinCode: setPinCode,
       setPasskey: setPasskey

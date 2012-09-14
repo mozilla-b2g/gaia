@@ -38,9 +38,9 @@ var PairView = {
         break;
 
       case 'pincode':
-        // XXX hard code here because attention screen 
+        // XXX hard code here because attention screen
         // doesn't support keyboard input now.
-        // https://github.com/mozilla-b2g/gaia/issues/4669 
+        // https://github.com/mozilla-b2g/gaia/issues/4669
         this.pinInput.value = '0000';
         this.pinInput.focus();
         this.comfirmationItem.hidden = true;
