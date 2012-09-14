@@ -110,7 +110,7 @@ var ScreenManager = {
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
-      self.setIdleTimeout(self._idleTimeout)
+      self.setIdleTimeout(self._idleTimeout);
 
       if (!self._firstOn) {
         (function handleInitlogo() {
