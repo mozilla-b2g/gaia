@@ -19,7 +19,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   if (!settings || !bluetooth)
     return;
 
-
   var gBluetoothInfoBlock = document.querySelector('#bluetooth-desc');
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
 
