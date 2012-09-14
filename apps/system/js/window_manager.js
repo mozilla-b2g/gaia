@@ -1102,8 +1102,13 @@ var WindowManager = (function() {
       if (displayedApp)
         setAppSize(displayedApp);
 
-      if (event == 'keyboardchange')
+      if (event == 'keyboardchange') {
+        // Cancel fullscreen if keyboard pops
+        if (document.mozFullScreen)
+          document.mozCancelFullScreen();
+
         setAppHeight(evt.detail.height);
+      }
     });
   });
 
