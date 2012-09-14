@@ -327,13 +327,13 @@ var KeypadManager = {
     this.addEllipsis(view, fakeView, ellipsisSide);
   },
 
-  addEllipsis: function kh_addEllipsis(view, fakeView, side) {
-    var side = (side ? side : 'left');
+  addEllipsis: function kh_addEllipsis(view, fakeView, ellipsisSide) {
+    var side = ellipsisSide || 'left';
     var computedStyle = window.getComputedStyle(view, null);
     var currentFontSize = parseInt(computedStyle.getPropertyValue('font-size'));
     var viewWidth = view.getBoundingClientRect().width;
     fakeView.style.fontSize = currentFontSize + 'px';
-    fakeView.innerHTML = (view.value ? view.value : view.innerHTML);
+    fakeView.innerHTML = view.value ? view.value : view.innerHTML;
 
     var counter = 1;
     var value = fakeView.innerHTML;
