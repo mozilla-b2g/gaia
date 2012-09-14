@@ -9,8 +9,7 @@
     "browser",
     "mozApps",
     "webapps-manage",
-    "device-storage",
-    "devicestorage",
+    "device-storage:pictures",
     "settings"
   ],
   "locales": {

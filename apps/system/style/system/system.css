@@ -48,6 +48,8 @@ body {
   top: 0;
   left: 0;
   visibility: hidden;
+
+  pointer-events: none;
 }
 
 #system-overlay.volume {

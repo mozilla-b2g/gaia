@@ -253,7 +253,7 @@ var Contacts = (function() {
         var prompt1 = new ValueSelector(selectDataStr);
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
-              carrier = dataSet[i].carrier;
+              carrier = dataSet[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, function(itemData) {
             return function() {
               prompt1.hide();
@@ -408,9 +408,6 @@ var Contacts = (function() {
     var background = '';
     if (photo != null) {
       background = 'url(' + URL.createObjectURL(photo) + ')';
-      thumbAction.querySelector('p').classList.add('hide');
-    } else {
-      thumbAction.querySelector('p').classList.remove('hide');
     }
     dest.style.backgroundImage = background;
   };
@@ -853,6 +850,7 @@ var Contacts = (function() {
   };
 
   var resetForm = function resetForm() {
+    thumbAction.querySelector('p').classList.remove('hide');
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';

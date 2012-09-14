@@ -377,7 +377,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseDown(evt) {
-    console.log('mousedown: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, true);
@@ -385,7 +384,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseUp(evt) {
-    console.log('mouseup: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, false);
@@ -393,7 +391,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseLeave(evt) {
-    console.log('mouseLeave: ' + evt.target);
     var target = evt.target;
     _setActive(target, false);
     target.removeEventListener('mouseleave', _onMouseLeave);
@@ -408,10 +405,8 @@ var ActiveEffectHelper = (function() {
     // Attach event listeners
     for (var event in _events) {
       var callback = _events[event] || null;
-      if (callback) {
-        console.log('bind event: ' + event);
+      if (callback)
         element.addEventListener(event, callback);
-      }
     }
   }
 
