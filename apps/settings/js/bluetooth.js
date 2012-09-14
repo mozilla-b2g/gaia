@@ -8,6 +8,22 @@
    needs to access its method via window.opener
  */
 var gDeviceList = null;
+navigator.mozSetMessageHandler('bluetooth-requestconfirmation', function gotMessage(message) {
+  dump("=== bluetooth-requestconfirmation got message: " + message.deviceAddress + ", " + message.passkey);
+//              defaultAdapter.setPairingConfirmation(message.deviceAddress, false);
+});
+navigator.mozSetMessageHandler('bluetooth-requestpasskey', function gotMessage(message) {
+    dump("[Gaia] bluetooth-requestpasskey got message: " + message.deviceAddress + ", " + message.name);
+                });
+navigator.mozSetMessageHandler('bluetooth-requestpincode', function gotMessage(message) {
+                dump("[Gaia] bluetooth-requestpincode got message: " + message.deviceAddress + ", " + message.name);
+                            });
+navigator.mozSetMessageHandler('bluetooth-authorize', function gotMessage(message) {
+                dump("[Gaia] bluetooth-authorize got message: " + message.deviceAddress + ", " + message.uuid);
+                            });
+navigator.mozSetMessageHandler('bluetooth-cancel', function gotMessage(message) {
+                dump("[Gaia] bluetooth-cacel got message");
+                            });
 
 // handle BlueTooth settings
 window.addEventListener('localized', function bluetoothSettings(evt) {
@@ -18,6 +34,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   if (!settings || !bluetooth)
     return;
+
 
   var gBluetoothInfoBlock = document.querySelector('#bluetooth-desc');
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');

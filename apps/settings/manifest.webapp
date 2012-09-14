@@ -25,6 +25,11 @@
       "disposition": "window"
     }
   },
+  "messages": ["bluetooth-requestconfirmation", 
+               "bluetooth-requestpasskey", 
+               "bluetooth-requestpincode", 
+               "bluetooth-authorize", 
+               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
