@@ -497,7 +497,12 @@ var Recents = {
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
       var secondaryInfo = logItem.querySelector('.secondary-info');
-      secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
+      var secondaryInfoText = secondaryInfo.innerHTML.trim();
+      var secondaryInfoIndex = secondaryInfoText.indexOf('&nbsp;&nbsp;&nbsp;');
+      if (secondaryInfoIndex > 0) {
+        secondaryInfoText = secondaryInfoText.substring(0, secondaryInfoIndex);
+      }
+      secondaryInfo.innerHTML = secondaryInfoText +
         '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
