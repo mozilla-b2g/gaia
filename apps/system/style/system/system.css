@@ -248,9 +248,15 @@ iframe.backgroundWindow {
   pointer-events: none;
 }
 
-#screen.active-statusbar {
+#screen.active-statusbar #dialog-overlay {
   top: 40px;
   height: -moz-calc(100% - 40px);
+}
+
+#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-app #dialog-overlay {
+  top: 0;
+  height: 100%;
 }
 
 #screen.authentication-dialog #dialog-overlay,

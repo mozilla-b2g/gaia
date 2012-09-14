@@ -6,9 +6,15 @@
   position: absolute;
 }
 
-#screen.active-statusbar > #value-selector {
+#screen.active-statusbar #value-selector {
   height: -moz-calc(100% - 40px);
   top: 40px;
+}
+
+#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen.fullscreen-app #value-selector {
+  height: 100%;
+  top: 0;
 }
 
 #value-selector [role="dialog"] [role="listbox"] {
