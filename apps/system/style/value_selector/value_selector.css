@@ -1,13 +1,15 @@
 #value-selector {
   -moz-box-sizing: border-box;
   border: solid 1px yellow;
-}
-
-#value-selector [role="dialog"] {
+  width: 100%;
+  height: -moz-calc(100% - 20px);
   top: 20px;
+  left: 0;
+  position: absolute;
 }
 
-#screen.active-statusbar > #value-selector [role="dialog"] {
+#screen.active-statusbar > #value-selector {
+  height: -moz-calc(100% - 40px);
   top: 40px;
 }
 

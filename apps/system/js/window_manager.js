@@ -35,9 +35,6 @@
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
 //    getNumberOfRunningApps(): returns the numbers of running apps.
-//    setAppSize(origin): set/reset the size of the given app to it's origin
-//      state, only used by keyboard manager to restore the app window.
-//      XXX: should be removed.
 //    setDisplayedApp(origin): set displayed app.
 //      XXX: should be removed.
 //
@@ -1168,9 +1165,6 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
-
-    // XXX: the following should not be public methods
-    setAppSize: setAppSize,
     setDisplayedApp: setDisplayedApp
   };
 }());
