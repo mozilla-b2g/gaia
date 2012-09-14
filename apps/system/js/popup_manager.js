@@ -176,7 +176,8 @@ var PopupManager = {
         this.close();
         break;
       case 'keyboardchange':
-        this.setHeight(window.innerHeight - StatusBar.height - evt.detail.height);
+        this.setHeight(window.innerHeight -
+          StatusBar.height - evt.detail.height);
         break;
       case 'keyboardhide':
         this.setHeight(window.innerHeight - StatusBar.height);

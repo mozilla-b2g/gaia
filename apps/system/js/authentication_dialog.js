@@ -111,7 +111,8 @@ var AuthenticationDialog = {
         break;
 
       case 'keyboardchange':
-        this.setHeight(window.innerHeight - evt.detail.height - StatusBar.height);
+        this.setHeight(window.innerHeight -
+          evt.detail.height - StatusBar.height);
         break;
     }
   },
