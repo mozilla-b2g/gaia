@@ -13,7 +13,8 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "fmradio", "devicestorage", "voicemail",
                       "pin-app", "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
-                      "device-storage", "alarms", "alarm", "attention",
+                      "device-storage:pictures", "device-storage:music", "device-storage:videos",
+                      "alarms", "alarm", "attention",
                       "content-camera", "camera", "tcp-socket", "bluetooth"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
