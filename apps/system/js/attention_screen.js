@@ -49,6 +49,13 @@ var AttentionScreen = {
     ListMenu.hide();
     SleepMenu.hide();
 
+    // We want the user attention, so we need to turn the screen on
+    // if it's off. The lockscreen will grab the focus when we do that
+    // so we need to do it before adding the new iframe to the dom
+    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
+    if (this._screenInitiallyDisabled)
+      ScreenManager.turnScreenOn();
+
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';
     attentionFrame.dataset.frameName = evt.detail.name;
@@ -57,13 +64,7 @@ var AttentionScreen = {
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
 
-    // We want the user attention, so we need to turn the screen on
-    // if it's off.
-    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
-    if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOn();
-
-    // Ensuring the proper mozvisibility changed on the displayed app
+    // Ensuring the proper mozvisibility change on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
     if (displayedOrigin) {
       var frame = WindowManager.getAppFrame(displayedOrigin);
@@ -105,7 +106,6 @@ var AttentionScreen = {
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
     window.focus();
-
   },
 
   show: function as_show() {
