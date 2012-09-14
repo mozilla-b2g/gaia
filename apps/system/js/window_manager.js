@@ -553,6 +553,7 @@ var WindowManager = (function() {
                   app.manifest.name, app.manifest, app.manifestURL);
       setAppSize(homescreen);
       openWindow(homescreen, null);
+      addWrapperListener();
     }
     return runningApps[homescreen].frame;
   }
