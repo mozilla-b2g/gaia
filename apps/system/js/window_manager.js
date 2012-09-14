@@ -670,11 +670,8 @@ var WindowManager = (function() {
 
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
-      'Messages',
+      'Messages'
       // Crashes when launched OOP (bug 775997)
-
-      'Settings'
-      // Bluetooth is not remoted yet (bug 755943)
     ];
 
     if (!isOutOfProcessDisabled &&
