@@ -135,7 +135,7 @@ body {
   visibility: hidden;
 }
 
-#screen.active-statusbar #windowSprie {
+#screen.active-statusbar #windowSprite {
   top: 40px;
   height: -moz-calc(100% - 40px);
 }
