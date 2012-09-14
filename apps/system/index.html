@@ -14,7 +14,9 @@
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
-    <script defer src="js/applications.js"></script>
+    <!-- applications.js must not be deferred
+         in order to catch webapps-registry-ready mozChromeEvent -->
+    <script src="js/applications.js"></script>
     <script defer src="js/screen_manager.js"></script>
     <script defer src="js/background_service.js"></script>
     <script defer src="js/mouse2touch.js"></script>
