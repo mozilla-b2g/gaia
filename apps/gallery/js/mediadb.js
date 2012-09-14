@@ -644,6 +644,10 @@ var MediaDB = (function() {
 
       var countRequest = store.count(range || null);
 
+      countRequest.onerror = function() {
+        console.error('MediaDB.count() failed with', countRequest.error);
+      };
+
       countRequest.onsuccess = function(e) {
         callback(e.target.result);
       };
@@ -670,7 +674,7 @@ var MediaDB = (function() {
     // to cancel an enumeration in progress. You can use the state property
     // of the returned object to find out the state of the enumeration. It
     // should be one of the strings 'enumerating', 'complete', 'cancelling'
-    // or 'cancelled'.
+    // 'cancelled', or 'error'
     //
     enumerate: function enumerate(key, range, direction, callback) {
       if (this.state !== MediaDB.READY)
@@ -702,6 +706,11 @@ var MediaDB = (function() {
 
       // Now create a cursor for the store or index.
       var cursorRequest = store.openCursor(range || null, direction || 'next');
+
+      cursorRequest.onerror = function() {
+        console.error('MediaDB.enumerate() failed with', cursorRequest.error);
+        handle.state = 'error';
+      };
 
       cursorRequest.onsuccess = function() {
         // If the enumeration has been cancelled, return without
