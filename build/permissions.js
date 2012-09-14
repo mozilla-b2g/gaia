@@ -10,10 +10,10 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background", "backgroundservice", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
-                      "fmradio", "devicestorage", "voicemail",
+                      "fmradio", "voicemail",
                       "pin-app", "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
-                      "device-storage:pictures", "device-storage:music", "device-storage:videos",
+                      "device-storage:pictures", "device-storage:music", "device-storage:videos", "device-storage:apps",
                       "alarms", "alarm", "attention",
                       "content-camera", "camera", "tcp-socket", "bluetooth"];
 
