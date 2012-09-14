@@ -289,17 +289,23 @@ var ScreenManager = {
 
   transitionBrightness: function scm_transitionBrightness() {
     var self = this;
-    var screenBrightness = navigator.mozPower.screenBrightness;
+    var power = navigator.mozPower;
+    var screenBrightness = power.screenBrightness;
 
-    if (Math.abs(this._targetBrightness - screenBrightness) < 0.05)
+    // We can never set the brightness to the exact number of
+    // target brightness, so if the difference is close enough,
+    // we stop the loop and set it for the last time.
+    if (Math.abs(this._targetBrightness - screenBrightness) < 0.05) {
+      power.screenBrightness = this._targetBrightness;
       return;
+    }
 
     var dalta = 0.02;
     if (screenBrightness > this._targetBrightness)
       dalta *= -1;
 
     screenBrightness += dalta;
-    navigator.mozPower.screenBrightness = screenBrightness;
+    power.screenBrightness = screenBrightness;
 
     clearTimeout(this._transitionBrightnessTimer);
     this._transitionBrightnessTimer =
