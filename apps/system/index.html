@@ -139,8 +139,7 @@
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
 
     <!-- include building blocks -->
-    <link rel="stylesheet" type="text/css" href="style/bb/menus_dialogs/core.css">
-    <link rel="stylesheet" type="text/css" href="style/bb/menus_dialogs/value_selector/style.css">
+    <link rel="stylesheet" type="text/css" href="style/bb/value_selector.css">
 
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
@@ -348,17 +347,17 @@
       <!-- value selector -->
       <div id="value-selector" hidden data-z-index-level="value-selector">
         <!-- popup of options for select element -->
-        <div id="select-option-popup" role="dialog">
-          <div id="value-selector-container" onmousedown="return false;">
-            <h3 data-l10n-id="choose-option">Choose your option</h3>
+        <form id="select-option-popup" role="dialog" onsubmit="return false;">
+          <section id="value-selector-container" onmousedown="return false;">
+            <h1 data-l10n-id="choose-option">Choose your option</h1>
             <ol role="listbox">
             </ol>
-          </div>
-          <div id="select-options-buttons">
+          </section>
+          <menu id="select-options-buttons">
             <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel-button">Cancel</button>
             <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-          </div>
-        </div>
+          </menu>
+        </form>
 
         <!-- Time Picker -->
         <div id="time-picker-popup" hidden>
