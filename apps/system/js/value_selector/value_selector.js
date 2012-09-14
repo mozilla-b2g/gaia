@@ -120,14 +120,16 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._containers['select'].querySelectorAll('.selected');
+      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
-        selectee[i].classList.remove('selected');
+        selectee[i].removeAttribute('aria-checked');
       }
 
-      target.classList.add('selected');
+      target.setAttribute('aria-checked', 'true');
+    } else if ( target.getAttribute('aria-checked') === 'true' ) {
+      target.removeAttribute('aria-checked');
     } else {
-      target.classList.toggle('selected');
+      target.setAttribute('aria-checked', 'true');
     }
   },
 
@@ -160,6 +162,10 @@ var ValueSelector = {
     var optionIndices = [];
 
     var selectee = this._containers['select'].querySelectorAll('.selected');
+
+    if (this._currentPickerType === 'select-one' || this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
+    }
 
     if (this._currentPickerType === 'select-one') {
 
@@ -214,7 +220,7 @@ var ValueSelector = {
 
     for (var i = 0, n = options.length; i < n; i++) {
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
