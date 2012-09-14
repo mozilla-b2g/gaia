@@ -18,7 +18,7 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Init */
   var init = function bsm_init() {
-    var applications = evt.detail.applications;
+    var applications = Applications.installedApps;
     Object.keys(applications).forEach(function bsm_each(manifestURL) {
       var app = applications[manifestURL];
       if (!app.manifest.background_page)
@@ -29,16 +29,6 @@ var BackgroundServiceManager = (function bsm() {
       open(manifestURL, AUTO_OPEN_BG_PAGE_NAME, url);
     });
   };
-
-  if (Applications.ready) {
-    init();
-  } else {
-    window.addEventListener('applicationready',
-    function bsm_appListReady(event) {
-      window.removeEventListener('applicationready', bsm_appListReady);
-      init();
-    });
-  }
 
   /* mozbrowseropenwindow */
   window.addEventListener('mozbrowseropenwindow', function bsm_winopen(evt) {
@@ -205,6 +195,17 @@ var BackgroundServiceManager = (function bsm() {
       delete frames[manifestURL];
     return true;
   };
+
+  /* start initialization */
+  if (Applications.ready) {
+    init();
+  } else {
+    window.addEventListener('applicationready',
+    function bsm_appListReady(event) {
+      window.removeEventListener('applicationready', bsm_appListReady);
+      init();
+    });
+  }
 
   /* Return the public APIs */
   return {
