@@ -160,10 +160,7 @@ var OnCallHandler = (function onCallHandler() {
 
   var displayed = false;
   var closing = false;
-
-  /* === Ringtone player === */
-  var ringtonePlayer = new Audio();
-  ringtonePlayer.loop = true;
+  var ringing = false;
 
   /* === Settings === */
   var activePhoneSound = true;
@@ -171,11 +168,20 @@ var OnCallHandler = (function onCallHandler() {
     activePhoneSound = !!value;
   });
 
-  var selectedPhoneSound = '';
+  var selectedPhoneSound = 'style/ringtones/classic.ogg';
   SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
     selectedPhoneSound = 'style/ringtones/' + value;
+    ringtonePlayer.pause();
     ringtonePlayer.src = selectedPhoneSound;
+
+    if (ringing) {
+      ringtonePlayer.play();
+    }
   });
+
+  var ringtonePlayer = new Audio();
+  ringtonePlayer.src = selectedPhoneSound;
+  ringtonePlayer.loop = true;
 
   var activateVibration = true;
   SettingsListener.observe('phone.vibration.incoming', false, function(value) {
@@ -309,12 +315,15 @@ var OnCallHandler = (function onCallHandler() {
 
     if (activePhoneSound && selectedPhoneSound) {
       ringtonePlayer.play();
+      ringing = true;
     }
 
     call.addEventListener('statechange', function callStateChange() {
       call.removeEventListener('statechange', callStateChange);
 
       ringtonePlayer.pause();
+      ringing = false;
+
       window.clearInterval(vibrateInterval);
 
       if (screenLock) {
