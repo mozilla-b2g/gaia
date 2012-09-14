@@ -7,7 +7,7 @@
   },
   "permissions": [
     "systemXHR",
-    "device-storage"
+    "device-storage:pictures"
   ],
   "activities": {
     "share-filenames": {

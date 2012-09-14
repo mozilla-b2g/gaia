@@ -538,6 +538,10 @@ var AlarmManager = {
 
   getAlarmLabel: function am_getAlarmLabel() {
     return this._onFireAlarm.label;
+  },
+
+  getAlarmSound: function am_getAlarmSound() {
+    return this._onFireAlarm.sound;
   }
 
 };
@@ -729,7 +733,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'classic.ogg',
+      sound: 'ALARM_progressive_dapple.mp3',
       snooze: 5,
       color: 'Darkorange'
     };

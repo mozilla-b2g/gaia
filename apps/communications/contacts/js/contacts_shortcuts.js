@@ -50,10 +50,10 @@ if (!utils.alphaScroll) {
 
       var alphabet = [];
       for (var i = 65; i <= 90; i++) {
-        alphabet.push({ letter: String.fromCharCode(i) });
+        alphabet.push({ anchor: String.fromCharCode(i) });
       }
       alphabet.push({
-        letter: '#'
+        anchor: '#'
       });
       utils.templates.append(jumper, alphabet);
     }
@@ -77,6 +77,8 @@ if (!utils.alphaScroll) {
     }
 
     function scrollTo(evt) {
+      var current, querySelector, domTarget, anch;
+
       evt.preventDefault();
       evt.stopPropagation();
 
@@ -84,23 +86,44 @@ if (!utils.alphaScroll) {
         return;
       }
 
-      var current = evt.target.dataset.letter;
-      overlayContent.textContent = current || null;
+      current = evt.target.dataset;
 
       if (previous === current) {
         return;
       }
 
-      var querySelector = groupSelector + ((current == '#') ? 'und' : current);
+      // Render
+      if (evt.target.dataset.letter) {
+        overlayContent.textContent = evt.target.dataset.letter;
+      } else if (evt.target.dataset.img) {
+        overlayContent.textContent = '';
+        var img = new Image();
+        img.src = 'style/images/' + evt.target.dataset.img;
+        overlayContent.appendChild(img);
+      } else {
+        overlayContent.textContent = '';
+      }
 
-      var groupContainer = doc.querySelector(querySelector);
-      if (!groupContainer || groupContainer.clientHeight <= 0)
+      anch = current.anchor;
+      querySelector = '#' + ((anch == 'group-#') ? 'group-und' : anch);
+
+      domTarget = doc.querySelector(querySelector);
+      if (!domTarget || domTarget.clientHeight <= 0)
         return;
 
       previous = current;
 
-      scrollToCallback(groupContainer);
+      scrollToCallback(domTarget);
     }
+
+    // Cache images refered in 'data-img'es
+    var imgCache = (function(doc) {
+      var images = doc.querySelectorAll('li[data-img]');
+      Object.keys(images).forEach(function(value) {
+        var img = new Image();
+        img.src = 'contacts/style/images/' + images[value].dataset.img;
+      });
+    }(doc));
 
   })(document);
 }

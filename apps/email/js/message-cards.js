@@ -46,6 +46,8 @@ function MessageListCard(domNode, mode, args) {
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
+  this.messageEmptyTitle =
+    domNode.getElementsByClassName('msg-list-empty')[0];
   // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
@@ -118,8 +120,13 @@ MessageListCard.prototype = {
       normalToolbar.classList.add('collapsed');
       editHeader.classList.remove('collapsed');
       editToolbar.classList.remove('collapsed');
+      this.messagesContainer.classList.add('show-edit');
 
       this.selectedMessages = [];
+      var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
+      for (var i = 0; i < cbs.length; i++) {
+        cbs[i].checked = false;
+      };
       this.selectedMessagesUpdated();
     }
     else {
@@ -127,6 +134,7 @@ MessageListCard.prototype = {
       normalToolbar.classList.remove('collapsed');
       editHeader.classList.add('collapsed');
       editToolbar.classList.add('collapsed');
+      this.messagesContainer.classList.remove('show-edit');
 
       // (Do this based on the DOM nodes actually present; if the user has been
       // scrolling a lot, this.selectedMessages may contain messages that no
@@ -360,8 +368,14 @@ MessageListCard.prototype = {
     }
 
     // - added/existing
-    if (!addedItems.length)
+    if (!addedItems.length) {
+      if (this.messagesContainer.children.length === 0) {
+        this.messageEmptyTitle.classList.add('show');
+      }
       return;
+    } else {
+      this.messageEmptyTitle.classList.remove('show');
+    }
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
@@ -439,13 +453,14 @@ MessageListCard.prototype = {
     var header = messageNode.message;
     if (this.editMode) {
       var idx = this.selectedMessages.indexOf(header);
+      var cb = messageNode.querySelector('input[type=checkbox]');
       if (idx !== -1) {
         this.selectedMessages.splice(idx, 1);
-        messageNode.classList.remove('msg-header-item-selected');
+        cb.checked = false;
       }
       else {
         this.selectedMessages.push(header);
-        messageNode.classList.add('msg-header-item-selected');
+        cb.checked = true;
       }
       this.selectedMessagesUpdated();
       return;
