@@ -22,8 +22,26 @@
       font-weight: bold;
       src: url('../style/fonts/Moz Medium.otf');
     }
-    p {
-        font-family: 'Moz';
+    @font-face {
+      font-family: 'MozTT';
+      font-weight: 200;
+      src: url('../style/fonts/MozTT Light.ttf');
+    }
+    @font-face {
+      font-family: 'MozTT';
+      font-weight: normal;
+      src: url('../style/fonts/MozTT Regular.ttf');
+    }
+    @font-face {
+      font-family: 'MozTT';
+      font-weight: bold;
+      src: url('../style/fonts/MozTT Medium.ttf');
+    }
+    p[data-fonttype="opentype"] {
+      font-family: 'Moz';
+    }
+    p[data-fonttype="truetype"] {
+      font-family: 'MozTT';
     }
     body[data-weight="regular"] p {
       font-weight: normal;
@@ -60,25 +78,90 @@
       <option value="bold">Medium</option>
       <option value="light">Light</option>
     </select>
-    <h2>5pt</h2>
-    <p style="font-size: 1.77mozmm;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
-    <h2>6pt</h2>
-    <p style="font-size: 2.12mozmm;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
-    <h2>7pt</h2>
-    <p style="font-size: 2.47mozmm;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
-    <h2>8pt</h2>
-    <p style="font-size: 2.83mozmm;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
-    <h2>10pt</h2>
-    <p style="font-size: 3.53mozmm;">
-    the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
-    </p>
+    <section role="region" class="skin-dark">
+      <header>
+        <h1>5pt(1.77mozmm)</h1>
+      </header>
+      <header>
+        <h2>MozOpenType</h2>
+      </header>
+      <p style="font-size: 1.77mozmm;" data-fonttype="opentype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+      <header>
+        <h2>MozTrueType</h2>
+      </header>
+      <p style="font-size: 1.77mozmm;" data-fonttype="truetype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+    </section>
+    <section role="region" class="skin-dark">
+      <header>
+        <h1>6pt(2.12mozmm)</h1>
+      </header>
+      <header>
+        <h2>MozOpenType</h2>
+      </header>
+      <p style="font-size: 2.12mozmm;" data-fonttype="opentype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+      <header>
+        <h2>MozTrueType</h2>
+      </header>
+      <p style="font-size: 2.12mozmm;" data-fonttype="truetype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+    </section>
+    <section role="region" class="skin-dark">
+      <header>
+        <h1>7pt(2.47mozmm)</h1>
+      </header>
+      <header>
+        <h2>MozOpenType</h2>
+      </header>
+      <p style="font-size: 2.47mozmm;" data-fonttype="opentype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+      <header>
+        <h2>MozTrueType</h3>
+      </header>
+      <p style="font-size: 2.47mozmm;" data-fonttype="truetype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+    </section>
+    <section role="region" class="skin-dark">
+      <header>
+        <h1>8pt(2.83mozmm)</h1>
+      </header>
+      <header>
+        <h2>MozOpenType</h2>
+      </header>
+      <p style="font-size: 2.83mozmm;" data-fonttype="opentype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+      <header>
+        <h2>MozTrueType</h2>
+      </header>
+      <p style="font-size: 2.83mozmm;" data-fonttype="truetype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+    </section>
+    <section role="region" class="skin-dark">
+      <header>
+        <h1>10pt(3.53mozmm)</h1>
+      </header>
+      <header>
+        <h2>MozOpenType</h2>
+      </header>
+      <p style="font-size: 3.53mozmm;" data-fonttype="opentype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+      <header>
+        <h2>MozTrueType</h2>
+      </header>
+      <p style="font-size: 3.53mozmm;" data-fonttype="truetype">
+      the quick brown fox jumps over the lazy dog. THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG?! 0123456789
+      </p>
+    </section>
   </body>
 </html>
