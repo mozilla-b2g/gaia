@@ -458,14 +458,19 @@ function GetPrefix(word) {
 }
 
 function maintainTopCandidates(topCandidates, candidate) {
-  for (var i = 0, len = topCandidates.length; i < len; ++i) {
-    if (topCandidates[i].word == candidate.word)
+  var length = topCandidates.length;
+  var index = length;
+  for (var i = length - 1; i >= 0; i--) {
+    if (candidate.word == topCandidates[i].word)
       return;
+    if (candidate.rank > topCandidates[i].rank) {
+      index = i;
+    }
   }
-  topCandidates.push(candidate);
-  topCandidates.sort(function (a,b) {
-    return b.rank - a.rank;
-  });
+  if (index >= _maxSuggestions - 1) {
+     return;
+  }
+  topCandidates.splice(index, 0, candidate);
   if (topCandidates.length > _maxSuggestions)
     topCandidates.length = _maxSuggestions;
 }
@@ -516,10 +521,12 @@ function Predict(word) {
   var input = String2Codes(new Uint32Array(prefix.length), prefix);
   var prefixes = new Set();
   Check(input, prefixes, candidates, PrefixMatchMultiplier);
-  EditDistance1(input, prefixes, candidates);
-  Omission1Candidates(input, prefixes, candidates);
-  Deletion1Candidates(input, prefixes, candidates);
-  TranspositionCandidates(input, prefixes, candidates);
+  if (word.length > 1) {
+    EditDistance1(input, prefixes, candidates);
+    Omission1Candidates(input, prefixes, candidates);
+    Deletion1Candidates(input, prefixes, candidates);
+    TranspositionCandidates(input, prefixes, candidates);
+  }
 
   var finalCandidates = [];
   // Sort the candidates by Levenshtein distance and rank.
