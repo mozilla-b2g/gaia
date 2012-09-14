@@ -1229,6 +1229,7 @@ var ThreadUI = {
     var input = this.contactInput;
     var string = input.value;
     var self = this;
+    self.view.innerHTML = '';
     if (!string) {
       return;
     }
