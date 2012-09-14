@@ -68,7 +68,7 @@ suite('dialer/handled_call', function() {
     window.Contacts = realContacts;
     window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
-    // window.KeypadManager = realKeypadManager;
+    window.KeypadManager = realKeypadManager;
     navigator.mozL10n = realL10n;
     window.Utils = realUtils;
   });
