@@ -34,5 +34,9 @@
   //
   // So we need to redirect the event applicationready to the widget in order
   // to setup everything else.
-  window.addEventListener('applicationready', _redirectToWidget);
+  if (Applications.ready) {
+    _redirectToWidget({ type: 'applicationready' });
+  } else {
+    window.addEventListener('applicationready', _redirectToWidget);
+  }
 }());
