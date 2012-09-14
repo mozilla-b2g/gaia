@@ -358,10 +358,9 @@ var ScreenManager = {
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('screenchange',
-      /* canBubble */ true, /* cancelable */ false,
-      {screenEnabled: this.screenEnabled});
+    var evt = new CustomEvent('screenchange',
+      { bubbles: true, cancelable: false,
+        detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
   }
 };
