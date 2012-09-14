@@ -29,7 +29,6 @@
     "voicemail",
     "contacts",
     "mobileconnection",
-    "background",
     "attention",
     "settings"
   ],
@@ -37,7 +36,6 @@
     "120": "/style/icons/Dialer.png",
     "60": "/style/icons/60/Dialer.png"
   },
-  "background_page": "/dialer/background.html",
   "orientation": "portrait-primary",
   "activities": {
     "pick": {
@@ -63,5 +61,8 @@
       "href": "/dialer/index.html",
       "disposition": "window"
     }
-  }
+  },
+  "messages": [
+     { "telephony-incoming": "/dialer/index.html" }
+  ]
 }
