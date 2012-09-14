@@ -6,16 +6,6 @@
   height: 100%;
 }
 
-#value-selector [role="dialog"] [role="listbox"] {
-    max-height: 35rem;
-}
-
-#value-selector [role="dialog"] [data-mode="scroll"] [role="listbox"] {
-  /* original style: 4rem - 1.2rem = 2.8rem (1.2rem scrollbar width) */
-  /* no need to minus scrollbar width */
-  padding: 0 4rem;
-}
-
 #select-options-buttons,
 #time-picker-buttons {
   /* from building blocks, core.css - menu:not([type="toolbar"]*/

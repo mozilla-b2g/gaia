@@ -234,9 +234,9 @@ var ValueSelector = {
 
     // Apply different style when the options are more than 1 page
     if (options.length > 5) {
-      this._containers['select'].dataset.mode = 'scroll';
+      this._containers['select'].classList.add('scrollable');
     } else {
-      this._containers['select'].dataset.mode = '';
+      this._containers['select'].classList.remove('scrollable');
     }
 
     // Change the title for multiple select
@@ -245,7 +245,7 @@ var ValueSelector = {
       titleL10nId = 'choose-option';
 
     var optionsTitle = document.querySelector(
-                       '#value-selector-container h3');
+                       '#value-selector-container h1');
 
     if (optionsTitle) {
       optionsTitle.dataset.l10nId = titleL10nId;
