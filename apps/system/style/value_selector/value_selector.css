@@ -1,6 +1,4 @@
 #value-selector {
-  -moz-box-sizing: border-box;
-  border: solid 1px yellow;
   width: 100%;
   height: -moz-calc(100% - 20px);
   top: 20px;

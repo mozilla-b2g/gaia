@@ -51,6 +51,9 @@ var PopupManager = {
       WindowManager.setDisplayedApp(null);
     }
 
+    // Reset overlay height
+    this.setHeight(window.innerHeight - StatusBar.height);
+
     this._currentPopup = frame;
 
     var popup = this._currentPopup;
@@ -62,7 +65,6 @@ var PopupManager = {
     this.container.appendChild(popup);
 
     this.screen.classList.add('popup');
-    this.setHeight(window.innerHeight - StatusBar.height);
 
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
@@ -131,17 +133,14 @@ var PopupManager = {
   setHeight: function pm_setHeight(height) {
     if (this.isVisible())
       this.overlay.style.height = height + 'px';
-    console.log(height,'======');;
   },
 
   handleEvent: function pm_handleEvent(evt) {
     switch (evt.type) {
       case 'mozbrowserloadstart':
-        console.log('======', evt.type);
         this.handleLoadStart(evt);
         break;
       case 'mozbrowserloadend':
-        console.log('======', evt.type);
         this.handleLoadEnd(evt);
         break;
       case 'mozbrowseropenwindow':
@@ -166,6 +165,8 @@ var PopupManager = {
         this.close(evt);
         break;
       case 'home':
+        // Reset overlay height before hiding
+        this.setHeight(window.innerHeight - StatusBar.height);
         this.backHandling(evt);
         break;
       case 'appwillclose':

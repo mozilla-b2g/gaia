@@ -239,8 +239,6 @@ iframe.backgroundWindow {
 }
 
 #dialog-overlay {
-  border: solid 1px #0186d1;
-  -moz-box-sizing: border-box;
   position: absolute;
   top: 20px;
   left: 0;

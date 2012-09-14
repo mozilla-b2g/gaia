@@ -568,6 +568,10 @@ var WindowManager = (function() {
       // Animate the window close.  Ensure the homescreen is in the
       // foreground since it will be shown during the animation.
       homescreenFrame.setVisible(true);
+
+      // For screenshot to catch current window size
+      setAppSize(currentApp);
+
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
