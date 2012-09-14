@@ -160,14 +160,6 @@ var ScreenManager = {
 
         break;
 
-      case 'mozfullscreenchange':
-        if (document.mozFullScreen) {
-          this.screen.classList.add('fullscreen');
-        } else {
-          this.screen.classList.remove('fullscreen');
-        }
-        break;
-
       case 'sleep':
         this.turnScreenOff(true);
         break;
@@ -195,7 +187,6 @@ var ScreenManager = {
       self.setIdleTimeout(0);
 
       window.removeEventListener('devicelight', self);
-      window.removeEventListener('mozfullscreenchange', self);
 
       self.screenEnabled = false;
       self._inTransition = false;
@@ -228,8 +219,6 @@ var ScreenManager = {
   turnScreenOn: function scm_turnScreenOn(instant) {
     if (this.screenEnabled)
       return false;
-
-    window.addEventListener('mozfullscreenchange', this);
 
     // Set the brightness before the screen is on.
     this.setScreenBrightness(this._userBrightness, instant);
