@@ -33,184 +33,58 @@ a[role="button"] {
   outline: none;
 }
 
-/* Press (default & affirmative) */
+/* Press (default & recommend) */
 button:active,
 a[role="button"]:active,
-button.affirmative:active,
-a.affirmative[role="button"]:active  {
+button.recommend:active,
+a.recommend[role="button"]:active  {
   border-color: #008aaa;
   background: #008aaa;
   color: #333;
 }
 
-/* Affirmative */
-button.affirmative,
-a[role="button"].affirmative {
-  background-image: url(buttons/images/ui/affirmative.png);
+/* Recommend */
+button.recommend,
+a[role="button"].recommend {
+  background-image: url(buttons/images/ui/recommend.png);
   background-color: #00caf2;
   border-color: #00acce;
 }
 
-/* Negative */
-button.negative,
-a.negative[role="button"] {
-  background-image: url(buttons/images/ui/negative.png);
+/* Danger */
+button.danger,
+a.danger[role="button"] {
+  background-image: url(buttons/images/ui/danger.png);
   background-color: #b70404;
   color: #fff;
   text-shadow: -0.1rem -0.1rem 0 #830b0b;
   border: none;
 }
 
-/* Negative Press */
-button.negative:active,
-a[role="button"].negative:active {
-  background-image: url(buttons/images/ui/negative-press.png);
+/* Danger Press */
+button.danger:active,
+a[role="button"].danger:active {
+  background-image: url(buttons/images/ui/danger-press.png);
   background-color: #890707;
 }
 
-/* Disabled (default & affirmative) */
+/* Disabled (default & recommend) */
 button[disabled],
 a[role="button"][aria-disabled="true"],
-button[disabled].affirmative,
-a[role="button"][aria-disabled="true"].affirmative {
-  background-image: url(buttons/images/ui/disabled-bright.png);
+button[disabled].recommend,
+a[role="button"][aria-disabled="true"].recommend {
+  background-image: url(buttons/images/ui/disabled.png);
   background-color: transparent;
   border-color: #dadada;
   color: #bcbcbc;
-}
-
-/* Negative disabled */
-button[disabled].negative,
-a[role="button"][aria-disabled="true"].negative {
-  background-image: url(buttons/images/ui/negative-disabled.png);
-  color: #fff;
-  text-shadow: none;
-}
-
-/* Icons in buttons */
-button span,
-a[role="button"] span {
-  float: left;
-  width: 2.5rem;
-  height: 2.5rem;
-  margin: 0 0.5rem 0 -1rem;
-  background: transparent no-repeat center center;
-}
-
-button span.end,
-a[role="button"] span.end {
-  float: right;
-  margin: 0.3rem -1.5rem 0 1rem;
-}
-
-/* Icon base types */
-button span.goto,
-a[role="button"] span.goto {
-  background-image: url(buttons/images/icons/goto.png);
-}
-
-button span.launch,
-a[role="button"] span.launch {
-  background-image: url(buttons/images/icons/launch.png);
-  background-position: 1rem bottom;
-}
-
-button span.favorite,
-a[role="button"] span.favorite {
-  background-image: url(buttons/images/icons/favorite.png);
-}
-
-button span.call,
-a[role="button"] span.call {
-  background-image: url(buttons/images/icons/call.png);
-  background-position: center bottom;
-}
-
-button span.tick,
-a[role="button"] span.tick {
-  background-image: url(buttons/images/icons/tick.png);
-}
-
-/* List style */
-.buttons-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-.buttons-list label {
-  font: 1.4rem/1em "Open Sans", Sans-serif;
-  text-transform: uppercase;
-  display: block;
-  padding-left: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-/* Default */
-.buttons-list button,
-.buttons-list a[role="button"] {
-  background: #e7e7e7;
-  border-color: #b6b6b6;
-  text-align: left;
-  font-size: 1.4rem;
-  line-height: 2.9rem;
-  position: relative;
-  overflow: visible;
-}
-
-.buttons-list a[role="button"]:after,
-.buttons-list button:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  background: url(buttons/images/ui/shadow.png) repeat-x left bottom;
-  height: 0.2rem;
-  margin-top: 0.1rem;
   pointer-events: none;
 }
 
-/* Press */
-.buttons-list button:active,
-.buttons-list a[role="button"]:active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
-.buttons-list a[role="button"]:active:after,
-.buttons-list button:active:after {
-  opacity: 0;
-}
-
-/* Disabled */
-.buttons-list button[disabled],
-.buttons-list a[role="button"][aria-disabled="true"] {
-  background: #ededed;
-  border-color: #d3d3d3;
-  color: #a6a6a6;
-}
-
-.buttons-list button[disabled]:after,
-.buttons-list a[role="button"][aria-disabled="true"]:after {
-  opacity: 1;
-}
-
-/* Compact mode */
-.buttons-list.compact { margin-bottom: 1rem; }
-.buttons-list.compact button,
-.buttons-list.compact a[role="button"] {
-  margin: -0.1rem 0;
-  border-radius: 0;
-}
-
-.buttons-list.compact li:first-child button,
-.buttons-list.compact li:first-child a[role="button"] {
-  border-radius: 0.3rem 0.3rem 0 0;
-}
-
-.buttons-list.compact li:last-child button,
-.buttons-list.compact li:last-child a[role="button"] {
-  border-radius:0 0 0.3rem 0.3rem;
+/* Danger disabled */
+button[disabled].danger,
+a[role="button"][aria-disabled="true"].danger {
+  background-image: url(buttons/images/ui/danger-disabled.png);
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
 }
