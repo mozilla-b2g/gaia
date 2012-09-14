@@ -25,7 +25,7 @@ function getWindowLeft(obj) {
 // Data Usage is in charge of display detailed information about data
 // consumption per application and interface.
 var TAB_DATA_USAGE = 'datausage-tab';
-appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
+viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
   var _options;
   var _graphicArea, _graphicPattern;
@@ -38,7 +38,7 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     var dataUsageTab = document.getElementById('datausage-tab-filter');
     dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
-      appVManager.changeViewTo(TAB_DATA_USAGE);
+      viewManager.changeViewTo(TAB_DATA_USAGE);
     });
 
     var controls = document.getElementById('limits-layer');
@@ -709,4 +709,4 @@ appVManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 }());
 
 // Add to views as well
-Views[TAB_DATA_USAGE] = appVManager.tabs[TAB_DATA_USAGE];
+Views[TAB_DATA_USAGE] = viewManager.tabs[TAB_DATA_USAGE];

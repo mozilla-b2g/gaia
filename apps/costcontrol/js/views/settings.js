@@ -3,19 +3,27 @@
 
 'use strict';
 
-// Retrieve CostControl service
-var CostControl = getService(function ccapp_onServiceReady(evt) {
-  // If the service is not ready, when ready it sets the CostControl object
+// Retrieve service
+var Service = getService(function ccapp_onServiceReady(evt) {
+  // If the service is not ready, when ready it sets the Service object
   // again and setup the application.
-  CostControl = evt.detail.service;
+  Service = evt.detail.service;
   setupSettings();
 });
-if (CostControl)
+if (Service)
   setupSettings();
 
 // Settings view is in charge of display and allow user interaction to
 // changing the application customization.
-function setupSettings() { 
+function setupSettings() {
+
+  var DEFAULTS = {
+    'plantype': 'prepaid',
+    'tracking_period': 'never',
+    'reset_time': 1,
+    'lowlimit': true,
+    'lowlimit_threshold': 5
+  }
 
   var viewManager = new ViewManager();
 
@@ -28,9 +36,9 @@ function setupSettings() {
   }
 
   function _getDefaultValue(optionKey) {
-    var defaultValue = optionDefaults[optionKey];
+    var defaultValue = DEFAULTS[optionKey];
     if (typeof defaultValue === 'function')
-      defaultValue = defaultValue(CostControl.settings);
+      defaultValue = defaultValue(Service.settings);
     return defaultValue;
   }
 
@@ -46,7 +54,7 @@ function setupSettings() {
       if (okButton) {
         okButton.addEventListener('click', function ccapp_onDialogOk() {
           var checked = dialog.querySelector('input[type="radio"]:checked');
-          CostControl.settings.option(optionKey, checked.value);
+          Service.settings.option(optionKey, checked.value);
           viewManager.closeCurrentView();
         });
       }
@@ -56,8 +64,8 @@ function setupSettings() {
         cancelButton.addEventListener(
           'click',
           function ccapp_onDialogCancel() {
-            var currentValue = CostControl.settings.option(optionKey);
-            CostControl.settings.option(optionKey, currentValue);
+            var currentValue = Service.settings.option(optionKey);
+            Service.settings.option(optionKey, currentValue);
             viewManager.closeCurrentView();
           }
         );
@@ -69,7 +77,7 @@ function setupSettings() {
       });
 
       // Keep the widget and the dialog synchronized
-      CostControl.settings.observe(
+      Service.settings.observe(
         optionKey,
         function ccapp_onOptionChange(value) {
 
@@ -79,6 +87,12 @@ function setupSettings() {
 
           var radio =
             dialog.querySelector('input[type="radio"][value="' + value + '"]');
+
+          if (!radio) {
+            value = _getDefaultValue(optionKey);
+            radio = dialog.querySelector('input[type="radio"][value="' + 
+                                         value + '"]');
+          }
           radio.checked = true;
 
           var textSpan = dialog.querySelector('input:checked + span');
@@ -100,7 +114,7 @@ function setupSettings() {
       var optionKey = guiWidget.dataset.option;
 
       // Add an observer to keep synchronization
-      CostControl.settings.observe(
+      Service.settings.observe(
         optionKey,
         function ccapp_onOptionChange(value) {
 
@@ -114,7 +128,7 @@ function setupSettings() {
 
       // Add an event listener to switch the option
       guiWidget.addEventListener('click', function ccapp_onSwitchChange() {
-        CostControl.settings.option(optionKey, guiWidget.checked);
+        Service.settings.option(optionKey, guiWidget.checked);
       });
     },
 
@@ -122,7 +136,7 @@ function setupSettings() {
       var optionKey = guiWidget.dataset.option;
 
       // Add an observer to keep synchronization
-      CostControl.settings.observe(
+      Service.settings.observe(
         optionKey,
         function ccapp_onOptionChange(value) {
 
@@ -136,7 +150,7 @@ function setupSettings() {
 
       // Add an event listener to switch the option
       guiWidget.addEventListener('change', function ccapp_onSwitchChange() {
-        CostControl.settings.option(optionKey, guiWidget.value);
+        Service.settings.option(optionKey, guiWidget.value);
       });
     }
   };
@@ -174,7 +188,7 @@ function setupSettings() {
 
         var dependency = parsed[0];
         var disablingValue = parsed[1];
-        CostControl.settings.observe(
+        Service.settings.observe(
           dependency,
           function ccapp_disableOnDependency (value) {
             var entry = _getEntryParent(guiWidget);
@@ -192,7 +206,7 @@ function setupSettings() {
   }
 
   function _setBalanceView(balanceObj) {
-    balanceObj = balanceObj || CostControl.getLastBalance();
+    balanceObj = balanceObj || Service.getLastBalance();
     var settingsCurrency = document.getElementById('settings-currency');
     var settingsCredit = document.getElementById('settings-credit');
     var settingsTime = document.getElementById('settings-time');
@@ -216,7 +230,7 @@ function setupSettings() {
   // when updating the balance.
   function _configureBalanceView() {
     _setBalanceView();
-    CostControl.setBalanceCallbacks({
+    Service.setBalanceCallbacks({
       onsuccess: function ccapp_onBalanceSuccess(evt) {
         var balance = evt.detail;
         _setBalanceView(balance);
@@ -236,7 +250,7 @@ function setupSettings() {
     // Close settings
     var close = document.getElementById('close-settings');
     close.addEventListener('click', function ccapp_closeSettings() {
-      parent.appVManager.closeCurrentView();
+      parent.viewManager.closeCurrentView();
     });
 
     // Localize interface

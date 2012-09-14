@@ -19,13 +19,15 @@ if (CostControl)
 var APP;
 function setupApp() {
 
+  var SETTINGS_VIEW = 'settings-view';
+
   // Configure close dialog to close the current dialog. Dialog includes
   // promtps and settins.
   function _configureCloseDialog() {
     var closeButtons = document.querySelectorAll('.close-dialog');
     [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
       button.addEventListener('click', function ccapp_onCloseView() {
-        appVManager.closeCurrentView();
+        viewManager.closeCurrentView();
       });
     });
   }
@@ -47,7 +49,7 @@ function setupApp() {
     var configButtons = document.querySelectorAll('.settings-button');
     [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
       button.addEventListener('click', function ccapp_onConfig() {
-        appVManager.changeViewTo('settings-view');
+        viewManager.changeViewTo(SETTINGS_VIEW);
       });
     });
   }
@@ -75,7 +77,7 @@ function setupApp() {
         var name = activityRequest.source.name;
         switch (name) {
           case 'costcontrol/open':
-            appVManager.closeCurrentView();
+            viewManager.closeCurrentView();
             break;
 
           case 'costcontrol/topup':
@@ -94,9 +96,9 @@ function setupApp() {
     var currentValue = CostControl.settings.option('plantype') ||
                        CostControl.PLAN_PREPAID;
     if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
-      appVManager.changeViewTo(TAB_BALANCE);
+      viewManager.changeViewTo(TAB_BALANCE);
     } else {
-      appVManager.changeViewTo(TAB_TELEPHONY);
+      viewManager.changeViewTo(TAB_TELEPHONY);
     }
   }
 

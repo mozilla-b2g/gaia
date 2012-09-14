@@ -4,4 +4,4 @@
 'use strict';
 
 var Views = {};
-var appVManager = new ViewManager();
+var viewManager = new ViewManager();

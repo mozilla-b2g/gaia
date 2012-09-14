@@ -6,7 +6,7 @@
 // Balance Tab is in charge of offer detailed information about current
 // credit as well as allow the user to top up.
 var TAB_BALANCE = 'balance-tab';
-appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
+viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   var ONE_SECOND = 1000;
   var DELAY_TO_RETURN = 10 * 1000; // 10 seconds
@@ -154,7 +154,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     var balanceFilter = document.getElementById('balance-tab-filter');
     balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
-      appVManager.changeViewTo(TAB_BALANCE);
+      viewManager.changeViewTo(TAB_BALANCE);
     });
 
     var btRequestUpdateButton =
@@ -192,8 +192,8 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       _isWaitingTopUp = true;
       _setTopUpScreenMode(MODE_WAITING);
       _returnTimeout = setTimeout(function ccapp_backToBalance() {
-        if (appVManager.isCurrentView(VIEW_TOPUP))
-          appVManager.closeCurrentView();
+        if (viewManager.isCurrentView(VIEW_TOPUP))
+          viewManager.closeCurrentView();
       }, DELAY_TO_RETURN);
 
     });
@@ -429,7 +429,7 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     // Check for service availability and inform and abort if not present
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
@@ -445,14 +445,14 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _requestTopUp() {
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
-      appVManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
 
     if (!_isWaitingTopUp && !_lastTopUpIncorrect)
       _setTopUpScreenMode(MODE_DEFAULT);
 
-    appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+    viewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
   }
 
   // Enable / disable waiting mode for the UI
@@ -518,9 +518,9 @@ appVManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     updateUI: _updateUI,
     localize: _localize,
     showTopUp: function ccapp_showTopUp() {
-      appVManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
+      viewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
     }
   };
 }());
 
-Views[TAB_BALANCE] = appVManager.tabs[TAB_BALANCE];
+Views[TAB_BALANCE] = viewManager.tabs[TAB_BALANCE];

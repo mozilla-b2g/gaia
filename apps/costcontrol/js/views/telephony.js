@@ -6,12 +6,12 @@
 // Data Usage is in charge of display detailed information about data
 // consumption per application and interface.
 var TAB_TELEPHONY = 'telephony-tab';
-appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
+viewManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
 
   function _init() {
     var balanceFilter = document.getElementById('telephony-tab-filter');
     balanceFilter.addEventListener('click', function ccapp_onBalanceTab() {
-      appVManager.changeViewTo(TAB_TELEPHONY);
+      viewManager.changeViewTo(TAB_TELEPHONY);
     });
 
     // Observe smscount and calltime
@@ -84,4 +84,4 @@ appVManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
 }());
 
 // Add to views as well
-Views[TAB_TELEPHONY] = appVManager.tabs[TAB_TELEPHONY];
+Views[TAB_TELEPHONY] = viewManager.tabs[TAB_TELEPHONY];
