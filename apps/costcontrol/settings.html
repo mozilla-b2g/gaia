@@ -43,7 +43,6 @@
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/views/vmanagers.js"></script>
   <script type="text/javascript" defer src="js/defaults.js"></script>
   <script type="text/javascript" defer src="js/views/settings.js"></script>
 </head>
@@ -75,15 +74,15 @@
       </li>
       <li>
         <label class="end switch">
-          <input id="settings-low-limit-switch" type="checkbox" checked="checked">
+          <input class="localsetting" data-option="lowlimit" type="checkbox" />
           <span></span>
         </label>
         <p data-l10n-id="low-balance-alert">Low Balance alert</p>
       </li>
-      <li id="setting-item-low-limit-setup">
-        <label class="end" for="settings-low-limit-value">
-          <span id="settings-low-limit-currency"></span>
-          <input type="number" id="settings-low-limit-value" />
+      <li>
+        <label class="end" for="low-limit-input">
+          <span id="settings-low-limit-currency">R$</span>
+          <input class="localsetting" data-option="lowlimit_threshold" data-disableon="lowlimit=false" id="low-limit-input" type="number" />
         </label>
         <p data-l10n-id="low-balance-explanation">Alert me when I’m under</p>
       </li>
@@ -126,7 +125,7 @@
       </li>
       <li>
         <div class="end buttons-list">
-          <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-disableon="tracking_period=never">
+          <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-disableon="tracking_period!=weekly">
             <span class="end launch"></span>
             <span class="tag"></span>
           </button>
@@ -135,7 +134,7 @@
       </li>
       <li>
         <div class="end buttons-list">
-          <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-disableon="tracking_period=never">
+          <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-disableon="tracking_period!=monthly">
             <span class="end launch"></span>
             <span class="tag"></span>
           </button>
@@ -152,13 +151,13 @@
       <ul role="listbox">
         <li>
           <label for="plantype-option-prepaid">
-            <input id="plantype-option-prepaid" type="radio" name="plantype-option" checked="checked" value="prepaid">
+            <input id="plantype-option-prepaid" type="radio" name="plantype-option" checked="checked" value="prepaid" />
             <span data-l10n-id="prepaid">Prepaid</span>
           </label>
         </li>
         <li>
           <label for="plantype-option-postpaid">
-            <input id="plantype-option-postpaid" type="radio" name="plantype-option" value="postpaid">
+            <input id="plantype-option-postpaid" type="radio" name="plantype-option" value="postpaid" />
             <span data-l10n-id="postpaid">Postpaid</span>
           </label>
         </li>
@@ -176,19 +175,19 @@
       <ul role="listbox">
         <li>
           <label for="tracking-period-option-monthly">
-            <input type="radio" id="tracking-period-option-monthly" name="tracking-period-option" checked="checked" value="monthly">
+            <input type="radio" id="tracking-period-option-monthly" name="tracking-period-option" checked="checked" value="monthly" />
             <span data-l10n-id="monthly">Monthly</span>
           </label>
         </li>
         <li>
           <label for="tracking-period-option-weekly">
-            <input type="radio" id="tracking-period-option-weekly" name="tracking-period-option" value="weekly">
+            <input type="radio" id="tracking-period-option-weekly" name="tracking-period-option" value="weekly" />
             <span data-l10n-id="weekly">Weekly</span>
           </label>
         </li>
         <li>
           <label for="tracking-period-option-never">
-            <input type="radio" id="tracking-period-option-never" name="tracking-period-option" value="never">
+            <input type="radio" id="tracking-period-option-never" name="tracking-period-option" value="never" />
             <span data-l10n-id="never">Never</span>
           </label>
         </li>
@@ -207,43 +206,43 @@
       <ul role="listbox">
         <li>
           <label for="reset-weekday-option-monday">
-            <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1">
+            <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1" />
             <span data-l10n-id="monday">Monday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-tuesday">
-            <input type="radio" id="reset-weekday-option-tuesday" name="reset-weekday-option" checked="checked" value="2">
+            <input type="radio" id="reset-weekday-option-tuesday" name="reset-weekday-option" checked="checked" value="2" />
             <span data-l10n-id="tuesday">Tuesday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-wednesday">
-            <input type="radio" id="reset-weekday-option-wednesday" name="reset-weekday-option" checked="checked" value="3">
+            <input type="radio" id="reset-weekday-option-wednesday" name="reset-weekday-option" checked="checked" value="3" />
             <span data-l10n-id="wednesday">Wednesday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-thursday">
-            <input type="radio" id="reset-weekday-option-thursday" name="reset-weekday-option" checked="checked" value="4">
+            <input type="radio" id="reset-weekday-option-thursday" name="reset-weekday-option" checked="checked" value="4" />
             <span data-l10n-id="thursday">Thursday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-friday">
-            <input type="radio" id="reset-weekday-option-friday" name="reset-weekday-option" checked="checked" value="5">
+            <input type="radio" id="reset-weekday-option-friday" name="reset-weekday-option" checked="checked" value="5" />
             <span data-l10n-id="friday">Friday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-saturday">
-            <input type="radio" id="reset-weekday-option-saturday" name="reset-weekday-option" checked="checked" value="6">
+             <input type="radio" id="reset-weekday-option-saturday" name="reset-weekday-option" checked="checked" value="6" />
             <span data-l10n-id="saturday">Saturday</span>
           </label>
         </li>
         <li>
           <label for="reset-weekday-option-sunday">
-            <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" checked="checked" value="0">
+            <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" checked="checked" value="0" />
             <span data-l10n-id="sunday">Sunday</span>
           </label>
         </li>

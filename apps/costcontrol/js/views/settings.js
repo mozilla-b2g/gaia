@@ -18,18 +18,25 @@ if (CostControl)
 function setupSettings() { 
 
   var viewManager = new ViewManager();
- 
-  function _configureUI() {
-    function getEntryParent(item) {
-      var current = item;
-      while (current && current.tagName !== 'LI')
-        current = current.parentNode;
 
-      return current;
-    }
+  function _getEntryParent(item) {
+    var current = item;
+    while (current && current.tagName !== 'LI')
+      current = current.parentNode;
 
-    var allGUIWidgets = document.querySelectorAll('.localsetting');
-    [].forEach.call(allGUIWidgets, function ccapp_eachWidget(guiWidget) {
+    return current;
+  }
+
+  function _getDefaultValue(optionKey) {
+    var defaultValue = optionDefaults[optionKey];
+    if (typeof defaultValue === 'function')
+      defaultValue = defaultValue(CostControl.settings);
+    return defaultValue;
+  }
+
+  var CONFIGURE_WIDGET = {
+    'select': function ccapp_configureSelectWidget(guiWidget) {
+
       var dialog = document.getElementById(guiWidget.dataset.selectdialog);
       var optionKey = guiWidget.dataset.option;
       var disableOn = guiWidget.dataset.disableon;
@@ -64,11 +71,14 @@ function setupSettings() {
       // Keep the widget and the dialog synchronized
       CostControl.settings.observe(
         optionKey,
-        function ccapp_onOptionChange (value) {
-          value = value || optionDefaults[optionKey];
+        function ccapp_onOptionChange(value) {
+
+          // Use default value if no value
+          if (value === null || typeof value === 'undefined')
+            value = _getDefaultValue(optionKey);
+
           var radio =
             dialog.querySelector('input[type="radio"][value="' + value + '"]');
-          console.log('input[type="radio"][value="' + value + '"]');
           radio.checked = true;
 
           var textSpan = dialog.querySelector('input:checked + span');
@@ -77,17 +87,100 @@ function setupSettings() {
         }
       );
 
+      // Keep the UI localized
+      window.addEventListener('localized', function ccapp_onLocalized() {
+        var textSpan = dialog.querySelector('input:checked + span');
+        var tagSpan = guiWidget.querySelector('.tag');
+        tagSpan.textContent = textSpan.textContent;
+      });
+
+    },
+
+    'switch' : function ccapp_configureSwitch(guiWidget) {
+      var optionKey = guiWidget.dataset.option;
+
+      // Add an observer to keep synchronization
+      CostControl.settings.observe(
+        optionKey,
+        function ccapp_onOptionChange(value) {
+
+          // Use default value if no value
+          if (value === null || typeof value === 'undefined')
+            value = _getDefaultValue(optionKey);
+
+          guiWidget.checked = value;
+        }
+      );
+
+      // Add an event listener to switch the option
+      guiWidget.addEventListener('click', function ccapp_onSwitchChange() {
+        CostControl.settings.option(optionKey, guiWidget.checked);
+      });
+    },
+
+    'input' : function ccapp_configureInput(guiWidget) {
+      var optionKey = guiWidget.dataset.option;
+
+      // Add an observer to keep synchronization
+      CostControl.settings.observe(
+        optionKey,
+        function ccapp_onOptionChange(value) {
+
+          // Use default value if no value
+          if (value === null || typeof value === 'undefined')
+            value = _getDefaultValue(optionKey);
+
+          guiWidget.value = value;
+        }
+      );
+
+      // Add an event listener to switch the option
+      guiWidget.addEventListener('change', function ccapp_onSwitchChange() {
+        CostControl.settings.option(optionKey, guiWidget.value);
+      });
+    }
+  };
+
+  function _configureGUIWidgets() {
+
+    function getWidgetType(widget) {
+      if (typeof widget.dataset.selectdialog !== 'undefined')
+        return 'select';
+
+      if (widget.type === 'checkbox')
+        return 'switch';
+
+      if (['text', 'number'].indexOf(widget.type) !== -1)
+        return 'input';
+    }
+
+    // Widgets
+    var allGUIWidgets = document.querySelectorAll('.localsetting');
+    [].forEach.call(allGUIWidgets, function ccapp_eachWidget(guiWidget) {
+
+      var type = getWidgetType(guiWidget);
+      CONFIGURE_WIDGET[type](guiWidget);
+
       // Simple dependency resolution: enable / disable some options depending
       // on the values of other
+      var disableOn = guiWidget.dataset.disableon;
       if (disableOn) {
-        var parsed = disableOn.split('=');
+        var not = true;
+        var parsed = disableOn.split('!=');
+        if (parsed.length === 1) {
+          parsed = disableOn.split('=');
+          not = false;
+        }
+
         var dependency = parsed[0];
         var disablingValue = parsed[1];
         CostControl.settings.observe(
           dependency,
           function ccapp_disableOnDependency (value) {
-            var entry = getEntryParent(guiWidget);
-            var test = (value == disablingValue);
+            var entry = _getEntryParent(guiWidget);
+            var test = (('' + value) === disablingValue);
+            if (not)
+              test = !test;
             guiWidget.disabled = test;
             if (entry)
               entry.setAttribute('aria-disabled', test + '');
@@ -96,17 +189,63 @@ function setupSettings() {
       }
 
     });
+  }
 
+  function _setBalanceView(balanceObj) {
+    balanceObj = balanceObj || CostControl.getLastBalance();
+    var settingsCurrency = document.getElementById('settings-currency');
+    var settingsCredit = document.getElementById('settings-credit');
+    var settingsTime = document.getElementById('settings-time');
+    var settingsLowLimitCurrency =
+      document.getElementById('settings-low-limit-currency');
+
+    if (balanceObj) {
+      settingsCurrency.textContent = balanceObj.currency;
+      settingsLowLimitCurrency.textContent = balanceObj.currency;
+      settingsCredit.textContent = formatBalance(balanceObj.balance);
+      settingsTime.textContent = formatTime(balanceObj.timestamp);
+    } else {
+      settingsCurrency.textContent = '';
+      settingsLowLimitCurrency.textContent = '';
+      settingsCredit.textContent = '--';
+      settingsTime.textContent = _('never');
+    }
+  }
+
+  // Reset the balance view and attach a listener to keep the UI updated
+  // when updating the balance.
+  function _configureBalanceView() {
+    _setBalanceView();
+    CostControl.setBalanceCallbacks({
+      onsuccess: function ccapp_onBalanceSuccess(evt) {
+        var balance = evt.detail;
+        _setBalanceView(balance);
+      }
+    });
+  }
+
+  function _configureUI() {
+    _configureGUIWidgets();
+    _configureBalanceView();
   }
 
   // Configure each settings' control and paint the interface
   function _init() {
     _configureUI();
+
+    // Close settings
+    var close = document.getElementById('close-settings');
+    close.addEventListener('click', function ccapp_closeSettings() {
+      parent.appVManager.closeCurrentView();
+    });
+
+    // Localize interface
+    window.addEventListener('localized', _localize);
   }
 
   // Repaint settings interface reading from local settings and localizing
   function _updateUI() {
-
+    _setBalanceView();
   }
 
   // Updates the UI to match the localization
