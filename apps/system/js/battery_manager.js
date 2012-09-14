@@ -22,18 +22,27 @@ var BatteryManager = {
     if (battery) {
       battery.addEventListener('levelchange', this);
     }
+    window.addEventListner('screenchange', this);
     this._toasterGD = new GestureDetector(this.notification);
-    ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
+    ['mousedown', 'swipe'].forEach(function(evt) {
       this.notification.addEventListener(evt, this);
     }, this);
 
 
-    // XXX: listen to settings 'powersaving.enable' and
-    // 'powersaving.threshold' to toggle power saving mode
+    // XXX: listen to settings 'powersave.enable' and
+    // 'powersave.threshold' to toggle power saving mode
   },
 
   handleEvent: function bm_handleEvent(evt) {
     switch (evt.type) {
+      case 'screenchange':
+        var battery = window.navigator.battery;
+        if (!evt.detail.screenEnabled)
+          battery.removeEventListener('levelchange', this);
+        else
+          battery.addEventListener('levelchange', this);
+        break;
+
       case 'levelchange':
         var battery = window.navigator.battery;
         if (!battery)
@@ -45,10 +54,6 @@ var BatteryManager = {
           this.display();
         break;
 
-      case 'tap':
-        var target = evt.target;
-        this.tap(target);
-        break;
       case 'mousedown':
         this.mousedown(evt);
         break;
@@ -59,10 +64,9 @@ var BatteryManager = {
   },
 
   display: function bm_display() {
-    var self = this;
     var overlayClass = this.overlay.classList;
     var notificationClass = this.notification.classList;
-  
+
     overlayClass.add('battery');
     notificationClass.add('visible');
     this._toasterGD.startDetecting();
@@ -78,30 +82,25 @@ var BatteryManager = {
     }).bind(this), this.TOASTER_TIMEOUT);
   },
 
-  hide: function bm_hide() {
-    this.overlay.classList.remove('battery');
-    this.notification.classList.remove('visible');
-  },
-
   // Swipe handling
-  mousedown: function ns_mousedown(evt) {
+  mousedown: function bm_mousedown(evt) {
     evt.preventDefault();
     this._containerWidth = this.overlay.clientWidth;
   },
 
-  swipe: function ns_swipe(evt) {
-    var self = this;
+  swipe: function bm_swipe(evt) {
     var detail = evt.detail;
     var distance = detail.start.screenX - detail.end.screenX;
     var fastEnough = Math.abs(detail.vx) > this.TRANSITION_SPEED;
     var farEnough = Math.abs(distance) >
       this._containerWidth * this.TRANSITION_FRACTION;
 
-    if (!(farEnough || fastEnough)) {
-      // Werent far or fast enough to delete, restore
+    // If the swipe distance is too short or swipe speed is too slow,
+    // do nothing.
+    if (!(farEnough || fastEnough))
       return;
-    }
-    
+
+    var self = this;
     this.notification.addEventListener('animationend', function animationend() {
       self.notification.removeEventListener('animationend', animationend);
       self.notification.classList.remove('visible');
@@ -109,10 +108,6 @@ var BatteryManager = {
       self.overlay.classList.remove('battery');
     });
     this.notification.classList.add('disappearing');
-  },
-
-  tap: function ns_tap(notificationNode) {
-    this.hide();
   }
 };
 
