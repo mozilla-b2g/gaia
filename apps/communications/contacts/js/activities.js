@@ -48,6 +48,7 @@ var ActivityHandler = {
         Contacts.navigation.home();
         break;
     }
+    Contacts.checkCancelableActivity();
   },
 
   postNewSuccess: function ah_postNewSuccess(contact) {

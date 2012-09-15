@@ -1,15 +1,9 @@
-#value-selector [role="dialog"] {
-    top: 20px;
-}
-
-#value-selector [role="dialog"] [role="listbox"] {
-    max-height: 35rem;
-}
-
-#value-selector [role="dialog"] [data-mode="scroll"] [role="listbox"] {
-  /* original style: 4rem - 1.2rem = 2.8rem (1.2rem scrollbar width) */
-  /* no need to minus scrollbar width */
-  padding: 0 4rem;
+#value-selector {
+  position: absolute;
+  top: 2rem;
+  bottom: 0;
+  left: 0;
+  width: 100%;
 }
 
 #select-options-buttons,
@@ -77,12 +71,6 @@ button.affirmative.active {
 
 #value-selector-container li > label {
     pointer-events: none;
-}
-
-#value-selector-container li.selected span {
-  padding-right: 0.5rem;
-  color: #00abcd;
-  background: url(../bb/menus_dialogs/value_selector/images/icons/checked.png) content-box right center no-repeat;
 }
 
 #value-selector-container li.active label span {

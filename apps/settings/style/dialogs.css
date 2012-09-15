@@ -11,7 +11,8 @@
   background-color: #eee;
   height: 100%;
   width: 100%;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: scroll;
   margin: 0;
   padding: 0;
   background: url(images/document-bg.png);

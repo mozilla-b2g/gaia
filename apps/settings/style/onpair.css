@@ -1,0 +1,28 @@
+form[role="dialog"] h1 {
+  font-size: 1.3rem;
+}
+
+form[role="dialog"] p {
+  font-size: 50%;
+}
+
+form[role="dialog"] p small {
+  font-size: 1.0rem;
+}
+
+form[role="dialog"] p strong {
+  font-size: 1.6rem;
+}
+
+form[role="dialog"] p input {
+  font-size: 1.6rem;
+}
+
+form[role="dialog"] menu {
+  padding: 1rem;
+}
+
+form[role="dialog"] menu button {
+  height: 2.8rem;
+  line-height: 2.8rem;
+}

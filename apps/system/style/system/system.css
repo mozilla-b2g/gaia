@@ -47,11 +47,13 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  display: none;
+  visibility: hidden;
+
+  pointer-events: none;
 }
 
 #system-overlay.volume {
-  display: block;
+  visibility: visible;
 }
 
 #windows {
@@ -136,7 +138,7 @@ body {
 #windowSprite[data-mask="true"] > div {
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.5);
 }
 
 #screen.fullscreen-app > #windowSprite {
@@ -247,6 +249,7 @@ iframe.backgroundWindow {
 }
 
 #screen.authentication-dialog #dialog-overlay,
+#screen.authentication-dialog #authentication-dialog,
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
