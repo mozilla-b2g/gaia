@@ -1,6 +1,12 @@
 requireApp('gallery/js/mediadb.js');
 
 suite('MediaDB', function() {
+  if (navigator.getDeviceStorage('pictures') == null) {
+    test('navigator.getDeviceStorage() returns null on this platform; ' +
+         'skipping all MediaDB tests',
+         function() {});
+    return;
+  }
 
   var directory = 'mediadbtests/1/';
 
