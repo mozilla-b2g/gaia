@@ -312,11 +312,16 @@ var MediaDB = (function() {
     this.state = MediaDB.OPENING;
     this.scanning = false;  // becomes true while scanning
 
+    if (this.directory &&
+        this.directory[this.directory.length - 1] !== '/')
+      this.directory += '/';
+
     this.dbname = 'MediaDB/' + this.mediaType + '/' + this.directory;
 
     var media = this;  // for the nested functions below
 
-    this.private = {
+    // Private implementation details in this object
+    this.details = {
       // This maps event type -> array of listeners
       // See addEventListener and removeEventListener
       eventListeners: {},
@@ -325,6 +330,8 @@ var MediaDB = (function() {
       // for queueing up notifications to be sent
       pendingInsertions: [],   // Array of filenames to insert
       pendingDeletions: [],    // Array of filenames to remove
+      whenDoneProcessing: [],  // Functions to run when queue is empty
+
       pendingCreateNotifications: [],  // Array of fileinfo objects
       pendingDeleteNotifications: [],  // Ditto
       pendingNotificationTimer: null,
@@ -347,7 +354,7 @@ var MediaDB = (function() {
     // Open the database
     // Note that the user can upgrade the version and we can upgrade the version
     var openRequest = indexedDB.open(this.dbname,
-                                     this.version * MediaDB.version);
+                                     this.version * MediaDB.VERSION);
 
     // This should never happen for Gaia apps
     openRequest.onerror = function(e) {
@@ -410,11 +417,11 @@ var MediaDB = (function() {
       cursorRequest.onsuccess = function() {
         var cursor = cursorRequest.result;
         if (cursor) {
-          media.private.newestFileModTime = cursor.value.date;
+          media.details.newestFileModTime = cursor.value.date;
         }
         else {
           // No files in the db yet, so use a really old time
-          media.private.newestFileModTime = 0;
+          media.details.newestFileModTime = 0;
         }
 
         // The DB is initialized, and we've got our mod time
@@ -432,28 +439,8 @@ var MediaDB = (function() {
       // Handle change notifications from device storage
       // We set this onchange property to null in the close() method
       // so don't use addEventListener here
-      media.storage.onchange = function(e) {
-        switch (e.reason) {
-        case 'available':
-          changeState(MediaDB.READY);
-          scan(media); // automatically scan every time the card comes back
-          break;
-        case 'unavailable':
-          changeState(MediaDB.NOCARD);
-          endscan(media);
-          break;
-        case 'shared':
-          changeState(MediaDB.UNMOUNTED);
-          endscan(media);
-          break;
-        case 'created':
-          insertRecord(media, e.path);
-          break;
-        case 'deleted':
-          deleteRecord(media, e.path);
-          break;
-        }
-      };
+      media.storage.addEventListener('change', deviceStorageChangeHandler);
+      media.details.dsEventListener = deviceStorageChangeHandler;
 
       // Use stat() to figure out if there is actually an sdcard there
       // and emit a ready or unavailable event
@@ -462,14 +449,14 @@ var MediaDB = (function() {
         var stats = e.target.result;
         switch (stats.state) {
         case 'available':
-          changeState(MediaDB.READY);
+          changeState(media, MediaDB.READY);
           scan(media); // Start scanning as soon as we're ready
           break;
         case 'unavailable':
-          changeState(MediaDB.NOCARD);
+          changeState(media, MediaDB.NOCARD);
           break;
         case 'shared':
-          changeState(MediaDB.UNMOUNTED);
+          changeState(media, MediaDB.UNMOUNTED);
           break;
         }
       };
@@ -478,8 +465,42 @@ var MediaDB = (function() {
         // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
         // No way to distinguish these cases so just guess
         console.error('stat() failed', statreq.error && statreq.error.name);
-        changeState(MediaDB.UNMOUNTED);
+        changeState(media, MediaDB.UNMOUNTED);
       };
+    }
+
+    function deviceStorageChangeHandler(e) {
+      var filename;
+      switch (e.reason) {
+      case 'available':
+        changeState(media, MediaDB.READY);
+        scan(media); // automatically scan every time the card comes back
+        break;
+      case 'unavailable':
+        changeState(media, MediaDB.NOCARD);
+        endscan(media);
+        break;
+      case 'shared':
+        changeState(media, MediaDB.UNMOUNTED);
+        endscan(media);
+        break;
+      case 'modified':
+      case 'deleted':
+        filename = e.path;
+        if (media.directory) {
+          // Ignore changes outside of our directory
+          if (filename.substring(0, media.directory.length) !==
+              media.directory)
+            break;
+          // And strip the directory from changes inside of it
+          filename = filename.substring(media.directory.length);
+        }
+        if (e.reason === 'modified')
+          insertRecord(media, filename);
+        else
+          deleteRecord(media, filename);
+        break;
+      }
     }
   }
 
@@ -490,25 +511,25 @@ var MediaDB = (function() {
 
       // There is no way to close device storage, but we at least want
       // to stop receiving events from it.
-      this.storage.onchange = null;
+      this.storage.removeEventListener('change', this.details.dsEventListener);
 
       // Change state and send out an event
-      changeState(MediaDB.CLOSED);
+      changeState(this, MediaDB.CLOSED);
     },
 
     addEventListener: function addEventListener(type, listener) {
-      if (!this.private.eventListeners.hasOwnPropertyName(type))
-        this.private.eventListeners[type] = [];
-      var listeners = this.private.eventListeners[type];
+      if (!this.details.eventListeners.hasOwnProperty(type))
+        this.details.eventListeners[type] = [];
+      var listeners = this.details.eventListeners[type];
       if (listeners.indexOf(listener) !== -1)
         return;
       listeners.push(listener);
     },
 
     removeEventListener: function removeEventListener(type, listener) {
-      if (!this.private.eventListeners.hasOwnPropertyName(type))
+      if (!this.details.eventListeners.hasOwnProperty(type))
         return;
-      var listeners = this.private.eventListeners[type];
+      var listeners = this.details.eventListeners[type];
       var position = listeners.indexOf(listener);
       if (position === -1)
         return;
@@ -520,7 +541,7 @@ var MediaDB = (function() {
     getFile: function getFile(filename, callback, errback) {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
-      var getRequest = this.storage.get(filename);
+      var getRequest = this.storage.get(this.directory + filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
       };
@@ -541,7 +562,7 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      this.storage.delete(filename).onerror = function(e) {
+      this.storage.delete(this.directory + filename).onerror = function(e) {
         console.error('MediaDB.deleteFile(): Failed to delete', filename,
                       'from DeviceStorage:', e.target.error);
       };
@@ -560,11 +581,12 @@ var MediaDB = (function() {
       var media = this;
 
       // Delete any existing file by this name, then save the file.
-      var deletereq = media.storage.delete(filename);
+      var deletereq = media.storage.delete(media.directory + filename);
       deletereq.onsuccess = deletereq.onerror = save;
 
       function save() {
-        media.storage.addNamed(file, filename).onerror = function() {
+        var request = media.storage.addNamed(file, media.directory + filename);
+        request.onerror = function() {
           console.error('MediaDB: Failed to store', filename,
                         'in DeviceStorage:', storeRequest.error);
         };
@@ -766,7 +788,7 @@ var MediaDB = (function() {
   MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
   MediaDB.CLOSED = 'closed';       // Unavailalbe because MediaDB has closed
 
-  /* Private helper functions follow */
+  /* Details helper functions follow */
 
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
@@ -798,8 +820,8 @@ var MediaDB = (function() {
     // First, scan for new files since the last scan, if there was one
     // When the quickScan is done it will begin a full scan.  If we don't
     // have a last scan date, then we just begin a full scan immediately
-    if (media.private.newestFileModTime > 0) {
-      quickScan(media.private.newestFileModeTime);
+    if (media.details.newestFileModTime > 0) {
+      quickScan(media.details.newestFileModTime);
     }
     else {
       fullScan();
@@ -832,10 +854,13 @@ var MediaDB = (function() {
           cursor.continue();
         }
         else {
-          // Quick scan is done. Force out any batched created events
-          // and move on to the slower more thorough full scan.
-          flushNotifications();
-          fullScan();
+          // Quick scan is done. When the queue is empty, force out
+          // any batched created events and move on to the slower
+          // more thorough full scan.
+          whenDoneProcessing(media, function() {
+            sendNotifications(media);
+            fullScan();
+          });
         }
       };
 
@@ -888,7 +913,7 @@ var MediaDB = (function() {
 
       function getDBFiles() {
         var store = media.db.transaction('files').objectStore('files');
-        var getAllRequest = store.getAll();
+        var getAllRequest = store.mozGetAll();
 
         getAllRequest.onsuccess = function() {
           var dbfiles = getAllRequest.result;  // Should already be sorted
@@ -990,7 +1015,7 @@ var MediaDB = (function() {
   // when something goes wrong, such as the device storage being
   // unmounted during a scan.
   function endscan(media) {
-    if (media.scaning) {
+    if (media.scanning) {
       media.scanning = false;
       dispatchEvent(media, 'scanend');
     }
@@ -1001,39 +1026,53 @@ var MediaDB = (function() {
   // mediadb change event (possibly batched with other changes).
   // Ensures that only one file is being parsed at a time, but tries
   // to make as many db changes in one transaction as possible.  The
-  // special value null indicates that scanning is complete.
+  // special value null indicates that scanning is complete.  If the
+  // 2nd argument is a File, it should come from enumerate() so that
+  // the name property does not include the directory prefix.  If it
+  // is a name, then the directory prefix must already have been
+  // stripped.
   function insertRecord(media, fileOrName) {
-    var private = media.private;
+    var details = media.details;
 
     // Add this file to the queue of files to process
-    private.pendingInsertions.push(fileOrName);
+    details.pendingInsertions.push(fileOrName);
 
     // If the queue is already being processed, just return
-    if (private.processingQueue)
+    if (details.processingQueue)
       return;
 
     // Otherwise, start processing the queue.
     processQueue(media);
   }
 
+  // Delete the database record associated with filename.
+  // filename must not include the directory prefix.
   function deleteRecord(media, filename) {
-    var private = media.private;
+    var details = media.details;
 
     // Add this file to the queue of files to process
-    private.pendingDeletions.push(filename);
+    details.pendingDeletions.push(filename);
 
     // If there is already a transaction in progress return now.
-    if (private.processingQueue)
+    if (details.processingQueue)
       return;
 
     // Otherwise, start processing the queue
     processQueue(media);
   }
 
-  function processQueue(media) {
-    var private = media.private;
+  function whenDoneProcessing(media, f) {
+    var details = media.details;
+    if (details.processingQueue)
+      details.whenDoneProcessing.push(f);
+    else
+      f();
+  }
 
-    private.processingQueue = true;
+  function processQueue(media) {
+    var details = media.details;
+
+    details.processingQueue = true;
 
     // Now get one filename off a queue and store it
     next();
@@ -1042,14 +1081,19 @@ var MediaDB = (function() {
     // Deletions are always processed before insertions because we want
     // to clear away non-functional parts of the UI ASAP.
     function next() {
-      if (private.pendingDeletions.length > 0) {
+      if (details.pendingDeletions.length > 0) {
         deleteFiles();
       }
-      else if (private.pendingInsertions.length > 0) {
-        insertFile(private.pendingInsertions.shift());
+      else if (details.pendingInsertions.length > 0) {
+        insertFile(details.pendingInsertions.shift());
       }
       else {
-        private.processingQueue = false;
+        details.processingQueue = false;
+        if (details.whenDoneProcessing.length > 0) {
+          var functions = details.whenDoneProcessing;
+          details.whenDoneProcessing = [];
+          functions.forEach(function(f) { f(); });
+        }
       }
     }
 
@@ -1061,9 +1105,11 @@ var MediaDB = (function() {
       deleteNextFile();
 
       function deleteNextFile() {
-        if (private.pendingDeletions.length === 0)
+        if (details.pendingDeletions.length === 0) {
+          next();
           return;
-        var filename = private.pendingDeletions.shift();
+        }
+        var filename = details.pendingDeletions.shift();
         var request = store.delete(filename);
         request.onerror = function() {
           // This probably means that the file wasn't in the db yet
@@ -1073,7 +1119,7 @@ var MediaDB = (function() {
         };
         request.onsuccess = function() {
           // We succeeded, so remember to send out an event about it.
-          queueDeleteNotification(filename);
+          queueDeleteNotification(media, filename);
           deleteNextFile();
         };
       }
@@ -1081,50 +1127,56 @@ var MediaDB = (function() {
 
     // Insert a file into the db. One transaction per insertion.
     // The argument might be a filename or a File object
+    // If it is a File, then it came from enumerate and its name
+    // property already has the directory stripped off.  If it is a
+    // filename, it came from a device storage change event and we
+    // stripped of the directory before calling insertRecord.
     function insertFile(f) {
       // null is a special value pushed on to the queue when a scan()
       // is complete.  We use it to trigger a scanend event
       // after all the change events from the scan are delivered
       if (f === null) {
-        queueCreateNotification(null);
+        sendNotifications(media);
+        endscan(media);
+        next();
         return;
       }
 
       // If we got a filename, look up the file in device storage
       if (typeof f === 'string') {
-        var getreq = media.storage.get(filename);
+        var getreq = media.storage.get(media.directory + f);
         getreq.onerror = function() {
           console.warn('MediaDB: Unknown file in insertRecord:',
                        filename, getreq.error);
           next();
         };
         getreq.onsuccess = function() {
-          parseMetadata(getreq.result);
+          parseMetadata(getreq.result, f);
         };
       }
       else {
         // otherwise f is the file we want
-        parseMetadata(f);
+        parseMetadata(f, f.name);
       }
     }
 
-    function parseMetdata(file) {
+    function parseMetadata(file, filename) {
       // Basic information about the file
       var fileinfo = {
-        name: file.name,
+        name: filename, // we can't trust file.name
         type: file.type,
         size: file.size,
-        date: file.lastModifiedDate.getTime()
+        date: file.lastModifiedDate ? file.lastModifiedDate.getTime() : null
       };
 
-      if (fileinfo.date > private.newestFileModTime)
-        private.newestFileModTime = fileinfo.date;
+      if (fileinfo.date && fileinfo.date > details.newestFileModTime)
+        details.newestFileModTime = fileinfo.date;
 
       // Get metadata about the file
       media.metadataParser(file, gotMetadata, metadataError);
       function metadataError(e) {
         console.warn('MediaDB: error parsing metadata for',
-                     file.name, ':', e);
+                     filename, ':', e);
         // If we get an error parsing the metadata, treat the file
         // as malformed, and don't insert it into the database.
         next();
@@ -1141,7 +1193,7 @@ var MediaDB = (function() {
       var request = store.add(fileinfo);
       request.onsuccess = function() {
         // Remember to send an event about this new file
-        queueCreateNotification(fileinfo);
+        queueCreateNotification(media, fileinfo);
         // And go on to the next
         next();
       };
@@ -1159,8 +1211,8 @@ var MediaDB = (function() {
           event.preventDefault();
           var putrequest = store.put(fileinfo);
           putrequest.onsuccess = function() {
-            queueDeleteNotification(fileinfo.name);
-            queueCreateNotification(fileinfo);
+            queueDeleteNotification(media, fileinfo.name);
+            queueCreateNotification(media, fileinfo);
             next();
           };
           putrequest.onerror = function() {
@@ -1179,61 +1231,57 @@ var MediaDB = (function() {
         }
       };
     }
+  }
 
-    // Don't send out notification events right away. Wait a short time to
-    // see if others arrive that we can batch up.  This is common for scanning
-    // But if we're invoked with null as the argument that is the signal that
-    // a scan() has just completed, so push out all notifications right away
-    // and trigger a scanend event.
-    function queueCreateNotification(fileinfo) {
-      if (fileinfo) {
-        private.pendingCreateNotifications.push(fileinfo);
-        resetNotificationTimer();
-      }
-      else {
-        flushNotifications();
-        endscan(media);
-      }
+  // Don't send out notification events right away. Wait a short time to
+  // see if others arrive that we can batch up.  This is common for scanning
+  // But if we're invoked with null as the argument that is the signal that
+  // a scan() has just completed, so push out all notifications right away
+  // and trigger a scanend event.
+  function queueCreateNotification(media, fileinfo) {
+    var details = media.details;
+    details.pendingCreateNotifications.push(fileinfo);
+    resetNotificationTimer(media);
+  }
+
+  function queueDeleteNotification(media, filename) {
+    var details = media.details;
+    details.pendingDeleteNotifications.push(filename);
+    resetNotificationTimer(media);
+  }
+
+  function resetNotificationTimer(media) {
+    var details = media.details;
+    if (details.pendingNotificationTimer)
+      clearTimeout(details.pendingNotificationTimer);
+    details.pendingNotificationTimer =
+      setTimeout(function() { sendNotifications(media); },
+                 MediaDB.NOTIFICATION_HOLD_TIME);
+  }
+
+  // Send out notifications for creations and deletions
+  function sendNotifications(media) {
+    var details = media.details;
+    if (details.pendingNotificationTimer) {
+      clearTimeout(details.pendingNotificationTimer);
+      details.pendingNotificationTimer = null;
+    }
+    if (details.pendingDeleteNotifications.length > 0) {
+      var deletions = details.pendingDeleteNotifications;
+      details.pendingDeleteNotifications = [];
+      dispatchEvent(media, 'deleted', deletions);
     }
 
-    function queueDeleteNotification(filename) {
-      private.pendingDeleteNotifications.push(filename);
-      resetNotificationTimer();
-    }
-
-    function resetNotificationTimer() {
-      if (private.pendingNotificationTimer)
-        clearTimeout(privatependingNotificationTimer);
-      private.pendingNotificationTimer =
-        setTimeout(sendNotifications, MediaDB.NOTIFICATION_HOLD_TIME);
-    }
-
-    // Cancel the timer and send notifications immediately
-    function flushNotifications() {
-      if (private.pendingNotificationTimer)
-        clearTimeout(private.pendingNotificationTimer);
-      sendNotifications();
-    }
-
-    // Send out notifications for creations and deletions
-    function sendNotifications() {
-      if (private.pendingDeleteNotifications.length > 0) {
-        var deletions = private.pendingDeleteNotifications;
-        private.pendingDeleteNotifications = [];
-        dispatchEvent(media, 'deleted', deletions);
-      }
-
-      if (private.pendingCreateNotifications.length > 0) {
-        var creations = private.pendingCreateNotifications;
-        private.pendingCreateNotifications = [];
-        dispatchEvent(media, 'created', creations);
-      }
+    if (details.pendingCreateNotifications.length > 0) {
+      var creations = details.pendingCreateNotifications;
+      details.pendingCreateNotifications = [];
+      dispatchEvent(media, 'created', creations);
     }
   }
 
   function dispatchEvent(media, type, detail) {
     var handler = media['on' + type];
-    var listeners = media.private.eventListeners[type];
+    var listeners = media.details.eventListeners[type];
 
     // Return if there is nothing to handle the event
     if (!handler && (!listeners || listeners.length == 0))
@@ -1247,6 +1295,7 @@ var MediaDB = (function() {
       timestamp: Date.now(),
       detail: detail
     };
+
 
     // Call the 'on' handler property if there is one
     if (typeof handler === 'function') {
@@ -1265,7 +1314,7 @@ var MediaDB = (function() {
       try {
         var listener = listeners[i];
         if (typeof listener === 'function') {
-          listener.call(target, event);
+          listener.call(media, event);
         }
         else {
           listener.handleEvent(event);
@@ -1284,7 +1333,6 @@ var MediaDB = (function() {
         dispatchEvent(media, 'ready');
       else
         dispatchEvent(media, 'unavailable', state);
-
     }
   }
 
