@@ -227,25 +227,25 @@ function MapCodesToBaseLetters(codes, length) {
 
 // promote words where prefix matches
 // ab -> promote words that start with 'ab'
-const PrefixMatchMultiplier      = 3;
+const PrefixMatchMultiplier = 3;
 
 // promote words when case of first character matches
-const CaseMatchMultiplier        = 2;
+const CaseMatchMultiplier = 2;
 
 // words where accidentaly the wrong key was pressed
 // qas -> was
 // w - neighbourKeys [q,e,a,s,d]
-const EditDistanceMultiplier     = 1.8;
+const EditDistanceMultiplier = 1.8;
 
 // promote words where 2 characters are swapped
 // tihs -> this
-const TranspositionMultiplier    = 1.6;
+const TranspositionMultiplier = 1.6;
 
 // words with a missing character
 // tis -> this
-const OmissionMultiplier         = 1.4;
+const OmissionMultiplier = 1.4;
 
-const DeletionMultiplier         = 1.2
+const DeletionMultiplier = 1.2;
 
 const RankCandidate = (function() {
 
@@ -463,7 +463,7 @@ function maintainTopCandidates(topCandidates, candidate) {
       return;
   }
   topCandidates.push(candidate);
-  topCandidates.sort(function (a,b) {
+  topCandidates.sort(function(a, b) {
     return b.rank - a.rank;
   });
   if (topCandidates.length > _maxSuggestions)
