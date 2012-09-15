@@ -54,49 +54,50 @@ var Wallpaper = {
     var settings = navigator.mozSettings;
     this.homescreenSnapshot.addEventListener('click',
       function onHomescreenClick() {
-      var a = new MozActivity({
-        name: 'pick',
-        data: {
-          type: 'image/jpeg'
-        }
-      });
-      a.onsuccess = function onCameraPhotosSuccess() {
-        if (!a.result.dataurl)
-          return;
+        var a = new MozActivity({
+          name: 'pick',
+          data: {
+            type: 'image/jpeg'
+          }
+        });
 
-        self.homescreenSnapshot.style.backgroundImage =
-          'url(' + a.result.dataurl + ')';
-        settings.createLock().set({'homescreen.wallpaper': a.result.dataurl});
-        self.reopenSelf();
-      };
-      a.onerror = function onCameraPhotosError() {
-        console.warn('pick failed!');
-        self.reopenSelf();
-      };
-    });
+        a.onsuccess = function onCameraPhotosSuccess() {
+          if (!a.result.dataurl)
+            return;
+
+          self.homescreenSnapshot.style.backgroundImage =
+            'url(' + a.result.dataurl + ')';
+          settings.createLock().set({'homescreen.wallpaper': a.result.dataurl});
+          self.reopenSelf();
+        };
+        a.onerror = function onCameraPhotosError() {
+          console.warn('pick failed!');
+          self.reopenSelf();
+        };
+      });
 
     this.lockscreenSnapshot.addEventListener('click',
       function onLockscreenClick() {
-      var a = new MozActivity({
-        name: 'pick',
-        data: {
-          type: 'image/jpeg'
-        }
-      });
-      a.onsuccess = function onCameraPhotosSuccess() {
-        if (!a.result.dataurl)
-          return;
+        var a = new MozActivity({
+          name: 'pick',
+          data: {
+            type: 'image/jpeg'
+          }
+        });
+        a.onsuccess = function onCameraPhotosSuccess() {
+          if (!a.result.dataurl)
+            return;
 
-        self.lockscreenSnapshot.style.backgroundImage =
-          'url(' + a.result.dataurl + ')';
-        settings.createLock().set({'lockscreen.wallpaper': a.result.dataurl});
-        self.reopenSelf();
-      };
-      a.onerror = function onCameraPhotosError() {
-        console.warn('pick failed!');
-        self.reopenSelf();
-      };
-    });
+          self.lockscreenSnapshot.style.backgroundImage =
+            'url(' + a.result.dataurl + ')';
+          settings.createLock().set({'lockscreen.wallpaper': a.result.dataurl});
+          self.reopenSelf();
+        };
+        a.onerror = function onCameraPhotosError() {
+          console.warn('pick failed!');
+          self.reopenSelf();
+        };
+      });
   }
 };
 
