@@ -2,23 +2,23 @@ requireApp('gallery/js/mediadb.js');
 
 suite('MediaDB', function() {
 
-  var directory = "mediadbtests/1/";
+  var directory = 'mediadbtests/1/';
 
   // These are the file names, and file content we'll use
   var files = {
-    '1.png': {word:"first", number:9, x:1},
-    '2.png': {word:"second", number:8, x:1},
-    '3.png': {word:"tri", number:7, x:0},
-    '4.png': {word: "quad", number:6, x:0},
-    '111.png':{word:"one hundred and eleven", number:5, x:0},
-    'sub/1.png':{word:"subdirectory", x:0}
+    '1.png': {word: 'first', number: 9, x: 1},
+    '2.png': {word: 'second', number: 8, x: 1},
+    '3.png': {word: 'tri', number: 7, x: 0},
+    '4.png': {word: 'quad', number: 6, x: 0},
+    '111.png': {word: 'one hundred and eleven', number: 5, x: 0},
+    'sub/1.png': {word: 'subdirectory', x: 0}
   };
 
 
   // Create a fake png file
   function createFile(directory, name, content, callback) {
     var storage = navigator.getDeviceStorage('pictures');
-    var blob = new Blob([JSON.stringify(content)], {type:'image/png'});
+    var blob = new Blob([JSON.stringify(content)], {type: 'image/png'});
     storage.addNamed(blob, directory + name).onsuccess = function() {
       if (callback) callback();
     };
@@ -58,7 +58,7 @@ suite('MediaDB', function() {
     cursor.onerror = callback;
   }
 
-  test("API existence tests", function() {
+  test('API existence tests', function() {
     // Check that MediaDB exists
     assert.ok(MediaDB);
 
@@ -75,15 +75,15 @@ suite('MediaDB', function() {
                    return typeof MediaDB.prototype[m] === 'function';
                  })
                  .sort()
-                 .join(" "),
-                 "addEventListener addFile cancelEnumeration close count " +
-                 "deleteFile enumerate getFile removeEventListener " +
-                 "updateMetadata");
+                 .join(' '),
+                 'addEventListener addFile cancelEnumeration close count ' +
+                 'deleteFile enumerate getFile removeEventListener ' +
+                 'updateMetadata');
 
   });
 
 
-  test("events and scanning", function(done) {
+  test('events and scanning', function(done) {
 
     function continueTest() {
       testGenerator.next();
@@ -94,13 +94,13 @@ suite('MediaDB', function() {
       yield clearDirectory(directory, continueTest);
 
       // Create the test files one at a time
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
         yield createFile(directory, name, files[name], continueTest);
-      }        
+      }
 
       // Once the files are in place, open the mediadb
-      var mediadb = new MediaDB("pictures", 
+      var mediadb = new MediaDB('pictures',
                                 fakeMetadataParser,
                                 {
                                   directory: directory,
@@ -110,15 +110,15 @@ suite('MediaDB', function() {
                                             'metadata.x']
                                 });
 
-      var events = "";
+      var events = '';
 
       // Set up event handlers to keep track of what it does
       mediadb.onready = function() {
-        events += " ready";
+        events += ' ready';
       };
-      
+
       mediadb.onscanstart = function() {
-        events += " scanstart";
+        events += ' scanstart';
       };
 
       mediadb.oncreated = function(e) {
@@ -127,23 +127,23 @@ suite('MediaDB', function() {
       };
 
       mediadb.ondeleted = function(e) {
-        events += " deleted";
+        events += ' deleted';
       };
 
       mediadb.onscanend = function() {
-        events += " scanend";
+        events += ' scanend';
         mediadb.close();
       }
 
       mediadb.onunavailable = function() {
-        events += " unavailable";
+        events += ' unavailable';
         continueTest();
       }
       yield;
 
-      var expectedEvents = " ready scanstart " +
+      var expectedEvents = ' ready scanstart ' +
         Object.keys(files).sort().join(' ') +
-        " scanend unavailable";
+        ' scanend unavailable';
       assert.equal(events, expectedEvents);
       yield done();
 
@@ -151,10 +151,10 @@ suite('MediaDB', function() {
     continueTest();
   });
 
-  // Test created and deleted events when creating and deleting files 
-  // one at a time using device storage externally. 
+  // Test created and deleted events when creating and deleting files
+  // one at a time using device storage externally.
   // And also test enumeration methods
-  test("create, count, enumerate, updateMetadata, delete", function(done) {
+  test('create, count, enumerate, updateMetadata, delete', function(done) {
 
     function continueTest() {
       testGenerator.next();
@@ -165,7 +165,7 @@ suite('MediaDB', function() {
       yield clearDirectory(directory, continueTest);
 
       // Create a mediadb
-      var mediadb = new MediaDB("pictures", 
+      var mediadb = new MediaDB('pictures',
                                 fakeMetadataParser,
                                 {
                                   directory: directory,
@@ -186,10 +186,10 @@ suite('MediaDB', function() {
 
       var expectedsize = 0;
       // Create the test files one at a time
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
         createFile(directory, name, files[name]);
-        
+
         // Wait for the 'created' event
         yield mediadb.oncreated = function(e) {
           assert.equal(e.type, 'created');
@@ -210,7 +210,7 @@ suite('MediaDB', function() {
       // Start an enumeration and then cancel it right away.
       // Fail if the callback is ever called
       var handle = mediadb.enumerate(function() {
-        assert.ok(false, "enumeration was not cancelled");
+        assert.ok(false, 'enumeration was not cancelled');
       });
       mediadb.cancelEnumeration(handle);
 
@@ -220,7 +220,7 @@ suite('MediaDB', function() {
         filenames = [];
         mediadb.enumerate(key, range, direction, function(fileinfo) {
           if (fileinfo)
-            filenames.push(fileinfo.name)
+            filenames.push(fileinfo.name);
           else
             continueTest(filenames);
         });
@@ -239,19 +239,19 @@ suite('MediaDB', function() {
 
 
       // If we enumerate by size we expect them in length order
-      yield enumerate("size");
+      yield enumerate('size');
       assert.deepEqual(filenames, [
         'sub/1.png', '3.png', '4.png', '1.png', '2.png', '111.png'
       ], 'size order');
 
       // Enumerate by metadata word order
-      yield enumerate("metadata.word");
+      yield enumerate('metadata.word');
       assert.deepEqual(filenames, [
         '1.png', '111.png', '4.png', '2.png', 'sub/1.png', '3.png'
       ], 'metadata word order');
 
       // Enumerate by metadata number
-      yield enumerate("metadata.number");
+      yield enumerate('metadata.number');
       assert.deepEqual(filenames, [
         '111.png', '4.png', '3.png', '2.png', '1.png'
       ], 'metadata number order');
@@ -260,34 +260,34 @@ suite('MediaDB', function() {
       yield mediadb.updateMetadata('111.png', { number: 1000 }, continueTest);
 
       // Enumerate by metadata number again and expect a different order
-      yield enumerate("metadata.number");
+      yield enumerate('metadata.number');
       assert.deepEqual(filenames, [
         '4.png', '3.png', '2.png', '1.png', '111.png'
       ], 'metadata number order');
 
       // Search for files that have x = 1
-      yield enumerate("metadata.x", 1);
+      yield enumerate('metadata.x', 1);
       assert.equal(filenames.length, 2);
       assert.notEqual(filenames.indexOf('1.png'), -1);
       assert.notEqual(filenames.indexOf('2.png'), -1);
 
       // Search for files whose word is > 'q'
-      yield enumerate("metadata.word", IDBKeyRange.lowerBound('q'));
+      yield enumerate('metadata.word', IDBKeyRange.lowerBound('q'));
       assert.deepEqual(filenames, [
         '4.png', '2.png', 'sub/1.png', '3.png'
       ], 'word > q');
 
       // Same, but return in reverse order
-      yield enumerate("metadata.word", IDBKeyRange.lowerBound('q'), 'prev');
+      yield enumerate('metadata.word', IDBKeyRange.lowerBound('q'), 'prev');
       assert.deepEqual(filenames, [
         '4.png', '2.png', 'sub/1.png', '3.png'
       ].reverse(), 'word > q reversed');
 
       // Now delete the files, reversing what we did at the start of the test
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
         deleteFile(directory, name);
-        
+
         // Wait for the 'deleted' event
         yield mediadb.ondeleted = function(e) {
           assert.equal(e.type, 'deleted');
@@ -315,7 +315,7 @@ suite('MediaDB', function() {
 
   // Much like the test above, but use mediadb.addFile and deleteFile()
   // instead of raw device storage, and don't repeat all the enumeration tests
-  test("addFile, deleteFile", function(done) {
+  test('addFile, deleteFile', function(done) {
 
     function continueTest() {
       testGenerator.next();
@@ -326,7 +326,7 @@ suite('MediaDB', function() {
       yield clearDirectory(directory, continueTest);
 
       // Create a mediadb
-      var mediadb = new MediaDB("pictures", 
+      var mediadb = new MediaDB('pictures',
                                 fakeMetadataParser,
                                 {
                                   directory: directory,
@@ -346,12 +346,12 @@ suite('MediaDB', function() {
 
       var expectedsize = 0;
       // Create the test files one at a time
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
-        mediadb.addFile(name, 
+        mediadb.addFile(name,
                         new Blob([JSON.stringify(files[name])],
-                                 {type:'image/png'}));
-        
+                                 {type: 'image/png'}));
+
         // Wait for the 'created' event
         yield mediadb.oncreated = function(e) {
           assert.equal(e.type, 'created');
@@ -375,7 +375,7 @@ suite('MediaDB', function() {
         filenames = [];
         mediadb.enumerate(key, range, direction, function(fileinfo) {
           if (fileinfo)
-            filenames.push(fileinfo.name)
+            filenames.push(fileinfo.name);
           else
             continueTest(filenames);
         });
@@ -388,10 +388,10 @@ suite('MediaDB', function() {
                        'default enumeration order');
 
       // Now delete the files, reversing what we did at the start of the test
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
         mediadb.deleteFile(name);
-        
+
         // Wait for the 'deleted' event
         yield mediadb.ondeleted = function(e) {
           assert.equal(e.type, 'deleted');
@@ -419,7 +419,7 @@ suite('MediaDB', function() {
 
   // Much like the test above, but use mediadb.addFile and deleteFile()
   // instead of raw device storage, and don't repeat all the enumeration tests
-  test("batched notifications", function(done) {
+  test('batched notifications', function(done) {
 
     function continueTest() {
       testGenerator.next();
@@ -430,7 +430,7 @@ suite('MediaDB', function() {
       yield clearDirectory(directory, continueTest);
 
       // Create a mediadb
-      var mediadb = new MediaDB("pictures", 
+      var mediadb = new MediaDB('pictures',
                                 fakeMetadataParser,
                                 {
                                   directory: directory,
@@ -451,12 +451,12 @@ suite('MediaDB', function() {
       var filenames = Object.keys(files).sort();
 
       // Create the test files all at once
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
-        mediadb.addFile(name, 
+        mediadb.addFile(name,
                         new Blob([JSON.stringify(files[name])],
-                                 {type:'image/png'}));
-      }        
+                                 {type: 'image/png'}));
+      }
 
       // Wait for the 'created' event
       yield mediadb.oncreated = function(e) {
@@ -469,7 +469,7 @@ suite('MediaDB', function() {
       }
 
       // Now delete the files
-      for(var name in files) {
+      for (var name in files) {
         // create a file and return
         mediadb.deleteFile(name);
       }
