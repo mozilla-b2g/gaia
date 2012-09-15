@@ -36,16 +36,16 @@ var AttentionScreen = {
     if (!this.isVisible())
       return;
 
+    var activeStatusbar =
+      this.mainScreen.classList.contains('active-statusbar');
+    if (!activeStatusbar)
+      return;
+
     if (evt.type == 'keyboardchange') {
-      if (!this.mainScreen.classList.contains('active-statusbar')) {
-        this.attentionScreen.style.height =
-          window.innerHeight - evt.detail.height + 'px';
-      }
-    } else {
-      // keyboardhide
-      if (!this.mainScreen.classList.contains('active-statusbar')) {
-        this.attentionScreen.style.height = window.innerHeight + 'px';
-      }
+      this.attentionScreen.style.height =
+        window.innerHeight - evt.detail.height + 'px';
+    } else if (evt.type == 'keyboardhide') {
+      this.attentionScreen.style.height = window.innerHeight + 'px';
     }
   },
 
