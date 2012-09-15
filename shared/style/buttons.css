@@ -1,0 +1,90 @@
+/* ----------------------------------
+ * Buttons
+ * ---------------------------------- */
+
+button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+button,
+a[role="button"] {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & recommend) */
+button:active,
+a[role="button"]:active,
+button.recommend:active,
+a.recommend[role="button"]:active  {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+/* Recommend */
+button.recommend,
+a[role="button"].recommend {
+  background-image: url(buttons/images/ui/recommend.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/* Danger */
+button.danger,
+a.danger[role="button"] {
+  background-image: url(buttons/images/ui/danger.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
+  border: none;
+}
+
+/* Danger Press */
+button.danger:active,
+a[role="button"].danger:active {
+  background-image: url(buttons/images/ui/danger-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & recommend) */
+button[disabled],
+a[role="button"][aria-disabled="true"],
+button[disabled].recommend,
+a[role="button"][aria-disabled="true"].recommend {
+  background-image: url(buttons/images/ui/disabled.png);
+  background-color: transparent;
+  border-color: #dadada;
+  color: #bcbcbc;
+  pointer-events: none;
+}
+
+/* Danger disabled */
+button[disabled].danger,
+a[role="button"][aria-disabled="true"].danger {
+  background-image: url(buttons/images/ui/danger-disabled.png);
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
+}
