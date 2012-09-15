@@ -42,16 +42,6 @@ var ClockView = {
     return this.dayDate = document.getElementById('clock-day-date');
   },
 
-  get day() {
-    delete this.day;
-    return this.day = document.getElementById('clock-day');
-  },
-
-  get date() {
-    delete this.date;
-    return this.date = document.getElementById('clock-date');
-  },
-
   get alarmNewBtn() {
     delete this.alarmNewBtn;
     return this.alarmNewBtn = document.getElementById('alarm-new');
@@ -65,22 +55,22 @@ var ClockView = {
 
   init: function cv_init() {
     this.updateDaydate();
-    this.updateDigitalClock();
+    this.updateAnalogClock();
 
-    this._clockMode = 'digital';
-    this.digitalClock.classList.add('visible'); /* digital clock is default */
-    this.digitalClockBackground.classList.add('visible');
-    this.analogClock.classList.remove('visible');
+    this._clockMode = 'analog';
     this.resizeAnalogClock();
+    this.analogClock.classList.add('visible'); /* analog clock is default */
+    this.digitalClock.classList.remove('visible');
+    this.digitalClockBackground.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
-    this.digitalClock.addEventListener('click', this);
+    this.analogClock.addEventListener('click', this);
   },
 
   updateDaydate: function cv_updateDaydate() {
     var d = new Date();
-    this.day.textContent = d.toLocaleFormat('%A ');
+    var f = new navigator.mozL10n.DateTimeFormat();
     var format = navigator.mozL10n.get('dateFormat');
-    this.date.textContent = d.toLocaleFormat(format);
+    this.dayDate.textContent = f.localeFormat(d, format);
 
     var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
@@ -94,13 +84,9 @@ var ClockView = {
 
   updateDigitalClock: function cv_updateDigitalClock() {
     var d = new Date();
-
-    // XXX: respect clock format in Settings
-    var hour = d.getHours() % 12;
-    if (!hour)
-      hour = 12;
-    this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = d.toLocaleFormat('%p');
+    var time = getLocaleTime(d);
+    this.time.textContent = time.t;
+    this.hourState.textContent = time.p || '  '; // 2 non-break spaces
 
     var self = this;
     this._updateDigitalClockTimeout =
@@ -227,7 +213,66 @@ var ClockView = {
     } else {
       this.hourState.classList.remove('alarm-set-indicator');
     }
-   }
+  }
+};
+
+var BannerView = {
+
+  _remainHours: 0,
+  _remainMinutes: 0,
+
+  get bannerCountdown() {
+    delete this.bannerCountdown;
+    return this.bannerCountdown = document.getElementById('banner-countdown');
+  },
+
+  get remainHours() {
+    delete this.remainHours;
+    return this.remainHours =
+      document.getElementById('banner-remain-hours');
+  },
+
+  get remainMinutes() {
+    delete this.remainMinutes;
+    return this.remainMinutes =
+      document.getElementById('banner-remain-minutes');
+  },
+
+  calRemainTime: function BV_calRemainTime(targetTime) {
+    var now = new Date();
+    var remainTime = targetTime.getTime() - now.getTime();
+    this._remainHours = Math.floor(remainTime / (60 * 60 * 1000)); // per hour
+    this._remainMinutes = Math.floor((remainTime / (60 * 1000)) -
+                          (this._remainHours * 60)); // per minute
+  },
+
+  setStatus: function BV_setStatus(nextAlarmFireTime) {
+    this.calRemainTime(nextAlarmFireTime);
+    this.remainHours.innerHTML = _('nRemainHours', {n: this._remainHours});
+    this.remainMinutes.innerHTML =
+      _('nRemainMinutes', {n: this._remainMinutes});
+    this.showBannerStatus();
+    var self = this;
+    window.setTimeout(function cv_hideBannerTimeout() {
+      self.setBannerStatus(false);
+    }, 4000);
+  },
+
+  setBannerStatus: function BV_setBannerStatus(visible) {
+    if (visible) {
+      this.bannerCountdown.classList.add('visible');
+    } else {
+      this.bannerCountdown.classList.remove('visible');
+    }
+  },
+
+  showBannerStatus: function BV_showBannerStatus() {
+    this.setBannerStatus(true);
+  },
+
+  hideBannerStatus: function BV_hideBannerStatus() {
+    this.setBannerStatus(false);
+  }
 };
 
 var AlarmList = {
@@ -295,8 +340,10 @@ var AlarmList = {
       var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
       var isChecked = alarm.enabled ? ' checked="true"' : '';
-      var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
-      var hour12state = (alarm.hour > 12) ? 'PM' : 'AM';
+      var d = new Date();
+      d.setHours(alarm.hour);
+      d.setMinutes(alarm.minute);
+      var time = getLocaleTime(d);
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
@@ -309,10 +356,8 @@ var AlarmList = {
                       alarm.id + '">' +
                  '    <div class="description">' +
                  '      <div class="alarmList-time">' +
-                 '        <span class="time">' + hour +
-                            ':' + alarm.minute + '</span>' +
-                 '        <span class="hour24-state">' +
-                            hour12state + '</span>' +
+                 '        <span class="time">' + time.t + '</span>' +
+                 '        <span class="hour24-state">' + time.p + '</span>' +
                  '      </div>' +
                  '      <div class="alarmList-detail">' +
                  '        <div class="label ' + paddingTop + '">' +
@@ -421,6 +466,7 @@ var AlarmManager = {
         AlarmList.refresh();
       });
       self.updateAlarmStatusBar();
+      BannerView.setStatus(nextAlarmFireTime);
     };
     request.onerror = function(e) {
       var logInfo = bSnooze ? ' snooze' : '';
@@ -492,6 +538,10 @@ var AlarmManager = {
 
   getAlarmLabel: function am_getAlarmLabel() {
     return this._onFireAlarm.label;
+  },
+
+  getAlarmSound: function am_getAlarmSound() {
+    return this._onFireAlarm.sound;
   }
 
 };
@@ -582,17 +632,10 @@ var AlarmEditView = {
   init: function aev_init() {
     document.getElementById('alarm-done').addEventListener('click', this);
     this.repeatMenu.addEventListener('click', this);
-    this.repeatSelect.addEventListener('blur', this);
     this.repeatSelect.addEventListener('change', this);
     this.soundMenu.addEventListener('click', this);
-    // XXX: Due to no onchange event after seleted options by value selector.
-    // So, handle 'onblur' event to refresh select tag.
-    // It's should be removed after the issue fixed.
-    // See: https://bugzilla.mozilla.org/show_bug.cgi?id=784590
-    this.soundSelect.addEventListener('blur', this);
     this.soundSelect.addEventListener('change', this);
     this.snoozeMenu.addEventListener('click', this);
-    this.snoozeSelect.addEventListener('blur', this);
     this.snoozeSelect.addEventListener('change', this);
     this.deleteButton.addEventListener('click', this);
     this.initTimePicker();
@@ -648,7 +691,6 @@ var AlarmEditView = {
         break;
       case 'repeat-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshRepeatMenu(this.getRepeatSelect());
             break;
@@ -659,7 +701,6 @@ var AlarmEditView = {
         break;
       case 'sound-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshSoundMenu(this.getSoundSelect());
             break;
@@ -670,7 +711,6 @@ var AlarmEditView = {
         break;
       case 'snooze-select':
         switch (evt.type) {
-          case 'blur':
           case 'change':
             this.refreshSnoozeMenu(this.getSnoozeSelect());
             break;
@@ -684,15 +724,16 @@ var AlarmEditView = {
 
   getDefaultAlarm: function aev_getDefaultAlarm() {
     // Reset the required message with default value
+    var now = new Date();
     return {
       id: '', // for Alarm APP indexedDB id
       alarmId: '', // for request AlarmAPI id
       label: 'Alarm',
-      hour: '10',
-      minute: '00',
+      hour: now.getHours(), // use current hour
+      minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'classic.ogg',
+      sound: 'ALARM_progressive_dapple.mp3',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -768,7 +809,7 @@ var AlarmEditView = {
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
     var snooze = (snooze) ? this.getSnoozeSelect() : this.alarm.snooze;
-    this.snoozeMenu.innerHTML = _('nMinutes', {n: snooze});
+    this.snoozeMenu.textContent = _('nMinutes', {n: snooze});
   },
 
   save: function aev_save() {
@@ -790,7 +831,7 @@ var AlarmEditView = {
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();
-    this.alarm.snooze = this.getSnoozeSelect();
+    this.alarm.snooze = parseInt(this.getSnoozeSelect());
 
     if (!error) {
       AlarmsDB.putAlarm(this.alarm, function al_putAlarmList(alarm) {
@@ -839,3 +880,4 @@ window.addEventListener('localized', function showBody() {
   AlarmEditView.init();
   AlarmManager.init();
 });
+

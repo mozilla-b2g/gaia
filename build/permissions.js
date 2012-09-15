@@ -10,14 +10,15 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background", "backgroundservice", "settings", "offline-app",
                       "indexedDB-unlimited", "alarm", "camera",
-                      "fmradio", "devicestorage", "voicemail",
+                      "fmradio", "voicemail",
                       "pin-app", "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
-                      "device-storage", "alarms", "alarm", "attention",
+                      "device-storage:pictures", "device-storage:music", "device-storage:videos", "device-storage:apps",
+                      "alarms", "alarm", "attention",
                       "content-camera", "camera", "tcp-socket", "bluetooth"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
-                            'webapps-manage', 'pin-app',
+                            'pin-app',
                             'desktop-notification'];
 
 let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
@@ -28,6 +29,10 @@ let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
 let webapps = getJSON(getFile(PROFILE_DIR, "webapps", "webapps.json"));
 
 Gaia.webapps.forEach(function (webapp) {
+  if (!webapps[webapp.domain]) {
+    return;
+  }
+
   let manifest = webapp.manifest;
   let rootURL = webapp.url;
   let appId = webapps[webapp.domain].localId;
@@ -35,33 +40,20 @@ Gaia.webapps.forEach(function (webapp) {
   let principal = secMan.getAppCodebasePrincipal(Services.io.newURI(rootURL, null, null),
                                                  appId, false);
 
-  let perms = commonPermissionList.concat(manifest.permissions);
+  let perms = manifest.permissions ? commonPermissionList.concat(manifest.permissions)
+                                   : commonPermissionList;
+  if (!perms)
+    return;
 
-  if (perms) {
-    for each(let name in perms) {
-      if (permissionList.indexOf(name) == -1) {
-        dump("WARNING: permission unknown:" + name + "\n");
-        continue;
-      }
-      log("name: " + name + "\n");
-      log("add permission: " + rootURL + " (" + appId + "), " + name);
-      Services.perms.addFromPrincipal(principal, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-
-      // special case for the telephony API which needs full URLs
-      if (name == 'telephony') {
-        if (manifest.background_page) {
-          let principal = secMan.getAppCodebasePrincipal(Services.io.newURI(rootURL + manifest.background_page, null, null),
-                                                         appId, false);
-          log("add permission: " + rootURL + manifest.background_page + " (" + appId + "), " + name);
-          Services.perms.addFromPrincipal(principal, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-        }
-      }
-      if (manifest.attention_page) {
-        let principal = secMan.getAppCodebasePrincipal(Services.io.newURI(rootURL + manifest.attention_page, null, null),
-                                                       appId, false);
-        log("add permission: " + rootURL + manifest.attention_page + " (" + appId + "), " + name);
-        Services.perms.addFromPrincipal(principal, name, Ci.nsIPermissionManager.ALLOW_ACTION);
-      }
+  for each(let name in perms) {
+    if (permissionList.indexOf(name) == -1) {
+      dump("WARNING: permission unknown:" + name + "\n");
+      continue;
     }
+
+    log("name: " + name + "\n");
+    log("add permission: " + rootURL + " (" + appId + "), " + name);
+
+    Services.perms.addFromPrincipal(principal, name, Ci.nsIPermissionManager.ALLOW_ACTION);
   }
 });

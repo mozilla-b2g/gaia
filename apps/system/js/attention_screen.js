@@ -39,8 +39,8 @@ var AttentionScreen = {
       document.mozCancelFullScreen();
 
     // Check if the app has the permission to open attention screens
-    var origin = evt.target.dataset.frameOrigin;
-    var app = Applications.getByOrigin(origin);
+    var manifestURL = evt.target.getAttribute('mozapp');
+    var app = Applications.getByManifestURL(manifestURL);
 
     if (!app || !this._hasAttentionPermission(app))
       return;
@@ -48,6 +48,13 @@ var AttentionScreen = {
     // Hide sleep menu/list menu if it is shown now
     ListMenu.hide();
     SleepMenu.hide();
+
+    // We want the user attention, so we need to turn the screen on
+    // if it's off. The lockscreen will grab the focus when we do that
+    // so we need to do it before adding the new iframe to the dom
+    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
+    if (this._screenInitiallyDisabled)
+      ScreenManager.turnScreenOn();
 
     var attentionFrame = evt.detail.frameElement;
     attentionFrame.dataset.frameType = 'attention';
@@ -57,13 +64,7 @@ var AttentionScreen = {
     this.attentionScreen.appendChild(attentionFrame);
     this.attentionScreen.classList.add('displayed');
 
-    // We want the user attention, so we need to turn the screen on
-    // if it's off.
-    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
-    if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOn();
-
-    // Ensuring the proper mozvisibility changed on the displayed app
+    // Ensuring the proper mozvisibility change on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
     if (displayedOrigin) {
       var frame = WindowManager.getAppFrame(displayedOrigin);
@@ -71,6 +72,8 @@ var AttentionScreen = {
         frame.setVisible(false);
       }
     }
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   close: function as_close(evt) {
@@ -92,8 +95,10 @@ var AttentionScreen = {
     this.dispatchEvent('status-inactive');
     this.attentionScreen.removeChild(evt.target);
 
-    if (this.attentionScreen.querySelectorAll('iframe').length == 0)
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
       this.attentionScreen.classList.remove('displayed');
+      this.dispatchEvent('attentionscreenhide');
+    }
 
     if (this._screenInitiallyDisabled)
       ScreenManager.turnScreenOff(true);
@@ -116,6 +121,8 @@ var AttentionScreen = {
         self.dispatchEvent('status-inactive');
       });
     });
+
+    this.dispatchEvent('attentionscreenshow');
   },
 
   // Invoked when we get a "home" event
@@ -135,6 +142,8 @@ var AttentionScreen = {
             attentionScreen.removeEventListener('transitionend', trWait);
             attentionScreen.classList.add('status-mode');
         });
+
+        this.dispatchEvent('attentionscreenhide');
       }
     }
   },

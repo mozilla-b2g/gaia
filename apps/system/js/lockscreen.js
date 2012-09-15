@@ -20,6 +20,11 @@ var LockScreen = {
   enabled: true,
 
   /*
+  * Boolean returns wether we want a sound effect when unlocking.
+  */
+  unlockSoundEnabled: true,
+
+  /*
   * Boolean return whether if the lock screen is enabled or not.
   * Must not multate directly - use setPassCodeEnabled(val)
   * Only Settings Listener should change this value to sync with data
@@ -134,6 +139,11 @@ var LockScreen = {
         'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
     });
+
+    SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      true, function(value) {
+      self.setUnlockSoundEnabled(value);
+    });
   },
 
   /*
@@ -158,6 +168,14 @@ var LockScreen = {
       this.passCodeEnabled = val == 'false' ? false : true;
     } else {
       this.passCodeEnabled = val;
+    }
+  },
+
+  setUnlockSoundEnabled: function ls_setUnlockSoundEnabled(val) {
+    if (typeof val === 'string') {
+      this.unlockSoundEnabled = val == 'false' ? false : true;
+    } else {
+      this.unlockSoundEnabled = val;
     }
   },
 
@@ -503,8 +521,10 @@ var LockScreen = {
       if (instant)
         return;
 
-      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
-      unlockAudio.play();
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+        unlockAudio.play();
+      }
     }
   },
 
@@ -646,6 +666,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
+          self.dispatchEvent('lockpanelchange');
           overlay.dataset.panel = panel;
         });
     });
@@ -851,15 +872,6 @@ var LockScreen = {
     this.mainScreen = document.getElementById('screen');
   },
 
-  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
-    var generatedEvent = document.createEvent('KeyboardEvent');
-    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
-                                evt.altKey, evt.shiftKey, evt.metaKey,
-                                evt.keyCode, evt.charCode);
-
-    this.camera.dispatchEvent(generatedEvent);
-  },
-
   dispatchEvent: function ls_dispatchEvent(name) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
@@ -867,11 +879,10 @@ var LockScreen = {
   },
 
   writeSetting: function ls_writeSetting(value) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
-    settings.getLock().set({
+    SettingsListener.getSettingsLock().set({
       'lockscreen.locked': value
     });
   }

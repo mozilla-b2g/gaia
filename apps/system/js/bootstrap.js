@@ -4,6 +4,25 @@
 'use strict';
 
 function startup() {
+  function launchHomescreen() {
+    var activity = new MozActivity({
+      name: 'view',
+      data: { type: 'application/x-application-list' }
+    });
+    activity.onerror = function homescreenLaunchError() {
+      console.error('Failed to launch home screen with activity.');
+    };
+  }
+
+  if (Applications.ready) {
+    launchHomescreen();
+  } else {
+    window.addEventListener('applicationready', function appListReady(event) {
+      window.removeEventListener('applicationready', appListReady);
+      launchHomescreen();
+    });
+  }
+
   PinLock.init();
   SourceView.init();
   Shortcuts.init();
@@ -24,15 +43,6 @@ function startup() {
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-
-  navigator.mozApps.mgmt.getAll().onsuccess = function() {
-    new MozActivity({
-      name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
-    });
-  }
 }
 
 /* === Shortcuts === */

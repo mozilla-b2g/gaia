@@ -4420,6 +4420,10 @@ MailAPI.prototype = {
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
    *   }
+   *   @case['not-authorized']{
+   *     The username and password are correct, but the user isn't allowed to
+   *     access the mail server.
+   *   }
    *   @case['unknown']{
    *     We don't know what happened; count this as our bug for not knowing.
    *   }
@@ -8585,464 +8589,507 @@ Stream.prototype.pipe = function(dest, options) {
 
 });
 /**
- * Wrap the stringencoding polyfill (or standard, if that has happend :) so that
- * it resembles the node iconv binding.  Note that although iconv proper
- * supports transliteration, the module we are replacing (iconv-lite) did not,
- * and we don't need transliteration for e-mail anyways.  We only need
- * conversions to process non-unicode encodings into encoding; we will never try
- * and convert the more full unicode character-space into legacy encodings.
- *
- * This assumes our node-buffer.js shim is in use and providing the global Buffer.
+ * mimelib now uses an 'encoding' module to wrap its use of iconv versus
+ * iconv-lite.  This is a good thing from our perspective because it allows
+ * the API to be more sane.
  **/
 
-define('iconv',['require','exports','module'],function(require, exports, module) {
+define('encoding',['require','exports','module'],function(require, exports, module) {
+
+// from https://github.com/andris9/encoding/blob/master/index.js
+// (MIT licensed)
+/**
+ * Converts charset name if needed
+ *
+ * @param {String} name Character set
+ * @return {String} Character set name
+ */
+function checkEncoding(name){
+    name = (name || "").toString().trim().
+        replace(/^latin[\-_]?(\d+)$/i, "ISO-8859-$1").
+        replace(/^win(?:dows)?[\-_]?(\d+)$/i, "WINDOWS-$1").
+        replace(/^utf[\-_]?(\d+)$/i, "UTF-$1").
+        replace(/^ks_c_5601\-1987$/i, "CP949").
+        replace(/^us[\-_]?ascii$/i, "ASCII").
+        toUpperCase();
+    return name;
+}
 
 var ENCODER_OPTIONS = { fatal: false };
 
-exports.Iconv = function Iconv(sourceEnc, destEnc) {
+exports.convert = function(str, destEnc, sourceEnc, ignoredUseLite) {
+  destEnc = checkEncoding(destEnc || 'UTF-8');
+  sourceEnc = checkEncoding(sourceEnc || 'UTF-8');
 
-  // - decoding
-  if (/^UTF-8/.test(destEnc)) {
-    this.decode = true;
-    this.coder = new TextDecoder('utf-8', ENCODER_OPTIONS);
+  if (destEnc === sourceEnc)
+    return new Buffer(str, 'UTF-8');
+
+  // - decoding (Uint8Array => String)
+  else if (/^UTF-8/.test(destEnc)) {
+    var decoder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
+    if (typeof(str) === 'string')
+      str = new Buffer(str, 'binary');
+    // XXX strictly speaking, we should be returning a buffer...
+    return decoder.decode(str);
   }
-  // - encoding
+  // - encoding (String => Uint8Array)
   else {
     var idxSlash = destEnc.indexOf('/');
     // ignore '//TRANSLIT//IGNORE' and the like.
     if (idxSlash !== -1 && destEnc[idxSlash+1] === '/')
       destEnc = destEnc.substring(0, idxSlash);
-    this.decode = false;
-    this.coder = new TextEncoder(destEnc, ENCODER_OPTIONS);
-  }
 
-};
-exports.Iconv.prototype = {
-  /**
-   * Takes a buffer, returns a (different) buffer.
-   */
-  convert: function(inbuf) {
-    if (this.decode) {
-      return Buffer(this.coder.decode(inbuf));
-    }
-    else {
-      return Buffer(this.coder.encode(inbuf));
-    }
-  },
+    var encoder = new TextEncoder(destEnc, ENCODER_OPTIONS);
+    return encoder.encode(str);
+  }
 };
 
 });
 
-define('mimelib/mime-functions',['require','exports','module','iconv'],function (require, exports, module) {
-var Iconv = require('iconv').Iconv;
+define('addressparser/index',['require','exports','module'],function (require, exports, module) {
 
-/* mime related functions - encoding/decoding etc*/
-/* TODO: Only UTF-8 and Latin1 are allowed with encodeQuotedPrintable */
-/* TODO: Check if the input string even needs encoding                */
+// expose to the world
+module.exports = parser;
 
 /**
- * mime.foldLine(str, maxLength, foldAnywhere) -> String
- * - str (String): mime string that might need folding
- * - maxLength (Number): max length for a line, defaults to 78
- * - foldAnywhere (Boolean): can fold at any location (ie. in base64)
- * - afterSpace (Boolean): If [true] fold after the space
+ * Parses structured e-mail addresses from an address field
  * 
- * Folds a long line according to the RFC 5322
- *   <http://tools.ietf.org/html/rfc5322#section-2.1.1>
- * 
- * For example:
- *     Content-Type: multipart/alternative; boundary="----bd_n3-lunchhour1283962663300----"
- * will become
- *     Content-Type: multipart/alternative;
- *          boundary="----bd_n3-lunchhour1283962663300----"
- * 
- **/
-this.foldLine = function(str, maxLength, foldAnywhere, afterSpace){
-    var line=false, curpos=0, response="", lf;
-    maxLength = maxLength || 78;
-    
-    // return original if no need to fold
-    if(str.length<=maxLength)
-        return str;
-    
-    // read in <maxLength> bytes and try to fold it
-    while((line = str.substr(curpos, maxLength))){
-        if(!!foldAnywhere){
-            response += line;
-            if(curpos+maxLength<str.length){
-                response+="\r\n";
-            }
-        }else{
-            lf = line.lastIndexOf(" ");
-            if(lf<=0)
-                lf = line.lastIndexOf("\t");
-            if(line.length>=maxLength && lf>0){
-                if(!!afterSpace){
-                    // move forward until line end or no more \s and \t
-                    while(lf<line.length && (line.charAt(lf)==" " || line.charAt(lf)=="\t")){
-                        lf++;
-                    }
-                }
-                response += line.substr(0,lf)+"\r\n"+(!foldAnywhere && !afterSpace && "       " || "");
-                curpos -= line.substr(lf).length;
-            }else{
-                response += line;
-                //line = line.replace(/=[a-f0-9]?$/i, "");
-                //response+=line + "\r\n";
-            }
-        }
-        curpos += line.length;
-    }
-    
-    // return folded string
-    return response;
-};
-
-
-/**
- * mime.encodeMimeWord(str, encoding, charset) -> String
- * - str (String): String to be encoded
- * - encoding (String): Encoding Q for quoted printable or B (def.) for base64
- * - charset (String): Charset to be used
- * 
- * Encodes a string into mime encoded word format
- *   <http://en.wikipedia.org/wiki/MIME#Encoded-Word>
+ * Example:
  *
- * For example:
- *     See on õhin test
- * Becomes with UTF-8 and Quoted-printable encoding
- *     =?UTF-8?q?See_on_=C3=B5hin_test?=
- * 
- **/
-this.encodeMimeWord = function(str, encoding, charset){
-    charset = charset || "UTF-8";
-    encoding = encoding && encoding.toUpperCase() || "B";
-    
-    if(encoding=="Q"){
-        str = this.encodeQuotedPrintable(str, true, charset);
-    }
-    
-    if(encoding=="B"){
-        str = this.encodeBase64(str);
-    }
-    
-    return "=?"+charset+"?"+encoding+"?"+str+"?=";
-};
-
-/**
- * mime.decodeMimeWord(str, encoding, charset) -> String
- * - str (String): String to be encoded
- * - encoding (String): Encoding Q for quoted printable or B (def.) for base64
- * - charset (String): Charset to be used, defaults to UTF-8
- * 
- * Decodes a string from mime encoded word format, see [[encodeMimeWord]]
- * 
- **/
-
-this.decodeMimeWord = function(str){
-    var parts = str.split("?"),
-        charset = (parts && parts[1] || "").split("*").shift(),
-        encoding = parts && parts[2],
-        text = parts && parts[3];
-
-    if(!charset || !encoding || !text)
-        return str;
-    
-    if(charset.toLowerCase().trim() == "ks_c_5601-1987"){
-    	charset = "CP949";
-    }
-    
-    if(encoding.toUpperCase()=="Q"){
-        return this.decodeQuotedPrintable(text, true, charset);
-    }
-    
-    if(encoding.toUpperCase()=="B"){
-        return this.decodeBase64(text, charset);
-    }
-    
-    return text;
-};
+ *    "Name <address@domain>"
+ *
+ * will be converted to
+ *
+ *     [{name: "Name", address: "address@domain"}]
+ *
+ * @param {String} str Address field
+ * @return {Array} An array of address objects
+ */
+function parser(str){
+    var tokenizer = new Tokenizer(str),
+        tokens = tokenizer.tokenize();
 
 
-/**
- * mime.encodeQuotedPrintable(str, mimeWord, charset) -> String
- * - str (String): String to be encoded into Quoted-printable
- * - mimeWord (Boolean): Use mime-word mode (defaults to false)
- * - charset (String): Destination charset, defaults to UTF-8
- *   TODO: Currently only allowed charsets: UTF-8, LATIN1
- * 
- * Encodes a string into Quoted-printable format. 
- **/
-this.encodeQuotedPrintable = function(str, mimeWord, charset){
-    charset = charset || "UTF-8";
-    
-    /*
-     * Characters from 33-126 OK (except for =; and ?_ when in mime word mode)
-     * Spaces + tabs OK (except for line beginnings and endings)  
-     * \n + \r OK
-     */
-    
-    str = str.replace(/[^\sa-zA-Z\d]/gm,function(c){
-        if(!!mimeWord){
-            if(c=="?")return "=3F";
-            if(c=="_")return "=5F";
-        }
-        if(c!=="=" && c.charCodeAt(0)>=33 && c.charCodeAt(0)<=126)
-            return c;
-        return c=="="?"=3D":(charset=="UTF-8"?encodeURIComponent(c):escape(c)).replace(/%/g,'=');
-    });
-    
-    str = lineEdges(str);
+    var addresses = [],
+        address = [],
+        parsedAddresses = [];
 
-    if(!mimeWord){
-        // lines might not be longer than 76 bytes, soft break: "=\r\n"
-        var lines = str.split(/\r?\n|\r/);
-        //str.replace(/(.{73}(?!\r?\n|\r))/,"$&=\r\n")
-        for(var i=0, len = lines.length; i<len; i++){
-            if(lines[i].length>76){
-                lines[i] = this.foldLine(lines[i],76, false, true).replace(/(\r?\n|\r)/g,"=\r\n");
-            }
-        }
-        str = lines.join("\r\n");
-    }else{
-        str = str.replace(/\s/g, function(a){
-            if(a==" ")return "_";
-            if(a=="\t")return "=09";
-            return a=="\r"?"=0D":"=0A";
-        });
-    }
-
-    return str;
-};
-
-/**
- * mime.deccodeQuotedPrintable(str, mimeWord, charset) -> String
- * - str (String): String to be decoded
- * - mimeWord (Boolean): Use mime-word mode (defaults to false)
- * - charset (String): Charset to be used, defaults to UTF-8
- * 
- * Decodes a string from Quoted-printable format. 
- **/
-this.decodeQuotedPrintable = function(str, mimeWord, charset){
-    charset = charset && charset.toUpperCase() || "UTF-8";
-
-    if(mimeWord){
-        str = str.replace(/_/g," ");
-    }else{
-        str = str.replace(/\=(\r?\n|\r)/gm,'');
-        str = str.replace(/\=$/,"");
-    }
-    
-    // if there are some invalid = symbols convert these to quoted-printable
-    // notation, otherwise decodeURICompontent throws an error
-    str = str.replace(/\=(?![a-f0-9]{2})/ig,"=3D");
-
-    // convert quoted-printable to urlencoded
-    str = str.replace(/%/g,'%25').replace(/\=/g,"%");
-
-    if(charset == "UTF-8"){
-        try{
-            str = decodeURIComponent(str);
-        }catch(E){
-            str = decodeBytestreamUrlencoding(str);
-            str = fromCharset(charset, str);
-        }
-    }else{
-        if(charset=="ISO-8859-1" || charset=="LATIN1")
-            str = unescape(str);
-        else{
-            str = decodeBytestreamUrlencoding(str);
-            if(charset!="BINARY"){
-                str = fromCharset(charset, str);
-            }
-        }
-    }
-    return str;
-};
-
-/**
- * mime.encodeBase64(str) -> String
- * - str (String): String to be encoded into Base64
- * - charset (String): Destination charset, defaults to UTF-8
- * 
- * Encodes a string into Base64 format. Base64 is mime-word safe. 
- **/
-this.encodeBase64 = function(str, charset){
-    var buffer;
-    if(charset && charset.toUpperCase()!="UTF-8")
-        buffer = toCharset(charset, str);
-    else
-        buffer = new Buffer(str, "UTF-8");
-    return buffer.toString("base64");
-};
-
-/**
- * mime.decodeBase64(str) -> String
- * - str (String): String to be decoded from Base64
- * - charset (String): Source charset, defaults to UTF-8
- * 
- * Decodes a string from Base64 format. Base64 is mime-word safe.
- * NB! Always returns UTF-8 
- **/
-this.decodeBase64 = function(str, charset){
-    var buffer = new Buffer(str, "base64");
-    
-    if(charset && charset.toUpperCase()!="UTF-8"){
-        return fromCharset(charset, buffer);
-    }
-    
-    // defaults to utf-8
-    return buffer.toString("UTF-8");
-};
-
-/**
- * mime.parseHeaders(headers) -> Array
- * - headers (String): header section of the e-mail
- * 
- * Parses header lines into an array of objects (see [[parseHeaderLine]])
- * FIXME: This should probably not be here but in "envelope" instead
- **/
-this.parseHeaders = function(headers){
-    var text, lines, line, i, name, value, cmd, header_lines = {};
-    // unfold
-    headers = headers.replace(/(\r?\n|\r)([ \t])/gm," ");
-
-    // split lines
-    lines = headers.split(/(\r?\n|\r)/);
-    for(i=0; i<lines.length;i++){
-        if(!lines[i]) // no more header lines
-            break;
-        cmd = lines[i].match(/[^\:]+/);
-        if(cmd && (cmd = cmd[0])){
-            name = cmd;
-            value = lines[i].substr(name.length+1);
-            if(!header_lines[name.toLowerCase().trim()])header_lines[name.toLowerCase().trim()] = [];
-            header_lines[name.toLowerCase()].push(value.trim());
-        }
-    }
-    
-    return header_lines;
-};
-
-/**
- * mime.parseAddresses(addresses) -> Array
- * - addresses (String): string with comma separated e-mail addresses
- * 
- * Parses names and addresses from a from, to, cc or bcc line
- **/
-this.parseAddresses = function(addresses){
-    if(!addresses)
-        return {};
-
-    addresses = addresses.replace(/\=\?[^?]+\?[QqBb]\?[^?]+\?=/g, (function(a){return this.decodeMimeWord(a);}).bind(this));
-    
-    // not sure if it's even needed - urlencode escaped \\ and \" and \'
-    addresses = addresses.replace(/\\\\/g,function(a){return escape(a.charAt(1));});
-    addresses = addresses.replace(/\\["']/g,function(a){return escape(a.charAt(1));});
-    
-    // find qutoed strings
-    
-    var parts = addresses.split(','), curStr, 
-        curQuote, lastPos, remainder="", str, list = [],
-        curAddress, address, addressArr = [], name, email, i, len;
-    var rightEnd;
-
-    // separate quoted text from text parts
-    for(i=0, len=parts.length; i<len; i++){
-        str = "";
-    
-        curStr = (remainder+parts[i]).trim();
-        
-        curQuote = curStr.charAt(0);
-        if(curQuote == "'" || curQuote == '"'){
-            rightEnd= curStr.indexOf("<");
-            if(rightEnd == -1)rightEnd= curStr.length-1;
-            lastPos = curStr.lastIndexOf(curQuote,rightEnd);
-            
-            if(!lastPos){
-                remainder = remainder+parts[i]+",";
-                continue;
-            }else{
-                remainder = "";
-                str = curStr.substring(1, lastPos).trim();
-                address = curStr.substr(lastPos+1).trim();
-            }
-            
+    tokens.forEach(function(token){
+        if(token.type == "operator" && (token.value =="," || token.value ==";")){
+            addresses.push(address);
+            address = [];
         }else{
-            address = curStr;
+            address.push(token);
         }
-        
-        list.push({name: str, address: address, original: curStr});
+    });
+
+    if(address.length){
+        addresses.push(address);
     }
-  
-    // find e-mail addresses and user names
-    for(i=0, len=list.length; i<len; i++){
-        curAddress = list[i];
-        
-        email = false;
-        name = false;
-        
-        name = curAddress.name;
-        
-        address = curAddress.address.replace(/<([^>]+)>/, function(original, addr){
-            email = addr.indexOf("@")>=0 && addr;
-            return email ? "" : original;
-        }).trim();
-        
-        if(!email){
-            address = address.replace(/(\S+@\S+)/, function(original, m){
-                email = m;
-                return email ? "" : original;
-            });
+
+    addresses.forEach(function(address){
+        address = handleAddress(address);
+        if(address.length){
+            parsedAddresses = parsedAddresses.concat(address);
         }
+    });
+
+    return parsedAddresses;
+}
+
+/**
+ * Converts tokens for a single address into an address object
+ *
+ * @param {Array} tokens Tokens object
+ * @return {Object} Address object
+ */
+function handleAddress(tokens){
+    var token,
+        isGroup = false,
+        state = "text",
+        address,
+        addresses = [],
+        data = {
+            address: [],
+            comment: [],
+            group: [],
+            text: []
+        },
+        i, len;
+
+    // Filter out <addresses>, (comments) and regular text
+    for(i=0, len = tokens.length; i<len; i++){
+        token = tokens[i];
         
-        if(!name){
-            if(email){
-                email = email.replace(/\(([^)]+)\)/,function(original, n){
-                    name = n;
-                    return "";
-                });
+        if(token.type == "operator"){
+            switch(token.value){
+                case "<":
+                    state = "address";
+                    break;
+                case "(":
+                    state = "comment";
+                    break;
+                case ":":
+                    state = "group";
+                    isGroup = true;
+                    break;
+                default:
+                    state = "text";
             }
-            if(!name){
-                name = address.replace(/"/g,"").trim();
+        }else{
+            if(token.value){
+                data[state].push(token.value);
             }
-        }
-        
-        // just in case something got mixed up
-        if(!email && name.indexOf("@")>=0){
-            email = name;
-            name = false;
-        }
-        
-        if(name || email){
-            addressArr.push({address:decodeURIComponent(email || ""), name: decodeURIComponent(name || "")});
         }
     }
-    return addressArr;
+
+    // If there is no text but a comment, replace the two
+    if(!data.text.length && data.comment.length){
+        data.text = data.comment;
+        data.comment = [];
+    }
+
+    if(data.group.length){
+        
+        if(data.text.length){
+            data.text = data.text.join(" ");
+        }
+
+        addresses = addresses.concat(parser(data.group.join(",")).map(function(address){
+            address.name = data.text || address.name;
+            return address;
+        }));
+
+    }else{
+        // If no address was found, try to detect one from regular text
+        if(!data.address.length && data.text.length){
+            for(i = data.text.length - 1; i>=0; i--){
+                if(data.text[i].match(/^[^@\s]+@[^@\s]+$/)){
+                    data.address = data.text.splice(i,1);
+                    break;
+                }
+            }
+
+            // still no address
+            if(!data.address.length){
+                for(i = data.text.length - 1; i>=0; i--){
+                    data.text[i] = data.text[i].replace(/\s*\b[^@\s]+@[^@\s]+\b\s*/, function(address){
+                        if(!data.address.length){
+                            data.address = [address.trim()];
+                            return " ";
+                        }else{
+                            return address;
+                        }
+                    }).trim();
+                    if(data.address.length){
+                        break;
+                    }
+                }                
+            }
+        }
+
+        // If there's still is no text but a comment exixts, replace the two
+        if(!data.text.length && data.comment.length){
+            data.text = data.comment;
+            data.comment = [];
+        }  
+
+        // Keep only the first address occurence, push others to regular text
+        if(data.address.length > 1){
+            data.text = data.text.concat(data.address.splice(1));
+        }
+
+        // Join values with spaces
+        data.text = data.text.join(" ");
+        data.address = data.address.join(" ");
+
+        if(!data.address && isGroup){
+            return [];
+        }else{
+            address = {
+                address: data.address || data.text,
+                name: data.text || data.address
+            };
+
+            if(address.address == address.name){
+                if((address.address || "").match(/@/)){
+                    delete address.name;
+                }else{
+                    delete address.address;
+                }
+                
+            }
+
+            addresses.push(address);
+        }
+    }
+
+    return addresses;
+}
+
+
+/**
+ * Creates a TOkenizer object for tokenizing address field strings
+ *
+ * @constructor
+ * @param {String} str Address field string
+ */
+function Tokenizer(str){
+
+    this.str = (str || "").toString();
+    this.operatorCurrent = "";
+    this.operatorExpecting = "";
+    this.node = null;
+    this.escaped = false;
+
+    this.list = [];
+
+}
+
+/**
+ * Operator tokens and which tokens are expected to end the sequence
+ */
+Tokenizer.prototype.operators = {
+    "\"": "\"",
+    "'": "'",
+    "(": ")",
+    "<": ">",
+    ",": "",
+    ":": ";"
 };
 
 /**
- * mime.parseMimeWords(str) -> String
- * - str (String): string to be parsed
- * 
- * Parses mime-words into UTF-8 strings
- **/
-this.parseMimeWords = function(str){
-    return str.replace(/\=\?[^?]+\?[QqBb]\?[^?]+\?=/g, (function(a){
-        return this.decodeMimeWord(a);
-    }).bind(this));
+ * Tokenizes the original input string
+ *
+ * @return {Array} An array of operator|text tokens
+ */
+Tokenizer.prototype.tokenize = function(){
+    var chr, list = [];
+    for(var i=0, len = this.str.length; i<len; i++){
+        chr = this.str.charAt(i);
+        this.checkChar(chr);
+    }
+
+    this.list.forEach(function(node){
+        node.value = (node.value || "").toString().trim();
+        if(node.value){
+            list.push(node);
+        }
+    });
+
+    return list;
 };
 
 /**
- * mime.parseHeaderLine(line) -> Object
- * - line (String): a line from a message headers
+ * Checks if a character is an operator or text and acts accordingly
+ *
+ * @param {String} chr Character from the address field
+ */
+Tokenizer.prototype.checkChar = function(chr){
+    if((chr in this.operators || chr == "\\") && this.escaped){
+        this.escaped = false;
+    }else if(this.operatorExpecting && chr == this.operatorExpecting){
+        this.node = {
+            type: "operator",
+            value: chr
+        };
+        this.list.push(this.node);
+        this.node = null;
+        this.operatorExpecting = "";
+        this.escaped = false;
+        return;
+    }else if(!this.operatorExpecting && chr in this.operators){
+        this.node = {
+            type: "operator",
+            value: chr
+        };
+        this.list.push(this.node);
+        this.node = null;
+        this.operatorExpecting = this.operators[chr];
+        this.escaped = false;
+        return;
+    }
+
+    if(!this.escaped && chr == "\\"){
+        this.escaped = true;
+        return;
+    }
+
+    if(!this.node){
+        this.node = {
+            type: "text",
+            value: ""
+        };
+        this.list.push(this.node);
+    }
+
+    if(this.escaped && chr != "\\"){
+        this.node.value += "\\";
+    }
+
+    this.node.value += chr;
+    this.escaped = false;
+};
+
+});
+define('addressparser',['./addressparser/index'], function (main) {
+    return main;
+});
+define('mimelib/lib/mimelib',['require','exports','module','encoding','addressparser'],function (require, exports, module) {
+var convert = require('encoding').convert,
+    addressparser = require('addressparser');
+
+/**
+ * Folds a long line according to the RFC 5322 http://tools.ietf.org/html/rfc5322#section-2.1.1
+ *
+ * @param {String} str Mime string that might need folding
+ * @param {Number} [maxLength=76] max length for a line
+ * @param {Boolean} [foldAnywhere] If true, can fold at any location (ie. in base64)
+ * @param {Boolean} [afterSpace] If true fold after the space (default is before)
+ * @return {String} Folded string
+ */
+this.foldLine = function(str, maxLength, foldAnywhere, afterSpace, lineMargin){
+    if(foldAnywhere){
+        return addBase64SoftLinebreaks(str, maxLength || 76);
+    }
+    return module.exports.mimeFunctions.foldLine(str, maxLength, !!afterSpace, lineMargin);
+};
+
+/**
+ * Encodes a string into mime encoded word format http://en.wikipedia.org/wiki/MIME#Encoded-Word
+ *
+ * @param {String} str String to be encoded
+ * @param {String} encoding Encoding Q for quoted printable or B for base64
+ * @param {String} [charset="UTF-8"] Charset to be used
+ * @param {Number} [maxLength] If set, split on maxLength
+ * @return {String} Mime word encoded string
+ */
+module.exports.encodeMimeWord = function(str, encoding, charset, maxLength){
+    return module.exports.mimeFunctions.encodeMimeWord(str, encoding, maxLength || 0, charset);
+};
+
+/**
+ * Encodes need parts of a string to mime word format
+ *
+ * @param {String} str String to be encoded
+ * @param {String} encoding Encoding Q for quoted printable or B for base64
+ * @param {Number} [maxLength] If set, split on maxLength
+ * @param {String} [charset="UTF-8"] Charset to be used
+ * @return {String} String with possible mime word encoded parts
+ */
+module.exports.encodeMimeWords = function(str, encoding, maxLength, charset){
+    return module.exports.mimeFunctions.encodeMimeWords(str, encoding, maxLength || 0, charset);
+};
+
+/**
+ * Decodes a string from mime encoded word
+ *
+ * @param {String} str Mime word encoded string
+ * @return {String} Decoded string
+ */
+module.exports.decodeMimeWord = function(str){
+    return module.exports.mimeFunctions.decodeMimeWord(str).toString("utf-8");
+};
+
+/**
+ * Decodes all mime words from a string to an unencoded string
+ *
+ * @param {String} str String that may include mime words
+ * @return {String} Unencoded string
+ */
+module.exports.parseMimeWords = function(str){
+    return module.exports.mimeFunctions.decodeMimeWords(str).toString("utf-8");
+};
+
+/**
+ * Encodes a string into Quoted-printable format. Maximum line length for the
+ * encoded string is always 76+2 bytes
+ *
+ * @param {String} str String to be encoded into Quoted-printable
+ * @param {Boolean} [mimeWord] legacy parameter, not used
+ * @param {String} [charset="UTF-8"] Destination charset
+ * @return {String} Quoted printable encoded string
+ */
+module.exports.encodeQuotedPrintable = function(str, mimeWord, charset){
+    if(typeof mimeWord == "string" && !charset){
+        charset = mimeWord;
+        mimeWord = undefined;
+    }
+    return module.exports.mimeFunctions.encodeQuotedPrintable(str, charset);
+};
+
+/**
+ * Decodes a string from Quoted-printable format
+ *
+ * @param {String} str String to be decoded from Quoted-printable
+ * @param {Boolean} [mimeWord] legacy parameter, not used
+ * @param {String} [charset="UTF-8"] Source charset
+ * @return {String} Decoded string
+ */
+module.exports.decodeQuotedPrintable = function(str, mimeWord, charset){
+    if(typeof mimeWord == "string" && !charset){
+        charset = mimeWord;
+        mimeWord = undefined;
+    }
+    charset = (charset || "").toString().toUpperCase().trim();
+    var decodedString = module.exports.mimeFunctions.decodeQuotedPrintable(str, "utf-8", charset);
+    return charset == "BINARY" ? decodedString : decodedString.toString("utf-8");
+};
+
+/**
+ * Encodes a string into Base64 format. Base64 is mime-word safe
  * 
- * Parses a header line to search for additional parameters.
- * For example with "text/plain; charset=utf-8" the output would be
- *   - defaultValue = text/plain
- *   - charset = utf-8
- **/
-this.parseHeaderLine = function(line){
+ * @param {String} str String to be encoded into Base64
+ * @param {String} [charset="UTF-8"] Destination charset
+ * @return {String} Base64 encoded string
+ */
+module.exports.encodeBase64 = function(str, charset){
+    return module.exports.mimeFunctions.encodeBase64(str, charset);
+};
+
+/**
+ * Decodes a string from Base64 format
+ * 
+ * @param {String} str String to be decoded from Base64
+ * @param {String} [charset="UTF-8"] Source charset
+ * @return {String} Decoded string
+ */
+module.exports.decodeBase64 = function(str, charset){
+    return module.exports.mimeFunctions.decodeBase64(str, "utf-8", charset).toString("utf-8");
+};
+
+/**
+ * Parses names and addresses from a from, to, cc or bcc line
+ * For example: 'Andris Reinman <andris@tr.ee>, someone@else.com'
+ * will be parsed into: [{name:"Andris Reinman", address:"andris@tr.ee"}, {address: "someone@else.com"}]
+ *
+ * @param {String|Array} addresses Address line string or an array of strings
+ * @return {Array} An array of parsed e-mails addresses in the form of [{name, address}]
+ */
+module.exports.parseAddresses = function(addresses){
+    return [].concat.apply([], [].concat(addresses).map(addressparser));
+};
+
+/**
+ * Parses header lines into an array of objects. Output: {'x-header': ['value']}
+ * 
+ * @param {String} headers Full header part to be parsed
+ * @return {Object} Parsed headers
+ */
+module.exports.parseHeaders = function(headers){
+    return module.exports.mimeFunctions.parseHeaderLines(headers);
+};
+
+/**
+ * Parses a header line to search for additional parameters. For example
+ *     parseHeaderLine('text/plain; charset=utf-8')
+ * will be parsed into
+ *     {defaultValue: 'text/plain', charset: 'utf-8'}
+ * 
+ * @param {String} line Single header value without key part to be parsed
+ * @return {Object} Parsed value
+ */
+module.exports.parseHeaderLine = function(line){
     if(!line)
         return {};
     var result = {}, parts = line.split(";"), pos;
@@ -9057,90 +9104,416 @@ this.parseHeaderLine = function(line){
     return result;
 };
 
+module.exports.mimeFunctions = {
 
-/* Helper functions */
+    mimeEncode: function(str, toCharset, fromCharset){
+        toCharset = toCharset || "UTF-8";
+        fromCharset = fromCharset || "UTF-8";
 
-/**
- * lineEdges(str) -> String
- * - str (String): String to be processed
- * 
- * Replaces all spaces and tabs in the beginning and end of the string
- * with quoted printable encoded chars. Needed by [[encodeQuotedPrintable]]
- **/
-function lineEdges(str){
-    str = str.replace(/^[ \t]+/gm, function(wsc){
-        return wsc.replace(/ /g,"=20").replace(/\t/g,"=09"); 
-    });
-    
-    str = str.replace(/[ \t]+$/gm, function(wsc){
-        return wsc.replace(/ /g,"=20").replace(/\t/g,"=09"); 
-    });
-    return str;
-}
-
-/**
- * fromCharset(charset, buffer, keep_buffer) -> String | Buffer
- * - charset (String): Source charset
- * - buffer (Buffer): Buffer in <charset>
- * - keep_buffer (Boolean): If true, return buffer, otherwise UTF-8 string
- * 
- * Converts a buffer in <charset> codepage into UTF-8 string
- **/
-function fromCharset(charset, buffer, keep_buffer){
-    var iconv;
-    
-    try{
-        iconv = new Iconv(charset, 'UTF-8//TRANSLIT//IGNORE');
-        buffer = iconv.convert(buffer);
-    }catch(E){}
-    return keep_buffer?buffer:buffer.toString("utf-8");
-}
-
-/**
- * toCharset(charset, buffer) -> Buffer
- * - charset (String): Source charset
- * - buffer (Buffer): Buffer in UTF-8 or string
- * 
- * Converts a string or buffer to <charset> codepage
- **/
-function toCharset(charset, buffer){
-    var iconv;
-    try{
-        iconv = new Iconv('UTF-8', charset+"//TRANSLIT//IGNORE");
-        return iconv.convert(buffer);
-    }catch(E){
-        return buffer;
-    }
-}
-
-/**
- * decodeBytestreamUrlencoding(encoded_string) -> Buffer
- * - encoded_string (String): String in urlencode coding
- * 
- * Converts an urlencoded string into a bytestream buffer. If the used
- * charset is known the resulting string can be converted to UTF-8 with
- * [[fromCharset]]. 
- * NB! For UTF-8 use decodeURIComponent and for Latin 1 decodeURL instead 
- **/
-function decodeBytestreamUrlencoding(encoded_string){
-    var c, i, j=0, len, prcnts = encoded_string.match(/%/g) || "",
-            buffer_length = encoded_string.length - (prcnts.length*2),
-        buffer = new Buffer(buffer_length);
-
-    for(i=0, len=encoded_string.length; i<len; i++){
-        c = encoded_string.charCodeAt(i);
-        if(c=="37"){ // %
-            c = parseInt(encoded_string.substr(i+1,2), 16);
-            i+=2;
+        var buffer = convert(str || "", toCharset, fromCharset),
+            ranges = [[0x09],
+                      [0x0A],
+                      [0x0D],
+                      [0x20],
+                      [0x21],
+                      [0x23, 0x3C],
+                      [0x3E],
+                      [0x40, 0x5E],
+                      [0x60, 0x7E]],
+            result = "";
+        
+        for(var i=0, len = buffer.length; i<len; i++){
+            if(checkRanges(buffer[i], ranges)){
+                result += String.fromCharCode(buffer[i]);
+                continue;
+            }
+            result += "="+(buffer[i]<0x10?"0":"")+buffer[i].toString(16).toUpperCase();
         }
-        buffer[j++] = c;
+
+        return result;
+    },
+
+    mimeDecode: function(str, toCharset, fromCharset){
+        str = (str || "").toString();
+        toCharset = toCharset || "UTF-8";
+        fromCharset = fromCharset || "UTF-8";
+
+        var encodedBytesCount = (str.match(/\=[\da-fA-F]{2}/g) || []).length,
+            bufferLength = str.length - encodedBytesCount * 2,
+            chr, hex,
+            buffer = new Buffer(bufferLength),
+            bufferPos = 0;
+
+        for(var i=0, len = str.length; i<len; i++){
+            chr = str.charAt(i);
+            if(chr == "=" && (hex = str.substr(i+1, 2).match(/[\da-fA-F]{2}/))){
+                buffer[bufferPos++] = parseInt(hex, 16);
+                i+=2;
+                continue;
+            }
+            buffer[bufferPos++] = chr.charCodeAt(0);
+        }
+
+        if(fromCharset.toUpperCase().trim() == "BINARY"){
+            return buffer;
+        }
+        return convert(buffer, toCharset, fromCharset);
+    },
+
+    encodeBase64: function(str, toCharset, fromCharset){
+        var buffer = convert(str || "", toCharset, fromCharset);
+        return addSoftLinebreaks(buffer.toString("base64"), "base64");
+    },
+
+    decodeBase64: function(str, toCharset, fromCharset){
+        var buffer = new Buffer((str || "").toString(), "base64");
+        return convert(buffer, toCharset, fromCharset);
+    },
+
+    decodeQuotedPrintable: function(str, toCharset, fromCharset){
+        str = (str || "").toString();
+        str = str.replace(/\=\r?\n/g, "");
+        return this.mimeDecode(str, toCharset, fromCharset);
+    },
+
+    encodeQuotedPrintable: function(str, toCharset, fromCharset){
+        var mimeEncodedStr = this.mimeEncode(str, toCharset, fromCharset);
+
+        // fix line breaks
+        mimeEncodedStr = mimeEncodedStr.replace(/\r?\n|\r/g, function(lineBreak, spaces){
+            return "\r\n";
+        }).replace(/[\t ]+$/gm, function(spaces){
+            return spaces.replace(/ /g, "=20").replace(/\t/g, "=09");
+        });
+
+        return addSoftLinebreaks(mimeEncodedStr, "qp");
+    },
+
+    encodeMimeWord: function(str, encoding, maxLength, toCharset, fromCharset){
+        toCharset = (toCharset || "utf-8").toString().toUpperCase().trim();
+        encoding = (encoding || "Q").toString().toUpperCase().trim().charAt(0);
+        var encodedStr;
+
+        if(maxLength && maxLength > 7 + toCharset.length){
+            maxLength -= (7 + toCharset.length);
+        }
+
+        if(encoding == "Q"){
+            encodedStr = this.mimeEncode(str, toCharset, fromCharset);
+            encodedStr = encodedStr.replace(/[\r\n\t_]/g, function(chr){
+                var code = chr.charCodeAt(0);
+                return "=" + (code<0x10?"0":"") + code.toString(16).toUpperCase();
+            }).replace(/\s/g, "_");
+        }else if(encoding == "B"){
+            encodedStr = convert(str || "", toCharset, fromCharset).toString("base64").trim();
+        }
+
+        if(maxLength && encodedStr.length > maxLength){
+            if(encoding == "Q"){
+                encodedStr = this.splitEncodedString(encodedStr, maxLength).join("?= =?"+toCharset+"?"+encoding+"?")
+            }else{
+                encodedStr = encodedStr.replace(new RegExp(".{"+maxLength+"}","g"),"$&?= =?"+toCharset+"?"+encoding+"?");
+                if(encodedStr.substr(-(" =?"+toCharset+"?"+encoding+"?=").length) == " =?"+toCharset+"?"+encoding+"?="){
+                    encodedStr = encodedStr.substr(0, encodedStr.length -(" =?"+toCharset+"?"+encoding+"?=").length);
+                }
+                if(encodedStr.substr(-(" =?"+toCharset+"?"+encoding+"?").length) == " =?"+toCharset+"?"+encoding+"?"){
+                    encodedStr = encodedStr.substr(0, encodedStr.length -(" =?"+toCharset+"?"+encoding+"?").length);
+                }
+            }
+        }
+
+        return "=?"+toCharset+"?"+encoding+"?"+encodedStr+ (encodedStr.substr(-2)=="?="?"":"?=");
+    },
+
+    decodeMimeWord: function(str, toCharset){
+        str = (str || "").toString().trim();
+
+        var fromCharset, encoding, match;
+
+        match = str.match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/i);
+        if(!match){
+            return convert(str, toCharset);
+        }
+
+        fromCharset = match[1];
+        encoding = (match[2] || "Q").toString().toUpperCase();
+        str = (match[3] || "").replace(/_/g, " ");
+
+        if(encoding == "B"){
+            return this.decodeBase64(str, toCharset, fromCharset);
+        }else if(encoding == "Q"){
+            return this.mimeDecode(str, toCharset, fromCharset);    
+        }else{
+            return str;
+        }
+
+        
+    },
+
+    decodeMimeWords: function(str, toCharset){
+        var remainder = "", lastCharset, curCharset;
+        str = (str || "").toString();
+
+        while(str.match(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(?=\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g)){
+            str = str.replace(/(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)\s+(\=\?[\w_\-]+\?[QB]\?[^\?]+\?\=)/g,function(original, first, second){
+                var match1 = (first || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/),
+                    match2 = (second || "").trim().match(/^\=\?([\w_\-]+)\?([QB])\?([^\?]+)\?\=$/);
+
+                if(match1[1] == match2[1] && match1[2] == match2[2]){
+                    return "=?"+match1[1]+"?"+match1[2]+"?"+match1[3] + match2[3]+"?=";
+                }else{
+                    return first+second;
+                }
+
+            });
+        }
+
+        str = str.replace(/\=\?([\w_\-]+)\?([QB])\?[^\?]+\?\=/g, (function(mimeWord, charset, encoding){
+
+                      curCharset = charset + encoding;
+
+                      return this.decodeMimeWord(mimeWord);
+                  }).bind(this));
+
+        return convert(str, toCharset);
+    },
+
+    foldLine: function(str, lineLengthMax, afterSpace, lineMargin){
+        lineLengthMax = lineLengthMax || 76;
+        str = (str || "").toString().trim();
+
+        var pos = 0, len = str.length, result = "", line, match, lineMargin = lineMargin || Math.floor(lineLengthMax/5);
+
+        while(pos < len){
+            line = str.substr(pos, lineLengthMax);
+            if(line.length < lineLengthMax){
+                result += line;
+                break;
+            }
+            if((match = line.match(/^[^\n\r]*(\r?\n|\r)/))){
+                line = match[0];
+                result += line;
+                pos += line.length;
+                continue;
+            }else if((match = line.substr(-lineMargin).match(/(\s+)[^\s]*$/))){
+                line = line.substr(0, line.length - (match[0].length - (!!afterSpace ? (match[1] || "").length : 0)));
+            }else if((match = str.substr(pos + line.length).match(/^[^\s]+(\s*)/))){
+                line = line + match[0].substr(0, match[0].length - (!afterSpace ? (match[1] || "").length : 0));
+            }
+            result += line;
+            pos += line.length;
+            if(pos < len){
+                result += "\r\n";
+            }
+        }
+
+        return result;
+    },
+
+    encodeMimeWords: function(value, encoding, maxLength, toCharset, fromCharset){
+        var decodedValue = convert((value || ""), "utf-8", fromCharset).toString("utf-8"),
+            encodedValue;
+
+        encodedValue = decodedValue.replace(/(\w*[\u0080-\uFFFF]+\w*(?:\s+\w*[\u0080-\uFFFF]+\w*\s*)?)+/g, (function(str, o){
+            return str.length?this.encodeMimeWord(str, encoding || "Q", maxLength, toCharset):"";
+        }).bind(this));
+
+        return encodedValue;
+    },
+
+    encodeHeaderLine: function(key, value, toCharset, fromCharset){
+        var encodedValue = this.encodeMimeWords(value, 52, toCharset, fromCharset);
+        return this.foldLine(key+": "+encodedValue, 76);
+    },
+
+    parseHeaderLines: function(headers, toCharset){
+        var lines = headers.split(/\r?\n|\r/),
+            headersObj = {},
+            key, value,
+            header,
+            i, len;
+
+        for(i=lines.length-1; i>=0; i--){
+            if(i && lines[i].match(/^\s/)){
+                lines[i-1] += "\r\n" + lines[i];
+                lines.splice(i, 1);
+            }
+        }
+
+        for(i=0, len = lines.length; i<len; i++){
+            header = this.decodeHeaderLine(lines[i]);
+            key = (header[0] || "").toString().toLowerCase().trim();
+            value = header[1] || "";
+            if(!toCharset || (toCharset || "").toString().trim().match(/^utf[\-_]?8$/i)){
+                value = value.toString("utf-8");
+            }
+            if(!headersObj[key]){
+                headersObj[key] = [value];
+            }else{
+                headersObj[key].push(value);
+            }
+        }
+
+        return headersObj;
+    },
+
+    decodeHeaderLine: function(header, toCharset){
+        var line = (header || "").toString().replace(/(?:\r?\n|\r)[ \t]*/g, " ").trim(),
+            match = line.match(/^\s*([^:]+):(.*)$/),
+            key = (match && match[1] || "").trim(),
+            value = (match && match[2] || "").trim();
+
+        value = this.decodeMimeWords(value, toCharset);
+        return [key, value];
+    },
+
+    splitEncodedString: function(str, maxlen){
+        var curLine, match, chr, done,
+            lines = [];
+
+        while(str.length){
+            curLine = str.substr(0, maxlen);
+            
+            // move incomplete escaped char back to main
+            if((match = curLine.match(/\=[0-9A-F]?$/i))){
+                curLine = curLine.substr(0, match.index);
+            }
+
+            done = false;
+            while(!done){
+                done = true;
+                // check if not middle of a unicode char sequence
+                if((match = str.substr(curLine.length).match(/^\=([0-9A-F]{2})/i))){
+                    chr = parseInt(match[1], 16);
+                    // invalid sequence, move one char back anc recheck
+                    if(chr < 0xC2 && chr > 0x7F){
+                        curLine = curLine.substr(0, curLine.length-3);
+                        done = false;
+                    }
+                }
+            }
+
+            if(curLine.length){
+                lines.push(curLine);
+            }
+            str = str.substr(curLine.length);
+        }
+
+        return lines;
+    },
+
+    parseAddresses: addressparser
+
+};
+
+// Lines can't be longer that 76 + <CR><LF> = 78 bytes
+// http://tools.ietf.org/html/rfc2045#section-6.7
+function addSoftLinebreaks(str, encoding){
+    var lineLengthMax = 76;
+
+    encoding = (encoding || "base64").toString().toLowerCase().trim();
+    
+    if(encoding == "qp"){
+        return addQPSoftLinebreaks(str, lineLengthMax);
+    }else{
+        return addBase64SoftLinebreaks(str, lineLengthMax);
     }
-    return buffer;
 }
 
+function addBase64SoftLinebreaks(base64EncodedStr, lineLengthMax){
+    base64EncodedStr = (base64EncodedStr || "").toString().trim();
+    return base64EncodedStr.replace(new RegExp(".{" +lineLengthMax+ "}", "g"),"$&\r\n").trim();
+}
 
+function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
+    var pos = 0, len = mimeEncodedStr.length, 
+        match, code, line, 
+        lineMargin = Math.floor(lineLengthMax/3), 
+        result = "";
+
+    // insert soft linebreaks where needed
+    while(pos < len){
+        line = mimeEncodedStr.substr(pos, lineLengthMax);
+        if((match = line.match(/\r\n/))){
+            line = line.substr(0, match.index + match[0].length);
+            result += line;
+            pos += line.length;
+            continue;
+        }
+
+        if(line.substr(-1)=="\n"){
+            // nothing to change here
+            result += line;
+            pos += line.length;
+            continue;
+        }else if((match = line.substr(-lineMargin).match(/\n.*?$/))){
+            // truncate to nearest line break
+            line = line.substr(0, line.length - (match[0].length - 1));
+            result += line;
+            pos += line.length;
+            continue;
+        }else if(line.length > lineLengthMax - lineMargin && (match = line.substr(-lineMargin).match(/[ \t\.,!\?][^ \t\.,!\?]*$/))){
+            // truncate to nearest space
+            line = line.substr(0, line.length - (match[0].length - 1));
+        }else if(line.substr(-1)=="\r"){
+            line = line.substr(0, line.length-1);
+        }else{
+            if(line.match(/\=[\da-f]{0,2}$/i)){
+
+                // push incomplete encoding sequences to the next line
+                if((match = line.match(/\=[\da-f]{0,1}$/i))){
+                    line = line.substr(0, line.length - match[0].length);
+                }
+
+                // ensure that utf-8 sequences are not split
+                while(line.length>3 && line.length < len - pos && !line.match(/^(?:=[\da-f]{2}){1,4}$/i) && (match = line.match(/\=[\da-f]{2}$/ig))){
+                    code = parseInt(match[0].substr(1,2), 16);
+                    if(code<128){
+                        break;
+                    }
+
+                    line = line.substr(0, line.length-3);
+
+                    if(code >=0xC0){
+                        break;
+                    }
+                }
+                
+            }
+        }
+        
+        if(pos + line.length < len && line.substr(-1)!="\n"){
+            if(line.length==76){
+                line = line.substr(0, line.length-1);
+            }
+            pos += line.length;
+            line += "=\r\n";
+        }else{
+            pos += line.length;
+        }
+        
+        result += line;
+    }
+
+    return result;
+}
+
+function checkRanges(nr, ranges){
+    for(var i = ranges.length - 1; i >= 0; i--){
+        if(!ranges[i].length){
+            continue;
+        }
+        if(ranges[i].length == 1 && nr == ranges[i][0]){
+            return true;
+        }
+        if(ranges[i].length == 2 && nr >= ranges[i][0] && nr <= ranges[i][1]){
+            return true;
+        }
+    }
+    return false;
+}
 });
-define('mimelib/content-types',['require','exports','module'],function (require, exports, module) {
+define('mimelib/lib/content-types',['require','exports','module'],function (require, exports, module) {
 // list of mime types
 module.exports = {
     "doc": "application/msword",
@@ -9202,7 +9575,7 @@ module.exports = {
     "rar": "application/x-rar-compressed"
 };
 });
-define('mimelib/content-types-reversed',['require','exports','module'],function (require, exports, module) {
+define('mimelib/lib/content-types-reversed',['require','exports','module'],function (require, exports, module) {
 // list of mime types
 module.exports = {
     "application/msword": "doc",
@@ -9244,11 +9617,11 @@ module.exports = {
     "application/x-rar-compressed": "rar"
 };
 });
-define('mimelib/index',['require','exports','module','./mime-functions','./content-types','./content-types-reversed'],function (require, exports, module) {
+define('mimelib/index',['require','exports','module','./lib/mimelib','./lib/content-types','./lib/content-types-reversed'],function (require, exports, module) {
 
-module.exports = require('./mime-functions');
-module.exports.contentTypes = require('./content-types');
-module.exports.contentTypesReversed = require('./content-types-reversed');
+module.exports = require('./lib/mimelib');
+module.exports.contentTypes = require('./lib/content-types');
+module.exports.contentTypesReversed = require('./lib/content-types-reversed');
 });
 define('mimelib',['./mimelib/index'], function (main) {
     return main;
@@ -10410,7 +10783,7 @@ MailComposer.prototype.addHeader = function(key, value){
     key = this._normalizeKey(key);
     
     if(value && Object.prototype.toString.call(value) == "[object Object]"){
-        value = this._encodeMimeWord(JSON.stringify(value), "Q", 50);
+        value = this._encodeMimeWord(JSON.stringify(value), "Q", 52);
     }else{
         value = (value || "").toString().trim();
     }
@@ -10451,7 +10824,7 @@ MailComposer.prototype.addHeader = function(key, value){
  * @param {Object} options Message related options
  */
 MailComposer.prototype.setMessageOption = function(options){
-    var fields = ["from", "to", "cc", "bcc", "replyTo", "subject", "body", "html", "envelope"],
+    var fields = ["from", "to", "cc", "bcc", "replyTo", "inReplyTo", "references", "subject", "body", "html", "envelope"],
         rewrite = {"sender":"from", "reply_to":"replyTo", "text":"body"};
     
     options = options || {};
@@ -10627,9 +11000,38 @@ MailComposer.prototype._handleValue = function(key, value){
             }
             return this._convertAddresses(addresses);
         
+        case "inReplyTo":
+            value = (value || "").toString().replace(/\s/g, "");
+            if(value.charAt(0)!="<"){
+                value = "<"+value;
+            }
+            if(value.charAt(value.length-1)!=">"){
+                value = value + ">";
+            }
+            return value;
+
+        case "references":
+            value = [].concat.apply([], [].concat(value || "").map(function(elm){
+                elm = (elm || "").toString().trim();
+                return elm.replace(/<[^>]*>/g,function(str){
+                    return str.replace(/\s/g, "");
+                }).split(/\s+/);
+            })).map(function(elm){
+                elm = (elm || "").toString().trim();
+                if(elm.charAt(0) != "<"){
+                    elm = "<" + elm;
+                }
+                if(elm.charAt(elm.length-1) != ">"){
+                    elm = elm + ">";
+                }
+                return elm;
+            });
+
+            return value.join(" ").trim();
+
         case "subject":
             value = (value || "").toString().replace(/\r?\n|\r/g, " ");
-            return this._encodeMimeWord(value, "Q", 50);
+            return this._encodeMimeWord(value, "Q", 52);
             
         case "envelope":
             
@@ -10693,7 +11095,7 @@ MailComposer.prototype._convertAddresses = function(addresses){
                 values.push(address.address);
             }else if(address.name){
                 if(this._hasUTFChars(address.name)){
-                    address.name = this._encodeMimeWord(address.name, "Q", 50);
+                    address.name = this._encodeMimeWord(address.name, "Q", 52);
                 }else{
                     address.name = address.name;
                 }
@@ -10845,7 +11247,17 @@ MailComposer.prototype._buildMessageHeaders = function(){
             this.addHeader("Reply-To", replyTo);
         }).bind(this));
     }
+
+    // REFERENCES
+    if(this._message.references && this._message.references.length){
+        this.addHeader("References", this._message.references);
+    }
     
+    // IN-REPLY-TO
+    if(this._message.inReplyTo && this._message.inReplyTo.length){
+        this.addHeader("In-Reply-To", this._message.inReplyTo);
+    }
+
     // SUBJECT
     if(this._message.subject){
         this.addHeader("Subject", this._message.subject);
@@ -11057,7 +11469,7 @@ MailComposer.prototype.compileHeaders = function(headers){
 
     if(Array.isArray(headers)){
         headersArr = headers.map(function(field){
-            return mimelib.foldLine((field.key || field[0])+": "+(field.value || field[1]));
+            return mimelib.foldLine((field.key || field[0])+": "+(field.value || field[1]), 76, false, false, 52);
         });
     }else{
         keys = Object.keys(headers);
@@ -11065,7 +11477,7 @@ MailComposer.prototype.compileHeaders = function(headers){
             key = this._normalizeKey(keys[i]);
             
             headersArr = headersArr.concat([].concat(headers[key]).map(function(field){
-                return mimelib.foldLine(key+": "+field);
+                return mimelib.foldLine(key+": "+field, 76, false, false, 52);
             }));
         }
     }
@@ -11225,7 +11637,7 @@ MailComposer.prototype._emitDataElement = function(element, callback){
             case "8bit":
             case "binary":
             default:
-                data = mimelib.foldLine(element.contents, 78, false, element.textFormat=="flowed");
+                data = mimelib.foldLine(element.contents, 76, false, element.textFormat=="flowed");
                  //mimelib puts a long whitespace to the beginning of the lines
                 data = data.replace(/^[ ]{7}/mg, "");
                 break;
@@ -11439,27 +11851,7 @@ MailComposer.prototype._generateBoundary = function(){
  * @return {String} Mime-word encoded string (if needed)
  */
 MailComposer.prototype._encodeMimeWord = function(str, encoding, maxlen){
-    
-    // adjust maxlen by =?UTF-8?Q??=
-    if(maxlen && maxlen>12){
-        maxlen -= 12; 
-    }
-    
-    encoding = (encoding || "Q").toUpperCase(); 
-    if(this._hasUTFChars(str)){
-        str = mimelib.encodeMimeWord(str, encoding);
-        if(maxlen && str.length>maxlen){
-            if(encoding=="Q"){
-                return "=?UTF-8?Q?"+this._splitEncodedString(str.split("?")[3], maxlen).join("?= =?UTF-8?Q?")+"?=";
-            }else{
-                return "=?UTF-8?"+encoding+"?"+str.split("?")[3].replace(new RegExp(".{"+maxlen+"}","g"),"$&?= =?UTF-8?"+encoding+"?")+"?=";
-            }
-        }else{
-            return str;
-        }
-    }else{
-        return str;
-    }
+    return mimelib.encodeMimeWords(str, encoding, maxlen);
 };
 
 /**
@@ -11966,7 +12358,8 @@ exports.quoteProcessTextBody = function quoteProcessTextBody(fullBodyText) {
       generatedQuoteBlock = false,
       atePreLines = 0, ateQuoteLines = 0;
   for (idxLineStart = 0,
-         idxLineEnd = fullBodyText.indexOf('\n', idxLineStart);
+         idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
+                                     fullBodyText.length);
        idxLineStart < bodyLength;
        idxLineStart = idxLineEnd + 1,
          idxLineEnd = indexOfDefault(fullBodyText, '\n', idxLineStart,
@@ -13333,6 +13726,21 @@ define('mailapi/util',
   ) {
 
 /**
+ * Header info comparator that orders messages in order of numerically
+ * decreasing date and UIDs.  So new messages come before old messages,
+ * and messages with higher UIDs (newer-ish) before those with lower UIDs
+ * (when the date is the same.)
+ */
+const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
+    function cmpHeaderYoungToOld(a, b) {
+  var delta = b.date - a.date;
+  if (delta)
+    return delta;
+  // favor larger UIDs because they are newer-ish.
+  return b.id - a.id;
+}
+
+/**
  * Perform a binary search on an array to find the correct insertion point
  *  in the array for an item.  From deuxdrop; tested in
  *  deuxdrop's `unit-simple-algos.js` test.
@@ -13551,11 +13959,11 @@ MailBridge.prototype = {
 
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
     var self = this;
-    this.universe.tryToCreateAccount(msg.details, function(good, account) {
+    this.universe.tryToCreateAccount(msg.details, function(error, account) {
         self.__sendMessage({
             type: 'tryToCreateAccountResults',
             handle: msg.handle,
-            error: good ? null : 'generic-badness',
+            error: error,
           });
       });
   },
@@ -14623,7 +15031,7 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
  *
  **/
 
-define('mailapi/imap/imapdb',
+define('mailapi/maildb',
   [
     'exports'
   ],
@@ -14753,7 +15161,7 @@ const TBL_BODY_BLOCKS = 'bodyBlocks';
  * compressible binary data that is at least 64k.
  *
  */
-function ImapDB() {
+function MailDB() {
   this._db = null;
   this._onDB = [];
 
@@ -14826,8 +15234,8 @@ function ImapDB() {
   };
   openRequest.onerror = this._fatalError;
 }
-exports.ImapDB = ImapDB;
-ImapDB.prototype = {
+exports.MailDB = MailDB;
+MailDB.prototype = {
   /**
    * Reset the contents of the database.
    */
@@ -15345,6 +15753,55 @@ this.strtotime = function(str, now) {
     return (now.getTime()/1000);
 }
 });
+/**
+ * Wrap the stringencoding polyfill (or standard, if that has happend :) so that
+ * it resembles the node iconv binding.  Note that although iconv proper
+ * supports transliteration, the module we are replacing (iconv-lite) did not,
+ * and we don't need transliteration for e-mail anyways.  We only need
+ * conversions to process non-unicode encodings into encoding; we will never try
+ * and convert the more full unicode character-space into legacy encodings.
+ *
+ * This assumes our node-buffer.js shim is in use and providing the global Buffer.
+ **/
+
+define('iconv',['require','exports','module'],function(require, exports, module) {
+
+var ENCODER_OPTIONS = { fatal: false };
+
+exports.Iconv = function Iconv(sourceEnc, destEnc) {
+
+  // - decoding
+  if (/^UTF-8/.test(destEnc)) {
+    this.decode = true;
+    this.coder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
+  }
+  // - encoding
+  else {
+    var idxSlash = destEnc.indexOf('/');
+    // ignore '//TRANSLIT//IGNORE' and the like.
+    if (idxSlash !== -1 && destEnc[idxSlash+1] === '/')
+      destEnc = destEnc.substring(0, idxSlash);
+    this.decode = false;
+    this.coder = new TextEncoder(destEnc, ENCODER_OPTIONS);
+  }
+
+};
+exports.Iconv.prototype = {
+  /**
+   * Takes a buffer, returns a (different) buffer.
+   */
+  convert: function(inbuf) {
+    if (this.decode) {
+      return this.coder.decode(inbuf);
+    }
+    else {
+      return Buffer(this.coder.encode(inbuf));
+    }
+  },
+};
+
+});
+
 define('mailparser/streams',['require','exports','module','stream','util','mimelib','iconv','crypto'],function (require, exports, module) {
 var Stream = require('stream').Stream,
     utillib = require('util'),
@@ -16994,6 +17451,8 @@ ImapConnection.prototype.connect = function(loginCb) {
     }
     catch (ex) {
       console.error('Explosion while processing data', ex);
+      if ('stack' in ex)
+        console.error('Stack:', ex.stack);
       throw ex;
     }
   };
@@ -18952,427 +19411,333 @@ ImapProber.prototype = {
 
 }); // end define
 ;
-/**
- *
- **/
-
-define('mailapi/imap/imapchew',
+define('mailapi/date',
   [
-    '../quotechew',
-    '../htmlchew',
+    'module',
     'exports'
   ],
   function(
-    $quotechew,
-    $htmlchew,
+    $module,
     exports
   ) {
 
-/**
- * Process the headers and bodystructure of a message to build preliminary state
- * and determine what body parts to fetch.  The list of body parts will be used
- * to issue another fetch request, and those results will be passed to
- * `chewBodyParts`.
- *
- * For now, our stop-gap heuristics for content bodies are:
- * - pick text/plain in multipart/alternative
- * - recurse into other multipart types looking for an alterntive that has
- *    text.
- * - do not recurse into message/rfc822
- * - ignore/fail-out messages that lack a text part, skipping to the next
- *    task.  (This should not happen once we support HTML, as there are cases
- *    where there are attachments without any body part.)
- * - Append text body parts together; there is no benefit in separating a
- *    mailing list footer from its content.
- *
- * For attachments, our heuristics are:
- * - only like them if they have filenames.  We will find this as "name" on
- *    the "content-type" or "filename" on the "content-disposition", quite
- *    possibly on both even.  For imap.js, "name" shows up in the "params"
- *    dict, and filename shows up in the "disposition" dict.
- * - ignore crypto signatures, even though they are named.  S/MIME gives us
- *    "smime.p7s" as an application/pkcs7-signature under a multipart/signed
- *    (that the server tells us is "signed").  PGP in MIME mode gives us
- *    application/pgp-signature "signature.asc" under a multipart/signed.
- *
- * The next step in the plan is to get an HTML sanitizer exposed so we can
- *  support text/html.  That will also imply grabbing multipart/related
- *  attachments.
- *
- * @typedef[ChewRep @dict[
- *   @key[msg ImapJsMsg]
- *   @key[bodyParts @listof[ImapJsPart]]
- *   @key[attachments @listof[AttachmentInfo]]
- *   @key[header HeaderInfo]
- *   @key[bodyInfo BodyInfo]
- * ]]
- * @return[ChewRep]
- */
-exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
-  // imap.js builds a bodystructure tree using lists.  All nodes get wrapped
-  //  in a list so they are element zero.  Children (which get wrapped in
-  //  their own list) follow.
-  //
-  // Examples:
-  //   text/plain =>
-  //     [{text/plain}]
-  //   multipart/alternative with plaintext and HTML =>
-  //     [{alternative} [{text/plain}] [{text/html}]]
-  //   multipart/mixed text w/attachment =>
-  //     [{mixed} [{text/plain}] [{application/pdf}]]
-  var attachments = [], bodyParts = [], unnamedPartCounter = 0,
-      relatedParts = [];
+////////////////////////////////////////////////////////////////////////////////
+// Time
+//
+// == JS Dates
+//
+// We primarily deal in UTC timestamps.  When we need to talk dates with IMAP
+// (see next section), we need these timestamps to line up with midnight for
+// a given day.  We do not need to line up with weeks, months, or years,
+// saving us a lot of complexity.
+//
+// Day algebra is straightforward because JS Date objects have no concept of
+// leap seconds.  We don't need to worry that a leap second will cause adding
+// a day to be less than or more than a day.  Hooray!
+//
+// == IMAP and Time
+//
+// The stock IMAP SEARCH command's SINCE and BEFORE predicates only operate on
+// whole-dates (and ignore the non-date time parts).  Additionally, SINCE is
+// inclusive and BEFORE is exclusive.
+//
+// We use JS millisecond timestamp values throughout, and it's important to us
+// that our date logic is consistent with IMAP's time logic where relevant.
+// All of our IMAP-exposed time-interval related logic operates on day
+// granularities.  Our timestamp/date values are always normalized to midnight
+// which happily works out with intuitive range operations.
+//
+// Observe the pretty ASCII art where as you move to the right you are moving
+// forward in time.
+//
+//             ________________________________________
+//      BEFORE)| midnight (0 millis) ... 11:59:59:999 |
+// ON_OR_BEFORE]
+//             [SINCE......................................
+//              (AFTER.....................................
+//
+// Our date range comparisons (noting that larger timestamps are 'younger') are:
+// SINCE analog:  (testDate >= comparisonDate)
+//   testDate is as-recent-as or more-recent-than the comparisonDate.
+// BEFORE analog: (testDate < comparisonDate)
+//   testDate is less-recent-than the comparisonDate
+//
+// Because "who is the test date and who is the range value under discussion"
+// can be unclear and the numerical direction of time is not always intuitive,
+// I'm introducing simple BEFORE and SINCE helper functions to try and make
+// the comparison logic ridiculously explicit as well as calling out where we
+// are being consistent with IMAP.
+//
+// Not all of our time logic is consistent with IMAP!  Specifically, use of
+// exclusive time bounds without secondary comparison keys means that ranges
+// defined in this way cannot spread messages with the same timestamp over
+// multiple ranges.  This allows for pathological data structure situations
+// where there's too much data in a data block, etc.
+// Our date ranges are defined by 'startTS' and 'endTS'.  Using math syntax, our
+// IMAP-consistent time ranges end up as: [startTS, endTS).  It is always true
+// that BEFORE(startTS, endTS) and SINCE(endTS, startTS) in these cases.
+//
+// As such, I've also created an ON_OR_BEFORE helper that allows equivalence and
+// STRICTLY_AFTER that does not check equivalence to round out all possibilities
+// while still being rather explicit.
 
-  /**
-   * Sizes are the size of the encoded string, not the decoded value.
-   */
-  function estimatePartSizeInBytes(partInfo) {
-    var encoding = partInfo.encoding;
-    // Base64 encodes 3 bytes in 4 characters with padding that always
-    // causes the encoding to take 4 characters.  The max encoded line length
-    // (ignoring CRLF) is 76 bytes, with 72 bytes also fairly common.
-    // As such, a 78=19*4+2 character line encodes 57=19*3 payload bytes and
-    // we can use that as a rough estimate.
-    if (encoding === 'base64') {
-      return Math.floor(partInfo.size * 57 / 78);
-    }
-    // Quoted printable is hard to predict since only certain things need
-    // to be encoded.  It could be perfectly efficient if the source text
-    // has a bunch of newlines built-in.
-    else if (encoding === 'quoted-printable') {
-      // Let's just provide an upper-bound of perfectly efficient.
-      return partInfo.size;
-    }
-    // No clue; upper bound.
-    return partInfo.size;
-  }
-
-  function chewLeaf(branch) {
-    var partInfo = branch[0], i,
-        filename, disposition;
-
-    // - Detect named parts; they could be attachments
-    if (partInfo.params && partInfo.params.name)
-      filename = partInfo.params.name;
-    else if (partInfo.disposition && partInfo.disposition.params &&
-             partInfo.disposition.params.filename)
-      filename = partInfo.disposition.params.filename;
-    else
-      filename = null;
-
-    // - Start from explicit disposition, make attachment if non-displayable
-    if (partInfo.disposition)
-      disposition = partInfo.disposition.type;
-    // UNTUNED-HEURISTIC (need test cases)
-    // Parts with content ID's explicitly want to be referenced by the message
-    // and so are inline.  (Although we might do well to check if they actually
-    // are referenced.  This heuristic could be very wrong.)
-    else if (partInfo.id)
-      disposition = 'inline';
-    else if (filename || partInfo.type !== 'text')
-      disposition = 'attachment';
-    else
-      disposition = 'inline';
-
-    // Some clients want us to display things inline that we simply can't
-    // display (historically and currently, PDF) or that our usage profile
-    // does not want to automatically download (in the future, PDF, because
-    // they can get big.)
-    if (partInfo.type !== 'text' &&
-        partInfo.type !== 'image')
-      disposition = 'attachment';
-
-    // - But we don't care if they are signatures...
-    if ((partInfo.type === 'application') &&
-        (partInfo.subtype === 'pgp-signature' ||
-         partInfo.subtype === 'pkcs7-signature'))
-      return true;
-
-    function stripArrows(s) {
-      if (s[0] === '<')
-        return s.slice(1, -1);
-      return s;
-    }
-
-    // - Attachments have names and don't have id's for multipart/related
-    if (disposition === 'attachment') {
-      // We probably want to do a MIME mapping here for the extension?
-      if (!filename)
-        filename = 'unnamed-' + (++unnamedPartCounter);
-      attachments.push({
-        name: filename,
-        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
-        part: partInfo.partID,
-        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
-        sizeEstimate: estimatePartSizeInBytes(partInfo),
-        file: null,
-        /*
-        charset: (partInfo.params && partInfo.params.charset &&
-                  partInfo.params.charset.toLowerCase()) || undefined,
-        textFormat: (partInfo.params && partInfo.params.format &&
-                     partInfo.params.format.toLowerCase()) || undefined
-         */
-      });
-      return true;
-    }
-    // (must be inline)
-
-    //
-    if (partInfo.type === 'image') {
-      relatedParts.push({
-        name: stripArrows(partInfo.id), // this is the cid
-        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
-        part: partInfo.partID,
-        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
-        sizeEstimate: estimatePartSizeInBytes(partInfo),
-        file: null,
-        /*
-        charset: (partInfo.params && partInfo.params.charset &&
-                  partInfo.params.charset.toLowerCase()) || undefined,
-        textFormat: (partInfo.params && partInfo.params.format &&
-                     partInfo.params.format.toLowerCase()) || undefined
-         */
-      });
-      return true;
-    }
-
-    // - We must be an inline part or structure
-    switch (partInfo.type) {
-      // - content
-      case 'text':
-        if (partInfo.subtype === 'plain' ||
-            partInfo.subtype === 'html') {
-          bodyParts.push(partInfo);
-          return true;
-        }
-        break;
-    }
-    return false;
-  }
-
-  function chewMultipart(branch) {
-    var partInfo = branch[0], i;
-
-    // - We must be an inline part or structure
-    // I have no idea why the multipart is the 'type' rather than the subtype?
-    switch (partInfo.subtype) {
-      // - for alternative, scan from the back to find the first part we like
-      // XXX I believe in Thunderbird we observed some ridiculous misuse of
-      // alternative that we'll probably want to handle.
-      case 'alternative':
-        for (i = branch.length - 1; i >= 1; i--) {
-          var subPartInfo = branch[i][0];
-
-          switch(subPartInfo.type) {
-            case 'text':
-              // fall out for subtype checking
-              break;
-            case 'multipart':
-              // this is probably HTML with attachments, let's give it a try
-              if (chewMultipart(branch[i]))
-                return true;
-              break;
-            default:
-              // no good, keep going
-              continue;
-          }
-
-          switch (subPartInfo.subtype) {
-            case 'html':
-            case 'plain':
-              // (returns true if successfully handled)
-              if (chewLeaf(branch[i]))
-                return true;
-          }
-        }
-        // (If we are here, we failed to find a valid choice.)
-        return false;
-      // - multipart that we should recurse into
-      case 'mixed':
-      case 'signed':
-      case 'related':
-        for (i = 1; i < branch.length; i++) {
-          if (branch[i].length > 1)
-            chewMultipart(branch[i]);
-          else
-            chewLeaf(branch[i]);
-        }
-        return true;
-
-      default:
-        console.warn('Ignoring multipart type:', partInfo.subtype);
-        return false;
-    }
-  }
-
-  if (msg.structure.length > 1)
-    chewMultipart(msg.structure);
-  else
-    chewLeaf(msg.structure);
-
-  return {
-    msg: msg,
-    bodyParts: bodyParts,
-    attachments: attachments,
-    relatedParts: relatedParts,
-    header: null,
-    bodyInfo: null,
-  };
-};
-
-// What do we think the post-snappy compression overhead of the structured clone
-// persistence rep will be for various things?  These are total guesses right
-// now.  Keep in mind we do want the pre-compression size of the data in all
-// cases and we just hope it will compress a bit.  For the attributes we are
-// including the attribute name as well as any fixed-overhead for its payload,
-// especially numbers which may or may not be zig-zag encoded/etc.
-const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
-      NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
-      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
-      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
-
-const DESIRED_SNIPPET_LENGTH = 100;
 
 /**
- * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
- * fetched in order to finish processing of the message to produce the header
- * and body data-structures for the message.
+ * IMAP-consistent date comparison; read this as "Is `testDate` BEFORE
+ * `comparisonDate`"?
  *
- * This method is currently synchronous because quote-chewing and HTML
- * sanitization can be performed synchronously.  This may need to become
- * asynchronous if we still end up with this happening on the same thread as the
- * UI so we can time slice of something like that.
- *
- * @args[
- *   @param[rep ChewRep]
- *   @param[bodyPartContents @listof[String]]{
- *     The fetched body parts matching the list of requested parts in
- *     `rep.bodyParts`.
- *   }
- * ]
- * @return[success Boolean]{
- *   True if we were able to process the message and have updated `rep.header`
- *   and `rep.bodyInfo` with populated objects.
- * }
+ * !BEFORE(a, b) === SINCE(a, b)
  */
-exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
-                                               folderId) {
-  var snippet = null, bodyReps = [];
-
-  // Mailing lists can result in a text/html body part followed by a text/plain
-  // body part.  Can't rule out multiple HTML parts at this point either, so we
-  // just process everything independently and have the UI do likewise.
-  for (var i = 0; i < rep.bodyParts.length; i++) {
-    var partInfo = rep.bodyParts[i],
-        contents = bodyPartContents[i];
-
-    // HTML parts currently can be synchronously sanitized...
-    switch (partInfo.subtype) {
-      case 'plain':
-        var bodyRep = $quotechew.quoteProcessTextBody(contents);
-        if (!snippet)
-          snippet = $quotechew.generateSnippet(bodyRep,
-                                               DESIRED_SNIPPET_LENGTH);
-        bodyReps.push('plain', bodyRep);
-        break;
-
-      case 'html':
-        var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(contents);
-        if (!snippet)
-          snippet = $htmlchew.generateSnippet(htmlNode, DESIRED_SNIPPET_LENGTH);
-        bodyReps.push('html', htmlNode.innerHTML);
-        break;
-    }
-  }
-
-
-  rep.header = {
-    // the UID (as an integer)
-    id: rep.msg.id,
-    // The sufficiently unique id is a concatenation of the UID onto the
-    // folder id.
-    suid: folderId + '/' + rep.msg.id,
-    // The message-id header value; as GUID as get for now; on gmail we can
-    // use their unique value, or if we could convince dovecot to tell us, etc.
-    guid: rep.msg.msg.meta.messageId,
-    // mailparser models from as an array; we do not.
-    author: rep.msg.msg.from[0] || null,
-    date: rep.msg.date,
-    flags: rep.msg.flags,
-    hasAttachments: rep.attachments.length > 0,
-    subject: rep.msg.msg.subject,
-    snippet: snippet,
-  };
-
-
-  // crappy size estimates where we assume the world is ASCII and so a UTF-8
-  // encoding will take exactly 1 byte per character.
-  var sizeEst = OBJ_OVERHEAD_EST + NUM_ATTR_OVERHEAD_EST +
-                  4 * NULL_ATTR_OVERHEAD_EST;
-  function sizifyAddrs(addrs) {
-    sizeEst += LIST_ATTR_OVERHEAD_EST;
-    for (var i = 0; i < addrs.length; i++) {
-      var addrPair = addrs[i];
-      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
-                   addrPair.name.length + addrPair.address.length;
-    }
-    return addrs;
-  }
-  function sizifyAttachments(atts) {
-    sizeEst += LIST_ATTR_OVERHEAD_EST;
-    for (var i = 0; i < atts.length; i++) {
-      var att = atts[i];
-      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
-                   att.name.length + att.type.length +
-                   NUM_ATTR_OVERHEAD_EST;
-    }
-    return atts;
-  }
-  function sizifyStr(str) {
-    sizeEst += STR_ATTR_OVERHEAD_EST + str.length;
-    return str;
-  }
-  function sizifyBodyRep(rep) {
-    sizeEst += LIST_OVERHEAD_EST +
-                 NUM_OVERHEAD_EST * (rep.length / 2) +
-                 STR_OVERHEAD_EST * (rep.length / 2);
-    for (var i = 1; i < rep.length; i += 2) {
-      if (rep[i])
-        sizeEst += rep[i].length;
-    }
-    return rep;
-  };
-  function sizifyBodyReps(reps) {
-    sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
-    for (var i = 0; i < reps.length; i += 2) {
-      var type = reps[i], rep = reps[i + 1];
-      if (type === 'html')
-        sizeEst += STR_OVERHEAD_EST + rep.length;
-      else
-        sizeEst += sizifyBodyRep(rep);
-    }
-    return reps;
-  };
-
-  rep.bodyInfo = {
-    date: rep.msg.date,
-    size: sizeEst,
-    to: ('to' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.to) : null,
-    cc: ('cc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.cc) : null,
-    bcc: ('bcc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.bcc) : null,
-    replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
-               sizifyStr(rep.msg.msg.parsedHeaders['reply-to']) : null,
-    attachments: sizifyAttachments(rep.attachments),
-    relatedParts: sizifyAttachments(rep.relatedParts),
-    references: rep.msg.msg.meta.references,
-    bodyReps: sizifyBodyReps(bodyReps),
-  };
-
-  return true;
+const BEFORE = exports.BEFORE =
+      function BEFORE(testDate, comparisonDate) {
+  // testDate is numerically less than comparisonDate, so it is chronologically
+  // before it.
+  return testDate < comparisonDate;
 };
 
-}); // end define
-;
+const ON_OR_BEFORE = exports.ON_OR_BEFORE =
+      function ON_OR_BEFORE(testDate, comparisonDate) {
+  return testDate <= comparisonDate;
+};
+
+/**
+ * IMAP-consistent date comparison; read this as "Is `testDate` SINCE
+ * `comparisonDate`"?
+ *
+ * !SINCE(a, b) === BEFORE(a, b)
+ */
+const SINCE = exports.SINCE =
+      function SINCE(testDate, comparisonDate) {
+  // testDate is numerically greater-than-or-equal-to comparisonDate, so it
+  // chronologically after/since it.
+  return testDate >= comparisonDate;
+};
+
+const STRICTLY_AFTER = exports.STRICTLY_AFTER =
+      function STRICTLY_AFTER(testDate, comparisonDate) {
+  return testDate > comparisonDate;
+};
+
+const IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
+      function IN_BS_DATE_RANGE(testDate, startTS, endTS) {
+  return testDate >= startTS && testDate < endTS;
+};
+
+//function DATE_RANGES_OVERLAP(A_startTS, A_endTS, B_startTS, B_endTS) {
+//}
+
+const HOUR_MILLIS = exports.HOUR_MILLIS = 60 * 60 * 1000;
+const DAY_MILLIS = exports.DAY_MILLIS = 24 * 60 * 60 * 1000;
+
+/**
+ * Testing override that when present replaces use of Date.now().
+ */
+var TIME_WARPED_NOW = null, FUTURE_TIME_WARPED_NOW = null;
+
+/**
+ * Pretend that 'now' is actually a fixed point in time for the benefit of
+ * unit tests using canned message stores.
+ */
+exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
+  if (typeof(fakeNow) !== 'number')
+    fakeNow = fakeNow.valueOf();
+  TIME_WARPED_NOW = fakeNow;
+  // because of exclusive time comparison ops , we actually want to use the first
+  // day after the TIME_WARPED_NOW...
+  FUTURE_TIME_WARPED_NOW = quantizeDate(fakeNow + DAY_MILLIS);
+};
+
+const NOW = exports.NOW =
+      function NOW() {
+  return TIME_WARPED_NOW || Date.now();
+};
+const FUTURE = exports.FUTURE =
+      function FUTURE() {
+  return FUTURE_TIME_WARPED_NOW || null;
+};
+
+/**
+ * Make a timestamp some number of days in the past, quantized to midnight of
+ * that day.  This results in rounding up; if it's noon right now and you
+ * ask for 2 days ago, you really get 2.5 days worth of time.
+ */
+const makeDaysAgo = exports.makeDaysAgo =
+      function makeDaysAgo(numDays) {
+  var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
+      //past = now - numDays * DAY_MILLIS;
+      past = (FUTURE_TIME_WARPED_NOW || quantizeDate(Date.now())) -
+               (numDays + 1) * DAY_MILLIS;
+  return past;
+};
+const makeDaysBefore = exports.makeDaysBefore =
+      function makeDaysBefore(date, numDaysBefore) {
+  return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
+};
+/**
+ * Quantize a date to midnight on that day.
+ */
+const quantizeDate = exports.quantizeDate =
+      function quantizeDate(date) {
+  if (typeof(date) === 'number')
+    date = new Date(date);
+  return date.setHours(0, 0, 0, 0).valueOf();
+};
+
+}); // end define;
+define('mailapi/syncbase',
+  [
+    './date',
+    'exports'
+  ],
+  function(
+    $date,
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Display Heuristic Time Values
+//
+// Here are some values we can tweak to try and strike a balance between how
+// long before we display something when entering a folder and avoiding visual
+// churn as new messages are added to the display.
+//
+// These are not constants because unit tests need to muck with these.
+
+/**
+ * How recently do we have to have synced a folder for us to to treat a request
+ * to enter the folder as a database-backed load followed by a refresh rather
+ * than falling back to known-date-range sync (which does not display anything
+ * until the sync has completed) or (the same thing we use for initial sync)
+ * iterative deepening?
+ *
+ * This is sync strategy #1 per `sliceOpenFromNow`.
+ *
+ * A good value is approximately how long we would expect it to take for V/2
+ * messages to show up in the folder, where V is the number of messages the
+ * device's screen can display at a time.  This is because since we will
+ * populate the folder prior to the refresh, any new messages will end up
+ * displacing the messages.
+ *
+ * There are non-inbox and inbox variants of this value because we expect
+ * churn in the INBOX to happen at a much different rate than other boxes.
+ * Ideally, we might also be able to detect folders that have new things
+ * filtered into them, as that will affect this too.
+ *
+ * There is also a third variant for folders that we have previously
+ * synchronized and found that their messages start waaaay in the past,
+ * suggesting that this is some type of archival folder with low churn,
+ * `REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH`.
+ */
+exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX = 6 * $date.HOUR_MILLIS;
+exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX = 2 * $date.HOUR_MILLIS;
+
+/**
+ * If the most recent message in a folder is older than this threshold, then
+ * we assume it's some type of archival folder and so is unlikely to have any
+ * meaningful churn so a refresh is optimal.  Also, the time range is
+ * far enough back that our deepening strategy would result in unacceptable
+ * latency.
+ */
+exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH = 4 * 30 * $date.DAY_MILLIS;
+exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD = 2 * 30 * $date.DAY_MILLIS;
+
+/**
+ * How recently do we have to have synced a folder for us to reuse the known
+ * date bounds of the messages contained in the folder as the basis for our
+ * sync?  We will perform a sync with this date range before displaying any
+ * messages, avoiding churn should new messages have appeared.
+ *
+ * This is sync strategy #2 per `sliceOpenFromNow`, and is the fallback mode
+ * if the #1 strategy is not appropriate.
+ *
+ * This is most useful for folders with a message density lower than
+ * INITIAL_FILL_SIZE / INITIAL_SYNC_DAYS messages/day.  If we are able
+ * to characterize folders based on whether new messages show up in them
+ * based on some reliable information, then we could let #1 handle more cases
+ * that this case currently covers.
+ */
+exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * $date.DAY_MILLIS;
+exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * $date.HOUR_MILLIS;
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * How many messages should we send to the UI in the first go?
+ */
+exports.INITIAL_FILL_SIZE = 15;
+
+/**
+ * How many days in the past should we first look for messages.
+ */
+exports.INITIAL_SYNC_DAYS = 3;
+
+/**
+ * What should be multiple the current number of sync days by when we perform
+ * a sync and don't find any messages?  There are upper bounds in
+ * `FolderStorage.onSyncCompleted` that cap this and there's more comments
+ * there.
+ */
+exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
+
+/**
+ * What is the furthest back in time we are willing to go?  This is an
+ * arbitrary choice to avoid our logic going crazy, not to punish people with
+ * comprehensive mail collections.
+ */
+exports.OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
+
+/**
+ * If we issued a search for a date range and we are getting told about more
+ * than the following number of messages, we will try and reduce the date
+ * range proportionately (assuming a linear distribution) so that we sync
+ * a smaller number of messages.  This will result in some wasted traffic
+ * but better a small wasted amount (for UIDs) than a larger wasted amount
+ * (to get the dates for all the messages.)
+ */
+exports.BISECT_DATE_AT_N_MESSAGES = 50;
+
+/**
+ * What's the maximum number of messages we should ever handle in a go and
+ * where we should start failing by pretending like we haven't heard of the
+ * excess messages?  This is a question of message time-density and not a
+ * limitation on the number of messages in a folder.
+ *
+ * This could be eliminated by adjusting time ranges when we know the
+ * density is high (from our block indices) or by re-issuing search results
+ * when the server is telling us more than we can handle.
+ */
+exports.TOO_MANY_MESSAGES = 2000;
+
+/**
+ * Testing support to adjust the value we use for the number of initial sync
+ * days.  The tests are written with a value in mind (7), but 7 turns out to
+ * be too high an initial value for actual use, but is fine for tests.
+ */
+exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
+  exports.INITIAL_FILL_SIZE = syncValues.fillSize;
+  exports.INITIAL_SYNC_DAYS = syncValues.days;
+
+  exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
+  TOO_MANY_MESSAGES = syncValues.tooMany;
+
+  exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
+
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
+    syncValues.refreshNonInbox;
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
+    syncValues.refreshInbox;
+  exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
+    syncValues.oldIsSafeForRefresh;
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
+    syncValues.refreshOld;
+
+  USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
+    syncValues.useRangeNonInbox;
+  USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
+    syncValues.useRangeInbox;
+};
+
+}); // end define;
 /**
  * Presents a message-centric view of a slice of time from IMAP search results.
  *
@@ -19415,7 +19780,7 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
  * a slice that is a result of a search to act as if they were dealing with
  * different messages.  Similarly, it would be silly in gmail for us to fetch
  * a message that we know is the same message across multiple (labels as)
- * folders.  So we abstract away the storage details to `ImapFolderStorage`.
+ * folders.  So we abstract away the storage details to `FolderStorage`.
  *
  * == Latency, offline access, and IMAP
  *
@@ -19425,67 +19790,65 @@ exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
  *
  **/
 
-define('mailapi/imap/slice',
+define('mailapi/mailslice',
   [
     'rdcommon/log',
-    'mailparser/mailparser',
-    '../a64',
-    '../allback',
-    '../util',
-    './imapchew',
+    './util',
+    './a64',
+    './date',
+    './syncbase',
     'module',
     'exports'
   ],
   function(
     $log,
-    $mailparser,
+    $util,
     $a64,
-    $allback,
-    $imaputil,
-    $imapchew,
+    $date,
+    $sync,
     $module,
     exports
   ) {
-const allbackMaker = $allback.allbackMaker,
-      bsearchForInsert = $imaputil.bsearchForInsert,
-      bsearchMaybeExists = $imaputil.bsearchMaybeExists;
+const bsearchForInsert = $util.bsearchForInsert,
+      bsearchMaybeExists = $util.bsearchMaybeExists,
+      cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
+      BEFORE = $date.BEFORE,
+      ON_OR_BEFORE = $date.ON_OR_BEFORE,
+      SINCE = $date.SINCE,
+      STRICTLY_AFTER = $date.STRICTLY_AFTER,
+      IN_BS_DATE_RANGE = $date.IN_BS_DATE_RANGE,
+      HOUR_MILLIS = $date.HOUR_MILLIS,
+      DAY_MILLIS = $date.DAY_MILLIS,
+      NOW = $date.NOW,
+      FUTURE = $date.FUTURE,
+      makeDaysAgo = $date.makeDaysAgo,
+      makeDaysBefore = $date.makeDaysBefore,
+      quantizeDate = $date.quantizeDate;
 
 /**
- * Compact an array in-place with nulls so that the nulls are removed.  This
- * is done by a scan with an adjustment delta and a final splice to remove
- * the spares.
+ * What is the maximum number of bytes a block should store before we split
+ * it?
  */
-function compactArray(arr) {
-  // this could also be done with a write pointer.
-  var delta = 0, len = arr.length;
-  for (var i = 0; i < len; i++) {
-    var obj = arr[i];
-    if (obj === null) {
-      delta++;
-      continue;
-    }
-    if (delta)
-      arr[i - delta] = obj;
-  }
-  if (delta)
-    arr.splice(len - delta, delta);
-  return arr;
-}
+const MAX_BLOCK_SIZE = 96 * 1024,
+/**
+ * How many bytes should we target for the small part when splitting 1:2?
+ */
+      BLOCK_SPLIT_SMALL_PART = 32 * 1024,
+/**
+ * How many bytes should we target for equal parts when splitting 1:1?
+ */
+      BLOCK_SPLIT_EQUAL_PART = 48 * 1024,
+/**
+ * How many bytes should we target for the large part when splitting 1:2?
+ */
+      BLOCK_SPLIT_LARGE_PART = 64 * 1024;
 
 /**
- * Header info comparator that orders messages in order of numerically
- * decreasing date and UIDs.  So new messages come before old messages,
- * and messages with higher UIDs (newer-ish) before those with lower UIDs
- * (when the date is the same.)
+ * The estimated size of a `HeaderInfo` structure.  We are using a constant
+ * since there is not a lot of variability in what we are storing and this
+ * is probably good enough.
  */
-function cmpHeaderYoungToOld(a, b) {
-  var delta = b.date - a.date;
-  if (delta)
-    return delta;
-  // favor larger UIDs because they are newer-ish.
-  return b.id - a.id;
-}
-
+const HEADER_EST_SIZE_IN_BYTES = exports.HEADER_EST_SIZE_IN_BYTES = 200;
 
 /**
  * Book-keeping and limited agency for the slices.
@@ -19515,11 +19878,11 @@ function cmpHeaderYoungToOld(a, b) {
  *   limits made effective.  To this end, we do not generate any splices until
  *   sync is complete and then generate a single slice.
  */
-function ImapSlice(bridgeHandle, storage, _parentLog) {
+function MailSlice(bridgeHandle, storage, _parentLog) {
   this._bridgeHandle = bridgeHandle;
   bridgeHandle.__listener = this;
   this._storage = storage;
-  this._LOG = LOGFAB.ImapSlice(this, _parentLog, bridgeHandle._handle);
+  this._LOG = LOGFAB.MailSlice(this, _parentLog, bridgeHandle._handle);
 
   // The time range of the headers we are looking at right now.
   this.startTS = null;
@@ -19546,10 +19909,10 @@ function ImapSlice(bridgeHandle, storage, _parentLog) {
    * @listof[HeaderInfo]
    */
   this.headers = [];
-  this.desiredHeaders = INITIAL_FILL_SIZE;
+  this.desiredHeaders = $sync.INITIAL_FILL_SIZE;
 }
-exports.ImapSlice = ImapSlice;
-ImapSlice.prototype = {
+exports.MailSlice = MailSlice;
+MailSlice.prototype = {
   set atTop(val) {
     this._bridgeHandle.atTop = val;
   },
@@ -19578,6 +19941,12 @@ ImapSlice.prototype = {
   /**
    * Clear out any known headers because a refresh went wrong and so we are
    * converting our refresh into a sync.
+   *
+   * @args[
+   *   @param[resetRanges Boolean]{
+   *     True if the start/end timestamps/UIDs should also be reset
+   *   }
+   * ]
    */
   _resetHeadersBecauseOfRefreshExplosion: function() {
     if (this.headers.length) {
@@ -19586,6 +19955,7 @@ ImapSlice.prototype = {
       if (!this._accumulating)
         this._bridgeHandle.sendSplice(0, this.headers.length, [], false, true);
       this.headers.splice(0, this.headers.length);
+
       this.startTS = null;
       this.startUID = null;
       this.endTS = null;
@@ -19654,9 +20024,9 @@ ImapSlice.prototype = {
 
   reqGrow: function(dirMagnitude, userRequestsGrowth) {
     if (dirMagnitude === -1)
-      dirMagnitude = -INITIAL_FILL_SIZE;
+      dirMagnitude = -$sync.INITIAL_FILL_SIZE;
     else if (dirMagnitude === 1)
-      dirMagnitude = INITIAL_FILL_SIZE;
+      dirMagnitude = $sync.INITIAL_FILL_SIZE;
     this._storage.growSlice(this, dirMagnitude, userRequestsGrowth);
   },
 
@@ -19736,8 +20106,7 @@ ImapSlice.prototype = {
     if (!this._bridgeHandle)
       return;
 
-    var idx = bsearchForInsert(this.headers, header,
-                               cmpHeaderYoungToOld);
+    var idx = bsearchForInsert(this.headers, header, cmpHeaderYoungToOld);
 
     var hlen = this.headers.length;
     // Don't append the header if it would expand us beyond our requested amount
@@ -19786,8 +20155,7 @@ ImapSlice.prototype = {
       return;
 
     // this can only affect flags which will not affect ordering
-    var idx = bsearchMaybeExists(this.headers, header,
-                                 cmpHeaderYoungToOld);
+    var idx = bsearchMaybeExists(this.headers, header, cmpHeaderYoungToOld);
     if (idx !== null) {
       // There is no identity invariant to ensure this is already true.
       this.headers[idx] = header;
@@ -19805,8 +20173,7 @@ ImapSlice.prototype = {
     if (!this._bridgeHandle)
       return;
 
-    var idx = bsearchMaybeExists(this.headers, header,
-                                 cmpHeaderYoungToOld);
+    var idx = bsearchMaybeExists(this.headers, header, cmpHeaderYoungToOld);
     if (idx !== null) {
       this._LOG.headerRemoved(idx, header);
       if (!this._accumulating)
@@ -19843,883 +20210,6 @@ ImapSlice.prototype = {
   die: function() {
     this._bridgeHandle = null;
     this._storage.dyingSlice(this);
-    this._LOG.__die();
-  },
-};
-
-/**
- * We don't care about deleted messages, it's best that we're not aware of them.
- * However, it's important to keep in mind that this means that EXISTS provides
- * us with an upper bound on the messages in the folder since we are blinding
- * ourselves to deleted messages.
- */
-const BASELINE_SEARCH_OPTIONS = ['!DELETED'];
-
-/**
- * What is the maximum number of bytes a block should store before we split
- * it?
- */
-const MAX_BLOCK_SIZE = 96 * 1024,
-/**
- * How many bytes should we target for the small part when splitting 1:2?
- */
-      BLOCK_SPLIT_SMALL_PART = 32 * 1024,
-/**
- * How many bytes should we target for equal parts when splitting 1:1?
- */
-      BLOCK_SPLIT_EQUAL_PART = 48 * 1024,
-/**
- * How many bytes should we target for the large part when splitting 1:2?
- */
-      BLOCK_SPLIT_LARGE_PART = 64 * 1024;
-
-////////////////////////////////////////////////////////////////////////////////
-// Time
-//
-// == JS Dates
-//
-// We primarily deal in UTC timestamps.  When we need to talk dates with IMAP
-// (see next section), we need these timestamps to line up with midnight for
-// a given day.  We do not need to line up with weeks, months, or years,
-// saving us a lot of complexity.
-//
-// Day algebra is straightforward because JS Date objects have no concept of
-// leap seconds.  We don't need to worry that a leap second will cause adding
-// a day to be less than or more than a day.  Hooray!
-//
-// == IMAP and Time
-//
-// The stock IMAP SEARCH command's SINCE and BEFORE predicates only operate on
-// whole-dates (and ignore the non-date time parts).  Additionally, SINCE is
-// inclusive and BEFORE is exclusive.
-//
-// We use JS millisecond timestamp values throughout, and it's important to us
-// that our date logic is consistent with IMAP's time logic where relevant.
-// All of our IMAP-exposed time-interval related logic operates on day
-// granularities.  Our timestamp/date values are always normalized to midnight
-// which happily works out with intuitive range operations.
-//
-// Observe the pretty ASCII art where as you move to the right you are moving
-// forward in time.
-//
-//             ________________________________________
-//      BEFORE)| midnight (0 millis) ... 11:59:59:999 |
-// ON_OR_BEFORE]
-//             [SINCE......................................
-//              (AFTER.....................................
-//
-// Our date range comparisons (noting that larger timestamps are 'younger') are:
-// SINCE analog:  (testDate >= comparisonDate)
-//   testDate is as-recent-as or more-recent-than the comparisonDate.
-// BEFORE analog: (testDate < comparisonDate)
-//   testDate is less-recent-than the comparisonDate
-//
-// Because "who is the test date and who is the range value under discussion"
-// can be unclear and the numerical direction of time is not always intuitive,
-// I'm introducing simple BEFORE and SINCE helper functions to try and make
-// the comparison logic ridiculously explicit as well as calling out where we
-// are being consistent with IMAP.
-//
-// Not all of our time logic is consistent with IMAP!  Specifically, use of
-// exclusive time bounds without secondary comparison keys means that ranges
-// defined in this way cannot spread messages with the same timestamp over
-// multiple ranges.  This allows for pathological data structure situations
-// where there's too much data in a data block, etc.
-// Our date ranges are defined by 'startTS' and 'endTS'.  Using math syntax, our
-// IMAP-consistent time ranges end up as: [startTS, endTS).  It is always true
-// that BEFORE(startTS, endTS) and SINCE(endTS, startTS) in these cases.
-//
-// As such, I've also created an ON_OR_BEFORE helper that allows equivalence and
-// STRICTLY_AFTER that does not check equivalence to round out all possibilities
-// while still being rather explicit.
-
-
-/**
- * IMAP-consistent date comparison; read this as "Is `testDate` BEFORE
- * `comparisonDate`"?
- *
- * !BEFORE(a, b) === SINCE(a, b)
- */
-function BEFORE(testDate, comparisonDate) {
-  // testDate is numerically less than comparisonDate, so it is chronologically
-  // before it.
-  return testDate < comparisonDate;
-}
-
-function ON_OR_BEFORE(testDate, comparisonDate) {
-  return testDate <= comparisonDate;
-}
-
-/**
- * IMAP-consistent date comparison; read this as "Is `testDate` SINCE
- * `comparisonDate`"?
- *
- * !SINCE(a, b) === BEFORE(a, b)
- */
-function SINCE(testDate, comparisonDate) {
-  // testDate is numerically greater-than-or-equal-to comparisonDate, so it
-  // chronologically after/since it.
-  return testDate >= comparisonDate;
-}
-
-function STRICTLY_AFTER(testDate, comparisonDate) {
-  return testDate > comparisonDate;
-}
-
-function IN_BS_DATE_RANGE(testDate, startTS, endTS) {
-  return testDate >= startTS && testDate < endTS;
-}
-
-//function DATE_RANGES_OVERLAP(A_startTS, A_endTS, B_startTS, B_endTS) {
-//}
-
-/**
- * The estimated size of a `HeaderInfo` structure.  We are using a constant
- * since there is not a lot of variability in what we are storing and this
- * is probably good enough.
- */
-const HEADER_EST_SIZE_IN_BYTES = exports.HEADER_EST_SIZE_IN_BYTES = 200;
-
-const HOUR_MILLIS = 60 * 60 * 1000;
-const DAY_MILLIS = 24 * 60 * 60 * 1000;
-
-/**
- * Testing override that when present replaces use of Date.now().
- */
-var TIME_WARPED_NOW = null, FUTURE_TIME_WARPED_NOW = null;
-/**
- * Pretend that 'now' is actually a fixed point in time for the benefit of
- * unit tests using canned message stores.
- */
-exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
-  if (typeof(fakeNow) !== 'number')
-    fakeNow = fakeNow.valueOf();
-  TIME_WARPED_NOW = fakeNow;
-  // because of exclusive time comparison ops , we actually want to use the first
-  // day after the TIME_WARPED_NOW...
-  FUTURE_TIME_WARPED_NOW = quantizeDate(fakeNow + DAY_MILLIS);
-};
-
-/**
- * Make a timestamp some number of days in the past, quantized to midnight of
- * that day.  This results in rounding up; if it's noon right now and you
- * ask for 2 days ago, you really get 2.5 days worth of time.
- */
-function makeDaysAgo(numDays) {
-  var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
-      //past = now - numDays * DAY_MILLIS;
-      past = (FUTURE_TIME_WARPED_NOW || quantizeDate(Date.now())) -
-               (numDays + 1) * DAY_MILLIS;
-  return past;
-}
-function makeDaysBefore(date, numDaysBefore) {
-  return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
-}
-/**
- * Quantize a date to midnight on that day.
- */
-function quantizeDate(date) {
-  if (typeof(date) === 'number')
-    date = new Date(date);
-  return date.setHours(0, 0, 0, 0).valueOf();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// Display Heuristic Time Values
-//
-// Here are some values we can tweak to try and strike a balance between how
-// long before we display something when entering a folder and avoiding visual
-// churn as new messages are added to the display.
-//
-// These are not constants because unit tests need to muck with these.
-
-/**
- * How recently do we have to have synced a folder for us to to treat a request
- * to enter the folder as a database-backed load followed by a refresh rather
- * than falling back to known-date-range sync (which does not display anything
- * until the sync has completed) or (the same thing we use for initial sync)
- * iterative deepening?
- *
- * This is sync strategy #1 per `sliceOpenFromNow`.
- *
- * A good value is approximately how long we would expect it to take for V/2
- * messages to show up in the folder, where V is the number of messages the
- * device's screen can display at a time.  This is because since we will
- * populate the folder prior to the refresh, any new messages will end up
- * displacing the messages.
- *
- * There are non-inbox and inbox variants of this value because we expect
- * churn in the INBOX to happen at a much different rate than other boxes.
- * Ideally, we might also be able to detect folders that have new things
- * filtered into them, as that will affect this too.
- *
- * There is also a third variant for folders that we have previously
- * synchronized and found that their messages start waaaay in the past,
- * suggesting that this is some type of archival folder with low churn,
- * `SYNC_REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH`.
- */
-var SYNC_REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX = 6 * HOUR_MILLIS;
-var SYNC_REFRESH_USABLE_DATA_TIME_THRESH_INBOX = 2 * HOUR_MILLIS;
-
-/**
- * If the most recent message in a folder is older than this threshold, then
- * we assume it's some type of archival folder and so is unlikely to have any
- * meaningful churn so a refresh is optimal.  Also, the time range is
- * far enough back that our deepening strategy would result in unacceptable
- * latency.
- */
-var SYNC_REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH = 4 * 30 * DAY_MILLIS;
-var SYNC_REFRESH_USABLE_DATA_TIME_THRESH_OLD = 2 * 30 * DAY_MILLIS;
-
-/**
- * How recently do we have to have synced a folder for us to reuse the known
- * date bounds of the messages contained in the folder as the basis for our
- * sync?  We will perform a sync with this date range before displaying any
- * messages, avoiding churn should new messages have appeared.
- *
- * This is sync strategy #2 per `sliceOpenFromNow`, and is the fallback mode
- * if the #1 strategy is not appropriate.
- *
- * This is most useful for folders with a message density lower than
- * INITIAL_FILL_SIZE / INITIAL_SYNC_DAYS messages/day.  If we are able
- * to characterize folders based on whether new messages show up in them
- * based on some reliable information, then we could let #1 handle more cases
- * that this case currently covers.
- */
-var SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * DAY_MILLIS;
-var SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * HOUR_MILLIS;
-
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * How many messages should we send to the UI in the first go?
- */
-var INITIAL_FILL_SIZE = 15;
-
-/**
- * How many days in the past should we first look for messages.
- */
-var INITIAL_SYNC_DAYS = 3;
-
-/**
- * What should be multiple the current number of sync days by when we perform
- * a sync and don't find any messages?  There are upper bounds in
- * `ImapFolderStorage.onSyncCompleted` that cap this and there's more comments
- * there.
- */
-var TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
-
-/**
- * What is the furthest back in time we are willing to go?  This is an
- * arbitrary choice to avoid our logic going crazy, not to punish people with
- * comprehensive mail collections.
- */
-const OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
-
-/**
- * If we issued a search for a date range and we are getting told about more
- * than the following number of messages, we will try and reduce the date
- * range proportionately (assuming a linear distribution) so that we sync
- * a smaller number of messages.  This will result in some wasted traffic
- * but better a small wasted amount (for UIDs) than a larger wasted amount
- * (to get the dates for all the messages.)
- */
-var SYNC_BISECT_DATE_AT_N_MESSAGES = 50;
-
-/**
- * What's the maximum number of messages we should ever handle in a go and
- * where we should start failing by pretending like we haven't heard of the
- * excess messages?  This is a question of message time-density and not a
- * limitation on the number of messages in a folder.
- *
- * This could be eliminated by adjusting time ranges when we know the
- * density is high (from our block indices) or by re-issuing search results
- * when the server is telling us more than we can handle.
- */
-var TOO_MANY_MESSAGES = 2000;
-
-/**
- * Testing support to adjust the value we use for the number of initial sync
- * days.  The tests are written with a value in mind (7), but 7 turns out to
- * be too high an initial value for actual use, but is fine for tests.
- */
-exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
-  INITIAL_FILL_SIZE = syncValues.fillSize;
-  INITIAL_SYNC_DAYS = syncValues.days;
-
-  SYNC_BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  TOO_MANY_MESSAGES = syncValues.tooMany;
-
-  TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
-
-  SYNC_REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
-    syncValues.refreshNonInbox;
-  SYNC_REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
-    syncValues.refreshInbox;
-  SYNC_REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
-    syncValues.oldIsSafeForRefresh;
-  SYNC_REFRESH_USABLE_DATA_TIME_THRESH_OLD =
-    syncValues.refreshOld;
-
-  SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
-    syncValues.useRangeNonInbox;
-  SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
-    syncValues.useRangeInbox;
-};
-
-
-/**
- * Fetch parameters to get the headers / bodystructure; exists to reuse the
- * object since every fetch is the same.  Note that imap.js always gives us
- * FLAGS and INTERNALDATE so we don't need to ask for that.
- *
- * We are intentionally not using ENVELOPE because Thunderbird intentionally
- * defaults to to not using ENVELOPE.  Per bienvenu in
- * https://bugzilla.mozilla.org/show_bug.cgi?id=402594#c33 "We stopped using it
- * by default because servers often had issues with it so it was more trouble
- * than it was worth."
- *
- * Of course, imap.js doesn't really support ENVELOPE outside of bodystructure
- * right now either, but that's a lesser issue.  We probably don't want to trust
- * that data, however, if we don't want to trust normal ENVELOPE.
- */
-const INITIAL_FETCH_PARAMS = {
-  request: {
-    headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID',
-              'REFERENCES'],
-    struct: true
-  },
-};
-
-/**
- * Fetch parameters to just get the flags, which is no parameters because
- * imap.js always fetches them right now.
- */
-const FLAG_FETCH_PARAMS = {
-  request: {
-  },
-};
-
-
-/**
- * Folder connections do the actual synchronization logic.  They are associated
- * with one or more `ImapSlice` instances that issue the requests that trigger
- * synchronization.  Storage is handled by `ImapFolderStorage` or
- * `GmailMessageStorage` instances.
- *
- * == IMAP Protocol Connection Management
- *
- * We request IMAP protocol connections from the account.  There is currently no
- * way for us to surrender our connection or indicate to the account that we
- * are capable of surrending the connection.  That might be a good idea, though.
- *
- * All accesses to a folder's connection should be done through an
- * `ImapFolderConn`, even if the actual mutation logic is being driven by code
- * living in the account.
- *
- * == IDLE
- *
- * We plan to IDLE in folders that we have active slices in.  We are assuming
- * the most basic IDLE implementation where it will tell us when the number
- * of messages increases (EXISTS), or decreases (EXPUNGE and EXISTS), with no
- * notifications when flags change.  (This is my current understanding of how
- * gmail operates from internet searches; we're not quite yet to protocol
- * experimentation yet.)
- *
- * The idea is accordingly that we will use IDLE notifications as a hint that
- * we should do a SEARCH for new messages.  It is that search that will update
- * our accuracy information and only that.
- */
-function ImapFolderConn(account, storage, _parentLog) {
-  this._account = account;
-  this._storage = storage;
-  this._LOG = LOGFAB.ImapFolderConn(this, _parentLog, storage.folderId);
-
-  this._conn = null;
-  this.box = null;
-}
-ImapFolderConn.prototype = {
-  /**
-   * Acquire a connection and invoke the callback once we have it and we have
-   * entered the folder.
-   *
-   * XXX This is inherently dangerous in the face of concurrent attempts to
-   * call this method or check whether it has completed.  We need to move to
-   * our queue of operations on the folder, or ensure that a higher level layer
-   * is enforcing this.  To be done with proper mutation logic impl.
-   */
-  acquireConn: function(callback) {
-    var self = this;
-    this._account.__folderDemandsConnection(
-      this._storage.folderId,
-      function(conn) {
-        self._conn = conn;
-        // Now we have a connection, but it's not in the folder.
-        // (If we were doing fancier sync like QRESYNC, we would not enter
-        // in such a blase fashion.)
-        self._conn.openBox(self._storage.folderMeta.path,
-                           function openedBox(err, box) {
-            if (err) {
-              console.error('Problem entering folder',
-                            self._storage.folderMeta.path);
-              return;
-            }
-            self.box = box;
-            callback(self);
-          });
-      });
-  },
-
-  relinquishConn: function() {
-    if (!this._conn)
-      return;
-
-    this._account.__folderDoneWithConnection(this._storage.folderId,
-                                             this._conn);
-    this._conn = null;
-  },
-
-  /**
-   * Wrap the search command and shirk the errors for now.  I was thinking we
-   * might have this do automatic connection re-establishment, etc., but I think
-   * it makes more sense to have the IMAP protocol connection object do that
-   * under the hood or in participation with the account class via another
-   * interface since it already handles command queueing.
-   *
-   * This also conveniently hides the connection acquisition asynchrony.
-   */
-  _reliaSearch: function(searchOptions, callback) {
-    // If we don't have a connection, get one, then re-call.
-    if (!this._conn) {
-      this.acquireConn(this._reliaSearch.bind(this, searchOptions, callback));
-      return;
-    }
-
-    this._conn.search(searchOptions, function(err, uids) {
-        if (err) {
-          console.error('Search error on', searchOptions, 'err:', err);
-          return;
-        }
-        callback(uids);
-      });
-  },
-
-  /**
-   * Perform a search to find all the messages in the given date range.
-   * Meanwhile, load the set of messages from storage.  Infer deletion of the
-   * messages we already know about that should exist in the search results but
-   * do not.  Retrieve information on the messages we don't know anything about
-   * and update the metadata on the messages we do know about.
-   *
-   * An alternate way to accomplish the new/modified/deleted detection for a
-   * range might be to do a search over the UID range of new-to-us UIDs and
-   * then perform retrieval on what we get back.  We would do a flag fetch for
-   * all the UIDs we already know about and use that to both get updated
-   * flags and infer deletions from UIDs that don't report back.  Except that
-   * might not work because the standard doesn't seem to say that if we
-   * specify gibberish UIDs that it should keep going for the UIDs that are
-   * not gibberish.  Also, it's not clear what the performance impact of the
-   * additional search constraint might be on server performance.  (Of course,
-   * if the server does not have an index on internaldate, these queries are
-   * going to be very expensive and the UID limitation would probably be a
-   * mercy to the server.)
-   */
-  syncDateRange: function(startTS, endTS, accuracyStamp, useBisectLimit,
-                          doneCallback) {
-console.log("syncDateRange:", startTS, endTS);
-    var searchOptions = BASELINE_SEARCH_OPTIONS.concat(), self = this,
-      storage = self._storage;
-    if (!useBisectLimit)
-      useBisectLimit = SYNC_BISECT_DATE_AT_N_MESSAGES;
-    if (startTS)
-      searchOptions.push(['SINCE', startTS]);
-    if (endTS)
-      searchOptions.push(['BEFORE', endTS]);
-
-    var callbacks = allbackMaker(
-      ['search', 'db'],
-      function syncDateRangeLogic(results) {
-        var serverUIDs = results.search, headers = results.db,
-            knownUIDs = [], uid, numDeleted = 0,
-            modseq = self._conn._state.box.highestModSeq || '';
-
-console.log('SERVER UIDS', serverUIDs.length, useBisectLimit);
-        if (serverUIDs.length > useBisectLimit) {
-          var effEndTS = endTS || FUTURE_TIME_WARPED_NOW ||
-                           quantizeDate(Date.now() + DAY_MILLIS),
-              curDaysDelta = (effEndTS - startTS) / DAY_MILLIS;
-          // We are searching more than one day, we can shrink our search.
-
-console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
-          if (curDaysDelta > 1) {
-            // Sanity check the time delta; if we grew the bounds to the dawn
-            // of time, then our interpolation is useless and it's better for
-            // us to crank things way down, even if it's erroneously so.
-            if (curDaysDelta > 1000)
-              curDaysDelta = 30;
-
-            // - Interpolate better time bounds.
-            // Assume a linear distribution of messages, but overestimated by
-            // a factor of two so we undershoot.
-            var shrinkScale = SYNC_BISECT_DATE_AT_N_MESSAGES /
-                                (serverUIDs.length * 2),
-                backDays = Math.max(1,
-                                    Math.ceil(shrinkScale * curDaysDelta));
-            // mark the bisection abort...
-            self._LOG.syncDateRange_end(null, null, null, startTS, endTS);
-            var bisectInfo = {
-              oldStartTS: startTS,
-              dayStep: backDays,
-              newStartTS: makeDaysBefore(effEndTS, backDays),
-            };
-            startTS = bisectInfo.newStartTS;
-            // If we were being used for a refresh, they may want us to stop
-            // and change their sync strategy.
-            if (doneCallback(bisectInfo, null) === 'abort') {
-              doneCallback('aborted', null);
-              return null;
-            }
-console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
-            "startTS", startTS, "endTS", endTS, "backDays", backDays);
-            return self.syncDateRange(startTS, endTS, accuracyStamp, null,
-                                      doneCallback);
-          }
-        }
-
-        // -- infer deletion, flag to distinguish known messages
-        // rather than splicing lists and causing shifts, we null out values.
-        for (var iMsg = 0; iMsg < headers.length; iMsg++) {
-          var header = headers[iMsg];
-          var idxUid = serverUIDs.indexOf(header.id);
-          // deleted!
-          if (idxUid === -1) {
-            storage.deleteMessageHeaderAndBody(header);
-            numDeleted++;
-            headers[iMsg] = null;
-            continue;
-          }
-          // null out the UID so the non-null values in the search are the
-          // new messages to us.
-          serverUIDs[idxUid] = null;
-          // but save the UID so we can do a flag-check.
-          knownUIDs.push(header.id);
-        }
-
-        var newUIDs = compactArray(serverUIDs); // (re-labeling, same array)
-        if (numDeleted)
-          compactArray(headers);
-
-        return self._commonSync(
-          newUIDs, knownUIDs, headers,
-          function(newCount, knownCount) {
-            self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
-                                        startTS, endTS);
-            self._storage.markSyncRange(startTS, endTS, modseq,
-                                        accuracyStamp);
-            doneCallback(null, newCount + knownCount);
-          });
-      });
-
-    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
-    this._reliaSearch(searchOptions, callbacks.search);
-    this._storage.getAllMessagesInImapDateRange(startTS, endTS, callbacks.db);
-  },
-
-  searchDateRange: function(endTS, startTS, searchParams,
-                            slice) {
-    var searchOptions = BASELINE_SEARCH_OPTIONS.concat(searchParams);
-    if (startTS)
-      searchOptions.push(['SINCE', startTS]);
-    if (endTS)
-      searchOptions.push(['BEFORE', endTS]);
-  },
-
-  /**
-   * Given a list of new-to-us UIDs and known-to-us UIDs and their corresponding
-   * headers, synchronize the flags for the known UIDs' headers and fetch and
-   * create the header and body objects for the new UIDS.
-   *
-   * First we fetch the headers/bodystructures for the new UIDs all in one go;
-   * all of these headers are going to end up in-memory at the same time, so
-   * batching won't let us reduce the overhead right now.  We process them
-   * to determine the body parts we should fetch as the results come in.  Once
-   * we have them all, we sort them by date, endTS-to-startTS for the third
-   * step and start issuing/pipelining the requests.
-   *
-   * Second, we issue the flag update requests for the known-to-us UIDs.  This
-   * is done second so it can help avoid wasting the latency of the round-trip
-   * that would otherwise result between steps one and three.  (Although we
-   * could also mitigate that by issuing some step three requests even as
-   * the step one requests are coming in; our sorting doesn't have to be
-   * perfect and may already be reasonably well ordered if UIDs correlate
-   * with internal date well.)
-   *
-   * Third, we fetch the body parts in our newest-to-startTS order, adding
-   * finalized headers and bodies as we go.
-   */
-  _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback) {
-    var conn = this._conn, storage = this._storage;
-console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
-            knownUIDs.length, 'knownHeaders', knownHeaders.length);
-    var callbacks = allbackMaker(
-      ['newMsgs', 'knownMsgs'],
-      function() {
-        // It is possible that async I/O will be required to add a header or a
-        // body, so we need to defer declaring the synchronization done until
-        // after all of the storage's deferred calls have run because the
-        // header/body affecting calls will have been deferred.
-        storage.runAfterDeferredCalls(
-          doneCallback.bind(null, newUIDs.length, knownUIDs.length));
-      });
-
-    // -- Fetch headers/bodystructures for new UIDs
-    var newChewReps = [];
-    if (newUIDs.length) {
-      var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
-      newFetcher.on('message', function onNewMessage(msg) {
-          msg.on('end', function onNewMsgEnd() {
-console.log('  new fetched, header processing');
-            newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
-console.log('   header processed');
-          });
-        });
-      newFetcher.on('error', function onNewFetchError(err) {
-          // XXX the UID might have disappeared already?  we might need to have
-          // our initiating command re-do whatever it's up to.  Alternatively,
-          // we could drop back from a bulk fetch to a one-by-one fetch.
-          console.warn('New UIDs fetch error, ideally harmless:', err);
-        });
-      newFetcher.on('end', function onNewFetchEnd() {
-          // sort the messages, endTS to startTS (aka numerically descending)
-          newChewReps.sort(function(a, b) {
-              return b.msg.date - a.msg.date;
-            });
-
-          // - issue the bodypart fetches.
-          // Use mailparser's body parsing capabilities, albeit not entirely in
-          // the way it was intended to be used since it wants to parse full
-          // messages.
-          var mparser = new $mailparser.MailParser();
-          function setupBodyParser(partDef) {
-            mparser._state = 0x2; // body
-            mparser._remainder = '';
-            mparser._currentNode = null;
-            mparser._currentNode = mparser._createMimeNode(null);
-            // nb: mparser._multipartTree is an empty list (always)
-            mparser._currentNode.meta.contentType =
-              partDef.type.toLowerCase() + '/' +
-              partDef.subtype.toLowerCase();
-            mparser._currentNode.meta.charset =
-              partDef.params && partDef.params.charset &&
-              partDef.params.charset.toLowerCase();
-            mparser._currentNode.meta.transferEncoding =
-              partDef.encoding && partDef.encoding.toLowerCase();
-            mparser._currentNode.meta.textFormat =
-              partDef.params && partDef.params.format &&
-              partDef.params.format.toLowerCase();
-          }
-          function bodyParseBuffer(buffer) {
-            process.immediate = true;
-            mparser.write(buffer);
-            process.immediate = false;
-          }
-          function finishBodyParsing() {
-            process.immediate = true;
-            mparser._process(true);
-            process.immediate = false;
-            // We end up having provided an extra newline that we don't
-            // want, so let's cut it off if it exists.
-            var content = mparser._currentNode.content;
-            if (content.charCodeAt(content.length - 1) === 10)
-              content = content.substring(0, content.length - 1);
-            return content;
-          }
-
-          // XXX imap.js is currently not capable of issuing/parsing multiple
-          // literal results from a single fetch result line.  It's not a
-          // fundamentally hard problem, but I'd rather defer messing with its
-          // parse loop (and internal state tracking) until a future time when
-          // I can do some other cleanup at the same time.  (The subsequent
-          // literals are just on their own lines with an initial space and then
-          // the named literal.  Ex: " BODY[1.2] {2463}".)
-          //
-          // So let's issue one fetch per body part and then be happy when we've
-          // got them all.
-          var pendingFetches = 0;
-          newChewReps.forEach(function(chewRep, iChewRep) {
-            var partsReceived = [];
-            // If there are no parts to process, consume it now.
-            if (chewRep.bodyParts.length === 0) {
-              if ($imapchew.chewBodyParts(chewRep, partsReceived,
-                                          storage.folderId)) {
-                storage.addMessageHeader(chewRep.header);
-                storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
-              }
-            }
-
-            chewRep.bodyParts.forEach(function(bodyPart) {
-              var opts = { request: { body: bodyPart.partID } };
-              pendingFetches++;
-
-console.log('  fetching for', chewRep.msg.id, bodyPart.partID);
-              var fetcher;
-try {
-              fetcher = conn.fetch(chewRep.msg.id, opts);
-} catch (ex) {
-  console.warn('!failure fetching', ex);
-  return;
-}
-              setupBodyParser(bodyPart);
-              fetcher.on('error', function(err) {
-                console.warn('body fetch error', err);
-                if (--pendingFetches === 0)
-                  callbacks.newMsgs();
-              });
-              fetcher.on('message', function(msg) {
-                setupBodyParser(bodyPart);
-                msg.on('data', bodyParseBuffer);
-                msg.on('end', function() {
-                  partsReceived.push(finishBodyParsing());
-console.log('  !fetched body part for', chewRep.msg.id, bodyPart.partID,
-            partsReceived.length, chewRep.bodyParts.length);
-
-                  // -- Process
-                  if (partsReceived.length === chewRep.bodyParts.length) {
-                    if ($imapchew.chewBodyParts(chewRep, partsReceived,
-                                                storage.folderId)) {
-                      storage.addMessageHeader(chewRep.header);
-                      storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
-                    }
-else { console.warn("failure to parse body!!!"); }
-                  }
-                  // If this is the last chew rep, then use its completion
-                  // to report our completion.
-                  if (--pendingFetches === 0)
-                    callbacks.newMsgs();
-                });
-              });
-            });
-          });
-console.log('  pending fetches', pendingFetches);
-          if (pendingFetches === 0)
-            callbacks.newMsgs();
-        });
-    }
-    else {
-      callbacks.newMsgs();
-    }
-
-    // -- Fetch updated flags for known UIDs
-    if (knownUIDs.length) {
-      var knownFetcher = this._conn.fetch(knownUIDs, FLAG_FETCH_PARAMS);
-      var numFetched = 0;
-      knownFetcher.on('message', function onKnownMessage(msg) {
-          // (Since we aren't requesting headers, we should be able to get
-          // away without registering this next event handler and just process
-          // msg right now, but let's wait on an optimization pass.)
-          msg.on('end', function onKnownMsgEnd() {
-            var i = numFetched++;
-            // RFC 3501 doesn't seem to require that we get results in the order
-            // we request them, so use indexOf if things don't line up.
-            if (knownHeaders[i].id !== msg.id) {
-              i = knownUIDs.indexOf(msg.id);
-              // If it's telling us about a message we don't know about, run away.
-              if (i === -1) {
-                console.warn("Server fetch reports unexpected message:", msg.id);
-                return;
-              }
-            }
-            var header = knownHeaders[i];
-            // (msg.flags comes sorted and we maintain that invariant)
-            if (header.flags.toString() !== msg.flags.toString()) {
-              header.flags = msg.flags;
-              storage.updateMessageHeader(header.date, header.id, true, header);
-            }
-            else {
-              storage.unchangedMessageHeader(header);
-            }
-          });
-        });
-      knownFetcher.on('error', function onKnownFetchError(err) {
-          // XXX the UID might have disappeared already?  we might need to have
-          // our initiating command re-do whatever it's up to.  Alternatively,
-          // we could drop back from a bulk fetch to a one-by-one fetch.
-          console.warn('Known UIDs fetch error, ideally harmless:', err);
-        });
-      knownFetcher.on('end', function() {
-        callbacks.knownMsgs();
-      });
-    }
-    else {
-      callbacks.knownMsgs();
-    }
-  },
-
-  downloadMessageAttachments: function(uid, partInfos, callback) {
-    var conn = this._conn;
-    var mparser = new $mailparser.MailParser();
-
-    // I actually implemented a usable shim for the checksum purposes, but we
-    // don't actually care about the checksum, so why bother doing the work?
-    var dummyChecksummer = {
-      update: function() {},
-      digest: function() { return null; },
-    };
-
-    function setupBodyParser(partInfo) {
-      mparser._state = 0x2; // body
-      mparser._remainder = '';
-      mparser._currentNode = null;
-      mparser._currentNode = mparser._createMimeNode(null);
-      mparser._currentNode.attachment = true;
-      mparser._currentNode.checksum = dummyChecksummer;
-      mparser._currentNode.content = undefined;
-      // nb: mparser._multipartTree is an empty list (always)
-      mparser._currentNode.meta.contentType = partInfo.type;
-      mparser._currentNode.meta.transferEncoding = partInfo.encoding;
-      mparser._currentNode.meta.charset = null; //partInfo.charset;
-      mparser._currentNode.meta.textFormat = null; //partInfo.textFormat;
-    }
-    function bodyParseBuffer(buffer) {
-      process.immediate = true;
-      mparser.write(buffer);
-      process.immediate = false;
-    }
-    function finishBodyParsing() {
-      process.immediate = true;
-      mparser._process(true);
-      process.immediate = false;
-      // this is a Buffer!
-      return mparser._currentNode.content;
-    }
-
-    var anyError = null, pendingFetches = 0, bodies = [];
-    partInfos.forEach(function(partInfo) {
-      var opts = { request: { body: partInfo.part } };
-      pendingFetches++;
-      var fetcher = conn.fetch(uid, opts);
-
-      setupBodyParser(partInfo);
-      fetcher.on('error', function(err) {
-        if (!anyError)
-          anyError = err;
-        if (--pendingFetches === 0)
-          callback(anyError, bodies);
-      });
-      fetcher.on('message', function(msg) {
-        setupBodyParser(partInfo);
-        msg.on('data', bodyParseBuffer);
-        msg.on('end', function() {
-          bodies.push(finishBodyParsing());
-
-          if (--pendingFetches === 0)
-            callback(anyError, bodies);
-        });
-      });
-    });
-  },
-
-  shutdown: function() {
     this._LOG.__die();
   },
 };
@@ -20958,8 +20448,8 @@ console.log('  pending fetches', pendingFetches);
  *   ]]
  * ]]
  */
-function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
-                           _parentLog) {
+function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
+                       FolderSyncer, _parentLog) {
   /** Our owning account. */
   this._account = account;
   this._imapDb = dbConn;
@@ -20968,8 +20458,7 @@ function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this.folderMeta = persistedFolderInfo.$meta;
   this._folderImpl = persistedFolderInfo.$impl;
 
-  this._LOG = LOGFAB.ImapFolderStorage(
-    this, _parentLog, folderId);
+  this._LOG = LOGFAB.FolderStorage(this, _parentLog, folderId);
 
   /**
    * @listof[AccuracyRangeInfo]{
@@ -21058,34 +20547,12 @@ function ImapFolderStorage(account, folderId, persistedFolderInfo, dbConn,
    * about all header modifications/notes as they occur.
    */
   this._curSyncSlice = null;
-  /**
-   * The timestamp to use for `markSyncRange` for all syncs in this higher
-   * level sync.  Accuracy time-info does not need high precision, so this
-   * results in fewer accuracy structures and simplifies our decision logic
-   * in `sliceOpenFromNow`.
-   */
-  this._curSyncAccuracyStamp = null;
-  /**
-   * The start range of the (backward-moving) sync time range.
-   */
-  this._curSyncStartTS = null;
-  /**
-   * The number of days we are looking into the past in the current sync step.
-   */
-  this._curSyncDayStep = null;
-  /**
-   * If non-null, then we must reach a sync start date of the provided date
-   * before we begin increasing _curSyncDayStep.  This helps us avoid
-   * oscillation where we make the window too large, shrink it, but then find
-   * find nothing.  Since we know that there are going to be a lot of messages
-   * before we hit this date, it makes sense to keep taking smaller sync steps.
-   */
-  this._curSyncDoNotGrowWindowBefore = null;
 
-  this.folderConn = new ImapFolderConn(account, this, this._LOG);
+  this.folderSyncer = FolderSyncer && new FolderSyncer(account, this,
+                                                       this._LOG);
 }
-exports.ImapFolderStorage = ImapFolderStorage;
-ImapFolderStorage.prototype = {
+exports.FolderStorage = FolderStorage;
+FolderStorage.prototype = {
   generatePersistenceInfo: function() {
     if (!this._dirty)
       return null;
@@ -21830,7 +21297,7 @@ ImapFolderStorage.prototype = {
    */
   sliceOpenFromNow: function ifs_sliceOpenFromNow(slice, daysDesired,
                                                   forceDeepening) {
-    daysDesired = daysDesired || INITIAL_SYNC_DAYS;
+    daysDesired = daysDesired || $sync.INITIAL_SYNC_DAYS;
     this._slices.push(slice);
     if (this._curSyncSlice) {
       console.error("Trying to open a slice and initiate a sync when there",
@@ -21845,13 +21312,29 @@ ImapFolderStorage.prototype = {
     // just check against it.  (It may have been bisected by subsequent scrolled
     // refreshes, but they will be more recent and thus won't affect the least
     // accurate data, which is what we care about.)
-    var now = TIME_WARPED_NOW || Date.now(),
-        futureNow = FUTURE_TIME_WARPED_NOW || null,
+    var now = NOW(),
+        futureNow = FUTURE(),
         pastDate = makeDaysAgo(daysDesired),
         iAcc, iHeadBlock, ainfo,
         // What is the startTS fullSync data we have for the time range?
         worstGoodData = 0,
         existingDataGood = false;
+
+    var syncCallback = (function syncCallback(syncMode, accumulateMode,
+                                              ignoreHeaders) {
+      slice.setStatus('synchronizing', false, true);
+      slice.waitingOnData = syncMode;
+console.log("accumulate request", accumulateMode);
+      if (accumulateMode && slice.headers.length === 0) {
+console.log("ACCUMULATE MODE ON");
+        slice._accumulating = true;
+      }
+      if (ignoreHeaders) {
+console.log("IGNORING HEADER NOTIFICATIONS");
+        slice.ignoreHeaders = true;
+      }
+      this._curSyncSlice = slice;
+    }).bind(this);
 
 console.log("accuracy ranges length:", this._accuracyRanges.length);
     // If we're offline, there's nothing to look into; use the DB.
@@ -21864,12 +21347,12 @@ console.log("type", this.folderMeta.type, "ainfo", JSON.stringify(ainfo));
       var newestMessage = this.getYoungestMessageTimestamp();
       var refreshThresh;
       if (this.folderMeta.type === 'inbox')
-        refreshThresh = SYNC_REFRESH_USABLE_DATA_TIME_THRESH_INBOX;
+        refreshThresh = $sync.REFRESH_USABLE_DATA_TIME_THRESH_INBOX;
       else if (ON_OR_BEFORE(newestMessage,
-                            now - SYNC_REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH))
-        refreshThresh = SYNC_REFRESH_USABLE_DATA_TIME_THRESH_OLD;
+                            now - $sync.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH))
+        refreshThresh = $sync.REFRESH_USABLE_DATA_TIME_THRESH_OLD;
       else
-        refreshThresh = SYNC_REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX;
+        refreshThresh = $sync.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX;
 
       // We can do the refresh thing if we have updated more recently than
       // the cutoff threshold.
@@ -21882,26 +21365,15 @@ console.log("FSC", ainfo.fullSync && ainfo.fullSync.updated, now - refreshThresh
       else {
         var rangeThresh;
         if (this.folderMeta.type === 'inbox')
-          rangeThresh = SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX;
+          rangeThresh = $sync.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX;
         else
-          rangeThresh = SYNC_USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX;
+          rangeThresh = $sync.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX;
 
-console.log("RTC", ainfo.fullSync && ainfo.fullSync.update, now - rangeThresh);
-        if (ainfo.fullSync && SINCE(ainfo.fullSync.updated, now - rangeThresh)){
-          // METHOD #2
-          // We need to iterate over the headers to figure out the right
-          // date to use.  We can't just use the accuracy range because it may
-          // have been bisected by the user scrolling into the past and
-          // triggering a refresh.
-          this.getMessagesBeforeMessage(
-            null, null, INITIAL_FILL_SIZE - 1,
-            function(headers, moreExpected) {
-              if (moreExpected)
-                return;
-              var header = headers[headers.length - 1];
-              pastDate = quantizeDate(header.date);
-              this._startSync(slice, pastDate, futureNow, 'sync', true);
-            }.bind(this));
+        var updateThresh = now - rangeThresh;
+console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
+        if (ainfo.fullSync && SINCE(ainfo.fullSync.updated, updateThresh)) {
+          this.folderSyncer.syncAdjustedDateRange(pastDate, futureNow,
+                                                  syncCallback);
           return;
         }
       }
@@ -21912,37 +21384,16 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.update, now - rangeThresh);
       // We can adjust our start time to the dawn of time since we have a
       // limit in effect.
       slice.waitingOnData = 'db';
-      // METHOD #1
       this.getMessagesInImapDateRange(
-        0, futureNow, INITIAL_FILL_SIZE, INITIAL_FILL_SIZE,
+        0, FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
         // trigger a refresh if we are online
-        this.onFetchDBHeaders.bind(this, slice, this._account.universe.online));
+        this.onFetchDBHeaders.bind(this, slice, this._account.universe.online)
+      );
       return;
     }
 
     // -- Bad existing data, issue a sync and have the slice
-    // METHOD #3
-    this._startSync(slice, pastDate, futureNow, 'sync', false);
-  },
-
-  _startSync: function ifs__startSync(slice, startTS, endTS, syncMode,
-                                      accumulateMode) {
-    if (startTS === null)
-      startTS = endTS - (INITIAL_SYNC_DAYS * DAY_MILLIS);
-    slice.setStatus('synchronizing', false, true);
-    slice.waitingOnData = syncMode;
-console.log("accumulate request", accumulateMode);
-    if (accumulateMode && slice.headers.length === 0) {
-console.log("ACCUMULATE MODE ON");
-      slice._accumulating = true;
-    }
-    this._curSyncSlice = slice;
-    this._curSyncAccuracyStamp = TIME_WARPED_NOW || Date.now();
-    this._curSyncStartTS = startTS;
-    this._curSyncDayStep = INITIAL_SYNC_DAYS;
-    this._curSyncDoNotGrowWindowBefore = null;
-    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
-                                  null, this.onSyncCompleted.bind(this));
+    this.folderSyncer.syncDateRange(pastDate, futureNow, syncCallback);
   },
 
   /**
@@ -21984,72 +21435,38 @@ console.log("ACCUMULATE MODE ON");
       dir = 1;
       desiredCount = dirMagnitude;
 
-      // The sync wants to be BEFORE the earliest day (which we are assuming
-      // is fully synced based on our day granularity).
-      var syncEndTS = quantizeDate(slice.startTS);
-
       var batchHeaders = [];
       // Process the oldest traversed message
       var gotMessages = function gotMessages(headers, moreExpected) {
         batchHeaders = batchHeaders.concat(headers);
-        if (!moreExpected) {
-          var syncStartTS = null;
-          if (batchHeaders.length)
-            syncStartTS = batchHeaders[batchHeaders.length - 1].date;
+        if (moreExpected)
+          return;
 
-          if (syncStartTS) {
-            // We are computing a SINCE value, so quantize (to midnight)
-            syncStartTS = quantizeDate(syncStartTS);
-            // If we're not syncing at least one day, flag to give up.
-            if (syncStartTS === syncEndTS)
-              syncStartTS = null;
-          }
+        var growingSync = false;
 
-          // If we're offline, just use what we've got and be done with it.
-          if (!this._account.universe.online) {
-            // (Yes this logic is the same as cases below, but I allege the
-            // 'if' statement might be simpler this way.)
-            if (batchHeaders.length) {
-              slice.batchAppendHeaders(batchHeaders, -1, false);
-              slice.desiredHeaders = slice.headers.length;
-            }
-            else {
-              slice.sendEmptyCompletion();
-            }
-          }
-          // Perform the sync if there is a range.
-          else if (syncStartTS) {
-            // We intentionally quantized syncEndTS to avoid re-synchronizing
-            // messages that got us to our last sync.  So we want to send those
-            // excluded headers in a batch since the sync will not report them
-            // for us.
-            var iFirstNotToSend = 0;
-            for (; iFirstNotToSend < batchHeaders.length; iFirstNotToSend++) {
-              if (BEFORE(batchHeaders[iFirstNotToSend].date, syncEndTS))
-                break;
-            }
-            if (iFirstNotToSend)
-              slice.batchAppendHeaders(batchHeaders.slice(0, iFirstNotToSend),
+        var syncCallback = (function syncCallback(syncMode, firstNotToSend) {
+          if (syncMode) {
+            if (firstNotToSend)
+              slice.batchAppendHeaders(batchHeaders.slice(0, firstNotToSend),
                                        -1, true);
-
             slice.desiredHeaders += desiredCount;
-            // Perform a limited synchronization; do not issue additional
-            // syncs!
-            this._startSync(slice, syncStartTS, syncEndTS, 'limsync');
+            slice.setStatus('synchronizing', false, true);
+            slice.waitingOnData = syncMode;
+            this._curSyncSlice = slice;
           }
-          // If there is no sync range (left), but there were messsages, report
-          // the messages.
-          else if (batchHeaders.length) {
+        }).bind(this);
+
+        // If we're offline, just use what we've got and be done with it.
+        if (this._account.universe.online) {
+          growingSync = this.folderSyncer.growSync(
+            slice.startTS, batchHeaders, userRequestsGrowth, syncCallback);
+        }
+
+        if (!growingSync) {
+          if (batchHeaders.length) {
             slice.batchAppendHeaders(batchHeaders, -1, false);
             slice.desiredHeaders = slice.headers.length;
           }
-          // If growth was requested/is allowed or our accuracy range already
-          // covers as far back as we go, issue a (potentially expanding) sync.
-          else if (userRequestsGrowth) {
-            slice.desiredHeaders += desiredCount;
-            this._startSync(slice, null, slice.startTS, 'sync');
-          }
-          // We are at the 'bottom', as it were.  Send an empty set.
           else {
             slice.sendEmptyCompletion();
           }
@@ -22077,14 +21494,20 @@ console.log("ACCUMULATE MODE ON");
    * full date bounds.
    */
   refreshSlice: function ifs_refreshSlice(slice, useBisectLimit) {
-    var startTS = slice.startTS, endTS = slice.endTS, self = this;
+    // XXX use mutex scheduling to avoid this possibly happening...
+    if (this._curSyncSlice)
+      throw new Error("Can't refresh a slice when there is an existing sync");
+
+    slice.waitingOnData = 'refresh';
+
+    var startTS = slice.startTS, endTS = slice.endTS;
 
     // - Grow endTS
     // If the endTS lines up with the most recent know message for the folder,
     // then remove the timestamp constraint so it goes all the way to now.
     // OR if we just have no known messages
     if (this.headerIsYoungestKnown(endTS, slice.endUID)) {
-      endTS = FUTURE_TIME_WARPED_NOW || null;
+      endTS = FUTURE();
     }
     else {
       // We want the range to include the day; since it's an exclusive range
@@ -22104,35 +21527,30 @@ console.log("ACCUMULATE MODE ON");
     if (startTS)
       startTS = quantizeDate(startTS);
 
-    // XXX use mutex scheduling to avoid this possibly happening...
-    if (this._curSyncSlice)
-      throw new Error("Can't refresh a slice when there is an existing sync");
-    slice.waitingOnData = 'refresh';
-    this._curSyncAccuracyStamp = TIME_WARPED_NOW || Date.now();
-    this.folderConn.syncDateRange(
-      startTS, endTS, this._curSyncAccuracyStamp, useBisectLimit,
-      function(bisectInfo, numMessages) {
-        // If a bisection occurred then this can no longer be a refresh and
-        // instead we need to retract all known messages and instead convert
-        // this into a synchronization.
-        if (bisectInfo) {
-          if (bisectInfo === 'aborted') {
-            self._slices.splice(self._slices.indexOf(slice), 1);
-            self.sliceOpenFromNow(slice, null, true);
-           }
-          else {
-            slice._resetHeadersBecauseOfRefreshExplosion();
-          }
-          return 'abort';
+    var self = this;
+    this.folderSyncer.refreshSync(startTS, endTS, useBisectLimit,
+                                  function(bisectInfo, numMessages) {
+      // If a bisection occurred then this can no longer be a refresh and
+      // instead we need to retract all known messages and instead convert
+      // this into a synchronization.
+      if (bisectInfo) {
+        if (bisectInfo === 'aborted') {
+          self._slices.splice(self._slices.indexOf(slice), 1);
+          self.sliceOpenFromNow(slice, null, true);
         }
+        else {
+          slice._resetHeadersBecauseOfRefreshExplosion();
+        }
+        return 'abort';
+      }
 
-        slice.waitingOnData = false;
-        if (self._curSyncSlice === slice)
-          self._curSyncSlice = null;
-        self._account.__checkpointSyncCompleted();
-        slice.setStatus('synced', true, false);
-        return undefined;
-      });
+      slice.waitingOnData = false;
+      if (self._curSyncSlice === slice)
+        self._curSyncSlice = null;
+      self._account.__checkpointSyncCompleted();
+      slice.setStatus('synced', true, false);
+      return undefined;
+    });
   },
 
   dyingSlice: function ifs_dyingSlice(slice) {
@@ -22140,144 +21558,7 @@ console.log("ACCUMULATE MODE ON");
     this._slices.splice(idx, 1);
 
     if (this._slices.length === 0 && this._pendingMutationCount === 0)
-      this.folderConn.relinquishConn();
-  },
-
-  /**
-   * Whatever synchronization we last triggered has now completed; we should
-   * either trigger another sync if we still want more data, or close out the
-   * current sync.
-   */
-  onSyncCompleted: function ifs_onSyncCompleted(bisectInfo, messagesSeen) {
-    // In the event the time range had to be bisected, update our info so if
-    // we need to take another step we do the right thing.
-    if (bisectInfo) {
-      this._curSyncDoNotGrowWindowBefore = bisectInfo.oldStartTS;
-      this._curSyncDayStep = bisectInfo.dayStep;
-      this._curSyncStartTS = bisectInfo.newStartTS;
-      return;
-    }
-
-    console.log("Sync Completed!", this._curSyncDayStep, "days",
-                messagesSeen, "messages synced");
-
-    // If it now appears we know about all the messages in the folder, then we
-    // are done syncing and can mark the entire folder as synchronized.  This
-    // requires that the number of messages we know about is the same as the
-    // number the server most recently told us are in the folder, plus that the
-    // slice's oldest know message is the oldest message known to the db,
-    // implying that we have fully synchronized the folder during this session.
-    //
-    // NB: If there are any deleted messages, this logic will not save us
-    // because we ignored those messages.  This is made less horrible by issuing
-    // a time-date that expands as we go further back in time.
-    //
-    // (I have considered asking to see deleted messages too and ignoring them;
-    // that might be suitable.  We could also just be a jerk and force an
-    // expunge.)
-    var folderMessageCount = this.folderConn && this.folderConn.box &&
-                               this.folderConn.box.messages.total,
-        dbCount = this.getKnownMessageCount();
-console.log("folder message count", folderMessageCount,
-            "dbCount", dbCount,
-            "oldest known", this.headerIsOldestKnown(this._curSyncSlice.startTS,
-                                 this._curSyncSlice.startUID));
-    if (folderMessageCount === dbCount &&
-        this.headerIsOldestKnown(this._curSyncSlice.startTS,
-                                 this._curSyncSlice.startUID)) {
-      // (do not desire more headers)
-      this._curSyncSlice.desiredHeaders = this._curSyncSlice.headers.length;
-      // expand the accuracy range to cover everybody
-      this.markSyncedEntireFolder();
-    }
-    // If our slice has now gone to the dawn of time, we can decide we have
-    // enough headers.
-    else if (this._curSyncSlice.startTS &&
-             ON_OR_BEFORE(this._curSyncSlice.startTS, OLDEST_SYNC_DATE)) {
-      this._curSyncSlice.desiredHeaders = this._curSyncSlice.headers.length;
-    }
-
-    // - Done if we don't want any more headers.
-    if (this._curSyncSlice.headers.length >=
-          this._curSyncSlice.desiredHeaders ||
-        // (limited syncs aren't allowed to expand themselves)
-        (this._curSyncSlice.waitingOnData === 'limsync')) {
-      console.log("SYNCDONE Enough headers retrieved.",
-                  "have", this._curSyncSlice.headers.length,
-                  "want", this._curSyncSlice.desiredHeaders,
-                  "box knows about", this.folderConn.box.messages.total,
-                  "sync date", this._curSyncStartTS,
-                  "[oldest defined as", OLDEST_SYNC_DATE, "]");
-      // If we are accumulating, we don't want to adjust our count upwards;
-      // the release will slice the excess off for us.
-      if (!this._curSyncSlice._accumulating)
-        this._curSyncSlice.desiredHeaders = this._curSyncSlice.headers.length;
-      this._curSyncSlice.waitingOnData = false;
-      this._curSyncSlice.setStatus('synced', true, false, true);
-      this._curSyncSlice = null;
-
-      this._account.__checkpointSyncCompleted();
-      return;
-    }
-    else if (this._curSyncSlice._accumulating) {
-      this._curSyncSlice.setStatus('synchronizing', true, true, true);
-    }
-
-    // - Increase our search window size if we aren't finding anything
-    // Our goal is that if we are going backwards in time and aren't finding
-    // anything, we want to keep expanding our window
-    var daysToSearch, lastSyncDaysInPast;
-    // If we saw messages, there is no need to increase the window size.  We
-    // also should not increase the size if we explicitly shrank the window and
-    // left a do-not-expand-until marker.
-    if (messagesSeen ||
-        (this._curSyncDoNotGrowWindowBefore !== null &&
-         SINCE(this._curSyncStartTS, this._curSyncDoNotGrowWindowBefore))) {
-      daysToSearch = this._curSyncDayStep;
-    }
-    else {
-      // This may be a fractional value because of DST
-      lastSyncDaysInPast = ((quantizeDate(TIME_WARPED_NOW || Date.now())) -
-                            this._curSyncStartTS) / DAY_MILLIS;
-      daysToSearch = Math.ceil(this._curSyncDayStep *
-                               TIME_SCALE_FACTOR_ON_NO_MESSAGES);
-
-      if (lastSyncDaysInPast < 180) {
-        if (daysToSearch > 14)
-          daysToSearch = 14;
-      }
-      else if (lastSyncDaysInPast < 365) {
-        if (daysToSearch > 30)
-          daysToSearch = 30;
-      }
-      else if (lastSyncDaysInPast < 730) {
-        if (daysToSearch > 60)
-          daysToSearch = 60;
-      }
-      else if (lastSyncDaysInPast < 1095) {
-        if (daysToSearch > 90)
-          daysToSearch = 90;
-      }
-      else if (lastSyncDaysInPast < 1825) { // 5 years
-        if (daysToSearch > 120)
-          daysToSearch = 120;
-      }
-      else if (lastSyncDaysInPast < 3650) {
-        if (daysToSearch > 365)
-          daysToSearch = 365;
-      }
-      else if (daysToSearch > 730) {
-        daysToSearch = 730;
-      }
-      this._curSyncDayStep = daysToSearch;
-    }
-
-    // - Move the time range back in time more.
-    var startTS = makeDaysBefore(this._curSyncStartTS, daysToSearch),
-        endTS = this._curSyncStartTS;
-    this._curSyncStartTS = startTS;
-    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
-                                  null, this.onSyncCompleted.bind(this));
+      this.folderSyncer.relinquishConn();
   },
 
   /**
@@ -22312,7 +21593,7 @@ console.log("folder message count", folderMessageCount,
       this._curSyncSlice = null;
       // We do want to use the bisection limit so that the refresh gets
       // converted to a sync in the event of an overflow.
-      this.refreshSlice(slice, SYNC_BISECT_DATE_AT_N_MESSAGES);
+      this.refreshSlice(slice, $sync.BISECT_DATE_AT_N_MESSAGES);
     }
   },
 
@@ -22378,13 +21659,13 @@ console.log("folder message count", folderMessageCount,
     if (idxAR >= 0 && idxAR < this._accuracyRanges.length)
       syncTS = this._accuracyRanges[idxAR].startTS;
     else
-      syncTS = TIME_WARPED_NOW || Date.now();
+      syncTS = NOW();
     return syncTS;
   },
 
   syncedToDawnOfTime: function() {
     var oldestSyncTS = this.getOldestFullSyncDate();
-    return ON_OR_BEFORE(oldestSyncTS, OLDEST_SYNC_DATE);
+    return ON_OR_BEFORE(oldestSyncTS, $sync.OLDEST_SYNC_DATE);
   },
 
   /**
@@ -22431,13 +21712,13 @@ console.log("folder message count", folderMessageCount,
    */
   getMessagesInImapDateRange: function ifs_getMessagesInDateRange(
       startTS, endTS, minDesired, maxDesired, messageCallback) {
-    var toFill = (minDesired != null) ? minDesired : TOO_MANY_MESSAGES,
-        maxFill = (maxDesired != null) ? maxDesired : TOO_MANY_MESSAGES,
+    var toFill = (minDesired != null) ? minDesired : $sync.TOO_MANY_MESSAGES,
+        maxFill = (maxDesired != null) ? maxDesired : $sync.TOO_MANY_MESSAGES,
         self = this,
         // header block info iteration
         iHeadBlockInfo = null, headBlockInfo;
     if (endTS == null)
-      endTS = TIME_WARPED_NOW || Date.now(); // or just use a huge number?
+      endTS = NOW(); // or just use a huge number?
 
     // find the first header block with the data we want
     var headerPair = this._findFirstObjIndexForDateRange(
@@ -22544,7 +21825,7 @@ console.log("folder message count", folderMessageCount,
    * are passed.
    */
   getMessagesBeforeMessage: function(date, uid, limit, messageCallback) {
-    var toFill = (limit != null) ? limit : TOO_MANY_MESSAGES, self = this;
+    var toFill = (limit != null) ? limit : $sync.TOO_MANY_MESSAGES, self = this;
 
     var headerPair, iHeadBlockInfo, headBlockInfo;
     if (date) {
@@ -22629,7 +21910,7 @@ console.log("folder message count", folderMessageCount,
    * the direction of 'end').
    */
   getMessagesAfterMessage: function(date, uid, limit, messageCallback) {
-    var toFill = (limit != null) ? limit : TOO_MANY_MESSAGES, self = this;
+    var toFill = (limit != null) ? limit : $sync.TOO_MANY_MESSAGES, self = this;
 
     var headerPair = this._findRangeObjIndexForDateAndUID(
                        this._headerBlockInfos, date, uid);
@@ -22799,7 +22080,7 @@ console.log("folder message count", folderMessageCount,
     var aranges = this._accuracyRanges;
     // (If aranges is the empty list, there are deep invariant problems and
     // the exception is desired.)
-    aranges[0].startTS = OLDEST_SYNC_DATE - 1;
+    aranges[0].startTS = $sync.OLDEST_SYNC_DATE - 1;
     aranges.splice(1, aranges.length - 1);
   },
 
@@ -22812,7 +22093,7 @@ console.log("folder message count", folderMessageCount,
       return;
     }
 
-    if (this._curSyncSlice)
+    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderAdded(header, true);
     // - Generate notifications for (other) interested slices
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
@@ -22894,7 +22175,7 @@ console.log("folder message count", folderMessageCount,
       self._dirty = true;
       self._dirtyHeaderBlocks[info.blockId] = block;
 
-      if (partOfSync && self._curSyncSlice)
+      if (partOfSync && self._curSyncSlice && !self._curSyncSlice.ignoreHeaders)
         self._curSyncSlice.onHeaderAdded(header, false);
       if (self._slices.length > (self._curSyncSlice ? 1 : 0)) {
         for (var iSlice = 0; iSlice < self._slices.length; iSlice++) {
@@ -22919,6 +22200,23 @@ console.log("folder message count", folderMessageCount,
       doUpdateHeader(this._headerBlocks[info.blockId]);
   },
 
+  updateMessageHeaderByUid: function(uid, partOfSync, headerOrMutationFunc) {
+    if (this._pendingLoads.length) {
+      this._deferredCalls.push(this.updateMessageHeaderByUid.bind(
+        this, uid, partOfSync, headerOrMutationFunc));
+      return;
+    }
+
+    // XXX: this needs reworked and maybe merged with the function above
+    for (var i in this._headerBlocks) {
+      var block = this._headerBlocks[i];
+      var idx = block.uids.indexOf(uid);
+      if (idx !== -1)
+        return this.updateMessageHeader(block.headers[idx].date, uid,
+                                        partOfSync, headerOrMutationFunc);
+    }
+  },
+
   /**
    * A notification that an existing header is still up-to-date.
    */
@@ -22928,7 +22226,7 @@ console.log("folder message count", folderMessageCount,
       return;
     }
     // (no block update required)
-    if (this._curSyncSlice)
+    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderAdded(header, true);
   },
 
@@ -22939,7 +22237,7 @@ console.log("folder message count", folderMessageCount,
       return;
     }
 
-    if (this._curSyncSlice)
+    if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
       this._curSyncSlice.onHeaderRemoved(header);
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       for (var iSlice = 0; iSlice < this._slices.length; iSlice++) {
@@ -22960,6 +22258,22 @@ console.log("folder message count", folderMessageCount,
 
     this._deleteFromBlock('header', header.date, header.id, null);
     this._deleteFromBlock('body', header.date, header.id, null);
+  },
+
+  deleteMessageByUid: function(uid) {
+    if (this._pendingLoads.length) {
+      this._deferredCalls.push(this.deleteMessageByUid.bind(this, uid));
+      return;
+    }
+
+    for (var i in this._headerBlocks) {
+      var block = this._headerBlocks[i];
+      var idx = block.uids.indexOf(uid);
+      if (idx !== -1)
+        return this.deleteMessageHeaderAndBody(block.headers[idx]);
+    }
+
+    // XXX: handle the case when this message isn't in an active block
   },
 
   /**
@@ -23027,7 +22341,7 @@ console.log("folder message count", folderMessageCount,
     for (var i = this._slices.length - 1; i >= 0; i--) {
       this._slices[i].die();
     }
-    this.folderConn.shutdown();
+    this.folderSyncer.shutdown();
     this._LOG.__die();
   },
 
@@ -23042,24 +22356,8 @@ console.log("folder message count", folderMessageCount,
   },
 };
 
-/**
- * ALL SPECULATIVE RIGHT NOW.
- *
- * Like ImapFolderStorage, but with only one folder and messages named by their
- * X-GM-MSGID value rather than their UID(s).
- *
- * Deletion processing operates slightly differently than for normal IMAP
- * because a message can be removed from one of the folders we synchronize on,
- * but not all of them.  We don't want to be overly deletionary in that case,
- * so we maintain a list of folder id's that are keeping each message alive.
- */
-function GmailMessageStorage() {
-}
-GmailMessageStorage.prototype = {
-};
-
 var LOGFAB = exports.LOGFAB = $log.register($module, {
-  ImapSlice: {
+  MailSlice: {
     type: $log.QUERY,
     events: {
       headersAppended: {},
@@ -23074,23 +22372,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       headerRemoved: { header: false },
     },
   },
-
-  ImapFolderConn: {
-    type: $log.CONNECTION,
-    subtype: $log.CLIENT,
-    events: {
-    },
-    TEST_ONLY_events: {
-    },
-    asyncJobs: {
-      syncDateRange: {
-        newMessages: true, existingMessages: true, deletedMessages: true,
-        start: false, end: false,
-      },
-    },
-  },
-
-  ImapFolderStorage: {
+  FolderStorage: {
     type: $log.DATABASE,
     events: {
       // For now, logging date and uid is useful because the general logging
@@ -23122,6 +22404,1364 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       badIterationStart: { date: false, uid: false },
       badDeletionRequest: { type: false, date: false, uid: false },
       bodyBlockMissing: { uid: false, idx: false, dict: false },
+    }
+  },
+}); // end LOGFAB
+
+}); // end define
+;
+/**
+ *
+ **/
+
+define('mailapi/imap/imapchew',
+  [
+    '../quotechew',
+    '../htmlchew',
+    'exports'
+  ],
+  function(
+    $quotechew,
+    $htmlchew,
+    exports
+  ) {
+
+/**
+ * Process the headers and bodystructure of a message to build preliminary state
+ * and determine what body parts to fetch.  The list of body parts will be used
+ * to issue another fetch request, and those results will be passed to
+ * `chewBodyParts`.
+ *
+ * For now, our stop-gap heuristics for content bodies are:
+ * - pick text/plain in multipart/alternative
+ * - recurse into other multipart types looking for an alterntive that has
+ *    text.
+ * - do not recurse into message/rfc822
+ * - ignore/fail-out messages that lack a text part, skipping to the next
+ *    task.  (This should not happen once we support HTML, as there are cases
+ *    where there are attachments without any body part.)
+ * - Append text body parts together; there is no benefit in separating a
+ *    mailing list footer from its content.
+ *
+ * For attachments, our heuristics are:
+ * - only like them if they have filenames.  We will find this as "name" on
+ *    the "content-type" or "filename" on the "content-disposition", quite
+ *    possibly on both even.  For imap.js, "name" shows up in the "params"
+ *    dict, and filename shows up in the "disposition" dict.
+ * - ignore crypto signatures, even though they are named.  S/MIME gives us
+ *    "smime.p7s" as an application/pkcs7-signature under a multipart/signed
+ *    (that the server tells us is "signed").  PGP in MIME mode gives us
+ *    application/pgp-signature "signature.asc" under a multipart/signed.
+ *
+ * The next step in the plan is to get an HTML sanitizer exposed so we can
+ *  support text/html.  That will also imply grabbing multipart/related
+ *  attachments.
+ *
+ * @typedef[ChewRep @dict[
+ *   @key[msg ImapJsMsg]
+ *   @key[bodyParts @listof[ImapJsPart]]
+ *   @key[attachments @listof[AttachmentInfo]]
+ *   @key[header HeaderInfo]
+ *   @key[bodyInfo BodyInfo]
+ * ]]
+ * @return[ChewRep]
+ */
+exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
+  // imap.js builds a bodystructure tree using lists.  All nodes get wrapped
+  //  in a list so they are element zero.  Children (which get wrapped in
+  //  their own list) follow.
+  //
+  // Examples:
+  //   text/plain =>
+  //     [{text/plain}]
+  //   multipart/alternative with plaintext and HTML =>
+  //     [{alternative} [{text/plain}] [{text/html}]]
+  //   multipart/mixed text w/attachment =>
+  //     [{mixed} [{text/plain}] [{application/pdf}]]
+  var attachments = [], bodyParts = [], unnamedPartCounter = 0,
+      relatedParts = [];
+
+  /**
+   * Sizes are the size of the encoded string, not the decoded value.
+   */
+  function estimatePartSizeInBytes(partInfo) {
+    var encoding = partInfo.encoding;
+    // Base64 encodes 3 bytes in 4 characters with padding that always
+    // causes the encoding to take 4 characters.  The max encoded line length
+    // (ignoring CRLF) is 76 bytes, with 72 bytes also fairly common.
+    // As such, a 78=19*4+2 character line encodes 57=19*3 payload bytes and
+    // we can use that as a rough estimate.
+    if (encoding === 'base64') {
+      return Math.floor(partInfo.size * 57 / 78);
+    }
+    // Quoted printable is hard to predict since only certain things need
+    // to be encoded.  It could be perfectly efficient if the source text
+    // has a bunch of newlines built-in.
+    else if (encoding === 'quoted-printable') {
+      // Let's just provide an upper-bound of perfectly efficient.
+      return partInfo.size;
+    }
+    // No clue; upper bound.
+    return partInfo.size;
+  }
+
+  function chewLeaf(branch) {
+    var partInfo = branch[0], i,
+        filename, disposition;
+
+    // - Detect named parts; they could be attachments
+    if (partInfo.params && partInfo.params.name)
+      filename = partInfo.params.name;
+    else if (partInfo.disposition && partInfo.disposition.params &&
+             partInfo.disposition.params.filename)
+      filename = partInfo.disposition.params.filename;
+    else
+      filename = null;
+
+    // - Start from explicit disposition, make attachment if non-displayable
+    if (partInfo.disposition)
+      disposition = partInfo.disposition.type;
+    // UNTUNED-HEURISTIC (need test cases)
+    // Parts with content ID's explicitly want to be referenced by the message
+    // and so are inline.  (Although we might do well to check if they actually
+    // are referenced.  This heuristic could be very wrong.)
+    else if (partInfo.id)
+      disposition = 'inline';
+    else if (filename || partInfo.type !== 'text')
+      disposition = 'attachment';
+    else
+      disposition = 'inline';
+
+    // Some clients want us to display things inline that we simply can't
+    // display (historically and currently, PDF) or that our usage profile
+    // does not want to automatically download (in the future, PDF, because
+    // they can get big.)
+    if (partInfo.type !== 'text' &&
+        partInfo.type !== 'image')
+      disposition = 'attachment';
+
+    // - But we don't care if they are signatures...
+    if ((partInfo.type === 'application') &&
+        (partInfo.subtype === 'pgp-signature' ||
+         partInfo.subtype === 'pkcs7-signature'))
+      return true;
+
+    function stripArrows(s) {
+      if (s[0] === '<')
+        return s.slice(1, -1);
+      return s;
+    }
+
+    // - Attachments have names and don't have id's for multipart/related
+    if (disposition === 'attachment') {
+      // We probably want to do a MIME mapping here for the extension?
+      if (!filename)
+        filename = 'unnamed-' + (++unnamedPartCounter);
+      attachments.push({
+        name: filename,
+        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
+        part: partInfo.partID,
+        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
+        sizeEstimate: estimatePartSizeInBytes(partInfo),
+        file: null,
+        /*
+        charset: (partInfo.params && partInfo.params.charset &&
+                  partInfo.params.charset.toLowerCase()) || undefined,
+        textFormat: (partInfo.params && partInfo.params.format &&
+                     partInfo.params.format.toLowerCase()) || undefined
+         */
+      });
+      return true;
+    }
+    // (must be inline)
+
+    //
+    if (partInfo.type === 'image') {
+      relatedParts.push({
+        name: stripArrows(partInfo.id), // this is the cid
+        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
+        part: partInfo.partID,
+        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
+        sizeEstimate: estimatePartSizeInBytes(partInfo),
+        file: null,
+        /*
+        charset: (partInfo.params && partInfo.params.charset &&
+                  partInfo.params.charset.toLowerCase()) || undefined,
+        textFormat: (partInfo.params && partInfo.params.format &&
+                     partInfo.params.format.toLowerCase()) || undefined
+         */
+      });
+      return true;
+    }
+
+    // - We must be an inline part or structure
+    switch (partInfo.type) {
+      // - content
+      case 'text':
+        if (partInfo.subtype === 'plain' ||
+            partInfo.subtype === 'html') {
+          bodyParts.push(partInfo);
+          return true;
+        }
+        break;
+    }
+    return false;
+  }
+
+  function chewMultipart(branch) {
+    var partInfo = branch[0], i;
+
+    // - We must be an inline part or structure
+    // I have no idea why the multipart is the 'type' rather than the subtype?
+    switch (partInfo.subtype) {
+      // - for alternative, scan from the back to find the first part we like
+      // XXX I believe in Thunderbird we observed some ridiculous misuse of
+      // alternative that we'll probably want to handle.
+      case 'alternative':
+        for (i = branch.length - 1; i >= 1; i--) {
+          var subPartInfo = branch[i][0];
+
+          switch(subPartInfo.type) {
+            case 'text':
+              // fall out for subtype checking
+              break;
+            case 'multipart':
+              // this is probably HTML with attachments, let's give it a try
+              if (chewMultipart(branch[i]))
+                return true;
+              break;
+            default:
+              // no good, keep going
+              continue;
+          }
+
+          switch (subPartInfo.subtype) {
+            case 'html':
+            case 'plain':
+              // (returns true if successfully handled)
+              if (chewLeaf(branch[i]))
+                return true;
+          }
+        }
+        // (If we are here, we failed to find a valid choice.)
+        return false;
+      // - multipart that we should recurse into
+      case 'mixed':
+      case 'signed':
+      case 'related':
+        for (i = 1; i < branch.length; i++) {
+          if (branch[i].length > 1)
+            chewMultipart(branch[i]);
+          else
+            chewLeaf(branch[i]);
+        }
+        return true;
+
+      default:
+        console.warn('Ignoring multipart type:', partInfo.subtype);
+        return false;
+    }
+  }
+
+  if (msg.structure.length > 1)
+    chewMultipart(msg.structure);
+  else
+    chewLeaf(msg.structure);
+
+  return {
+    msg: msg,
+    bodyParts: bodyParts,
+    attachments: attachments,
+    relatedParts: relatedParts,
+    header: null,
+    bodyInfo: null,
+  };
+};
+
+// What do we think the post-snappy compression overhead of the structured clone
+// persistence rep will be for various things?  These are total guesses right
+// now.  Keep in mind we do want the pre-compression size of the data in all
+// cases and we just hope it will compress a bit.  For the attributes we are
+// including the attribute name as well as any fixed-overhead for its payload,
+// especially numbers which may or may not be zig-zag encoded/etc.
+const OBJ_OVERHEAD_EST = 2, STR_ATTR_OVERHEAD_EST = 5,
+      NUM_ATTR_OVERHEAD_EST = 10, LIST_ATTR_OVERHEAD_EST = 4,
+      NULL_ATTR_OVERHEAD_EST = 2, LIST_OVERHEAD_EST = 4,
+      NUM_OVERHEAD_EST = 8, STR_OVERHEAD_EST = 4;
+
+const DESIRED_SNIPPET_LENGTH = 100;
+
+/**
+ * Call once the body parts requested by `chewHeaderAndBodyStructure` have been
+ * fetched in order to finish processing of the message to produce the header
+ * and body data-structures for the message.
+ *
+ * This method is currently synchronous because quote-chewing and HTML
+ * sanitization can be performed synchronously.  This may need to become
+ * asynchronous if we still end up with this happening on the same thread as the
+ * UI so we can time slice of something like that.
+ *
+ * @args[
+ *   @param[rep ChewRep]
+ *   @param[bodyPartContents @listof[String]]{
+ *     The fetched body parts matching the list of requested parts in
+ *     `rep.bodyParts`.
+ *   }
+ * ]
+ * @return[success Boolean]{
+ *   True if we were able to process the message and have updated `rep.header`
+ *   and `rep.bodyInfo` with populated objects.
+ * }
+ */
+exports.chewBodyParts = function chewBodyParts(rep, bodyPartContents,
+                                               folderId) {
+  var snippet = null, bodyReps = [];
+
+  // Mailing lists can result in a text/html body part followed by a text/plain
+  // body part.  Can't rule out multiple HTML parts at this point either, so we
+  // just process everything independently and have the UI do likewise.
+  for (var i = 0; i < rep.bodyParts.length; i++) {
+    var partInfo = rep.bodyParts[i],
+        contents = bodyPartContents[i];
+
+    // HTML parts currently can be synchronously sanitized...
+    switch (partInfo.subtype) {
+      case 'plain':
+        var bodyRep = $quotechew.quoteProcessTextBody(contents);
+        if (!snippet)
+          snippet = $quotechew.generateSnippet(bodyRep,
+                                               DESIRED_SNIPPET_LENGTH);
+        bodyReps.push('plain', bodyRep);
+        break;
+
+      case 'html':
+        var htmlNode = $htmlchew.sanitizeAndNormalizeHtml(contents);
+        if (!snippet)
+          snippet = $htmlchew.generateSnippet(htmlNode, DESIRED_SNIPPET_LENGTH);
+        bodyReps.push('html', htmlNode.innerHTML);
+        break;
+    }
+  }
+
+
+  rep.header = {
+    // the UID (as an integer)
+    id: rep.msg.id,
+    // The sufficiently unique id is a concatenation of the UID onto the
+    // folder id.
+    suid: folderId + '/' + rep.msg.id,
+    // The message-id header value; as GUID as get for now; on gmail we can
+    // use their unique value, or if we could convince dovecot to tell us, etc.
+    guid: rep.msg.msg.meta.messageId,
+    // mailparser models from as an array; we do not.
+    author: rep.msg.msg.from[0] || null,
+    date: rep.msg.date,
+    flags: rep.msg.flags,
+    hasAttachments: rep.attachments.length > 0,
+    subject: rep.msg.msg.subject,
+    snippet: snippet,
+  };
+
+
+  // crappy size estimates where we assume the world is ASCII and so a UTF-8
+  // encoding will take exactly 1 byte per character.
+  var sizeEst = OBJ_OVERHEAD_EST + NUM_ATTR_OVERHEAD_EST +
+                  4 * NULL_ATTR_OVERHEAD_EST;
+  function sizifyAddrs(addrs) {
+    sizeEst += LIST_ATTR_OVERHEAD_EST;
+    for (var i = 0; i < addrs.length; i++) {
+      var addrPair = addrs[i];
+      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
+                   (addrPair.name ? addrPair.name.length : 0) +
+                   (addrPair.address ? addrPair.address.length : 0);
+    }
+    return addrs;
+  }
+  function sizifyAttachments(atts) {
+    sizeEst += LIST_ATTR_OVERHEAD_EST;
+    for (var i = 0; i < atts.length; i++) {
+      var att = atts[i];
+      sizeEst += OBJ_OVERHEAD_EST + 2 * STR_ATTR_OVERHEAD_EST +
+                   att.name.length + att.type.length +
+                   NUM_ATTR_OVERHEAD_EST;
+    }
+    return atts;
+  }
+  function sizifyStr(str) {
+    sizeEst += STR_ATTR_OVERHEAD_EST + str.length;
+    return str;
+  }
+  function sizifyBodyRep(rep) {
+    sizeEst += LIST_OVERHEAD_EST +
+                 NUM_OVERHEAD_EST * (rep.length / 2) +
+                 STR_OVERHEAD_EST * (rep.length / 2);
+    for (var i = 1; i < rep.length; i += 2) {
+      if (rep[i])
+        sizeEst += rep[i].length;
+    }
+    return rep;
+  };
+  function sizifyBodyReps(reps) {
+    sizeEst += STR_OVERHEAD_EST * (reps.length / 2);
+    for (var i = 0; i < reps.length; i += 2) {
+      var type = reps[i], rep = reps[i + 1];
+      if (type === 'html')
+        sizeEst += STR_OVERHEAD_EST + rep.length;
+      else
+        sizeEst += sizifyBodyRep(rep);
+    }
+    return reps;
+  };
+
+  rep.bodyInfo = {
+    date: rep.msg.date,
+    size: sizeEst,
+    to: ('to' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.to) : null,
+    cc: ('cc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.cc) : null,
+    bcc: ('bcc' in rep.msg.msg) ? sizifyAddrs(rep.msg.msg.bcc) : null,
+    replyTo: ('reply-to' in rep.msg.msg.parsedHeaders) ?
+               sizifyStr(rep.msg.msg.parsedHeaders['reply-to']) : null,
+    attachments: sizifyAttachments(rep.attachments),
+    relatedParts: sizifyAttachments(rep.relatedParts),
+    references: rep.msg.msg.meta.references,
+    bodyReps: sizifyBodyReps(bodyReps),
+  };
+
+  return true;
+};
+
+}); // end define
+;
+define('mailapi/imap/folder',
+  [
+    'rdcommon/log',
+    'mailparser/mailparser',
+    '../a64',
+    '../allback',
+    '../date',
+    '../syncbase',
+    '../util',
+    './imapchew',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $mailparser,
+    $a64,
+    $allback,
+    $date,
+    $sync,
+    $util,
+    $imapchew,
+    $module,
+    exports
+  ) {
+const allbackMaker = $allback.allbackMaker,
+      bsearchForInsert = $util.bsearchForInsert,
+      bsearchMaybeExists = $util.bsearchMaybeExists,
+      cmpHeaderYoungToOld = $util.cmpHeaderYoungToOld,
+      DAY_MILLIS = $date.DAY_MILLIS,
+      NOW = $date.NOW,
+      FUTURE = $date.FUTURE,
+      BEFORE = $date.BEFORE,
+      ON_OR_BEFORE = $date.ON_OR_BEFORE,
+      SINCE = $date.SINCE,
+      makeDaysBefore = $date.makeDaysBefore,
+      quantizeDate = $date.quantizeDate;
+
+/**
+ * Compact an array in-place with nulls so that the nulls are removed.  This
+ * is done by a scan with an adjustment delta and a final splice to remove
+ * the spares.
+ */
+function compactArray(arr) {
+  // this could also be done with a write pointer.
+  var delta = 0, len = arr.length;
+  for (var i = 0; i < len; i++) {
+    var obj = arr[i];
+    if (obj === null) {
+      delta++;
+      continue;
+    }
+    if (delta)
+      arr[i - delta] = obj;
+  }
+  if (delta)
+    arr.splice(len - delta, delta);
+  return arr;
+}
+
+/**
+ * We don't care about deleted messages, it's best that we're not aware of them.
+ * However, it's important to keep in mind that this means that EXISTS provides
+ * us with an upper bound on the messages in the folder since we are blinding
+ * ourselves to deleted messages.
+ */
+const BASELINE_SEARCH_OPTIONS = ['!DELETED'];
+
+/**
+ * Fetch parameters to get the headers / bodystructure; exists to reuse the
+ * object since every fetch is the same.  Note that imap.js always gives us
+ * FLAGS and INTERNALDATE so we don't need to ask for that.
+ *
+ * We are intentionally not using ENVELOPE because Thunderbird intentionally
+ * defaults to to not using ENVELOPE.  Per bienvenu in
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=402594#c33 "We stopped using it
+ * by default because servers often had issues with it so it was more trouble
+ * than it was worth."
+ *
+ * Of course, imap.js doesn't really support ENVELOPE outside of bodystructure
+ * right now either, but that's a lesser issue.  We probably don't want to trust
+ * that data, however, if we don't want to trust normal ENVELOPE.
+ */
+const INITIAL_FETCH_PARAMS = {
+  request: {
+    headers: ['FROM', 'TO', 'CC', 'BCC', 'SUBJECT', 'REPLY-TO', 'MESSAGE-ID',
+              'REFERENCES'],
+    struct: true
+  },
+};
+
+/**
+ * Fetch parameters to just get the flags, which is no parameters because
+ * imap.js always fetches them right now.
+ */
+const FLAG_FETCH_PARAMS = {
+  request: {
+  },
+};
+
+/**
+ * Folder connections do the actual synchronization logic.  They are associated
+ * with one or more `ImapSlice` instances that issue the requests that trigger
+ * synchronization.  Storage is handled by `ImapFolderStorage` or
+ * `GmailMessageStorage` instances.
+ *
+ * == IMAP Protocol Connection Management
+ *
+ * We request IMAP protocol connections from the account.  There is currently no
+ * way for us to surrender our connection or indicate to the account that we
+ * are capable of surrending the connection.  That might be a good idea, though.
+ *
+ * All accesses to a folder's connection should be done through an
+ * `ImapFolderConn`, even if the actual mutation logic is being driven by code
+ * living in the account.
+ *
+ * == IDLE
+ *
+ * We plan to IDLE in folders that we have active slices in.  We are assuming
+ * the most basic IDLE implementation where it will tell us when the number
+ * of messages increases (EXISTS), or decreases (EXPUNGE and EXISTS), with no
+ * notifications when flags change.  (This is my current understanding of how
+ * gmail operates from internet searches; we're not quite yet to protocol
+ * experimentation yet.)
+ *
+ * The idea is accordingly that we will use IDLE notifications as a hint that
+ * we should do a SEARCH for new messages.  It is that search that will update
+ * our accuracy information and only that.
+ */
+function ImapFolderConn(account, storage, _parentLog) {
+  this._account = account;
+  this._storage = storage;
+  this._LOG = LOGFAB.ImapFolderConn(this, _parentLog, storage.folderId);
+
+  this._conn = null;
+  this.box = null;
+}
+ImapFolderConn.prototype = {
+  /**
+   * Acquire a connection and invoke the callback once we have it and we have
+   * entered the folder.
+   *
+   * XXX This is inherently dangerous in the face of concurrent attempts to
+   * call this method or check whether it has completed.  We need to move to
+   * our queue of operations on the folder, or ensure that a higher level layer
+   * is enforcing this.  To be done with proper mutation logic impl.
+   */
+  acquireConn: function(callback) {
+    var self = this;
+    this._account.__folderDemandsConnection(
+      this._storage.folderId,
+      function(conn) {
+        self._conn = conn;
+        // Now we have a connection, but it's not in the folder.
+        // (If we were doing fancier sync like QRESYNC, we would not enter
+        // in such a blase fashion.)
+        self._conn.openBox(self._storage.folderMeta.path,
+                           function openedBox(err, box) {
+            if (err) {
+              console.error('Problem entering folder',
+                            self._storage.folderMeta.path);
+              return;
+            }
+            self.box = box;
+            callback(self);
+          });
+      });
+  },
+
+  relinquishConn: function() {
+    if (!this._conn)
+      return;
+
+    this._account.__folderDoneWithConnection(this._storage.folderId,
+                                             this._conn);
+    this._conn = null;
+  },
+
+  /**
+   * Wrap the search command and shirk the errors for now.  I was thinking we
+   * might have this do automatic connection re-establishment, etc., but I think
+   * it makes more sense to have the IMAP protocol connection object do that
+   * under the hood or in participation with the account class via another
+   * interface since it already handles command queueing.
+   *
+   * This also conveniently hides the connection acquisition asynchrony.
+   */
+  _reliaSearch: function(searchOptions, callback) {
+    // If we don't have a connection, get one, then re-call.
+    if (!this._conn) {
+      this.acquireConn(this._reliaSearch.bind(this, searchOptions, callback));
+      return;
+    }
+
+    this._conn.search(searchOptions, function(err, uids) {
+        if (err) {
+          console.error('Search error on', searchOptions, 'err:', err);
+          return;
+        }
+        callback(uids);
+      });
+  },
+
+  /**
+   * Perform a search to find all the messages in the given date range.
+   * Meanwhile, load the set of messages from storage.  Infer deletion of the
+   * messages we already know about that should exist in the search results but
+   * do not.  Retrieve information on the messages we don't know anything about
+   * and update the metadata on the messages we do know about.
+   *
+   * An alternate way to accomplish the new/modified/deleted detection for a
+   * range might be to do a search over the UID range of new-to-us UIDs and
+   * then perform retrieval on what we get back.  We would do a flag fetch for
+   * all the UIDs we already know about and use that to both get updated
+   * flags and infer deletions from UIDs that don't report back.  Except that
+   * might not work because the standard doesn't seem to say that if we
+   * specify gibberish UIDs that it should keep going for the UIDs that are
+   * not gibberish.  Also, it's not clear what the performance impact of the
+   * additional search constraint might be on server performance.  (Of course,
+   * if the server does not have an index on internaldate, these queries are
+   * going to be very expensive and the UID limitation would probably be a
+   * mercy to the server.)
+   */
+  syncDateRange: function(startTS, endTS, accuracyStamp, useBisectLimit,
+                          doneCallback) {
+console.log("syncDateRange:", startTS, endTS);
+    var searchOptions = BASELINE_SEARCH_OPTIONS.concat(), self = this,
+      storage = self._storage;
+    if (!useBisectLimit)
+      useBisectLimit = $sync.BISECT_DATE_AT_N_MESSAGES;
+    if (startTS)
+      searchOptions.push(['SINCE', startTS]);
+    if (endTS)
+      searchOptions.push(['BEFORE', endTS]);
+
+    var callbacks = allbackMaker(
+      ['search', 'db'],
+      function syncDateRangeLogic(results) {
+        var serverUIDs = results.search, headers = results.db,
+            knownUIDs = [], uid, numDeleted = 0,
+            modseq = self._conn._state.box.highestModSeq || '';
+
+console.log('SERVER UIDS', serverUIDs.length, useBisectLimit);
+        if (serverUIDs.length > useBisectLimit) {
+          var effEndTS = endTS || FUTURE() ||
+                         quantizeDate(Date.now() + DAY_MILLIS),
+              curDaysDelta = (effEndTS - startTS) / DAY_MILLIS;
+          // We are searching more than one day, we can shrink our search.
+
+console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
+          if (curDaysDelta > 1) {
+            // Sanity check the time delta; if we grew the bounds to the dawn
+            // of time, then our interpolation is useless and it's better for
+            // us to crank things way down, even if it's erroneously so.
+            if (curDaysDelta > 1000)
+              curDaysDelta = 30;
+
+            // - Interpolate better time bounds.
+            // Assume a linear distribution of messages, but overestimated by
+            // a factor of two so we undershoot.
+            var shrinkScale = $sync.BISECT_DATE_AT_N_MESSAGES /
+                                (serverUIDs.length * 2),
+                backDays = Math.max(1,
+                                    Math.ceil(shrinkScale * curDaysDelta));
+            // mark the bisection abort...
+            self._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+            var bisectInfo = {
+              oldStartTS: startTS,
+              dayStep: backDays,
+              newStartTS: makeDaysBefore(effEndTS, backDays),
+            };
+            startTS = bisectInfo.newStartTS;
+            // If we were being used for a refresh, they may want us to stop
+            // and change their sync strategy.
+            if (doneCallback(bisectInfo, null) === 'abort') {
+              doneCallback('aborted', null);
+              return null;
+            }
+console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
+            "startTS", startTS, "endTS", endTS, "backDays", backDays);
+            return self.syncDateRange(startTS, endTS, accuracyStamp, null,
+                                      doneCallback);
+          }
+        }
+
+        // -- infer deletion, flag to distinguish known messages
+        // rather than splicing lists and causing shifts, we null out values.
+        for (var iMsg = 0; iMsg < headers.length; iMsg++) {
+          var header = headers[iMsg];
+          var idxUid = serverUIDs.indexOf(header.id);
+          // deleted!
+          if (idxUid === -1) {
+            storage.deleteMessageHeaderAndBody(header);
+            numDeleted++;
+            headers[iMsg] = null;
+            continue;
+          }
+          // null out the UID so the non-null values in the search are the
+          // new messages to us.
+          serverUIDs[idxUid] = null;
+          // but save the UID so we can do a flag-check.
+          knownUIDs.push(header.id);
+        }
+
+        var newUIDs = compactArray(serverUIDs); // (re-labeling, same array)
+        if (numDeleted)
+          compactArray(headers);
+
+        return self._commonSync(
+          newUIDs, knownUIDs, headers,
+          function(newCount, knownCount) {
+            self._LOG.syncDateRange_end(newCount, knownCount, numDeleted,
+                                        startTS, endTS);
+            self._storage.markSyncRange(startTS, endTS, modseq,
+                                        accuracyStamp);
+            doneCallback(null, newCount + knownCount);
+          });
+      });
+
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
+    this._reliaSearch(searchOptions, callbacks.search);
+    this._storage.getAllMessagesInImapDateRange(startTS, endTS, callbacks.db);
+  },
+
+  searchDateRange: function(endTS, startTS, searchParams,
+                            slice) {
+    var searchOptions = BASELINE_SEARCH_OPTIONS.concat(searchParams);
+    if (startTS)
+      searchOptions.push(['SINCE', startTS]);
+    if (endTS)
+      searchOptions.push(['BEFORE', endTS]);
+  },
+
+  /**
+   * Given a list of new-to-us UIDs and known-to-us UIDs and their corresponding
+   * headers, synchronize the flags for the known UIDs' headers and fetch and
+   * create the header and body objects for the new UIDS.
+   *
+   * First we fetch the headers/bodystructures for the new UIDs all in one go;
+   * all of these headers are going to end up in-memory at the same time, so
+   * batching won't let us reduce the overhead right now.  We process them
+   * to determine the body parts we should fetch as the results come in.  Once
+   * we have them all, we sort them by date, endTS-to-startTS for the third
+   * step and start issuing/pipelining the requests.
+   *
+   * Second, we issue the flag update requests for the known-to-us UIDs.  This
+   * is done second so it can help avoid wasting the latency of the round-trip
+   * that would otherwise result between steps one and three.  (Although we
+   * could also mitigate that by issuing some step three requests even as
+   * the step one requests are coming in; our sorting doesn't have to be
+   * perfect and may already be reasonably well ordered if UIDs correlate
+   * with internal date well.)
+   *
+   * Third, we fetch the body parts in our newest-to-startTS order, adding
+   * finalized headers and bodies as we go.
+   */
+  _commonSync: function(newUIDs, knownUIDs, knownHeaders, doneCallback) {
+    var conn = this._conn, storage = this._storage;
+console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
+            knownUIDs.length, 'knownHeaders', knownHeaders.length);
+    var callbacks = allbackMaker(
+      ['newMsgs', 'knownMsgs'],
+      function() {
+        // It is possible that async I/O will be required to add a header or a
+        // body, so we need to defer declaring the synchronization done until
+        // after all of the storage's deferred calls have run because the
+        // header/body affecting calls will have been deferred.
+        storage.runAfterDeferredCalls(
+          doneCallback.bind(null, newUIDs.length, knownUIDs.length));
+      });
+
+    // -- Fetch headers/bodystructures for new UIDs
+    var newChewReps = [];
+    if (newUIDs.length) {
+      var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
+      newFetcher.on('message', function onNewMessage(msg) {
+          msg.on('end', function onNewMsgEnd() {
+console.log('  new fetched, header processing');
+            newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
+console.log('   header processed');
+          });
+        });
+      newFetcher.on('error', function onNewFetchError(err) {
+          // XXX the UID might have disappeared already?  we might need to have
+          // our initiating command re-do whatever it's up to.  Alternatively,
+          // we could drop back from a bulk fetch to a one-by-one fetch.
+          console.warn('New UIDs fetch error, ideally harmless:', err);
+        });
+      newFetcher.on('end', function onNewFetchEnd() {
+          // sort the messages, endTS to startTS (aka numerically descending)
+          newChewReps.sort(function(a, b) {
+              return b.msg.date - a.msg.date;
+            });
+
+          // - issue the bodypart fetches.
+          // Use mailparser's body parsing capabilities, albeit not entirely in
+          // the way it was intended to be used since it wants to parse full
+          // messages.
+          var mparser = new $mailparser.MailParser();
+          function setupBodyParser(partDef) {
+            mparser._state = 0x2; // body
+            mparser._remainder = '';
+            mparser._currentNode = null;
+            mparser._currentNode = mparser._createMimeNode(null);
+            // nb: mparser._multipartTree is an empty list (always)
+            mparser._currentNode.meta.contentType =
+              partDef.type.toLowerCase() + '/' +
+              partDef.subtype.toLowerCase();
+            mparser._currentNode.meta.charset =
+              partDef.params && partDef.params.charset &&
+              partDef.params.charset.toLowerCase();
+            mparser._currentNode.meta.transferEncoding =
+              partDef.encoding && partDef.encoding.toLowerCase();
+            mparser._currentNode.meta.textFormat =
+              partDef.params && partDef.params.format &&
+              partDef.params.format.toLowerCase();
+          }
+          function bodyParseBuffer(buffer) {
+            process.immediate = true;
+            mparser.write(buffer);
+            process.immediate = false;
+          }
+          function finishBodyParsing() {
+            process.immediate = true;
+            mparser._process(true);
+            process.immediate = false;
+            // We end up having provided an extra newline that we don't
+            // want, so let's cut it off if it exists.
+            var content = mparser._currentNode.content;
+            if (content.charCodeAt(content.length - 1) === 10)
+              content = content.substring(0, content.length - 1);
+            return content;
+          }
+
+          // XXX imap.js is currently not capable of issuing/parsing multiple
+          // literal results from a single fetch result line.  It's not a
+          // fundamentally hard problem, but I'd rather defer messing with its
+          // parse loop (and internal state tracking) until a future time when
+          // I can do some other cleanup at the same time.  (The subsequent
+          // literals are just on their own lines with an initial space and then
+          // the named literal.  Ex: " BODY[1.2] {2463}".)
+          //
+          // So let's issue one fetch per body part and then be happy when we've
+          // got them all.
+          var pendingFetches = 0;
+          newChewReps.forEach(function(chewRep, iChewRep) {
+            var partsReceived = [];
+            // If there are no parts to process, consume it now.
+            if (chewRep.bodyParts.length === 0) {
+              if ($imapchew.chewBodyParts(chewRep, partsReceived,
+                                          storage.folderId)) {
+                storage.addMessageHeader(chewRep.header);
+                storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
+              }
+            }
+
+            chewRep.bodyParts.forEach(function(bodyPart) {
+              var opts = { request: { body: bodyPart.partID } };
+              pendingFetches++;
+
+console.log('  fetching for', chewRep.msg.id, bodyPart.partID);
+              var fetcher;
+try {
+              fetcher = conn.fetch(chewRep.msg.id, opts);
+} catch (ex) {
+  console.warn('!failure fetching', ex);
+  return;
+}
+              setupBodyParser(bodyPart);
+              fetcher.on('error', function(err) {
+                console.warn('body fetch error', err);
+                if (--pendingFetches === 0)
+                  callbacks.newMsgs();
+              });
+              fetcher.on('message', function(msg) {
+                setupBodyParser(bodyPart);
+                msg.on('data', bodyParseBuffer);
+                msg.on('end', function() {
+                  partsReceived.push(finishBodyParsing());
+console.log('  !fetched body part for', chewRep.msg.id, bodyPart.partID,
+            partsReceived.length, chewRep.bodyParts.length);
+
+                  // -- Process
+                  if (partsReceived.length === chewRep.bodyParts.length) {
+                    if ($imapchew.chewBodyParts(chewRep, partsReceived,
+                                                storage.folderId)) {
+                      storage.addMessageHeader(chewRep.header);
+                      storage.addMessageBody(chewRep.header, chewRep.bodyInfo);
+                    }
+else { console.warn("failure to parse body!!!"); }
+                  }
+                  // If this is the last chew rep, then use its completion
+                  // to report our completion.
+                  if (--pendingFetches === 0)
+                    callbacks.newMsgs();
+                });
+              });
+            });
+          });
+console.log('  pending fetches', pendingFetches);
+          if (pendingFetches === 0)
+            callbacks.newMsgs();
+        });
+    }
+    else {
+      callbacks.newMsgs();
+    }
+
+    // -- Fetch updated flags for known UIDs
+    if (knownUIDs.length) {
+      var knownFetcher = this._conn.fetch(knownUIDs, FLAG_FETCH_PARAMS);
+      var numFetched = 0;
+      knownFetcher.on('message', function onKnownMessage(msg) {
+          // (Since we aren't requesting headers, we should be able to get
+          // away without registering this next event handler and just process
+          // msg right now, but let's wait on an optimization pass.)
+          msg.on('end', function onKnownMsgEnd() {
+            var i = numFetched++;
+            // RFC 3501 doesn't seem to require that we get results in the order
+            // we request them, so use indexOf if things don't line up.
+            if (knownHeaders[i].id !== msg.id) {
+              i = knownUIDs.indexOf(msg.id);
+              // If it's telling us about a message we don't know about, run away.
+              if (i === -1) {
+                console.warn("Server fetch reports unexpected message:", msg.id);
+                return;
+              }
+            }
+            var header = knownHeaders[i];
+            // (msg.flags comes sorted and we maintain that invariant)
+            if (header.flags.toString() !== msg.flags.toString()) {
+              header.flags = msg.flags;
+              storage.updateMessageHeader(header.date, header.id, true, header);
+            }
+            else {
+              storage.unchangedMessageHeader(header);
+            }
+          });
+        });
+      knownFetcher.on('error', function onKnownFetchError(err) {
+          // XXX the UID might have disappeared already?  we might need to have
+          // our initiating command re-do whatever it's up to.  Alternatively,
+          // we could drop back from a bulk fetch to a one-by-one fetch.
+          console.warn('Known UIDs fetch error, ideally harmless:', err);
+        });
+      knownFetcher.on('end', function() {
+        callbacks.knownMsgs();
+      });
+    }
+    else {
+      callbacks.knownMsgs();
+    }
+  },
+
+  downloadMessageAttachments: function(uid, partInfos, callback) {
+    var conn = this._conn;
+    var mparser = new $mailparser.MailParser();
+
+    // I actually implemented a usable shim for the checksum purposes, but we
+    // don't actually care about the checksum, so why bother doing the work?
+    var dummyChecksummer = {
+      update: function() {},
+      digest: function() { return null; },
+    };
+
+    function setupBodyParser(partInfo) {
+      mparser._state = 0x2; // body
+      mparser._remainder = '';
+      mparser._currentNode = null;
+      mparser._currentNode = mparser._createMimeNode(null);
+      mparser._currentNode.attachment = true;
+      mparser._currentNode.checksum = dummyChecksummer;
+      mparser._currentNode.content = undefined;
+      // nb: mparser._multipartTree is an empty list (always)
+      mparser._currentNode.meta.contentType = partInfo.type;
+      mparser._currentNode.meta.transferEncoding = partInfo.encoding;
+      mparser._currentNode.meta.charset = null; //partInfo.charset;
+      mparser._currentNode.meta.textFormat = null; //partInfo.textFormat;
+    }
+    function bodyParseBuffer(buffer) {
+      process.immediate = true;
+      mparser.write(buffer);
+      process.immediate = false;
+    }
+    function finishBodyParsing() {
+      process.immediate = true;
+      mparser._process(true);
+      process.immediate = false;
+      // this is a Buffer!
+      return mparser._currentNode.content;
+    }
+
+    var anyError = null, pendingFetches = 0, bodies = [];
+    partInfos.forEach(function(partInfo) {
+      var opts = { request: { body: partInfo.part } };
+      pendingFetches++;
+      var fetcher = conn.fetch(uid, opts);
+
+      setupBodyParser(partInfo);
+      fetcher.on('error', function(err) {
+        if (!anyError)
+          anyError = err;
+        if (--pendingFetches === 0)
+          callback(anyError, bodies);
+      });
+      fetcher.on('message', function(msg) {
+        setupBodyParser(partInfo);
+        msg.on('data', bodyParseBuffer);
+        msg.on('end', function() {
+          bodies.push(finishBodyParsing());
+
+          if (--pendingFetches === 0)
+            callback(anyError, bodies);
+        });
+      });
+    });
+  },
+
+  shutdown: function() {
+    this._LOG.__die();
+  },
+};
+
+function ImapFolderSyncer(account, folderStorage, _parentLog) {
+  this._account = account;
+  this.folderStorage = folderStorage;
+
+  this._LOG = LOGFAB.ImapFolderSyncer(this, _parentLog, folderStorage.folderId);
+
+  /**
+   * The timestamp to use for `markSyncRange` for all syncs in this higher
+   * level sync.  Accuracy time-info does not need high precision, so this
+   * results in fewer accuracy structures and simplifies our decision logic
+   * in `sliceOpenFromNow`.
+   */
+  this._curSyncAccuracyStamp = null;
+  /**
+   * The start range of the (backward-moving) sync time range.
+   */
+  this._curSyncStartTS = null;
+  /**
+   * The number of days we are looking into the past in the current sync step.
+   */
+  this._curSyncDayStep = null;
+  /**
+   * If non-null, then we must reach a sync start date of the provided date
+   * before we begin increasing _curSyncDayStep.  This helps us avoid
+   * oscillation where we make the window too large, shrink it, but then find
+   * find nothing.  Since we know that there are going to be a lot of messages
+   * before we hit this date, it makes sense to keep taking smaller sync steps.
+   */
+  this._curSyncDoNotGrowWindowBefore = null;
+
+  this.folderConn = new ImapFolderConn(account, folderStorage, this._LOG);
+}
+exports.ImapFolderSyncer = ImapFolderSyncer;
+ImapFolderSyncer.prototype = {
+  syncDateRange: function(startTS, endTS, syncCallback) {
+    syncCallback('sync', false);
+    this._startSync(startTS, endTS);
+  },
+
+  syncAdjustedDateRange: function(startTS, endTS, syncCallback) {
+    // We need to iterate over the headers to figure out the right
+    // date to use.  We can't just use the accuracy range because it may
+    // have been bisected by the user scrolling into the past and
+    // triggering a refresh.
+    this.folderStorage.getMessagesBeforeMessage(
+      null, null, $sync.INITIAL_FILL_SIZE - 1,
+      function(headers, moreExpected) {
+        if (moreExpected)
+          return;
+        var header = headers[headers.length - 1];
+        pastDate = quantizeDate(header.date);
+        syncCallback('sync', true);
+        this._startSync(pastDate, endTS);
+      }.bind(this)
+    );
+  },
+
+  refreshSync: function(startTS, endTS, useBisectLimit, callback) {
+    this._curSyncAccuracyStamp = NOW();
+    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
+                                  useBisectLimit, callback);
+  },
+
+  // Returns false if no sync is necessary.
+  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback) {
+    // The sync wants to be BEFORE the earliest day (which we are assuming
+    // is fully synced based on our day granularity).
+    var syncEndTS = quantizeDate(endTS);
+    var syncStartTS = null;
+    if (batchHeaders.length)
+      syncStartTS = batchHeaders[batchHeaders.length - 1].date;
+
+    if (syncStartTS) {
+      // We are computing a SINCE value, so quantize (to midnight)
+      syncStartTS = quantizeDate(syncStartTS);
+      // If we're not syncing at least one day, flag to give up.
+      if (syncStartTS === syncEndTS)
+        syncStartTS = null;
+    }
+
+    // Perform the sync if there is a range.
+    if (syncStartTS) {
+      // We intentionally quantized syncEndTS to avoid re-synchronizing messages
+      // that got us to our last sync.  So we want to send those excluded
+      // headers in a batch since the sync will not report them for us.
+      var iFirstNotToSend = 0;
+      for (; iFirstNotToSend < batchHeaders.length; iFirstNotToSend++) {
+        if (BEFORE(batchHeaders[iFirstNotToSend].date, syncEndTS))
+          break;
+      }
+
+      // Perform a limited synchronization; do not issue additional syncs!
+      syncCallback('limsync', iFirstNotToSend);
+      this._startSync(syncStartTS, syncEndTS);
+      return true;
+    }
+    // If growth was requested/is allowed or our accuracy range already covers
+    // as far back as we go, issue a (potentially expanding) sync.
+    else if (batchHeaders.length === 0 && userRequestsGrowth) {
+      syncCallback('sync', 0);
+      this._startSync(null, endTS);
+      return true;
+    }
+
+    return false;
+  },
+
+  _startSync: function ifs__startSync(startTS, endTS) {
+    if (startTS === null)
+      startTS = endTS - ($sync.INITIAL_SYNC_DAYS * DAY_MILLIS);
+    this._curSyncAccuracyStamp = NOW();
+    this._curSyncStartTS = startTS;
+    this._curSyncDayStep = $sync.INITIAL_SYNC_DAYS;
+    this._curSyncDoNotGrowWindowBefore = null;
+
+    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
+                                  null, this.onSyncCompleted.bind(this));
+  },
+
+  /**
+   * Whatever synchronization we last triggered has now completed; we should
+   * either trigger another sync if we still want more data, or close out the
+   * current sync.
+   */
+  onSyncCompleted: function ifs_onSyncCompleted(bisectInfo, messagesSeen) {
+    // In the event the time range had to be bisected, update our info so if
+    // we need to take another step we do the right thing.
+    if (bisectInfo) {
+      this._curSyncDoNotGrowWindowBefore = bisectInfo.oldStartTS;
+      this._curSyncDayStep = bisectInfo.dayStep;
+      this._curSyncStartTS = bisectInfo.newStartTS;
+      return;
+    }
+
+    console.log("Sync Completed!", this._curSyncDayStep, "days",
+                messagesSeen, "messages synced");
+
+    // If it now appears we know about all the messages in the folder, then we
+    // are done syncing and can mark the entire folder as synchronized.  This
+    // requires that the number of messages we know about is the same as the
+    // number the server most recently told us are in the folder, plus that the
+    // slice's oldest know message is the oldest message known to the db,
+    // implying that we have fully synchronized the folder during this session.
+    //
+    // NB: If there are any deleted messages, this logic will not save us
+    // because we ignored those messages.  This is made less horrible by issuing
+    // a time-date that expands as we go further back in time.
+    //
+    // (I have considered asking to see deleted messages too and ignoring them;
+    // that might be suitable.  We could also just be a jerk and force an
+    // expunge.)
+    var folderMessageCount = this.folderConn && this.folderConn.box &&
+                             this.folderConn.box.messages.total,
+        dbCount = this.folderStorage.getKnownMessageCount();
+console.log("folder message count", folderMessageCount,
+            "dbCount", dbCount,
+            "oldest known", this.folderStorage.headerIsOldestKnown(
+              this.folderStorage._curSyncSlice.startTS,
+              this.folderStorage._curSyncSlice.startUID));
+    if (folderMessageCount === dbCount &&
+        this.folderStorage.headerIsOldestKnown(
+          this.folderStorage._curSyncSlice.startTS,
+          this.folderStorage._curSyncSlice.startUID)) {
+      // (do not desire more headers)
+      this.folderStorage._curSyncSlice.desiredHeaders =
+        this.folderStorage._curSyncSlice.headers.length;
+      // expand the accuracy range to cover everybody
+      this.folderStorage.markSyncedEntireFolder();
+    }
+    // If our slice has now gone to the dawn of time, we can decide we have
+    // enough headers.
+    else if (this.folderStorage._curSyncSlice.startTS &&
+             ON_OR_BEFORE(this.folderStorage._curSyncSlice.startTS,
+                          $sync.OLDEST_SYNC_DATE)) {
+      this.folderStorage._curSyncSlice.desiredHeaders =
+        this.folderStorage._curSyncSlice.headers.length;
+    }
+
+    // - Done if we don't want any more headers.
+    if (this.folderStorage._curSyncSlice.headers.length >=
+          this.folderStorage._curSyncSlice.desiredHeaders ||
+        // (limited syncs aren't allowed to expand themselves)
+        (this.folderStorage._curSyncSlice.waitingOnData === 'limsync')) {
+      console.log("SYNCDONE Enough headers retrieved.",
+                  "have", this.folderStorage._curSyncSlice.headers.length,
+                  "want", this.folderStorage._curSyncSlice.desiredHeaders,
+                  "conn knows about", this.folderConn.box.messages.total,
+                  "sync date", this._curSyncStartTS,
+                  "[oldest defined as", $sync.OLDEST_SYNC_DATE, "]");
+      // If we are accumulating, we don't want to adjust our count upwards;
+      // the release will slice the excess off for us.
+      if (!this.folderStorage._curSyncSlice._accumulating) {
+        this.folderStorage._curSyncSlice.desiredHeaders =
+          this.folderStorage._curSyncSlice.headers.length;
+      }
+      this.folderStorage._curSyncSlice.waitingOnData = false;
+      this.folderStorage._curSyncSlice.setStatus('synced', true, false, true);
+      this.folderStorage._curSyncSlice = null;
+
+      this._account.__checkpointSyncCompleted();
+      return;
+    }
+    else if (this.folderStorage._curSyncSlice._accumulating) {
+      this.folderStorage._curSyncSlice.setStatus('synchronizing', true, true,
+                                                 true);
+    }
+
+    // - Increase our search window size if we aren't finding anything
+    // Our goal is that if we are going backwards in time and aren't finding
+    // anything, we want to keep expanding our window
+    var daysToSearch, lastSyncDaysInPast;
+    // If we saw messages, there is no need to increase the window size.  We
+    // also should not increase the size if we explicitly shrank the window and
+    // left a do-not-expand-until marker.
+    if (messagesSeen || (this._curSyncDoNotGrowWindowBefore !== null &&
+         SINCE(this._curSyncStartTS, this._curSyncDoNotGrowWindowBefore))) {
+      daysToSearch = this._curSyncDayStep;
+    }
+    else {
+      // This may be a fractional value because of DST
+      lastSyncDaysInPast = ((quantizeDate(NOW())) - this._curSyncStartTS) /
+                           DAY_MILLIS;
+      daysToSearch = Math.ceil(this._curSyncDayStep *
+                               $sync.TIME_SCALE_FACTOR_ON_NO_MESSAGES);
+
+      if (lastSyncDaysInPast < 180) {
+        if (daysToSearch > 14)
+          daysToSearch = 14;
+      }
+      else if (lastSyncDaysInPast < 365) {
+        if (daysToSearch > 30)
+          daysToSearch = 30;
+      }
+      else if (lastSyncDaysInPast < 730) {
+        if (daysToSearch > 60)
+          daysToSearch = 60;
+      }
+      else if (lastSyncDaysInPast < 1095) {
+        if (daysToSearch > 90)
+          daysToSearch = 90;
+      }
+      else if (lastSyncDaysInPast < 1825) { // 5 years
+        if (daysToSearch > 120)
+          daysToSearch = 120;
+      }
+      else if (lastSyncDaysInPast < 3650) {
+        if (daysToSearch > 365)
+          daysToSearch = 365;
+      }
+      else if (daysToSearch > 730) {
+        daysToSearch = 730;
+      }
+      this._curSyncDayStep = daysToSearch;
+    }
+
+    // - Move the time range back in time more.
+    var startTS = makeDaysBefore(this._curSyncStartTS, daysToSearch),
+        endTS = this._curSyncStartTS;
+    this._curSyncStartTS = startTS;
+    this.folderConn.syncDateRange(startTS, endTS, this._curSyncAccuracyStamp,
+                                  null, this.onSyncCompleted.bind(this));
+  },
+
+  relinquishConn: function() {
+    this.folderConn.relinquishConn();
+  },
+
+  shutdown: function() {
+    this.folderConn.shutdown();
+    this._LOG.__die();
+  },
+};
+
+/**
+ * ALL SPECULATIVE RIGHT NOW.
+ *
+ * Like ImapFolderStorage, but with only one folder and messages named by their
+ * X-GM-MSGID value rather than their UID(s).
+ *
+ * Deletion processing operates slightly differently than for normal IMAP
+ * because a message can be removed from one of the folders we synchronize on,
+ * but not all of them.  We don't want to be overly deletionary in that case,
+ * so we maintain a list of folder id's that are keeping each message alive.
+ */
+function GmailMessageStorage() {
+}
+GmailMessageStorage.prototype = {
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ImapFolderConn: {
+    type: $log.CONNECTION,
+    subtype: $log.CLIENT,
+    events: {
+    },
+    TEST_ONLY_events: {
+    },
+    asyncJobs: {
+      syncDateRange: {
+        newMessages: true, existingMessages: true, deletedMessages: true,
+        start: false, end: false,
+      },
+    },
+  },
+  ImapFolderSyncer: {
+    type: $log.DATABASE,
+    events: {
     }
   },
 }); // end LOGFAB
@@ -23229,20 +23869,22 @@ ImapJobDriver.prototype = {
     var storage = this.account.getFolderStorageForFolderId(folderId);
     // XXX have folder storage be in charge of this / don't violate privacy
     storage._pendingMutationCount++;
-    if (!storage.folderConn._conn) {
-      storage.folderConn.acquireConn(callback);
+    var syncer = storage.folderSyncer;
+    if (!syncer.folderConn._conn) {
+      syncer.folderConn.acquireConn(callback);
     }
     else {
-      callback(storage.folderConn, storage);
+      callback(syncer.folderConn, storage);
     }
   },
 
   _doneMutatingFolder: function(folderId, folderConn) {
-    var storage = this.account.getFolderStorageForFolderId(folderId);
+    var storage = this.account.getFolderStorageForFolderId(folderId),
+        syncer = storage.folderSyncer;
     // XXX have folder storage be in charge of this / don't violate privacy
     storage._pendingMutationCount--;
     if (!storage._slices.length && !storage._pendingMutationCount)
-      storage.folderConn.relinquishConn();
+      syncer.folderConn.relinquishConn();
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -23647,10 +24289,10 @@ define('mailapi/imap/account',
     'imap',
     'rdcommon/log',
     '../a64',
-    './imapdb',
-    './slice',
-    './jobs',
+    '../mailslice',
     '../util',
+    './folder',
+    './jobs',
     'module',
     'exports'
   ],
@@ -23658,14 +24300,14 @@ define('mailapi/imap/account',
     $imap,
     $log,
     $a64,
-    $imapdb,
-    $imapslice,
+    $mailslice,
+    $util,
+    $imapfolder,
     $imapjobs,
-    $imaputil,
     $module,
     exports
   ) {
-const bsearchForInsert = $imaputil.bsearchForInsert;
+const bsearchForInsert = $util.bsearchForInsert;
 
 function cmpFolderPubPath(a, b) {
   return a.path.localeCompare(b.path);
@@ -23761,8 +24403,8 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
     var folderInfo = folderInfos[folderId];
 
     folderStorages[folderId] =
-      new $imapslice.ImapFolderStorage(this, folderId, folderInfo, this._db,
-                                       this._LOG);
+      new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
+                                   $imapfolder.ImapFolderSyncer, this._LOG);
     folderPubs.push(folderInfo.$meta);
   }
   this.folders.sort(function(a, b) {
@@ -23799,8 +24441,8 @@ ImapAccount.prototype = {
       bodyBlocks: [],
     };
     this._folderStorages[folderId] =
-      new $imapslice.ImapFolderStorage(this, folderId, folderInfo, this._db,
-                                       this._LOG);
+      new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
+                                   $imapfolder.ImapFolderSyncer, this._LOG);
 
     var folderMeta = folderInfo.$meta;
     var idx = bsearchForInsert(this.folders, folderMeta, cmpFolderPubPath);
@@ -24050,7 +24692,7 @@ ImapAccount.prototype = {
    */
   sliceFolderMessages: function(folderId, bridgeHandle) {
     var storage = this._folderStorages[folderId],
-        slice = new $imapslice.ImapSlice(bridgeHandle, storage, this._LOG);
+        slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
     storage.sliceOpenFromNow(slice);
   },
@@ -28616,22 +29258,32 @@ FakeFolderStorage.prototype = {
 }(this, function(WBXML, ASCP) {
   
 
-  const __exports__ = ['VersionInt', 'Connection', 'AutodiscoverError',
-                       'AutodiscoverDomainError'];
+  const __exports__ = ['Version', 'Connection', 'AutodiscoverError',
+                       'AutodiscoverDomainError', 'HttpError'];
+
+  function nullCallback() {}
 
   function AutodiscoverError(message) {
-      this.name = 'ActiveSync.AutodiscoverError';
-      this.message = message || '';
+    this.name = 'ActiveSync.AutodiscoverError';
+    this.message = message || '';
   }
   AutodiscoverError.prototype = new Error();
   AutodiscoverError.prototype.constructor = AutodiscoverError;
 
   function AutodiscoverDomainError(message) {
-      this.name = 'ActiveSync.AutodiscoverDomainError';
-      this.message = message || '';
+    this.name = 'ActiveSync.AutodiscoverDomainError';
+    this.message = message || '';
   }
   AutodiscoverDomainError.prototype = new AutodiscoverError();
   AutodiscoverDomainError.prototype.constructor = AutodiscoverDomainError;
+
+  function HttpError(message, status) {
+    this.name = 'ActiveSync.HttpError';
+    this.message = message || '';
+    this.status = status || 0;
+  }
+  HttpError.prototype = new Error();
+  HttpError.prototype.constructor = HttpError;
 
   function nsResolver(prefix) {
     const baseUrl = 'http://schemas.microsoft.com/exchange/autodiscover/';
@@ -28643,44 +29295,241 @@ FakeFolderStorage.prototype = {
     return ns[prefix] || null;
   }
 
-  function VersionInt(str) {
-    let [major, minor] = str.split('.').map(function(x) {
+  function Version(str) {    [this.major, this.minor] = str.split('.').map(function(x) {
       return parseInt(x);
     });
-    return (major << 16) + minor;
   }
+  Version.prototype = {
+    eq: function(other) {
+      if (!(other instanceof Version))
+        other = new Version(other);
+      return this.major === other.major && this.minor === other.minor;
+    },
+    ne: function(other) {
+      return !this.eq(other);
+    },
+    gt: function(other) {
+      if (!(other instanceof Version))
+        other = new Version(other);
+      return this.major > other.major ||
+             (this.major === other.major && this.minor > other.minor);
+    },
+    gte: function(other) {
+      if (!(other instanceof Version))
+        other = new Version(other);
+      return this.major >= other.major ||
+             (this.major === other.major && this.minor >= other.minor);
+    },
+    lt: function(other) {
+      return !this.gte(other);
+    },
+    lte: function(other) {
+      return !this.gt(other);
+    },
+    toString: function() {
+      return this.major + '.' + this.minor;
+    },
+  };
 
+  /**
+   * Create a new ActiveSync connection.
+   *
+   * @param aEmail the user's email address
+   * @param aPassword the user's password
+   * @param aDeviceId (optional) a string identifying this device
+   * @param aDeviceType (optional) a string identifying the type of this device
+   */
   function Connection(aEmail, aPassword, aDeviceId, aDeviceType) {
     this._email = aEmail;
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
-    this.connected = false;
+    this._connection = 0;
+    this._connectionCallbacks = [];
   }
 
   Connection.prototype = {
-    get currentVersionInt() { return VersionInt(this.currentVersion); },
-
+    /**
+     * Get the auth string to add to our XHR's headers.
+     *
+     * @return the auth string
+     */
     _getAuth: function() {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
 
-    autodiscover: function(aCallback, aNoRedirect) {
-      let domain = this._email.substring(this._email.indexOf('@') + 1);
+    /**
+     * Perform any callbacks added during the connection process.
+     */
+    _doCallbacks: function() {
+      for (let [,callback] in Iterator(this._connectionCallbacks))
+        callback.apply(callback, arguments);
+      this._connectionCallbacks = [];
+    },
 
-      this._autodiscover(domain, aNoRedirect, (function(aStatus, aConfig) {
-        if (aStatus instanceof AutodiscoverDomainError)
+    /**
+     * Get the connection status.
+     *
+     * @return true iff we are fully connected to the server
+     */
+    get connected() {
+      return this._connection === 4;
+    },
+
+    /**
+     * Perform autodiscovery and get the options for the server associated with
+     * this account.
+     *
+     * @param aCallback a callback taking an error status (if any), and the
+     *        resulting config options.
+     */
+    connect: function(aCallback) {
+      let conn = this;
+      if (aCallback && conn._connection !== 4)
+        this._connectionCallbacks.push(aCallback);
+
+      if (conn._connection === 0) {
+        conn._connection = 1;
+        conn.autodiscover(function (aError, aConfig) {
+          if (aError) {
+            conn._connection = 0;
+            return conn._doCallbacks(aError, null);
+          }
+
+          conn._connection = 2;
+          conn.config = aConfig;
+          conn.baseURL = conn.config.server.url +
+            '/Microsoft-Server-ActiveSync';
+          conn.connect();
+        });
+      }
+      else if (conn._connection === 2) {
+        conn._connection = 3;
+        conn.options(conn.baseURL, function(aError, aResult) {
+          if (aError) {
+            conn._connection = 2;
+          }
+          else {
+            conn._connection = 4;
+            conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
+            conn.config.options = aResult;
+          }
+
+          conn._doCallbacks(aError, conn.config);
+        });
+      }
+      else if (conn._connection === 4) {
+        if (aCallback)
+          aCallback(null, this.config);
+      }
+    },
+
+    /**
+     * Perform autodiscovery for the server associated with this account.
+     *
+     * @param aCallback a callback taking an error status (if any) and the
+     *        server's configuration
+     * @param aNoRedirect true if autodiscovery should *not* follow any
+     *        specified redirects (typically used when autodiscover has already
+     *        told us about a redirect)
+     */
+    autodiscover: function(aCallback, aNoRedirect) {
+      if (!aCallback) aCallback = nullCallback;
+      let domain = this._email.substring(this._email.indexOf('@') + 1);
+      if (domain === 'gmail.com') {
+        aCallback(null, this._fillConfig('https://m.google.com'));
+        return;
+      }
+
+      // The first time we try autodiscovery, we should try to recover from
+      // AutodiscoverDomainErrors. The second time, *all* errors should be
+      // reported to the callback.
+      this._autodiscover(domain, aNoRedirect, (function(aError, aConfig) {
+        if (aError instanceof AutodiscoverDomainError)
           this._autodiscover('autodiscover.' + domain, aNoRedirect, aCallback);
         else
-          aCallback(aStatus);
+          aCallback(aError, aConfig);
       }).bind(this));
     },
 
-    _autodiscover: function(aHost, aNoRedirect, aCallback) {
-      // TODO: we need to be smarter here and do some stuff with redirects and
-      // other fun stuff, but this works for hotmail, so yay.
+    /**
+     * Manually set the configuration for the connection.
+     *
+     * @param aConfig a string representing the base URL for commands or an
+     *        object holding the configuration data. In the latter case, if the
+     *        |options| key is specified, we will treat ourselves as fully
+     *        connected; otherwise, we will count as having performed
+     *        autodiscovery but not options detection.
+     */
+    setConfig: function(aConfig) {
+      this.config = this._fillConfig(aConfig);
+      this.baseURL = this.config.server.url + '/Microsoft-Server-ActiveSync';
 
+      if (this.config.options) {
+        this._connection = 4;
+        let versionStr = this.config.options.versions.slice(-1)[0];
+        this.currentVersion = new Version(versionStr);
+      }
+      else {
+        this._connection = 2;
+      }
+    },
+
+    /**
+     * Fill out the configuration for the connection.
+     *
+     * @param aConfig a string representing the base URL for commands or an
+     *        object holding the configuration data
+     * @return the properly-formed configuration object
+     */
+    _fillConfig: function(aConfig) {
+      let config = {
+        user: {
+          name: '',
+          email: this._email,
+        },
+        server: {
+          type: 'MobileSync',
+          url: null,
+          name: null,
+        },
+      };
+
+      if (typeof aConfig === 'string') {
+        config.server.url = config.server.name = aConfig;
+      }
+      else {
+        let deepCopy = function(src, dest) {
+          for (let k in src) {
+            if (typeof src[k] === 'object') {
+              dest[k] = Array.isArray(src[k]) ? [] : {};
+              deepCopy(src[k], dest[k]);
+            }
+            else {
+              dest[k] = src[k];
+            }
+          }
+        };
+
+        deepCopy(aConfig, config);
+      }
+
+      return config;
+    },
+
+    /**
+     * Perform the actual autodiscovery process for a given URL.
+     *
+     * @param aHost the host name to attempt autodiscovery for
+     * @param aNoRedirect true if autodiscovery should *not* follow any
+     *        specified redirects (typically used when autodiscover has already
+     *        told us about a redirect)
+     * @param aCallback a callback taking an error status (if any) and the
+     *        server's configuration
+     */
+    _autodiscover: function(aHost, aNoRedirect, aCallback) {
       let conn = this;
+      if (!aCallback) aCallback = nullCallback;
 
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
@@ -28689,6 +29538,9 @@ FakeFolderStorage.prototype = {
       xhr.setRequestHeader('Authorization', this._getAuth());
 
       xhr.onload = function() {
+        if (xhr.status === 401 || xhr.status === 403)
+          return aCallback(new HttpError(xhr.statusText, xhr.status));
+
         let doc = new DOMParser().parseFromString(xhr.responseText, 'text/xml');
 
         function getNode(xpath, rel) {
@@ -28729,27 +29581,19 @@ FakeFolderStorage.prototype = {
         let user = getNode('ms:User', responseNode);
         let server = getNode('ms:Action/ms:Settings/ms:Server', responseNode);
 
-        conn.config = {
-          'user': {
-            'name':  getString('ms:DisplayName/text()',  user),
-            'email': getString('ms:EMailAddress/text()', user),
+        let config = {
+          user: {
+            name:  getString('ms:DisplayName/text()',  user),
+            email: getString('ms:EMailAddress/text()', user),
           },
-          'server': {
-            'type': getString('ms:Type/text()', server),
-            'url':  getString('ms:Url/text()',  server),
-            'name': getString('ms:Name/text()', server),
+          server: {
+            type: getString('ms:Type/text()', server),
+            url:  getString('ms:Url/text()',  server),
+            name: getString('ms:Name/text()', server),
           }
         };
 
-        conn.baseURL = conn.config.server.url + '/Microsoft-Server-ActiveSync';
-        conn.options(conn.baseURL, function(aStatus, aResult) {
-          conn.connected = true;
-          conn.currentVersion = aResult.versions.slice(-1)[0];
-          conn.config.options = aResult;
-
-          if (aCallback)
-            aCallback(null, conn.config);
-        });
+        aCallback(null, config);
       };
 
       // TODO: use something like
@@ -28767,41 +29611,89 @@ FakeFolderStorage.prototype = {
       xhr.send(postdata);
     },
 
+    /**
+     * Get the options for the server associated with this account.
+     *
+     * @param aCallback a callback taking an error status (if any), and the
+     *        resulting options.
+     */
     options: function(aURL, aCallback) {
+      if (!aCallback) aCallback = nullCallback;
+      if (this._connection < 2)
+        throw new Error('Must have server info before calling options()');
+
+      let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true});
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
-        // TODO: handle error codes
+        if (xhr.status !== 200) {
+          aCallback(new Error('Unable to get server options'));
+          return;
+        }
+
         let result = {
           'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
           'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
+
         aCallback(null, result);
       };
 
       xhr.send();
     },
 
-    doCommand: function(aXml, aCallback) {
+    /**
+     * Send a command to the ActiveSync server and listen for the response.
+     *
+     * @param aCommand the WBXML representing the command or a string/tag
+     *        representing the command type for empty commands
+     * @param aCallback a callback to call when the server has responded; takes
+     *        two arguments: an error status (if any) and the response as a
+     *        WBXML reader. If the server returned an empty response, the
+     *        response argument is null.
+     */
+    doCommand: function(aCommand, aCallback) {
+      if (!aCallback) aCallback = nullCallback;
+
       if (this.connected) {
-        this._doCommandReal(aXml, aCallback);
+        this._doCommandReal(aCommand, aCallback);
       }
       else {
-        this.autodiscover((function (aStatus, aConfig) {
-          if (aStatus) {
-            console.log(aStatus);
-            aCallback(aStatus);
-          }
+        this.connect((function(aError, aConfig) {
+          if (aError)
+            aCallback(aError);
           else {
-            this._doCommandReal(aXml, aCallback);
+            this._doCommandReal(aCommand, aCallback);
           }
         }).bind(this));
       }
     },
 
-    _doCommandReal: function(aXml, aCallback) {
-      let r = new WBXML.Reader(aXml, ASCP);
-      let commandName = r.document.next().localTagName;
+    /**
+     * Perform the actual process of sending a command to the ActiveSync server
+     * and getting the response.
+     *
+     * @param aCommand the WBXML representing the command or a string/tag
+     *        representing the command type for empty commands
+     * @param aCallback a callback to call when the server has responded; takes
+     *        two arguments: an error status (if any) and the response as a
+     *        WBXML reader. If the server returned an empty response, the
+     *        response argument is null.
+     */
+    _doCommandReal: function(aCommand, aCallback) {
+      let commandName;
+
+      if (typeof aCommand === 'string') {
+        commandName = aCommand;
+      }
+      else if (typeof aCommand === 'number') {
+        commandName = ASCP.__tagnames__[aCommand];
+      }
+      else {
+        let r = new WBXML.Reader(aCommand, ASCP);
+        commandName = r.document.next().localTagName;
+      }
+
       if (this.config.options.commands.indexOf(commandName) === -1) {
         // TODO: do something here!
         let error = new Error("This server doesn't support the command " +
@@ -28824,13 +29716,13 @@ FakeFolderStorage.prototype = {
 
       let conn = this;
       xhr.onload = function() {
-        if (xhr.status == 451) {
+        if (xhr.status === 451) {
           conn.baseURL = xhr.getResponseHeader('X-MS-Location');
-          conn.doCommand(aXml, aCallback);
+          conn.doCommand(aCommand, aCallback);
           return;
         }
 
-        if (xhr.status != 200) {
+        if (xhr.status !== 200) {
           // TODO: do something here!
           let error = new Error('ActiveSync command returned failure ' +
                                 'response ' + xhr.status);
@@ -28846,7 +29738,7 @@ FakeFolderStorage.prototype = {
       };
 
       xhr.responseType = 'arraybuffer';
-      xhr.send(aXml.buffer);
+      xhr.send(aCommand instanceof WBXML.Writer ? aCommand.buffer : null);
     },
   };
 
@@ -28858,73 +29750,50 @@ FakeFolderStorage.prototype = {
 
 define('mailapi/activesync/folder',
   [
+    'rdcommon/log',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
     'mimelib',
     '../quotechew',
+    '../date',
+    '../syncbase',
     '../util',
+    'module',
     'exports'
   ],
   function(
+    $log,
     $wbxml,
     $ascp,
     $activesync,
     $mimelib,
     $quotechew,
+    $date,
+    $sync,
     $util,
+    $module,
     exports
   ) {
 
 
-function ActiveSyncFolderStorage(account, folderInfo, dbConn) {
-  this.account = account;
-  this._db = dbConn;
+const DESIRED_SNIPPET_LENGTH = 100;
 
-  this.folderId = folderInfo.$meta.id;
-  this.serverId = folderInfo.$meta.serverId;
-  this.folderMeta = folderInfo.$meta;
-  if (!this.folderMeta.syncKey)
-    this.folderMeta.syncKey = '0';
+function ActiveSyncFolderConn(account, storage, _parentLog) {
+  this._account = account;
+  this._storage = storage;
+  this._LOG = LOGFAB.ActiveSyncFolderConn(this, _parentLog, storage.folderId);
 
-  this._headers = [];
-  this._bodiesBySuid = {};
+  this.folderMeta = storage.folderMeta;
+  this.serverId = this.folderMeta.serverId;
 
-  this._onLoadHeaderListeners = [];
-  this._onLoadBodyListeners = [];
-
-  let self = this;
-
-  this._db.loadHeaderBlock(this.folderId, 0, function(block) {
-    self._loadedHeaders = true;
-    if (block)
-      self._headers = block;
-
-    for (let [,listener] in Iterator(self._onLoadHeaderListeners))
-      listener();
-    self._onLoadHeaderListeners = [];
-  });
-
-  this._db.loadBodyBlock(this.folderId, 0, function(block) {
-    self._loadedBodies = true;
-    if (block)
-      self._bodiesBySuid = block;
-
-    for (let [,listener] in Iterator(self._onLoadBodyListeners))
-      listener();
-    self._onLoadBodyListeners = [];
-  });
+  if (!this.syncKey)
+    this.syncKey = '0';
+  // Eventually, we should allow the user to modify this, and perhaps
+  // automatically choose a good value.
+  this.filterType = $ascp.AirSync.Enums.FilterType.OneWeekBack;
 }
-exports.ActiveSyncFolderStorage = ActiveSyncFolderStorage;
-ActiveSyncFolderStorage.prototype = {
-  generatePersistenceInfo: function asfs_generatePersistenceInfo() {
-    return {
-      id: this.folderId,
-      headerBlocks: [ this._headers ],
-      bodyBlocks:   [ this._bodiesBySuid ],
-    };
-  },
-
+ActiveSyncFolderConn.prototype = {
   get syncKey() {
     return this.folderMeta.syncKey;
   },
@@ -28933,37 +29802,14 @@ ActiveSyncFolderStorage.prototype = {
     return this.folderMeta.syncKey = value;
   },
 
-  updateMessageHeader: function asfs_updateMessageHeader(suid, mutatorFunc) {
-    // XXX: this could be a lot faster
-    for (let [i, header] in Iterator(this._headers)) {
-      if (header.suid === suid) {
-        if (mutatorFunc(header))
-          this._bridgeHandle.sendUpdate([i, header]);
-        return;
-      }
-    }
-  },
-
-  deleteMessage: function asfs_deleteMessage(suid) {
-    // XXX: this could be a lot faster
-    for (let [i, header] in Iterator(this._headers)) {
-      if (header.suid === suid) {
-        delete this._bodiesBySuid[header.suid];
-        this._headers.splice(i, 1);
-        this._bridgeHandle.sendSplice(i, 1, [], false, false);
-        return;
-      }
-    }
-  },
-
   /**
    * Get the initial sync key for the folder so we can start getting data
    *
    * @param {function} callback A callback to be run when the operation finishes
    */
-  _getSyncKey: function asfs__getSyncKey(callback) {
-    let folderStorage = this;
-    let account = this.account;
+  _getSyncKey: function asfc__getSyncKey(callback) {
+    let folderConn = this;
+    let account = this._account;
     const as = $ascp.AirSync.Tags;
 
     let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
@@ -28971,27 +29817,35 @@ ActiveSyncFolderStorage.prototype = {
        .stag(as.Collections)
          .stag(as.Collection)
 
-    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+    if (account.conn.currentVersion.lt('12.1'))
           w.tag(as.Class, 'Email');
 
           w.tag(as.SyncKey, '0')
            .tag(as.CollectionId, this.serverId)
+           .stag(as.Options)
+             .tag(as.FilterType, this.filterType)
+           .etag()
          .etag()
        .etag()
      .etag();
 
     account.conn.doCommand(w, function(aError, aResponse) {
-      if (aError)
+      if (aError) {
+        console.error(aError);
         return;
+      }
 
       let e = new $wbxml.EventParser();
       e.addEventListener([as.Sync, as.Collections, as.Collection, as.SyncKey],
                          function(node) {
-        folderStorage.folderMeta.syncKey = node.children[0].textContent;
+        folderConn.syncKey = node.children[0].textContent;
       });
       e.run(aResponse);
 
-      callback();
+      if (folderConn.syncKey === '0')
+        console.error('Unable to get sync key for folder');
+      else
+        callback();
     });
   },
 
@@ -29001,22 +29855,22 @@ ActiveSyncFolderStorage.prototype = {
    *
    * @param {function} callback A function to be called when the operation has
    *   completed, taking three arguments: |added|, |changed|, and |deleted|
-   * @param {boolean} deferred True if this operation was already deferred once
-   *   to get the initial sync key
    */
-  _syncFolder: function asfs__syncFolder(callback, deferred) {
-    let folderStorage = this;
-    let account = this.account;
+  _enumerateFolderChanges: function asfc__enumerateFolderChanges(callback) {
+    let folderConn = this;
+    let account = this._account;
 
     if (!account.conn.connected) {
-      account.conn.autodiscover(function(status, config) {
-        // TODO: handle errors
-        folderStorage._syncFolder(callback, deferred);
+      account.conn.connect(function(error, config) {
+        if (error)
+          console.error('Error connecting to ActiveSync:', error);
+        else
+          folderConn._enumerateFolderChanges(callback);
       });
       return;
     }
-    if (this.folderMeta.syncKey === '0' && !deferred) {
-      this._getSyncKey(this._syncFolder.bind(this, callback, true));
+    if (this.syncKey === '0') {
+      this._getSyncKey(this._enumerateFolderChanges.bind(this, callback));
       return;
     }
 
@@ -29025,53 +29879,80 @@ ActiveSyncFolderStorage.prototype = {
     const asb = $ascp.AirSyncBase.Tags;
     const asbEnum = $ascp.AirSyncBase.Enums;
 
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-    w.stag(as.Sync)
-       .stag(as.Collections)
-         .stag(as.Collection);
+    let w;
 
-    if (account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
-          w.tag(as.Class, 'Email');
+    // If the last sync was ours and we got an empty response back, we can send
+    // an empty request to repeat our request. This saves a little bandwidth.
+    if (this._account._syncsInProgress++ === 0 &&
+        this._account._lastSyncKey === this.syncKey &&
+        this._account._lastSyncResponseWasEmpty) {
+      w = as.Sync;
+    }
+    else {
+      w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(as.Sync)
+         .stag(as.Collections)
+           .stag(as.Collection);
 
-          w.tag(as.SyncKey, this.folderMeta.syncKey)
-           .tag(as.CollectionId, this.serverId)
-           .tag(as.GetChanges)
-           .stag(as.Options)
+      if (account.conn.currentVersion.lt('12.1'))
+            w.tag(as.Class, 'Email');
 
-    if (account.conn.currentVersionInt >= $activesync.VersionInt('12.0'))
-            w.stag(asb.BodyPreference)
-               .tag(asb.Type, asbEnum.Type.PlainText)
-             .etag();
+            w.tag(as.SyncKey, this.syncKey)
+             .tag(as.CollectionId, this.serverId)
+             .tag(as.GetChanges)
+             .stag(as.Options)
+               .tag(as.FilterType, this.filterType)
 
-            w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
-             .tag(as.MIMETruncation, asEnum.MIMETruncation.NoTruncate)
+      if (account.conn.currentVersion.gte('12.0'))
+              w.stag(asb.BodyPreference)
+                 .tag(asb.Type, asbEnum.Type.PlainText)
+               .etag();
+
+              w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
+               .tag(as.MIMETruncation, asEnum.MIMETruncation.NoTruncate)
+             .etag()
            .etag()
          .etag()
-       .etag()
-     .etag();
+       .etag();
+    }
 
     account.conn.doCommand(w, function(aError, aResponse) {
-      let added   = { headers: [], bodies: {} };
-      let changed = { headers: [], bodies: {} };
+      let added   = [];
+      let changed = [];
       let deleted = [];
       let status;
+      let moreAvailable = false;
 
-      if (aError)
-        return;
-      if (!aResponse) {
-        callback(added, changed, deleted);
+      folderConn._account._syncsInProgress--;
+
+      if (aError) {
+        console.error('Error syncing folder:', aError);
         return;
       }
 
+      folderConn._account._lastSyncKey = folderConn.syncKey;
+
+      if (!aResponse) {
+        console.log('Sync completed with empty response');
+        folderConn._account._lastSyncResponseWasEmpty = true;
+        callback(null, added, changed, deleted);
+        return;
+      }
+
+      folderConn._account._lastSyncResponseWasEmpty = false;
       let e = new $wbxml.EventParser();
       const base = [as.Sync, as.Collections, as.Collection];
+
+      e.addEventListener(base.concat(as.SyncKey), function(node) {
+        folderConn.syncKey = node.children[0].textContent;
+      });
 
       e.addEventListener(base.concat(as.Status), function(node) {
         status = node.children[0].textContent;
       });
 
-      e.addEventListener(base.concat(as.SyncKey), function(node) {
-        folderStorage.folderMeta.syncKey = node.children[0].textContent;
+      e.addEventListener(base.concat(as.MoreAvailable), function(node) {
+        moreAvailable = true;
       });
 
       e.addEventListener(base.concat(as.Commands, [[as.Add, as.Change]]),
@@ -29085,20 +29966,20 @@ ActiveSyncFolderStorage.prototype = {
             guid = child.children[0].textContent;
             break;
           case as.ApplicationData:
-            msg = folderStorage._parseMessage(child, node.tag === as.Add);
+            msg = folderConn._parseMessage(child, node.tag === as.Add);
             break;
           }
         }
 
-        msg.header.guid = guid;
-        msg.header.suid = folderStorage.folderId + '/' + guid;
+        msg.header.guid = msg.header.id = guid;
+        msg.header.suid = folderConn._storage.folderId + '/' + guid;
 
         let collection = node.tag === as.Add ? added : changed;
-        collection.headers.push(msg.header);
-        collection.bodies[msg.header.suid] = msg.body;
+        collection.push(msg);
       });
 
-      e.addEventListener(base.concat(as.Commands, as.Delete), function(node) {
+      e.addEventListener(base.concat(as.Commands, [as.Delete, as.SoftDelete]),
+                         function(node) {
         let guid;
 
         for (let [,child] in Iterator(node.children)) {
@@ -29115,14 +29996,15 @@ ActiveSyncFolderStorage.prototype = {
       e.run(aResponse);
 
       if (status === asEnum.Status.Success) {
-        callback(added, changed, deleted);
+        console.log('Sync completed: added ' + added.length + ', changed ' +
+                    changed.length + ', deleted ' + deleted.length);
+        callback(null, added, changed, deleted, moreAvailable);
+        if (moreAvailable)
+          folderConn._enumerateFolderChanges(callback);
       }
       else if (status === asEnum.Status.InvalidSyncKey) {
-        console.log('ActiveSync had a bad sync key');
-        // This should already be set to 0, but let's just be safe.
-        folderStorage.folderMeta.syncKey = '0';
-        folderStorage._needsPurge = true;
-        folderStorage._syncFolder(callback);
+        console.warn('ActiveSync had a bad sync key');
+        callback('badkey');
       }
       else {
         console.error('Something went wrong during ActiveSync syncing and we ' +
@@ -29140,7 +30022,7 @@ ActiveSyncFolderStorage.prototype = {
    *   changed one
    * @return {object} An object containing the header and body for the message
    */
-  _parseMessage: function asfs__parseMessage(node, isAdded) {
+  _parseMessage: function asfc__parseMessage(node, isAdded) {
     const asb = $ascp.AirSyncBase.Tags;
     const em = $ascp.Email.Tags;
     let header, body, flagHeader;
@@ -29192,8 +30074,9 @@ ActiveSyncFolderStorage.prototype = {
           }
 
           // Merge everything else
+          const skip = ['mergeInto', 'suid', 'guid', 'id', 'flags'];
           for (let [key, value] in Iterator(this)) {
-            if (['mergeInto', 'suid', 'guid', 'flags'].indexOf(key) !== -1)
+            if (skip.indexOf(key) !== -1)
               continue;
 
             o[key] = value;
@@ -29255,7 +30138,8 @@ ActiveSyncFolderStorage.prototype = {
               $quotechew.quoteProcessTextBody(
                 grandchild.children[0].textContent)
             ];
-            header.snippet = $quotechew.generateSnippet(body.bodyReps[1]);
+            header.snippet = $quotechew.generateSnippet(body.bodyReps[1],
+                                                        DESIRED_SNIPPET_LENGTH);
           }
         }
         break;
@@ -29264,7 +30148,8 @@ ActiveSyncFolderStorage.prototype = {
           'plain',
           $quotechew.quoteProcessTextBody(childText)
         ];
-        header.snippet = $quotechew.generateSnippet(body.bodyReps[1]);
+        header.snippet = $quotechew.generateSnippet(body.bodyReps[1],
+                                                    DESIRED_SNIPPET_LENGTH);
         break;
       case asb.Attachments: // ActiveSync 12.0+
       case em.Attachments:  // pre-ActiveSync 12.0
@@ -29273,7 +30158,7 @@ ActiveSyncFolderStorage.prototype = {
         for (let [,attachmentNode] in Iterator(child.children)) {
           if (attachmentNode.tag !== asb.Attachment &&
               attachmentNode.tag !== em.Attachment)
-            continue; // XXX: throw an error here??
+            continue;
 
           let attachment = { name: null, type: null, part: null,
                              sizeEstimate: null };
@@ -29308,103 +30193,139 @@ ActiveSyncFolderStorage.prototype = {
     return { header: header, body: body };
   },
 
-  _sliceFolderMessages: function asfs__sliceFolderMessages(bridgeHandle) {
-    if (!this._loadedHeaders) {
-      this._onLoadHeaderListeners.push(this._sliceFolderMessages
-                                           .bind(this, bridgeHandle));
-      return;
-    }
+  syncDateRange: function asfc_syncDateRange(startTS, endTS, accuracyStamp,
+                                             doneCallback) {
+    let storage = this._storage;
+    let folderConn = this;
+    let messagesSeen = 0;
 
-    this._bridgeHandle = bridgeHandle;
-    bridgeHandle.sendSplice(0, 0, this._headers, true, true);
-
-    var folderStorage = this;
-    this._syncFolder(function(added, changed, deleted) {
-      if (folderStorage._needsPurge) {
-        bridgeHandle.sendSplice(0, folderStorage._headers.length, [], false,
-                                true);
-        folderStorage._headers = [];
-        folderStorage._bodiesBySuid = {};
-        folderStorage._needsPurge = false;
-      }
-
-      // XXX: pretty much all of the sync code here needs to be rewritten to
-      // divide headers/bodies into blocks so as not to be a performance
-      // nightmare.
-
-      // Handle messages that have been deleted
-      for (let [,guid] in Iterator(deleted)) {
-        // This looks dangerous (iterating and splicing at the same time), but
-        // we break out of the loop immediately after the splice, so it's ok.
-        for (let [i, header] in Iterator(folderStorage._headers)) {
-          if (header.guid === guid) {
-            delete folderStorage._bodiesBySuid[header.suid];
-            folderStorage._headers.splice(i, 1);
-            bridgeHandle.sendSplice(i, 1, [], true, true);
-            break;
-          }
-        }
-      }
-
-      // Handle messages that have been changed
-      for (let [,newHeader] in Iterator(changed.headers)) {
-        for (let [i, oldHeader] in Iterator(folderStorage._headers)) {
-          if (oldHeader.guid === newHeader.guid) {
-            let oldBody = folderStorage._bodiesBySuid[oldHeader.suid];
-            let newBody = changed.bodies[oldHeader.suid];
-
-            newHeader.mergeInto(oldHeader);
-            newBody.mergeInto(oldBody);
-            bridgeHandle.sendUpdate([i, oldHeader]);
-
-            break;
-          }
-        }
-      }
-
-      // Handle messages that have been added
-      if (added.headers.length) {
-        added.headers.sort(function(a, b) { return b.date - a.date; });
-        let addedBlocks = {};
-        for (let [,header] in Iterator(added.headers)) {
-          let idx = $util.bsearchForInsert(
-            folderStorage._headers, header, function(a, b) {
-              return b.date - a.date;
-            });
-          if (!(idx in addedBlocks))
-            addedBlocks[idx] = [];
-          addedBlocks[idx].push(header);
-        }
-
-        let keys = Object.keys(addedBlocks).sort(function(a, b) {
-          return b - a;
+    this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
+    this._enumerateFolderChanges(function (error, added, changed, deleted,
+                                           moreAvailable) {
+      if (error === 'badkey') {
+        folderConn._account._recreateFolder(storage.folderId, function(s) {
+          folderConn.storage = s;
         });
-        let hdrs = folderStorage._headers;
-        for (let [,key] in Iterator(keys)) {
-          // XXX: I feel like this is probably slower than it needs to be...
-          hdrs.splice.apply(hdrs, [key, 0].concat(addedBlocks[key]));
-          bridgeHandle.sendSplice(key, 0, addedBlocks[key], true, true);
-        }
-
-        for (let [k, v] in Iterator(added.bodies))
-          folderStorage._bodiesBySuid[k] = v;
+        return;
       }
 
-      bridgeHandle.sendStatus(true, false);
-      folderStorage.account.saveAccountState();
+      for (let [,message] in Iterator(added)) {
+        storage.addMessageHeader(message.header);
+        storage.addMessageBody(message.header, message.body);
+      }
+
+      for (let [,message] in Iterator(changed)) {
+        storage.updateMessageHeaderByUid(message.header.id, true,
+                                         function(oldHeader) {
+          message.header.mergeInto(oldHeader);
+          return true;
+        });
+        // XXX: update bodies
+      }
+
+      for (let [,messageGuid] in Iterator(deleted)) {
+        storage.deleteMessageByUid(messageGuid);
+      }
+
+      messagesSeen += added.length + changed.length + deleted.length;
+
+      if (!moreAvailable) {
+        folderConn._LOG.syncDateRange_end(null, null, null, startTS, endTS);
+        storage.markSyncRange(startTS, endTS, 'XXX', accuracyStamp);
+        doneCallback(null, messagesSeen);
+      }
     });
   },
+};
 
-  getMessageBody: function asfs_getMessageBody(suid, date, callback) {
-    if (!this._loadedBodies) {
-      this._onLoadBodyListeners.push(this.getMessageBody.bind(this, suid, date,
-                                                              callback));
-      return;
-    }
+function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
+  this._account = account;
+  this.folderStorage = folderStorage;
 
-    callback(this._bodiesBySuid[suid]);
+  this._LOG = LOGFAB.ActiveSyncFolderSyncer(this, _parentLog,
+                                            folderStorage.folderId);
+
+  this.folderConn = new ActiveSyncFolderConn(account, folderStorage, this._LOG);
+}
+exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
+ActiveSyncFolderSyncer.prototype = {
+  syncDateRange: function(startTS, endTS, syncCallback) {
+    syncCallback('sync', false, true);
+    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
+                                  this.onSyncCompleted.bind(this));
+  },
+
+  syncAdjustedDateRange: function(startTS, endTS, syncCallback) {
+    // ActiveSync doesn't adjust date ranges. Just do a normal sync.
+    this.syncDateRange(startTS, endTS, syncCallback);
+  },
+
+  refreshSync: function(startTS, endTS, useBisectLimit, callback) {
+    this.folderConn.syncDateRange(startTS, endTS, $date.NOW(), callback);
+  },
+
+  // Returns false if no sync is necessary.
+  growSync: function(endTS, batchHeaders, userRequestsGrowth, syncCallback) {
+    // ActiveSync is different, and trying to sync more doesn't work with it.
+    // Just assume we've got all we need.
+    return false;
+  },
+
+  /**
+   * Whatever synchronization we last triggered has now completed; we should
+   * either trigger another sync if we still want more data, or close out the
+   * current sync.
+   */
+  onSyncCompleted: function ifs_onSyncCompleted(bisectInfo, messagesSeen) {
+    let storage = this.folderStorage;
+
+    console.log("Sync Completed!", messagesSeen, "messages synced");
+
+    // Expand the accuracy range to cover everybody.
+    storage.markSyncedEntireFolder();
+
+    storage._curSyncSlice.ignoreHeaders = false;
+    storage._curSyncSlice.waitingOnData = 'db';
+
+    storage.getMessagesInImapDateRange(
+      0, $date.FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
+      // Don't trigger a refresh; we just synced.
+      storage.onFetchDBHeaders.bind(storage, storage._curSyncSlice, false)
+    );
+
+    storage._curSyncSlice = null;
+    this._account.__checkpointSyncCompleted();
+  },
+
+  relinquishConn: function() {
+    this.folderConn.relinquishConn();
+  },
+
+  shutdown: function() {
+    this.folderConn.shutdown();
+    this._LOG.__die();
   },
 };
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ActiveSyncFolderConn: {
+    type: $log.CONNECTION,
+    subtype: $log.CLIENT,
+    events: {
+    },
+    asyncJobs: {
+      syncDateRange: {
+        newMessages: true, existingMessages: true, deletedMessages: true,
+        start: false, end: false,
+      },
+    },
+  },
+  ActiveSyncFolderSyncer: {
+    type: $log.DATABASE,
+    events: {
+    }
+  },
+});
 
 }); // end define
 ;
@@ -29436,10 +30357,13 @@ ActiveSyncJobDriver.prototype = {
       return this.local_do_delete(op, callback);
 
     for (let [,message] in Iterator(op.messages)) {
-      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let lslash = message.suid.lastIndexOf('/')
+      let folderId = message.suid.substring(0, lslash);
+      let messageId = message.suid.substring(lslash + 1);
       let folderStorage = this.account.getFolderStorageForFolderId(folderId);
 
-      folderStorage.updateMessageHeader(message.suid, function(header) {
+      folderStorage.updateMessageHeader(message.date, messageId, false,
+                                        function(header) {
         let modified = false;
 
         for (let [,tag] in Iterator(op.addTags || [])) {
@@ -29504,10 +30428,12 @@ ActiveSyncJobDriver.prototype = {
 
   local_do_delete: function(op, callback) {
     for (let [,message] in Iterator(op.messages)) {
-      let folderId = message.suid.substring(0, message.suid.lastIndexOf('/'));
+      let lslash = message.suid.lastIndexOf('/')
+      let folderId = message.suid.substring(0, lslash);
+      let messageId = message.suid.substring(lslash + 1);
       let folderStorage = this.account.getFolderStorageForFolderId(folderId);
 
-      folderStorage.deleteMessage(message.suid);
+      folderStorage.deleteMessageByUid(messageId);
     }
 
     this.account.saveAccountState();
@@ -29529,10 +30455,11 @@ ActiveSyncJobDriver.prototype = {
     let jobDriver = this;
 
     if (!this.account.conn.connected) {
-      let self = this;
-      this.account.conn.autodiscover(function(config) {
-        // TODO: handle errors
-        jobDriver.do_modtags(op, callback);
+      this.account.conn.connect(function(error, config) {
+        if (error)
+          console.error(error);
+        else
+          jobDriver.do_modtags(op, callback);
       });
       return;
     }
@@ -29554,11 +30481,11 @@ ActiveSyncJobDriver.prototype = {
 
       w.stag(as.Collection);
 
-      if (this.account.conn.currentVersionInt < $activesync.VersionInt('12.1'))
+      if (this.account.conn.currentVersion.lt('12.1'))
         w.tag(as.Class, 'Email');
 
-        w.tag(as.SyncKey, folderStorage.syncKey)
-         .tag(as.CollectionId, folderStorage.serverId)
+        w.tag(as.SyncKey, folderStorage.folderMeta.syncKey)
+         .tag(as.CollectionId, folderStorage.folderMeta.serverId)
          .stag(as.Commands);
 
       for (let [,message] in Iterator(part.messages)) {
@@ -29600,13 +30527,13 @@ ActiveSyncJobDriver.prototype = {
 
       let allGood = statuses.reduce(function(good, status) {
         return good && status === '1';
-      });
+      }, true);
 
       if (allGood) {
         for (let i = 0; i < collectionIds.length; i++) {
           let folderStorage = jobDriver.account.getFolderStorageForServerId(
             collectionIds[i]);
-          folderStorage.syncKey = syncKeys[i];
+          folderStorage.folderMeta.syncKey = syncKeys[i];
         }
 
         if (callback)
@@ -29629,25 +30556,31 @@ ActiveSyncJobDriver.prototype = {
 
 define('mailapi/activesync/account',
   [
+    'rdcommon/log',
     'mailcomposer',
     'wbxml',
     'activesync/codepages',
     'activesync/protocol',
     '../a64',
+    '../mailslice',
     './folder',
     './jobs',
     '../util',
+    'module',
     'exports'
   ],
   function(
+    $log,
     $mailcomposer,
     $wbxml,
     $ascp,
     $activesync,
     $a64,
+    $mailslice,
     $asfolder,
     $asjobs,
     $util,
+    $module,
     exports
   ) {
 
@@ -29655,14 +30588,25 @@ define('mailapi/activesync/account',
 const bsearchForInsert = $util.bsearchForInsert;
 
 function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
-                           receiveProtoConn, _LOG) {
+                           receiveProtoConn, _parentLog) {
   this.universe = universe;
   this.id = accountDef.id;
   this.accountDef = accountDef;
 
-  this.conn = new $activesync.Connection(accountDef.credentials.username,
-                                         accountDef.credentials.password);
+  if (receiveProtoConn) {
+    this.conn = receiveProtoConn;
+  }
+  else {
+    this.conn = new $activesync.Connection(accountDef.credentials.username,
+                                           accountDef.credentials.password);
+    if (this.accountDef.connInfo)
+      this.conn.setConfig(this.accountDef.connInfo);
+    this.conn.connect();
+  }
+
   this._db = dbConn;
+
+  this._LOG = LOGFAB.ActiveSyncAccount(this, _parentLog, this.id);
 
   this._jobDriver = new $asjobs.ActiveSyncJobDriver(this);
 
@@ -29671,17 +30615,15 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this.identities = accountDef.identities;
 
-  var ourIdentity = accountDef.identities[0];
-  var ourNameAndAddress = {
-    name: ourIdentity.name,
-    address: ourIdentity.address,
-  };
-
   this.folders = [];
   this._folderStorages = {};
   this._folderInfos = folderInfos;
   this._serverIdToFolderId = {};
   this._deadFolderIds = null;
+
+  this._syncsInProgress = 0;
+  this._lastSyncKey = null;
+  this._lastSyncResponseWasEmpty = false;
 
   this.meta = folderInfos.$meta;
   this.mutations = folderInfos.$mutations;
@@ -29693,22 +30635,21 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
     var folderInfo = folderInfos[folderId];
 
     this._folderStorages[folderId] =
-      new $asfolder.ActiveSyncFolderStorage(this, folderInfo, this._db);
+      new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
+                                   $asfolder.ActiveSyncFolderSyncer, this._LOG);
     this._serverIdToFolderId[folderInfo.$meta.serverId] = folderId;
     this.folders.push(folderInfo.$meta);
   }
-  // TODO: we should probably be smarter about sorting.
+
   this.folders.sort(function(a, b) { return a.path.localeCompare(b.path); });
 
-  if (this.meta.syncKey != '0') {
-    // TODO: this is a really hacky way of syncing folders after the first
-    // time.
-    var account = this;
-    setTimeout(function() { account.syncFolderList(function() {}) }, 1000);
-  }
+  // TODO: this is a really hacky way of syncing folders after the first time.
+  if (this.meta.syncKey != '0')
+    setTimeout(this.syncFolderList.bind(this), 1000);
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
+  type: 'activesync',
   toString: function asa_toString() {
     return '[ActiveSyncAccount: ' + this.id + ']';
   },
@@ -29751,7 +30692,8 @@ ActiveSyncAccount.prototype = {
     return 0;
   },
 
-  saveAccountState: function asa_saveAccountState(reuseTrans) {
+  saveAccountState: function asa_saveAccountState(reuseTrans, callback) {
+    let account = this;
     let perFolderStuff = [];
     for (let [,folder] in Iterator(this.folders)) {
       let folderStuff = this._folderStorages[folder.id]
@@ -29760,28 +30702,35 @@ ActiveSyncAccount.prototype = {
         perFolderStuff.push(folderStuff);
     }
 
+    this._LOG.saveAccountState_begin();
     let trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
-      function stateSaved() {},
-      reuseTrans);
+      function stateSaved() {
+        account._LOG.saveAccountState_end();
+        if (callback)
+         callback();
+      }, reuseTrans);
     this._deadFolderIds = null;
     return trans;
+  },
+
+  /**
+   * We are being told that a synchronization pass completed, and that we may
+   * want to consider persisting our state.
+   */
+  __checkpointSyncCompleted: function() {
+    this.saveAccountState();
   },
 
   shutdown: function asa_shutdown() {
   },
 
-  createFolder: function asa_createFolder() {
-    throw new Error('XXX not implemented');
-  },
-
-  deleteFolder: function asa_deleteFolder() {
-    throw new Error('XXX not implemented');
-  },
-
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
                                                         bridgeHandle) {
-    this._folderStorages[folderId]._sliceFolderMessages(bridgeHandle);
+    let storage = this._folderStorages[folderId],
+        slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
+
+    storage.sliceOpenFromNow(slice);
   },
 
   syncFolderList: function asa_syncFolderList(callback) {
@@ -29790,7 +30739,7 @@ ActiveSyncAccount.prototype = {
     const fh = $ascp.FolderHierarchy.Tags;
     let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
-       .tag(fh.SyncKey, account.meta.syncKey)
+       .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
 
     this.conn.doCommand(w, function(aError, aResponse) {
@@ -29834,8 +30783,10 @@ ActiveSyncAccount.prototype = {
         deferredAddedFolders = moreDeferredAddedFolders;
       }
 
+      console.log('Synced folder list');
       account.saveAccountState();
-      callback();
+      if (callback)
+        callback();
     });
   },
 
@@ -29860,8 +30811,9 @@ ActiveSyncAccount.prototype = {
    * @param {string} displayName The display name for the new folder
    * @param {string} typeNum A numeric value representing the new folder's type,
    *   corresponding to the mapping in _folderTypes above
-   * @return {boolean} true if we added the folder, false if we need to wait
-   *   until later (e.g. if we haven't added the folder's parent yet)
+   * @return {object} the folderMeta if we added the folder, true if we don't
+   *   care about this kind of folder, or null if we need to wait until later
+   *   (e.g. if we haven't added the folder's parent yet)
    */
   _addedFolder: function asa__addedFolder(serverId, parentId, displayName,
                                           typeNum) {
@@ -29873,7 +30825,7 @@ ActiveSyncAccount.prototype = {
     if (parentId !== '0') {
       let parentFolderId = this._serverIdToFolderId[parentId];
       if (parentFolderId === undefined)
-        return false;
+        return null;
       let parent = this._folderInfos[parentFolderId];
       path = parent.$meta.path + '/' + path;
       depth = parent.$meta.depth + 1;
@@ -29888,26 +30840,32 @@ ActiveSyncAccount.prototype = {
         path: path,
         type: this._folderTypes[typeNum],
         depth: depth,
+        syncKey: '0',
       },
       $impl: {
         nextHeaderBlock: 0,
         nextBodyBlock: 0,
       },
+      accuracy: [],
+      headerBlocks: [],
+      bodyBlocks: [],
     };
 
-    this._folderStorages[folderId] = new $asfolder.ActiveSyncFolderStorage(
-      this, folderInfo, this._db);
+    console.log('Added folder ' + displayName + ' (' + folderId + ')');
+    this._folderStorages[folderId] =
+      new $mailslice.FolderStorage(this, folderId, folderInfo, this._db,
+                                   $asfolder.ActiveSyncFolderSyncer, this._LOG);
     this._serverIdToFolderId[serverId] = folderId;
 
-    var account = this;
-    var idx = bsearchForInsert(this.folders, folderInfo.$meta, function(a, b) {
+    let folderMeta = folderInfo.$meta;
+    let idx = bsearchForInsert(this.folders, folderMeta, function(a, b) {
       return a.path.localeCompare(b.path);
     });
-    this.folders.splice(idx, 0, folderInfo.$meta);
+    this.folders.splice(idx, 0, folderMeta);
 
-    this.universe.__notifyAddedFolder(this.id, folderInfo.$meta);
+    this.universe.__notifyAddedFolder(this.id, folderMeta);
 
-    return true;
+    return folderMeta;
   },
 
   /**
@@ -29920,6 +30878,8 @@ ActiveSyncAccount.prototype = {
     let folderId = this._serverIdToFolderId[serverId],
         folderInfo = this._folderInfos[folderId],
         folderMeta = folderInfo.$meta;
+
+    console.log('Deleted folder ' + folderMeta.name + ' (' + folderId + ')');
     delete this._serverIdToFolderId[serverId];
     delete this._folderInfos[folderId];
     delete this._folderStorages[folderId];
@@ -29932,6 +30892,168 @@ ActiveSyncAccount.prototype = {
     this._deadFolderIds.push(folderId);
 
     this.universe.__notifyRemovedFolder(this.id, folderMeta);
+  },
+
+  /**
+   * Recreate the folder storage for a particular folder; useful when we end up
+   * desyncing with the server and need to start fresh.
+   *
+   * @param {string} folderId the local ID of the folder
+   * @param {function} callback a function to be called when the operation is
+   *   complete, taking the new folder storage
+   */
+  _recreateFolder: function asa__recreateFolder(folderId, callback) {
+    let folderInfo = this._folderInfos[folderId];
+    folderInfo.accuracy = [];
+    folderInfo.headerBlocks = [];
+    folderInfo.bodyBlocks = [];
+
+    if (this._deadFolderIds === null)
+      this._deadFolderIds = [];
+    this._deadFolderIds.push(folderId);
+
+    let self = this;
+    this.saveAccountState(null, function() {
+      let newStorage =
+        new $mailslice.FolderStorage(self, folderId, folderInfo, self._db,
+                                     $asfolder.ActiveSyncFolderSyncer,
+                                     self._LOG);
+      for (let [,slice] in Iterator(self._folderStorages[folderId]._slices)) {
+        slice._storage = newStorage;
+        slice._resetHeadersBecauseOfRefreshExplosion(true);
+        newStorage.sliceOpenFromNow(slice);
+      }
+      self._folderStorages[folderId]._slices = [];
+      self._folderStorages[folderId] = newStorage;
+
+      callback(newStorage);
+    });
+  },
+
+  /**
+   * Create a folder that is the child/descendant of the given parent folder.
+   * If no parent folder id is provided, we attempt to create a root folder.
+   *
+   * @args[
+   *   @param[parentFolderId String]
+   *   @param[folderName]
+   *   @param[containOnlyOtherFolders Boolean]{
+   *     Should this folder only contain other folders (and no messages)?
+   *     On some servers/backends, mail-bearing folders may not be able to
+   *     create sub-folders, in which case one would have to pass this.
+   *   }
+   *   @param[callback @func[
+   *     @args[
+   *       @param[error @oneof[
+   *         @case[null]{
+   *           No error, the folder got created and everything is awesome.
+   *         }
+   *         @case['offline']{
+   *           We are offline and can't create the folder.
+   *         }
+   *         @case['already-exists']{
+   *           The folder appears to already exist.
+   *         }
+   *         @case['unknown']{
+   *           It didn't work and we don't have a better reason.
+   *         }
+   *       ]]
+   *       @param[folderMeta ImapFolderMeta]{
+   *         The meta-information for the folder.
+   *       }
+   *     ]
+   *   ]]{
+   *   }
+   * ]
+   */
+  createFolder: function asa_createFolder(parentFolderId, folderName,
+                                          containOnlyOtherFolders, callback) {
+    let account = this;
+    let parentFolderServerId = parentFolderId ?
+      this._folderInfos[parentFolderId] : '0';
+
+    const fh = $ascp.FolderHierarchy.Tags;
+    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
+    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(fh.FolderCreate)
+       .tag(fh.SyncKey, this.meta.syncKey)
+       .tag(fh.ParentId, parentFolderServerId)
+       .tag(fh.DisplayName, folderName)
+       .tag(fh.Type, folderType)
+     .etag();
+
+    this.conn.doCommand(w, function(aError, aResponse) {
+      let e = new $wbxml.EventParser();
+      let status, serverId;
+
+      e.addEventListener([fh.FolderCreate, fh.Status], function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener([fh.FolderCreate, fh.SyncKey], function(node) {
+        account.meta.syncKey = node.children[0].textContent;
+      });
+      e.addEventListener([fh.FolderCreate, fh.ServerId], function(node) {
+        serverId = node.children[0].textContent;
+      });
+
+      e.run(aResponse);
+
+      if (status === fhStatus.Success) {
+        let folderMeta = account._addedFolder(serverId, parentFolderServerId,
+                                              folderName, folderType);
+        callback(null, folderMeta);
+      }
+      else if (status === fhStatus.FolderExists) {
+        callback('already-exists');
+      }
+      else {
+        callback('unknown');
+      }
+    });
+  },
+
+  /**
+   * Delete an existing folder WITHOUT ANY ABILITY TO UNDO IT.  Current UX
+   * does not desire this, but the unit tests do.
+   *
+   * Callback is like the createFolder one, why not.
+   */
+  deleteFolder: function asa_deleteFolder(folderId, callback) {
+    let account = this;
+    let folderMeta = this._folderInfos[folderId].$meta;
+
+    const fh = $ascp.FolderHierarchy.Tags;
+    const fhStatus = $ascp.FolderHierarchy.Enums.Status;
+    const folderType = $ascp.FolderHierarchy.Enums.Type.Mail;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(fh.FolderDelete)
+       .tag(fh.SyncKey, this.meta.syncKey)
+       .tag(fh.ServerId, folderMeta.serverId)
+     .etag();
+
+    this.conn.doCommand(w, function(aError, aResponse) {
+      let e = new $wbxml.EventParser();
+      let status;
+
+      e.addEventListener([fh.FolderDelete, fh.Status], function(node) {
+        status = node.children[0].textContent;
+      });
+      e.addEventListener([fh.FolderDelete, fh.SyncKey], function(node) {
+        account.meta.syncKey = node.children[0].textContent;
+      });
+
+      e.run(aResponse);
+      if (status === fhStatus.Success) {
+        account._deletedFolder(folderMeta.serverId);
+        callback(null, folderMeta);
+      }
+      else {
+        callback('unknown');
+      }
+    });
   },
 
   sendMessage: function asa_sendMessage(composedMessage, callback) {
@@ -29953,8 +31075,8 @@ ActiveSyncAccount.prototype = {
       if (aResponse === null)
         callback(null);
       else {
-        dump('Error sending message. XML dump follows:\n' + aResponse.dump() +
-             '\n');
+        console.log('Error sending message. XML dump follows:\n' +
+                    aResponse.dump());
       }
     });
   },
@@ -29970,7 +31092,7 @@ ActiveSyncAccount.prototype = {
   },
 
   runOp: function asa_runOp(op, mode, callback) {
-    dump('runOp('+JSON.stringify(op)+', '+mode+', '+callback+')\n');
+    console.log('runOp('+JSON.stringify(op)+', '+mode+', '+callback+')');
 
     let methodName = mode + '_' + op.type;
     let isLocal = /^local_/.test(mode);
@@ -29996,6 +31118,20 @@ ActiveSyncAccount.prototype = {
   },
 };
 
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  ActiveSyncAccount: {
+    type: $log.ACCOUNT,
+    events: {
+      createFolder: {},
+      deleteFolder: {},
+    },
+    asyncJobs: {
+      runOp: { mode: true, type: true, error: false, op: false },
+      saveAccountState: {},
+    },
+  },
+});
+
 }); // end define
 ;
 /**
@@ -30008,12 +31144,13 @@ define('mailapi/mailuniverse',
     'rdcommon/logreaper',
     './a64',
     './allback',
-    './imap/imapdb',
+    './maildb',
     './imap/probe',
     './imap/account',
     './smtp/probe',
     './smtp/account',
     './fake/account',
+    'activesync/protocol',
     './activesync/account',
     'module',
     'exports'
@@ -30023,13 +31160,14 @@ define('mailapi/mailuniverse',
     $logreaper,
     $a64,
     $allback,
-    $imapdb,
+    $maildb,
     $imapprobe,
     $imapacct,
     $smtpprobe,
     $smtpacct,
     $fakeacct,
     $activesync,
+    $asacct,
     $module,
     exports
   ) {
@@ -30202,7 +31340,7 @@ CompositeAccount.prototype = {
 const COMPOSITE_ACCOUNT_TYPE_TO_CLASS = {
   'imap+smtp': CompositeAccount,
   'fake': $fakeacct.FakeAccount,
-  'activesync': $activesync.ActiveSyncAccount,
+  'activesync': $asacct.ActiveSyncAccount,
 };
 
 
@@ -30265,6 +31403,9 @@ var autoconfigByDomain = {
   'hotmail.com': {
     type: 'activesync',
   },
+  'gmail.com': {
+    type: 'activesync',
+  },
 };
 
 var Configurators = {};
@@ -30303,7 +31444,7 @@ Configurators['imap+smtp'] = {
             userDetails, credentials,
             imapConnInfo, smtpConnInfo, results.imap[1]);
           account.syncFolderList(function() {
-            callback(true, account);
+            callback(null, account);
           });
 
         }
@@ -30312,7 +31453,7 @@ Configurators['imap+smtp'] = {
           // clean up the imap connection if it was okay but smtp failed
           if (results.imap[0])
             results.imap[1].close();
-          callback(false, null);
+          callback('unknown', null);
           return;
         }
       });
@@ -30415,7 +31556,7 @@ Configurators['fake'] = {
     };
     universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
-    callback(true, account);
+    callback(null, account);
   },
 };
 Configurators['activesync'] = {
@@ -30433,11 +31574,7 @@ Configurators['activesync'] = {
       type: 'activesync',
 
       credentials: credentials,
-      connInfo: {
-        hostname: 'm.hotmail.com',
-        port: 1337,
-        crypto: true,
-      },
+      connInfo: null,
 
       identities: [
         {
@@ -30459,11 +31596,30 @@ Configurators['activesync'] = {
       },
       $mutations: [],
     };
-    var account = universe._loadAccount(accountDef, folderInfo, null);
-    account.syncFolderList(function() {
-      accountDef.identities[0].name = account.conn.config.user.name;
+
+    var conn = new $activesync.Connection(credentials.username,
+                                          credentials.password);
+    conn.connect(function(error, config) {
+      if (error) {
+        var failureType = 'unknown';
+
+        if (error instanceof $activesync.HttpError) {
+          if (error.status === 401)
+            failureType = 'bad-user-or-pass';
+          else if (error.status === 403)
+            failureType = 'not-authorized';
+        }
+        callback(failureType, null);
+        return;
+      }
+
+      var account = universe._loadAccount(accountDef, folderInfo, conn);
+      if (!accountDef.identities[0].name)
+        accountDef.identities[0].name = config.user.name;
       universe.saveAccountDef(accountDef, folderInfo);
-      callback(true, account);
+      account.syncFolderList(function() {
+        callback(null, account);
+      });
     });
   },
 };
@@ -30643,7 +31799,7 @@ function MailUniverse(callAfterBigBang) {
   this._logBacklog = null;
 
   this._LOG = null;
-  this._db = new $imapdb.ImapDB();
+  this._db = new $maildb.MailDB();
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
@@ -31371,7 +32527,7 @@ define('mailapi/same-frame-setup',
     './mailapi',
     './mailbridge',
     './mailuniverse',
-    './imap/slice',
+    './imap/folder',
     'exports'
   ],
   function(
@@ -31379,7 +32535,7 @@ define('mailapi/same-frame-setup',
     $mailapi,
     $mailbridge,
     $mailuniverse,
-    $imapslice,
+    $imapfolder,
     exports
   ) {
 
