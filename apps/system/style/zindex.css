@@ -35,6 +35,9 @@
   z-index: 65536;
 }
 
+/* Promote window-sprite to this level as the entry and exiting transition
+  of the cards view. */
+#screen.cards-view > [data-z-index-level="window-sprite"],
 #screen > [data-z-index-level="cards-view"] {
   z-index: 65536;
 }
@@ -169,6 +172,7 @@
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
+#screen.cards-view:-moz-full-screen-ancestor > [data-z-index-level="window-sprite"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;

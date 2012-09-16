@@ -588,13 +588,13 @@ var WindowManager = (function() {
       runningApps[newApp].launchTime = Date.now();
 
     // Set displayedApp to the new value
-    displayedApp = origin;
+    displayedApp = newApp;
 
     // Update the loading icon since the displayedApp is changed
     updateLoadingIcon();
 
     // If the app has a attention screen open, displaying it
-    AttentionScreen.showForOrigin(origin);
+    AttentionScreen.showForOrigin(newApp);
   }
 
   function setOrientationForApp(origin) {

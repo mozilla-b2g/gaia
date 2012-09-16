@@ -23,6 +23,7 @@ var CardsView = (function() {
   var MANUAL_CLOSING = true;
 
   var cardsView = document.getElementById('cards-view');
+  var screenElement = document.getElementById('screen');
   var cardsList = cardsView.firstElementChild;
   var displayedApp;
   var runningApps;
@@ -79,10 +80,16 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     currentDisplayed = 0;
     runningApps = WindowManager.getRunningApps();
+
+    // Switch to homescreen
+    WindowManager.setDisplayedApp(null);
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -106,7 +113,10 @@ var CardsView = (function() {
 
       // First add an item to the cardsList for each running app
       for (var origin in runningApps) {
-        addCard(origin, runningApps[origin]);
+        addCard(origin, runningApps[origin], function showCards() {
+          screenElement.classList.add('cards-view');
+          cardsView.classList.add('active');
+        });
       }
 
     } else { // user ordering
@@ -126,7 +136,10 @@ var CardsView = (function() {
       }
 
       userSortedApps.forEach(function(origin) {
-        addCard(origin, runningApps[origin]);
+        addCard(origin, runningApps[origin], function showCards() {
+          screenElement.classList.add('cards-view');
+          cardsView.classList.add('active');
+        });
       });
 
       cardsView.addEventListener('contextmenu', this);
@@ -141,10 +154,6 @@ var CardsView = (function() {
       cardsView.addEventListener('mousedown', this);
     }
 
-
-    // Then make the cardsView overlay active
-    cardsView.classList.add('active');
-
     // Make sure we're in portrait mode
     screen.mozLockOrientation('portrait');
 
@@ -152,26 +161,30 @@ var CardsView = (function() {
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
 
-    function addCard(origin, app) {
+    function addCard(origin, app, displayedAppCallback) {
       // Not showing homescreen
-      if (app.frame.classList.contains('homescreen'))
+      if (app.frame.classList.contains('homescreen')) {
+        if (displayedApp == origin && displayedAppCallback)
+          setTimeout(displayedAppCallback);
+
         return;
+      }
 
       // Build a card representation of each window.
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
 
-      // First we create white background
-      card.style.backgroundColor = '#FFF';
-
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
       app.frame.getScreenshot().onsuccess = function(screenshot) {
         if (screenshot.target.result) {
-          this.style.backgroundImage = 'url(' + screenshot.target.result + ')';
+          card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
         }
-      }.bind(card);
+
+        if (displayedApp == origin && displayedAppCallback)
+          setTimeout(displayedAppCallback);
+      };
 
       card.dataset.origin = origin;
 
@@ -198,20 +211,30 @@ var CardsView = (function() {
   }
 
   function runApp() {
-    hideCardSwitcher();
+    var origin = this.dataset.origin;
+    alignCard(currentDisplayed, function cardAligned() {
+      WindowManager.launch(origin);
 
-    // Close utility tray if it is opened.
-    UtilityTray.hide(true);
-
-    WindowManager.launch(this.dataset.origin);
+      hideCardSwitcher();
+    });
   }
 
   function hideCardSwitcher() {
+    if (!cardSwitcherIsShown())
+      return;
+
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
 
-    // And remove all the cards from the document.
-    cardsList.textContent = '';
+    // And remove all the cards from the document after the transition
+    cardsView.addEventListener('transitionend', function removeCards() {
+      cardsView.removeEventListener('transitionend', removeCards);
+      screenElement.classList.remove('cards-view');
+
+      while (cardsList.firstElementChild) {
+        cardsList.removeChild(cardsList.firstElementChild);
+      }
+    });
 
     // If there is a displayed app, give the keyboard focus back
     // And switch back to that's apps orientation
@@ -233,11 +256,25 @@ var CardsView = (function() {
   var moveCardThreshold = window.innerHeight / 6;
   var removeCardThreshold = window.innerHeight / 4;
 
-  function alignCard(number) {
+  function alignCard(number, callback) {
     if (!cardsList.children[number])
       return;
 
-    cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+    var scrollLeft = cardsView.scrollLeft;
+    var targetScrollLeft = cardsList.children[number].offsetLeft;
+
+    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
+      cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+      if (callback)
+        callback();
+      return;
+    }
+
+    cardsView.scrollLeft = scrollLeft + (targetScrollLeft - scrollLeft) / 2;
+
+    window.mozRequestAnimationFrame(function newFrameCallback() {
+      alignCard(number, callback);
+    });
   }
 
   function onStartEvent(evt) {
