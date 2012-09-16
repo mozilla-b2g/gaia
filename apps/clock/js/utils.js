@@ -51,11 +51,12 @@ function summarizeDaysOfWeek(bitStr) {
 }
 
 function getLocaleTime(d) {
+  var f = new navigator.mozL10n.DateTimeFormat();
   var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
   var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
   return {
-    t: d.toLocaleFormat(is12hFormat ? '%I:%M' : '%H:%M').replace(/^0/, ''),
-    p: is12hFormat ? d.toLocaleFormat('%p') : ''
+    t: f.localeFormat(d, (is12hFormat ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
+    p: is12hFormat ? f.localeFormat(d, '%p') : ''
   };
 }
 
