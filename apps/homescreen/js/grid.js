@@ -181,8 +181,10 @@ const GridManager = (function() {
 
     if (!isSamePage) {
       updatePaginationBar();
-      if (previousPage + index <= 3)
-        Core.goToPage(previousPage, index);
+    }
+
+    if (previousPage + index <= 3) {
+      Core.goToPage(previousPage, index);
     }
   }
 
