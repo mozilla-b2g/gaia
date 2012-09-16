@@ -43,7 +43,6 @@ var Contacts = (function() {
   var contactsDetails = contacts.Details;
 
   var checkUrl = function checkUrl() {
-    console.log('Checking url');
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
@@ -88,10 +87,8 @@ var Contacts = (function() {
     }
 
     if (!contactsList.loaded && !params['tel']) {
-      console.log('load list');
       loadList();
     } else if (params['tel']) {
-      console.log('load to select');
       selectList(params['tel']);
     }
 
