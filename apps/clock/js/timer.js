@@ -77,8 +77,9 @@ var Timer = {
   },
 
   updateChrono: function ti_updateChrono(remaining) {
+    var f = new navigator.mozL10n.DateTimeFormat();
     var currentValue = this.chronoView.innerHTML;
-    var newValue = new Date(remaining).toLocaleFormat('%M:%S');
+    var newValue = f.localeFormat(remaining, '%M:%S');
     if (currentValue != newValue)
       this.chronoView.innerHTML = newValue;
   },

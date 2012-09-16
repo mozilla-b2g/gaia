@@ -390,11 +390,12 @@ function setupApp() {
     if (!timestamp)
       return _('never');
 
-    var time = timestamp.toLocaleFormat('%H:%M');
-    var date = timestamp.toLocaleFormat('%a');
-    var dateDay = parseInt(timestamp.toLocaleFormat('%u'), 10);
+    var f = new navigator.mozL10n.DateTimeFormat();
+    var time = f.localeFormat(timestamp, '%H:%M');
+    var date = f.localeFormat(timestamp, '%a');
+    var dateDay = parseInt(f.localeFormat(timestamp,'%u'), 10);
     var now = new Date();
-    var nowDateDay = parseInt(now.toLocaleFormat('%u'), 10);
+    var nowDateDay = parseInt(f.localeFormat(now,'%u'), 10);
 
     if (nowDateDay === dateDay) {
       date = _('today');
