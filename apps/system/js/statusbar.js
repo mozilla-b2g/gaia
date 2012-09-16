@@ -3,6 +3,8 @@
 
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var StatusBar = {
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -235,12 +237,12 @@ var StatusBar = {
 
       // XXX: respect clock format in Settings,
       // but drop the AM/PM part according to spec
-      this.icons.time.textContent = f.localeFormat(now, '%R');
+      this.icons.time.textContent = f.localeFormat(now, _('shortTimeFormat'));
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
       // XXX: respect date format in Settings
-      l10nArgs.date = f.localeFormat(now, '%e %B');
+      l10nArgs.date = f.localeFormat(now, _('dateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
     },
