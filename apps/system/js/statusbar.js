@@ -226,6 +226,7 @@ var StatusBar = {
 
     time: function sb_updateTime() {
       // Schedule another clock update when a new minute rolls around
+      var f = new navigator.mozL10n.DateTimeFormat();
       var now = new Date();
       var sec = now.getSeconds();
       window.clearTimeout(this._clockTimer);
@@ -234,12 +235,12 @@ var StatusBar = {
 
       // XXX: respect clock format in Settings,
       // but drop the AM/PM part according to spec
-      this.icons.time.textContent = now.toLocaleFormat('%R');
+      this.icons.time.textContent = f.localeFormat(now, '%R');
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
       // XXX: respect date format in Settings
-      l10nArgs.date = now.toLocaleFormat('%e %B');
+      l10nArgs.date = f.localeFormat(now, '%e %B');
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
     },
