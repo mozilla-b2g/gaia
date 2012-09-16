@@ -2,6 +2,7 @@
 
 // Based on Resig's pretty date.
 var _ = navigator.mozL10n.get;
+var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
@@ -33,12 +34,12 @@ var Utils = {
     if (isNaN(day_diff))
       return '(incorrect date)';
     if (day_diff < 0 || diff < 0) {
-      return (new Date(time)).toLocaleFormat('%x %R');
+      return dtf.localeFormat(new Date(time), '%x %R');
     }
     return day_diff == 0 && today ||
       day_diff == 1 && yesterday ||
-      day_diff < 6 && (new Date(time)).toLocaleFormat('%A') ||
-      (new Date(time)).toLocaleFormat('%x');
+      day_diff < 6 && dtf.localeFormat(new Date(time), '%A') ||
+      dtf.localeFormat(new Date(time), '%x');
   },
 
   getDayDate: function re_getDayDate(timestamp) {
