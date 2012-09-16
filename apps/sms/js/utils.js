@@ -82,7 +82,7 @@ var Utils = {
 
     if (dayDiff < 0) {
       // future time
-      return dtf.localeFormat(new Date(time), '%x %R');
+      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
 
     return dayDiff == 0 && _('today') ||
