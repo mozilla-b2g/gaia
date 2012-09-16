@@ -560,6 +560,10 @@ contacts.List = (function() {
     callbacks.push(callback);
   }
 
+  var clearClickHandlers = function clearClickHandlers() {
+    callbacks = []
+  }
+
   function onClickHandler(evt) {
     var dataset = evt.target.dataset;
     if (dataset && 'uuid' in dataset) {
@@ -650,6 +654,7 @@ contacts.List = (function() {
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
-    'loaded': loaded
+    'loaded': loaded,
+    'clearClickHandlers': clearClickHandlers
   };
 })();

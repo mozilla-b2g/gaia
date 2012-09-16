@@ -297,8 +297,31 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(phoneNumber) {
+
+    var originalHandler = function originalHandler(id) {
+      var options = {
+        filterBy: ['id'],
+        filterOp: 'equals',
+        filterValue: id
+      };
+
+      var request = navigator.mozContacts.find(options);
+      request.onsuccess = function findCallback() {
+        currentContact = request.result[0];
+
+        if (!ActivityHandler.currentlyHandling) {
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+          navigation.go('view-contact-details', 'right-left');
+          return;
+        }
+
+        dataPickHandler();
+      };
+    };
+
+    contactsList.clearClickHandlers();
     contactsList.load();
-    contactsList.handleClick(function handleClick(id) {
+    contactsList.handleClick(function addToContactHandler(id) {
       var options = {
         filterBy: ['id'],
         filterOp: 'equals',
@@ -324,33 +347,17 @@ var Contacts = (function() {
         saveReq.onsuccess = function(e) {
           contactsDetails.render(currentContact, TAG_OPTIONS);
           navigation.go('view-contact-details', 'right-left');
+          contactsList.clearClickHandlers();
+          loadList();
+          window.location.hash = '';
         };
         saveReq.onerror = function(e) {
-          alert('Couldn\'t save the new number');
+          contactsList.clearClickHandlers();
+          loadList();
+          window.location.hash = '';
         };
-
-        contactsList.handleClick(function handleClick(id) {
-          var options = {
-            filterBy: ['id'],
-            filterOp: 'equals',
-            filterValue: id
-          };
-
-          var request = navigator.mozContacts.find(options);
-          request.onsuccess = function findCallback() {
-            currentContact = request.result[0];
-
-            if (!ActivityHandler.currentlyHandling) {
-              contactsDetails.render(currentContact, TAG_OPTIONS);
-              navigation.go('view-contact-details', 'right-left');
-              return;
-            }
-
-            dataPickHandler();
-          };
-        });
       };
-    })
+    });
   };
 
   var getLength = function getLength(prop) {
