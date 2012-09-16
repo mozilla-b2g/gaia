@@ -357,7 +357,8 @@ var Recents = {
     if (contactId) {
       src += '#view-contact-details?id=' + contactId;
     } else {
-      src += '#view-contact-form?tel=' + phoneNumber;
+      //src += '#view-contact-form?tel=' + phoneNumber;
+      src += '#?tel=' + phoneNumber;
     }
     var timestamp = new Date().getTime();
     contactsIframe.src = src + '&timestamp=' + timestamp;

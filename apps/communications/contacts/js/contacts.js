@@ -43,6 +43,7 @@ var Contacts = (function() {
   var contactsDetails = contacts.Details;
 
   var checkUrl = function checkUrl() {
+    console.log('Checking url');
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
@@ -86,8 +87,12 @@ var Contacts = (function() {
 
     }
 
-    if (!contactsList.loaded) {
+    if (!contactsList.loaded && !params['tel']) {
+      console.log('load list');
       loadList();
+    } else if (params['tel']) {
+      console.log('load to select');
+      selectList(params['tel']);
     }
 
   }
@@ -289,6 +294,63 @@ var Contacts = (function() {
         dataPickHandler();
       };
     });
+  };
+
+  var selectList = function selectList(phoneNumber) {
+    contactsList.load();
+    contactsList.handleClick(function handleClick(id) {
+      var options = {
+        filterBy: ['id'],
+        filterOp: 'equals',
+        filterValue: id
+      };
+
+      var request = navigator.mozContacts.find(options);
+      request.onsuccess = function findCallback() {
+        currentContact = request.result[0];
+
+        if (!currentContact.tel) {
+          currentContact.tel = [];
+        }
+
+        var tel = {
+          'value': phoneNumber,
+          'carrier': null,
+          'type': TAG_OPTIONS['phone-type'][0].value
+        };
+        currentContact.tel.push(tel);
+
+        var saveReq = navigator.mozContacts.save(currentContact);
+        saveReq.onsuccess = function(e) {
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+          navigation.go('view-contact-details', 'right-left');
+        };
+        saveReq.onerror = function(e) {
+          alert('Couldn\'t save the new number');
+        };
+
+        contactsList.handleClick(function handleClick(id) {
+          var options = {
+            filterBy: ['id'],
+            filterOp: 'equals',
+            filterValue: id
+          };
+
+          var request = navigator.mozContacts.find(options);
+          request.onsuccess = function findCallback() {
+            currentContact = request.result[0];
+
+            if (!ActivityHandler.currentlyHandling) {
+              contactsDetails.render(currentContact, TAG_OPTIONS);
+              navigation.go('view-contact-details', 'right-left');
+              return;
+            }
+
+            dataPickHandler();
+          };
+        });
+      };
+    })
   };
 
   var getLength = function getLength(prop) {
