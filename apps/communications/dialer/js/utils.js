@@ -34,7 +34,7 @@ var Utils = {
     if (isNaN(day_diff))
       return '(incorrect date)';
     if (day_diff < 0 || diff < 0) {
-      return dtf.localeFormat(new Date(time), '%x %R');
+      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
     return day_diff == 0 && today ||
       day_diff == 1 && yesterday ||
