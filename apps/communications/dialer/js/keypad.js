@@ -339,18 +339,15 @@ var KeypadManager = {
     var value = fakeView.innerHTML;
 
     var newPhoneNumber;
-    if (side == 'left') {
-      while (fakeView.getBoundingClientRect().width > viewWidth) {
+    while (fakeView.getBoundingClientRect().width > viewWidth) {
+      if (side == 'left') {
         newPhoneNumber = '\u2026' + value.substr(-value.length + counter);
-        fakeView.innerHTML = newPhoneNumber;
-        counter++;
-      }
-    } else if (side == 'right') {
-      while (fakeView.getBoundingClientRect().width > viewWidth) {
+      } else if (side == 'right') {
         newPhoneNumber = value.substr(0, value.length - counter) + '\u2026';
-        fakeView.innerHTML = newPhoneNumber;
-        counter++;
       }
+
+      fakeView.innerHTML = newPhoneNumber;
+      counter++;
     }
 
     if (newPhoneNumber) {
