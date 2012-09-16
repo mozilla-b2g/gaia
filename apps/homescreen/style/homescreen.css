@@ -49,7 +49,7 @@ section,footer,nav,a,img {
 
 #icongrid {
   width: 100%;
-  height: -moz-calc(100% - 7.5rem);
+  height: 100%;
   position: fixed;
   top: 0;
   left: 0;
