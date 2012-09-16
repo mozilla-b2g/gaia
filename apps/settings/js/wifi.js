@@ -223,7 +223,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       wpsDialog('#wifi-wps', wpsCallback);
     }
 
-    function wpsCallback(method, pin) {
+    function wpsCallback(bssid, method, pin) {
       var req;
       if (method === 'pbc') {
         req = gWifiManager.wps({
@@ -231,11 +231,13 @@ window.addEventListener('localized', function wifiSettings(evt) {
         });
       } else if (method === 'myPin') {
         req = gWifiManager.wps({
-          method: 'pin'
+          method: 'pin',
+          bssid: bssid
         });
       } else {
         req = gWifiManager.wps({
           method: 'pin',
+          bssid: bssid,
           pin: pin
         });
       }
@@ -317,7 +319,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       // OK|Cancel buttons
       dialog.onreset = close;
       dialog.onsubmit = function() {
-        callback(dialog.querySelector("input[type='radio']:checked").value,
+        callback('any',
+          dialog.querySelector("input[type='radio']:checked").value,
           pinInput.value);
         return close();
       };
