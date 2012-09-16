@@ -493,6 +493,7 @@ var CardsView = (function() {
     if (!cardSwitcherIsShown())
       return;
 
+    evt.stopImmediatePropagation();
     hideCardSwitcher();
   });
 
