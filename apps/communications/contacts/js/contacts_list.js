@@ -561,7 +561,7 @@ contacts.List = (function() {
   }
 
   var clearClickHandlers = function clearClickHandlers() {
-    callbacks = []
+    callbacks = [];
   }
 
   function onClickHandler(evt) {

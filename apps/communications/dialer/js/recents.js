@@ -360,7 +360,7 @@ var Recents = {
       contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';
     } else {
-      var action = new ActionMenu('Add new number',[
+      var action = new ActionMenu('Add new number', [
       {
         label: 'Create new contact',
         callback: function() {
