@@ -496,6 +496,13 @@ var CardsView = (function() {
     hideCardSwitcher();
   });
 
+  window.addEventListener('lock', function cv_lockEvent(evt) {
+    if (!cardSwitcherIsShown())
+      return;
+
+    hideCardSwitcher();
+  });
+
   window.addEventListener('attentionscreenshow',
     function cv_attentionScreenShowEvent(evt) {
     if (!cardSwitcherIsShown()) {
