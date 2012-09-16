@@ -422,6 +422,7 @@ var Recents = {
         ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
+      navigator.mozL10n.translate(this.recentsContainer);
       this.recentsIconEdit.classList.add('disabled');
       return;
     }
