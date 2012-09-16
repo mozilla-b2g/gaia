@@ -1,5 +1,6 @@
 requireApp('communications/dialer/js/handled_call.js');
 
+requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
@@ -17,7 +18,9 @@ if (!this.RecentsDBManager) {
 if (!this.CallScreen) {
   this.CallScreen = null;
 }
-
+if (!this.KeypadManager) {
+  this.KeypadManager = null;
+}
 if (!this.Utils) {
   this.Utils = null;
 }
@@ -30,6 +33,7 @@ suite('dialer/handled_call', function() {
   var realContacts;
   var realRecents;
   var realCallScreen;
+  var realKeypadManager;
   var realL10n;
   var realUtils;
   var phoneNumber;
@@ -43,6 +47,9 @@ suite('dialer/handled_call', function() {
 
     realCallScreen = window.CallScreen;
     window.CallScreen = MockCallScreen;
+
+    realKeypadManager = window.KeypadManager;
+    window.KeypadManager = MockKeypadManager;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -61,6 +68,7 @@ suite('dialer/handled_call', function() {
     window.Contacts = realContacts;
     window.RecentsDBManager = realRecents;
     window.CallScreen = realCallScreen;
+    window.KeypadManager = realKeypadManager;
     navigator.mozL10n = realL10n;
     window.Utils = realUtils;
   });
@@ -97,6 +105,7 @@ suite('dialer/handled_call', function() {
     MockRecentsDBManager.mTearDown();
     MockContacts.mTearDown();
     MockCallScreen.mTearDown();
+    MockKeypadManager.mTearDown();
     MockUtils.mTearDown();
   });
 
@@ -119,6 +128,10 @@ suite('dialer/handled_call', function() {
 
     test('node', function() {
       assert.equal(subject.node, fakeNode);
+    });
+
+    test('format phone number', function() {
+      assert.isTrue(MockKeypadManager.mFormatPhoneNumberCalled);
     });
 
     test('duration outgoing', function() {
