@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="pragma" content="no-cache"/>
+
+    <title>Unlock SIM PIN</title>
+
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/lists.css"/>
+    <link rel="stylesheet" type="text/css" href="style/dialogs.css"/>
+    <link rel="stylesheet" type="text/css" href="style/settings.css"/>
+    <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
+
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+
+    <!-- Specific code -->
+    <script type="application/javascript" defer src="js/unlock.js"></script>
+  </head>
+  <style>
+    [role="dialog"] div {
+    }
+    [role="dialog"] input[type="text"] {
+      width: auto;
+      pointer-events: none;
+    }
+    [role="dialog"] .error {
+      color: red; 
+      padding-left: 20px;
+      font-size: 1.6em;
+    }
+    [role="dialog"] .input-wrapper {
+      position: relative;
+      padding-top: 10px;
+      padding-left: 20px;
+    }
+
+    [role="dialog"] .input-wrapper input {
+      font-size: 2.6em;
+      position: absolute;
+      top: 0;
+    }
+
+  </style>
+  <body role="application">
+    <form role="dialog" action="#sim" id="simpin-unlock" class="active">
+      <header>
+        <button data-l10n-id="cancel" type="reset">Cancel</button>
+        <button data-l10n-id="ok" type="submit">OK</button>
+        <h2></h2>
+      </header>
+
+      <div id="errorMsg" class="error" hidden>
+        <div id="messageHeader">The PIN was incorrect.</div>
+        <span id="messageBody">3 tries left.</span>
+      </div>
+      <!-- sim puk input field -->
+      <div id="pukArea" class="input-wrapper" hidden>
+        <input name="simpuk" type="number" size="8" maxlength="8" />
+        <input name="simpukVis" type="text" size="8" maxlength="8" />
+      </div>
+      <!-- sim pin input field -->
+      <div class="input-wrapper">
+        <input name="simpin" type="number" size="8" maxlength="8" />
+        <input name="simpinVis" type="text" size="8" maxlength="8" />
+      </div>
+    </form>
+  </body>
+</html>
+

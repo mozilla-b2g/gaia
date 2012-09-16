@@ -16,14 +16,15 @@ function startup() {
 
   if (Applications.ready) {
     launchHomescreen();
+    PinLock.init();
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
       launchHomescreen();
+      PinLock.init();
     });
   }
 
-  PinLock.init();
   SourceView.init();
   Shortcuts.init();
 
