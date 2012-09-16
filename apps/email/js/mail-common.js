@@ -775,7 +775,7 @@ function prettyDate(time) {
 
   if (day_diff < 0 || diff < 0) {
     // future time
-    return f.localeFormat(new Date(time), _('timeFormat'));
+    return f.localeFormat(new Date(time), _('shortDateTimeFormat'));
   }
 
   return day_diff == 0 && (

@@ -55,7 +55,7 @@ var Utils = {
         break;
     }
 
-    return dtf.localeFormat(new Date(time), _('timeFormat'));
+    return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
   },
   getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
