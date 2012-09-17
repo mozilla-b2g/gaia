@@ -248,6 +248,7 @@ var OnCallHandler = (function onCallHandler() {
 
     // No more room
     if (handledCalls.length >= CALLS_LIMIT) {
+      new HandledCall(call);
       call.hangUp();
       return;
     }
