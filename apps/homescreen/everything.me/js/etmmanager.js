@@ -24,7 +24,7 @@ var EvmeManager = (function() {
       }
     });
 
-    Core.detachBackground();
+    Core.setOpacityBackground(0);
   }
 
   function setVisibilityChange(visible) {
@@ -44,12 +44,12 @@ var EvmeManager = (function() {
 
     show: function doShow() {
       footerStyle.MozTransform = 'translateY(75px)';
-      Core.goToPage(1, 0);
+      Core.setOpacityBackground(1);
     },
 
     hide: function doHide() {
       footerStyle.MozTransform = 'translateY(0)';
-      Core.goToPage(0, 1);
+      Core.setOpacityBackground(0);
     }
   };
 
