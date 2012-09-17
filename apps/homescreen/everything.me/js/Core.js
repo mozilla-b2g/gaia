@@ -42,30 +42,21 @@ var Core = new function() {
         }, false);
     };
 
-    this.detachBackground = function() {
-        BackgroundImage.changeOpacity(0, OPACITY_CHANGE_DURATION, function() {
-            document.body.classList["remove"]("evme-displayed");
-            displayed = false;
-        });
-    }
-
-    this.goToPage = function(from, to) {
-        if (from === 1 && to === 0 || from === 0 && to === 0) {
-            BackgroundImage.changeOpacity(1, OPACITY_CHANGE_DURATION);
-
-            document.body.classList["add"]("evme-displayed");
-            displayed = true;
-        } else if (from === 0 && to === 1 || from === 1 && to === 1) {
-            BackgroundImage.changeOpacity(0, OPACITY_CHANGE_DURATION, function() {
-                document.body.classList["remove"]("evme-displayed");
+    this.setOpacityBackground = function(value) {
+        BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
+            if (value === 1) {
+                document.body.classList.add("evme-displayed");
+                displayed = true;
+            } else {
+                document.body.classList.remove("evme-displayed");
                 displayed = false;
-            });
-        }
+            }
+        });
     }
 
     this.pageMove = function(dir, ratio) {
         if (!displayed && dir === "in") {
-            document.body.classList["add"]("evme-displayed");
+            document.body.classList.add("evme-displayed");
             displayed = true;
         }
 

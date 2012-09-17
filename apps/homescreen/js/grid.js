@@ -181,15 +181,12 @@ const GridManager = (function() {
 
     if (!isSamePage) {
       updatePaginationBar();
+    }
 
-      if (index === evmePageIndex) {
-        EvmeManager.show();
-        return;
-      }
-
-      if (index === landingPageIndex && previousPage ===  evmePageIndex) {
-        EvmeManager.hide();
-      }
+    if (index === evmePageIndex) {
+      EvmeManager.show();
+    } else if (index === landingPageIndex && previousPage <= landingPageIndex) {
+      EvmeManager.hide();
     }
   }
 
