@@ -51,13 +51,26 @@ Icon.prototype = {
     var icon = this.icon = document.createElement('div');
 
     // Image
-    var img = document.createElement('img');
-    img.src = this.descriptor.icon;
-    img.setAttribute('role', 'presentation');
-    icon.appendChild(img);
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('role', 'presentation');
+    canvas.width = 68;
+    canvas.height = 68;
 
-    img.onerror = function imgError() {
+    icon.appendChild(canvas);
+
+    var img = this.img = new Image();
+    img.src = this.descriptor.icon;
+
+    var self = this;
+    img.onload = function icon_loadSuccess() {
+      self.generateShadow(canvas, img);
+    }
+
+    img.onerror = function icon_loadError() {
       img.src = '//' + window.location.host + '/resources/images/Unknown.png';
+      img.onload = function icon_errorIconLoadSucess() {
+        self.generateShadow(canvas, img);
+      }
     };
 
     // Label
@@ -83,6 +96,21 @@ Icon.prototype = {
     }
 
     target.appendChild(container);
+  },
+
+  generateShadow: function(canvas, img) {
+    var ctx = canvas.getContext('2d');
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetY = 2;
+
+    var width = Math.min(img.width, canvas.width - 4);
+    var height = Math.min(img.width, canvas.height - 4);
+    ctx.drawImage(img,
+                  (canvas.width - width) / 2,
+                  (canvas.height - height) / 2,
+                  width, height);
+    ctx.fill();
   },
 
   show: function icon_show() {
@@ -117,6 +145,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
 
     draggableElem.appendChild(this.icon.cloneNode());
+    this.generateShadow(draggableElem.querySelector('canvas'), this.img);
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -505,8 +534,13 @@ Page.prototype = {
    */
   getAppsList: function pg_getAppsList() {
     var nodes = this.olist.children;
-    return Array.prototype.map.call(nodes, function extractOrigin(node) {
-      return node.dataset.origin;
+
+    var icons = this.icons;
+    return Array.prototype.map.call(nodes, function marshall(node) {
+      return {
+        origin: node.dataset.origin,
+        icon: icons[node.dataset.origin].descriptor.icon
+      };
     });
   }
 };
