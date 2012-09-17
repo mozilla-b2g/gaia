@@ -8,16 +8,25 @@ contacts.List = (function() {
       favoriteGroup,
       inSearchMode = false,
       loaded = false,
-      cancel = document.getElementById('cancel-search'),
-      conctactsListView = document.getElementById('view-contacts-list'),
-      searchView = document.getElementById('search-view'),
-      searchBox = document.getElementById('search-contact'),
-      searchNoResult = document.getElementById('no-result'),
-      fastScroll = document.querySelector('.view-jumper'),
-      scrollable = document.querySelector('#groups-container');
+      cancel,
+      conctactsListView,
+      searchView,
+      searchBox,
+      searchNoResult,
+      fastScroll,
+      scrollable;
 
   var init = function load(element) {
     _ = navigator.mozL10n.get;
+
+    cancel = document.getElementById('cancel-search'),
+    conctactsListView = document.getElementById('view-contacts-list'),
+    searchView = document.getElementById('search-view'),
+    searchBox = document.getElementById('search-contact'),
+    searchNoResult = document.getElementById('no-result'),
+    fastScroll = document.querySelector('.view-jumper'),
+    scrollable = document.querySelector('#groups-container');
+
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
 
@@ -608,7 +617,7 @@ contacts.List = (function() {
     for (var i = 0; i < allContacts.length; i++) {
       var contact = allContacts[i];
       contact.classList.add('search');
-      var text = contact.querySelector('.item-body').dataset['search'];
+      var text = contact.querySelector('.item-body-exp').dataset['search'];
       if (!pattern.test(text)) {
         contact.classList.add('hide');
       } else {
