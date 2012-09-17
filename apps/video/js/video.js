@@ -60,6 +60,7 @@ function init() {
 
   videodb.onready = function() {
     scan();
+    createThumbnailList();
   };
 
   document.addEventListener('mozvisibilitychange', function vc() {
