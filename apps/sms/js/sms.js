@@ -456,10 +456,13 @@ var ThreadListUI = {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var threadIds = [], headerIndex, unreadThreads = [];
+      var threadIds = [],
+          headerIndex,
+          unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
 
         var message = messages[i];
+        var time = message.timestamp.getTime();
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
         var numNormalized =
@@ -474,18 +477,17 @@ var ThreadListUI = {
             'body': message.body,
             'name': numNormalized,
             'num': numNormalized,
-            'timestamp': message.timestamp.getTime(),
+            'timestamp': time,
             'unreadCount': !message.read ? 1 : 0,
             'id': numNormalized
           };
           if (threadIds.length == 0) {
-            var currentTS = (new Date()).getTime();
-            headerIndex = Utils.getDayDate(currentTS);
-            ThreadListUI.createNewHeader(currentTS);
+            headerIndex = Utils.getDayDate(time);
+            ThreadListUI.createNewHeader(time);
           }else {
-            var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
+            var tmpIndex = Utils.getDayDate(time);
             if (tmpIndex < headerIndex) {
-              ThreadListUI.createNewHeader(message.timestamp.getTime());
+              ThreadListUI.createNewHeader(time);
               headerIndex = tmpIndex;
             }
           }
@@ -738,8 +740,6 @@ var ThreadUI = {
         carrierTag.classList.add('hide');
       }
     });
-
-
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
@@ -949,8 +949,11 @@ var ThreadUI = {
             MessageManager.getMessages(function recoverMessages(messages) {
               if (messages.length > 0) {
                 ThreadUI.renderMessages(messages);
-                WaitingScreen.hide();
-                window.history.back();
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  WaitingScreen.hide();
+                  window.history.back();
+                });
               }else {
                 ThreadUI.view.innerHTML = '';
                 MessageManager.getMessages(ThreadListUI.renderThreads,
@@ -964,8 +967,6 @@ var ThreadUI = {
             },filter);
           }
         });
-
-
       });
     }
   },
