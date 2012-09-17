@@ -2,7 +2,6 @@
 
 // Based on Resig's pretty date.
 var _ = navigator.mozL10n.get;
-var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
   prettyDate: function ut_prettyDate(time) {
@@ -27,6 +26,7 @@ var Utils = {
   },
 
   headerDate: function ut_headerDate(time) {
+    var dtf = new navigator.mozL10n.DateTimeFormat();
     var today = _('today');
     var yesterday = _('yesterday');
     var diff = (Date.now() - time) / 1000;
