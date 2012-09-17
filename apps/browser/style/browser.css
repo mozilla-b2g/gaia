@@ -246,14 +246,14 @@ input[type="image"] {
   background-image: url('./images/tabs-badge-background.png');
   background-repeat: no-repeat;
   background-position: right;
-  padding-right: 74px;
+  padding-right: 65px;
 }
 
 .tabs-screen #toolbar-start {
   background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  padding-right: 74px;
+  padding-right: 65px;
 }
 
 .tabs-screen #frames {
@@ -265,6 +265,8 @@ input[type="image"] {
 }
 
 #url-bar {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
   padding: 0;
   margin: 10px;
   border: solid 1px;
@@ -292,7 +294,7 @@ input[type="image"] {
 #ssl-indicator {
   display: block;
   width: 24px;
-  height: 24px;
+  height: 34px;
   margin-right: 5px;
   text-indent: -1000em;
   background-repeat: no-repeat;
@@ -315,6 +317,7 @@ input[type="image"] {
   font-family: 'Open Sans', sans-serif;
   font-size: 18px;
   height: 34px;
+  -moz-box-flex: 1;
   margin: 0;
   border: none;
   background-color: transparent;
