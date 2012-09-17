@@ -10,19 +10,22 @@ var Launcher = (function() {
   iframe.addEventListener('mozbrowserloadend', mozbrowserloadend);
 
   var back = document.getElementById('back-button');
-
   var forward = document.getElementById('forward-button');
 
-  var adv = document.getElementById('advertisement');
-  if (!window.localStorage.advertisement_displayed) {
+  window.asyncStorage.getItem('adv_displayed', function callGetItem(value) {
+    var adv = document.getElementById('advertisement');
+
+    if (value) {
+      adv.parentNode.removeChild(adv);
+      return;
+    }
+
     adv.hidden = false;
     setTimeout(function removeAdvertisement() {
       adv.parentNode.removeChild(adv);
-      window.localStorage.advertisement_displayed = true;
-    }, 4000);
-  } else {
-    adv.parentNode.removeChild(adv);
-  }
+      window.asyncStorage.setItem('adv_displayed', true);
+    }, 5000);
+  });
 
   var toolbar = document.getElementById('toolbar');
   var toolbarTimeout;
