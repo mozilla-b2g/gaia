@@ -1,5 +1,7 @@
 'use strict';
 
+var dtf = new navigator.mozL10n.DateTimeFormat();
+
 function HandledCall(aCall, aNode) {
   this._ticker = null;
   this.photo = null;
@@ -61,7 +63,7 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
 
   this._ticker = setInterval(function hc_updateTimer(self, startTime) {
     var elapsed = new Date(Date.now() - startTime);
-    self.durationNode.textContent = elapsed.toLocaleFormat('%M:%S');
+    self.durationNode.textContent = dtf.localeFormat(elapsed, '%M:%S');
   }, 1000, this, Date.now());
 };
 
@@ -88,6 +90,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
       node.textContent = contact.name;
+      KeypadManager.formatPhoneNumber('on-call', 'right');
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
       additionalInfoNode.textContent = additionalInfo ?

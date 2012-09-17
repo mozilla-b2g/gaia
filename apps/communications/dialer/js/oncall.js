@@ -80,15 +80,13 @@ var CallScreen = {
 
   showKeypad: function cs_showKeypad() {
     KeypadManager.render('oncall');
-
-    KeypadManager.formatPhoneNumber('on-call');
-
-    KeypadManager.phoneNumberView.value = KeypadManager._phoneNumber;
-    KeypadManager.moveCaretToEnd(KeypadManager.phoneNumberView);
     this.views.classList.add('show');
   },
 
   hideKeypad: function cs_hideKeypad() {
+    KeypadManager.restorePhoneNumber();
+    KeypadManager.restoreAdditionalContactInfo();
+    KeypadManager.formatPhoneNumber('on-call');
     this.views.classList.remove('show');
   },
 
