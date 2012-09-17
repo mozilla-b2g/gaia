@@ -86,8 +86,6 @@ var MessageManager = {
                 }
               });
             }
-            // Update the data for next time we enter a thread
-            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -722,26 +720,34 @@ var ThreadUI = {
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
+
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
-    Utils.getPhoneDetails(number, function returnedDetails(details) {
-      if (details.isContact) {
-        self.title.dataset.isContact = true;
-      } else {
-         self.title.dataset.isContact = false;
-      }
-      self.title.innerHTML = details.title || number;
-      var carrierTag = document.getElementById('contact-carrier');
-      if (details.carrier) {
-        carrierTag.innerHTML = details.carrier;
-        carrierTag.classList.remove('hide');
-      } else {
-        carrierTag.classList.add('hide');
-      }
+
+    ContactDataManager.getContactData(number, function gotContact(contacts) {
+      //TODO what if different contacts with same number?
+      Utils.getPhoneDetails(number,
+                            contacts[0],
+                            function returnedDetails(details) {
+        if (details.isContact) {
+          self.title.dataset.isContact = true;
+        } else {
+          delete self.title.dataset.isContact;
+        }
+        self.title.innerHTML = details.title || number;
+        var carrierTag = document.getElementById('contact-carrier');
+        if (details.carrier) {
+          carrierTag.innerHTML = details.carrier;
+          carrierTag.classList.remove('hide');
+        } else {
+          carrierTag.classList.add('hide');
+        }
+      });
     });
   },
+
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
     ThreadUI.updateHeaderData(MessageManager.currentNum);
@@ -1175,36 +1181,48 @@ var ThreadUI = {
 
   renderContactData: function thui_renderContactData(contact) {
     // Retrieve info from thread
-    var phoneType = ContactDataManager.phoneType;
-    var name = contact.name.toString();
+    var self = this;
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
-      var input = this.contactInput.value;
-      var number = tels[i].value.toString();
-      var reg = new RegExp(input, 'ig');
-      if (!(name.match(reg) || (number.match(reg)))) {
-        continue;
-      }
-      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
-      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
-      // Create DOM element
-      var threadHTML = document.createElement('div');
-      threadHTML.classList.add('item');
-      if (name == '') {
-        nameHTML = 'Unknown';
-      }
-      var carrier = tels[i].carrier;
-      //TODO Implement algorithm for this part following Wireframes
-      // Create HTML structure
-      var structureHTML =
-              '  <a href="#num=' + tels[i].value + '">' +
-              '    <div class="name">' + nameHTML + '</div>' +
-              '    <div class="type">' + tels[i].type + ' ' + numHTML +
-              '    </div>' +
-              '  </a>';
-      // Update HTML and append
-      threadHTML.innerHTML = structureHTML;
-      ThreadUI.view.appendChild(threadHTML);
+      Utils.getPhoneDetails(tels[i].value,
+                            contact,
+                            function gotDetails(details) {
+        var name = (contact.name || details.title).toString();
+        //TODO ask UX if we should use type+carrier or just number
+        var number = tels[i].value.toString();
+        var input = self.contactInput.value;
+        // For name, as long as we do a startsWith on API, we want only to show
+        // highlight of the startsWith also
+        var regName = new RegExp('\\b' + input, 'ig');
+        // For number we search in any position to avoid country code issues
+        var regNumber = new RegExp(input, 'ig');
+        if (!(name.match(regName) || number.match(regNumber))) {
+          return;
+        }
+        var nameHTML =
+            SearchUtils.createHighlightHTML(name, regName, 'highlight');
+        var numHTML =
+            SearchUtils.createHighlightHTML(number, regNumber, 'highlight');
+        // Create DOM element
+        var threadHTML = document.createElement('div');
+        threadHTML.classList.add('item');
+
+
+        //TODO Implement algorithm for this part following Wireframes
+        // Create HTML structure
+        var structureHTML =
+                '  <a href="#num=' + number + '">' +
+                '    <div class="name">' + nameHTML + '</div>' +
+                '    <div class="type">' + numHTML + '</div>' +
+                //TODO what if no photo? hide or default?
+                '    <div class="photo">' +
+                '      <img src="' + details.photoURL + '">' +
+                '    </div>' +
+                '  </a>';
+        // Update HTML and append
+        threadHTML.innerHTML = structureHTML;
+        ThreadUI.view.appendChild(threadHTML);
+      });
     }
   },
 
@@ -1212,7 +1230,7 @@ var ThreadUI = {
     var input = this.contactInput;
     var string = input.value;
     var self = this;
-    this.view.innerHTML = '';
+    self.view.innerHTML = '';
     if (!string) {
       return;
     }
@@ -1220,6 +1238,7 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
+      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
