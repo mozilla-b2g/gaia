@@ -14,14 +14,14 @@ var BackgroundImage = new function() {
         $el = options.$el;
         $fullScreenFade = options.$elementsToFade;
         elStyle = $el[0].style;
-        
+
         SOURCE_LABEL = options.texts.sourceLabel;
-        
+
         if (defaultImage) {
             $default = $('<div style="background-image: url(' + defaultImage + ')" class="img default-image visible"></div>');
             $el.append($default);
         }
-        
+
         EventHandler.trigger(_name, "init");
     };
 
@@ -33,19 +33,19 @@ var BackgroundImage = new function() {
                 "query": ""
             };
         }
-        
+
         if (currentImage.image !== oImage.image) {
             removeCurrent();
-            
+
             if (isDefault) {
                 $el.addClass("default");
             } else {
                 $el.removeClass("default");
                 currentImage = oImage;
-                
+
                 $currentImage = $('<div style="background-image: url(' + currentImage.image + ')" class="img"></div>');
                 $el.append($currentImage);
-                
+
                 window.setTimeout(function(){
                     $currentImage.addClass("visible");
                 }, 10);
@@ -58,30 +58,30 @@ var BackgroundImage = new function() {
     this.loadDefault = function() {
         _this.update(defaultImage, true);
     };
-    
+
     this.clear = function() {
         removeCurrent();
     };
-    
+
     this.fadeFullScreen = function(per) {
         per = 1 - (Math.round(per*100)/100);
         $fullScreenFade.css("opacity", per);
     };
-    
+
     this.cancelFullScreenFade = function() {
         $fullScreenFade.addClass("animate");
-        
+
         window.setTimeout(function(){
             for (var i=0; i<$fullScreenFade.length; i++) {
                 var el = $fullScreenFade[i];
                 el.style.cssText = el.style.cssText.replace(/opacity: .*;/, "");
             }
-            
+
             window.setTimeout(function(){
                 $fullScreenFade.removeClass("animate");
             }, 500);
         }, 0);
-        
+
     };
 
     this.showFullScreen = function() {
@@ -89,7 +89,7 @@ var BackgroundImage = new function() {
             $elFullScreen.remove();
             $elFullScreen = null;
         }
-        
+
         $fullScreenFade.addClass("animate");
         window.setTimeout(function(){
             $fullScreenFade.css("opacity", 0);
@@ -102,13 +102,13 @@ var BackgroundImage = new function() {
                                     '<b class="close"></b>' +
                                 '</div>' +
                             '</div>');
-                            
+
         $elFullScreen.find(".close, .img").bind("touchstart", function(e){
             e.preventDefault();
             e.stopPropagation();
             _this.closeFullScreen();
         });
-        
+
         if (currentImage.source) {
             $elFullScreen.find(".content").bind("touchstart", function(e){
                 window.location.href = currentImage.source;
@@ -116,18 +116,18 @@ var BackgroundImage = new function() {
         } else {
             $elFullScreen.addClass("nosource");
         }
-        
+
         $el.parent().append($elFullScreen);
-        
+
         window.setTimeout(function(){
             $elFullScreen.addClass("ontop").addClass("active");
         }, 0);
-        
+
         active = true;
-        
+
         cbShowFullScreen();
     };
-    
+
     this.closeFullScreen = function(e) {
         if ($elFullScreen && active) {
             _this.cancelFullScreenFade();
@@ -141,28 +141,24 @@ var BackgroundImage = new function() {
 
         active = false;
     };
-    
+
     this.isFullScreen = function() {
         return active;
     };
-    
+
     this.get = function() {
         return currentImage;
     };
-    
+
     this.changeOpacity = function(value, duration, cb) {
         if (duration) {
             changeOpacityTransitionCallback = cb;
             elStyle.MozTransition = 'opacity ' + duration + 'ms linear';
             $el[0].addEventListener('transitionend', transitionEnd);
-            window.setTimeout(function(){
-                elStyle.opacity = value;
-            }, 0);
-        } else {
-            elStyle.opacity = value;
         }
+        elStyle.opacity = value;
     };
-    
+
     function transitionEnd(e) {
         $el[0].removeEventListener('transitionend', transitionEnd);
         elStyle.MozTransition = '';
@@ -171,7 +167,7 @@ var BackgroundImage = new function() {
             changeOpacityTransitionCallback = null;
         }, 0);
     }
-    
+
     function removeCurrent() {
         if ($currentImage) {
             // Keep it as a local var cause it might change during this timeout
@@ -193,17 +189,17 @@ var BackgroundImage = new function() {
             "image": image
         });
     }
-    
+
     function cbLoaded() {
         EventHandler.trigger(_name, "load", {
             "image": currentImage
         });
     }
-    
+
     function cbShowFullScreen() {
         EventHandler.trigger(_name, "showFullScreen");
     }
-    
+
     function cbHideFullScreen() {
         EventHandler.trigger(_name, "hideFullScreen");
     }
