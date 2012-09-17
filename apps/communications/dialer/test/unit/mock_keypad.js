@@ -1,6 +1,6 @@
 var MockKeypadManager = {
   formatPhoneNumber:
-    function khm_formatPhoneNumber(mode, ellipsisSide) {
+    function khm_formatPhoneNumber(ellipsisSide) {
     this.mFormatPhoneNumberCalled = true;
   },
   mFormatPhoneNumberCalled: false,
