@@ -56,7 +56,7 @@ function init() {
     } else if (why === 'shared') {
       showOverlay('cardinuse');
     }
-  }
+  };
 
   videodb.onready = function() {
     scan();
@@ -157,7 +157,7 @@ function metaDataParser(videofile, callback) {
       previewPlayer.src = '';
       callback(metadata);
     }
-  }
+  };
 }
 
 function captureFrame(player) {
@@ -171,10 +171,11 @@ function captureFrame(player) {
 
 function addVideo(videodata) {
   var index = videos.length;
+  var poster;
   videos.push(videodata);
 
   if (videodata.metadata.poster) {
-    var poster = document.createElement('img');
+    poster = document.createElement('img');
     poster.src = URL.createObjectURL(videodata.metadata.poster);
     poster.onload = function() {
       URL.revokeObjectURL(poster.src);
@@ -344,7 +345,7 @@ function showPlayer(data, autoPlay) {
 
       currentVideo.metadata.watched = true;
       videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-    }
+    };
   });
 }
 
