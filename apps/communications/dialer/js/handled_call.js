@@ -6,12 +6,6 @@ function HandledCall(aCall, aNode) {
 
   this.call = aCall;
 
-  this.node = aNode;
-  this.durationNode = aNode.querySelector('.duration span');
-  this.directionNode = aNode.querySelector('.duration .direction');
-  this.numberNode = aNode.querySelector('.number');
-  this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
-
   aCall.addEventListener('statechange', this);
 
   this.recentsEntry = {
@@ -19,6 +13,18 @@ function HandledCall(aCall, aNode) {
     type: this.call.state,
     number: this.call.number
   };
+
+  this._initialState = this.call.state;
+
+  if (!aNode)
+    return;
+
+  this.node = aNode;
+  this.durationNode = aNode.querySelector('.duration span');
+  this.directionNode = aNode.querySelector('.duration .direction');
+  this.numberNode = aNode.querySelector('.number');
+  this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
+
 
   this.updateCallNumber();
 
@@ -28,7 +34,6 @@ function HandledCall(aCall, aNode) {
                          _('incoming') : _('calling');
   this.durationNode.textContent = durationMessage + '…';
 
-  this._initialState = this.call.state;
   this.updateDirection();
 }
 
@@ -88,7 +93,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact) {
     if (contact && contact.name) {
       node.textContent = contact.name;
-      KeypadManager.formatPhoneNumber('on-call', 'right');
+      KeypadManager.formatPhoneNumber('right');
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
         number, contact);
       additionalInfoNode.textContent = additionalInfo ?
@@ -116,17 +121,24 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 };
 
 HandledCall.prototype.remove = function hc_remove() {
+  this.call.removeEventListener('statechange', this);
+
+  if (!this.node)
+    return;
+
   clearInterval(this._ticker);
   this._ticker = null;
-
-  this.call.removeEventListener('statechange', this);
 
   this.node.hidden = true;
 };
 
 HandledCall.prototype.connected = function hc_connected() {
-  this.node.hidden = false;
   this.recentsEntry.type += '-connected';
+
+  if (!this.node)
+    return;
+
+  this.node.hidden = false;
   this.node.classList.remove('held');
 
   this.startTimer();
@@ -149,6 +161,10 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
       });
     });
   }
+
+  if (!this.node)
+    return;
+
   CallScreen.unmute();
   CallScreen.turnSpeakerOff();
   this.remove();
