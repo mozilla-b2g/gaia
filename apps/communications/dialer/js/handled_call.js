@@ -59,9 +59,9 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
   if (this._ticker)
     return;
 
+  var dtf = new navigator.mozL10n.DateTimeFormat();
   this._ticker = setInterval(function hc_updateTimer(self, startTime) {
     var elapsed = new Date(Date.now() - startTime);
-    var dtf = new navigator.mozL10n.DateTimeFormat();
     self.durationNode.textContent = dtf.localeFormat(elapsed, '%M:%S');
   }, 1000, this, Date.now());
 };
