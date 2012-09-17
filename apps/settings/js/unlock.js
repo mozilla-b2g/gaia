@@ -23,10 +23,12 @@ var SimPinLock = {
 
   pukEntered: '',
 
-  mobileConnection: null,  
+  mobileConnection: null, 
 
   handleCardState: function spl_handleCardState() {
-    switch (this.mobileConnection.cardState) {
+    var cardState = this.mobileConnection.cardState;
+    dump("==== cardState: "+ cardState);
+    switch (cardState) {
       case 'pinRequired':
         this.lockType = 'pin';
         this.errorMsg.hidden = true;
@@ -41,8 +43,6 @@ var SimPinLock = {
         this.pukInput.focus();
         break;
       case 'absent':
-      case 'ready':
-      default:
         this.skip();
         break;
     }
@@ -58,11 +58,12 @@ var SimPinLock = {
         break;
       case 'keypress':
         evt.preventDefault();
-        dump("=== key press target: "+ evt.target.name);
         var key = String.fromCharCode(evt.charCode);
         if (key === '.') { // invalid
           return;
         }
+
+        dump("=== key press target: "+ evt.target.name);
 
         if (evt.charCode === 0) { // backspace
           this.pinEntered = this.pinEntered.substr(0, this.pinEntered.length - 1);
@@ -82,7 +83,6 @@ var SimPinLock = {
     dump('==== verify sim pin: '+this.pinEntered);
     if (this.pinEntered === '')
       return false;
-    var self = this;
     var option = {lockType: this.lockType};
     if (this.lockType === 'pin') {
       option['pin'] = this.pinEntered;
@@ -91,10 +91,14 @@ var SimPinLock = {
       option['newPin'] = this.pinEntered;
     }
 
+    var self = this;
+    dump("==== option "+ JSON.stringify(option));
     var req = this.mobileConnection.unlockCardLock(option);
+    dump("==== req "+req);
     req.onsuccess = function sp_unlockSuccess() {
       dump('==== correct sim pin!!');
       self.activity.postResult({unlock: true});
+      return false;
     };
 
     req.onerror = function sp_unlockError() {
@@ -131,7 +135,7 @@ var SimPinLock = {
   },
 
   init: function spl_init() {
-    dump("==== unlock init");
+    dump("==== unlock init: " + window.location.href);
     this.mobileConnection = window.navigator.mozMobileConnection;
     this.mobileConnection.addEventListener('cardstatechange', this);
     var self = this;
@@ -139,6 +143,7 @@ var SimPinLock = {
       function spl_activityHandler(activityReq) {
         dump("==== in activity");
         self.activity = activityReq;
+        self.handleCardState();
       }
     );
     document.addEventListener('mozvisibilitychange', 
@@ -149,7 +154,6 @@ var SimPinLock = {
     this.pinInput.addEventListener("keypress", this);
     this.dialog.onreset = this.skip.bind(this);
     this.dialog.onsubmit = this.verify.bind(this);
-    this.handleCardState();
   }
 
 };

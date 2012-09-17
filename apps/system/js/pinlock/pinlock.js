@@ -5,6 +5,7 @@
 
 var PinLock = {
   init: function pl_init() {
+    dump("==== system mobile connection: "+window.navigator.mozMobileConnection.cardState);
     switch (window.navigator.mozMobileConnection.cardState) {
       case 'pukRequired':
       case 'pinRequired':
@@ -16,7 +17,7 @@ var PinLock = {
           }
         });
         activity.onsuccess = function sp_unlockSuccess() {
-          dump("==== unlock result"+ this.result.unlock);
+          dump("==== unlock result: "+ this.result.unlock);
           if (!this.result.unlock) {
             window.alert('SIM Locked');
           }
