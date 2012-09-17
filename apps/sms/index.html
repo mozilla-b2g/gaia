@@ -10,8 +10,10 @@
     <link rel="stylesheet" type="text/css" href="style/custom_dialog.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/l10n_date.js"></script>
     <script type="text/javascript" src="shared/js/custom_dialog.js"></script>
     <script type="text/javascript" src="shared/js/desktop.js"></script>
     <!-- Specific code -->
@@ -25,6 +27,18 @@
         document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
       }
     </script>
+    <!-- phone number utils -->
+    <script type="text/javascript" src="js/phoneNumberUtils.js"></script>
+    <script type="text/javascript" src="js/ext/closure-library/base.js"></script>
+    <script>
+      goog.require('goog.proto2.ObjectSerializer');
+    </script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonemetadata.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumber.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/metadata.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumberutil.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/asyoutypeformatter.js"></script>
+    <script type="text/javascript" src="js/ext/mcc_iso3166_table.js"></script>
   </head>
 
   <body role="application">

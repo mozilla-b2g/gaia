@@ -5,6 +5,7 @@
 
 // Based on Resig's pretty date
 var _ = navigator.mozL10n.get;
+var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
   updateHeaders: function ut_updateHeaders() {
@@ -54,7 +55,7 @@ var Utils = {
         break;
     }
 
-    return (new Date(time)).toLocaleFormat('%R %p');
+    return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
   },
   getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
@@ -71,7 +72,6 @@ var Utils = {
         time = time.getTime();
         break;
     }
-
     var today = Utils.getDayDate((new Date()).getTime());
     var otherDay = Utils.getDayDate(time);
     var dayDiff = (today - otherDay) / 86400000;
@@ -81,13 +81,13 @@ var Utils = {
 
     if (dayDiff < 0) {
       // future time
-      return (new Date(time)).toLocaleFormat('%x %R');
+      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
 
     return dayDiff == 0 && _('today') ||
       dayDiff == 1 && _('yesterday') ||
-      dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
-      (new Date(time)).toLocaleFormat('%x');
+      dayDiff < 4 && dtf.localeFormat(new Date(time), '%A') ||
+      dtf.localeFormat(new Date(time), '%x');
   },
   getFontSize: function ut_getFontSize() {
     if (!this.rootFontSize) {

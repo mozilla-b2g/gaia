@@ -7,8 +7,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "device-storage",
-    "devicestorage",
+    "device-storage:pictures",
     "settings"
   ],
   "activities": {

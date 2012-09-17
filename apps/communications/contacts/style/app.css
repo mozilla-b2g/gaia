@@ -335,6 +335,16 @@ section[role="region"] > header:first-child {
   pointer-events: none;
 }
 
+.view-jumper-current img{
+  width: 4.6rem;
+  height: 4.6rem;
+  position: absolute;
+  left:50%;
+  top: 50%;
+  margin-left:-2.3rem;
+  margin-top:-2.3rem;
+}
+
 .view-jumper-inner {
   padding: 0.3rem 0;
   border-radius: 4rem;
@@ -609,6 +619,8 @@ span[role="button"].icon-arrow.icon-arrow-right {
 }
 .action-block span {
   display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Add style */
@@ -702,6 +714,9 @@ textarea.textfield {
 
 .setbox-title a {
   color: #333;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 6.8rem;
 }
 
 .setbox-title a, .setbox-title:before, .setbox-title label {

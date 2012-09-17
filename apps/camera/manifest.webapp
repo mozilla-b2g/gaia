@@ -9,7 +9,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
-    "device-storage",
+    "device-storage:pictures",
     "content-camera",
     "camera"
   ],

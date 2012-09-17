@@ -5,6 +5,8 @@
 
 var MessageManager = {
   init: function mm_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -130,7 +132,11 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    filter.numbers = [num || ''];
+    if (num) {
+      filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
+    } else {
+      filter.numbers = [''];
+    }
     return filter;
   },
 
@@ -154,8 +160,9 @@ var MessageManager = {
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
+        var numNormalized = PhoneNumberManager.getNormalizedNumber(filterNum);
         //TODO: Refine the pending message append with non-blocking method.
-        PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
+        PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
             return;
           }
@@ -449,37 +456,42 @@ var ThreadListUI = {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var threadIds = [], headerIndex, unreadThreads = [];
+      var threadIds = [],
+          headerIndex,
+          unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
+
         var message = messages[i];
+        var time = message.timestamp.getTime();
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         if (!message.read) {
-          if (unreadThreads.indexOf(num) == -1) {
-            unreadThreads.push(num);
+          if (unreadThreads.indexOf(numNormalized) == -1) {
+            unreadThreads.push(numNormalized);
           }
         }
-        if (threadIds.indexOf(num) == -1) {
+        if (threadIds.indexOf(numNormalized) == -1) {
           var thread = {
             'body': message.body,
-            'name': num,
-            'num': num,
-            'timestamp': message.timestamp.getTime(),
+            'name': numNormalized,
+            'num': numNormalized,
+            'timestamp': time,
             'unreadCount': !message.read ? 1 : 0,
-            'id': num
+            'id': numNormalized
           };
           if (threadIds.length == 0) {
-            var currentTS = (new Date()).getTime();
-            headerIndex = Utils.getDayDate(currentTS);
-            ThreadListUI.createNewHeader(currentTS);
+            headerIndex = Utils.getDayDate(time);
+            ThreadListUI.createNewHeader(time);
           }else {
-            var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
+            var tmpIndex = Utils.getDayDate(time);
             if (tmpIndex < headerIndex) {
-              ThreadListUI.createNewHeader(message.timestamp.getTime());
+              ThreadListUI.createNewHeader(time);
               headerIndex = tmpIndex;
             }
           }
-          threadIds.push(num);
+          threadIds.push(numNormalized);
           ThreadListUI.appendThread(thread);
         }
       }
@@ -728,8 +740,6 @@ var ThreadUI = {
         carrierTag.classList.add('hide');
       }
     });
-
-
   },
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
@@ -939,8 +949,11 @@ var ThreadUI = {
             MessageManager.getMessages(function recoverMessages(messages) {
               if (messages.length > 0) {
                 ThreadUI.renderMessages(messages);
-                WaitingScreen.hide();
-                window.history.back();
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  WaitingScreen.hide();
+                  window.history.back();
+                });
               }else {
                 ThreadUI.view.innerHTML = '';
                 MessageManager.getMessages(ThreadListUI.renderThreads,
@@ -954,8 +967,6 @@ var ThreadUI = {
             },filter);
           }
         });
-
-
       });
     }
   },
@@ -1039,15 +1050,17 @@ var ThreadUI = {
         } else {
           var num = MessageManager.getNumFromHash();
         }
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
         var text = this.input.value || resendText;
         // If we have something to send
-        if (num != '' && text != '') {
+        if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
           var tempDate = new Date();
           var message = {
             sender: null,
-            receiver: num,
+            receiver: numNormalized,
             delivery: 'sending',
             body: text,
             read: 1,

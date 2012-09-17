@@ -422,6 +422,7 @@ var Recents = {
         ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
+      navigator.mozL10n.translate(this.recentsContainer);
       this.recentsIconEdit.classList.add('disabled');
       return;
     }
@@ -497,7 +498,12 @@ var Recents = {
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
       var secondaryInfo = logItem.querySelector('.secondary-info');
-      secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
+      var secondaryInfoText = secondaryInfo.innerHTML.trim();
+      var secondaryInfoIndex = secondaryInfoText.indexOf('&nbsp;&nbsp;&nbsp;');
+      if (secondaryInfoIndex > 0) {
+        secondaryInfoText = secondaryInfoText.substring(0, secondaryInfoIndex);
+      }
+      secondaryInfo.innerHTML = secondaryInfoText +
         '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;

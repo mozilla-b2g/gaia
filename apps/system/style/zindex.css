@@ -57,7 +57,7 @@
   z-index: 16384;
 }
 
-/* Level 4: Activity menu, context menu */
+/* Level 4: Activity menu, context menu and value selector */
 #screen > [data-z-index-level="list-menu"] {
   z-index: 8192;
 }
@@ -153,19 +153,24 @@
   z-index: 0;
 }
 
-/* Fullscreen */
-#screen.fullscreen > [data-z-index-level="system-overlay"],
-#screen.fullscreen > [data-z-index-level="lockscreen"],
-#screen.fullscreen > [data-z-index-level="lockscreen-camera"],
-#screen.fullscreen > [data-z-index-level="value-selector"],
-#screen.fullscreen > [data-z-index-level="dialog-overlay"],
-#screen.fullscreen > [data-z-index-level="keyboard-overlay"],
-#screen.fullscreen > [data-z-index-level="keyboard-frame"],
-#screen.fullscreen > [data-z-index-level="keyboard-frame"].visible,
-#screen.fullscreen > [data-z-index-level="notification-toaster"],
-#screen.fullscreen > [data-z-index-level="cardsview"],
-#screen.fullscreen > [data-z-index-level="attention-screen"],
-#screen.fullscreen > [data-z-index-level="permission-screen"] {
+/* We promotes the following overlays on top of the fullscreen web content. */
+
+#screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
+
+#screen:-moz-full-screen-ancestor > [data-z-index-level="value-selector"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
+
+#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-overlay"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"].visible,
+
+#screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="cardsview"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
   z-index: 2147483647;
 }
 
