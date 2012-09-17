@@ -969,3 +969,41 @@ textarea.textfield {
   background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
 }
 
+/* ----------------------------------
+ * PROGRESS + ACTIVITIES
+ * ---------------------------------- */
+
+/* Activity indicator */
+ body[role="application"] progress:not([value]) {
+   width: 2.9rem;
+   height: 2.9rem;
+   background: url(images/spinner.png) no-repeat left top;
+   border: none;
+   animation: 1s moveDefault infinite steps(10);
+   display: inline-block;
+   vertical-align: middle;
+ }
+
+ body[role="application"] progress:not([value])::-moz-progress-bar {
+   background: none;
+ }
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -390px top;
+  }
+}
+
+@keyframes moveSpinner {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -300px top;
+  }
+}
