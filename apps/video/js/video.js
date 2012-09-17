@@ -319,30 +319,31 @@ function showPlayer(data, autoPlay) {
   // Get the video file and start the player
   videodb.getFile(data.name, function(file) {
     var url = URL.createObjectURL(file);
+    dom.player.preload = 'metadata';
     dom.player.src = url;
+    dom.player.onloadedmetadata = function() {
 
-    // TODO: Attempting to resume the video player at the correct time
-    // is currently broken
-    // dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-    timeUpdated();
+      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+      timeUpdated();
 
-    // Go into full screen mode
-    dom.videoFrame.mozRequestFullScreen();
+      // Go into full screen mode
+      dom.videoFrame.mozRequestFullScreen();
 
-    // Show the controls briefly then fade out
-    setControlsVisibility(true);
-    controlFadeTimeout = setTimeout(function() {
-      setControlsVisibility(false);
-    }, 250);
+      // Show the controls briefly then fade out
+      setControlsVisibility(true);
+      controlFadeTimeout = setTimeout(function() {
+        setControlsVisibility(false);
+      }, 250);
 
-    setPlayerSize();
+      setPlayerSize();
 
-    if (autoPlay) {
-      play();
+      if (autoPlay) {
+        play();
+      }
+
+      currentVideo.metadata.watched = true;
+      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
     }
-
-    currentVideo.metadata.watched = true;
-    videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
   });
 }
 
