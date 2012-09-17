@@ -4,6 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.List = (function() {
   var _,
+      loading,
       groupsList,
       favoriteGroup,
       inSearchMode = false,
@@ -29,6 +30,7 @@ contacts.List = (function() {
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
+    loading = document.getElementById('loading-overlay');
 
     // Populating contacts by groups
     renderGroupHeader('favorites', '');
@@ -42,6 +44,7 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
+    showOverlay();
   }
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -284,9 +287,17 @@ contacts.List = (function() {
     renderFavorites(favorites);
     cleanLastElements(counter);
     checkEmptyList();
+    hideOverlay();
     FixedHeader.refresh();
   };
 
+  var showOverlay = function showOverlay() {
+    loading.classList.add('show-overlay');
+  };
+
+  var hideOverlay = function showOverlay() {
+    loading.classList.remove('show-overlay');
+  };
   var cleanLastElements = function cleanLastElements(counter) {
     // If reloading contacts, some have been removed and were
     // in the last positions of the letter, the algorithm can't
