@@ -104,6 +104,9 @@ var PinLock = {
 
       case 'click':
         switch (ev.target.dataset.key) {
+          case undefined:
+            break;
+
           // Emergency
           case 'e':
             // XXX: TBD
@@ -137,3 +140,4 @@ var PinLock = {
     }
   }
 };
+
