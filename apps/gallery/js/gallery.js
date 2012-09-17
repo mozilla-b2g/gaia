@@ -208,12 +208,14 @@ function init() {
 
   // When photodb scans, let the user know
   photodb.onscanstart = function() {
-    $('throbber').className = 'throb';
+    $('progress').classList.remove('hidden');
+    $('throbber').classList.add('throb');
   };
 
   // And hide the throbber when scanning is done
   photodb.onscanend = function() {
-    $('throbber').className = 'hidden';
+    $('progress').classList.add('hidden');
+    $('throbber').classList.remove('throb');
   };
 
   // One or more files was created (or was just discovered by a scan)
