@@ -149,6 +149,16 @@ ul li button, ul li a[role=button] {
   margin: 1.5rem auto;
 }
 
+[role=region] label > select {
+  display: inline-block;
+  left: auto;
+  right: 2rem;
+  position: absolute;
+  height: 3rem;
+  margin: 1.5rem auto;
+  font-size: 2rem;
+}
+
 #brightness-level:active {
   background-color: #f5f5f5;
   text-shadow: none;
