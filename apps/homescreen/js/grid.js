@@ -181,10 +181,15 @@ const GridManager = (function() {
 
     if (!isSamePage) {
       updatePaginationBar();
-    }
 
-    if (previousPage + index <= 3) {
-      Core.goToPage(previousPage, index);
+      if (index === evmePageIndex) {
+        EvmeManager.show();
+        return;
+      }
+
+      if (index === landingPageIndex && previousPage ===  evmePageIndex) {
+        EvmeManager.hide();
+      }
     }
   }
 

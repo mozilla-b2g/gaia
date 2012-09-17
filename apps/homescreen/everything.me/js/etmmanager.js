@@ -3,27 +3,6 @@
 
 var EvmeManager = (function() {
 
-  var footerStyle = document.querySelector('#footer').style;
-  var previousPage = GridManager.landingPageIndex;
-  var everythingMeIndex = 0;
-
-  var goToPageEventName = "goToPage";
-
-  document.querySelector('#etmPage').addEventListener('transitionend', function transitionEnd(e) {
-    var currentPage = GridManager.pageHelper.getCurrentPageNumber();
-
-    if (previousPage !== currentPage) {
-      if (currentPage === everythingMeIndex) {
-        footerStyle.MozTransform = 'translateY(7.5rem)';
-      } else {
-        footerStyle.MozTransform = 'translateY(0)';
-      }
-      footerStyle.MozTransition = '-moz-transform .2s ease';
-    }
-
-    previousPage = currentPage;
-  });
-
   function openApp(params) {
     (new EvmeApp({
       url: params.url,
@@ -55,10 +34,23 @@ var EvmeManager = (function() {
     }), '*');
   }
 
+  var footerStyle = document.querySelector('#footer').style;
+  footerStyle.MozTransition = '-moz-transform .3s ease';
+
   return {
     openApp: openApp,
 
-    addBookmark: addBookmark
+    addBookmark: addBookmark,
+
+    show: function doShow() {
+      footerStyle.MozTransform = 'translateY(75px)';
+      Core.goToPage(1, 0);
+    },
+
+    hide: function doHide() {
+      footerStyle.MozTransform = 'translateY(0)';
+      Core.goToPage(0, 1);
+    }
   };
 
 }());
