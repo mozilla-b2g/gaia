@@ -80,6 +80,11 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    // events to handle
+    window.addEventListener('home', CardsView);
+    window.addEventListener('lock', CardsView);
+    window.addEventListener('attentionscreenshow', CardsView);
+
     // Close utility tray if it is opened.
     UtilityTray.hide(true);
 
@@ -222,6 +227,11 @@ var CardsView = (function() {
   function hideCardSwitcher() {
     if (!cardSwitcherIsShown())
       return;
+
+    // events to handle
+    window.removeEventListener('home', CardsView);
+    window.removeEventListener('lock', CardsView);
+    window.removeEventListener('attentionscreenshow', CardsView);
 
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
@@ -489,51 +499,37 @@ var CardsView = (function() {
     },
   false);
 
-  window.addEventListener('home', function cv_homeEvent(evt) {
-    if (!cardSwitcherIsShown())
-      return;
-
-    evt.stopImmediatePropagation();
-    hideCardSwitcher();
-  });
-
-  window.addEventListener('lock', function cv_lockEvent(evt) {
-    if (!cardSwitcherIsShown())
-      return;
-
-    hideCardSwitcher();
-  });
-
-  window.addEventListener('attentionscreenshow',
-    function cv_attentionScreenShowEvent(evt) {
-    if (!cardSwitcherIsShown()) {
-      return;
-    }
-
-    hideCardSwitcher();
-  });
-
-  window.addEventListener('holdhome', function holdhome() {
-    if (LockScreen.locked || cardSwitcherIsShown())
-      return;
-
-    SleepMenu.hide();
-    showCardSwitcher();
-  });
-
   function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
         onStartEvent(evt);
         break;
+
       case 'mousemove':
         onMoveEvent(evt);
         break;
+
       case 'mouseup':
         onEndEvent(evt);
         break;
+
       case 'contextmenu':
         manualOrderStart(evt);
+        break;
+
+      case 'home':
+        evt.stopImmediatePropagation();
+        hideCardSwitcher();
+        break;
+
+      case 'lock':
+      case 'attentionscreenshow':
+        hideCardSwitcher();
+        break;
+
+      case 'holdhome':
+        SleepMenu.hide();
+        showCardSwitcher();
         break;
     }
   }
@@ -546,3 +542,5 @@ var CardsView = (function() {
     handleEvent: cv_handleEvent
   };
 })();
+
+window.addEventListener('holdhome', CardsView);
