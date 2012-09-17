@@ -14,12 +14,12 @@ var SimPinLock = {
   errorMsg: document.getElementById('errorMsg'),
   errorMsgHeader: document.getElementById('messageHeader'),
   errorMsgBody: document.getElementById('messageBody'),
-  
+
   lockType: 'pin',
 
   activity: null,
 
-  mobileConnection: null, 
+  mobileConnection: null,
 
   handleCardState: function spl_handleCardState() {
     var cardState = this.mobileConnection.cardState;
@@ -41,7 +41,7 @@ var SimPinLock = {
         this.skip();
         break;
     }
-    this.title.textContent = _(this.lockType+'Title');
+    this.title.textContent = _(this.lockType + 'Title');
     if (this.lockType === 'pin')
       this.pinInput.focus();
     else
@@ -63,10 +63,9 @@ var SimPinLock = {
         }
 
         var targetInput = evt.target;
-        
         var entered = targetInput.value;
         var display = this.pinDisplay;
-        if (targetInput.name === "simpuk") {
+        if (targetInput.name === 'simpuk') {
           display = this.pukDisplay;
         }
 
@@ -109,11 +108,12 @@ var SimPinLock = {
       if (req.result && req.result.retryCount)
         retry = req.result.retryCount;
 
-      self.errorMsgHeader.textContent = _(self.lockType+'ErrorMsg');
+      self.errorMsgHeader.textContent = _(self.lockType + 'ErrorMsg');
       if (retry === 1) {
-        self.errorMsgBody.textContent = _(self.lockType+'LastChanceMsg');
+        self.errorMsgBody.textContent = _(self.lockType + 'LastChanceMsg');
       } else {
-        self.errorMsgBody.textContent = _(self.lockType+'AttemptMsg', {n: retry});
+        self.errorMsgBody.textContent = _(self.lockType + 'AttemptMsg',
+          {n: retry});
       }
 
       self.errorMsg.hidden = false;
@@ -122,8 +122,8 @@ var SimPinLock = {
       } else {
         self.pukInput.focus();
       }
-    }; 
-    this.clear(); 
+    };
+    this.clear();
     return false;
   },
 
@@ -136,7 +136,7 @@ var SimPinLock = {
   },
 
   skip: function spl_skip() {
-    this.clear(); 
+    this.clear();
     this.activity.postResult({unlock: false});
     return false;
   },
@@ -145,15 +145,15 @@ var SimPinLock = {
     this.mobileConnection = window.navigator.mozMobileConnection;
     this.mobileConnection.addEventListener('cardstatechange', this);
     var self = this;
-    window.navigator.mozSetMessageHandler('activity', 
+    window.navigator.mozSetMessageHandler('activity',
       function spl_activityHandler(activityReq) {
         console.debug('In settings app to handle SIM PIN lock');
         self.activity = activityReq;
         self.handleCardState();
       }
     );
-    this.pinInput.addEventListener("keypress", this);
-    this.pukInput.addEventListener("keypress", this);
+    this.pinInput.addEventListener('keypress', this);
+    this.pukInput.addEventListener('keypress', this);
     this.dialog.onreset = this.skip.bind(this);
     this.dialog.onsubmit = this.verify.bind(this);
   }

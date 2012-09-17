@@ -10,8 +10,8 @@ var SimLock = {
       case 'pinRequired':
         var activity = new MozActivity({
           name: 'configure',
-          data: { 
-            target: 'simpin-unlock' 
+          data: {
+            target: 'simpin-unlock'
           }
         });
         activity.onsuccess = function sl_unlockSuccess() {

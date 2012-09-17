@@ -22,7 +22,7 @@ function startup() {
       launchHomescreen();
     });
   }
- 
+
   window.addEventListener('unlock', function() {
     SimLock.init();
   });
