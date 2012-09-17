@@ -160,7 +160,7 @@ var MessageManager = {
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
-        var numNormalized = PhoneNumberManager.getNormalizedNumber(filterNum);
+        var numNormalized = PhoneNumberManager.getNormalizedInternationalNumber(filterNum);
         //TODO: Refine the pending message append with non-blocking method.
         PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
