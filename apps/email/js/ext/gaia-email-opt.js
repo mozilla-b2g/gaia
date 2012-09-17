@@ -27159,15 +27159,17 @@ FakeFolderStorage.prototype = {
   ParseError.prototype = new Error();
   ParseError.prototype.constructor = ParseError;
 
-  function StringTable(data) {
-    this.strings = data.split('\0');
+  function StringTable(data, decoder) {
+    this.strings = [];
     this.offsets = {};
-    let total = 0;
-    for (let i = 0; i < this.strings.length; i++) {
-      this.offsets[total] = i;
-      // Add 1 to the current string's length here because we stripped a null-
-      // terminator earlier.
-      total += this.strings[i].length + 1;
+
+    let start = 0;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i] === 0) {
+        this.offsets[start] = this.strings.length;
+        this.strings.push(decoder.decode( data.subarray(start, i) ));
+        start = i + 1;
+      }
     }
   }
 
@@ -27177,7 +27179,7 @@ FakeFolderStorage.prototype = {
         return this.strings[this.offsets[offset]];
       else {
         if (offset < 0)
-          throw new WBXMLParseError('offset must be >= 0');
+          throw new ParseError('offset must be >= 0');
 
         let curr = 0;
         for (let i = 0; i < this.strings.length; i++) {
@@ -27188,7 +27190,7 @@ FakeFolderStorage.prototype = {
           curr += this.strings[i].length + 1;
         }
       }
-      throw new WBXMLParseError('invalid offset');
+      throw new ParseError('invalid offset');
     },
   };
 
@@ -27404,47 +27406,52 @@ FakeFolderStorage.prototype = {
     get type() { return 'OPAQUE'; },
   };
 
-  function Reader(xml, codepages) {
-    this._xml = xml instanceof Writer ? xml.bytes : xml;
+  function Reader(data, codepages) {
+    this._data = data instanceof Writer ? data.bytes : data;
     this._codepages = codepages;
     this.rewind();
   }
 
   Reader.prototype = {
     _get_uint8: function() {
-      return this._iter.next();
+      if (this._index === this._data.length)
+        throw StopIteration;
+      return this._data[this._index++];
     },
 
     _get_mb_uint32: function() {
       let b;
       let result = 0;
       do {
-        b = this._iter.next();
+        b = this._get_uint8();
         result = result*128 + (b & 0x7f);
       } while(b & 0x80);
       return result;
     },
 
-    rewind: function() {
-      let self = this;
-      // For some reason, the normal generator syntax doesn't work when |xml| is
-      // a member variable, so do it like this.
-      this._iter = (function() {
-        for (let i = 0; i < self._xml.length; i++)
-          yield self._xml[i];
-      })();
+    _get_slice: function(length) {
+      let start = this._index;
+      this._index += length;
+      return this._data.subarray(start, this._index);
+    },
 
-      // XXX: only do this once during the constructor?
+    _get_c_string: function() {
+      let start = this._index;
+      while (this._get_uint8());
+      return this._data.subarray(start, this._index - 1);
+    },
+
+    rewind: function() {
+      this._index = 0;
+
       let v = this._get_uint8();
       this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
       this.pid = this._get_mb_uint32();
       this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
+      this._decoder = TextDecoder(this.charset);
 
       let tbl_len = this._get_mb_uint32();
-      let s = '';
-      for (let j = 0; j < tbl_len; j++)
-        s += String.fromCharCode(this._get_uint8());
-      this.strings = new StringTable(s);
+      this.strings = new StringTable(this._get_slice(tbl_len), this._decoder);
 
       this.document = this._getDocument();
     },
@@ -27510,11 +27517,9 @@ FakeFolderStorage.prototype = {
         // here.
       }).bind(this);
 
-      // Beware! We're going to grab multiple tokens from our iterator inside
-      // this for loop. This simplifies the actual structure of the loop quite a
-      // bit, since we can eat as many tokens as we need to for each logical
-      // chunk of the document.
-      for (let tok in this._iter) {
+      try { while (true) {
+        let tok = this._get_uint8();
+
         if (tok === Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
           if (!(codepage in this._codepages.__nsnames__))
@@ -27548,12 +27553,7 @@ FakeFolderStorage.prototype = {
         else if (tok === Tokens.STR_I) {
           if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected STR_I token');
-          let s = '';
-          let c;
-          while ( (c = this._get_uint8()) ) {
-            s += String.fromCharCode(c);
-          }
-          appendString(s);
+          appendString(this._decoder.decode(this._get_c_string()));
         }
         else if (tok === Tokens.PI) {
           if (state !== States.BODY)
@@ -27574,15 +27574,13 @@ FakeFolderStorage.prototype = {
           if (state !== States.BODY)
             throw new ParseError('unexpected OPAQUE token');
           let len = this._get_mb_uint32();
-          let s = ''; // XXX: use a typed array here?
-          for (let i = 0; i < len; i++)
-            s += String.fromCharCode(this._get_uint8());
+          let data = this._get_slice(len);
 
           if (currentNode) {
             yield currentNode;
             currentNode = null;
           }
-          yield new Opaque(this, s);
+          yield new Opaque(this, data);
         }
         else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
           let hi = tok & 0xc0;
@@ -27592,11 +27590,7 @@ FakeFolderStorage.prototype = {
 
           if (hi === Tokens.EXT_I_0) {
             subtype = 'string';
-            value = '';
-            let c;
-            while ( (c = this._get_uint8()) ) {
-              value += String.fromCharCode(c);
-            }
+            value = this._decoder.decode(this._get_c_string());
           }
           else if (hi === Tokens.EXT_T_0) {
             subtype = 'integer';
@@ -27668,6 +27662,9 @@ FakeFolderStorage.prototype = {
             currentAttr.push(attr);
           }
         }
+      } } catch (e) {
+        if (!(e instanceof StopIteration))
+          throw e;
       }
     },
 
@@ -27694,8 +27691,8 @@ FakeFolderStorage.prototype = {
         if (node.type === 'TAG' || node.type === 'STAG') {
           result += indent(tagstack.length) + '<' + node.tagName;
 
-          for (let [k,v] in node.attributes) {
-            result += ' ' + k + '="' + v + '"';
+          for (let attr in node.attributes) {
+            result += ' ' + attr.name + '="' + attr.value + '"';
           }
 
           if (node.type === 'STAG') {
@@ -27748,16 +27745,17 @@ FakeFolderStorage.prototype = {
       if (charsetNum === undefined)
         throw new Error('unknown charset '+charset);
     }
+    let encoder = this._encoder = TextEncoder(charset);
 
     this._write(v);
     this._write(pid);
     this._write(charsetNum);
     if (strings) {
-      let len = strings.reduce(function(x, y) { return x + y.length + 1; }, 0);
+      let bytes = strings.map(function(s) { return encoder.encode(s); });
+      let len = bytes.reduce(function(x, y) { return x + y.length + 1; }, 0);
       this._write_mb_uint32(len);
-      for (let [,s] in Iterator(strings)) {
-        for (let i = 0; i < s.length; i++)
-          this._write(s.charCodeAt(i));
+      for (let [,b] in Iterator(bytes)) {
+        this._write_bytes(b);
         this._write(0x00);
       }
     }
@@ -27845,9 +27843,13 @@ FakeFolderStorage.prototype = {
         this._write(bytes[i]);
     },
 
+    _write_bytes: function(bytes) {
+      for (let i = 0; i < bytes.length; i++)
+        this._write(bytes[i]);
+    },
+
     _write_str: function(str) {
-      for (let i = 0; i < str.length; i++)
-        this._write(str.charCodeAt(i));
+      this._write_bytes(this._encoder.encode(str));
     },
 
     _setCodepage: function(codepage) {
