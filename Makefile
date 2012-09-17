@@ -567,7 +567,7 @@ dialer-demo:
 
 demo: install-media-samples install-gaia
 
-production: install-gaia
+production: reset-gaia
 
 # Remove everything and install a clean profile
 reset-gaia: purge install-settingsdb install-gaia
