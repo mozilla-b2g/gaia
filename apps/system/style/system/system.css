@@ -105,6 +105,10 @@ body {
   background-color: #fff;
 }
 
+#screen.cards-view > #windows > iframe.appWindow:not(.homescreen) {
+  visibility: hidden;
+}
+
 #windows > iframe.appWindow:not(.active):not(.homescreen) {
   visibility: hidden;
 }
@@ -135,6 +139,10 @@ body {
   visibility: hidden;
 }
 
+#screen.cards-view > div#windowSprite:not(.before-close) {
+  opacity: 1;
+}
+
 #windowSprite[data-mask="true"] > div {
   width: 100%;
   height: 100%;
@@ -147,7 +155,7 @@ body {
 }
 
 #windowSprite.before-open {
-  transform: scale(0.5);
+  transform: scale(0.6);
   /* 0.01 opacity is needed to make sure Gecko paints and fire
      MozAfterPaint event for us. */
   opacity: 0.01;
@@ -189,7 +197,7 @@ body {
 #windowSprite.closed {
   transition: transform 0.5s ease, opacity 0.3s ease;
 
-  transform: scale(0.5);
+  transform: scale(0.6);
   opacity: 0;
   visibility: visible;
 }
