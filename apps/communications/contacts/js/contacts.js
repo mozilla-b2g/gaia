@@ -1042,7 +1042,7 @@ var Contacts = (function() {
     }
   };
 
-  var isUpdated(contact1, contact2) {
+  var isUpdated = function isUpdated(contact1, contact2) {
     return contact1.id == contact2.id &&
       (contact1.updated - contact2.updated) == 0;
   }
