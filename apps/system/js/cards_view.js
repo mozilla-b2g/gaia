@@ -142,7 +142,7 @@ var CardsView = (function() {
         });
       });
 
-      cardsView.addEventListener('contextmenu', this);
+      cardsView.addEventListener('contextmenu', CardsView);
 
     }
 
@@ -151,7 +151,7 @@ var CardsView = (function() {
     }
 
     if (SNAPPING_SCROLLING || MANUAL_CLOSING) {
-      cardsView.addEventListener('mousedown', this);
+      cardsView.addEventListener('mousedown', CardsView);
     }
 
     // Make sure we're in portrait mode
@@ -511,6 +511,14 @@ var CardsView = (function() {
     }
 
     hideCardSwitcher();
+  });
+
+  window.addEventListener('holdhome', function holdhome() {
+    if (LockScreen.locked || cardSwitcherIsShown())
+      return;
+
+    SleepMenu.hide();
+    showCardSwitcher();
   });
 
   function cv_handleEvent(evt) {

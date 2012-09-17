@@ -1116,14 +1116,6 @@ var WindowManager = (function() {
     evt.preventDefault();
   }, true);
 
-  window.addEventListener('holdhome', function(e) {
-    if (!LockScreen.locked &&
-        !CardsView.cardSwitcherIsShown()) {
-      SleepMenu.hide();
-      CardsView.showCardSwitcher();
-    }
-  });
-
   // With all important event handlers in place, we can now notify
   // Gecko that we're ready for certain system services to send us
   // messages (e.g. the radio).
