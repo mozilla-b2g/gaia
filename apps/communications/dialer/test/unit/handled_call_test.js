@@ -309,6 +309,26 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('without node', function() {
+    setup(function() {
+      mockCall = new MockCall('12345', 'incoming');
+      subject = new HandledCall(mockCall);
+    });
+
+    test('call event listener', function() {
+      assert.isTrue(mockCall._listenerAdded);
+    });
+
+    test('no node', function() {
+      assert.typeOf(subject.node, 'undefined');
+    });
+
+    test('recents entry after refusal', function() {
+      mockCall._disconnect();
+      assert.equal(subject.recentsEntry.type, 'incoming-refused');
+    });
+  });
+
   suite('additional information', function() {
     test('check additional info present', function() {
       mockCall = new MockCall('888', 'incoming');

@@ -148,7 +148,9 @@ var KeypadManager = {
       document.getElementById('keypad-hidebar-hide-keypad-action');
   },
 
-  init: function kh_init() {
+  init: function kh_init(oncall) {
+    this._onCall = !!oncall;
+
     // Update the minimum phone number phone size.
     // The UX team states that the minimum font size should be
     // 10pt. First off, we convert it to px multiplying it 0.226 times,
@@ -219,7 +221,6 @@ var KeypadManager = {
 
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
-      this._onCall = true;
       var numberNode = CallScreen.activeCall.querySelector('.number');
       this._phoneNumber = numberNode.textContent;
       var additionalContactInfoNode = CallScreen.activeCall.
@@ -302,24 +303,20 @@ var KeypadManager = {
     OnCallHandler.end();
   },
 
-  formatPhoneNumber: function kh_formatPhoneNumber(mode, ellipsisSide) {
-    switch (mode) {
-      case 'dialpad':
-        var fakeView = this.fakePhoneNumberView;
-        var view = this.phoneNumberView;
+  formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide) {
+    if (this._onCall) {
+      var fakeView = CallScreen.activeCall.querySelector('.fake-number');
+      var view = CallScreen.activeCall.querySelector('.number');
+    } else {
+      var fakeView = this.fakePhoneNumberView;
+      var view = this.phoneNumberView;
 
-        // We consider the case where the delete button may have
-        // been used to delete the whole phone number.
-        if (view.value == '') {
-          view.style.fontSize = this.maxFontSize;
-          return;
-        }
-      break;
-
-      case 'on-call':
-        var fakeView = CallScreen.activeCall.querySelector('.fake-number');
-        var view = CallScreen.activeCall.querySelector('.number');
-      break;
+      // We consider the case where the delete button may have
+      // been used to delete the whole phone number.
+      if (view.value == '') {
+        view.style.fontSize = this.maxFontSize;
+        return;
+      }
     }
 
     var newFontSize = this.getNextFontSize(view, fakeView);
@@ -474,7 +471,7 @@ var KeypadManager = {
     var phoneNumber = this._phoneNumber;
 
     // If there are digits in the phone number, show the delete button.
-    if (typeof CallScreen == 'undefined') {
+    if (!this._onCall) {
       var visibility = (phoneNumber.length > 0) ? 'visible' : 'hidden';
       this.deleteButton.style.visibility = visibility;
     }
@@ -482,12 +479,12 @@ var KeypadManager = {
     if (this._onCall) {
       var view = CallScreen.activeCall.querySelector('.number');
       view.textContent = phoneNumber;
-      this.formatPhoneNumber('on-call');
     } else {
       this.phoneNumberView.value = phoneNumber;
       this.moveCaretToEnd(this.phoneNumberView);
-      this.formatPhoneNumber('dialpad');
     }
+
+    this.formatPhoneNumber();
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber() {
