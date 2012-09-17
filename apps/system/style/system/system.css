@@ -137,8 +137,8 @@ body {
   visibility: hidden;
 }
 
-#screen.cards-view > div#windowSprite {
-  opacity: 0.99;
+#screen.cards-view > div#windowSprite:not(.before-close) {
+  opacity: 1;
 }
 
 #windowSprite[data-mask="true"] > div {
