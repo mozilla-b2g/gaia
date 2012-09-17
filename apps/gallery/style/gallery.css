@@ -219,6 +219,31 @@ body.hidden *[data-l10n-id] {
   float: right;
 }
 
+/* the indeterminate progress bar displayed while scanning */
+#throbber {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 4px;
+  border: none;
+  background: url(images/progress.png) no-repeat left top;
+}
+
+#throbber.throb
+{
+  animation: .5s throb infinite steps(12);
+}
+
+@keyframes throb {
+  from {
+    background-position: 0px 0px;
+  }
+  to {
+    background-position: 0px -48px;
+  }
+}
+
 /* buttons */
 a.button {
   display: block;
