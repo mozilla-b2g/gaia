@@ -19,15 +19,10 @@ var SimPinLock = {
 
   activity: null,
 
-  pinEntered: '',
-
-  pukEntered: '',
-
   mobileConnection: null, 
 
   handleCardState: function spl_handleCardState() {
     var cardState = this.mobileConnection.cardState;
-    dump("==== cardState: "+ cardState);
     switch (cardState) {
       case 'pinRequired':
         this.lockType = 'pin';
@@ -47,6 +42,10 @@ var SimPinLock = {
         break;
     }
     this.title.textContent = _(this.lockType+'Title');
+    if (this.lockType === 'pin')
+      this.pinInput.focus();
+    else
+      this.pukInput.focus();
   },
 
   handleEvent: function spl_handleInput(evt) {
@@ -63,46 +62,49 @@ var SimPinLock = {
           return;
         }
 
-        dump("=== key press target: "+ evt.target.name);
+        var targetInput = evt.target;
+        
+        var entered = targetInput.value;
+        var display = this.pinDisplay;
+        if (targetInput.name === "simpuk") {
+          display = this.pukDisplay;
+        }
 
         if (evt.charCode === 0) { // backspace
-          this.pinEntered = this.pinEntered.substr(0, this.pinEntered.length - 1);
+          entered = entered.substr(0, entered.length - 1);
         } else {
-          if (this.pinEntered.length >= 8)
+          if (entered.length >= 8)
             return;
-          this.pinEntered += key;
+          entered += key;
         }
-        dump("=== pinEntered: " + this.pinEntered);
-        var len = this.pinEntered.length;
-        this.pinDisplay.value = (new Array(len+1)).join('*');
+        targetInput.value = entered;
+        display.value = (new Array(entered.length + 1)).join('*');
         break;
     }
   },
 
   verify: function spl_verify() {
-    dump('==== verify sim pin: '+this.pinEntered);
-    if (this.pinEntered === '')
+    if (this.pinInput.value === '')
       return false;
+    if (this.lockType === 'puk' && this.pukInput.value === '')
+      return false;
+
     var option = {lockType: this.lockType};
     if (this.lockType === 'pin') {
-      option['pin'] = this.pinEntered;
+      option['pin'] = this.pinInput.value;
     } else {
-      option['puk'] = this.pukEntered;
-      option['newPin'] = this.pinEntered;
+      option['puk'] = this.pukInput.value;
+      option['newPin'] = this.pinInput.value;
     }
 
     var self = this;
-    dump("==== option "+ JSON.stringify(option));
     var req = this.mobileConnection.unlockCardLock(option);
-    dump("==== req "+req);
     req.onsuccess = function sp_unlockSuccess() {
-      dump('==== correct sim pin!!');
       self.activity.postResult({unlock: true});
       return false;
     };
 
     req.onerror = function sp_unlockError() {
-      dump('==== wrong sim pin!!');
       var retry = -1;
       if (req.result && req.result.retryCount)
         retry = req.result.retryCount;
@@ -115,7 +117,11 @@ var SimPinLock = {
       }
 
       self.errorMsg.hidden = false;
-      self.pinInput.focus();
+      if (self.lockType === 'pin') {
+        self.pinInput.focus();
+      } else {
+        self.pukInput.focus();
+      }
     }; 
     this.clear(); 
     return false;
@@ -123,39 +129,37 @@ var SimPinLock = {
 
   clear: function spl_clear() {
     this.errorMsg.hidden = true;
+    this.pinInput.value = '';
+    this.pukInput.value = '';
     this.pinDisplay.value = '';
-    this.pinEntered = '';
+    this.pukDisplay.value = '';
   },
 
   skip: function spl_skip() {
-    dump('==== skip unlock!!');
     this.clear(); 
     this.activity.postResult({unlock: false});
     return false;
   },
 
   init: function spl_init() {
-    dump("==== unlock init: " + window.location.href);
     this.mobileConnection = window.navigator.mozMobileConnection;
     this.mobileConnection.addEventListener('cardstatechange', this);
     var self = this;
     window.navigator.mozSetMessageHandler('activity', 
       function spl_activityHandler(activityReq) {
-        dump("==== in activity");
+        console.debug('In settings app to handle SIM PIN lock');
         self.activity = activityReq;
         self.handleCardState();
       }
     );
-    document.addEventListener('mozvisibilitychange', 
-      function visibilityChange() {
-        dump("==== am I visible? "+ !document.mozHidden);
-      }
-    );
     this.pinInput.addEventListener("keypress", this);
+    this.pukInput.addEventListener("keypress", this);
     this.dialog.onreset = this.skip.bind(this);
     this.dialog.onsubmit = this.verify.bind(this);
   }
 
 };
 
-SimPinLock.init();
+window.addEventListener('localized', function showPanel() {
+  SimPinLock.init();
+});

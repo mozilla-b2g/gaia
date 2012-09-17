@@ -3,27 +3,22 @@
 
 'use strict';
 
-var PinLock = {
-  init: function pl_init() {
-    dump("==== system mobile connection: "+window.navigator.mozMobileConnection.cardState);
+var SimLock = {
+  init: function sl_init() {
     switch (window.navigator.mozMobileConnection.cardState) {
       case 'pukRequired':
       case 'pinRequired':
-        dump("==== in ready status");
         var activity = new MozActivity({
           name: 'configure',
           data: { 
             target: 'simpin-unlock' 
           }
         });
-        activity.onsuccess = function sp_unlockSuccess() {
-          dump("==== unlock result: "+ this.result.unlock);
+        activity.onsuccess = function sl_unlockSuccess() {
           if (!this.result.unlock) {
-            window.alert('SIM Locked');
+            ModalDialog.alert('SIM Locked');
           }
-        };
-        activity.onerror = function sp_unlockError() {
-          dump("==== unlock error");
+          WindowManager.setDisplayedApp(null);
         };
         break;
       case 'ready':
