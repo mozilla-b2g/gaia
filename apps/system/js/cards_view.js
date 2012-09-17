@@ -81,7 +81,6 @@ var CardsView = (function() {
   // for one second before the switcher will appear.
   function showCardSwitcher() {
     // events to handle
-    window.addEventListener('home', CardsView);
     window.addEventListener('lock', CardsView);
     window.addEventListener('attentionscreenshow', CardsView);
 
@@ -229,7 +228,6 @@ var CardsView = (function() {
       return;
 
     // events to handle
-    window.removeEventListener('home', CardsView);
     window.removeEventListener('lock', CardsView);
     window.removeEventListener('attentionscreenshow', CardsView);
 
@@ -518,6 +516,9 @@ var CardsView = (function() {
         break;
 
       case 'home':
+        if (!cardSwitcherIsShown())
+          return;
+
         evt.stopImmediatePropagation();
         hideCardSwitcher();
         break;
@@ -544,3 +545,4 @@ var CardsView = (function() {
 })();
 
 window.addEventListener('holdhome', CardsView);
+window.addEventListener('home', CardsView);
