@@ -1008,6 +1008,13 @@ var WindowManager = (function() {
     } else {
       removeFrame(origin);
     }
+
+    // Send a synthentic 'appterminated' event.
+    // Let other system app module know an app is
+    // being killed, removed or crashed.
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appterminated', true, false, { origin: origin });
+    window.dispatchEvent(evt);
   }
 
   // Reload the frame of the running app
