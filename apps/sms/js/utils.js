@@ -72,7 +72,6 @@ var Utils = {
         time = time.getTime();
         break;
     }
-
     var today = Utils.getDayDate((new Date()).getTime());
     var otherDay = Utils.getDayDate(time);
     var dayDiff = (today - otherDay) / 86400000;
