@@ -349,12 +349,6 @@ form.search button {
   text-overflow: ellipsis;
 }
 
-.loading-icon img{
-  width: 2.8rem;
-  height: 2.8rem;
-  margin: 0 auto;
-}
-
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
  .view-jumper li {
