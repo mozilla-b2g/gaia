@@ -139,6 +139,11 @@ body {
   visibility: hidden;
 }
 
+#screen.active-statusbar #windowSprite {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
 #screen.cards-view > div#windowSprite:not(.before-close) {
   opacity: 1;
 }
@@ -248,12 +253,23 @@ iframe.backgroundWindow {
 
 #dialog-overlay {
   position: absolute;
-  top: 0;
+  top: 20px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 20px);
   visibility: hidden;
   pointer-events: none;
+}
+
+#screen.active-statusbar #dialog-overlay {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
+#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-app #dialog-overlay {
+  top: 0;
+  height: 100%;
 }
 
 #screen.authentication-dialog #dialog-overlay,
