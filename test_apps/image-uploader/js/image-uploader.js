@@ -114,8 +114,8 @@ HostingProvider.prototype.performOAuth1Login = function() {
                   function(xhr) {
                     if (xhr.status != 200) {
                       alert(
-                        'Request refused:',
-                        xhr.status, '::',
+                        'Request refused:' +
+                        xhr.status + '::' +
                         xhr.responseText);
                       return;
                     }
@@ -207,6 +207,7 @@ HostingProvider.prototype.revokeCredentials = function() {
         conf.style.display = 'none';
         if (res == null) {
           ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
+	  self.creds = undefined;
           self.updateCredentials();
         } else {
           alert('An error occured:', JSON.stringify(res));
@@ -402,6 +403,7 @@ var ImageUploader = {
 
   addImages: function(filenames) {
     var storage = navigator.getDeviceStorage('pictures');
+    var self = this;
     filenames.forEach(function(filename) {
       storage.get(filename).onsuccess = function(e) {
         var blob = e.target.result;
@@ -410,7 +412,7 @@ var ImageUploader = {
         var img = document.createElement('img');
         img.style.width = '85%';
         img.src = url;
-        this.files[url] = blob;
+        self.files[url] = blob;
         img.onload = function() { URL.revokeObjectURL(this.src); };
         holder.appendChild(img);
       };
@@ -429,7 +431,7 @@ var ImageUploader = {
         for (var i in imgs) {
           var img_url = imgs[i].src;
           if (img_url != undefined) {
-            var img = files[img_url];
+            var img = this.files[img_url];
             ImageUploader.setStatus('Preparing upload');
   	  for (var sid in ImageUploader.services) {
               var sup = ImageUploader.services[sid];
