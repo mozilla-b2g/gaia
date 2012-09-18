@@ -18,9 +18,9 @@ if (typeof fb.oauth === 'undefined') {
      *
      */
     function clearStorage() {
-      window.localStorage.removeItem('access_token');
-      window.localStorage.removeItem('expires');
-      window.localStorage.removeItem('token_ts');
+      window.asyncStorage.removeItem('access_token');
+      window.asyncStorage.removeItem('expires');
+      window.asyncStorage.removeItem('token_ts');
     }
 
 
@@ -31,33 +31,31 @@ if (typeof fb.oauth === 'undefined') {
      *
      */
     fboauth.getAccessToken = function(ready, state) {
-      var ret;
-
       accessTokenCbData = {
         callback: ready,
         state: state
       };
 
-      if (!window.localStorage.access_token) {
-          startOAuth(state);
-          return;
-      } else {
-        var timeEllapsed = Date.now() - window.localStorage.token_ts;
-        var expires = Number(window.localStorage.expires);
-
-        if (timeEllapsed < expires || expires === 0) {
-           ret = window.localStorage.access_token;
-        } else {
+      asyncStorage.getItem('access_token', function getAccessToken(a_token) {
+        if (!a_token) {
           startOAuth(state);
           return;
         }
-      }
 
-      if (typeof ready === 'function' && typeof ret !== 'undefined') {
-        ready(ret);
-      }
+        asyncStorage.getItem('token_ts', function getTokenTs(token_ts) {
+          asyncStorage.getItem('expires', function getExpires(expires) {
+            if (Date.now() - token_ts >= Number(expires)) {
+              startOAuth(state);
+              return;
+            }
+
+            if (typeof ready === 'function' && typeof ret !== 'undefined') {
+              ready(a_token);
+            }
+          });
+        });
+      });
     }
-
 
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
@@ -80,9 +78,10 @@ if (typeof fb.oauth === 'undefined') {
         var end = parameters.expires_in;
         var access_token = parameters.access_token;
 
-        window.localStorage.access_token = access_token;
-        window.localStorage.expires = end * 1000;
-        window.localStorage.token_ts = Date.now();
+        // Don't wait for callback because it's not necessary
+        window.asyncStorage.setItem('access_token', access_token);
+        window.asyncStorage.setItem('expires', end * 1000);
+        window.asyncStorage.setItem('token_ts', Date.now());
       }
 
       if (parameters.state === accessTokenCbData.state) {
