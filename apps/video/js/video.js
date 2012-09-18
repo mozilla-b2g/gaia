@@ -135,38 +135,42 @@ function metaDataParser(videofile, callback) {
     metadata.width = previewPlayer.videoWidth;
     metadata.height = previewPlayer.videoHeight;
 
-    previewPlayer.currentTime = 20;  // Skip ahead 20 seconds
-    if (previewPlayer.seeking) {
-      previewPlayer.onseeked = doneSeeking;
-    } else {
-      doneSeeking();
-    }
-
-    // After we've skiped ahead, try go get a poster image for the movie
-    // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
-    // Its not clear whether this is working right. But it does
-    // end up producing an image for each video.
-    function doneSeeking() {
+    captureFrame(previewPlayer, function(poster) {
+      metadata.poster = poster;
       URL.revokeObjectURL(url);
-      try {
-        metadata.poster = captureFrame(previewPlayer);
-      } catch (e) {
-        console.error('Failed to create a poster image:', e);
-      }
-
       previewPlayer.src = '';
       callback(metadata);
-    }
+    });
   };
 }
 
-function captureFrame(player) {
-  var canvas = document.createElement('canvas');
-  canvas.width = THUMBNAIL_WIDTH;
-  canvas.height = THUMBNAIL_HEIGHT;
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-  return canvas.mozGetAsFile('poster', 'image/jpeg');
+function captureFrame(player, callback) {
+  var skipped = false;
+  function doneSeeking() {
+    player.onseeked = null;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = THUMBNAIL_WIDTH;
+    canvas.height = THUMBNAIL_HEIGHT;
+    ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+    if (skipped) {
+      player.currentTime = 0;
+    }
+    callback(canvas.mozGetAsFile('poster', 'image/jpeg'));
+  }
+
+  // If we are on the first frame, lets skip into the video since some
+  // videos just start with a black screen
+  if (player.currentTime === 0) {
+    player.currentTime = 20;
+    skipped = true;
+  }
+
+  if (player.seeking) {
+    player.onseeked = doneSeeking;
+  } else {
+    doneSeeking();
+  }
 }
 
 function addVideo(videodata) {
@@ -325,6 +329,10 @@ function showPlayer(data, autoPlay) {
     dom.player.src = url;
     dom.player.onloadedmetadata = function() {
 
+      if (currentVideo.metadata.currentTime === dom.player.duration) {
+        currentVideo.metadata.currentTime = 0;
+      }
+
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
       timeUpdated();
 
@@ -353,35 +361,38 @@ function hidePlayer() {
   if (!playerShowing)
     return;
 
+  dom.player.pause();
+
   // Record current information about played video
   currentVideo.metadata.currentTime = dom.player.currentTime;
-  currentVideo.metadata.poster = captureFrame(dom.player);
+  captureFrame(dom.player, function(poster) {
+    currentVideo.metadata.poster = poster;
+    dom.player.currentTime = 0;
 
-  // stop player
-  dom.player.pause();
-  dom.player.currentTime = 0;
+    // Allow the screen to blank now.
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
 
-  // Allow the screen to blank now.
-  if (screenLock) {
-    screenLock.unlock();
-    screenLock = null;
-  }
+    videodb.updateMetadata(currentVideo.name, currentVideo.metadata, function() {
+      // switch to the video gallery view
+      createThumbnailList();
+      dom.videoFrame.classList.add('hidden');
+      dom.videoBar.classList.remove('paused');
+      playerShowing = false;
+    });
 
-  videodb.updateMetadata(currentVideo.name, currentVideo.metadata, function() {
-    // switch to the video gallery view
-    createThumbnailList();
-    dom.videoFrame.classList.add('hidden');
-    dom.videoBar.classList.remove('paused');
-    playerShowing = false;
   });
 }
 
 // If the movie ends, and no controls are showing, go back to movie list
 dom.player.addEventListener('ended', function() {
-  if (!controlShowing) {
-    dom.player.currentTime = 0;
-    document.mozCancelFullScreen();
+  if (dragging) {
+    return;
   }
+  dom.player.currentTime = 0;
+  document.mozCancelFullScreen();
 });
 
 function play() {
@@ -475,7 +486,10 @@ function dragSlider(e) {
     document.removeEventListener('mouseup', mouseupHandler, true);
 
     dragging = false;
-    if (!isPaused) {
+
+    if (dom.player.currentTime === dom.player.duration) {
+      pause();
+    } else if (!isPaused) {
       dom.player.play();
     }
   }
