@@ -3,15 +3,6 @@
 
 var Launcher = (function() {
 
-  var loading = document.getElementById('loading');
-
-  var iframe = document.getElementById('app');
-  iframe.addEventListener('mozbrowserloadstart', mozbrowserloadstart);
-  iframe.addEventListener('mozbrowserloadend', mozbrowserloadend);
-
-  var back = document.getElementById('back-button');
-  var forward = document.getElementById('forward-button');
-
   window.asyncStorage.getItem('adv_displayed', function callGetItem(value) {
     var adv = document.getElementById('advertisement');
 
@@ -26,6 +17,9 @@ var Launcher = (function() {
       window.asyncStorage.setItem('adv_displayed', true);
     }, 5000);
   });
+
+  var back = document.getElementById('back-button');
+  var forward = document.getElementById('forward-button');
 
   var toolbar = document.getElementById('toolbar');
   var toolbarTimeout;
@@ -42,30 +36,65 @@ var Launcher = (function() {
 
   toolbar.addEventListener('mousedown', toggleToolbar);
 
-  var inFullScreenMode = false;
-  var full = document.getElementById('full-button');
-
-  full.addEventListener('mousedown', function toggle(evt) {
-    if (!inFullScreenMode) {
-      iframe.mozRequestFullScreen();
-    }
-  });
-
-  document.addEventListener('mozfullscreenchange', function fullLtr(event) {
-    inFullScreenMode = !inFullScreenMode;
-  });
-
-  iframe.addEventListener('mozbrowsercontextmenu', function ctxmenu(event) {
-    if (inFullScreenMode) {
-      document.mozCancelFullScreen();
-    }
-  });
+  var iframe = document.getElementById('app');
 
   var reload = document.getElementById('reload-button');
-
   reload.addEventListener('mousedown', function toggle(evt) {
     iframe.reload(true);
   });
+
+  function goBack(evt) {
+    evt.stopPropagation();
+    iframe.getCanGoBack().onsuccess = function(e) {
+      if (e.target.result === true) {
+        iframe.goBack();
+      }
+    }
+  }
+
+  function goForward(evt) {
+    evt.stopPropagation();
+    iframe.getCanGoForward().onsuccess = function(e) {
+      if (e.target.result === true) {
+        iframe.goForward();
+      }
+    }
+  }
+
+  var loading = document.getElementById('loading');
+
+  iframe.addEventListener('mozbrowserloadstart', function mozBrowserStart() {
+    loading.hidden = false;
+  });
+
+  iframe.addEventListener('mozbrowserloadend', function mozBrowserEnd() {
+    loading.hidden = true;
+  });
+
+  var href = window.location.href;
+
+  function getURL() {
+    var regex = new RegExp('[\\?&]url=([^&#]*)');
+    var results = regex.exec(href);
+    return decodeURI(results[1]);
+  }
+
+  function getName() {
+    var regex = new RegExp('[\\?&]name=([^&#]*)');
+    var ret = regex.exec(href);
+    if (ret && ret.length > 0) {
+      ret = ret[1];
+    }
+
+    return ret;
+  }
+
+  function getIcon() {
+    var regex = new RegExp('[\\?&]icon=([^&#]*)');
+    return regex.exec(href)[1];
+  }
+
+  var url = iframe.src = getURL();
 
   function locChange(evt) {
     iframe.getCanGoForward().onsuccess = function(e) {
@@ -89,38 +118,23 @@ var Launcher = (function() {
     }
   }
 
-  function goBack(evt) {
-    evt.stopPropagation();
-    iframe.getCanGoBack().onsuccess = function(e) {
-      if (e.target.result === true) {
-        iframe.goBack();
-      }
-    }
-  }
-
-  function goForward(evt) {
-    evt.stopPropagation();
-    iframe.getCanGoForward().onsuccess = function(e) {
-      if (e.target.result === true) {
-        iframe.goForward();
-      }
-    }
-  }
-
-  function mozbrowserloadstart() {
-    loading.hidden = false;
-  }
-
-  function mozbrowserloadend() {
-    loading.hidden = true;
-  }
-
-  function getURL() {
-    var regex = new RegExp('[\\?&]url=([^&#]*)');
-    var results = regex.exec(window.location.href);
-    return decodeURI(results[1]);
-  }
-
-  iframe.src = getURL();
   iframe.addEventListener('mozbrowserlocationchange', locChange);
+
+  var name = getName();
+  if (name) {
+    var bookmarkButton = document.getElementById('bookmark-button');
+    bookmarkButton.classList.remove('hidden');
+    bookmarkButton.addEventListener('mousedown', function doBookmark(evt) {
+      new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: url,
+          name: name,
+          icon: getIcon()
+        }
+      });
+      bookmarkButton.classList.add('hidden');
+    });
+  }
 }());

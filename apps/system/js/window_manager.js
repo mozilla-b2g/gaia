@@ -689,7 +689,14 @@ var WindowManager = (function() {
       frame.setAttribute('mozapp', manifestURL);
       frame.src = url;
     } else {
-      frame.src = 'wrapper/index.html?url=' + url + '&name=' + name;
+      var frameSrc = ['wrapper/index.html?url=' + url];
+      if (manifest.wrapperMode === 'reuse') {
+        frameSrc.push('&name=');
+        frameSrc.push(name);
+        frameSrc.push('&icon=');
+        frameSrc.push(manifest.icons[0]);
+      }
+      frame.src = frameSrc.join('');
     }
 
     // These apps currently have bugs preventing them from being
