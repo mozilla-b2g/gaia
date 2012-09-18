@@ -132,7 +132,7 @@
 }
 
 #playHead {
-  display: none;
+  display: block;
   height: 20px;
   width: 25px;
   border-radius: 25px;
