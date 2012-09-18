@@ -36,21 +36,23 @@ if (typeof fb.oauth === 'undefined') {
         state: state
       };
 
-      asyncStorage.getItem('access_token', function getAccessToken(a_token) {
-        if (!a_token) {
+      asyncStorage.getItem('access_token',
+                           function getAccessToken(access_token) {
+        if (!access_token) {
           startOAuth(state);
           return;
         }
 
         asyncStorage.getItem('token_ts', function getTokenTs(token_ts) {
           asyncStorage.getItem('expires', function getExpires(expires) {
-            if (Date.now() - token_ts >= Number(expires)) {
+            expires = Number(expires);
+            if (expires !== 0 && Date.now() - token_ts >=  expires) {
               startOAuth(state);
               return;
             }
 
             if (typeof ready === 'function' && typeof ret !== 'undefined') {
-              ready(a_token);
+              ready(access_token);
             }
           });
         });
