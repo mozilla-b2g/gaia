@@ -35,9 +35,6 @@
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
 //    getNumberOfRunningApps(): returns the numbers of running apps.
-//    setAppSize(origin): set/reset the size of the given app to it's origin
-//      state, only used by keyboard manager to restore the app window.
-//      XXX: should be removed.
 //    setDisplayedApp(origin): set displayed app.
 //      XXX: should be removed.
 //
@@ -71,7 +68,6 @@ var WindowManager = (function() {
   // Some document elements we use
   var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
-  var dialogOverlay = document.getElementById('dialog-overlay');
   var screenElement = document.getElementById('screen');
   var banner = document.getElementById('system-banner');
   var bannerContainer = banner.firstElementChild;
@@ -113,7 +109,7 @@ var WindowManager = (function() {
     // launch() can be called from outside the card switcher
     // hiding it if needed
     if (CardsView.cardSwitcherIsShown())
-      CardsView.cardTaskSwitcher();
+      CardsView.hideCardSwitcher();
   }
 
   function isRunning(origin) {
@@ -146,11 +142,29 @@ var WindowManager = (function() {
     if (app.manifest.fullscreen)
       cssHeight = window.innerHeight + 'px';
 
-    frame.style.width =
-      dialogOverlay.style.width = cssWidth;
+    frame.style.width = cssWidth;
 
-    frame.style.height =
-      dialogOverlay.style.height = cssHeight;
+    frame.style.height = cssHeight;
+
+    setInlineActivityFrameSize();
+  }
+
+  // App's height is relevant to keyboard height
+  function setAppHeight(keyboardHeight) {
+    var app = runningApps[displayedApp];
+    if (!app)
+      return;
+
+    var frame = app.frame;
+    var manifest = app.manifest;
+
+    var cssHeight =
+      window.innerHeight - StatusBar.height - keyboardHeight + 'px';
+
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight - keyboardHeight + 'px';
+
+    frame.style.height = cssHeight;
 
     setInlineActivityFrameSize();
   }
@@ -554,6 +568,10 @@ var WindowManager = (function() {
       // Animate the window close.  Ensure the homescreen is in the
       // foreground since it will be shown during the animation.
       homescreenFrame.setVisible(true);
+
+      // For screenshot to catch current window size
+      setAppSize(currentApp);
+
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
@@ -588,13 +606,13 @@ var WindowManager = (function() {
       runningApps[newApp].launchTime = Date.now();
 
     // Set displayedApp to the new value
-    displayedApp = origin;
+    displayedApp = newApp;
 
     // Update the loading icon since the displayedApp is changed
     updateLoadingIcon();
 
     // If the app has a attention screen open, displaying it
-    AttentionScreen.showForOrigin(origin);
+    AttentionScreen.showForOrigin(newApp);
   }
 
   function setOrientationForApp(origin) {
@@ -1008,6 +1026,13 @@ var WindowManager = (function() {
     } else {
       removeFrame(origin);
     }
+
+    // Send a synthentic 'appterminated' event.
+    // Let other system app module know an app is
+    // being killed, removed or crashed.
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appterminated', true, false, { origin: origin });
+    window.dispatchEvent(evt);
   }
 
   // Reload the frame of the running app
@@ -1074,11 +1099,20 @@ var WindowManager = (function() {
 
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
-  var appResizeEvents = ['resize', 'status-active', 'status-inactive'];
+  var appResizeEvents = ['resize', 'status-active', 'status-inactive',
+  'keyboardchange', 'keyboardhide'];
   appResizeEvents.forEach(function eventIterator(event) {
-    window.addEventListener(event, function() {
+    window.addEventListener(event, function on(evt) {
       if (displayedApp)
         setAppSize(displayedApp);
+
+      if (event == 'keyboardchange') {
+        // Cancel fullscreen if keyboard pops
+        if (document.mozFullScreen)
+          document.mozCancelFullScreen();
+
+        setAppHeight(evt.detail.height);
+      }
     });
   });
 
@@ -1113,14 +1147,6 @@ var WindowManager = (function() {
     evt.preventDefault();
   }, true);
 
-  window.addEventListener('holdhome', function(e) {
-    if (!LockScreen.locked &&
-        !CardsView.cardSwitcherIsShown()) {
-      SleepMenu.hide();
-      CardsView.showCardSwitcher();
-    }
-  });
-
   // With all important event handlers in place, we can now notify
   // Gecko that we're ready for certain system services to send us
   // messages (e.g. the radio).
@@ -1144,9 +1170,6 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
-
-    // XXX: the following should not be public methods
-    setAppSize: setAppSize,
     setDisplayedApp: setDisplayedApp
   };
 }());
