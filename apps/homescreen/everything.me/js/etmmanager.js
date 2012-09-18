@@ -23,8 +23,6 @@ var EvmeManager = (function() {
         icon: params.icon
       }
     });
-
-    Core.setOpacityBackground(0);
   }
 
   function setVisibilityChange(visible) {
