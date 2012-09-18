@@ -599,7 +599,6 @@ var Recents = {
 
   updateLatestVisit: function re_updateLatestVisit() {
     window.asyncStorage.setItem('latestCallLogVisit', Date.now());
-    //localStorage.setItem('latestCallLogVisit', Date.now());
   },
 
   updateHighlighted: function re_updateHighlighted() {
