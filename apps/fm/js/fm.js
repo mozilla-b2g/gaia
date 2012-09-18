@@ -495,6 +495,9 @@ var favoritesList = {
    *  Check if frequency is in fav list.
    */
   contains: function(freq) {
+    if (!this._favList) {
+      return false;
+    }
     return typeof this._favList[freq] != 'undefined';
   },
 
