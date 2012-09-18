@@ -308,11 +308,11 @@ button::-moz-focus-inner {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
-.log-item.highlighted[data-type='incoming'] .secondary-info {
+.log-item.highlighted[data-type='incoming'] .call-time {
   color: red !important;
 }
 
-.log-item.highlighted[data-type='incoming-refused'] .secondary-info {
+.log-item.highlighted[data-type='incoming-refused'] .call-time {
   color: red !important;
 }
 
@@ -338,6 +338,10 @@ button::-moz-focus-inner {
   font-family: FontRegular;
   font-size: -moz-calc(6 * 0.226rem);
   color: #5b5b5b;
+}
+
+.call-additional-info {
+  padding-left: 0.7rem;
 }
 
 .call-log-contact-photo {
