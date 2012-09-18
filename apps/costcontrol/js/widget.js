@@ -301,8 +301,6 @@ function setupWidget() {
     document.getElementById('telephony-smscount').textContent =
       CostControl.settings.option('smscount');
 
-    debug('SMSCount: ' + CostControl.settings.option('smscount'));
-    debug('CallTime: ' + CostControl.settings.option('calltime'));
   }
 
   // Refresh all UIs

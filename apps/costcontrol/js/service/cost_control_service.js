@@ -59,7 +59,27 @@ setService(function cc_setupCostControlService() {
   // App settings object to control settings
   var _appSettings = (function cc_appSettings() {
 
+    // Application settings
+    var _cachedOptions = {
+      'calltime': null,
+      'lastbalance': null,
+      'lastreset': null,
+      'lowlimit': null,
+      'lowlimit_threshold': null,
+      'next_reset': null,
+      'plantype': null,
+      'reset_time': null,
+      'smscount': null,
+      'tracking_period': null
+    };
+
     var _listeners = {};
+
+    function _getInitializerFor(option) {
+      return function(value) {
+        _cachedOptions[option] = value;
+      }
+    }
 
     function _newLocalSettingsChangeEvent(key, value, oldValue) {
       return new CustomEvent(
@@ -94,26 +114,30 @@ setService(function cc_setupCostControlService() {
     // key. If both key and value are provided, the method sets the key to
     // that value.
     function _option(key, value) {
-      var oldValue = JSON.parse(window.localStorage.getItem(key));
+      var oldValue = _cachedOptions[key]; // retrieve from cache
+      debug('Getting "' + key + '": ' + oldValue);
       if (typeof value === 'undefined')
         return oldValue;
 
-      debug('Setting "' + key + '" to: ' + JSON.stringify(value));
-      window.localStorage.setItem(key, JSON.stringify(value));
-      window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
+      asyncStorage.setItem(key, value, function dispatchSettingsChange() {
+        _cachedOptions[key] = value; // update cache
+        window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
+        debug('Setting "' + key + '" to: ' + JSON.stringify(value));
+      });
     }
 
-    // Sometimes you need to use a reviver to get the proper value for a
-    // stored key. Use this function instead of one-parameter _option()
-    // methods.
-    function _revive(key, reviver) {
-      return JSON.parse(window.localStorage.getItem(key), reviver);
+    // Recover application settings from DB
+    function _init() {
+      for (var option in _cachedOptions) {
+        asyncStorage.getItem(option, _getInitializerFor(option));
+      }
     }
+
+    _init();
 
     return {
       observe: _observe,
-      option: _option,
-      revive: _revive
+      option: _option
     };
   }());
 
@@ -126,20 +150,9 @@ setService(function cc_setupCostControlService() {
     this.currency = _settings.CREDIT_CURRENCY;
   }
 
-  // The reviver to deserialize a Balance object in JSON.
-  Balance.reviver = function cc_BalanceReviver(key, value) {
-    switch (key) {
-      case 'timestamp':
-        return new Date(value);
-
-      default:
-        return value;
-    }
-  };
-
   // Returns stored balance
   function _getLastBalance() {
-    return _appSettings.revive('lastbalance', Balance.reviver);
+    return _appSettings.option('lastbalance');
   }
 
   // Return true if the widget has all the information required to
@@ -394,9 +407,6 @@ setService(function cc_setupCostControlService() {
     // Observe settings that imply next reset recalculation
     _appSettings.observe('tracking_period', _recalculateNextReset);
     _appSettings.observe('reset_time', _recalculateNextReset);
-
-    CostControl.settings.option('smscount', 10);
-    CostControl.settings.option('calltime', 123456);
 
     debug('Next check in ' + Math.ceil(firstTimeout / 60000) + ' minutes');
   }
