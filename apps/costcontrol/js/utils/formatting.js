@@ -1,5 +1,5 @@
 
-'use strict'
+'use strict';
 
 // Return a time string in format Today|Yesterday|<WeekDay>, hh:mm
 // if timestamp is a valid date. If not, it returns Never.

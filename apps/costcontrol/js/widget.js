@@ -164,7 +164,7 @@ function setupWidget() {
 
   // Request a balance update from the service
   function _requestUpdateBalance() {
- 
+
     // I prefer this check in the VIEWS to keep the service as simple as
     // possible
     if (_plantype !== CostControl.PLAN_PREPAID) {

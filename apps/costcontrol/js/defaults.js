@@ -1,5 +1,5 @@
 
-'use strict'
+'use strict';
 
 var optionDefaults = {
   'plantype': 'prepaid',
@@ -7,4 +7,4 @@ var optionDefaults = {
   'reset_time': 1,
   'lowlimit': true,
   'lowlimit_threshold': 5
-}
+};

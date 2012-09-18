@@ -61,9 +61,10 @@ viewManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
       resetDate.textContent = '--';
       return;
     }
-    
+
     nextResetDate = new Date(nextResetDate);
-    resetDate.textContent = nextResetDate.toLocaleFormat(_('short-date-format'));
+    resetDate.textContent =
+      nextResetDate.toLocaleFormat(_('short-date-format'));
   }
 
   function _updateUI() {

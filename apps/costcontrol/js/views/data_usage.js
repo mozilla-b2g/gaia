@@ -60,7 +60,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         element = event.target;
         if (!checkContent(event.clientX, event.clientY))
           return;
-          
+
         if (pressing) {
           console.log('limitClicked');
         }
@@ -121,7 +121,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       width: _graphicArea.clientWidth,
       get originY() {
         delete this.originY;
-        return (this.originY = Math.floor(this.height * 5/6));
+        return (this.originY = Math.floor(this.height * 5 / 6));
       },
       originX: 0,
       axis: {
@@ -131,7 +131,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
           today: new Date(2012, 0, 21),
           get: function cc_dataToXPx(value) {
             var projection = (value.getTime() - this.lower.getTime()) /
-                              (this.upper.getTime() - this.lower.getTime() );
+                              (this.upper.getTime() - this.lower.getTime());
             return projection * _options.width;
           }
         },
@@ -153,7 +153,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
           },
           get: function cc_dataToYPx(value) {
             var projection = (value - this.lower) / (this.upper - this.lower);
-            return _options.originY * ( 1 - projection );
+            return _options.originY * (1 - projection);
           }
         }
       },
@@ -166,8 +166,14 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
         }
       },
       data: {
-        wifi: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000, 5) },
-        mobile: { enabled: true, samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000 * 0.75, 5) },
+        wifi: {
+          enabled: true,
+          samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000, 5)
+        },
+        mobile: {
+          enabled: true,
+          samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000 * 0.75, 5)
+        }
       }
     };
 
@@ -186,7 +192,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     bgGradient.addColorStop(0, 'rgba(255,255,255,0)');
     bgGradient.addColorStop(1, 'rgba(255,255,255,1)');
     ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, width, options.originY );
+    ctx.fillRect(0, 0, width, options.originY);
 
     // A line just after the end of the gradient
     var lineY = options.originY - 1.5;
@@ -197,7 +203,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.stroke();
 
     // Lines every step
-    var step =  options.axis.Y.step;
+    var step = options.axis.Y.step;
     ctx.beginPath();
     ctx.strokeStyle = 'white';
     for (var y = options.originY - step; y > step; y -= step) {
@@ -214,8 +220,8 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     value = value / 1000000;
 
     if (value < 1000) {
-      var str = (10 * Math.ceil(value/10)) + 'M';
-      switch(str.length) {
+      var str = (10 * Math.ceil(value / 10)) + 'M';
+      switch (str.length) {
         case 2:
           return '00' + str;
         case 3:
@@ -251,14 +257,14 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     // Now the X axis
     var marginTop = 10;
-    var leftTag = 
+    var leftTag =
       options.axis.X.lower.toLocaleFormat('%b %d').toUpperCase();
     ctx.font = '600 ' + fontsize + 'px Arial';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
     ctx.fillText(leftTag, marginLeft, options.originY + marginTop);
 
-    var rightTag = 
+    var rightTag =
       options.axis.X.upper.toLocaleFormat('%b %d').toUpperCase();
     ctx.textAlign = 'end';
     ctx.fillText(rightTag, width - marginLeft, options.originY + marginTop);
@@ -378,7 +384,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.lineWidth = 3;
     var todayWifi = options.data.wifi.sumToday;
     ctx.beginPath();
-    ctx.arc(offsetX, options.axis.Y.get(todayWifi), radius, 0, 2*Math.PI);
+    ctx.arc(offsetX, options.axis.Y.get(todayWifi), radius, 0, 2 * Math.PI);
     ctx.stroke();
     ctx.fill();
 
@@ -386,7 +392,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.lineWidth = 3;
     var todayMobile = options.data.mobile.sumToday;
     ctx.beginPath();
-    ctx.arc(offsetX, options.axis.Y.get(todayMobile), radius, 0, 2*Math.PI);
+    ctx.arc(offsetX, options.axis.Y.get(todayMobile), radius, 0, 2 * Math.PI);
     ctx.stroke();
     ctx.fill();
   }
@@ -577,10 +583,10 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var sum = 0; var x, y;
     var lastX = options.originX, lastY = options.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
-      var sample = samples[i]
+      var sample = samples[i];
       if (sample.value == undefined) {
         lastX = x = options.axis.X.get(sample.date);
-        ctx.moveTo(x,y);
+        ctx.moveTo(x, y);
         continue;
       }
 
@@ -589,9 +595,9 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
       ctx.lineTo(x, y);
       ctx.lineTo(x, options.originY - 2.5);
-      ctx.lineTo(lastX, options.originY - 2.5)
-      ctx.lineTo(lastX, lastY)
-      ctx.moveTo(x,y);
+      ctx.lineTo(lastX, options.originY - 2.5);
+      ctx.lineTo(lastX, lastY);
+      ctx.moveTo(x, y);
       lastX = x;
       lastY = y;
     }
@@ -618,10 +624,10 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var sum = 0; var x, y;
     var lastX = options.originX, lastY = options.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
-      var sample = samples[i]
+      var sample = samples[i];
       if (sample.value == undefined) {
         lastX = x = options.axis.X.get(sample.date);
-        ctx.moveTo(x,y);
+        ctx.moveTo(x, y);
         continue;
       }
 
@@ -630,9 +636,9 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
       ctx.lineTo(x, y);
       ctx.lineTo(x, options.originY - 2.5);
-      ctx.lineTo(lastX, options.originY - 2.5)
-      ctx.lineTo(lastX, lastY)
-      ctx.moveTo(x,y);
+      ctx.lineTo(lastX, options.originY - 2.5);
+      ctx.lineTo(lastX, lastY);
+      ctx.moveTo(x, y);
       lastX = x;
       lastY = y;
     }
@@ -665,7 +671,8 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     // Warning mode
     if (mobileUsage <= options.limits.value) {
       var limitValue = Math.round(options.axis.Y.get(options.limits.value));
-      var warningValue = Math.round(options.axis.Y.get(options.limits.warningValue));
+      var warningValue =
+        Math.round(options.axis.Y.get(options.limits.warningValue));
       ctx.beginPath();
       ctx.fillStyle = 'rgba(255, 112, 0, 0.5)';
       ctx.fillRect(

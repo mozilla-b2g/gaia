@@ -90,7 +90,7 @@ function setupSettings() {
 
           if (!radio) {
             value = _getDefaultValue(optionKey);
-            radio = dialog.querySelector('input[type="radio"][value="' + 
+            radio = dialog.querySelector('input[type="radio"][value="' +
                                          value + '"]');
           }
           radio.checked = true;
@@ -190,7 +190,7 @@ function setupSettings() {
         var disablingValue = parsed[1];
         Service.settings.observe(
           dependency,
-          function ccapp_disableOnDependency (value) {
+          function ccapp_disableOnDependency(value) {
             var entry = _getEntryParent(guiWidget);
             var test = (('' + value) === disablingValue);
             if (not)
@@ -269,4 +269,4 @@ function setupSettings() {
 
   _init();
 
-};
+}

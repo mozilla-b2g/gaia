@@ -115,14 +115,13 @@ setService(function cc_setupCostControlService() {
     // that value.
     function _option(key, value) {
       var oldValue = _cachedOptions[key]; // retrieve from cache
-      debug('Getting "' + key + '": ' + oldValue);
       if (typeof value === 'undefined')
         return oldValue;
 
       asyncStorage.setItem(key, value, function dispatchSettingsChange() {
         _cachedOptions[key] = value; // update cache
-        window.dispatchEvent(_newLocalSettingsChangeEvent(key, value, oldValue));
-        debug('Setting "' + key + '" to: ' + JSON.stringify(value));
+        var event = _newLocalSettingsChangeEvent(key, value, oldValue);
+        window.dispatchEvent(event);
       });
     }
 
@@ -399,7 +398,7 @@ setService(function cc_setupCostControlService() {
 
       // Launch in the following 24h
       _resetCheckTimeout = setInterval(function ccapp_nextCheck() {
-        _checkForNextReset()
+        _checkForNextReset();
       }, oneDay);
 
     }, firstTimeout);
