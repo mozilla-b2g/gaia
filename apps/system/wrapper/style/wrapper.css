@@ -61,7 +61,7 @@ menu button {
   padding: 0;
   width: 80px;
   height: 100%;
-  float: right;
+  float: left;
   background-position: center;
   background-repeat: no-repeat;
   opacity: 1;
@@ -69,24 +69,27 @@ menu button {
 
 #back-button {
   background-image: url("images/back.png");
-  float: left;
 }
 
 #forward-button {
   background-image: url("images/forward.png");
-  float: left;
+}
+
+#bookmark-button {
+  background-image: url("images/full.png");
+}
+
+#reload-button {
+  background-image: url("images/reload.png");
+	float: right;
 }
 
 menu button[data-disabled] {
   opacity: .2;
 }
 
-#full-button {
-  background-image: url("images/full.png");
-}
-
-#reload-button {
-  background-image: url("images/reload.png");
+menu button.hidden {
+	display: none;
 }
 
 input::-moz-focus-inner {
@@ -124,4 +127,8 @@ input::-moz-focus-inner {
 	to {
 		-moz-transform: translateY(1rem);
 	}
+}
+
+.disabled {
+	display: none;
 }
