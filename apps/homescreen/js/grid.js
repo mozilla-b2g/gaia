@@ -185,7 +185,8 @@ const GridManager = (function() {
 
     if (index === evmePageIndex) {
       EvmeManager.show();
-    } else if (index === landingPageIndex && previousPage <= landingPageIndex) {
+    } else if (previousPage === evmePageIndex ||
+               index === landingPageIndex && isSamePage) {
       EvmeManager.hide();
     }
   }
