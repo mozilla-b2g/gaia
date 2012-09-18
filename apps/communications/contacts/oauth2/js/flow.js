@@ -19,6 +19,7 @@ if (typeof fb.oauthflow === 'undefined') {
     var OAUTH_REDIRECT = 'redirectURI';
     var FB_ENDPOINT = 'loginPage';
     var APP_ID = 'applicationId';
+    var CONTACTS_APP_ORIGIN = 'contactsAppOrigin';
 
     // The access token
     var accessToken;
@@ -45,7 +46,8 @@ if (typeof fb.oauthflow === 'undefined') {
           parameters[values[0]] = values[1];
         });
 
-        window.opener.postMessage(JSON.stringify(parameters), '*');
+        window.opener.postMessage(JSON.stringify(parameters),
+                                  fb.oauthflow.params[CONTACTS_APP_ORIGIN]);
 
         // Finally the window is closed
         window.close();

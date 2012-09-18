@@ -190,48 +190,44 @@ function init() {
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  photodb.onunavailable = function(why) {
-    if (why === 'unavailable')
+  photodb.onunavailable = function(event) {
+    var why = event.detail;
+    if (why === MediaDB.NOCARD)
       showOverlay('nocard');
-    else if (why === 'shared')
+    else if (why === MediaDB.UNMOUNTED)
       showOverlay('cardinuse');
   }
 
   photodb.onready = function() {
-    // Hide the nocard overlay if it is displayed
-    if (currentOverlay === 'nocard')
+    // Hide the nocard or cardinuse overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
       showOverlay(null);
 
     createThumbnailList();  // Display thumbnails for the images we know about
-
-    // Each time we become ready there may be an entirely new set of
-    // photos in device storage (new SD card, or USB mass storage transfer)
-    // so we have to rescan each time.
-    scan();
   };
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // This means that if we switch to camera and take a photo, then when
-  // we come back to gallery we should be able to find the new photo.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && photodb.ready) {
-      scan();
-    }
-  });
+  // When photodb scans, let the user know
+  photodb.onscanstart = function() {
+    $('progress').classList.remove('hidden');
+    $('throbber').classList.add('throb');
+  };
 
-  // Notification of files that are added or deleted.
-  // Eventually device storage will let us know about these.
-  // For now we have to call scan(), which will trigger this function.
-  photodb.onchange = function(type, files) {
-    if (type === 'deleted') {
-      files.forEach(imageDeleted);
-    }
-    else if (type === 'created') {
-      files.forEach(imageCreated);
-    }
+  // And hide the throbber when scanning is done
+  photodb.onscanend = function() {
+    $('progress').classList.add('hidden');
+    $('throbber').classList.remove('throb');
+  };
+
+  // One or more files was created (or was just discovered by a scan)
+  // XXX If the array is big, we should just rebuild the UI from scratch
+  photodb.oncreated = function(event) {
+    event.detail.forEach(imageCreated);
+  };
+
+  // One or more files were deleted (or were just discovered missing by a scan)
+  // XXX If the array is big, we should just rebuild the UI from scratch
+  photodb.ondeleted = function(event) {
+    event.detail.forEach(imageDeleted);
   };
 
   // Start off in thumbnail list view, unless there is a pending activity
@@ -244,27 +240,10 @@ function init() {
   navigator.mozSetMessageHandler('activity', webActivityHandler);
 }
 
-function scan() {
-  //
-  // XXX: is it too intrusive to display the scan overlay every time?
-  //
-  // Can I do it on first launch only and after that
-  // display some smaller scanning indicator that does not prevent
-  // the user from using the app right away?
-  //
-  showOverlay('scanning');   // Tell the user we're scanning
-  photodb.scan(function() {  // Run this function when scan is complete
-    if (images.length === 0)
-      showOverlay('nopix');
-    else
-      showOverlay(null);     // Hide the overlay
-  });
-}
-
-function imageDeleted(fileinfo) {
+function imageDeleted(filename) {
   // Find the deleted file in our images array
   for (var n = 0; n < images.length; n++) {
-    if (images[n].name === fileinfo.name)
+    if (images[n].name === filename)
       break;
   }
 
@@ -1636,7 +1615,6 @@ var currentOverlay;  // The id of the current overlay or null if none.
 //   nocard: no sdcard is installed in the phone
 //   cardinuse: the sdcard is being used by USB mass storage
 //   nopix: no pictures found
-//   scanning: the app is scanning for new photos
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.

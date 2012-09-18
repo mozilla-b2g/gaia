@@ -100,6 +100,9 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('home', this);
 
+    /* blocking holdhome and prevent Cards View from show up */
+    window.addEventListener('holdhome', this, true);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -291,6 +294,14 @@ var LockScreen = {
           this.switchPanel();
           evt.stopImmediatePropagation();
         }
+        break;
+
+      case 'holdhome':
+        if (!this.locked)
+          return;
+
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
         break;
     }
   },

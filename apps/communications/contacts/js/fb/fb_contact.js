@@ -5,6 +5,7 @@ fb.CATEGORY = 'facebook';
 fb.NOT_LINKED = 'not_linked';
 fb.LINKED = 'fb_linked';
 
+fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
 // Encapsulates all the logic to obtain the data for a FB contact
 fb.Contact = function(deviceContact, cid) {

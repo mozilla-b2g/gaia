@@ -7,5 +7,7 @@ fb.oauthflow.params = {
   loginPage:
     'https://m.facebook.com/dialog/oauth/?',
   applicationId:
-    '323630664378726'
+    '323630664378726',
+  contactsAppOrigin:
+    'app://communications.gaiamobile.org'
 };

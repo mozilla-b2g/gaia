@@ -60,14 +60,14 @@ window.addEventListener('localized', function SettingsBattery(evt) {
   function updateInfo(battery) {
     var _ = navigator.mozL10n.get;
 
-    var element = document.querySelector('#battery-level' + ' span');
-    element.textContent = battery.level * 100 + '% ';
+    // display the current battery level
+    var element = document.querySelector('#battery-level span');
+    var level = Math.min(100, Math.round(battery.level * 100));
+    element.textContent = _('batteryLevel-percent-' +
+      (battery.charging ? 'charging' : 'unplugged'), { level: level });
 
-    if (battery.charging)
-      element.textContent += _('chargingNote');
-
-    // TODO: to show the estimated discharging/charging time
-    element = document.querySelector('#battery-remaining' + ' span');
+    // TODO: display the estimated discharging/charging time
+    element = document.querySelector('#battery-remaining span');
     element.textContent = battery.dischargingTime;
   }
 
@@ -84,3 +84,4 @@ window.addEventListener('localized', function SettingsBattery(evt) {
     }
   });
 });
+
