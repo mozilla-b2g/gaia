@@ -26,22 +26,6 @@ h2.bb-docs {
   margin-bottom: 1em;
 }
 
-#twitter-content {
-  display: none;
-}
-
-#confirm-twitter-auth {
-  display: none;
-}
-
-#twitter-pin {
-  display: none;
-}
-
-#confirm-twitter-revoke {
-  display: none;
-}
-
 #banner-status {
   position: fixed;
   display: none;
