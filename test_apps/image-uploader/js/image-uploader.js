@@ -57,6 +57,186 @@ HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callb
   xhr.send();
 };
 
+HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-auth';
+
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+   var div2 = document.createElement('div');
+    div2.className = 'content';
+    var img = document.createElement('img');
+     img.src = this.urls['confirm-img'];
+    var strong = document.createElement('strong');
+     strong.innerHTML = this.name;
+    var small = document.createElement('small');
+     small.innerHTML = 'Authorization';
+    div2.appendChild(img);
+    div2.appendChild(strong);
+    div2.appendChild(small);
+
+   var p = document.createElement('p');
+    p.innerHTML = 'We now need that you authorize our application. A browser window will get you to ' + this.name + ' website, where you will be able to authenticate yourself and to authorize us. It will give you a PIN code. Please keep it, get back here and fill it in the prompt.';
+   div.appendChild(h3);
+   div.appendChild(div2);
+   div.appendChild(p);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 2;
+   var bcancel = document.createElement('button');
+    bcancel.id = 'auth-cancel';
+    bcancel.innerHTML = 'Cancel';
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'auth-continue';
+    bcontinue.innerHTML = 'Continue';
+    bcontinue.className = 'affirmative';
+  menu.appendChild(bcancel);
+  menu.appendChild(bcontinue);
+
+  var self = this;
+  bcancel.addEventListener(
+    'click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-auth'));
+      ImageUploader.setStatus(self.name + ' authentication canceled');
+    },
+    false);
+  bcontinue.addEventListener(
+    'click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-auth'));
+      try {
+      new MozActivity(
+        {
+          name: 'view',
+          data: {type: 'url', url: url}
+        }
+      );
+      } catch (e) {
+        alert(url);
+      }
+      self.OAuth1BuildDialogPIN();
+    }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
+HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-pin';
+
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+   var div2 = document.createElement('div');
+    div2.className = 'content';
+    var img = document.createElement('img');
+    var strong = document.createElement('strong');
+     strong.innerHTML = this.name;
+    var small = document.createElement('small');
+     small.innerHTML = 'Authorization';
+    div2.appendChild(img);
+    div2.appendChild(strong);
+    div2.appendChild(small);
+
+   var p = document.createElement('p');
+    p.innerHTML = 'Please enter PIN code given by ' + this.name;
+   var input = document.createElement('input');
+    input.type = 'number';
+    input.id = 'pincode';
+    input.placeholder = 'PIN Code';
+   div.appendChild(h3);
+   div.appendChild(div2);
+   div.appendChild(p);
+   div.appendChild(input);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 1;
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'pin-continue';
+    bcontinue.innerHTML = 'Continue';
+    bcontinue.className = 'affirmative';
+  menu.appendChild(bcontinue);
+
+  var self = this;
+  bcontinue.addEventListener(
+    'click',
+    function(evt) {
+      var pin = document.getElementById('pincode').value;
+      document.body.removeChild(document.getElementById('confirm-pin'));
+      ImageUploader.setStatus('Confirming ' + self.name + ' PIN code');
+      self.processOAuth1XHR(
+        self.urls['oauth_access_token'],
+        'POST',
+        {oauth_verifier: pin, oauth_token: self.request_token_only},
+        function(xhr) {
+          if (xhr.status != 200) {
+            alert(
+              'Request refused:' +
+              xhr.status + '::' +
+              xhr.responseText);
+            return;
+          }
+          var twitter_account =
+            self.extractOAuth1AccessTokens(xhr.responseText);
+          self.credsdb.setcreds(twitter_account, function(res) {
+            if (res == null) {
+              ImageUploader.setStatus(self.name + ' account configured.');
+              self.updateCredentials();
+            } else {
+              alert('An error occured:', JSON.stringify(res));
+            }
+          });
+        })
+    }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
+HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-revoke';
+
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+
+   var p = document.createElement('p');
+    p.innerHTML = 'Are you sure you want to revoke this ' + this.name + ' account?';
+   div.appendChild(h3);
+   div.appendChild(p);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 2;
+   var bcancel = document.createElement('button');
+    bcancel.id = 'revoke-cancel';
+    bcancel.innerHTML = 'Cancel';
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'revoke-continue';
+    bcontinue.innerHTML = 'Revoke';
+    bcontinue.className = 'negative';
+  menu.appendChild(bcancel);
+  menu.appendChild(bcontinue);
+
+  bcancel.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke'));}, false);
+  bcontinue.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke')); callback(); }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
 HostingProvider.prototype.performOAuth1Login = function() {
   ImageUploader.setStatus('Starting ' + this.name + ' authentication');
   var self = this;
@@ -75,65 +255,10 @@ HostingProvider.prototype.performOAuth1Login = function() {
           new RegExp('oauth_token=(.*)&oauth_token_secret=.*');
         var request_token_ar = request_token_regex.exec(xhr.responseText);
         var request_token_full = request_token_ar[0];
-        var request_token_only = request_token_ar[1];
+        self.request_token_only = request_token_ar[1];
         var authorize =
           self.urls['oauth_authorize'] + '?' + request_token_full;
-        var twauth = document.getElementById('confirm-twitter-auth');
-        twauth.style.display = 'block';
-        var cancel = document.getElementById('twitter-auth-cancel');
-        cancel.addEventListener(
-          'click',
-          function(evt) {
-            ImageUploader.setStatus(self.name + ' authentication canceled');
-            twauth.style.display = 'none';
-          },
-          false);
-        var cont = document.getElementById('twitter-auth-continue');
-        cont.addEventListener(
-          'click',
-          function(evt) {
-            twauth.style.display = 'none';
-            new MozActivity(
-              {
-                name: 'view',
-                data: {type: 'url', url: authorize}
-              }
-            );
-            var twpin = document.getElementById('twitter-pin');
-            twpin.style.display = 'block';
-            document.getElementById('twitter-pin-continue').addEventListener(
-              'click',
-              function(evt) {
-                var pin = document.getElementById('twitter-pincode').value;
-                twpin.style.display = 'none';
-                ImageUploader.setStatus('Confirming ' + self.name + ' PIN code');
-                self.processOAuth1XHR(
-                  self.urls['oauth_access_token'],
-                  'POST',
-                  {oauth_verifier: pin, oauth_token: request_token_only},
-                  function(xhr) {
-                    if (xhr.status != 200) {
-                      alert(
-                        'Request refused:' +
-                        xhr.status + '::' +
-                        xhr.responseText);
-                      return;
-                    }
-                    var twitter_account =
-                      self.extractOAuth1AccessTokens(xhr.responseText);
-                    self.credsdb.setcreds(twitter_account, function(res) {
-                      if (res == null) {
-                        ImageUploader.setStatus(self.name + ' account configured.');
-                        self.updateCredentials();
-                      } else {
-                        alert('An error occured:', JSON.stringify(res));
-                      }
-                    });
-                  });
-              },
-              false);
-          },
-          false);
+        self.OAuth1BuildDialogNotif(authorize);
       } else {
         alert('Cannot request token.');
       }
@@ -191,31 +316,17 @@ HostingProvider.prototype.updateCredentials = function() {
 
 HostingProvider.prototype.revokeCredentials = function() {
   var self = this;
-  var conf = document.getElementById('confirm-twitter-revoke');
-  conf.style.display = 'block';
-  document.getElementById('twitter-revoke-cancel').addEventListener(
-    'click',
-    function(evt) {
-      conf.style.display = 'none';
-    },
-    false
-  );
-  document.getElementById('twitter-revoke-revoke').addEventListener(
-    'click',
-    function(evt) {
-      self.credsdb.delcreds(self.creds[0].screen_name, function(res) {
-        conf.style.display = 'none';
-        if (res == null) {
-          ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
-	  self.creds = undefined;
-          self.updateCredentials();
-        } else {
-          alert('An error occured:', JSON.stringify(res));
-        }
-      });
-    },
-    false
-  );
+  this.OAuth1BuildDialogRevoke(function () {
+    self.credsdb.delcreds(self.creds[0].screen_name, function(res) {
+      if (res == null) {
+        ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
+        self.creds = undefined;
+        self.updateCredentials();
+      } else {
+        alert('An error occured:', JSON.stringify(res));
+      }
+    });
+  });
 };
 
 var ImageUploader = {
@@ -223,7 +334,7 @@ var ImageUploader = {
   files: {},
 
   init: function() {
-    var HostingCanardPC = new HostingProvider('cpc', 'CanardPC', false, {}, {'upload': 'http://tof.canardpc.com/'});
+    var HostingCanardPC = new HostingProvider('cpc', 'CanardPC', false, {}, {'upload': 'http://tof.canardpc.com/', 'confirm-img': 'style/images/canardpc.jpg'});
     HostingCanardPC.upload = function () {
       var picture = new FormData();
       picture.append('email', '');
@@ -254,6 +365,7 @@ var ImageUploader = {
         consumerSecret: 'LH9tN8IbhRINsCRJlAQqNM479fGp6SDtNfxoKZKLBFA'
       },
       {
+        'confirm-img': 'style/images/twitter-bird-light-bgs.png',
         'upload': 'https://upload.twitter.com/1/statuses/update_with_media.json',
         'oauth_request_token': 'https://api.twitter.com/oauth/request_token',
         'oauth_authorize': 'https://api.twitter.com/oauth/authorize',
@@ -326,7 +438,7 @@ var ImageUploader = {
       });
     };
 
-    var HostingImgur = new HostingProvider('imgur', 'Imgur', false, {'apiKey': '4fa922afa12ef6b38c0b5b5e6e548a4f'}, {'upload': 'http://api.imgur.com/2/upload.json'});
+    var HostingImgur = new HostingProvider('imgur', 'Imgur', false, {'apiKey': '4fa922afa12ef6b38c0b5b5e6e548a4f'}, {'upload': 'http://api.imgur.com/2/upload.json', 'confirm-img': 'style/images/imgur-iphone.png'});
     HostingImgur.upload = function(source, callback) {
       var picture = new FormData();
       picture.append('key', this.keys['apiKey']);
@@ -363,7 +475,7 @@ var ImageUploader = {
     var li = document.createElement('li')
 
     var img = document.createElement('img');
-    // img.src = 'dummy';
+     img.src = service.urls['confirm-img'];
     var label = document.createElement('label');
     label.className = 'check';
       var input = document.createElement('input');
