@@ -22,6 +22,11 @@ var AttentionScreen = {
     return this.attentionScreen.classList.contains('displayed');
   },
 
+  isFullyVisible: function as_isFullyVisible() {
+    return (this.isVisible() &&
+            !this.mainScreen.classList.contains('active-statusbar'));
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
@@ -33,12 +38,7 @@ var AttentionScreen = {
   },
 
   resize: function as_resize(evt) {
-    if (!this.isVisible())
-      return;
-
-    var activeStatusbar =
-      this.mainScreen.classList.contains('active-statusbar');
-    if (!activeStatusbar)
+    if (!this.isFullyVisible())
       return;
 
     if (evt.type == 'keyboardchange') {
