@@ -126,6 +126,11 @@ var Launcher = (function() {
     var bookmarkButton = document.getElementById('bookmark-button');
     bookmarkButton.classList.remove('hidden');
     bookmarkButton.addEventListener('mousedown', function doBookmark(evt) {
+      var response = window.confirm('Bookmark ' + name + '?');
+      if (!response) {
+        return;
+      }
+      
       new MozActivity({
         name: 'save-bookmark',
         data: {
