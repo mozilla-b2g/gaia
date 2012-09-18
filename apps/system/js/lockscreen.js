@@ -857,8 +857,7 @@ var LockScreen = {
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(resources/images/backgrounds/' + value + ')';
-
+    var url = 'url(' + value + ')';
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }

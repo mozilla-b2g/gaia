@@ -70,6 +70,6 @@ window.addEventListener('localized', function onlocalized() {
 // Define the default background to use for all homescreens
 SettingsListener.observe(
   'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
-  var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.getElementById('screen').style.backgroundImage = url;
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + value + ')';
 });
