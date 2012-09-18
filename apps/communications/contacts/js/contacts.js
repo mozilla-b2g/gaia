@@ -1105,7 +1105,7 @@ var Contacts = (function() {
   };
 })();
 
-fb.contacts.init(function() {
+fb.init(function() {
   if (window.navigator.mozSetMessageHandler && window.self == window.top) {
     var actHandler = ActivityHandler.handle.bind(ActivityHandler);
     window.navigator.mozSetMessageHandler('activity', actHandler);
@@ -1121,4 +1121,3 @@ fb.contacts.init(function() {
     Contacts.checkCancelableActivity();
   });
 });
-
