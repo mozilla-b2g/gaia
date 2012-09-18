@@ -510,6 +510,7 @@ var WindowManager = (function() {
                   app.manifest.name, app.manifest, app.manifestURL);
       setAppSize(homescreen);
       openWindow(homescreen, null);
+      addWrapperListener();
     }
     return runningApps[homescreen].frame;
   }
@@ -629,7 +630,6 @@ var WindowManager = (function() {
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
-    frame.src = url;
 
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
@@ -638,7 +638,19 @@ var WindowManager = (function() {
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
     frame.setAttribute('mozbrowser', 'true');
-    frame.setAttribute('mozapp', manifestURL);
+    if (manifestURL) {
+      frame.setAttribute('mozapp', manifestURL);
+      frame.src = url;
+    } else {
+      var frameSrc = ['wrapper/index.html?url=' + url];
+      if (manifest.bookmarkFeature) {
+        frameSrc.push('&name=');
+        frameSrc.push(name);
+        frameSrc.push('&icon=');
+        frameSrc.push(manifest.icons[60]);
+      }
+      frame.src = frameSrc.join('');
+    }
 
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
@@ -881,7 +893,7 @@ var WindowManager = (function() {
         // as the homescreen.
         if (!homescreen) {
           homescreen = origin;
-
+          addWrapperListener();
           // Save the entry manifest URL and launch URL so that we can restart
           // the homescreen later, if necessary.
           homescreenURL = e.detail.url;
@@ -992,6 +1004,43 @@ var WindowManager = (function() {
     // if the app is currently displaying
     kill(origin);
   });
+
+  // Add handler that deals with wrappers
+  function addWrapperListener() {
+    var frame = runningApps[homescreen].frame;
+    frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
+      var detail = evt.detail;
+      if (!detail.name || detail.features !== 'wrapper')
+        return;
+
+      evt.stopImmediatePropagation();
+
+      var url = detail.url;
+      if (isRunning(url)) {
+        if (displayedApp === url)
+          return;
+      } else {
+        var manifest;
+        try {
+          manifest = JSON.parse(detail.name);
+        } catch (e) {
+          manifest = {name: url};
+        }
+
+        if (manifest.wrapperMode === 'reuse') {
+          var lastWrapperApp = frame.dataset.lastWrapperApp;
+          if (lastWrapperApp && lastWrapperApp !== url) {
+            kill(lastWrapperApp);
+          }
+          frame.dataset.lastWrapperApp = url;
+        }
+
+        appendFrame(url, url, manifest.name, manifest, null);
+      }
+
+      setDisplayedApp(url);
+    });
+  }
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {

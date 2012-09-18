@@ -1,0 +1,201 @@
+#doat-container #location-selector {
+    position: absolute;
+    top: 39px;
+    left: auto;
+    right: 6px;
+    width: 228px;
+    z-index: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+#doat-container #location-selector.visible {
+    z-index: 800;
+    opacity: 1;
+    display: block;
+}
+#doat-container #location-selector > div {
+    display: none;
+}
+#doat-container #location-selector.options .options,
+#doat-container #location-selector.manual .manual {
+    display: block;
+}
+#doat-container #location-selector.manual {
+    width: auto;
+    top: 5px;
+    left: 10px;
+    right: 10px;
+}
+#doat-container #location-selector .tiparrow {
+    left: auto;
+    right: 34px;
+}
+#doat-container.location-visible:not(.empty-query) #location-selector .tiparrow {
+    right: 88px;
+}
+#doat-container #location-selector .options div {
+    position: relative;
+    height: 44px;
+    line-height: 44px;
+    cursor: pointer;
+    font-weight: 600;
+    padding-left: 24px;
+    border-top: 1px solid #333;
+}
+
+#doat-container #location-selector .options div:first-child {
+    border-top-width: 0;
+}
+#doat-container #location-selector .options div:before {
+    content: "";
+    background-repeat: no-repeat;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 18px;
+    height: 100%;
+}
+#doat-container #location-selector .options div#locate-me:before {
+    background-position: -22px 10px;
+}
+#doat-container #location-selector .options div#enter-location:before {
+    background-position: 3px 9px;
+}
+#doat-container #location-selector .options div#later:before {
+    background-position: -48px 14px;
+}
+
+#doat-container #location-selector .options div.title {
+    cursor: default;
+    padding-left: 0;
+    font-size: 19px;
+}
+#doat-container #location-selector .options div.title:before {
+    display: none;
+}
+
+#doat-container #location-selector .close {
+    background-position: -1px -73px;
+    position: absolute;
+    top: -6px;
+    right: -12px;
+    width: 31px;
+    height: 31px;
+    cursor: pointer;
+    
+}
+#doat-container #location-selector .manual {
+    padding: 0;
+    overflow: hidden;
+}
+#doat-container #location-selector .manual h2 {
+    height: 33px;
+    line-height: 33px;
+    font-size: 20px;
+    font-weight: 600;
+}
+#doat-container #location-selector .manual .search {
+    position: relative;
+    margin: 0 24px 0 4px;
+    text-align: center;
+}
+    #doat-container #location-selector .manual .search input {
+        padding: 0 24px 0 4px;
+        margin: 0 -24px 0 -4px;
+        
+    }
+#doat-container #location-selector .manual ul {
+    list-style-type: none;
+    min-height: 112px;
+}
+#doat-container #location-selector .manual li {
+    padding: 7px 0;
+    cursor: pointer;
+    border-top: 1px solid #333;
+}
+#doat-container #location-selector .manual li:first-child {
+    border-top-width: 0;
+}
+#doat-container #location-selector-screen {
+    background: rgba(255, 255, 255, 0);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 780;
+}
+
+    #doat-container #dialog_location .tiparrow {
+        display: none;
+    }
+    #doat-container #dialog_location .button .loading {
+        position: relative;
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        margin-right: 4px;
+        top: 1px;
+    }
+    
+    #doat-container #dialog_location_error .content .zip-wrapper {
+        position: relative;
+    }
+    #doat-container #dialog_location_error .content #location-zip-name {
+        -moz-user-select: none;
+        color: #0485AF;
+        font-size: 13px;
+        font-weight: normal;
+        height: 37px;
+        line-height: 37px;
+        overflow: hidden;
+        padding-right: 5px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        text-align: right;
+        text-overflow: ellipsis;
+        -ms-text-overflow: ellipsis;
+        text-shadow: none;
+        white-space: nowrap;
+        max-width: 150px;
+        z-index: 90;
+    }
+    #doat-container #dialog_location_error label {
+        vertical-align: middle;
+        position: relative;
+        top: -5px;
+    }
+    #doat-container #dialog_location_error .textinput {
+        width: 260px;
+        padding: 0 4px; 
+        margin: 4px 0 0 0;
+    }
+    #doat-container #dialog_location_error .buttons {
+        padding-top: 10px;
+    }
+    
+#doat-container #dialog_location_os_error {
+    top: 40px;
+    left: auto;
+    right: 13px;
+}
+#doat-container #dialog_location_os_error .tiparrow {
+    left: auto;
+    right: 24px;
+}
+#doat-container #dialog_location_os_error .content {
+    position: relative;
+    padding-top: 5px;
+    padding-bottom: 120px;
+}
+#doat-container #dialog_location_os_error .content:before {
+    background: transparent url('/everything.me/images/location/location-settings-iphone.png') 0 0 no-repeat;
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: -4px;
+    width: 270px;
+    height: 120px;
+}

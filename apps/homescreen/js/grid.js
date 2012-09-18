@@ -1,4 +1,5 @@
 
+
 'use strict';
 
 const GridManager = (function() {
@@ -14,7 +15,8 @@ const GridManager = (function() {
   var opacityMax = .7;
 
   var pages = [];
-  var landingPageIndex = 0;
+  var evmePageIndex = 0;
+  var landingPageIndex = 1;
   var currentPage = landingPageIndex;
 
   // Limits for changing pages during dragging
@@ -83,14 +85,21 @@ const GridManager = (function() {
   }
 
   function setOverlayPanning(deltaX) {
-    if (Homescreen.isInEditMode()) {
+    if (Homescreen.isInEditMode() || currentPage > landingPageIndex + 1) {
       return;
     }
+
     var forward = dirCtrl.goesForward(deltaX);
-    if (currentPage === landingPageIndex && forward) {
-      applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
+    if (currentPage === landingPageIndex) {
+      if (forward) {
+        applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
+      } else {
+        Core.pageMove("in", deltaX / windowWidth);
+      }
     } else if (currentPage === landingPageIndex + 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
+    } else if (currentPage === evmePageIndex && forward) {
+      Core.pageMove("out", -deltaX / windowWidth);
     }
   }
 
@@ -143,6 +152,7 @@ const GridManager = (function() {
     }
 
     var isSamePage = currentPage === index;
+    var previousPage = currentPage;
     if (!isSamePage) {
       delete pages[currentPage].container.dataset.currentPage;
       currentPage = index;
@@ -171,6 +181,13 @@ const GridManager = (function() {
 
     if (!isSamePage) {
       updatePaginationBar();
+    }
+
+    if (index === evmePageIndex) {
+      EvmeManager.show();
+    } else if (previousPage === evmePageIndex ||
+               index === landingPageIndex && isSamePage) {
+      EvmeManager.hide();
     }
   }
 
