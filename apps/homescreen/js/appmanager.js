@@ -301,6 +301,10 @@ var Applications = (function() {
     }
   }
 
+  function isInstalled(origin) {
+    return installedApps[origin];
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -315,6 +319,7 @@ var Applications = (function() {
     isReady: isReady,
     addBookmark: addBookmark,
     deleteBookmark: deleteBookmark,
-    installBookmark: installBookmark
+    installBookmark: installBookmark,
+    isInstalled: isInstalled
   };
 })();
