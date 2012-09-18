@@ -5,3 +5,4 @@
 
 var Views = {};
 var viewManager = new ViewManager();
+var settingsVManager = new ViewManager();

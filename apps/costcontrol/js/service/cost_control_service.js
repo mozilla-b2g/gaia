@@ -342,6 +342,7 @@ setService(function cc_setupCostControlService() {
   function _resetStats() {
     CostControl.settings.option('smscount', 0);
     CostControl.settings.option('calltime', 0);
+    CostControl.settings.option('lastreset', new Date());
   }
 
   // Check if we met the next reset, if so, reset an recalculate

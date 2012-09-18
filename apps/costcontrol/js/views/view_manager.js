@@ -47,6 +47,8 @@ var ViewManager = function ViewManager() {
       document.getElementById(viewId + '-filter')
         .setAttribute('aria-selected', 'true');
 
+      _currentTab = viewId;
+
     // Overlay view
     } else {
       var view = document.getElementById(viewId);
@@ -88,9 +90,21 @@ var ViewManager = function ViewManager() {
     return _currentView ? _currentView.id : null;
   }
 
+  // Return true if the tab id passed is the current tab
+  function _isCurrentTab(tab) {
+    return _currentTab && _currentTab === tab;
+  }
+
+  // Return the current tab
+  function _getCurrentTab() {
+    return _currentTab;
+  }
+
   this.tabs = _tabs;
   this.changeViewTo = _changeViewTo;
   this.closeCurrentView = _closeCurrentView;
   this.isCurrentView = _isCurrentView;
   this.getCurrentView = _getCurrentView;
+  this.isCurrentTab = _isCurrentTab;
+  this.getCurrentTab = _getCurrentTab;
 };

@@ -21,6 +21,30 @@ function setupApp() {
 
   var SETTINGS_VIEW = 'settings-view';
 
+  // Set the left tab depending on plantype
+  function _setLeftTab(plantype) {
+
+    // Return true if the tab is one of those placed on the left
+    function isLeftTab(tab) {
+      return [TAB_BALANCE, TAB_TELEPHONY].indexOf(tab) !== -1;
+    }
+
+    var balance = (plantype === CostControl.PLAN_PREPAID);
+    var telephony = !balance;
+
+    // Enable / disable the filter
+    document.getElementById('balance-tab-filter')
+      .setAttribute('aria-hidden', !balance);
+    document.getElementById('telephony-tab-filter')
+      .setAttribute('aria-hidden', !telephony);
+
+    // If the current tab is the left one, enable it
+    var currentTab = viewManager.getCurrentTab();
+    if (currentTab === null || isLeftTab(currentTab))
+      viewManager.changeViewTo(balance ? TAB_BALANCE : TAB_TELEPHONY);
+
+  }
+
   // Configure close dialog to close the current dialog. Dialog includes
   // promtps and settins.
   function _configureCloseDialog() {
@@ -49,7 +73,7 @@ function setupApp() {
     var configButtons = document.querySelectorAll('.settings-button');
     [].forEach.call(configButtons, function ccapp_eachConfigButton(button) {
       button.addEventListener('click', function ccapp_onConfig() {
-        viewManager.changeViewTo(SETTINGS_VIEW);
+        settingsVManager.changeViewTo(SETTINGS_VIEW);
       });
     });
   }
@@ -87,31 +111,16 @@ function setupApp() {
       }
     );
 
+    // Keep the left tab synchronized with the plantype
+    CostControl.settings.observe('plantype', _setLeftTab);
+
     // Update UI when localized
     window.addEventListener('localized', function ccapp_onLocalized() {
       for (var viewid in Views) if (Views.hasOwnProperty(viewid))
         Views[viewid].localize();
     });
 
-    var currentValue = CostControl.settings.option('plantype') ||
-                       CostControl.PLAN_PREPAID;
-    if (CostControl.settings.option('plantype') === CostControl.PLAN_PREPAID) {
-      viewManager.changeViewTo(TAB_BALANCE);
-    } else {
-      viewManager.changeViewTo(TAB_TELEPHONY);
-    }
   }
 
   _init();
-}
-
-// Selects balance view or telephony depending on plantype
-// Actually only shows / hides the filter
-function chooseView(plantype) {
-  var balance = (plantype !== CostControl.PLAN_PREPAID) ? true : false;
-  var telephony = !balance;
-  document.getElementById('balance-tab-filter')
-    .setAttribute('aria-hidden', balance);
-  document.getElementById('telephony-tab-filter')
-    .setAttribute('aria-hidden', telephony);
 }

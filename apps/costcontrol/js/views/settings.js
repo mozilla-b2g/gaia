@@ -23,7 +23,7 @@ function setupSettings() {
     'reset_time': 1,
     'lowlimit': true,
     'lowlimit_threshold': 5
-  }
+  };
 
   var viewManager = new ViewManager();
 
@@ -250,7 +250,7 @@ function setupSettings() {
     // Close settings
     var close = document.getElementById('close-settings');
     close.addEventListener('click', function ccapp_closeSettings() {
-      parent.viewManager.closeCurrentView();
+      parent.settingsVManager.closeCurrentView();
     });
 
     // Localize interface
