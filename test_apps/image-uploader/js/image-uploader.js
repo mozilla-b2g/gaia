@@ -217,12 +217,9 @@ HostingProvider.prototype.revokeCredentials = function() {
   );
 };
 
-
-
-var files = undefined;
-
 var ImageUploader = {
   services: [],
+  files: {},
 
   init: function() {
     var HostingCanardPC = new HostingProvider('cpc', 'CanardPC', false, {}, {'upload': 'http://tof.canardpc.com/'});
@@ -403,6 +400,49 @@ var ImageUploader = {
     }
   },
 
+  addImages: function(filenames) {
+    var storage = navigator.getDeviceStorage('pictures');
+    filenames.forEach(function(filename) {
+      storage.get(filename).onsuccess = function(e) {
+        var blob = e.target.result;
+        var url = URL.createObjectURL(blob);
+        var holder = document.getElementById('previews');
+        var img = document.createElement('img');
+        img.style.width = '85%';
+        img.src = url;
+        this.files[url] = blob;
+        img.onload = function() { URL.revokeObjectURL(this.src); };
+        holder.appendChild(img);
+      };
+    });
+  },
+
+  share: function() {
+    this.setStatus('Starting to share');
+    var services = this.getSelectedServices();
+    if (services.length > 0) {
+      for (var sn in services) {
+        this.lock();
+        var serv = services[sn];
+        var previews = document.getElementById('previews');
+        var imgs = previews.getElementsByTagName('img');
+        for (var i in imgs) {
+          var img_url = imgs[i].src;
+          if (img_url != undefined) {
+            var img = files[img_url];
+            ImageUploader.setStatus('Preparing upload');
+  	  for (var sid in ImageUploader.services) {
+              var sup = ImageUploader.services[sid];
+  	    if (serv == ('upload-' + sup.id)) {
+                sup.upload(img, this.finalize.bind(this));
+  	    }
+  	  }
+          }
+        }
+      }
+    }
+  },
+
   enableOnly: function(evt) {
     var toKeep = evt.target.id;
     this.purge('service-content');
@@ -419,9 +459,20 @@ var ImageUploader = {
     }
   },
 
+  finalize: function(url) {
+    this.clean();
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: url
+      }
+    });
+  },
+
   setup: function() {
     document.getElementById('share')
-      .addEventListener('click', share, false);
+      .addEventListener('click', this.share.bind(this), false);
   },
 
   purge: function(id) {
@@ -434,12 +485,27 @@ var ImageUploader = {
   },
 
   clean: function() {
-    files = {};
+    this.files = {};
     this.hideBannerStatus();
-    ImageUploader.setProgress(0.0, 0.0);
+    this.setProgress(0.0, 0.0);
     this.purge('previews');
     this.purge('link');
-    ImageUploader.unlock();
+    this.unlock();
+  },
+
+  getSelectedServices: function() {
+    var services =
+      document
+      .getElementById('services')
+      .getElementsByTagName('input');
+    var selectedServices = [];
+    for (var service in services) {
+      var s = services[service];
+      if (s.type === 'checkbox' && s.checked === true) {
+        selectedServices.push(s.id);
+      }
+    }
+    return selectedServices;
   },
 
   setBannerStatus: function(visible) {
@@ -487,78 +553,8 @@ window.onload = function() {
   if (navigator.mozSetMessageHandler) {
     navigator.mozSetMessageHandler('activity', function(activityRequest) {
       if (activityRequest.source.name === 'share-filenames') {
-        addImages(activityRequest.source.data.filenames);
+        ImageUploader.addImages(activityRequest.source.data.filenames);
       }
     });
   }
 };
-
-function finalize(url) {
-  ImageUploader.clean();
-  new MozActivity({
-    name: 'view',
-    data: {
-      type: 'url',
-      url: url
-    }
-  });
-}
-
-function addImages(filenames) {
-  var storage = navigator.getDeviceStorage('pictures');
-  filenames.forEach(function(filename) {
-    storage.get(filename).onsuccess = function(e) {
-      var blob = e.target.result;
-      var url = URL.createObjectURL(blob);
-      var holder = document.getElementById('previews');
-      var img = document.createElement('img');
-      img.style.width = '85%';
-      img.src = url;
-      files[url] = blob;
-      img.onload = function() { URL.revokeObjectURL(this.src); };
-      holder.appendChild(img);
-    };
-  });
-}
-
-function getSelectedServices() {
-  var services =
-    document
-    .getElementById('services')
-    .getElementsByTagName('input');
-  var selectedServices = [];
-  for (var service in services) {
-    var s = services[service];
-    if (s.type === 'checkbox' && s.checked === true) {
-      selectedServices.push(s.id);
-    }
-  }
-  return selectedServices;
-}
-
-function share() {
-  ImageUploader.setStatus('Starting to share');
-  var services = getSelectedServices();
-  if (services.length > 0) {
-    for (var sn in services) {
-      ImageUploader.lock();
-      var serv = services[sn];
-      var previews = document.getElementById('previews');
-      var imgs = previews.getElementsByTagName('img');
-      for (var i in imgs) {
-        var img_url = imgs[i].src;
-        if (img_url != undefined) {
-          var img = files[img_url];
-          ImageUploader.setStatus('Preparing upload');
-	  for (var sid in ImageUploader.services) {
-            var sup = ImageUploader.services[sid];
-	    if (serv == ('upload-' + sup.id)) {
-              sup.upload(img, finalize);
-	    }
-	  }
-        }
-      }
-    }
-  }
-}
-
