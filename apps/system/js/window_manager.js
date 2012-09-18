@@ -694,7 +694,7 @@ var WindowManager = (function() {
         frameSrc.push('&name=');
         frameSrc.push(name);
         frameSrc.push('&icon=');
-        frameSrc.push(manifest.icons[0]);
+        frameSrc.push(manifest.icons[60]);
       }
       frame.src = frameSrc.join('');
     }

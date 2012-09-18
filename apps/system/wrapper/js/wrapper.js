@@ -83,7 +83,7 @@ var Launcher = (function() {
     var regex = new RegExp('[\\?&]name=([^&#]*)');
     var ret = regex.exec(href);
     if (ret && ret.length > 0) {
-      ret = ret[1];
+      ret = decodeURI(ret[1]);
     }
 
     return ret;
@@ -91,7 +91,8 @@ var Launcher = (function() {
 
   function getIcon() {
     var regex = new RegExp('[\\?&]icon=([^&#]*)');
-    return regex.exec(href)[1];
+    var results = regex.exec(href);
+    return decodeURI(results[1]);
   }
 
   var url = iframe.src = getURL();
