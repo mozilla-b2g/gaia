@@ -53,6 +53,7 @@ var AuthenticationDialog = {
     window.addEventListener('mozbrowserusernameandpasswordrequired', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('appterminated', this);
     window.addEventListener('resize', this);
     window.addEventListener('keyboardchange', this);
     window.addEventListener('keyboardhide', this);
@@ -100,6 +101,12 @@ var AuthenticationDialog = {
 
         // Reset currentOrigin
         this.hide();
+        break;
+
+      case 'appterminated':
+        if (this.currentEvents[evt.detail.origin])
+          delete this.currentEvents[evt.detail.origin];
+
         break;
 
       case 'resize':

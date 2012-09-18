@@ -26,6 +26,7 @@ var Utils = {
   },
 
   headerDate: function ut_headerDate(time) {
+    var dtf = new navigator.mozL10n.DateTimeFormat();
     var today = _('today');
     var yesterday = _('yesterday');
     var diff = (Date.now() - time) / 1000;
@@ -33,12 +34,12 @@ var Utils = {
     if (isNaN(day_diff))
       return '(incorrect date)';
     if (day_diff < 0 || diff < 0) {
-      return (new Date(time)).toLocaleFormat('%x %R');
+      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
     return day_diff == 0 && today ||
       day_diff == 1 && yesterday ||
-      day_diff < 6 && (new Date(time)).toLocaleFormat('%A') ||
-      (new Date(time)).toLocaleFormat('%x');
+      day_diff < 6 && dtf.localeFormat(new Date(time), '%A') ||
+      dtf.localeFormat(new Date(time), '%x');
   },
 
   getDayDate: function re_getDayDate(timestamp) {

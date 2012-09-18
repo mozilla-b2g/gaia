@@ -109,7 +109,7 @@ var WindowManager = (function() {
     // launch() can be called from outside the card switcher
     // hiding it if needed
     if (CardsView.cardSwitcherIsShown())
-      CardsView.cardTaskSwitcher();
+      CardsView.hideCardSwitcher();
   }
 
   function isRunning(origin) {
@@ -606,13 +606,13 @@ var WindowManager = (function() {
       runningApps[newApp].launchTime = Date.now();
 
     // Set displayedApp to the new value
-    displayedApp = origin;
+    displayedApp = newApp;
 
     // Update the loading icon since the displayedApp is changed
     updateLoadingIcon();
 
     // If the app has a attention screen open, displaying it
-    AttentionScreen.showForOrigin(origin);
+    AttentionScreen.showForOrigin(newApp);
   }
 
   function setOrientationForApp(origin) {
@@ -1026,6 +1026,13 @@ var WindowManager = (function() {
     } else {
       removeFrame(origin);
     }
+
+    // Send a synthentic 'appterminated' event.
+    // Let other system app module know an app is
+    // being killed, removed or crashed.
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appterminated', true, false, { origin: origin });
+    window.dispatchEvent(evt);
   }
 
   // Reload the frame of the running app
@@ -1139,14 +1146,6 @@ var WindowManager = (function() {
   windows.addEventListener('dragstart', function(evt) {
     evt.preventDefault();
   }, true);
-
-  window.addEventListener('holdhome', function(e) {
-    if (!LockScreen.locked &&
-        !CardsView.cardSwitcherIsShown()) {
-      SleepMenu.hide();
-      CardsView.showCardSwitcher();
-    }
-  });
 
   // With all important event handlers in place, we can now notify
   // Gecko that we're ready for certain system services to send us
