@@ -178,6 +178,7 @@ ul li button, ul li a[role=button] {
 #root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
 #root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
+#root li [data-l10n-id="notifications"]     { background-image: url(images/settings_notifications.png); }
 #root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
 #root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
 #root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
