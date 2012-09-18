@@ -208,7 +208,7 @@ input[type="image"] {
   top: 50px;
   width: 100%;
   height: 3px;
-  z-index: 200;
+  z-index: 99;
 }
 
 #throbber.loading {
@@ -785,19 +785,50 @@ li[role="listitem"] small {
   display: none;
 }
 
+/*
+ * HTTP Authentication Dialog
+ */
+#http-authentication-dialog {
+  z-index: 102;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #EEEEEE;
+}
+
+#http-authentication-dialog.hidden {
+  display: none;
+}
+
+#http-authentication-message {
+  display: block;
+  font-size: 1.5rem;
+  margin: 1rem 2rem;
+}
+
+#http-authentication-message.error {
+  color: #950d0d;
+}
+
 /* The following can be removed once we have a building block
  * for entry sheets.
  */
- #bookmark-entry-sheet label {
+ #bookmark-entry-sheet label,
+ #http-authentication-dialog label {
   display: block;
-  position: relaitve;
+  position: relative;
   margin: 1rem 2rem;
   text-transform: uppercase;
   font-size: 1.5rem;
  }
 
  #bookmark-entry-sheet input[type="text"],
- #bookmark-entry-sheet input[type="url"] {
+ #bookmark-entry-sheet input[type="url"],
+ #http-authentication-dialog input[type="text"],
+ #http-authentication-dialog input[type="password"] {
   -moz-box-sizing: border-box;
   border: 1px solid #D1D1D1;
   border-radius: 0.3rem;
