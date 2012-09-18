@@ -46,7 +46,7 @@ if (typeof fb.oauth === 'undefined') {
         asyncStorage.getItem('token_ts', function getTokenTs(token_ts) {
           asyncStorage.getItem('expires', function getExpires(expires) {
             expires = Number(expires);
-            if (expires !== 0 && Date.now() - token_ts >=  expires) {
+            if (expires !== 0 && Date.now() - token_ts >= expires) {
               startOAuth(state);
               return;
             }

@@ -1,6 +1,6 @@
 var fb = window.fb || {};
 
-if(typeof fb.init === 'undefined') {
+if (typeof fb.init === 'undefined') {
   (function() {
 
     fb.isEnabled = false;
@@ -10,7 +10,7 @@ if(typeof fb.init === 'undefined') {
       var cb = callback;
 
       req.onload = function(configData) {
-        if(configData.facebookEnabled === true) {
+        if (configData.facebookEnabled === true) {
           fb.isEnabled = true;
         }
 

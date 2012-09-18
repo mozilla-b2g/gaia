@@ -1,10 +1,10 @@
 var utilities = window.utilities || {};
 
-if(typeof utilities.config === 'undefined') {
+if (typeof utilities.config === 'undefined') {
   (function() {
     var config = utilities.config = {};
 
-    config.load = function (resource) {
+    config.load = function(resource) {
 
       var outReq = new LoadRequest();
 
@@ -18,7 +18,6 @@ if(typeof utilities.config === 'undefined') {
           if (xhr.readyState === 4 && (xhr.status === 200 ||
                                        xhr.status === 0)) {
 
-            window.console.log('OWDError: ' , xhr.readyState, xhr.status,xhr.responseText.length, xhr.responseText);
             var response = xhr.responseText;
             var configuration = JSON.parse(response);
             outReq.completed(configuration);
@@ -36,14 +35,14 @@ if(typeof utilities.config === 'undefined') {
     }
 
     function LoadRequest() {
-      this.completed = function (configData) {
-        if(typeof this.onload === 'function') {
+      this.completed = function(configData) {
+        if (typeof this.onload === 'function') {
           this.onload(configData);
         }
       }
 
       this.failed = function(code) {
-        if(typeof this.onerror === 'function') {
+        if (typeof this.onerror === 'function') {
           this.onerror(code);
         }
       }
