@@ -10,7 +10,7 @@ var EvmeManager = (function() {
       icon: params.icon
     });
 
-    if (!Applications.isInstalled()) {
+    if (!Applications.isInstalled(params.url)) {
       evmeApp.manifest.bookmarkFeature = true;
     }
 
