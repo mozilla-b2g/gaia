@@ -169,7 +169,7 @@ HostingProvider.prototype.updateCredentials = function() {
   var container = document.getElementById('credentials-status');
   this.credsdb.getcreds(function(res) {
     self.creds = res;
-    if (creds.length == 0) {
+    if (self.creds.length == 0) {
       // no credential, let user login on twitter
       var loginButton = document.createElement('button');
       loginButton.id = 'login-twitter';
@@ -182,7 +182,7 @@ HostingProvider.prototype.updateCredentials = function() {
       revokeButton.className = 'negative';
       revokeButton.id = 'revoke-twitter';
       revokeButton.innerHTML =
-        'Revoke \'' + creds[0].screen_name + '\' credentials';
+        'Revoke \'' + self.creds[0].screen_name + '\' credentials';
       revokeButton.onclick = self.revokeCredentials.bind(self);
       container.appendChild(revokeButton);
     }
