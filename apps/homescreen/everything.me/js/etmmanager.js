@@ -4,12 +4,17 @@
 var EvmeManager = (function() {
 
   function openApp(params) {
-    (new EvmeApp({
+    var evmeApp = new EvmeApp({
       url: params.url,
       name: params.title,
       icon: params.icon
-    })).launch();
+    });
 
+    if (!Applications.isInstalled()) {
+      evmeApp.manifest.bookmarkFeature = true;
+    }
+
+    evmeApp.launch();
     setVisibilityChange(false);
   }
 
