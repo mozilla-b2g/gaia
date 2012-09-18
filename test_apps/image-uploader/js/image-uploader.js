@@ -168,7 +168,7 @@ HostingProvider.prototype.updateCredentials = function() {
   var self = this;
   var container = document.getElementById('credentials-status');
   this.credsdb.getcreds(function(res) {
-    var creds = res;
+    self.creds = res;
     if (creds.length == 0) {
       // no credential, let user login on twitter
       var loginButton = document.createElement('button');
