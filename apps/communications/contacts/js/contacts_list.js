@@ -235,6 +235,29 @@ contacts.List = (function() {
     }
   }
 
+  var addImportFacebookButton = function addImportFacebookButton() {
+    if (container.querySelector('#fb_import_button')) {
+      return;
+    }
+
+    var container = groupsList.parentNode; // #groups-container
+    var button = document.createElement('button');
+    button.id = 'fb_import_button';
+    button.setAttribute('class', 'fbContacts action action-add');
+    button.textContent = _('fbContacts-import');
+    container.appendChild(button);
+
+    button.onclick = Contacts.extFb.importFB;
+  }
+
+  var removeImportFacebookButton = function removeImportFacebookButton() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = container.querySelector('#fb_import_button');
+    if (button) {
+      container.removeChild(button);
+    }
+  }
+
   var buildContacts = function buildContacts(contacts, fbContacts) {
     var counter = {};
     var favorites = [];
