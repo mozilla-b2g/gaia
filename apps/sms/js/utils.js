@@ -8,13 +8,21 @@ var _ = navigator.mozL10n.get;
 var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
-  updateHeaders: function ut_updateHeaders() {
+  updateTimeHeaders: function ut_updateTimeHeaders() {
     var elementsToUpdate =
         document.querySelectorAll('h2[data-time-update]');
     if (elementsToUpdate.length > 0) {
       for (var i = 0; i < elementsToUpdate.length; i++) {
-        var ts = elementsToUpdate[i].getAttribute('data-time');
-        var tmpHeaderDate = Utils.getHeaderDate(ts);
+        var ts = elementsToUpdate[i].dataset.time;
+        var tmpHeaderDate;
+        if (elementsToUpdate[i].dataset.isThread) { // only date
+          tmpHeaderDate = Utils.getHeaderDate(ts);
+        } else {
+          elementsToUpdate[i].dataset.hourOnly ?
+            tmpHeaderDate = Utils.getFormattedHour(ts) : // only time
+            tmpHeaderDate = Utils.getHeaderDate(ts) + ' ' +
+                            Utils.getFormattedHour(ts); // date + time
+        }
         var currentHeader = elementsToUpdate[i].innerHTML;
         if (tmpHeaderDate != currentHeader) {
           elementsToUpdate[i].innerHTML = tmpHeaderDate;
@@ -25,12 +33,12 @@ var Utils = {
       Utils.updating = false;
     }
   },
-  updateHeaderScheduler: function ut_updateHeaderScheduler() {
+  updateTimeHeaderScheduler: function ut_updateTimeHeaderScheduler() {
     if (!Utils.updating) {
       Utils.updating = true;
-      Utils.updateHeaders();
+      Utils.updateTimeHeaders();
       Utils.updateTimer = setInterval(function() {
-        Utils.updateHeaders();
+        Utils.updateTimeHeaders();
       },5000);
     }
   },
@@ -45,7 +53,7 @@ var Utils = {
     return stringHTML;
   },
 
-  getHourMinute: function ut_getHourMinute(time) {
+  getFormattedHour: function ut_getFormattedHour(time) {
     switch (time.constructor) {
       case String:
         time = parseInt(time);
