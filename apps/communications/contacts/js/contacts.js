@@ -75,6 +75,10 @@ var Contacts = (function() {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
+              // Check if we add extra values to the contact (those values are not saved)
+              if (params.hasOwnProperty('extras')) {
+                addExtrasToContact(params['extras']);
+              }
               showEdit();
             }, function onError() {
               console.log('Error retrieving contact to be edited');
@@ -92,7 +96,28 @@ var Contacts = (function() {
       selectList(params['tel']);
     }
 
-  }
+  };
+
+  var addExtrasToContact = function addExtrasToContact(extrasString) {
+    try {
+      var extras = JSON.parse(decodeURIComponent(extrasString));
+      for(var name in extras) {
+        var extra = extras[name];
+        if (currentContact[name]) {
+          if (Array.isArray(currentContact[name])) {
+            var joinArray = currentContact[name].concat(extra);
+            currentContact[name] = joinArray;
+          } else {
+            currentContact[name] = extra;
+          }
+        } else {
+          currentContact[name] = extra;
+        }
+      }
+    } catch (e) {
+      console.log('Extras malformed');
+    }
+  };
 
   var extractParams = function extractParams(url) {
     if (!url) {
@@ -319,41 +344,17 @@ var Contacts = (function() {
     contactsList.clearClickHandlers();
     contactsList.load();
     contactsList.handleClick(function addToContactHandler(id) {
-      var options = {
-        filterBy: ['id'],
-        filterOp: 'equals',
-        filterValue: id
+      var data = {
+        'tel': [{
+            'value': phoneNumber,
+            'carrier': null,
+            'type': TAG_OPTIONS['phone-type'][0].value
+          }
+        ]
       };
-
-      var request = navigator.mozContacts.find(options);
-      request.onsuccess = function findCallback() {
-        currentContact = request.result[0];
-
-        if (!currentContact.tel) {
-          currentContact.tel = [];
-        }
-
-        var tel = {
-          'value': phoneNumber,
-          'carrier': null,
-          'type': TAG_OPTIONS['phone-type'][0].value
-        };
-        currentContact.tel.push(tel);
-
-        var saveReq = navigator.mozContacts.save(currentContact);
-        saveReq.onsuccess = function(e) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
-          contactsList.clearClickHandlers();
-          loadList();
-          window.location.hash = '';
-        };
-        saveReq.onerror = function(e) {
-          contactsList.clearClickHandlers();
-          loadList();
-          window.location.hash = '';
-        };
-      };
+      window.location.hash = '#view-contact-form?extras=' + encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      contactsList.clearClickHandlers();
+      contactsList.handleClick(originalHandler);
     });
   };
 
