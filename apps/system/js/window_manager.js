@@ -690,7 +690,7 @@ var WindowManager = (function() {
       frame.src = url;
     } else {
       var frameSrc = ['wrapper/index.html?url=' + url];
-      if (manifest.wrapperMode === 'reuse') {
+      if (manifest.bookmarkFeature) {
         frameSrc.push('&name=');
         frameSrc.push(name);
         frameSrc.push('&icon=');
