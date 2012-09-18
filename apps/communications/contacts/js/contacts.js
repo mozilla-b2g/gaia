@@ -1105,7 +1105,7 @@ var Contacts = (function() {
   };
 })();
 
-fb.init(function() {
+fb.init(function contacts_init() {
   if (window.navigator.mozSetMessageHandler && window.self == window.top) {
     var actHandler = ActivityHandler.handle.bind(ActivityHandler);
     window.navigator.mozSetMessageHandler('activity', actHandler);

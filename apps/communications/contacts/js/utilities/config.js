@@ -22,7 +22,7 @@ if (typeof utilities.config === 'undefined') {
             var configuration = JSON.parse(response);
             outReq.completed(configuration);
           }
-          else {
+          else if (xhr.readyState === 4) {
              outReq.failed(xhr.status);
           }
         } // onreadystatechange

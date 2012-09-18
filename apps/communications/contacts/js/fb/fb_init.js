@@ -7,7 +7,6 @@ if (typeof fb.init === 'undefined') {
 
     fb.init = function(callback) {
       var req = utilities.config.load('/contacts/config.json');
-      var cb = callback;
 
       req.onload = function(configData) {
         if (configData.facebookEnabled === true) {
@@ -17,7 +16,7 @@ if (typeof fb.init === 'undefined') {
         // The FB Contacts DB Cache is initialized regardless FB is enabled
         // or not. That's because we would like to avoid to add extra conditions
         // throughout the code, thus keeping it as simple as possible
-        initalizeDB(cb);
+        initalizeDB(callback);
       }
 
       req.onerror = function(code) {
@@ -27,7 +26,7 @@ if (typeof fb.init === 'undefined') {
         // The FB Contacts DB Cache is initialized regardless FB is enabled
         // or not. That's because we would like to avoid to add extra conditions
         // throughout the code, thus keeping it as simple as possible
-        initalizeDB(cb);
+        initalizeDB(callback);
       }
     }
 
