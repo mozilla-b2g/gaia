@@ -15,14 +15,6 @@ var Contacts = (function() {
       givenName,
       company,
       familyName,
-      phoneTemplate,
-      emailTemplate,
-      addressTemplate,
-      noteTemplate,
-      phonesContainer,
-      emailContainer,
-      addressContainer,
-      noteContainer,
       selectedTag,
       customTag,
       contactTag,
@@ -99,14 +91,6 @@ var Contacts = (function() {
   }
 
   var initContainers = function initContainers() {
-    phoneTemplate = document.getElementById('add-phone-#i#');
-    emailTemplate = document.getElementById('add-email-#i#');
-    addressTemplate = document.getElementById('add-address-#i#');
-    noteTemplate = document.getElementById('add-note-#i#');
-    phonesContainer = document.getElementById('contacts-form-phones');
-    emailContainer = document.getElementById('contacts-form-emails');
-    addressContainer = document.getElementById('contacts-form-addresses');
-    noteContainer = document.getElementById('contacts-form-notes');
     customTag = document.getElementById('custom-tag');
     // thumbAction.addEventListener('mousedown', onThumbMouseDown);
     // thumbAction.addEventListener('mouseup', onThumbMouseUp);
@@ -139,7 +123,7 @@ var Contacts = (function() {
     initContactsList();
     checkUrl();
     contactsDetails.init();
-    contactsForm.init();
+    contactsForm.init(TAG_OPTIONS);
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
   });
@@ -254,8 +238,6 @@ var Contacts = (function() {
     }
     return prop.length;
   };
-
-  
 
   var updatePhoto = function updatePhoto(photo, dest) {
     var background = '';

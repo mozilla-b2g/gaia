@@ -208,7 +208,7 @@
         <header>
           <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
-            <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
+            <button id="save-button" onclick="contacts.Form.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 id='contact-form-title'></h1>
         </header>
@@ -325,7 +325,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='contacts.Form.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("tel"); return false;' id='add-new-phone' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addPhone">Add phone number</b>
               </button>
@@ -337,7 +337,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='contacts.Form.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("email"); return false;' id='add-new-email' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addEmail">Add email address</b>
               </button>
@@ -349,7 +349,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='contacts.Form.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("adr"); return false;' id='add-new-address' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addAddress">Add new address</b>
               </button>
@@ -361,7 +361,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='contacts.Form.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("note"); return false;' id='add-new-note' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addComment">Add comment</b>
               </button>
