@@ -401,7 +401,7 @@ var Recents = {
                recent.number +
       '      </section>' +
       '      <section class="secondary-info">' +
-      '        <span class="call-time">' + 
+      '        <span class="call-time">' +
                  Utils.prettyDate(recent.date) +
       '        </span>' +
       '        <span class="call-additional-info ellipsis">' +
@@ -501,7 +501,8 @@ var Recents = {
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
-      var phoneNumberAdditionalInfoNode = logItem.querySelector('.call-additional-info');
+      var phoneNumberAdditionalInfoNode = logItem.
+        querySelector('.call-additional-info');
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
