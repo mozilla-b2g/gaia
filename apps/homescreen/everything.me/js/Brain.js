@@ -602,47 +602,31 @@ var Brain = new function() {
         };
 
         this.hold = function(data) {
-            Apps.disableScroll();
+            if (Applications.isInstalled(data.data.appUrl)) {
+                new Tip({
+                    "id": "install-app-exists",
+                    "text": "This bookmark was added previously",
+                    "closeAfter": 2000
+                }).show();
+                return;
+            }
 
-            var tip = new Tip({
-                "id": "install-app",
-                "text": "Bookmark " + data.data.name + "?",
-                "blockScreen": true,
-                "buttons": [
-                    {
-                        "text": "Yes",
-                        "onclick": function() {
-                            // get icon data
-                            var appIcon = Utils.formatImageData(data.data.icon);
-                            // make it round
-                            Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
-                                // bookmark in ffos
-                                Utils.sendToFFOS(Utils.FFOSMessages.APP_INSTALL, {
-                                    "url": data.data.appUrl,
-                                    "title": data.data.name,
-                                    "icon": appIcon
-                                });
-                            });
+            var response = window.confirm('Bookmark ' + data.data.name + '?');
+            if (!response) {
+                return;
+            }
 
-                            tip.hide();
-
-                            new Tip({
-                                "id": "install-app-success",
-                                "text": "Thank you for bookmarking " + data.data.name + "!",
-                                "closeAfter": 2000
-                            }).show();
-                        }
-                    },
-                    {
-                        "text": "Cancel",
-                        "onclick": function() {
-                            tip.hide();
-                        }
-                    }
-                ]
-            }).show();
-
-            Apps.enableScroll();
+            // get icon data
+            var appIcon = Utils.formatImageData(data.data.icon);
+            // make it round
+            Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
+                // bookmark in ffos
+                Utils.sendToFFOS(Utils.FFOSMessages.APP_INSTALL, {
+                    "url": data.data.appUrl,
+                    "title": data.data.name,
+                    "icon": appIcon
+                });
+            });
         };
 
         this.click = function(data) {
