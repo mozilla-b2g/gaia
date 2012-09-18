@@ -38,7 +38,6 @@ if (typeof fb.oauth === 'undefined') {
 
       asyncStorage.getItem('access_token',
                            function getAccessToken(access_token) {
-                            dump('access_token:' + access_token);
         if (!access_token) {
           startOAuth(state);
           return;
