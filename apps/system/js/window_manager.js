@@ -219,7 +219,7 @@ var WindowManager = (function() {
 
               // Run getAppScreenshotFromFrame() to ensure all CSS backgrounds
               // of the apps are loaded.
-              getAppScreenshotFromFrame(displayedApp,
+              getAppScreenshotFromFrame(openFrame,
                 function screenshotTaken() {
                   sprite.className = 'opened';
                 });
@@ -244,6 +244,7 @@ var WindowManager = (function() {
 
         sprite.style.background = '';
         sprite.className = '';
+        openFrame = null;
 
         break;
 
@@ -266,6 +267,35 @@ var WindowManager = (function() {
 
         sprite.style.background = '';
         sprite.className = '';
+        closeFrame = null;
+
+        break;
+
+      case 'inline-activity-opening':
+        openFrame.classList.add('active');
+        screenElement.classList.add('inline-activity');
+
+        // If frame is still unpainted to this point, we will have to pause
+        // the transition and wait for the mozbrowserfirstpaint event.
+        if ('unpainted' in openFrame.dataset) {
+          openFrame.addEventListener(
+            'mozbrowserfirstpaint', function continueSpriteTransition() {
+              openFrame.removeEventListener(
+                'mozbrowserfirstpaint', continueSpriteTransition);
+
+              sprite.className = 'inline-activity-opened';
+            });
+
+          return;
+        }
+
+        sprite.className = 'inline-activity-opened';
+
+        break;
+
+      case 'inline-activity-opened':
+        sprite.className = '';
+        openFrame = null;
 
         break;
     }
@@ -277,7 +307,7 @@ var WindowManager = (function() {
   var DB_SCREENSHOT_OBJSTORE = 'screenshots';
 
   (function openDatabase() {
-    var DB_VERSION = 1;
+    var DB_VERSION = 2;
     var DB_NAME = 'window_manager';
 
     var req = window.indexedDB.open(DB_NAME, DB_VERSION);
@@ -291,7 +321,7 @@ var WindowManager = (function() {
         database.deleteObjectStore(DB_SCREENSHOT_OBJSTORE);
 
       var store = database.createObjectStore(
-          DB_SCREENSHOT_OBJSTORE, { keyPath: 'origin' });
+          DB_SCREENSHOT_OBJSTORE, { keyPath: 'url' });
     };
 
     req.onsuccess = function databaseSuccess() {
@@ -299,7 +329,7 @@ var WindowManager = (function() {
     };
   })();
 
-  function putAppScreenshotToDatabase(origin, data) {
+  function putAppScreenshotToDatabase(url, data) {
     if (!database)
       return;
 
@@ -310,7 +340,7 @@ var WindowManager = (function() {
     };
     var store = txn.objectStore(DB_SCREENSHOT_OBJSTORE);
     var req = store.put({
-      origin: origin,
+      url: url,
       screenshot: data
     });
     req.onerror = function(evt) {
@@ -319,7 +349,7 @@ var WindowManager = (function() {
     };
   }
 
-  function getAppScreenshotFromDatabase(origin, callback) {
+  function getAppScreenshotFromDatabase(url, callback) {
     if (!database) {
       console.warn(
         'Window Manager: Neither database nor app frame is ' +
@@ -330,7 +360,7 @@ var WindowManager = (function() {
     }
 
     var req = database.transaction(DB_SCREENSHOT_OBJSTORE)
-              .objectStore(DB_SCREENSHOT_OBJSTORE).get(origin);
+              .objectStore(DB_SCREENSHOT_OBJSTORE).get(url);
     req.onsuccess = function() {
       if (!req.result) {
         console.log('Window Manager: No screenshot in database. ' +
@@ -348,30 +378,31 @@ var WindowManager = (function() {
     };
   }
 
-  function deleteAppScreenshotFromDatabase(origin) {
+  function deleteAppScreenshotFromDatabase(url) {
     var txn = database.transaction(DB_SCREENSHOT_OBJSTORE);
     var store = txn.objectStore(DB_SCREENSHOT_OBJSTORE);
 
-    store.delete(origin);
+    store.delete(url);
   }
 
-  function getAppScreenshotFromFrame(origin, callback) {
-    var app = runningApps[origin];
-
-    if (!app || !app.frame) {
+  function getAppScreenshotFromFrame(frame, callback, longTimeout) {
+    if (!frame) {
       callback();
       return;
     }
 
-    var req = app.frame.getScreenshot();
+    var req = frame.getScreenshot();
 
-    // Workaround https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    // This serve as a workaround of
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
+    // We also use this timeout to make sure transition
+    // won't stuck for too long.
     var isTimeout = false;
     var timer = setTimeout(function getScreenshotTimeout() {
       console.warn('Window Manager: getScreenshot timeout.');
       isTimeout = true;
       callback();
-    }, 500);
+    }, longTimeout ? 10 * 1000 : 800);
 
     req.onsuccess = function(evt) {
       if (isTimeout)
@@ -395,36 +426,34 @@ var WindowManager = (function() {
 
   // Meta method for get the screenshot from the app frame,
   // and save it to database.
-  function saveAppScreenshot(origin, callback) {
-    getAppScreenshotFromFrame(origin, function gotScreenshot(screenshot) {
+  function saveAppScreenshot(frame, callback) {
+    getAppScreenshotFromFrame(frame, function gotScreenshot(screenshot) {
       if (callback)
         callback(screenshot);
 
       if (!screenshot)
         return;
 
-      putAppScreenshotToDatabase(origin, screenshot);
-    });
+      putAppScreenshotToDatabase(frame.src, screenshot);
+    }, true);
   }
 
   // Meta method for getting app screenshot from database, or
   // get it from the app frame.
-  function getAppScreenshot(origin, callback) {
-    if (!callback)
+  function getAppScreenshot(frame, callback) {
+    if (!callback || !frame)
       return;
-
-    var app = runningApps[origin];
 
     // If the frame is just being append and app content is just being loaded,
     // let's get the screenshot from the database instead.
-    if (!app || 'unpainted' in app.frame.dataset) {
-      getAppScreenshotFromDatabase(origin, callback);
+    if ('unpainted' in frame.dataset) {
+      getAppScreenshotFromDatabase(frame.src, callback);
       return;
     }
 
-    getAppScreenshotFromFrame(origin, function(screenshot, isCached) {
+    getAppScreenshotFromFrame(frame, function(screenshot, isCached) {
       if (!screenshot) {
-        getAppScreenshotFromDatabase(origin, callback);
+        getAppScreenshotFromDatabase(frame.src, callback);
         return;
       }
 
@@ -459,7 +488,7 @@ var WindowManager = (function() {
       // Get the screenshot of the app and put it on the sprite
       // before starting the transition
       sprite.className = 'before-open';
-      getAppScreenshot(origin, function(screenshot, isCached) {
+      getAppScreenshot(openFrame, function(screenshot, isCached) {
         sprite.dataset.mask = isCached;
 
         if (!screenshot || !useScreenshotInSprite) {
@@ -497,7 +526,7 @@ var WindowManager = (function() {
     // Get the screenshot of the app and put it on the sprite
     // before starting the transition
     sprite.className = 'before-close';
-    getAppScreenshot(origin, function(screenshot, isCached) {
+    getAppScreenshot(closeFrame, function(screenshot, isCached) {
       sprite.dataset.mask = isCached;
 
       if (!screenshot || !useScreenshotInSprite) {
@@ -721,7 +750,7 @@ var WindowManager = (function() {
       // regardless of the sprite transition state.
       // setTimeout() here ensures that we get the screenshot with content.
       setTimeout(function() {
-        saveAppScreenshot(origin);
+        saveAppScreenshot(frame);
       });
     });
 
@@ -745,11 +774,19 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
 
-    // Start the transition only until the frame is painted
+    // frames are began unpainted. This dataset value will pause the
+    // opening sprite transition so users will not see whitish screen.
+    frame.dataset.unpainted = true;
     frame.addEventListener('mozbrowserfirstpaint', function painted() {
       frame.removeEventListener('mozbrowserfirstpaint', painted);
-      frame.classList.add('active');
-      screenElement.classList.add('inline-activity');
+      delete frame.dataset.unpainted;
+
+      // Save the screenshot when we got mozbrowserfirstpaint event,
+      // regardless of the sprite transition state.
+      // setTimeout() here ensures that we get the screenshot with content.
+      setTimeout(function() {
+        saveAppScreenshot(inlineActivityFrame);
+      });
     });
 
     // Discard any existing activity
@@ -763,6 +800,29 @@ var WindowManager = (function() {
 
     // Add the iframe to the document
     windows.appendChild(frame);
+
+    // Open the frame, first, store the reference
+    openFrame = frame;
+
+    // Get the screenshot of the app and put it on the sprite
+    // before starting the transition
+    sprite.className = 'before-inline-activity';
+    getAppScreenshot(inlineActivityFrame, function(screenshot, isCached) {
+      sprite.dataset.mask = isCached;
+
+      if (!screenshot || !useScreenshotInSprite) {
+        sprite.dataset.mask = false;
+        sprite.className = 'inline-activity-opening';
+        return;
+      }
+
+      sprite.style.background = '#fff url(' + screenshot + ')';
+      // Make sure Gecko paint the sprite first
+      afterPaint(function() {
+        // Start the transition
+        sprite.className = 'inline-activity-opening';
+      });
+    });
   }
 
   function removeFrame(origin) {
@@ -779,6 +839,14 @@ var WindowManager = (function() {
 
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
+
+    if (openFrame == frame)
+      sprite.className = '';
+
+    if (!frame.classList.contains('active')) {
+      windows.removeChild(frame);
+      return;
+    }
 
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
