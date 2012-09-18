@@ -58,6 +58,7 @@ HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callb
 };
 
 HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
+  ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
    section.setAttribute('role', 'dialog');
    section.id = 'confirm-auth';
@@ -127,6 +128,7 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
 };
 
 HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
+  ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
    section.setAttribute('role', 'dialog');
    section.id = 'confirm-pin';
@@ -203,6 +205,7 @@ HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
 };
 
 HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
+  ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
    section.setAttribute('role', 'dialog');
    section.id = 'confirm-revoke';
