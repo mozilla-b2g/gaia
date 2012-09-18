@@ -232,7 +232,9 @@ button::-moz-focus-inner {
   margin: 0;
   font-family: FontRegular;
   border-bottom: solid 1px #ff4e00;
-  padding-left: 3rem;
+  padding-left: 1.5rem;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
   padding-top:1rem;
   font-size: -moz-calc(6*0.226rem);
   color: #ff4e00;
