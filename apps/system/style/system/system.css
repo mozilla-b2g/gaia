@@ -105,6 +105,10 @@ body {
   background-color: #fff;
 }
 
+#screen.cards-view > #windows > iframe.appWindow:not(.homescreen) {
+  visibility: hidden;
+}
+
 #windows > iframe.appWindow:not(.active):not(.homescreen) {
   visibility: hidden;
 }
@@ -116,6 +120,7 @@ body {
 
 #windows > iframe.appWindow.inlineActivity.active {
   transform: translateY(0);
+  transition: none;
 }
 
 #screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
@@ -135,6 +140,15 @@ body {
   visibility: hidden;
 }
 
+#screen.active-statusbar #windowSprite {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
+#screen.cards-view > div#windowSprite:not(.before-close) {
+  opacity: 1;
+}
+
 #windowSprite[data-mask="true"] > div {
   width: 100%;
   height: 100%;
@@ -146,8 +160,30 @@ body {
   top: 0;
 }
 
+#windowSprite.before-inline-activity {
+  transform: translateY(-moz-calc(100% - 1px));
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opening {
+  transition: transform 0.5s ease;
+
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opened {
+  transition: opacity 0.3s ease;
+
+  transform: translateY(0);
+  opacity: 0;
+  visibility: visible;
+}
+
 #windowSprite.before-open {
-  transform: scale(0.5);
+  transform: scale(0.6);
   /* 0.01 opacity is needed to make sure Gecko paints and fire
      MozAfterPaint event for us. */
   opacity: 0.01;
@@ -189,7 +225,7 @@ body {
 #windowSprite.closed {
   transition: transform 0.5s ease, opacity 0.3s ease;
 
-  transform: scale(0.5);
+  transform: scale(0.6);
   opacity: 0;
   visibility: visible;
 }
@@ -240,12 +276,23 @@ iframe.backgroundWindow {
 
 #dialog-overlay {
   position: absolute;
-  top: 0;
+  top: 20px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 20px);
   visibility: hidden;
   pointer-events: none;
+}
+
+#screen.active-statusbar #dialog-overlay {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
+#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-app #dialog-overlay {
+  top: 0;
+  height: 100%;
 }
 
 #screen.authentication-dialog #dialog-overlay,
