@@ -456,7 +456,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
@@ -567,7 +567,7 @@ dialer-demo:
 
 demo: install-media-samples install-gaia
 
-production: install-gaia
+production: reset-gaia
 
 # Remove everything and install a clean profile
 reset-gaia: purge install-settingsdb install-gaia

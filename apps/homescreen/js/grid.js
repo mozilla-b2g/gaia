@@ -256,8 +256,12 @@ const GridManager = (function() {
     var appsInDB = [];
     HomeState.getAppsByPage(
       function iterate(apps) {
-        pageHelper.push(apps);
         appsInDB = appsInDB.concat(apps);
+
+        for (var app in apps) {
+          Applications.cacheIcon(apps[app].origin, apps[app].icon);
+        }
+        pageHelper.push(apps.map(function(app) { return app.origin; }));
       },
       function onsuccess(results) {
         if (results === 0) {
@@ -268,7 +272,7 @@ const GridManager = (function() {
         var installedApps = Applications.getInstalledApplications();
         var len = appsInDB.length;
         for (var i = 0; i < len; i++) {
-          var origin = appsInDB[i];
+          var origin = appsInDB[i].origin;
           if (origin in installedApps) {
             delete installedApps[origin];
           }
@@ -277,8 +281,9 @@ const GridManager = (function() {
         DockManager.getShortcuts(function getShortcuts(shortcuts) {
           var len = shortcuts.length;
           for (var i = 0; i < len; i++) {
-            var origin = shortcuts[i];
+            var origin = shortcuts[i].origin || shortcuts[i];
             if (origin in installedApps) {
+              Applications.cacheIcon(origin, shortcuts[i].icon);
               delete installedApps[origin];
             }
           }

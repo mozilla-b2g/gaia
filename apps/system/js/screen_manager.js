@@ -75,7 +75,7 @@ var ScreenManager = {
             if (self._screenWakeLocked) {
               // Turn screen on if wake lock is acquire
               self.turnScreenOn();
-            } else if (self._idled) {
+            } else if (self._idled && self.screenEnabled) {
               // Turn screen off if we are already idled
               // and wake lock is released
               self.turnScreenOff(false);
@@ -97,7 +97,7 @@ var ScreenManager = {
         self.turnScreenOff(self._instantIdleOff);
     };
 
-    // When active, cancel the idle-screen-off process
+    // When active, cancel the idle-screen-off process & off-transition
     this.idleObserver.onactive = function scm_onactive() {
       self._idled = false;
       if (self._inTransition) {
@@ -110,7 +110,7 @@ var ScreenManager = {
     SettingsListener.observe('screen.timeout', 60,
     function screenTimeoutChanged(value) {
       self._idleTimeout = value;
-      self.setIdleTimeout(self._idleTimeout)
+      self.setIdleTimeout(self._idleTimeout);
 
       if (!self._firstOn) {
         (function handleInitlogo() {
@@ -160,17 +160,8 @@ var ScreenManager = {
 
         break;
 
-      case 'mozfullscreenchange':
-        if (document.mozFullScreen) {
-          this.screen.classList.add('fullscreen');
-        } else {
-          this.screen.classList.remove('fullscreen');
-        }
-        break;
-
       case 'sleep':
-        if (!this._screenWakeLocked)
-          this.turnScreenOff(true);
+        this.turnScreenOff(true);
         break;
 
       case 'wake':
@@ -196,7 +187,6 @@ var ScreenManager = {
       self.setIdleTimeout(0);
 
       window.removeEventListener('devicelight', self);
-      window.removeEventListener('mozfullscreenchange', self);
 
       self.screenEnabled = false;
       self._inTransition = false;
@@ -230,10 +220,10 @@ var ScreenManager = {
     if (this.screenEnabled)
       return false;
 
-    window.addEventListener('mozfullscreenchange', this);
-
+    // Set the brightness before the screen is on.
     this.setScreenBrightness(this._userBrightness, instant);
 
+    // Actually turn the screen on.
     var power = navigator.mozPower;
     if (power)
       power.screenEnabled = true;
@@ -247,7 +237,7 @@ var ScreenManager = {
       window.addEventListener('devicelight', this);
 
     // The screen should be turn off with shorter timeout if
-    // it was never unlocked
+    // it was never unlocked.
     if (LockScreen.locked) {
       this.setIdleTimeout(10, true);
       var self = this;
@@ -281,22 +271,30 @@ var ScreenManager = {
       return;
     }
 
+    // transitionBrightness() is a looping function that will
+    // gracefully tune the brightness to _targetBrightness for us.
     this.transitionBrightness();
   },
 
   transitionBrightness: function scm_transitionBrightness() {
     var self = this;
-    var screenBrightness = navigator.mozPower.screenBrightness;
+    var power = navigator.mozPower;
+    var screenBrightness = power.screenBrightness;
 
-    if (Math.abs(this._targetBrightness - screenBrightness) < 0.05)
+    // We can never set the brightness to the exact number of
+    // target brightness, so if the difference is close enough,
+    // we stop the loop and set it for the last time.
+    if (Math.abs(this._targetBrightness - screenBrightness) < 0.05) {
+      power.screenBrightness = this._targetBrightness;
       return;
+    }
 
     var dalta = 0.02;
     if (screenBrightness > this._targetBrightness)
       dalta *= -1;
 
     screenBrightness += dalta;
-    navigator.mozPower.screenBrightness = screenBrightness;
+    power.screenBrightness = screenBrightness;
 
     clearTimeout(this._transitionBrightnessTimer);
     this._transitionBrightnessTimer =
@@ -315,6 +313,9 @@ var ScreenManager = {
     if (!this.screenEnabled)
       return;
 
+    // Disable/enable device light censor accordingly.
+    // This will also toggle the actual hardware, which
+    // must be done while the screen is on.
     if (enabled) {
       window.addEventListener('devicelight', this);
     } else {
@@ -333,21 +334,22 @@ var ScreenManager = {
       return;
     navigator.removeIdleObserver(this.idleObserver);
 
-    if (time === 0) {
+    // Reset the idled state back to false.
+    this._idled = false;
+
+    // 0 is the value used to disable idle timer by user and by us.
+    if (time === 0)
       return;
-    }
 
     this._instantIdleOff = instant;
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
-    this.isIdleObserverInitialized = true;
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('screenchange',
-      /* canBubble */ true, /* cancelable */ false,
-      {screenEnabled: this.screenEnabled});
+    var evt = new CustomEvent('screenchange',
+      { bubbles: true, cancelable: false,
+        detail: { screenEnabled: this.screenEnabled } });
     window.dispatchEvent(evt);
   }
 };

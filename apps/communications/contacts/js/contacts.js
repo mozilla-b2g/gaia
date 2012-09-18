@@ -253,7 +253,7 @@ var Contacts = (function() {
         var prompt1 = new ValueSelector(selectDataStr);
         for (var i = 0; i < dataSet.length; i++) {
           var data = dataSet[i].value,
-              carrier = dataSet[i].carrier;
+              carrier = dataSet[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, function(itemData) {
             return function() {
               prompt1.hide();
@@ -408,9 +408,6 @@ var Contacts = (function() {
     var background = '';
     if (photo != null) {
       background = 'url(' + URL.createObjectURL(photo) + ')';
-      thumbAction.querySelector('p').classList.add('hide');
-    } else {
-      thumbAction.querySelector('p').classList.remove('hide');
     }
     dest.style.backgroundImage = background;
   };
@@ -853,6 +850,7 @@ var Contacts = (function() {
   };
 
   var resetForm = function resetForm() {
+    thumbAction.querySelector('p').classList.remove('hide');
     saveButton.removeAttribute('disabled');
     currentContactId.value = '';
     givenName.value = '';
@@ -1044,6 +1042,44 @@ var Contacts = (function() {
     }
   };
 
+  var isUpdated = function isUpdated(contact1, contact2) {
+    return contact1.id == contact2.id &&
+      (contact1.updated - contact2.updated) == 0;
+  }
+
+  // When a visiblity change is sent, handles and updates the
+  // different views according to the app state
+  var handleVisibilityChange = function handleVisibilityChange() {
+    contacts.List.load();
+    switch (navigation.currentView()) {
+      case 'view-contact-details':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if (isUpdated(contact, currentContact)) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+        });
+        break;
+      case 'view-contact-form':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if (isUpdated(contact, currentContact)) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+          navigation.back();
+        });
+        break;
+    }
+  };
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1064,7 +1100,8 @@ var Contacts = (function() {
     'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
-    'getLength': getLength
+    'getLength': getLength,
+    'handleVisibilityChange': handleVisibilityChange
   };
 })();
 
@@ -1079,7 +1116,7 @@ fb.contacts.init(function() {
       return;
     }
     if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-      contacts.List.load();
+      Contacts.handleVisibilityChange();
     }
     Contacts.checkCancelableActivity();
   });

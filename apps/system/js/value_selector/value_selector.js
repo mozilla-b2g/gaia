@@ -120,14 +120,16 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._containers['select'].querySelectorAll('.selected');
+      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
-        selectee[i].classList.remove('selected');
+        selectee[i].removeAttribute('aria-checked');
       }
 
-      target.classList.add('selected');
+      target.setAttribute('aria-checked', 'true');
+    } else if ( target.getAttribute('aria-checked') === 'true' ) {
+      target.removeAttribute('aria-checked');
     } else {
-      target.classList.toggle('selected');
+      target.setAttribute('aria-checked', 'true');
     }
   },
 
@@ -160,6 +162,10 @@ var ValueSelector = {
     var optionIndices = [];
 
     var selectee = this._containers['select'].querySelectorAll('.selected');
+
+    if (this._currentPickerType === 'select-one' || this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
+    }
 
     if (this._currentPickerType === 'select-one') {
 
@@ -214,7 +220,7 @@ var ValueSelector = {
 
     for (var i = 0, n = options.length; i < n; i++) {
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
@@ -234,9 +240,9 @@ var ValueSelector = {
 
     // Apply different style when the options are more than 1 page
     if (options.length > 5) {
-      this._containers['select'].dataset.mode = 'scroll';
+      this._containers['select'].classList.add('scrollable');
     } else {
-      this._containers['select'].dataset.mode = '';
+      this._containers['select'].classList.remove('scrollable');
     }
 
     // Change the title for multiple select
@@ -245,7 +251,7 @@ var ValueSelector = {
       titleL10nId = 'choose-option';
 
     var optionsTitle = document.querySelector(
-                       '#value-selector-container h3');
+                       '#value-selector-container h1');
 
     if (optionsTitle) {
       optionsTitle.dataset.l10nId = titleL10nId;
@@ -377,7 +383,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseDown(evt) {
-    console.log('mousedown: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, true);
@@ -385,7 +390,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseUp(evt) {
-    console.log('mouseup: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, false);
@@ -393,7 +397,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseLeave(evt) {
-    console.log('mouseLeave: ' + evt.target);
     var target = evt.target;
     _setActive(target, false);
     target.removeEventListener('mouseleave', _onMouseLeave);
@@ -408,10 +411,8 @@ var ActiveEffectHelper = (function() {
     // Attach event listeners
     for (var event in _events) {
       var callback = _events[event] || null;
-      if (callback) {
-        console.log('bind event: ' + event);
+      if (callback)
         element.addEventListener(event, callback);
-      }
     }
   }
 

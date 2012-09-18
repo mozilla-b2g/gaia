@@ -1,58 +1,62 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8">
 
-  <title>Bluetooth Pair Device</title>
-  <meta name="description" content="Prompts user to take a device pair request">
-  <meta name="target" content="html">
-  <link rel="stylesheet" href="shared/style/confirm.css">
-  <script type="application/javascript" defer src="js/onpair.js"></script>
-</head>
-<style>
+    <title>Bluetooth Pair Device</title>
+    <meta name="description" content="Prompts user to take a device pair request">
+    <meta name="target" content="html">
+      <!-- Common style -->
+    <link rel="stylesheet" href="shared/style/confirm.css">
 
-form[role="dialog"] p input {
-  font-size: 1.6em;
-}
-</style>
-<body role="application">
-  <form role="dialog">
-    <section>
-      <h1 data-l10n-id="confirm-pair">Confirm Devices to Pair</h1>
-      <p>
-        <!-- will be device icon: https://github.com/mozilla-b2g/gaia/issues/4597 --!>
-        <img id="icon" src="style/images/settings_bluetooth.png"/>
-        <strong id="label-name"></strong>
-        <small id="label-address"></small>
-      </p>
-      <div id="confirmation-method">
-        <p data-l10n-id="pair-msg-confirmation">
-          To pair with this device, make sure
-          that both devices currently have the
-          following PIN displayed:
-        </p>
-        <p><strong id="passkey"></strong></p>
-      </div>
-      <div id="pin-input-method">
-        <p data-l10n-id="pair-msg-pincode">
-          To pair with this device, enter
-          the PIN on the device.
-        </p>
-        <p><input type="number" id="pin-input" size="4" maxlength="4" /></p>
-      </div>
-      <div id="passkey-input-method">
-        <p data-l10n-id="pair-msg-passkey">
-          To pair with this device, enter
-          the Passkey on the device.
-        </p>
-        <p><input type="number" id="passkey-input" size="6" maxlength="6" /></p>
-      </div>
-    </section>
-    <menu>
-      <button type="reset" id="button-close" data-l10n-id="cancel">Cancel</button>
-      <button type="submit" id="button-pair" data-l10n-id="pair">Pair</button>
-    </menu>
-  </form>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
 
-</body>
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/onpair.css"/>
+
+    <!-- Specific code -->
+    <script type="application/javascript" defer src="js/onpair.js"></script>
+  </head>
+  <body role="application">
+    <form role="dialog">
+      <section>
+        <h1 data-l10n-id="confirm-pair">Confirm Devices to Pair</h1>
+        <p>
+          <!-- will be device icon: https://github.com/mozilla-b2g/gaia/issues/4597 --!>
+          <img id="icon" src="style/images/settings_bluetooth.png"/>
+          <strong id="label-name"></strong>
+          <small id="label-address"></small>
+        </p>
+        <div id="confirmation-method">
+          <p data-l10n-id="pair-msg-confirmation">
+            To pair with this device, make sure
+            that both devices currently have the
+            following PIN displayed:
+          </p>
+          <p><strong id="passkey"></strong></p>
+        </div>
+        <div id="pin-input-method">
+          <p data-l10n-id="pair-msg-pincode">
+            To pair with this device, enter
+            the PIN on the device.
+          </p>
+          <p><input type="number" id="pin-input" size="4" maxlength="4" /></p>
+        </div>
+        <div id="passkey-input-method">
+          <p data-l10n-id="pair-msg-passkey">
+            To pair with this device, enter
+            the Passkey on the device.
+          </p>
+          <p><input type="number" id="passkey-input" size="6" maxlength="6" /></p>
+        </div>
+      </section>
+      <menu>
+        <button type="reset" id="button-close" data-l10n-id="cancel">Cancel</button>
+        <button type="submit" id="button-pair" data-l10n-id="pair">Pair</button>
+      </menu>
+    </form>
+
+  </body>
 </html>

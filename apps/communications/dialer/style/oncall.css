@@ -326,6 +326,14 @@ button[disabled] .icon-keypad-visibility {
   color: black;
 }
 
+#calls > section .fake-number {
+  position: absolute;
+  line-height: 0rem;
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+
 #calls[data-count="1"] > section .additionalContactInfo {
   height: 2rem;
   padding: 0 2rem 2rem 2rem;
@@ -356,7 +364,6 @@ button[disabled] .icon-keypad-visibility {
 
 #calls > section .number {
   font-size: 1.5em;
-  text-overflow: ellipsis;
 }
 
 #calls > section .duration {
@@ -367,12 +374,6 @@ button[disabled] .icon-keypad-visibility {
 
 #calls > section.held .duration {
   display: none;
-}
-
-#calls > section .fake-number {
-  position: absolute;
-  line-height: 0;
-  visibility: hidden;
 }
 
 #calls > section .duration > .direction {
@@ -547,8 +548,6 @@ button[disabled] .icon-keypad-visibility {
     line-height: 100%;
     color: white;
     background-color: transparent;
-    overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
