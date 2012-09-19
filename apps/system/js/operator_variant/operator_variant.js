@@ -73,7 +73,7 @@
   };
 
   function storeSettings() {
-    var transaction = settings.getLock();
+    var transaction = settings.createLock();
     transaction.set(cset);
   };
 
@@ -90,7 +90,7 @@
   }
 
   cset = {};
-  var transaction = settings.getLock();
+  var transaction = settings.createLock();
 
   var mcc_request = transaction.get("operatorvariant.mcc");
   mcc_request.onsuccess = function() {
