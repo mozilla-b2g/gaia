@@ -28,6 +28,16 @@ HostingProvider.prototype.extractOAuth1AccessTokens = function(string) {
   return res;
 };
 
+HostingProvider.prototype.performLogin = function() {
+  if (this.auth == false) {
+    return true;
+  }
+
+  if (this.auth == 'oauth1') {
+    return this.performOAuth1Login();
+  }
+};
+
 HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
   if (this.creds.length > 0) {
     this.keys.token = this.creds[0].oauth_token;
@@ -302,7 +312,7 @@ HostingProvider.prototype.updateCredentials = function() {
       var loginButton = document.createElement('button');
       loginButton.id = 'login-twitter';
       loginButton.innerHTML = 'Login on ' + self.name;
-      loginButton.onclick = self.performOAuth1Login.bind(self);
+      loginButton.onclick = self.performLogin.bind(self);
       container.appendChild(loginButton);
     } else {
       // found some credentials, let's use them!
