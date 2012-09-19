@@ -92,7 +92,9 @@
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
     <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
+    <link rel="stylesheet" type="text/css" href="style/value_selector/date_picker.css">
     <script defer src="js/value_selector/value_picker.js"></script>
+    <script defer src="js/value_selector/date_picker.js"></script>
     <script defer src="js/value_selector/value_selector.js"></script>
 
     <!-- Popup Manager -->
@@ -393,6 +395,35 @@
             <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
           </div>
         </div>
+
+        <!-- Date Picker -->
+        <section role="dialog" id="date-picker-popup">
+          <div id="date-picker" onmousedown="return false;">
+            <h3 data-l10n-id="select-day">Select day</h3>
+            <header id="date-picker-controls">
+            <button class="previous">Previous</button>
+            <h1 id="current-month"></h1>
+            <button class="next">Next</button>
+            </header>
+
+            <ol id="date-picker-weekdays">
+              <li data-l10n-id="weekday-0-short">SUN</li>
+              <li data-l10n-id="weekday-1-short">MON</li>
+              <li data-l10n-id="weekday-2-short">TUE</li>
+              <li data-l10n-id="weekday-3-short">WED</li>
+              <li data-l10n-id="weekday-4-short">THU</li>
+              <li data-l10n-id="weekday-5-short">FRI</li>
+              <li data-l10n-id="weekday-6-short">SAT</li>
+            </ol>
+
+            <section id="date-picker-container">
+            </section>
+          </div>
+          <menu id="date-picker-buttons" data-items="2">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </menu>
+        </section>
 
       </div>
 
