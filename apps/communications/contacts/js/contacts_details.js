@@ -207,6 +207,7 @@ contacts.Details = (function() {
        cList.getContactById(contact.id,
                            function onSuccess(savedContact, enrichedContact) {
         contact = savedContact;
+        Contacts.setCurrent(contact);
 
         if (enrichedContact) {
           cList.refresh(enrichedContact);

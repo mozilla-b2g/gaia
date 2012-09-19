@@ -583,9 +583,13 @@ var Contacts = (function() {
   };
 
   var showForm = function c_showForm(edit) {
-    currentContact = edit ? currentContact : null;
-    contactsForm.render(currentContact, goToForm)
+    var contact = edit ? currentContact : null;
+    contactsForm.render(contact, goToForm)
   };
+
+  var setCurrent = function c_setCurrent(contact) {
+    currentContact = contact;
+  }
 
   return {
     'doneTag': doneTag,
@@ -602,7 +606,8 @@ var Contacts = (function() {
     'isEmpty': isEmpty,
     'getLength': getLength,
     'handleVisibilityChange': handleVisibilityChange,
-    'showForm': showForm
+    'showForm': showForm,
+    'setCurrent': setCurrent
   };
 })();
 

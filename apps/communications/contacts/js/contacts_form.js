@@ -11,6 +11,7 @@ contacts.Form = (function() {
     'note': 0
   };
   var TAG_OPTIONS;
+  var currentContact = {};
   var dom,
       deleteContactButton,
       thumb,
@@ -21,8 +22,7 @@ contacts.Form = (function() {
       givenName,
       company,
       familyName,
-      configs,
-      currentContact;
+      configs;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -104,22 +104,65 @@ contacts.Form = (function() {
     currentContact = contact;
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
-    currentContactId.value = currentContact.id;
-    givenName.value = currentContact.givenName;
-    familyName.value = currentContact.familyName;
-    company.value = currentContact.org;
+    currentContactId.value = contact.id;
+    givenName.value = contact.givenName;
+    familyName.value = contact.familyName;
+    company.value = contact.org;
     var photo = null;
-    if (currentContact.photo && currentContact.photo.length > 0) {
-      photo = currentContact.photo[0];
+    if (contact.photo && contact.photo.length > 0) {
+      photo = contact.photo[0];
     }
     Contacts.updatePhoto(photo, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
-      renderTemplate(current, currentContact[current]);
+      renderTemplate(current, contact[current]);
     }
-    console.log('SHOW EDIT CALLED');
+    deleteContactButton.onclick = function deleteClicked(event) {
+      var msg = _('deleteConfirmMsg');
+      var yesObject = {
+        title: _('remove'),
+        callback: function onAccept() {
+          deleteContact(currentContact);
+          CustomDialog.hide();
+        }
+      };
+
+      var noObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          CustomDialog.hide();
+        }
+      };
+
+      CustomDialog.show(null, msg, noObject, yesObject);
+    };
   };
+
+  var showAdd = function showAdd(params) {
+    console.log('SHOW ADD CALLED');
+    if (!params || params == -1 || !('id' in params)) {
+      currentContact = {};
+    }
+    saveButton.setAttribute('disabled', 'disabled');
+    deleteContactButton.classList.add('hide');
+    formTitle.innerHTML = _('addContact');
+
+    params = params || {};
+
+    givenName.value = params.giveName || '';
+    familyName.value = params.lastName || '';
+    company.value = params.company || '';
+
+    var toRender = ['tel', 'email', 'adr', 'note'];
+    for (var i = 0; i < toRender.length; i++) {
+      var current = toRender[i];
+      var rParams = params[current] || {};
+      renderTemplate(current, rParams);
+    }
+    checkDisableButton();
+  };
+
 
   // template, fields, cont, counter
   var renderTemplate = function cf_rendTemplate(type, toRender) {
@@ -155,41 +198,11 @@ contacts.Form = (function() {
     counters[type]++;
   };
 
-  var showAdd = function showAdd(params) {
-    console.log('SHOW ADD CALLED');
-    // if (!params || params == -1 || !('id' in params)) {
-    //   currentContact = {};
-    // }
-    // saveButton.setAttribute('disabled', 'disabled');
-    // deleteContactButton.classList.add('hide');
-    // formTitle.innerHTML = _('addContact');
-
-    // params = params || {};
-
-    // givenName.value = params.giveName || '';
-    // familyName.value = params.lastName || '';
-    // company.value = params.company || '';
-
-    // var paramsMapping = {
-    //   'tel' : insertPhone,
-    //   'email' : insertEmail,
-    //   'address' : insertAddress,
-    //   'note' : insertNote
-    // };
-    // formTitle.innerHTML = _('addContact');
-
-    // for (var i in paramsMapping) {
-    //   paramsMapping[i].call(this, params[i] || 0);
-    // }
-    // contactsForm.checkDisableButton();
-    // edit();
-  };
-
   var deleteContact = function deleteContact(contact) {
-    var request = navigator.mozContacts.remove(currentContact);
+    var request = navigator.mozContacts.remove(contact);
     request.onsuccess = function successDelete() {
-      contactsList.remove(currentContact.id);
-      currentContact = {};
+      contacts.List.remove(contact.id);
+      Contacts.setCurrent ({});
       Contacts.navigation.home();
     };
     request.onerror = function errorDelete() {
@@ -198,6 +211,7 @@ contacts.Form = (function() {
   }
 
   var saveContact = function saveContact() {
+    currentContact = currentContact || {};
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
@@ -275,15 +289,15 @@ contacts.Form = (function() {
       // Reloading contact, as it only allows to be updated once
       var cList = contacts.List;
       cList.getContactById(contact.id, function onSuccess(savedContact) {
-        currentContact = savedContact;
+        Contacts.setCurrent(savedContact);
         myContact.id = savedContact.id;
         myContact.photo = savedContact.photo;
         myContact.category = savedContact.category;
         cList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.postNewSuccess(myContact);
+          ActivityHandler.postNewSuccess(savedContact);
         } else {
-          contacts.Details.render(currentContact, TAG_OPTIONS);
+          contacts.Details.render(savedContact, TAG_OPTIONS);
         }
         Contacts.navigation.back();
       }, function onError() {
@@ -460,7 +474,6 @@ contacts.Form = (function() {
   return {
     'init': init,
     'render': render,
-    'checkDisableButton': checkDisableButton,
     'insertField': insertField,
     'saveContact': saveContact
   };
