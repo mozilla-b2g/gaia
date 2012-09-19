@@ -37,6 +37,10 @@ var previewPlayer = document.createElement('video');
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
+var urlToStream; // From an activity call
+
+var storageState;
+
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
 window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
@@ -51,14 +55,12 @@ function init() {
   videodb = new MediaDB('videos', metaDataParser);
 
   videodb.onunavailable = function(why) {
-    if (why === 'unavailable') {
-      showOverlay('nocard');
-    } else if (why === 'shared') {
-      showOverlay('cardinuse');
-    }
+    storageState = why;
+    createThumbnailList();
   };
 
   videodb.onready = function() {
+    storageState = false;
     scan();
     createThumbnailList();
   };
@@ -74,6 +76,16 @@ function init() {
     // repaint
     createThumbnailList();
   };
+
+
+  if (urlToStream) {
+    showPlayer({
+      remote: true,
+      url: urlToStream.url,
+      title: urlToStream.title
+    }, true);
+    urlToStream = null;
+  }
 }
 
 function scan() {
@@ -84,6 +96,15 @@ function scan() {
 }
 
 function createThumbnailList() {
+
+  if (!playerShowing && storageState) {
+    if (storageState === 'unavailable') {
+      showOverlay('nocard');
+    } else if (storageState === 'shared') {
+      showOverlay('cardinuse');
+    }
+    return;
+  }
 
   dom.thumbnails.innerHTML = '';
 
@@ -236,14 +257,16 @@ function showOverlay(id) {
   dom.overlay.classList.remove('hidden');
 }
 
+
 // When we exit fullscreen mode, stop playing the video.
 // This happens automatically when the user uses the back button (because
 // back is Escape, which is also the "leave fullscreen mode" command).
 // It also happens when the user uses the Home button to go to the
 // homescreen or another app.
 document.addEventListener('mozfullscreenchange', function() {
-  if (document.mozFullScreenElement === null)
+  if (document.mozFullScreenElement === null) {
     hidePlayer();
+  }
 });
 
  // Pause on visibility change
@@ -293,6 +316,9 @@ dom.videoControls.addEventListener('mousedown', function(event) {
 
 // Make the video fit the screen
 function setPlayerSize() {
+  if (!currentVideo.metadata) {
+    return;
+  }
   var xscale = window.innerWidth / currentVideo.metadata.width;
   var yscale = window.innerHeight / currentVideo.metadata.height;
   var scale = Math.min(xscale, yscale);
@@ -310,6 +336,19 @@ function setPlayerSize() {
 // orientation changes and when we go into fullscreen
 window.addEventListener('resize', setPlayerSize);
 
+function setVideoUrl(player, video, callback) {
+  if (video.remote) {
+    player.onloadedmetadata = callback;
+    player.src = video.url;
+  } else {
+    videodb.getFile(video.name, function(file) {
+      var url = URL.createObjectURL(file);
+      player.onloadedmetadata = callback;
+      player.src = url;
+    });
+  }
+}
+
 // show video player
 function showPlayer(data, autoPlay) {
   currentVideo = data;
@@ -318,42 +357,55 @@ function showPlayer(data, autoPlay) {
   dom.videoFrame.classList.remove('hidden');
   dom.play.classList.remove('paused');
   playerShowing = true;
+  dom.player.preload = 'metadata';
 
-  dom.durationText.textContent = formatDuration(currentVideo.metadata.duration);
-  dom.videoTitle.textContent = currentVideo.metadata.title;
+  function doneSeeking() {
+    dom.videoFrame.mozRequestFullScreen();
 
-  // Get the video file and start the player
-  videodb.getFile(data.name, function(file) {
-    var url = URL.createObjectURL(file);
-    dom.player.preload = 'metadata';
-    dom.player.src = url;
-    dom.player.onloadedmetadata = function() {
+    // Show the controls briefly then fade out
+    setControlsVisibility(true);
+    controlFadeTimeout = setTimeout(function() {
+      setControlsVisibility(false);
+    }, 250);
 
+    if (autoPlay) {
+      play();
+    }
+
+    if (!currentVideo.remote) {
+      currentVideo.metadata.watched = true;
+      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+    }
+  }
+
+  setVideoUrl(dom.player, currentVideo, function() {
+
+    dom.durationText.textContent = formatDuration(dom.player.duration);
+    timeUpdated();
+    setPlayerSize();
+
+    if (currentVideo.remote) {
+      dom.videoTitle.textContent = currentVideo.title || '';
+      dom.player.currentTime = 0;
+    } else {
       if (currentVideo.metadata.currentTime === dom.player.duration) {
         currentVideo.metadata.currentTime = 0;
       }
-
+      dom.videoTitle.textContent = currentVideo.metadata.title;
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
-      timeUpdated();
+    }
 
-      // Go into full screen mode
-      dom.videoFrame.mozRequestFullScreen();
-
-      // Show the controls briefly then fade out
-      setControlsVisibility(true);
-      controlFadeTimeout = setTimeout(function() {
-        setControlsVisibility(false);
-      }, 250);
-
-      setPlayerSize();
-
-      if (autoPlay) {
-        play();
-      }
-
-      currentVideo.metadata.watched = true;
-      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+    // Currently if we attempt to grab fullscreen without a timeout
+    // it never happen
+    var pauseDoneSeeking = function() {
+      setTimeout(doneSeeking, currentVideo.remote ? 1000 : 0);
     };
+
+    if (dom.player.seeking) {
+      dom.player.onseeked = pauseDoneSeeking();
+    } else {
+      pauseDoneSeeking();
+    }
   });
 }
 
@@ -363,8 +415,23 @@ function hidePlayer() {
 
   dom.player.pause();
 
+  function completeHidingPlayer() {
+    // switch to the video gallery view
+    createThumbnailList();
+    dom.videoFrame.classList.add('hidden');
+    dom.videoBar.classList.remove('paused');
+    playerShowing = false;
+  }
+
+  if (currentVideo.remote) {
+    completeHidingPlayer();
+    return;
+  }
+
+  var video = currentVideo;
+
   // Record current information about played video
-  currentVideo.metadata.currentTime = dom.player.currentTime;
+  video.metadata.currentTime = dom.player.currentTime;
   captureFrame(dom.player, function(poster) {
     currentVideo.metadata.poster = poster;
     dom.player.currentTime = 0;
@@ -375,14 +442,7 @@ function hidePlayer() {
       screenLock = null;
     }
 
-    videodb.updateMetadata(currentVideo.name, currentVideo.metadata, function() {
-      // switch to the video gallery view
-      createThumbnailList();
-      dom.videoFrame.classList.add('hidden');
-      dom.videoBar.classList.remove('paused');
-      playerShowing = false;
-    });
-
+    videodb.updateMetadata(video.name, video.metadata, completeHidingPlayer);
   });
 }
 
@@ -536,4 +596,15 @@ function formatDuration(duration) {
     return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   }
   return '';
+}
+
+function actHandle(activity) {
+  urlToStream = {
+    url: activity.source.data.url,
+    title: activity.source.data.title || ''
+  };
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
 }
