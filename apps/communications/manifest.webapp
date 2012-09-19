@@ -40,7 +40,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["webcontacts/contact","webcontacts/email"]
+        "type": "webcontacts/contact"
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
