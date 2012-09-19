@@ -145,6 +145,23 @@ var Settings = {
         }
       }
     );
+
+    // preset all select
+    var selects = document.querySelectorAll('select');
+    for (i = 0; i < selects.length; i++) {
+      (function(select) {
+        var key = select.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          var value = request.result[key];
+          if (value != undefined)
+            select.querySelector('option[value="' + value + '"]').selected = true;
+        };
+      })(selects[i]);
+    }
   },
 
   handleEvent: function settings_handleEvent(evt) {
@@ -161,7 +178,8 @@ var Settings = {
           value = input.checked;
         } else if ((input.type == 'radio') ||
                    (input.type == 'text') ||
-                   (input.type == 'password')) {
+                   (input.type == 'password') ||
+                   (input.tagName.toLowerCase() == 'select')) {
           value = input.value;
         }
         var cset = {}; cset[key] = value;
