@@ -96,7 +96,7 @@ contacts.Form = (function() {
 
   var render = function cf_render(contact, callback) {
     resetForm();
-    contact ? showEdit(contact) : showAdd();
+    (contact && contacts.id) ? showEdit(contact) : showAdd(contact);
     if (callback) {
       callback();
     }
@@ -106,10 +106,10 @@ contacts.Form = (function() {
     currentContact = contact;
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
-    currentContactId.value = contact.id;
-    givenName.value = contact.givenName;
-    familyName.value = contact.familyName;
-    company.value = contact.org;
+    currentContactId.value = contact.id || '';
+    givenName.value = contact.givenName || '';
+    familyName.value = contact.familyName || '';
+    company.value = contact.org || '';
     var photo = null;
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
@@ -142,7 +142,6 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
-    console.log('SHOW ADD CALLED');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
     }
@@ -204,7 +203,7 @@ contacts.Form = (function() {
     var request = navigator.mozContacts.remove(contact);
     request.onsuccess = function successDelete() {
       contacts.List.remove(contact.id);
-      Contacts.setCurrent ({});
+      Contacts.setCurrent({});
       Contacts.navigation.home();
     };
     request.onerror = function errorDelete() {
@@ -317,19 +316,19 @@ contacts.Form = (function() {
 
   var getPhones = function getPhones(contact) {
     var selector = '#view-contact-form form div.phone-template';
-    var phones = document.querySelectorAll(selector);
+    var phones = dom.querySelectorAll(selector);
     for (var i = 0; i < phones.length; i++) {
       var currentPhone = phones[i];
       var arrayIndex = currentPhone.dataset.index;
-      var numberField = document.getElementById('number_' + arrayIndex);
+      var numberField = dom.getElementById('number_' + arrayIndex);
       var numberValue = numberField.value;
       if (!numberValue)
         continue;
 
       var selector = 'tel_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).textContent || '';
       var carrierSelector = 'carrier_' + arrayIndex;
-      var carrierField = document.getElementById(carrierSelector).value || '';
+      var carrierField = dom.getElementById(carrierSelector).value || '';
       contact['tel'] = contact['tel'] || [];
       contact['tel'][i] = {
         value: numberValue,
@@ -341,14 +340,14 @@ contacts.Form = (function() {
 
   var getEmails = function getEmails(contact) {
     var selector = '#view-contact-form form div.email-template';
-    var emails = document.querySelectorAll(selector);
+    var emails = dom.querySelectorAll(selector);
     for (var i = 0; i < emails.length; i++) {
       var currentEmail = emails[i];
       var arrayIndex = currentEmail.dataset.index;
-      var emailField = document.getElementById('email_' + arrayIndex);
+      var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
       var selector = 'email_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).textContent || '';
       if (!emailValue)
         continue;
 
@@ -362,21 +361,21 @@ contacts.Form = (function() {
 
   var getAddresses = function getAddresses(contact) {
     var selector = '#view-contact-form form div.address-template';
-    var addresses = document.querySelectorAll(selector);
+    var addresses = dom.querySelectorAll(selector);
     for (var i = 0; i < addresses.length; i++) {
       var currentAddress = addresses[i];
       var arrayIndex = currentAddress.dataset.index;
-      var addressField = document.getElementById('streetAddress_' + arrayIndex);
+      var addressField = dom.getElementById('streetAddress_' + arrayIndex);
       var addressValue = addressField.value || '';
 
       var selector = 'address_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
+      var typeField = dom.getElementById(selector).textContent || '';
       selector = 'locality_' + arrayIndex;
-      var locality = document.getElementById(selector).value || '';
+      var locality = dom.getElementById(selector).value || '';
       selector = 'postalCode_' + arrayIndex;
-      var postalCode = document.getElementById(selector).value || '';
+      var postalCode = dom.getElementById(selector).value || '';
       selector = 'countryName_' + arrayIndex;
-      var countryName = document.getElementById(selector).value || '';
+      var countryName = dom.getElementById(selector).value || '';
 
       // Sanity check for pameters, check all params but the typeField
       if (addressValue == '' && locality == '' &&
@@ -397,11 +396,11 @@ contacts.Form = (function() {
 
   var getNotes = function getNotes(contact) {
     var selector = '#view-contact-form form div.note-template';
-    var notes = document.querySelectorAll(selector);
+    var notes = dom.querySelectorAll(selector);
     for (var i = 0; i < notes.length; i++) {
       var currentNote = notes[i];
       var arrayIndex = currentNote.dataset.index;
-      var noteField = document.getElementById('note_' + arrayIndex);
+      var noteField = dom.getElementById('note_' + arrayIndex);
       var noteValue = noteField.value;
       if (!noteValue) {
         continue;
@@ -421,10 +420,10 @@ contacts.Form = (function() {
     familyName.value = '';
     company.value = '';
     thumb.style.backgroundImage = '';
-    var phones = document.getElementById('contacts-form-phones');
-    var emails = document.getElementById('contacts-form-emails');
-    var addresses = document.getElementById('contacts-form-addresses');
-    var notes = document.getElementById('contacts-form-notes');
+    var phones = dom.querySelector('#contacts-form-phones');
+    var emails = dom.querySelector('#contacts-form-emails');
+    var addresses = dom.querySelector('#contacts-form-addresses');
+    var notes = dom.querySelector('#contacts-form-notes');
     phones.innerHTML = '';
     emails.innerHTML = '';
     addresses.innerHTML = '';

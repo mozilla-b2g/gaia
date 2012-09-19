@@ -17,7 +17,7 @@ contacts.List = (function() {
       fastScroll,
       scrollable;
 
-  var init = function load(element) {
+  var init = function load(element, overlay) {
     _ = navigator.mozL10n.get;
 
     cancel = document.getElementById('cancel-search'),
@@ -44,7 +44,6 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
-    showOverlay();
   }
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -67,8 +66,10 @@ contacts.List = (function() {
     scrollable.scrollTop = domTarget.offsetTop;
   }
 
-  var load = function load(contacts) {
-
+  var load = function load(contacts, overlay) {
+    if (overlay) {
+      showOverlay();
+    }
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     }
@@ -373,7 +374,7 @@ contacts.List = (function() {
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    if (typeof contacts !== 'undefined') {
+    if (contacts) {
       buildContacts(contacts);
       return;
     }

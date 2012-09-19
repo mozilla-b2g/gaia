@@ -32,11 +32,13 @@ var Contacts = (function() {
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
+    var overlay = true;
     var params = hasParams.length > 1 ?
       extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
+        overlay = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -52,18 +54,19 @@ var Contacts = (function() {
         break;
 
       case 'view-contact-form':
+        overlay = false;
         if (params == -1 || !('id' in params)) {
-          contactsForm.render(params);
+          contactsForm.render(params, goToForm);
         } else {
           // Editing existing contact
           if ('id' in params) {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
-              contactsForm.render(currentContact);
+              contactsForm.render(currentContact, goToForm);
             }, function onError() {
               console.log('Error retrieving contact to be edited');
-              contactsForm.render();
+              contactsForm.render(null, goToForm);
             });
           }
         }
@@ -72,7 +75,7 @@ var Contacts = (function() {
     }
 
     if (!contactsList.loaded) {
-      loadList();
+      loadList(overlay);
     }
 
   }
@@ -120,9 +123,9 @@ var Contacts = (function() {
     initLanguages();
     initContainers();
     initContactsList();
-    checkUrl();
     contactsDetails.init();
     contactsForm.init(TAG_OPTIONS);
+    checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
   });
@@ -207,8 +210,8 @@ var Contacts = (function() {
     }
   }
 
-  var loadList = function loadList() {
-    contactsList.load();
+  var loadList = function loadList(overlay) {
+    contactsList.load(null, overlay);
     contactsList.handleClick(function handleClick(id) {
       var options = {
         filterBy: ['id'],
