@@ -44,27 +44,6 @@ contacts.Details = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
     initPullEffect(cover);
-    TAG_OPTIONS = {
-      'phone-type' : [
-        {value: _('mobile')},
-        {value: _('home')},
-        {value: _('work')},
-        {value: _('personal')},
-        {value: _('faxHome')},
-        {value: _('faxOffice')},
-        {value: _('faxOther')},
-        {value: _('another')}
-      ],
-      'email-type' : [
-        {value: _('personal')},
-        {value: _('home')},
-        {value: _('work')}
-      ],
-      'address-type' : [
-        {value: _('home')},
-        {value: _('work')}
-      ]
-    };
   };
 
   var setContact = function cd_setContact(currentContact) {

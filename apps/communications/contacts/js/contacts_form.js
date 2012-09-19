@@ -22,7 +22,8 @@ contacts.Form = (function() {
       givenName,
       company,
       familyName,
-      configs;
+      configs,
+      _;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -81,6 +82,7 @@ contacts.Form = (function() {
   var init = function cf_init(tags, currentDom) {
     dom = currentDom || document;
     TAG_OPTIONS = tags;
+    _ = navigator.mozL10n.get;
     initContainers();
 
     document.addEventListener('input', function input(event) {

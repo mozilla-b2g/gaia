@@ -490,7 +490,8 @@ var Contacts = (function() {
     'getLength': getLength,
     'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
-    'setCurrent': setCurrent
+    'setCurrent': setCurrent,
+    'getTags': TAG_OPTIONS
   };
 })();
 
