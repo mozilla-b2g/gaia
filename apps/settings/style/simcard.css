@@ -1,0 +1,36 @@
+#sim dl > * {
+  padding-left: 20px;
+  font-size: 1.6em;
+}
+
+#sim dl dt {
+  font-weight: bold;
+}
+
+[role="dialog"] header button {
+  font-size: 1.2em;
+}
+
+[role="dialog"] .container {
+  padding-left: 20px;
+}
+
+[role="dialog"] .error #messageHeader {
+  color: red; 
+}
+
+[role="dialog"] .input-wrapper {
+  position: relative;
+}
+
+[role="dialog"] .input-wrapper input {
+  font-size: 2.0em;
+}
+
+[role="dialog"] .input-wrapper input[type="text"] {
+  width: auto;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+}
+
