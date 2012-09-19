@@ -401,6 +401,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
       case MODE_TOP_UP_TIMEOUT:
         _topupTimeout.setAttribute('aria-hidden', 'false');
+        break;
     }
   }
 

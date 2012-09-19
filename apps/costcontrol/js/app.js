@@ -92,8 +92,8 @@ function setupApp() {
     _configureCloseSettingsDialog();
 
     // Initialize each tab (XXX: see them in /js/views/ )
-    for (var viewId in Views) if (Views.hasOwnProperty(viewId))
-      Views[viewId].init();
+    for (var viewId in Views)
+        Views[viewId].init();
 
     // Handle web activity
     navigator.mozSetMessageHandler('activity',

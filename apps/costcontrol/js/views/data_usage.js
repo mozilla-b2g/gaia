@@ -43,7 +43,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     var controls = document.getElementById('limits-layer');
 
-    // TODO: Hack ultrawarro, mejorar el scope
+    // TODO: Remove this, or refactor to not use an inner scope
     (function() {
       var offsetX = getWindowLeft(controls);
       var offsetY = getWindowTop(controls);
@@ -56,31 +56,37 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       }
 
       var element, elementX, elementY;
-      controls.addEventListener('click', function(event) {
-        element = event.target;
-        if (!checkContent(event.clientX, event.clientY))
-          return;
+      controls.addEventListener('click',
+        function ccapp_onCanvasClick(event) {
+          element = event.target;
+          if (!checkContent(event.clientX, event.clientY))
+            return;
 
-        if (pressing) {
-          console.log('limitClicked');
+          if (pressing) {
+            debug('limitClicked');
+          }
         }
-      });
+      );
 
       var pressing, longPressTimeout;
-      controls.addEventListener('mousedown', function(event) {
-        if (!checkContent(event.clientX, event.clientY))
-          return;
+      controls.addEventListener('mousedown',
+        function ccapp_onCanvasMousedown(event) {
+          if (!checkContent(event.clientX, event.clientY))
+            return;
 
-        pressing = true;
-        longPressTimeout = setTimeout(function() {
-          pressing = false;
-          console.log('setLimit');
-        }, 500);
-      });
+          pressing = true;
+          longPressTimeout = setTimeout(function() {
+            pressing = false;
+            debug('setLimit');
+          }, 500);
+        }
+      );
 
-      controls.addEventListener('mouseup', function(event) {
-        clearTimeout(longPressTimeout);
-      });
+      controls.addEventListener('mouseup',
+        function ccapp_onCanvasMouseup(event) {
+          clearTimeout(longPressTimeout);
+        }
+      );
 
     }());
 

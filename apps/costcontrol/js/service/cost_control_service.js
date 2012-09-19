@@ -82,10 +82,9 @@ setService(function cc_setupCostControlService() {
     }
 
     function _newLocalSettingsChangeEvent(key, value, oldValue) {
-      return new CustomEvent(
-        'localsettingschanged',
-        { detail: { key: key, value: value, oldValue: oldValue } }
-      );
+      return new CustomEvent('localsettingschanged', {
+        detail: { key: key, value: value, oldValue: oldValue }
+      });
     }
 
     // Call callback when the value for key is set
@@ -283,8 +282,7 @@ setService(function cc_setupCostControlService() {
         var now = (new Date()).getTime();
         var duration = now - starttime;
         setTimeout(function cc_updateCallTime() {
-          _appSettings.option(
-            'calltime',
+          _appSettings.option('calltime',
             _appSettings.option('calltime') + duration
           );
         });
