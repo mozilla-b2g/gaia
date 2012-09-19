@@ -478,7 +478,7 @@ var KeypadManager = {
      if (!settings) {
       return;
      }
-     var transaction = settings.getLock();
+     var transaction = settings.createLock();
      var request = transaction.get("ro.moz.ril.iccmbdn");
      request.onsuccess = function() {
        if (request.result["ro.moz.ril.iccmbdn"]) {
