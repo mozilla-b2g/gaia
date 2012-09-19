@@ -19,7 +19,7 @@ var AttentionScreen = {
   },
 
   isVisible: function as_isVisible() {
-    return this.attentionScreen.classList.contains('displayed');
+    return this.mainScreen.classList.contains('attention');
   },
 
   isFullyVisible: function as_isFullyVisible() {
@@ -85,7 +85,9 @@ var AttentionScreen = {
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     this.attentionScreen.appendChild(attentionFrame);
-    this.attentionScreen.classList.add('displayed');
+    this.mainScreen.classList.add('attention');
+    
+    this.dispatchEvent('attentionscreenshow');
 
     // Ensuring the proper mozvisibility change on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
@@ -95,8 +97,6 @@ var AttentionScreen = {
         frame.setVisible(false);
       }
     }
-
-    this.dispatchEvent('attentionscreenshow');
   },
 
   close: function as_close(evt) {
@@ -119,7 +119,7 @@ var AttentionScreen = {
     this.attentionScreen.removeChild(evt.target);
 
     if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
-      this.attentionScreen.classList.remove('displayed');
+      this.mainScreen.classList.remove('attention');
       this.dispatchEvent('attentionscreenhide');
     }
 
@@ -156,17 +156,15 @@ var AttentionScreen = {
         // not turn the sreen off when the attention screen is closed.
         this._screenInitiallyDisabled = false;
 
-        this.dispatchEvent('status-active');
-
         this.mainScreen.classList.add('active-statusbar');
+
+        this.dispatchEvent('status-active');
 
         var attentionScreen = this.attentionScreen;
         attentionScreen.addEventListener('transitionend', function trWait() {
             attentionScreen.removeEventListener('transitionend', trWait);
             attentionScreen.classList.add('status-mode');
         });
-
-        this.dispatchEvent('attentionscreenhide');
       }
     }
   },
