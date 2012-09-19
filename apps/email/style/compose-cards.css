@@ -18,40 +18,16 @@
   width: -moz-available;
 }
 
-.cmp-bubble-container {
-  width: calc(100% - 3.5rem);
-  float: left;
-  padding-top: 0.2rem;
-}
-
-.cmp-peep-bubble {
-  float: left;
-  margin-left: 0.3rem;
-}
-
-.cmp-peep-name, .cmp-peep-address {
-  pointer-events: none;
-}
-
-.cmp-to-text-container {
-  overflow: hidden;
-}
-
-.cmp-addr-text, .cmp-subject-text, .cmp-dot-text {
+.cmp-addr-text, .cmp-subject-text {
   border: 0;
   background: none;
   font-size: 1.5rem;
   margin-left: 0.5rem;
 }
 
-.cmp-addr-text, .cmp-dot-text {
+.cmp-addr-text {
   margin-top: 2px;
-  float: left;
-  width: 0.5rem;
-}
-
-.cmp-dot-text {
-  width: 0.5rem;
+  width: calc(100% - 4.5rem);
 }
 
 .cmp-subject-text {
