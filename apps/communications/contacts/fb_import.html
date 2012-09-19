@@ -14,6 +14,9 @@
     <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
 
+    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_utils.js"></script>
     <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
@@ -39,14 +42,14 @@
 
       <header>
         <a href="#" onclick="fb.importer.ui.end(event)">
-          <span class="icon icon-close">close</span>
+          <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
         <menu type="toolbar">
-          <button  onclick="fb.importer.ui.importAll(event)">
+          <button  onclick="fb.importer.ui.importAll(event)" data-l10n-id="import">
             Import
           </button>
         </menu>
-        <h1>Facebook Friends</h1>
+        <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
       </header>
 
       <section id="main">
@@ -61,7 +64,9 @@
           </ol>
         </div>
 
-        <p id="friends-msg">Found <output id="num-friends"></output> friends to import</p>
+        <p id="friends-msg">
+          Found <output id="num-friends"></output> friends to import
+        </p>
 
         <!-- Contacts List Section -->
         <section id='mainContent' data-state="selection">
@@ -92,7 +97,7 @@
         </section> <!-- mainContent -->
 
         <menu data-items="1">
-          <button id="select-all" onclick="fb.importer.ui.selectAll(event)">
+          <button id="select-all" onclick="fb.importer.ui.selectAll(event)" data-l10n-id="selectAll">
             Select All
           </button>
         </menu>
@@ -105,9 +110,9 @@
       <header>
         <h1>Facebook</h1>
       </header>
-      <p class="message">Hold on. We are connecting to obtain your friend list</p>
+      <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
         <hr>
-        <p class="submessage">This may take a couple of minutes</p>
+        <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
         <div>
           <img src="style/fb/throbber.gif">
         </div>
