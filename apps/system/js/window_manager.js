@@ -1218,11 +1218,16 @@ var WindowManager = (function() {
   // With all important event handlers in place, we can now notify
   // Gecko that we're ready for certain system services to send us
   // messages (e.g. the radio).
-  var event = document.createEvent('CustomEvent');
-  event.initCustomEvent('mozContentEvent', true, true, {
-    type: 'system-message-listener-ready'
+  // Note that shell.js starts listen for the mozContentEvent event at
+  // mozbrowserloadstart, which sometimes does not happen till window.onload.
+  window.addEventListener('load', function wm_loaded() {
+    window.removeEventListener('load', wm_loaded);
+
+    var evt = new CustomEvent('mozContentEvent',
+      { bubbles: true, cancelable: false,
+        detail: { type: 'system-message-listener-ready' } });
+    window.dispatchEvent(evt);
   });
-  window.dispatchEvent(event);
 
   // Return the object that holds the public API
   return {
