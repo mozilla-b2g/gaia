@@ -12,6 +12,7 @@ suite('views/time_parent', function() {
   var app;
   var subject;
   var id;
+  var controller;
 
   var TimeParent;
 
@@ -64,6 +65,10 @@ suite('views/time_parent', function() {
       this.active = false;
     },
 
+    destroy: function() {
+      this.destroyed = true;
+    },
+
     create: function() {
       var el = document.createElement('div');
       el.innerHTML = this.id;
@@ -80,6 +85,7 @@ suite('views/time_parent', function() {
   setup(function() {
     id = 0;
     app = testSupport.calendar.app();
+    controller = app.timeController;
     testEl = document.createElement('div');
     testEl.id = 'test';
 
@@ -91,6 +97,10 @@ suite('views/time_parent', function() {
 
     Subclass.prototype = {
       __proto__: TimeParent.prototype,
+
+      // easier for testing we have
+      // a separate test which does purge...
+      maxChildren: 20,
 
       get element() {
         return testEl;
@@ -384,6 +394,25 @@ suite('views/time_parent', function() {
       subject.activateChild(past);
       subject.activateChild(current);
       subject.activateChild(future);
+    });
+
+    test('when number of items is over max', function() {
+      subject.maxChildren = 1;
+      subject.deactivateChildren();
+
+      assert.length(subject.children, 1);
+      assert.length(subject._activeChildren, 1);
+
+      assert.deepEqual(
+        mapKeys(subject._activeChildren),
+        [current.id]
+      );
+
+      assert.deepEqual(
+        mapKeys(subject.children),
+        [current.id]
+      );
+
     });
 
     test('hidding', function() {
@@ -894,4 +923,30 @@ suite('views/time_parent', function() {
       );
     });
   });
+
+  suite('#onactive', function() {
+
+    test('without scale', function() {
+      subject.scale = null;
+      assert.ok(!controller.scale);
+      subject.onactive();
+      assert.ok(!controller.scale, 'should not set scale');
+    });
+
+    test('with scale', function() {
+      subject.scale = 'random';
+
+      assert.ok(!controller.scale);
+
+      subject.onactive();
+
+      assert.equal(
+        controller.scale, 'random',
+        'when'
+      );
+    });
+
+  });
+
+
 });
