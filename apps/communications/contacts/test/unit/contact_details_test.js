@@ -158,6 +158,17 @@ suite('Render contact', function() {
       var toCheck = 'Contacts.extFb.startLink(" 1","true")';
       assert.include(container.innerHTML, toCheck);
     });
+
+    test('Fb Contact', function() {
+      window.fb.setIsFbContact(true);
+
+      // The edit mode should be disabled
+      subject.render();
+      assert.isTrue(editContactButton.disabled);
+      assert.equal('FB', orgTitle.textContent);
+
+      window.fb.setIsFbContact(false);
+    });
   });
 
   suite('Render phones', function() {

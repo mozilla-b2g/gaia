@@ -4,7 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.Details = (function() {
   var photoPos = 8;
-  var contact,
+  var contactData,
       contactDetails,
       listContainer,
       star,
@@ -47,7 +47,7 @@ contacts.Details = (function() {
   };
 
   var setContact = function cd_setContact(currentContact) {
-    contact = currentContact;
+    contactData = currentContact;
   };
 
   var setContainer = function cd_setContainer(container) {
@@ -94,19 +94,20 @@ contacts.Details = (function() {
   };
 
   var render = function cd_render(currentContact, tags) {
-    contact = currentContact || contact;
+    contactData = currentContact || contactData;
+
     TAG_OPTIONS = tags || TAG_OPTIONS;
-    isFbContact = fb.isFbContact(contact);
+    isFbContact = fb.isFbContact(contactData);
 
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
 
     if (isFbContact) {
-      if (!fb.isFbLinked(contact)) {
+      if (!fb.isFbLinked(contactData)) {
         editContactButton.setAttribute('disabled', 'disabled');
       }
 
-      var fbContact = new fb.Contact(contact);
+      var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 
       req.onsuccess = function do_reload() {
@@ -115,10 +116,10 @@ contacts.Details = (function() {
 
       req.onerror = function() {
         window.console.error('FB: Error while loading FB contact data');
-        doReloadContactDetails(contact);
+        doReloadContactDetails(contactData);
       }
     } else {
-      doReloadContactDetails(contact);
+      doReloadContactDetails(contactData);
     }
   };
 
@@ -133,18 +134,23 @@ contacts.Details = (function() {
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
-    renderFavorite();
-    renderOrg();
-    renderBday();
-    renderSocial();
-    renderPhones();
-    renderEmails();
-    renderAddresses();
-    renderNotes();
-    renderPhoto();
+
+    renderFavorite(contact);
+    renderOrg(contact);
+    renderBday(contact);
+
+    if (fb.isEnabled) {
+      renderSocial(contact);
+    }
+
+    renderPhones(contact);
+    renderEmails(contact);
+    renderAddresses(contact);
+    renderNotes(contact);
+    renderPhoto(contact);
   };
 
-  var renderFavorite = function cd_renderFavorite() {
+  var renderFavorite = function cd_renderFavorite(contact) {
     var favorite = isFavorite(contact);
     toggleFavoriteMessage(favorite);
     if (contact.category && contact.category.indexOf('favorite') != -1) {
@@ -160,6 +166,8 @@ contacts.Details = (function() {
   };
 
   var toggleFavorite = function toggleFavorite() {
+    var contact = contactData;
+
     var favorite = !isFavorite(contact);
     toggleFavoriteMessage(favorite);
     if (favorite) {
@@ -185,15 +193,16 @@ contacts.Details = (function() {
       */
        cList.getContactById(contact.id,
                            function onSuccess(savedContact, enrichedContact) {
-        contact = savedContact;
-        Contacts.setCurrent(contact);
+
+        contactData = savedContact;
+        Contacts.setCurrent(contactData);
 
         if (enrichedContact) {
           cList.refresh(enrichedContact);
         } else {
           cList.refresh(contact);
         }
-        renderFavorite();
+        renderFavorite(contactData);
       }, function onError() {
         console.error('Error reloading contact');
       });
@@ -209,7 +218,7 @@ contacts.Details = (function() {
                     _('removeFavorite');
   };
 
-  var renderOrg = function cd_renderOrg() {
+  var renderOrg = function cd_renderOrg(contact) {
     if (contact.org && contact.org.length > 0 && contact.org[0] != '') {
       orgTitle.textContent = contact.org[0];
       orgTitle.className = '';
@@ -219,7 +228,7 @@ contacts.Details = (function() {
     }
   };
 
-  var renderBday = function cd_renderBday() {
+  var renderBday = function cd_renderBday(contact) {
     if (!contact.bday) {
       return;
     }
@@ -236,7 +245,7 @@ contacts.Details = (function() {
     listContainer.appendChild(element);
   };
 
-  var renderSocial = function cd_renderSocial() {
+  var renderSocial = function cd_renderSocial(contact) {
     var linked = fb.isFbLinked(contact);
     if (!fb.isFbContact(contact) || linked) {
       var action = linked ? _('social-unlink') : _('social-link');
@@ -252,7 +261,7 @@ contacts.Details = (function() {
     }
   }
 
-  var renderPhones = function cd_renderPhones() {
+  var renderPhones = function cd_renderPhones(contact) {
     if (!contact.tel) {
       return;
     }
@@ -270,7 +279,7 @@ contacts.Details = (function() {
     }
   };
 
-  var renderEmails = function cd_renderEmails() {
+  var renderEmails = function cd_renderEmails(contact) {
     if (!contact.email) {
       return;
     }
@@ -287,7 +296,7 @@ contacts.Details = (function() {
     }
   };
 
-  var renderAddresses = function cd_renderAddresses() {
+  var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
       return;
     }
@@ -311,7 +320,7 @@ contacts.Details = (function() {
     }
   };
 
-  var renderNotes = function cd_rederNotes() {
+  var renderNotes = function cd_rederNotes(contact) {
     if (!contact.note || contact.note.length === 0) {
       return;
     }
@@ -331,7 +340,7 @@ contacts.Details = (function() {
     }
   };
 
-  var renderPhoto = function cd_renderPhoto() {
+  var renderPhoto = function cd_renderPhoto(contact) {
     if (contact.photo && contact.photo.length > 0) {
       contactDetails.classList.add('up');
       // Photo height + Header in rems

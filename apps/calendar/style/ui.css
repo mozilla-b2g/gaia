@@ -92,7 +92,6 @@ ol.link-list a {
 
 /* temp views */
 
-#day-view,
 #week-view {
   text-align: center;
   padding-top: 5rem;
@@ -163,20 +162,13 @@ ol.link-list a {
   height: 100%
 }
 
-.rtl header a.cancel,
-.ltr header a.save {
-  text-align: right;
-}
-
-.ltr header a.cancel,
-.rtl header a.save {
-  text-align: left;
-}
-
 body[role="application"] section[role="region"] > header h1 {
   margin-left: 0 !important;
 }
 
+
+
+/* sub: day rows */
 
 /* sub common: day headers, day boxes */
 
@@ -408,13 +400,6 @@ Indicators are in units of 12
 
 /* sub: months day view */
 
-#months-day-view .day-events {
-  height: -moz-calc(100% - 3rem);
-  display: -moz-box;
-  -moz-box-orient: vertical;
-  overflow-y: auto;
-}
-
 #months-day-view  h1 {
   letter-spacing: 0.05rem;
   font-size: 1.15rem;
@@ -514,16 +499,6 @@ body[data-path="/month/"] #view-selector .month a {
   html, body {
     font-size: 12px;
   }
-
-  #month-view {
-    height: 55%;
-    position: relative;
-  }
-
-  #month-days-view {
-    height: 45%;
-  }
-
 }
 
 @media screen and (max-width: 480px) {
