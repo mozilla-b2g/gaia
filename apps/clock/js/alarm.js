@@ -528,7 +528,7 @@ var AlarmManager = {
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
-      navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+      navigator.mozSettings.createLock().set({'alarm.enabled': hasAlarmEnabled});
       ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
     };
     request.onerror = function(e) {

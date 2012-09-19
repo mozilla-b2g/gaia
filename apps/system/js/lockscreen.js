@@ -100,6 +100,9 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('home', this);
 
+    /* blocking holdhome and prevent Cards View from show up */
+    window.addEventListener('holdhome', this, true);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -291,6 +294,14 @@ var LockScreen = {
           this.switchPanel();
           evt.stopImmediatePropagation();
         }
+        break;
+
+      case 'holdhome':
+        if (!this.locked)
+          return;
+
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
         break;
     }
   },
@@ -680,8 +691,10 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    this.clock.textContent = f.localeFormat(d, _('timeFormat') || '%R');
-    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
+    var timeFormat = _('shortTimeFormat') || '%R';
+    var dateFormat = _('longDateFormat') || '%A %e %B';
+    this.clock.textContent = f.localeFormat(d, timeFormat);
+    this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {

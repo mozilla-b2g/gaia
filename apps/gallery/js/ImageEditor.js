@@ -68,10 +68,7 @@ ImageEditor.prototype.destroy = function() {
   this.original = null;
   this.container.removeChild(this.previewCanvas);
   this.previewCanvas = null;
-  if (this.cropCanvas) {
-    this.container.removeChild(this.cropCanvas);
-    this.hideCropOverlay();
-  }
+  this.hideCropOverlay();
 };
 
 // Preview the image with the specified edits applyed. If edits is omitted,

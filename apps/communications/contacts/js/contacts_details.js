@@ -155,10 +155,15 @@ contacts.Details = (function() {
     contactDetails.classList.remove('no-photo');
     contactDetails.classList.remove('up');
     listContainer.innerHTML = '';
+
     renderFavorite(contact);
     renderOrg(contact);
     renderBday(contact);
-    renderSocial(contact);
+    
+    if(fb.isEnabled) {
+      renderSocial(contact);
+    }
+
     renderPhones(contact);
     renderEmails(contact);
     renderAddresses(contact);

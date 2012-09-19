@@ -260,22 +260,22 @@ form.search button {
   margin-left: -0.8rem;
 }
 
-/* "import SIM contacts" button and throbber */
-.simContacts {
+/* "import contacts" button and throbber */
+.importContacts {
   font-size: 1.6rem;
   margin-top: 5rem;
   margin-left: 1.5rem;
   width: calc(100% - 6rem); /* 4.5rem = view-jumper width */
 }
 
-.simContacts button {
+.importContacts button {
   height: 2rem;
   line-height: 2rem;
   font-weight: bold;
   font-size: 1.4rem;
 }
 
-.simContacts span, .simContacts small {
+.importContacts span, .importContacts small {
   display: block;
 }
 
@@ -306,6 +306,47 @@ form.search button {
 
 #contact-detail p > strong {
   font-size: 1.4rem;
+}
+
+/*
+  Loading screen while loading contacts
+*/
+
+.show-overlay {
+  opacity: 1!important;
+}
+
+#loading-overlay {
+  pointer-events: none;
+  z-index: 200;
+  background: rgba(0,0,0,.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2rem;
+  opacity: 0;
+  -moz-box-sizing: border-box;
+  -moz-transition: opacity 0.3s ease-out;
+}
+
+.loading-container {
+  position: relative;
+  top: 50%;
+  margin-top: -6rem;
+}
+
+.loading-header {
+  text-align: left;
+  padding: 2rem 1rem 4rem 1rem;
+  -moz-box-sizing: border-box;
+  color: white;
+  font-size: -moz-calc(10 * 0.226rem);
+  font-weight: 300;
+  border-top: .1rem solid white;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Contacts in comms application */

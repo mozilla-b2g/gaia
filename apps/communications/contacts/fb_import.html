@@ -19,6 +19,7 @@
     <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
 
+    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_import.js"></script>
 
@@ -37,7 +38,7 @@
     <section role="region" id="content">
 
       <header>
-        <a href="#" onclick="window.close();">
+        <a href="#" onclick="fb.importer.ui.end(event)">
           <span class="icon icon-close">close</span>
         </a>
         <menu type="toolbar">
@@ -52,9 +53,9 @@
         <div id="shortcuts">
           <abbr id="current" title="Contacts by "></abbr>
           <ol class="unbordered">
-            <li data-template data-letter="#letter#">
+            <li data-template data-letter="#anchor#">
               <a href="#">
-                <abbr title="Jump to #letter#">#letter#</abbr>
+                <abbr title="Jump to #anchor#">#anchor#</abbr>
               </a>
             </li>
           </ol>
