@@ -400,8 +400,12 @@ var Recents = {
       '      <section class="primary-info ellipsis">' +
                recent.number +
       '      </section>' +
-      '      <section class="secondary-info ellipsis">' +
-               Utils.prettyDate(recent.date) +
+      '      <section class="secondary-info">' +
+      '        <span class="call-time">' +
+                 Utils.prettyDate(recent.date) +
+      '        </span>' +
+      '        <span class="call-additional-info ellipsis">' +
+      '        </span>' +
       '      </section>' +
       '    </div>' +
       '  </section>' +
@@ -422,6 +426,7 @@ var Recents = {
         ' <p data-l10n-id="no-logs-msg-2">start communicating now</p>' +
         ' </div>' +
         '</div>';
+      navigator.mozL10n.translate(this.recentsContainer);
       this.recentsIconEdit.classList.add('disabled');
       return;
     }
@@ -496,9 +501,9 @@ var Recents = {
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
         phoneNumber, contact);
-      var secondaryInfo = logItem.querySelector('.secondary-info');
-      secondaryInfo.innerHTML = secondaryInfo.textContent.trim() +
-        '&nbsp;&nbsp;&nbsp;' + phoneNumberAdditionalInfo;
+      var phoneNumberAdditionalInfoNode = logItem.
+        querySelector('.call-additional-info');
+      phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
     } else {

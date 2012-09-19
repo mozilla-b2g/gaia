@@ -3,6 +3,8 @@
 
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var StatusBar = {
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -42,10 +44,14 @@ var StatusBar = {
 
   /* For other app to acquire */
   get height() {
-    if (this.screen.classList.contains('active-statusbar'))
+    if (this.screen.classList.contains('fullscreen-app') ||
+      document.mozFullScreen) {
+      return 0;
+    } else if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    else
+    } else {
       return this.element.offsetHeight;
+    }
   },
 
   init: function sb_init() {
@@ -226,20 +232,19 @@ var StatusBar = {
 
     time: function sb_updateTime() {
       // Schedule another clock update when a new minute rolls around
+      var f = new navigator.mozL10n.DateTimeFormat();
       var now = new Date();
       var sec = now.getSeconds();
       window.clearTimeout(this._clockTimer);
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      // XXX: respect clock format in Settings,
-      // but drop the AM/PM part according to spec
-      this.icons.time.textContent = now.toLocaleFormat('%R');
+      this.icons.time.textContent =
+          f.localeFormat(now, _('statusbarTimeFormat'));
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
-      // XXX: respect date format in Settings
-      l10nArgs.date = now.toLocaleFormat('%e %B');
+      l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
     },

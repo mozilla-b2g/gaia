@@ -371,8 +371,9 @@ var Camera = {
     this.hideFocusRing();
     this.restartPreview();
 
+    var f = new navigator.mozL10n.DateTimeFormat();
     var rightnow = new Date();
-    var name = 'DCIM/img_' + rightnow.toLocaleFormat('%Y%m%d-%H%M%S') + '.jpg';
+    var name = 'DCIM/img_' + f.localeFormat(rightnow, '%Y%m%d-%H%M%S') + '.jpg';
     var addreq = this._storage.addNamed(blob, name);
 
     addreq.onsuccess = (function() {

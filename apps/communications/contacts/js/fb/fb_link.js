@@ -302,7 +302,7 @@ if (!fb.link) {
         data: ''
       };
 
-      parent.postMessage(msg, '*');
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
 
     function notifyParent(uid) {
@@ -311,7 +311,7 @@ if (!fb.link) {
         data: uid
       };
 
-      parent.postMessage(msg, '*');
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
 
     UI.viewAllFriends = function(event) {
