@@ -76,7 +76,7 @@ var Launcher = (function() {
   function getURL() {
     var regex = new RegExp('[\\?&]url=([^&#]*)');
     var results = regex.exec(href);
-    return decodeURI(results[1]);
+    return decodeURIComponent(results[1]);
   }
 
   function getName() {
@@ -130,7 +130,11 @@ var Launcher = (function() {
       if (!response) {
         return;
       }
-      
+
+      if (url.indexOf('?') !== -1) {
+        url = url.substring(0, url.indexOf('?'));
+      }
+
       new MozActivity({
         name: 'save-bookmark',
         data: {
