@@ -347,7 +347,7 @@ contacts.List = (function() {
     if (nodes.length == 0) {
       addImportSimButton();
       // Only if FB deep integration functionality is enabled
-      if(fb.isEnabled) {
+      if (fb.isEnabled) {
         addImportFacebookButton();
       }
     }
