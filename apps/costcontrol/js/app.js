@@ -46,7 +46,7 @@ function setupApp() {
   }
 
   // Configure close dialog to close the current dialog. Dialog includes
-  // promtps and settins.
+  // prompts and settings.
   function _configureCloseDialog() {
     var closeButtons = document.querySelectorAll('.close-dialog');
     [].forEach.call(closeButtons, function ccapp_eachCloseButton(button) {
