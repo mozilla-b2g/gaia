@@ -159,8 +159,8 @@ contacts.Details = (function() {
     renderFavorite(contact);
     renderOrg(contact);
     renderBday(contact);
-    
-    if(fb.isEnabled) {
+
+    if (fb.isEnabled) {
       renderSocial(contact);
     }
 
