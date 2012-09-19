@@ -1,4 +1,3 @@
-
 'use strict';
 
 // Homescreen
@@ -27,7 +26,9 @@ let content = {
       makeURL("music"),
       makeURL("video"),
       makeURL("calculator"),
-      makeURL("pdfjs")
+      makeURL("pdfjs"),
+      "https://marketplace-dev.allizom.org/telefonica/",
+      "https://marketplace.allizom.org/telefonica/"
     ]
   ],
   dock: [
