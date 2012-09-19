@@ -49,6 +49,9 @@ Calendar.ns('Views').TimeParent = (function() {
 
     panThreshold: 10,
 
+    /* should always be higher then padding */
+    maxChildren: 6,
+
     /* panning variables */
 
     _childWidth: null,
@@ -251,6 +254,7 @@ Calendar.ns('Views').TimeParent = (function() {
       var len = this._activeChildren.length;
       var id;
       var child;
+      var curLen = len;
 
       for (; i < len; i++) {
         child = this._activeChildren.items[i];
@@ -260,8 +264,34 @@ Calendar.ns('Views').TimeParent = (function() {
           if (child.element) {
             child.element.style.transform = '';
           }
+
           child.deactivate();
         }
+      }
+
+      // cleanup extra children after we go
+      // over the limit
+      if (this.children.length > this.maxChildren) {
+        var current = this.children.indexOf(
+          this.currentChild.id
+        );
+
+        // we will remove down to just the minimum so
+        // we don't need to keep calling this after for
+        // each move...
+        var keep = this.children.items.splice(
+          current, this.visibleChildren
+        );
+
+        var remove = this.children.items;
+        var len = remove.length;
+        var i = 0;
+
+        for (; i < len; i++) {
+          remove[i][1].destroy();
+        }
+
+        this.children.items = keep;
       }
 
       this._activeChildren.items = children;
@@ -426,6 +456,16 @@ Calendar.ns('Views').TimeParent = (function() {
           this.children.items.splice(i - offset, 1);
           offset += 1;
         }
+      }
+    },
+
+    onactive: function() {
+      Calendar.View.prototype.onactive.apply(
+        this, arguments
+      );
+
+      if (this.app && this.scale) {
+        this.app.timeController.scale = this.scale;
       }
     }
 

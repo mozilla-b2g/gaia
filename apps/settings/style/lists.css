@@ -149,6 +149,16 @@ ul li button, ul li a[role=button] {
   margin: 1.5rem auto;
 }
 
+[role=region] label > select {
+  display: inline-block;
+  left: auto;
+  right: 2rem;
+  position: absolute;
+  height: 3rem;
+  margin: 1.5rem auto;
+  font-size: 2rem;
+}
+
 #brightness-level:active {
   background-color: #f5f5f5;
   text-shadow: none;
@@ -176,7 +186,7 @@ ul li button, ul li a[role=button] {
 #root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
 #root li [data-l10n-id="hotspot"]           { background-image: url(images/settings_hotspot.png); }
 #root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
-#root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
+#root li [data-l10n-id="display"]           { background-image: url(images/settings_display.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
 #root li [data-l10n-id="notifications"]     { background-image: url(images/settings_notifications.png); }
 #root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
