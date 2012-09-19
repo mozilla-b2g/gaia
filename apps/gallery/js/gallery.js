@@ -476,16 +476,16 @@ function webActivityHandler(activityRequest) {
       handleActivity();
     });
   }
-    
+
   function handleActivity() {
 
     var activityName = activityRequest.source.name;
-    
+
     switch (activityName) {
     case 'browse':
       if (launchedAsInlineActivity)
         return;
-      
+
       // The 'browse' activity is just the way we launch the app
       // There's nothing else to do here.
       setView(thumbnailListView);
@@ -493,7 +493,7 @@ function webActivityHandler(activityRequest) {
     case 'pick':
       if (!launchedAsInlineActivity)
         return;
-      
+
       if (pendingPick)
         cancelPick();
       startPick(activityRequest);
@@ -504,33 +504,69 @@ function webActivityHandler(activityRequest) {
 
 var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
 var pendingPick;
-var pickedFilename;
+var pickWidth, pickHeight;
+var cropURL;
+var cropEditor;
 
 function startPick(activityRequest) {
-  pickedFilename = null;
   pendingPick = activityRequest;
+  if (pendingPick.source.data.width && pendingPick.source.data.height) {
+    pickWidth = pendingPick.source.data.width;
+    pickHeight = pendingPick.source.data.height;
+  }
+  else {
+    pickWidth = pickHeight = 0;
+  }
   setView(pickView);
 }
 
 function cropPickedImage(fileinfo) {
-  pickedFilename = fileinfo.name;
   setView(cropView);
-  console.log("cropPickedImage fileinfo", JSON.stringify(fileinfo));
-  displayFile($('crop-image'), fileinfo.name,
-              fileinfo.metadata.width, fileinfo.metadata.height);
+
+  photodb.getFile(fileinfo.name, function(file) {
+    cropURL = URL.createObjectURL(file);
+    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      cropEditor.showCropOverlay();
+      if (pickWidth)
+        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+      else
+        cropEditor.setCropAspectRatio(); // free form cropping
+    });
+  });
 }
 
 function finishPick() {
+  var url;
+  if (pickWidth)
+    url = cropEditor.getCroppedRegionDataURL(pickWidth, pickHeight);
+  else
+    url = cropEditor.getCroppedRegionDataURL();
+
   pendingPick.postResult({
     type: 'image/jpeg',
-    filename: pickedFilename
+    url: url
   });
-  pendingPick = null;
-  setView(thumbnailListView);
+  cleanupPick();
 }
 
 function cancelPick() {
   pendingPick.postError('pick cancelled');
+  cleanupPick();
+}
+
+function cleanupCrop() {
+  if (cropURL) {
+    URL.revokeObjectURL(cropURL);
+    cropURL = null;
+  }
+  if (cropEditor) {
+    cropEditor.destroy();
+    cropEditor = null;
+  }
+}
+
+function cleanupPick() {
+  cleanupCrop();
   pendingPick = null;
   setView(thumbnailListView);
 }
@@ -629,6 +665,7 @@ $('pick-back-button').onclick = function() {
 // In crop view, the back button goes back to pick view
 $('crop-back-button').onclick = function() {
   setView(pickView);
+  cleanupCrop();
 };
 
 // In crop view, the done button finishes the pick
@@ -901,7 +938,6 @@ function displayImageInFrame(n, frame) {
 
 function displayFile(element, filename, width, height) {
   var container = element.parentNode;
-  console.log(element, container, filename, width, height);
   // Asynchronously set the image url
   photodb.getFile(filename, function(file) {
     var url = URL.createObjectURL(file);
@@ -925,7 +961,6 @@ function displayFile(element, filename, width, height) {
   if (width && height) {
     var fit = fitImage(width, height,
                        container.offsetWidth, container.offsetHeight);
-    console.log("displayFile fit", JSON.stringify(fit));
     positionImage(element, fit);
   }
 }
