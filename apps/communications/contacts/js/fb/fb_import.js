@@ -91,6 +91,15 @@ if (typeof fb.importer === 'undefined') {
       utils.alphaScroll.init(params);
     }
 
+    UI.end = function(event) {
+      var msg = {
+        type: 'window_close',
+        data: ''
+      };
+
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
+    }
+
     function scrollToCb(groupContainer) {
       scrollableElement.scrollTop = groupContainer.offsetTop -
                                     headerElement.clientHeight -
