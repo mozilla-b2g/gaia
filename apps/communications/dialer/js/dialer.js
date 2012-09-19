@@ -252,7 +252,14 @@ window.addEventListener('localized', function startup(evt) {
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
+  }
 });
+
 
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed

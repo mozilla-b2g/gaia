@@ -33,42 +33,50 @@ var Utils = {
     return startDate.getTime();
   },
 
+  // XXX: this is way too complex for the task accomplished
   getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
     phoneNumber, associatedContact) {
     var additionalInfo, phoneType, phoneCarrier,
         contactPhoneEntry, contactPhoneNumber, contactPhoneType,
         contactPhoneCarrier, multipleNumbersSameCarrier,
         length = associatedContact.tel.length;
-    for (var i = 0; i < length; i++) {
-      contactPhoneEntry = associatedContact.tel[i];
-      contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
-      contactPhoneType = contactPhoneEntry.type;
-      contactPhoneCarrier = contactPhoneEntry.carrier;
-      if (phoneNumber == contactPhoneNumber) {
-        // Phone type is a mandatory field.
-        additionalInfo = contactPhoneType;
-        phoneType = contactPhoneType;
-        if (!contactPhoneCarrier) {
-          additionalInfo = additionalInfo + ', ' + phoneNumber;
-        } else {
-          phoneCarrier = contactPhoneCarrier;
+
+    var variants = SimplePhoneMatcher.generateVariants(phoneNumber);
+
+    associatedContact.tel.forEach(function telIterator(tel) {
+      var sanitizedNumber = SimplePhoneMatcher.sanitizedNumber(tel.value);
+      variants.forEach(function variantIterator(variant) {
+        if (variant.indexOf(sanitizedNumber) !== -1 ||
+            sanitizedNumber.indexOf(variant) !== -1) {
+
+          // Phone type is a mandatory field.
+          contactPhoneNumber = tel.value;
+          additionalInfo = tel.type;
+          phoneType = tel.type;
+          if (tel.carrier) {
+            phoneCarrier = tel.carrier;
+          } else {
+            additionalInfo = additionalInfo + ', ' + sanitizedNumber;
+          }
         }
-      }
-    }
+      });
+    });
+
     if (phoneType && phoneCarrier) {
       var multipleNumbersSameCarrier = false;
       for (var j = 0; j < length; j++) {
         contactPhoneEntry = associatedContact.tel[j];
-        contactPhoneNumber = contactPhoneEntry.value.replace(' ', '', 'g');
         contactPhoneType = contactPhoneEntry.type;
         contactPhoneCarrier = contactPhoneEntry.carrier;
-        if ((phoneNumber != contactPhoneNumber) &&
-          (phoneType == contactPhoneType) &&
-          (phoneCarrier == contactPhoneCarrier)) {
+
+        if ((contactPhoneEntry.value != contactPhoneNumber) &&
+            (phoneType == contactPhoneType) &&
+            (phoneCarrier == contactPhoneCarrier)) {
           multipleNumbersSameCarrier = true;
           break;
         }
       }
+
       if (multipleNumbersSameCarrier) {
         additionalInfo = additionalInfo + ', ' + phoneNumber;
       } else {

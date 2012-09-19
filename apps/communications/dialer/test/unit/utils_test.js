@@ -1,7 +1,14 @@
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
+requireApp('communications/dialer/test/unit/mock_phone_matcher.js');
+
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
+}
 
 suite('dialer/utils', function() {
+  var realPhoneMatcher;
+
   // Mock the mozL10n api for the Utils class
   navigator.mozL10n = {
     get: function get(key) {
@@ -13,6 +20,13 @@ suite('dialer/utils', function() {
 
   suiteSetup(function() {
     subject = Utils;
+
+    realPhoneMatcher = window.SimplePhoneMatcher;
+    window.SimplePhoneMatcher = MockPhoneMatcher;
+  });
+
+  suiteTeardown(function() {
+    window.SimplePhoneMatcher = realPhoneMatcher;
   });
 
   suite('Utility library', function() {
