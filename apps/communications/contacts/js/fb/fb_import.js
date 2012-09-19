@@ -27,7 +27,7 @@ if (typeof fb.importer === 'undefined') {
 
     var currentRequest;
 
-    var l10n = navigator.mozL10n;
+    var _ = navigator.mozL10n.get;
 
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
@@ -162,7 +162,7 @@ if (typeof fb.importer === 'undefined') {
       eleNumImport.value = newValue;
 
       var msgElement = document.querySelector('#friends-msg');
-      msgElement.textContent = l10n.get('friendsFound', {
+      msgElement.textContent = _('friendsFound', {
         numFriends: newValue
       });
 
