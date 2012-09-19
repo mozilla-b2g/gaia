@@ -843,7 +843,8 @@ var MediaDB = (function() {
     // Do a quick scan and then follow with a full scan
     function quickScan(timestamp) {
       var cursor = media.storage.enumerate(media.directory, {
-        since: new Date(timestamp)
+        // add 1 so we don't find the same newest file again
+        since: new Date(timestamp + 1)
       });
 
       cursor.onsuccess = function() {
@@ -1168,6 +1169,11 @@ var MediaDB = (function() {
         size: file.size,
         date: file.lastModifiedDate ? file.lastModifiedDate.getTime() : null
       };
+
+      if (fileinfo.date === null) {
+        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
+                     filename);
+      }
 
       if (fileinfo.date && fileinfo.date > details.newestFileModTime)
         details.newestFileModTime = fileinfo.date;

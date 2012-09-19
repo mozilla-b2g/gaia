@@ -15,15 +15,17 @@ var gWifiManager = (function(window) {
     dump(e);
   }
 
-  /** fake network list, where each network object looks like:
-    * {
-    *   ssid              : SSID string (human-readable name)
-    *   bssid             : network identifier string
-    *   capabilities      : array of strings (supported authentication methods)
-    *   relSignalStrength : 0-100 signal level (integer)
-    *   connected         : boolean state
-    * }
-    */
+  /**
+   * fake network list, where each network object looks like:
+   * {
+   *   ssid              : SSID string (human-readable name)
+   *   bssid             : network identifier string
+   *   capabilities      : array of strings (supported authentication methods)
+   *   relSignalStrength : 0-100 signal level (integer)
+   *   connected         : boolean state
+   * }
+   */
+
   var fakeNetworks = {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
@@ -162,27 +164,30 @@ window.addEventListener('localized', function wifiSettings(evt) {
   var gWpsInfoBlock = document.querySelector('#wps-column small');
   var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
 
+  var gCurrentNetwork = gWifiManager.connection.network;
+
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
     settings.createLock().set({'wifi.enabled': this.checked});
   };
 
-  /** mozWifiManager status
-    * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
-    *  - connecting:
-    *        fires when we start the process of connecting to a network.
-    *  - associated:
-    *        fires when we have connected to an access point but do not yet
-    *        have an IP address.
-    *  - connected:
-    *        fires once we are fully connected to an access point and can
-    *        access the internet.
-    *  - disconnected:
-    *        fires when we either fail to connect to an access point
-    *          (transition: associated -> disconnected)
-    *        or when we were connected to a network but have disconnected
-    *          (transition: connected -> disconnected).
-    */
+  /**
+   * mozWifiManager status
+   * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
+   *  - connecting:
+   *        fires when we start the process of connecting to a network.
+   *  - associated:
+   *        fires when we have connected to an access point but do not yet
+   *        have an IP address.
+   *  - connected:
+   *        fires once we are fully connected to an access point.
+   *  - connectingfailed:
+   *        fires when we fail to connect to an access point.
+   *  - disconnected:
+   *        fires when we were connected to a network but have been
+   *        disconnected.
+   */
+
   gWifiManager.onstatuschange = function(event) {
     updateNetworkState();
 
@@ -525,6 +530,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     function wifiConnect() {
+      gCurrentNetwork = network;
       gWifiManager.associate(network);
       gNetworkList.display(network.ssid, _('shortStatus-connecting'));
     }
@@ -534,6 +540,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       // get available network list
       gNetworkList.scan();
+      gCurrentNetwork = null;
     }
 
     function getKeyManagement() {
@@ -663,14 +670,21 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
   // update network state, called only when wifi enabled.
   function updateNetworkState() {
-    var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
-    if (networkStatus === 'disconnected') {
-      gWifiInfoBlock.textContent = _('fullStatus-disconnected');
-    } else {
-      gWifiInfoBlock.textContent =
-          _('fullStatus-' + networkStatus, currentNetwork);
+
+    // networkStatus has one of the following values:
+    // connecting, associated, connected, connectingfailed, disconnected.
+    gWifiInfoBlock.textContent =
+        _('fullStatus-' + networkStatus, gWifiManager.connection.network);
+
+    if (networkStatus === 'connectingfailed') {
+      // connection has failed, probably an authentication issue...
+      delete(gCurrentNetwork.password); // force a new authentication dialog
+      gNetworkList.display(gCurrentNetwork.ssid,
+          _('shortStatus-connectingfailed'));
+      gCurrentNetwork = null;
     }
+
     if (gWpsInProgress) {
       if (networkStatus !== 'disconnected') {
         gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;

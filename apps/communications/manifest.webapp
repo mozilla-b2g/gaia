@@ -30,7 +30,8 @@
     "contacts",
     "mobileconnection",
     "attention",
-    "settings"
+    "settings",
+    "desktop-notification"
   ],
   "icons": {
     "120": "/style/icons/Dialer.png",

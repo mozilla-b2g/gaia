@@ -157,7 +157,11 @@ contacts.Details = (function() {
     renderFavorite();
     renderOrg();
     renderBday();
-    renderSocial();
+
+    if (fb.isEnabled) {
+      renderSocial();
+    }
+
     renderPhones();
     renderEmails();
     renderAddresses();
