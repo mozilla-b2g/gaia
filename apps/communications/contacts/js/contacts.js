@@ -92,8 +92,7 @@ var Contacts = (function() {
 
   var initContainers = function initContainers() {
     customTag = document.getElementById('custom-tag');
-    // thumbAction.addEventListener('mousedown', onThumbMouseDown);
-    // thumbAction.addEventListener('mouseup', onThumbMouseUp);
+
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -404,124 +403,6 @@ var Contacts = (function() {
     }
   };
 
-  var pickImage = function pickImage() {
-    var activity = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'image/jpeg'
-      }
-    });
-
-    var reopenApp = function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
-        var ep = window == top ? 'contacts' : 'dialer';
-        app.launch(ep);
-      };
-    };
-
-    activity.onsuccess = function success() {
-      reopenApp();
-      var currentImg = this.result.filename;
-      updateContactPhoto(currentImg);
-    }
-
-    activity.onerror = function error() {
-      reopenApp();
-    }
-  };
-
-  var onThumbMouseDown = function onThumbMouseDown(evt) {
-    var self = this;
-    this.longPress = false;
-    this._pickImageTimer = setTimeout(function(self) {
-      self.longPress = true;
-      if (currentContact && currentContact.photo &&
-        currentContact.photo.length > 0) {
-        removePhoto();
-      }
-    }, 500, this);
-  };
-
-  var onThumbMouseUp = function onThumbMouseUp(evt) {
-    if (!this.longPress || !currentContact ||
-       !currentContact.hasOwnProperty('photo') ||
-       currentContact.photo == null ||
-       currentContact.photo.length == 0) {
-      pickImage();
-    }
-
-    clearTimeout(this._pickImageTimer);
-  }
-
-  var removePhoto = function() {
-    var dismiss = {
-      title: _('cancel'),
-      callback: CustomDialog.hide
-    };
-    var remove = {
-      title: _('ok'),
-      callback: function() {
-        currentContact.photo = [];
-        updatePhoto(null, thumb);
-        CustomDialog.hide();
-      }
-    };
-    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
-  }
-
-  var updateContactPhoto = function updateContactPhoto(image) {
-    if (!navigator.getDeviceStorage) {
-      console.log('Device storage unavailable');
-      return;
-    }
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0] || storageAreas;
-    var request = storage.get(image);
-    request.onsuccess = function() {
-      var img = document.createElement('img');
-      var imgSrc = URL.createObjectURL(request.result);
-      img.src = imgSrc;
-      this.img = img;
-      img.onload = function() {
-        var dataImg = getPhoto(this.img);
-        updatePhoto(dataImg, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = dataImg;
-      }.bind(this);
-    };
-    request.onerror = function() {
-      console.log('Error loading img');
-    };
-  }
-
-  var getPhoto = function getContactImg(contactImg) {
-    // Checking whether the image was actually loaded or not
-    var canvas = document.createElement('canvas');
-    var ratio = 2.5;
-    canvas.width = thumb.width * ratio;
-    canvas.height = thumb.height * ratio;
-    var ctx = canvas.getContext('2d');
-    var widthBigger = contactImg.width > contactImg.height;
-    var toCut = widthBigger ? 'width' : 'height';
-    var toScale = widthBigger ? 'height' : 'width';
-    var scaled = contactImg[toScale] / canvas[toScale];
-    var scaleValue = 1 / scaled;
-    ctx.scale(scaleValue, scaleValue);
-    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
-
-    if (widthBigger) {
-      ctx.drawImage(contactImg, -margin, 0);
-    } else {
-      ctx.drawImage(contactImg, 0, -margin);
-    }
-    var filename = 'contact_' + new Date().getTime();
-    var ret = canvas.mozGetAsFile(filename);
-    contactImg = null;
-    canvas = null;
-    return ret;
-  }
-
   var sendEmailOrPick = function sendEmailOrPick(address) {
     if (ActivityHandler.currentlyHandling) {
       // Placeholder for the email app if we want to
@@ -598,7 +479,6 @@ var Contacts = (function() {
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'callOrPick': callOrPick,
-    'pickImage': pickImage,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
