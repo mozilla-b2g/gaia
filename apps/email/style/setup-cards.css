@@ -31,11 +31,7 @@
 }
 
 .sup-progress-region {
-  padding: 0 5%;
-  position: absolute;
-  top: 40%;
-  width: 90%;
-  text-align: center;
+  padding: 0.5rem;
 }
 .sup-progress-spinner {
   width: 2.9rem;
@@ -43,13 +39,14 @@
   background: url("images/spinner.png") no-repeat scroll left top transparent;
   border: medium none;
   animation: 1s steps(10, end) 0s normal none infinite moveDefault;
-  display: block;
-  margin: 2rem calc((100% - 2.9rem) / 2);
+  display: inline-block;
+  vertical-align: middle;
 }
 .sup-progress-label {
+  display: inline-block;
+  vertical-align: middle;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  font-size: 1.5rem;
 }
 
 @keyframes moveDefault {
