@@ -254,6 +254,7 @@ const RankCandidate = (function() {
     var rank = cand.freq;
     var length = cand.word.length;
     var rankMultiplier = cand.rankMultiplier;
+    var candWord = cand.word;
 
     // rank words with smaller edit distance higher up
     // e.g. editdistance = 1, then fact = 1.9
@@ -261,12 +262,17 @@ const RankCandidate = (function() {
     var factor = 1 + ((10 - Math.min(9, cand.distance)) / 10);
     rank *= factor;
 
-    // promote candidates where case of first character matches.
-    // e.g. A - Africa
-    //      a - and
-    if (word.charCodeAt(0) == cand.word.charCodeAt(0)) {
-      rank *= CaseMatchMultiplier;
+    // promote candidates where starting characters match the input word.
+    // e.g. Af - Africa
+    //      af - after
+    var matchingChars = 0;
+    for (var i = 0, len = word.length; i < len; i++) {
+      if (word[i] != candWord[i])
+        break;
+      matchingChars++;
     }
+    if (matchingChars > 0)
+      rank *= (CaseMatchMultiplier + matchingChars);
 
     // take input length into account
     // length = 1 then fact = 1.1
@@ -333,7 +339,7 @@ function EditDistance1(input, prefixes, candidates) {
 function Omission1Candidates(input, prefixes, candidates) {
   var length = Math.min(input.length, _prefixLimit - 1);
   var input2 = Uint32Array(length + 1);
-  for (var n = 1; n <= length; ++n) {
+  for (var n = 0; n <= length; ++n) {
     for (var i = 0; i < n; ++i)
       input2[i] = input[i];
     while (i < length)
