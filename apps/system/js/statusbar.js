@@ -239,14 +239,12 @@ var StatusBar = {
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      // XXX: respect clock format in Settings,
-      // but drop the AM/PM part according to spec
-      this.icons.time.textContent = f.localeFormat(now, _('shortTimeFormat'));
+      this.icons.time.textContent =
+          f.localeFormat(now, _('statusbarTimeFormat'));
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
-      // XXX: respect date format in Settings
-      l10nArgs.date = f.localeFormat(now, _('dateFormat'));
+      l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
     },

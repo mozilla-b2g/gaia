@@ -715,13 +715,15 @@ $('edit-cancel-button').onclick = function() {
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
-  // Abandon any current pan or zoom and reset the current photo view
-  photoState.reset();
-  photoState.setFramesPosition();
+  if (currentView === photoView) {
+    // Abandon any current pan or zoom and reset the current photo view
+    photoState.reset();
+    photoState.setFramesPosition();
 
-  // Also reset the size and position of the previous and next photos
-  resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
-  resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
+    // Also reset the size and position of the previous and next photos
+    resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
+    resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
+  }
 
   function resetPhoto(n, img) {
     if (!img || n < 0 || n >= images.length)
