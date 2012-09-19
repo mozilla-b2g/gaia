@@ -16,12 +16,16 @@
     <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
 
+    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+
     <script  defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_utils.js"></script>
 
     <script  defer type="text/javascript" src="oauth2/js/flow.js"></script>
     <script  defer type="text/javascript" src="oauth2/js/parameters.js"></script>
 
+    <script  defer type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_data.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_contact.js"></script>
@@ -39,13 +43,13 @@
 
       <header aria-level="1">
         <a href="#" onclick="fb.link.ui.end(event)">
-          <span class="icon icon-close">close</span>
+          <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
-        <h1>Facebook Friends</h1>
+        <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
       </header>
 
       <header aria-level="2">
-        <h2>Select one of this possible matches for</h2>
+        <h2 data-l10n-id="linkSelection">Select one of this possible matches for</h2>
       </header>
 
       <section id="main">
@@ -63,7 +67,7 @@
         </section> <!-- mainContent -->
 
       <menu data-items="1">
-        <button id="view-all" onclick="fb.link.ui.viewAllFriends(event)">
+        <button id="view-all" onclick="fb.link.ui.viewAllFriends(event)" data-l10n-id="viewAll">
           View all Facebook Friends
         </button>
       </menu>
@@ -76,9 +80,9 @@
         <header>
           <h1>Facebook</h1>
         </header>
-        <p class="message">Hold on. We are connecting to obtain your friend list</p>
+        <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
         <hr>
-        <p class="submessage">This may take a couple of minutes</p>
+        <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
         <div>
           <img src="style/fb/throbber.gif">
         </div>

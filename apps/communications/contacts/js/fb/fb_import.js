@@ -27,6 +27,8 @@ if (typeof fb.importer === 'undefined') {
 
     var currentRequest;
 
+    var _ = navigator.mozL10n.get;
+
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name,' ,
@@ -91,6 +93,15 @@ if (typeof fb.importer === 'undefined') {
       utils.alphaScroll.init(params);
     }
 
+    UI.end = function(event) {
+      var msg = {
+        type: 'window_close',
+        data: ''
+      };
+
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
+    }
+
     function scrollToCb(groupContainer) {
       scrollableElement.scrollTop = groupContainer.offsetTop -
                                     headerElement.clientHeight -
@@ -149,6 +160,11 @@ if (typeof fb.importer === 'undefined') {
       }
 
       eleNumImport.value = newValue;
+
+      var msgElement = document.querySelector('#friends-msg');
+      msgElement.textContent = _('friendsFound', {
+        numFriends: newValue
+      });
 
       friends.forEach(function(fbContact) {
         var uid = new fb.Contact(fbContact).uid;
@@ -276,8 +292,6 @@ if (typeof fb.importer === 'undefined') {
         friendsPartners = parseFriendsPartners(response.data[1].fql_result_set);
 
         contacts.List.load(myFriends, friendsAvailable);
-
-        // contacts.List.handleClick(this.ui.selection);
 
         document.body.dataset.state = '';
       }

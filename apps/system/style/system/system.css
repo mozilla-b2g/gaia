@@ -119,7 +119,8 @@ body {
 }
 
 #windows > iframe.appWindow.inlineActivity.active {
-  transform: translateY(0);
+  transform: none;
+  transition: none;
 }
 
 #screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
@@ -139,6 +140,11 @@ body {
   visibility: hidden;
 }
 
+#screen.active-statusbar #windowSprite {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
 #screen.cards-view > div#windowSprite:not(.before-close) {
   opacity: 1;
 }
@@ -152,6 +158,28 @@ body {
 #screen.fullscreen-app > #windowSprite {
   height: 100%;
   top: 0;
+}
+
+#windowSprite.before-inline-activity {
+  transform: translateY(-moz-calc(100% - 1px));
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opening {
+  transition: transform 0.5s ease;
+
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opened {
+  transition: opacity 0.3s ease;
+
+  transform: translateY(0);
+  opacity: 0;
+  visibility: visible;
 }
 
 #windowSprite.before-open {
@@ -248,12 +276,23 @@ iframe.backgroundWindow {
 
 #dialog-overlay {
   position: absolute;
-  top: 0;
+  top: 20px;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: -moz-calc(100% - 20px);
   visibility: hidden;
   pointer-events: none;
+}
+
+#screen.active-statusbar #dialog-overlay {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
+#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-app #dialog-overlay {
+  top: 0;
+  height: 100%;
 }
 
 #screen.authentication-dialog #dialog-overlay,
