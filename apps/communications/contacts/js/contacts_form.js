@@ -96,7 +96,7 @@ contacts.Form = (function() {
 
   var render = function cf_render(contact, callback) {
     resetForm();
-    (contact && contacts.id) ? showEdit(contact) : showAdd(contact);
+    (contact && contact.id) ? showEdit(contact) : showAdd(contact);
     if (callback) {
       callback();
     }
