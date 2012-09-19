@@ -162,7 +162,7 @@ if (typeof fb.importer === 'undefined') {
       eleNumImport.value = newValue;
 
       var msgElement = document.querySelector('#friends-msg');
-      msgElement.textContent = l10n.get('friendsFound',{
+      msgElement.textContent = l10n.get('friendsFound', {
         numFriends: newValue
       });
 
