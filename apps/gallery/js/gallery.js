@@ -504,12 +504,14 @@ function webActivityHandler(activityRequest) {
 
 var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
 var pendingPick;
+var pickType;
 var pickWidth, pickHeight;
 var cropURL;
 var cropEditor;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
+  pickType = activityRequest.source.data.type;
   if (pendingPick.source.data.width && pendingPick.source.data.height) {
     pickWidth = pendingPick.source.data.width;
     pickHeight = pendingPick.source.data.height;
@@ -538,9 +540,9 @@ function cropPickedImage(fileinfo) {
 function finishPick() {
   var url;
   if (pickWidth)
-    url = cropEditor.getCroppedRegionDataURL(pickWidth, pickHeight);
+    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
   else
-    url = cropEditor.getCroppedRegionDataURL();
+    url = cropEditor.getCroppedRegionDataURL(pickType);
 
   pendingPick.postResult({
     type: 'image/jpeg',
