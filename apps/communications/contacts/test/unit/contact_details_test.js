@@ -169,6 +169,17 @@ suite('Render contact', function() {
 
       window.fb.setIsFbContact(false);
     });
+
+    test('fb is not enabled', function() {
+      window.fb.setIsEnabled(false);
+      subject.render(null, TAG_OPTIONS);
+      var incSocial = container.innerHTML.indexOf('social-template');
+      assert.isTrue(incSocial === -1);
+      var search = 'Contacts.extFb.startLink(" 1","true")';
+      var incSstart = container.innerHTML.indexOf(search);
+      assert.isTrue(incSstart === -1);
+    });
+
   });
 
   suite('Render phones', function() {

@@ -2,7 +2,8 @@
 
 var MockFb = {
   fbContact: false,
-  fbLinked: false
+  fbLinked: false,
+  isEnabled: true
 };
 
 MockFb.setIsFbContact = function(isFB) {
@@ -11,6 +12,10 @@ MockFb.setIsFbContact = function(isFB) {
 
 MockFb.setIsFbLinked = function(isLinked) {
   this.fbLinked = isLinked;
+};
+
+MockFb.setIsEnabled = function(isEnabled) {
+  this.isEnabled = isEnabled;
 };
 
 MockFb.Contact = function(deviceContact, cid) {
@@ -42,4 +47,8 @@ MockFb.isFbContact = function(contact) {
 
 MockFb.isFbLinked = function(contact) {
   return this.fbLinked;
+};
+
+MockFb.isEnabled = function() {
+  return this.isEnabled;
 };
