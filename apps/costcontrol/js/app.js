@@ -3,6 +3,27 @@
 
 'use strict';
 
+// Request the application icon.
+// XXX: It is only used in balance view but I prefer to leave it here as
+// balance is a subview of the cost control application.
+var APP_ICON;
+navigator.mozApps.getSelf().onsuccess = function ccapp_getSelf(evt) {
+  var app = evt.target.result;
+  var icons = app.manifest.icons;
+  if (!icons)
+    return null;
+
+  var sizes = Object.keys(icons).map(function parse(str) {
+    return parseInt(str, 10);
+  });
+  sizes.sort(function(x, y) { return y - x; });
+
+  var HVGA = document.documentElement.clientWidth < 480;
+  var index = sizes[HVGA ? sizes.length - 1 : 0];
+
+  APP_ICON = app.installOrigin + icons[index];
+};
+
 // Retrieve CostControl service
 var CostControl = getService(function ccapp_onServiceReady(evt) {
   // If the service is not ready, when ready it sets the CostControl object
@@ -16,7 +37,6 @@ if (CostControl)
 // Cost Control application is in charge of offer detailed information
 // about cost control and data ussage. At the same time it allows the user
 // to configure some aspects about consumption limits and monitoring.
-var APP;
 function setupApp() {
 
   var SETTINGS_VIEW = 'settings-view';

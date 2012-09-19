@@ -60,28 +60,12 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _setUpdatingMode(false);
   }
 
-  // Helper to get the icon uri
-  function _getIconURI(app) {
-    var icons = app.manifest.icons;
-    if (!icons)
-      return null;
-
-    var sizes = Object.keys(icons).map(function parse(str) {
-      return parseInt(str, 10);
-    });
-    sizes.sort(function(x, y) { return y - x; });
-
-    var HVGA = document.documentElement.clientWidth < 480;
-    var index = sizes[HVGA ? sizes.length - 1 : 0];
-    return app.installOrigin + icons[index];
-  }
-
   // On top up success, notificate and request update balance
   function _onTopUpSuccess(evt) {
     var notification = navigator.mozNotification.createNotification(
       _('topup-confirmation-title'),
       _('topup-confirmation-message'),
-      _getIconURI(APP)
+      APP_ICON
     );
     notification.show();
 
@@ -117,7 +101,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
         var notification = navigator.mozNotification.createNotification(
           _('topup-incorrectcode-title'),
           _('topup-incorrectcode-message'),
-          _getIconURI(APP)
+          APP_ICON
         );
         notification.onclick = function ccapp_onNotificationClick() {
           var activity = new MozActivity({ name: 'costcontrol/topup' });
