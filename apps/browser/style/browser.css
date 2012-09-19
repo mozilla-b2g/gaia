@@ -5,10 +5,10 @@ html, body {
   background-color: #575E66;
   font-family: 'Open Sans', sans-serif;
   font-size: 10px;
+  overflow: hidden;
 }
 
 body {
-  overflow: hidden;
   position: relative;
 }
 
@@ -26,10 +26,7 @@ input[type="image"] {
 }
 
 .tabs-screen #tabs-badge {
-  background-image: url('./images/add.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: transparent;
+  display: none;
 }
 
 .awesome-screen #awesomescreen {
@@ -41,10 +38,24 @@ input[type="image"] {
 }
 
 .awesome-screen #tabs-badge {
+  display: none;
+}
+
+#awesomescreen-cancel-button {
   background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 50px;
+  height: 50px;
+}
+
+.awesome-screen #awesomescreen-cancel-button {
+  display: block;
 }
 
 .settings-screen #settings {
@@ -159,16 +170,20 @@ input[type="image"] {
 }
 
 #main-screen {
-  -moz-transition: 0.2s ease-in-out;
   margin: 0;
-  display: -moz-box;
-  -moz-box-orient: vertical;
   width: 100%;
   height: 100%;
   font-family: 'Open Sans', sans-serif;
   z-index: 50;
   position: relative;
   left: 0px;
+  overflow: hidden;
+  transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
+}
+
+#main-screen.address-hidden {
+  height: calc(100% + 50px);
+  transform: translateY(-50px);
 }
 
 #tabs-badge {
@@ -178,7 +193,6 @@ input[type="image"] {
   top: 0;
   font-size: 22px;
   color: white;
-  z-index: 100;
   display: block;
   width: 44px;
   height: 50px;
@@ -197,18 +211,20 @@ input[type="image"] {
 }
 
 #toolbar-start {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
   height: 50px;
   background-color: #f9f9fb;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 #throbber {
   position: absolute;
-  top: 50px;
+  bottom: 0;
   width: 100%;
   height: 3px;
-  z-index: 200;
+  z-index: 99;
 }
 
 #throbber.loading {
@@ -219,6 +235,10 @@ input[type="image"] {
 #toolbar-end {
   border-top: solid 2px #a6b3bb;
   display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-image: -moz-linear-gradient(#323639, #272b2e);
 }
 
@@ -226,14 +246,18 @@ input[type="image"] {
   background-image: url('./images/tabs-badge-background.png');
   background-repeat: no-repeat;
   background-position: right;
-  padding-right: 74px;
+  padding-right: 65px;
 }
 
 .tabs-screen #toolbar-start {
   background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  padding-right: 74px;
+  padding-right: 65px;
+}
+
+.tabs-screen #frames {
+  bottom: 0;
 }
 
 .page-screen #toolbar-end {
@@ -241,7 +265,6 @@ input[type="image"] {
 }
 
 #url-bar {
-  -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
@@ -261,6 +284,7 @@ input[type="image"] {
   display: block;
   height: 32px;
   width: 32px;
+  float: right;
 }
 
 .awesome-screen #url-button {
@@ -270,7 +294,7 @@ input[type="image"] {
 #ssl-indicator {
   display: block;
   width: 24px;
-  height: 24px;
+  height: 34px;
   margin-right: 5px;
   text-indent: -1000em;
   background-repeat: no-repeat;
@@ -293,12 +317,13 @@ input[type="image"] {
   font-family: 'Open Sans', sans-serif;
   font-size: 18px;
   height: 34px;
-  margin: 0;
   -moz-box-flex: 1;
+  margin: 0;
   border: none;
   background-color: transparent;
   background: none;
   text-overflow: ellipsis;
+  width: -moz-calc(100% - 32px);
 }
 
 #url-input:invalid {
@@ -360,9 +385,10 @@ input::-moz-focus-inner {
 }
 
 #frames {
-  -moz-box-flex: 1;
   width: 100%;
-  position: relative;
+  position: absolute;
+  top: 50px;
+  bottom: 45px;
   background: white;
 }
 
@@ -525,8 +551,15 @@ li[role="listitem"] small {
 
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
-  margin-right: 50px;
+  padding-right: 50px;
   background-image: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.awesome-screen #frames {
+  height: calc(100% - 50px);
 }
 
 .awesome-screen #tabs-badge {
@@ -659,11 +692,21 @@ li[role="listitem"] small {
 #tray-toolbar {
   background: none;
   height: 50px;
-  padding-right: 44px;
+}
+
+#tray-toolbar button {
+  width: 60px;
 }
 
 #settings-button {
   background-image: url('images/settings.png');
+  float: right;
+  height: 50px;
+}
+
+#new-tab-button {
+  background-image: url('images/add.png'), url('images/header-divider.png');
+  background-position: center, left;
   float: right;
   height: 50px;
 }
@@ -785,19 +828,50 @@ li[role="listitem"] small {
   display: none;
 }
 
+/*
+ * HTTP Authentication Dialog
+ */
+#http-authentication-dialog {
+  z-index: 102;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #EEEEEE;
+}
+
+#http-authentication-dialog.hidden {
+  display: none;
+}
+
+#http-authentication-message {
+  display: block;
+  font-size: 1.5rem;
+  margin: 1rem 2rem;
+}
+
+#http-authentication-message.error {
+  color: #950d0d;
+}
+
 /* The following can be removed once we have a building block
  * for entry sheets.
  */
- #bookmark-entry-sheet label {
+ #bookmark-entry-sheet label,
+ #http-authentication-dialog label {
   display: block;
-  position: relaitve;
+  position: relative;
   margin: 1rem 2rem;
   text-transform: uppercase;
   font-size: 1.5rem;
  }
 
  #bookmark-entry-sheet input[type="text"],
- #bookmark-entry-sheet input[type="url"] {
+ #bookmark-entry-sheet input[type="url"],
+ #http-authentication-dialog input[type="text"],
+ #http-authentication-dialog input[type="password"] {
   -moz-box-sizing: border-box;
   border: 1px solid #D1D1D1;
   border-radius: 0.3rem;

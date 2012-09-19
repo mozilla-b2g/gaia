@@ -191,7 +191,7 @@ contacts.List = (function() {
 
     var button = document.createElement('button');
     button.id = 'sim_import_button';
-    button.setAttribute('class', 'simContacts action action-add');
+    button.setAttribute('class', 'importContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
 
@@ -205,7 +205,7 @@ contacts.List = (function() {
       var small = document.createElement('small');
       small.textContent = _('simContacts-reading');
       var throbber = document.createElement('p');
-      throbber.className = 'simContacts';
+      throbber.className = 'importContacts';
       throbber.appendChild(span);
       throbber.appendChild(small);
       container.appendChild(throbber);
@@ -229,7 +229,31 @@ contacts.List = (function() {
 
   var removeImportSimButton = function removeImportSimButton() {
     var container = groupsList.parentNode; // #groups-container
-    var button = container.querySelector('button.simContacts');
+    var button = container.querySelector('#sim_import_button');
+    if (button) {
+      container.removeChild(button);
+    }
+  }
+
+  var addImportFacebookButton = function addImportFacebookButton() {
+    var container = groupsList.parentNode; // #groups-container
+
+    if (container.querySelector('#fb_import_button')) {
+      return;
+    }
+
+    var button = document.createElement('button');
+    button.id = 'fb_import_button';
+    button.setAttribute('class', 'importContacts action action-add');
+    button.textContent = _('facebook-import');
+    container.appendChild(button);
+
+    button.onclick = Contacts.extFb.importFB;
+  }
+
+  var removeImportFacebookButton = function removeImportFacebookButton() {
+    var container = groupsList.parentNode; // #groups-container
+    var button = container.querySelector('#fb_import_button');
     if (button) {
       container.removeChild(button);
     }
@@ -322,6 +346,10 @@ contacts.List = (function() {
     var nodes = groupsList.querySelectorAll(selectorString);
     if (nodes.length == 0) {
       addImportSimButton();
+      // Only if FB deep integration functionality is enabled
+      if(fb.isEnabled) {
+        addImportFacebookButton();
+      }
     }
   }
 
@@ -448,6 +476,8 @@ contacts.List = (function() {
     var list = groupsList.querySelector('#contacts-list-' + group);
 
     removeImportSimButton();
+    removeImportFacebookButton();
+
     addToGroup(theContact, list);
 
     if (list.children.length === 1) {
