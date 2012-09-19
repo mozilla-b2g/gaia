@@ -715,6 +715,10 @@ var WindowManager = (function() {
       // Cannot upload files when OOP
       // bug 783878
 
+      // Bug 791261 - navigator.vibrate not working from a window opened
+      // by an OOP app.
+      'Dialer',
+
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages'
