@@ -1042,6 +1042,44 @@ var Contacts = (function() {
     }
   };
 
+  var isUpdated = function isUpdated(contact1, contact2) {
+    return contact1.id == contact2.id &&
+      (contact1.updated - contact2.updated) == 0;
+  }
+
+  // When a visiblity change is sent, handles and updates the
+  // different views according to the app state
+  var handleVisibilityChange = function handleVisibilityChange() {
+    contacts.List.load();
+    switch (navigation.currentView()) {
+      case 'view-contact-details':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if (isUpdated(contact, currentContact)) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+        });
+        break;
+      case 'view-contact-form':
+        if (!currentContact) {
+          return;
+        }
+        contacts.List.getContactById(currentContact.id, function(contact) {
+          if (isUpdated(contact, currentContact)) {
+            return;
+          }
+          currentContact = contact;
+          contactsDetails.render(currentContact, TAG_OPTIONS);
+          navigation.back();
+        });
+        break;
+    }
+  };
+
   return {
     'showEdit' : showEdit,
     'doneTag': doneTag,
@@ -1062,11 +1100,12 @@ var Contacts = (function() {
     'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
-    'getLength': getLength
+    'getLength': getLength,
+    'handleVisibilityChange': handleVisibilityChange
   };
 })();
 
-fb.contacts.init(function() {
+fb.init(function contacts_init() {
   if (window.navigator.mozSetMessageHandler && window.self == window.top) {
     var actHandler = ActivityHandler.handle.bind(ActivityHandler);
     window.navigator.mozSetMessageHandler('activity', actHandler);
@@ -1077,9 +1116,8 @@ fb.contacts.init(function() {
       return;
     }
     if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-      contacts.List.load();
+      Contacts.handleVisibilityChange();
     }
     Contacts.checkCancelableActivity();
   });
 });
-

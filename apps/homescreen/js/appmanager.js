@@ -89,22 +89,48 @@ var Applications = (function() {
 
   installer.oninstall = function install(event) {
     var app = event.application;
-    if (!installedApps[app.origin]) {
-      installedApps[app.origin] = app;
+    if (installedApps[app.origin])
+      return;
 
-      var icon = getIcon(app.origin);
-      // No need to put data: URIs in the cache
-      if (icon && icon.indexOf('data:') == -1) {
-        try {
-          window.applicationCache.mozAdd(icon);
-        } catch (e) {}
-      }
+    installedApps[app.origin] = app;
 
+    var fireCallbacks = function() {
       callbacks.forEach(function(callback) {
         if (callback.type == 'install') {
           callback.callback(app);
         }
       });
+    }
+
+    var icon = getIcon(app.origin);
+
+    // No need to put data: URIs in the cache
+    if (!icon || icon.indexOf('data:') != -1) {
+      fireCallbacks();
+      return;
+    }
+
+    // Download the application icon and assign it as an attribute of
+    // the manifest. As a side effect the icon will be store in the
+    // application database. Should it be an explicit method instead?
+    var xhr = new XMLHttpRequest({mozSystem: true});
+    xhr.open('GET', icon, true);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+
+    xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
+      if (xhr.readyState == 4 && (xhr.status == 0 || xhr.status == 200)) {
+        var fileReader = new FileReader();
+        fileReader.onload = function fileReader_load(evt) {
+          cacheIcon(app.origin, evt.target.result);
+          fireCallbacks();
+        }
+        fileReader.readAsDataURL(xhr.response);
+      }
+    }
+
+    xhr.onerror = function saveIcon_onerror() {
+      fireCallbacks();
     }
   };
 
@@ -129,8 +155,6 @@ var Applications = (function() {
     if (app) {
       return app;
     }
-
-    // XXX We are affected by the port!
 
     // Trailing '/'
     var trimmedOrigin = origin.slice(0, origin.length - 1);
@@ -169,6 +193,13 @@ var Applications = (function() {
   function getManifest(origin) {
     var app = getByOrigin(origin);
     return app ? app.manifest : null;
+  };
+
+  function cacheIcon(origin, icon) {
+    var manifest = getManifest(origin);
+    if (manifest && icon) {
+      manifest._icon = icon;
+    }
   };
 
   /*
@@ -310,6 +341,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
+    cacheIcon: cacheIcon,
     getManifest: getManifest,
     getInstalledApplications: getInstalledApplications,
     isReady: isReady,

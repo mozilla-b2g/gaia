@@ -27159,15 +27159,17 @@ FakeFolderStorage.prototype = {
   ParseError.prototype = new Error();
   ParseError.prototype.constructor = ParseError;
 
-  function StringTable(data) {
-    this.strings = data.split('\0');
+  function StringTable(data, decoder) {
+    this.strings = [];
     this.offsets = {};
-    let total = 0;
-    for (let i = 0; i < this.strings.length; i++) {
-      this.offsets[total] = i;
-      // Add 1 to the current string's length here because we stripped a null-
-      // terminator earlier.
-      total += this.strings[i].length + 1;
+
+    let start = 0;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i] === 0) {
+        this.offsets[start] = this.strings.length;
+        this.strings.push(decoder.decode( data.subarray(start, i) ));
+        start = i + 1;
+      }
     }
   }
 
@@ -27177,7 +27179,7 @@ FakeFolderStorage.prototype = {
         return this.strings[this.offsets[offset]];
       else {
         if (offset < 0)
-          throw new WBXMLParseError('offset must be >= 0');
+          throw new ParseError('offset must be >= 0');
 
         let curr = 0;
         for (let i = 0; i < this.strings.length; i++) {
@@ -27188,7 +27190,7 @@ FakeFolderStorage.prototype = {
           curr += this.strings[i].length + 1;
         }
       }
-      throw new WBXMLParseError('invalid offset');
+      throw new ParseError('invalid offset');
     },
   };
 
@@ -27404,47 +27406,52 @@ FakeFolderStorage.prototype = {
     get type() { return 'OPAQUE'; },
   };
 
-  function Reader(xml, codepages) {
-    this._xml = xml instanceof Writer ? xml.bytes : xml;
+  function Reader(data, codepages) {
+    this._data = data instanceof Writer ? data.bytes : data;
     this._codepages = codepages;
     this.rewind();
   }
 
   Reader.prototype = {
     _get_uint8: function() {
-      return this._iter.next();
+      if (this._index === this._data.length)
+        throw StopIteration;
+      return this._data[this._index++];
     },
 
     _get_mb_uint32: function() {
       let b;
       let result = 0;
       do {
-        b = this._iter.next();
+        b = this._get_uint8();
         result = result*128 + (b & 0x7f);
       } while(b & 0x80);
       return result;
     },
 
-    rewind: function() {
-      let self = this;
-      // For some reason, the normal generator syntax doesn't work when |xml| is
-      // a member variable, so do it like this.
-      this._iter = (function() {
-        for (let i = 0; i < self._xml.length; i++)
-          yield self._xml[i];
-      })();
+    _get_slice: function(length) {
+      let start = this._index;
+      this._index += length;
+      return this._data.subarray(start, this._index);
+    },
 
-      // XXX: only do this once during the constructor?
+    _get_c_string: function() {
+      let start = this._index;
+      while (this._get_uint8());
+      return this._data.subarray(start, this._index - 1);
+    },
+
+    rewind: function() {
+      this._index = 0;
+
       let v = this._get_uint8();
       this.version = ((v & 0xf0) + 1).toString() + '.' + (v & 0x0f).toString();
       this.pid = this._get_mb_uint32();
       this.charset = mib2str[this._get_mb_uint32()] || 'unknown';
+      this._decoder = TextDecoder(this.charset);
 
       let tbl_len = this._get_mb_uint32();
-      let s = '';
-      for (let j = 0; j < tbl_len; j++)
-        s += String.fromCharCode(this._get_uint8());
-      this.strings = new StringTable(s);
+      this.strings = new StringTable(this._get_slice(tbl_len), this._decoder);
 
       this.document = this._getDocument();
     },
@@ -27510,11 +27517,9 @@ FakeFolderStorage.prototype = {
         // here.
       }).bind(this);
 
-      // Beware! We're going to grab multiple tokens from our iterator inside
-      // this for loop. This simplifies the actual structure of the loop quite a
-      // bit, since we can eat as many tokens as we need to for each logical
-      // chunk of the document.
-      for (let tok in this._iter) {
+      try { while (true) {
+        let tok = this._get_uint8();
+
         if (tok === Tokens.SWITCH_PAGE) {
           codepage = this._get_uint8();
           if (!(codepage in this._codepages.__nsnames__))
@@ -27548,12 +27553,7 @@ FakeFolderStorage.prototype = {
         else if (tok === Tokens.STR_I) {
           if (state === States.BODY && depth === 0)
             throw new ParseError('unexpected STR_I token');
-          let s = '';
-          let c;
-          while ( (c = this._get_uint8()) ) {
-            s += String.fromCharCode(c);
-          }
-          appendString(s);
+          appendString(this._decoder.decode(this._get_c_string()));
         }
         else if (tok === Tokens.PI) {
           if (state !== States.BODY)
@@ -27574,15 +27574,13 @@ FakeFolderStorage.prototype = {
           if (state !== States.BODY)
             throw new ParseError('unexpected OPAQUE token');
           let len = this._get_mb_uint32();
-          let s = ''; // XXX: use a typed array here?
-          for (let i = 0; i < len; i++)
-            s += String.fromCharCode(this._get_uint8());
+          let data = this._get_slice(len);
 
           if (currentNode) {
             yield currentNode;
             currentNode = null;
           }
-          yield new Opaque(this, s);
+          yield new Opaque(this, data);
         }
         else if (((tok & 0x40) || (tok & 0x80)) && (tok & 0x3f) < 3) {
           let hi = tok & 0xc0;
@@ -27592,11 +27590,7 @@ FakeFolderStorage.prototype = {
 
           if (hi === Tokens.EXT_I_0) {
             subtype = 'string';
-            value = '';
-            let c;
-            while ( (c = this._get_uint8()) ) {
-              value += String.fromCharCode(c);
-            }
+            value = this._decoder.decode(this._get_c_string());
           }
           else if (hi === Tokens.EXT_T_0) {
             subtype = 'integer';
@@ -27668,6 +27662,9 @@ FakeFolderStorage.prototype = {
             currentAttr.push(attr);
           }
         }
+      } } catch (e) {
+        if (!(e instanceof StopIteration))
+          throw e;
       }
     },
 
@@ -27694,8 +27691,8 @@ FakeFolderStorage.prototype = {
         if (node.type === 'TAG' || node.type === 'STAG') {
           result += indent(tagstack.length) + '<' + node.tagName;
 
-          for (let [k,v] in node.attributes) {
-            result += ' ' + k + '="' + v + '"';
+          for (let attr in node.attributes) {
+            result += ' ' + attr.name + '="' + attr.value + '"';
           }
 
           if (node.type === 'STAG') {
@@ -27748,16 +27745,17 @@ FakeFolderStorage.prototype = {
       if (charsetNum === undefined)
         throw new Error('unknown charset '+charset);
     }
+    let encoder = this._encoder = TextEncoder(charset);
 
     this._write(v);
     this._write(pid);
     this._write(charsetNum);
     if (strings) {
-      let len = strings.reduce(function(x, y) { return x + y.length + 1; }, 0);
+      let bytes = strings.map(function(s) { return encoder.encode(s); });
+      let len = bytes.reduce(function(x, y) { return x + y.length + 1; }, 0);
       this._write_mb_uint32(len);
-      for (let [,s] in Iterator(strings)) {
-        for (let i = 0; i < s.length; i++)
-          this._write(s.charCodeAt(i));
+      for (let [,b] in Iterator(bytes)) {
+        this._write_bytes(b);
         this._write(0x00);
       }
     }
@@ -27845,9 +27843,13 @@ FakeFolderStorage.prototype = {
         this._write(bytes[i]);
     },
 
+    _write_bytes: function(bytes) {
+      for (let i = 0; i < bytes.length; i++)
+        this._write(bytes[i]);
+    },
+
     _write_str: function(str) {
-      for (let i = 0; i < str.length; i++)
-        this._write(str.charCodeAt(i));
+      this._write_bytes(this._encoder.encode(str));
     },
 
     _setCodepage: function(codepage) {
@@ -29331,6 +29333,13 @@ FakeFolderStorage.prototype = {
     },
   };
 
+  // A mapping from domains to configurations appropriate for passing in to
+  // Connection.setConfig(). Used for domains that don't support autodiscovery.
+  const hardcodedDomains = {
+    'gmail.com': 'https://m.google.com',
+    'googlemail.com': 'https://m.google.com',
+  };
+
   /**
    * Create a new ActiveSync connection.
    *
@@ -29385,8 +29394,13 @@ FakeFolderStorage.prototype = {
      */
     connect: function(aCallback) {
       let conn = this;
-      if (aCallback && conn._connection !== 4)
-        this._connectionCallbacks.push(aCallback);
+      if (aCallback) {
+        if (conn._connection === 4) {
+          aCallback(null, conn.config);
+          return;
+        }
+        conn._connectionCallbacks.push(aCallback);
+      }
 
       if (conn._connection === 0) {
         conn._connection = 1;
@@ -29408,19 +29422,20 @@ FakeFolderStorage.prototype = {
         conn.options(conn.baseURL, function(aError, aResult) {
           if (aError) {
             conn._connection = 2;
-          }
-          else {
-            conn._connection = 4;
-            conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
-            conn.config.options = aResult;
+            return conn._doCallbacks(aError, conn.config);
           }
 
-          conn._doCallbacks(aError, conn.config);
+          conn._connection = 4;
+          conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
+          conn.config.options = aResult;
+
+          if (!conn.supportsCommand('Provision'))
+            return conn._doCallbacks(null, conn.config);
+
+          conn.provision(function (aError, aResponse) {
+            conn._doCallbacks(aError, conn.config);
+          });
         });
-      }
-      else if (conn._connection === 4) {
-        if (aCallback)
-          aCallback(null, this.config);
       }
     },
 
@@ -29435,9 +29450,10 @@ FakeFolderStorage.prototype = {
      */
     autodiscover: function(aCallback, aNoRedirect) {
       if (!aCallback) aCallback = nullCallback;
-      let domain = this._email.substring(this._email.indexOf('@') + 1);
-      if (domain === 'gmail.com') {
-        aCallback(null, this._fillConfig('https://m.google.com'));
+      let domain = this._email.substring(this._email.indexOf('@') + 1)
+                       .toLowerCase();
+      if (domain in hardcodedDomains) {
+        aCallback(null, this._fillConfig(hardcodedDomains[domain]));
         return;
       }
 
@@ -29450,6 +29466,22 @@ FakeFolderStorage.prototype = {
         else
           aCallback(aError, aConfig);
       }).bind(this));
+    },
+
+    /**
+     * Attempt to provision this account. XXX: Currently, this doesn't actually
+     * do anything, but it's useful as a test command for Gmail to ensure that
+     * the user entered their password correctly.
+     *
+     * @param aCallback a callback taking an error status (if any) and the
+     *        WBXML response
+     */
+    provision: function(aCallback) {
+      const pv = ASCP.Provision.Tags;
+      let w = new WBXML.Writer('1.3', 1, 'UTF-8');
+      w.stag(pv.Provision)
+        .etag();
+      this.doCommand(w, aCallback);
     },
 
     /**
@@ -29627,7 +29659,9 @@ FakeFolderStorage.prototype = {
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
         if (xhr.status !== 200) {
-          aCallback(new Error('Unable to get server options'));
+          console.log('ActiveSync options request failed with response ' +
+                      xhr.status);
+          aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
 
@@ -29640,6 +29674,22 @@ FakeFolderStorage.prototype = {
       };
 
       xhr.send();
+    },
+
+    /**
+     * Check if the server supports a particular command. Requires that we be
+     * connected to the server already.
+     *
+     * @param aCommand a string/tag representing the command type
+     * @return true iff the command is supported
+     */
+    supportsCommand: function(aCommand) {
+      if (!this.connected)
+        throw new Error('Connection required to get command');
+
+      if (typeof aCommand === 'number')
+        aCommand = ASCP.__tagnames__[aCommand];
+      return this.config.options.commands.indexOf(aCommand) !== -1;
     },
 
     /**
@@ -29694,8 +29744,7 @@ FakeFolderStorage.prototype = {
         commandName = r.document.next().localTagName;
       }
 
-      if (this.config.options.commands.indexOf(commandName) === -1) {
-        // TODO: do something here!
+      if (!this.supportsCommand(commandName)) {
         let error = new Error("This server doesn't support the command " +
                               commandName);
         console.log(error);
@@ -29723,11 +29772,9 @@ FakeFolderStorage.prototype = {
         }
 
         if (xhr.status !== 200) {
-          // TODO: do something here!
-          let error = new Error('ActiveSync command returned failure ' +
-                                'response ' + xhr.status);
-          console.log(error);
-          aCallback(error);
+          console.log('ActiveSync command ' + commandName + ' failed with ' +
+                      'response ' + xhr.status);
+          aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
 

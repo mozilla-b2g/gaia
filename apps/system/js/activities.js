@@ -25,11 +25,11 @@ var Activities = {
       // Since the mozChromeEvent could be triggered by a 'click', and gecko
       // event are synchronous make sure to exit the event loop before
       // showing the list.
-      setTimeout(function nextTick() {
+      setTimeout((function nextTick() {
         // XXX: l10n issue of activity name
         ListMenu.request(this._listItems(choices), detail.name,
                          this.choose.bind(this), this.cancel.bind(this));
-      });
+      }).bind(this));
     }
   },
 

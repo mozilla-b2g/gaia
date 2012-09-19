@@ -6,10 +6,9 @@
     "url": "https://github.com/andreasgal/gaia"
   },
   "permissions": [
-    "browser",
     "mozApps",
     "webapps-manage",
-    "device-storage:pictures",
+    "systemXHR",
     "settings"
   ],
   "locales": {

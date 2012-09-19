@@ -78,8 +78,8 @@ body[data-transitioning] .apps > div {
 .apps ol > li > div {
   height: 100%;
   width: 100%;
-	margin-top: .8rem;
-	margin-bottom: .8rem;
+	margin-top: .4rem;
+	margin-bottom: .4rem;
   pointer-events: none; /* NO touchable area */
 }
 
@@ -89,12 +89,6 @@ body[data-transitioning] .apps > div {
   .apps ol > li > div {
     margin-top: .2rem;
   }
-}
-
-/* icon */
-.apps ol > li > div > img {
-  width: 6rem;
-  height: 6rem;
 }
 
 /* label wrapper */

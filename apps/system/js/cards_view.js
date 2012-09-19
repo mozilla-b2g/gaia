@@ -22,8 +22,9 @@ var CardsView = (function() {
   // by dragging it upwards
   var MANUAL_CLOSING = true;
 
-  var cardsView = document.getElementById('cardsView');
-  var cardsList = cardsView.getElementsByTagName('ul')[0];
+  var cardsView = document.getElementById('cards-view');
+  var screenElement = document.getElementById('screen');
+  var cardsList = cardsView.firstElementChild;
   var displayedApp;
   var runningApps;
   // Card which we are re-ordering now
@@ -79,10 +80,20 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    // events to handle
+    window.addEventListener('lock', CardsView);
+    window.addEventListener('attentionscreenshow', CardsView);
+
+    // Close utility tray if it is opened.
+    UtilityTray.hide(true);
+
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     currentDisplayed = 0;
     runningApps = WindowManager.getRunningApps();
+
+    // Switch to homescreen
+    WindowManager.setDisplayedApp(null);
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -106,7 +117,10 @@ var CardsView = (function() {
 
       // First add an item to the cardsList for each running app
       for (var origin in runningApps) {
-        addCard(origin, runningApps[origin]);
+        addCard(origin, runningApps[origin], function showCards() {
+          screenElement.classList.add('cards-view');
+          cardsView.classList.add('active');
+        });
       }
 
     } else { // user ordering
@@ -126,10 +140,13 @@ var CardsView = (function() {
       }
 
       userSortedApps.forEach(function(origin) {
-        addCard(origin, runningApps[origin]);
+        addCard(origin, runningApps[origin], function showCards() {
+          screenElement.classList.add('cards-view');
+          cardsView.classList.add('active');
+        });
       });
 
-      cardsView.addEventListener('contextmenu', this);
+      cardsView.addEventListener('contextmenu', CardsView);
 
     }
 
@@ -138,12 +155,8 @@ var CardsView = (function() {
     }
 
     if (SNAPPING_SCROLLING || MANUAL_CLOSING) {
-      cardsView.addEventListener('mousedown', this);
+      cardsView.addEventListener('mousedown', CardsView);
     }
-
-
-    // Then make the cardsView overlay active
-    cardsView.classList.add('active');
 
     // Make sure we're in portrait mode
     screen.mozLockOrientation('portrait');
@@ -152,27 +165,32 @@ var CardsView = (function() {
     if (displayedApp)
       runningApps[displayedApp].frame.blur();
 
-    function addCard(origin, app) {
+    function addCard(origin, app, displayedAppCallback) {
+      // Not showing homescreen
+      if (app.frame.classList.contains('homescreen')) {
+        if (displayedApp == origin && displayedAppCallback)
+          setTimeout(displayedAppCallback);
+
+        return;
+      }
+
       // Build a card representation of each window.
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
 
-      // First we create white background
-      card.style.backgroundColor = '#FFF';
-
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
       app.frame.getScreenshot().onsuccess = function(screenshot) {
         if (screenshot.target.result) {
-          this.style.backgroundImage = 'url(' + screenshot.target.result + ')';
+          card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
         }
-      }.bind(card);
 
-      if (app.frame.classList.contains('homescreen')) {
-        card.dataset['homescreen'] = true;
-      }
-      card.dataset['origin'] = origin;
+        if (displayedApp == origin && displayedAppCallback)
+          setTimeout(displayedAppCallback);
+      };
+
+      card.dataset.origin = origin;
 
       //display app icon on the tab
       if (DISPLAY_APP_ICON) {
@@ -197,20 +215,34 @@ var CardsView = (function() {
   }
 
   function runApp() {
-    hideCardSwitcher();
+    var origin = this.dataset.origin;
+    alignCard(currentDisplayed, function cardAligned() {
+      WindowManager.launch(origin);
 
-    // Close utility tray if it is opened.
-    UtilityTray.hide(true);
-
-    WindowManager.launch(this.dataset['origin']);
+      hideCardSwitcher();
+    });
   }
 
   function hideCardSwitcher() {
+    if (!cardSwitcherIsShown())
+      return;
+
+    // events to handle
+    window.removeEventListener('lock', CardsView);
+    window.removeEventListener('attentionscreenshow', CardsView);
+
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
 
-    // And remove all the cards from the document.
-    cardsList.textContent = '';
+    // And remove all the cards from the document after the transition
+    cardsView.addEventListener('transitionend', function removeCards() {
+      cardsView.removeEventListener('transitionend', removeCards);
+      screenElement.classList.remove('cards-view');
+
+      while (cardsList.firstElementChild) {
+        cardsList.removeChild(cardsList.firstElementChild);
+      }
+    });
 
     // If there is a displayed app, give the keyboard focus back
     // And switch back to that's apps orientation
@@ -232,8 +264,25 @@ var CardsView = (function() {
   var moveCardThreshold = window.innerHeight / 6;
   var removeCardThreshold = window.innerHeight / 4;
 
-  function alignCard(number) {
-    cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+  function alignCard(number, callback) {
+    if (!cardsList.children[number])
+      return;
+
+    var scrollLeft = cardsView.scrollLeft;
+    var targetScrollLeft = cardsList.children[number].offsetLeft;
+
+    if (Math.abs(scrollLeft - targetScrollLeft) < 4) {
+      cardsView.scrollLeft = cardsList.children[number].offsetLeft;
+      if (callback)
+        callback();
+      return;
+    }
+
+    cardsView.scrollLeft = scrollLeft + (targetScrollLeft - scrollLeft) / 2;
+
+    window.mozRequestAnimationFrame(function newFrameCallback() {
+      alignCard(number, callback);
+    });
   }
 
   function onStartEvent(evt) {
@@ -256,8 +305,7 @@ var CardsView = (function() {
         y: evt.touches ? evt.touches[0].pageY : evt.pageY
     };
 
-    if (evt.target.classList.contains('card') && MANUAL_CLOSING &&
-        !evt.target.dataset['homescreen']) {
+    if (evt.target.classList.contains('card') && MANUAL_CLOSING) {
       var differenceY = initialTouchPosition.y - touchPosition.y;
       if (differenceY > moveCardThreshold) {
         // We don't want user to scroll the CardsView when one of the card is
@@ -353,7 +401,6 @@ var CardsView = (function() {
     if (
       evt.target.classList.contains('card') &&
       MANUAL_CLOSING &&
-      !evt.target.dataset['homescreen'] &&
       reorderedCard === null
     ) {
 
@@ -363,11 +410,11 @@ var CardsView = (function() {
 
         // remove the app also from the ordering list
         if (
-          userSortedApps.indexOf(element.dataset['origin']) !== -1 &&
+          userSortedApps.indexOf(element.dataset.origin) !== -1 &&
           USER_DEFINED_ORDERING
         ) {
           userSortedApps.splice(
-            userSortedApps.indexOf(element.dataset['origin']),
+            userSortedApps.indexOf(element.dataset.origin),
             1
           );
         }
@@ -384,7 +431,7 @@ var CardsView = (function() {
         // If the app is the currently displayed one,
         // this will also switch back to the homescreen
         // (though the task switcher will still be displayed over it)
-        WindowManager.kill(element.dataset['origin']);
+        WindowManager.kill(element.dataset.origin);
 
         // if there are no more running apps, then dismiss
         // the task switcher
@@ -422,11 +469,11 @@ var CardsView = (function() {
 
       // remove the app origin from ordering array
       userSortedApps.splice(
-        userSortedApps.indexOf(element.dataset['origin']),
+        userSortedApps.indexOf(element.dataset.origin),
         1
       );
       // and put in on the new position
-      userSortedApps.splice(currentDisplayed, 0, element.dataset['origin']);
+      userSortedApps.splice(currentDisplayed, 0, element.dataset.origin);
     }
   }
 
@@ -450,35 +497,40 @@ var CardsView = (function() {
     },
   false);
 
-  window.addEventListener('home', function cv_homeEvent(evt) {
-    if (!cardSwitcherIsShown())
-      return;
-
-    hideCardSwitcher();
-  });
-
-  window.addEventListener('attentionscreenshow',
-    function cv_attentionScreenShowEvent(evt) {
-    if (!cardSwitcherIsShown()) {
-      return;
-    }
-
-    hideCardSwitcher();
-  });
-
   function cv_handleEvent(evt) {
     switch (evt.type) {
       case 'mousedown':
         onStartEvent(evt);
         break;
+
       case 'mousemove':
         onMoveEvent(evt);
         break;
+
       case 'mouseup':
         onEndEvent(evt);
         break;
+
       case 'contextmenu':
         manualOrderStart(evt);
+        break;
+
+      case 'home':
+        if (!cardSwitcherIsShown())
+          return;
+
+        evt.stopImmediatePropagation();
+        hideCardSwitcher();
+        break;
+
+      case 'lock':
+      case 'attentionscreenshow':
+        hideCardSwitcher();
+        break;
+
+      case 'holdhome':
+        SleepMenu.hide();
+        showCardSwitcher();
         break;
     }
   }
@@ -491,3 +543,6 @@ var CardsView = (function() {
     handleEvent: cv_handleEvent
   };
 })();
+
+window.addEventListener('holdhome', CardsView);
+window.addEventListener('home', CardsView);
