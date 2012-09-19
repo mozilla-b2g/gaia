@@ -158,8 +158,8 @@ contacts.Form = (function() {
     var toRender = ['tel', 'email', 'adr', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
-      var rParams = params[current] || {};
-      renderTemplate(current, rParams);
+      var rParams = params[current] || '';
+      renderTemplate(current, [{value: rParams}]);
     }
     checkDisableButton();
   };
