@@ -61,8 +61,7 @@ function setupSettings() {
 
       var cancelButton = dialog.querySelector('button.cancel');
       if (cancelButton) {
-        cancelButton.addEventListener(
-          'click',
+        cancelButton.addEventListener('click',
           function ccapp_onDialogCancel() {
             var currentValue = Service.settings.option(optionKey);
             Service.settings.option(optionKey, currentValue);
@@ -77,8 +76,7 @@ function setupSettings() {
       });
 
       // Keep the widget and the dialog synchronized
-      Service.settings.observe(
-        optionKey,
+      Service.settings.observe(optionKey,
         function ccapp_onOptionChange(value) {
 
           // Use default value if no value

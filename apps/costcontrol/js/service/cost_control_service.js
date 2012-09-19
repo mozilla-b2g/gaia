@@ -98,13 +98,12 @@ setService(function cc_setupCostControlService() {
         return;
 
       _listeners[key].push(callback);
-      window.addEventListener(
-        'localsettingschanged',
-        function onLocalSettingsChanged(evt) {
-          if (evt.detail.key === key) {
-            callback(evt.detail.value);
-          }
-        }
+      window.addEventListener('localsettingschanged',
+                              function onLocalSettingsChanged(evt) {
+                                if (evt.detail.key === key) {
+                                  callback(evt.detail.value);
+                                }
+                              }
       );
       callback(_option(key));
     }
@@ -282,9 +281,8 @@ setService(function cc_setupCostControlService() {
         var now = (new Date()).getTime();
         var duration = now - starttime;
         setTimeout(function cc_updateCallTime() {
-          _appSettings.option('calltime',
-            _appSettings.option('calltime') + duration
-          );
+          var newCalltime = _appSettings.option('calltime') + duration;
+          _appSettings.option('calltime', newCalltime);
         });
 
         // Remove from the already tracked calls
@@ -727,7 +725,8 @@ setService(function cc_setupCostControlService() {
     var eventTypes = ['success', 'error', 'start', 'finish'];
     eventTypes.forEach(function cc_bindEventType(type) {
       window.addEventListener(_getEventName(state, type),
-        (callbacks['on' + type] || null));
+                              (callbacks['on' + type] || null)
+      );
     });
   }
 
