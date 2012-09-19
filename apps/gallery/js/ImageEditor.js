@@ -566,7 +566,7 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 // and relies on data urls because activities can't pass blobs. When
 // blob support is added, this function can change to return a blob
 // instead.
-ImageEditor.prototype.getCroppedRegionDataURL = function(width, height) {
+ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
   // This is similar to the code in cropImage() and getFullSizeBlob
   // but since we're doing only cropping and no pixel manipulation I
   // don't need to create an ImageProcessor object.
@@ -606,7 +606,7 @@ ImageEditor.prototype.getCroppedRegionDataURL = function(width, height) {
                     left, top, right - left, bottom - top,
                     0, 0, width, height);
 
-  return canvas.toDataURL('image/jpeg' /*, specify quality here? */);
+  return canvas.toDataURL(type);
 };
 
 //
