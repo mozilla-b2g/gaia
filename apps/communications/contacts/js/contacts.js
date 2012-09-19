@@ -6,52 +6,39 @@ var TAG_OPTIONS;
 var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
-  function edit() {
+  var goToForm = function edit() {
     navigation.go('view-contact-form', 'right-left');
-  }
+  };
 
-  var numberEmails = 0;
-  var numberPhones = 0;
-  var numberAddresses = 0;
-  var numberNotes = 0;
   var currentContactId,
       detailsName,
       givenName,
       company,
       familyName,
-      formTitle,
-      phoneTemplate,
-      emailTemplate,
-      addressTemplate,
-      noteTemplate,
-      phonesContainer,
-      emailContainer,
-      addressContainer,
-      noteContainer,
       selectedTag,
       customTag,
       contactTag,
       saveButton,
-      editContactButton,
-      deleteContactButton,
-      thumb,
-      thumbAction;
+      editContactButton;
 
   var currentContact = {};
 
   var contactsList = contacts.List;
   var contactsDetails = contacts.Details;
+  var contactsForm = contacts.Form;
 
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
+    var overlay = true;
     var params = hasParams.length > 1 ?
       extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
+        overlay = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -67,18 +54,19 @@ var Contacts = (function() {
         break;
 
       case 'view-contact-form':
+        overlay = false;
         if (params == -1 || !('id' in params)) {
-          showAdd(params);
+          contactsForm.render(params, goToForm);
         } else {
           // Editing existing contact
           if ('id' in params) {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
-              showEdit();
+              contactsForm.render(currentContact, goToForm);
             }, function onError() {
               console.log('Error retrieving contact to be edited');
-              showAdd();
+              contactsForm.render(null, goToForm);
             });
           }
         }
@@ -87,7 +75,7 @@ var Contacts = (function() {
     }
 
     if (!contactsList.loaded) {
-      loadList();
+      loadList(overlay);
     }
 
   }
@@ -106,26 +94,8 @@ var Contacts = (function() {
   }
 
   var initContainers = function initContainers() {
-    currentContactId = document.getElementById('contact-form-id');
-    givenName = document.getElementById('givenName');
-    company = document.getElementById('org');
-    familyName = document.getElementById('familyName');
-    formTitle = document.getElementById('contact-form-title');
-    phoneTemplate = document.getElementById('add-phone-#i#');
-    emailTemplate = document.getElementById('add-email-#i#');
-    addressTemplate = document.getElementById('add-address-#i#');
-    noteTemplate = document.getElementById('add-note-#i#');
-    phonesContainer = document.getElementById('contacts-form-phones');
-    emailContainer = document.getElementById('contacts-form-emails');
-    addressContainer = document.getElementById('contacts-form-addresses');
-    noteContainer = document.getElementById('contacts-form-notes');
-    saveButton = document.getElementById('save-button');
-    deleteContactButton = document.getElementById('delete-contact');
     customTag = document.getElementById('custom-tag');
-    thumb = document.getElementById('thumbnail-photo');
-    thumbAction = document.getElementById('thumbnail-action');
-    thumbAction.addEventListener('mousedown', onThumbMouseDown);
-    thumbAction.addEventListener('mouseup', onThumbMouseUp);
+
     TAG_OPTIONS = {
       'phone-type' : [
         {value: _('mobile')},
@@ -153,8 +123,9 @@ var Contacts = (function() {
     initLanguages();
     initContainers();
     initContactsList();
-    checkUrl();
     contactsDetails.init();
+    contactsForm.init(TAG_OPTIONS);
+    checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
   });
@@ -181,34 +152,6 @@ var Contacts = (function() {
     document.documentElement.lang = navigator.mozL10n.language.code;
     document.documentElement.dir = navigator.mozL10n.language.direction;
   };
-
-  document.addEventListener('input', function input(event) {
-    checkDisableButton();
-  });
-
-  // When the cancel button inside the input is clicked
-  document.addEventListener('cancelInput', function() {
-    checkDisableButton();
-  });
-
-  var checkDisableButton = function checkDisable() {
-    var saveButton = document.getElementById('save-button');
-    if (emptyForm('contact-form')) {
-      saveButton.setAttribute('disabled', 'disabled');
-    } else {
-      saveButton.removeAttribute('disabled');
-    }
-  };
-
-  var emptyForm = function emptyForm(id) {
-    var form = document.getElementById(id);
-    var inputs = form.querySelectorAll('input.textfield');
-    for (var i = 0; i < inputs.length; i++) {
-      if (inputs[i].value != '')
-        return false;
-    }
-    return true;
-  }
 
   var dataPickHandler = function dataPickHandler() {
     var type, dataSet, noDataStr, selectDataStr;
@@ -267,8 +210,8 @@ var Contacts = (function() {
     }
   }
 
-  var loadList = function loadList() {
-    contactsList.load();
+  var loadList = function loadList(overlay) {
+    contactsList.load(null, overlay);
     contactsList.handleClick(function handleClick(id) {
       var options = {
         filterBy: ['id'],
@@ -296,112 +239,6 @@ var Contacts = (function() {
       return 0;
     }
     return prop.length;
-  };
-
-  var showEdit = function showEdit() {
-    resetForm();
-    deleteContactButton.classList.remove('hide');
-    formTitle.innerHTML = _('editContact');
-    currentContactId.value = currentContact.id;
-    givenName.value = currentContact.givenName;
-    familyName.value = currentContact.familyName;
-    company.value = currentContact.org;
-    var photo = null;
-    if (currentContact.photo && currentContact.photo.length > 0) {
-      photo = currentContact.photo[0];
-    }
-    updatePhoto(photo, thumb);
-
-    var default_type = TAG_OPTIONS['phone-type'][0].value;
-    var telLength = getLength(currentContact.tel);
-    for (var tel = 0; tel < telLength; tel++) {
-      var currentTel = currentContact.tel[tel];
-      var telField = {
-        value: currentTel.value || '',
-        type: currentTel.type || default_type,
-        carrier: currentTel.carrier || '',
-        i: tel
-      };
-
-      var template = utils.templates.render(phoneTemplate, telField);
-      template.appendChild(removeFieldIcon(template.id));
-      phonesContainer.appendChild(template);
-      numberPhones++;
-    }
-
-    var emailLength = getLength(currentContact.email);
-    for (var email = 0; email < emailLength; email++) {
-      var currentEmail = currentContact.email[email];
-      var default_type = TAG_OPTIONS['email-type'][0].value;
-      var emailField = {
-        value: currentEmail['value'] || '',
-        type: currentEmail['type'] || default_type,
-        i: email
-      };
-
-      var template = utils.templates.render(emailTemplate, emailField);
-      template.appendChild(removeFieldIcon(template.id));
-      emailContainer.appendChild(template);
-      numberEmails++;
-    }
-
-    if (currentContact.adr) {
-      for (var adr = 0; adr < currentContact.adr.length; adr++) {
-        var currentAddress = currentContact.adr[adr];
-        if (isEmpty(currentAddress, ['streetAddress', 'postalCode',
-          'locality', 'countryName'])) {
-            continue;
-        }
-        var default_type = TAG_OPTIONS['address-type'][0].value;
-        var adrField = {
-          streetAddress: currentAddress['streetAddress'] || '',
-          postalCode: currentAddress['postalCode'] || '',
-          locality: currentAddress['locality'] || '',
-          countryName: currentAddress['countryName'] || '',
-          type: currentAddress['type'] || default_type,
-          i: adr
-        };
-
-        var template = utils.templates.render(addressTemplate, adrField);
-        template.appendChild(removeFieldIcon(template.id));
-        addressContainer.appendChild(template);
-        numberAddresses++;
-      }
-    }
-    var noteLength = getLength(currentContact.note);
-    for (var i = 0; i < noteLength; i++) {
-      var currentNote = currentContact.note[i];
-      var noteField = {
-        note: currentNote || '',
-        i: i
-      };
-      var template = utils.templates.render(noteTemplate, noteField);
-      template.appendChild(removeFieldIcon(template.id));
-      noteContainer.appendChild(template);
-      numberNotes++;
-    }
-
-    deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
-      var yesObject = {
-        title: _('remove'),
-        callback: function onAccept() {
-          deleteContact(currentContact);
-          CustomDialog.hide();
-        }
-      };
-
-      var noObject = {
-        title: _('cancel'),
-        callback: function onCancel() {
-          CustomDialog.hide();
-        }
-      };
-
-      CustomDialog.show(null, msg, noObject, yesObject);
-    };
-
-    edit();
   };
 
   var updatePhoto = function updatePhoto(photo, dest) {
@@ -555,339 +392,6 @@ var Contacts = (function() {
     }
   }
 
-  var showAdd = function showAdd(params) {
-    if (!params || params == -1 || !('id' in params)) {
-      currentContact = {};
-    }
-    resetForm();
-    saveButton.setAttribute('disabled', 'disabled');
-    deleteContactButton.classList.add('hide');
-    formTitle.innerHTML = _('addContact');
-
-    params = params || {};
-
-    givenName.value = params.giveName || '';
-    familyName.value = params.lastName || '';
-    company.value = params.company || '';
-
-    var paramsMapping = {
-      'tel' : insertPhone,
-      'email' : insertEmail,
-      'address' : insertAddress,
-      'note' : insertNote
-    };
-    formTitle.innerHTML = _('addContact');
-
-    for (var i in paramsMapping) {
-      paramsMapping[i].call(this, params[i] || 0);
-    }
-    checkDisableButton();
-    edit();
-  };
-
-  var deleteContact = function deleteContact(contact) {
-    var request = navigator.mozContacts.remove(currentContact);
-    request.onsuccess = function successDelete() {
-      contactsList.remove(currentContact.id);
-      currentContact = {};
-      navigation.home();
-    };
-    request.onerror = function errorDelete() {
-      console.error('Error removing the contact');
-    };
-  };
-
-  var saveContact = function saveContact() {
-    saveButton.setAttribute('disabled', 'disabled');
-    var myContact = {
-      id: document.getElementById('contact-form-id').value,
-      additionalName: '',
-      name: ''
-    };
-
-    var inputs = {
-      'givenName': givenName,
-      'familyName': familyName,
-      'org': company
-    };
-
-    for (field in inputs) {
-      var value = inputs[field].value;
-      if (value && value.length > 0) {
-        myContact[field] = [value];
-      } else {
-        myContact[field] = null;
-      }
-    }
-
-    var fields = ['photo', 'category'];
-
-    for (var i = 0; i < fields.length; i++) {
-      var currentField = fields[i];
-      if (currentContact[currentField]) {
-        myContact[currentField] = currentContact[currentField];
-      }
-    }
-
-    if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
-      myContact.name = [name];
-    }
-
-    getPhones(myContact);
-    getEmails(myContact);
-    getAddresses(myContact);
-    getNotes(myContact);
-
-    // Use the isEmpty function to check fields but address
-    // and inspect address by it self.
-    if (isEmpty(myContact, ['givenName', 'familyName', 'org', 'tel',
-      'email', 'note', 'adr'])) {
-      return;
-    }
-
-    var contact;
-    if (myContact.id) { //Editing a contact
-      currentContact.tel = [];
-      currentContact.email = [];
-      currentContact.adr = [];
-      currentContact.note = [];
-      currentContact.photo = [];
-      var readOnly = ['id', 'updated', 'published'];
-      for (var field in myContact) {
-        if (readOnly.indexOf(field) == -1) {
-          currentContact[field] = myContact[field];
-        }
-      }
-      contact = currentContact;
-    } else {
-      contact = new mozContact();
-      contact.init(myContact);
-    }
-
-    var request = navigator.mozContacts.save(contact);
-    request.onsuccess = function onsuccess() {
-      // Reloading contact, as it only allows to be updated once
-      var cList = contacts.List;
-      cList.getContactById(contact.id, function onSuccess(savedContact) {
-        currentContact = savedContact;
-        myContact.id = savedContact.id;
-        myContact.photo = savedContact.photo;
-        myContact.category = savedContact.category;
-        contactsList.refresh(myContact);
-        if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.postNewSuccess(myContact);
-        } else {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-        }
-        navigation.back();
-      }, function onError() {
-        console.error('Error reloading contact');
-        if (ActivityHandler.currentlyHandling) {
-          ActivityHandler.postCancel();
-        }
-      });
-    };
-
-    request.onerror = function onerror() {
-      console.error('Error saving contact');
-    }
-  };
-
-  var getPhones = function getPhones(contact) {
-    var selector = '#view-contact-form form div.phone-template';
-    var phones = document.querySelectorAll(selector);
-    for (var i = 0; i < phones.length; i++) {
-      var currentPhone = phones[i];
-      var arrayIndex = currentPhone.dataset.index;
-      var numberField = document.getElementById('number_' + arrayIndex);
-      var numberValue = numberField.value;
-      if (!numberValue)
-        continue;
-
-      var selector = 'tel_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
-      var carrierSelector = 'carrier_' + arrayIndex;
-      var carrierField = document.getElementById(carrierSelector).value || '';
-      contact['tel'] = contact['tel'] || [];
-      contact['tel'][i] = {
-        value: numberValue,
-        type: typeField,
-        carrier: carrierField
-      };
-    }
-  };
-
-  var getEmails = function getEmails(contact) {
-    var selector = '#view-contact-form form div.email-template';
-    var emails = document.querySelectorAll(selector);
-    for (var i = 0; i < emails.length; i++) {
-      var currentEmail = emails[i];
-      var arrayIndex = currentEmail.dataset.index;
-      var emailField = document.getElementById('email_' + arrayIndex);
-      var emailValue = emailField.value;
-      var selector = 'email_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
-      if (!emailValue)
-        continue;
-
-      contact['email'] = contact['email'] || [];
-      contact['email'][i] = {
-        value: emailValue,
-        type: typeField
-      };
-    }
-  };
-
-  var getAddresses = function getAddresses(contact) {
-    var selector = '#view-contact-form form div.address-template';
-    var addresses = document.querySelectorAll(selector);
-    for (var i = 0; i < addresses.length; i++) {
-      var currentAddress = addresses[i];
-      var arrayIndex = currentAddress.dataset.index;
-      var addressField = document.getElementById('streetAddress_' + arrayIndex);
-      var addressValue = addressField.value || '';
-
-      var selector = 'address_type_' + arrayIndex;
-      var typeField = document.getElementById(selector).textContent || '';
-      selector = 'locality_' + arrayIndex;
-      var locality = document.getElementById(selector).value || '';
-      selector = 'postalCode_' + arrayIndex;
-      var postalCode = document.getElementById(selector).value || '';
-      selector = 'countryName_' + arrayIndex;
-      var countryName = document.getElementById(selector).value || '';
-
-      // Sanity check for pameters, check all params but the typeField
-      if (addressValue == '' && locality == '' &&
-          postalCode == '' && countryName == '') {
-        continue;
-      }
-
-      contact['adr'] = contact['adr'] || [];
-      contact['adr'][i] = {
-        streetAddress: addressValue,
-        postalCode: postalCode,
-        locality: locality,
-        countryName: countryName,
-        type: typeField
-      };
-    }
-  };
-
-  var getNotes = function getNotes(contact) {
-    var selector = '#view-contact-form form div.note-template';
-    var notes = document.querySelectorAll(selector);
-    for (var i = 0; i < notes.length; i++) {
-      var currentNote = notes[i];
-      var arrayIndex = currentNote.dataset.index;
-      var noteField = document.getElementById('note_' + arrayIndex);
-      var noteValue = noteField.value;
-      if (!noteValue) {
-        continue;
-      }
-
-      contact['note'] = contact['note'] || [];
-      contact['note'].push(noteValue);
-    }
-  };
-
-  var insertPhone = function insertPhone(phone) {
-    var telField = {
-      value: phone || '',
-      type: TAG_OPTIONS['phone-type'][0].value,
-      carrier: '',
-      i: numberPhones || 0
-    };
-    var template = utils.templates.render(phoneTemplate, telField);
-    template.appendChild(removeFieldIcon(template.id));
-    phonesContainer.appendChild(template);
-    numberPhones++;
-  };
-
-  var insertEmail = function insertEmail(email) {
-    var emailField = {
-      value: email || '',
-      type: TAG_OPTIONS['email-type'][0].value,
-      i: numberEmails || 0
-    };
-
-    var template = utils.templates.render(emailTemplate, emailField);
-    template.appendChild(removeFieldIcon(template.id));
-    emailContainer.appendChild(template);
-    numberEmails++;
-  };
-
-  var insertAddress = function insertAddress(address) {
-    var addressField = {
-      type: TAG_OPTIONS['address-type'][0].value,
-      streetAddress: address || '',
-      postalCode: '',
-      locality: '',
-      countryName: '',
-      i: numberAddresses || 0
-    };
-
-    var template = utils.templates.render(addressTemplate, addressField);
-    template.appendChild(removeFieldIcon(template.id));
-    addressContainer.appendChild(template);
-    numberAddresses++;
-  };
-
-  var insertNote = function insertNote(note) {
-    var noteField = {
-      note: note || '',
-      i: numberNotes || 0
-    };
-
-    var template = utils.templates.render(noteTemplate, noteField);
-    template.appendChild(removeFieldIcon(template.id));
-    noteContainer.appendChild(template);
-    numberNotes++;
-  };
-
-  var resetForm = function resetForm() {
-    thumbAction.querySelector('p').classList.remove('hide');
-    saveButton.removeAttribute('disabled');
-    currentContactId.value = '';
-    givenName.value = '';
-    familyName.value = '';
-    company.value = '';
-    thumb.style.backgroundImage = '';
-    var phones = document.getElementById('contacts-form-phones');
-    var emails = document.getElementById('contacts-form-emails');
-    var addresses = document.getElementById('contacts-form-addresses');
-    var notes = document.getElementById('contacts-form-notes');
-    phones.innerHTML = '';
-    emails.innerHTML = '';
-    addresses.innerHTML = '';
-    notes.innerHTML = '';
-    numberEmails = 0;
-    numberPhones = 0;
-    numberAddresses = 0;
-    numberNotes = 0;
-  };
-
-  var removeFieldIcon = function removeFieldIcon(selector) {
-    var delButton = document.createElement('button');
-    delButton.className = 'fillflow-row-action';
-    var delIcon = document.createElement('span');
-    delIcon.setAttribute('role', 'button');
-    delIcon.className = 'icon-delete';
-    delButton.appendChild(delIcon);
-    delButton.onclick = function removeElement(event) {
-      event.preventDefault();
-      var elem = document.getElementById(selector);
-      elem.parentNode.removeChild(elem);
-      checkDisableButton();
-      return false;
-    };
-    return delButton;
-  };
-
   var handleBack = function handleBack() {
     navigation.back();
   };
@@ -901,124 +405,6 @@ var Contacts = (function() {
       handleBack();
     }
   };
-
-  var pickImage = function pickImage() {
-    var activity = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'image/jpeg'
-      }
-    });
-
-    var reopenApp = function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
-        var ep = window == top ? 'contacts' : 'dialer';
-        app.launch(ep);
-      };
-    };
-
-    activity.onsuccess = function success() {
-      reopenApp();
-      var currentImg = this.result.filename;
-      updateContactPhoto(currentImg);
-    }
-
-    activity.onerror = function error() {
-      reopenApp();
-    }
-  };
-
-  var onThumbMouseDown = function onThumbMouseDown(evt) {
-    var self = this;
-    this.longPress = false;
-    this._pickImageTimer = setTimeout(function(self) {
-      self.longPress = true;
-      if (currentContact && currentContact.photo &&
-        currentContact.photo.length > 0) {
-        removePhoto();
-      }
-    }, 500, this);
-  };
-
-  var onThumbMouseUp = function onThumbMouseUp(evt) {
-    if (!this.longPress || !currentContact ||
-       !currentContact.hasOwnProperty('photo') ||
-       currentContact.photo == null ||
-       currentContact.photo.length == 0) {
-      pickImage();
-    }
-
-    clearTimeout(this._pickImageTimer);
-  }
-
-  var removePhoto = function() {
-    var dismiss = {
-      title: _('cancel'),
-      callback: CustomDialog.hide
-    };
-    var remove = {
-      title: _('ok'),
-      callback: function() {
-        currentContact.photo = [];
-        updatePhoto(null, thumb);
-        CustomDialog.hide();
-      }
-    };
-    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
-  }
-
-  var updateContactPhoto = function updateContactPhoto(image) {
-    if (!navigator.getDeviceStorage) {
-      console.log('Device storage unavailable');
-      return;
-    }
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0] || storageAreas;
-    var request = storage.get(image);
-    request.onsuccess = function() {
-      var img = document.createElement('img');
-      var imgSrc = URL.createObjectURL(request.result);
-      img.src = imgSrc;
-      this.img = img;
-      img.onload = function() {
-        var dataImg = getPhoto(this.img);
-        updatePhoto(dataImg, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = dataImg;
-      }.bind(this);
-    };
-    request.onerror = function() {
-      console.log('Error loading img');
-    };
-  }
-
-  var getPhoto = function getContactImg(contactImg) {
-    // Checking whether the image was actually loaded or not
-    var canvas = document.createElement('canvas');
-    var ratio = 2.5;
-    canvas.width = thumb.width * ratio;
-    canvas.height = thumb.height * ratio;
-    var ctx = canvas.getContext('2d');
-    var widthBigger = contactImg.width > contactImg.height;
-    var toCut = widthBigger ? 'width' : 'height';
-    var toScale = widthBigger ? 'height' : 'width';
-    var scaled = contactImg[toScale] / canvas[toScale];
-    var scaleValue = 1 / scaled;
-    ctx.scale(scaleValue, scaleValue);
-    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
-
-    if (widthBigger) {
-      ctx.drawImage(contactImg, -margin, 0);
-    } else {
-      ctx.drawImage(contactImg, 0, -margin);
-    }
-    var filename = 'contact_' + new Date().getTime();
-    var ret = canvas.mozGetAsFile(filename);
-    contactImg = null;
-    canvas = null;
-    return ret;
-  }
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
     if (ActivityHandler.currentlyHandling) {
@@ -1080,28 +466,32 @@ var Contacts = (function() {
     }
   };
 
+  var showForm = function c_showForm(edit) {
+    var contact = edit ? currentContact : null;
+    contactsForm.render(contact, goToForm);
+  };
+
+  var setCurrent = function c_setCurrent(contact) {
+    currentContact = contact;
+  }
+
   return {
-    'showEdit' : showEdit,
     'doneTag': doneTag,
-    'showAdd': showAdd,
-    'addNewPhone' : insertPhone,
-    'addNewEmail' : insertEmail,
-    'addNewAddress' : insertAddress,
-    'addNewNote' : insertNote,
     'cancel' : handleCancel,
     'goBack' : handleBack,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
-    'saveContact': saveContact,
     'callOrPick': callOrPick,
-    'pickImage': pickImage,
     'navigation': navigation,
     'sendEmailOrPick': sendEmailOrPick,
     'updatePhoto': updatePhoto,
     'checkCancelableActivity': checkCancelableActivity,
     'isEmpty': isEmpty,
     'getLength': getLength,
-    'handleVisibilityChange': handleVisibilityChange
+    'handleVisibilityChange': handleVisibilityChange,
+    'showForm': showForm,
+    'setCurrent': setCurrent,
+    'getTags': TAG_OPTIONS
   };
 })();
 
