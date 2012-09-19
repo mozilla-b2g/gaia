@@ -107,8 +107,8 @@ function SetupAccountInfoCard(domNode, mode, args) {
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
 
-  var nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
-  nextButton.addEventListener('click', this.onNext.bind(this), false);
+  this.nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
+  this.nextButton.addEventListener('click', this.onNext.bind(this), false);
 
   // placeholders need to be translated; they aren't automatically done
   // XXX actually, can we just have the l10n use ".placeholder"?
@@ -129,11 +129,17 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.passwordNode.setAttribute(
     'placeholder', mozL10n.get('setup-info-password-placeholder'));
 
+  // Add input event handler to prevent user submit empty name or password.
+  this.emailNode.addEventListener('input', this.onInfoInput.bind(this));
+  this.nameNode.addEventListener('input', this.onInfoInput.bind(this));
+  this.passwordNode.addEventListener('input', this.onInfoInput.bind(this));
+  
   // XXX testing, fake account
   if (args.serviceDef.domain === 'example.com') {
     this.nameNode.value = 'John Madeup';
     this.emailNode.value = 'john@example.com';
     this.passwordNode.value = 'secret!sosecret!';
+    this.nextButton.disabled = false;
   }
 }
 SetupAccountInfoCard.prototype = {
@@ -155,7 +161,15 @@ SetupAccountInfoCard.prototype = {
         password: this.passwordNode.value
       });
   },
-
+  onInfoInput: function(event) {
+    var nameValid = this.nameNode.classList.contains('collapsed') ||
+                    this.nameNode.value.length > 0;
+    var emailValid = this.emailNode.classList.contains('collapsed') ||
+                     this.emailNode.value.length > 0;
+    var passwordValid = this.passwordNode.classList.contains('collapsed') ||
+                        this.passwordNode.value.length > 0;
+    this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
+  },
   die: function() {
   }
 };
