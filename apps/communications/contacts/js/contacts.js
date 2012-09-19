@@ -468,7 +468,7 @@ var Contacts = (function() {
 
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
-    contactsForm.render(contact, goToForm)
+    contactsForm.render(contact, goToForm);
   };
 
   var setCurrent = function c_setCurrent(contact) {

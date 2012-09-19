@@ -58,7 +58,7 @@ suite('Render contact form', function() {
   suite('Render add form', function() {
     test('without params', function() {
       subject.render();
-      var toCheck = ['phone','address', 'email', 'note'];
+      var toCheck = ['phone', 'address', 'email', 'note'];
       for (var i = 0; i < toCheck.length; i++) {
         var element = 'add-' + toCheck[i];
         var cont = document.body.innerHTML;
@@ -74,7 +74,7 @@ suite('Render contact form', function() {
         tel: '123'
       };
       subject.render(params);
-      var toCheck = ['phone','address', 'email', 'note'];
+      var toCheck = ['phone', 'address', 'email', 'note'];
       var cont = document.body.innerHTML;
       for (var i = 0; i < toCheck.length; i++) {
         var element = 'add-' + toCheck[i];
@@ -82,7 +82,7 @@ suite('Render contact form', function() {
         assert.isTrue(cont.indexOf(element + '-1') == -1);
       }
       var value = document.querySelector('#number_0').value;
-      assert.equal(value, params.tel)
+      assert.equal(value, params.tel);
       var valueEmail = document.querySelector('#email_0').value;
       assert.isFalse(valueEmail === params.tel);
       assert.equal(valueEmail, '');
@@ -94,7 +94,7 @@ suite('Render contact form', function() {
         email: '123'
       };
       subject.render(params);
-      var toCheck = ['phone','address', 'email', 'note'];
+      var toCheck = ['phone', 'address', 'email', 'note'];
       var cont = document.body.innerHTML;
       for (var i = 0; i < toCheck.length; i++) {
         var element = 'add-' + toCheck[i];
@@ -114,7 +114,7 @@ suite('Render contact form', function() {
         email: '123'
       };
       subject.render(params);
-      var toCheck = ['phone','address', 'email', 'note'];
+      var toCheck = ['phone', 'address', 'email', 'note'];
       var cont = document.body.innerHTML;
       for (var i = 0; i < toCheck.length; i++) {
         var element = 'add-' + toCheck[i];
@@ -133,7 +133,7 @@ suite('Render contact form', function() {
     test('with all fields', function() {
       subject.render(mockContact);
       var cont = document.body.innerHTML;
-      var toCheck = ['phone','address', 'email', 'note'];
+      var toCheck = ['phone', 'address', 'email', 'note'];
       for (var i = 0; i < toCheck.length; i++) {
         var element = 'add-' + toCheck[i];
         assert.isTrue(cont.indexOf(element + '-0') > -1);
