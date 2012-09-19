@@ -1,141 +1,37 @@
-var files = undefined;
-var creds = undefined;
-var creds_twitter = new CredentialsDB('twitter');
-creds_twitter.onready = updateTwitterCredentials;
+function HostingProvider(id, name, auth, keys, urls) {
+  this.id      = id;
+  this.name    = name;
+  this.auth    = auth;
+  this.keys    = keys;
+  this.urls    = urls;
+  this.creds   = undefined;
+  if (this.auth != false) {
+    this.credsdb = new CredentialsDB(this.id);
+    this.credsdb.onready = this.readyCreds.bind(this);
+  }
+}
 
-window.onload = function() {
-  clean();
-  setup();
-  navigator.mozSetMessageHandler('activity', function(activityRequest) {
-    if (activityRequest.source.name === 'share-filenames') {
-      addImages(activityRequest.source.data.filenames);
-    }
+HostingProvider.prototype.readyCreds = function() {
+  var self = this;
+  this.credsdb.getcreds(function(res) {
+    self.creds = res;
   });
 };
 
-function setup() {
-  document.getElementById('share')
-    .addEventListener('click', share, false);
-  document.getElementById('upload-canardpc')
-    .addEventListener('click', enableOnly, false);
-  document.getElementById('upload-twitter')
-    .addEventListener('click', enableOnly, false);
-  document.getElementById('upload-imgur')
-    .addEventListener('click', enableOnly, false);
-  document.getElementById('twitter-message')
-    .addEventListener('focus', hideBannerStatus, false);
-}
-
-function enableOnly(evt) {
-  var toKeep = evt.target.id;
-  var services =
-    document
-    .getElementById('services')
-    .getElementsByTagName('input');
-  for (var service in services) {
-    var s = services[service];
-    if (s.type === 'checkbox' && s.id != toKeep) {
-      s.checked = false;
-    }
-    if (s.id == 'upload-twitter') {
-      switchTwitter();
-    }
+HostingProvider.prototype.extractOAuth1AccessTokens = function(string) {
+  var res = {};
+  var ar = string.split('&');
+  for (var id in ar) {
+    var param = ar[id].split('=');
+    res[param[0]] = param[1];
   }
-}
+  return res;
+};
 
-function XHRUpload(url, data, callback) {
-  setStatus('Ready to upload');
-  var xhr = new XMLHttpRequest({mozSystem: true});
-  xhr.open('POST', url, true);
-  xhr.upload.addEventListener('progress', function(e) {
-    if (e.lengthComputable) {
-      setProgress(e.loaded, e.total);
-    }
-  }, false);
-  xhr.upload.addEventListener('load', function(e) {
-      setProgress(e.loaded, e.total);
-  }, false);
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == XMLHttpRequest.DONE) {
-      unlock();
-      setStatus('Uploaded, treating response.');
-      callback(xhr);
-    }
-  };
-  xhr.send(data);
-  setStatus('Uploading ...');
-}
-
-function uploadCanardPc(source, callback) {
-  var url = 'http://tof.canardpc.com/';
-
-  var picture = new FormData();
-  picture.append('email', '');
-  picture.append('envoyer', 'envoyer');
-  picture.append('fichier', source);
-
-  XHRUpload(url, picture, function(xhr) {
-    if (xhr.responseText.match(url + 'show/')) {
-      var re = new RegExp(url + 'show/(.*).html');
-      var ar = re.exec(xhr.responseText);
-      var pid = ar[1];
-      var up = ar[0];
-      setStatus('Uploaded successfully: ' + pid);
-      callback(up);
-    } else {
-      setStatus('Error while uploading!');
-    }
-  });
-}
-
-function switchTwitter() {
-  var twenabled = document.getElementById('upload-twitter');
-  var twcontent = document.getElementById('twitter-content');
-  if (twcontent) {
-    if (twenabled.checked) {
-      twcontent.style.display = 'block';
-    } else {
-      twcontent.style.display = 'none';
-    }
-  }
-}
-
-function updateTwitterCredentials() {
-  purge('credentials-status');
-  var container = document.getElementById('credentials-status');
-  creds_twitter.getcreds(function(res) {
-    creds = res;
-    if (creds.length == 0) {
-      // no credential, let user login on twitter
-      var loginButton = document.createElement('button');
-      loginButton.id = 'login-twitter';
-      loginButton.innerHTML = 'Login on Twitter';
-      loginButton.onclick = loginTwitter;
-      container.appendChild(loginButton);
-    } else {
-      // found some credentials, let's use them!
-      var revokeButton = document.createElement('button');
-      revokeButton.className = 'negative';
-      revokeButton.id = 'revoke-twitter';
-      revokeButton.innerHTML =
-        'Revoke \'' + creds[0].screen_name + '\' credentials';
-      revokeButton.onclick = revokeTwitter;
-      container.appendChild(revokeButton);
-    }
-  });
-}
-
-function buildTwitterURL(url, method, parameters) {
-  var accessor = {
-    token: null,
-    tokenSecret: null,
-    consumerKey: 'wNJ9YztlCeboNx8cyfHliA',
-    consumerSecret: 'LH9tN8IbhRINsCRJlAQqNM479fGp6SDtNfxoKZKLBFA'
-  };
-
-  if (creds.length > 0) {
-    accessor.token = creds[0].oauth_token;
-    accessor.tokenSecret = creds[0].oauth_token_secret;
+HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
+  if (this.creds.length > 0) {
+    this.keys.token = this.creds[0].oauth_token;
+    this.keys.tokenSecret = this.creds[0].oauth_token_secret;
   }
 
   var message = {
@@ -144,13 +40,13 @@ function buildTwitterURL(url, method, parameters) {
     parameters: parameters
   };
 
-  OAuth.completeRequest(message, accessor);
-  OAuth.SignatureMethod.sign(message, accessor);
+  OAuth.completeRequest(message, this.keys);
+  OAuth.SignatureMethod.sign(message, this.keys);
   return url + '?' + OAuth.formEncode(message.parameters);
-}
+};
 
-function processTwitterXHR(url, method, params, callback) {
-  var target_url = buildTwitterURL(url, method, params);
+HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callback) {
+  var target_url = this.buildOAuth1URL(url, method, params);
   var xhr = new XMLHttpRequest({mozSystem: true});
   xhr.open(method, target_url, true);
   xhr.onreadystatechange = function() {
@@ -159,316 +55,623 @@ function processTwitterXHR(url, method, params, callback) {
     }
   };
   xhr.send();
-}
+};
 
-function extractTwitterAccessToken(string) {
-  var res = {};
-  var ar = string.split('&');
-  for (var id in ar) {
-    var param = ar[id].split('=');
-    res[param[0]] = param[1];
-  }
-  return res;
-}
+HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
+  ImageUploader.hideBannerStatus();
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-auth';
 
-function loginTwitter() {
-  setStatus('Starting Twitter authentication');
-  processTwitterXHR(
-    'https://api.twitter.com/oauth/request_token',
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+   var div2 = document.createElement('div');
+    div2.className = 'content';
+    var img = document.createElement('img');
+     img.src = this.urls['confirm-img'];
+    var strong = document.createElement('strong');
+     strong.innerHTML = this.name;
+    var small = document.createElement('small');
+     small.innerHTML = 'Authorization';
+    div2.appendChild(img);
+    div2.appendChild(strong);
+    div2.appendChild(small);
+
+   var p = document.createElement('p');
+    p.innerHTML = 'We now need that you authorize our application. A browser window will get you to ' + this.name + ' website, where you will be able to authenticate yourself and to authorize us. It will give you a PIN code. Please keep it, get back here and fill it in the prompt.';
+   div.appendChild(h3);
+   div.appendChild(div2);
+   div.appendChild(p);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 2;
+   var bcancel = document.createElement('button');
+    bcancel.id = 'auth-cancel';
+    bcancel.innerHTML = 'Cancel';
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'auth-continue';
+    bcontinue.innerHTML = 'Continue';
+    bcontinue.className = 'affirmative';
+  menu.appendChild(bcancel);
+  menu.appendChild(bcontinue);
+
+  var self = this;
+  bcancel.addEventListener(
+    'click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-auth'));
+      ImageUploader.setStatus(self.name + ' authentication canceled');
+    },
+    false);
+  bcontinue.addEventListener(
+    'click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-auth'));
+      try {
+      new MozActivity(
+        {
+          name: 'view',
+          data: {type: 'url', url: url}
+        }
+      );
+      } catch (e) {
+        alert(url);
+      }
+      self.OAuth1BuildDialogPIN();
+    }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
+HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
+  ImageUploader.hideBannerStatus();
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-pin';
+
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+   var div2 = document.createElement('div');
+    div2.className = 'content';
+    var img = document.createElement('img');
+    var strong = document.createElement('strong');
+     strong.innerHTML = this.name;
+    var small = document.createElement('small');
+     small.innerHTML = 'Authorization';
+    div2.appendChild(img);
+    div2.appendChild(strong);
+    div2.appendChild(small);
+
+   var p = document.createElement('p');
+    p.innerHTML = 'Please enter PIN code given by ' + this.name;
+   var input = document.createElement('input');
+    input.type = 'number';
+    input.id = 'pincode';
+    input.placeholder = 'PIN Code';
+   div.appendChild(h3);
+   div.appendChild(div2);
+   div.appendChild(p);
+   div.appendChild(input);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 1;
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'pin-continue';
+    bcontinue.innerHTML = 'Continue';
+    bcontinue.className = 'affirmative';
+  menu.appendChild(bcontinue);
+
+  var self = this;
+  bcontinue.addEventListener(
+    'click',
+    function(evt) {
+      var pin = document.getElementById('pincode').value;
+      document.body.removeChild(document.getElementById('confirm-pin'));
+      ImageUploader.setStatus('Confirming ' + self.name + ' PIN code');
+      self.processOAuth1XHR(
+        self.urls['oauth_access_token'],
+        'POST',
+        {oauth_verifier: pin, oauth_token: self.request_token_only},
+        function(xhr) {
+          if (xhr.status != 200) {
+            alert(
+              'Request refused:' +
+              xhr.status + '::' +
+              xhr.responseText);
+            return;
+          }
+          var twitter_account =
+            self.extractOAuth1AccessTokens(xhr.responseText);
+          self.credsdb.setcreds(twitter_account, function(res) {
+            if (res == null) {
+              ImageUploader.setStatus(self.name + ' account configured.');
+              self.updateCredentials();
+            } else {
+              alert('An error occured:', JSON.stringify(res));
+            }
+          });
+        })
+    }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
+HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
+  ImageUploader.hideBannerStatus();
+  var section = document.createElement('section');
+   section.setAttribute('role', 'dialog');
+   section.id = 'confirm-revoke';
+
+  var div = document.createElement('div');
+   var h3 = document.createElement('h3');
+    h3.innerHTML = 'Confirmation';
+
+   var p = document.createElement('p');
+    p.innerHTML = 'Are you sure you want to revoke this ' + this.name + ' account?';
+   div.appendChild(h3);
+   div.appendChild(p);
+
+  var menu = document.createElement('menu');
+   menu.dataset.items = 2;
+   var bcancel = document.createElement('button');
+    bcancel.id = 'revoke-cancel';
+    bcancel.innerHTML = 'Cancel';
+   var bcontinue = document.createElement('button');
+    bcontinue.id = 'revoke-continue';
+    bcontinue.innerHTML = 'Revoke';
+    bcontinue.className = 'negative';
+  menu.appendChild(bcancel);
+  menu.appendChild(bcontinue);
+
+  bcancel.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke'));}, false);
+  bcontinue.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke')); callback(); }, false);
+
+  section.appendChild(div);
+  section.appendChild(menu);
+
+  document.body.appendChild(section);
+};
+
+HostingProvider.prototype.performOAuth1Login = function() {
+  ImageUploader.setStatus('Starting ' + this.name + ' authentication');
+  var self = this;
+  this.processOAuth1XHR(
+    this.urls['oauth_request_token'],
     'POST',
     {oauth_callback: 'oob'},
     function(xhr) {
       if (xhr.status != 200) {
-        alert('Request refused:', xhr.status);
+        alert('Request refused:' + xhr.status);
         return;
       }
       if (xhr.responseText.match('oauth_token=')) {
-        setStatus('Extracting Twitter temporary token');
+        ImageUploader.setStatus('Extracting ' + self.name + ' temporary token');
         var request_token_regex =
           new RegExp('oauth_token=(.*)&oauth_token_secret=.*');
         var request_token_ar = request_token_regex.exec(xhr.responseText);
         var request_token_full = request_token_ar[0];
-        var request_token_only = request_token_ar[1];
+        self.request_token_only = request_token_ar[1];
         var authorize =
-          'https://api.twitter.com/oauth/authorize?' + request_token_full;
-        var twauth = document.getElementById('confirm-twitter-auth');
-        twauth.style.display = 'block';
-        var cancel = document.getElementById('twitter-auth-cancel');
-        cancel.addEventListener(
-          'click',
-          function(evt) {
-            setStatus('Twitter authentication canceled');
-            twauth.style.display = 'none';
-          },
-          false);
-        var cont = document.getElementById('twitter-auth-continue');
-        cont.addEventListener(
-          'click',
-          function(evt) {
-            twauth.style.display = 'none';
-            new MozActivity(
-              {
-                name: 'view',
-                data: {type: 'url', url: authorize}
-              }
-            );
-            var twpin = document.getElementById('twitter-pin');
-            twpin.style.display = 'block';
-            document.getElementById('twitter-pin-continue').addEventListener(
-              'click',
-              function(evt) {
-                var pin = document.getElementById('twitter-pincode').value;
-                twpin.style.display = 'none';
-                setStatus('Confirming Twitter PIN code');
-                processTwitterXHR(
-                  'https://api.twitter.com/oauth/access_token',
-                  'POST',
-                  {oauth_verifier: pin, oauth_token: request_token_only},
-                  function(xhr) {
-                    if (xhr.status != 200) {
-                      alert(
-                        'Request refused:',
-                        xhr.status, '::',
-                        xhr.responseText);
-                      return;
-                    }
-                    var twitter_account =
-                      extractTwitterAccessToken(xhr.responseText);
-                    creds_twitter.setcreds(twitter_account, function(res) {
-                      if (res == null) {
-                        setStatus('Twitter account configured.');
-                        updateTwitterCredentials();
-                      } else {
-                        alert('An error occured:', JSON.stringify(res));
-                      }
-                    });
-                  });
-              },
-              false);
-          },
-          false);
+          self.urls['oauth_authorize'] + '?' + request_token_full;
+        self.OAuth1BuildDialogNotif(authorize);
       } else {
         alert('Cannot request token.');
       }
   });
-}
+};
 
-function revokeTwitter() {
-  var conf = document.getElementById('confirm-twitter-revoke');
-  conf.style.display = 'block';
-  document.getElementById('twitter-revoke-cancel').addEventListener(
-    'click',
-    function(evt) {
-      conf.style.display = 'none';
-    },
-    false
-  );
-  document.getElementById('twitter-revoke-revoke').addEventListener(
-    'click',
-    function(evt) {
-      creds_twitter.delcreds(creds[0].screen_name, function(res) {
-        conf.style.display = 'none';
-        if (res == null) {
-          setStatus('Your Twitter account is now revoked!');
-          updateTwitterCredentials();
+HostingProvider.prototype.XHRUpload = function(url, data, callback) {
+  ImageUploader.setStatus('Ready to upload');
+  var xhr = new XMLHttpRequest({mozSystem: true});
+  xhr.open('POST', url, true);
+  xhr.upload.addEventListener('progress', function(e) {
+    if (e.lengthComputable) {
+      ImageUploader.setProgress(e.loaded, e.total);
+    }
+  }, false);
+  xhr.upload.addEventListener('load', function(e) {
+      ImageUploader.setProgress(e.loaded, e.total);
+  }, false);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == XMLHttpRequest.DONE) {
+      ImageUploader.unlock();
+      ImageUploader.setStatus('Uploaded, treating response.');
+      callback(xhr);
+    }
+  };
+  xhr.send(data);
+  ImageUploader.setStatus('Uploading ...');
+};
+
+HostingProvider.prototype.updateCredentials = function() {
+  ImageUploader.purge('credentials-status');
+  var self = this;
+  var container = document.getElementById('credentials-status');
+  this.credsdb.getcreds(function(res) {
+    self.creds = res;
+    if (self.creds.length == 0) {
+      // no credential, let user login on twitter
+      var loginButton = document.createElement('button');
+      loginButton.id = 'login-twitter';
+      loginButton.innerHTML = 'Login on ' + self.name;
+      loginButton.onclick = self.performOAuth1Login.bind(self);
+      container.appendChild(loginButton);
+    } else {
+      // found some credentials, let's use them!
+      var revokeButton = document.createElement('button');
+      revokeButton.className = 'negative';
+      revokeButton.id = 'revoke-twitter';
+      revokeButton.innerHTML =
+        'Revoke \'' + self.creds[0].screen_name + '\' credentials';
+      revokeButton.onclick = self.revokeCredentials.bind(self);
+      container.appendChild(revokeButton);
+    }
+  });
+};
+
+HostingProvider.prototype.revokeCredentials = function() {
+  var self = this;
+  this.OAuth1BuildDialogRevoke(function () {
+    self.credsdb.delcreds(self.creds[0].screen_name, function(res) {
+      if (res == null) {
+        ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
+        self.creds = undefined;
+        self.updateCredentials();
+      } else {
+        alert('An error occured:', JSON.stringify(res));
+      }
+    });
+  });
+};
+
+var ImageUploader = {
+  services: [],
+  files: {},
+
+  init: function() {
+    var HostingCanardPC = new HostingProvider('cpc', 'CanardPC', false, {}, {'upload': 'http://tof.canardpc.com/', 'confirm-img': 'style/images/canardpc.jpg'});
+    HostingCanardPC.upload = function () {
+      var picture = new FormData();
+      picture.append('email', '');
+      picture.append('envoyer', 'envoyer');
+      picture.append('fichier', source);
+
+      var self = this;
+      this.XHRUpload(self.urls['upload'], picture, function(xhr) {
+        if (xhr.responseText.match(self.urls['upload'] + 'show/')) {
+          var re = new RegExp(self.urls['upload'] + 'show/(.*).html');
+          var ar = re.exec(xhr.responseText);
+          var pid = ar[1];
+          var up = ar[0];
+          ImageUploader.setStatus('Uploaded successfully: ' + pid);
+          callback(up);
         } else {
-          alert('An error occured:', JSON.stringify(res));
+          ImageUploader.setStatus('Error while uploading!');
         }
       });
-    },
-    false
-  );
-}
-
-function uploadTwitter(source, callback) {
-  var twmsg = document.getElementById('twitter-message');
-
-  if (twmsg == undefined) {
-    alert('No Twitter message');
-    unlock();
-    return;
-  }
-
-  var twstatus = twmsg.value;
-  if (twstatus == undefined || twstatus == '') {
-    alert('No status, cannot send tweet.');
-    unlock();
-    return;
-  }
-
-  if (twstatus.length > 140) {
-    alert('Tweet is too long (' + twstatus.length + '), maximum is 140.');
-    unlock();
-    return;
-  }
-
-  var url = buildTwitterURL(
-    'https://upload.twitter.com/1/statuses/update_with_media.json',
-    'POST',
-    {include_entities: true, status: twstatus}
-  );
-
-  var picture = new FormData();
-  picture.append('media', source);
-
-  XHRUpload(url, picture, function(xhr) {
-    var json = JSON.parse(xhr.responseText);
-    var id_str = json.entities.media[0].id_str;
-    var ex_url = json.entities.media[0].expanded_url;
-    setStatus('Uploaded successfully: ' + id_str);
-    callback(ex_url);
-  });
-}
-
-function uploadImgur(source, callback) {
-  var apikey = '4fa922afa12ef6b38c0b5b5e6e548a4f';
-  var url = 'http://api.imgur.com/2/upload.json';
-
-  var picture = new FormData();
-  picture.append('key', apikey);
-  picture.append('image', source);
-
-  XHRUpload(url, picture, function(xhr) {
-    var json = JSON.parse(xhr.responseText);
-    var link = json.upload.links.imgur_page;
-    var img = json.upload.image.hash;
-    if (link == undefined) {
-      setStatus('Error while uploading!');
-    } else {
-      setStatus('Uploaded successfully: ' + img);
-      callback(link);
-    }
-  });
-}
-
-function finalize(url) {
-  clean();
-  new MozActivity({
-    name: 'view',
-    data: {
-      type: 'url',
-      url: url
-    }
-  });
-}
-
-function addImages(filenames) {
-  var storage = navigator.getDeviceStorage('pictures');
-  filenames.forEach(function(filename) {
-    storage.get(filename).onsuccess = function(e) {
-      var blob = e.target.result;
-      var url = URL.createObjectURL(blob);
-      var holder = document.getElementById('previews');
-      var img = document.createElement('img');
-      img.style.width = '85%';
-      img.src = url;
-      files[url] = blob;
-      img.onload = function() { URL.revokeObjectURL(this.src); };
-      holder.appendChild(img);
     };
-  });
-}
 
-function getSelectedServices() {
-  var services =
-    document
-    .getElementById('services')
-    .getElementsByTagName('input');
-  var selectedServices = [];
-  for (var service in services) {
-    var s = services[service];
-    if (s.type === 'checkbox' && s.checked === true) {
-      selectedServices.push(s.id);
+    var HostingTwitter = new HostingProvider(
+      'twitter', 'Twitter', 'oauth1',
+      {
+        token: null,
+        tokenSecret: null,
+        consumerKey: 'wNJ9YztlCeboNx8cyfHliA',
+        consumerSecret: 'LH9tN8IbhRINsCRJlAQqNM479fGp6SDtNfxoKZKLBFA'
+      },
+      {
+        'confirm-img': 'style/images/twitter-bird-light-bgs.png',
+        'upload': 'https://upload.twitter.com/1/statuses/update_with_media.json',
+        'oauth_request_token': 'https://api.twitter.com/oauth/request_token',
+        'oauth_authorize': 'https://api.twitter.com/oauth/authorize',
+        'oauth_access_token': 'https://api.twitter.com/oauth/access_token'
+      }
+    );
+    HostingTwitter.addContent = function() {
+      var container = document.getElementById('service-content');
+      if (container == undefined) {
+        return;
+      }
+
+      var label = document.createElement('label');
+        label.id  = 'label-twitter-message';
+        label.for = 'twitter-message';
+        label.innerHTML = 'Your Tweet:';
+      var textarea = document.createElement('textarea');
+        textarea.id = 'twitter-message';
+        textarea.className = 'message';
+        textarea.rows = 3;
+        textarea.cols = 50;
+        textarea.maxlength = 140;
+        textarea.addEventListener('focus', ImageUploader.hideBannerStatus, false);
+      var p = document.createElement('p');
+        p.id = 'credentials-status';
+
+      container.appendChild(label);
+      container.appendChild(textarea);
+      container.appendChild(p);
+
+      this.updateCredentials();
+    };
+    HostingTwitter.upload = function(source, callback) {
+      var twmsg = document.getElementById('twitter-message');
+
+      if (twmsg == undefined) {
+        alert('No Twitter message');
+        ImageUploader.unlock();
+        return;
+      }
+
+      var twstatus = twmsg.value;
+      if (twstatus == undefined || twstatus == '') {
+        alert('No status, cannot send tweet.');
+        ImageUploader.unlock();
+        return;
+      }
+
+      if (twstatus.length > 140) {
+        alert('Tweet is too long (' + twstatus.length + '), maximum is 140.');
+        ImageUploader.unlock();
+        return;
+      }
+
+      var url = this.buildOAuth1URL(
+        this.urls['upload'],
+        'POST',
+        {include_entities: true, status: twstatus}
+      );
+
+      var picture = new FormData();
+      picture.append('media', source);
+
+      this.XHRUpload(url, picture, function(xhr) {
+        var json = JSON.parse(xhr.responseText);
+        var id_str = json.entities.media[0].id_str;
+        var ex_url = json.entities.media[0].expanded_url;
+        ImageUploader.setStatus('Uploaded successfully: ' + id_str);
+        callback(ex_url);
+      });
+    };
+
+    var HostingImgur = new HostingProvider('imgur', 'Imgur', false, {'apiKey': '4fa922afa12ef6b38c0b5b5e6e548a4f'}, {'upload': 'http://api.imgur.com/2/upload.json', 'confirm-img': 'style/images/imgur-iphone.png'});
+    HostingImgur.upload = function(source, callback) {
+      var picture = new FormData();
+      picture.append('key', this.keys['apiKey']);
+      picture.append('image', source);
+
+      this.XHRUpload(this.urls['upload'], picture, function(xhr) {
+        var json = JSON.parse(xhr.responseText);
+        var link = json.upload.links.imgur_page;
+        var img = json.upload.image.hash;
+        if (link == undefined) {
+          ImageUploader.setStatus('Error while uploading!');
+        } else {
+          ImageUploader.setStatus('Uploaded successfully: ' + img);
+          callback(link);
+        }
+      });
+    };
+
+    this.services.push(HostingCanardPC);
+    this.services.push(HostingTwitter);
+    this.services.push(HostingImgur);
+
+    this.createServicesList();
+
+    this.setup();
+  },
+
+  createServiceListEntry: function(service) {
+    var container = document.getElementById('services-list');
+    if (container == undefined) {
+      return;
     }
-  }
-  return selectedServices;
-}
 
-function share() {
-  setStatus('Starting to share');
-  var services = getSelectedServices();
-  if (services.length > 0) {
-    for (var sn in services) {
-      lock();
-      var serv = services[sn];
-      var previews = document.getElementById('previews');
-      var imgs = previews.getElementsByTagName('img');
-      for (var i in imgs) {
-        var img_url = imgs[i].src;
-        if (img_url != undefined) {
-          var img = files[img_url];
-          setStatus('Preparing upload');
-          switch (serv) {
-            case 'upload-canardpc':
-              uploadCanardPc(img, finalize);
-              break;
-            case 'upload-twitter':
-              uploadTwitter(img, finalize);
-              break;
-            case 'upload-imgur':
-              uploadImgur(img, finalize);
-              break;
+    var li = document.createElement('li')
+
+    var img = document.createElement('img');
+     img.src = service.urls['confirm-img'];
+    var label = document.createElement('label');
+    label.className = 'check';
+      var input = document.createElement('input');
+      input.type = 'checkbox'
+      input.name = service.id;
+      input.id = 'upload-' + service.id;
+      input.addEventListener('click', this.enableOnly.bind(this), false);
+      var span = document.createElement('span');
+
+      label.appendChild(input)
+      label.appendChild(span);
+
+    var dl = document.createElement('dl');
+      var dt = document.createElement('dt');
+      dt.innerHTML = service.name;
+      var dd = document.createElement('dd');
+        var span2 = document.createElement('span');
+        span2.innerHTML = service.auth == false ? 'anonymous' : service.auth;
+
+        dd.appendChild(span2);
+
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+
+    li.appendChild(img);
+    li.appendChild(label);
+    li.appendChild(dl);
+
+    container.appendChild(li);
+  },
+
+  createServicesList: function() {
+    for (var s in this.services) {
+      this.createServiceListEntry(this.services[s]);
+    }
+  },
+
+  addImages: function(filenames) {
+    var storage = navigator.getDeviceStorage('pictures');
+    var self = this;
+    filenames.forEach(function(filename) {
+      storage.get(filename).onsuccess = function(e) {
+        var blob = e.target.result;
+        var url = URL.createObjectURL(blob);
+        var holder = document.getElementById('previews');
+        var img = document.createElement('img');
+        img.style.width = '85%';
+        img.src = url;
+        self.files[url] = blob;
+        img.onload = function() { URL.revokeObjectURL(this.src); };
+        holder.appendChild(img);
+      };
+    });
+  },
+
+  share: function() {
+    this.setStatus('Starting to share');
+    var services = this.getSelectedServices();
+    if (services.length > 0) {
+      for (var sn in services) {
+        this.lock();
+        var serv = services[sn];
+        var previews = document.getElementById('previews');
+        var imgs = previews.getElementsByTagName('img');
+        for (var i in imgs) {
+          var img_url = imgs[i].src;
+          if (img_url != undefined) {
+            var img = this.files[img_url];
+            ImageUploader.setStatus('Preparing upload');
+  	  for (var sid in ImageUploader.services) {
+              var sup = ImageUploader.services[sid];
+  	    if (serv == ('upload-' + sup.id)) {
+                sup.upload(img, this.finalize.bind(this));
+  	    }
+  	  }
           }
         }
       }
     }
-  }
-}
+  },
 
-function purge(id) {
-  var prevs = document.getElementById(id);
-  if (prevs) {
-    while (prevs.hasChildNodes()) {
-      prevs.removeChild(prevs.lastChild);
+  enableOnly: function(evt) {
+    var toKeep = evt.target.id;
+    this.purge('service-content');
+    for (var service in this.services) {
+      var s = this.services[service];
+      var c = document.getElementById('upload-' + s.id);
+      if (('upload-' + s.id) != toKeep) {
+        c.checked = false;
+      } else {
+        if (s.addContent) {
+          s.addContent();
+        }
+      }
     }
+  },
+
+  finalize: function(url) {
+    this.clean();
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: url
+      }
+    });
+  },
+
+  setup: function() {
+    document.getElementById('share')
+      .addEventListener('click', this.share.bind(this), false);
+  },
+
+  purge: function(id) {
+    var prevs = document.getElementById(id);
+    if (prevs) {
+      while (prevs.hasChildNodes()) {
+        prevs.removeChild(prevs.lastChild);
+      }
+    }
+  },
+
+  clean: function() {
+    this.files = {};
+    this.hideBannerStatus();
+    this.setProgress(0.0, 0.0);
+    this.purge('previews');
+    this.purge('link');
+    this.unlock();
+  },
+
+  getSelectedServices: function() {
+    var services =
+      document
+      .getElementById('services')
+      .getElementsByTagName('input');
+    var selectedServices = [];
+    for (var service in services) {
+      var s = services[service];
+      if (s.type === 'checkbox' && s.checked === true) {
+        selectedServices.push(s.id);
+      }
+    }
+    return selectedServices;
+  },
+
+  setBannerStatus: function(visible) {
+    var bs = document.getElementById('banner-status');
+    if (visible) {
+      bs.style.display = 'block';
+    } else {
+      bs.style.display = 'none';
+    }
+  },
+
+  showBannerStatus: function() {
+    ImageUploader.setBannerStatus(true);
+  },
+
+  hideBannerStatus: function() {
+    ImageUploader.setBannerStatus(false);
+  },
+
+  lock: function() {
+    document.getElementById('share').disabled = true;
+  },
+
+  unlock: function() {
+    document.getElementById('share').disabled = false;
+  },
+
+  setStatus: function(msg) {
+    ImageUploader.showBannerStatus();
+    document.getElementById('uploaded').innerHTML = msg;
+  },
+
+  setProgress: function(level, max) {
+    var prcent = 0.0;
+    if (max > 0.0) {
+      prcent = ((level * 1.0) / (max)) * 100;
+    }
+    document.getElementById('upload-progress').value = prcent;
   }
-}
+};
 
-function clean() {
-  files = {};
-  hideBannerStatus();
-  setProgress(0.0, 0.0);
-  document.getElementById('twitter-message').value = '';
-  purge('previews');
-  purge('link');
-  unlock();
-}
-
-function lock() {
-  document.getElementById('share').disabled = true;
-}
-
-function unlock() {
-  document.getElementById('share').disabled = false;
-}
-
-function setStatus(msg) {
-  showBannerStatus();
-  document.getElementById('uploaded').innerHTML = msg;
-}
-
-function setBannerStatus(visible) {
-  var bs = document.getElementById('banner-status');
-  if (visible) {
-    bs.style.display = 'block';
-  } else {
-    bs.style.display = 'none';
+window.onload = function() {
+  ImageUploader.init();
+  ImageUploader.clean();
+  if (navigator.mozSetMessageHandler) {
+    navigator.mozSetMessageHandler('activity', function(activityRequest) {
+      if (activityRequest.source.name === 'share-filenames') {
+        ImageUploader.addImages(activityRequest.source.data.filenames);
+      }
+    });
   }
-}
-
-function showBannerStatus() {
-  setBannerStatus(true);
-}
-
-function hideBannerStatus() {
-  setBannerStatus(false);
-}
-
-function setProgress(level, max) {
-  var prcent = 0.0;
-  if (max > 0.0) {
-    prcent = ((level * 1.0) / (max)) * 100;
-  }
-  document.getElementById('upload-progress').value = prcent;
-}
-
+};
