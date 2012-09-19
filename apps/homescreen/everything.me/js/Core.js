@@ -36,9 +36,8 @@ var Core = new function() {
         }, false);
 
         document.addEventListener("visibilitychange", function() {
-            if (window.hidden) {
-                document.body.classList["remove"]("evme-displayed");
-            }
+            var method = window.hidden ? "remove" : "add";
+            document.body.classList[method]("evme-displayed");
         }, false);
     };
 

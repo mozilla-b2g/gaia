@@ -759,11 +759,6 @@ var Brain = new function() {
 
             EventHandler.trigger("Core", "redirectedToApp", data);
 
-            /*$(window)
-                .unbind("visibilitychange", returnFromOutside)
-                .bind("visibilitychange", returnFromOutside);
-                */
-            // for now this hack is in place because Cristian can't fire visibilitychange when returning from an app
             setTimeout(returnFromOutside, 2000);
 
             window.setTimeout(function(){
@@ -785,6 +780,12 @@ var Brain = new function() {
         };
 
         function returnFromOutside() {
+            // temp hack for messaging with evme
+            window.postMessage(JSON.stringify({
+                type: 'visibilitychange',
+                data: { hidden: false }
+            }), '*');
+    
             if (loadingApp) {
                 loadingApp = null;
 
