@@ -85,12 +85,12 @@ contacts.Form = (function() {
     _ = navigator.mozL10n.get;
     initContainers();
 
-    document.addEventListener('input', function input(event) {
+    dom.addEventListener('input', function input(event) {
       checkDisableButton();
     });
 
     // When the cancel button inside the input is clicked
-    document.addEventListener('cancelInput', function() {
+    dom.addEventListener('cancelInput', function() {
       checkDisableButton();
     });
 
@@ -105,10 +105,13 @@ contacts.Form = (function() {
   };
 
   var showEdit = function showEdit(contact) {
+    if (!contact || !contact.id) {
+      return;
+    }
     currentContact = contact;
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
-    currentContactId.value = contact.id || '';
+    currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
     company.value = contact.org || '';
@@ -179,6 +182,10 @@ contacts.Form = (function() {
   }
 
   var insertField = function insertField(type, object) {
+    if (!type || !configs[type]) {
+      console.error('Inserting field with unknown type');
+      return;
+    }
     var obj = object || {};
     var config = configs[type];
     var template = config['template'];
