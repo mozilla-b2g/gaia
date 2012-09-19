@@ -36,16 +36,3 @@
     padding-left: 40px;
   }
 }
-
-#listmenu menu ul:first-child {
-  /* root */
-  transform: translateX(-100%);
-}
-
-#listmenu menu ul {
-  transform: translateX(100%);
-}
-
-#listmenu menu ul:target {
-  transform: translateX(0);
-}
