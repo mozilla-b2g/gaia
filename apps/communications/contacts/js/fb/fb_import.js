@@ -27,6 +27,8 @@ if (typeof fb.importer === 'undefined') {
 
     var currentRequest;
 
+    var l10n = navigator.mozL10n;
+
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name,' ,
@@ -159,6 +161,11 @@ if (typeof fb.importer === 'undefined') {
 
       eleNumImport.value = newValue;
 
+      var msgElement = document.querySelector('#friends-msg');
+      msgElement.textContent = l10n.get('friendsFound',{
+        numFriends: newValue
+      });
+
       friends.forEach(function(fbContact) {
         var uid = new fb.Contact(fbContact).uid;
 
@@ -285,8 +292,6 @@ if (typeof fb.importer === 'undefined') {
         friendsPartners = parseFriendsPartners(response.data[1].fql_result_set);
 
         contacts.List.load(myFriends, friendsAvailable);
-
-        // contacts.List.handleClick(this.ui.selection);
 
         document.body.dataset.state = '';
       }
