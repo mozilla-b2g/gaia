@@ -508,22 +508,6 @@ contacts.Form = (function() {
     return delButton;
   };
 
-  var removePhoto = function() {
-    var dismiss = {
-      title: _('cancel'),
-      callback: CustomDialog.hide
-    };
-    var remove = {
-      title: _('ok'),
-      callback: function() {
-        currentContact.photo = [];
-        Contacts.updatePhoto(null, thumb);
-        CustomDialog.hide();
-      }
-    };
-    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
-  }
-
   var updateContactPhoto = function updateContactPhoto(image) {
     if (!navigator.getDeviceStorage) {
       console.log('Device storage unavailable');
