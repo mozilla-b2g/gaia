@@ -34,7 +34,7 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
-/* Override Building Block styles */
+/* Override Building Block [Header] styles */
 section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
   right: -moz-calc(-50% + 7rem);
@@ -46,6 +46,26 @@ section[role="region"] > header:first-child .icon.icon-clear {
   right: 0;
 }
 
+/* Override Building Block [Edit mode] styles */
+form.edit[role="dialog"] {
+  right: 50%;
+  transform: translateY(-100%);
+}
+
+form.edit[role="dialog"] header,
+form.edit[role="dialog"] > menu {
+  transition: all 0.2s ease;
+}
+
+form.edit[role="dialog"] header {
+  transform: translateY(-100%);
+}
+
+form.edit[role="dialog"] > menu {
+  transform: translateY(100%);
+}
+
+/* Panel handling */
 .wrapper {
   width: 200%;
   height: 100%;
@@ -122,17 +142,24 @@ section[role="region"] > header:first-child .icon.icon-clear {
 
 /* Styles for Edit mode */
 
-.edit .options {
-  -moz-transform: translateY(-6.5rem);
+.edit form[role="dialog"].edit {
+  transform: translateY(0);
+}
+
+.to-left.edit form.edit[role="dialog"] {
+  transform: translate(100%, 0);
+}
+
+.edit form[role="dialog"].edit > menu {
+  -moz-transform: translateY(0);
 }
 
 .edit .new-sms-form {
   -moz-transform: translateY(3.6rem);
 }
 
-.edit .dark-header{
-  -moz-transform: translateY(100%);
-  opacity: .9;
+.edit form[role="dialog"].edit header {
+  -moz-transform: translateY(0);
 }
 
 .edit #thread-list-container .name {
