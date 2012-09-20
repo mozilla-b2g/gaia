@@ -80,8 +80,8 @@ var Contacts = (function() {
         break;
 
       case 'add-parameters':
+        navigation.home();
         selectList();
-        window.location.hash = '';
         return;
 
     }
@@ -282,7 +282,7 @@ var Contacts = (function() {
 
         if (!ActivityHandler.currentlyHandling) {
           contactsDetails.render(currentContact, TAG_OPTIONS);
-          goToForm();
+          navigation.go('view-contact-details', 'right-left');
           return;
         }
 
