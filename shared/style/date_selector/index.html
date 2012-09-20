@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Date selector</title>
+  <meta name="description" content="Provides a way for the user to select one of more values, usually from a Form interface">
+
+  <link rel="stylesheet" href="../date_selector.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+  </style>
+</head>
+
+<body role="application">
+
+      <form role="dialog" onsubmit="return false;">
+        <section class="calendar">
+          <h1>Select day</h1>
+          <button>Previous month</button>
+          <button>next month</button>
+          <table>
+           <caption>September 2012</caption>
+            <thead>
+              <tr>
+                <th scope="col">Mon</th>
+                <th scope="col">Tue</th>
+                <th scope="col">Wed</th>
+                <th scope="col">Thu</th>
+                <th scope="col">Fri</th>
+                <th scope="col">Sat</th>
+                <th scope="col">Sun</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="past">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>27</span>
+                  </label>
+                </td>
+                <td class="past">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>28</span>
+                  </label>
+                </td>
+                <td class="past">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>29</span>
+                  </label>
+                </td>
+                <td class="past">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>30</span>
+                  </label>
+                </td>
+                <td class="past">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>31</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>1</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>2</span>
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>3</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>4</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>5</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>6</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>7</span>
+                  </label>
+                </td>
+                <td class="today">
+                  <label>
+                    <input type="radio" name="day">
+                    <span>8</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>9</span>
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>10</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>11</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>12</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>13</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>14</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>15</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>16</span>
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>17</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>18</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>19</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>20</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>21</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>22</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>23</span>
+                  </label>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>24</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>25</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>26</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>27</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>28</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>29</span>
+                  </label>
+                </td>
+                <td>
+                  <label>
+                    <input type="radio" name="day">
+                    <span>30</span>
+                  </label>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <menu>
+          <button>Cancel</button>
+          <button class="recommend">Action</button>
+        </menu>
+      </form>
+
+</body>
+</html>

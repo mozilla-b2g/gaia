@@ -1,0 +1,281 @@
+/* ----------------------------------
+ * Date selector
+ * ---------------------------------- */
+
+/* Main dialog setup */
+form[role="dialog"] {
+  background: url(date_selector/images/ui/pattern.png) repeat left top, url(date_selector/images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  /* We can't use shortand with background size because is not implemented yet:
+  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 7rem;
+  font-family: "Open Sans", Sans-serif;
+  font-size: 0;
+  /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
+  created by white-spaces and break lines in the code betewen inline-block elements */
+  color: #fff;
+}
+
+form[role="dialog"] > section {
+  padding: 0 1.5rem 0;
+  -moz-box-sizing: padding-box;
+  width: 100%;
+  height: 100%;
+  display: inline-block;
+  vertical-align: top;
+  white-space: normal;
+}
+
+form[role="dialog"] h1 {
+  font: 1.6rem/1em 'Open Sans', Sans-serif;
+  color: #fff;
+  border-bottom: 0.1rem solid #616262;
+  background: url(date_selector/images/ui/alpha.png) repeat 0 0;
+  margin: 0 -1.5rem;
+  padding: 2rem 3rem 0 3rem;
+  height: 5rem;
+  -moz-box-sizing: border-box;
+}
+form[role="dialog"] h1:after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  background: #222323;
+  height: 0.1rem;
+  left: 0;
+  top: 5rem;
+}
+
+/* Menu & buttons setup */
+form[role="dialog"] menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(date_selector/images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+form[role="dialog"] menu button {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(date_selector/images/ui/default.png) repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & recommend) */
+form[role="dialog"] menu button:active,
+form[role="dialog"] menu button.recommend:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+/* Recommend */
+form[role="dialog"] menu button.recommend{
+  background-image: url(date_selector/images/ui/recommend.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/* Danger */
+form[role="dialog"] menu button.danger{
+  background-image: url(date_selector/images/ui/danger.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
+  border: none;
+}
+
+/* Danger Press */
+form[role="dialog"] menu button.danger:active{
+  background-image: url(date_selector/images/ui/danger-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & recommend) */
+form[role="dialog"] menu button[disabled],
+form[role="dialog"] menu button[disabled].recommend {
+  background-image: url(date_selector/images/ui/disabled.png);
+  background-color: transparent;
+  border: none;
+  color: #bcbcbc;
+  text-shadow: none;
+  pointer-events: none;
+}
+
+/* Danger disabled */
+form[role="dialog"] menu button[disabled].danger {
+  background-image: url(date_selector/images/ui/danger-disabled.png);
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
+}
+
+form[role="dialog"] menu button:last-child {
+  margin-left: 1rem;
+}
+
+form[role="dialog"] menu button,
+form[role="dialog"] menu button:first-child {
+  margin: 0;
+}
+
+form[role="dialog"] menu button {
+  width: -moz-calc((100% - 1rem) / 2);
+}
+
+form[role="dialog"] menu button.full {
+  width: 100%;
+}
+
+/* Specific component code */
+form[role="dialog"] section.calendar {
+  font-size: 2.2rem;
+  line-height: 1em;
+  margin: 0;
+  padding: 0;
+}
+
+form[role="dialog"] section.calendar > button,
+form[role="dialog"] section.calendar > a[role="button"] {
+  float: none;
+  width: auto;
+  text-overflow: none;
+  font: 0/0 a;
+  position: absolute;
+  top: 5rem;
+  z-index: 100;
+  width: 3rem;
+  height: 5.5rem;
+  border: none;
+  background: transparent no-repeat center center;
+}
+
+form[role="dialog"] section.calendar > button:first-of-type,
+form[role="dialog"] section.calendar > a[role="button"]:first-of-type {
+  left: 0;
+  background-image: url(date_selector/images/icons/prev.png);
+}
+
+form[role="dialog"] section.calendar > button:last-of-type,
+form[role="dialog"] section.calendar > a[role="button"]:last-of-type {
+  right: 0;
+  background-image: url(date_selector/images/icons/next.png);
+}
+
+form[role="dialog"] section.calendar table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  position: relative;
+}
+
+form[role="dialog"] section.calendar table:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7.9rem;
+  bottom: 0;
+  background: url(date_selector/images/ui/shadow.png) repeat-y left top, url(date_selector/images/ui/shadow-invert.png) repeat-y right top;
+  pointer-events: none;
+}
+
+form[role="dialog"] section.calendar table caption {
+  font-weight: 200;
+  font-size: 2.2rem;
+  line-height: 1em;
+  text-align: center;
+  height: 5.5rem;
+  line-height: 5.5rem;
+  margin: 0 3rem;
+}
+
+form[role="dialog"] section.calendar thead th {
+  font-size: 1.1rem;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  background: #333;
+  padding: 0.5rem 0.2rem;
+  border-top: solid 1px #000;
+}
+
+form[role="dialog"] section.calendar td {
+  padding: 0;
+  border: solid 1px #000;
+}
+
+form[role="dialog"] section.calendar table label {
+  display: block;
+  position: relative;
+  border: solid 1px #555;
+  border-left: none;
+  border-bottom: none;
+}
+
+form[role="dialog"] section.calendar table label span {
+  display: block;
+  width: 100%;
+  height: 4.5rem;
+  line-height: 4.5rem;
+  font-weight: 200;
+  text-align: center;
+  transition: background 0.2s ease;
+}
+
+form[role="dialog"] section.calendar td.past label span {
+  color: #717171;
+}
+
+form[role="dialog"] section.calendar td.today label span {
+  background: url(date_selector/images/ui/pattern-current.png) repeat left top;
+}
+
+form[role="dialog"] section.calendar table label input:checked + span {
+  background: #00A5C5;
+}
+
+form[role="dialog"] section.calendar table label input {
+  opacity: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+}
+
+form[role="dialog"] section.calendar td:last-child,
+form[role="dialog"] section.calendar td:last-child label {
+  border-right: none;
+}
