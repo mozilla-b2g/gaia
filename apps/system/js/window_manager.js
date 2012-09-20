@@ -139,9 +139,6 @@ var WindowManager = (function() {
     var cssWidth = window.innerWidth + 'px';
     var cssHeight = window.innerHeight - StatusBar.height + 'px';
 
-    if (app.manifest.fullscreen)
-      cssHeight = window.innerHeight + 'px';
-
     frame.style.width = cssWidth;
 
     frame.style.height = cssHeight;
@@ -160,9 +157,6 @@ var WindowManager = (function() {
 
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
-
-    if (app.manifest.fullscreen)
-      cssHeight = window.innerHeight - keyboardHeight + 'px';
 
     frame.style.height = cssHeight;
 
@@ -1168,18 +1162,18 @@ var WindowManager = (function() {
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
-  'keyboardchange', 'keyboardhide'];
+  'keyboardchange', 'keyboardhide', 'attentionscreenshow', 'attentionscreenhide'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
-      if (displayedApp)
-        setAppSize(displayedApp);
-
       if (event == 'keyboardchange') {
-        // Cancel fullscreen if keyboard pops
         if (document.mozFullScreen)
           document.mozCancelFullScreen();
-
         setAppHeight(evt.detail.height);
+      } else if (event == 'attentionscreenshow') {
+        if (document.mozFullScreen)
+          document.mozCancelFullScreen();
+      } else if (displayedApp) {
+        setAppSize(displayedApp);
       }
     });
   });
