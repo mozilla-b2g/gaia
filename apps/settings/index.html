@@ -446,7 +446,7 @@
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
-        <li hidden id="bluetooth-visible-device">
+        <li hidden id="device-visible">
           <label>
             <input type="checkbox" checked/>
             <span></span>
@@ -456,15 +456,18 @@
         </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="bluetooth-devices-found">Devices found</h2>
-      </header>
-      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
+      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg">
         Turn Bluetooth on to view devices in the area.
       </div>
-      <ul id="bluetooth-show-paired-devices">
+      <header>
+        <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+      </header>
+      <ul id="bluetooth-paired-devices">
         <!-- filled by bluetooth.js -->
       </ul>
+      <header>
+        <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+      </header>
       <ul id="bluetooth-devices">
         <!-- filled by bluetooth.js -->
       </ul>
@@ -476,37 +479,16 @@
       <ul id="bluetooth-search-again" hidden>
         <li>
           <label>
-            <button data-l10n-id="search-device-again">Search Again</button>
+            <button data-l10n-id="search-device">Search for Devices</button>
           </label>
         </li>
       </ul>
-      <ul id="bluetooth-advanced">
-        <li>
-          <label>
-            <button data-l10n-id="bt-advanced-settings">Advanced Settings</button>
-          </label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Connectivity :: Bluetooth Advanced Settings -->
-    <section role="region" id="bluetooth-advanced-menu">
-      <header>
-        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="advancedSettings">
-          Advanced Settings
-        </h1>
-      </header>
       <ul id="bluetooth-rename-btn">
         <li>
           <label>
-            <button data-l10n-id="rename-device">Rename Device</button>
+            <button data-l10n-id="rename-device">Rename My Device</button>
           </label>
         </li>
-      </ul>
-      <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
-      <ul id="bluetooth-paired-devices">
-        <!-- filled by bluetooth.js -->
       </ul>
     </section>
 

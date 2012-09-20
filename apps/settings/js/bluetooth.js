@@ -59,22 +59,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   // device information
   var gMyDeviceInfo = (function deviceInfo() {
-    var visibleItem = document.querySelector('#bluetooth-visible-device');
-    var visibleName = document.querySelector('#bluetooth-device-name');
-    var visibleCheckBox =
-      document.querySelector('#bluetooth-visible-device input');
-    var advancedItem = document.querySelector('#bluetooth-advanced');
-    var advancedButton = document.querySelector('#bluetooth-advanced button');
+    var visibleItem = document.getElementById('device-visible');
+    var visibleName = document.getElementById('bluetooth-device-name');
+    var visibleCheckBox = document.querySelector('#device-visible input');
     var renameButton = document.querySelector('#bluetooth-rename-btn button');
+
+    //XXX get myName from mozSettings and set it back to device
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
       settings.createLock().set({'bluetooth.visible': this.checked});
       setDiscoverable(this.checked);
-    };
-
-    advancedButton.onclick = function advancedMenuClicked() {
-      window.location.hash = '#bluetooth-advanced-menu';
     };
 
     renameButton.onclick = function renameBtnClicked() {
@@ -101,6 +96,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         var req = defaultAdapter.setName(nameEntered);
         req.onsuccess = function bt_renameSuccess() {
           myName = visibleName.textContent = defaultAdapter.name;
+          //XXX update phone name in mozSettings
           return close();
         }
       };
@@ -124,7 +120,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // immediatly UI update, DOM element manipulation.
     function updateDeviceInfo(show) {
       if (show) {
-        advancedItem.hidden = false;
         visibleItem.hidden = false;
         // get last user setting for device visible
         var req = settings.createLock().get('bluetooth.visible');
@@ -139,7 +134,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           visibleCheckBox.checked = true;
         };
       } else {
-        advancedItem.hidden = true;
         visibleItem.hidden = true;
       }
     }
@@ -169,15 +163,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   // device list
   gDeviceList = (function deviceList() {
     var pairList = {
-      showlist: document.getElementById('bluetooth-show-paired-devices'),
       list: document.getElementById('bluetooth-paired-devices'),
       index: [],
       clear: function emptyList() {
         while (this.list.hasChildNodes()) {
           this.list.removeChild(this.list.lastChild);
-        }
-        while (this.showlist.hasChildNodes()) {
-          this.showlist.removeChild(this.showlist.lastChild);
         }
         this.index = [];
       }
@@ -196,6 +186,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var searchingItem = document.querySelector('#bluetooth-searching');
     var enableMsg = document.querySelector('#bluetooth-enable-msg');
     var childWindow = null;
+    var pairingAddress = '';
+    var connectingAddress = '';
+    var pairingMode = 'active';
 
     searchAgainBtn.onclick = function searchAgainClicked() {
       updateDeviceList(true); // reset network list
@@ -260,8 +253,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           if (childWindow) {
             childWindow.close();
           }
-          aItem.querySelector('small').textContent = device.address;
-          //XXX show a "pair failed" alert
+          aItem.querySelector('small').textContent = _('device-status-tap-connect');
+          //XXX need to put more content into alert popup
+          alert(_('error-pair-title'));
         }
       );
 
@@ -280,13 +274,19 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       if (findDevice(pairList.index, device.address))
         return;
 
-      var aItem = newListItem(device, device.address);
+      var aItem = newListItem(device, _('device-status-tap-connect'));
 
       // bind paired callback
       aItem.onclick = function() {
         aItem.querySelector('small').textContent = _('device-status-pairing');
         var req = defaultAdapter.pair(device);
+        pairingMode = 'active';
+        pairingAddress = device.address;
+        //XXX https://bugzilla.mozilla.org/show_bug.cgi?id=791182
+        //we may not hook onsuccess anymore, but listen to an event instead.
         req.onsuccess = function bt_pairSuccess() {
+          //XXX we have to ask for connect, use connectingAddress
+          connectingAddress = pairingAddress;
           getPairedDevice();
           aItem.parentNode.removeChild(aItem);
         };
@@ -294,8 +294,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           if (childWindow) {
             childWindow.close();
           }
-          aItem.querySelector('small').textContent = device.address;
-          //XXX show a "pair failed" alert
+          aItem.querySelector('small').textContent = _('device-status-tap-connect');
+          //XXX need to put more content into alert popup
+          alert(_('error-pair-title'));
         };
       };
       openList.list.appendChild(aItem);
@@ -314,15 +315,21 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function onRequestConfirmation(evt) {
+      //XXX we've got deviceName/deviceIcon here, no need to search device
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
+      if (evt.deviceAddress !== pairingAddress) {
+        pairingAddress = evt.deviceAddress;
+        pairingMode = 'passive';
+      }
       var passkey = evt.passkey;
       var protocol = window.location.protocol;
       var host = window.location.host;
-      // XXX use attention screen first, need to confirm with UX.
+      // XXX detect lock screen status
       childWindow = window.open(protocol + '//' + host + '/onpair.html',
                   'pair_screen', 'attention');
+      //XXX should pass pairingMode to display correct message.
       childWindow.onload = function() {
         childWindow.PairView.init('confirmation', device, passkey);
       };
@@ -360,11 +367,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       req.onsuccess = function bt_getPairedSuccess() {
         pairList.index = req.result;
         var length = pairList.index.length;
-        if (length == 0)
+        if (length == 0) {
+          //XXX hide paired device title
           return;
+        }
+        //XXX show paired device title
+        //XXX sort by alpha order
         for (var i = 0; i < length; i++) {
           (function(device) {
-            var aItem = newListItem(device, _('device-status-paired'));
+            var state = (device.address === connectingAddress) ?
+              _('device-status-connecting'): '';
+            var aItem = newListItem(device, state);
             aItem.onclick = function() {
               var req = defaultAdapter.unpair(device);
               req.onsuccess = function bt_pairSuccess() {
@@ -375,7 +388,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
               };
             };
             pairList.list.appendChild(aItem);
-            pairList.showlist.appendChild(aItem.cloneNode(true));
           })(pairList.index[i]);
         }
         var text = pairList.index[0].name;
