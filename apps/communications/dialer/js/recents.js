@@ -360,9 +360,9 @@ var Recents = {
       contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';
     } else {
-      var action = new ActionMenu('Add new number', [
+      var action = new ActionMenu(_('addNewNumber'), [
       {
-        label: 'Create new contact',
+        label: _('createNewContact'),
         callback: function() {
           src += '#view-contact-form?tel=' + phoneNumber;
           var timestamp = new Date().getTime();
@@ -372,7 +372,7 @@ var Recents = {
         }
       },
       {
-        label: 'Add to existing contact',
+        label: _('addToExistingContact'),
         callback: function() {
           src += '#add-parameters?tel=' + phoneNumber;
           var timestamp = new Date().getTime();
