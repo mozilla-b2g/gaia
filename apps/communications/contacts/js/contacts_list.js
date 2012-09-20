@@ -599,7 +599,7 @@ contacts.List = (function() {
   }
 
   var refresh = function reload(id) {
-    if(typeof id === 'undefined') {
+    if (typeof id === 'undefined') {
       checkEmptyList();
       load();
     }

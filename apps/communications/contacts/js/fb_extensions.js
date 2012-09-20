@@ -84,7 +84,7 @@ if (typeof Contacts.extFb === 'undefined') {
         case 'window_close':
           extensionFrame.src = null;
           extensionFrame.hidden = true;
-          if(data.from === 'import') {
+          if (data.from === 'import') {
             contacts.List.refresh();
           }
         break;
