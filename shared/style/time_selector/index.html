@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+  <title>Time selector</title>
+  <meta name="description" content="Provides a way for the user to select one of more values, usually from a Form interface">
+
+  <link rel="stylesheet" href="../time_selector.css">
+
+  <!--
+  This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+  </style>
+</head>
+
+<body role="application">
+
+  <form role="dialog" onsubmit="return false;">
+    <h1>Select time</h1>
+    <section role="spinbutton">
+      <p>
+        <span style="background-image: -moz-element(#hours);"></span>
+        <span style="background-image: -moz-element(#minutes);"></span>
+        <span style="background-image: -moz-element(#mode);"></span>
+      </p>
+      <div>
+        <ol id="hours" role="listbox">
+          <li role="option"><a href="#">1</a></li>
+          <li role="option"><a href="#">2</a></li>
+          <li role="option"><a href="#">3</a></li>
+          <li role="option"><a href="#">4</a></li>
+          <li role="option"><a href="#">5</a></li>
+          <li role="option"><a href="#">6</a></li>
+          <li role="option"><a href="#">7</a></li>
+          <li role="option"><a href="#">8</a></li>
+          <li role="option"><a href="#">9</a></li>
+          <li role="option"><a href="#">10</a></li>
+          <li role="option"><a href="#">11</a></li>
+          <li role="option"><a href="#">12</a></li>
+        </ol>
+      </div>
+      <div>
+        <ol id="minutes" role="listbox">
+          <li role="option"><a href="#">1</a></li>
+          <li role="option"><a href="#">2</a></li>
+          <li role="option"><a href="#">3</a></li>
+          <li role="option"><a href="#">4</a></li>
+          <li role="option"><a href="#">5</a></li>
+          <li role="option"><a href="#">6</a></li>
+          <li role="option"><a href="#">7</a></li>
+          <li role="option"><a href="#">8</a></li>
+          <li role="option"><a href="#">9</a></li>
+          <li role="option"><a href="#">10</a></li>
+          <li role="option"><a href="#">11</a></li>
+          <li role="option"><a href="#">12</a></li>
+        </ol>
+      </div>
+      <div class="mode">
+        <ul id="mode" role="listbox">
+          <li role="option"><a href="#">AM</a></li>
+          <li role="option"><a href="#">PM</a></li>
+        </ul>
+      </div>
+    </section>
+    <menu>
+      <button>Cancel</button>
+      <button class="recommend">Action</button>
+    </menu>
+  </form>
+
+</body>
+</html>
