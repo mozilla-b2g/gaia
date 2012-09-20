@@ -120,13 +120,14 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
         selectee[i].removeAttribute('aria-checked');
       }
 
       target.setAttribute('aria-checked', 'true');
-    } else if ( target.getAttribute('aria-checked') === 'true' ) {
+    } else if (target.getAttribute('aria-checked') === 'true') {
       target.removeAttribute('aria-checked');
     } else {
       target.setAttribute('aria-checked', 'true');
@@ -163,8 +164,10 @@ var ValueSelector = {
 
     var selectee = this._containers['select'].querySelectorAll('.selected');
 
-    if (this._currentPickerType === 'select-one' || this._currentPickerType === 'select-multiple') {
-      var selectee = this._containers['select'].querySelectorAll('[aria-checked="true"]');
+    if (this._currentPickerType === 'select-one' ||
+        this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
     }
 
     if (this._currentPickerType === 'select-one') {
@@ -423,3 +426,4 @@ var ActiveEffectHelper = (function() {
 })();
 
 ValueSelector.init();
+

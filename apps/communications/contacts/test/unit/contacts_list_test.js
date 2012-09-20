@@ -36,7 +36,6 @@ suite('Render contacts list', function() {
       FixedHeader,
       realFixedHeader,
       utils,
-      realUtils,
       mockContacts,
       mozL10n,
       groupA,
@@ -140,13 +139,11 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.utils = realFixedHeader;
   });
 
   suite('Render list', function() {
     test('first time', function() {
       mockContacts = new MockContactsList();
-      assert.isTrue(loading.classList.contains('show-overlay'));
       subject.load(mockContacts);
       groupFav = container.querySelector('#group-favorites');
       containerFav = container.querySelector('#contacts-list-favorites');
@@ -169,7 +166,6 @@ suite('Render contacts list', function() {
       assertNoGroup(groupD, containerD);
 
       assertNoImportButton();
-      assert.isFalse(loading.classList.contains('show-overlay'));
     });
 
     test('adding one at the beginning', function() {

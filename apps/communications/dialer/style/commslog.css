@@ -232,7 +232,9 @@ button::-moz-focus-inner {
   margin: 0;
   font-family: FontRegular;
   border-bottom: solid 1px #ff4e00;
-  padding-left: 3rem;
+  padding-left: 1.5rem;
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
   padding-top:1rem;
   font-size: -moz-calc(6*0.226rem);
   color: #ff4e00;
@@ -308,11 +310,11 @@ button::-moz-focus-inner {
   background-image: url('images/CallLog_30x30_missed.png');
 }
 
-.log-item.highlighted[data-type='incoming'] .secondary-info {
+.log-item.highlighted[data-type='incoming'] .call-time {
   color: red !important;
 }
 
-.log-item.highlighted[data-type='incoming-refused'] .secondary-info {
+.log-item.highlighted[data-type='incoming-refused'] .call-time {
   color: red !important;
 }
 
@@ -334,10 +336,31 @@ button::-moz-focus-inner {
   color: #000000;
 }
 
+.primary-info-main {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  padding-right: 0.6rem;
+}
+
+.primary-info-main.ellipsed {
+  padding-right: 0rem;
+}
+
+.entry-count {
+  overflow: hidden;
+  display: inline-block;
+}
+
 .secondary-info {
   font-family: FontRegular;
   font-size: -moz-calc(6 * 0.226rem);
   color: #5b5b5b;
+}
+
+.call-additional-info {
+  padding-left: 0.7rem;
 }
 
 .call-log-contact-photo {

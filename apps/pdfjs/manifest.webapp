@@ -22,6 +22,7 @@
       "filters": {
         "type": "application/pdf"
       },
+      "disposition": "inline",
       "href": "/content/web/viewer.html"
     }
   },

@@ -3,6 +3,8 @@
 
 var Launcher = (function() {
 
+  var BUTTONBAR_TIMEOUT = 5000;
+
   window.asyncStorage.getItem('adv_displayed', function callGetItem(value) {
     var adv = document.getElementById('advertisement');
 
@@ -21,29 +23,40 @@ var Launcher = (function() {
   var back = document.getElementById('back-button');
   var forward = document.getElementById('forward-button');
 
-  var toolbar = document.getElementById('toolbar');
-  var toolbarTimeout;
+  var footer = document.querySelector('#footer');
+  var buttonBarTimeout;
 
-  var isToolbarDisplayed = false;
-  function toggleToolbar(evt) {
-    clearTimeout(toolbarTimeout);
-    toolbar.classList.toggle('hidden');
-    isToolbarDisplayed = !isToolbarDisplayed;
-    if (isToolbarDisplayed) {
-      toolbarTimeout = setTimeout(toggleToolbar, 3000);
+  var isButtonBarDisplayed = false;
+  function toggleButtonBar() {
+    clearTimeout(buttonBarTimeout);
+    footer.classList.toggle('closed');
+    isButtonBarDisplayed = !isButtonBarDisplayed;
+    if (isButtonBarDisplayed) {
+      buttonBarTimeout = setTimeout(toggleButtonBar, BUTTONBAR_TIMEOUT);
     }
   }
 
-  toolbar.addEventListener('mousedown', toggleToolbar);
+  function clearButtonBarTimeout() {
+    clearTimeout(buttonBarTimeout);
+    buttonBarTimeout = setTimeout(toggleButtonBar, BUTTONBAR_TIMEOUT);
+  }
+
+  document.getElementById('handler').
+    addEventListener('click', toggleButtonBar);
+
+  document.getElementById('close-button').
+    addEventListener('click', toggleButtonBar);
 
   var iframe = document.getElementById('app');
 
   var reload = document.getElementById('reload-button');
-  reload.addEventListener('mousedown', function toggle(evt) {
+  reload.addEventListener('click', function doReload(evt) {
+    clearButtonBarTimeout();
     iframe.reload(true);
   });
 
   function goBack(evt) {
+    clearButtonBarTimeout();
     evt.stopPropagation();
     iframe.getCanGoBack().onsuccess = function(e) {
       if (e.target.result === true) {
@@ -53,7 +66,7 @@ var Launcher = (function() {
   }
 
   function goForward(evt) {
-    evt.stopPropagation();
+    clearButtonBarTimeout();
     iframe.getCanGoForward().onsuccess = function(e) {
       if (e.target.result === true) {
         iframe.goForward();
@@ -101,20 +114,20 @@ var Launcher = (function() {
     iframe.getCanGoForward().onsuccess = function(e) {
       if (e.target.result === true) {
         delete forward.dataset.disabled;
-        forward.addEventListener('mousedown', goForward);
+        forward.addEventListener('click', goForward);
       } else {
         forward.dataset.disabled = true;
-        forward.removeEventListener('mousedown', goForward);
+        forward.removeEventListener('click', goForward);
       }
     }
 
     iframe.getCanGoBack().onsuccess = function(e) {
       if (e.target.result === true) {
         delete back.dataset.disabled;
-        back.addEventListener('mousedown', goBack);
+        back.addEventListener('click', goBack);
       } else {
         back.dataset.disabled = true;
-        back.removeEventListener('mousedown', goBack);
+        back.removeEventListener('click', goBack);
       }
     }
   }
@@ -124,8 +137,9 @@ var Launcher = (function() {
   var name = getName();
   if (name) {
     var bookmarkButton = document.getElementById('bookmark-button');
-    bookmarkButton.classList.remove('hidden');
-    bookmarkButton.addEventListener('mousedown', function doBookmark(evt) {
+    delete bookmarkButton.dataset.disabled;
+    bookmarkButton.addEventListener('click', function doBookmark(evt) {
+      clearButtonBarTimeout();
       var response = window.confirm('Bookmark ' + name + '?');
       if (!response) {
         return;
@@ -144,7 +158,7 @@ var Launcher = (function() {
           icon: getIcon()
         }
       });
-      bookmarkButton.classList.add('hidden');
+      bookmarkButton.dataset.disabled = true;
     });
   }
 }());
