@@ -145,6 +145,24 @@ var Settings = {
         }
       }
     );
+
+    // preset all select
+    var selects = document.querySelectorAll('select');
+    for (i = 0; i < selects.length; i++) {
+      (function(select) {
+        var key = select.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          var value = request.result[key];
+          if (value != undefined) {
+            select.querySelector('option[value=' + value + ']').selected = true;
+          }
+        };
+      })(selects[i]);
+    }
   },
 
   handleEvent: function settings_handleEvent(evt) {
@@ -161,7 +179,8 @@ var Settings = {
           value = input.checked;
         } else if ((input.type == 'radio') ||
                    (input.type == 'text') ||
-                   (input.type == 'password')) {
+                   (input.type == 'password') ||
+                   (input.tagName.toLowerCase() == 'select')) {
           value = input.value;
         }
         var cset = {}; cset[key] = value;
@@ -172,13 +191,14 @@ var Settings = {
         if (input.tagName.toLowerCase() != 'progress')
           return;
         var rect = input.getBoundingClientRect();
-        var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
+        var position = Math.ceil(10 * (evt.clientX - rect.left) / rect.width);
 
-        var value = position / input.max;
-        value = Math.max(0, Math.min(1, value));
+        var min = parseFloat(input.getAttribute('min')) || 0;
+        var max = parseFloat(input.getAttribute('max')) || 10;
+        position = Math.max(min, Math.min(max, position));
         input.value = position;
 
-        var cset = {}; cset[key] = value;
+        var cset = {}; cset[key] = position / 10;
         settings.createLock().set(cset);
         break;
     }

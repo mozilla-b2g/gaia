@@ -82,7 +82,7 @@
           <a href="#sounds" data-l10n-id="sound">Sound</a>
         </li>
         <li>
-          <a href="#brightness" data-l10n-id="brightness">Brightness</a>
+          <a href="#display" data-l10n-id="display">Display</a>
         </li>
         <li>
           <a href="#wallpaper" data-l10n-id="wallpaper">Wallpaper</a>
@@ -269,7 +269,7 @@
           maxlength="63" />
       </label>
       <label for="show-pwd">
-        <input data-ignore name="show-pwd" type="checkbox" />
+        <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
         <span data-l10n-id="showPassword">show password</span>
       </label>
 
@@ -670,12 +670,12 @@
       </ul>
     </section>
 
-    <!-- Personalization :: Brightness -->
-    <section role="region" id="brightness">
+    <!-- Personalization :: Display -->
+    <section role="region" id="display">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="brightness">
-          Brightness
+        <h1 data-l10n-id="display">
+          Display
         </h1>
       </header>
 
@@ -683,7 +683,7 @@
         <li>
           <h3 data-l10n-id="brightness">Brightness level</h3>
           <label>
-            <progress data-name="screen.brightness" value="5" max="10"></progress>
+            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
           </label>
         </li>
         <li>
@@ -692,6 +692,18 @@
             <span></span>
           </label>
           <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
+        </li>
+        <li>
+          <label>
+            <select name="screen.timeout">
+              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+              <option value="0"   data-l10n-id="never">Never</option>
+            </select>
+          </label>
+          <a data-l10n-id="screen-timeout">Screen Timeout</a>
         </li>
       </ul>
     </section>

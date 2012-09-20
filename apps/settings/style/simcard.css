@@ -15,12 +15,17 @@
   padding-left: 20px;
 }
 
+[role="dialog"] .error {
+  padding-left: 20px;
+}
+
 [role="dialog"] .error #messageHeader {
   color: red; 
 }
 
 [role="dialog"] .input-wrapper {
   position: relative;
+  padding-left: 20px;
 }
 
 [role="dialog"] .input-wrapper input {
@@ -33,4 +38,3 @@
   position: absolute;
   top: 0;
 }
-

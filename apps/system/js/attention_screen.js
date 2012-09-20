@@ -156,9 +156,9 @@ var AttentionScreen = {
         // not turn the sreen off when the attention screen is closed.
         this._screenInitiallyDisabled = false;
 
-        this.dispatchEvent('status-active');
-
         this.mainScreen.classList.add('active-statusbar');
+
+        this.dispatchEvent('status-active');
 
         var attentionScreen = this.attentionScreen;
         attentionScreen.addEventListener('transitionend', function trWait() {
