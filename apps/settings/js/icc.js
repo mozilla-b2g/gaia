@@ -19,44 +19,86 @@
   var stkMainAppMenu = null;
   function handleSTKCommand(event) {
     var command = event.command;
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     console.log("STK Proactive Command:", JSON.stringify(command));
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
         stkMainAppMenu = command.options;
+        updateMenu();
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         break;
       case icc.STK_CMD_SELECT_ITEM:
+        //updateSelection(command);
         updateSelection(command);
         break;
     }
   }
 
-  function updateMainAppMenu() {
-    console.log("Showing STK main app menu");
+  function updateMenu() {
+    console.log("Showing STK main menu");
+    menu=stkMainAppMenu;
+
     while (iccStkAppsList.hasChildNodes()) {
       iccStkAppsList.removeChild(iccStkAppsList.lastChild);
     }
 
-    if (!stkMainAppMenu) {
+    if (!menu) {
       console.log("STK Main App Menu not available.");
       var li = document.createElement("li");
       li.textContent = _("stkAppsNotAvailable");
       iccStkAppsList.appendChild(li);
       return;
     }
-    console.log("STK Main App Menu title:", stkMainAppMenu.title);
-    console.log("STK Main App Menu default item:", stkMainAppMenu.defaultItem);
-    stkMainAppMenu.items.forEach(function (menuItem) {
+
+    if (!menu) {
+      console.log("STK Main App Menu not available.");
+      var li = document.createElement("li");
+      li.textContent = _("stkAppsNotAvailable");
+      iccStkAppsList.appendChild(li);
+      return;
+    }
+    console.log("STK Main App Menu title:", menu.title);
+    console.log("STK Main App Menu default item:", menu.defaultItem);
+    menu.items.forEach(function (menuItem) {
       console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
       var li = document.createElement("li");
       li.id = "stk-menuitem-" + menuItem.identifier;
       li.setAttribute("stk-menuitem-identifier", menuItem.identifier);
       li.textContent = menuItem.text;
-      li.onclick = onMenuItemClick;
+      li.onclick = onMainMenuItemClick;
       iccStkAppsList.appendChild(li);
     });
   }
 
+  function updateSelection(command) {
+    var menu = command.options;
+
+    console.log("Showing STK menu");
+    while (iccStkAppsList.hasChildNodes()) {
+      iccStkAppsList.removeChild(iccStkAppsList.lastChild);
+    }
+
+    console.log("STK App Menu title:", menu.title);
+    console.log("STK App Menu default item:", menu.defaultItem);
+    menu.items.forEach(function (menuItem) {
+      console.log("STK App Menu item:", menuItem.text, menuItem.identifer);
+      var li = document.createElement("li");
+      li.id = "stk-menuitem-" + menuItem.identifier;
+      li.setAttribute("stk-menuitem-identifier", menuItem.identifier);
+      li.textContent = menuItem.text;
+      li.onclick = onMenuItemClick.bind(null, command);
+      iccStkAppsList.appendChild(li);
+    });
+  }
+/*
   function updateSelection(command) {
     console.log("Showing selection.");
     iccStkSelectionHeader.textContent = command.options.title;
@@ -74,10 +116,18 @@
 
     Settings.openDialog('icc-stk-selection');
   }
-
-  function onMenuItemClick(event) {
+*/
+  function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute("stk-menuitem-identifier");
+    console.log("sendStkMenuSelection: " + JSON.stringify(identifier));
     icc.sendStkMenuSelection(identifier, false);
+  }
+
+  function onMenuItemClick(command, event) {
+    var identifier = event.target.getAttribute("stk-menuitem-identifier");
+    console.log("sendStkResponse: " + JSON.stringify(identifier) + " # " + JSON.stringify(command));
+    icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
+                                  itemIdentifier: identifier});
   }
 
   function onSelectOptionClick(command, event) {
@@ -87,7 +137,7 @@
   }
 
   iccMenuItem.onclick = function onclick() {
-    updateMainAppMenu();
+    updateMenu();
   };
 
 })();
