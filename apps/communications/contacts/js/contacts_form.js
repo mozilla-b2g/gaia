@@ -23,7 +23,8 @@ contacts.Form = (function() {
       company,
       familyName,
       configs,
-      _;
+      _,
+      formView;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -35,6 +36,7 @@ contacts.Form = (function() {
     givenName = dom.getElementById('givenName');
     company = dom.getElementById('org');
     familyName = dom.getElementById('familyName');
+    formView = dom.getElementById('view-contact-form');
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
@@ -106,6 +108,8 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
+    formView.classList.add('skin-dark');
+    saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
@@ -147,10 +151,12 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
+    formView.classList.remove('skin-dark');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.textContent = _('done');
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
