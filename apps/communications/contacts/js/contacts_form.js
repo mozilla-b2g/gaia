@@ -29,6 +29,7 @@ contacts.Form = (function() {
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
+    thumb.onclick = pickImage;
     thumbAction = dom.querySelector('#thumbnail-action');
     saveButton = dom.querySelector('#save-button');
     formTitle = dom.getElementById('contact-form-title');
@@ -120,8 +121,7 @@ contacts.Form = (function() {
     var photo = null;
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
-      thumbAction.appendChild(removeFieldIcon(thumbAction.id));
-      thumbAction.classList.add('with-photo');
+      addRemoveIconToPhoto();
     }
     Contacts.updatePhoto(photo, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
@@ -560,6 +560,11 @@ contacts.Form = (function() {
     return ret;
   }
 
+  var addRemoveIconToPhoto = function cf_addRemIconPhoto() {
+    thumbAction.appendChild(removeFieldIcon(thumbAction.id));
+    thumbAction.classList.add('with-photo');
+  }
+
   var pickImage = function pickImage() {
     var activity = new MozActivity({
       name: 'pick',
@@ -580,6 +585,7 @@ contacts.Form = (function() {
       reopenApp();
       var currentImg = this.result.filename;
       updateContactPhoto(currentImg);
+      addRemoveIconToPhoto();
     }
 
     activity.onerror = function error() {

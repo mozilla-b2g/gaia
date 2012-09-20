@@ -371,6 +371,10 @@ form.search button {
   background: none;
 }
 
+.with-photo.removed img {
+  pointer-events: none;
+}
+
 .with-photo p {
   display: none;
 }
