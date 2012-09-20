@@ -23,7 +23,10 @@ function startup() {
     });
   }
 
-  PinLock.init();
+  window.addEventListener('unlock', function() {
+    SimLock.init();
+  });
+
   SourceView.init();
   Shortcuts.init();
 
