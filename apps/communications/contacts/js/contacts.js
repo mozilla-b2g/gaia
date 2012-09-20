@@ -68,7 +68,7 @@ var Contacts = (function() {
               if ('extras' in params) {
                 var data = JSON.parse(decodeURIComponent(params['extras']));
                 for (var type in data) {
-                  contactsForm.insertField(type, data[type]);
+                  contactsForm.renderTemplate(type, data[type]);
                 }
               }
             }, function onError() {
@@ -81,7 +81,9 @@ var Contacts = (function() {
 
       case 'add-parameters':
         navigation.home();
-        selectList();
+        if ('tel' in params) {
+          selectList(params['tel']);
+        }
         return;
 
     }
