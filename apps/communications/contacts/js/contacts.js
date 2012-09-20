@@ -63,13 +63,11 @@ var Contacts = (function() {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
-              var contactToRender = currentContact;
               // Check if we have extra parameters to render
               if ('extras' in params) {
-                contactToRender = addExtrasToContact(currentContact,
-                  params['extras']);
+                addExtrasToContact(params['extras']);
               }
-              contactsForm.render(contactToRender, goToForm);
+              contactsForm.render(currentContact, goToForm);
             }, function onError() {
               console.log('Error retrieving contact to be edited');
               contactsForm.render(null, goToForm);
@@ -93,30 +91,26 @@ var Contacts = (function() {
 
   };
 
-  var addExtrasToContact = function addExtrasToContact(c, extrasString) {
-    var contact = new mozContact();
-    contact.init(c);
+  var addExtrasToContact = function addExtrasToContact(extrasString) {
     try {
       var extras = JSON.parse(decodeURIComponent(extrasString));
       for (var type in extras) {
         var extra = extras[type];
-        if (contact[type]) {
-          if (Array.isArray(contact[type])) {
-            var joinArray = contact[type].concat(extra);
-            contact[type] = joinArray;
+        if (currentContact[type]) {
+          if (Array.isArray(currentContact[type])) {
+            var joinArray = currentContact[type].concat(extra);
+            currentContact[type] = joinArray;
           } else {
-            contact[type] = extra;
+            currentContact[type] = extra;
           }
         } else {
-          contact[type] = Array.isArray(extra) ? extra : [extra];
+          currentContact[type] = Array.isArray(extra) ? extra : [extra];
         }
       }
     } catch (e) {
       console.error('Extras malformed');
       return null;
     }
-
-    return contact;
   };
 
   var extractParams = function extractParams(url) {
@@ -247,55 +241,35 @@ var Contacts = (function() {
         }
         prompt1.show();
     }
-  }
+  };
+
+  var contactListClickHandler = function originalHandler(id) {
+    var options = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: id
+    };
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      currentContact = request.result[0];
+
+      if (!ActivityHandler.currentlyHandling) {
+        contactsDetails.render(currentContact, TAG_OPTIONS);
+        navigation.go('view-contact-details', 'right-left');
+        return;
+      }
+
+      dataPickHandler();
+    };
+  };
 
   var loadList = function loadList(overlay) {
     contactsList.load(null, overlay);
-    contactsList.handleClick(function handleClick(id) {
-      var options = {
-        filterBy: ['id'],
-        filterOp: 'equals',
-        filterValue: id
-      };
-
-      var request = navigator.mozContacts.find(options);
-      request.onsuccess = function findCallback() {
-        currentContact = request.result[0];
-
-        if (!ActivityHandler.currentlyHandling) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
-          return;
-        }
-
-        dataPickHandler();
-      };
-    });
+    contactsList.handleClick(contactListClickHandler);
   };
 
   var selectList = function selectList(phoneNumber) {
-
-    var originalHandler = function originalHandler(id) {
-      var options = {
-        filterBy: ['id'],
-        filterOp: 'equals',
-        filterValue: id
-      };
-
-      var request = navigator.mozContacts.find(options);
-      request.onsuccess = function findCallback() {
-        currentContact = request.result[0];
-
-        if (!ActivityHandler.currentlyHandling) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
-          return;
-        }
-
-        dataPickHandler();
-      };
-    };
-
     contactsList.clearClickHandlers();
     contactsList.load();
     contactsList.handleClick(function addToContactHandler(id) {
@@ -310,7 +284,7 @@ var Contacts = (function() {
       window.location.hash = '#view-contact-form?extras=' +
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       contactsList.clearClickHandlers();
-      contactsList.handleClick(originalHandler);
+      contactsList.handleClick(contactListClickHandler);
     });
   };
 
