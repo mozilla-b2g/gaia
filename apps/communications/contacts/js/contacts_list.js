@@ -351,6 +351,10 @@ contacts.List = (function() {
         addImportFacebookButton();
       }
     }
+    else {
+      removeImportSimButton();
+      removeImportFacebookButton();
+    }
   }
 
   var resetGroup = function resetGroup(container, start) {
@@ -595,7 +599,11 @@ contacts.List = (function() {
   }
 
   var refresh = function reload(id) {
-    if (typeof(id) == 'string') {
+    if(typeof id === 'undefined') {
+      checkEmptyList();
+      load();
+    }
+    else if (typeof(id) == 'string') {
       remove(id);
       getContactById(id, addToList);
     } else {
