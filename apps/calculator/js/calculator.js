@@ -67,7 +67,7 @@ var Calculator = {
     while (this.isOperator(this.stack[this.stack.length - 1])) {
       this.stack.pop();
     }
-    
+
     if (this.stack.length === 0) {
       this.updateDisplay();
       return;
