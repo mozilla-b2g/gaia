@@ -48,7 +48,6 @@ section[role="region"] > header:first-child .icon.icon-clear {
 
 /* Override Building Block [Edit mode] styles */
 form.edit[role="dialog"] {
-  right: 50%;
   transform: translateY(-100%);
 }
 
@@ -144,10 +143,6 @@ form.edit[role="dialog"] > menu {
 
 .edit form[role="dialog"].edit {
   transform: translateY(0);
-}
-
-.to-left.edit form.edit[role="dialog"] {
-  transform: translate(100%, 0);
 }
 
 .edit form[role="dialog"].edit > menu {

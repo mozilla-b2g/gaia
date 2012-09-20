@@ -50,27 +50,6 @@
 
   <body role="application">
     <article id="main-wrapper" class="wrapper">
-      <form role="dialog" class="edit" onsubmit="return false;">
-        <section>
-          <header>
-              <button onclick="window.location.hash = '#exitEdit';" id="edit-close">
-                <span data-l10n-id="cancel" class="icon icon-close">close</span>
-              </button>
-              <menu type="toolbar">
-                 <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-              </menu>
-              <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
-            </header>
-        </section>
-        <menu>
-          <button id="deselect-all-threads" class="edit-button disabled danger" data-l10n-id="deselect-all">
-            None
-          </button>
-          <button id="select-all-threads" class="edit-button danger" data-l10n-id="select-all">
-            All
-          </button>
-        </menu>
-      </form>
       <section id="thread-list" class="panel" role="region">
         <header class="view-header regular-header">
           <menu type="toolbar">
@@ -83,29 +62,29 @@
           </menu>
           <h1>Messages</h1>
         </header>
-        <header class="view-header dark-header">
-          <a href="#thread-list" id="icon-close" role="link">
-            <span data-l10n-id="cancel" class="icon icon-close">close</span>
-          </a>
-          <menu type="toolbar">
-             <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-          </menu>
-          <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
-        </header>
         <article id="thread-list-container" class="view-body">
         </article>
-        <footer class="options">
-          <section class="option">
-            <button id="deselect-all-threads" class="edit-button" data-l10n-id="deselect-all">
+        <form role="dialog" class="edit" onsubmit="return false;">
+          <section>
+            <header>
+                <button onclick="window.location.hash = '#thread-list'">
+                  <span data-l10n-id="cancel" class="icon icon-close">close</span>
+                </button>
+                <menu type="toolbar">
+                   <button id="threads-delete-button" data-l10n-id="delete">delete</button>
+                </menu>
+                <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
+              </header>
+          </section>
+          <menu>
+            <button id="deselect-all-threads" class="edit-button disabled danger" data-l10n-id="deselect-all">
               None
             </button>
-          </section>
-          <section class="option">
-            <button id="select-all-threads" class="edit-button" data-l10n-id="select-all">
+            <button id="select-all-threads" class="edit-button danger" data-l10n-id="select-all">
               All
             </button>
-          </section>
-        </footer>
+          </menu>
+        </form>
       </section>
 
       <section id="thread-messages" class="panel" role="region">
@@ -127,38 +106,38 @@
               <span id="clear-search" role="button" class="icon icon-clear"></span>
             </form>
           </header>
-          <header class="view-header dark-header">
-            <a href="javascript:history.go(-1)" role="link">
-              <span class="icon icon-close"></span>
-            </a>
-            <menu type="toolbar">
-               <button id="messages-delete-button" data-l10n-id="delete">delete</button>
-            </menu>
-            <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
-          </header>
         <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
           Carrier unknown
         </div>
         <article id="messages-container" class="view-body">
         </article>
-        <footer class="options">
-          <section class="option">
-            <button id="deselect-all-messages" class="edit-button" data-l10n-id="deselect-all">
-              None
-            </button>
-          </section>
-          <section class="option">
-            <button id="select-all-messages" class="edit-button" data-l10n-id="select-all">
-              All
-            </button>
-          </section>
-        </footer>
         <footer class="new-sms-form">
           <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
           <div id="send-message-container">
             <button id="send-message" data-l10n-id="send">SEND</button>
           </div>
         </footer>
+        <form role="dialog" class="edit" onsubmit="return false;">
+          <section>
+            <header>
+                <button onclick="history.go(-1);">
+                  <span data-l10n-id="cancel" class="icon icon-close">close</span>
+                </button>
+                <menu type="toolbar">
+                   <button id="messages-delete-button"  data-l10n-id="delete">delete</button>
+                </menu>
+                <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
+              </header>
+          </section>
+          <menu>
+            <button id="deselect-all-messages" class="edit-button disabled danger" data-l10n-id="deselect-all">
+              None
+            </button>
+            <button id="select-all-messages" class="edit-button danger" data-l10n-id="select-all">
+              All
+            </button>
+          </menu>
+        </form>
       </section>
     </article>
     <article id="snapshot" class="wrapper">

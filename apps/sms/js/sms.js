@@ -92,9 +92,6 @@ var MessageManager = {
             ThreadUI.cleanForm();
             mainWrapper.classList.toggle('edit');
             break;
-          case '#exitEdit':
-            mainWrapper.classList.toggle('edit');
-            break;
           default:
             var num = this.getNumFromHash();
             if (num) {
