@@ -102,5 +102,10 @@ function navigationStack(currentView) {
     // As stack.length == 1 next view is going to be
     // the home, so we can use back method
     this.back();
-  }
+  };
+
+  this.currentView = function currentView() {
+    return _currentView != null ? _currentView : '';
+  };
+
 }

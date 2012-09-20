@@ -4,19 +4,29 @@
 'use strict';
 
 function startup() {
-  // We need to wait for the chrome shell to let us know when it's ok to
-  // launch activities. This prevents race conditions.
-  window.addEventListener('applicationready', function onApplicationready(event) {
-    new MozActivity({
+  function launchHomescreen() {
+    var activity = new MozActivity({
       name: 'view',
-      data: {
-        type: 'application/x-application-list'
-      }
+      data: { type: 'application/x-application-list' }
     });
-    window.removeEventListener('applicationready', onApplicationready);
+    activity.onerror = function homescreenLaunchError() {
+      console.error('Failed to launch home screen with activity.');
+    };
+  }
+
+  if (Applications.ready) {
+    launchHomescreen();
+  } else {
+    window.addEventListener('applicationready', function appListReady(event) {
+      window.removeEventListener('applicationready', appListReady);
+      launchHomescreen();
+    });
+  }
+
+  window.addEventListener('unlock', function() {
+    SimLock.init();
   });
 
-  PinLock.init();
   SourceView.init();
   Shortcuts.init();
 
@@ -30,6 +40,7 @@ function startup() {
   // It appears to workaround the Nexus S bug where we're not
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  // It seems it needs to be in both window_manager.js and bootstrap.js.
   function dumbListener2(event) {}
   window.addEventListener('devicemotion', dumbListener2);
 
@@ -62,7 +73,10 @@ window.addEventListener('localized', function onlocalized() {
 
 // Define the default background to use for all homescreens
 SettingsListener.observe(
-  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
-  var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.getElementById('screen').style.backgroundImage = url;
-});
+  'wallpaper.image',
+  'resources/images/backgrounds/default.png',
+  function setWallpaper(value) {
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + value + ')';
+  }
+);

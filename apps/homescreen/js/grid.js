@@ -68,6 +68,14 @@ const GridManager = (function() {
 
         break;
 
+/*
+ * XXX
+ * commented out because the contextmenu event on the homescreen itself
+ * is now being used for picking wallpaper. The event listener for editing
+ * apps needs to go on the individual icons and call stopPropagation so
+ * it doesn't trigger the wallpaper also.  I don't know how to do that so
+ * I'm just commenting it out here.
+ * 
       case 'contextmenu':
         if (currentPage > landingPageIndex) {
           Homescreen.setMode('edit');
@@ -79,6 +87,7 @@ const GridManager = (function() {
           }
         }
         break;
+*/
     }
   }
 
@@ -256,8 +265,12 @@ const GridManager = (function() {
     var appsInDB = [];
     HomeState.getAppsByPage(
       function iterate(apps) {
-        pageHelper.push(apps);
         appsInDB = appsInDB.concat(apps);
+
+        for (var app in apps) {
+          Applications.cacheIcon(apps[app].origin, apps[app].icon);
+        }
+        pageHelper.push(apps.map(function(app) { return app.origin; }));
       },
       function onsuccess(results) {
         if (results === 0) {
@@ -268,7 +281,7 @@ const GridManager = (function() {
         var installedApps = Applications.getInstalledApplications();
         var len = appsInDB.length;
         for (var i = 0; i < len; i++) {
-          var origin = appsInDB[i];
+          var origin = appsInDB[i].origin;
           if (origin in installedApps) {
             delete installedApps[origin];
           }
@@ -277,8 +290,9 @@ const GridManager = (function() {
         DockManager.getShortcuts(function getShortcuts(shortcuts) {
           var len = shortcuts.length;
           for (var i = 0; i < len; i++) {
-            var origin = shortcuts[i];
+            var origin = shortcuts[i].origin || shortcuts[i];
             if (origin in installedApps) {
+              Applications.cacheIcon(origin, shortcuts[i].icon);
               delete installedApps[origin];
             }
           }

@@ -227,25 +227,25 @@ function MapCodesToBaseLetters(codes, length) {
 
 // promote words where prefix matches
 // ab -> promote words that start with 'ab'
-const PrefixMatchMultiplier      = 3;
+const PrefixMatchMultiplier = 3;
 
 // promote words when case of first character matches
-const CaseMatchMultiplier        = 2;
+const CaseMatchMultiplier = 2;
 
 // words where accidentaly the wrong key was pressed
 // qas -> was
 // w - neighbourKeys [q,e,a,s,d]
-const EditDistanceMultiplier     = 1.8;
+const EditDistanceMultiplier = 1.8;
 
 // promote words where 2 characters are swapped
 // tihs -> this
-const TranspositionMultiplier    = 1.6;
+const TranspositionMultiplier = 1.6;
 
 // words with a missing character
 // tis -> this
-const OmissionMultiplier         = 1.4;
+const OmissionMultiplier = 1.4;
 
-const DeletionMultiplier         = 1.2
+const DeletionMultiplier = 1.2;
 
 const RankCandidate = (function() {
 
@@ -254,6 +254,7 @@ const RankCandidate = (function() {
     var rank = cand.freq;
     var length = cand.word.length;
     var rankMultiplier = cand.rankMultiplier;
+    var candWord = cand.word;
 
     // rank words with smaller edit distance higher up
     // e.g. editdistance = 1, then fact = 1.9
@@ -261,12 +262,17 @@ const RankCandidate = (function() {
     var factor = 1 + ((10 - Math.min(9, cand.distance)) / 10);
     rank *= factor;
 
-    // promote candidates where case of first character matches.
-    // e.g. A - Africa
-    //      a - and
-    if (word.charCodeAt(0) == cand.word.charCodeAt(0)) {
-      rank *= CaseMatchMultiplier;
+    // promote candidates where starting characters match the input word.
+    // e.g. Af - Africa
+    //      af - after
+    var matchingChars = 0;
+    for (var i = 0, len = word.length; i < len; i++) {
+      if (word[i] != candWord[i])
+        break;
+      matchingChars++;
     }
+    if (matchingChars > 0)
+      rank *= (CaseMatchMultiplier + matchingChars);
 
     // take input length into account
     // length = 1 then fact = 1.1
@@ -292,7 +298,7 @@ function Check(input, prefixes, candidates, rankMultiplier) {
   // you change one without the other this will break very badly.
   var h1 = 0;
   var h2 = 0xdeadbeef;
-  for (var n = 0; n < input.length; ++n) {
+  for (var n = 0, len = input.length; n < len; ++n) {
     var ch = input[n];
     h1 = h1 * 33 + ch;
     h1 = h1 & 0xffffffff;
@@ -333,7 +339,7 @@ function EditDistance1(input, prefixes, candidates) {
 function Omission1Candidates(input, prefixes, candidates) {
   var length = Math.min(input.length, _prefixLimit - 1);
   var input2 = Uint32Array(length + 1);
-  for (var n = 1; n <= length; ++n) {
+  for (var n = 0; n <= length; ++n) {
     for (var i = 0; i < n; ++i)
       input2[i] = input[i];
     while (i < length)
@@ -452,20 +458,23 @@ function GetPrefix(word) {
   // Limit search by prefix to avoid long lookup times.
   var prefix = word.substr(0, _prefixLimit);
   var result = '';
-  for (var n = 0; n < prefix.length; ++n)
+  for (var n = 0, len = prefix.length; n < len; ++n)
     result += String.fromCharCode(_charMap[prefix.charCodeAt(n)]);
   return result;
 }
 
 function maintainTopCandidates(topCandidates, candidate) {
-  for (var i = 0, len = topCandidates.length; i < len; ++i) {
-    if (topCandidates[i].word == candidate.word)
+  var length = topCandidates.length;
+  var index = length;
+  for (var i = length - 1; i >= 0; i--) {
+    if (candidate.word == topCandidates[i].word)
       return;
+    if (candidate.rank > topCandidates[i].rank)
+      index = i;
   }
-  topCandidates.push(candidate);
-  topCandidates.sort(function (a,b) {
-    return b.rank - a.rank;
-  });
+  if (index >= _maxSuggestions)
+    return;
+  topCandidates.splice(index, 0, candidate);
   if (topCandidates.length > _maxSuggestions)
     topCandidates.length = _maxSuggestions;
 }
@@ -516,14 +525,16 @@ function Predict(word) {
   var input = String2Codes(new Uint32Array(prefix.length), prefix);
   var prefixes = new Set();
   Check(input, prefixes, candidates, PrefixMatchMultiplier);
-  EditDistance1(input, prefixes, candidates);
-  Omission1Candidates(input, prefixes, candidates);
-  Deletion1Candidates(input, prefixes, candidates);
-  TranspositionCandidates(input, prefixes, candidates);
+  if (word.length > 1) {
+    EditDistance1(input, prefixes, candidates);
+    Omission1Candidates(input, prefixes, candidates);
+    Deletion1Candidates(input, prefixes, candidates);
+    TranspositionCandidates(input, prefixes, candidates);
+  }
 
   var finalCandidates = [];
   // Sort the candidates by Levenshtein distance and rank.
-  for (var n = 0; n < candidates.length; ++n) {
+  for (var n = 0, len = candidates.length; n < len; ++n) {
     var candidate = candidates[n];
 
     // Skip candidates equal to input and shorter candidates
@@ -550,7 +561,7 @@ var PredictiveText = {
     spaceIndex = spaceIndex > 0 ? (spaceIndex + 1) : 0;
     if (_currentWord.substring(spaceIndex).length > 0) {
       var candidates = Predict(_currentWord.substring(spaceIndex));
-      for (var n = 0; n < candidates.length; ++n) {
+      for (var n = 0, len = candidates.length; n < len; ++n) {
         var word = candidates[n].word;
         wordList.push([word, word]);
       }

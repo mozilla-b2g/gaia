@@ -36,7 +36,6 @@ suite('Render contacts list', function() {
       FixedHeader,
       realFixedHeader,
       utils,
-      realUtils,
       mockContacts,
       mozL10n,
       groupA,
@@ -51,7 +50,10 @@ suite('Render contacts list', function() {
       containerD,
       containerFav,
       containerUnd,
-      list;
+      list,
+      loading,
+      searchBox,
+      noResults;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -107,14 +109,29 @@ suite('Render contacts list', function() {
     container = document.createElement('div');
     var groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
-    groupsContainer.innerHTML = '<ol class="block-list" id="groups-list"></ol>';
+    groupsContainer.innerHTML = '<p id="no-result" class="hide" ' +
+      'data-l10n-id="noResults">No contacts found</p>';
+    groupsContainer.innerHTML += '<ol class="block-list" ' +
+      'id="groups-list"></ol>';
     groupsContainer.innerHTML += '<div id="fixed-container" ';
     groupsContainer.innerHTML += 'class="fixed-title"> </div>';
     groupsContainer.innerHTML += '<div id="current-jumper" ';
     groupsContainer.innerHTML += 'class="view-jumper-current"></div>';
     container.appendChild(groupsContainer);
+    loading = document.createElement('div');
+    loading.id = 'loading-overlay';
     list = container.querySelector('#groups-list');
     document.body.appendChild(container);
+    document.body.appendChild(loading);
+
+    var searchSection = document.createElement('section');
+    searchSection.id = 'search-view';
+    searchSection.innerHTML = '<input type="text" id="search-contact"/>';
+    document.body.appendChild(searchSection);
+
+    searchBox = document.getElementById('search-contact');
+    noResults = document.getElementById('no-result');
+
     subject.init(list);
   });
 
@@ -122,7 +139,6 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.utils = realFixedHeader;
   });
 
   suite('Render list', function() {
@@ -162,8 +178,8 @@ suite('Render contacts list', function() {
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
       var aContacts = assertGroup(groupA, containerA, 2);
-      assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > 1);
-      assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > 1);
+      assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > -1);
+      assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > -1);
       assertTotal(3, 4);
     });
 
@@ -177,8 +193,8 @@ suite('Render contacts list', function() {
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
-      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
-      assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
+      assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > -1);
       assertTotal(3, 4);
     });
 
@@ -193,9 +209,10 @@ suite('Render contacts list', function() {
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
-      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > 1);
+      assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
       var undContacts = assertGroup(groupUnd, containerUnd, 1);
-      assert.isTrue(undContacts[0].innerHTML.indexOf(newContact.tel[0].value) > 1);
+      var isUnd = undContacts[0].innerHTML.indexOf(newContact.tel[0].value);
+      assert.isTrue(isUnd > -1);
       assertTotal(4, 4);
     });
 
@@ -369,6 +386,41 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       assertImportButton();
       assertTotal(0, 0);
+    });
+  });
+
+  suite('Contact search', function() {
+    test('check search', function() {
+      mockContacts = new MockContactsList();
+      var contactIndex = Math.floor(Math.random() * mockContacts.length);
+      var contact = mockContacts[contactIndex];
+
+      subject.load(mockContacts);
+
+      searchBox.value = contact.familyName[0];
+      subject.search();
+
+      var selectorStr = 'li.block-item.search.hide';
+      var hiddenContacts = container.querySelectorAll(selectorStr);
+      assert.length(hiddenContacts, 2);
+
+      selectorStr = 'li.block-item.search:not(.hide)';
+      var showContact = container.querySelectorAll(selectorStr);
+      assert.length(showContact, 1);
+      assert.equal(showContact[0].dataset.uuid, contact.id);
+      assert.isTrue(noResults.classList.contains('hide'));
+    });
+
+    test('check empty search', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      searchBox.value = 'YYY';
+      subject.search();
+
+      var selectorStr = 'li.block-item.search.hide';
+      var hiddenContacts = container.querySelectorAll(selectorStr);
+      assert.length(hiddenContacts, 3);
+      assert.isFalse(noResults.classList.contains('hide'));
     });
   });
 });

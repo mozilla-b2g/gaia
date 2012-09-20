@@ -1,0 +1,74 @@
+#system-overlay.battery {
+  visibility: visible;
+}
+
+#battery.visible {
+  display: block;
+}
+
+#battery {
+  display: none;
+  background-image: url('images/header_bg.png');
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  padding: 0 5px;
+}
+
+.icon-battery {
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  background-image: none;
+  background-position: center center;
+  background-repeat: no-repeat no-repeat;
+}
+
+#battery span {
+  vertical-align: middle;
+  height: 40px;
+  line-height: 40px;
+}
+
+#battery .battery-notification {
+  display: none;
+}
+
+#battery[data-level="10"] .icon-battery {
+  background-image: url('images/battery_empty_small.png');
+}
+
+#battery[data-level="10"] .battery-notification.empty {
+  display: inline-block;
+}
+
+#battery[data-level="30"] .icon-battery {
+  background-image: url('images/battery_low_small.png');
+}
+
+#battery[data-level="30"] .battery-notification.low {
+  display: inline-block;
+}
+
+#battery[data-level="100"] .icon-battery {
+  background-image: url('images/battery_full_small.png');
+}
+
+#battery[data-level="100"] .battery-notification.full {
+  display: inline-block;
+}
+
+#battery.disappearing {
+  animation: notification-disappear 1.5s;
+}
+
+@keyframes notification-disappear {
+  to {
+    transform: translateX(100%);
+  }
+  from {
+    transform: translateX(0);
+  }
+}
