@@ -123,7 +123,7 @@ body {
   transition: none;
 }
 
-#screen.fullscreen-app:not(.attention) > #windows > iframe.appWindow.active:not(.homescreen) {
+#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
   top: 0;
 }
 
@@ -155,7 +155,7 @@ body {
   background: rgba(0, 0, 0, 0.5);
 }
 
-#screen.fullscreen-app:not(.attention) > #windowSprite {
+#screen.fullscreen-app > #windowSprite {
   height: 100%;
   top: 0;
 }
@@ -290,7 +290,7 @@ iframe.backgroundWindow {
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
-#screen.fullscreen-app:not(.attention) #dialog-overlay {
+#screen.fullscreen-app #dialog-overlay {
   top: 0;
   height: 100%;
 }
