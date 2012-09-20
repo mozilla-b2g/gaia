@@ -27,7 +27,7 @@
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
-    
+
     <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
     <script defer src="js/battery_manager.js"></script>
@@ -116,6 +116,10 @@
     <link rel="stylesheet" type="text/css" href="style/notifications/notifications.css">
     <script defer src="js/notifications.js"></script>
 
+    <!-- Cards View -->
+    <link rel="stylesheet" type="text/css" href="style/cards_view/cards_view.css">
+    <script defer src="js/cards_view.js"></script>
+
     <!-- Bluetooth -->
     <script defer src="js/bluetooth.js"></script>
 
@@ -143,6 +147,9 @@
 
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
+
+    <!-- Operator Variant Mechanism -->
+    <script defer src="js/operator_variant/operator_variant.js"></script>
 
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
@@ -354,7 +361,7 @@
             </ol>
           </section>
           <menu id="select-options-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel-button">Cancel</button>
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
             <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
           </menu>
         </form>
@@ -383,7 +390,7 @@
             </div>
           </div>
           <div id="time-picker-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel-button">Cancel</button>
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
             <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
           </div>
         </div>
@@ -486,7 +493,7 @@
       <!-- keyboard -->
       <iframe id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></iframe>
 
-      <div id="cardsView" data-z-index-level="cardsview">
+      <div id="cards-view" data-z-index-level="cards-view">
         <ul>
         </ul>
       </div>

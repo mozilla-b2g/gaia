@@ -1,9 +1,20 @@
 #value-selector {
-  position: absolute;
-  top: 2rem;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  height: -moz-calc(100% - 20px);
+  top: 20px;
+  left: 0;
+  position: absolute;
+}
+
+#screen.active-statusbar #value-selector {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
+}
+
+#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen.fullscreen-app #value-selector {
+  height: 100%;
+  top: 0;
 }
 
 #select-options-buttons,

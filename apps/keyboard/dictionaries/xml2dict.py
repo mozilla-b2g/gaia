@@ -13,7 +13,7 @@ import sys, struct, operator, heapq
 # stored as a linear list in the leaf node of the trie (suffix). It might make
 # sense to play with this number depending on the language since some languages
 #  have longer average word lengths. For now we use a constant prefix length.
-PrefixLimit = 6
+PrefixLimit = 10
 
 # To increase lookup speed, we only store a specific number of words in every
 # node and prune the rest.
@@ -26,22 +26,32 @@ MaxWordsPerNode = 3
 # table to find all matching words the bloom filter indicated exist, so we
 # encode this table in each dictionary file.
 diacritics = {
-    'a': u'áàâäåãāæăą',
-    'c': u'çćč',
-    'd': u'ďđð',
-    'e': u'éèêëēȩ€ɛěėę',
-    'g': u'ğ',
-    'h': u'ħ',
-    'i': u'ïíìîīįıǐ',
-    'o': u'öóòôōœøɵőõơŏ',
-    'u': u'üúùûūůűưũ',
-    'r': u'ř',
-    's': u'ßśš$ŚŠŞş',
-    't': u'ťţ',
-    'n': u'ñńň',
-    'l': u'ł£ľ',
-    'y': u'ÿ¥ý',
-    'z': u'žźż'
+    'a': u'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
+    'b': u'ḂḃḄḅƁɓḆḇɃƀƂƃ',
+    'c': u'ĆćČčÇçĈĉĊċƇƈȻȼ',
+    'd': u'ĎďḐḑḒḓḊḋḌḍƊɗḎḏĐđƋƌð',
+    'e': u'ÉéĔĕĚěȨȩÊêḘḙËëĖėẸẹȄȅÈèẺẻȆȇĒēĘę',
+    'f': u'ḞḟƑƒ',
+    'g': u'ǴǵĞğǦǧĢģĜĝĠġƓɠḠḡǤǥ',
+    'h': u'ḪḫȞȟḨḩĤĥⱧⱨḦḧḢḣḤḥĦħ',
+    'i': u'ÍíĬĭǏǐÎîÏïỊịȈȉÌìỈỉȊȋĪīĮįƗɨĨĩḬḭı',
+    'j': u'ĴĵɈɉ',
+    'k': u'ḰḱǨǩĶķⱩⱪꝂꝃḲḳƘƙḴḵꝀꝁ',
+    'l': u'ĹĺȽƚĽľĻļḼḽḶḷⱠⱡꝈꝉḺḻĿŀⱢɫŁł',
+    'm': u'ḾḿṀṁṂṃⱮɱ',
+    'n': u'ŃńŇňŅņṊṋṄṅṆṇǸǹƝɲṈṉȠƞÑñ',
+    'o': u'ÓóŎŏǑǒÔôÖöȮȯỌọŐőȌȍÒòỎỏƠơȎȏꝊꝋꝌꝍŌōǪǫØøÕõŒœ',
+    'p': u'ṔṕṖṗꝒꝓƤƥⱣᵽꝐꝑ',
+    'q': u'Ꝗꝗ',
+    'r': u'ŔŕŘřŖŗṘṙṚṛȐȑȒȓṞṟɌɍⱤɽ',
+    's': u'ŚśŠšŞşŜŝȘșṠṡṢṣß$',
+    't': u'ŤťŢţṰṱȚțȾⱦṪṫṬṭƬƭṮṯƮʈŦŧ',
+    'u': u'ÚúŬŭǓǔÛûṶṷÜüṲṳỤụŰűȔȕÙùỦủƯưȖȗŪūŲųŮůŨũṴṵ',
+    'v': u'ṾṿƲʋṼṽ',
+    'w': u'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
+    'x': u'ẌẍẊẋ',
+    'y': u'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
+    'z': u'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
 }
 
 # Map all diacritics to the corresponding lower-case base letter. The only
@@ -160,7 +170,7 @@ def add(word, freq, flags):
             index[prefix] = {}
         # Elements are inserted in order, in other words, if that suffix is already
         # available, or the maximum number of words is reached we can skip the word
-        if not suffix in index[prefix] and len(index[prefix]) <= MaxWordsPerNode:
+        if not suffix in index[prefix] and len(index[prefix]) < MaxWordsPerNode:
             index[prefix][suffix] = freq
 
 # Parse the XML input file and build the trie.
@@ -178,6 +188,8 @@ for word in words:
     if flags == "abbreviation" or freq <= 1:
         continue
     text = word.childNodes[0].nodeValue
+    if len(text) <= 1:
+        continue;
     add(text, freq, flags)
 
 # Do some statistical sanity checking on the input data. Basically we expect

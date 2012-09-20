@@ -98,6 +98,12 @@ var metadataParser = (function() {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
+      // XXX When launched as an inline activity this gets into a failure
+      // loop where this function is called over and over. Unsetting
+      // onerror here works around it. I don't know why the error is
+      // happening in the first place..
+      offscreenImage.onerror = null;
+      URL.revokeObjectURL(url);
       offscreenImage.src = null;
       errback('Image failed to load');
     };

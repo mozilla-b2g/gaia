@@ -86,7 +86,7 @@ var CallScreen = {
   hideKeypad: function cs_hideKeypad() {
     KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
-    KeypadManager.formatPhoneNumber('on-call');
+    KeypadManager.formatPhoneNumber();
     this.views.classList.remove('show');
   },
 
@@ -125,7 +125,9 @@ var CallScreen = {
   },
 
   showIncoming: function cs_showIncoming() {
-    this.hideKeypad();
+    // Hiding the keypad
+    this.views.classList.remove('show');
+
     this.callToolbar.classList.add('transparent');
     this.incomingContainer.classList.add('displayed');
   },
@@ -248,6 +250,7 @@ var OnCallHandler = (function onCallHandler() {
 
     // No more room
     if (handledCalls.length >= CALLS_LIMIT) {
+      new HandledCall(call);
       call.hangUp();
       return;
     }
@@ -512,7 +515,7 @@ window.addEventListener('localized', function callSetup(evt) {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
-  KeypadManager.init();
+  KeypadManager.init(true);
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();

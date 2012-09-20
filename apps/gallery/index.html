@@ -10,7 +10,7 @@
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
-    <script type="text/javascript" defer src="shared/js/media_db.js"></script>
+    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/MetadataParser.js"></script>
     <script type="text/javascript" defer src="js/ImageEditor.js"></script>
@@ -145,7 +145,13 @@
       </div>
     </div>
 
-    <!-- display messages like "Scanning", "No Photos" and "No SD Card" here -->
+    <!-- A thin indeterminate progress bar to indicate scanning -->
+    <!-- set class to "throb" to make it go, or hidden" to make it stop -->
+    <div id="progress" class="hidden">
+      <img id="throbber" src="style/images/progress.png">
+    </div>
+
+    <!-- display messages like "No Photos" and "No SD Card" here -->
     <div id="overlay" class="hidden">
       <div id="overlay-content">
         <h1 id="overlay-title"></h1>

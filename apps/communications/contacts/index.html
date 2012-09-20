@@ -19,6 +19,10 @@
 
     <!-- Loading FB indexedDB related stuff -->
     <script src="/contacts/js/fb/fb_data.js"></script>
+    <script src="/contacts/js/utilities/config.js"></script>
+
+    <!-- For initializing FB integration -->
+    <script src="/contacts/js/fb/fb_init.js"></script>
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
@@ -34,6 +38,7 @@
     <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_form.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
     <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
@@ -61,7 +66,7 @@
         <header>
           <menu type="toolbar" role="menu">
             <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-            <button role="menuitem" id="add-contact-button" onclick="Contacts.showAdd();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -110,7 +115,7 @@
         <header id='details-view-header'>
           <button class="negative" onclick="Contacts.goBack();"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" role="menu">
-            <button role="menuitem" id="edit-contact-button" onclick="Contacts.showEdit();"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+            <button role="menuitem" id="edit-contact-button" onclick="Contacts.showForm(true);"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
           <sup id='favorite-star' class='hide'></sup>
@@ -207,7 +212,7 @@
         <header>
           <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
-            <button id="save-button" onclick="Contacts.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
+            <button id="save-button" onclick="contacts.Form.saveContact();" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 id='contact-form-title'></h1>
         </header>
@@ -324,7 +329,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='Contacts.addNewPhone(); return false;' id='add-new-phone' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("tel"); return false;' id='add-new-phone' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addPhone">Add phone number</b>
               </button>
@@ -336,7 +341,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='Contacts.addNewEmail(); return false;' id='add-new-email' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("email"); return false;' id='add-new-email' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addEmail">Add email address</b>
               </button>
@@ -348,7 +353,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='Contacts.addNewAddress(); return false;' id='add-new-address' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("adr"); return false;' id='add-new-address' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addAddress">Add new address</b>
               </button>
@@ -360,7 +365,7 @@
                 </div>
               </fieldset>
 
-              <button onclick='Contacts.addNewNote(); return false;' id='add-new-note' class="fillflow-row action action-add">
+              <button onclick='contacts.Form.insertField("note"); return false;' id='add-new-note' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addComment">Add comment</b>
               </button>
@@ -392,6 +397,17 @@
           </div>
         </article>
       </section>
+
+      <article id="loading-overlay">
+        <section class="loading-container">
+          <header class="loading-header" data-l10n-id="loadingContacts">
+            Loading contacts…
+          </header>
+          <p class="loading-icon" role="status">
+            <progress></progress>
+          </p>
+        </section>
+      </article>
     </div>
 
     <div class="cache" id="cache">
