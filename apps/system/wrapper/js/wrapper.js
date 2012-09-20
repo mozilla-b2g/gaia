@@ -159,6 +159,7 @@ var Launcher = (function() {
         }
       });
       bookmarkButton.dataset.disabled = true;
+      bookmarkButton.removeEventListener('click', doBookmark);
     });
   }
 }());
