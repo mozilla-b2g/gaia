@@ -365,6 +365,20 @@ form.search button {
   background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
 }
 
+.with-photo {
+  padding-right: 5rem;
+  border:1px solid #C8C8C8;
+  background: none;
+}
+
+.with-photo p {
+  display: none;
+}
+
+.view-edit-contact .with-photo .fillflow-row-action {
+  margin-left: -5rem;
+}
+
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
  .view-jumper li {

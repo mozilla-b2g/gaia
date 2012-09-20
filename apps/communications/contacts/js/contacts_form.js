@@ -29,8 +29,6 @@ contacts.Form = (function() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
     thumbAction = dom.querySelector('#thumbnail-action');
-    thumbAction.addEventListener('mousedown', onThumbMouseDown);
-    thumbAction.addEventListener('mouseup', onThumbMouseUp);
     saveButton = dom.querySelector('#save-button');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
@@ -118,6 +116,8 @@ contacts.Form = (function() {
     var photo = null;
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
+      thumbAction.appendChild(removeFieldIcon(thumbAction.id));
+      thumbAction.classList.add('with-photo');
     }
     Contacts.updatePhoto(photo, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
@@ -220,6 +220,15 @@ contacts.Form = (function() {
     };
   }
 
+  var getCurrentPhoto = function cf_getCurrentPhoto() {
+    var photo = [];
+    var isRemoved = thumbAction.classList.contains('removed');
+    if (!isRemoved) {
+      photo = currentContact.photo;
+    }
+    return photo;
+  }
+
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
     saveButton.setAttribute('disabled', 'disabled');
@@ -246,12 +255,11 @@ contacts.Form = (function() {
 
     var fields = ['photo', 'category'];
 
-    for (var i = 0; i < fields.length; i++) {
-      var currentField = fields[i];
-      if (currentContact[currentField]) {
-        myContact[currentField] = currentContact[currentField];
-      }
+    if (currentContact['category']) {
+      myContact['category'] = currentContact['category'];
     }
+
+    myContact['photo'] = getCurrentPhoto();
 
     if (myContact.givenName || myContact.familyName) {
       var name = myContact.givenName || '';
@@ -423,6 +431,7 @@ contacts.Form = (function() {
   var resetForm = function resetForm() {
     thumbAction.querySelector('p').classList.remove('hide');
     saveButton.removeAttribute('disabled');
+    resetRemoved();
     currentContactId.value = '';
     currentContact = null;
     givenName.value = '';
@@ -443,6 +452,18 @@ contacts.Form = (function() {
       'adr': 0,
       'note': 0
     };
+  }
+
+  var resetRemoved = function cf_resetRemoved() {
+    var removedFields = dom.querySelectorAll('.removed');
+    for (var i = 0; i < removedFields.length; i++) {
+      removedFields[i].classList.remove('removed');
+    }
+    thumbAction.classList.remove('with-photo');
+    var removeButton = thumbAction.querySelector('button');
+    if (removeButton) {
+      thumbAction.removeChild(removeButton);
+    }
   }
 
   var checkDisableButton = function checkDisable() {
@@ -480,29 +501,6 @@ contacts.Form = (function() {
     };
     return delButton;
   };
-
-  var onThumbMouseDown = function onThumbMouseDown(evt) {
-    var self = this;
-    this.longPress = false;
-    this._pickImageTimer = setTimeout(function(self) {
-      self.longPress = true;
-      if (currentContact && currentContact.photo &&
-        currentContact.photo.length > 0) {
-        removePhoto();
-      }
-    }, 500, this);
-  };
-
-  var onThumbMouseUp = function onThumbMouseUp(evt) {
-    if (!this.longPress || !currentContact ||
-       !currentContact.hasOwnProperty('photo') ||
-       currentContact.photo == null ||
-       currentContact.photo.length == 0) {
-      pickImage();
-    }
-
-    clearTimeout(this._pickImageTimer);
-  }
 
   var removePhoto = function() {
     var dismiss = {
