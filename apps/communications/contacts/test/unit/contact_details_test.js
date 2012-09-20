@@ -85,6 +85,7 @@ suite('Render contact', function() {
   setup(function() {
     mockContact = new MockContactAllFields();
     subject.setContact(mockContact);
+    TAG_OPTIONS = Contacts.getTags();
   });
 
   teardown(function() {
@@ -93,7 +94,7 @@ suite('Render contact', function() {
 
   suite('Render name', function() {
     test('with name', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(detailsName.textContent, mockContact.name[0]);
     });
 
@@ -101,28 +102,28 @@ suite('Render contact', function() {
       var contactWoName = new MockContactAllFields();
       contactWoName.name = null;
       subject.setContact(contactWoName);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(detailsName.textContent, '');
     });
   });
 
   suite('Render favorite', function() {
     test('with favorite contact', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(false, star.classList.contains('hide'));
     });
     test('without favorite contact', function() {
       var contactWoFav = new MockContactAllFields();
       contactWoFav.category = [];
       subject.setContact(contactWoFav);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(true, star.classList.contains('hide'));
     });
   });
 
   suite('Render org', function() {
     test('with org', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(mockContact.org[0], orgTitle.textContent);
       assert.equal(false, orgTitle.classList.contains('hide'));
     });
@@ -130,7 +131,7 @@ suite('Render contact', function() {
       var contactWoOrg = new MockContactAllFields();
       contactWoOrg.org = [];
       subject.setContact(contactWoOrg);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal('', orgTitle.textContent);
       assert.equal(true, orgTitle.classList.contains('hide'));
     });
@@ -138,30 +139,52 @@ suite('Render contact', function() {
 
   suite('Render bday', function() {
     test('with bday', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, mockContact.bday);
     });
     test('without bday', function() {
       var contactWoBday = new MockContactAllFields();
       contactWoBday.bday = null;
       subject.setContact(contactWoBday);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('birthday'));
     });
   });
 
   suite('Render social', function() {
     test('!isFbContact', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
       var toCheck = 'Contacts.extFb.startLink(" 1","true")';
       assert.include(container.innerHTML, toCheck);
     });
+
+    test('Fb Contact', function() {
+      window.fb.setIsFbContact(true);
+
+      // The edit mode should be disabled
+      subject.render();
+      assert.isTrue(editContactButton.disabled);
+      assert.equal('FB', orgTitle.textContent);
+
+      window.fb.setIsFbContact(false);
+    });
+
+    test('fb is not enabled', function() {
+      window.fb.setIsEnabled(false);
+      subject.render(null, TAG_OPTIONS);
+      var incSocial = container.innerHTML.indexOf('social-template');
+      assert.isTrue(incSocial === -1);
+      var search = 'Contacts.extFb.startLink(" 1","true")';
+      var incSstart = container.innerHTML.indexOf(search);
+      assert.isTrue(incSstart === -1);
+    });
+
   });
 
   suite('Render phones', function() {
     test('with 1 phone', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'phone-details-template-0');
       assert.include(container.innerHTML, mockContact.tel[0].value);
       assert.include(container.innerHTML, mockContact.tel[0].carrier);
@@ -172,7 +195,7 @@ suite('Render contact', function() {
       var contactWoTel = new MockContactAllFields();
       contactWoTel.tel = [];
       subject.setContact(contactWoTel);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('phone-details-template'));
     });
 
@@ -180,7 +203,7 @@ suite('Render contact', function() {
       var contactWoTel = new MockContactAllFields();
       contactWoTel.tel = null;
       subject.setContact(contactWoTel);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('phone-details-template'));
     });
 
@@ -192,7 +215,7 @@ suite('Render contact', function() {
         contactMultTel.tel[1][elem] = currentElem;
       }
       subject.setContact(contactMultTel);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'phone-details-template-0');
       assert.include(container.innerHTML, 'phone-details-template-1');
       assert.include(container.innerHTML, contactMultTel.tel[0].value);
@@ -207,7 +230,7 @@ suite('Render contact', function() {
 
   suite('Render emails', function() {
     test('with 1 email', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'email-details-template-0');
       assert.include(container.innerHTML, mockContact.email[0].value);
       assert.include(container.innerHTML, mockContact.email[0].type);
@@ -217,7 +240,7 @@ suite('Render contact', function() {
       var contactWoEmail = new MockContactAllFields();
       contactWoEmail.email = [];
       subject.setContact(contactWoEmail);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('email-details-template'));
     });
 
@@ -225,7 +248,7 @@ suite('Render contact', function() {
       var contactWoEmail = new MockContactAllFields();
       contactWoEmail.email = null;
       subject.setContact(contactWoEmail);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('email-details-template'));
     });
 
@@ -237,7 +260,7 @@ suite('Render contact', function() {
         contactMultEmail.email[1][elem] = currentElem;
       }
       subject.setContact(contactMultEmail);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'email-details-template-0');
       assert.include(container.innerHTML, 'email-details-template-1');
       var email0 = contactMultEmail.email[0];
@@ -251,7 +274,7 @@ suite('Render contact', function() {
   });
   suite('Render addresses', function() {
     test('with 1 address', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'address-details-template-0');
       var address0 = mockContact.adr[0];
       assert.include(container.innerHTML, address0.countryName);
@@ -264,7 +287,7 @@ suite('Render contact', function() {
       var contactWoAddress = new MockContactAllFields();
       contactWoAddress.adr = [];
       subject.setContact(contactWoAddress);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('address-details-template'));
     });
 
@@ -272,7 +295,7 @@ suite('Render contact', function() {
       var contactWoAddress = new MockContactAllFields();
       contactWoAddress.adr = null;
       subject.setContact(contactWoAddress);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('address-details-template'));
     });
 
@@ -284,7 +307,7 @@ suite('Render contact', function() {
         contactMultAddress.adr[1][elem] = currentElem;
       }
       subject.setContact(contactMultAddress);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'address-details-template-0');
       assert.include(container.innerHTML, 'address-details-template-1');
       var address0 = contactMultAddress.adr[0];
@@ -303,7 +326,7 @@ suite('Render contact', function() {
   });
   suite('Render notes', function() {
     test('with 1 note', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'note-details-template-0');
       assert.include(container.innerHTML, mockContact.note[0]);
     });
@@ -312,7 +335,7 @@ suite('Render contact', function() {
       var contactWoNote = new MockContactAllFields();
       contactWoNote.note = [];
       subject.setContact(contactWoNote);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('note-details-template'));
     });
 
@@ -320,7 +343,7 @@ suite('Render contact', function() {
       var contactWoNote = new MockContactAllFields();
       contactWoNote.note = null;
       subject.setContact(contactWoNote);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(-1, container.innerHTML.indexOf('note-details-template'));
     });
 
@@ -332,7 +355,7 @@ suite('Render contact', function() {
         contactMultNote.note[1][elem] = currentElem;
       }
       subject.setContact(contactMultNote);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'note-details-template-0');
       assert.include(container.innerHTML, 'note-details-template-1');
       assert.include(container.innerHTML, contactMultNote.note[0]);
@@ -342,7 +365,7 @@ suite('Render contact', function() {
   });
   suite('Render photo', function() {
     test('with photo', function() {
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.isTrue(contactDetails.classList.contains('up'));
       assert.include(dom.innerHTML, mockContact.photo[0]);
     });
@@ -350,7 +373,7 @@ suite('Render contact', function() {
       var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = [];
       subject.setContact(contactWoPhoto);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(cover.style.backgroundImage, '');
       assert.equal(cover.style.overflow, 'auto');
       assert.equal(contactDetails.style.transform, '');
@@ -361,7 +384,7 @@ suite('Render contact', function() {
       var contactWoPhoto = new MockContactAllFields();
       contactWoPhoto.photo = null;
       subject.setContact(contactWoPhoto);
-      subject.render();
+      subject.render(null, TAG_OPTIONS);
       assert.equal(cover.style.backgroundImage, '');
       assert.equal(cover.style.overflow, 'auto');
       assert.equal(contactDetails.style.transform, '');

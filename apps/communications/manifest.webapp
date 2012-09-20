@@ -30,7 +30,8 @@
     "contacts",
     "mobileconnection",
     "attention",
-    "settings"
+    "settings",
+    "desktop-notification"
   ],
   "icons": {
     "120": "/style/icons/Dialer.png",
@@ -40,7 +41,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": "webcontacts/contact"
+        "type": ["webcontacts/contact","webcontacts/email"]
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",

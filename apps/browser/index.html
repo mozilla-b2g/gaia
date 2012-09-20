@@ -27,6 +27,9 @@
                  data-l10n-id="enter-search-or-address" />
           <input type="image" id="url-button" value="" />
         </form>
+        <span id="tabs-badge"></span>
+        <button id="awesomescreen-cancel-button"></button>
+        <div id="throbber"></div>
       </menu>
 
       <div id="frames">
@@ -64,35 +67,6 @@
         </div>
 
         <div id="screen">
-          <div id="authentication-dialog">
-            <div id="authentication-dialog-http-authentication">
-              <div class="authentication-dialog-buttons">
-                <h3 l10n-id="login-to-site">Log in to site</h3>
-                <button id="authentication-dialog-http-authentication-ok" data-l10n-id="ok">OK</button>
-                <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">
-                  Cancel
-                </button>
-              </div>
-              <div class="authentication-dialog-message-container">
-                <div>
-                  <span id="authentication-dialog-http-authentication-message"></span>
-                </div>
-                <div>
-                  <span data-l10n-id="username">Username</span>
-                </div>
-                <div>
-                  <input id="authentication-dialog-username-input" />
-                </div>
-                <div>
-                  <span data-l10n-id="password">Password</span>
-                </div>
-                <div>
-                  <input id="authentication-dialog-password-input" type="password" />
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div id="modal-dialog">
             <div id="modal-dialog-table">
               <div id="modal-dialog-tablecell">
@@ -155,12 +129,11 @@
 
     <div id="tray">
       <menu type="toolbar" id="tray-toolbar">
+        <button type="button" id="new-tab-button"></button>
         <button type="button" id="settings-button"></button>
       </menu>
       <div id="tabs-list"></div>
     </div>
-    <div id="throbber"></div>
-    <div id="tabs-badge"></div>
 
     <section id="bookmark-entry-sheet" role="region" class="hidden skin-dark">
       <header>
@@ -179,6 +152,25 @@
         Address <input type="url" id="bookmark-url"></input>
       </label>
       <input type="hidden" id="bookmark-previous-url"></input>
+    </section>
+
+    <section id="http-authentication-dialog" role="region" class="hidden skin-dark">
+      <header>
+        <button id="http-authentication-cancel">
+          <span class="icon icon-close">close</span>
+        </button>
+        <menu type="toolbar">
+          <button id="http-authentication-ok" data-l10n-id="login">Login</button>
+        </menu>
+        <h1 l10n-id="login-to-a-website">Login to a website</h1>
+      </header>
+      <span id="http-authentication-message"></span>
+      <label data-l10n-id="username">Username
+        <input type="text" id="http-authentication-username" />
+      </label>
+      <label data-l10n-id="password">Password
+        <input id="http-authentication-password" type="password" />
+      </label>
     </section>
 
     <div id="settings">
