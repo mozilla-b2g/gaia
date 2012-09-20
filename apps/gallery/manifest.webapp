@@ -19,7 +19,7 @@
     },
     "pick": {
       "filters": {
-        "type": "image/jpeg"
+        "type": ["image/jpeg", "image/png"]
        },
       "disposition": "inline",
       "returnValue": true,
