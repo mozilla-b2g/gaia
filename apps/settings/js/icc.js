@@ -36,9 +36,11 @@
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         break;
       case icc.STK_CMD_SELECT_ITEM:
-        //updateSelection(command);
         updateSelection(command);
         break;
+      default:
+        console.log("STK Message not managed ... response OK");
+        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
     }
   }
 
