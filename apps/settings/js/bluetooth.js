@@ -206,7 +206,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     // private DOM helper: create a device list item
     function newListItem(device, desc) {
       var deviceName = document.createElement('a');
-      var aName = (device.name === '') ? _('unnamed') : device.name;
+      var aName = (device.name === '') ? _('unnamed-device') : device.name;
       deviceName.textContent = aName;
 
       var deviceDesc = document.createElement('small');
@@ -380,7 +380,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         }
         var text = pairList.index[0].name;
         if (length > 1) {
-          text += ', +' + (length - 1) + ' ' + _('bt-status-pairmore');
+          text += _('bt-status-pairmore', {n: length - 1});
         }
         gBluetoothInfoBlock.textContent = text;
       };

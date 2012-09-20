@@ -259,7 +259,6 @@ ul li button, ul li a[role=button] {
 #bluetooth-enable-msg {
   padding: 5px 30px;
   font-style: italic;
-  font-size: 0.65em;
   color: #505859;
 }
 
