@@ -102,11 +102,6 @@ function setupApp() {
   // updates.
   function _init() {
 
-    // Request the application
-    navigator.mozApps.getSelf().onsuccess = function ccapp_getSelf(evt) {
-      APP = evt.target.result;
-    };
-
     _configureSettingsButtons();
     _configureCloseDialog();
     _configureCloseSettingsDialog();

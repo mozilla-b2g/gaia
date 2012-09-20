@@ -172,6 +172,12 @@ function setupWidget() {
       return;
     }
 
+    // Ignore if the device is in roaming
+    if (!_automaticUpdatesAllowed()) {
+      console.warn('No automatic updates allowed');
+      return;
+    }
+
     if (_isUpdating)
       return;
 
@@ -185,12 +191,6 @@ function setupWidget() {
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     debug('Event listened: ' + evt.type);
-
-    // Ignore if the device is in roaming
-    if (!_automaticUpdatesAllowed()) {
-      console.warn('No automatic updates allowed');
-      return;
-    }
 
     switch (evt.type) {
 
