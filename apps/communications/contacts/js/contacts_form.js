@@ -520,63 +520,13 @@ contacts.Form = (function() {
     CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
   }
 
-  var updateContactPhoto = function updateContactPhoto(image) {
-    if (!navigator.getDeviceStorage) {
-      console.log('Device storage unavailable');
-      return;
-    }
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0] || storageAreas;
-    var request = storage.get(image);
-    request.onsuccess = function() {
-      var img = document.createElement('img');
-      var imgSrc = URL.createObjectURL(request.result);
-      img.src = imgSrc;
-      this.img = img;
-      img.onload = function() {
-        var dataImg = getPhoto(this.img);
-        Contacts.updatePhoto(dataImg, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = dataImg;
-      }.bind(this);
-    };
-    request.onerror = function() {
-      console.log('Error loading img');
-    };
-  }
-
-  var getPhoto = function getContactImg(contactImg) {
-    // Checking whether the image was actually loaded or not
-    var canvas = document.createElement('canvas');
-    var ratio = 2.5;
-    canvas.width = thumb.width * ratio;
-    canvas.height = thumb.height * ratio;
-    var ctx = canvas.getContext('2d');
-    var widthBigger = contactImg.width > contactImg.height;
-    var toCut = widthBigger ? 'width' : 'height';
-    var toScale = widthBigger ? 'height' : 'width';
-    var scaled = contactImg[toScale] / canvas[toScale];
-    var scaleValue = 1 / scaled;
-    ctx.scale(scaleValue, scaleValue);
-    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
-
-    if (widthBigger) {
-      ctx.drawImage(contactImg, -margin, 0);
-    } else {
-      ctx.drawImage(contactImg, 0, -margin);
-    }
-    var filename = 'contact_' + new Date().getTime();
-    var ret = canvas.mozGetAsFile(filename);
-    contactImg = null;
-    canvas = null;
-    return ret;
-  }
-
   var pickImage = function pickImage() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        width: 320, // The desired width of the image
+        height: 320 // The desired height of the image
       }
     });
 
@@ -590,8 +540,26 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       reopenApp();
-      var currentImg = this.result.filename;
-      updateContactPhoto(currentImg);
+      var dataurl = this.result.url;  // A data URL for a 320x320 JPEG image
+      dataURLToBlob(dataurl, function(blob) {
+        Contacts.updatePhoto(blob, thumb);
+        currentContact.photo = currentContact.photo || [];
+        currentContact.photo[0] = blob;
+      });
+
+      function dataURLToBlob(dataurl, callback) {
+        var img = new Image();
+        img.src = dataurl;
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var context = canvas.getContext('2d');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          context.drawImage(img, 0, 0);
+          callback(canvas.mozGetAsFile('contact_' + new Date().getTime(),
+                                       'image/jpeg'));
+        }
+      }
     }
 
     activity.onerror = function error() {
