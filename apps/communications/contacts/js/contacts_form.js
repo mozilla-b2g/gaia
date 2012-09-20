@@ -602,7 +602,6 @@ contacts.Form = (function() {
   return {
     'init': init,
     'render': render,
-    'renderTemplate': renderTemplate,
     'insertField': insertField,
     'saveContact': saveContact,
     'pickImage': pickImage

@@ -63,14 +63,12 @@ var Contacts = (function() {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
-              contactsForm.render(currentContact, goToForm);
+              var contactToRender = currentContact;
               // Check if we have extra parameters to render
               if ('extras' in params) {
-                var data = JSON.parse(decodeURIComponent(params['extras']));
-                for (var type in data) {
-                  contactsForm.renderTemplate(type, data[type]);
-                }
+                contactToRender = addExtrasToContact(currentContact, params['extras']);
               }
+              contactsForm.render(contactToRender, goToForm);
             }, function onError() {
               console.log('Error retrieving contact to be edited');
               contactsForm.render(null, goToForm);
@@ -94,25 +92,30 @@ var Contacts = (function() {
 
   };
 
-  var addExtrasToContact = function addExtrasToContact(extrasString) {
+  var addExtrasToContact = function addExtrasToContact(c, extrasString) {
+    var contact = new mozContact();
+    contact.init(c);
     try {
       var extras = JSON.parse(decodeURIComponent(extrasString));
-      for(var name in extras) {
-        var extra = extras[name];
-        if (currentContact[name]) {
-          if (Array.isArray(currentContact[name])) {
-            var joinArray = currentContact[name].concat(extra);
-            currentContact[name] = joinArray;
+      for(var type in extras) {
+        var extra = extras[type];
+        if (contact[type]) {
+          if (Array.isArray(contact[type])) {
+            var joinArray = contact[type].concat(extra);
+            contact[type] = joinArray;
           } else {
-            currentContact[name] = extra;
+            contact[type] = extra;
           }
         } else {
-          currentContact[name] = extra;
+          contact[type] = Array.isArray(extra) ? extra : [extra];
         }
       }
     } catch (e) {
-      console.log('Extras malformed');
+      console.error('Extras malformed');
+      return null;
     }
+
+    return contact;
   };
 
   var extractParams = function extractParams(url) {
