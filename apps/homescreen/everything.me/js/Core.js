@@ -153,6 +153,7 @@ var Core = new function() {
             "defaultSuggestions": data.defaultSuggestions,
             "texts": data.texts.helper
         });
+        
         Apps.init({
             "$el": $("#doat-apps"),
             "$buttonMore": $("#button-more"),
@@ -169,14 +170,30 @@ var Core = new function() {
                 "landscape": 480
             }
         });
+
         BackgroundImage.init({
-            "$el": $("#background-image"),
+            "$el": $("#evmeBackgroundImage"),
             "$elementsToFade": $("#doat-apps, #header, #search-header"),
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
         });
+        
         SearchHistory.init({
             "maxEntries": data.maxHistoryEntries
+        });
+        
+        Analytics.init({
+            "config": data.analytics,
+            "logger": logger,
+            "DoATAPI": DoATAPI,
+            "getCurrentAppsRowsCols": Apps.getCurrentRowsCols,
+            "Brain": Brain,
+            "env": data.env.server,
+            "connectionLow": Utils.connection().speed != Utils.connection().SPEED_HIGH,
+            "sessionObj": DoATAPI.Session.get(),
+            "pageRenderStartTs": head_ts,
+            "SEARCH_SOURCES": data.searchSources,
+            "PAGEVIEW_SOURCES": data.pageViewSources
         });
 
         EventHandler.trigger(_name, "init", {"deviceId": DoATAPI.getDeviceId()});
