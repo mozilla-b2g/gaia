@@ -15,7 +15,9 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "webapps-manage", "desktop-notification",
                       "device-storage:pictures", "device-storage:music", "device-storage:videos",
                       "alarms", "alarm", "attention",
-                      "content-camera", "camera", "tcp-socket", "bluetooth"];
+                      "content-camera", "camera", "tcp-socket", "bluetooth",
+                      // Just don't.
+                      "deprecated-hwvideo"];
 
 let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
                             'pin-app',
