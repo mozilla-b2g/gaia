@@ -157,8 +157,9 @@ var Settings = {
         var request = lock.get(key);
         request.onsuccess = function() {
           var value = request.result[key];
-          if (value != undefined)
-            select.querySelector('option[value="' + value + '"]').selected = true;
+          if (value != undefined) {
+            select.querySelector('option[value=' + value + ']').selected = true;
+          }
         };
       })(selects[i]);
     }
