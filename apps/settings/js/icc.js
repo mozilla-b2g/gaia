@@ -42,6 +42,9 @@
     }
   }
 
+  /**
+   * Navigate through all available STK applications
+   */
   function updateMenu() {
     console.log("Showing STK main menu");
     menu=stkMainAppMenu;
@@ -70,21 +73,30 @@
     menu.items.forEach(function (menuItem) {
       console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
       var li = document.createElement("li");
-      li.id = "stk-menuitem-" + menuItem.identifier;
-      li.setAttribute("stk-menuitem-identifier", menuItem.identifier);
-      li.textContent = menuItem.text;
-      li.onclick = onMainMenuItemClick;
+      var a = document.createElement("a");
+      a.href = "#icc-stk-app";
+      a.id = "stk-menuitem-" + menuItem.identifier;
+      a.setAttribute("stk-menuitem-identifier", menuItem.identifier);
+      a.textContent = menuItem.text;
+      a.onclick = onMainMenuItemClick;
+      li.appendChild(a);
       iccStkAppsList.appendChild(li);
     });
   }
 
+  /**
+   * Navigate through the STK application options
+   */
   function updateSelection(command) {
     var menu = command.options;
 
     console.log("Showing STK menu");
-    while (iccStkAppsList.hasChildNodes()) {
-      iccStkAppsList.removeChild(iccStkAppsList.lastChild);
+    while (iccStkSelection.hasChildNodes()) {
+      iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
+    document.getElementById('exit_iccapp').onclick = function(e) {
+      icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK })
+    };
 
     console.log("STK App Menu title:", menu.title);
     console.log("STK App Menu default item:", menu.defaultItem);
@@ -92,47 +104,24 @@
       console.log("STK App Menu item:", menuItem.text, menuItem.identifer);
       var li = document.createElement("li");
       li.id = "stk-menuitem-" + menuItem.identifier;
-      li.setAttribute("stk-menuitem-identifier", menuItem.identifier);
+      li.setAttribute("stk-selectoption-identifier", menuItem.identifier);
       li.textContent = menuItem.text;
-      li.onclick = onMenuItemClick.bind(null, command);
-      iccStkAppsList.appendChild(li);
+      li.onclick = onSelectOptionClick.bind(null, command);
+      iccStkSelection.appendChild(li);
     });
+    Settings.openDialog('icc-stk-app');
   }
-/*
-  function updateSelection(command) {
-    console.log("Showing selection.");
-    iccStkSelectionHeader.textContent = command.options.title;
-    while (iccStkSelection.hasChildNodes()) {
-      iccStkSelection.removeChild(iccStkSelection.lastChild);
-    }
-    command.options.items.forEach(function (selectionItem) {
-      var option = document.createElement("select");
-      option.id = "stk-selectoption-" + selectionItem.identifier;
-      option.setAttribute("stk-selectoption-identifier", selectionItem.identifier);
-      option.textContent = selectionItem.text;
-      option.onclick = onSelectOptionClick.bind(null, command);
-      iccStkSelection.appendChild(option);
-    });
 
-    Settings.openDialog('icc-stk-selection');
-  }
-*/
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute("stk-menuitem-identifier");
     console.log("sendStkMenuSelection: " + JSON.stringify(identifier));
     icc.sendStkMenuSelection(identifier, false);
   }
 
-  function onMenuItemClick(command, event) {
-    var identifier = event.target.getAttribute("stk-menuitem-identifier");
-    console.log("sendStkResponse: " + JSON.stringify(identifier) + " # " + JSON.stringify(command));
-    icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
-                                  itemIdentifier: identifier});
-  }
-
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute("stk-selectoption-identifier");
-    icc.sendStkRepsonse(command, {resultCode: icc.STK_RESULT_OK,
+    console.log("sendStkResponse: " + JSON.stringify(identifier) + " # " + JSON.stringify(command));
+    icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                   itemIdentifier: identifier});
   }
 
