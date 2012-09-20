@@ -73,6 +73,8 @@ contacts.List = (function() {
       console.log('ERROR Retrieving contacts');
     }
 
+    checkEmptyList();
+
     getContactsByGroup(onError, contacts);
     this.loaded = true;
   };
@@ -350,8 +352,7 @@ contacts.List = (function() {
       if (fb.isEnabled) {
         addImportFacebookButton();
       }
-    }
-    else {
+    } else {
       removeImportSimButton();
       removeImportFacebookButton();
     }
@@ -599,11 +600,7 @@ contacts.List = (function() {
   }
 
   var refresh = function reload(id) {
-    if (typeof id === 'undefined') {
-      checkEmptyList();
-      load();
-    }
-    else if (typeof(id) == 'string') {
+    if (typeof(id) == 'string') {
       remove(id);
       getContactById(id, addToList);
     } else {
