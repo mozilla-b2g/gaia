@@ -1,4 +1,4 @@
-var Tests = new function() {
+EverythingMe.Tests = new function() {
     var _this = this, tests = {}, $body = null, $head = null, configData = {}, userGroups = {};
     
     var BASE_STYLES_URL = "/css/tests/",
@@ -38,11 +38,11 @@ var Tests = new function() {
             }
         }
         
-        Storage.set(STORAGE_KEY, JSON.stringify(userGroups));
+        Evme.Storage.set(STORAGE_KEY, JSON.stringify(userGroups));
     };
     
     function populateGroupsFromStorage() {
-        userGroups = Storage.get(STORAGE_KEY);
+        userGroups = Evme.Storage.get(STORAGE_KEY);
         if (userGroups) {
             try {
                 userGroups = JSON.parse(userGroups);
@@ -118,7 +118,7 @@ var Tests = new function() {
         
         if (test.config && test.config[group]) {
             var groupConfig = test.config[group];
-            Utils.updateObject(configData, groupConfig);
+            Evme.Utils.updateObject(configData, groupConfig);
         }
     };
     

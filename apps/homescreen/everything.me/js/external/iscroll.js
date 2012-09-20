@@ -84,7 +84,7 @@ var m = Math,
             useTransform: true,
             useTransition: false,
             
-            elToPreventMove: document.getElementById(Utils.getID()),
+            elToPreventMove: document.getElementById(Evme.Utils.getID()),
 
             // Events
             onRefresh: null,

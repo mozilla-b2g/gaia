@@ -1,4 +1,4 @@
-var ShortcutsCustomize = new function() {
+EverythingMe.ShortcutsCustomize = new function() {
     var _name = "ShortcutsCustomize", _this = this,
         $el = null, $title = null, $subTitle = null, $list = null, $buttonDone = null,
         scroll = null, numSelectedStartedWith = 0, numSuggestedStartedWith = 0, clicked = null, moved = null,
@@ -48,7 +48,7 @@ var ShortcutsCustomize = new function() {
             "checkDOMChanges": false
         });
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.show = function(isFirstScreen) {
@@ -64,7 +64,7 @@ var ShortcutsCustomize = new function() {
         
         $el.addClass("visible");
         
-        EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "numSelected": numSelectedStartedWith,
             "numSuggested": numSuggestedStartedWith
         });
@@ -72,7 +72,7 @@ var ShortcutsCustomize = new function() {
     this.hide = function() {
         $el.removeClass("visible");
         
-        EventHandler.trigger(_name, "hide");
+        Evme.EventHandler.trigger(_name, "hide");
     };
     
     this.get = function() {
@@ -93,7 +93,7 @@ var ShortcutsCustomize = new function() {
         $list.empty();
         _this.add(shortcuts);
         
-        EventHandler.trigger(_name, "load");
+        Evme.EventHandler.trigger(_name, "load");
     };
     
     this.add = function(shortcuts) {
@@ -141,7 +141,7 @@ var ShortcutsCustomize = new function() {
         
         var shortcuts = _this.get();
         
-        EventHandler.trigger(_name, "done", {
+        Evme.EventHandler.trigger(_name, "done", {
             "shortcuts": shortcuts,
             "numSelectedStartedWith": numSelectedStartedWith,
             "numSuggestedStartedWith": numSuggestedStartedWith,

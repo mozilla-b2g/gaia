@@ -220,7 +220,7 @@ EverythingMe.APIStatsEvents = function(Sandbox){
         for (var k in templates){
             templates[k]["sessionId"] = "{sid}";
             templates[k]["elapsed"] = "{elapsed}";
-            templates[k]["deviceId"] = DoATAPI.getDeviceId();
+            templates[k]["deviceId"] = Evme.DoATAPI.getDeviceId();
         }
         
         // stringify templates

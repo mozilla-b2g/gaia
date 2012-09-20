@@ -27,7 +27,7 @@
             timesToShow = options.timesToShow || Infinity;
             blockScreen = options.blockScreen || false;
             
-            timesShown = options.ignoreStorage? 0 : Storage.get(id) || 0;
+            timesShown = options.ignoreStorage? 0 : Evme.Storage.get(id) || 0;
             
             if (timesShown < timesToShow && $("#" + id).length == 0) {
                 $el = $('<div id="' + id + '" class="tip">' + text + '</div>');
@@ -42,10 +42,10 @@
                 
                 if (blockScreen) {
                     $elScreen = $('<div class="screen tip-screen" style="opacity: 0;"></div>');
-                    $("#" + Utils.getID()).append($elScreen);
+                    $("#" + Evme.Utils.getID()).append($elScreen);
                 }
                 
-                $("#" + Utils.getID()).append($el);
+                $("#" + Evme.Utils.getID()).append($el);
                 
                 $el.css("margin-top", -($el.height()/2) + "px");
             }
@@ -72,14 +72,14 @@
                 }
                 
                 timesShown++;
-                Storage.set(id, timesShown);
+                Evme.Storage.set(id, timesShown);
                 
                 onShow && onShow(_this);
             }, showAfter);
             
             currentTip = _this;
             
-            EventHandler.trigger(_name, "show", {
+            Evme.EventHandler.trigger(_name, "show", {
                 "id": id
             });
             
@@ -89,7 +89,7 @@
         this.hide = function(source) {
             if (!$el) return;
             
-            EventHandler.trigger(_name, "hide", {
+            Evme.EventHandler.trigger(_name, "hide", {
                 "id": id,
                 "source": ((typeof source == "string")? source : "external")
             });

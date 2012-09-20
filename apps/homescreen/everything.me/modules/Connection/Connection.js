@@ -1,4 +1,4 @@
-var Connection = new function() {
+EverythingMe.Connection = new function() {
     
     var _name = "Connection", _this = this,
             $el = null;
@@ -14,14 +14,14 @@ var Connection = new function() {
         
         DEFAULT_MESSAGE = options.texts.defaultMessage;
         
-        window.addEventListener(Utils.CONNECTION.EVENT_ONLINE, function(){
-            EventHandler.trigger(_name, "online");
+        window.addEventListener(Evme.Utils.CONNECTION.EVENT_ONLINE, function(){
+            Evme.EventHandler.trigger(_name, "online");
         });
-        window.addEventListener(Utils.CONNECTION.EVENT_OFFLINE, function(){
-            EventHandler.trigger(_name, "offline");
+        window.addEventListener(Evme.Utils.CONNECTION.EVENT_OFFLINE, function(){
+            Evme.EventHandler.trigger(_name, "offline");
         });
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.show = function(message) {
@@ -33,7 +33,7 @@ var Connection = new function() {
         
         window.setTimeout(function(){
             $parent.addClass(CLASS_NO_CONNECTION);
-            EventHandler.trigger(_name, "show");
+            Evme.EventHandler.trigger(_name, "show");
         }, 0);
     };
     
@@ -45,7 +45,7 @@ var Connection = new function() {
         window.setTimeout(function(){
             $el.remove();
             $el = null;
-            EventHandler.trigger(_name, "hide");
+            Evme.EventHandler.trigger(_name, "hide");
         }, 0);
     };
 };

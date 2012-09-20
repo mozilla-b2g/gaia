@@ -1,4 +1,4 @@
-var SearchHistory = new function() {
+EverythingMe.SearchHistory = new function() {
     var _name = "SearchHistory", _this = this, history = [];
     var STORAGE_KEY = "userHistory",
         MAXIMUM_ENTRIES = "FROM CONFIG";
@@ -10,7 +10,7 @@ var SearchHistory = new function() {
         
         populate();
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.save = function(query, type) {
@@ -57,9 +57,9 @@ var SearchHistory = new function() {
     
     this.clear = function() {
         history = [];
-        Storage.remove(STORAGE_KEY);
+        Evme.Storage.remove(STORAGE_KEY);
         
-        EventHandler.trigger(_name, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     };
     
     function trim() {
@@ -76,11 +76,11 @@ var SearchHistory = new function() {
             
         }
         
-        Storage.add(STORAGE_KEY, historyString);
+        Evme.Storage.add(STORAGE_KEY, historyString);
     }
     
     function populate() {
-        var fromStorage = Storage.get(STORAGE_KEY);
+        var fromStorage = Evme.Storage.get(STORAGE_KEY);
         if (fromStorage) {
             try {
                 history = JSON.parse(fromStorage);

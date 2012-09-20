@@ -1,4 +1,4 @@
-var Apps = new function() {
+EverythingMe.Apps = new function() {
     var _name = "Apps", _this = this, $el = null, $list = null,
         appsArray = {}, appsDataArray = [], numberOfApps = 0,
         scroll = null, defaultIconToUse = 0;
@@ -51,7 +51,7 @@ var Apps = new function() {
             "$indicatorError": $("#apps-error")
         });
         
-        DEFAULT_ICON_URL = options.design.defaultIconUrl[Utils.ICONS_FORMATS.Large];
+        DEFAULT_ICON_URL = options.design.defaultIconUrl[Evme.Utils.ICONS_FORMATS.Large];
         if (typeof DEFAULT_ICON_URL == "string") {
             DEFAULT_ICON_URL = [DEFAULT_ICON_URL];
         }
@@ -60,7 +60,7 @@ var Apps = new function() {
             _this.timeoutHold && window.clearTimeout(_this.timeoutHold);
         });
         
-        var hasFixedPositioning = Utils.hasFixedPositioning();
+        var hasFixedPositioning = Evme.Utils.hasFixedPositioning();
         
         if (hasFixedPositioning){
             var headerHeight = options.$header.height();            
@@ -87,7 +87,7 @@ var Apps = new function() {
         
         _this.calcAppsPositions();
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.isSwiping = function() {
@@ -161,7 +161,7 @@ var Apps = new function() {
         (!iFrom || !bAnimate) && (iFrom = 0);
         
         var $apps = $list.children(),
-            prefix = Utils.cssPrefix(),
+            prefix = Evme.Utils.cssPrefix(),
             index = 0;
         
         for (var i=iFrom; i<$apps.length; i++) {
@@ -223,7 +223,7 @@ var Apps = new function() {
         
         setAppsPerRow(width);
         
-        var prefix = Utils.cssPrefix(),
+        var prefix = Evme.Utils.cssPrefix(),
             rules = "#doat-apps ul li { width: " + 100/APPS_PER_ROW + "%; }\n";
             /*
         for (var i=0; i<MAX_APPS_CLASSES; i++) {
@@ -266,7 +266,7 @@ var Apps = new function() {
     };
     
     function setAppsPerRow(width) {
-        !width && (width = $("#" + Utils.getID()).width());
+        !width && (width = $("#" + Evme.Utils.getID()).width());
         
         APPS_PER_ROW = (width>MIN_WIDTH_FOR_FIVE_APPS)? 5 : 4;
     }
@@ -294,7 +294,7 @@ var Apps = new function() {
             reportedScrollMove = true;
             cbScrolledToEnd();
         } else if (shouldFadeBG && y > SCROLL_BEFORE_CALLING_SCROLLTOP && y < SCROLL_BEFORE_CALLING_SCROLLTOP+MAX_SCROLL_AREA) {
-            BackgroundImage.fadeFullScreen((y-SCROLL_BEFORE_CALLING_SCROLLTOP)/MAX_SCROLL_AREA);
+            Evme.BackgroundImage.fadeFullScreen((y-SCROLL_BEFORE_CALLING_SCROLLTOP)/MAX_SCROLL_AREA);
         }
     }
     
@@ -306,7 +306,7 @@ var Apps = new function() {
                 showingFullScreen = false;
             }, 1000);
         } else {
-            !showingFullScreen && BackgroundImage.cancelFullScreenFade();
+            !showingFullScreen && Evme.BackgroundImage.cancelFullScreenFade();
         }
     }
     
@@ -322,14 +322,14 @@ var Apps = new function() {
         var numOfApps = 0; for (var i in appsArray){ numOfApps++; }
         
         for (var i=0; i<apps.length; i++) {
-            var app = new App(apps[i], numOfApps+i, isMore, _this);
+            var app = new Evme.App(apps[i], numOfApps+i, isMore, _this);
             var id = apps[i].id;
             var icon = app.getIcon();
             
-            icon = IconManager.parse(id, icon, iconsFormat);
+            icon = Evme.IconManager.parse(id, icon, iconsFormat);
             app.setIcon(icon);
             
-            if (Utils.isKeyboardVisible() && (isMore || i<Math.max(apps.length/2, 8))) {
+            if (Evme.Utils.isKeyboardVisible() && (isMore || i<Math.max(apps.length/2, 8))) {
                 var $app = app.draw();
                 $list.append($app);
             } else {
@@ -386,7 +386,7 @@ var Apps = new function() {
                 app = appsArray[appData.id];
                 
             if (app) {
-                appData.icon = IconManager.parse(appData.id, appData.icon, iconsFormat);
+                appData.icon = Evme.IconManager.parse(appData.id, appData.icon, iconsFormat);
                 
                 app.update(appData);
             }
@@ -405,7 +405,7 @@ var Apps = new function() {
             var _app = apps[i];
             var id = _app.id;
             if (appsArray[id]) {
-                _app.icon = IconManager.parse(id, _app.icon, iconsFormat);
+                _app.icon = Evme.IconManager.parse(id, _app.icon, iconsFormat);
                 appsArray[id].update(_app);
 
                 if (appsArray[id].missingIcon()) {
@@ -420,15 +420,15 @@ var Apps = new function() {
     };
     
     function cbScrolledToTop() {
-        EventHandler.trigger(_name, "scrollTop");
+        Evme.EventHandler.trigger(_name, "scrollTop");
     }
     
     function cbScrolledToEnd() {
-        EventHandler.trigger(_name, "scrollBottom");
+        Evme.EventHandler.trigger(_name, "scrollBottom");
     }
     
     function cbLoadComplete(data, missingIcons) {
-        EventHandler.trigger(_name, "loadComplete", {
+        Evme.EventHandler.trigger(_name, "loadComplete", {
             "data": data,
             "icons": missingIcons
         });
@@ -460,7 +460,7 @@ var Apps = new function() {
                 loading.spin($el.find("span")[0]);
                 Apps.refreshScroll(1);
                 _this.hideButton();
-                EventHandler.trigger(_name, "show");
+                Evme.EventHandler.trigger(_name, "show");
             }
         };
 
@@ -469,7 +469,7 @@ var Apps = new function() {
                 loading.stop();
                 $el.remove();
                 $el = null;
-                EventHandler.trigger(_name, "hide");
+                Evme.EventHandler.trigger(_name, "hide");
             }
         };
         
@@ -489,7 +489,7 @@ var Apps = new function() {
         };
         
         function cbButtonClick() {
-            EventHandler.trigger(_name, "buttonClick");
+            Evme.EventHandler.trigger(_name, "buttonClick");
         }
         
         function addLoadingIndicator() {
@@ -515,7 +515,7 @@ var Apps = new function() {
             IDS.error = options.$indicatorError;
             
             IDS.error.find("b").click(function(){
-                EventHandler.trigger(_name, "errorRetryClick");
+                Evme.EventHandler.trigger(_name, "errorRetryClick");
             });
         };
         
@@ -550,27 +550,27 @@ var Apps = new function() {
     };
 }
 
-var IconManager = new function() {
+EverythingMe.IconManager = new function() {
     var _name = "IconManager", _this = this,
         _prefix = "_icon", CACHE_VERSION = "2.6";
     
     this.clear = function() {
         var numIcons = 0;
-        var icons = Storage.get();
+        var icons = Evme.Storage.get();
         for (var k in icons) {
             if (k.indexOf(_prefix) == 0) {
                 numIcons++;
-                Storage.remove(k);
+                Evme.Storage.remove(k);
             }
         }
         return numIcons;
     };
     
     this.validateCacheVersion = function() {
-        var currentVersion = Storage.get("iconsVersion");
+        var currentVersion = Evme.Storage.get("iconsVersion");
         if (!currentVersion || currentVersion != CACHE_VERSION) {
             _this.clear();
-            Storage.add("iconsVersion", CACHE_VERSION);
+            Evme.Storage.add("iconsVersion", CACHE_VERSION);
         }
     };
     
@@ -598,7 +598,7 @@ var IconManager = new function() {
             var sIcon = "";
             try {
                 sIcon = JSON.stringify(icon);
-                Storage.add(_prefix + id, sIcon);
+                Evme.Storage.add(_prefix + id, sIcon);
             } catch(ex) {
                 
             }
@@ -611,7 +611,7 @@ var IconManager = new function() {
 
     this.get = function(id) {
         if (id) {
-            var icon = Storage.get(_prefix+id) || null;
+            var icon = Evme.Storage.get(_prefix+id) || null;
             
             if (!icon) {
                 return null;
@@ -621,7 +621,7 @@ var IconManager = new function() {
             try {
                 icon = JSON.parse(icon);
             } catch(ex) {
-                Storage.remove(_prefix+id);
+                Evme.Storage.remove(_prefix+id);
                 return null;
             }
             
@@ -633,7 +633,7 @@ var IconManager = new function() {
             return icon;
         } else {
             var _icons = {};
-            var icons = Storage.get();
+            var icons = Evme.Storage.get();
             
             for (var k in icons) {
                 if (k.indexOf(_prefix) == 0) {
@@ -646,9 +646,9 @@ var IconManager = new function() {
     };
 };
 
-var IconGroup = new function() {
+EverythingMe.IconGroup = new function() {
     this.get = function(ids, callback) {
-        var iconIcons = Utils.getIconGroup(),
+        var iconIcons = Evme.Utils.getIconGroup(),
             needToLoad = iconIcons.length,
             useShadows = true;
             
@@ -670,10 +670,10 @@ var IconGroup = new function() {
             }
             
             if (!app.icon) {
-                app.icon = IconManager.get(app.id);
+                app.icon = Evme.IconManager.get(app.id);
             }
             
-            app.icon = Utils.formatImageData(app.icon);
+            app.icon = Evme.Utils.formatImageData(app.icon);
             
             var missingIcon = '';
             if (!app.icon) {
@@ -687,8 +687,8 @@ var IconGroup = new function() {
                         (app.icon? ' background-image: url(' + app.icon + ');' : '') +
                         ' width: ' + size + 'px;' +
                         ' height: ' + size + 'px;' +
-                        (icon.rotate ? ' ' + Utils.cssPrefix() + 'transform: rotate(' + icon.rotate + 'deg);' : '') +
-                        (((icon.shadowOffset || icon.shadowBlur) && useShadows)? ' ' + Utils.cssPrefix() + 'box-shadow: ' + (icon.shadowOffsetX || "0") + 'px ' + (icon.shadowOffset || "0") + 'px ' + (icon.shadowBlur || "0") + 'px 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
+                        (icon.rotate ? ' ' + Evme.Utils.cssPrefix() + 'transform: rotate(' + icon.rotate + 'deg);' : '') +
+                        (((icon.shadowOffset || icon.shadowBlur) && useShadows)? ' ' + Evme.Utils.cssPrefix() + 'box-shadow: ' + (icon.shadowOffsetX || "0") + 'px ' + (icon.shadowOffset || "0") + 'px ' + (icon.shadowBlur || "0") + 'px 0 rgba(0, 0, 0, ' + icon.shadowOpacity + ');' : '') +
                         '"></span>';
         }
         
@@ -698,7 +698,7 @@ var IconGroup = new function() {
     };
 };
 
-var App = function(__cfg, __index, __isMore, parent) {
+EverythingMe.App = function(__cfg, __index, __isMore, parent) {
     var _name = "App", _this = this,
         cfg = {}, $el = null, index = __index, isMore = __isMore, hadID = true,
         timeTouchStart = 0, touchStartPos = null, firedHold = false,
@@ -740,7 +740,7 @@ var App = function(__cfg, __index, __isMore, parent) {
     };
 
     this.getHtml = function() {
-        var icon = Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
+        var icon = Evme.Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
 
         return  '<div class="c" href="' + cfg.appUrl + '">' +
                     '<span class="thumb" style="background-image: url(\'' + icon + '\');"></span>' + 
@@ -758,7 +758,7 @@ var App = function(__cfg, __index, __isMore, parent) {
             _this.remove();
         }, 200);
         
-        EventHandler.trigger(_name, "close", {
+        Evme.EventHandler.trigger(_name, "close", {
             "app": _this,
             "$el": $el,
             "data": cfg,
@@ -807,7 +807,7 @@ var App = function(__cfg, __index, __isMore, parent) {
         cfg.icon = icon;
         
         if (bRedraw && $el) {
-            var iconUrl = Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
+            var iconUrl = Evme.Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
             
             var sIcon = '<span class="thumb" style="background-image: url(\'' + iconUrl + '\');"></span>';
             $el.find(".c").append(sIcon);
@@ -880,7 +880,7 @@ var App = function(__cfg, __index, __isMore, parent) {
     }
 
     function cbClick() {
-        EventHandler.trigger(_name, "click", {
+        Evme.EventHandler.trigger(_name, "click", {
             "app": _this,
             "appId": hadID ? cfg.id : 0,
             "$el": $el,
@@ -893,7 +893,7 @@ var App = function(__cfg, __index, __isMore, parent) {
     function cbHold() {
         firedHold = true;
         
-        EventHandler.trigger(_name, "hold", {
+        Evme.EventHandler.trigger(_name, "hold", {
             "app": _this,
             "appId": hadID ? cfg.id : 0,
             "$el": $el,

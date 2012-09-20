@@ -24,6 +24,7 @@ const Homescreen = (function() {
         setLocale();
         GridManager.localize();
         DockManager.localize();
+        EverythingMe.localize();
       });
     });
   }

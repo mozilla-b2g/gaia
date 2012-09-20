@@ -1,4 +1,4 @@
-var Dialog = function(_id) {
+EverythingMe.Dialog = function(_id) {
     var _name = "Dialog", _this = this, $el = null, $elBlackout = null,
         id = _id, isBlackout = false, blackoutCallback = null, centered = false,
         waitingOnCloseTimeout = false, timeoutBeforeClickThrough = false;
@@ -97,7 +97,7 @@ var Dialog = function(_id) {
         isBlackout = options.blackout;
         timeoutBeforeClickThrough = options.timeoutBeforeClickThrough;
         
-        var $container = options.$container || $("#" + Utils.getID());
+        var $container = options.$container || $("#" + Evme.Utils.getID());
         $container.append($el);
         
         if (isBlackout) {
@@ -155,7 +155,7 @@ var Dialog = function(_id) {
     }
     
     function cbCreate() {
-        EventHandler.trigger(_name, "create", {
+        Evme.EventHandler.trigger(_name, "create", {
             "id": id,
             "obj": _this,
             "isBlackout": isBlackout,
@@ -164,7 +164,7 @@ var Dialog = function(_id) {
     }
     
     function cbShow() {
-        EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "id": id,
             "obj": _this,
             "isBlackout": isBlackout,
@@ -176,13 +176,13 @@ var Dialog = function(_id) {
         e.preventDefault();
         e.stopPropagation();
         
-        EventHandler.trigger(_name, "blackoutClick", {
+        Evme.EventHandler.trigger(_name, "blackoutClick", {
             "id": id
         });
     }
     
     function cbButtonClick(e, button) {
-        EventHandler.trigger(_name, "buttonClick", {
+        Evme.EventHandler.trigger(_name, "buttonClick", {
             "e": e,
             "id": id,
             "obj": _this,
@@ -192,7 +192,7 @@ var Dialog = function(_id) {
     }
     
     function cbRemove() {
-        EventHandler.trigger(_name, "remove", {
+        Evme.EventHandler.trigger(_name, "remove", {
             "id": id,
             "obj": _this,
             "isBlackout": isBlackout,
@@ -219,7 +219,7 @@ var Prompt = function(_options) {
         
         storageKey = STORAGE_PREFIX + id;
         
-        var shown = Storage.enabled() && Storage.get(storageKey);
+        var shown = Evme.Storage.enabled() && Evme.Storage.get(storageKey);
         if (shown) {
             return false;
         }
@@ -265,26 +265,26 @@ var Prompt = function(_options) {
     };
     
     this.markAsShown = function() {
-        Storage.set(storageKey, true);
+        Evme.Storage.set(storageKey, true);
     };
     
     function cbShow() {
         onShow && onShow();
-        EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "id": id,
             "text": text
         });
     }
     function cbClick() {
         onClick && onClick();
-        EventHandler.trigger(_name, "click", {
+        Evme.EventHandler.trigger(_name, "click", {
             "id": id,
             "text": text
         });
     }
     function cbDismiss() {
         onDismiss && onDismiss();
-        EventHandler.trigger(_name, "dismiss", {
+        Evme.EventHandler.trigger(_name, "dismiss", {
             "id": id,
             "text": text
         });

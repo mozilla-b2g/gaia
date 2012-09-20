@@ -1,4 +1,4 @@
-var Screens = new function() {
+EverythingMe.Screens = new function() {
     var _name = "Screens", _this = this,
         $body = null, $screens = null, $elTabs = null, $tabs = null,
         active, first, pre = "screen_", timeoutAnimation = null;
@@ -9,7 +9,7 @@ var Screens = new function() {
     this.init = function(options) {
         !options && (options = {});
         
-        $body = $("#" + Utils.getID());
+        $body = $("#" + Evme.Utils.getID());
         $screens = options.$screens;
         $elTabs = $("#tabs");
         $tabs = $elTabs.find("td:not(.main)");
@@ -33,7 +33,7 @@ var Screens = new function() {
         
         $elTabs.addClass("visible");
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.goTo = function(id, data) {
@@ -92,7 +92,7 @@ var Screens = new function() {
             $main.addClass(CLASS_ACTIVE);
             $body.addClass("screen-search");
             
-            EventHandler.trigger(_name, "searchShow", data);
+            Evme.EventHandler.trigger(_name, "searchShow", data);
         };
         
         this.hide = function() {
@@ -104,11 +104,11 @@ var Screens = new function() {
                 $body.removeClass("screen-search");
             }, 300);
             
-            EventHandler.trigger(_name, "searchHide");
+            Evme.EventHandler.trigger(_name, "searchHide");
             cbShowScreen(active);
             
             timeoutHideSearch = window.setTimeout(function(){
-                EventHandler.trigger(_name, "searchHidden", {"active": active});
+                Evme.EventHandler.trigger(_name, "searchHidden", {"active": active});
             }, SEARCH_PAGE_TRANSITION_DURATION);
         };
         
@@ -124,7 +124,7 @@ var Screens = new function() {
         
         var page = $tab.data("page");
         
-        EventHandler.trigger(_name, "tabClick", {
+        Evme.EventHandler.trigger(_name, "tabClick", {
             "$el": $tab,
             "page": page
         });
@@ -138,11 +138,11 @@ var Screens = new function() {
     }
     
     function clickMain() {
-        EventHandler.trigger(_name, "mainClick");
+        Evme.EventHandler.trigger(_name, "mainClick");
     }
 
     function cbShowScreen(id, isFirst) {
-        EventHandler.trigger(_name, "shown", {
+        Evme.EventHandler.trigger(_name, "shown", {
             "id": id,
             "isFirst": isFirst
         });

@@ -1,4 +1,4 @@
-var Searchbar = new function() {
+EverythingMe.Searchbar = new function() {
     var _name = "Searchbar", _this = this,
         $el = null, $form = null, $clear = null, $defaultText = null,
         value = "", Selection = null,
@@ -62,7 +62,7 @@ var Searchbar = new function() {
             
         $el.bind("click", Selection.create);
 
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.bindEvents = function($el, cbFocus, inputKeyDown, inputKeyUp){
@@ -142,7 +142,7 @@ var Searchbar = new function() {
     
     function backButtonClick(e) {
         e.stopPropagation();
-        EventHandler.trigger(_name, "backButtonClick");
+        Evme.EventHandler.trigger(_name, "backButtonClick");
     }
     
     function pseudoSelection(){
@@ -234,7 +234,7 @@ var Searchbar = new function() {
     
     function inputKeyDown(e) {
         // Hack to disable keyboard- must be here to cancel the event
-        if (Brain.Dialog.isActive()) {
+        if (Evme.Brain.Dialog.isActive()) {
             e.preventDefault();
             e.stopPropagation();
             return false;
@@ -292,31 +292,31 @@ var Searchbar = new function() {
         timeoutPause = window.setTimeout(cbPause, TIMEOUT_BEFORE_SENDING_PAUSE_EVENT);
         timeoutIdle = window.setTimeout(cbIdle, TIMEOUT_BEFORE_SENDING_IDLE_EVENT);
         
-        EventHandler.trigger(_name, "valueChanged", {
+        Evme.EventHandler.trigger(_name, "valueChanged", {
             "value": val
         });
     }
     
     function cbEmpty() {
         _this.hideClearButton();
-        EventHandler.trigger(_name, "empty", {
+        Evme.EventHandler.trigger(_name, "empty", {
             "sourceObjectName": _name
         });
     }
     
     function cbReturnPressed(e, val) {
-        EventHandler.trigger(_name, "returnPressed", {
+        Evme.EventHandler.trigger(_name, "returnPressed", {
             "e": e,
             "value": val
         });
     }
     
     function cbClear() {
-        EventHandler.trigger(_name, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     }
     
     function cbFocus(e) {
-        //Do not use Utils.hideAddressBar() caus it has a delay that makes the address bar pop in a nasty way
+        //Do not use Evme.Utils.hideAddressBar() caus it has a delay that makes the address bar pop in a nasty way
         window.scrollTo(0,1);
         
         Brain && Brain[_name].onfocus({
@@ -333,13 +333,13 @@ var Searchbar = new function() {
     }
     
     function cbPause(e) {
-        EventHandler.trigger(_name, "pause", {
+        Evme.EventHandler.trigger(_name, "pause", {
             "query": value
         });
     }
     
     function cbIdle(e) {
-        EventHandler.trigger(_name, "idle", {
+        Evme.EventHandler.trigger(_name, "idle", {
             "query": value
         });
     }

@@ -1,4 +1,4 @@
-var Utils = new function() {
+EverythingMe.Utils = new function() {
     var _this = this, userAgent = "", connection, cssPrefix = "", iconsFormat = null,
         isKeyboardVisible = false, _title = "Everything", isNewUser,
         _parseQuery = parseQuery();
@@ -38,10 +38,10 @@ var Utils = new function() {
     };
     this.sendToFFOS = function(type, data) {
         switch (type) {
-            case Utils.FFOSMessages.APP_CLICK:
+            case Evme.Evme.Utils.FFOSMessages.APP_CLICK:
                 EvmeManager.openApp(data);
                 break;
-            case Utils.FFOSMessages.APP_INSTALL:
+            case Evme.Evme.Utils.FFOSMessages.APP_INSTALL:
                 EvmeManager.addBookmark(data);
                 break;
         }
@@ -109,7 +109,7 @@ var Utils = new function() {
 
     this.isNewUser = function() {
         if (isNewUser === undefined) {
-            isNewUser = !Storage.get("counter-ALLTIME");
+            isNewUser = !Evme.Storage.get("counter-ALLTIME");
         }
         return isNewUser;
     };
@@ -136,7 +136,7 @@ var Utils = new function() {
     };
 
     this.getIconGroup = function() {
-        return JSON.parse(JSON.stringify(__config.iconsGroupSettings));
+        return JSON.parse(JSON.stringify(Evme.__config.iconsGroupSettings));
     }
 
     this.getIconsFormat = function() {
@@ -196,7 +196,7 @@ var Utils = new function() {
     };
 
     this.isVersionOrHigher = function(v1, v2) {
-        if (!v2){ v2 = v1; v1 = Utils.getOS().version; };
+        if (!v2){ v2 = v1; v1 = Evme.Evme.Utils.getOS().version; };
         if (!v1){ return undefined; }
 
         var v1parts = v1.split('.');
@@ -225,7 +225,7 @@ var Utils = new function() {
 
     this.User = new function() {
         this.creds = function() {
-            var credsFromCookie = Utils.Cookies.get(COOKIE_NAME_CREDENTIALS);
+            var credsFromCookie = Evme.Evme.Utils.Cookies.get(COOKIE_NAME_CREDENTIALS);
             return credsFromCookie;
         };
     };
@@ -263,7 +263,7 @@ var Utils = new function() {
         };
 
         this.remove = function(name) {
-            Utils.Cookies.set(name, "", "Thu, 24-Jun-1999 12:34:56 GMT");
+            Evme.Evme.Utils.Cookies.set(name, "", "Thu, 24-Jun-1999 12:34:56 GMT");
         };
 
         function norm(k, v) {
@@ -288,7 +288,7 @@ var Utils = new function() {
 
     // check that localStorage is enabled by setting and getting a temp value
     this.bLocalStorageEnabled = function(){
-        return Storage.enabled();
+        return Evme.Storage.enabled();
     };
 
     function _getIconsFormat() {
@@ -303,7 +303,7 @@ var Utils = new function() {
     }
 
     this.getCurrentSearchQuery = function(){
-        return Brain.Searcher.getDisplayedQuery();
+        return Evme.Brain.Searcher.getDisplayedQuery();
     };
 
     this.CONNECTION = {

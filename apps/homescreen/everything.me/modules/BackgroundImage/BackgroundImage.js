@@ -1,6 +1,6 @@
-var BackgroundImage = new function() {
+EverythingMe.BackgroundImage = new function() {
     var _name = "BackgroundImage", _this = this,
-            $el = null, $elFullScreen = null, $fullScreenFade = null, $default = null,
+            $el = null, $elFullScreen = null, $fullScreenFade = null, $default = null, elStyle = null,
             currentImage = {}, $currentImage = null, active = false, changeOpacityTransitionCallback = null,
             defaultImage = "";
 
@@ -22,7 +22,7 @@ var BackgroundImage = new function() {
             $el.append($default);
         }
 
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
 
     this.update = function(oImage, isDefault) {
@@ -185,22 +185,22 @@ var BackgroundImage = new function() {
     }
 
     function cbUpdated(image) {
-        EventHandler.trigger(_name, "updated", {
+        Evme.EventHandler.trigger(_name, "updated", {
             "image": image
         });
     }
 
     function cbLoaded() {
-        EventHandler.trigger(_name, "load", {
+        Evme.EventHandler.trigger(_name, "load", {
             "image": currentImage
         });
     }
 
     function cbShowFullScreen() {
-        EventHandler.trigger(_name, "showFullScreen");
+        Evme.EventHandler.trigger(_name, "showFullScreen");
     }
 
     function cbHideFullScreen() {
-        EventHandler.trigger(_name, "hideFullScreen");
+        Evme.EventHandler.trigger(_name, "hideFullScreen");
     }
 }

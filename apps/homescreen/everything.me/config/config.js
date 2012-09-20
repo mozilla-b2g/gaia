@@ -1,4 +1,4 @@
-var __config = {
+EverythingMe.__config = {
     "appVersion": "2.0.145",
     "apiHost": "api.everything.me",
     "apiKey": "68f36b726c1961d488b63054f30d312c",
@@ -73,14 +73,23 @@ var __config = {
         "SHORTCUT": "shrt"
     },
     "env": {
-        "server": "stg"
+        "server": "prod"
+    },
+    "analytics": {
+        "enabled": true,
+        "providers": {            
+            "APIStatsEvents": {
+                "enabled": true,
+                "requestsPerEventCount": 1
+            }
+        }
     },
     "infoLogger": false,
     "maxHistoryEntries": "10",
     "texts": {
         "searchbar": {
             "defaultText": "Search Everything",
-            "clear": "Clear"
+            "clear": "Back"
         },
         "helper": {
             "defaultText": "Find things you love with the coolest apps",

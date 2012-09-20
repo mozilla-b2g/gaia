@@ -1,4 +1,4 @@
-var Helper = new function() {
+EverythingMe.Helper = new function() {
     var _name = "Helper", _this = this,
         $el = null, $wrapper = null, $elTitle = null, $list = null, $tip = null, $loading = null,
         _data = {}, defaultText = "", iscroll = null, currentDisplayedType = "", timeoutShowRefine = null,
@@ -59,7 +59,7 @@ var Helper = new function() {
             $wrapper.addClass(c);
         }
 
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.reset = function() {
@@ -89,7 +89,7 @@ var Helper = new function() {
             _this.empty();
         }
         
-        EventHandler.trigger(_name, "clear");
+        Evme.EventHandler.trigger(_name, "clear");
     };
     
     this.getElement = function() {
@@ -108,7 +108,7 @@ var Helper = new function() {
     this.animateLeft = function(callback) {
         $el.addClass("animate");
         window.setTimeout(function(){
-            $el.css(Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
+            $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
             window.setTimeout(function(){
                 $el.removeClass("animate");
                 window.setTimeout(function(){
@@ -120,7 +120,7 @@ var Helper = new function() {
     this.animateRight = function(callback) {
         $el.addClass("animate");
         window.setTimeout(function(){
-            $el.css(Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
+            $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
             window.setTimeout(function(){
                 $el.removeClass("animate");
                 window.setTimeout(function(){
@@ -130,11 +130,11 @@ var Helper = new function() {
         }, 50);
     };
     this.animateFromRight = function() {
-        $el.css(Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
+        $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(" + $el.width() + "px)");
         window.setTimeout(function(){
             $el.addClass("animate");
             window.setTimeout(function(){
-                $el.css(Utils.cssPrefix() + "transform", "translateX(0)");
+                $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(0)");
                 window.setTimeout(function(){
                     $el.removeClass("animate");
                 }, 400);
@@ -142,11 +142,11 @@ var Helper = new function() {
         }, 20);
     };
     this.animateFromLeft = function() {
-        $el.css(Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
+        $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(-" + $el.width() + "px)");
         window.setTimeout(function(){
             $el.addClass("animate");
             window.setTimeout(function(){
-                $el.css(Utils.cssPrefix() + "transform", "translateX(0)");
+                $el.css(Evme.Utils.cssPrefix() + "transform", "translateX(0)");
                 window.setTimeout(function(){
                     $el.removeClass("animate");
                 }, 400);
@@ -191,7 +191,7 @@ var Helper = new function() {
     this.showSuggestions = function(querySentWith) {
         querySentWith && (queryForSuggestions = querySentWith);
         
-        EventHandler.trigger(_name, "showSuggestions", {
+        Evme.EventHandler.trigger(_name, "showSuggestions", {
             "data": _data.suggestions
         });
         
@@ -209,7 +209,7 @@ var Helper = new function() {
     
     this.showHistory = function() {
         _this.disableAnimation();
-        EventHandler.trigger(_name, "showHistory", {
+        Evme.EventHandler.trigger(_name, "showHistory", {
             "data": _data.history
         });
         _this.showList(_data.history, TITLE_HISTORY, "history");
@@ -217,7 +217,7 @@ var Helper = new function() {
     
     this.showSpelling = function() {
         _this.disableAnimation();
-        EventHandler.trigger(_name, "showSpelling", {
+        Evme.EventHandler.trigger(_name, "showSpelling", {
             "data": _data.spelling
         });
         
@@ -241,7 +241,7 @@ var Helper = new function() {
         _this.enableCloseAnimation();
         _this.disableAnimation();
         
-        EventHandler.trigger(_name, "showRefinement", {
+        Evme.EventHandler.trigger(_name, "showRefinement", {
             "data": _data.types
         });
         
@@ -252,7 +252,7 @@ var Helper = new function() {
         _this.enableCloseAnimation();
         _this.disableAnimation();
         
-        EventHandler.trigger(_name, "showText", {
+        Evme.EventHandler.trigger(_name, "showText", {
             "text": text
         });
         
@@ -297,7 +297,7 @@ var Helper = new function() {
         
         _this.Loading.hide();
         
-        EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "type": addClass,
             "data": items
         });
@@ -481,7 +481,7 @@ var Helper = new function() {
                 window.setTimeout(function(){
                     $list.removeClass("anim");
                     
-                    if (currentDisplayedType == "" && !Utils.Cookies.get("fs")) {
+                    if (currentDisplayedType == "" && !Evme.Utils.Cookies.get("fs")) {
                         _this.flash();
                     }
                 }, 50);
@@ -618,7 +618,7 @@ var Helper = new function() {
     }
 
     function cbLoaded(inputQuery, parsedQuery, suggestions, spelling, types) {
-        EventHandler.trigger(_name, "load", {
+        Evme.EventHandler.trigger(_name, "load", {
             "suggestions": suggestions,
             "spelling": spelling,
             "types": types,
@@ -627,7 +627,7 @@ var Helper = new function() {
     }
     
     function cbClick($li, index, isVisibleItem, originalValue, val, source, type) {
-        EventHandler.trigger(_name, "click", {
+        Evme.EventHandler.trigger(_name, "click", {
             "$element": $li,
             "originalValue": originalValue,
             "value": val,

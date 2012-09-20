@@ -1,13 +1,14 @@
-var Core = new function() {
+window.EverythingMe = window.Evme = new function() {
     var _name = "Core", _this = this, logger,
         recalculateHeightRetries = 1,
         TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG", displayed = false,
-        OPACITY_CHANGE_DURATION = 300;
+        OPACITY_CHANGE_DURATION = 300,
+        head_ts = new Date().getTime();
 
     this.shouldSearchOnInputBlur = true;
 
     this.init = function() {
-        _this.initWithConfig(__config);
+        _this.initWithConfig(Evme.__config);
 
         window.addEventListener("message", function(e) {
             // if event has no message - return
@@ -42,7 +43,7 @@ var Core = new function() {
     };
 
     this.setOpacityBackground = function(value) {
-        BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
+        Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
             if (value === 1) {
                 document.body.classList.add("evme-displayed");
                 displayed = true;
@@ -62,17 +63,18 @@ var Core = new function() {
         ratio = Math.floor(ratio*100)/100;
         var value = dir === "in" ? ratio : 1 - ratio;
 
-        BackgroundImage.changeOpacity(value);
+        Evme.BackgroundImage.changeOpacity(value);
     }
 
     this.initWithConfig = function(data) {
         logger = (typeof Logger !== "undefined") ? new Logger() : console;
-
-        var apiHost = Utils.getUrlParam("apiHost") || data.apiHost;
-        apiHost && api.setHost(apiHost);
+        
+        var apiHost = Evme.Utils.getUrlParam("apiHost") || data.apiHost;
+        apiHost && Evme.api.setHost(apiHost);
 
         TIMEOUT_BEFORE_INIT_SESSION = data.timeoutBeforeSessionInit;
-        Brain.init({
+        
+        Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad,
             "logger": logger,
             "minimumLettersForSearch": data.minimumLettersForSearch,
@@ -90,7 +92,7 @@ var Core = new function() {
             "pageViewSources": data.pageViewSources
         });
 
-        DoATAPI.init({
+        Evme.DoATAPI.init({
             "env": data.env.server,
             "apiKey": data.apiKey,
             "appVersion": data.appVersion,
@@ -101,14 +103,14 @@ var Core = new function() {
     };
 
     function initObjects(data) {
-        var $container = $("#" + Utils.getID());
+        var $container = $("#" + Evme.Utils.getID());
 
-        Connection.init({
+        Evme.Connection.init({
             "$parent": $container,
             "texts": data.texts.connection
         });
 
-        Location.init({
+        Evme.Location.init({
             "$elName": $(".user-location"),
             "$elButton": $("#button-location"),
             "$elSelectorDialog": $("#location-selector"),
@@ -118,12 +120,12 @@ var Core = new function() {
             "texts": data.texts.location
         });
 
-        Screens.init({
+        Evme.Screens.init({
             "$screens": $(".content_page"),
             "tabs": data.texts.tabs
         });
 
-        Shortcuts.init({
+        Evme.Shortcuts.init({
             "$el": $("#shortcuts"),
             "$loading": $("#shortcuts-loading"),
             "design": data.design.shortcuts,
@@ -131,12 +133,12 @@ var Core = new function() {
             "defaultShortcuts": data._defaultShortcuts
         });
 
-        ShortcutsCustomize.init({
+        Evme.ShortcutsCustomize.init({
             "$parent": $container,
             "texts": data.texts.shortcutsFavorites
         });
 
-        Searchbar.init({
+        Evme.Searchbar.init({
             "$el": $("#search-q"),
             "$form": $("#search-rapper"),
             "$defaultText": $("#default-text"),
@@ -146,7 +148,7 @@ var Core = new function() {
             "setFocusOnClear": false
         });
 
-        Helper.init({
+        Evme.Helper.init({
             "$el": $("#helper"),
             "$elTitle": $("#search-title"),
             "$tip": $("#helper-tip"),
@@ -154,7 +156,7 @@ var Core = new function() {
             "texts": data.texts.helper
         });
         
-        Apps.init({
+        Evme.Apps.init({
             "$el": $("#doat-apps"),
             "$buttonMore": $("#button-more"),
             "$header": $("#search #header"),
@@ -171,33 +173,31 @@ var Core = new function() {
             }
         });
 
-        BackgroundImage.init({
+        Evme.BackgroundImage.init({
             "$el": $("#evmeBackgroundImage"),
             "$elementsToFade": $("#doat-apps, #header, #search-header"),
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
         });
         
-        SearchHistory.init({
+        Evme.SearchHistory.init({
             "maxEntries": data.maxHistoryEntries
         });
         
-        Analytics.init({
+        Evme.Analytics.init({
             "config": data.analytics,
             "logger": logger,
-            "DoATAPI": DoATAPI,
-            "getCurrentAppsRowsCols": Apps.getCurrentRowsCols,
+            "DoATAPI": Evme.DoATAPI,
+            "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
             "Brain": Brain,
             "env": data.env.server,
-            "connectionLow": Utils.connection().speed != Utils.connection().SPEED_HIGH,
-            "sessionObj": DoATAPI.Session.get(),
+            "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
+            "sessionObj": Evme.DoATAPI.Session.get(),
             "pageRenderStartTs": head_ts,
             "SEARCH_SOURCES": data.searchSources,
             "PAGEVIEW_SOURCES": data.pageViewSources
         });
 
-        EventHandler.trigger(_name, "init", {"deviceId": DoATAPI.getDeviceId()});
+        Evme.EventHandler.trigger(_name, "init", {"deviceId": Evme.DoATAPI.getDeviceId()});
     }
 };
-
-Core.init();

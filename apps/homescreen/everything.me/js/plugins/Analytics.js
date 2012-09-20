@@ -38,7 +38,7 @@ EverythingMe.Analytics = new function() {
         // if enabled
         if (options.enabled){
             // bind to event handler (js/EventHandler.js)
-            EventHandler && EventHandler.bind(catchCallback);
+            Evme.EventHandler && Evme.EventHandler.bind(catchCallback);
         
             getCurrentAppsRowsCols = options.getCurrentAppsRowsCols;
             getCurrentSearchQuery = options.getCurrentSearchQuery;
@@ -50,7 +50,7 @@ EverythingMe.Analytics = new function() {
             };
             
             // Idle
-            idle = new Idle();
+            idle = new Evme.Idle();
             idle.init({
                 "callback": dispatch,
                 "delay": options.idleDelay
@@ -180,24 +180,24 @@ EverythingMe.Analytics = new function() {
             }
             str+= JSON.stringify(item);
         });
-        Storage.add("analyticsQueue", str);
-        Storage.add("analyticsQueueTimestamp", new Date().getTime());
+        Evme.Storage.add("analyticsQueue", str);
+        Evme.Storage.add("analyticsQueueTimestamp", new Date().getTime());
         
-        logger.debug("Analytics.storeQueue", Storage.get("analyticsQueue"));
+        logger.debug("Analytics.storeQueue", Evme.Storage.get("analyticsQueue"));
     }
     
     // Restore queueArr from localStorage
     function restoreQueue(){
         // leave if queue already populated or localStorage is empty
-        if (queueArr.length || !Storage.get("analyticsQueue") || Storage.get("analyticsQueue") == "null"){ return false; }
+        if (queueArr.length || !Evme.Storage.get("analyticsQueue") || Evme.Storage.get("analyticsQueue") == "null"){ return false; }
         
         // determine time elapsed since queue storage
-        var elapsed = new Date().getTime() - parseInt(Storage.get("analyticsQueueTimestamp"), 10);
+        var elapsed = new Date().getTime() - parseInt(Evme.Storage.get("analyticsQueueTimestamp"), 10);
         
         // if elapsed time hadn't exceeded ttl
         if (elapsed < options.localStorageTTL){
             // restore queue
-            var tempArr = (Storage.get("analyticsQueue") || "").split("|");
+            var tempArr = (Evme.Storage.get("analyticsQueue") || "").split("|");
             tempArr.forEach(function(item){
                 queueArr.push(JSON.parse(item));
             });
@@ -208,8 +208,8 @@ EverythingMe.Analytics = new function() {
             logger.debug("Analytics.restoreQueue - storage ttl exceeded", elapsed);
         }
         
-        Storage.add("analyticsQueue", null);
-        Storage.add("analyticsQueueTimestamp", null);
+        Evme.Storage.add("analyticsQueue", null);
+        Evme.Storage.add("analyticsQueueTimestamp", null);
     }
     
     function loadGAScript(){
@@ -236,8 +236,8 @@ EverythingMe.Analytics = new function() {
     }
     
     function setGACustomVars(tracker){
-        var n = Evme.Utils.getUrlParam("n"),
-            c = Evme.Utils.getUrlParam("c");
+        var n = Evme.Evme.Utils.getUrlParam("n"),
+            c = Evme.Evme.Utils.getUrlParam("c");
             
         if (n && c) {
             tracker['_setCustomVar'](1, "CampaignTracking", n + ":" + c, 1);
@@ -245,7 +245,7 @@ EverythingMe.Analytics = new function() {
         
         tracker['_setCustomVar'](2, "Native", "false", 1);
         
-        var orientation = (Utils.getOrientation() || {"name": "N/A"}).name || "N/A";
+        var orientation = (Evme.Utils.getOrientation() || {"name": "N/A"}).name || "N/A";
         tracker['_setCustomVar'](4, "Orientation", orientation, 1);
     }
     
@@ -320,10 +320,10 @@ EverythingMe.Analytics = new function() {
         };
         
         this.isNewSearchQuery = function(newQuery){
-            var lastSearchQuery = Storage.get(STORAGE_QUERY),
+            var lastSearchQuery = Evme.Storage.get(STORAGE_QUERY),
                 newQuery = newQuery.toLowerCase();
             if (newQuery !== lastSearchQuery){
-                Storage.set(STORAGE_QUERY, newQuery);
+                Evme.Storage.set(STORAGE_QUERY, newQuery);
                 return true;
             }
             return false;
@@ -355,7 +355,7 @@ EverythingMe.Analytics = new function() {
                         "responseTime": data.requestDuration,
                         "method": data.method,
                         "url": data.url,
-                        "connectionType": Evme.Utils.connection().name || "",
+                        "connectionType": Evme.Evme.Utils.connection().name || "",
                         "processingTime": data.response.processingTime || ""
                     }
                 };
@@ -485,7 +485,7 @@ EverythingMe.Analytics = new function() {
         this.error = function(data){
             data.text = "Client error";
             data.ua = navigator.userAgent;
-            data.platform = Evme.Utils.platform();
+            data.platform = Evme.Evme.Utils.platform();
             
             queue({
                 "class": "Core",
@@ -778,8 +778,8 @@ EverythingMe.Analytics = new function() {
                 "data": data
             });
             
-            if (Evme.Utils.isKeyboardVisible()){
-                data.query = Evme.Utils.getCurrentSearchQuery();
+            if (Evme.Evme.Utils.isKeyboardVisible()){
+                data.query = Evme.Evme.Utils.getCurrentSearchQuery();
                 queue({
                     "class": "Results",
                     "event": "search",
@@ -802,7 +802,7 @@ EverythingMe.Analytics = new function() {
                     "class": "Url",
                     "event": "backToHomepage"
                 });*/
-                Storage.set(STORAGE_QUERY, "");
+                Evme.Storage.set(STORAGE_QUERY, "");
             }
         };
     };

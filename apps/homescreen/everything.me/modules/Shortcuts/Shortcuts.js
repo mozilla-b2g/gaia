@@ -1,4 +1,4 @@
-var Shortcuts = new function() {
+EverythingMe.Shortcuts = new function() {
     var _name = "Shortcuts", _this = this, scroll = null, scrollPage = null, itemsDesign = "FROM CONFIG", setDesign = false,
         $el = null, $list = null, $header = null, $loading = null,
         shortcuts = [], visible = false, isSwiping = false, swiped = false, customizing = false, enabled = true,
@@ -14,7 +14,7 @@ var Shortcuts = new function() {
         $loading = options.$loading;
         itemsDesign = options.design;
         
-        defaultShortcuts = Storage.get(KEY_USER_SHORTCUTS) || options.defaultShortcuts;
+        defaultShortcuts = Evme.Storage.get(KEY_USER_SHORTCUTS) || options.defaultShortcuts;
         
         $header = $("#shortcuts-header");
         
@@ -33,7 +33,7 @@ var Shortcuts = new function() {
             "onBeforeScrollStart": function() {}
         });
         
-        EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, "init");
     };
     
     this.loadDefault = function() {
@@ -44,13 +44,13 @@ var Shortcuts = new function() {
         if (!data || !("shortcuts" in data)){
             cbLoadError && cbLoadError(data);
         } else {
-            Storage.set(KEY_USER_SHORTCUTS, data);
+            Evme.Storage.set(KEY_USER_SHORTCUTS, data);
             
             var shortcuts = data.shortcuts,
                 icons = data.icons;
                 
             for (var id in icons) {
-                IconManager.add(id, icons[id], Utils.getIconsFormat());
+                Evme.IconManager.add(id, icons[id], Evme.Utils.getIconsFormat());
             }
             
             for (var i=0; i<shortcuts.length; i++) {
@@ -218,9 +218,9 @@ var Shortcuts = new function() {
         $("#category-options").html(html);
         
         $("#category-options input").bind("focus", function(e) {
-            $("#" + Utils.getID()).addClass("mode-edit");
+            $("#" + Evme.Utils.getID()).addClass("mode-edit");
         }).bind("blur", function(e) {
-            $("#" + Utils.getID()).removeClass("mode-edit");
+            $("#" + Evme.Utils.getID()).removeClass("mode-edit");
         });
         $("#category-options form").bind("submit", function(e) {
             e.preventDefault();
@@ -238,7 +238,7 @@ var Shortcuts = new function() {
         
         scrollPage.refresh();
         
-        EventHandler.trigger("Shortcuts", "categoryPageShow", {
+        Evme.EventHandler.trigger("Shortcuts", "categoryPageShow", {
             "query": categoryPageData.title
         });
     };
@@ -277,7 +277,7 @@ var Shortcuts = new function() {
         $input.blur();
         
         if (query) {
-            EventHandler.trigger(_name, "searchCategoryPage", {
+            Evme.EventHandler.trigger(_name, "searchCategoryPage", {
                 "query": query,
                 "type": type
             });
@@ -290,7 +290,7 @@ var Shortcuts = new function() {
         
         var query = categoryPageData.query;
         
-        EventHandler.trigger(_name, "clickContinue", {
+        Evme.EventHandler.trigger(_name, "clickContinue", {
             "query": query
         });
     }
@@ -372,16 +372,16 @@ var Shortcuts = new function() {
     function setShortcutsDesign() {
         if (setDesign) return;
         
-        var style = "#" + Utils.getID() + " .shortcut { width: " + 100/itemsDesign.itemsPerRow + "%; } \n";
+        var style = "#" + Evme.Utils.getID() + " .shortcut { width: " + 100/itemsDesign.itemsPerRow + "%; } \n";
         
         var $style = $('<style type="text/css">' + style + '</style>');
         
-        $("#" + Utils.getID()).append($style);
+        $("#" + Evme.Utils.getID()).append($style);
         setDesign = true;
     }
     
     function dragStart(data) {
-        EventHandler.trigger(_name, "dragStart", {
+        Evme.EventHandler.trigger(_name, "dragStart", {
             "e": data.e,
             "shortcut": data.shortcut
         });
@@ -392,7 +392,7 @@ var Shortcuts = new function() {
             return false;
         }
         
-        EventHandler.trigger(_name, "click", data);
+        Evme.EventHandler.trigger(_name, "click", data);
     }
     
     function remove(data) {
@@ -400,25 +400,25 @@ var Shortcuts = new function() {
             return false;
         }
         
-        EventHandler.trigger(_name, "remove", data);
+        Evme.EventHandler.trigger(_name, "remove", data);
     }
     
     function cbShow(bReport) {
-        EventHandler.trigger(_name, "show", {
+        Evme.EventHandler.trigger(_name, "show", {
             "shortcuts": shortcuts,
             "report": (bReport === true)
         });
     }
     
     function cbHide(bReport) {
-        EventHandler.trigger(_name, "hide", {
+        Evme.EventHandler.trigger(_name, "hide", {
             "shortcuts": shortcuts,
             "report": (bReport === true)
         });
     }
     
     function cbLoaded() {
-        EventHandler.trigger(_name, "load", {
+        Evme.EventHandler.trigger(_name, "load", {
             "shortcuts": shortcuts
         });
     }
@@ -482,7 +482,7 @@ var Shortcut = function() {
     
     this.setImage = function(shortcutIcons) {
         if ($thumb && shortcutIcons && shortcutIcons.length > 0) {
-            var $iconGroup = IconGroup.get(shortcutIcons);
+            var $iconGroup = Evme.IconGroup.get(shortcutIcons);
             $thumb.append($iconGroup);
         }
     };

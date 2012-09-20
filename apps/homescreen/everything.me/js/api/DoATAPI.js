@@ -1,4 +1,4 @@
-var DoATAPI = new function() {
+EverythingMe.DoATAPI = new function() {
     var _name = "DoATAPI", _this = this,
         requestRetry = null,
         cached = [];
@@ -43,7 +43,7 @@ var DoATAPI = new function() {
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
         
-        manualCredentials = Storage.get(STORAGE_KEY_CREDS);
+        manualCredentials = Evme.Storage.get(STORAGE_KEY_CREDS);
         
         setClientInfoCookie();
         
@@ -267,7 +267,7 @@ var DoATAPI = new function() {
         }
         
         this.cleanCache = function() {
-            DoATAPI.removeFromCache(cacheKeyGet);
+            Evme.DoATAPI.removeFromCache(cacheKeyGet);
         };
     }
     
@@ -353,7 +353,7 @@ var DoATAPI = new function() {
         userLat = lat;
         userLon = lon;
         
-        EventHandler.trigger(_name, "setLocation", {
+        Evme.EventHandler.trigger(_name, "setLocation", {
             "lat": lat,
             "lon": lon
         });
@@ -383,13 +383,13 @@ var DoATAPI = new function() {
             "stats": {
                 "userAgent": navigator.userAgent,
                 "referrer": document.referrer,
-                "connectionType": Utils.connection().type || "",
+                "connectionType": Evme.Utils.connection().type || "",
                 "locale": navigator.language || "",
                 "GMT": (new Date().getTimezoneOffset()/-60).toString(),
                 "sessionInitCause": _options.cause,
                 "sessionInitSrc": _options.source,
-                "cookiesEnabled": Utils.bCookiesEnabled() || false,
-                "localStorageEnabled": Utils.bLocalStorageEnabled()
+                "cookiesEnabled": Evme.Utils.bCookiesEnabled() || false,
+                "localStorageEnabled": Evme.Utils.bLocalStorageEnabled()
             }
         };
         
@@ -415,10 +415,10 @@ var DoATAPI = new function() {
                         manualCredentials = data.response.credentials;
                         
                         // save them in local storage
-                        Storage.set(STORAGE_KEY_CREDS, manualCredentials);
+                        Evme.Storage.set(STORAGE_KEY_CREDS, manualCredentials);
                     }
                     
-                    EventHandler.trigger("DoATAPI", "sessionInit");
+                    Evme.EventHandler.trigger("DoATAPI", "sessionInit");
                 }
                 
                 callback && callback(data, url);
@@ -463,7 +463,7 @@ var DoATAPI = new function() {
         };
         
         this.init = function() {
-            var sessionFromCache = Storage.get(_key),
+            var sessionFromCache = Evme.Storage.get(_key),
                 createCause;
                 
             if (sessionFromCache) {
@@ -538,7 +538,7 @@ var DoATAPI = new function() {
         };
         
         this.creds = function() {
-            return Utils.Cookies.get(authCookieName) || manualCredentials || null;
+            return Evme.Utils.Cookies.get(authCookieName) || manualCredentials || null;
         };
         
         this.expired = function(sessionToTest) {
@@ -553,7 +553,7 @@ var DoATAPI = new function() {
         function save() {
             _session["timeWritten"] = (new Date()).getTime();
             
-            Storage.add(_key, JSON.stringify(_session));
+            Evme.Storage.add(_key, JSON.stringify(_session));
         }
     };
     
@@ -588,7 +588,7 @@ var DoATAPI = new function() {
         // to backend's request
         val = val.join(",");
  
-        Utils.Cookies.set("clientInfo", val, null, ".everything.me");  
+        Evme.Utils.Cookies.set("clientInfo", val, null, ".everything.me");  
     }
     
     function request(options, ignoreCache, dontRetryIfNoSession) {
@@ -600,7 +600,7 @@ var DoATAPI = new function() {
         
         var useCache = requestsToCache[methodNamespace+"."+methodName];
         
-        var shouldInit = DoATAPI.Session.shouldInit();
+        var shouldInit = Evme.DoATAPI.Session.shouldInit();
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
             requestsQueue[JSON.stringify(options)] = options;
             reInitSession(shouldInit.cause);
@@ -650,7 +650,7 @@ var DoATAPI = new function() {
         }
         /* ---------------- */
        
-        var _request = new Request();
+        var _request = new Evme.Request();
         _request.init({
             "methodNamespace": methodNamespace,
             "methodName": methodName,
@@ -671,13 +671,13 @@ var DoATAPI = new function() {
         if (requestsThatDontNeedConnection[methodNamespace+"."+methodName]) {
             _request.request();
         } else {
-            Utils.isOnline(function(isOnline){
+            Evme.Utils.isOnline(function(isOnline){
                 if (isOnline) {
                     _request.request();
                 } else {
                     requestsToPerformOnOnline.push(_request);
                     
-                    EventHandler.trigger(_name, "cantSendRequest", {
+                    Evme.EventHandler.trigger(_name, "cantSendRequest", {
                         "request": request,
                         "queue": requestsToPerformOnOnline
                     });
@@ -714,7 +714,7 @@ var DoATAPI = new function() {
     }
     
     function getFromCache(cacheKey) {
-        var cached = Storage.get(cacheKey);
+        var cached = Evme.Storage.get(cacheKey);
         if (cached) {
             try {
                 cached = JSON.parse(cached);
@@ -759,9 +759,9 @@ var DoATAPI = new function() {
             }
         }
         
-        Storage.add(cacheKey, JSON.stringify(data), cacheTTL*60);
+        Evme.Storage.add(cacheKey, JSON.stringify(data), cacheTTL*60);
         
-        var itemsCached = itemsCached? (Storage.get(itemsCached) || "").split("]][[") : [];
+        var itemsCached = itemsCached? (Evme.Storage.get(itemsCached) || "").split("]][[") : [];
         if (itemsCached.length == 1 && itemsCached[0] == "") {
             itemsCached = [];
         }
@@ -773,7 +773,7 @@ var DoATAPI = new function() {
             Storage.remove(itemToRemove);
         }
         
-        Storage.add("itemsCached", itemsCached.join("]][["));
+        Evme.Storage.add("itemsCached", itemsCached.join("]][["));
         
         return true;
     };
@@ -798,11 +798,11 @@ var DoATAPI = new function() {
     }
     
     function getDeviceId() {
-        var _deviceId = Storage.get("deviceId");
+        var _deviceId = Evme.Storage.get("deviceId");
         
         if (!_deviceId) {
             _deviceId = generateDeviceId();
-            Storage.add("deviceId", _deviceId);
+            Evme.Storage.add("deviceId", _deviceId);
         }
         
         return _deviceId;
@@ -819,7 +819,7 @@ var DoATAPI = new function() {
     }
 
     function cbRequest(methodNamespace, method, params, retryNumber) {
-        EventHandler.trigger(_name, "request", {
+        Evme.EventHandler.trigger(_name, "request", {
             "method": methodNamespace + "/" + method,
             "params": params,
             "retryNumber": retryNumber
@@ -827,7 +827,7 @@ var DoATAPI = new function() {
     }
     
     function cbSuccess(methodNamespace, method, url, params, retryNumber, data, requestDuration) {
-        EventHandler.trigger(_name, "success", {
+        Evme.EventHandler.trigger(_name, "success", {
             "method": methodNamespace + "/" + method,
             "params": params,
             "retryNumber": retryNumber,
@@ -838,7 +838,7 @@ var DoATAPI = new function() {
     }
     
     function cbClientError(methodNamespace, method, url, params, data, ex) {
-        EventHandler.trigger(_name, "clientError", {
+        Evme.EventHandler.trigger(_name, "clientError", {
             "method": methodNamespace + "/" + method,
             "params": params,
             "url": url,
@@ -848,7 +848,7 @@ var DoATAPI = new function() {
     }
     
     function cbError(methodNamespace, method, url, params, retryNumber, data, callback, retryCallback) {
-        EventHandler.trigger(_name, "error", {
+        Evme.EventHandler.trigger(_name, "error", {
             "method": methodNamespace + "/" + method,
             "params": params,
             "retryNumber": retryNumber,
@@ -860,9 +860,9 @@ var DoATAPI = new function() {
         // if it's an authentication error
         // return false so the request won't automatically retry
         // and do a sessionInit, and retry at the end of it
-        if ((data && data.errorCode == DoATAPI.ERROR_CODES.AUTH && !manualCredentials) || (methodNamespace == "Session" && method == "init")) {
+        if ((data && data.errorCode == Evme.DoATAPI.ERROR_CODES.AUTH && !manualCredentials) || (methodNamespace == "Session" && method == "init")) {
             _this.initSession({
-                "cause": DoATAPI.Session.INIT_CAUSE.AUTH_ERROR,
+                "cause": Evme.DoATAPI.Session.INIT_CAUSE.AUTH_ERROR,
                 "source": "DoATAPI.cbError"
             }, retryCallback);
             return false;
@@ -872,7 +872,7 @@ var DoATAPI = new function() {
     }
 };
 
-var Request = function() {
+EverythingMe.Request = function() {
     var _this = this,
         
         methodNamespace = "",
@@ -933,11 +933,11 @@ var Request = function() {
         // stats params to add to all API calls
         (!params["stats"]) && (params["stats"] = {});
         params.stats.retryNum = retryNumber;
-        params.stats.firstSession = Utils.isNewUser();
+        params.stats.firstSession = Evme.Utils.isNewUser();
         
         params.stats = JSON.stringify(params.stats);
         
-        request = api[methodNamespace][methodName](params, apiCallback);
+        request = Evme.api[methodNamespace][methodName](params, apiCallback);
         
         requestTimeout = window.setTimeout(requestTimeoutCallback, maxRequestTime);
         
@@ -956,7 +956,7 @@ var Request = function() {
     }
     
     function apiCallback(data, url) {
-        var isError = (data.errorCode != DoATAPI.ERROR_CODES.SUCCESS);
+        var isError = (data.errorCode != Evme.DoATAPI.ERROR_CODES.SUCCESS);
         
         clearTimeouts();
         
@@ -973,7 +973,7 @@ var Request = function() {
             }
             
             if (cacheKey) {
-                DoATAPI.insertToCache(cacheKey, data, cacheTTL);
+                Evme.DoATAPI.insertToCache(cacheKey, data, cacheTTL);
             }
             
             try {
