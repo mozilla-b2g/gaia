@@ -20,6 +20,10 @@
   }
 }
 
+[aria-hidden="true"] {
+  display: none!important;
+}
+
 html, body {
   height: 100%;
   width: 100%;
@@ -28,6 +32,18 @@ html, body {
   overflow-x: hidden !important;
   overflow-y: hidden !important;
   font-family: 'Open Sans', sans-serif;
+}
+
+/* Override Building Block styles */
+section[role="region"] > header:first-child .icon.icon-clear {
+  background-image: url(images/icons/clear.png);
+  right: -moz-calc(-50% + 7rem);
+  width: 2rem;
+  margin: 0;
+  padding: 0 2rem;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .wrapper {
@@ -158,14 +174,6 @@ html, body {
 /*
   Styles for new message
 */
-
-.new h1 {
-  display: none;
-}
-
-.new .tel {
-  display: block;
-}
 
 .new .carrier-wrapper {
   display: none;
