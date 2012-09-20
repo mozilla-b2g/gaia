@@ -66,7 +66,8 @@ var Contacts = (function() {
               var contactToRender = currentContact;
               // Check if we have extra parameters to render
               if ('extras' in params) {
-                contactToRender = addExtrasToContact(currentContact, params['extras']);
+                contactToRender = addExtrasToContact(currentContact,
+                  params['extras']);
               }
               contactsForm.render(contactToRender, goToForm);
             }, function onError() {
@@ -97,7 +98,7 @@ var Contacts = (function() {
     contact.init(c);
     try {
       var extras = JSON.parse(decodeURIComponent(extrasString));
-      for(var type in extras) {
+      for (var type in extras) {
         var extra = extras[type];
         if (contact[type]) {
           if (Array.isArray(contact[type])) {
@@ -306,7 +307,8 @@ var Contacts = (function() {
           }
         ]
       };
-      window.location.hash = '#view-contact-form?extras=' + encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      window.location.hash = '#view-contact-form?extras=' +
+        encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       contactsList.clearClickHandlers();
       contactsList.handleClick(originalHandler);
     });
