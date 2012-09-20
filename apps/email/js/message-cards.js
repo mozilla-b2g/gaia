@@ -130,7 +130,7 @@ MessageListCard.prototype = {
       var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
       for (var i = 0; i < cbs.length; i++) {
         cbs[i].checked = false;
-      };
+      }
       this.selectedMessagesUpdated();
     }
     else {

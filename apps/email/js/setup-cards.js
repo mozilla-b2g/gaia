@@ -21,7 +21,7 @@ var MAIL_SERVICES = [
   {
     name: 'GmaiL AccounT',
     l10nId: 'setup-gmail-account',
-    domain: 'gmail.com',
+    domain: 'gmail.com'
   },
   {
     name: 'OtheR EmaiL',
