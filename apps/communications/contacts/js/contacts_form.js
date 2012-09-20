@@ -324,7 +324,7 @@ contacts.Form = (function() {
   }
 
   var getPhones = function getPhones(contact) {
-    var selector = '#view-contact-form form div.phone-template';
+    var selector = '#view-contact-form form div.phone-template:not(.removed)';
     var phones = dom.querySelectorAll(selector);
     for (var i = 0; i < phones.length; i++) {
       var currentPhone = phones[i];
@@ -348,7 +348,7 @@ contacts.Form = (function() {
   }
 
   var getEmails = function getEmails(contact) {
-    var selector = '#view-contact-form form div.email-template';
+    var selector = '#view-contact-form form div.email-template:not(.removed)';
     var emails = dom.querySelectorAll(selector);
     for (var i = 0; i < emails.length; i++) {
       var currentEmail = emails[i];
@@ -369,7 +369,7 @@ contacts.Form = (function() {
   }
 
   var getAddresses = function getAddresses(contact) {
-    var selector = '#view-contact-form form div.address-template';
+    var selector = '#view-contact-form form div.address-template:not(.removed)';
     var addresses = dom.querySelectorAll(selector);
     for (var i = 0; i < addresses.length; i++) {
       var currentAddress = addresses[i];
@@ -404,7 +404,7 @@ contacts.Form = (function() {
   }
 
   var getNotes = function getNotes(contact) {
-    var selector = '#view-contact-form form div.note-template';
+    var selector = '#view-contact-form form div.note-template:not(.removed)';
     var notes = dom.querySelectorAll(selector);
     for (var i = 0; i < notes.length; i++) {
       var currentNote = notes[i];
@@ -474,7 +474,7 @@ contacts.Form = (function() {
     delButton.onclick = function removeElement(event) {
       event.preventDefault();
       var elem = document.getElementById(selector);
-      elem.parentNode.removeChild(elem);
+      elem.classList.toggle('removed');
       checkDisableButton();
       return false;
     };
