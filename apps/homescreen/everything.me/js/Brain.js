@@ -58,7 +58,6 @@ Evme.Brain = new function() {
         try {
             _this[_class] && _this[_class][_event] && _this[_class][_event](_data || {});
         } catch(ex){
-            debugger;
             logger.error(ex);
         }
     }
@@ -1044,7 +1043,7 @@ Evme.Brain = new function() {
         this.done = function(data) {
             Evme.Shortcuts.show();
             Evme.ShortcutsCustomize.hide();
-
+                        
             Evme.DoATAPI.Shortcuts.set({
                 "shortcuts": JSON.stringify(data.shortcuts)
             }, function(data){
