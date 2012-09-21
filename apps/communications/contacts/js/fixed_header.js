@@ -6,6 +6,7 @@ var FixedHeader = (function FixedHeader() {
   var view;
   var fixedContainer;
   var currentlyFixed;
+  var notApplyEffect;
 
   /**
    * Start listening scroll event, and applying the fixed header effect
@@ -14,12 +15,13 @@ var FixedHeader = (function FixedHeader() {
    *                             going to contain the top header.
    * @param  {String} select     Selector of the headers to be checked.
    */
-  var init = function init(scrollView, container, select) {
+  var init = function init(scrollView, container, select, noEffect) {
     selector = select;
     view = document.querySelector(scrollView);
     fixedContainer = document.querySelector(container);
     refresh();
     view.addEventListener('scroll', scrolling);
+    notApplyEffect = typeof noEffect === 'undefined' ? false : noEffect;
   };
 
   var refresh = function refresh() {
@@ -30,12 +32,13 @@ var FixedHeader = (function FixedHeader() {
     var currentScroll = view.scrollTop;
     for (var i = headings.length - 1; i >= 0; i--) {
       var currentHeader = headings[i];
-      var headingPosition = currentHeader.offsetTop;
+      var headingPosition = currentHeader.offsetTop - view.offsetTop;
       var offset = headingPosition - currentScroll;
       var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
       // Effect
-      if (Math.abs(offset) < currentHeight && differentHeaders) {
+      if (!notApplyEffect && Math.abs(offset) < currentHeight &&
+          differentHeaders) {
         var toMove = Math.abs(offset) - currentHeight;
         var inEffect = toMove <= 0;
         var translateTop = 'translateY(' + toMove + 'px)';
@@ -46,7 +49,8 @@ var FixedHeader = (function FixedHeader() {
       // Switching Header
       if (offset <= 0) {
         if (differentHeaders) {
-          fixedContainer.style.transform = 'translateY(0)';
+          if (!notApplyEffect)
+            fixedContainer.style.transform = 'translateY(0)';
           currentlyFixed = currentHeader;
           fixedContainer.textContent = currentHeader.textContent;
           if (currentHeader.id == 'group-favorites') {
@@ -57,16 +61,25 @@ var FixedHeader = (function FixedHeader() {
       }
     }
     currentlyFixed = null;
-    fixedContainer.style.transform = 'translateY(-100%)';
+    if (!notApplyEffect)
+      fixedContainer.style.transform = 'translateY(-100%)';
   };
 
   var stop = function stop() {
     view.removeEventListener('scroll', scrolling);
   };
 
+  var start = function start() {
+    var header = headings[0];
+    if (header) {
+      fixedContainer.textContent = header.textContent;
+    }
+  }
+
   return {
     'init': init,
     'refresh': refresh,
+    'start': start,
     'stop': stop
   };
 })();
