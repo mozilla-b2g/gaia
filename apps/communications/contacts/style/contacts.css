@@ -349,6 +349,40 @@ form.search button {
   text-overflow: ellipsis;
 }
 
+/* MARK AS REMOVED */
+
+.removed {
+  border-color: #c8c8c8;
+  opacity: 0.85;
+}
+
+.removed dl, .removed a, .removed input {
+  background-color: transparent;
+  color: #cccccc;
+}
+
+.removed button span.icon-delete {
+  background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
+}
+
+.with-photo {
+  padding-right: 5rem;
+  border:1px solid #C8C8C8;
+  background: none;
+}
+
+.with-photo.removed img {
+  pointer-events: none;
+}
+
+.with-photo p {
+  display: none;
+}
+
+.view-edit-contact .with-photo .fillflow-row-action {
+  margin-left: -5rem;
+}
+
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
  .view-jumper li {

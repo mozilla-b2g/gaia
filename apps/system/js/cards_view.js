@@ -349,10 +349,8 @@ var CardsView = (function() {
             allowScrollingWhileSorting = true;
           }, 500);
 
-          if (
-            differenceX > 0 &&
-            currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
-          ) {
+          if (differenceX > 0 &&
+              currentDisplayed <= cardsList.children.length) {
             currentDisplayed++;
             sortingDirection = 'right';
             alignCard(currentDisplayed);
@@ -381,10 +379,8 @@ var CardsView = (function() {
     if (SNAPPING_SCROLLING && !draggingCardUp && reorderedCard === null) {
       var differenceX = initialTouchPosition.x - touchPosition.x;
       if (Math.abs(differenceX) > threshold) {
-        if (
-          differenceX > 0 &&
-          currentDisplayed < WindowManager.getNumberOfRunningApps() - 1
-        ) {
+        if (differenceX > 0 &&
+            currentDisplayed <= cardsList.children.length) {
           currentDisplayed++;
           alignCard(currentDisplayed);
         } else if (differenceX < 0 && currentDisplayed > 0) {
@@ -428,14 +424,10 @@ var CardsView = (function() {
         cardsList.removeChild(element);
 
         // Stop the app itself
-        // If the app is the currently displayed one,
-        // this will also switch back to the homescreen
-        // (though the task switcher will still be displayed over it)
         WindowManager.kill(element.dataset.origin);
 
-        // if there are no more running apps, then dismiss
-        // the task switcher
-        if (WindowManager.getNumberOfRunningApps() === 0)
+        // If there are no cards left, then dismiss the task switcher.
+        if (!cardsList.children.length)
           hideCardSwitcher();
 
         return;
@@ -447,7 +439,7 @@ var CardsView = (function() {
     if (USER_DEFINED_ORDERING && reorderedCard !== null) {
       // Position of the card depends on direction of scrolling
       if (sortingDirection === 'right') {
-        if (currentDisplayed < WindowManager.getNumberOfRunningApps() - 1) {
+        if (currentDisplayed <= cardsList.children.length) {
           cardsList.insertBefore(
             reorderedCard,
             cardsList.children[currentDisplayed + 1]

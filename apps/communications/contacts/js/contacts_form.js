@@ -23,20 +23,21 @@ contacts.Form = (function() {
       company,
       familyName,
       configs,
-      _;
+      _,
+      formView;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
+    thumb.onclick = pickImage;
     thumbAction = dom.querySelector('#thumbnail-action');
-    thumbAction.addEventListener('mousedown', onThumbMouseDown);
-    thumbAction.addEventListener('mouseup', onThumbMouseUp);
     saveButton = dom.querySelector('#save-button');
     formTitle = dom.getElementById('contact-form-title');
     currentContactId = dom.getElementById('contact-form-id');
     givenName = dom.getElementById('givenName');
     company = dom.getElementById('org');
     familyName = dom.getElementById('familyName');
+    formView = dom.getElementById('view-contact-form');
     var phonesContainer = dom.getElementById('contacts-form-phones');
     var emailContainer = dom.getElementById('contacts-form-emails');
     var addressContainer = dom.getElementById('contacts-form-addresses');
@@ -108,6 +109,8 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
+    formView.classList.add('skin-dark');
+    saveButton.textContent = _('update');
     currentContact = contact;
     deleteContactButton.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
@@ -118,6 +121,7 @@ contacts.Form = (function() {
     var photo = null;
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
+      addRemoveIconToPhoto();
     }
     Contacts.updatePhoto(photo, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
@@ -147,10 +151,12 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
+    formView.classList.remove('skin-dark');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
+    saveButton.textContent = _('done');
     deleteContactButton.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
@@ -220,6 +226,15 @@ contacts.Form = (function() {
     };
   }
 
+  var getCurrentPhoto = function cf_getCurrentPhoto() {
+    var photo = [];
+    var isRemoved = thumbAction.classList.contains('removed');
+    if (!isRemoved) {
+      photo = currentContact.photo;
+    }
+    return photo;
+  }
+
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
     saveButton.setAttribute('disabled', 'disabled');
@@ -246,12 +261,11 @@ contacts.Form = (function() {
 
     var fields = ['photo', 'category'];
 
-    for (var i = 0; i < fields.length; i++) {
-      var currentField = fields[i];
-      if (currentContact[currentField]) {
-        myContact[currentField] = currentContact[currentField];
-      }
+    if (currentContact['category']) {
+      myContact['category'] = currentContact['category'];
     }
+
+    myContact['photo'] = getCurrentPhoto();
 
     if (myContact.givenName || myContact.familyName) {
       var name = myContact.givenName || '';
@@ -324,7 +338,7 @@ contacts.Form = (function() {
   }
 
   var getPhones = function getPhones(contact) {
-    var selector = '#view-contact-form form div.phone-template';
+    var selector = '#view-contact-form form div.phone-template:not(.removed)';
     var phones = dom.querySelectorAll(selector);
     for (var i = 0; i < phones.length; i++) {
       var currentPhone = phones[i];
@@ -348,7 +362,7 @@ contacts.Form = (function() {
   }
 
   var getEmails = function getEmails(contact) {
-    var selector = '#view-contact-form form div.email-template';
+    var selector = '#view-contact-form form div.email-template:not(.removed)';
     var emails = dom.querySelectorAll(selector);
     for (var i = 0; i < emails.length; i++) {
       var currentEmail = emails[i];
@@ -369,7 +383,7 @@ contacts.Form = (function() {
   }
 
   var getAddresses = function getAddresses(contact) {
-    var selector = '#view-contact-form form div.address-template';
+    var selector = '#view-contact-form form div.address-template:not(.removed)';
     var addresses = dom.querySelectorAll(selector);
     for (var i = 0; i < addresses.length; i++) {
       var currentAddress = addresses[i];
@@ -404,7 +418,7 @@ contacts.Form = (function() {
   }
 
   var getNotes = function getNotes(contact) {
-    var selector = '#view-contact-form form div.note-template';
+    var selector = '#view-contact-form form div.note-template:not(.removed)';
     var notes = dom.querySelectorAll(selector);
     for (var i = 0; i < notes.length; i++) {
       var currentNote = notes[i];
@@ -423,6 +437,7 @@ contacts.Form = (function() {
   var resetForm = function resetForm() {
     thumbAction.querySelector('p').classList.remove('hide');
     saveButton.removeAttribute('disabled');
+    resetRemoved();
     currentContactId.value = '';
     currentContact = null;
     givenName.value = '';
@@ -443,6 +458,18 @@ contacts.Form = (function() {
       'adr': 0,
       'note': 0
     };
+  }
+
+  var resetRemoved = function cf_resetRemoved() {
+    var removedFields = dom.querySelectorAll('.removed');
+    for (var i = 0; i < removedFields.length; i++) {
+      removedFields[i].classList.remove('removed');
+    }
+    thumbAction.classList.remove('with-photo');
+    var removeButton = thumbAction.querySelector('button');
+    if (removeButton) {
+      thumbAction.removeChild(removeButton);
+    }
   }
 
   var checkDisableButton = function checkDisable() {
@@ -474,109 +501,25 @@ contacts.Form = (function() {
     delButton.onclick = function removeElement(event) {
       event.preventDefault();
       var elem = document.getElementById(selector);
-      elem.parentNode.removeChild(elem);
+      elem.classList.toggle('removed');
       checkDisableButton();
       return false;
     };
     return delButton;
   };
 
-  var onThumbMouseDown = function onThumbMouseDown(evt) {
-    var self = this;
-    this.longPress = false;
-    this._pickImageTimer = setTimeout(function(self) {
-      self.longPress = true;
-      if (currentContact && currentContact.photo &&
-        currentContact.photo.length > 0) {
-        removePhoto();
-      }
-    }, 500, this);
-  };
-
-  var onThumbMouseUp = function onThumbMouseUp(evt) {
-    if (!this.longPress || !currentContact ||
-       !currentContact.hasOwnProperty('photo') ||
-       currentContact.photo == null ||
-       currentContact.photo.length == 0) {
-      pickImage();
-    }
-
-    clearTimeout(this._pickImageTimer);
-  }
-
-  var removePhoto = function() {
-    var dismiss = {
-      title: _('cancel'),
-      callback: CustomDialog.hide
-    };
-    var remove = {
-      title: _('ok'),
-      callback: function() {
-        currentContact.photo = [];
-        Contacts.updatePhoto(null, thumb);
-        CustomDialog.hide();
-      }
-    };
-    CustomDialog.show('', _('removePhotoConfirm'), dismiss, remove);
-  }
-
-  var updateContactPhoto = function updateContactPhoto(image) {
-    if (!navigator.getDeviceStorage) {
-      console.log('Device storage unavailable');
-      return;
-    }
-    var storageAreas = navigator.getDeviceStorage('pictures');
-    var storage = storageAreas[0] || storageAreas;
-    var request = storage.get(image);
-    request.onsuccess = function() {
-      var img = document.createElement('img');
-      var imgSrc = URL.createObjectURL(request.result);
-      img.src = imgSrc;
-      this.img = img;
-      img.onload = function() {
-        var dataImg = getPhoto(this.img);
-        Contacts.updatePhoto(dataImg, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = dataImg;
-      }.bind(this);
-    };
-    request.onerror = function() {
-      console.log('Error loading img');
-    };
-  }
-
-  var getPhoto = function getContactImg(contactImg) {
-    // Checking whether the image was actually loaded or not
-    var canvas = document.createElement('canvas');
-    var ratio = 2.5;
-    canvas.width = thumb.width * ratio;
-    canvas.height = thumb.height * ratio;
-    var ctx = canvas.getContext('2d');
-    var widthBigger = contactImg.width > contactImg.height;
-    var toCut = widthBigger ? 'width' : 'height';
-    var toScale = widthBigger ? 'height' : 'width';
-    var scaled = contactImg[toScale] / canvas[toScale];
-    var scaleValue = 1 / scaled;
-    ctx.scale(scaleValue, scaleValue);
-    var margin = ((contactImg[toCut] / scaled) - canvas[toCut]) / 2;
-
-    if (widthBigger) {
-      ctx.drawImage(contactImg, -margin, 0);
-    } else {
-      ctx.drawImage(contactImg, 0, -margin);
-    }
-    var filename = 'contact_' + new Date().getTime();
-    var ret = canvas.mozGetAsFile(filename);
-    contactImg = null;
-    canvas = null;
-    return ret;
+  var addRemoveIconToPhoto = function cf_addRemIconPhoto() {
+    thumbAction.appendChild(removeFieldIcon(thumbAction.id));
+    thumbAction.classList.add('with-photo');
   }
 
   var pickImage = function pickImage() {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'image/jpeg'
+        type: 'image/jpeg',
+        width: 320, // The desired width of the image
+        height: 320 // The desired height of the image
       }
     });
 
@@ -590,8 +533,27 @@ contacts.Form = (function() {
 
     activity.onsuccess = function success() {
       reopenApp();
-      var currentImg = this.result.filename;
-      updateContactPhoto(currentImg);
+      addRemoveIconToPhoto();
+      var dataurl = this.result.url;  // A data URL for a 320x320 JPEG image
+      dataURLToBlob(dataurl, function(blob) {
+        Contacts.updatePhoto(blob, thumb);
+        currentContact.photo = currentContact.photo || [];
+        currentContact.photo[0] = blob;
+      });
+
+      function dataURLToBlob(dataurl, callback) {
+        var img = new Image();
+        img.src = dataurl;
+        img.onload = function() {
+          var canvas = document.createElement('canvas');
+          var context = canvas.getContext('2d');
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          context.drawImage(img, 0, 0);
+          callback(canvas.mozGetAsFile('contact_' + new Date().getTime(),
+                                       'image/jpeg'));
+        }
+      }
     }
 
     activity.onerror = function error() {
