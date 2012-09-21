@@ -31997,23 +31997,28 @@ MailUniverse.prototype = {
   },
 
   dumpLogToDeviceStorage: function() {
-    console.log('Planning to dump log to device storage for "pictures"');
+    console.log('Planning to dump log to device storage for "videos"');
     try {
       // 'default' does not work, but pictures does.  Hopefully gallery is
       // smart enough to stay away from my log files!
-      var storage = navigator.getDeviceStorage('pictures');
+      var storage = navigator.getDeviceStorage('videos');
+      // HACK HACK HACK: DeviceStorage does not care about our use-case at all
+      // and brutally fails to write things that do not have a mime type (and
+      // apropriately named file), so we pretend to be a realmedia file because
+      // who would really have such a thing?
       var blob = new Blob([JSON.stringify(this.createLogBacklogRep())],
                           {
-                            type: 'application/json',
+                            type: 'video/lies',
                             endings: 'transparent'
                           });
-      var filename = 'gem-log-' + Date.now() + '.json';
+      var filename = 'gem-log-' + Date.now() + '.json.rm';
       var req = storage.addNamed(blob, filename);
       req.onsuccess = function() {
         console.log('saved log to', filename);
       };
       req.onerror = function() {
-        console.error('failed to save log to', filename);
+        console.error('failed to save log to', filename, 'err:',
+                      this.error.name);
       };
     }
     catch(ex) {
