@@ -12,9 +12,12 @@
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+
+    <!-- Not yet building blocks -->
+    <link rel="stylesheet" type="text/css" href="style/shared/input_areas.css"/>
   </head>
 
-  <body>
+  <body role="application">
     <section role="region" id="root">
       <header>
         <menu type="toolbar">
@@ -25,27 +28,27 @@
       </header>
 
       <form id="feedback-form" data-l10n-id="feedback-url" action="" method="post">
-        <textarea id="feedback-textarea" name="feedback" data-l10n-id="input-what-happen" placeholder="Tell us what's happening"></textarea>
-        <input type="hidden" id="uuid" name="uuid" value=""></input>
-        <input type="hidden" id="build-id" name="build-id" value=""></input>
+
+        <dl class="fieldbox">
+          <dt><a href="#" data-l10n-id="input-asset-label">Contact Info</a></dt>
+          <dd>
+            <input type="text" id="asset" name="asset_tag" value="" data-l10n-id="input-asset" placeholder=""></input>
+          </dd>
+        </dl>
+
+        <textarea id="feedback-textarea" name="comment" data-l10n-id="input-what-happen" placeholder="Tell us what's happening"></textarea>
+
+        <input type="hidden" id="build-id" name="build_id" value=""></input>
 
         <script>
-          asyncStorage.getItem('uuid', function storage_getItem(value) {
-            var uuid = value;
-            if (!uuid) {
-              uuid = getUUID();
-              asyncStorage.setItem('uuid', uuid);
+          asyncStorage.getItem('asset', function getAsset(value) {
+            var asset = value;
+            if (!asset) {
+              return;
             }
 
-            document.getElementById('uuid').value = uuid;
+            document.getElementById('asset').value = value;
           });
-
-          function getUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-              var r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-              return v.toString(16);
-            });
-          }
 
           var buildID = navigator.buildID;
           document.getElementById('build-id').value = buildID;
@@ -55,8 +58,15 @@
           }
 
           function send() {
-            document.getElementById('feedback-form').submit();
-            reset();
+            var asset = document.getElementById('asset').value;
+            if (asset == '') {
+              return;
+            }
+
+            asyncStorage.setItem('asset', asset, function setAsset() {
+              document.getElementById('feedback-form').submit();
+              reset();
+            });
           }
         </script>
       </form>

@@ -10,10 +10,12 @@ html, body, section, form {
   height: 100%;
 }
 
-textarea {
-  width: 100%;
-  height: -moz-calc(100% - 6rem);
-  padding: .5rem;
-  border: none;
+form {
+  padding: 0 1rem;
+  width: -moz-calc(100% - 2rem);
+}
+
+textarea#feedback-textarea {
+  height: -moz-calc(100% - 13rem);
 }
 
