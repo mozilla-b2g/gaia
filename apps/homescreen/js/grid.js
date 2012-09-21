@@ -94,12 +94,12 @@ const GridManager = (function() {
       if (forward) {
         applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
       } else {
-        EverythingMe.pageMove("in", deltaX / windowWidth);
+        Evme.pageMove("in", deltaX / windowWidth);
       }
     } else if (currentPage === landingPageIndex + 1 && !forward) {
       applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
     } else if (currentPage === evmePageIndex && forward) {
-      EverythingMe.pageMove("out", -deltaX / windowWidth);
+      Evme.pageMove("out", -deltaX / windowWidth);
     }
   }
 

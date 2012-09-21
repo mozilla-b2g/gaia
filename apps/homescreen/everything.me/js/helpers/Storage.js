@@ -1,4 +1,4 @@
-EverythingMe.Storage = new function() {
+Evme.Storage = new function() {
     var _this = this, CURRENT_VERSION = "1.3",
         _valueKey = "_v",
         _expirationKey = "_e",

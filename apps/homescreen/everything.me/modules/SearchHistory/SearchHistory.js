@@ -1,4 +1,4 @@
-EverythingMe.SearchHistory = new function() {
+Evme.SearchHistory = new function() {
     var _name = "SearchHistory", _this = this, history = [];
     var STORAGE_KEY = "userHistory",
         MAXIMUM_ENTRIES = "FROM CONFIG";

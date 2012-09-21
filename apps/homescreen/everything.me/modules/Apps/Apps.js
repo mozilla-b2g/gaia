@@ -1,4 +1,4 @@
-EverythingMe.Apps = new function() {
+Evme.Apps = new function() {
     var _name = "Apps", _this = this, $el = null, $list = null,
         appsArray = {}, appsDataArray = [], numberOfApps = 0,
         scroll = null, defaultIconToUse = 0;
@@ -454,11 +454,11 @@ EverythingMe.Apps = new function() {
         this.show = function() {
             if (!$el) {
                 visible = true;
-                var $to = Apps.getList();
+                var $to = Evme.Apps.getList();
                 $el = $('<li id="' + id + '" style="top: ' + $to.css("height") + '"><span></span>' + TEXT_LOADING + '</li>');
                 $to.append($el);
                 loading.spin($el.find("span")[0]);
-                Apps.refreshScroll(1);
+                Evme.Apps.refreshScroll(1);
                 _this.hideButton();
                 Evme.EventHandler.trigger(_name, "show");
             }
@@ -477,7 +477,7 @@ EverythingMe.Apps = new function() {
             window.setTimeout(function(){
                 $button = $('<li id="button-more">' + TEXT + '</li>');
                 $button.click(cbButtonClick);
-                Apps.getList().append($button);
+                Evme.Apps.getList().append($button);
                 window.setTimeout(function(){
                     $button.addClass("visible");
                 }, 0);
@@ -550,7 +550,7 @@ EverythingMe.Apps = new function() {
     };
 }
 
-EverythingMe.IconManager = new function() {
+Evme.IconManager = new function() {
     var _name = "IconManager", _this = this,
         _prefix = "_icon", CACHE_VERSION = "2.6";
     
@@ -646,7 +646,7 @@ EverythingMe.IconManager = new function() {
     };
 };
 
-EverythingMe.IconGroup = new function() {
+Evme.IconGroup = new function() {
     this.get = function(ids, callback) {
         var iconIcons = Evme.Utils.getIconGroup(),
             needToLoad = iconIcons.length,
@@ -698,7 +698,7 @@ EverythingMe.IconGroup = new function() {
     };
 };
 
-EverythingMe.App = function(__cfg, __index, __isMore, parent) {
+Evme.App = function(__cfg, __index, __isMore, parent) {
     var _name = "App", _this = this,
         cfg = {}, $el = null, index = __index, isMore = __isMore, hadID = true,
         timeTouchStart = 0, touchStartPos = null, firedHold = false,
@@ -716,7 +716,7 @@ EverythingMe.App = function(__cfg, __index, __isMore, parent) {
         // fill in default icon
         // if there's no icon and it's a bing result / official website app
         if (!cfg.icon && (!hadID || cfg.preferences.defaultIcon)){
-            cfg.icon = Apps.getDefaultIcon();
+            cfg.icon = Evme.Apps.getDefaultIcon();
         }
         
     };
@@ -740,7 +740,7 @@ EverythingMe.App = function(__cfg, __index, __isMore, parent) {
     };
 
     this.getHtml = function() {
-        var icon = Evme.Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
+        var icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
 
         return  '<div class="c" href="' + cfg.appUrl + '">' +
                     '<span class="thumb" style="background-image: url(\'' + icon + '\');"></span>' + 
@@ -807,7 +807,7 @@ EverythingMe.App = function(__cfg, __index, __isMore, parent) {
         cfg.icon = icon;
         
         if (bRedraw && $el) {
-            var iconUrl = Evme.Utils.formatImageData(cfg.icon) || Apps.getDefaultIcon();
+            var iconUrl = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon();
             
             var sIcon = '<span class="thumb" style="background-image: url(\'' + iconUrl + '\');"></span>';
             $el.find(".c").append(sIcon);
@@ -830,7 +830,7 @@ EverythingMe.App = function(__cfg, __index, __isMore, parent) {
     function touchstart(e) {
         firedHold = tapIgnored = false;
         timeTouchStart = new Date().getTime();
-        parent.timeoutHold = window.setTimeout(cbHold, Apps.getAppTapAndHoldTime());
+        parent.timeoutHold = window.setTimeout(cbHold, Evme.Apps.getAppTapAndHoldTime());
         touchStartPos = getEventPoint(e);
     }
     

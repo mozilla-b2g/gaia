@@ -1,4 +1,4 @@
-EverythingMe.BackgroundImage = new function() {
+Evme.BackgroundImage = new function() {
     var _name = "BackgroundImage", _this = this,
             $el = null, $elFullScreen = null, $fullScreenFade = null, $default = null, elStyle = null,
             currentImage = {}, $currentImage = null, active = false, changeOpacityTransitionCallback = null,

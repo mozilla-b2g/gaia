@@ -1,4 +1,4 @@
-EverythingMe.Screens = new function() {
+Evme.Screens = new function() {
     var _name = "Screens", _this = this,
         $body = null, $screens = null, $elTabs = null, $tabs = null,
         active, first, pre = "screen_", timeoutAnimation = null;

@@ -47,12 +47,12 @@ var EvmeManager = (function() {
 
     show: function doShow() {
       footerStyle.MozTransform = 'translateY(75px)';
-      EverythingMe.setOpacityBackground(1);
+      Evme.setOpacityBackground(1);
     },
 
     hide: function doHide() {
       footerStyle.MozTransform = 'translateY(0)';
-      EverythingMe.setOpacityBackground(0);
+      Evme.setOpacityBackground(0);
     }
   };
 

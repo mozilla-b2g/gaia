@@ -1,4 +1,4 @@
-window.EverythingMe = window.Evme = new function() {
+window.Evme = new function() {
     var _name = "Core", _this = this, logger,
         recalculateHeightRetries = 1,
         TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG", displayed = false,

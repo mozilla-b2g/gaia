@@ -1,4 +1,4 @@
-EverythingMe.Searchbar = new function() {
+Evme.Searchbar = new function() {
     var _name = "Searchbar", _this = this,
         $el = null, $form = null, $clear = null, $defaultText = null,
         value = "", Selection = null,

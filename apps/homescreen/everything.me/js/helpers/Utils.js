@@ -1,4 +1,4 @@
-EverythingMe.Utils = new function() {
+Evme.Utils = new function() {
     var _this = this, userAgent = "", connection, cssPrefix = "", iconsFormat = null,
         isKeyboardVisible = false, _title = "Everything", isNewUser,
         _parseQuery = parseQuery();

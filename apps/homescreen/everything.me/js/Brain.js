@@ -1,4 +1,4 @@
-EverythingMe.Brain = new function() {
+Evme.Brain = new function() {
     var _this = Brain = this,
         _config = {},
         logger = null,
@@ -1391,7 +1391,7 @@ EverythingMe.Brain = new function() {
                         method = "load";
                     }
 
-                    var iconsResponse = Apps[method](apps, appsCurrentOffset, iconsFormat);
+                    var iconsResponse = Evme.Apps[method](apps, appsCurrentOffset, iconsFormat);
 
                     if (iconsResponse) {
                         iconsCachedFromLastRequest = iconsResponse.cached;
@@ -1563,7 +1563,7 @@ EverythingMe.Brain = new function() {
         this.loadMoreApps = function() {
             if (hasMoreApps) {
                 Evme.Apps.More.show();
-                Searcher.nextAppsPage(hasMore.Apps.query, hasMoreEvme.Apps.type, hasMoreEvme.Apps.isExact);
+                Searcher.nextAppsPage(hasMoreApps.query, hasMoreApps.type, hasMoreApps.isExact);
             }
         };
 

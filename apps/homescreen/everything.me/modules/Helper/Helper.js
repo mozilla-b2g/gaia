@@ -1,4 +1,4 @@
-EverythingMe.Helper = new function() {
+Evme.Helper = new function() {
     var _name = "Helper", _this = this,
         $el = null, $wrapper = null, $elTitle = null, $list = null, $tip = null, $loading = null,
         _data = {}, defaultText = "", iscroll = null, currentDisplayedType = "", timeoutShowRefine = null,

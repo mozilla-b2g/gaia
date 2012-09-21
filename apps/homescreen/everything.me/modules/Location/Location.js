@@ -1,4 +1,4 @@
-EverythingMe.Location = new function() {
+Evme.Location = new function() {
     var _name = "Location", _this = this,
         $elLocationName = null, $elButton = null, $elSelectorDialog = null, $locationScreen = null,
         dialog = null, dialogActive = false, timeoutLocationRequest = null;

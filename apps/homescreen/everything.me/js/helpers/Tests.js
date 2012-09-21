@@ -1,4 +1,4 @@
-EverythingMe.Tests = new function() {
+Evme.Tests = new function() {
     var _this = this, tests = {}, $body = null, $head = null, configData = {}, userGroups = {};
     
     var BASE_STYLES_URL = "/css/tests/",

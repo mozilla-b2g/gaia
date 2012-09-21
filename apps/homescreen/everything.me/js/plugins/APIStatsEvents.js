@@ -1,7 +1,7 @@
 /*
  * APIStatsEvents class
  */
-EverythingMe.APIStatsEvents = function(Sandbox){
+Evme.APIStatsEvents = function(Sandbox){
     var _this = this, config, logger, processedItems, tracker = Sandbox.DoATAPI, tempEventArr = [], templatesStr = "",
         templates = {
             "Results_search": {

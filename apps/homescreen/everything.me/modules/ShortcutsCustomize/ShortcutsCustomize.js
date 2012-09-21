@@ -1,4 +1,4 @@
-EverythingMe.ShortcutsCustomize = new function() {
+Evme.ShortcutsCustomize = new function() {
     var _name = "ShortcutsCustomize", _this = this,
         $el = null, $title = null, $subTitle = null, $list = null, $buttonDone = null,
         scroll = null, numSelectedStartedWith = 0, numSuggestedStartedWith = 0, clicked = null, moved = null,

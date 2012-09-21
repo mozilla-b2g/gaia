@@ -1,7 +1,7 @@
 /*
  * Analytics class
  */
-EverythingMe.Analytics = new function() {
+Evme.Analytics = new function() {
     var _this = this, logger, ga, idle, providers = [], immediateProviders = [], queueArr = [], maxQueueCount, getCurrentAppsRowsCols, STORAGE_QUERY = "analyticsLastSearchQuery",
         // Google Analytics load props
         GAScriptLoadStatus, GAScriptLoadSubscribers = [];

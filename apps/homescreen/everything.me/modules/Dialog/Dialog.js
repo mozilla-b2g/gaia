@@ -1,4 +1,4 @@
-EverythingMe.Dialog = function(_id) {
+Evme.Dialog = function(_id) {
     var _name = "Dialog", _this = this, $el = null, $elBlackout = null,
         id = _id, isBlackout = false, blackoutCallback = null, centered = false,
         waitingOnCloseTimeout = false, timeoutBeforeClickThrough = false;

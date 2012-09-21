@@ -2,7 +2,7 @@
  * Idle class
  * Triggers a callback after a specified amout of time gone idle
  */
-EverythingMe.Idle = function(){
+Evme.Idle = function(){
     var _this = this,
         timer, delay, callback;
     

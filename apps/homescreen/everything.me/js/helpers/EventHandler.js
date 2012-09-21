@@ -1,7 +1,7 @@
 /*
  * Acts as event manager. Provides bind and trigger functions.
  */
-EverythingMe.EventHandler = new function(){
+Evme.EventHandler = new function(){
     var arr = {};
     
     var MAIN_EVENT = "DoATEvent";

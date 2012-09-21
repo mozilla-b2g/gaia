@@ -1,4 +1,4 @@
-EverythingMe.Shortcuts = new function() {
+Evme.Shortcuts = new function() {
     var _name = "Shortcuts", _this = this, scroll = null, scrollPage = null, itemsDesign = "FROM CONFIG", setDesign = false,
         $el = null, $list = null, $header = null, $loading = null,
         shortcuts = [], visible = false, isSwiping = false, swiped = false, customizing = false, enabled = true,
@@ -85,7 +85,7 @@ EverythingMe.Shortcuts = new function() {
             added = [];
             
         for (var i=0; i<_shortcuts.length; i++) {
-            var shortcut = new Shortcut();
+            var shortcut = new Evme.Shortcut();
             var $el = shortcut.init(_shortcuts[i], i, click);
             
             if ($el) {
@@ -133,7 +133,7 @@ EverythingMe.Shortcuts = new function() {
 
     this.draw = function(_shortcuts, icons) {
         for (var i=0; i<_shortcuts.length; i++) {
-            var shortcut = new Shortcut();
+            var shortcut = new Evme.Shortcut();
             var $el = shortcut.init(_shortcuts[i], i, click, dragStart, remove);
             
             if ($el) {
@@ -424,7 +424,7 @@ EverythingMe.Shortcuts = new function() {
     }
 }
 
-var Shortcut = function() {
+Evme.Shortcut = function() {
     var _name = "Shortcut", _this = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
         $el = null, $thumb = null,  index = -1, query = "", image = "", imageLoadingRetry = 0,
         onClick = null, onDragStart = null, onRemove = null, alreadyRemoved = false,
@@ -468,7 +468,7 @@ var Shortcut = function() {
             $el.addClass("remove");
             window.setTimeout(function() {
                 $el.remove();
-                Shortcuts.refreshScroll();
+                Evme.Shortcuts.refreshScroll();
             }, 200);
         }
     };

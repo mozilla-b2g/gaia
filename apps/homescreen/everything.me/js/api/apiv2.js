@@ -1,4 +1,4 @@
-EverythingMe.api = new function() {
+Evme.api = new function() {
     var _this = this;
     var DEFAULT_API_HOST = "api.everything.me";
     var API_VERSION = "2.1";

@@ -1,4 +1,4 @@
-EverythingMe.DoATAPI = new function() {
+Evme.DoATAPI = new function() {
     var _name = "DoATAPI", _this = this,
         requestRetry = null,
         cached = [];
@@ -770,7 +770,7 @@ EverythingMe.DoATAPI = new function() {
         if (itemsCached.length > MAX_ITEMS_IN_CACHE) {
             var itemToRemove = itemsCached[0];
             itemsCached.splice(0, 1);
-            Storage.remove(itemToRemove);
+            Evme.Storage.remove(itemToRemove);
         }
         
         Evme.Storage.add("itemsCached", itemsCached.join("]][["));
@@ -779,7 +779,7 @@ EverythingMe.DoATAPI = new function() {
     };
     
     this.removeFromCache = function(cacheKey) {
-        Storage.remove(cacheKey);
+        Evme.Storage.remove(cacheKey);
     };
     
     function updateCacheItems() {
@@ -872,7 +872,7 @@ EverythingMe.DoATAPI = new function() {
     }
 };
 
-EverythingMe.Request = function() {
+Evme.Request = function() {
     var _this = this,
         
         methodNamespace = "",
