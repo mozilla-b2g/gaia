@@ -22,11 +22,20 @@ window.onload = function() {
   }
 
   function setWallpaper() {
-    navigator.mozSettings.createLock().set({
+    var request = navigator.mozSettings.createLock().set({
       'wallpaper.image': activity.source.data.urls[0]
     });
-    activity.postResult('shared');
-    endShare();
+
+    request.onsuccess = function() {
+      console.log('success setting wallpaper.image');
+      activity.postResult('shared');
+      endShare();
+    };
+    request.onsuccess = function() {
+      console.log('error setting wallpaper.image:', request.error);
+      activity.postResult('shared');
+      endShare();
+    };
   }
 
   function cancelShare() {
