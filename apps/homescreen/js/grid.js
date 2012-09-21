@@ -68,6 +68,14 @@ const GridManager = (function() {
 
         break;
 
+/*
+ * XXX
+ * commented out because the contextmenu event on the homescreen itself
+ * is now being used for picking wallpaper. The event listener for editing
+ * apps needs to go on the individual icons and call stopPropagation so
+ * it doesn't trigger the wallpaper also.  I don't know how to do that so
+ * I'm just commenting it out here.
+ * 
       case 'contextmenu':
         if (currentPage > landingPageIndex) {
           Homescreen.setMode('edit');
@@ -79,6 +87,7 @@ const GridManager = (function() {
           }
         }
         break;
+*/
     }
   }
 

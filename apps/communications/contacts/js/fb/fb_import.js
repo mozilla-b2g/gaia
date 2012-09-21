@@ -27,6 +27,8 @@ if (typeof fb.importer === 'undefined') {
 
     var currentRequest;
 
+    var _ = navigator.mozL10n.get;
+
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
       'SELECT uid, name, first_name, last_name,' ,
@@ -160,6 +162,11 @@ if (typeof fb.importer === 'undefined') {
 
       eleNumImport.value = newValue;
 
+      var msgElement = document.querySelector('#friends-msg');
+      msgElement.textContent = _('friendsFound', {
+        numFriends: newValue
+      });
+
       friends.forEach(function(fbContact) {
         var uid = new fb.Contact(fbContact).uid;
 
@@ -286,8 +293,6 @@ if (typeof fb.importer === 'undefined') {
         friendsPartners = parseFriendsPartners(response.data[1].fql_result_set);
 
         contacts.List.load(myFriends, friendsAvailable);
-
-        // contacts.List.handleClick(this.ui.selection);
 
         document.body.dataset.state = '';
       }
@@ -620,7 +625,7 @@ if (typeof fb.importer === 'undefined') {
         var syear = sbday.substring(iyear + 1, sbday.length);
 
         ret.setDate(parseInt(sday));
-        ret.setMonth(parseInt(smonth), parseInt(sday));
+        ret.setMonth(parseInt(smonth) - 1, parseInt(sday));
 
         if (syear && syear.length > 0) {
           ret.setYear(parseInt(syear));

@@ -23,7 +23,9 @@
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
+    <script type="application/javascript" defer src="js/storage.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -693,11 +695,11 @@
         <li>
           <label>
             <select name="screen.timeout">
-              <option value="60" data-l10n-id="one-minute" selected>1 minute</option>
-              <option value="120" data-l10n-id="two-minutes">2 minute</option>
-              <option value="300" data-l10n-id="five-minutes">5 minute</option>
-              <option value="600" data-l10n-id="ten-minutes">10 minute</option>
-              <option value="0" data-l10n-id="never">Never</option>
+              <option value="60"  data-l10n-id="one-minute" selected>1 minute</option>
+              <option value="120" data-l10n-id="two-minutes"> 2 minutes</option>
+              <option value="300" data-l10n-id="five-minutes">5 minutes</option>
+              <option value="600" data-l10n-id="ten-minutes">10 minutes</option>
+              <option value="0"   data-l10n-id="never">Never</option>
             </select>
           </label>
           <a data-l10n-id="screen-timeout">Screen Timeout</a>
@@ -713,74 +715,8 @@
           Wallpaper
         </h1>
       </header>
-
-      <header>
-        <h2 data-l10n-id="lockScreen">Lock Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="homeScreen">Home Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
+      <div class="snapshot" id="wallpaper-snapshot">
+      </div>
     </section>
 
     <!-- Personalization :: Notifications -->
@@ -1197,6 +1133,7 @@
             <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
+          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
@@ -1274,7 +1211,6 @@
       <!-- TODO -->
 
     </section>
-
   </body>
 </html>
 
