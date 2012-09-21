@@ -1,11 +1,11 @@
-#doat-container #page-categories {
+#evmeContainer #page-categories {
     color: #fff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
                  0 1px 1px rgba(0, 0, 0, 0.6),
                  0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-#doat-container #shortcuts {
+#evmeContainer #shortcuts {
     background: transparent;
     position: absolute;
     top: 80px;
@@ -21,7 +21,7 @@
     transition: opacity .2s linear;
 }
 
-    #doat-container #shortcuts-loading {
+    #evmeContainer #shortcuts-loading {
         position: absolute;
         top: 50%;
         right: 50%;
@@ -30,11 +30,11 @@
         z-index: 650;
         display: none;
     }
-    #doat-container #shortcuts-loading.visible {
+    #evmeContainer #shortcuts-loading.visible {
         display: block;
     }
     
-    #doat-container #shortcuts #shortcuts-list {
+    #evmeContainer #shortcuts #shortcuts-list {
         position: absolute;
         top: 0;
         right: 0;
@@ -42,15 +42,15 @@
         left: 0;
         -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0, 0, 0, 1)), color-stop(70%, rgba(0, 0, 0, 1)), color-stop(90%, rgba(0, 0, 0, 0)));
     }
-    #doat-container #shortcuts #shortcuts-list ul {
+    #evmeContainer #shortcuts #shortcuts-list ul {
         padding-bottom: 50px;
     }
-    #doat-container #shortcuts #shortcuts-list ul:after {
+    #evmeContainer #shortcuts #shortcuts-list ul:after {
         content: "";
         display: list-item;
         clear: both;
     }
-    #doat-container .shortcut {
+    #evmeContainer .shortcut {
         display: inline-block;
         vertical-align: top;
         z-index: 10;
@@ -59,37 +59,37 @@
         text-align: center;
         cursor: pointer;
     }
-    #doat-container .shortcut.dragging {
+    #evmeContainer .shortcut.dragging {
         -moz-transition: none;
         -webkit-transition: none;
         -ms-transition: none;
         transition: none;
         z-index: 50;
     }
-        #doat-container .shortcut.dragging .thumb {
+        #evmeContainer .shortcut.dragging .thumb {
             -moz-transform: scale(1.7);
             -webkit-transform: scale(1.7);
             -ms-transform: scale(1.7);
             transform: scale(1.7);
         }
-        #doat-container .shortcut.dragging b {
+        #evmeContainer .shortcut.dragging b {
             -moz-transform: translateY(20px);
             -webkit-transform: translateY(20px);
             -ms-transform: translateY(20px);
             transform: translateY(20px);
             -webkit-backface-visibility: hidden;
         }
-    #doat-container .shortcut.disabled {
+    #evmeContainer .shortcut.disabled {
         opacity: 0;
         -moz-transition: none;
         -webkit-transition: none;
         -ms-transition: none;
         transition: none;
     }
-    #doat-container .shortcut.remove {
+    #evmeContainer .shortcut.remove {
         opacity: 0;
     }
-    #doat-container .shortcut.placeholder {
+    #evmeContainer .shortcut.placeholder {
         position: absolute;
         top: 0;
         left: 2px;
@@ -103,10 +103,10 @@
         -ms-transition: none;
         transition: none;
     }
-        #doat-container .shortcut .remove {
+        #evmeContainer .shortcut .remove {
             display: none;
         }
-        #doat-container .shortcut .thumb {
+        #evmeContainer .shortcut .thumb {
             display: block;
             position: relative;
             width: 44px;
@@ -115,13 +115,13 @@
             z-index: 10;
             border-radius: 32px;
         }
-        #doat-container .shortcut.remove .thumb {
+        #evmeContainer .shortcut.remove .thumb {
             -moz-transform: scale(1.3);
             -webkit-transform: scale(1.3);
             -ms-transform: scale(1.3);
             transform: scale(1.3);
         }
-        #doat-container .shortcut.add .thumb:before {
+        #evmeContainer .shortcut.add .thumb:before {
             content: "";
             background-position: -58px -170px;
             position: absolute;
@@ -132,7 +132,7 @@
             margin: -14px 0 0 -16px;
             opacity: .7;
         }
-        #doat-container .shortcut b {
+        #evmeContainer .shortcut b {
             position: relative;
             display: block;
             font-size: 12px;
@@ -145,30 +145,30 @@
         }
            
            
-        #doat-container.shortcuts-customize #shortcuts #shortcuts-list {
+        #evmeContainer.shortcuts-customize #shortcuts #shortcuts-list {
             -webkit-mask-image: none;
         }
-        #doat-container.shortcuts-customize #shortcuts .shortcut.add {
+        #evmeContainer.shortcuts-customize #shortcuts .shortcut.add {
             opacity: 0;
             pointer-events: none;
             display: none;
         }
-        #doat-container.shortcuts-customize #shortcuts .apps-group span {
+        #evmeContainer.shortcuts-customize #shortcuts .apps-group span {
             -moz-transform: scale(.7) !important;
             -webkit-transform: scale(.7) !important;
             -ms-transform: scale(.7) !important;
             transform: scale(.7) !important;
         }
         
-    #doat-container #shortcuts .header {
+    #evmeContainer #shortcuts .header {
         display: none;
     }
     
-    #doat-container #category-page-name {
+    #evmeContainer #category-page-name {
         text-transform: capitalize;
     }
     
-#doat-container #category-page-screen {
+#evmeContainer #category-page-screen {
     position: absolute;
     top: -80px;
     left: 0;
@@ -179,19 +179,19 @@
     pointer-events: none;
     z-index: 80;
 }
-#doat-container .page-category #category-page-screen {
+#evmeContainer .page-category #category-page-screen {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container .pages {
+#evmeContainer .pages {
     position: absolute;
     top: 44px;
     bottom: 0;
     left: 0;
     right: 0;
 }
-    #doat-container .pages > .page {
+    #evmeContainer .pages > .page {
         position: absolute;
         top: 0;
         bottom: 0;
@@ -203,7 +203,7 @@
         transform: translate(0, 0) !important;
     }
     
-#doat-container #page-category {
+#evmeContainer #page-category {
     font-size: 15px;
     opacity: 0;
     pointer-events: none;
@@ -216,23 +216,23 @@
     border-radius: 6px;
     z-index: 100;
 }
-    #doat-container #page-category .category-scroll {
+    #evmeContainer #page-category .category-scroll {
         padding: 0 20px;
     }
     
-#doat-container .pages > #page-category.active {
+#evmeContainer .pages > #page-category.active {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container #page-category > * {
+#evmeContainer #page-category > * {
     right: 0;
 }
-#doat-container #page-category .continue {
+#evmeContainer #page-category .continue {
     position: relative;
     padding: 19px 0;
 }
-#doat-container #page-category .category-item {
+#evmeContainer #page-category .category-item {
     font-size: 15px;
     position: relative;
     padding: 8px 44px 19px 0;
@@ -242,11 +242,11 @@
     -ms-box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
     box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
 }
-    #doat-container #page-category.one-option .category-item {
+    #evmeContainer #page-category.one-option .category-item {
         padding-top: 30px;
         padding-bottom: 30px;
     }
-    #doat-container #page-category .category-item:before {
+    #evmeContainer #page-category .category-item:before {
         content: "OR";
         background: #c9c5cb;
         position: absolute;
@@ -260,32 +260,32 @@
         margin-left: -15px;
         text-align: center;
     }
-    #doat-container #page-category .continue .arrow-next {
+    #evmeContainer #page-category .continue .arrow-next {
         position: absolute;
         top: 50%;
         right: 8px;
         margin-top: -12px;
         pointer-events: none;
     }
-    #doat-container #page-category .category-item .arrow-next {
+    #evmeContainer #page-category .category-item .arrow-next {
         position: absolute;
         bottom: 21px;
         right: 8px;
     }
-    #doat-container #page-category.one-option .continue {
+    #evmeContainer #page-category.one-option .continue {
         padding-top: 30px;
     }
-    #doat-container #page-category.one-option .category-item .arrow-next {
+    #evmeContainer #page-category.one-option .category-item .arrow-next {
         bottom: 31px;
     }
     
-    #doat-container #page-category .category-item label {
+    #evmeContainer #page-category .category-item label {
         display: block;
         margin-bottom: 4px;
         font-weight: 600;
         text-shadow: 0 1px 0 rgba(255, 255, 255, .7);
     }
-    #doat-container #page-category .continue b {
+    #evmeContainer #page-category .continue b {
         display: none;
         height: 53px;
         line-height: 53px;
@@ -303,10 +303,10 @@
         background: -moz-linear-gradient(center top, #efefef 0, #d6d6d6 100%);
         background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efefef), color-stop(1, #d6d6d6));
     }
-    #doat-container #page-category .continue b.visible {
+    #evmeContainer #page-category .continue b.visible {
         display: block;
     }
-    #doat-container #page-category .textinput {
+    #evmeContainer #page-category .textinput {
         -moz-box-sizing: border-box;
         -webkit-box-sizing: border-box;
         -ms-box-sizing: border-box;
@@ -314,7 +314,7 @@
         margin: 0;
     }
     
-#doat-container #close-category {
+#evmeContainer #close-category {
     background-position: 0 -220px;
     position: absolute;
     top: -34px;
@@ -326,29 +326,29 @@
     opacity: 0;
     pointer-events: none;
 }
-#doat-container .page-category #close-category {
+#evmeContainer .page-category #close-category {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container #shortcuts #shortcuts-custom-title {
+#evmeContainer #shortcuts #shortcuts-custom-title {
     color: #ffffff;
     text-shadow: 0 1px 0 rgba(0, 0, 0, .3);
     opacity: .7;
 }
-#doat-container #shortcuts .pages {
+#evmeContainer #shortcuts .pages {
     top: 0;
 }
 
-#doat-container.empty-query:not(.keyboard-visible) #shortcuts {
+#evmeContainer.empty-query:not(.keyboard-visible) #shortcuts {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container #shortcuts-customize {
+#evmeContainer #shortcuts-customize {
     display: none;
 }
-#doat-container #shortcuts #shortcuts-list ul {
+#evmeContainer #shortcuts #shortcuts-list ul {
     padding-top: 5px;
     padding-bottom: 0;
 }

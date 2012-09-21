@@ -224,12 +224,12 @@ Evme.Apps = new function() {
         setAppsPerRow(width);
         
         var prefix = Evme.Utils.cssPrefix(),
-            rules = "#doat-apps ul li { width: " + 100/APPS_PER_ROW + "%; }\n";
+            rules = "#evmeApps ul li { width: " + 100/APPS_PER_ROW + "%; }\n";
             /*
         for (var i=0; i<MAX_APPS_CLASSES; i++) {
             var posX = i%APPS_PER_ROW*width/APPS_PER_ROW;
             var posY = Math.floor(i/APPS_PER_ROW)*APP_HEIGHT;
-            rules += '#doat-apps ul li.pos' + i + ' { ' + prefix + 'transform: translate(' + posX + 'px, ' + posY + 'px); }\n';
+            rules += '#evmeApps ul li.pos' + i + ' { ' + prefix + 'transform: translate(' + posX + 'px, ' + posY + 'px); }\n';
         }
         */
         

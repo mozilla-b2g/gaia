@@ -1,4 +1,4 @@
-#doat-container .tip {
+#evmeContainer .tip {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -19,27 +19,27 @@
     -ms-transition: opacity .4s linear;
     transition: opacity .4s linear;
 }
-#doat-container .tip.visible {
+#evmeContainer .tip.visible {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container .tip.stuckToSearchbar {
+#evmeContainer .tip.stuckToSearchbar {
     margin-top: 0 !important;
     top: 86px;
 }
-#doat-container .tip.seeThrough {
+#evmeContainer .tip.seeThrough {
     background: rgba(0, 0, 0, .7);
 }
 
-#doat-container .tip .buttons {
+#evmeContainer .tip .buttons {
     margin-top: 10px;
 }
-    #doat-container .tip .buttons > div {
+    #evmeContainer .tip .buttons > div {
         display: inline-block;
         text-align: center;
     }
-        #doat-container .tip .buttons > div b {
+        #evmeContainer .tip .buttons > div b {
             display: block;
             padding: 6px 0;
             color: #617075;
@@ -66,40 +66,40 @@
         }
 
 
-    #doat-container .tip .buttons > div:first-child b {
+    #evmeContainer .tip .buttons > div:first-child b {
         margin-right: 4px;
     }
-    #doat-container .tip .buttons > div:last-child b {
+    #evmeContainer .tip .buttons > div:last-child b {
         margin-left: 4px;
     }
-    #doat-container .tip .buttons > div:first-child:last-child b {
+    #evmeContainer .tip .buttons > div:first-child:last-child b {
         margin-left: 0;
         margin-right: 0;
     }
     
-#doat-container .tip-screen {
+#evmeContainer .tip-screen {
     z-index: 0;
     pointer-events: none;
 }
-#doat-container .tip-screen.visible {
+#evmeContainer .tip-screen.visible {
     z-index: 590;
     pointer-events: inherit;
 }
 
 
-#doat-container .tip.styled {
+#evmeContainer .tip.styled {
     text-align: left;
 }
 
-#doat-container .tip.styled h3 {
+#evmeContainer .tip.styled h3 {
     text-align: center;
     font-weight: 600;
     font-size: 100%;
     margin-top: 10px;
 }
-#doat-container .tip.styled h3:first-child {
+#evmeContainer .tip.styled h3:first-child {
     margin-top: 0;
 }
-#doat-container .tip.styled p {
+#evmeContainer .tip.styled p {
     padding: 10px 0;
 }

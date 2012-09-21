@@ -1,4 +1,4 @@
-#doat-container #doat-apps {
+#evmeContainer #evmeApps {
     position: absolute;
     top: 81px;
     left: 0;
@@ -7,15 +7,15 @@
     z-index: 50;
     overflow: hidden;
 }
-#doat-container #doat-apps {
+#evmeContainer #evmeApps {
     -webkit-mask-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, rgba(0, 0, 0, 1)), color-stop(97%, rgba(0, 0, 0, 1)), color-stop(100%, rgba(0, 0, 0, 0)));
 }
-#doat-container.loading-app #doat-apps {
+#evmeContainer.loading-app #evmeApps {
     pointer-events: none;
 }
 
-#doat-container #apps-loading,
-#doat-container #apps-error {
+#evmeContainer #apps-loading,
+#evmeContainer #apps-error {
     position: absolute;
     top: 50%;
     left: 0;
@@ -28,8 +28,8 @@
     text-align: center;
     display: none;
 }
-    #doat-container #apps-loading > div,
-    #doat-container #apps-error > div {
+    #evmeContainer #apps-loading > div,
+    #evmeContainer #apps-error > div {
         position: relative;
         display: inline-block;
         vertical-align: middle;
@@ -38,7 +38,7 @@
         margin-right: 11px;
         top: -2px;
     }
-    #doat-container #apps-error #apps-error-retry {
+    #evmeContainer #apps-error #apps-error-retry {
         position: absolute;
         top: 20px;
         left: 50%;
@@ -46,21 +46,21 @@
         margin-left: -23px;
     }
     
-#doat-container #apps-loading.visible,
-#doat-container #apps-error.visible {
+#evmeContainer #apps-loading.visible,
+#evmeContainer #apps-error.visible {
     display: block;
 }
 
-#doat-container #doat-apps ul {
+#evmeContainer #evmeApps ul {
     position: absolute;
     width: 100%;
     padding-bottom: 30px;
 }
-#doat-container.location-input-visible #doat-apps ul {
+#evmeContainer.location-input-visible #evmeApps ul {
     -webkit-transform: none !important;
 }
-    #doat-container #doat-apps ul li,
-    #doat-container .apps ul li {
+    #evmeContainer #evmeApps ul li,
+    #evmeContainer .apps ul li {
         width: 25%;
         height: 79px;
         padding-top: 10px;
@@ -75,15 +75,15 @@
         -ms-transition: -ms-transform .2s linear;
         transition: transform .2s linear;
     }
-    #doat-container #doat-apps ul li.new,
-    #doat-container .apps ul li.new {
+    #evmeContainer #evmeApps ul li.new,
+    #evmeContainer .apps ul li.new {
         -moz-transition: none;
         -webkit-transition: none;
         -ms-transition: none;
         transition: none;
     }
-    #doat-container #doat-apps ul #button-more,
-    #doat-container .apps ul #button-more {
+    #evmeContainer #evmeApps ul #button-more,
+    #evmeContainer .apps ul #button-more {
         position: absolute;
         top: auto;
         bottom: 15px;
@@ -97,24 +97,24 @@
         z-index: 100;
         opacity: 0;
     }
-    #doat-container #doat-apps ul #button-more.visible,
-    #doat-container .apps ul #button-more.visible {
+    #evmeContainer #evmeApps ul #button-more.visible,
+    #evmeContainer .apps ul #button-more.visible {
         opacity: 1;
     }
    
-    #doat-container #doat-apps ul li:nth-child(4n+1),
-    #doat-container .apps ul li:nth-child(4n+1) {
+    #evmeContainer #evmeApps ul li:nth-child(4n+1),
+    #evmeContainer .apps ul li:nth-child(4n+1) {
         clear: both;
     }
-    #doat-container #doat-apps ul li .c,
-    #doat-container .apps ul li .c {
+    #evmeContainer #evmeApps ul li .c,
+    #evmeContainer .apps ul li .c {
         position: relative;
         display: block;
         padding: 44px 2px 0 2px;
     }
-        #doat-container #doat-apps ul li .thumb,
-        #doat-container .apps ul li .thumb,
-        #doat-container .app-icon {
+        #evmeContainer #evmeApps ul li .thumb,
+        #evmeContainer .apps ul li .thumb,
+        #evmeContainer .app-icon {
             position: absolute;
             top: 0;
             left: 50%;
@@ -138,17 +138,17 @@
             -o-transition: -o-transform .2s linear;
             transition: transform .2s linear;
         }
-        #doat-container #doat-apps ul li.new .thumb,
-        #doat-container .apps ul li.new .thumb {
+        #evmeContainer #evmeApps ul li.new .thumb,
+        #evmeContainer .apps ul li.new .thumb {
             -moz-transform: scale(0);
             -webkit-transform: scale(0);
             -ms-transform: scale(0);
             -o-transform: scale(0);
             transform: scale(0);
         }
-        #doat-container #doat-apps ul li .thumb:after,
-        #doat-container .apps ul li .thumb:after,
-        #doat-container .app-icon:after {
+        #evmeContainer #evmeApps ul li .thumb:after,
+        #evmeContainer .apps ul li .thumb:after,
+        #evmeContainer .app-icon:after {
             content: "";
             background-position: -1px -24px;
             position: absolute;
@@ -158,15 +158,15 @@
             height: 50px;
             z-index: 10;
         }
-        #doat-container #doat-apps ul li .thumb.noicon,
-        #doat-container .apps ul li .thumb.noicon {
+        #evmeContainer #evmeApps ul li .thumb.noicon,
+        #evmeContainer .apps ul li .thumb.noicon {
             background: transparent;
         }
-        #doat-container #doat-apps ul li .thumb.noicon:after,
-        #doat-container .apps ul li .thumb.noicon:after {
+        #evmeContainer #evmeApps ul li .thumb.noicon:after,
+        #evmeContainer .apps ul li .thumb.noicon:after {
         }
-        #doat-container #doat-apps ul li b,
-        #doat-container .apps ul li b {
+        #evmeContainer #evmeApps ul li b,
+        #evmeContainer .apps ul li b {
             display: inline-block;
             font-size: 11px;
             line-height: 12px;
@@ -181,13 +181,13 @@
             font-weight: 600;
             text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
         }
-            #doat-container #doat-apps ul li b em,
-            #doat-container .apps ul li b em {
+            #evmeContainer #evmeApps ul li b em,
+            #evmeContainer .apps ul li b em {
                 font-style: normal;
             }
         
-        #doat-container #doat-apps ul li .close,
-        #doat-container .apps ul li .close {
+        #evmeContainer #evmeApps ul li .close,
+        #evmeContainer .apps ul li .close {
             position: absolute;
             top: -4px;
             left: 50%;
@@ -213,8 +213,8 @@
             -o-transition: opacity .2s linear;
             transition: opacity .2s linear;
         }
-    #doat-container #doat-apps ul li#more-apps,
-    #doat-container .apps ul li#more-apps {
+    #evmeContainer #evmeApps ul li#more-apps,
+    #evmeContainer .apps ul li#more-apps {
         position: absolute;
         left: 0;
         right: 0;
@@ -238,8 +238,8 @@
         -o-transition: none;
         transition: none;
     }
-    #doat-container #doat-apps ul li#more-apps span,
-    #doat-container .apps ul li#more-apps span {
+    #evmeContainer #evmeApps ul li#more-apps span,
+    #evmeContainer .apps ul li#more-apps span {
         position: relative;
         display: inline-block;
         width: 20px;
@@ -250,25 +250,25 @@
     }
     
     
-body:not(.istouch) #doat-apps {
+body:not(.istouch) #evmeApps {
     
 }
-body:not(.istouch) #doat-apps ul {
+body:not(.istouch) #evmeApps ul {
     overflow: hidden;
 }
-body:not(.istouch) #doat-apps ul li:nth-child(4n+1) {
+body:not(.istouch) #evmeApps ul li:nth-child(4n+1) {
     clear: both;
 }
-body:not(.istouch) #doat-apps ul li:nth-child(5n+1) {
+body:not(.istouch) #evmeApps ul li:nth-child(5n+1) {
     clear: none;
 }
 
 /* Loading an app */
-.loading-app #doat-apps ul li,
-.loading-app #doat-apps ul #button-more.visible {
+.loading-app #evmeApps ul li,
+.loading-app #evmeApps ul #button-more.visible {
     opacity: 0;
 }
-.loading-app #doat-apps ul li.inplace {
+.loading-app #evmeApps ul li.inplace {
     position: absolute;
     top: 0;
     left: 0;
@@ -281,7 +281,7 @@ body:not(.istouch) #doat-apps ul li:nth-child(5n+1) {
     -o-transition: -o-transform .2s linear;
     transition: transform .2s linear;
 }
-.loading-app #doat-apps ul li.inplace .doat-loading {
+.loading-app #evmeApps ul li.inplace .doat-loading {
     position: absolute;
     top: -8px;
     left: 50%;

@@ -9,37 +9,12 @@ window.Evme = new function() {
 
     this.init = function() {
         _this.initWithConfig(Evme.__config);
-
-        window.addEventListener("message", function(e) {
-            // if event has no message - return
-            if (!e || !e.data) { return }
-
-            var msg = e.data;
-
-            // if mg is string - parse it
-            if (typeof msg === "string") {
-                try {
-                    msg = JSON.parse(msg);
-                } catch (ex) { return }
-            }
-
-            switch (msg.type) {
-                case "visibilitychange":
-                    // change window.hidden value
-                    window.hidden = msg.data.hidden;
-
-                    // fire visibilitychange event
-                    var e = document.createEvent("Events");
-                    e.initEvent("visibilitychange", true, false);
-                    document.dispatchEvent(e);
-                    break;
-            }
-        }, false);
-
-        document.addEventListener("visibilitychange", function() {
-            var method = window.hidden ? "remove" : "add";
-            document.body.classList[method]("evme-displayed");
-        }, false);
+    };
+    
+    this.visibilityChange = function(visible) {
+        var method = visible ? "add" : "remove";
+        document.body.classList[method]("evme-displayed");
+        displayed = visible;
     };
 
     this.setOpacityBackground = function(value) {
@@ -157,7 +132,7 @@ window.Evme = new function() {
         });
         
         Evme.Apps.init({
-            "$el": $("#doat-apps"),
+            "$el": $("#evmeApps"),
             "$buttonMore": $("#button-more"),
             "$header": $("#search #header"),
             "texts": data.texts.apps,
@@ -175,7 +150,7 @@ window.Evme = new function() {
 
         Evme.BackgroundImage.init({
             "$el": $("#evmeBackgroundImage"),
-            "$elementsToFade": $("#doat-apps, #header, #search-header"),
+            "$elementsToFade": $("#evmeApps, #header, #search-header"),
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
         });

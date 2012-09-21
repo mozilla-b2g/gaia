@@ -31,10 +31,7 @@ var EvmeManager = (function() {
   }
 
   function setVisibilityChange(visible) {
-    window.postMessage(JSON.stringify({
-      type: 'visibilitychange',
-      data: { hidden: !visible }
-    }), '*');
+    Evme.visibilityChange(visible);
   }
 
   var footerStyle = document.querySelector('#footer').style;

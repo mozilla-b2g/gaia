@@ -7,41 +7,24 @@ Evme.Utils = new function() {
         "Small": 10,
         "Large": 20
     };
-    var CONTAINER_ID = "doat-container",
+    var CONTAINER_ID = "evmeContainer",
         COOKIE_NAME_CREDENTIALS = "credentials",
         DYNAMIC_TITLE = false;
 
     this.FFOSMessages = {
         "APP_CLICK": "open-in-app",
-        "APP_INSTALL": "add-bookmark",
-        "SWIPE_LEFT_TO_RIGHT": false,
-        "SWIPE_RIGHT_TO_LEFT": "home"
+        "APP_INSTALL": "add-bookmark"
     };
 
     this.log = function(message) {
         console.log("(" + (new Date().getTime()) + ") DOAT: " + message);
     };
-    this.isLauncher = function() {
-        return (window.location.href.indexOf("mode=launcher") !== -1);
-    };
-    this.isB2G = function() {
-        return navigator.mozApps && ("getSelf" in navigator.mozApps);
-    };
-    this.getB2GHeight = function() {
-        return Math.max(400, _this.B2GCalc(window.innerHeight));
-    };
-    this.getB2GWidth = function() {
-        return _this.B2GCalc(window.innerWidth);
-    };
-    this.B2GCalc = function(x) {
-        return window.innerWidth > 320 ?  x*2/3 : x;
-    };
     this.sendToFFOS = function(type, data) {
         switch (type) {
-            case Evme.Evme.Utils.FFOSMessages.APP_CLICK:
+            case Evme.Utils.FFOSMessages.APP_CLICK:
                 EvmeManager.openApp(data);
                 break;
-            case Evme.Evme.Utils.FFOSMessages.APP_INSTALL:
+            case Evme.Utils.FFOSMessages.APP_INSTALL:
                 EvmeManager.addBookmark(data);
                 break;
         }
@@ -75,7 +58,8 @@ Evme.Utils = new function() {
 
             // send to get shadow
             var data = canvas.toDataURL();
-            getShadow(data, size, shadowOffset, callback)
+            callback(data);
+            //getShadow(data, size, shadowOffset, callback)
         };
         img.src = imageSrc;
     };
@@ -150,9 +134,9 @@ Evme.Utils = new function() {
     this.setKeyboardVisibility = function(value){
         isKeyboardVisible = value;
         if (isKeyboardVisible) {
-            $("#doat-container").addClass("keyboard-visible");
+            $("#evmeContainer").addClass("keyboard-visible");
         } else {
-            $("#doat-container").removeClass("keyboard-visible");
+            $("#evmeContainer").removeClass("keyboard-visible");
         }
     };
 

@@ -19,8 +19,8 @@
     z-index: 51;
     padding-top: 9px;
 }
-#doat-container #search-header.animate,
-#doat-container #header.animate {
+#evmeContainer #search-header.animate,
+#evmeContainer #header.animate {
     -moz-transition: all .2s linear;
     -webkit-transition: all .2s linear;
     -ms-transition: all .2s linear;

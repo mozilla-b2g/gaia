@@ -1,4 +1,4 @@
-#doat-container #connection-message {
+#evmeContainer #connection-message {
     position: absolute;
     top: 50%;
     left: 0;
@@ -16,11 +16,11 @@
     -webkit-transition: opacity .3s linear;
     transition: opacity .3s linear;
 }
-#doat-container.shortcuts-customize-visible #connection-message {
+#evmeContainer.shortcuts-customize-visible #connection-message {
     color: #292929;
     text-shadow: 0 2px 3px rgba(255, 255, 255, .5);
 }
-    #doat-container #connection-message:before {
+    #evmeContainer #connection-message:before {
         background: transparent url('/everything.me/images/connection.png') 0 0 no-repeat;
         content: "";
         position: absolute;
@@ -31,27 +31,27 @@
         margin-left: -81px;
     }
 
-#doat-container.connection-error #connection-message {
+#evmeContainer.connection-error #connection-message {
     opacity: 1;
     pointer-events: inherit;
 }
 
-#doat-container.connection-error #doat-apps ,
-#doat-container.connection-error #shortcuts,
-#doat-container.connection-error #shortcuts-favorites .scroll-wrapper
+#evmeContainer.connection-error #evmeApps ,
+#evmeContainer.connection-error #shortcuts,
+#evmeContainer.connection-error #shortcuts-favorites .scroll-wrapper
 {
     opacity: 0 !important;
     pointer-events: none !important;
 }
 
-#doat-container.connection-error #shortcuts-favorites {
+#evmeContainer.connection-error #shortcuts-favorites {
     pointer-events: none !important;
 }
 
-#doat-container.connection-error #helper-header,
-#doat-container.connection-error #search-header > * {
+#evmeContainer.connection-error #helper-header,
+#evmeContainer.connection-error #search-header > * {
     pointer-events: none !important;
 }
-#doat-container.connection-error #search-header #button-clear {
+#evmeContainer.connection-error #search-header #button-clear {
     pointer-events: inherit !important;
 }

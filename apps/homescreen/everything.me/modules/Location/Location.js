@@ -32,10 +32,6 @@ Evme.Location = new function() {
         ERROR_CANT_LOCATE_BUTTON = "FROM CONFIG";
     
     this.init = function(options) {
-        if (Evme.Utils.isLauncher()) {
-            COOKIE_NAME = "userLocLauncher";
-        }
-        
         options || (options = {});
         
         $elLocationName = options.$elName;
@@ -154,11 +150,6 @@ Evme.Location = new function() {
     };
     
     this.setLocationFromCookie = function() {
-        if (Evme.Utils.isLauncher()) {
-            _this.setLocation("51.505791", "-0.140809");
-            return true;
-        }
-        
         var locationFromCookie = Evme.Utils.Cookies.get(COOKIE_NAME);
         
         if (locationFromCookie) {
@@ -195,12 +186,12 @@ Evme.Location = new function() {
         }
         
         $elButton.addClass("visible");
-        $("#doat-container ").addClass("location-visible");
+        $("#evmeContainer ").addClass("location-visible");
     };
     
     this.hideButton = function() {
         $elButton.removeClass("visible");
-        $("#doat-container ").removeClass("location-visible");
+        $("#evmeContainer ").removeClass("location-visible");
     };
     
     this.setButtonText = function(txt) {

@@ -1,4 +1,4 @@
-#doat-container .dialog {
+#evmeContainer .dialog {
     position: absolute;
     top: 20px;
     left: 11px;
@@ -16,12 +16,12 @@
     -o-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
     box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
 }
-#doat-container .dialog,
-#doat-container .dialog .tiparrow:before {
+#evmeContainer .dialog,
+#evmeContainer .dialog .tiparrow:before {
     background: rgba(0, 0, 0, .9);
     border: 2px solid #4c4c4c;
 }
-#doat-container .dialog-blackout {
+#evmeContainer .dialog-blackout {
     position: absolute;
     top: 0;
     left: 0;
@@ -30,46 +30,46 @@
     background: rgba(0, 0, 0, 0);
     z-index: 0;
 }
-#doat-container .dialog,
-#doat-container .dialog-blackout {
+#evmeContainer .dialog,
+#evmeContainer .dialog-blackout {
     opacity: 0;
     -moz-transition: opacity .4s linear;
     -webkit-transition: opacity .4s linear;
     -o-transition: opacity .4s linear;
     transition: opacity .4s linear;
 }
-#doat-container .dialog.visible,
-#doat-container .dialog-blackout.visible {
+#evmeContainer .dialog.visible,
+#evmeContainer .dialog-blackout.visible {
     opacity: 1;
     z-index: 800;
 }
-#doat-container .dialog-blackout.visible {
+#evmeContainer .dialog-blackout.visible {
     z-index: 790;
 }
-    #doat-container .dialog h2 {
+    #evmeContainer .dialog h2 {
         font-size: 21px;
         font-weight: 600;
         padding: 5px 0;
     }
-    #doat-container .dialog h2 em {
+    #evmeContainer .dialog h2 em {
         font-style: normal;
         color: #6fd3f3;
     }
-    #doat-container .dialog .content {
+    #evmeContainer .dialog .content {
         position: relative;
         line-height: 20px;
     }
-        #doat-container .dialog .content a {
+        #evmeContainer .dialog .content a {
             text-decoration: underline;
         }
-        #doat-container .dialog .content .br {
+        #evmeContainer .dialog .content .br {
             height: 10px;
         }
-    #doat-container .dialog .buttons {
+    #evmeContainer .dialog .buttons {
         padding-top: 12px;
     }
-        #doat-container .dialog .button,
-        #doat-container .ptip .button {
+        #evmeContainer .dialog .button,
+        #evmeContainer .ptip .button {
             position: relative;
             display: inline-block;
             font-size: 17px;
@@ -91,20 +91,20 @@
             background: -moz-linear-gradient(center top, #d8ecf3 0%, #bfdee9 50%, #b4dae7 50%, #88c3d7 100%);
             background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #d8ecf3), color-stop(50%, #bfdee9), color-stop(50%, #b4dae7), color-stop(100%, #88c3d7));
         }
-        #doat-container .dialog .button:hover,
-        #doat-container .ptip .button:hover {
+        #evmeContainer .dialog .button:hover,
+        #evmeContainer .ptip .button:hover {
             opacity: .7;
         }
-        #doat-container .dialog .button:last-child {
+        #evmeContainer .dialog .button:last-child {
             margin-left: 8px;
         }
-        #doat-container .dialog .button:first-child:last-child {
+        #evmeContainer .dialog .button:first-child:last-child {
             display: block;
             width: auto;
             margin: 0;
         }
     
-    #doat-container .dialog .tiparrow {
+    #evmeContainer .dialog .tiparrow {
         width: 24px;
         height: 12px;
         position: absolute;
@@ -112,7 +112,7 @@
         left: 15px;
         overflow: hidden;
     }
-    #doat-container .dialog .tiparrow:before {
+    #evmeContainer .dialog .tiparrow:before {
         content: "";
         position: absolute;
         top: 50%;
@@ -127,28 +127,28 @@
         transform: rotate(45deg);
     }
     
-#doat-container .dialog .entity {
+#evmeContainer .dialog .entity {
      white-space: nowrap;
 }
 
 
-#doat-container .ptip {
+#evmeContainer .ptip {
     font-family: 'Open Sans';
     color: #fff;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, .5);
 }
-#doat-container .ptip,
-#doat-container .ptip .tiparrow:before {
+#evmeContainer .ptip,
+#evmeContainer .ptip .tiparrow:before {
     background: #833068 url('/everything.me/images/bgpattern.jpg') bottom left repeat;
     background-size: 36px 36px;
     border: 2px solid #a6528f;
 }
-#doat-container .ptip .content em {
+#evmeContainer .ptip .content em {
     font-style: normal;
     color: #70c8ea;
 }
 
-#doat-container #dialog_searchpage-tip {
+#evmeContainer #dialog_searchpage-tip {
     top: 38px;
     left: 6px;
     right: 6px;
@@ -157,16 +157,16 @@
     font-size: 19px;
     text-align: center;
 }
-    #doat-container #dialog_searchpage-tip .content {
+    #evmeContainer #dialog_searchpage-tip .content {
         padding: 30px 20px 50px 20px;
         line-height: 140%;
         overflow: hidden;
     }
-    #doat-container #dialog_searchpage-tip .content .inner {
+    #evmeContainer #dialog_searchpage-tip .content .inner {
         position: relative;
         z-index: 10;
     }
-    #doat-container #dialog_searchpage-tip .content:before {
+    #evmeContainer #dialog_searchpage-tip .content:before {
         content: "";
         background: transparent url('/everything.me/images/temp/welcome-icons.jpg') bottom left no-repeat;
         background-size: 256px 99px;
@@ -179,14 +179,14 @@
         opacity: .99;
         -webkit-backface-visibility: hidden;
     }
-    #doat-container #dialog_searchpage-tip .tiparrow {
+    #evmeContainer #dialog_searchpage-tip .tiparrow {
         left: 42px;
     }
-    #doat-container .mode-edit #dialog_searchpage-tip .tiparrow {
+    #evmeContainer .mode-edit #dialog_searchpage-tip .tiparrow {
         left: 11px;
     }
     
-#doat-container #dialog_tip-first-exact {
+#evmeContainer #dialog_tip-first-exact {
     text-align: center;
     font-size: 19px;
     line-height: 150%;
@@ -196,9 +196,9 @@
     margin-left: -152px;
     padding: 12px 15px 15px 15px;
 }
-    #doat-container #dialog_tip-first-exact h2 {
+    #evmeContainer #dialog_tip-first-exact h2 {
         padding: 0;
     }
-    #doat-container #dialog_tip-first-exact .content {
+    #evmeContainer #dialog_tip-first-exact .content {
         line-height: 140%;
     }

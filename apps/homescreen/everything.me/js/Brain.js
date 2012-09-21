@@ -596,7 +596,7 @@ Evme.Brain = new function() {
             loadingAppAnalyticsData,
             loadingAppId = false;
 
-        var STORAGE_KEY_CLOSE_WHEN_RETURNIG = "needsToCloseKeyboard";
+        var STORAGE_KEY_CLOSE_WHEN_RETURNING = "needsToCloseKeyboard";
 
         this.close = function(data) {
             Evme.Apps.removeApp(data.data.id);
@@ -640,7 +640,7 @@ Evme.Brain = new function() {
                 data.keyboardVisible = Evme.Utils.isKeyboardVisible() ? 1 : 0;
 
                 if (!Searcher.searchedExact()) {
-                    Evme.Storage.set(STORAGE_KEY_CLOSE_WHEN_RETURNIG, true);
+                    Evme.Storage.set(STORAGE_KEY_CLOSE_WHEN_RETURNING, true);
 
                     Evme.Searchbar.setValue(Searcher.getDisplayedQuery(), false, true);
 
@@ -651,7 +651,7 @@ Evme.Brain = new function() {
                         _this.animateAppLoading(data);
                     }, 50);
                 } else {
-                    Evme.Storage.set(STORAGE_KEY_CLOSE_WHEN_RETURNIG, false);
+                    Evme.Storage.set(STORAGE_KEY_CLOSE_WHEN_RETURNING, false);
                     _this.animateAppLoading(data);
                 }
             }
@@ -682,19 +682,12 @@ Evme.Brain = new function() {
             loadingAppId = data.data.id;
             bNeedsLocation = data.data.requiresLocation && !Evme.DoATAPI.hasLocation() && !Evme.Location.userClickedDoItLater();
 
-            var $apps = $("#doat-apps");
+            var $apps = $("#evmeApps");
 
-            var appListHeight = $Evme.Apps.height(),
-                appListWidth = $Evme.Apps.width(),
+            var appListHeight = $apps.height(),
+                appListWidth = $apps.width(),
                 appHeight = $app.height(),
                 appWidth = $app.width();
-
-           if (Evme.Utils.isB2G()) {
-                appListHeight = Evme.Utils.B2GCalc(appListHeight),
-                appListWidth = Evme.Utils.B2GCalc(appListWidth),
-                appHeight = Evme.Utils.B2GCalc(appHeight),
-                appWidth = Evme.Utils.B2GCalc(appWidth);
-           }
 
             var newPos = {
                 "top": (appListHeight-appHeight)/2 - Evme.Apps.getScrollPosition(),
@@ -754,7 +747,6 @@ Evme.Brain = new function() {
         };
 
         function goToApp(data, delay) {
-
             !delay && (delay = 0);
             data["appUrl"] = loadingApp.getLink();
 
@@ -781,16 +773,10 @@ Evme.Brain = new function() {
         };
 
         function returnFromOutside() {
-            // temp hack for messaging with evme
-            window.postMessage(JSON.stringify({
-                type: 'visibilitychange',
-                data: { hidden: false }
-            }), '*');
+            Evme.visibilityChange(true);
     
             if (loadingApp) {
                 loadingApp = null;
-
-                $(window).unbind("visibilitychange", returnFromOutside);
 
                 bNeedsLocation = false;
                 loadingAppAnalyticsData = null;
@@ -803,10 +789,10 @@ Evme.Brain = new function() {
 
                 Brain.Core.onresize();
 
-                if (Evme.Storage.get(STORAGE_KEY_CLOSE_WHEN_RETURNIG)) {
+                if (Evme.Storage.get(STORAGE_KEY_CLOSE_WHEN_RETURNING)) {
                     Searcher.searchAgain();
                 }
-                Evme.Storage.remove(STORAGE_KEY_CLOSE_WHEN_RETURNIG);
+                Evme.Storage.remove(STORAGE_KEY_CLOSE_WHEN_RETURNING);
 
                 Evme.EventHandler.trigger("Core", "returnedFromApp");
             }
@@ -939,10 +925,6 @@ Evme.Brain = new function() {
         this.click = function(data) {
             if (!data || !data.data || !data.data.query) {
                 return;
-            }
-
-            if (Evme.Utils.isLauncher()) {
-                data.force = true;
             }
 
             if (!Evme.Shortcuts.customizing() && !Evme.Shortcuts.isSwiping()) {

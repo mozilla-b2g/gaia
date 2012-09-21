@@ -1,10 +1,10 @@
-#doat-container, input {
+#evmeContainer, input {
     font: normal 12px 'Open Sans', Sans-Serif;
 }
 fieldset {
     border-width: 0;
 }
-#doat-container {
+#evmeContainer {
     position: fixed;
     overflow: hidden;
     margin: 0;
@@ -20,22 +20,22 @@ fieldset {
     background-size: 100% 100%;
     display: none;
 }
-.evme-displayed #doat-container {
+.evme-displayed #evmeContainer {
     display: block;
 }
-#doat-container * {
+#evmeContainer * {
     margin: 0;
     padding: 0;
 }
-#doat-container a {
+#evmeContainer a {
     text-decoration: none;
     color: inherit;
 }
-#doat-container ul {
+#evmeContainer ul {
     list-style-type: none;
 }
 
-#doat-container .textinput {
+#evmeContainer .textinput {
     -webkit-appearance: none;
     border: none;
     background: #fff;
@@ -55,7 +55,7 @@ fieldset {
 }
 
 
-#doat-container .textpage {
+#evmeContainer .textpage {
     background: #833068 url('/everything.me/images/bgpattern.jpg') 0 0 repeat;
     background-size: 36px 36px;
     font-family: 'Open Sans';
@@ -63,7 +63,7 @@ fieldset {
     color: #fff;
 }
 
-#doat-container .screen {
+#evmeContainer .screen {
     position: absolute;
     top: 0;
     left: 0;
@@ -73,7 +73,7 @@ fieldset {
     z-index: 500;
 }
 
-#doat-container .arrow-next {
+#evmeContainer .arrow-next {
     font-weight: 600;
     font-size: 15px;
     text-shadow: 0 1px 0 rgba(255, 255, 255, .7);
@@ -90,7 +90,7 @@ fieldset {
     -ms-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
 }
-    #doat-container .arrow-next:before {
+    #evmeContainer .arrow-next:before {
         content: "";
         position: absolute;
         top: 50%;
@@ -111,7 +111,7 @@ fieldset {
         box-shadow: 1px 0 0 0 #ffffff, 0 1px 0 0 #ffffff inset;
     }
 
-#doat-container .bbutton {
+#evmeContainer .bbutton {
     display: inline-block;
     color: #617075;
     text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
@@ -139,7 +139,7 @@ fieldset {
     -o-user-select: none;
     user-select: none;
 }
-#doat-container .bbutton.active {
+#evmeContainer .bbutton.active {
     color: #fff;
     border-color: #6fadc2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, .5);
@@ -147,7 +147,7 @@ fieldset {
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #07a7db), color-stop(0.5, #038cb8), color-stop(0.5, #0384ad), color-stop(1, #017297));
 }
 
-#doat-container .pbutton {
+#evmeContainer .pbutton {
     display: inline-block;
     cursor: pointer;
     padding: 6px 12px;
@@ -175,7 +175,7 @@ fieldset {
 }
 
 #bgimage-overlay .content .close,
-#doat-apps ul li .thumb:after,
+#evmeApps ul li .thumb:after,
 .apps ul li .thumb:after,
 .app-icon:after,
 #location-selector .close,
