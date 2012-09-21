@@ -29,6 +29,7 @@
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
+    <script type="application/javascript" defer src="js/app_storage.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -1090,6 +1091,39 @@
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="appStorage">Application Storage</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <progress id="apps-space-bar" min="0" max="100"></progress>
+          </label>
+        </li>
+
+        <li>
+          <a id="apps-total-space" data-l10n-id="apps-total-space"> Total Space
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="apps-used-space" data-l10n-id="apps-used-space"> Used
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="apps-free-space" data-l10n-id="apps-free-space"> Left
+            <span class="storage-space"></span>
+          </a>
+        </li>
+      </ul>
+
+      <p class="detailed-desc" data-l10n-id="media-storage-details">
+      Photos, videos, and music are stored in the SD Card.
+      See Media Storage for details.
+      </p>
+
     </section>
 
     <!-- Device :: Media Storage -->

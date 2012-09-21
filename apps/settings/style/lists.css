@@ -193,6 +193,10 @@ ul li p + input[type=password] {
   left: 55px;
 }
 
+.detailed-desc {
+  padding: 0 3rem;
+  font-size: 1.5rem;
+}
 
 /******************************************************************************
  * Wi-Fi
