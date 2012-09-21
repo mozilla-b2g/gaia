@@ -8,6 +8,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_extfb.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -77,8 +78,14 @@ suite('Render contacts list', function() {
     var importButton = list.nextElementSibling;
     assert.isNotNull(importButton);
     assert.equal(importButton.id, 'sim_import_button');
-    assert.isNull(importButton.nextElementSibling);
+    if(window.fb.isEnabled) {
+      assert.equal(importButton.nextElementSibling.id,'fb_import_button');
+    }
+    else {
+      assert.isNull(importButton.nextElementSibling);
+    }
   }
+
   function assertNoImportButton() {
     var importButton = list.nextElementSibling;
     assert.isNull(importButton);
@@ -101,6 +108,7 @@ suite('Render contacts list', function() {
     window.Contacts = MockContactsApp;
     realFb = window.fb;
     window.fb = MockFb;
+    window.Contacts.extFb = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
     window.utils = window.utils || {};
