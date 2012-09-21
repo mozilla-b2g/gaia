@@ -34,7 +34,6 @@
 //    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
-//    getNumberOfRunningApps(): returns the numbers of running apps.
 //    setDisplayedApp(origin): set displayed app.
 //      XXX: should be removed.
 //
@@ -232,6 +231,12 @@ var WindowManager = (function() {
         break;
 
       case 'opened':
+        // Take the focus away from the currently displayed app
+        var app = runningApps[displayedApp];
+        if (app && app.frame)
+          app.frame.blur();
+
+        // Give the focus to the frame
         openFrame.setVisible(true);
         openFrame.focus();
 
@@ -294,6 +299,10 @@ var WindowManager = (function() {
         break;
 
       case 'inline-activity-opened':
+        openFrame.setVisible(true);
+        openFrame.focus();
+
+        sprite.style.background = '';
         sprite.className = '';
         openFrame = null;
 
@@ -837,20 +846,36 @@ var WindowManager = (function() {
     if (!inlineActivityFrame)
       return;
 
+    // Remore the inlineActivityFrame reference
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
 
+    // If frame is transitioning we should cancel the transition.
     if (openFrame == frame)
       sprite.className = '';
 
+    // If frame is never set visible, we can remove the frame directly
+    // without closing transition
     if (!frame.classList.contains('active')) {
       windows.removeChild(frame);
+
       return;
     }
 
+    // Take keyboard focus away from the closing window
+    frame.blur();
+    frame.setVisible(false);
+
+    // Give back focus to the displayed app
+    var app = runningApps[displayedApp];
+    if (app && app.frame)
+      app.frame.focus();
+
+    // Remove the active class and start the closing transition
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
 
+    // When closing transition ends, remove the frame
     frame.addEventListener('transitionend', function frameTransitionend() {
       frame.removeEventListener('transitionend', frameTransitionend);
       windows.removeChild(frame);
@@ -1250,9 +1275,6 @@ var WindowManager = (function() {
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     getAppFrame: getAppFrame,
-    getNumberOfRunningApps: function() {
-      return numRunningApps;
-    },
     getRunningApps: function() {
        return runningApps;
     },
