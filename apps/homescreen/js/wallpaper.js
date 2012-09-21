@@ -16,8 +16,8 @@ const Wallpaper = (function() {
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: 320,
+        height: 480
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
@@ -38,5 +38,5 @@ const Wallpaper = (function() {
     init: function init() {
       overlay.addEventListener('contextmenu', onHomescreenContextmenu);
     }
-  }
+  };
 })();
