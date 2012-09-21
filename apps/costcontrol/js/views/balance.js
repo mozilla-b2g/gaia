@@ -186,10 +186,12 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   // Automatic updates when showing the application
   function _configureAutomaticUpdates() {
     document.addEventListener('mozvisibilitychange',
-                              function ccapp_visibility(evt) {
-                                if (!document.mozHidden)
-                                  _requestUpdateBalance();
-                              }
+      function ccapp_visibility(evt) {
+        var status = CostControl.getServiceStatus();
+        // In roaming, no automatic updates are allowed
+        if (!document.mozHidden && status.availability && !status.roaming)
+          _requestUpdateBalance();
+      }
     );
   }
 
