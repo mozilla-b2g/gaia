@@ -5,7 +5,7 @@ var _ = navigator.mozL10n.get;
 
 var SimPinDialog = {
   dialog: document.getElementById('simpin-dialog'),
-  dialogTitle: document.querySelector('#simpin-dialog header h2'),
+  dialogTitle: document.querySelector('#simpin-dialog header h1'),
   dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
 
   pinArea: document.getElementById('pinArea'),
@@ -26,6 +26,7 @@ var SimPinDialog = {
 
   lockType: 'pin',
   action: 'unlock',
+  origin: 'sim',
 
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
@@ -254,7 +255,8 @@ var SimPinDialog = {
     if (oncancel && typeof oncancel === 'function')
       this.oncancel = oncancel;
 
-    this.dialog.className = 'active';
+    this.origin = document.location.hash;
+    document.location.hash = 'simpin-dialog';
 
     if (action == 'unlock' && this.lockType == 'puk')
       this.pukInput.focus();
@@ -264,7 +266,7 @@ var SimPinDialog = {
 
   close: function spl_close() {
     this.clear();
-    this.dialog.removeAttribute('class');
+    document.location.hash = this.origin;
   },
 
   skip: function spl_skip() {

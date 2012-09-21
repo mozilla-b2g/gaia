@@ -969,54 +969,14 @@
 
     <!-- [TODO] Security :: Phone Lock -->
 
-    <!-- Security :: SIM Security -->
-    <section role="region" id="sim">
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="simSecurity">
-          SIM Security
-        </h1>
-      </header>
-
-      <ul>
-        <li id="simpin-enabled">
-          <label class="switch">
-            <input type="checkbox"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="simPin">SIM PIN</a>
-        </li>
-      </ul>
-
-      <dl>
-        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
-        <dd data-l10n-id="simPinIntro1">
-          A SIM PIN prevents access to the SIM card's
-          cellular data networks. When it's on, any device
-          containing the SIM card will request the PIN upon
-          restart.
-        </dd>
-        <dd data-l10n-id="simPinIntro2">
-          A SIM PIN is not the same as the Passcode used
-          to unlock the device.
-        </dd>
-      </dl>
-
-      <ul>
-        <li id="simpin-change">
-          <label>
-            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
-          </label>
-        </li>
-      </ul>
-    </section>
-
     <!-- Security :: SIM Security :: SIM PIN Input Dialog -->
-    <form role="dialog" action="#sim" id="simpin-dialog">
+    <section role="region" id="simpin-dialog" data-leaf>
       <header>
-        <button data-l10n-id="cancel" type="reset">Cancel</button>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
         <button data-l10n-id="done" type="submit">Done</button>
-        <h2></h2>
+        </menu>
+        <h1></h1>
       </header>
 
       <div class=container>
@@ -1059,7 +1019,49 @@
           </div>
         </div>
       </div>
-    </form>
+    </section>
+
+    <!-- Security :: SIM Security -->
+    <section role="region" id="sim">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="simSecurity">
+          SIM Security
+        </h1>
+      </header>
+
+      <ul>
+        <li id="simpin-enabled">
+          <label class="switch">
+            <input type="checkbox"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="simPin">SIM PIN</a>
+        </li>
+      </ul>
+
+      <dl>
+        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
+        <dd data-l10n-id="simPinIntro1">
+          A SIM PIN prevents access to the SIM card's
+          cellular data networks. When it's on, any device
+          containing the SIM card will request the PIN upon
+          restart.
+        </dd>
+        <dd data-l10n-id="simPinIntro2">
+          A SIM PIN is not the same as the Passcode used
+          to unlock the device.
+        </dd>
+      </dl>
+
+      <ul>
+        <li id="simpin-change">
+          <label>
+            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+          </label>
+        </li>
+      </ul>
+    </section>
 
 
     <!-- [TODO] Security :: App Permissions -->
