@@ -4,21 +4,7 @@
 var Launcher = (function() {
 
   var BUTTONBAR_TIMEOUT = 5000;
-
-  window.asyncStorage.getItem('adv_displayed', function callGetItem(value) {
-    var adv = document.getElementById('advertisement');
-
-    if (value) {
-      adv.parentNode.removeChild(adv);
-      return;
-    }
-
-    adv.hidden = false;
-    setTimeout(function removeAdvertisement() {
-      adv.parentNode.removeChild(adv);
-      window.asyncStorage.setItem('adv_displayed', true);
-    }, 5000);
-  });
+  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
   var back = document.getElementById('back-button');
   var forward = document.getElementById('forward-button');
@@ -26,7 +12,7 @@ var Launcher = (function() {
   var footer = document.querySelector('#footer');
   var buttonBarTimeout;
 
-  var isButtonBarDisplayed = false;
+  var isButtonBarDisplayed = true;
   function toggleButtonBar() {
     clearTimeout(buttonBarTimeout);
     footer.classList.toggle('closed');
@@ -109,6 +95,7 @@ var Launcher = (function() {
   }
 
   var url = iframe.src = getURL();
+  setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
   function locChange(evt) {
     iframe.getCanGoForward().onsuccess = function(e) {
