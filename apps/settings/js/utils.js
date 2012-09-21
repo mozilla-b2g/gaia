@@ -34,16 +34,3 @@ function openDialog(dialogID, onSubmit, onReset) {
   document.location.hash = dialogID; // show dialog box
 }
 
-/*
-var gNewPanel;
-var gOldPanel;
-window.addEventListener('hashchange', function showPanel(event) {
-  if (gOldPanel) {
-    gOldPanel.style.display = 'none';
-  }
-  gOldPanel = gNewPanel;
-  gNewPanel = document.querySelector(document.location.hash);
-  gNewPanel.style.display = 'block';
-});
-*/
-

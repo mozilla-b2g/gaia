@@ -1,4 +1,6 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var _ = navigator.mozL10n.get;
@@ -163,3 +165,4 @@ var SimPinLock = {
 window.addEventListener('localized', function showPanel() {
   SimPinLock.init();
 });
+
