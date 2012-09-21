@@ -123,13 +123,15 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
-var pickView = $('pick-view');
 var editView = $('edit-view');
+var pickView = $('pick-view');
+var cropView = $('crop-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+  thumbnailListView, thumbnailSelectView, photoView, editView,
+  pickView, cropView
 ];
 var currentView;
 
@@ -465,47 +467,108 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  var activityName = activityRequest.source.name;
+  // We can't handle any kind of activity if the MediaDB is not ready
+  if (photodb.state === MediaDB.READY)
+    handleActivity();
+  else {
+    photodb.addEventListener('ready', function waitTillReady() {
+      photodb.removeEventListener('ready', waitTillReady);
+      handleActivity();
+    });
+  }
 
-  switch (activityName) {
-  case 'browse':
-    if (launchedAsInlineActivity)
-      return;
+  function handleActivity() {
 
-    // The 'browse' activity is just the way we launch the app
-    // There's nothing else to do here.
-    setView(thumbnailListView);
-    break;
-  case 'pick':
-    if (!launchedAsInlineActivity)
-      return;
+    var activityName = activityRequest.source.name;
 
-    if (pendingPick)
-      cancelPick();
-    startPick(activityRequest);
-    break;
+    switch (activityName) {
+    case 'browse':
+      if (launchedAsInlineActivity)
+        return;
+
+      // The 'browse' activity is just the way we launch the app
+      // There's nothing else to do here.
+      setView(thumbnailListView);
+      break;
+    case 'pick':
+      if (!launchedAsInlineActivity)
+        return;
+
+      if (pendingPick)
+        cancelPick();
+      startPick(activityRequest);
+      break;
+    }
   }
 }
 
 var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
 var pendingPick;
+var pickType;
+var pickWidth, pickHeight;
+var cropURL;
+var cropEditor;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
+  pickType = activityRequest.source.data.type;
+  if (pendingPick.source.data.width && pendingPick.source.data.height) {
+    pickWidth = pendingPick.source.data.width;
+    pickHeight = pendingPick.source.data.height;
+  }
+  else {
+    pickWidth = pickHeight = 0;
+  }
   setView(pickView);
 }
 
-function finishPick(filename) {
+function cropPickedImage(fileinfo) {
+  setView(cropView);
+
+  photodb.getFile(fileinfo.name, function(file) {
+    cropURL = URL.createObjectURL(file);
+    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      cropEditor.showCropOverlay();
+      if (pickWidth)
+        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+      else
+        cropEditor.setCropAspectRatio(); // free form cropping
+    });
+  });
+}
+
+function finishPick() {
+  var url;
+  if (pickWidth)
+    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
+  else
+    url = cropEditor.getCroppedRegionDataURL(pickType);
+
   pendingPick.postResult({
     type: 'image/jpeg',
-    filename: filename
+    url: url
   });
-  pendingPick = null;
-  setView(thumbnailListView);
+  cleanupPick();
 }
 
 function cancelPick() {
   pendingPick.postError('pick cancelled');
+  cleanupPick();
+}
+
+function cleanupCrop() {
+  if (cropURL) {
+    URL.revokeObjectURL(cropURL);
+    cropURL = null;
+  }
+  if (cropEditor) {
+    cropEditor.destroy();
+    cropEditor = null;
+  }
+}
+
+function cleanupPick() {
+  cleanupCrop();
   pendingPick = null;
   setView(thumbnailListView);
 }
@@ -559,7 +622,7 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
     updateSelectionState();
   }
   else if (currentView === pickView) {
-    finishPick(images[parseInt(target.dataset.index)].name);
+    cropPickedImage(images[parseInt(target.dataset.index)]);
   }
 });
 
@@ -596,11 +659,22 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
-// Clicking on the pick cancel button cancels the pick activity, which sends
-// us back to thumbail list view
-$('pick-cancel-button').onclick = function() {
+// Clicking on the pick back button cancels the pick activity.
+$('pick-back-button').onclick = function() {
   cancelPick();
 };
+
+// In crop view, the back button goes back to pick view
+$('crop-back-button').onclick = function() {
+  setView(pickView);
+  cleanupCrop();
+};
+
+// In crop view, the done button finishes the pick
+$('crop-done-button').onclick = function() {
+  finishPick();
+};
+
 
 // The camera buttons should both launch the camera app
 $('photos-camera-button').onclick =
@@ -860,18 +934,39 @@ function displayImageInFrame(n, frame) {
 
   // Asynchronously set the image url
   var imagedata = images[n];
-  photodb.getFile(imagedata.name, function(file) {
+  displayFile(img, imagedata.name,
+              imagedata.metadata.width, imagedata.metadata.height);
+}
+
+function displayFile(element, filename, width, height) {
+  var container = element.parentNode;
+  // Asynchronously set the image url
+  photodb.getFile(filename, function(file) {
     var url = URL.createObjectURL(file);
-    img.src = url;
-    img.onload = function() { URL.revokeObjectURL(url); };
+    element.src = url;
+    element.onload = function() {
+      URL.revokeObjectURL(url);
+
+      // If we didn't know the width or height before, then get them
+      // from the image now, and use that information to position
+      // the image in its container
+      if (!width || !height) {
+        var fit = fitImage(element.naturalWidth, element.naturalHeight,
+                           container.offsetWidth, container.offsetHeight);
+        positionImage(element, fit);
+      }
+    };
   });
 
-  // Figure out the size and position of the image
-  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
-                     photoView.offsetWidth, photoView.offsetHeight);
-
-  positionImage(img, fit);
+  // If we know the image size from its metadata, then position it now
+  // even before it is loaded
+  if (width && height) {
+    var fit = fitImage(width, height,
+                       container.offsetWidth, container.offsetHeight);
+    positionImage(element, fit);
+  }
 }
+
 
 function positionImage(img, fit) {
   img.style.transform =
