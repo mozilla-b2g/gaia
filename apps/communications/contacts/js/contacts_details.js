@@ -259,12 +259,15 @@ contacts.Details = (function() {
       linked: slinked
     });
 
-    if(isFbContact && !linked) {
-      social.querySelector('#link_button').classList.add('hide');
-    }
-
     if(!isFbContact) {
       social.querySelector('#profile_button').classList.add('hide');
+    }
+    else {
+      social.querySelector('#social-label').textContent = _('facebook');
+    }
+
+    if(isFbContact && !linked) {
+      social.querySelector('#link_button').classList.add('hide');
     }
 
     listContainer.appendChild(social);
