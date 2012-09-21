@@ -171,3 +171,10 @@ div.snapshot {
   margin: 5% 30%;
 }
 
+div.snapshot {
+  text-align: center;
+  width: 40%;
+  height: 40%;
+  background-size: 100% 100%;
+  margin: 5% 30%;
+}

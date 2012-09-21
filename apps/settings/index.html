@@ -23,6 +23,7 @@
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
   </head>
@@ -609,74 +610,8 @@
           Wallpaper
         </h1>
       </header>
-
-      <header>
-        <h2 data-l10n-id="lockScreen">Lock Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="homeScreen">Home Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
+      <div class="snapshot" id="wallpaper-snapshot">
+      </div>
     </section>
 
     <!-- Personalization :: Notifications -->
@@ -1308,7 +1243,6 @@
         </li>
       </ul>
     </section>
-
   </body>
 </html>
 
