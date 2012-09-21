@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 // TODO:
@@ -745,39 +745,64 @@ $('thumbnails-share-button').onclick = function() {
 /*
  * Share one or more images using Web Activities.
  *
- * XXX
- * This is a preliminary implementation with two bug workarounds:
+ * Because multiple images may have different mime types we just
+ * use 'image/*' as the type.
  *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
- * we just use a type of "image" since the activity handler app can't
- * register an array of the image mime types it accepts
- *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
- * we can share blobs directly, this function just shares filenames.
- * This means that the app on the receiving end has to use device storage
- * to get the actual file. Since that requires special permissions
- * it might not be what we want.  We could change this code to use a
- * data url and pass the whole image as a long, long string. Because this
- * is sub-optimal and unstable, I'm using the activity name "share-filenames"
- * instead of the more generic "share".
+ * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
+  var urls = [];
+  getDataURLForNextFile();
+
+  function getDataURLForNextFile() {
+    if (urls.length === filenames.length) {
+      shareURLs(urls);
+    }
+    else {
+      var i = urls.length;
+      var filename = filenames[i];
+      photodb.getFile(filename, function(file) {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function() {
+          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
+          getDataURLForNextFile();
+        }
+      });
+    }
+  }
+}
+
+// This is called by shareFile once the filenames have
+// been converted to data URLs
+function shareURLs(urls) {
   var a = new MozActivity({
-    name: 'share-filenames',
+    name: 'share',
     data: {
-      type: 'image',
-      filenames: filenames
+      type: 'image/*',
+      number: urls.length,
+      urls: urls
     }
   });
 
+  function reopen() {
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      e.target.result.launch();
+    };
+  }
+
+  a.onsuccess = function() {
+    reopen();
+  }
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     }
     else {
-      console.log('share activity error:', a.error.name);
+      console.warn('share activity error:', a.error.name);
     }
+    reopen();
   };
 }
 
