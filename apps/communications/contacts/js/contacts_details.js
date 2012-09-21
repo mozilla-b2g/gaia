@@ -247,18 +247,27 @@ contacts.Details = (function() {
 
   var renderSocial = function cd_renderSocial(contact) {
     var linked = fb.isFbLinked(contact);
-    if (!fb.isFbContact(contact) || linked) {
-      var action = linked ? _('social-unlink') : _('social-link');
-      var linked = linked ? 'false' : 'true';
+    var isFbContact = fb.isFbContact(contact);
 
-      var social = utils.templates.render(socialTemplate, {
-        i: contact.id,
-        action: action,
-        linked: linked
-      });
+    // The profile at least has to be showed
+    var action = linked ? _('social-unlink') : _('social-link');
+    var slinked = linked ? 'false' : 'true';
 
-      listContainer.appendChild(social);
+    var social = utils.templates.render(socialTemplate, {
+      i: contact.id,
+      action: action,
+      linked: slinked
+    });
+
+    if(isFbContact && !linked) {
+      social.querySelector('#link_button').classList.add('hide');
     }
+
+    if(!isFbContact) {
+      social.querySelector('#profile_button').classList.add('hide');
+    }
+
+    listContainer.appendChild(social);
   }
 
   var renderPhones = function cd_renderPhones(contact) {
