@@ -125,7 +125,6 @@ function setupWidget() {
 
     // Observer to see which cost control or telephony is enabled
     CostControl.settings.observe('plantype', onPlanTypeChange);
-    onPlanTypeChange(CostControl.settings.option('plantype'));
 
     // Observer to detect changes on threshold limits
     CostControl.settings.observe('lowlimit_threshold', _updateUI);
@@ -217,11 +216,11 @@ function setupWidget() {
 
     if (view === 'balance') {
       _balanceView.setAttribute('aria-hidden', 'false');
+      _updateBalanceUI();
     } else {
       _telephonyView.setAttribute('aria-hidden', 'false');
+      _updateTelephonyUI();
     }
-
-    _updateBalanceUI();
   }
 
   // Enable / disable warning mode for the UI
