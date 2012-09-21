@@ -149,6 +149,7 @@ body.hidden *[data-l10n-id] {
 [role="tablist"] *:target {
   position: absolute;
   top: 0;
+  left: 0;
 }
 
 .with-keyboard #views, .with-keyboard #contacts-view {
