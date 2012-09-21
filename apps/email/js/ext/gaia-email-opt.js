@@ -13887,6 +13887,8 @@ function strcmp(a, b) {
 }
 
 function checkIfAddressListContainsAddress(list, addrPair) {
+  if (!list)
+    return false;
   var checkAddress = addrPair.address;
   for (var i = 0; i < list.length; i++) {
     if (list[i].address === checkAddress)
@@ -14363,7 +14365,10 @@ MailBridge.prototype = {
                 }
                 // add the author as the first 'to' person
                 else {
-                  rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  if (bodyInfo.to && bodyInfo.to.length)
+                    rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  else
+                    rTo = [effectiveAuthor];
                 }
                 rCc = bodyInfo.cc;
                 rBcc = bodyInfo.bcc;
@@ -19718,7 +19723,7 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   exports.INITIAL_SYNC_DAYS = syncValues.days;
 
   exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  TOO_MANY_MESSAGES = syncValues.tooMany;
+  exports.TOO_MANY_MESSAGES = syncValues.tooMany;
 
   exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
 
@@ -19731,13 +19736,14 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
     syncValues.refreshOld;
 
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
     syncValues.useRangeNonInbox;
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
     syncValues.useRangeInbox;
 };
 
-}); // end define;
+}); // end define
+;
 /**
  * Presents a message-centric view of a slice of time from IMAP search results.
  *
