@@ -27,30 +27,17 @@
     }
     #bb-docs-toggle { vertical-align: middle; }
   </style>
-  <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(){
-      document.getElementById("bb-docs-toggle").addEventListener("click", function(){
-        var target = document.querySelector("ul[data-state]");
-        if ( target.getAttribute("data-state") == "edit" ) {
-            target.setAttribute("data-state", "");
-        } else {
-            target.setAttribute("data-state", "edit");
-        }
-      })
-    });
-  </script>
-
   <title>Lists</title>
   <meta name="description" content="Displaying an enumeration of a set of items ">
   <meta name="requires" content="other/switches/style.css (only for edit mode) ">
-  <meta name="target" content="html">  
+  <meta name="target" content="html">
 </head>
 
 <body role="application">
 
   <section role="region">
        <h2 class="bb-docs">Calendar</h2>
-      <ul>
+       <ul class="block-items">
           <li data-state="tagged" data-tag="A">
             <a href="#">
               <em class="aside">
@@ -74,7 +61,7 @@
       </ul>
 
       <h2 class="bb-docs">Call log</h2>
-      <ul>
+      <ul class="block-items">
           <li>
             <em class="aside">
               <span class="icon icon-callout">Outgoing call</span>
@@ -105,7 +92,7 @@
       </ul>
 
       <h2 class="bb-docs">Press state ( click on the item! )</h2>
-      <ul>
+      <ul class="block-items">
           <li data-state="new">
             <a href="#">
               <em class="aside">
@@ -126,7 +113,7 @@
       </ul>
 
     <h2 class="bb-docs">Contacts</h2>
-       <ul>
+       <ul class="block-items">
           <li data-state="marked">
             <img src="images/dummy.jpg">
             <dl>
@@ -136,7 +123,6 @@
               </dd>
             </dl>
           </li>
-
            <li>
             <img src="images/dummy.jpg">
             <dl>
@@ -148,61 +134,8 @@
           </li>
         </ul>
 
-        <h2 class="bb-docs">Edit mode <button id="bb-docs-toggle">toggle</button></h2>
-        <ul data-state="edit">
-          <li>
-            <img src="images/dummy.jpg">
-            <label class="check negative">
-              <input type="checkbox" checked="checked">
-              <span></span>
-            </label>
-            <dl>
-              <dt>Margherita <strong>Gomez</strong></dt>
-              <dd>
-                <span>Family</span>
-              </dd>
-            </dl>
-          </li>
-
-          <li>
-            <img src="images/dummy.jpg">
-            <label class="check negative">
-              <input type="checkbox">
-              <span></span>
-            </label>
-            <dl>
-              <dt>Margherita <strong>Gomez</strong></dt>
-              <dd>
-                <span>Family</span>
-              </dd>
-            </dl>
-          </li>
-
-          <li>
-            <label class="check negative">
-                <input type="checkbox" />
-                <span></span>
-            </label>
-            <a href="#">
-              <em class="aside">
-                <span class="icon icon-smsin">Missed call</span>
-              </em>
-              <em class="aside end">
-                <span class="icon icon-arrowaction">Missed call</span>
-              </em>
-              <dl>
-                <dt>MarkAlfenito <em>(2)</em></dt>
-                <dd>
-                  <time>5:43PM</time>
-                  <span>Mobile, Vivo</span>
-                </dd>
-              </dl>
-            </a>
-          </li>
-        </ul>
-
         <h2 class="bb-docs">Search results</h2>
-         <ul>
+         <ul class="block-items">
            <li>
             <a href="#">
               <em class="aside">
@@ -220,7 +153,6 @@
               </dl>
             </a>
           </li>
-
           <li data-state="marked">
             <img src="images/dummy.jpg">
             <dl>
@@ -230,7 +162,6 @@
               </dd>
             </dl>
           </li>
-
            <li>
             <img src="images/dummy.jpg">
             <dl>
@@ -246,9 +177,8 @@
         <h2 class="bb-docs">Overlay theme</h2>
         <!-- This div is only for example pruposal, basically is for having some background image
                 to getting work the alpha in the overlay theme -->
-        <div style="background: url(images/example-notifications.png),
-          url(images/dummy.jpg) no-repeat center center; background-size: 100% auto;">
-          <ul class="overlay">
+        <div style="background: url(images/example-notifications.png); background-size: 100% auto;">
+          <ul class="block-items skin-overlay">
              <li data-state="new">
               <a href="#">
                 <em class="aside">
@@ -265,7 +195,6 @@
                 </dl>
               </a>
             </li>
-
            <li data-state="new">
               <a href="#">
                 <em class="aside">
@@ -286,6 +215,5 @@
         </div>
 
   </section>
-
 </body>
 </html>

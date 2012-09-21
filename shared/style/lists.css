@@ -1,7 +1,7 @@
 /* ----------------------------------
  * Lists: default
  * ---------------------------------- */
-body[role="application"] ul, body[role="application"] ol {
+.block-items {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -9,7 +9,7 @@ body[role="application"] ul, body[role="application"] ol {
   font-family: "Open Sans", Sans-serif;
 }
 
-body[role="application"] li {
+.block-items li {
   display: inline-block;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -21,8 +21,8 @@ body[role="application"] li {
   position: relative;
 }
 
-body[role="application"] li > a:first-of-type,
-body[role="application"] li > a:first-of-type  {
+.block-items li > a:first-of-type,
+.block-items li > a:first-of-type  {
   text-decoration: none;
   color: #000;
   display: inline-block;
@@ -31,7 +31,7 @@ body[role="application"] li > a:first-of-type  {
 }
 
 /* State press */
-body[role="application"] li > a:first-of-type:after {
+.block-items li > a:first-of-type:after {
   content: "";
   transition: opacity 0.2s ease;
   background-color: #b1f1ff;
@@ -45,11 +45,11 @@ body[role="application"] li > a:first-of-type:after {
   opacity: 0;
 }
 
-body[role="application"] li > a:first-of-type:active:after {
+.block-items li > a:first-of-type:active:after {
   opacity: 0.6;
 }
 
-body[role="application"] li .aside {
+.block-items li .aside {
   float: left;
   display: inline;
   position: relative;
@@ -58,11 +58,11 @@ body[role="application"] li .aside {
   text-align: center;
 }
 
-body[role="application"] li .aside.end {
+.block-items li .aside.end {
   float: right;
 }
 
-body[role="application"] li .aside:before {
+.block-items li .aside:before {
   content: "";
   height: 100%;
   width: 1px;
@@ -71,7 +71,7 @@ body[role="application"] li .aside:before {
   vertical-align: middle;
 }
 
-body[role="application"] li .aside time {
+.block-items li .aside time {
   display: inline-block;
   vertical-align: super;
   width: 4rem;
@@ -81,7 +81,7 @@ body[role="application"] li .aside time {
   text-align: right;
 }
 
-body[role="application"] li img {
+.block-items li img {
   float: right;
   display: inline;
   width: 6rem;
@@ -90,17 +90,17 @@ body[role="application"] li img {
   background-size: 100% auto;
 }
 
-body[role="application"] li dl {
+.block-items li dl {
   display: block;
   overflow: hidden;
   padding: 1rem 0.5rem 0 2rem;
 }
 
-body[role="application"] li .aside ~ dl {
+.block-items li .aside ~ dl {
   padding-left: 0.5rem;
 }
 
-body[role="application"] li dl dt {
+.block-items li dl dt {
   font: 1.8rem/1.2em "Open Sans", Sans-serif;
   white-space: nowrap;
   height: 2.2rem;
@@ -108,21 +108,21 @@ body[role="application"] li dl dt {
   text-overflow: ellipsis;
 }
 
-body[role="application"] li dl dt strong {
+.block-items li dl dt strong {
   font-weight: 600;
   font-family: "Open Sans", Sans-serif;
 }
 
-body[role="application"] li dl dt em {
+.block-items li dl dt em {
   font-size: 1.3rem;
   font-style: normal;
 }
 
-body[role="application"] li dl mark {
+.block-items li dl mark {
   background-color: #cfd3d7;
 }
 
-body[role="application"] li dl dd {
+.block-items li dl dd {
   font-size: 1.4rem;
   color: #5b5b5b;
   white-space: nowrap;
@@ -132,28 +132,28 @@ body[role="application"] li dl dd {
   text-overflow: ellipsis;
 }
 
-body[role="application"] li dl dd strong {
+.block-items li dl dd strong {
   font-weight: 600;
   font-family: "Open Sans", Sans-serif;
   color: #000;
 }
 
-body[role="application"] li dl dd time {
+.block-items li dl dd time {
   font-size: 1.4rem;
   color: #5b5b5b;
   margin-right: 0.3rem;
 }
 
-body[role="application"] li dl dd span {
+.block-items li dl dd span {
   margin-right: 0.3rem;
 }
 
-body[role="application"] li dl dd span:last-child {
+.block-items li dl dd span:last-child {
   margin: 0;
 }
 
 /* Icon definitions */
-body[role="application"] li .icon  {
+.block-items li .icon  {
   display: inline-block;
   vertical-align: middle;
   width: 3rem;
@@ -165,7 +165,7 @@ body[role="application"] li .icon  {
   position: relative;
 }
 
-body[role="application"] li .icon.icon-arrowaction {
+.block-items li .icon.icon-arrowaction {
   background-image: url(lists/images/icons/arrowaction.png);
   width:1rem;
   height: 1rem;
@@ -173,36 +173,34 @@ body[role="application"] li .icon.icon-arrowaction {
   margin: 0 -3rem 0.5rem 0;
 }
 
-body[role="application"] li .icon.icon-callout {
+.block-items li .icon.icon-callout {
   background-image: url(lists/images/icons/callout.png);
   width: 2.4rem;
   height: 2rem;
 }
 
-body[role="application"] li .icon.icon-smsin {
+.block-items li .icon.icon-smsin {
   background-image: url(lists/images/icons/smsin.png);
   width: 2.5rem;
   height: 2.2rem;
 }
 
-body[role="application"] li[data-state="new"] .icon.icon-smsin {
+.block-items li[data-state="new"] .icon.icon-smsin {
   background-image: url(lists/images/icons/smsin-new.png);
   width: 2.5rem;
   height: 2.2rem;
 }
 
 /* State edit*/
-body[role="application"] ul[data-state="edit"] li,
-body[role="application"] ol[data-state="edit"] li {
+.block-items[data-state="edit"] li {
   transform: translateX(5rem);
 }
 
-body[role="application"] ul[data-state="edit"] li > label.check,
-body[role="application"] ol[data-state="edit"] li > label.check {
+.block-items[data-state="edit"] li > label {
    opacity: 1;
 }
 
-body[role="application"] li > label.check {
+.block-items li > label {
   transition: opacity 0.6s ease;
   width: 5rem;
   height: 6rem;
@@ -217,7 +215,7 @@ body[role="application"] li > label.check {
 }
 
 /* State disabled */
-body[role="application"] li[aria-disabled="true"]:before {
+.block-items li[aria-disabled="true"]:before {
   content: "";
   position: absolute;
   left: 0;
@@ -228,12 +226,12 @@ body[role="application"] li[aria-disabled="true"]:before {
   opacity: 0.7;
 }
 
-body[role="application"]  li[aria-disabled="true"] {
+.block-items  li[aria-disabled="true"] {
   pointer-events:none;
 }
 
 /* State new */
-body[role="application"] li[data-state="marked"]:before {
+.block-items li[data-state="marked"]:before {
   content: "";
   position: absolute;
   left: 0;
@@ -245,12 +243,12 @@ body[role="application"] li[data-state="marked"]:before {
   background-size: 100% auto;
 }
 
-body[role="application"] li[data-state="new"] time {
+.block-items li[data-state="new"] time {
   color: #52b6cc !important;
 }
 
 /* State tagged */
-body[role="application"] li[data-state="tagged"]:after  {
+.block-items li[data-state="tagged"]:after  {
   content: "";
   position: absolute;
   left: 0;
@@ -259,80 +257,32 @@ body[role="application"] li[data-state="tagged"]:after  {
   width: 0.4rem;
 }
 
-body[role="application"] li[data-tag="A"]:after { background-color: #e7a300; }
-body[role="application"] li[data-tag="B"]:after { background-color: #954fa7; }
+.block-items li[data-tag="A"]:after { background-color: #e7a300; }
+.block-items li[data-tag="B"]:after { background-color: #954fa7; }
 
 
 /* ----------------------------------
  * Lists: Overlay theme
  * ---------------------------------- */
-body[role="application"] ul.overlay li,
-body[role="application"] ol.overlay li {
+.block-items.skin-overlay li,
+.block-items.skin-overlay li {
   border-top-color: rgba(255, 255, 255, 0.1);
   border-bottom-color: rgba(0, 0, 0, 0.6);
 }
 
-body[role="application"] ul.overlay  li dl dt,
-body[role="application"] ol.overlay  li dl dt {
+.block-items.skin-overlay  li dl dt,
+.block-items.skin-overlay  li dl dt {
   color: #fff;
 }
 
-body[role="application"] ul.overlay li dl dd,
-body[role="application"] ol.overlay li dl dd {
+.block-items.skin-overlay li dl dd,
+.block-items.skin-overlay li dl dd {
   color: #ccc;
 }
 
-body[role="application"] ul.overlay .icon.icon-smsin,
-body[role="application"] ol.overlay .icon.icon-smsin {
+.block-items.skin-overlay .icon.icon-smsin,
+.block-items.skin-overlay .icon.icon-smsin {
   background-image: url(lists/images/icons/smsin-overlay.png);
   width: 3.1rem;
   height: 3.1rem;
-}
-
-/* Switches */
-label:not([for])  {
-  display: inline-block;
-  vertical-align: middle;
-  width: 5rem;
-  height: 5rem;
-  position: relative;
-}
-
-label:not([for]) > input {
-  margin: 0;
-  opacity: 0;
-  position:absolute;
-  top: 0;
-  left: 0;
-}
-
-label:not([for]) input + span {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  margin: -1.1rem 0 0 -1.1rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  pointer-events: none;
-}
-
-label:not([for]) input[type="checkbox"] + span {
-  background: url(lists/images/check/default.png) no-repeat center top;
-}
-
-label:not([for]) input[type="radio"] + span {
-  background: url(lists/images/radio/default.png) no-repeat center top;
-}
-
-label:not([for]) > input:checked + span {
-  background-position: center bottom;
-}
-
-/* Negative */
-label:not([for]).negative input[type="checkbox"] + span {
-  background-image: url(lists/images/check/negative.png);
-}
-
-label:not([for]).negative input[type="radio"] + span {
-  background-image: url(lists/images/radio/negative.png);
 }
