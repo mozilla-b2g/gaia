@@ -104,3 +104,10 @@ body.hidden * {
   float: left;
 }
 
+div.snapshot {
+  text-align: center;
+  width: 40%;
+  height: 40%;
+  background-size: 100% 100%;
+  margin: 5% 30%;
+}
