@@ -740,8 +740,12 @@ var AlarmEditView = {
   },
 
   load: function aev_load(alarm) {
-    if (!alarm)
+    if (!alarm) {
+      this.alarmTitle.textContent = _('newAlarm');
       alarm = this.getDefaultAlarm();
+    } else {
+      this.alarmTitle.textContent = _('editAlarm');
+    }
 
     this.alarm = alarm;
 
