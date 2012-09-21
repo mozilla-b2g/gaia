@@ -53,6 +53,7 @@ body.hidden * {
  */
 
 [role="region"] {
+  visibility: hidden;
   transform: translateX(100%);
   transition: visibility 0s ease .5s, transform .5s ease;
 }
