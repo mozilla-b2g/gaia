@@ -208,10 +208,10 @@ var NavbarManager = {
     contacts.classList.remove('toolbar-option-selected');
     keypad.classList.remove('toolbar-option-selected');
 
-    // XXX : Move this to whole activity approach, so far 
+    // XXX : Move this to whole activity approach, so far
     // we don't have time to do a deep modification of
     // contacts activites. Postponed to v2
-    var checkContactsTab = function () {
+    var checkContactsTab = function() {
       var contactsIframe = document.getElementById('iframe-contacts');
 
       var index = contactsIframe.src.indexOf('#add-parameters');
