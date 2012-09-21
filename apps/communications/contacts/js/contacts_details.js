@@ -249,7 +249,6 @@ contacts.Details = (function() {
     var linked = fb.isFbLinked(contact);
     var isFbContact = fb.isFbContact(contact);
 
-    // The profile at least has to be showed
     var action = linked ? _('social-unlink') : _('social-link');
     var slinked = linked ? 'false' : 'true';
 
