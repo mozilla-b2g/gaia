@@ -53,34 +53,37 @@ label textarea:valid + button[type="reset"] {
   pointer-events: all;
 }
 
-/* Fieldbox */
-.fieldbox {
+/* Fieldset */
+fieldset {
   background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
   border-radius: 0.3rem;
   border: 1px solid #C8C8C8;
-  overflow: hidden;
   font: 1.4rem/1em "Open Sans", Sans-serif;
+  padding: 0;
+  overflow: hidden;
 }
 
-.fieldbox dt {
+fieldset legend {
   -moz-box-sizing: border-box;
   display: inline;
   float: left;
   position: relative;
   text-transform: uppercase;
+  position: relative;
+  padding: 1.2rem 0.5rem 1.2rem 1.4rem;
   width: 9.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #333;
+  text-transform: uppercase;
 }
 
-.fieldbox a {
-  color: #333;
-  text-decoration: none;
-  text-transform: uppercase;
-  display: block;
-  padding: 1.3rem 0.5rem 1.4rem 1.4rem;
+fieldset legend[role="button"] {
   position: relative;
 }
 
-.fieldbox a:after {
+fieldset legend[role="button"]:after {
   content: "";
   width: 0;
   height: 0;
@@ -91,24 +94,104 @@ label textarea:valid + button[type="reset"] {
   margin-left: 0.5rem;
 }
 
-.fieldbox input {
+fieldset section input:not([type="radio"]),
+fieldset section input:not([type="checkbox"]),
+fieldset section input:not([type="hidden"]),
+fieldset section textarea {
   border-radius: 0;
   border: none;
   background: none;
   font-weight: 600;
 }
 
-.fieldbox dd {
+fieldset section {
   border-left: 1px solid #DDD;
   border-radius: 0 0.3rem 0.3rem 0;
   display: block;
   overflow: hidden;
 }
 
-.fieldbox label {
+fieldset section label {
   border-bottom: 1px solid #DDD;
 }
 
-.fieldbox label:last-child {
+fieldset section label:last-child {
   border-bottom: medium none;
+}
+
+/* Tidy (search/submit) */
+form.tidy {
+  background: #f8f8f8 url(input_areas/images/ui/background.png) repeat-x left bottom;
+  border-bottom: solid 1px #989898;
+  height: 3.4rem;
+  position: relative;
+}
+
+form.tidy.full label {
+  width: 100%;
+  background: none;
+}
+
+form.tidy.full button[type="submit"] {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 0;
+  font-size: 0;
+}
+
+form.tidy.bottom {
+  border-top: solid 1px #989898;
+  border-bottom: none;
+}
+
+form.tidy.bottom:after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 1px;
+  height: 0.4rem;
+  background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
+}
+
+form.tidy label {
+  float: left;
+  width: 20.5rem;
+  -moz-box-sizing: border-box;
+  padding: 0.5rem 1.2rem;
+  background: url(input_areas/images/ui/separator.png) no-repeat right center;
+}
+
+form.tidy label input {
+  height: 2.4rem;
+  width: 100%;
+  padding-right: 3rem;
+}
+
+form.tidy label input:focus {
+  border-color: #a4a4a4;
+}
+
+form.tidy label button[type="reset"] {
+  right: 2rem;
+}
+
+form.tidy button[type="submit"] {
+  background: none;
+  border: none;
+  float: right;
+  width: 6rem;
+  padding: 0;
+  font: 600 1.4rem/3.2rem "Open Sans", Sans-serif;
+  color: #333;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+form.tidy button:focus,
+form.tidy button::-moz-focus-inner {
+  border: none;
+  outline: none;
 }
