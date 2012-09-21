@@ -42,13 +42,22 @@
         updateInput(command);
         break;
       case icc.STK_CMD_DISPLAY_TEXT:
-        console.log(" *TODO* STK:Show message: " + JSON.stringify(command));
-        alert(JSON.stringify(command));
+        console.log(" STK:Show message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        alert(command.options.text);
+        break;
+      case icc.STK_CMD_SEND_SMS:
+        console.log(" STK:Send message: " + JSON.stringify(command));
+        if(confirm(command.options.text)) {
+          icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        } else {
+          icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_ERROR });
+        }
         break;
       default:
         console.log("STK Message not managed ... response OK");
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        alert("[DEBUG] TODO: " + JSON.stringify(command));
     }
   }
 
@@ -159,11 +168,17 @@
     var input = document.createElement("input");
     input.id = "stk-item-input";
     input.maxLength = command.options.maxLength;
+    input.placeholder = command.options.text;
     if(command.options.isAlphabet)
       input.type = "text";
     else
       input.type = "number";
-    input.placeholder = command.options.text;
+    if(command.options.defaultText)
+      input.value = command.options.defaultText;
+    if(command.options.isYesNoRequired)
+      input.type = "checkbox";
+    if(command.options.hidden)
+      input.type = "hidden";
     li.appendChild(input);
     iccStkSelection.appendChild(li);
 
