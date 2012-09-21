@@ -27,12 +27,12 @@ window.onload = function() {
     });
 
     request.onsuccess = function() {
-      console.log("success setting wallpaper.image");
+      console.log('success setting wallpaper.image');
       activity.postResult('shared');
       endShare();
     };
     request.onsuccess = function() {
-      console.log("error setting wallpaper.image:", request.error);
+      console.log('error setting wallpaper.image:', request.error);
       activity.postResult('shared');
       endShare();
     };
