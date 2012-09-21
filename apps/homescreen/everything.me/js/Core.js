@@ -8,40 +8,8 @@ window.Evme = new function() {
     this.shouldSearchOnInputBlur = true;
 
     this.init = function() {
-        _this.initWithConfig(Evme.__config);
-    };
-    
-    this.visibilityChange = function(visible) {
-        var method = visible ? "add" : "remove";
-        document.body.classList[method]("evme-displayed");
-        displayed = visible;
-    };
-
-    this.setOpacityBackground = function(value) {
-        Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
-            if (value === 1) {
-                document.body.classList.add("evme-displayed");
-                displayed = true;
-            } else {
-                document.body.classList.remove("evme-displayed");
-                displayed = false;
-            }
-        });
-    }
-
-    this.pageMove = function(dir, ratio) {
-        if (!displayed && dir === "in") {
-            document.body.classList.add("evme-displayed");
-            displayed = true;
-        }
-
-        ratio = Math.floor(ratio*100)/100;
-        var value = dir === "in" ? ratio : 1 - ratio;
-
-        Evme.BackgroundImage.changeOpacity(value);
-    }
-
-    this.initWithConfig = function(data) {
+        data = Evme.__config;
+        
         logger = (typeof Logger !== "undefined") ? new Logger() : console;
         
         var apiHost = Evme.Utils.getUrlParam("apiHost") || data.apiHost;
@@ -76,6 +44,37 @@ window.Evme = new function() {
 
         initObjects(data);
     };
+    
+    // Gaia communication methods
+    this.visibilityChange = function(visible) {
+        var method = visible ? "add" : "remove";
+        document.body.classList[method]("evme-displayed");
+        displayed = visible;
+    };
+
+    this.setOpacityBackground = function(value) {
+        Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
+            if (value === 1) {
+                document.body.classList.add("evme-displayed");
+                displayed = true;
+            } else {
+                document.body.classList.remove("evme-displayed");
+                displayed = false;
+            }
+        });
+    }
+
+    this.pageMove = function(dir, ratio) {
+        if (!displayed && dir === "in") {
+            document.body.classList.add("evme-displayed");
+            displayed = true;
+        }
+
+        ratio = Math.floor(ratio*100)/100;
+        var value = dir === "in" ? ratio : 1 - ratio;
+
+        Evme.BackgroundImage.changeOpacity(value);
+    }
 
     function initObjects(data) {
         var $container = $("#" + Evme.Utils.getID());
