@@ -127,12 +127,11 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe('wallpaper.image',
-                             'resources/images/backgrounds/default.png',
-                             function(value) {
-                               self.updateBackground(value);
-                               self.overlay.classList.remove('uninit');
-                             });
+    SettingsListener.observe(
+      'lockscreen.wallpaper', 'balloon.png', function(value) {
+      self.updateBackground(value);
+      self.overlay.classList.remove('uninit');
+    });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
@@ -858,7 +857,8 @@ var LockScreen = {
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(' + value + ')';
+    var url = 'url(resources/images/backgrounds/' + value + ')';
+
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
