@@ -356,12 +356,34 @@ var Recents = {
     var src = '/contacts/index.html';
     if (contactId) {
       src += '#view-contact-details?id=' + contactId;
+      var timestamp = new Date().getTime();
+      contactsIframe.src = src + '&timestamp=' + timestamp;
+      window.location.hash = '#contacts-view';
     } else {
-      src += '#view-contact-form?tel=' + phoneNumber;
+      var action = new ActionMenu(_('addNewNumber'), [
+      {
+        label: _('createNewContact'),
+        callback: function() {
+          src += '#view-contact-form?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      },
+      {
+        label: _('addToExistingContact'),
+        callback: function() {
+          src += '#add-parameters?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      }
+      ]);
+      action.show();
     }
-    var timestamp = new Date().getTime();
-    contactsIframe.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
