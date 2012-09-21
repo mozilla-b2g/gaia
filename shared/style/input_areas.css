@@ -79,14 +79,10 @@ body[role="application"] .fieldbox a:after {
   width: 0;
   height: 0;
   border: solid 0.4rem transparent;
-  border-top-color: #333; 
+  border-top-color: #333;
   position: absolute;
   top: 1.8rem;
   margin-left: 0.5rem;
-}
-
-body[role="application"] .fieldbox label {
-  font: 0/0 a;
 }
 
 body[role="application"] .fieldbox input {
