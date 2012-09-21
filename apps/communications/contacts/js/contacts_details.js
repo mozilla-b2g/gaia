@@ -261,8 +261,7 @@ contacts.Details = (function() {
 
     if(!isFbContact) {
       social.querySelector('#profile_button').classList.add('hide');
-    }
-    else {
+    } else {
       social.querySelector('#social-label').textContent = _('facebook');
     }
 
