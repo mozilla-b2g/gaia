@@ -39,7 +39,7 @@ if (typeof Contacts.extFb === 'undefined') {
             type: 'url',
             url: profileUrl
           }
-        }
+        };
 
         var activity = new MozActivity(activityDesc);
       }

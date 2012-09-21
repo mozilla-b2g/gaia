@@ -258,13 +258,13 @@ contacts.Details = (function() {
       linked: slinked
     });
 
-    if(!isFbContact) {
+    if (!isFbContact) {
       social.querySelector('#profile_button').classList.add('hide');
     } else {
       social.querySelector('#social-label').textContent = _('facebook');
     }
 
-    if(isFbContact && !linked) {
+    if (isFbContact && !linked) {
       social.querySelector('#link_button').classList.add('hide');
     }
 
