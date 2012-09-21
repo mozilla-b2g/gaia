@@ -44,8 +44,7 @@ var SettingsListener = {
     var req;
     try {
       req = this.getSettingsLock().get(name);
-    }
-    catch (e) {
+    } catch (e) {
       // It is possible (but rare) for getSettingsLock() to return
       // a SettingsLock object that is no longer valid.
       // Until https://bugzilla.mozilla.org/show_bug.cgi?id=793239
