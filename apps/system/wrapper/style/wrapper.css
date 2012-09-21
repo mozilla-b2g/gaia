@@ -15,6 +15,7 @@ iframe {
   height: -moz-calc(100% - 1rem);
 	margin: 0;
 	padding: 0;
+	border: 0;
 }
 
 #loading {
@@ -22,34 +23,44 @@ iframe {
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 1;
 }
 
-menu[type="toolbar"] {
-  position: fixed;
-  bottom: 0;
+footer {
+	position: fixed;
+  bottom: -4rem;
   left: 0;
-  width: 100%;
-  border-top: solid 2px #a6b3bb;
-  height: 4.5rem;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#323639, #272b2e);
-  background-repeat: no-repeat, no-repeat;
-  background-position: top center;
   margin: 0;
   padding: 0;
-  z-index: 1000;
+  z-index: 1;
+	width: 100%;
+	height: 5rem;
+}
+
+#handler {
+	width: 100%;
+	height: 1rem;
+	background-color: #000;
+	background-repeat: no-repeat;
+	background-position: right;
+}
+
+#footer.closed #handler {
+	background-image: url("images/open.png");
+}
+
+menu[type="buttonbar"] {
+  width: 100%;
+  height: 4rem;
+	margin: 0;
+	padding: 0;
+	background-color: rgba(0,0,0,.8);
+	-moz-transform: translateY(-4rem);
+  -moz-transition: -moz-transform .4s ease;
+}
+
+#footer.closed menu {
   -moz-transform: translateY(0);
-  -moz-transition: -moz-transform .2s ease-in;
-}
-
-menu.hidden {
-  -moz-transform: translateY(3.5rem);
-  background-image: url('images/circle.png'), -moz-linear-gradient(#323639, #272b2e);
-}
-
-menu.hidden button {
-  display: none;
 }
 
 menu button {
@@ -59,7 +70,7 @@ menu button {
   display: block;
   margin: 0;
   padding: 0;
-  width: 80px;
+  width: 20%;
   height: 100%;
   float: left;
   background-position: center;
@@ -75,49 +86,29 @@ menu button {
   background-image: url("images/forward.png");
 }
 
+#reload-button {
+  background-image: url("images/reload.png");
+}
+
 #bookmark-button {
   background-image: url("images/bookmark.png");
 }
 
-#reload-button {
-  background-image: url("images/reload.png");
-	float: right;
+#close-button {
+  background-image: url("images/close.png");
 }
 
 menu button[data-disabled] {
   opacity: .2;
 }
 
-menu button.hidden {
-	display: none;
+#bookmark-button[data-disabled] {
+  background-image: url("images/bookmarked.png");
 }
 
-input::-moz-focus-inner {
+input::-moz-focus-inner, input:active {
   border: 0;
-}
-
-#advertisement {
-	text-align: center;
-	pointer-events: none;
-	-moz-animation-name: bounce;
-	-moz-animation-duration: 1s;
-	-moz-animation-iteration-count: infinite;
-	-moz-animation-timing-function: ease-in-out;
-	-moz-animation-direction: alternate;
-
-  z-index: 1001;
-  position: fixed;
-  bottom: 5rem;
-  left: 0;
-  width: 100%;
-  height: 4.4rem;
-}
-
-#advertisement span {
-  font-size: 2rem;
-	font-weight: bold;
-  display: block;
-	color: #000;
+	background: transparent !important;
 }
 
 @-moz-keyframes bounce {

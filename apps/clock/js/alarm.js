@@ -226,18 +226,6 @@ var BannerView = {
     return this.bannerCountdown = document.getElementById('banner-countdown');
   },
 
-  get remainHours() {
-    delete this.remainHours;
-    return this.remainHours =
-      document.getElementById('banner-remain-hours');
-  },
-
-  get remainMinutes() {
-    delete this.remainMinutes;
-    return this.remainMinutes =
-      document.getElementById('banner-remain-minutes');
-  },
-
   calRemainTime: function BV_calRemainTime(targetTime) {
     var now = new Date();
     var remainTime = targetTime.getTime() - now.getTime();
@@ -248,9 +236,20 @@ var BannerView = {
 
   setStatus: function BV_setStatus(nextAlarmFireTime) {
     this.calRemainTime(nextAlarmFireTime);
-    this.remainHours.innerHTML = _('nRemainHours', {n: this._remainHours});
-    this.remainMinutes.innerHTML =
-      _('nRemainMinutes', {n: this._remainMinutes});
+
+    var innerHTML = '';
+    if (this._remainHours == 0) {
+      innerHTML = _('countdown-lessThanAnHour', {
+        minutes: _('nMinutes', { n: this._remainMinutes })
+      });
+    } else {
+      innerHTML = _('countdown-moreThanAnHour', {
+        hours: _('nRemainHours', { n: this._remainHours }),
+        minutes: _('nRemainMinutes', { n: this._remainMinutes })
+      });
+    }
+    this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
+
     this.showBannerStatus();
     var self = this;
     window.setTimeout(function cv_hideBannerTimeout() {
@@ -528,7 +527,8 @@ var AlarmManager = {
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
-      navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+      navigator.mozSettings.createLock().set({'alarm.enabled':
+          hasAlarmEnabled});
       ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
     };
     request.onerror = function(e) {

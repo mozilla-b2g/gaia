@@ -18,12 +18,35 @@ var AttentionScreen = {
     return this.bar = document.getElementById('attention-bar');
   },
 
+  isVisible: function as_isVisible() {
+    return this.attentionScreen.classList.contains('displayed');
+  },
+
+  isFullyVisible: function as_isFullyVisible() {
+    return (this.isVisible() &&
+            !this.mainScreen.classList.contains('active-statusbar'));
+  },
+
   init: function as_init() {
     window.addEventListener('mozbrowseropenwindow', this.open.bind(this), true);
     window.addEventListener('mozbrowserclose', this.close.bind(this), true);
+    window.addEventListener('keyboardchange', this.resize.bind(this), true);
+    window.addEventListener('keyboardhide', this.resize.bind(this), true);
 
     this.bar.addEventListener('click', this.show.bind(this));
     window.addEventListener('home', this.hide.bind(this));
+  },
+
+  resize: function as_resize(evt) {
+    if (!this.isFullyVisible())
+      return;
+
+    if (evt.type == 'keyboardchange') {
+      this.attentionScreen.style.height =
+        window.innerHeight - evt.detail.height + 'px';
+    } else if (evt.type == 'keyboardhide') {
+      this.attentionScreen.style.height = window.innerHeight + 'px';
+    }
   },
 
   open: function as_open(evt) {
@@ -133,9 +156,9 @@ var AttentionScreen = {
         // not turn the sreen off when the attention screen is closed.
         this._screenInitiallyDisabled = false;
 
-        this.dispatchEvent('status-active');
-
         this.mainScreen.classList.add('active-statusbar');
+
+        this.dispatchEvent('status-active');
 
         var attentionScreen = this.attentionScreen;
         attentionScreen.addEventListener('transitionend', function trWait() {

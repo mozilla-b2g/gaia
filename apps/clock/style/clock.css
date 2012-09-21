@@ -503,6 +503,7 @@ html * {
   color: #0995B0;
   font-weight: normal;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 /* localization */
 body.hidden *[data-l10n-id] {

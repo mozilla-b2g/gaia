@@ -29333,6 +29333,13 @@ FakeFolderStorage.prototype = {
     },
   };
 
+  // A mapping from domains to configurations appropriate for passing in to
+  // Connection.setConfig(). Used for domains that don't support autodiscovery.
+  const hardcodedDomains = {
+    'gmail.com': 'https://m.google.com',
+    'googlemail.com': 'https://m.google.com',
+  };
+
   /**
    * Create a new ActiveSync connection.
    *
@@ -29387,8 +29394,13 @@ FakeFolderStorage.prototype = {
      */
     connect: function(aCallback) {
       let conn = this;
-      if (aCallback && conn._connection !== 4)
-        this._connectionCallbacks.push(aCallback);
+      if (aCallback) {
+        if (conn._connection === 4) {
+          aCallback(null, conn.config);
+          return;
+        }
+        conn._connectionCallbacks.push(aCallback);
+      }
 
       if (conn._connection === 0) {
         conn._connection = 1;
@@ -29410,19 +29422,20 @@ FakeFolderStorage.prototype = {
         conn.options(conn.baseURL, function(aError, aResult) {
           if (aError) {
             conn._connection = 2;
-          }
-          else {
-            conn._connection = 4;
-            conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
-            conn.config.options = aResult;
+            return conn._doCallbacks(aError, conn.config);
           }
 
-          conn._doCallbacks(aError, conn.config);
+          conn._connection = 4;
+          conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
+          conn.config.options = aResult;
+
+          if (!conn.supportsCommand('Provision'))
+            return conn._doCallbacks(null, conn.config);
+
+          conn.provision(function (aError, aResponse) {
+            conn._doCallbacks(aError, conn.config);
+          });
         });
-      }
-      else if (conn._connection === 4) {
-        if (aCallback)
-          aCallback(null, this.config);
       }
     },
 
@@ -29437,9 +29450,10 @@ FakeFolderStorage.prototype = {
      */
     autodiscover: function(aCallback, aNoRedirect) {
       if (!aCallback) aCallback = nullCallback;
-      let domain = this._email.substring(this._email.indexOf('@') + 1);
-      if (domain === 'gmail.com') {
-        aCallback(null, this._fillConfig('https://m.google.com'));
+      let domain = this._email.substring(this._email.indexOf('@') + 1)
+                       .toLowerCase();
+      if (domain in hardcodedDomains) {
+        aCallback(null, this._fillConfig(hardcodedDomains[domain]));
         return;
       }
 
@@ -29452,6 +29466,22 @@ FakeFolderStorage.prototype = {
         else
           aCallback(aError, aConfig);
       }).bind(this));
+    },
+
+    /**
+     * Attempt to provision this account. XXX: Currently, this doesn't actually
+     * do anything, but it's useful as a test command for Gmail to ensure that
+     * the user entered their password correctly.
+     *
+     * @param aCallback a callback taking an error status (if any) and the
+     *        WBXML response
+     */
+    provision: function(aCallback) {
+      const pv = ASCP.Provision.Tags;
+      let w = new WBXML.Writer('1.3', 1, 'UTF-8');
+      w.stag(pv.Provision)
+        .etag();
+      this.doCommand(w, aCallback);
     },
 
     /**
@@ -29629,7 +29659,9 @@ FakeFolderStorage.prototype = {
       xhr.open('OPTIONS', aURL, true);
       xhr.onload = function() {
         if (xhr.status !== 200) {
-          aCallback(new Error('Unable to get server options'));
+          console.log('ActiveSync options request failed with response ' +
+                      xhr.status);
+          aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
 
@@ -29642,6 +29674,22 @@ FakeFolderStorage.prototype = {
       };
 
       xhr.send();
+    },
+
+    /**
+     * Check if the server supports a particular command. Requires that we be
+     * connected to the server already.
+     *
+     * @param aCommand a string/tag representing the command type
+     * @return true iff the command is supported
+     */
+    supportsCommand: function(aCommand) {
+      if (!this.connected)
+        throw new Error('Connection required to get command');
+
+      if (typeof aCommand === 'number')
+        aCommand = ASCP.__tagnames__[aCommand];
+      return this.config.options.commands.indexOf(aCommand) !== -1;
     },
 
     /**
@@ -29696,8 +29744,7 @@ FakeFolderStorage.prototype = {
         commandName = r.document.next().localTagName;
       }
 
-      if (this.config.options.commands.indexOf(commandName) === -1) {
-        // TODO: do something here!
+      if (!this.supportsCommand(commandName)) {
         let error = new Error("This server doesn't support the command " +
                               commandName);
         console.log(error);
@@ -29725,11 +29772,9 @@ FakeFolderStorage.prototype = {
         }
 
         if (xhr.status !== 200) {
-          // TODO: do something here!
-          let error = new Error('ActiveSync command returned failure ' +
-                                'response ' + xhr.status);
-          console.log(error);
-          aCallback(error);
+          console.log('ActiveSync command ' + commandName + ' failed with ' +
+                      'response ' + xhr.status);
+          aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
 

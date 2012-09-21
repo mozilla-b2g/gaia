@@ -1045,7 +1045,7 @@ var ThreadUI = {
 
     if (settings) {
 
-      var req = settings.getLock().get('ril.radio.disabled');
+      var req = settings.createLock().get('ril.radio.disabled');
       req.addEventListener('success', (function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 

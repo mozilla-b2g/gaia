@@ -7,16 +7,16 @@
 }
 
 #listmenu menu {
-  -moz-transition: -moz-transform 0.3s ease;
-  -moz-transform: translateY(100%);
+  transition: transform 0.3s ease;
+  transform: translateY(100%);
 }
 
 #listmenu.visible menu {
-  -moz-transform: translateY(0);
+  transform: translateY(0);
 }
 
 #listmenu menu.slidedown {
-  -moz-transform: translateY(100%);
+  transform: translateY(100%);
 }
 
 #listmenu menu button.icon,
@@ -24,7 +24,7 @@
   background-repeat: no-repeat;
   background-position: 10px center;
   padding-left: 45px;
-  background-size: 30px 30px; 
+  background-size: 30px 30px;
 }
 
 /* 320x480 phones */
@@ -35,17 +35,4 @@
     background-position: 5px center;
     padding-left: 40px;
   }
-}
-
-#listmenu menu ul:first-child {
-  /* root */
-  -moz-transform: translateX('-100%');
-}
-
-#listmenu menu ul {
-  -moz-transform: translateX('100%');
-}
-
-#listmenu menu ul:target {
-  -moz-transform: translateX(0);
 }
