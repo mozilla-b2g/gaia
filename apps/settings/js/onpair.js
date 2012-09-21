@@ -59,13 +59,17 @@ var PairView = {
     switch (evt.type) {
       case 'click':
         var input = evt.target;
+        dump("==== input.id event in "+input.id);
         if (!input)
           return;
 
+        evt.preventDefault();
         switch (input.id) {
           case 'button-pair':
+            dump("==== inner pair method "+this._pairMethod);
             switch (this._pairMethod) {
               case 'confirmation':
+                dump("==== inner pair address "+this._address);
                 window.opener.gDeviceList.setPairingConfirmation(this._address);
                 break;
               case 'pincode':
@@ -76,12 +80,13 @@ var PairView = {
                 var value = this.passkeyInput.value;
                 window.opener.gDeviceList.setPasskey(this._address, value);
                 break;
-
             }
+            dump("==== going to close this window");
             window.close();
             break;
 
           case 'button-close':
+            dump("==== input.id close"+input.id);
             window.close();
             break;
         }

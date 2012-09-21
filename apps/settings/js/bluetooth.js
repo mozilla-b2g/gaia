@@ -233,23 +233,27 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       // Bind message handler for incoming pairing requests
       navigator.mozSetMessageHandler('bluetooth-requestconfirmation',
         function bt_gotConfirmationMessage(message) {
+          dump("==== event: confirmation");
           onRequestConfirmation(message);
         }
       );
       navigator.mozSetMessageHandler('bluetooth-requestpincode',
         function bt_gotPincodeMessage(message) {
+          dump("==== event: pincode");
           onRequestPincode(message);
         }
       );
 
       navigator.mozSetMessageHandler('bluetooth-requestpasskey',
         function bt_gotPasskeyMessage(message) {
+          dump("==== event: passkey");
           onRequestPasskey(message);
         }
       );
 
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
+          dump("==== event: cancel");
           if (childWindow) {
             childWindow.close();
           }
@@ -291,6 +295,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           aItem.parentNode.removeChild(aItem);
         };
         req.onerror = function bt_pairError() {
+          dump("=== pair()'s onerror");
           if (childWindow) {
             childWindow.close();
           }
@@ -315,6 +320,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function onRequestConfirmation(evt) {
+      dump("==== evt "+ evt.deviceAddress);
       //XXX we've got deviceName/deviceIcon here, no need to search device
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
@@ -336,6 +342,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function onRequestPincode(evt) {
+      dump("==== evt "+ evt.deviceAddress);
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
@@ -349,6 +356,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function onRequestPasskey(evt) {
+      dump("==== evt "+ evt.deviceAddress);
       var device = findDevice(openList.index, evt.deviceAddress);
       if (!device)
         return;
@@ -429,9 +437,18 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function setPairingConfirmation(address) {
+      dump("==== setPairingConfirmation before "+address);
       if (!defaultAdapter)
         return;
-      defaultAdapter.setPairingConfirmation(address, true);
+      dump("==== setPairingConfirmation "+address);
+      var req = defaultAdapter.setPairingConfirmation(address, true);
+     /* dump("==== setPairingConfirmation after "+req);
+      req.onsuccess = function() {
+        dump("==== setPairingConfirmation success");
+      };
+      req.onerror = function() {
+        dump("==== setPairingConfirmation error");
+      };*/
     }
 
     function setPinCode(address, pincode) {
