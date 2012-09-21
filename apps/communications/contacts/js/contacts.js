@@ -86,6 +86,7 @@ var Contacts = (function() {
     }
 
     if (!contactsList.loaded) {
+      checkCancelableActivity();
       loadList(overlay);
     }
 
@@ -270,6 +271,8 @@ var Contacts = (function() {
   };
 
   var selectList = function selectList(phoneNumber) {
+    var addButton = document.getElementById('add-contact-button');
+    addButton.classList.add('hide');
     contactsList.clearClickHandlers();
     contactsList.load();
     contactsList.handleClick(function addToContactHandler(id) {
@@ -285,6 +288,7 @@ var Contacts = (function() {
         encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
       contactsList.clearClickHandlers();
       contactsList.handleClick(contactListClickHandler);
+      addButton.classList.remove('hide');
     });
   };
 
