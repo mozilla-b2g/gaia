@@ -14,6 +14,10 @@
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
+    
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -271,6 +275,14 @@
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="popup-container">
+          <section role="region" class="origin-container skin-dark">
+            <header>
+              <button id="popup-close"><span class="icon icon-close">close</span></button>
+              <h1 id="popup-origin"></h1>
+              <div id="popup-throbber"></div>
+            </header>
+          </section>
+          <div id="frame-container"></div>
         </div>
         <div id="authentication-dialog">
           <!--div id="authentication-dialog-ftp" role="dialog">
