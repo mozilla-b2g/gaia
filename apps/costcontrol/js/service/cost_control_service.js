@@ -27,6 +27,7 @@ setService(function cc_setupCostControlService() {
   // the service is unavailable)
   var _settings = {};
   var _allSettings = [
+    'ENABLE_ON',
     'CHECK_BALANCE_DESTINATION',
     'CHECK_BALANCE_TEXT',
     'CHECK_BALANCE_SENDERS',
@@ -38,6 +39,7 @@ setService(function cc_setupCostControlService() {
     'TOP_UP_INCORRECT_CODE_REGEXP'
   ];
   var _notEmptySettings = [
+    'ENABLE_ON',
     'CHECK_BALANCE_DESTINATION',
     'CHECK_BALANCE_SENDERS',
     'TOP_UP_DESTINATION',
@@ -55,6 +57,11 @@ setService(function cc_setupCostControlService() {
   var _state = {};
   var _onSMSReceived = {};
   var _smsTimeout = {};
+  var _enabledFunctionalities = {
+    balance: false,
+    telephony: false,
+    datausage: false
+  };
 
   // App settings object to control settings
   var _appSettings = (function cc_appSettings() {
@@ -78,6 +85,10 @@ setService(function cc_setupCostControlService() {
     function _getInitializerFor(option) {
       return function(value) {
         _cachedOptions[option] = value;
+        // Ensure regitered callbacks are informed the first time the settings
+        // is set.
+        var event = _newLocalSettingsChangeEvent(option, value, null);
+        window.dispatchEvent(event);
       }
     }
 
@@ -196,21 +207,43 @@ setService(function cc_setupCostControlService() {
       }
     }
 
+    // The special setting ENABLE_ON requires a special handling
+    function enableOn(value) {
+      _settings['ENABLE_ON'] = JSON.parse(value);
+      debug('ENABLE_ON' + ': ' + _settings['ENABLE_ON']);
+      if (_checkEnableConditions()) {
+        _configureBalance();
+        _configureTelephony();
+        console.info('Cost Control: valid SIM card for balance and telephony.');
+      } else {
+        console.warn(
+          'Cost Control: non valid SIM card for balance nor telephony.');
+      }
+    }
+
+    // Enabling condition
+
+    // XXX: costcontrol.enableon deserves some explanation:
+    // It controls when telephony and balance functionalities are available
+    // It is an object with MCCs as keys. Each key has an array of MNC for 
+    // which full functionality is available.
+    SettingsListener.observe('costcontrol.enableon', undefined, enableOn);
+
     // Credit stuff
-    SettingsListener.observe('costcontrol.credit.currency', 'R$',
+    SettingsListener.observe('costcontrol.credit.currency', undefined,
       assignTo('CREDIT_CURRENCY'));
 
     // For balance
     // Send to...
-    SettingsListener.observe('costcontrol.balance.destination', '8000',
+    SettingsListener.observe('costcontrol.balance.destination', undefined,
       assignTo('CHECK_BALANCE_DESTINATION'));
 
     // Text to send
-    SettingsListener.observe('costcontrol.balance.text', '',
+    SettingsListener.observe('costcontrol.balance.text', undefined,
       assignTo('CHECK_BALANCE_TEXT'));
 
     // Wait from...
-    SettingsListener.observe('costcontrol.balance.senders', '["1515"]',
+    SettingsListener.observe('costcontrol.balance.senders', undefined,
       parseAndAssignTo('CHECK_BALANCE_SENDERS'));
 
     // Parse following...
@@ -220,35 +253,37 @@ setService(function cc_setupCostControlService() {
 
     // For top up
     // Send to...
-    SettingsListener.observe('costcontrol.topup.destination', '7000',
+    SettingsListener.observe('costcontrol.topup.destination', undefined,
       assignTo('TOP_UP_DESTINATION'));
 
     // Balance text
-    SettingsListener.observe('costcontrol.topup.text', '&code',
+    SettingsListener.observe('costcontrol.topup.text', undefined,
       assignTo('TOP_UP_TEXT'));
 
     // Wait from...
-    SettingsListener.observe('costcontrol.topup.senders', '["1515","7000"]',
+    SettingsListener.observe('costcontrol.topup.senders', undefined,
       parseAndAssignTo('TOP_UP_SENDERS'));
 
     // Parse confirmation following...
     SettingsListener.observe('costcontrol.topup.confirmation_regexp',
-      'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
+      undefined,
       assignTo('TOP_UP_CONFIRMATION_REGEXP'));
 
     // Recognize incorrect code following...
     SettingsListener.observe('costcontrol.topup.incorrect_code_regexp',
-      '(envie novamente|Verifique) o codigo de recarga',
+      undefined,
       assignTo('TOP_UP_INCORRECT_CODE_REGEXP'));
   }
 
   // Attach event listeners for automatic updates:
   //  * Periodically
-  function _configureAutomaticUpdates() {
+  function _configureBalance() {
     window.addEventListener('costcontrolperiodicallyupdate', _automaticCheck);
     window.setInterval(function cc_periodicUpdateBalance() {
       _dispatchEvent('costcontrolperiodicallyupdate');
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
+
+    _enabledFunctionalities.balance = true;
   }
 
   var _handledCalls = [];
@@ -308,6 +343,8 @@ setService(function cc_setupCostControlService() {
 
     _telephony.oncallschanged = _onCallsChanged;
     _sms.onsent = _onSMSSent; // XXX: this is bugged and not working
+
+    _enabledFunctionalities.telephony = true;
   }
 
   // Recalculate the next automatic reset date in function of user preferences
@@ -366,9 +403,11 @@ setService(function cc_setupCostControlService() {
     }
   }
 
-  // Attach listeners to ensure the proper automatic reset date
   var _resetCheckTimeout = 0;
-  function _configureAutoReset() {
+  // Attach listeners to ensure the proper automatic reset date
+  function _configureDataUsage() {
+
+    // Schedule autoreset
 
     // Get milliseconds from now until tomorrow at 00:00
     function timeUntilTomorrow() {
@@ -404,15 +443,27 @@ setService(function cc_setupCostControlService() {
     _appSettings.observe('reset_time', _recalculateNextReset);
 
     debug('Next check in ' + Math.ceil(firstTimeout / 60000) + ' minutes');
+
+    _enabledFunctionalities.datausage = true;
+  }
+
+  // Check if the pair MCC/MNC of the SIM matches some of enabling conditions
+  function _checkEnableConditions() {
+    var simMCC = _conn.iccInfo.mcc;
+    var simMNC = _conn.iccInfo.mnc;
+    var matchedMCC = _settings.ENABLE_ON ? _settings.ENABLE_ON[simMCC] : null;
+    if (!matchedMCC || !matchedMCC.length)
+      return false;
+
+    return matchedMCC.indexOf(simMNC) !== -1;
   }
 
   // Initializes the cost control module:
   // critical parameters, automatic updates and state.dependant settings
   function _init() {
     _configureSettings();
-    _configureAutomaticUpdates();
-    _configureTelephony();
-    _configureAutoReset();
+    _configureDataUsage();
+    console.info('Cost Control: data usage enabled.');
 
     // State dependant settings allow simultaneous updates and topping up tasks
     _state[STATE_UPDATING_BALANCE] = false;
@@ -440,8 +491,18 @@ setService(function cc_setupCostControlService() {
   //      'missconfigured' -> if some essential configuration parameter is
   //      missed or unproperly set
   //      'carrier-unknown' -> if we cannot detect the carrier
+  //  - 'enabledFunctionalities': is an object with three boolean fields
+  //    pointing which functionalities are enabled: balance, telephony and
+  //    datausage
   function _getServiceStatus() {
-    var status = { availability: false, roaming: null, detail: null };
+    var status = {
+      availability: false, roaming: null, detail: null,
+      enabledFunctionalities : {
+        balance: _enabledFunctionalities.balance,
+        telephony: _enabledFunctionalities.telephony,
+        datausage: _enabledFunctionalities.datausage
+      }
+    };
 
     if (!_conn) {
       status.detail = 'no-mobile-connection-api';
@@ -470,9 +531,12 @@ setService(function cc_setupCostControlService() {
       return status;
     }
 
-    // All Ok
-    status.availability = true;
-    status.roaming = voice.roaming;
+    // All depends on balance functionality is enabled or not
+    if (_enabledFunctionalities.balance) {
+      status.availability = true;
+      status.roaming = voice.roaming;
+    }
+
     return status;
   }
 
@@ -690,10 +754,9 @@ setService(function cc_setupCostControlService() {
       return;
 
     _lastServiceStatusHash = newServiceStatusHash;
-    var event = new CustomEvent(
-      'costcontrolservicestatuschange',
-      {detail: _getServiceStatus() }
-    );
+    var event = new CustomEvent('costcontrolservicestatuschange', {
+      detail: newServiceStatus
+    });
     window.dispatchEvent(event);
     debug('CostControl Event: costcontrolservicestatuschange: ' +
           newServiceStatusHash);

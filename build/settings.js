@@ -15,6 +15,7 @@ var settings = [
  new Setting("accessibility.screenreader", false),
  new Setting("audio.volume.master", 0.5),
  new Setting("bluetooth.enabled", false),
+ new Setting("costcontrol.enableon", "{\"724\": [6, 10, 11, 23]}"),
  new Setting("costcontrol.credit.currency", "R$"),
  new Setting("costcontrol.balance.destination", "8000"),
  new Setting("costcontrol.balance.text", "SALDO"),
