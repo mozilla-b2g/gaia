@@ -1,42 +1,4 @@
 /**
- * Setting panels
- * = full-size blocks, identified by a 'region' role
- */
-
-[role=region] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border: 0;
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
-  background: url(images/document-bg.png);
-}
-
-/* transitions */
-
-[role=region] {
-  transition: transform 0.5s ease;
-  transform: translateX(100%);
-}
-
-#root {
-  transform: translateX(-100%);
-}
-
-#root:target, [role=region]:target {
-  transition: transform 0.5s ease;
-  transform: none;
-}
-
-body.hidden #root {
-  transform: none;
-  transition: none;
-}
-
-
-/******************************************************************************
  * Table View
  * line height = 60px, border included
  */
@@ -54,18 +16,6 @@ ul li {
   color: #000;
   -moz-box-sizing: border-box;
   min-height: 6rem;
-}
-
-ul li > h3 {
-  font-size: 1.6rem;
-  font-weight: 400;
-  margin: 0;
-  padding: 1rem 3rem 5rem;
-}
-
-ul li > h3 + label:not([for]) {
-  top: 2.5rem;
-  height: calc(100% - 2.5rem);
 }
 
 ul li.active,
@@ -86,19 +36,11 @@ ul li > a {
   padding: 0 3rem;
 }
 
-/* custom styles for boolean inputs (see /shared/style/switches.css) */
-ul li > label:not([for]) {
+/* description + value on the same line */
+ul li > a span {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-ul li > label:not([for]) > span,
-ul li > label:not([for]).switch > span {
-  left: auto;
   right: 2rem;
+  color: #505859;
 }
 
 /* text ellipsis */
@@ -126,6 +68,11 @@ ul li > small:not(:empty) + a {
   line-height: 44px;
 }
 
+
+/******************************************************************************
+ * Boolean inputs
+ */
+
 ul li button, ul li a[role=button] {
   display: block;
   margin: auto;
@@ -137,9 +84,51 @@ ul li button, ul li a[role=button] {
   height: calc(100% - 2rem);
 }
 
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li > label:not([for]) {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+ul li > label:not([for]) > span,
+ul li > label:not([for]).switch > span {
+  left: auto;
+  right: 2rem;
+}
+
 
 /******************************************************************************
- * Brightness level
+ * Text inputs
+ */
+
+ul li p {
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1rem 3rem 5rem;
+}
+
+ul li p + label:not([for]) {
+  top: 2.5rem;
+  height: calc(100% - 2.5rem);
+}
+
+ul li p + input[type=text],
+ul li p + input[type=password] {
+  display: block;
+  width: calc(100% - 6rem);
+  font-size: 1.8rem;
+  height: 2rem;
+  line-height: 2rem;
+  margin: -5rem auto 1rem;
+}
+
+
+/******************************************************************************
+ * Other inputs
  */
 
 [role=region] label > progress {
@@ -159,19 +148,9 @@ ul li button, ul li a[role=button] {
   font-size: 2rem;
 }
 
-#brightness-level:active {
-  background-color: #f5f5f5;
-  text-shadow: none;
-  color: #555;
-}
-
-#brightness-level a {
-  max-width: calc(60% - 50px);
-}
-
 
 /******************************************************************************
- * Settings icons
+ * Setting icons
  */
 
 #root li [data-l10n-id] {
@@ -216,9 +195,10 @@ ul li button, ul li a[role=button] {
 
 
 /******************************************************************************
- * Wi-Fi icons
+ * Wi-Fi
  */
 
+/* Wi-Fi icons */
 #wifi-networks span {
   position: absolute;
   display: block;
@@ -251,6 +231,33 @@ ul li button, ul li a[role=button] {
   background-image: url(images/wifi_scan.png);
 }
 
+/* Wi-Fi dialogs */
+
+#wifi-status, #wifi-auth {
+  font-size: 1.8rem;
+}
+
+/* hide identity field by default */
+
+#wifi-auth label[for=identity] {
+  display: none;
+}
+
+#wifi-auth.WPA-EAP label[for=identity] {
+  display: block;
+}
+
+
+/* APN Settings */
+
+#apnSettings-custom {
+  font-style: italic;
+}
+
+#apnSettings-advanced {
+  padding-bottom: 1em;
+}
+
 
 /******************************************************************************
  * Bluetooth
@@ -259,17 +266,7 @@ ul li button, ul li a[role=button] {
 #bluetooth-enable-msg {
   padding: 5px 30px;
   font-style: italic;
-  font-size: 0.65em;
+  font-size: 1.4rem;
   color: #505859;
-}
-
-
-/******************************************************************************
- * Battery
- */
-
-.level-desc {
-  position: absolute;
-  right: 2rem;
 }
 
