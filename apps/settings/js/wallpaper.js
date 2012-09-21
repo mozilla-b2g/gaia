@@ -32,7 +32,6 @@ var Wallpaper = {
     var reqWallpaper = lock.get('wallpaper.image');
     reqWallpaper.onsuccess = function wallpaper_getWallpaperSuccess() {
       var url = 'url(' + reqWallpaper.result['wallpaper.image'] + ')';
-      console.log("setting wallpaper snapshot to", url);
       self.wallpaperSnapshot.style.backgroundImage = url;
     };
   },
