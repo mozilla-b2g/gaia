@@ -6,7 +6,7 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-            'slider-wrapper'];
+           'slider-wrapper', 'throbber'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -89,9 +89,9 @@ function init() {
 }
 
 function scan() {
-  showOverlay('scanning');
+  dom.throbber.classList.add('throb');
   videodb.scan(function() {
-    showOverlay(null);
+    dom.throbber.classList.remove('throb');
   });
 }
 
