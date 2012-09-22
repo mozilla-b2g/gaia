@@ -208,9 +208,22 @@ var NavbarManager = {
     contacts.classList.remove('toolbar-option-selected');
     keypad.classList.remove('toolbar-option-selected');
 
+    // XXX : Move this to whole activity approach, so far
+    // we don't have time to do a deep modification of
+    // contacts activites. Postponed to v2
+    var checkContactsTab = function() {
+      var contactsIframe = document.getElementById('iframe-contacts');
+
+      var index = contactsIframe.src.indexOf('#add-parameters');
+      if (index != -1) {
+        contactsIframe.src = contactsIframe.src.substr(0, index);
+      }
+    };
+
     var destination = window.location.hash;
     switch (destination) {
       case '#recents-view':
+        checkContactsTab();
         Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
         Recents.updateLatestVisit();
@@ -220,6 +233,7 @@ var NavbarManager = {
         Recents.updateHighlighted();
         break;
       case '#keyboard-view':
+        checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
         Recents.updateHighlighted();
         break;

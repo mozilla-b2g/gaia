@@ -13,14 +13,14 @@ if (typeof fb.oauth === 'undefined') {
     // and the hash state matches <state>
     var accessTokenCbData;
 
+    var STORAGE_KEY = 'tokenData';
+
     /**
      *  Clears credential data stored locally
      *
      */
     function clearStorage() {
-      window.asyncStorage.removeItem('access_token');
-      window.asyncStorage.removeItem('expires');
-      window.asyncStorage.removeItem('token_ts');
+      window.asyncStorage.removeItem(STORAGE_KEY);
     }
 
 
@@ -36,26 +36,25 @@ if (typeof fb.oauth === 'undefined') {
         state: state
       };
 
-      asyncStorage.getItem('access_token',
-                           function getAccessToken(access_token) {
-        if (!access_token) {
+      asyncStorage.getItem(STORAGE_KEY,
+                           function getAccessToken(tokenData) {
+        if (!tokenData || !tokenData.access_token) {
           startOAuth(state);
           return;
         }
 
-        asyncStorage.getItem('token_ts', function getTokenTs(token_ts) {
-          asyncStorage.getItem('expires', function getExpires(expires) {
-            expires = Number(expires);
-            if (expires !== 0 && Date.now() - token_ts >= expires) {
-              startOAuth(state);
-              return;
-            }
+        var access_token = tokenData.access_token;
+        var expires = Number(tokenData.expires);
+        var token_ts = tokenData.token_ts;
 
-            if (typeof ready === 'function') {
-              ready(access_token);
-            }
-          });
-        });
+        if (expires !== 0 && Date.now() - token_ts >= expires) {
+          startOAuth(state);
+          return;
+        }
+
+        if (typeof ready === 'function') {
+          ready(access_token);
+        }
       });
     }
 
@@ -81,9 +80,11 @@ if (typeof fb.oauth === 'undefined') {
         var access_token = parameters.access_token;
 
         // Don't wait for callback because it's not necessary
-        window.asyncStorage.setItem('access_token', access_token);
-        window.asyncStorage.setItem('expires', end * 1000);
-        window.asyncStorage.setItem('token_ts', Date.now());
+        window.asyncStorage.setItem(STORAGE_KEY, {
+          access_token: access_token,
+          expires: end * 1000,
+          token_ts: Date.now()
+        });
       }
 
       if (parameters.state === accessTokenCbData.state) {
