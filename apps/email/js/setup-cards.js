@@ -21,7 +21,7 @@ var MAIL_SERVICES = [
   {
     name: 'GmaiL AccounT',
     l10nId: 'setup-gmail-account',
-    domain: 'gmail.com',
+    domain: 'gmail.com'
   },
   {
     name: 'OtheR EmaiL',
@@ -133,7 +133,7 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.emailNode.addEventListener('input', this.onInfoInput.bind(this));
   this.nameNode.addEventListener('input', this.onInfoInput.bind(this));
   this.passwordNode.addEventListener('input', this.onInfoInput.bind(this));
-  
+
   // XXX testing, fake account
   if (args.serviceDef.domain === 'example.com') {
     this.nameNode.value = 'John Madeup';

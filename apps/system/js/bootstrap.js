@@ -23,7 +23,10 @@ function startup() {
     });
   }
 
-  PinLock.init();
+  window.addEventListener('unlock', function() {
+    SimLock.init();
+  });
+
   SourceView.init();
   Shortcuts.init();
 
@@ -37,6 +40,7 @@ function startup() {
   // It appears to workaround the Nexus S bug where we're not
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  // It seems it needs to be in both window_manager.js and bootstrap.js.
   function dumbListener2(event) {}
   window.addEventListener('devicemotion', dumbListener2);
 
@@ -69,7 +73,10 @@ window.addEventListener('localized', function onlocalized() {
 
 // Define the default background to use for all homescreens
 SettingsListener.observe(
-  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
-  var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.getElementById('screen').style.backgroundImage = url;
-});
+  'wallpaper.image',
+  'resources/images/backgrounds/default.png',
+  function setWallpaper(value) {
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + value + ')';
+  }
+);

@@ -527,7 +527,8 @@ var AlarmManager = {
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
-      navigator.mozSettings.createLock().set({'alarm.enabled': hasAlarmEnabled});
+      navigator.mozSettings.createLock().set({'alarm.enabled':
+          hasAlarmEnabled});
       ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
     };
     request.onerror = function(e) {
@@ -739,8 +740,12 @@ var AlarmEditView = {
   },
 
   load: function aev_load(alarm) {
-    if (!alarm)
+    if (!alarm) {
+      this.alarmTitle.textContent = _('newAlarm');
       alarm = this.getDefaultAlarm();
+    } else {
+      this.alarmTitle.textContent = _('editAlarm');
+    }
 
     this.alarm = alarm;
 
