@@ -55,6 +55,7 @@ var PairView = {
       case 'confirmation':
         this.pairDescription.textContent = 
           _(this._pairMode+'-pair-confirmation', {device: this._device.name});
+
         this.passkey.textContent = this._passkey;
         this.pinInputItem.hidden = true;
         this.passkeyInputItem.hidden = true;
@@ -84,8 +85,11 @@ var PairView = {
     this._pairMode = mode;
     this._pairMethod = method;
     this._device = device;
-    if (passkey)
-      this._passkey = passkey;
+    if (passkey) {
+      var zeros = (passkey.length < 6) ?
+        (new Array((6 - passkey.length) + 1)).join('0') : '';
+      this._passkey = zeros + passkey;
+    }
   },
 
   handleEvent: function pv_handleEvent(evt) {

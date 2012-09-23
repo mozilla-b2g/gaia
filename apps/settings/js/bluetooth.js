@@ -242,7 +242,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
           dump("==== pair failed: oncancel");
-          if (chidlWindow)
+          if (childWindow)
             childWindow.PairView.pairFailed();
 //        aItem.querySelector('small').textContent = _('device-status-tap-connect');
           //XXX need to put more content into alert popup
