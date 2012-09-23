@@ -38,6 +38,7 @@ var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
 var urlToStream; // From an activity call
+var appStarted = false;
 
 var storageState;
 
@@ -76,13 +77,19 @@ function init() {
   videodb.ondeleted = createThumbnailList;
 
   if (urlToStream) {
-    showPlayer({
-      remote: true,
-      url: urlToStream.url,
-      title: urlToStream.title
-    }, true);
-    urlToStream = null;
+    startStream();
   }
+
+  appStarted = true;
+}
+
+function startStream() {
+  showPlayer({
+    remote: true,
+    url: urlToStream.url,
+    title: urlToStream.title
+  }, true);
+  urlToStream = null;
 }
 
 function createThumbnailList() {
@@ -593,6 +600,9 @@ function actHandle(activity) {
     url: activity.source.data.url,
     title: activity.source.data.title || ''
   };
+  if (appStarted) {
+    startStream();
+  }
 }
 
 if (window.navigator.mozSetMessageHandler) {
