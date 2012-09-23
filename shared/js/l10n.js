@@ -909,6 +909,37 @@
     consoleLog('loading [' + navigator.language + '] resources, ' +
         (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
+
+    /**
+     * navigator.language is built from preference intl.accept_languages
+     * which is set by b2g/chrome/content/settings.js in change of
+     * language.current value.
+     *
+     * Sometimes a race condition seems to occurs, leading in the system
+     * localized apart from what has been early-loaded, like lockscreen
+     * and statusbar.
+     *
+     * Hence we will also query by hand the settings and load the locale.
+     */
+    if ('mozSettings' in navigator && navigator.mozSettings) {
+      var name = 'language.current';
+      console.log("l10n: requesting settings lock");
+      var transaction = navigator.mozSettings.createLock();
+      if (transaction) {
+        console.log("l10n: got settings lock");
+        console.log("l10n: requesting setting " + name);
+        var req = transaction.get(name);
+        req.addEventListener('success', (function () {
+          var lang = req.result[name];
+          console.log("l10n: reloading with locale lang=" + lang);
+          loadLocale(lang, translateFragment);
+        }));
+        req.addEventListener('error', (function () {
+          console.log("l10n: error requesting " + name);
+        }));
+        console.log("l10n: requested setting " + name + " waiting response");
+      }
+    }
   });
 
   // load the appropriate locale if the language setting has changed
