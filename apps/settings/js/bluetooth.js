@@ -242,7 +242,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
           dump("==== pair failed: oncancel");
-          childWindow.PairView.pairFailed();
+          if (chidlWindow)
+            childWindow.PairView.pairFailed();
 //        aItem.querySelector('small').textContent = _('device-status-tap-connect');
           //XXX need to put more content into alert popup
         }
@@ -309,6 +310,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         //XXX https://bugzilla.mozilla.org/show_bug.cgi?id=791182
         //we may not hook onsuccess anymore, but listen to an event instead.
         req.onsuccess = function bt_pairSuccess() {
+          if (childWindow)
+            childWindow.close();
           //XXX we have to ask for connect, use connectingAddress
           connectingAddress = pairingAddress;
           getPairedDevice();
@@ -316,7 +319,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         };
         req.onerror = function bt_pairError() {
           dump("==== pair failed: onerror");
-          childWindow.PairView.pairFailed();
+          if (childWindow)
+            childWindow.PairView.pairFailed();
           aItem.querySelector('small').textContent = _('device-status-tap-connect');
         };
       };

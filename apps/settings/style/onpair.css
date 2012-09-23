@@ -26,3 +26,7 @@ form[role="dialog"] menu button {
   height: 2.8rem;
   line-height: 2.8rem;
 }
+
+#alert-view menu button {
+  width: 100%;
+}

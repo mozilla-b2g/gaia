@@ -20,12 +20,16 @@ var PairView = {
 
   _passkey: '',
 
+  pairView: document.getElementById('pair-view'),
+  alertView: document.getElementById('alert-view'),
+
   title: document.getElementById('pair-title'),
   nameLabel: document.getElementById('label-name'),
   addressLabel: document.getElementById('label-address'),
   pairDescription: document.getElementById('pair-description'),
   pairButton: document.getElementById('button-pair'),
   closeButton: document.getElementById('button-close'),
+  okButton: document.getElementById('button-ok'),
 
   comfirmationItem: document.getElementById('confirmation-method'),
   pinInputItem: document.getElementById('pin-input-method'),
@@ -38,11 +42,14 @@ var PairView = {
   init: function pv_init() {
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
+    this.okButton.addEventListener('click', this);
 
     this.title.textContent = _(this._pairMode+'-pair');
     this.nameLabel.textContent = this._device.name;
     this.addressLabel.textContent = this._device.address;
     //XXX this.iconImage.src = device.icon
+    this.pairView.hidden = false;
+    this.alertView.hidden = true;
 
     switch (this._pairMethod) {
       case 'confirmation':
@@ -88,6 +95,9 @@ var PairView = {
     evt.preventDefault();
     switch (evt.target.id) {
       case 'button-pair':
+        this.pairDescription.textContent = _('device-status-waiting'); 
+        this.pairButton.disabled = true;
+        this.closeButton.disabled = true;
         switch (this._pairMethod) {
           case 'confirmation':
             window.opener.gDeviceList.setConfirmation(this._device.address);
@@ -101,10 +111,10 @@ var PairView = {
             window.opener.gDeviceList.setPasskey(this._device.address, value);
             break;
         }
-//        window.close();
         break;
 
       case 'button-close':
+      case 'button-ok':
         window.close();
         break;
     }
@@ -112,9 +122,8 @@ var PairView = {
 
   pairFailed: function pv_showFailed() {
     dump("==== in child window: pair failed");
-    this.title.textContent = _('error-pair-title');
-    this.pairDescription.textContent = _('error-pair-pincode'); 
-    this.pairButton.disabled = true;
+    this.pairView.hidden = true;
+    this.alertView.hidden = false;
   }
 };
 
