@@ -42,6 +42,9 @@ var currentOverlay;
 
 var dragging = false;
 
+var fullscreenTimer;
+var fullscreenCallback;
+
 function init() {
 
   videodb = new MediaDB('videos', metaDataParser);
@@ -319,22 +322,22 @@ function showPlayer(data, autoPlay) {
   dom.player.preload = 'metadata';
 
   function doneSeeking() {
-    dom.videoFrame.mozRequestFullScreen();
+    requestFullScreen(function() {
+      // Show the controls briefly then fade out
+      setControlsVisibility(true);
+      controlFadeTimeout = setTimeout(function() {
+        setControlsVisibility(false);
+      }, 250);
 
-    // Show the controls briefly then fade out
-    setControlsVisibility(true);
-    controlFadeTimeout = setTimeout(function() {
-      setControlsVisibility(false);
-    }, 250);
+      if (autoPlay) {
+        play();
+      }
 
-    if (autoPlay) {
-      play();
-    }
-
-    if (!currentVideo.remote) {
-      currentVideo.metadata.watched = true;
-      videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
-    }
+      if (!currentVideo.remote) {
+        currentVideo.metadata.watched = true;
+        videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+      }
+    });
   }
 
   setVideoUrl(dom.player, currentVideo, function() {
@@ -354,16 +357,10 @@ function showPlayer(data, autoPlay) {
       dom.player.currentTime = currentVideo.metadata.currentTime || 0;
     }
 
-    // Currently if we attempt to grab fullscreen without a timeout
-    // it never happen
-    var pauseDoneSeeking = function() {
-      setTimeout(doneSeeking, currentVideo.remote ? 2000 : 0);
-    };
-
     if (dom.player.seeking) {
-      dom.player.onseeked = pauseDoneSeeking();
+      dom.player.onseeked = doneSeeking;
     } else {
-      pauseDoneSeeking();
+      doneSeeking();
     }
   });
 }
@@ -566,6 +563,15 @@ function actHandle(activity) {
   }
 }
 
+// The mozRequestFullScreen can fail silently, so we keep asking
+// for full screen until we detect that it happens
+function requestFullScreen(callback) {
+  fullscreenCallback = callback;
+  fullscreenTimer = setInterval(function() {
+    dom.videoFrame.mozRequestFullScreen();
+  }, 500);
+}
+
 if (window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler('activity', actHandle);
 }
@@ -576,8 +582,20 @@ if (window.navigator.mozSetMessageHandler) {
 // It also happens when the user uses the Home button to go to the
 // homescreen or another app.
 document.addEventListener('mozfullscreenchange', function() {
+  // We have exited fullscreen
   if (document.mozFullScreenElement === null) {
     hidePlayer();
+    return;
+  }
+
+  // We have entered fullscreen
+  if (fullscreenTimer) {
+    window.clearInterval(fullscreenTimer);
+    fullscreenTimer = null;
+  }
+  if (fullscreenCallback) {
+    fullscreenCallback();
+    fullscreenCallback = null;
   }
 });
 
