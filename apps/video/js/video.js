@@ -54,29 +54,26 @@ function init() {
 
   videodb = new MediaDB('videos', metaDataParser);
 
-  videodb.onunavailable = function(why) {
-    storageState = why;
+  videodb.onunavailable = function(event) {
+    storageState = event.detail;
     createThumbnailList();
   };
 
   videodb.onready = function() {
     storageState = false;
-    scan();
     createThumbnailList();
   };
 
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && videodb.ready) {
-      scan();
-    }
-  });
-
-  videodb.onchange = function(type, files) {
-    // TODO: Dynamically update the UI, for now doing a full
-    // repaint
-    createThumbnailList();
+  videodb.onscanstart = function() {
+    dom.throbber.classList.add('throb');
   };
 
+  videodb.onscanend = function() {
+    dom.throbber.classList.remove('throb');
+  };
+
+  videodb.oncreated = createThumbnailList;
+  videodb.ondeleted = createThumbnailList;
 
   if (urlToStream) {
     showPlayer({
@@ -88,19 +85,12 @@ function init() {
   }
 }
 
-function scan() {
-  dom.throbber.classList.add('throb');
-  videodb.scan(function() {
-    dom.throbber.classList.remove('throb');
-  });
-}
-
 function createThumbnailList() {
 
   if (!playerShowing && storageState) {
-    if (storageState === 'unavailable') {
+    if (storageState === MediaDB.NOCARD) {
       showOverlay('nocard');
-    } else if (storageState === 'shared') {
+    } else if (storageState === MediaDB.UNMOUNTED) {
       showOverlay('cardinuse');
     }
     return;
