@@ -25,10 +25,7 @@ var screenLock;
 var controlShowing = false;
 var controlFadeTimeout = null;
 
-// An array of data about each of the videos we know about.
-var videos = [];
 var videodb;
-
 var currentVideo;  // The data for the current video
 
 // Video object used to create previews
@@ -41,15 +38,9 @@ var urlToStream; // From an activity call
 var appStarted = false;
 
 var storageState;
+var currentOverlay;
 
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-  init();
-});
+var dragging = false;
 
 function init() {
 
@@ -57,9 +48,8 @@ function init() {
 
   videodb.onunavailable = function(event) {
     storageState = event.detail;
-    createThumbnailList();
+    showDialog();
   };
-
   videodb.onready = function() {
     storageState = false;
     createThumbnailList();
@@ -68,19 +58,96 @@ function init() {
   videodb.onscanstart = function() {
     dom.throbber.classList.add('throb');
   };
-
   videodb.onscanend = function() {
     dom.throbber.classList.remove('throb');
   };
 
-  videodb.oncreated = createThumbnailList;
-  videodb.ondeleted = createThumbnailList;
+  videodb.oncreated = function(event) {
+    event.detail.forEach(addVideo);
+  };
+  videodb.ondeleted = function(event) {
+    event.detail.forEach(deleteVideo);
+  };
 
   if (urlToStream) {
     startStream();
   }
 
   appStarted = true;
+}
+
+function addVideo(videodata) {
+  var poster;
+
+  if (!videodata ||
+      videodata.type.substring(0, 6) !== 'video/' ||
+      !previewPlayer.canPlayType(videodata.type)) {
+    return;
+  }
+
+  if (videodata.metadata.poster) {
+    poster = document.createElement('img');
+    setPosterImage(poster, videodata.metadata.poster);
+  }
+
+  var title = document.createElement('p');
+  title.className = 'name';
+  title.textContent = videodata.metadata.title;
+
+  var duration = document.createElement('p');
+  duration.className = 'time';
+  if (isFinite(videodata.metadata.duration)) {
+    var d = Math.round(videodata.metadata.duration);
+    duration.textContent = formatDuration(d);
+  }
+
+  var thumbnail = document.createElement('li');
+  if (poster) {
+    thumbnail.appendChild(poster);
+  }
+
+  if (!videodata.metadata.watched) {
+    var unread = document.createElement('div');
+    unread.classList.add('unwatched');
+    thumbnail.appendChild(unread);
+  }
+
+  thumbnail.appendChild(title);
+  thumbnail.appendChild(duration);
+  thumbnail.setAttribute('data-name', videodata.name);
+
+  var hr = document.createElement('hr');
+  thumbnail.appendChild(hr);
+
+  thumbnail.addEventListener('click', function(e) {
+    showPlayer(videodata, true);
+  });
+
+  dom.thumbnails.appendChild(thumbnail);
+}
+
+function deleteVideo(filename) {
+  dom.thumbnails.removeChild(getThumbnailDom(filename));
+}
+
+// Only called on startup to generate initial list of already
+// scanned media, once this is build add/deleteVideo are used
+// to keep it up to date
+function createThumbnailList() {
+  if (dom.thumbnails.firstChild !== null) {
+    dom.thumbnails.textContent = '';
+  }
+  videodb.enumerate('date', null, 'prev', function(videodata) {
+    addVideo(videodata);
+  });
+}
+
+function showDialog() {
+  if (storageState === MediaDB.NOCARD) {
+    showOverlay('nocard');
+  } else if (storageState === MediaDB.UNMOUNTED) {
+    showOverlay('cardinuse');
+  }
 }
 
 function startStream() {
@@ -90,46 +157,6 @@ function startStream() {
     title: urlToStream.title
   }, true);
   urlToStream = null;
-}
-
-function createThumbnailList() {
-
-  if (!playerShowing && storageState) {
-    if (storageState === MediaDB.NOCARD) {
-      showOverlay('nocard');
-    } else if (storageState === MediaDB.UNMOUNTED) {
-      showOverlay('cardinuse');
-    }
-    return;
-  }
-
-  dom.thumbnails.innerHTML = '';
-
-  if (videos.length) {
-    videos = [];
-  }
-
-  videodb.count(function(count) {
-    if (count === 0) {
-      showOverlay('novideos');
-      return;
-    }
-    showOverlay(null);
-    videodb.enumerate(function(videodata) {
-      if (videodata === null)
-        return;
-      processVideo(videodata);
-    });
-  });
-}
-
-function processVideo(videodata) {
-  // If this isn't a video, skip it
-  if (videodata.type.substring(0, 6) !== 'video/')
-    return;
-  if (!previewPlayer.canPlayType(videodata.type))
-    return;
-  addVideo(videodata);
 }
 
 function metaDataParser(videofile, callback) {
@@ -191,55 +218,16 @@ function captureFrame(player, callback) {
   }
 }
 
-function addVideo(videodata) {
-  var index = videos.length;
-  var poster;
-  videos.push(videodata);
-
-  if (videodata.metadata.poster) {
-    poster = document.createElement('img');
-    poster.src = URL.createObjectURL(videodata.metadata.poster);
-    poster.onload = function() {
-      URL.revokeObjectURL(poster.src);
-    };
-  }
-
-  var title = document.createElement('p');
-  title.className = 'name';
-  title.textContent = videodata.metadata.title;
-
-  var duration = document.createElement('p');
-  duration.className = 'time';
-  if (isFinite(videodata.metadata.duration)) {
-    var d = Math.round(videodata.metadata.duration);
-    duration.textContent = formatDuration(d);
-  }
-
-  var thumbnail = document.createElement('li');
-  if (poster) {
-    thumbnail.appendChild(poster);
-  }
-
-  if (!videodata.metadata.watched) {
-    var unread = document.createElement('div');
-    unread.classList.add('unwatched');
-    thumbnail.appendChild(unread);
-  }
-
-  thumbnail.appendChild(title);
-  thumbnail.appendChild(duration);
-
-  var hr = document.createElement('hr');
-  thumbnail.appendChild(hr);
-
-  thumbnail.addEventListener('click', function(e) {
-    showPlayer(videodata, true);
-  });
-
-  dom.thumbnails.appendChild(thumbnail);
+function getThumbnailDom(filename) {
+  return dom.thumbnails.querySelectorAll('[data-name="' + filename + '"]')[0];
 }
 
-var currentOverlay;
+function setPosterImage(dom, poster) {
+  dom.src = URL.createObjectURL(poster);
+  dom.onload = function() {
+    URL.revokeObjectURL(dom.src);
+  };
+}
 
 function showOverlay(id) {
   currentOverlay = id;
@@ -254,27 +242,6 @@ function showOverlay(id) {
   dom.overlay.classList.remove('hidden');
 }
 
-
-// When we exit fullscreen mode, stop playing the video.
-// This happens automatically when the user uses the back button (because
-// back is Escape, which is also the "leave fullscreen mode" command).
-// It also happens when the user uses the Home button to go to the
-// homescreen or another app.
-document.addEventListener('mozfullscreenchange', function() {
-  if (document.mozFullScreenElement === null) {
-    hidePlayer();
-  }
-});
-
- // Pause on visibility change
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden && playing) {
-    pause();
-  } else if (!document.mozHidden && document.mozFullScreenElement) {
-    setControlsVisibility(true);
-  }
-});
-
 function setControlsVisibility(visible) {
   dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
   controlShowing = visible;
@@ -288,8 +255,7 @@ function setVideoPlaying(playing) {
   }
 }
 
-// show|hide controls over the player
-dom.videoControls.addEventListener('mousedown', function(event) {
+function playerMousedown(event) {
   // If we interact with the controls before they fade away,
   // cancel the fade
   if (controlFadeTimeout) {
@@ -309,7 +275,7 @@ dom.videoControls.addEventListener('mousedown', function(event) {
   } else {
     setControlsVisibility(false);
   }
-});
+}
 
 // Make the video fit the screen
 function setPlayerSize() {
@@ -328,10 +294,6 @@ function setPlayerSize() {
   dom.player.style.left = left + 'px';
   dom.player.style.top = top + 'px';
 }
-
-// Rescale when window size changes. This should get called when
-// orientation changes and when we go into fullscreen
-window.addEventListener('resize', setPlayerSize);
 
 function setVideoUrl(player, video, callback) {
   if (video.remote) {
@@ -395,7 +357,7 @@ function showPlayer(data, autoPlay) {
     // Currently if we attempt to grab fullscreen without a timeout
     // it never happen
     var pauseDoneSeeking = function() {
-      setTimeout(doneSeeking, currentVideo.remote ? 1000 : 0);
+      setTimeout(doneSeeking, currentVideo.remote ? 2000 : 0);
     };
 
     if (dom.player.seeking) {
@@ -414,7 +376,7 @@ function hidePlayer() {
 
   function completeHidingPlayer() {
     // switch to the video gallery view
-    createThumbnailList();
+    showDialog();
     dom.videoFrame.classList.add('hidden');
     dom.videoBar.classList.remove('paused');
     playerShowing = false;
@@ -426,6 +388,7 @@ function hidePlayer() {
   }
 
   var video = currentVideo;
+  var li = getThumbnailDom(video.name);
 
   // Record current information about played video
   video.metadata.currentTime = dom.player.currentTime;
@@ -439,18 +402,25 @@ function hidePlayer() {
       screenLock = null;
     }
 
+    var posterImg = li.querySelectorAll('img')[0];
+    setPosterImage(posterImg, poster);
+
+    var unwatched = li.querySelectorAll('div.unwatched');
+    if (unwatched.length) {
+      li.removeChild(unwatched[0]);
+    }
+
     videodb.updateMetadata(video.name, video.metadata, completeHidingPlayer);
   });
 }
 
-// If the movie ends, and no controls are showing, go back to movie list
-dom.player.addEventListener('ended', function() {
+function playerEnded() {
   if (dragging) {
     return;
   }
   dom.player.currentTime = 0;
   document.mozCancelFullScreen();
-});
+}
 
 function play() {
   // Switch the button icon
@@ -480,12 +450,6 @@ function pause() {
   }
 }
 
-// XXX: the back and forward buttons aren't working for my webm videos
-var dragging = false;
-
-// XXX The progress bar doesn't update for my ogv video because
-// the <video> elememt can't figure out its duration.
-
 // Update the progress bar and play head as the video plays
 function timeUpdated() {
   if (!controlShowing)
@@ -508,9 +472,6 @@ function timeUpdated() {
   if (!dragging)
     dom.playHead.style.left = percent;
 }
-
-
-dom.player.addEventListener('timeupdate', timeUpdated);
 
 // handle drags on the time slider
 function dragSlider(e) {
@@ -608,3 +569,43 @@ function actHandle(activity) {
 if (window.navigator.mozSetMessageHandler) {
   window.navigator.mozSetMessageHandler('activity', actHandle);
 }
+
+// When we exit fullscreen mode, stop playing the video.
+// This happens automatically when the user uses the back button (because
+// back is Escape, which is also the "leave fullscreen mode" command).
+// It also happens when the user uses the Home button to go to the
+// homescreen or another app.
+document.addEventListener('mozfullscreenchange', function() {
+  if (document.mozFullScreenElement === null) {
+    hidePlayer();
+  }
+});
+
+ // Pause on visibility change
+document.addEventListener('mozvisibilitychange', function visibilityChange() {
+  if (document.mozHidden && playing) {
+    pause();
+  } else if (!document.mozHidden && document.mozFullScreenElement) {
+    setControlsVisibility(true);
+  }
+});
+
+// show|hide controls over the player
+dom.videoControls.addEventListener('mousedown', playerMousedown);
+// Rescale when window size changes. This should get called when
+// orientation changes and when we go into fullscreen
+window.addEventListener('resize', setPlayerSize);
+
+dom.player.addEventListener('timeupdate', timeUpdated);
+dom.player.addEventListener('ended', playerEnded);
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+  init();
+});
+
+
