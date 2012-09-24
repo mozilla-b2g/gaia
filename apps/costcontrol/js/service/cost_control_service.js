@@ -25,7 +25,7 @@ setService(function cc_setupCostControlService() {
 
   // Critical settings (if no present or bad configured,
   // the service is unavailable)
-  var _settings = {};
+  var _config = {};
   var _allSettings = [
     'ENABLE_ON',
     'CHECK_BALANCE_DESTINATION',
@@ -54,6 +54,7 @@ setService(function cc_setupCostControlService() {
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_UPDATING_BALANCE = 'updatingbalance';
+  var _missconfigured = false;
   var _state = {};
   var _onSMSReceived = {};
   var _smsTimeout = {};
@@ -155,7 +156,7 @@ setService(function cc_setupCostControlService() {
   function Balance(balance, timestamp) {
     this.balance = balance;
     this.timestamp = timestamp || new Date();
-    this.currency = _settings.CREDIT_CURRENCY;
+    this.currency = _config.CREDIT_CURRENCY;
   }
 
   // Returns stored balance
@@ -168,7 +169,7 @@ setService(function cc_setupCostControlService() {
   function _checkConfiguration() {
     // Check for all parameters
     var isAllSet = _allSettings.every(function cc_mandatory(name) {
-      return name in _settings;
+      return name in _config;
     });
 
     if (!isAllSet)
@@ -177,7 +178,7 @@ setService(function cc_setupCostControlService() {
     // Check for not empty parameters
     var areSettingsValid = _notEmptySettings.every(
       function cc_notEmpty(name) {
-        return !!_settings[name];
+        return !!_config[name];
       }
     );
 
@@ -188,91 +189,46 @@ setService(function cc_setupCostControlService() {
     return true;
   }
 
-  // Enable observers for the basic parameters of the cost control
-  function _configureSettings() {
+  // Load the configuration file, then continue executing the afterCallback
+  function _loadConfiguration(afterCallback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'js/config.json', true);
+    xhr.send(null);
 
-    // Use when simple data type property
-    function assignTo(name) {
-      return function cc_configure_assignTo(value) {
-        _settings[name] = value;
-        debug(name + ': ' + _settings[name]);
+    xhr.onreadystatechange = function cc_loadConfiguration(evt) {
+      if (xhr.readyState != 4)
+        return;
+
+      if (xhr.status == 0 || xhr.status == 200) {
+        var config = JSON.parse(xhr.responseText);
+
+        // Configure service
+        _config.ENABLE_ON = config.enableon,
+
+        _config.CREDIT_CURRENCY = config.credit.currency;
+
+        _config.CHECK_BALANCE_DESTINATION = config.balance.destination;
+        _config.CHECK_BALANCE_TEXT = config.balance.text;
+        _config.CHECK_BALANCE_SENDERS = config.balance.senders;
+        _config.CHECK_BALANCE_REGEXP = config.balance.regexp;
+
+        _config.TOP_UP_DESTINATION = config.topup.destination;
+        _config.TOP_UP_TEXT = config.topup.text;
+        _config.TOP_UP_SENDERS = config.topup.senders;
+        _config.TOP_UP_CONFIRMATION_REGEXP = config.topup.confirmation_regexp;
+        _config.TOP_UP_INCORRECT_CODE_REGEXP =
+          config.topup.incorrect_code_regexp;
+
+        // Check for missconguration
+        _missconfigured = !_checkConfiguration();
+        if (_missconfigured) {
+          console.error('Cost Control is missconfigured');
+          return;
+        }
+
+        afterCallback();
       }
     }
-
-    // Use when JSON property
-    function parseAndAssignTo(name) {
-      return function cc_configure_parseAndAssignTo(value) {
-        _settings[name] = JSON.parse(value);
-        debug(name + ': ' + _settings[name]);
-      }
-    }
-
-    // The special setting ENABLE_ON requires a special handling
-    function enableOn(value) {
-      _settings['ENABLE_ON'] = JSON.parse(value);
-      debug('ENABLE_ON' + ': ' + _settings['ENABLE_ON']);
-      if (_checkEnableConditions()) {
-        _configureBalance();
-        _configureTelephony();
-        console.info('Cost Control: valid SIM card for balance and telephony.');
-      } else {
-        console.warn(
-          'Cost Control: non valid SIM card for balance nor telephony.');
-      }
-    }
-
-    // Enabling condition
-
-    // XXX: costcontrol.enableon deserves some explanation:
-    // It controls when telephony and balance functionalities are available
-    // It is an object with MCCs as keys. Each key has an array of MNC for 
-    // which full functionality is available.
-    SettingsListener.observe('costcontrol.enableon', undefined, enableOn);
-
-    // Credit stuff
-    SettingsListener.observe('costcontrol.credit.currency', undefined,
-      assignTo('CREDIT_CURRENCY'));
-
-    // For balance
-    // Send to...
-    SettingsListener.observe('costcontrol.balance.destination', undefined,
-      assignTo('CHECK_BALANCE_DESTINATION'));
-
-    // Text to send
-    SettingsListener.observe('costcontrol.balance.text', undefined,
-      assignTo('CHECK_BALANCE_TEXT'));
-
-    // Wait from...
-    SettingsListener.observe('costcontrol.balance.senders', undefined,
-      parseAndAssignTo('CHECK_BALANCE_SENDERS'));
-
-    // Parse following...
-    SettingsListener.observe('costcontrol.balance.regexp',
-      'R\\$\\s+([0-9]+)(?:[,\\.]([0-9]+))?',
-      assignTo('CHECK_BALANCE_REGEXP'));
-
-    // For top up
-    // Send to...
-    SettingsListener.observe('costcontrol.topup.destination', undefined,
-      assignTo('TOP_UP_DESTINATION'));
-
-    // Balance text
-    SettingsListener.observe('costcontrol.topup.text', undefined,
-      assignTo('TOP_UP_TEXT'));
-
-    // Wait from...
-    SettingsListener.observe('costcontrol.topup.senders', undefined,
-      parseAndAssignTo('TOP_UP_SENDERS'));
-
-    // Parse confirmation following...
-    SettingsListener.observe('costcontrol.topup.confirmation_regexp',
-      undefined,
-      assignTo('TOP_UP_CONFIRMATION_REGEXP'));
-
-    // Recognize incorrect code following...
-    SettingsListener.observe('costcontrol.topup.incorrect_code_regexp',
-      undefined,
-      assignTo('TOP_UP_INCORRECT_CODE_REGEXP'));
   }
 
   // Attach event listeners for automatic updates:
@@ -329,7 +285,7 @@ setService(function cc_setupCostControlService() {
   // Count another SMS
   function _onSMSSent() {
     debug('Message sent!');
-    _appSettings.option('smscount', _appSettings('smscount') + 1);
+    _appSettings.option('smscount', _appSettings.option('smscount') + 1);
   }
 
   // Attach event listeners to telephony in order to count how many SMS has been
@@ -342,7 +298,7 @@ setService(function cc_setupCostControlService() {
       _appSettings.option('smscount', 0);
 
     _telephony.oncallschanged = _onCallsChanged;
-    _sms.onsent = _onSMSSent; // XXX: this is bugged and not working
+    _sms.onsent = _onSMSSent;
 
     _enabledFunctionalities.telephony = true;
   }
@@ -451,7 +407,7 @@ setService(function cc_setupCostControlService() {
   function _checkEnableConditions() {
     var simMCC = _conn.iccInfo.mcc;
     var simMNC = _conn.iccInfo.mnc;
-    var matchedMCC = _settings.ENABLE_ON ? _settings.ENABLE_ON[simMCC] : null;
+    var matchedMCC = _config.ENABLE_ON ? _config.ENABLE_ON[simMCC] : null;
     if (!matchedMCC || !matchedMCC.length)
       return false;
 
@@ -459,23 +415,35 @@ setService(function cc_setupCostControlService() {
   }
 
   // Initializes the cost control module:
-  // critical parameters, automatic updates and state.dependant settings
+  // critical parameters, automatic updates and state-dependant settings
   function _init() {
-    _configureSettings();
-    _configureDataUsage();
-    console.info('Cost Control: data usage enabled.');
+    _loadConfiguration(function cc_afterConfiguration() {
 
-    // State dependant settings allow simultaneous updates and topping up tasks
-    _state[STATE_UPDATING_BALANCE] = false;
-    _state[STATE_TOPPING_UP] = false;
-    _smsTimeout[STATE_UPDATING_BALANCE] = 0;
-    _smsTimeout[STATE_TOPPING_UP] = 0;
-    _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
-    _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
+      _configureDataUsage();
+      console.info('Cost Control: data usage enabled.');
 
-    // If data or voice change
-    _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
-    _conn.ondatachange = _dispatchServiceStatusChangeEvent;
+      if (_checkEnableConditions()) {
+        _configureBalance();
+        _configureTelephony();
+        console.info('Cost Control: valid SIM card for balance and telephony.');
+      } else {
+        console.warn(
+          'Cost Control: non valid SIM card for balance nor telephony.');
+      }
+
+      // State dependant settings allow simultaneous updates and topping up tasks
+      _state[STATE_UPDATING_BALANCE] = false;
+      _state[STATE_TOPPING_UP] = false;
+      _smsTimeout[STATE_UPDATING_BALANCE] = 0;
+      _smsTimeout[STATE_TOPPING_UP] = 0;
+      _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
+      _onSMSReceived[STATE_TOPPING_UP] = _onConfirmationSMSReceived;
+
+      // If data or voice change
+      _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
+      _conn.ondatachange = _dispatchServiceStatusChangeEvent;
+
+    });
   }
 
   // Return a status object with three fields:
@@ -521,7 +489,7 @@ setService(function cc_setupCostControlService() {
       return status;
     }
 
-    if (!_checkConfiguration()) {
+    if (_missconfigured) {
       status.detail = 'missconfigured';
       return status;
     }
@@ -571,7 +539,7 @@ setService(function cc_setupCostControlService() {
   function _parseBalanceSMS(message) {
     var newBalance = null;
     var found = message.body.match(
-      new RegExp(_settings.CHECK_BALANCE_REGEXP));
+      new RegExp(_config.CHECK_BALANCE_REGEXP));
 
     // Impossible to parse
     if (!found || found.length < 2) {
@@ -593,12 +561,12 @@ setService(function cc_setupCostControlService() {
   // It returns 'unknown' if it can not recognize it at all.
   function _recognizeReceivedSMS(message) {
     var found = message.body.match(
-      new RegExp(_settings.TOP_UP_CONFIRMATION_REGEXP, 'i'));
+      new RegExp(_config.TOP_UP_CONFIRMATION_REGEXP, 'i'));
     if (found)
       return 'confirmation';
 
     found = message.body.match(
-      new RegExp(_settings.TOP_UP_INCORRECT_CODE_REGEXP, 'i'));
+      new RegExp(_config.TOP_UP_INCORRECT_CODE_REGEXP, 'i'));
     if (found)
       return 'incorrect-code';
 
@@ -610,7 +578,7 @@ setService(function cc_setupCostControlService() {
   function _onBalanceSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
-    if (_settings.CHECK_BALANCE_SENDERS.indexOf(message.sender) === -1)
+    if (_config.CHECK_BALANCE_SENDERS.indexOf(message.sender) === -1)
       return;
 
     var newBalance = _parseBalanceSMS(message);
@@ -636,7 +604,7 @@ setService(function cc_setupCostControlService() {
   function _onConfirmationSMSReceived(evt) {
     // Ignore messages from other senders
     var message = evt.message;
-    if (_settings.TOP_UP_SENDERS.indexOf(message.sender) === -1)
+    if (_config.TOP_UP_SENDERS.indexOf(message.sender) === -1)
       return;
 
     var messageType = _recognizeReceivedSMS(message);
@@ -704,8 +672,8 @@ setService(function cc_setupCostControlService() {
 
     // Send the request SMS
     var request = _sms.send(
-      _settings.CHECK_BALANCE_DESTINATION,
-      _settings.CHECK_BALANCE_TEXT
+      _config.CHECK_BALANCE_DESTINATION,
+      _config.CHECK_BALANCE_TEXT
     );
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
       _startWaiting(STATE_UPDATING_BALANCE);
@@ -726,8 +694,8 @@ setService(function cc_setupCostControlService() {
     }
 
     // Compose topup message and send
-    var messageBody = _settings.TOP_UP_TEXT.replace('&code', code);
-    var request = _sms.send(_settings.TOP_UP_DESTINATION, messageBody);
+    var messageBody = _config.TOP_UP_TEXT.replace('&code', code);
+    var request = _sms.send(_config.TOP_UP_DESTINATION, messageBody);
     request.onsuccess = function cc_onSuccessSendingTopup() {
       _startWaiting(STATE_TOPPING_UP);
     }
