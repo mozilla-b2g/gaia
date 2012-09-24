@@ -67,14 +67,14 @@
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
-                <button onclick="window.location.hash = '#thread-list'">
-                  <span data-l10n-id="cancel" class="icon icon-close">close</span>
-                </button>
-                <menu type="toolbar">
-                   <button id="threads-delete-button" data-l10n-id="delete">delete</button>
-                </menu>
-                <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
-              </header>
+              <button onclick="window.location.hash = '#thread-list'">
+                <span data-l10n-id="cancel" class="icon icon-close">close</span>
+              </button>
+              <menu type="toolbar">
+                 <button id="threads-delete-button" data-l10n-id="delete">delete</button>
+              </menu>
+              <h1 id="list-edit-title" data-l10n-id="editMode">Edit mode</h1>
+            </header>
           </section>
           <menu>
             <button id="deselect-all-threads" class="edit-button disabled danger" data-l10n-id="deselect-all">
@@ -88,24 +88,24 @@
       </section>
 
       <section id="thread-messages" class="panel" role="region">
-          <header class="view-header regular-header">
-            <a href="#thread-list" role="link">
-              <span class="icon icon-back"></span>
+        <header class="view-header regular-header">
+          <a href="#thread-list" role="link">
+            <span class="icon icon-back"></span>
+          </a>
+          <menu type="toolbar">
+            <a id="icon-contact">
+              <span class="icon icon-user"></span>
             </a>
-            <menu type="toolbar">
-              <a id="icon-contact">
-                <span class="icon icon-user"></span>
-              </a>
-              <a href="#edit" id="icon-edit">
-                <span class="icon icon-edit"></span>
-              </a>
-            </menu>
-            <h1 id="header-text" data-l10n-id="messages" aria-hidden="true">Messages</h1>
-            <form>
-              <input id="receiver-input" type="text" name="tel" class="tel" />
-              <span id="clear-search" role="button" class="icon icon-clear"></span>
-            </form>
-          </header>
+            <a href="#edit" id="icon-edit">
+              <span class="icon icon-edit"></span>
+            </a>
+          </menu>
+          <h1 id="header-text" data-l10n-id="messages" aria-hidden="true">Messages</h1>
+          <form>
+            <input id="receiver-input" type="text" name="tel" class="tel" />
+            <span id="clear-search" role="button" class="icon icon-clear"></span>
+          </form>
+        </header>
         <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
           Carrier unknown
         </div>
@@ -120,14 +120,14 @@
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
-                <button onclick="history.go(-1);">
-                  <span data-l10n-id="cancel" class="icon icon-close">close</span>
-                </button>
-                <menu type="toolbar">
-                   <button id="messages-delete-button"  data-l10n-id="delete">delete</button>
-                </menu>
-                <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
-              </header>
+              <button onclick="history.go(-1);">
+                <span data-l10n-id="cancel" class="icon icon-close">close</span>
+              </button>
+              <menu type="toolbar">
+                 <button id="messages-delete-button"  data-l10n-id="delete">delete</button>
+              </menu>
+              <h1 id="messages-edit-title" data-l10n-id="editMode">Edit mode</h1>
+            </header>
           </section>
           <menu>
             <button id="deselect-all-messages" class="edit-button disabled danger" data-l10n-id="deselect-all">
