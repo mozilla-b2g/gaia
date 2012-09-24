@@ -374,11 +374,12 @@ Evme.Location = new function() {
         
         cbLocationRequest();
         
-        if (!("geolocation" in navigator) || Evme.Utils.isB2G()) {
+        // temp hack until GPS works
+        //if (!("geolocation" in navigator)) {
             hadError = true;
             cbError(errorCallback);
             return;
-        }
+        //}
         
         navigator.geolocation.getCurrentPosition(function(position){
             if (!hadError) {
