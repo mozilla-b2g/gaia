@@ -1,0 +1,12 @@
+/* TOPUP VIEW */
+#settings-view {
+  bottom: 0;
+}
+
+#settings-view .choose-plan {
+  padding: 1rem 1.3rem;
+}
+
+#settings-view .buttons-list button {
+  margin: 0;
+}
