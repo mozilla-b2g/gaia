@@ -4,7 +4,7 @@ function CredentialsDB(provider) {
   this.ready = false;
   this.indexes = [];
   this.provider = provider;
-  this.version = 1;
+  this.version = 3;
   var credsdb = this;
 
   // Set up IndexedDB
@@ -37,7 +37,7 @@ function CredentialsDB(provider) {
 
     // Now build the database
     var filestore = db.createObjectStore(
-      'credentials', { keyPath: 'screen_name' }
+      'credentials', { keyPath: 'provider' }
     );
     credsdb.indexes.forEach(function(indexName)  {
       // the index name is also the keypath
@@ -89,12 +89,12 @@ CredentialsDB.prototype = {
     var trans = this.db.transaction('credentials', 'readwrite');
     var store = trans.objectStore('credentials');
     var addRequest = store.add(creds);
+    addRequest.onsuccess = function() {
+      callback(null);
+    };
     addRequest.onerror = function(e) {
       e.stopPropagation();
       callback(e);
-    };
-    addRequest.onsuccess = function() {
-      callback(null);
     };
   },
 

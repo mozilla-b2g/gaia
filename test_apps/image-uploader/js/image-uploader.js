@@ -19,7 +19,7 @@ HostingProvider.prototype.readyCreds = function() {
 };
 
 HostingProvider.prototype.extractOAuth1AccessTokens = function(string) {
-  var res = {};
+  var res = {'provider': this.auth};
   var ar = string.split('&');
   for (var id in ar) {
     var param = ar[id].split('=');
