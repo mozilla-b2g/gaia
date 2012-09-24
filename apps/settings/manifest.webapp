@@ -30,7 +30,8 @@
                "bluetooth-requestpasskey", 
                "bluetooth-requestpincode", 
                "bluetooth-authorize", 
-               "bluetooth-cancel"],
+               "bluetooth-cancel",
+               "icc-stkcommand"],
   "locales": {
     "ar": {
       "name": "الضبط",

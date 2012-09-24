@@ -3,7 +3,7 @@
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
-    icc.addEventListener("stkcommand", handleSTKCommand);
+    navigator.mozSetMessageHandler("icc-stkcommand", handleSTKCommand);
   }
 
   var _;
@@ -17,8 +17,7 @@
   var iccStkSelectionHeader = document.getElementById("icc-stk-selection-header");
 
   var stkMainAppMenu = null;
-  function handleSTKCommand(event) {
-    var command = event.command;
+  function handleSTKCommand(command) {
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
