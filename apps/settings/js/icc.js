@@ -63,6 +63,25 @@
           window.navigator.mozTelephony.dial(command.options.address);
         }
         break;
+      case icc.STK_CMD_LAUNCH_BROWSER:
+        console.log(" STK:Setup Launch Browser. URL: " + command.options.url);
+        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        if(confirm(command.options.confirmMessage)) {
+          var options = {
+            name: 'view',
+            data: {
+              type: 'url',
+              url: command.options.url
+            }
+          };
+
+          try {
+            var activity = new MozActivity(options);
+          } catch (e) {
+            console.log('WebActivities unavailable? : ' + e);
+          }
+        }
+        break;
       default:
         console.log("STK Message not managed ... response OK");
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
