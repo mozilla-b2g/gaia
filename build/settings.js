@@ -47,6 +47,7 @@ var settings = [
  new Setting("keyboard.wordsuggestion", false),
  new Setting("language.current", "en-US"),
  new Setting("lockscreen.passcode-lock.code", "0000"),
+ new Setting("lockscreen.passcode-lock.timeout", 0),
  new Setting("lockscreen.passcode-lock.enabled", false),
  new Setting("lockscreen.notifications-preview.enabled", true),
  new Setting("lockscreen.enabled", true),
