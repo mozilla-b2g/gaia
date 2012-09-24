@@ -4,14 +4,21 @@
 var EvmeManager = (function() {
 
   function openApp(params) {
+    var url = params.url;
+
     var evmeApp = new EvmeApp({
-      url: params.url,
+      url: url,
       name: params.title,
       icon: params.icon
     });
 
-    if (!Applications.isInstalled(params.url)) {
-      evmeApp.manifest.bookmarkFeature = true;
+    //TODO Evme guys will provide both URLs (specific search and bookmark URLs)
+    if (url.indexOf('?') !== -1) {
+      url = url.substring(0, url.indexOf('?'));
+    }
+
+    if (!Applications.isInstalled(url)) {
+      evmeApp.manifest.bookmarkURL = url;
     }
 
     evmeApp.launch();
