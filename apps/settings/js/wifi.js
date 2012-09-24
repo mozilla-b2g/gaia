@@ -758,7 +758,7 @@ function wifiSettings(evt) {
       gNetworkList.scan();
     }
   };
-};
+}
 
 window.addEventListener('localized', wifiSettings);
 

@@ -145,7 +145,7 @@ var Settings = {
         }
       };
       navigator.mozSetMessageHandler('activity', handleActivity);
-    };
+    }
 
     // preset all select
     var selects = document.querySelectorAll('select');

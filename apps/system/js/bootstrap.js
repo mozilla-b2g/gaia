@@ -52,7 +52,7 @@ function startup() {
 
       for (var key in messages) {
         var message = messages[key];
-        if (message["firstrun"]) {
+        if (message['firstrun']) {
           // Emulate a system message until there is really one.
           // https://bugzilla.mozilla.org/show_bug.cgi?id=793557
           var evt = document.createEvent('CustomEvent');
@@ -60,7 +60,7 @@ function startup() {
             type: 'open-app',
             isActivity: false,
             manifestURL: manifestURL,
-            url: manifestURL.replace('manifest.webapp', message["firstrun"])
+            url: manifestURL.replace('manifest.webapp', message['firstrun'])
           });
           window.dispatchEvent(evt);
         }
