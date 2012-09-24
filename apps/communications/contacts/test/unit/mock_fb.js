@@ -26,7 +26,7 @@ MockFb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
   var cid = mozCid;
 
-  function markAsFb (deviceContact) {
+  function markAsFb(deviceContact) {
     if (!deviceContact.category) {
       deviceContact.category = [];
     }
@@ -96,13 +96,13 @@ MockFb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = deviceContact;
         this.result.org[0] = 'FB';
-        
+
         callback.call(this);
       },
       set onerror(callback) {
 
       }
-    }
+    };
   }
 
   Object.defineProperty(this, 'uid', {

@@ -73,26 +73,17 @@ suite('Render contacts list', function() {
     var total = list.querySelectorAll('h2:not(.hide)').length;
     var totalC = list.querySelectorAll('li[data-uuid]').length;
 
-    // window.alert(total + "," + totalC);
-
     assert.equal(total, lengthTitles);
     assert.equal(totalC, lengthContacts);
   }
 
-  function assertTotal2(lengthTitles, lengthContacts) {
-    var total = list.querySelectorAll('h2:not(.hide)').length;
-    var totalC = list.querySelectorAll('li[data-uuid]').length;
-
-    window.alert(list.querySelectorAll('li[data-uuid]').item(0).innerHTML);
-    window.alert(list.querySelectorAll('li[data-uuid]').item(1).innerHTML);
-  }
 
   function assertImportButton() {
     var importButton = list.nextElementSibling;
     assert.isNotNull(importButton);
     assert.equal(importButton.id, 'sim_import_button');
-    if(window.fb.isEnabled) {
-      assert.equal(importButton.nextElementSibling.id,'fb_import_button');
+    if (window.fb.isEnabled) {
+      assert.equal(importButton.nextElementSibling.id, 'fb_import_button');
     }
     else {
       assert.isNull(importButton.nextElementSibling);
@@ -101,28 +92,27 @@ suite('Render contacts list', function() {
 
   function assertNoImportButton() {
     var importButton = list.nextElementSibling;
-    // window.alert(importButton);
 
     assert.isNull(importButton);
   }
 
   function assertFbMark(container) {
     var content = container.innerHTML;
-    var markPosition =  content.indexOf('icon-fb');
+    var markPosition = content.indexOf('icon-fb');
 
     assert.isTrue(markPosition > -1);
   }
 
   function resetDom(document) {
-    if(container) {
+    if (container) {
       document.body.removeChild(container);
     }
 
-    if(loading) {
+    if (loading) {
       document.body.removeChild(loading);
     }
 
-    if(searchSection) {
+    if (searchSection) {
       document.body.removeChild(searchSection);
     }
 
@@ -472,7 +462,7 @@ suite('Render contacts list', function() {
         assertFbMark(containerT);
 
         // Two instances as this contact is a favorite one also
-        assertTotal(2,2);
+        assertTotal(2, 2);
       };
     }); // test ends
   });  // suite ends

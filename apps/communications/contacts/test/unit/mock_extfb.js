@@ -2,4 +2,4 @@
 
 var MockExtFb = {
   importFB: function() {}
-}
+};
