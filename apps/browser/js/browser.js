@@ -162,7 +162,7 @@ var Browser = {
     console.log('Populating default data.');
     // Fetch default data
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', '/init.json', true);
+    xhr.open('GET', '/default_data/init.json', true);
     xhr.addEventListener('load', (function browser_defaultDataListener() {
       if (!(xhr.status === 200 | xhr.status === 0))
         return;
@@ -171,6 +171,8 @@ var Browser = {
       // Save bookmarks
       data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
         Places.addBookmark(bookmark.uri, bookmark.title);
+        if (bookmark.iconUri)
+          Places.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
       });
 
     }).bind(this), false);
