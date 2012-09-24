@@ -63,6 +63,10 @@ var Contacts = (function() {
             var id = params['id'];
             cList.getContactById(id, function onSuccess(savedContact) {
               currentContact = savedContact;
+              // Check if we have extra parameters to render
+              if ('extras' in params) {
+                addExtrasToContact(params['extras']);
+              }
               contactsForm.render(currentContact, goToForm);
             }, function onError() {
               console.log('Error retrieving contact to be edited');
@@ -72,13 +76,43 @@ var Contacts = (function() {
         }
         break;
 
+      case 'add-parameters':
+        navigation.home();
+        if ('tel' in params) {
+          selectList(params['tel']);
+        }
+        return;
+
     }
 
     if (!contactsList.loaded) {
+      checkCancelableActivity();
       loadList(overlay);
     }
 
-  }
+  };
+
+  var addExtrasToContact = function addExtrasToContact(extrasString) {
+    try {
+      var extras = JSON.parse(decodeURIComponent(extrasString));
+      for (var type in extras) {
+        var extra = extras[type];
+        if (currentContact[type]) {
+          if (Array.isArray(currentContact[type])) {
+            var joinArray = currentContact[type].concat(extra);
+            currentContact[type] = joinArray;
+          } else {
+            currentContact[type] = extra;
+          }
+        } else {
+          currentContact[type] = Array.isArray(extra) ? extra : [extra];
+        }
+      }
+    } catch (e) {
+      console.error('Extras malformed');
+      return null;
+    }
+  };
 
   var extractParams = function extractParams(url) {
     if (!url) {
@@ -208,29 +242,53 @@ var Contacts = (function() {
         }
         prompt1.show();
     }
-  }
+  };
+
+  var contactListClickHandler = function originalHandler(id) {
+    var options = {
+      filterBy: ['id'],
+      filterOp: 'equals',
+      filterValue: id
+    };
+
+    var request = navigator.mozContacts.find(options);
+    request.onsuccess = function findCallback() {
+      currentContact = request.result[0];
+
+      if (!ActivityHandler.currentlyHandling) {
+        contactsDetails.render(currentContact, TAG_OPTIONS);
+        navigation.go('view-contact-details', 'right-left');
+        return;
+      }
+
+      dataPickHandler();
+    };
+  };
 
   var loadList = function loadList(overlay) {
     contactsList.load(null, overlay);
-    contactsList.handleClick(function handleClick(id) {
-      var options = {
-        filterBy: ['id'],
-        filterOp: 'equals',
-        filterValue: id
+    contactsList.handleClick(contactListClickHandler);
+  };
+
+  var selectList = function selectList(phoneNumber) {
+    var addButton = document.getElementById('add-contact-button');
+    addButton.classList.add('hide');
+    contactsList.clearClickHandlers();
+    contactsList.load();
+    contactsList.handleClick(function addToContactHandler(id) {
+      var data = {
+        'tel': [{
+            'value': phoneNumber,
+            'carrier': null,
+            'type': TAG_OPTIONS['phone-type'][0].value
+          }
+        ]
       };
-
-      var request = navigator.mozContacts.find(options);
-      request.onsuccess = function findCallback() {
-        currentContact = request.result[0];
-
-        if (!ActivityHandler.currentlyHandling) {
-          contactsDetails.render(currentContact, TAG_OPTIONS);
-          navigation.go('view-contact-details', 'right-left');
-          return;
-        }
-
-        dataPickHandler();
-      };
+      window.location.hash = '#view-contact-form?extras=' +
+        encodeURIComponent(JSON.stringify(data)) + '&id=' + id;
+      contactsList.clearClickHandlers();
+      contactsList.handleClick(contactListClickHandler);
+      addButton.classList.remove('hide');
     });
   };
 
