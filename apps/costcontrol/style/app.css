@@ -23,10 +23,16 @@ form {
   background: #49525c;
 }
 
+iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
 [aria-hidden="true"] { display: none !important; }
 
 /* WINDOW & VIEWS */
-.window, .view{
+.window, .view {
   position: absolute;
   left: 0;
   top: 0;
@@ -36,17 +42,32 @@ form {
 }
 
 .view {
+
   bottom: 4.1rem;
   z-index: 1;
-  overflow-x: auto;
   background: url(images/app/ui/pattern.png) repeat left top;
   -moz-transition: -moz-transform 0.3s ease;
 }
+
+.view-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  bottom: 0;
+  top: 5rem;
+  left: 0;
+  right: 0;
+}
+
 .view[role="dialog"] {
   bottom: 0;
 }
 
 /* VIEWPORTS */
+.view[data-viewport="behind"] {
+  visibility: hidden;
+}
+
 .view[data-viewport="bottom"] {
   -moz-transform: translateY(100%);
 }
@@ -97,9 +118,43 @@ body[role="application"] button span.topup {
   background-image: url(images/app/icons/topup.png);
 }
 
+body[role="application"] button[disabled] span {
+  opacity: 0.3;
+}
+
+/* BB PROGRESS */
+body[role="application"] progress:not([value]) {
+  background: url(images/app/icons/loader.png) no-repeat center center;
+  width: 3rem;
+  height: 3rem;
+  animation: loader 0.8s linear infinite;
+}
+
+@keyframes loader {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 /* CONTENT */
 section.content {
   padding: 2.5rem 2rem;
+}
+
+/* COUNTDOWN */
+.countdown {
+  font-size: 1.6rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #BBB;
+}
+
+#top-up-countdown {
+  color: #C7C9C6;
 }
 
 /* ERROR MESSAGES */
@@ -120,83 +175,88 @@ section.content .error-messages {
   -moz-transition: all 0.2s ease;
 }
 
-/* OVERVIEW */
-section.content .overview {
+
+/* SETTINGS LISTS */
+.settings li {
+  border-bottom: solid 1px #e0e0dd;
   font-size: 1.6rem;
-  line-height: 1em;
-  font-weight: 600;
-  border-bottom: solid 1px #e5e5e1;
-  margin-bottom: 1rem;
-  padding: 1.5rem 1rem 1.5rem;
-  overflow: hidden;
-  height: 2.8rem;
+  line-height: 1.2em;
+  padding: 1.2rem 1.5rem 1.2rem 3rem;
+  position: relative;
 }
 
-section.content .overview .start {
-  float: left; 
-  -moz-transform: translateX(-4.0rem);
-  -moz-transition: -moz-transform 0.5s;
+.settings li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
 }
 
-section.content .overview .end {
-  float: right;
+.settings li:last-child {
+  border-bottom: none;
 }
 
-section.content .overview time {
-  font-weight: normal;
+.settings li time,
+.settings li .meta {
+  font-size: 1.4rem;
+  color: #505859;
 }
 
-/* ICONS CONTAINER */
-section.content .overview .icons {
-  width: 2.1rem;
-  height: 2.1rem;
-  vertical-align: middle;
-  background-position: center;
-  background-repeat: no-repeat;
-  padding: 0 0.4rem;
+/* End elements */
+.settings li > .end {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  height: 4.6rem;
+  margin-top: -2.3rem;
+}
+
+.settings li > .end:before {
+  content: "";
   display: inline-block;
-}
-
-/* ICONS*/
-section.content .overview .icons .spinner,
-section.content .overview .icons .warning {
-  display: none;
-}
-
-/* SPINNER */
-section.content .overview .icons .spinner{
-  margin: 0.2rem;
-}
-
-/* WARNING*/
-section.content .overview .icons .warning {
-  background: url('./images/app/icons/warning.png') no-repeat center center;
-  width: 100%;
+  vertical-align: middle;
+  width: 1px;
   height: 100%;
+  margin-left: -8px;
 }
 
-/* ALL STATES */
-#balance-tab.updating section.content .overview > .start,
-#balance-tab.warning section.content .overview > .start {
-  -moz-transform: none;
+.settings li > .end button {
+  display: inline-block;
+  vertical-align: middle;
+  width: 8.5rem;
+  margin: 0;
+  padding-left: 0.5rem;
 }
 
-/* UPDATING STATE */
-#balance-tab.updating .overview .icons .spinner {
-  display: block;
+.settings li > .end button .tag {
+  margin: 0;
+  float: none;
+  height: auto;
+  width: auto;
 }
 
-#balance-tab.updating .overview .icons .warning {
-  display: none !important;
+.settings li .toggle.end {
+  margin-top: -2.3rem;
 }
 
-/* WARNING STATE */
-#balance-tab.warning .overview .icons .warning{
-  display: block;
+.settings li label {
+  font-size: 1.4rem;
+  color: #505859;
 }
 
-/* LOW CREDIT STATE */
-#balance-tab.low-credit #cost-control-credit {
-  color: #b20000;
+.settings li .toggle input[type="checkbox"] {
+  pointer-events: none;
+}
+
+.settings li input[type="number"] {
+  width: 5.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  display: inline-block;
+  text-align: right;
 }
 

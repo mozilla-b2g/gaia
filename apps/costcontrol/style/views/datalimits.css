@@ -1,16 +1,30 @@
 /* TOPUP VIEW */
-#topup-view {
+#datalimits-view {
   bottom: 0;
 }
 
-#topup-view form {
+#datalimits-view form {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
+  padding: 1.5rem;
 }
 
-#topup-view form input {
+#datalimits-view form button {
+  float: right;
+  margin: 0;
+  width: 9rem;
+  margin-left: 1.5rem;
+}
+
+#datalimits-view form label {
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#datalimits-view form input {
   text-align: right;
   color: #333;
   font-weight: bold;
@@ -18,11 +32,11 @@
   height: 3.8rem;
 }
 
-#topup-view .content .info {
+#datalimits-view .content .info {
   text-align: center;
 }
 
-#topup-view .content .info h2 {
+#datalimits-view .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
@@ -30,19 +44,11 @@
   margin-bottom: 1rem;
 }
 
-#topup-view .content .info p {
+#datalimits-view .content .info p {
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
   text-align: left;
   margin-bottom: 0.5rem;
-}
-
-#topup-view .content .info .loading progress {
-  float: left;
-  margin: 1rem;
-}
-#topup-view .content .info .loading p {
-  padding-top: 0.8rem;
 }
 
