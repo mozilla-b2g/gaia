@@ -1,0 +1,290 @@
+
+html, body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  background-image: url(images/background.png);
+  background-size: 100% 100%;
+}
+
+[role=region] {
+  background-image: none;
+  background-color: transparent;
+}
+
+/* Pages Transition */
+section.page {
+  position: absolute;
+  left: 0;
+  top: 0;
+
+  width: 100%;
+  height: 100%;
+
+  overflow: hidden;
+  transform: translateX(100%);
+}
+
+section.page:target {
+  transform: translateX(0);
+  transition: transform .5s ease;
+}
+
+section.page:target ~ section.page {
+  transform: translateX(-100%);
+  transition: transform .5s ease;
+}
+
+/* First Run Animation */
+.start > img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  animation: logo-dance 8s 1;
+  pointer-events: none;
+}
+
+.start img:nth-child(4) {
+  animation-delay: 12s;
+}
+
+.start img:nth-child(3) {
+  animation-delay: 8s;
+}
+
+@keyframes logo-dance {
+  50%, 80% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.start > *:not(img) {
+  opacity: 0;
+}
+
+.start.show > *:not(img) {
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+
+/* Common styles between panels */
+.main {
+  padding: 1rem;
+  height: calc(100% - 1rem);
+}
+
+.content {
+  height: calc(100% - 115px);
+  width: 100%;
+  margin: 1rem 0;
+  overflow-y: auto;
+  background: url(images/shadow.png) repeat-x left bottom;
+}
+
+/* Progress bar */
+progress[value] {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-radius: 0.3rem;
+  height: 0.3rem;
+  display: block;
+  background: url(images/shadow.png) repeat-x left bottom;
+}
+
+progress[value]::-moz-progress-bar {
+  background: #01c5ed;
+  border-radius: 0.4rem;
+}
+
+/* Navigation buttons */
+#navigation-buttons {
+  position: absolute;
+  left: 0;
+  bottom: -.5rem;
+  width: calc(100% - 2rem);
+  margin: 0 1rem;
+  /* let the buttons be invisible while the logo dance is going on */
+  opacity: 0;
+  pointer-events: none;
+}
+
+#navigation-buttons.show {
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+#navigation-buttons button {
+  width: calc(50% - .2rem);
+  pointer-events: auto;
+}
+
+#navigation-buttons button[data-target=''] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#navigation-buttons button[data-target=''] + button {
+  width: calc(100% - .4rem);
+}
+
+/* ----------------------------------
+ * Buttons list
+ * ---------------------------------- */
+.buttons-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* Default */
+.buttons-list button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+.buttons-list button {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  overflow: visible;
+  background: #e7e7e7;
+  border: 0.1rem solid #b6b6b6;
+  border-radius: 0.3rem;
+  font-size: 1.4rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 2.9rem;
+  text-align: left;
+  color: #333;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+.buttons-list button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: url(images/shadow.png) repeat-x left bottom;
+  height: 0.2rem;
+  margin-top: 0.1rem;
+  pointer-events: none;
+}
+
+/* Press */
+.buttons-list button:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+.buttons-list button:active:after {
+  opacity: 0;
+}
+
+button span, a[role="button"] span {
+  background: none no-repeat scroll center center transparent;
+  float: left;
+  height: 2.5rem;
+  margin: 0px 0.5rem 0px -1rem;
+  width: 2.5rem;
+}
+
+/* Core icons */
+.buttons-list button span.end {
+  float: right;
+  margin: 0.3rem -1.5rem 0px 1rem;
+}
+
+.buttons-list button span.launch {
+  background-image: url(images/launch.png);
+  background-position: 1rem bottom;
+}
+
+.invisible {
+  width: 1px;
+  height: 1px;  
+  border: none;
+  position: absolute;
+  left: -100px;
+}
+
+/* Privacy choices */
+.header {
+  display: block;
+  font-size: 1.2rem;
+}
+
+.header.logo {
+  background: url(images/firefox-48.png) no-repeat 0 0;
+  padding-left: 64px;
+}
+
+.sub-header {
+  height: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+.sub-header a {
+  font-size: 1.2rem;
+  padding: .5rem 1rem;
+}
+
+.sub-header a:first-child {
+  position: absolute;
+  left: 0;
+}
+
+.sub-header a:last-child {
+  position: absolute;
+  right: 0;
+}
+
+
+/* Last screen - mostly done! */
+#end {
+  background-image: url(images/background-dark.png);
+}
+
+#end .content {
+  height: calc(100% - 65px);
+  color: white;
+  background: url(images/thumb-up.png) no-repeat center 95%, url(images/shadow.png) repeat-x left bottom;
+}
+
+#end .content > span {
+  display: inline-block;
+  margin: .5rem 1rem;
+}
+
+#end .content > span.title {
+  font-size: 4rem;
+}
+
+#end .content > span.subtitle {
+  font-size: 2rem;
+}
+
+#end .content > span.text {
+  font-size: 1.5rem;
+}
+

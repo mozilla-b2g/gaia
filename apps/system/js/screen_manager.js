@@ -107,21 +107,11 @@ var ScreenManager = {
     };
 
     this._firstOn = false;
-    SettingsListener.observe('screen.timeout', 60,
-    function screenTimeoutChanged(value) {
+    var screenTimeoutChanged = function(value) {
       self._idleTimeout = value;
       self.setIdleTimeout(self._idleTimeout);
 
       if (!self._firstOn) {
-        (function handleInitlogo() {
-          var initlogo = document.getElementById('initlogo');
-          initlogo.classList.add('hide');
-          initlogo.addEventListener('transitionend', function delInitlogo() {
-            initlogo.removeEventListener('transitionend', delInitlogo);
-            initlogo.parentNode.removeChild(initlogo);
-          });
-        })();
-
         self._firstOn = true;
 
         // During boot up, the brightness was set by bootloader as 0.5,
@@ -132,18 +122,20 @@ var ScreenManager = {
         // Turn screen on with dim.
         self.turnScreenOn(false);
       }
-    });
+    };
+    SettingsListener.observe('screen.timeout', 60, screenTimeoutChanged);
 
-    SettingsListener.observe('screen.automatic-brightness', true,
-    function deviceLightSettingChanged(value) {
+    var deviceLightSettingChanged = function(value) {
       self.setDeviceLightEnabled(value);
-    });
+    };
+    SettingsListener.observe('screen.automatic-brightness', true,
+                             deviceLightSettingChanged);
 
-    SettingsListener.observe('screen.brightness', 1,
-    function brightnessSettingChanged(value) {
+    var brightnessSettingChanged = function(value) {
       self._userBrightness = value;
       self.setScreenBrightness(value, false);
-    });
+    };
+    SettingsListener.observe('screen.brightness', 1, brightnessSettingChanged);
   },
 
   handleEvent: function scm_handleEvent(evt) {

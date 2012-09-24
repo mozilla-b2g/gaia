@@ -9,13 +9,13 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "mozBluetooth", "browser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
                       "background", "backgroundservice", "settings",
-                      "alarm", "camera",
+                      "alarm", "camera", "fullscreen",
                       "fmradio", "voicemail",
                       "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
                       "device-storage:pictures", "device-storage:music", "device-storage:videos", "device-storage:apps",
                       "alarms", "alarm", "attention",
-                      "content-camera", "camera", "tcp-socket", "bluetooth", "storage",
+                      "content-camera", "camera", "tcp-socket", "bluetooth", "storage", "time",
                       // Just don't.
                       "deprecated-hwvideo"];
 

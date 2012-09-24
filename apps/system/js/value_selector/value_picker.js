@@ -1,3 +1,6 @@
+
+'use strict';
+
 var ValuePicker = (function() {
   //
   // Constructor

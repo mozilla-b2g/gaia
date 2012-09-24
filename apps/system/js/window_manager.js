@@ -1193,13 +1193,17 @@ var WindowManager = (function() {
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
-  'keyboardchange', 'keyboardhide'];
-  appResizeEvents.forEach(function eventIterator(event) {
-    window.addEventListener(event, function on(evt) {
+                         'keyboardchange', 'keyboardhide'];
+  appResizeEvents.forEach(function eventIterator(eventName) {
+    window.addEventListener(eventName, function on(evt) {
       if (displayedApp)
         setAppSize(displayedApp);
 
-      if (event == 'keyboardchange') {
+      // De-activating keyboard for a fullscreen attention screen frame
+      // have weird side effect - the middle of the screen is empty.
+      // XXX De-activating until a proper fix.
+      if (!(AttentionScreen.isFullyVisible() && LockScreen.locked) &&
+          evt.type == 'keyboardchange') {
         // Cancel fullscreen if keyboard pops
         if (document.mozFullScreen)
           document.mozCancelFullScreen();

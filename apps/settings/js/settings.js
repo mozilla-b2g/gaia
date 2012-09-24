@@ -121,8 +121,8 @@ var Settings = {
     }
 
     // handle web activity
-    navigator.mozSetMessageHandler('activity',
-      function settings_handleActivity(activityRequest) {
+    if (navigator.mozSetMessageHandler) {
+      var handleActivity = function(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
           case 'configure':
@@ -143,8 +143,9 @@ var Settings = {
             });
             break;
         }
-      }
-    );
+      };
+      navigator.mozSetMessageHandler('activity', handleActivity);
+    };
 
     // preset all select
     var selects = document.querySelectorAll('select');
@@ -357,7 +358,7 @@ window.addEventListener('localized', function showPanel() {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
     window.setTimeout(function() {
-      document.location.hash = 'languages';
+      document.location.hash = document.location.hash;
     });
   }
 });
