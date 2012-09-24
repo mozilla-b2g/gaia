@@ -29373,8 +29373,8 @@ FakeFolderStorage.prototype = {
     },
   };
 
-  // A mapping from domains to configurations appropriate for passing in to
-  // Connection.setConfig(). Used for domains that don't support autodiscovery.
+  // A mapping from domains to URLs appropriate for passing in to
+  // Connection.setServer(). Used for domains that don't support autodiscovery.
   const hardcodedDomains = {
     'gmail.com': 'https://m.google.com',
     'googlemail.com': 'https://m.google.com',
@@ -29393,7 +29393,9 @@ FakeFolderStorage.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
+
     this._connection = 0;
+    this._waitingForConnection = false;
     this._connectionCallbacks = [];
   }
 
@@ -29407,10 +29409,19 @@ FakeFolderStorage.prototype = {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
 
+    get _emailDomain() {
+      return this._email.substring(this._email.indexOf('@') + 1);
+    },
+
     /**
      * Perform any callbacks added during the connection process.
+     *
+     * @param aError the error status (if any)
      */
-    _doCallbacks: function() {
+    _notifyConnected: function(aError) {
+      if (aError)
+        this.disconnect();
+
       for (let [,callback] in Iterator(this._connectionCallbacks))
         callback.apply(callback, arguments);
       this._connectionCallbacks = [];
@@ -29422,61 +29433,108 @@ FakeFolderStorage.prototype = {
      * @return true iff we are fully connected to the server
      */
     get connected() {
-      return this._connection === 4;
+      return this._connection === 2;
     },
 
     /**
      * Perform autodiscovery and get the options for the server associated with
      * this account.
      *
-     * @param aCallback a callback taking an error status (if any), and the
-     *        resulting config options.
+     * @param aCallback a callback taking an error status (if any), the
+     *        resulting autodiscovery settings, and the server's options.
      */
     connect: function(aCallback) {
       let conn = this;
       if (aCallback) {
-        if (conn._connection === 4) {
+        if (conn._connection === 2) {
           aCallback(null, conn.config);
           return;
         }
         conn._connectionCallbacks.push(aCallback);
       }
+      if (conn._waitingForConnection)
+        return;
 
-      if (conn._connection === 0) {
-        conn._connection = 1;
+      function getAutodiscovery() {
+        // Check for hardcoded domains first.
+        let domain = conn._emailDomain.toLowerCase();
+        if (domain in hardcodedDomains)
+          conn.setServer(hardcodedDomains[domain]);
+
+        if (conn._connection === 1) {
+          // Pass along minimal configuration info.
+          getOptions({ forced: true,
+                       selectedServer: { url: conn._forcedServer } });
+          return;
+        }
+
+        conn._waitingForConnection = true;
         conn.autodiscover(function (aError, aConfig) {
-          if (aError) {
+          conn._waitingForConnection = false;
+
+          if (aError)
+            return conn._notifyConnected(aError, aConfig);
+
+          // Try to find a MobileSync server from Autodiscovery.
+          for (let [,server] in Iterator(aConfig.servers)) {
+            if (server.type === 'MobileSync') {
+              aConfig.selectedServer = server;
+              break;
+            }
+          }
+          if (!aConfig.selectedServer) {
             conn._connection = 0;
-            return conn._doCallbacks(aError, null);
+            return conn._notifyConnected(
+              new AutodiscoverError('No MobileSync server found'), aConfig);
           }
 
-          conn._connection = 2;
-          conn.config = aConfig;
-          conn.baseURL = conn.config.server.url +
-            '/Microsoft-Server-ActiveSync';
-          conn.connect();
+          conn.setServer(aConfig.selectedServer.url);
+          getOptions(aConfig);
         });
       }
-      else if (conn._connection === 2) {
-        conn._connection = 3;
-        conn.options(conn.baseURL, function(aError, aResult) {
-          if (aError) {
-            conn._connection = 2;
-            return conn._doCallbacks(aError, conn.config);
-          }
 
-          conn._connection = 4;
-          conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
-          conn.config.options = aResult;
+      function getOptions(aConfig) {
+        if (conn._connection === 2)
+          return;
+
+        conn._waitingForConnection = true;
+        conn.options(function(aError, aOptions) {
+          conn._waitingForConnection = false;
+
+          if (aError)
+            return conn._notifyConnected(aError, aConfig, aOptions);
+
+          conn._connection = 2;
+          conn.versions = aOptions.versions;
+          conn.supportedCommands = aOptions.commands;
+          conn.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
 
           if (!conn.supportsCommand('Provision'))
-            return conn._doCallbacks(null, conn.config);
+            return conn._notifyConnected(null, aConfig, aOptions);
 
           conn.provision(function (aError, aResponse) {
-            conn._doCallbacks(aError, conn.config);
+            conn._notifyConnected(aError, aConfig, aOptions);
           });
         });
       }
+
+      getAutodiscovery();
+    },
+
+    /**
+     * Disconnect from the ActiveSync server, and reset all local state.
+     */
+    disconnect: function() {
+      if (this._waitingForConnection)
+        throw new Error("Can't disconnect while waiting for server response");
+
+      this._connection = 0;
+
+      this.baseUrl = null;
+
+      this.versions = [];
+      this.supportedCommands = [];
+      this.currentVersion = null;
     },
 
     /**
@@ -29490,12 +29548,7 @@ FakeFolderStorage.prototype = {
      */
     autodiscover: function(aCallback, aNoRedirect) {
       if (!aCallback) aCallback = nullCallback;
-      let domain = this._email.substring(this._email.indexOf('@') + 1)
-                       .toLowerCase();
-      if (domain in hardcodedDomains) {
-        aCallback(null, this._fillConfig(hardcodedDomains[domain]));
-        return;
-      }
+      let domain = this._emailDomain;
 
       // The first time we try autodiscovery, we should try to recover from
       // AutodiscoverDomainErrors. The second time, *all* errors should be
@@ -29525,68 +29578,14 @@ FakeFolderStorage.prototype = {
     },
 
     /**
-     * Manually set the configuration for the connection.
+     * Manually set the server for the connection.
      *
-     * @param aConfig a string representing the base URL for commands or an
-     *        object holding the configuration data. In the latter case, if the
-     *        |options| key is specified, we will treat ourselves as fully
-     *        connected; otherwise, we will count as having performed
-     *        autodiscovery but not options detection.
+     * @param aConfig a string representing the server URL for commands.
      */
-    setConfig: function(aConfig) {
-      this.config = this._fillConfig(aConfig);
-      this.baseURL = this.config.server.url + '/Microsoft-Server-ActiveSync';
-
-      if (this.config.options) {
-        this._connection = 4;
-        let versionStr = this.config.options.versions.slice(-1)[0];
-        this.currentVersion = new Version(versionStr);
-      }
-      else {
-        this._connection = 2;
-      }
-    },
-
-    /**
-     * Fill out the configuration for the connection.
-     *
-     * @param aConfig a string representing the base URL for commands or an
-     *        object holding the configuration data
-     * @return the properly-formed configuration object
-     */
-    _fillConfig: function(aConfig) {
-      let config = {
-        user: {
-          name: '',
-          email: this._email,
-        },
-        server: {
-          type: 'MobileSync',
-          url: null,
-          name: null,
-        },
-      };
-
-      if (typeof aConfig === 'string') {
-        config.server.url = config.server.name = aConfig;
-      }
-      else {
-        let deepCopy = function(src, dest) {
-          for (let k in src) {
-            if (typeof src[k] === 'object') {
-              dest[k] = Array.isArray(src[k]) ? [] : {};
-              deepCopy(src[k], dest[k]);
-            }
-            else {
-              dest[k] = src[k];
-            }
-          }
-        };
-
-        deepCopy(aConfig, config);
-      }
-
-      return config;
+    setServer: function(aServer) {
+      this._forcedServer = aServer;
+      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
+      this._connection = 1;
     },
 
     /**
@@ -29620,6 +29619,10 @@ FakeFolderStorage.prototype = {
                               XPathResult.FIRST_ORDERED_NODE_TYPE, null)
                     .singleNodeValue;
         }
+        function getNodes(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver,
+                              XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        }
         function getString(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
                               null).stringValue;
@@ -29651,19 +29654,25 @@ FakeFolderStorage.prototype = {
         }
 
         let user = getNode('ms:User', responseNode);
-        let server = getNode('ms:Action/ms:Settings/ms:Server', responseNode);
-
         let config = {
+          culture: getString('ms:Culture/text()', responseNode),
           user: {
             name:  getString('ms:DisplayName/text()',  user),
             email: getString('ms:EMailAddress/text()', user),
           },
-          server: {
-            type: getString('ms:Type/text()', server),
-            url:  getString('ms:Url/text()',  server),
-            name: getString('ms:Name/text()', server),
-          }
+          servers: [],
         };
+
+        let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
+        let server;
+        while (server = servers.iterateNext()) {
+          config.servers.push({
+            type:       getString('ms:Type/text()',       server),
+            url:        getString('ms:Url/text()',        server),
+            name:       getString('ms:Name/text()',       server),
+            serverData: getString('ms:ServerData/text()', server),
+          });
+        }
 
         aCallback(null, config);
       };
@@ -29689,14 +29698,14 @@ FakeFolderStorage.prototype = {
      * @param aCallback a callback taking an error status (if any), and the
      *        resulting options.
      */
-    options: function(aURL, aCallback) {
+    options: function(aCallback) {
       if (!aCallback) aCallback = nullCallback;
-      if (this._connection < 2)
+      if (this._connection < 1)
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('OPTIONS', aURL, true);
+      xhr.open('OPTIONS', this.baseUrl, true);
       xhr.onload = function() {
         if (xhr.status !== 200) {
           console.log('ActiveSync options request failed with response ' +
@@ -29706,8 +29715,8 @@ FakeFolderStorage.prototype = {
         }
 
         let result = {
-          'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
-          'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
+          versions: xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
+          commands: xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
 
         aCallback(null, result);
@@ -29729,7 +29738,7 @@ FakeFolderStorage.prototype = {
 
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
-      return this.config.options.commands.indexOf(aCommand) !== -1;
+      return this.supportedCommands.indexOf(aCommand) !== -1;
     },
 
     /**
@@ -29793,7 +29802,7 @@ FakeFolderStorage.prototype = {
       }
 
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseURL +
+      xhr.open('POST', this.baseUrl +
                '?Cmd='        + encodeURIComponent(commandName) +
                '&User='       + encodeURIComponent(this._email) +
                '&DeviceId='   + encodeURIComponent(this._deviceId) +
@@ -29806,7 +29815,7 @@ FakeFolderStorage.prototype = {
       let conn = this;
       xhr.onload = function() {
         if (xhr.status === 451) {
-          conn.baseURL = xhr.getResponseHeader('X-MS-Location');
+          conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aCommand, aCallback);
           return;
         }
@@ -30686,9 +30695,22 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   else {
     this.conn = new $activesync.Connection(accountDef.credentials.username,
                                            accountDef.credentials.password);
-    if (this.accountDef.connInfo)
-      this.conn.setConfig(this.accountDef.connInfo);
-    this.conn.connect();
+
+    // XXX: We should check for errors during connection and alert the user.
+    if (this.accountDef.connInfo) {
+      this.conn.setServer(this.accountDef.connInfo.server);
+      this.conn.connect();
+    }
+    else {
+      // This can happen with an older, broken version of the ActiveSync code.
+      // We can probably remove this eventually.
+      console.warning('ActiveSync connection info not found; ' +
+                      'attempting autodiscovery');
+      this.conn.connect(function (error, config, options) {
+        accountDef.connInfo = { server: config.selectedServer.url };
+        universe.saveAccountDef(accountDef, folderInfos);
+      });
+    }
   }
 
   this._db = dbConn;
@@ -31686,7 +31708,7 @@ Configurators['activesync'] = {
 
     var conn = new $activesync.Connection(credentials.username,
                                           credentials.password);
-    conn.connect(function(error, config) {
+    conn.connect(function(error, config, options) {
       if (error) {
         var failureType = 'unknown';
 
@@ -31700,10 +31722,12 @@ Configurators['activesync'] = {
         return;
       }
 
-      var account = universe._loadAccount(accountDef, folderInfo, conn);
+      accountDef.connInfo = { server: config.selectedServer.url };
       if (!accountDef.identities[0].name)
         accountDef.identities[0].name = config.user.name;
       universe.saveAccountDef(accountDef, folderInfo);
+
+      var account = universe._loadAccount(accountDef, folderInfo, conn);
       account.syncFolderList(function() {
         callback(null, account);
       });
