@@ -28,7 +28,7 @@ var Launcher = (function() {
   }
 
   document.getElementById('handler').
-    addEventListener('click', toggleButtonBar);
+    addEventListener('mousedown', toggleButtonBar);
 
   document.getElementById('close-button').
     addEventListener('click', toggleButtonBar);

@@ -15,6 +15,7 @@ const Homescreen = (function() {
   function initUI() {
     setLocale();
     GridManager.init('.apps', function gm_init() {
+      Wallpaper.init();
       GridManager.goToPage(GridManager.landingPageIndex);
       DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();

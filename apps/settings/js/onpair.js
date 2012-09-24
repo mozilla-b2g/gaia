@@ -1,12 +1,16 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var PairView = {
-  /*
-     address of device to pair with.
+  /**
+   * address of device to pair with.
    */
   _address: null,
-  /*
-     device authentication method
+
+  /**
+   * device authentication method
    */
   _pairMethod: null,
 
@@ -38,9 +42,11 @@ var PairView = {
         break;
 
       case 'pincode':
-        // XXX hard code here because attention screen
-        // doesn't support keyboard input now.
-        // https://github.com/mozilla-b2g/gaia/issues/4669
+        /**
+         * XXX hard-coded here because attention screen
+         *     doesn't support keyboard input now.
+         * https://github.com/mozilla-b2g/gaia/issues/4669
+         */
         this.pinInput.value = '0000';
         this.pinInput.focus();
         this.comfirmationItem.hidden = true;
@@ -88,6 +94,5 @@ var PairView = {
         break;
     }
   }
-
 };
 
