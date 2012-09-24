@@ -477,9 +477,58 @@ var ImageUploader = {
       });
     };
 
+    var HostingFlickr = new HostingProvider('flickr', 'Flickr', 'oauth1',
+      {
+        token: null,
+        tokenSecret: null,
+        consumerKey: '41b81b24b51f6c8041c33f80c73d4b78',
+        consumerSecret: '892b7fd68851f509'
+      },
+      {
+        'confirm-img': '',
+	'login': 'username',
+        'upload': 'https://secure.flickr.com/services/upload/',
+	'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
+        'oauth_request_token': 'https://secure.flickr.com/services/oauth/request_token',
+        'oauth_authorize': 'https://secure.flickr.com/services/oauth/authorize',
+        'oauth_access_token': 'https://secure.flickr.com/services/oauth/access_token'
+      });
+    HostingFlickr.addContent = function() {
+      var container = document.getElementById('service-content');
+      if (container == undefined) {
+        return;
+      }
+
+      var p = document.createElement('p');
+        p.id = 'credentials-status';
+
+      container.appendChild(p);
+      this.updateCredentials();
+    };
+    HostingFlickr.upload = function(source, callback) {
+      var url = this.buildOAuth1URL(
+        this.urls['upload'],
+        'POST',
+        { }
+      );
+
+      var picture = new FormData();
+      picture.append('photo', source);
+      picture.append('api_key', this.keys['consumerKey']);
+
+      this.XHRUpload(url, picture, function(xhr) {
+	console.log("Got reply: " + JSON.stringify(xhr.responseText));
+        // var id = json.entities.media[0].id_str;
+        // var ex_url = json.entities.media[0].expanded_url;
+        ImageUploader.setStatus('Uploaded successfully: ');
+        // callback(ex_url);
+      });
+    };
+
     this.services.push(HostingCanardPC);
     this.services.push(HostingTwitter);
     this.services.push(HostingImgur);
+    this.services.push(HostingFlickr);
 
     this.createServicesList();
 
