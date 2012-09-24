@@ -33,16 +33,16 @@ label {
 
 label input + button[type="reset"],
 label textarea + button[type="reset"] {
-  width: 1.7rem;
-  height: 1.7rem;
+  width: 3.4rem;
+  height: 3.4rem;
   padding: 0;
-  margin: -0.8rem 0 0;
+  margin: -1.7rem 0 0;
   font: 0/0 a;
   border: none;
   position: absolute;
-  right: 0.5rem;
+  right: 0rem;
   top: 50%;
-  background: url(input_areas/images/icons/clear.png) no-repeat left top;
+  background: url(input_areas/images/icons/clear.png) no-repeat center center;
   opacity: 0;
   pointer-events: none;
 }
@@ -176,7 +176,7 @@ form.tidy label input:focus {
 }
 
 form.tidy label button[type="reset"] {
-  right: 2rem;
+  right: 1rem;
 }
 
 form.tidy button[type="submit"] {
@@ -184,10 +184,15 @@ form.tidy button[type="submit"] {
   border: none;
   float: right;
   width: 6rem;
+  height: 3.4rem;
   padding: 0;
   font: 600 1.4rem/3.2rem "Open Sans", Sans-serif;
   color: #333;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+form.tidy button[type="submit"]:active {
+  background: url(input_areas/images/ui/active.png) repeat-x left bottom;
 }
 
 form.tidy button:focus,
