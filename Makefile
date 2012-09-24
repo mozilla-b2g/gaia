@@ -298,8 +298,11 @@ preferences: install-xulrunner-sdk
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
 	  fi
+	if [ -f build/payment-prefs.js ]; \
+		then \
+			cat build/payment-prefs.js >> profile/user.js; \
+		fi
 	@echo "Done"
-
 
 # Generate profile/permissions.sqlite
 permissions: webapp-manifests install-xulrunner-sdk
