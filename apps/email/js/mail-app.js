@@ -7,7 +7,7 @@ var MailAPI = null;
 
 var App = {
   /**
-   * Bind any global notifications.
+   * Bind any global notifications, relay localizations to the back-end.
    */
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
@@ -17,6 +17,19 @@ var App = {
                      { account: account, restoreCard: Cards.activeCardIndex },
                      'right');
     };
+
+    MailAPI.useLocalizedStrings({
+      wrote: mozL10n.get('reply-quoting-wrote'),
+      originalMessage: mozL10n.get('forward-original-message'),
+      forwardHeaderLabels: {
+        subject: mozL10n.get('forward-header-subject'),
+        date: mozL10n.get('forward-header-date'),
+        from: mozL10n.get('forward-header-from'),
+        replyTo: mozL10n.get('forward-header-reply-to'),
+        to: mozL10n.get('forward-header-to'),
+        cc: mozL10n.get('forward-header-cc'),
+      }
+    });
   },
 
   /**

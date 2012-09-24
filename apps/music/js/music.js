@@ -538,6 +538,9 @@ var SubListView = {
 
     this.albumImage = document.getElementById('views-sublist-header-image');
     this.albumName = document.getElementById('views-sublist-header-name');
+    this.playAllButton = document.getElementById('views-sublist-controls-play');
+    this.shuffleButton =
+      document.getElementById('views-sublist-controls-shuffle');
 
     this.view.addEventListener('click', this);
   },
@@ -548,6 +551,30 @@ var SubListView = {
     this.albumImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+  },
+
+  shuffle: function slv_shuffle() {
+    var list = this.dataSource;
+    shuffle(list);
+    this.dataSource = [];
+    this.index = 0;
+    this.anchor.innerHTML = '';
+    for (var i = 0; i < list.length; i++)
+      this.update(list[i]);
+
+    // shuffle the elements of array a in place
+    // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    function shuffle(a) {
+      for (var i = a.length - 1; i >= 1; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        if (j < i) {
+          var tmp = a[j];
+          a[j] = a[i];
+          a[i] = tmp;
+        }
+      }
+    }
+
   },
 
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
@@ -601,10 +628,19 @@ var SubListView = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        if (!target)
-          return;
 
-        if (target.dataset.index) {
+        if (target === this.shuffleButton) {
+          this.shuffle();
+          break;
+        }
+
+        if (target === this.playAllButton) {
+          // Clicking the play all button is the same as clicking
+          // on the first item in the list.
+          target = this.view.querySelector('li > a[data-index="0"]');
+        }
+
+        if (target && target.dataset.index) {
           PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
@@ -675,6 +711,10 @@ var PlayerView = {
 
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+
+    // A timer we use to work around
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+    this.endedTimer = null;
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -721,6 +761,11 @@ var PlayerView = {
 
   play: function pv_play(target) {
     this.isPlaying = true;
+
+    if (this.endedTimer) {
+      clearTimeout(this.endedTimer);
+      this.endedTimer = null;
+    }
 
     this.showInfo();
 
@@ -884,9 +929,27 @@ var PlayerView = {
         break;
       case 'timeupdate':
         this.updateSeekBar();
+
+        // Since we don't always get reliable 'ended' events, see if
+        // we've reached the end this way.
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+        // If we're within 1 second of the end of the song, register
+        // a timeout to skip to the next song one second after the song ends
+        if (this.audio.currentTime >= this.audio.duration - 1 &&
+            this.endedTimer == null) {
+          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
+          this.endedTimer = setTimeout(function() {
+                                         this.endedTimer = null;
+                                         this.next();
+                                       }.bind(this),
+                                       timeToNext * 1000);
+        }
         break;
       case 'ended':
-        this.next();
+        // Because of the workaround above, we have to ignore real ended
+        // events if we already have a timer set to emulate them
+        if (!this.endedTimer)
+          this.next();
         break;
 
       default:

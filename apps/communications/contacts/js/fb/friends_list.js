@@ -48,6 +48,11 @@ contacts.List = (function() {
       });
     });
 
+    groupsList.removeChild(groupsList.children[0]); // Deleting template
+    FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title',
+                     true);
+    FixedHeader.start();
+
     if (typeof cb === 'function') {
       window.setTimeout(function() { cb(); }, 0);
     }
