@@ -19,7 +19,7 @@ HostingProvider.prototype.readyCreds = function() {
 };
 
 HostingProvider.prototype.extractOAuth1AccessTokens = function(string) {
-  var res = {};
+  var res = {'provider': this.auth};
   var ar = string.split('&');
   for (var id in ar) {
     var param = ar[id].split('=');
@@ -160,7 +160,7 @@ HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
    var p = document.createElement('p');
     p.innerHTML = 'Please enter PIN code given by ' + this.name;
    var input = document.createElement('input');
-    input.type = 'number';
+    input.type = 'text';
     input.id = 'pincode';
     input.placeholder = 'PIN Code';
    div.appendChild(h3);
@@ -259,16 +259,18 @@ HostingProvider.prototype.performOAuth1Login = function() {
     {oauth_callback: 'oob'},
     function(xhr) {
       if (xhr.status != 200) {
-        alert('Request refused:' + xhr.status);
+        alert('Request refused:' + xhr.status + '::' + xhr.responseText);
         return;
       }
       if (xhr.responseText.match('oauth_token=')) {
         ImageUploader.setStatus('Extracting ' + self.name + ' temporary token');
         var request_token_regex =
-          new RegExp('oauth_token=(.*)&oauth_token_secret=.*');
+          new RegExp('oauth_token=(.*)&oauth_token_secret=(.*)');
         var request_token_ar = request_token_regex.exec(xhr.responseText);
         var request_token_full = request_token_ar[0];
         self.request_token_only = request_token_ar[1];
+	self.keys.token = request_token_ar[1];
+	self.keys.tokenSecret = request_token_ar[2];
         var authorize =
           self.urls['oauth_authorize'] + '?' + request_token_full;
         self.OAuth1BuildDialogNotif(authorize);
@@ -320,7 +322,7 @@ HostingProvider.prototype.updateCredentials = function() {
       revokeButton.className = 'negative';
       revokeButton.id = 'revoke-twitter';
       revokeButton.innerHTML =
-        'Revoke \'' + self.creds[0].screen_name + '\' credentials';
+        'Revoke \'' + self.creds[0][self.urls['login']] + '\' credentials';
       revokeButton.onclick = self.revokeCredentials.bind(self);
       container.appendChild(revokeButton);
     }
@@ -330,7 +332,7 @@ HostingProvider.prototype.updateCredentials = function() {
 HostingProvider.prototype.revokeCredentials = function() {
   var self = this;
   this.OAuth1BuildDialogRevoke(function () {
-    self.credsdb.delcreds(self.creds[0].screen_name, function(res) {
+    self.credsdb.delcreds(self.creds[0].self.urls['login'], function(res) {
       if (res == null) {
         ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
         self.creds = undefined;
@@ -379,6 +381,7 @@ var ImageUploader = {
       },
       {
         'confirm-img': 'style/images/twitter-bird-light-bgs.png',
+	'login': 'screen_name',
         'upload': 'https://upload.twitter.com/1/statuses/update_with_media.json',
         'oauth_request_token': 'https://api.twitter.com/oauth/request_token',
         'oauth_authorize': 'https://api.twitter.com/oauth/authorize',
@@ -459,20 +462,73 @@ var ImageUploader = {
 
       this.XHRUpload(this.urls['upload'], picture, function(xhr) {
         var json = JSON.parse(xhr.responseText);
-        var link = json.upload.links.imgur_page;
-        var img = json.upload.image.hash;
-        if (link == undefined) {
-          ImageUploader.setStatus('Error while uploading!');
-        } else {
-          ImageUploader.setStatus('Uploaded successfully: ' + img);
-          callback(link);
-        }
+	if (json && json.upload) {
+          var link = json.upload.links.imgur_page;
+          var img = json.upload.image.hash;
+          if (link == undefined) {
+            ImageUploader.setStatus('Error while uploading!');
+          } else {
+            ImageUploader.setStatus('Uploaded successfully: ' + img);
+            callback(link);
+          }
+	} else {
+          console.log("Imgur replied: " + xhr.responseText);
+	}
+      });
+    };
+
+    var HostingFlickr = new HostingProvider('flickr', 'Flickr', 'oauth1',
+      {
+        token: null,
+        tokenSecret: null,
+        consumerKey: '41b81b24b51f6c8041c33f80c73d4b78',
+        consumerSecret: '892b7fd68851f509'
+      },
+      {
+        'confirm-img': '',
+	'login': 'username',
+        'upload': 'https://secure.flickr.com/services/upload/',
+	'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
+        'oauth_request_token': 'https://secure.flickr.com/services/oauth/request_token',
+        'oauth_authorize': 'https://secure.flickr.com/services/oauth/authorize',
+        'oauth_access_token': 'https://secure.flickr.com/services/oauth/access_token'
+      });
+    HostingFlickr.addContent = function() {
+      var container = document.getElementById('service-content');
+      if (container == undefined) {
+        return;
+      }
+
+      var p = document.createElement('p');
+        p.id = 'credentials-status';
+
+      container.appendChild(p);
+      this.updateCredentials();
+    };
+    HostingFlickr.upload = function(source, callback) {
+      var url = this.buildOAuth1URL(
+        this.urls['upload'],
+        'POST',
+        { }
+      );
+
+      var picture = new FormData();
+      picture.append('photo', source);
+      picture.append('api_key', this.keys['consumerKey']);
+
+      this.XHRUpload(url, picture, function(xhr) {
+	console.log("Got reply: " + JSON.stringify(xhr.responseText));
+        // var id = json.entities.media[0].id_str;
+        // var ex_url = json.entities.media[0].expanded_url;
+        ImageUploader.setStatus('Uploaded successfully: ');
+        // callback(ex_url);
       });
     };
 
     this.services.push(HostingCanardPC);
     this.services.push(HostingTwitter);
     this.services.push(HostingImgur);
+    this.services.push(HostingFlickr);
 
     this.createServicesList();
 
@@ -526,21 +582,13 @@ var ImageUploader = {
     }
   },
 
-  addImages: function(filenames) {
-    var storage = navigator.getDeviceStorage('pictures');
-    var self = this;
-    filenames.forEach(function(filename) {
-      storage.get(filename).onsuccess = function(e) {
-        var blob = e.target.result;
-        var url = URL.createObjectURL(blob);
-        var holder = document.getElementById('previews');
-        var img = document.createElement('img');
-        img.style.width = '85%';
-        img.src = url;
-        self.files[url] = blob;
-        img.onload = function() { URL.revokeObjectURL(this.src); };
-        holder.appendChild(img);
-      };
+  addImages: function(urls) {
+    urls.forEach(function(url) {
+      var holder = document.getElementById('previews');
+      var img = document.createElement('img');
+      img.style.width = '85%';
+      img.src = url;
+      holder.appendChild(img);
     });
   },
 
@@ -554,16 +602,15 @@ var ImageUploader = {
         var previews = document.getElementById('previews');
         var imgs = previews.getElementsByTagName('img');
         for (var i in imgs) {
-          var img_url = imgs[i].src;
-          if (img_url != undefined) {
-            var img = this.files[img_url];
+          var img = imgs[i].src;
+          if (img != undefined) {
             ImageUploader.setStatus('Preparing upload');
-  	  for (var sid in ImageUploader.services) {
-              var sup = ImageUploader.services[sid];
-  	    if (serv == ('upload-' + sup.id)) {
-                sup.upload(img, this.finalize.bind(this));
-  	    }
-  	  }
+            for (var sid in ImageUploader.services) {
+                var sup = ImageUploader.services[sid];
+  	      if (serv == ('upload-' + sup.id)) {
+                  sup.upload(img, this.finalize.bind(this));
+  	      }
+	    }
           }
         }
       }
@@ -679,8 +726,8 @@ window.onload = function() {
   ImageUploader.clean();
   if (navigator.mozSetMessageHandler) {
     navigator.mozSetMessageHandler('activity', function(activityRequest) {
-      if (activityRequest.source.name === 'share-filenames') {
-        ImageUploader.addImages(activityRequest.source.data.filenames);
+      if (activityRequest.source.name === 'share') {
+        ImageUploader.addImages(activityRequest.source.data.urls);
       }
     });
   }

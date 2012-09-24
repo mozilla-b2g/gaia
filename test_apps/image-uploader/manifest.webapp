@@ -10,11 +10,12 @@
     "device-storage:pictures"
   ],
   "activities": {
-    "share-filenames": {
+    "share": {
       "filters": {
-        "type": "image"
+        "type": "image/*"
        },
       "href": "/index.html",
+      "returnValue": true,
       "disposition": "window"
     }
   },
