@@ -75,6 +75,8 @@ contacts.List = (function() {
     }
 
     getContactsByGroup(onError, contacts);
+    checkEmptyList();
+
     this.loaded = true;
   };
 
@@ -351,6 +353,9 @@ contacts.List = (function() {
       if (fb.isEnabled) {
         addImportFacebookButton();
       }
+    } else {
+      removeImportSimButton();
+      removeImportFacebookButton();
     }
   }
 
