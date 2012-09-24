@@ -116,7 +116,7 @@ var Browser = {
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
-    Places.init((function() {
+    Places.init((function(firstRun) {
       this.hasLoaded = true;
       if (this.waitingActivities.length) {
         this.waitingActivities.forEach(this.handleActivity, this);
@@ -124,6 +124,8 @@ var Browser = {
       }
       this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
+      if (firstRun)
+        this.populateDefaultData();
     }).bind(this));
   },
 
@@ -152,6 +154,28 @@ var Browser = {
     elementIDs.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
     }, this);
+  },
+
+  populateDefaultData: function browser_populateDefaultData() {
+    console.log('Populating default data.');
+    // Fetch default data
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/init.json', true);
+    xhr.addEventListener('load', (function browser_defaultDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0))
+        return;
+      var data = JSON.parse(xhr.responseText);
+
+      // Save bookmarks
+      data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
+        Places.addBookmark(bookmark.uri, bookmark.title);
+      });
+
+    }).bind(this), false);
+    xhr.onerror = function getDefaultDataError() {
+      console.log('Error getting default data.');
+    };
+    xhr.send();
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
