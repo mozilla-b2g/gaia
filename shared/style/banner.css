@@ -1,7 +1,7 @@
 /* ----------------------------------
  * Banner
  * ---------------------------------- */
-section[role="dialog"].banner {
+section[role="status"] {
   background: url(banner/images/ui/pattern.png) repeat left top, url(banner/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   overflow: hidden;
@@ -18,7 +18,7 @@ section[role="dialog"].banner {
   text-align: center;
 }
 
-section[role="dialog"].banner:after {
+section[role="status"]:after {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -26,7 +26,7 @@ section[role="dialog"].banner:after {
   height: 100%;
 }
 
-section[role="dialog"].banner p {
+section[role="status"] p {
   display: inline-block;
   vertical-align: middle;
   white-space: normal;
@@ -36,7 +36,7 @@ section[role="dialog"].banner p {
   margin: 0;
 }
 
-section[role="dialog"].banner p strong {
+section[role="status"] p strong {
   text-transform: uppercase;
   color: #0995b0;
   font-weight: normal;
