@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -225,7 +225,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           ' [' + req.error.name + ']';
       };
     } else {
-      wpsDialog('#wifi-wps', wpsCallback);
+      wpsDialog('wifi-wps', wpsCallback);
     }
 
     function wpsCallback(method, pin) {
@@ -258,18 +258,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
       };
     }
 
-    function wpsDialog(selector, callback) {
-      var dialog = document.querySelector(selector);
+    function wpsDialog(dialogID, callback) {
+      var dialog = document.getElementById(dialogID);
       if (!dialog)
         return null;
 
       // hide dialog box
-      function close() {
-        // 'close' (hide) the dialog
-        dialog.removeAttribute('class');
-        return false; // ignore <form> action
-      }
-
       function pinChecksum(pin) {
         var accum = 0;
         while (pin > 0) {
@@ -292,9 +286,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return pinChecksum(Math.floor(num / 10)) === (num % 10);
       }
 
-      var submitWpsButton = dialog.querySelector('footer button');
-      var pinDesc = dialog.querySelector('#wifi-wps-pin-area span');
-      var pinInput = dialog.querySelector('#wifi-wps-pin-area input');
+      var submitWpsButton = dialog.querySelector('button[type=submit]');
+      var pinItem = document.getElementById('wifi-wps-pin-area');
+      var pinDesc = pinItem.querySelector('p');
+      var pinInput = pinItem.querySelector('input');
       pinInput.onchange = function() {
         submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
       }
@@ -304,12 +299,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
           dialog.querySelector("input[type='radio']:checked").value;
         if (method === 'apPin') {
           submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-          pinDesc.hidden = false;
-          pinInput.hidden = false;
+          pinItem.hidden = false;
         } else {
           submitWpsButton.disabled = false;
-          pinDesc.hidden = true;
-          pinInput.hidden = true;
+          pinItem.hidden = true;
         }
       }
 
@@ -319,17 +312,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
       }
       onWpsMethodChange();
 
-      // OK|Cancel buttons
-      dialog.onreset = close;
-      dialog.onsubmit = function() {
+      openDialog(dialogID, function submit() {
         callback(dialog.querySelector("input[type='radio']:checked").value,
           pinInput.value);
-        return close();
-      };
-
-      // show dialog box
-      dialog.className = 'active';
-      return dialog;
+      });
     }
   };
 
@@ -509,7 +495,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   function toggleNetwork(network) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
-      wifiDialog('#wifi-status', wifiDisconnect);
+      wifiDialog('wifi-status', wifiDisconnect);
     } else if (network.password && (network.password == '*')) {
       // offline, known network (hence the '*' password value):
       // no further authentication required.
@@ -522,7 +508,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         case 'WEP':
         case 'WPA-PSK':
         case 'WPA-EAP':
-          wifiDialog('#wifi-auth', wifiConnect, key);
+          wifiDialog('wifi-auth', wifiConnect, key);
           break;
         default:
           wifiConnect();
@@ -570,9 +556,9 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     // generic wifi property dialog
-    function wifiDialog(selector, callback, key) {
-      var dialog = document.querySelector(selector);
-      if (!dialog || !network)
+    function wifiDialog(dialogID, callback, key) {
+      var dialog = document.getElementById(dialogID);
+      if (!network)
         return null;
 
       // network info
@@ -609,20 +595,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.type = this.checked ? 'text' : 'password';
         };
 
-        // XXX hack: hide the footer (which contains the 'OK' button...)
-        //           when the virtual keyboard is shown
-        var footer = dialog.querySelector('footer');
-        var inputs = dialog.querySelectorAll('[type=text], [type=password]');
-        for (var i = 0; i < inputs.length; i++) {
-          inputs[i].onfocus = function hideFooter() {
-            footer.style.display = 'none';
-          };
-          inputs[i].onblur = function showFooter() {
-            footer.style.display = 'block';
-          };
-        }
-
-        var submitButton = footer.querySelector('button');
+        var submitButton = dialog.querySelector('button[type=submit]');
         if (key === 'WPA-PSK') {
           password.onchange = function() {
             submitButton.disabled = password.value.length < 8;
@@ -634,8 +607,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
         }
       }
 
-      // hide dialog box
-      function close() {
+      // reset dialog box
+      function reset() {
         if (speed) {
           gWifiManager.connectionInfoUpdate = null;
         }
@@ -645,26 +618,21 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.value = '';
           showPassword.checked = false;
         }
-        // 'close' (hide) the dialog
-        dialog.removeAttribute('class');
-        return false; // ignore <form> action
       }
 
       // OK|Cancel buttons
-      dialog.onreset = close;
-      dialog.onsubmit = function() {
+      function submit() {
         if (key) {
           setPassword(password.value, identity.value);
         }
         if (callback) {
           callback();
         }
-        return close();
+        reset();
       };
 
       // show dialog box
-      dialog.className = 'active ' + key;
-      return dialog;
+      openDialog(dialogID, submit, reset);
     }
   }
 
@@ -703,8 +671,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
     gWifiCheckBox.checked = value;
     if (value) {
       // gWifiManager may not be ready (enabled) at this moment.
-      // to be responsive, show 'initializing' status and 'search...' first.
-      // a 'scan' would be called when gWifiManager is enabled.
+      // To be responsive, show 'initializing' status and 'search...' first.
+      // A 'scan' would be called when gWifiManager is enabled.
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
     } else {
