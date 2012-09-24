@@ -160,7 +160,7 @@ HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
    var p = document.createElement('p');
     p.innerHTML = 'Please enter PIN code given by ' + this.name;
    var input = document.createElement('input');
-    input.type = 'number';
+    input.type = 'text';
     input.id = 'pincode';
     input.placeholder = 'PIN Code';
    div.appendChild(h3);
