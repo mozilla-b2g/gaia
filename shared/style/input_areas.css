@@ -120,19 +120,19 @@ fieldset section label:last-child {
 }
 
 /* Tidy (search/submit) */
-form.tidy {
+form.oneliner {
   background: #f8f8f8 url(input_areas/images/ui/background.png) repeat-x left bottom;
   border-bottom: solid 1px #989898;
   height: 3.4rem;
   position: relative;
 }
 
-form.tidy.full label {
+form.oneliner.full label {
   width: 100%;
   background: none;
 }
 
-form.tidy.full button[type="submit"] {
+form.oneliner.full button[type="submit"] {
   position: absolute;
   left: 100%;
   top: 0;
@@ -140,12 +140,12 @@ form.tidy.full button[type="submit"] {
   font-size: 0;
 }
 
-form.tidy.bottom {
+form.oneliner.bottom {
   border-top: solid 1px #989898;
   border-bottom: none;
 }
 
-form.tidy.bottom:after {
+form.oneliner.bottom:after {
   content: "";
   display: block;
   position: absolute;
@@ -157,7 +157,7 @@ form.tidy.bottom:after {
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
-form.tidy label {
+form.oneliner label {
   display: block;
   overflow: hidden;
   -moz-box-sizing: border-box;
@@ -165,21 +165,21 @@ form.tidy label {
   background: url(input_areas/images/ui/separator.png) no-repeat right center;
 }
 
-form.tidy label input {
+form.oneliner label input {
   height: 2.4rem;
   width: 100%;
   padding-right: 3rem;
 }
 
-form.tidy label input:focus {
+form.oneliner label input:focus {
   border-color: #a4a4a4;
 }
 
-form.tidy label button[type="reset"] {
+form.oneliner label button[type="reset"] {
   right: 1rem;
 }
 
-form.tidy button[type="submit"] {
+form.oneliner button[type="submit"] {
   background: none;
   border: none;
   float: right;
@@ -191,13 +191,13 @@ form.tidy button[type="submit"] {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-form.tidy button[type="submit"]:active {
+form.oneliner button[type="submit"]:active {
   background: url(input_areas/images/ui/active.png) repeat-x left bottom;
 }
 
-form.tidy button:focus,
+form.oneliner button:focus,
 label button[type="reset"]:focus,
-form.tidy button::-moz-focus-inner,
+form.oneliner button::-moz-focus-inner,
 label button[type="reset"]::-moz-focus-inner {
   border: none;
   outline: none;
