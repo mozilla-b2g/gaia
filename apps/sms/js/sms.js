@@ -42,6 +42,8 @@ var MessageManager = {
       case 'received':
         var num = this.getNumFromHash();
         var sender = event.message.sender;
+        if (window.location.hash == '#edit')
+          break;
         if (num == sender) {
           //Append message and mark as unread
           MessageManager.markMessageRead(event.message.id, true, function() {
@@ -72,6 +74,7 @@ var MessageManager = {
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
+              this.getMessages(ThreadListUI.renderThreads);
               mainWrapper.classList.remove('edit');
             } else if (threadMessages.classList.contains('new')) {
               MessageManager.slide(function() {
@@ -95,15 +98,15 @@ var MessageManager = {
           default:
             var num = this.getNumFromHash();
             if (num) {
+              var filter = this.createFilter(num);
               MessageManager.currentNum = num;
               if (mainWrapper.classList.contains('edit')) {
+                this.getMessages(ThreadUI.renderMessages, filter);
                 mainWrapper.classList.remove('edit');
               } else if (threadMessages.classList.contains('new')) {
-                var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
                 threadMessages.classList.remove('new');
               } else {
-                var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
                   filter, null, function() {
                     MessageManager.slide(function() {
@@ -368,9 +371,7 @@ var ThreadListUI = {
     this.delNumList = [];
     this.selectedInputList = [];
     this.pageHeader.innerHTML = _('editMode');
-    this.deselectAllButton.classList.add('disabled');
-    this.selectAllButton.classList.remove('disabled');
-    this.deleteButton.classList.add('disabled');
+    this.checkInputs();
   },
 
   selectAllThreads: function thlui_selectAllThreads() {
@@ -786,6 +787,7 @@ var ThreadUI = {
       callback();
     }
   },
+
   appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
@@ -874,9 +876,7 @@ var ThreadUI = {
     this.delNumList = [];
     this.selectedInputList = [];
     this.pageHeader.innerHTML = _('editMode');
-    this.selectAllButton.classList.remove('disabled');
-    this.deselectAllButton.classList.add('disabled');
-    this.deleteButton.classList.add('disabled');
+    this.checkInputs();
   },
 
   clearContact: function thui_clearContact() {
@@ -1037,6 +1037,7 @@ var ThreadUI = {
       break;
     }
   },
+
   cleanFields: function thui_cleanFields() {
     this.contactInput.value = '';
     this.input.value = '';
