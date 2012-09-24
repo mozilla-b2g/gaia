@@ -48,7 +48,7 @@ var MessageManager = {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
           ThreadUI.appendMessage(event.message, function() {
-              Utils.updateHeaders();
+              Utils.updateTimeHeaders();
             });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -106,7 +106,7 @@ var MessageManager = {
                 var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
                   filter, null, function() {
-                   MessageManager.slide(function() {
+                    MessageManager.slide(function() {
                       document.getElementById('message-to-send').focus();
                     });
                   });
@@ -279,9 +279,9 @@ var ThreadListUI = {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
   },
-  get editHeader() {
-    delete this.editHeader;
-    return this.editHeader = document.getElementById('list-edit-title');
+  get pageHeader() {
+    delete this.pageHeader;
+    return this.pageHeader = document.getElementById('list-edit-title');
   },
 
   init: function thlui_init() {
@@ -351,11 +351,11 @@ var ThreadListUI = {
     if (selected > 0) {
       ThreadListUI.deselectAllButton.classList.remove('disabled');
       ThreadListUI.deleteButton.classList.remove('disabled');
-      this.editHeader.innerHTML = _('selected', {n: selected});
+      this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
       ThreadListUI.deselectAllButton.classList.add('disabled');
       ThreadListUI.deleteButton.classList.add('disabled');
-      this.editHeader.innerHTML = _('editMode');
+      this.pageHeader.innerHTML = _('editMode');
     }
   },
 
@@ -367,7 +367,7 @@ var ThreadListUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = _('editMode');
+    this.pageHeader.innerHTML = _('editMode');
     this.deselectAllButton.classList.add('disabled');
     this.selectAllButton.classList.remove('disabled');
     this.deleteButton.classList.add('disabled');
@@ -456,7 +456,7 @@ var ThreadListUI = {
     if (messages.length > 0) {
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [],
-          headerIndex,
+          dayHeaderIndex = 0,
           unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
 
@@ -481,13 +481,13 @@ var ThreadListUI = {
             'id': numNormalized
           };
           if (threadIds.length == 0) {
-            headerIndex = Utils.getDayDate(time);
+            dayHeaderIndex = Utils.getDayDate(time);
             ThreadListUI.createNewHeader(time);
           }else {
-            var tmpIndex = Utils.getDayDate(time);
-            if (tmpIndex < headerIndex) {
+            var tmpDayIndex = Utils.getDayDate(time);
+            if (tmpDayIndex < dayHeaderIndex) {
               ThreadListUI.createNewHeader(time);
-              headerIndex = tmpIndex;
+              dayHeaderIndex = tmpDayIndex;
             }
           }
           threadIds.push(numNormalized);
@@ -499,7 +499,7 @@ var ThreadListUI = {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
       // Boot update of headers
-      Utils.updateHeaderScheduler();
+      Utils.updateTimeHeaderScheduler();
 
     } else {
       var noResultHTML = '<div id="no-result-container">' +
@@ -543,7 +543,7 @@ var ThreadListUI = {
             '    <div class="time ' +
                   (thread.unreadCount > 0 ? 'unread' : '') +
             '      " data-time="' + thread.timestamp + '">' +
-                  Utils.getHourMinute(thread.timestamp) +
+                  Utils.getFormattedHour(thread.timestamp) +
             '    </div>') +
             '    <div class="msg">"' + bodyHTML + '"</div>' +
             '    <div class="unread-tag"></div>' +
@@ -572,6 +572,7 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
+    headerHTML.dataset.isThread = true;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -632,10 +633,9 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-
-  get editHeader() {
-      delete this.editHeader;
-      return this.editHeader = document.getElementById('messages-edit-title');
+  get pageHeader() {
+      delete this.pageHeader;
+      return this.pageHeader = document.getElementById('messages-edit-title');
   },
 
   init: function thui_init() {
@@ -709,14 +709,22 @@ var ThreadUI = {
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createHeader: function thui_createHeader(timestamp) {
+  createTimeHeader: function thui_createTimeHeader(timestamp, hourOnly) {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
     // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    var content;
+    if (!hourOnly) {
+      content = Utils.getHeaderDate(timestamp) + ' ' +
+                Utils.getFormattedHour(timestamp);
+    } else {
+      content = Utils.getFormattedHour(timestamp);
+      headerHTML.dataset.hourOnly = 'true';
+    }
+    headerHTML.innerHTML = content;
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
@@ -758,7 +766,8 @@ var ThreadUI = {
     // Clean list of messages
     ThreadUI.view.innerHTML = '';
     // Update header index
-    ThreadUI.headerIndex = 0;
+    ThreadUI.dayHeaderIndex = 0;
+    ThreadUI.timeHeaderIndex = 0;
     // Init readMessages array
     ThreadUI.readMessages = [];
     // Per each message I will append DOM element
@@ -771,7 +780,7 @@ var ThreadUI = {
       });
     }
     // Boot update of headers
-    Utils.updateHeaderScheduler();
+    Utils.updateTimeHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
@@ -833,10 +842,18 @@ var ThreadUI = {
       });
     }
     //Check if we need a new header
-    var tmpIndex = Utils.getDayDate(timestamp);
-    if (tmpIndex > ThreadUI.headerIndex) {
-      ThreadUI.createHeader(timestamp);
-      ThreadUI.headerIndex = tmpIndex;
+    var tmpDayIndex = Utils.getDayDate(timestamp);
+    var tmpHourIndex = timestamp;
+
+    if (tmpDayIndex > ThreadUI.dayHeaderIndex) { // Different day
+      ThreadUI.createTimeHeader(timestamp);
+      ThreadUI.dayHeaderIndex = tmpDayIndex;
+      ThreadUI.timeHeaderIndex = tmpHourIndex;
+    } else { // Same day
+      if (tmpHourIndex > ThreadUI.timeHeaderIndex + 10 * 60 * 1000) { // 10min
+        ThreadUI.createTimeHeader(timestamp, true);
+        ThreadUI.timeHeaderIndex = tmpHourIndex;
+      }
     }
     // Append element
     ThreadUI.view.appendChild(messageDOM);
@@ -856,7 +873,7 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = _('editMode');
+    this.pageHeader.innerHTML = _('editMode');
     this.selectAllButton.classList.remove('disabled');
     this.deselectAllButton.classList.add('disabled');
     this.deleteButton.classList.add('disabled');
@@ -1002,11 +1019,11 @@ var ThreadUI = {
     if (selected > 0) {
       ThreadUI.deselectAllButton.classList.remove('disabled');
       ThreadUI.deleteButton.classList.remove('disabled');
-      this.editHeader.innerHTML = _('selected', {n: selected});
+      this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
       ThreadUI.deselectAllButton.classList.add('disabled');
       ThreadUI.deleteButton.classList.add('disabled');
-      this.editHeader.innerHTML = _('editMode');
+      this.pageHeader.innerHTML = _('editMode');
     }
   },
 
@@ -1085,7 +1102,7 @@ var ThreadUI = {
                 // Append to DOM
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
-                  Utils.updateHeaders();
+                  Utils.updateTimeHeaders();
 
                 });
               }
@@ -1136,7 +1153,7 @@ var ThreadUI = {
                 // Append to DOM
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
-                  Utils.updateHeaders();
+                  Utils.updateTimeHeaders();
                 });
               }
               CustomDialog.show(
