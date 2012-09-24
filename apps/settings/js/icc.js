@@ -30,7 +30,7 @@
     console.log("STK Proactive Command:", JSON.stringify(command));
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
-        stkMainAppMenu = command.options;
+        window.asyncStorage.setItem('stkMainAppMenu', command.options);
         updateMenu();
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         break;
@@ -65,36 +65,36 @@
    */
   function updateMenu() {
     console.log("Showing STK main menu");
-    menu=stkMainAppMenu;
+    window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
+      while (iccStkAppsList.hasChildNodes()) {
+        iccStkAppsList.removeChild(iccStkAppsList.lastChild);
+      }
 
-    while (iccStkAppsList.hasChildNodes()) {
-      iccStkAppsList.removeChild(iccStkAppsList.lastChild);
-    }
+      if (!menu) {
+        console.log("STK Main App Menu not available.");
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.textContent = _("stkAppsNotAvailable");
+        li.appendChild(a);
+        iccStkAppsList.appendChild(li);
+        return;
+      }
 
-    if (!menu) {
-      console.log("STK Main App Menu not available.");
-      var li = document.createElement("li");
-      var a = document.createElement("a");
-      a.textContent = _("stkAppsNotAvailable");
-      li.appendChild(a);
-      iccStkAppsList.appendChild(li);
-      return;
-    }
+      console.log("STK Main App Menu title:", menu.title);
+      console.log("STK Main App Menu default item:", menu.defaultItem);
 
-    console.log("STK Main App Menu title:", menu.title);
-    console.log("STK Main App Menu default item:", menu.defaultItem);
-
-    menu.items.forEach(function (menuItem) {
-      console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
-      var li = document.createElement("li");
-      var a = document.createElement("a");
-      a.href = "#icc-stk-app";
-      a.id = "stk-menuitem-" + menuItem.identifier;
-      a.setAttribute("stk-menuitem-identifier", menuItem.identifier);
-      a.textContent = menuItem.text;
-      a.onclick = onMainMenuItemClick;
-      li.appendChild(a);
-      iccStkAppsList.appendChild(li);
+      menu.items.forEach(function (menuItem) {
+        console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
+        var li = document.createElement("li");
+        var a = document.createElement("a");
+        a.href = "#icc-stk-app";
+        a.id = "stk-menuitem-" + menuItem.identifier;
+        a.setAttribute("stk-menuitem-identifier", menuItem.identifier);
+        a.textContent = menuItem.text;
+        a.onclick = onMainMenuItemClick;
+        li.appendChild(a);
+        iccStkAppsList.appendChild(li);
+      });
     });
   }
 
