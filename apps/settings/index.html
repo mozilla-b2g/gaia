@@ -12,6 +12,7 @@
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
+    <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -23,6 +24,8 @@
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/simcard_lock.js"></script>
+    <script type="application/javascript" defer src="js/simcard_dialog.js"></script>
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
@@ -860,7 +863,104 @@
     </section>
 
     <!-- [TODO] Security :: Phone Lock -->
-    <!-- [TODO] Security :: SIM Card Lock -->
+
+    <!-- Security :: SIM Security :: SIM PIN Input Dialog -->
+    <section role="region" id="simpin-dialog" data-leaf>
+      <header>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <menu type="toolbar">
+        <button data-l10n-id="done" type="submit">Done</button>
+        </menu>
+        <h1></h1>
+      </header>
+
+      <div class="container">
+        <div id="errorMsg" class="error" hidden>
+          <div id="messageHeader">The PIN was incorrect.</div>
+          <span id="messageBody">3 tries left.</span>
+        </div>
+        <!-- sim pin input field -->
+        <div id="pinArea">
+          <div data-l10n-id="simPin">SIM PIN</div>
+          <div class="input-wrapper">
+            <input name="simpin" type="number" size="8" maxlength="8" />
+            <input name="simpinVis" type="text" size="8" maxlength="8"/>
+          </div>
+        </div>
+        <!-- sim puk input field -->
+        <div id="pukArea">
+          <div data-l10n-id="pukCode">PUK Code</div>
+          <div class="input-wrapper">
+            <input name="simpuk" type="number" size="8" maxlength="8" />
+            <input name="simpukVis" type="text" size="8" maxlength="8"/>
+          </div>
+        </div>
+        <!-- new sim pin input field -->
+        <div id="newPinArea">
+          <div data-l10n-id="newSimPinMsg">
+            Create PIN (must contain 4 to 8 digits)
+          </div>
+          <div class="input-wrapper">
+            <input name="newSimpin" type="number" size="8" maxlength="8" />
+            <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+          </div>
+        </div>
+        <!-- confirm new sim pin input field -->
+        <div id="confirmPinArea">
+          <div>Confirm New PIN</div>
+          <div class="input-wrapper">
+            <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
+            <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security :: SIM Security -->
+    <section role="region" id="sim">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="simSecurity">
+          SIM Security
+        </h1>
+      </header>
+
+      <ul>
+        <li id="simpin-enabled">
+          <label class="switch">
+            <input type="checkbox"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="simPin">SIM PIN</a>
+        </li>
+      </ul>
+
+      <dl>
+        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
+        <dd data-l10n-id="simPinIntro1">
+          A SIM PIN prevents access to the SIM card's
+          cellular data networks. When it's on, any device
+          containing the SIM card will request the PIN upon
+          restart.
+        </dd>
+        <dd data-l10n-id="simPinIntro2">
+          A SIM PIN is not the same as the Passcode used
+          to unlock the device.
+        </dd>
+      </dl>
+
+      <ul>
+        <li id="simpin-change">
+          <label>
+            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+
     <!-- [TODO] Security :: App Permissions -->
     <!-- Security :: Do Not Track -->
     <section role="region" id="doNotTrack" data-leaf>
@@ -1159,9 +1259,9 @@
           <small id="phoneLock-desc"></small>
           <a href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
         </li>
-        <li hidden>
+        <li>
           <small id="simCardLock-desc"></small>
-          <a href="#simCardLock" data-l10n-id="simCardLock">SIM Card Lock</a>
+          <a href="#sim" data-l10n-id="simSecurity">SIM Security</a>
         </li>
         <li hidden>
           <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
