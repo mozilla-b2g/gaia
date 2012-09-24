@@ -51,10 +51,11 @@ function init() {
 
   videodb.onunavailable = function(event) {
     storageState = event.detail;
-    showDialog();
+    updateDialog();
   };
   videodb.onready = function() {
     storageState = false;
+    updateDialog();
     createThumbnailList();
   };
 
@@ -145,7 +146,11 @@ function createThumbnailList() {
   });
 }
 
-function showDialog() {
+function updateDialog() {
+  if (!storageState || playerShowing) {
+    showOverlay(null);
+    return;
+  }
   if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
@@ -319,6 +324,7 @@ function showPlayer(data, autoPlay) {
   dom.videoFrame.classList.remove('hidden');
   dom.play.classList.remove('paused');
   playerShowing = true;
+  updateDialog();
   dom.player.preload = 'metadata';
 
   function doneSeeking() {
@@ -374,10 +380,10 @@ function hidePlayer() {
 
   function completeHidingPlayer() {
     // switch to the video gallery view
-    showDialog();
     dom.videoFrame.classList.add('hidden');
     dom.videoBar.classList.remove('paused');
     playerShowing = false;
+    updateDialog();
   }
 
   if (currentVideo.remote) {
