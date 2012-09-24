@@ -259,16 +259,18 @@ HostingProvider.prototype.performOAuth1Login = function() {
     {oauth_callback: 'oob'},
     function(xhr) {
       if (xhr.status != 200) {
-        alert('Request refused:' + xhr.status);
+        alert('Request refused:' + xhr.status + '::' + xhr.responseText);
         return;
       }
       if (xhr.responseText.match('oauth_token=')) {
         ImageUploader.setStatus('Extracting ' + self.name + ' temporary token');
         var request_token_regex =
-          new RegExp('oauth_token=(.*)&oauth_token_secret=.*');
+          new RegExp('oauth_token=(.*)&oauth_token_secret=(.*)');
         var request_token_ar = request_token_regex.exec(xhr.responseText);
         var request_token_full = request_token_ar[0];
         self.request_token_only = request_token_ar[1];
+	self.keys.token = request_token_ar[1];
+	self.keys.tokenSecret = request_token_ar[2];
         var authorize =
           self.urls['oauth_authorize'] + '?' + request_token_full;
         self.OAuth1BuildDialogNotif(authorize);
