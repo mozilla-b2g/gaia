@@ -699,7 +699,9 @@ var WindowManager = (function() {
       frame.src = url;
     } else {
       var frameSrc = ['wrapper/index.html?url=' + encodeURIComponent(url)];
-      if (manifest.bookmarkFeature) {
+      if (manifest.bookmarkURL) {
+        frameSrc.push('&bookmarkURL=');
+        frameSrc.push(encodeURIComponent(manifest.bookmarkURL));
         frameSrc.push('&name=');
         frameSrc.push(name);
         frameSrc.push('&icon=');

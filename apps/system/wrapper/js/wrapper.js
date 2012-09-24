@@ -78,6 +78,12 @@ var Launcher = (function() {
     return decodeURIComponent(results[1]);
   }
 
+  function getBookmarkURL() {
+    var regex = new RegExp('[\\?&]bookmarkURL=([^&#]*)');
+    var results = regex.exec(href);
+    return decodeURIComponent(results[1]);
+  }
+
   function getName() {
     var regex = new RegExp('[\\?&]name=([^&#]*)');
     var ret = regex.exec(href);
@@ -94,7 +100,7 @@ var Launcher = (function() {
     return decodeURI(results[1]);
   }
 
-  var url = iframe.src = getURL();
+  iframe.src = getURL();
   setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
   function locChange(evt) {
@@ -132,15 +138,11 @@ var Launcher = (function() {
         return;
       }
 
-      if (url.indexOf('?') !== -1) {
-        url = url.substring(0, url.indexOf('?'));
-      }
-
       new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
-          url: url,
+          url: getBookmarkURL(),
           name: name,
           icon: getIcon()
         }
