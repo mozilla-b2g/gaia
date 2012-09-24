@@ -452,7 +452,7 @@ var Contacts = (function() {
     }
   }
 
-  var handleBack = function handleBack(popup) {
+  var handleBack = function handleBack() {
     navigation.back();
   };
 
