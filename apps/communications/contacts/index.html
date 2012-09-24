@@ -67,6 +67,9 @@
           <menu type="toolbar" role="menu">
             <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem" id="settings-button" onclick="Contacts.showSettings();">
+              <span class="icon icon-settings" data-l10n-id="settings">settings</span>
+            </button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -394,6 +397,22 @@
             <ul id="tags-list" class="selection-list">
             </ul>
             <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
+          </div>
+        </article>
+      </section>
+
+      <!-- Settings section -->
+      <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
+        <header>
+          <button class="negative" onclick="Contacts.hideSettings();">
+            <span class="icon icon-close"data-l10n-id="exit">Exit</span>
+          </button>
+          <h1 data-l10n-id="settings">Settings</h1>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner">
+            SETTINGS HERE
           </div>
         </article>
       </section>

@@ -19,7 +19,8 @@ var Contacts = (function() {
       customTag,
       contactTag,
       saveButton,
-      editContactButton;
+      editContactButton,
+      settings;
 
   var currentContact = {};
 
@@ -129,6 +130,7 @@ var Contacts = (function() {
 
   var initContainers = function initContainers() {
     customTag = document.getElementById('custom-tag');
+    settings = document.getElementById('view-settings');
 
     TAG_OPTIONS = {
       'phone-type' : [
@@ -529,6 +531,19 @@ var Contacts = (function() {
     contactsForm.render(contact, goToForm);
   };
 
+  var showSettings = function c_showSettings() {
+    settings.classList.remove('view-bottom');
+    settings.dataset['state'] = 'active';
+  }
+
+  var hideSettings = function c_hideSettings() {
+    settings.classList.add('view-bottom');
+    settings.addEventListener('transitionend', function hideView() {
+      settings.dataset['state'] = 'inactive';
+      settings.removeEventListener('transitionend', hideView);
+    });
+  }
+
   var setCurrent = function c_setCurrent(contact) {
     currentContact = contact;
   }
@@ -548,6 +563,8 @@ var Contacts = (function() {
     'getLength': getLength,
     'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
+    'showSettings': showSettings,
+    'hideSettings': hideSettings,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS
   };
