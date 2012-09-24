@@ -4768,6 +4768,8 @@ MailAPI.prototype = {
       msg.submode = options.forwardMode;
       msg.refSuid = options.forwardOf.id;
       msg.refDate = options.forwardOf.date.valueOf();
+      msg.refGuid = options.forwardOf.guid;
+      msg.refAuthor = options.forwardOf.author;
       msg.refSubject = options.forwardOf.subject;
     }
     else {
@@ -4856,7 +4858,7 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
     if (req.callback) {
-      req.callback.call(null, msg.err, msg.badAddresses);
+      req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
     }
   },
@@ -4873,8 +4875,19 @@ MailAPI.prototype = {
    * - wrote: "{{name}} wrote".  Used for the lead-in to the quoted message.
    * - originalMessage: "Original Message".  Gets put between a bunch of dashes
    *    when forwarding a message inline.
+   * - forwardHeaderLabels:
+   *   - subject
+   *   - date
+   *   - from
+   *   - replyTo (for the "reply-to" header)
+   *   - to
+   *   - cc
    */
   useLocalizedStrings: function(strings) {
+    this.__bridgeSend({
+      type: 'localizedStrings',
+      strings: strings
+    });
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -11913,6 +11926,135 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
 /**
+ *
+ **/
+
+define('mailapi/util',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+/**
+ * Header info comparator that orders messages in order of numerically
+ * decreasing date and UIDs.  So new messages come before old messages,
+ * and messages with higher UIDs (newer-ish) before those with lower UIDs
+ * (when the date is the same.)
+ */
+const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
+    function cmpHeaderYoungToOld(a, b) {
+  var delta = b.date - a.date;
+  if (delta)
+    return delta;
+  // favor larger UIDs because they are newer-ish.
+  return b.id - a.id;
+}
+
+/**
+ * Perform a binary search on an array to find the correct insertion point
+ *  in the array for an item.  From deuxdrop; tested in
+ *  deuxdrop's `unit-simple-algos.js` test.
+ *
+ * @return[Number]{
+ *   The correct insertion point in the array, thereby falling in the inclusive
+ *   range [0, arr.length].
+ * }
+ */
+const bsearchForInsert = exports.bsearchForInsert =
+    function bsearchForInsert(list, seekVal, cmpfunc) {
+  if (!list.length)
+    return 0;
+  var low  = 0, high = list.length - 1,
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      break;
+  }
+  if (cmpval < 0)
+    return mid; // insertion is displacing, so use mid outright.
+  else if (cmpval > 0)
+    return mid + 1;
+  else
+    return mid;
+};
+
+var bsearchMaybeExists = exports.bsearchMaybeExists =
+    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
+  var low  = ((aLow === undefined)  ? 0                 : aLow),
+      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      return mid;
+  }
+  return null;
+};
+
+exports.partitionMessagesByFolderId =
+    function partitionMessagesByFolderId(messageNamers, onlyKeepMsgId) {
+  var results = [], foldersToMsgs = {};
+  for (var i = 0; i < messageNamers.length; i++) {
+    var messageSuid = messageNamers[i].suid,
+        idxLastSlash = messageSuid.lastIndexOf('/'),
+        folderId = messageSuid.substring(0, idxLastSlash),
+        // if we only want the UID, do so, but make sure to parse it as a #!
+        useId = onlyKeepMsgId ? parseInt(messageSuid.substring(idxLastSlash+1))
+                              : messageSuid;
+
+    if (!foldersToMsgs.hasOwnProperty(folderId)) {
+      var messages = [useId];
+      results.push({
+        folderId: folderId,
+        messages: messages,
+      });
+      foldersToMsgs[folderId] = messages;
+    }
+    else {
+      foldersToMsgs[folderId].push(useId);
+    }
+  }
+  return results;
+};
+
+exports.formatAddresses = function(nameAddrPairs) {
+  var addrstrings = [];
+  for (var i = 0; i < nameAddrPairs.length; i++) {
+    var pair = nameAddrPairs[i];
+    // support lazy people providing only an e-mail... or very careful
+    // people who are sure they formatted things correctly.
+    if (typeof(pair) === 'string') {
+      addrstrings.push(pair);
+    }
+    else if (!pair.name) {
+      addrstrings.push(pair.address);
+    }
+    else {
+      addrstrings.push(
+        '"' + pair.name.replace(/["']/g, '') + '" <' +
+          pair.address + '>');
+    }
+  }
+
+  return addrstrings.join(', ');
+};
+
+}); // end define
+;
+/**
  * Process text/plain message bodies for quoting / signatures.
  *
  * We have two main goals in our processing:
@@ -13494,11 +13636,13 @@ exports.escapeAttrValue = function(s) {
 define('mailapi/mailchew',
   [
     'exports',
+    './util',
     './quotechew',
     './htmlchew'
   ],
   function(
     exports,
+    $util,
     $quotechew,
     $htmlchew
   ) {
@@ -13533,7 +13677,7 @@ exports.generateReplySubject = function generateReplySubject(origSubject) {
   return 'Re: ' + origSubject;
 };
 
-var l10n_wroteString = '{{name}} wrote',
+var l10n_wroteString = '{name} wrote',
     l10n_originalMessageString = 'Original Message';
 
 /*
@@ -13561,6 +13705,8 @@ var l10n_forward_header_labels = {
 exports.setLocalizedStrings = function(strings) {
   l10n_wroteString = strings.wrote;
   l10n_originalMessageString = strings.originalMessage;
+
+  l10n_forward_header_labels = strings.forwardHeaderLabels;
 };
 
 /**
@@ -13576,7 +13722,7 @@ exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
   var useName = authorPair.name || authorPair.address;
 
   var textMsg = '\n\n' +
-                l10n_wroteString.replace('{{name}}', useName) + ':\n',
+                l10n_wroteString.replace('{name}', useName) + ':\n',
       htmlMsg = null;
 
   for (var i = 0; i < reps.length; i += 2) {
@@ -13649,6 +13795,7 @@ exports.generateForwardMessage = function generateForwardMessage(
   // localized.)
 
   // : subject
+  textMsg += l10n_forward_header_labels['subject'] + ': ' + subject + '\n';
 
   // We do not track or remotely care about the 'resent' headers
   // : resent-comments
@@ -13657,15 +13804,29 @@ exports.generateForwardMessage = function generateForwardMessage(
   // : resent-to
   // : resent-cc
   // : date
+  textMsg += l10n_forward_header_labels['date'] + ': ' + new Date(date) + '\n';
   // : from
+  textMsg += l10n_forward_header_labels['from'] + ': ' +
+               $util.formatAddresses([author]) + '\n';
   // : reply-to
+  if (bodyInfo.replyTo)
+    textMsg += l10n_forward_header_labels['replyTo'] + ': ' +
+                 $util.formatAddresses([bodyInfo.replyTo]) + '\n';
   // : organization
   // : to
+  if (bodyInfo.to)
+    textMsg += l10n_forward_header_labels['to'] + ': ' +
+                 $util.formatAddresses(bodyInfo.to) + '\n';
   // : cc
+  if (bodyInfo.cc)
+    textMsg += l10n_forward_header_labels['cc'] + ': ' +
+                 $util.formatAddresses(bodyInfo.cc) + '\n';
   // (bcc should never be forwarded)
   // : newsgroups
   // : followup-to
   // : references (only for newsgroups)
+
+  textMsg += '\n';
 
   var reps = bodyInfo.bodyReps;
   for (var i = 0; i < reps.length; i += 2) {
@@ -13709,113 +13870,6 @@ exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
          $htmlchew.wrapTextIntoSafeHTMLString(text, 'div') +
          html +
          HTML_WRAP_BOTTOM;
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('mailapi/util',
-  [
-    'exports'
-  ],
-  function(
-    exports
-  ) {
-
-/**
- * Header info comparator that orders messages in order of numerically
- * decreasing date and UIDs.  So new messages come before old messages,
- * and messages with higher UIDs (newer-ish) before those with lower UIDs
- * (when the date is the same.)
- */
-const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
-    function cmpHeaderYoungToOld(a, b) {
-  var delta = b.date - a.date;
-  if (delta)
-    return delta;
-  // favor larger UIDs because they are newer-ish.
-  return b.id - a.id;
-}
-
-/**
- * Perform a binary search on an array to find the correct insertion point
- *  in the array for an item.  From deuxdrop; tested in
- *  deuxdrop's `unit-simple-algos.js` test.
- *
- * @return[Number]{
- *   The correct insertion point in the array, thereby falling in the inclusive
- *   range [0, arr.length].
- * }
- */
-const bsearchForInsert = exports.bsearchForInsert =
-    function bsearchForInsert(list, seekVal, cmpfunc) {
-  if (!list.length)
-    return 0;
-  var low  = 0, high = list.length - 1,
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      break;
-  }
-  if (cmpval < 0)
-    return mid; // insertion is displacing, so use mid outright.
-  else if (cmpval > 0)
-    return mid + 1;
-  else
-    return mid;
-};
-
-var bsearchMaybeExists = exports.bsearchMaybeExists =
-    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
-  var low  = ((aLow === undefined)  ? 0                 : aLow),
-      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      return mid;
-  }
-  return null;
-};
-
-exports.partitionMessagesByFolderId =
-    function partitionMessagesByFolderId(messageNamers, onlyKeepMsgId) {
-  var results = [], foldersToMsgs = {};
-  for (var i = 0; i < messageNamers.length; i++) {
-    var messageSuid = messageNamers[i].suid,
-        idxLastSlash = messageSuid.lastIndexOf('/'),
-        folderId = messageSuid.substring(0, idxLastSlash),
-        // if we only want the UID, do so, but make sure to parse it as a #!
-        useId = onlyKeepMsgId ? parseInt(messageSuid.substring(idxLastSlash+1))
-                              : messageSuid;
-
-    if (!foldersToMsgs.hasOwnProperty(folderId)) {
-      var messages = [useId];
-      results.push({
-        folderId: folderId,
-        messages: messages,
-      });
-      foldersToMsgs[folderId] = messages;
-    }
-    else {
-      foldersToMsgs[folderId].push(useId);
-    }
-  }
-  return results;
 };
 
 }); // end define
@@ -13887,6 +13941,8 @@ function strcmp(a, b) {
 }
 
 function checkIfAddressListContainsAddress(list, addrPair) {
+  if (!list)
+    return false;
   var checkAddress = addrPair.address;
   for (var i = 0; i < list.length; i++) {
     if (list[i].address === checkAddress)
@@ -13955,6 +14011,10 @@ MailBridge.prototype = {
         }
         break;
     }
+  },
+
+  _cmd_localizedStrings: function mb__cmd_localizedStrings(msg) {
+    $mailchew.setLocalizedStrings(msg.strings);
   },
 
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
@@ -14363,7 +14423,10 @@ MailBridge.prototype = {
                 }
                 // add the author as the first 'to' person
                 else {
-                  rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  if (bodyInfo.to && bodyInfo.to.length)
+                    rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  else
+                    rTo = [effectiveAuthor];
                 }
                 rCc = bodyInfo.cc;
                 rBcc = bodyInfo.bcc;
@@ -14432,32 +14495,6 @@ MailBridge.prototype = {
     });
   },
 
-  /**
-   * mailcomposer wants from/to/cc/bcc delivered basically like it will show
-   * up in the e-mail, except it is fine with unicode.  So we convert our
-   * (possibly) structured representation into a flattened representation.
-   *
-   * (mailcomposer will handle punycode and mime-word encoding as needed.)
-   */
-  _formatAddresses: function(nameAddrPairs) {
-    var addrstrings = [];
-    for (var i = 0; i < nameAddrPairs.length; i++) {
-      var pair = nameAddrPairs[i];
-      // support lazy people providing only an e-mail... or very careful
-      // people who are sure they formatted things correctly.
-      if (typeof(pair) === 'string') {
-        addrstrings.push(pair);
-      }
-      else {
-        addrstrings.push(
-          '"' + pair.name.replace(/["']/g, '') + '" <' +
-            pair.address + '>');
-      }
-    }
-
-    return addrstrings.join(', ');
-  },
-
   _cmd_doneCompose: function mb__cmd_doneCompose(msg) {
     if (msg.command === 'delete') {
       // XXX if we have persistedFolder/persistedUID, enqueue a delete of that
@@ -14475,7 +14512,7 @@ MailBridge.prototype = {
     var body = wireRep.body;
 
     var messageOpts = {
-      from: this._formatAddresses([identity]),
+      from: $imaputil.formatAddresses([identity]),
       subject: wireRep.subject,
     };
     if (body.html) {
@@ -14488,11 +14525,11 @@ MailBridge.prototype = {
     if (identity.replyTo)
       messageOpts.replyTo = identity.replyTo;
     if (wireRep.to && wireRep.to.length)
-      messageOpts.to = this._formatAddresses(wireRep.to);
+      messageOpts.to = $imaputil.formatAddresses(wireRep.to);
     if (wireRep.cc && wireRep.cc.length)
-      messageOpts.cc = this._formatAddresses(wireRep.cc);
+      messageOpts.cc = $imaputil.formatAddresses(wireRep.cc);
     if (wireRep.bcc && wireRep.bcc.length)
-      messageOpts.bcc = this._formatAddresses(wireRep.bcc);
+      messageOpts.bcc = $imaputil.formatAddresses(wireRep.bcc);
     composer.setMessageOption(messageOpts);
 
     if (wireRep.customHeaders) {
@@ -14502,7 +14539,8 @@ MailBridge.prototype = {
       }
     }
     composer.addHeader('User-Agent', 'Mozilla Gaia Email Client 0.1alpha');
-    composer.addHeader('Date', new Date().toUTCString());
+    var sentDate = new Date();
+    composer.addHeader('Date', sentDate.toUTCString());
     // we're copying nodemailer here; we might want to include some more...
     var messageId =
       '<' + Date.now() + Math.random().toString(16).substr(1) + '@mozgaia>';
@@ -14520,6 +14558,7 @@ MailBridge.prototype = {
           err: err,
           badAddresses: badAddresses,
           messageId: messageId,
+          sentDate: sentDate.valueOf(),
         });
       });
     }
@@ -19718,7 +19757,7 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   exports.INITIAL_SYNC_DAYS = syncValues.days;
 
   exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  TOO_MANY_MESSAGES = syncValues.tooMany;
+  exports.TOO_MANY_MESSAGES = syncValues.tooMany;
 
   exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
 
@@ -19731,13 +19770,14 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
     syncValues.refreshOld;
 
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
     syncValues.useRangeNonInbox;
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
     syncValues.useRangeInbox;
 };
 
-}); // end define;
+}); // end define
+;
 /**
  * Presents a message-centric view of a slice of time from IMAP search results.
  *
@@ -31957,23 +31997,28 @@ MailUniverse.prototype = {
   },
 
   dumpLogToDeviceStorage: function() {
-    console.log('Planning to dump log to device storage for "pictures"');
+    console.log('Planning to dump log to device storage for "videos"');
     try {
       // 'default' does not work, but pictures does.  Hopefully gallery is
       // smart enough to stay away from my log files!
-      var storage = navigator.getDeviceStorage('pictures');
+      var storage = navigator.getDeviceStorage('videos');
+      // HACK HACK HACK: DeviceStorage does not care about our use-case at all
+      // and brutally fails to write things that do not have a mime type (and
+      // apropriately named file), so we pretend to be a realmedia file because
+      // who would really have such a thing?
       var blob = new Blob([JSON.stringify(this.createLogBacklogRep())],
                           {
-                            type: 'application/json',
+                            type: 'video/lies',
                             endings: 'transparent'
                           });
-      var filename = 'gem-log-' + Date.now() + '.json';
+      var filename = 'gem-log-' + Date.now() + '.json.rm';
       var req = storage.addNamed(blob, filename);
       req.onsuccess = function() {
         console.log('saved log to', filename);
       };
       req.onerror = function() {
-        console.error('failed to save log to', filename);
+        console.error('failed to save log to', filename, 'err:',
+                      this.error.name);
       };
     }
     catch(ex) {

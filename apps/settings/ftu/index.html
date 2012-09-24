@@ -35,7 +35,6 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="../style/lists.css"/>
-    <link rel="stylesheet" type="text/css" href="../style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" href="../style/settings.css"/>
 
     <script type="application/javascript" defer src="../js/wifi.js"></script>
@@ -873,61 +872,69 @@
     </div>
 
     <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-status">
+    <section role="region" id="wifi-status" data-leaf>
       <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Network Status </h2>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="forget">Forget</span></button>
+        </menu>
+        <h1 data-ssid> Network Status </h1>
       </header>
 
       <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-PSK</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-        <dt data-l10n-id="linkSpeed">link speed:</dt>
-        <dd data-speed></dd>
-      </dl>
-
-      <!-- disconnect from network -->
-      <footer>
-        <button type="submit" data-l10n-id="forget">Forget</button>
-      </footer>
-    </form>
-
+      <ul>
+        <li>
+          <a data-l10n-id="security">security:
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength:
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed:
+            <span data-speed></span>
+          </a>
+        </li>
+      </ul>
+    </section>
     <!-- Connectivity :: Wi-Fi :: Network Authentication Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-auth">
+    <section role="region" id="wifi-auth" data-leaf>
       <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Network Authentication </h2>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-ssid> Network Authentication </h1>
       </header>
 
-      <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-EAP</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-      </dl>
+      <!-- network properties + identity/password input -->
+      <ul>
+        <li>
+          <a data-l10n-id="security">security:
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength:
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input data-identity data-ignore name="identity" type="text" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input data-password data-ignore name="password" type="password" maxlength="63" />
+          <label for="show-pwd">
+            <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
+        </li>
+      </ul>
+    </section>
 
-      <!-- identity/password input -->
-      <label for="identity">
-        <span data-l10n-id="identity">identity</span>
-        <input data-identity data-ignore name="identity" type="text" />
-      </label>
-      <label for="password">
-        <span data-l10n-id="password">password</span>
-        <input data-password data-ignore name="password" type="password"
-          maxlength="63" />
-      </label>
-      <label for="show-pwd">
-        <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
-        <span data-l10n-id="showPassword">show password</span>
-      </label>
-
-      <!-- connect to network -->
-      <footer>
-        <button type="submit" data-l10n-id="ok">OK</button>
-      </footer>
-    </form>
 </html>
