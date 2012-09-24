@@ -1,8 +1,8 @@
 /* ----------------------------------
- * Banner
+ * Status
  * ---------------------------------- */
 section[role="status"] {
-  background: url(banner/images/ui/pattern.png) repeat left top, url(banner/images/ui/gradient.png) no-repeat left top;
+  background: url(status/images/ui/pattern.png) repeat left top, url(status/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   overflow: hidden;
   position: absolute;
