@@ -120,19 +120,19 @@ fieldset section label:last-child {
 }
 
 /* Tidy (search/submit) */
-form.oneliner {
+form[role="search"] {
   background: #f8f8f8 url(input_areas/images/ui/background.png) repeat-x left bottom;
   border-bottom: solid 1px #989898;
   height: 3.4rem;
   position: relative;
 }
 
-form.oneliner.full label {
+form[role="search"].full label {
   width: 100%;
   background: none;
 }
 
-form.oneliner.full button[type="submit"] {
+form[role="search"].full button[type="submit"] {
   position: absolute;
   left: 100%;
   top: 0;
@@ -140,12 +140,12 @@ form.oneliner.full button[type="submit"] {
   font-size: 0;
 }
 
-form.oneliner.bottom {
+form[role="search"].bottom {
   border-top: solid 1px #989898;
   border-bottom: none;
 }
 
-form.oneliner.bottom:after {
+form[role="search"].bottom:after {
   content: "";
   display: block;
   position: absolute;
@@ -157,7 +157,7 @@ form.oneliner.bottom:after {
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
-form.oneliner label {
+form[role="search"] label {
   display: block;
   overflow: hidden;
   -moz-box-sizing: border-box;
@@ -165,21 +165,21 @@ form.oneliner label {
   background: url(input_areas/images/ui/separator.png) no-repeat right center;
 }
 
-form.oneliner label input {
+form[role="search"] label input {
   height: 2.4rem;
   width: 100%;
   padding-right: 3rem;
 }
 
-form.oneliner label input:focus {
+form[role="search"] label input:focus {
   border-color: #a4a4a4;
 }
 
-form.oneliner label button[type="reset"] {
+form[role="search"] label button[type="reset"] {
   right: 1rem;
 }
 
-form.oneliner button[type="submit"] {
+form[role="search"] button[type="submit"] {
   background: none;
   border: none;
   float: right;
@@ -191,13 +191,13 @@ form.oneliner button[type="submit"] {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-form.oneliner button[type="submit"]:active {
+form[role="search"] button[type="submit"]:active {
   background: url(input_areas/images/ui/active.png) repeat-x left bottom;
 }
 
-form.oneliner button:focus,
+form[role="search"] button:focus,
 label button[type="reset"]:focus,
-form.oneliner button::-moz-focus-inner,
+form[role="search"] button::-moz-focus-inner,
 label button[type="reset"]::-moz-focus-inner {
   border: none;
   outline: none;
