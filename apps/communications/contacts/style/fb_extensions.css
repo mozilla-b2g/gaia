@@ -1,6 +1,6 @@
 iframe#fb-extensions {
   position: absolute;
-  top: 0;
+  top: 100%;
   left: 0;
   z-index: 1000;
   width: 100%;
@@ -8,4 +8,14 @@ iframe#fb-extensions {
   border: 0;
   margin: 0;
   padding: 0;
+  -moz-transition: -moz-transform .8s ease;
+  background-color: #26272c;
+}
+
+#fb-extensions.opening {
+  -moz-transform: translateY(-100%);
+}
+
+#fb-extensions.closing {
+  -moz-transform: translateY(0);
 }
