@@ -406,7 +406,8 @@ Evme.Location = new function() {
         bActivateLocation = (typeof bActivateLocation != "boolean")? true : bActivateLocation;
         
         if (!shownMessage) {
-            dialog = new Dialog("location");
+            dialog = new Evme.Dialog("location");
+            
             dialog.show({
                 "title": LOCATION_TIP_TITLE,
                 "content": LOCATION_TIP_TEXT,
@@ -472,7 +473,7 @@ Evme.Location = new function() {
             return;
         }
         
-        dialog = new Dialog("location_error");
+        dialog = new Evme.Dialog("location_error");
         dialog.show({
             "title": ERROR_TIP_TITLE,
             "content":  '<label>' + ERROR_TIP_LABEL + '</label>' +
@@ -578,7 +579,7 @@ Evme.Location = new function() {
     function showOSErrorDialog() {
         dialog && dialog.remove() && (dialog = null);
         
-        dialog = new Dialog("location_os_error");
+        dialog = new Evme.Dialog("location_os_error");
         dialog.show({
             "title": ERROR_CANT_LOCATE_TITLE,
             "content": ERROR_CANT_LOCATE_TEXT,
