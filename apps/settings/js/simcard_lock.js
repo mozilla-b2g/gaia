@@ -1,8 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var SimPinLock = {
   simSecurityInfo: document.getElementById('simCardLock-desc'),
   simPinCheckBox: document.querySelector('#simpin-enabled input'),
@@ -12,6 +10,8 @@ var SimPinLock = {
   mobileConnection: null,
 
   updateSimCardStatus: function spl_updateSimStatus() {
+    var _ = navigator.mozL10n.get;
+
     if (this.mobileConnection.cardState === 'absent') {
       this.simSecurityInfo.textContent = _('noSimCard');
       this.simPinCheckBox.disabled = true;

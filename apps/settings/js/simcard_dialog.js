@@ -1,8 +1,6 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var SimPinDialog = {
   dialog: document.getElementById('simpin-dialog'),
   dialogTitle: document.querySelector('#simpin-dialog header h1'),
@@ -41,17 +39,16 @@ var SimPinDialog = {
         return;
       evt.preventDefault();
 
-      var key = String.fromCharCode(evt.charCode);
-      if (key === '.') { // invalid
+      var code = evt.charCode;
+      if (code !== 0 && code < 0x30 && code > 0x39)
         return;
-      }
 
-      if (evt.charCode === 0) { // backspace
+      if (code === 0) { // backspace
         valueEntered = valueEntered.substr(0, valueEntered.length - 1);
       } else {
         if (valueEntered.length >= 8)
           return;
-        valueEntered += key;
+        valueEntered += String.fromCharCode(code);
       }
       displayField.value = encryption(valueEntered);
       if (displayField.value.length >= 4)
@@ -82,6 +79,8 @@ var SimPinDialog = {
   },
 
   handleCardState: function spl_handleCardState() {
+    var _ = navigator.mozL10n.get;
+
     var cardState = this.mobileConnection.cardState;
     switch (cardState) {
       case 'pinRequired':
@@ -106,6 +105,8 @@ var SimPinDialog = {
   },
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
+    var _ = navigator.mozL10n.get;
+
     this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
     this.errorMsgBody.textContent = (retry === 1) ?
       _(type + 'LastChanceMsg') : _(type + 'AttemptMsg', {n: retry});
@@ -124,6 +125,8 @@ var SimPinDialog = {
   },
 
   unlockPuk: function spl_unlockPuk() {
+    var _ = navigator.mozL10n.get;
+
     var puk = this.pukInput.value;
     var newPin = this.newPinInput.value;
     var confirmPin = this.confirmPinInput.value;
@@ -172,6 +175,8 @@ var SimPinDialog = {
   },
 
   changePin: function spl_changePin() {
+    var _ = navigator.mozL10n.get;
+
     var pin = this.pinInput.value;
     var newPin = this.newPinInput.value;
     var confirmPin = this.confirmPinInput.value;
@@ -242,6 +247,8 @@ var SimPinDialog = {
   onsuccess: null,
   oncancel: null,
   show: function spl_show(action, onsuccess, oncancel) {
+    var _ = navigator.mozL10n.get;
+
     this.dialogDone.disabled = true;
     this.action = action;
     switch (action) {
@@ -301,6 +308,4 @@ var SimPinDialog = {
   }
 };
 
-window.addEventListener('localized', function spl_ready() {
-  SimPinDialog.init();
-});
+SimPinDialog.init();

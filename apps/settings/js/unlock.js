@@ -3,8 +3,6 @@
 
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var SimPinUnLock = {
   activity: null,
   init: function spl_init() {
@@ -12,7 +10,6 @@ var SimPinUnLock = {
     window.navigator.mozSetMessageHandler('activity',
       function spl_activityHandler(activityReq) {
         self.activity = activityReq;
-        console.debug('In settings app to handle SIM PIN lock');
         SimPinDialog.show('unlock',
           function() {
             self.activity.postResult({unlock: true});
@@ -27,7 +24,6 @@ var SimPinUnLock = {
 
 };
 
-window.addEventListener('localized', function showPanel() {
+window.addEventListener('localized', function spl_ready() {
   SimPinUnLock.init();
 });
-
