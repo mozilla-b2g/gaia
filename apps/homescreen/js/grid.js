@@ -69,15 +69,15 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (currentPage > landingPageIndex) {
+        if (currentPage > landingPageIndex && 'origin' in evt.target.dataset) {
+          evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
-          if ('origin' in evt.target.dataset) {
-            DragDropManager.start(evt, {
-              'x': startEvent.clientX,
-              'y': startEvent.clientY
-            });
-          }
+          DragDropManager.start(evt, {
+            'x': startEvent.clientX,
+            'y': startEvent.clientY
+          });
         }
+
         break;
     }
   }
@@ -121,13 +121,11 @@ const GridManager = (function() {
   }
 
   function attachEvents() {
-    container.addEventListener('contextmenu', handleEvent);
     window.addEventListener('mousemove', handleEvent);
     window.addEventListener('mouseup', handleEvent);
   }
 
   function releaseEvents() {
-    container.removeEventListener('contextmenu', handleEvent);
     window.removeEventListener('mousemove', handleEvent);
     window.removeEventListener('mouseup', handleEvent);
   }
@@ -494,6 +492,7 @@ const GridManager = (function() {
         pages.push(page);
       }
 
+      container.addEventListener('contextmenu', handleEvent);
       container.addEventListener('mousedown', handleEvent, true);
 
       limits.left = container.offsetWidth * 0.05;

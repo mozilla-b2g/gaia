@@ -38,13 +38,13 @@ var SimPinLock = {
     this.simPinCheckBox.onchange = function spl_toggleSimPin() {
       var enabled = this.checked;
       SimPinDialog.show('enable',
-          function() {
-            self.updateSimCardStatus();
-          },
-          function() {
-            self.simPinCheckBox.checked = !enabled;
-            self.updateSimCardStatus();
-          }
+        function() {
+          self.updateSimCardStatus();
+        },
+        function() {
+          self.simPinCheckBox.checked = !enabled;
+          self.updateSimCardStatus();
+        }
       );
     };
     this.changeSimPinButton.onclick = function spl_changePin() {

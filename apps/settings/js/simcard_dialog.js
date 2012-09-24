@@ -244,9 +244,11 @@ var SimPinDialog = {
         break;
       case 'enable':
         this.inputFieldControl(true, false, false);
+        this.dialogTitle.textContent = _('pinTitle');
         break;
       case 'changePin':
         this.inputFieldControl(true, false, true);
+        this.dialogTitle.textContent = _('newpinTitle');
         break;
     }
 
@@ -281,8 +283,8 @@ var SimPinDialog = {
     this.mobileConnection = window.navigator.mozMobileConnection;
     this.mobileConnection.addEventListener('cardstatechange',
         this.handleCardState.bind(this));
-    this.dialog.onreset = this.skip.bind(this);
-    this.dialog.onsubmit = this.verify.bind(this);
+    this.dialog.querySelector('[type=submit]').onclick = this.verify.bind(this);
+    this.dialog.querySelector('[type=reset]').onclick = this.skip.bind(this);
 
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');

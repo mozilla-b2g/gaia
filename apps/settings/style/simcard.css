@@ -7,16 +7,14 @@
   font-weight: bold;
 }
 
-#simpin-dialog header button {
-  font-size: 1.2em;
-}
 
 #simpin-dialog .container {
   padding-left: 20px;
+  font-size: 1.5em;
 }
 
-#simpin-dialog .error {
-  padding-left: 20px;
+#simpin-dialog .container > div {
+  padding-top: 10px;
 }
 
 #simpin-dialog .error #messageHeader {
@@ -25,11 +23,11 @@
 
 #simpin-dialog .input-wrapper {
   position: relative;
-  padding-left: 20px;
 }
 
 #simpin-dialog .input-wrapper input {
   font-size: 2.0em;
+  display: block;
 }
 
 #simpin-dialog .input-wrapper input[type="text"] {
