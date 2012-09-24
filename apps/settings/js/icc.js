@@ -47,10 +47,20 @@
         break;
       case icc.STK_CMD_SEND_SMS:
         console.log(" STK:Send message: " + JSON.stringify(command));
+        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+/*
         if(confirm(command.options.text)) {
           icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         } else {
           icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_ERROR });
+        }
+*/
+        break;
+      case icc.STK_CMD_SET_UP_CALL:
+        console.log(" STK:Setup Phone Call. Number: " + command.options.address);
+        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        if(confirm(command.options.confirmMessage)) {
+          window.navigator.mozTelephony.dial(command.options.address);
         }
         break;
       default:
