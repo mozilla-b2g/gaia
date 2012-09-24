@@ -526,21 +526,13 @@ var ImageUploader = {
     }
   },
 
-  addImages: function(filenames) {
-    var storage = navigator.getDeviceStorage('pictures');
-    var self = this;
-    filenames.forEach(function(filename) {
-      storage.get(filename).onsuccess = function(e) {
-        var blob = e.target.result;
-        var url = URL.createObjectURL(blob);
-        var holder = document.getElementById('previews');
-        var img = document.createElement('img');
-        img.style.width = '85%';
-        img.src = url;
-        self.files[url] = blob;
-        img.onload = function() { URL.revokeObjectURL(this.src); };
-        holder.appendChild(img);
-      };
+  addImages: function(urls) {
+    urls.forEach(function(url) {
+      var holder = document.getElementById('previews');
+      var img = document.createElement('img');
+      img.style.width = '85%';
+      img.src = url;
+      holder.appendChild(img);
     });
   },
 
@@ -554,16 +546,15 @@ var ImageUploader = {
         var previews = document.getElementById('previews');
         var imgs = previews.getElementsByTagName('img');
         for (var i in imgs) {
-          var img_url = imgs[i].src;
-          if (img_url != undefined) {
-            var img = this.files[img_url];
+          var img = imgs[i].src;
+          if (img != undefined) {
             ImageUploader.setStatus('Preparing upload');
-  	  for (var sid in ImageUploader.services) {
-              var sup = ImageUploader.services[sid];
-  	    if (serv == ('upload-' + sup.id)) {
-                sup.upload(img, this.finalize.bind(this));
-  	    }
-  	  }
+            for (var sid in ImageUploader.services) {
+                var sup = ImageUploader.services[sid];
+  	      if (serv == ('upload-' + sup.id)) {
+                  sup.upload(img, this.finalize.bind(this));
+  	      }
+	    }
           }
         }
       }
@@ -679,8 +670,8 @@ window.onload = function() {
   ImageUploader.clean();
   if (navigator.mozSetMessageHandler) {
     navigator.mozSetMessageHandler('activity', function(activityRequest) {
-      if (activityRequest.source.name === 'share-filenames') {
-        ImageUploader.addImages(activityRequest.source.data.filenames);
+      if (activityRequest.source.name === 'share') {
+        ImageUploader.addImages(activityRequest.source.data.urls);
       }
     });
   }
