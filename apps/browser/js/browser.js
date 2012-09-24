@@ -746,7 +746,7 @@ var Browser = {
     topSites.forEach(function browser_processTopSite(data) {
       this.drawAwesomescreenListItem(list, data, filter);
     }, this);
-    if (topSites.length < 2) {
+    if (topSites.length < 2 && filter) {
       var data = {
         title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
         uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
