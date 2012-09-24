@@ -24,7 +24,8 @@ contacts.Form = (function() {
       familyName,
       configs,
       _,
-      formView;
+      formView,
+      nonEditable;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -97,7 +98,8 @@ contacts.Form = (function() {
 
   };
 
-  var render = function cf_render(contact, callback) {
+  var render = function cf_render(contact, callback, nonEditableValues) {
+    nonEditable = nonEditableValues;
     resetForm();
     (contact && contact.id) ? showEdit(contact) : showAdd(contact);
     if (callback) {
@@ -209,6 +211,11 @@ contacts.Form = (function() {
     }
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
+
+    if(nonEditable && nonEditable[currField.value]) {
+      rendered.classList.add('removed');
+    }
+
     rendered.appendChild(removeFieldIcon(rendered.id));
     container.appendChild(rendered);
     counters[type]++;

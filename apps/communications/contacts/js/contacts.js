@@ -526,7 +526,22 @@ var Contacts = (function() {
 
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
-    contactsForm.render(contact, goToForm);
+
+    if(contact && fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getDataAndValues();
+
+      req.onsuccess = function() {
+        contactsForm.render(req.result[0], goToForm, req.result[1]);
+      }
+
+      req.onerror = function() {
+        contactsForm.render(contact, goToForm);
+      }
+    }
+    else {
+      contactsForm.render(contact, goToForm);
+    }
   };
 
   var setCurrent = function c_setCurrent(contact) {

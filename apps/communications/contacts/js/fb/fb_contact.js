@@ -280,6 +280,56 @@ fb.Contact = function(deviceContact, cid) {
   }
 
 
+  this.getDataAndValues = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function do_getData() {
+      var uid = doGetFacebookUid(devContact);
+
+      if (uid) {
+        var fbreq = fb.contacts.get(uid);
+
+        fbreq.onsuccess = function() {
+          var fbdata = fbreq.result;
+          var out1 = this.merge(fbdata);
+
+          var out2 = {};
+
+          Object.keys(fbdata).forEach(function(key) {
+            var dataElement = fbdata[key];
+
+            if(dataElement && typeof dataElement.forEach === 'function') {
+              dataElement.forEach(function(item) {
+                if(item.value) {
+                  out2[item.value] = 'p';
+                }
+                else {
+                  out2[item] = 'p';
+                }
+              })
+            }
+            else if(dataElement) {
+              out2[dataElement] = 'p';
+            }
+          });
+
+          outReq.done([out1,out2]);
+
+        }.bind(this);
+
+        fbreq.onerror = function() {
+          outReq.failed(fbreq.error);
+        }
+      }
+      else {
+        outReq.done([devContact,{}]);
+      }
+    }.bind(this), 0);
+
+    return outReq;
+  }
+
+
   this.linkTo = function(fbFriend) {
     var out = new fb.utils.Request();
 
