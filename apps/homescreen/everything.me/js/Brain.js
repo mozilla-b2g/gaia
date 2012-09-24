@@ -682,7 +682,6 @@ Evme.Brain = new function() {
             bNeedsLocation = data.data.requiresLocation && !Evme.DoATAPI.hasLocation() && !Evme.Location.userClickedDoItLater();
 
             var $apps = $("#evmeApps");
-
             var appListHeight = $apps.height(),
                 appListWidth = $apps.width(),
                 appHeight = $app.height(),
@@ -751,17 +750,15 @@ Evme.Brain = new function() {
 
             Evme.EventHandler.trigger("Core", "redirectedToApp", data);
 
-            setTimeout(returnFromOutside, 2000);
-
             window.setTimeout(function(){
                 _this.appRedirectExecute(data["appUrl"], data);
             }, delay);
         }
 
         this.appRedirectExecute = function(appUrl, data){
-           var appIcon = Evme.Utils.formatImageData(data.icon);
+            var appIcon = Evme.Utils.formatImageData(data.icon);
 
-           Evme.Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
+            Evme.Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
                 // bookmark in ffos
                 Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_CLICK, {
                     "url": appUrl,
@@ -769,6 +766,8 @@ Evme.Brain = new function() {
                     "icon": appIcon
                 });
             });
+
+            setTimeout(returnFromOutside, 2000);
         };
 
         function returnFromOutside() {
