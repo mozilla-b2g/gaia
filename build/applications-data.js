@@ -54,11 +54,17 @@ content = {
   },
   topup: {
     destination: '7000',
+    ussd_destination: '*321#',
     text: '&code',
     senders: ['1515', '7000'],
     confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
     incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
   }
-}
+};
 
+writeContent(init, JSON.stringify(content));
+
+// SMS
+init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
+content = ["1515"];
 writeContent(init, JSON.stringify(content));

@@ -56,13 +56,12 @@ viewManager.tabs[TAB_TELEPHONY] = (function cc_setUpDataUsage() {
       return;
     }
 
-    var nextResetDate = CostControl.settings.option('next_reset') || null;
+    var nextResetDate = CostControl.settings.option('next_reset');
     if (!nextResetDate) {
-      resetDate.textContent = '--';
+      resetDate.textContent = _('never');
       return;
     }
 
-    nextResetDate = new Date(nextResetDate);
     resetDate.textContent =
       nextResetDate.toLocaleFormat(_('short-date-format'));
   }
