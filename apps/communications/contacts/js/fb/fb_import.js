@@ -96,6 +96,7 @@ if (typeof fb.importer === 'undefined') {
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
+        from: 'import',
         data: ''
       };
 
