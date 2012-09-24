@@ -322,6 +322,7 @@ function showPlayer(data, autoPlay) {
   dom.player.preload = 'metadata';
 
   function doneSeeking() {
+    dom.player.onseeked = null;
     requestFullScreen(function() {
       // Show the controls briefly then fade out
       setControlsVisibility(true);
