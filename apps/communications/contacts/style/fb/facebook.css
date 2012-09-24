@@ -172,6 +172,7 @@ abbr, acronym {
 
 ol.unbordered > li {
   border: none !important;
+  position: inherit;
 }
 
 li[data-uuid]{

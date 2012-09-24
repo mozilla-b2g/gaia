@@ -10,7 +10,7 @@ var Wallpaper = {
   },
 
   getAllElements: function wallpaper_getAllElements() {
-    this.wallpaperSnapshot = document.getElementById('wallpaper-snapshot');
+    this.preview = document.getElementById('wallpaper-preview');
   },
 
   init: function wallpaper_init() {
@@ -24,29 +24,27 @@ var Wallpaper = {
     var settings = navigator.mozSettings;
     settings.addObserver('wallpaper.image',
       function onHomescreenChange(event) {
-        var url = 'url(' + event.settingValue + ')';
-        self.wallpaperSnapshot.style.backgroundImage = url;
+        self.preview.src = event.settingValue;
     });
 
     var lock = settings.createLock();
     var reqWallpaper = lock.get('wallpaper.image');
     reqWallpaper.onsuccess = function wallpaper_getWallpaperSuccess() {
-      var url = 'url(' + reqWallpaper.result['wallpaper.image'] + ')';
-      self.wallpaperSnapshot.style.backgroundImage = url;
+      self.preview.src = reqWallpaper.result['wallpaper.image'];
     };
   },
 
   bindEvent: function wallpaper_bindEvent() {
     var self = this;
     var settings = navigator.mozSettings;
-    this.wallpaperSnapshot.addEventListener('click',
+    this.preview.addEventListener('click',
       function onWallpaperClick() {
         var a = new MozActivity({
           name: 'pick',
           data: {
             type: 'image/jpeg',
-            width: window.innerWidth,
-            height: window.innerHeight
+            width: 320,
+            height: 480
           }
         });
 
@@ -54,8 +52,7 @@ var Wallpaper = {
           if (!a.result.url)
             return;
 
-          self.wallpaperSnapshot.style.backgroundImage =
-            'url(' + a.result.url + ')';
+          self.preview.src = a.result.url;
           settings.createLock().set({'wallpaper.image': a.result.url});
           self.reopenSelf();
         };

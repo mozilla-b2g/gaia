@@ -34,7 +34,6 @@
 //    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
-//    getNumberOfRunningApps(): returns the numbers of running apps.
 //    setDisplayedApp(origin): set displayed app.
 //      XXX: should be removed.
 //
@@ -701,17 +700,9 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      // Bugs that are shared among multiple apps are listed here.
-      // Bugs that affect only specific apps should be listed under
-      // the apps themselves.
-      //
-      // Keyboard always shows up alpha when app using keyboard is run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
-      // Keyboard doesn't show up correctly when app run OOP
-      //   https://github.com/mozilla-b2g/gaia/issues/2656
-
       'Browser',
-      // Requires nested content processes (bug 761935)
+      // Requires nested content processes (bug 761935).  This is not
+      // on the schedule for v1.
 
       'Cost Control',
       // Cross-process SMS (bug 775997)
@@ -720,10 +711,6 @@ var WindowManager = (function() {
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
       // (bug 770778)
-
-      'Image Uploader',
-      // Cannot upload files when OOP
-      // bug 783878
 
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
@@ -1276,9 +1263,6 @@ var WindowManager = (function() {
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     getAppFrame: getAppFrame,
-    getNumberOfRunningApps: function() {
-      return numRunningApps;
-    },
     getRunningApps: function() {
        return runningApps;
     },

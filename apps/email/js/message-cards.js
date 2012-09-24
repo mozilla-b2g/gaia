@@ -641,6 +641,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
+  domNode.getElementsByClassName('msg-forward-btn')[0]
+    .addEventListener('click', this.onForward.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -690,6 +692,7 @@ MessageReaderCard.prototype = {
   },
 
   onReply: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage(null, function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
@@ -697,7 +700,16 @@ MessageReaderCard.prototype = {
   },
 
   onReplyAll: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage('all', function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
+  },
+
+  onForward: function(event) {
+    Cards.eatEventsUntilNextCard();
+    var composer = this.header.forwardMessage('inline', function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });

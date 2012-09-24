@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -210,20 +210,9 @@ window.addEventListener('load', function getCarrierSettings() {
     document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
 
-    // toggle advanced settings when required
-    var advSettings = document.getElementById('apnSettings-advanced');
-    advSettings.querySelector('h3').onclick = function toggle() {
-      advSettings.classList.toggle('collapsed');
-    }
-    var resetBtn = document.querySelector('#apnSettings button[type=reset]');
-    resetBtn.onclick = function onSubmit() {
-      advSettings.classList.add('collapsed');
-    }
-    var submitBtn = document.querySelector('#apnSettings button[type=submit]');
-    submitBtn.onclick = function onSubmit() {
-      advSettings.classList.add('collapsed');
-      restartDataConnection(); // force data connection to restart
-    }
+    // force data connection to restart if changes are validated
+    apnSettings.querySelector('button[type=submit]').onclick =
+        restartDataConnection;
   }
 
   // initialize data settings
