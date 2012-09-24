@@ -74,9 +74,9 @@ contacts.List = (function() {
       console.log('ERROR Retrieving contacts');
     }
 
+    getContactsByGroup(onError, contacts);
     checkEmptyList();
 
-    getContactsByGroup(onError, contacts);
     this.loaded = true;
   };
 

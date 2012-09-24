@@ -43,12 +43,14 @@ suite('Render contacts list', function() {
       groupB,
       groupC,
       groupD,
+      groupT,
       groupFav,
       groupUnd,
       containerA,
       containerB,
       containerC,
       containerD,
+      containerT,
       containerFav,
       containerUnd,
       list,
@@ -70,8 +72,19 @@ suite('Render contacts list', function() {
   function assertTotal(lengthTitles, lengthContacts) {
     var total = list.querySelectorAll('h2:not(.hide)').length;
     var totalC = list.querySelectorAll('li[data-uuid]').length;
+
+    // window.alert(total + "," + totalC);
+
     assert.equal(total, lengthTitles);
     assert.equal(totalC, lengthContacts);
+  }
+
+  function assertTotal2(lengthTitles, lengthContacts) {
+    var total = list.querySelectorAll('h2:not(.hide)').length;
+    var totalC = list.querySelectorAll('li[data-uuid]').length;
+
+    window.alert(list.querySelectorAll('li[data-uuid]').item(0).innerHTML);
+    window.alert(list.querySelectorAll('li[data-uuid]').item(1).innerHTML);
   }
 
   function assertImportButton() {
@@ -88,32 +101,31 @@ suite('Render contacts list', function() {
 
   function assertNoImportButton() {
     var importButton = list.nextElementSibling;
+    // window.alert(importButton);
+
     assert.isNull(importButton);
   }
 
-  suiteSetup(function() {
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = {
-      get: function get(key) {
-        return key;
-      },
-      DateTimeFormat: function() {
-        this.localeFormat = function(date, format) {
-          return date;
-        }
-      }
-    };
+  function assertFbMark(container) {
+    var content = container.innerHTML;
+    var markPosition =  content.indexOf('icon-fb');
 
-    realContacts = window.Contacts;
-    window.Contacts = MockContactsApp;
-    realFb = window.fb;
-    window.fb = MockFb;
-    window.Contacts.extFb = MockExtFb;
-    realFixedHeader = window.FixedHeader;
-    window.FixedHeader = MockFixedHeader;
-    window.utils = window.utils || {};
-    window.utils.alphaScroll = MockAlphaScroll;
-    subject = contacts.List;
+    assert.isTrue(markPosition > -1);
+  }
+
+  function resetDom(document) {
+    if(container) {
+      document.body.removeChild(container);
+    }
+
+    if(loading) {
+      document.body.removeChild(loading);
+    }
+
+    if(searchSection) {
+      document.body.removeChild(searchSection);
+    }
+
     container = document.createElement('div');
     var groupsContainer = document.createElement('div');
     groupsContainer.id = 'groups-container';
@@ -139,6 +151,33 @@ suite('Render contacts list', function() {
 
     searchBox = document.getElementById('search-contact');
     noResults = document.getElementById('no-result');
+  }
+
+  suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function get(key) {
+        return key;
+      },
+      DateTimeFormat: function() {
+        this.localeFormat = function(date, format) {
+          return date;
+        }
+      }
+    };
+
+    realContacts = window.Contacts;
+    window.Contacts = MockContactsApp;
+    realFb = window.fb;
+    window.fb = MockFb;
+    window.Contacts.extFb = MockExtFb;
+    realFixedHeader = window.FixedHeader;
+    window.FixedHeader = MockFixedHeader;
+    window.utils = window.utils || {};
+    window.utils.alphaScroll = MockAlphaScroll;
+    subject = contacts.List;
+
+    resetDom(window.document);
 
     subject.init(list);
   });
@@ -163,6 +202,7 @@ suite('Render contacts list', function() {
       containerC = container.querySelector('#contacts-list-C');
       groupD = container.querySelector('#group-D');
       containerD = container.querySelector('#contacts-list-D');
+
       groupUnd = container.querySelector('#group-und');
       containerUnd = container.querySelector('#contacts-list-und');
 
@@ -395,7 +435,47 @@ suite('Render contacts list', function() {
       assertImportButton();
       assertTotal(0, 0);
     });
-  });
+  });  // suite ends
+
+  suite('Facebook Contacts List', function() {
+    suiteSetup(function() {
+      resetDom(window.document);
+      subject.init(list);
+    });
+
+    test('adding one FB Contact to an empty list', function() {
+      var deviceContact = new MockContactAllFields();
+
+      deviceContact.id = '567';
+      deviceContact.familyName = ['Taylor'];
+      deviceContact.givenName = ['Bret'];
+      deviceContact.name = [deviceContact.givenName + ' ' +
+                            deviceContact.familyName];
+      var newContact = new MockFb.Contact(deviceContact);
+      newContact.uid = '220439';
+
+      newContact.getData().onsuccess = function cb() {
+        var newList = [this.result];
+
+        assertTotal(0, 0);
+        subject.load(newList);
+
+        assertNoImportButton();
+
+        groupT = container.querySelector('#group-T');
+        containerT = container.querySelector('#contacts-list-T');
+
+        var tContacts = assertGroup(groupT, containerT, 1);
+
+        assert.isTrue(tContacts[0].innerHTML.indexOf('Taylor') > -1);
+
+        assertFbMark(containerT);
+
+        // Two instances as this contact is a favorite one also
+        assertTotal(2,2);
+      };
+    }); // test ends
+  });  // suite ends
 
   suite('Contact search', function() {
     test('check search', function() {
