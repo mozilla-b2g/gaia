@@ -396,6 +396,6 @@ form.search button {
 body[role="application"] section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
 
-#view-settings {
+section.view[data-state="active"] {
   -moz-transition: transform 0.5s ease;
 }

@@ -450,9 +450,6 @@ contacts.List = (function() {
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
-    removeImportSimButton();
-    removeImportFacebookButton();
-
     addToGroup(theContact, list);
 
     if (list.children.length === 1) {

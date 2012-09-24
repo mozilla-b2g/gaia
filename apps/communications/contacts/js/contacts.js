@@ -452,7 +452,7 @@ var Contacts = (function() {
     }
   }
 
-  var handleBack = function handleBack() {
+  var handleBack = function handleBack(popup) {
     navigation.back();
   };
 
@@ -528,19 +528,23 @@ var Contacts = (function() {
 
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
-    contactsForm.render(contact, goToForm);
+    contactsForm.render(contact, function() {
+      showPopup('view-contact-form');
+    });
   };
 
-  var showSettings = function c_showSettings() {
-    settings.classList.remove('view-bottom');
-    settings.dataset['state'] = 'active';
+  var showPopup = function c_showPopup(id) {
+    var popup = document.getElementById(id);
+    popup.classList.remove('view-bottom');
+    popup.dataset['state'] = 'active';
   }
 
-  var hideSettings = function c_hideSettings() {
-    settings.classList.add('view-bottom');
-    settings.addEventListener('transitionend', function hideView() {
-      settings.dataset['state'] = 'inactive';
-      settings.removeEventListener('transitionend', hideView);
+  var hidePopup = function c_hidePopup(id) {
+    var popup = document.getElementById(id);
+    popup.classList.add('view-bottom');
+    popup.addEventListener('transitionend', function hideView() {
+      popup.dataset['state'] = 'inactive';
+      popup.removeEventListener('transitionend', hideView);
     });
   }
 
@@ -563,8 +567,8 @@ var Contacts = (function() {
     'getLength': getLength,
     'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
-    'showSettings': showSettings,
-    'hideSettings': hideSettings,
+    'showPopup': showPopup,
+    'hidePopup': hidePopup,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS
   };

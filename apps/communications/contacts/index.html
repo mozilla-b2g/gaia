@@ -67,7 +67,7 @@
           <menu type="toolbar" role="menu">
             <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button" onclick="Contacts.showSettings();">
+            <button role="menuitem" id="settings-button" onclick="Contacts.showPopup('view-settings');">
               <span class="icon icon-settings" data-l10n-id="settings">settings</span>
             </button>
           </menu>
@@ -211,9 +211,9 @@
 
 
       <!-- Edit Section -->
-      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">
+      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
         <header>
-          <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+          <button class="negative" onclick="Contacts.hidePopup('view-contact-form');"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
             <button id="save-button" onclick="contacts.Form.saveContact();" role="menuitem"></button>
           </menu>
@@ -404,7 +404,7 @@
       <!-- Settings section -->
       <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
         <header>
-          <button class="negative" onclick="Contacts.hideSettings();">
+          <button class="negative" onclick="Contacts.hidePopup('view-settings');">
             <span class="icon icon-close"data-l10n-id="exit">Exit</span>
           </button>
           <h1 data-l10n-id="settings">Settings</h1>
