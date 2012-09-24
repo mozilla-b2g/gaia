@@ -11,14 +11,13 @@ var Bookmark = function Bookmark(params) {
     icons: {
       60: params.icon
     },
-    default_locale: 'en-US',
-    wrapperMode: 'new'
+    default_locale: 'en-US'
   };
 };
 
 Bookmark.prototype = {
   launch: function bookmark_launch() {
-    window.open(this.origin, JSON.stringify(this.manifest), 'wrapper');
+    window.open(this.origin, '_blank');
   },
 
   uninstall: function bookmark_uninstall() {
