@@ -33,6 +33,8 @@ var SimPinLock = {
 
   init: function spl_init() {
     this.mobileConnection = window.navigator.mozMobileConnection;
+    if (!this.mobileConnection)
+      return;
 
     var self = this;
     this.simPinCheckBox.onchange = function spl_toggleSimPin() {

@@ -7,6 +7,7 @@ var SimPinDialog = {
   dialog: document.getElementById('simpin-dialog'),
   dialogTitle: document.querySelector('#simpin-dialog header h1'),
   dialogDone: document.querySelector('#simpin-dialog button[type="submit"]'),
+  dialogClose: document.querySelector('#simpin-dialog button[type="reset"]'),
 
   pinArea: document.getElementById('pinArea'),
   pukArea: document.getElementById('pukArea'),
@@ -145,12 +146,17 @@ var SimPinDialog = {
     var req = this.mobileConnection.unlockCardLock(options);
     req.onsuccess = function sp_unlockSuccess() {
       self.close();
+      if (self.onsuccess)
+        self.onsuccess();
     };
     req.onerror = function sp_unlockError() {
       var retry = (req.result && req.result.retryCount) ?
         parseInt(req.result.retryCount, 10) : -1;
-      self.showErrorMsg(retry, 'pin');
-      self.pinInput.focus();
+      self.showErrorMsg(retry, self.lockType);
+      if (self.lockType === 'pin')
+        self.pinInput.focus();
+      else
+        self.pukInput.focus();
     };
   },
 
@@ -260,7 +266,7 @@ var SimPinDialog = {
     this.origin = document.location.hash;
     document.location.hash = 'simpin-dialog';
 
-    if (action == 'unlock' && this.lockType == 'puk')
+    if (action === 'unlock' && this.lockType === 'puk')
       this.pukInput.focus();
     else
       this.pinInput.focus();
@@ -281,10 +287,12 @@ var SimPinDialog = {
 
   init: function spl_init() {
     this.mobileConnection = window.navigator.mozMobileConnection;
+    if (!this.mobileConnection)
+      return;
     this.mobileConnection.addEventListener('cardstatechange',
         this.handleCardState.bind(this));
-    this.dialog.querySelector('[type=submit]').onclick = this.verify.bind(this);
-    this.dialog.querySelector('[type=reset]').onclick = this.skip.bind(this);
+    this.dialogDone.onclick = this.verify.bind(this);
+    this.dialogClose.onclick = this.skip.bind(this);
 
     this.pinInput = this.getNumberPasswordInputField('simpin');
     this.pukInput = this.getNumberPasswordInputField('simpuk');
