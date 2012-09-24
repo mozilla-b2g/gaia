@@ -322,7 +322,7 @@ HostingProvider.prototype.updateCredentials = function() {
       revokeButton.className = 'negative';
       revokeButton.id = 'revoke-twitter';
       revokeButton.innerHTML =
-        'Revoke \'' + self.creds[0].screen_name + '\' credentials';
+        'Revoke \'' + self.creds[0][self.urls['login']] + '\' credentials';
       revokeButton.onclick = self.revokeCredentials.bind(self);
       container.appendChild(revokeButton);
     }
@@ -332,7 +332,7 @@ HostingProvider.prototype.updateCredentials = function() {
 HostingProvider.prototype.revokeCredentials = function() {
   var self = this;
   this.OAuth1BuildDialogRevoke(function () {
-    self.credsdb.delcreds(self.creds[0].screen_name, function(res) {
+    self.credsdb.delcreds(self.creds[0].self.urls['login'], function(res) {
       if (res == null) {
         ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
         self.creds = undefined;
@@ -381,6 +381,7 @@ var ImageUploader = {
       },
       {
         'confirm-img': 'style/images/twitter-bird-light-bgs.png',
+	'login': 'screen_name',
         'upload': 'https://upload.twitter.com/1/statuses/update_with_media.json',
         'oauth_request_token': 'https://api.twitter.com/oauth/request_token',
         'oauth_authorize': 'https://api.twitter.com/oauth/authorize',
