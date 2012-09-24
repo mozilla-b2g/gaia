@@ -158,8 +158,8 @@ form.tidy.bottom:after {
 }
 
 form.tidy label {
-  float: left;
-  width: 20.5rem;
+  display: block;
+  overflow: hidden;
   -moz-box-sizing: border-box;
   padding: 0.5rem 1.2rem;
   background: url(input_areas/images/ui/separator.png) no-repeat right center;
@@ -196,7 +196,9 @@ form.tidy button[type="submit"]:active {
 }
 
 form.tidy button:focus,
-form.tidy button::-moz-focus-inner {
+label button[type="reset"]:focus,
+form.tidy button::-moz-focus-inner,
+label button[type="reset"]::-moz-focus-inner {
   border: none;
   outline: none;
 }
