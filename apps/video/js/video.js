@@ -6,7 +6,7 @@ var ids = ['player', 'thumbnails', 'overlay', 'overlay-title',
            'overlay-text', 'videoControls', 'videoFrame', 'videoBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-            'slider-wrapper'];
+           'slider-wrapper', 'throbber'];
 
 ids.forEach(function createElementRef(name) {
   dom[toCamelCase(name)] = document.getElementById(name);
@@ -25,10 +25,7 @@ var screenLock;
 var controlShowing = false;
 var controlFadeTimeout = null;
 
-// An array of data about each of the videos we know about.
-var videos = [];
 var videodb;
-
 var currentVideo;  // The data for the current video
 
 // Video object used to create previews
@@ -37,147 +34,64 @@ var previewPlayer = document.createElement('video');
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-  init();
-});
+var urlToStream; // From an activity call
+var appStarted = false;
+
+var storageState;
+var currentOverlay;
+
+var dragging = false;
+
+var fullscreenTimer;
+var fullscreenCallback;
 
 function init() {
 
   videodb = new MediaDB('videos', metaDataParser);
 
-  videodb.onunavailable = function(why) {
-    if (why === 'unavailable') {
-      showOverlay('nocard');
-    } else if (why === 'shared') {
-      showOverlay('cardinuse');
-    }
-  }
-
-  videodb.onready = function() {
-    scan();
+  videodb.onunavailable = function(event) {
+    storageState = event.detail;
+    updateDialog();
   };
-
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && videodb.ready) {
-      scan();
-    }
-  });
-
-  videodb.onchange = function(type, files) {
-    // TODO: Dynamically update the UI, for now doing a full
-    // repaint
+  videodb.onready = function() {
+    storageState = false;
+    updateDialog();
     createThumbnailList();
   };
-}
 
-function scan() {
-  showOverlay('scanning');
-  videodb.scan(function() {
-    showOverlay(null);
-  });
-}
-
-function createThumbnailList() {
-
-  dom.thumbnails.innerHTML = '';
-
-  if (videos.length) {
-    videos = [];
-  }
-
-  videodb.count(function(count) {
-    if (count === 0) {
-      showOverlay('novideos');
-      return;
-    }
-    showOverlay(null);
-    videodb.enumerate(function(videodata) {
-      if (videodata === null)
-        return;
-      processVideo(videodata);
-    });
-  });
-}
-
-function processVideo(videodata) {
-  // If this isn't a video, skip it
-  if (videodata.type.substring(0, 6) !== 'video/')
-    return;
-  if (!previewPlayer.canPlayType(videodata.type))
-    return;
-  addVideo(videodata);
-}
-
-function metaDataParser(videofile, callback) {
-
-  if (!previewPlayer.canPlayType(videofile.type)) {
-    return callback({});
-  }
-
-  var url = URL.createObjectURL(videofile);
-  var metadata = {
-    title: fileNameToVideoName(videofile.name)
+  videodb.onscanstart = function() {
+    dom.throbber.classList.add('throb');
+  };
+  videodb.onscanend = function() {
+    dom.throbber.classList.remove('throb');
   };
 
-  previewPlayer.preload = 'metadata';
-  previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
-  previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
-  previewPlayer.src = url;
-  previewPlayer.onloadedmetadata = function() {
+  videodb.oncreated = function(event) {
+    event.detail.forEach(addVideo);
+  };
+  videodb.ondeleted = function(event) {
+    event.detail.forEach(deleteVideo);
+  };
 
-    metadata.duration = previewPlayer.duration;
-    metadata.width = previewPlayer.videoWidth;
-    metadata.height = previewPlayer.videoHeight;
-
-    previewPlayer.currentTime = 20;  // Skip ahead 20 seconds
-    if (previewPlayer.seeking) {
-      previewPlayer.onseeked = doneSeeking;
-    } else {
-      doneSeeking();
-    }
-
-    // After we've skiped ahead, try go get a poster image for the movie
-    // XXX Because of https://bugzilla.mozilla.org/show_bug.cgi?id=730765
-    // Its not clear whether this is working right. But it does
-    // end up producing an image for each video.
-    function doneSeeking() {
-      URL.revokeObjectURL(url);
-      try {
-        metadata.poster = captureFrame(previewPlayer);
-      } catch (e) {
-        console.error('Failed to create a poster image:', e);
-      }
-
-      previewPlayer.src = '';
-      callback(metadata);
-    }
+  if (urlToStream) {
+    startStream();
   }
-}
 
-function captureFrame(player) {
-  var canvas = document.createElement('canvas');
-  canvas.width = THUMBNAIL_WIDTH;
-  canvas.height = THUMBNAIL_HEIGHT;
-  var ctx = canvas.getContext('2d');
-  ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-  return canvas.mozGetAsFile('poster', 'image/jpeg');
+  appStarted = true;
 }
 
 function addVideo(videodata) {
-  var index = videos.length;
-  videos.push(videodata);
+  var poster;
+
+  if (!videodata ||
+      videodata.type.substring(0, 6) !== 'video/' ||
+      !previewPlayer.canPlayType(videodata.type)) {
+    return;
+  }
 
   if (videodata.metadata.poster) {
-    var poster = document.createElement('img');
-    poster.src = URL.createObjectURL(videodata.metadata.poster);
-    poster.onload = function() {
-      URL.revokeObjectURL(poster.src);
-    };
+    poster = document.createElement('img');
+    setPosterImage(poster, videodata.metadata.poster);
   }
 
   var title = document.createElement('p');
@@ -204,6 +118,7 @@ function addVideo(videodata) {
 
   thumbnail.appendChild(title);
   thumbnail.appendChild(duration);
+  thumbnail.setAttribute('data-name', videodata.name);
 
   var hr = document.createElement('hr');
   thumbnail.appendChild(hr);
@@ -215,7 +130,112 @@ function addVideo(videodata) {
   dom.thumbnails.appendChild(thumbnail);
 }
 
-var currentOverlay;
+function deleteVideo(filename) {
+  dom.thumbnails.removeChild(getThumbnailDom(filename));
+}
+
+// Only called on startup to generate initial list of already
+// scanned media, once this is build add/deleteVideo are used
+// to keep it up to date
+function createThumbnailList() {
+  if (dom.thumbnails.firstChild !== null) {
+    dom.thumbnails.textContent = '';
+  }
+  videodb.enumerate('date', null, 'prev', function(videodata) {
+    addVideo(videodata);
+  });
+}
+
+function updateDialog() {
+  if (!storageState || playerShowing) {
+    showOverlay(null);
+    return;
+  }
+  if (storageState === MediaDB.NOCARD) {
+    showOverlay('nocard');
+  } else if (storageState === MediaDB.UNMOUNTED) {
+    showOverlay('cardinuse');
+  }
+}
+
+function startStream() {
+  showPlayer({
+    remote: true,
+    url: urlToStream.url,
+    title: urlToStream.title
+  }, true);
+  urlToStream = null;
+}
+
+function metaDataParser(videofile, callback) {
+
+  if (!previewPlayer.canPlayType(videofile.type)) {
+    return callback({});
+  }
+
+  var url = URL.createObjectURL(videofile);
+  var metadata = {
+    title: fileNameToVideoName(videofile.name)
+  };
+
+  previewPlayer.preload = 'metadata';
+  previewPlayer.style.width = THUMBNAIL_WIDTH + 'px';
+  previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
+  previewPlayer.src = url;
+  previewPlayer.onloadedmetadata = function() {
+
+    metadata.duration = previewPlayer.duration;
+    metadata.width = previewPlayer.videoWidth;
+    metadata.height = previewPlayer.videoHeight;
+
+    captureFrame(previewPlayer, function(poster) {
+      metadata.poster = poster;
+      URL.revokeObjectURL(url);
+      previewPlayer.src = '';
+      callback(metadata);
+    });
+  };
+}
+
+function captureFrame(player, callback) {
+  var skipped = false;
+  function doneSeeking() {
+    player.onseeked = null;
+    var canvas = document.createElement('canvas');
+    var ctx = canvas.getContext('2d');
+    canvas.width = THUMBNAIL_WIDTH;
+    canvas.height = THUMBNAIL_HEIGHT;
+    ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+    if (skipped) {
+      player.currentTime = 0;
+    }
+    callback(canvas.mozGetAsFile('poster', 'image/jpeg'));
+  }
+
+  // If we are on the first frame, lets skip into the video since some
+  // videos just start with a black screen
+  if (player.currentTime === 0) {
+    player.currentTime = 20;
+    skipped = true;
+  }
+
+  if (player.seeking) {
+    player.onseeked = doneSeeking;
+  } else {
+    doneSeeking();
+  }
+}
+
+function getThumbnailDom(filename) {
+  return dom.thumbnails.querySelectorAll('[data-name="' + filename + '"]')[0];
+}
+
+function setPosterImage(dom, poster) {
+  dom.src = URL.createObjectURL(poster);
+  dom.onload = function() {
+    URL.revokeObjectURL(dom.src);
+  };
+}
 
 function showOverlay(id) {
   currentOverlay = id;
@@ -230,25 +250,6 @@ function showOverlay(id) {
   dom.overlay.classList.remove('hidden');
 }
 
-// When we exit fullscreen mode, stop playing the video.
-// This happens automatically when the user uses the back button (because
-// back is Escape, which is also the "leave fullscreen mode" command).
-// It also happens when the user uses the Home button to go to the
-// homescreen or another app.
-document.addEventListener('mozfullscreenchange', function() {
-  if (document.mozFullScreenElement === null)
-    hidePlayer();
-});
-
- // Pause on visibility change
-document.addEventListener('mozvisibilitychange', function visibilityChange() {
-  if (document.mozHidden && playing) {
-    pause();
-  } else if (!document.mozHidden && document.mozFullScreenElement) {
-    setControlsVisibility(true);
-  }
-});
-
 function setControlsVisibility(visible) {
   dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
   controlShowing = visible;
@@ -262,8 +263,7 @@ function setVideoPlaying(playing) {
   }
 }
 
-// show|hide controls over the player
-dom.videoControls.addEventListener('mousedown', function(event) {
+function playerMousedown(event) {
   // If we interact with the controls before they fade away,
   // cancel the fade
   if (controlFadeTimeout) {
@@ -283,10 +283,13 @@ dom.videoControls.addEventListener('mousedown', function(event) {
   } else {
     setControlsVisibility(false);
   }
-});
+}
 
 // Make the video fit the screen
 function setPlayerSize() {
+  if (!currentVideo.metadata) {
+    return;
+  }
   var xscale = window.innerWidth / currentVideo.metadata.width;
   var yscale = window.innerHeight / currentVideo.metadata.height;
   var scale = Math.min(xscale, yscale);
@@ -300,9 +303,18 @@ function setPlayerSize() {
   dom.player.style.top = top + 'px';
 }
 
-// Rescale when window size changes. This should get called when
-// orientation changes and when we go into fullscreen
-window.addEventListener('resize', setPlayerSize);
+function setVideoUrl(player, video, callback) {
+  if (video.remote) {
+    player.onloadedmetadata = callback;
+    player.src = video.url;
+  } else {
+    videodb.getFile(video.name, function(file) {
+      var url = URL.createObjectURL(file);
+      player.onloadedmetadata = callback;
+      player.src = url;
+    });
+  }
+}
 
 // show video player
 function showPlayer(data, autoPlay) {
@@ -312,37 +324,51 @@ function showPlayer(data, autoPlay) {
   dom.videoFrame.classList.remove('hidden');
   dom.play.classList.remove('paused');
   playerShowing = true;
+  updateDialog();
+  dom.player.preload = 'metadata';
 
-  dom.durationText.textContent = formatDuration(currentVideo.metadata.duration);
-  dom.videoTitle.textContent = currentVideo.metadata.title;
+  function doneSeeking() {
+    dom.player.onseeked = null;
+    requestFullScreen(function() {
+      // Show the controls briefly then fade out
+      setControlsVisibility(true);
+      controlFadeTimeout = setTimeout(function() {
+        setControlsVisibility(false);
+      }, 250);
 
-  // Get the video file and start the player
-  videodb.getFile(data.name, function(file) {
-    var url = URL.createObjectURL(file);
-    dom.player.src = url;
+      if (autoPlay) {
+        play();
+      }
 
-    // TODO: Attempting to resume the video player at the correct time
-    // is currently broken
-    // dom.player.currentTime = currentVideo.metadata.currentTime || 0;
+      if (!currentVideo.remote) {
+        currentVideo.metadata.watched = true;
+        videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+      }
+    });
+  }
+
+  setVideoUrl(dom.player, currentVideo, function() {
+
+    dom.durationText.textContent = formatDuration(dom.player.duration);
     timeUpdated();
-
-    // Go into full screen mode
-    dom.videoFrame.mozRequestFullScreen();
-
-    // Show the controls briefly then fade out
-    setControlsVisibility(true);
-    controlFadeTimeout = setTimeout(function() {
-      setControlsVisibility(false);
-    }, 250);
-
     setPlayerSize();
 
-    if (autoPlay) {
-      play();
+    if (currentVideo.remote) {
+      dom.videoTitle.textContent = currentVideo.title || '';
+      dom.player.currentTime = 0;
+    } else {
+      if (currentVideo.metadata.currentTime === dom.player.duration) {
+        currentVideo.metadata.currentTime = 0;
+      }
+      dom.videoTitle.textContent = currentVideo.metadata.title;
+      dom.player.currentTime = currentVideo.metadata.currentTime || 0;
     }
 
-    currentVideo.metadata.watched = true;
-    videodb.updateMetadata(currentVideo.name, currentVideo.metadata);
+    if (dom.player.seeking) {
+      dom.player.onseeked = doneSeeking;
+    } else {
+      doneSeeking();
+    }
   });
 }
 
@@ -350,36 +376,55 @@ function hidePlayer() {
   if (!playerShowing)
     return;
 
-  // Record current information about played video
-  currentVideo.metadata.currentTime = dom.player.currentTime;
-  currentVideo.metadata.poster = captureFrame(dom.player);
-
-  // stop player
   dom.player.pause();
-  dom.player.currentTime = 0;
 
-  // Allow the screen to blank now.
-  if (screenLock) {
-    screenLock.unlock();
-    screenLock = null;
-  }
-
-  videodb.updateMetadata(currentVideo.name, currentVideo.metadata, function() {
+  function completeHidingPlayer() {
     // switch to the video gallery view
-    createThumbnailList();
     dom.videoFrame.classList.add('hidden');
     dom.videoBar.classList.remove('paused');
     playerShowing = false;
+    updateDialog();
+  }
+
+  if (currentVideo.remote) {
+    completeHidingPlayer();
+    return;
+  }
+
+  var video = currentVideo;
+  var li = getThumbnailDom(video.name);
+
+  // Record current information about played video
+  video.metadata.currentTime = dom.player.currentTime;
+  captureFrame(dom.player, function(poster) {
+    currentVideo.metadata.poster = poster;
+    dom.player.currentTime = 0;
+
+    // Allow the screen to blank now.
+    if (screenLock) {
+      screenLock.unlock();
+      screenLock = null;
+    }
+
+    var posterImg = li.querySelectorAll('img')[0];
+    setPosterImage(posterImg, poster);
+
+    var unwatched = li.querySelectorAll('div.unwatched');
+    if (unwatched.length) {
+      li.removeChild(unwatched[0]);
+    }
+
+    videodb.updateMetadata(video.name, video.metadata, completeHidingPlayer);
   });
 }
 
-// If the movie ends, and no controls are showing, go back to movie list
-dom.player.addEventListener('ended', function() {
-  if (!controlShowing) {
-    dom.player.currentTime = 0;
-    document.mozCancelFullScreen();
+function playerEnded() {
+  if (dragging) {
+    return;
   }
-});
+  dom.player.currentTime = 0;
+  document.mozCancelFullScreen();
+}
 
 function play() {
   // Switch the button icon
@@ -409,12 +454,6 @@ function pause() {
   }
 }
 
-// XXX: the back and forward buttons aren't working for my webm videos
-var dragging = false;
-
-// XXX The progress bar doesn't update for my ogv video because
-// the <video> elememt can't figure out its duration.
-
 // Update the progress bar and play head as the video plays
 function timeUpdated() {
   if (!controlShowing)
@@ -437,9 +476,6 @@ function timeUpdated() {
   if (!dragging)
     dom.playHead.style.left = percent;
 }
-
-
-dom.player.addEventListener('timeupdate', timeUpdated);
 
 // handle drags on the time slider
 function dragSlider(e) {
@@ -472,7 +508,10 @@ function dragSlider(e) {
     document.removeEventListener('mouseup', mouseupHandler, true);
 
     dragging = false;
-    if (!isPaused) {
+
+    if (dom.player.currentTime === dom.player.duration) {
+      pause();
+    } else if (!isPaused) {
       dom.player.play();
     }
   }
@@ -520,3 +559,78 @@ function formatDuration(duration) {
   }
   return '';
 }
+
+function actHandle(activity) {
+  urlToStream = {
+    url: activity.source.data.url,
+    title: activity.source.data.title || ''
+  };
+  if (appStarted) {
+    startStream();
+  }
+}
+
+// The mozRequestFullScreen can fail silently, so we keep asking
+// for full screen until we detect that it happens
+function requestFullScreen(callback) {
+  fullscreenCallback = callback;
+  fullscreenTimer = setInterval(function() {
+    dom.videoFrame.mozRequestFullScreen();
+  }, 500);
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
+}
+
+// When we exit fullscreen mode, stop playing the video.
+// This happens automatically when the user uses the back button (because
+// back is Escape, which is also the "leave fullscreen mode" command).
+// It also happens when the user uses the Home button to go to the
+// homescreen or another app.
+document.addEventListener('mozfullscreenchange', function() {
+  // We have exited fullscreen
+  if (document.mozFullScreenElement === null) {
+    hidePlayer();
+    return;
+  }
+
+  // We have entered fullscreen
+  if (fullscreenTimer) {
+    window.clearInterval(fullscreenTimer);
+    fullscreenTimer = null;
+  }
+  if (fullscreenCallback) {
+    fullscreenCallback();
+    fullscreenCallback = null;
+  }
+});
+
+ // Pause on visibility change
+document.addEventListener('mozvisibilitychange', function visibilityChange() {
+  if (document.mozHidden && playing) {
+    pause();
+  } else if (!document.mozHidden && document.mozFullScreenElement) {
+    setControlsVisibility(true);
+  }
+});
+
+// show|hide controls over the player
+dom.videoControls.addEventListener('mousedown', playerMousedown);
+// Rescale when window size changes. This should get called when
+// orientation changes and when we go into fullscreen
+window.addEventListener('resize', setPlayerSize);
+
+dom.player.addEventListener('timeupdate', timeUpdated);
+dom.player.addEventListener('ended', playerEnded);
+
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+window.addEventListener('localized', function showBody() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('hidden');
+  init();
+});
+
+
