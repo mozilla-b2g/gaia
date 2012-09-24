@@ -236,8 +236,8 @@ Evme.Analytics = new function() {
     }
     
     function setGACustomVars(tracker){
-        var n = Evme.Evme.Utils.getUrlParam("n"),
-            c = Evme.Evme.Utils.getUrlParam("c");
+        var n = Evme.Utils.getUrlParam("n"),
+            c = Evme.Utils.getUrlParam("c");
             
         if (n && c) {
             tracker['_setCustomVar'](1, "CampaignTracking", n + ":" + c, 1);
@@ -355,7 +355,7 @@ Evme.Analytics = new function() {
                         "responseTime": data.requestDuration,
                         "method": data.method,
                         "url": data.url,
-                        "connectionType": Evme.Evme.Utils.connection().name || "",
+                        "connectionType": Evme.Utils.connection().name || "",
                         "processingTime": data.response.processingTime || ""
                     }
                 };
@@ -485,7 +485,7 @@ Evme.Analytics = new function() {
         this.error = function(data){
             data.text = "Client error";
             data.ua = navigator.userAgent;
-            data.platform = Evme.Evme.Utils.platform();
+            data.platform = Evme.Utils.platform();
             
             queue({
                 "class": "Core",
@@ -778,8 +778,8 @@ Evme.Analytics = new function() {
                 "data": data
             });
             
-            if (Evme.Evme.Utils.isKeyboardVisible()){
-                data.query = Evme.Evme.Utils.getCurrentSearchQuery();
+            if (Evme.Utils.isKeyboardVisible()){
+                data.query = Evme.Utils.getCurrentSearchQuery();
                 queue({
                     "class": "Results",
                     "event": "search",

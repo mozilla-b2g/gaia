@@ -180,7 +180,7 @@ Evme.Utils = new function() {
     };
 
     this.isVersionOrHigher = function(v1, v2) {
-        if (!v2){ v2 = v1; v1 = Evme.Evme.Utils.getOS().version; };
+        if (!v2){ v2 = v1; v1 = Evme.Utils.getOS().version; };
         if (!v1){ return undefined; }
 
         var v1parts = v1.split('.');
@@ -209,7 +209,7 @@ Evme.Utils = new function() {
 
     this.User = new function() {
         this.creds = function() {
-            var credsFromCookie = Evme.Evme.Utils.Cookies.get(COOKIE_NAME_CREDENTIALS);
+            var credsFromCookie = Evme.Utils.Cookies.get(COOKIE_NAME_CREDENTIALS);
             return credsFromCookie;
         };
     };
@@ -247,7 +247,7 @@ Evme.Utils = new function() {
         };
 
         this.remove = function(name) {
-            Evme.Evme.Utils.Cookies.set(name, "", "Thu, 24-Jun-1999 12:34:56 GMT");
+            Evme.Utils.Cookies.set(name, "", "Thu, 24-Jun-1999 12:34:56 GMT");
         };
 
         function norm(k, v) {
