@@ -22,7 +22,9 @@ var Browser = {
   previousScreen: null,
   currentScreen: this.PAGE_SCREEN,
 
-  DEFAULT_SEARCH_PROVIDER: 'm.bing.com',
+  DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
+  DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
+  DEFAULT_SEARCH_PROVIDER_ICON: 'http://bing.com/favicon.ico',
   DEFAULT_FAVICON: 'style/images/favicon.png',
   START_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/start.html',
@@ -510,7 +512,7 @@ var Browser = {
     var protocol = protocolRegexp.exec(url);
 
     if (isSearch) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER + '/search?q=' + url;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + url;
     }
     if (!protocol) {
       return 'http://' + url;
@@ -768,6 +770,16 @@ var Browser = {
     topSites.forEach(function browser_processTopSite(data) {
       this.drawAwesomescreenListItem(list, data, filter);
     }, this);
+    if (topSites.length < 2 && filter) {
+      var data = {
+        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
+        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+          '/search?q=' + filter,
+        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
+        description: _('search-for') + ' "' + filter + '"'
+      };
+      this.drawAwesomescreenListItem(list, data);
+    }
   },
 
   showHistoryTab: function browser_showHistoryTab() {
@@ -846,6 +858,8 @@ var Browser = {
       url.textContent = 'about:home';
     } else if (data.uri == this.ABOUT_PAGE_URL) {
       url.textContent = 'about:';
+    } else if (data.description) {
+      url.innerHTML = Utils.createHighlightHTML(data.description);
     } else {
       url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
