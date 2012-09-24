@@ -19,11 +19,15 @@ window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
 });
 
 // Cost Control widget is placed in the bottom of the utility tray, over the
-// quick settings buttons and is in charge of displaying current balance at the
-// same time it provides a quick access to the Cost Control application.
+// quick settings buttons and is in charge of displaying current balance /
+// telephony statistics (depends on the plantype) at the same time it provides
+// a quick access to the Cost Control application.
 function setupWidget() {
 
-  var _widget, _widgetCredit, _widgetCurrency, _widgetTime;
+  var _widget;
+  var _balanceView, _balanceCredit, _balanceCurrency, _balanceTime;
+  var _telephonyView;
+  var _plantype;
   var _isUpdating = false;
   var _onWarning = false; // warning state is true when automatic udpates are
                           // disabled or some update error occurs.
@@ -61,15 +65,12 @@ function setupWidget() {
     var activity = new MozActivity({ name: 'costcontrol/open' });
   }
 
-  // Attach event listeners for manual updates
-  function _configureWidget() {
-    _widget = document.getElementById('cost-control');
-    _widgetCredit = document.getElementById('cost-control-credit');
-    _widgetCurrency = document.getElementById('cost-control-currency');
-    _widgetTime = document.getElementById('cost-control-time');
-
-    // Listener to open application
-    _widget.addEventListener('click', _openApp);
+  // Specific setup for the balance view
+  function _configureBalanceView() {
+    _balanceView = document.getElementById('balance-view');
+    _balanceCredit = document.getElementById('balance-credit');
+    _balanceCurrency = document.getElementById('balance-currency');
+    _balanceTime = document.getElementById('balance-time');
 
     // Suscribe callbacks for balance updating success and error to the service
     CostControl.setBalanceCallbacks({
@@ -86,12 +87,56 @@ function setupWidget() {
         _setWarningMode(true);
     };
 
-    // Update UI when localized
+    _configureAutomaticUpdates();
+  }
+
+  // Specific setup for the teelphony view
+  function _configureTelephonyView() {
+    _telephonyView = document.getElementById('telephony-view');
+
+    // Update UI when some of these values change or...
+    CostControl.settings.observe('smscount', _updateTelephonyUI);
+    CostControl.settings.observe('calltime', _updateTelephonyUI);
+    CostControl.settings.observe('lastreset', _updateTelephonyUI);
+
+    // ...when the utility tray shows.
+    window.addEventListener('message', function ccwidget_utilityTray(evt) {
+      if (evt.data.type === 'utilitytrayshow')
+        _updateTelephonyUI();
+    });
+  }
+
+  // Attach event listeners for manual updates
+  function _configureWidget() {
+
+    function onPlanTypeChange(plantype) {
+      _plantype = plantype;
+      _switchView(plantype === CostControl.PLAN_PREPAID ?
+                  'balance' : 'telephony');
+    }
+
+    _widget = document.getElementById('cost-control');
+
+    // Listener to open application
+    _widget.addEventListener('click', _openApp);
+
+    _configureBalanceView();
+    _configureTelephonyView();
+
+    // Observer to see which cost control or telephony is enabled
+    CostControl.settings.observe('plantype', onPlanTypeChange);
+
+    // Observer to detect changes on threshold limits
+    CostControl.settings.observe('lowlimit_threshold', _updateUI);
+    CostControl.settings.observe('lowlimit', _updateUI);
+
+    // Update UI when localized: wrapped in a function to avoid sending an
+    // incorrect first parameter.
     window.addEventListener('localized', function ccwidget_onLocalized() {
-      _updateBalanceUI();
+      _updateUI();
     });
 
-    _updateBalanceUI();
+    _updateUI();
   }
 
   // Return True when automatic updates are allow:
@@ -114,13 +159,30 @@ function setupWidget() {
   // updates.
   function _init() {
     _configureWidget();
-    _configureAutomaticUpdates();
   }
 
   // Request a balance update from the service
   function _requestUpdateBalance() {
+
+    // I prefer this check in the VIEWS to keep the service as simple as
+    // possible
+    if (_plantype !== CostControl.PLAN_PREPAID) {
+      debug('Not in prepaid, ignoring.');
+      return;
+    }
+
+    // Ignore if the device is in roaming
+    if (!_automaticUpdatesAllowed()) {
+      console.warn('No automatic updates allowed');
+      return;
+    }
+
     if (_isUpdating)
       return;
+
+    _setUpdatingMode(true); // This is purely cosmetic to show the user
+                            // the updating starts as soon as he display
+                            // the utility tray.
 
     CostControl.requestBalance();
   }
@@ -128,12 +190,6 @@ function setupWidget() {
   // Handle the events that triggers automatic balance updates
   function _automaticCheck(evt) {
     debug('Event listened: ' + evt.type);
-
-    // Ignore if the device is in roaming
-    if (!_automaticUpdatesAllowed()) {
-      console.warn('No automatic updates allowed');
-      return;
-    }
 
     switch (evt.type) {
 
@@ -146,9 +202,6 @@ function setupWidget() {
         if (lastUpdate === null ||
             (now - lastUpdate > CostControl.getRequestBalanceMaxDelay())) {
 
-          _setUpdatingMode(true); // This is purely cosmetic to show the user
-                                  // the updating starts as soon as he display
-                                  // the utility tray.
           _requestUpdateBalance();
         }
 
@@ -156,13 +209,27 @@ function setupWidget() {
     }
   }
 
+  // Switch view to balance / telephony
+  function _switchView(view) {
+    _balanceView.setAttribute('aria-hidden', 'true');
+    _telephonyView.setAttribute('aria-hidden', 'true');
+
+    if (view === 'balance') {
+      _balanceView.setAttribute('aria-hidden', 'false');
+      _updateBalanceUI();
+    } else {
+      _telephonyView.setAttribute('aria-hidden', 'false');
+      _updateTelephonyUI();
+    }
+  }
+
   // Enable / disable warning mode for the UI
   function _setWarningMode(warning) {
     _onWarning = warning;
     if (warning) {
-      _widget.classList.add('warning');
+      _balanceView.classList.add('warning');
     } else {
-      _widget.classList.remove('warning');
+      _balanceView.classList.remove('warning');
     }
   }
 
@@ -170,38 +237,15 @@ function setupWidget() {
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
     if (updating) {
-      _widget.classList.add('updating');
-      _widgetTime.textContent = _('updating') + '...';
+      _balanceView.classList.add('updating');
+      _balanceTime.textContent = _('updating') + '...';
     } else {
-      _widget.classList.remove('updating');
+      _balanceView.classList.remove('updating');
     }
   }
 
-  // Return a time string in format (Today|Yesterday|<WeekDay>), hh:mm
-  // if timestamp is a valid date. If not, it returns Never.
-  function _formatTime(timestamp) {
-    if (!timestamp)
-      return _('never');
-
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var time = f.localeFormat(timestamp, '%H:%M');
-    var date = f.localeFormat(timestamp, '%a');
-    var dateDay = parseInt(f.localeFormat(timestamp, '%u'), 10);
-    var now = new Date();
-    var nowDateDay = parseInt(f.localeFormat(now, '%u'), 10);
-
-    if (nowDateDay === dateDay) {
-      date = _('today');
-    } else if ((nowDateDay === dateDay + 1) ||
-              (nowDateDay === 1 && dateDay === 7)) {
-      date = _('yesterday');
-    }
-
-    return date + ', ' + time;
-  }
-
-  // Updates the UI with the new balance if provided, else just update the
-  // widget with the last updated balance.
+  // Updates the balance UI with the new balance if provided, else just update
+  // the widget with the last updated balance.
   function _updateBalanceUI(balanceObject) {
     balanceObject = balanceObject || CostControl.getLastBalance();
 
@@ -209,28 +253,59 @@ function setupWidget() {
     var status = CostControl.getServiceStatus();
     _setWarningMode(status.availability && status.roaming);
 
-    // Low credit state
+    // Low credit and no credit states
+    _balanceView.classList.remove('no-credit');
+    _balanceView.classList.remove('low-credit');
+
     var balance = balanceObject ? balanceObject.balance : null;
-    if (balance && balance < CostControl.getLowLimitThreshold()) {
-      _widget.classList.add('low-credit');
-    } else {
-      _widget.classList.remove('low-credit');
+    if (CostControl.settings.option('lowlimit') && balance) {
+      if (balance === 0) {
+        _balanceView.classList.add('no-credit');
+      } else if (balance < CostControl.getLowLimitThreshold()) {
+        _balanceView.classList.add('low-credit');
+      }
     }
 
     // Format credit
-    var formattedBalance = '--';
-    if (balance !== null) {
-      var splitBalance = (balance.toFixed(2)).split('.');
-      formattedBalance = '&i.&d'
-        .replace('&i', splitBalance[0])
-        .replace('&d', splitBalance[1]);
-    }
-    _widgetCurrency.textContent = balanceObject ? balanceObject.currency : '';
-    _widgetCredit.textContent = formattedBalance;
+    _balanceCurrency.textContent = balanceObject ? balanceObject.currency : '';
+    _balanceCredit.textContent = formatBalance(balance);
 
     // Format time
     var timestamp = balanceObject ? balanceObject.timestamp : null;
-    _widgetTime.textContent = _formatTime(timestamp);
+    _balanceTime.textContent = formatTime(timestamp);
+  }
+
+  // Updates the telephony UIs reading the sms count, call time and last reset
+  // from the service.
+  function _updateTelephonyUI() {
+    function toMinutes(milliseconds) {
+      return Math.ceil(milliseconds / (1000 * 60));
+    }
+
+    // Dates
+    var formattedTime = _('never');
+    var lastReset = CostControl.settings.option('lastreset');
+    if (lastReset !== null)
+      formattedTime = (new Date(lastReset))
+                      .toLocaleFormat(_('short-date-format'));
+    document.getElementById('telephony-from-date').textContent = formattedTime;
+
+    var now = new Date();
+    document.getElementById('telephony-to-date').textContent =
+      _('today') + ', ' + now.toLocaleFormat('%H:%M');
+
+    // Counters
+    document.getElementById('telephony-calltime').textContent =
+      toMinutes(CostControl.settings.option('calltime'));
+    document.getElementById('telephony-smscount').textContent =
+      CostControl.settings.option('smscount');
+
+  }
+
+  // Refresh all UIs
+  function _updateUI() {
+    _updateBalanceUI();
+    _updateTelephonyUI();
   }
 
   _init();
