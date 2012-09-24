@@ -462,14 +462,18 @@ var ImageUploader = {
 
       this.XHRUpload(this.urls['upload'], picture, function(xhr) {
         var json = JSON.parse(xhr.responseText);
-        var link = json.upload.links.imgur_page;
-        var img = json.upload.image.hash;
-        if (link == undefined) {
-          ImageUploader.setStatus('Error while uploading!');
-        } else {
-          ImageUploader.setStatus('Uploaded successfully: ' + img);
-          callback(link);
-        }
+	if (json && json.upload) {
+          var link = json.upload.links.imgur_page;
+          var img = json.upload.image.hash;
+          if (link == undefined) {
+            ImageUploader.setStatus('Error while uploading!');
+          } else {
+            ImageUploader.setStatus('Uploaded successfully: ' + img);
+            callback(link);
+          }
+	} else {
+          console.log("Imgur replied: " + xhr.responseText);
+	}
       });
     };
 
