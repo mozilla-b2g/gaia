@@ -12,16 +12,27 @@ if (typeof Contacts.extFb === 'undefined') {
     extFb.startLink = function(cid, linked) {
       contactId = cid;
       if (linked === 'true') {
-        extensionFrame.src = 'fb_link.html' + '?contactId=' + contactId;
-        extensionFrame.hidden = false;
+        open('fb_link.html' + '?contactId=' + contactId);
       } else {
         doUnlink(contactId);
       }
     }
 
     extFb.importFB = function() {
-      extensionFrame.src = 'fb_import.html';
-      extensionFrame.hidden = false;
+      open('fb_import.html');
+    }
+
+    function open(uri) {
+      extensionFrame.src = uri;
+      extensionFrame.className = 'opening';
+    }
+
+    function close() {
+      extensionFrame.addEventListener('transitionend', function closed() {
+        extensionFrame.removeEventListener('transitionend', closed);
+        extensionFrame.src = null;
+      });
+      extensionFrame.className = 'closing';
     }
 
     function doLink(uid) {
@@ -41,7 +52,7 @@ if (typeof Contacts.extFb === 'undefined') {
         });
 
         req.onsuccess = function success() {
-          extensionFrame.hidden = true;
+          close();
 
           contacts.List.refresh(contactId);
           if (originalFbContact) {
@@ -82,8 +93,10 @@ if (typeof Contacts.extFb === 'undefined') {
 
       switch (data.type) {
         case 'window_close':
-          extensionFrame.src = null;
-          extensionFrame.hidden = true;
+          close();
+          if (data.from === 'import') {
+            contacts.List.load();
+          }
         break;
 
         case 'item_selected':
