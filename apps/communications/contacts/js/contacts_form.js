@@ -323,7 +323,7 @@ contacts.Form = (function() {
         } else {
           contacts.Details.render(savedContact, TAG_OPTIONS);
         }
-        Contacts.hidePopup('view-contact-form');
+        Contacts.cancel();
       }, function onError() {
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {

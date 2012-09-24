@@ -7,8 +7,10 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    navigation.go('view-contact-form', 'right-left');
+    showPopup('view-contact-form');
   };
+
+  var inForm = false;
 
   var currentContactId,
       detailsName,
@@ -40,6 +42,7 @@ var Contacts = (function() {
     switch (sectionId) {
       case 'view-contact-details':
         overlay = false;
+        inForm = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -56,6 +59,7 @@ var Contacts = (function() {
 
       case 'view-contact-form':
         overlay = false;
+        inForm = true;
         if (params == -1 || !('id' in params)) {
           contactsForm.render(params, goToForm);
         } else {
@@ -453,6 +457,11 @@ var Contacts = (function() {
   }
 
   var handleBack = function handleBack() {
+    if (inForm === true) {
+      inForm = false;
+      hidePopup('view-contact-form');
+      return;
+    }
     navigation.back();
   };
 
@@ -527,6 +536,7 @@ var Contacts = (function() {
   };
 
   var showForm = function c_showForm(edit) {
+    inForm = true;
     var contact = edit ? currentContact : null;
     contactsForm.render(contact, function() {
       showPopup('view-contact-form');
