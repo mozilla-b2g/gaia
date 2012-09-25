@@ -732,9 +732,9 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
         $el = $('<li class="new" id="app_' + cfg.id + '"></li>');
         _this.update();
         
-        $el.bind("touchstart", touchstart);
-        $el.bind("touchmove", touchmove);
-        $el.bind("touchend", touchend);
+        $el.bind("touchstart", touchstart)
+           .bind("touchmove", touchmove)
+           .bind("touchend", touchend);
        
         return $el;
     };
@@ -781,6 +781,10 @@ Evme.App = function(__cfg, __index, __isMore, parent) {
     
     this.getLink = function() {
         return cfg.appUrl;
+    };
+    
+    this.getFavLink = function() {
+        return cfg.favUrl != "@" && cfg.favUrl || cfg.appUrl;
     };
     
     this.getPref = function() {

@@ -620,9 +620,9 @@ Evme.Brain = new function() {
             var appIcon = Evme.Utils.formatImageData(data.data.icon);
             // make it round
             Evme.Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
-                // bookmark in ffos
+                // bookmark
                 Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_INSTALL, {
-                    "url": data.data.appUrl,
+                    "url": data.app.getFavLink(),
                     "title": data.data.name,
                     "icon": appIcon
                 });
@@ -665,11 +665,13 @@ Evme.Brain = new function() {
 
             loadingApp = true;
             var $app = data.$el;
+            
             loadingAppAnalyticsData = {
                 "index": data.index,
                 "keyboardVisible": data.keyboardVisible,
                 "isMore": data.isMore,
                 "appUrl": data.app.getLink(),
+                "favUrl": data.app.getFavLink(),
                 "name": data.data.name,
                 "id": data.appId,
                 "query": Searcher.getDisplayedQuery(),
@@ -751,17 +753,18 @@ Evme.Brain = new function() {
             Evme.EventHandler.trigger("Core", "redirectedToApp", data);
 
             window.setTimeout(function(){
-                _this.appRedirectExecute(data["appUrl"], data);
+                _this.appRedirectExecute(data);
             }, delay);
         }
 
-        this.appRedirectExecute = function(appUrl, data){
+        this.appRedirectExecute = function(data){
             var appIcon = Evme.Utils.formatImageData(data.icon);
 
             Evme.Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
                 // bookmark in ffos
                 Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_CLICK, {
-                    "url": appUrl,
+                    "url": data.appUrl,
+                    "originUrl": data.favUrl,
                     "title": data.name,
                     "icon": appIcon
                 });
