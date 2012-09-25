@@ -107,7 +107,7 @@ Evme.Brain = new function() {
             }
 
             if (!tipKeyboard) {
-                tipKeyboard = new Tip(TIPS.SEARCHBAR_FOCUS).show();
+                tipKeyboard = new Evme.Tip(TIPS.SEARCHBAR_FOCUS).show();
             }
         };
 
@@ -851,7 +851,7 @@ Evme.Brain = new function() {
         };
 
         this.show = function() {
-            new Tip(TIPS.APP_EXPLAIN, function(tip) {
+            new Evme.Tip(TIPS.APP_EXPLAIN, function(tip) {
                 $(document.body).bind("touchstart", tip.hide);
             }).show();
 
@@ -1413,7 +1413,7 @@ Evme.Brain = new function() {
                 if (query.match(/apps/i)) {
                     tip.text = tip.text.replace("apps for ", "");
                 }
-                new Tip(tip).show();
+                new Evme.Tip(tip).show();
             }
 
             Evme.Searchbar.endRequest();
