@@ -77,10 +77,10 @@
 
 #wrapper menu button[data-disabled] {
   opacity: .2;
+	pointer-events: none;
 }
 
 #wrapper input::-moz-focus-inner, input:active {
   border: 0;
 	background: transparent !important;
 }
-
