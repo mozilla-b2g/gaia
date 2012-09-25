@@ -111,6 +111,9 @@ var Browser = {
         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
     }, this);
 
+    document.addEventListener('mozvisibilitychange',
+      this.handleVisibilityChange.bind(this));
+
     this.handleWindowResize();
 
     ModalDialog.init(false);
@@ -389,7 +392,12 @@ var Browser = {
 
       case 'mozbrowsererror':
         if (evt.detail.type === 'fatal') {
-          this.handleCrashedTab(tab);
+          // A background crash usually means killed to save memory
+          if (document.mozHidden) {
+            this.handleKilledTab(tab);
+          } else {
+            this.handleCrashedTab(tab);
+          }
         }
         break;
 
@@ -458,6 +466,30 @@ var Browser = {
     this.refreshButtons();
   },
 
+  handleKilledTab: function browser_handleKilledTab(tab) {
+    tab.killed = true;
+    this.frames.removeChild(tab.dom);
+    delete tab.dom;
+    tab.loading = false;
+  },
+
+  handleVisibilityChange: function browser_handleVisibilityChange() {
+    if (!document.mozHidden && this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
+  },
+
+  reviveKilledTab: function browser_reviveKilledTab(tab) {
+    var frame = document.createElement('iframe');
+    frame.mozbrowser = true;
+    frame.setAttribute('remote', 'true');
+    tab.dom = frame;
+    this.bindBrowserEvents(tab.dom, tab);
+    this.frames.appendChild(tab.dom);
+    this.refreshButtons();
+    this.navigate(tab.url);
+    tab.killed = false;
+  },
+
   handleWindowOpen: function browser_handleWindowOpen(evt) {
     var url = evt.detail.url;
     var frame = evt.detail.frameElement;
@@ -465,7 +497,7 @@ var Browser = {
 
     this.hideCurrentTab();
     this.selectTab(tab);
-    // The frame will already be loading once we recieve it, which
+    // The frame will already be loading once we receive it, which
     // means we need to assume it is loading
     this.currentTab.loading = true;
     this.setTabVisibility(this.currentTab, true);
@@ -1146,10 +1178,12 @@ var Browser = {
 
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
+    // If the tab was killed, bring it back to life
+    if (this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
-
     this.updateSecurityIcon();
     this.refreshButtons();
   },
