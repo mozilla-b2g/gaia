@@ -13,21 +13,21 @@ function makeURL(name, ep) {
 let content = {
   grid: [
     [ // page 1
-      makeURL("camera"),
-      makeURL("gallery"),
-      makeURL("fm"),
-      makeURL("settings"),
-      "https://marketplace.mozilla.org/telefonica/"
+      makeURL('camera'),
+      makeURL('gallery'),
+      makeURL('fm'),
+      makeURL('settings'),
+      'https://marketplace.mozilla.org/telefonica/'
     ],
     [ // page 2
-      makeURL("calendar"),
-      makeURL("clock"),
-      makeURL("costcontrol"),
-      makeURL("email"),
-      makeURL("music"),
-      makeURL("video"),
-      makeURL("calculator"),
-      makeURL("pdfjs")
+      makeURL('calendar'),
+      makeURL('clock'),
+      makeURL('costcontrol'),
+      makeURL('email'),
+      makeURL('music'),
+      makeURL('video'),
+      makeURL('calculator'),
+      makeURL('pdfjs')
     ]
   ],
   dock: [
@@ -40,3 +40,25 @@ let content = {
 
 writeContent(init, JSON.stringify(content));
 
+// Cost Control
+init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
+
+content = { 
+  enableon: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
+  credit: { currency : 'R$' },
+  balance: { 
+    destination: '8000',
+    text: 'SALDO',
+    senders: ['1515'],
+    regexp: 'R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?'
+  },
+  topup: {
+    destination: '7000',
+    text: '&code',
+    senders: ['1515', '7000'],
+    confirmation_regexp: 'Voce recarregou R\\$\\s*([0-9]+)(?:[,\\.]([0-9]+))?',
+    incorrect_code_regexp: '(Favor enviar|envie novamente|Verifique) o codigo de recarga'
+  }
+}
+
+writeContent(init, JSON.stringify(content));
