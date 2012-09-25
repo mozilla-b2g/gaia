@@ -43,7 +43,7 @@ var Calculator = {
       if (this.isDecimalSeparatorPresent) {
         return;
       } else {
-        this.DecimalSeparatorPresent = true;
+        this.isDecimalSeparatorPresent = true;
       }
     }
 
