@@ -361,16 +361,8 @@ var Camera = {
     this._previewActive = false;
   },
 
-  // resumePreview is upcoming in gecko, avoiding version skew
-  // by doing a clobber on builds without resumePreview.
-  // TODO: remove once resumePreview has landed:
-  //  * https://bugzilla.mozilla.org/show_bug.cgi?id=779139#c21
   resume: function camera_resume() {
-    if ('resumePreview' in this._cameraObj) {
-      this._cameraObj.resumePreview();
-    } else {
-      this.start();
-    }
+    this._cameraObj.resumePreview();
     this._previewActive = true;
   },
 
