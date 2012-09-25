@@ -19,6 +19,7 @@ var Launcher = (function() {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
       onLocationChange();
       footer.classList.add('visible');
+      setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
     }
   });
 
@@ -85,8 +86,6 @@ var Launcher = (function() {
     clearButtonBarTimeout();
     currentAppFrame().goForward();
   });
-
-  setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
   function onLocationChange() {
     currentAppFrame().getCanGoForward().onsuccess = function forwardSuccess(e) {
