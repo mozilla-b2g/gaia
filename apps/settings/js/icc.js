@@ -43,11 +43,15 @@
       case icc.STK_CMD_DISPLAY_TEXT:
         console.log(" STK:Show message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        // TODO: This alert is for development, final code should stop the spinner
         alert(command.options.text);
         break;
       case icc.STK_CMD_SEND_SMS:
+      case icc.STK_CMD_SEND_SS:
+      case icc.STK_CMD_SEND_USSD:
         console.log(" STK:Send message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        // TODO: Show a spinner instead the message (UX decission)
         break;
       case icc.STK_CMD_SET_UP_CALL:
         console.log(" STK:Setup Phone Call. Number: " + command.options.address);
