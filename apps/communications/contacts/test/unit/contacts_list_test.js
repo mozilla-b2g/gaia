@@ -482,5 +482,21 @@ suite('Render contacts list', function() {
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
     });
+
+    test('import button with fb enabled', function() {
+      MockFb.setIsEnabled(true);
+      subject.init(list);
+      var selector = '#view-settings .view-body-inner #fb_import_button';
+      assert.isFalse(document.querySelector(selector) == null);
+    });
+
+    test('import button with fb disabled', function() {
+      var settDiv = document.querySelector('#view-settings .view-body-inner');
+      settDiv.innerHTML = '';
+      MockFb.setIsEnabled(false);
+      subject.init(list);
+      var selector = '#view-settings .view-body-inner #fb_import_button';
+      assert.isTrue(document.querySelector(selector) == null);
+    });
   });
 });

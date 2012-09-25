@@ -234,8 +234,7 @@ contacts.List = (function() {
 
   var addImportFacebookButton = function addImportFacebookButton() {
     var container = settingsView;
-
-    if (container.querySelector('#fb_import_button')) {
+    if (container.querySelector('#fb_import_button') || !fb.isEnabled) {
       return;
     }
 
