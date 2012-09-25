@@ -238,6 +238,10 @@ var Camera = {
   },
 
   filmStripPressed: function camera_filmStripPressed(e) {
+    if (this._secureMode) {
+      return;
+    }
+
     // Launch the gallery with an open activity to view this specific photo
     var filename = e.target.getAttribute('data-filename');
     var storage = this._storage;
