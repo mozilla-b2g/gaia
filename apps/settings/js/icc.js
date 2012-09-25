@@ -3,6 +3,7 @@
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
+    icc.onstksessionend = handleSTKSessionEnd;
     navigator.mozSetMessageHandler("icc-stkcommand", handleSTKCommand);
   }
 
@@ -16,7 +17,6 @@
   var iccStkSelection = document.getElementById("icc-stk-selection");
   var iccStkSelectionHeader = document.getElementById("icc-stk-selection-header");
 
-  var stkMainAppMenu = null;
   function handleSTKCommand(command) {
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -48,13 +48,6 @@
       case icc.STK_CMD_SEND_SMS:
         console.log(" STK:Send message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-/*
-        if(confirm(command.options.text)) {
-          icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        } else {
-          icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_ERROR });
-        }
-*/
         break;
       case icc.STK_CMD_SET_UP_CALL:
         console.log(" STK:Setup Phone Call. Number: " + command.options.address);
@@ -87,6 +80,14 @@
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert("[DEBUG] TODO: " + JSON.stringify(command));
     }
+  }
+
+  /**
+   * Handle session end
+   */
+  function handleSTKSessionEnd(event) {
+    icc.sendStkResponse(event.command, { resultCode: icc.STK_RESULT_OK });
+    updateMenu();
   }
 
   /**
