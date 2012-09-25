@@ -484,6 +484,8 @@ suite('Render contacts list', function() {
     });
 
     test('import button with fb enabled', function() {
+      var settDiv = document.querySelector('#view-settings .view-body-inner');
+      settDiv.innerHTML = '';
       MockFb.setIsEnabled(true);
       subject.init(list);
       var selector = '#view-settings .view-body-inner #fb_import_button';
