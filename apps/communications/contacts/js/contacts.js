@@ -532,15 +532,15 @@ var Contacts = (function() {
       var req = fbContact.getDataAndValues();
 
       req.onsuccess = function() {
-        contactsForm.render(req.result[0], goToForm, req.result[1]);
+        contactsForm.render(contact, goToForm, req.result);
       }
 
       req.onerror = function() {
-        contactsForm.render(contact, goToForm);
+        contactsForm.render(contact, goToForm, []);
       }
     }
     else {
-      contactsForm.render(contact, goToForm);
+      contactsForm.render(contact, goToForm, []);
     }
   };
 

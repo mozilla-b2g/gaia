@@ -300,11 +300,14 @@ fb.Contact = function(deviceContact, cid) {
 
             if(dataElement && typeof dataElement.forEach === 'function') {
               dataElement.forEach(function(item) {
-                if(item.value) {
+                if(item.value && item.value.length > 0) {
                   out2[item.value] = 'p';
                 }
-                else {
+                else if(typeof item === 'string' && item.length > 0) {
                   out2[item] = 'p';
+                }
+                else if(dataElement === 'photo') {
+                  out2['hasPhoto'] = true;
                 }
               })
             }
@@ -463,7 +466,6 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   this.remove = function() {
-    // Removes the FB specific data from the device
     var out = new fb.utils.Request();
 
     window.setTimeout(function do_remove() {
@@ -471,7 +473,7 @@ fb.Contact = function(deviceContact, cid) {
 
       var removeReq = navigator.mozContacts.remove(devContact);
       removeReq.onsuccess = function(e) {
-        var fqReq = fb.contacts.remove(uid);
+        var fbReq = fb.contacts.remove(uid);
         fbReq.onsuccess = function() {
           out.done(fbReq.result);
         }
