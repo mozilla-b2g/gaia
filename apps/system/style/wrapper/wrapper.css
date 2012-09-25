@@ -51,7 +51,7 @@
   display: block;
   margin: 0;
   padding: 0;
-  width: 25%;
+  width: 20%;
   height: 100%;
   float: left;
   background-position: center;
@@ -69,6 +69,10 @@
 
 #reload-button {
   background-image: url("images/reload.png");
+}
+
+#bookmark-button {
+  background-image: url("images/bookmark.png");
 }
 
 #close-button {

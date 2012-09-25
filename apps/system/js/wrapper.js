@@ -20,6 +20,7 @@ var Launcher = (function() {
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in e.target.dataset) {
       footer.classList.add('visible');
+      onDisplayedApplicationChange();
     }
   });
 
@@ -121,4 +122,38 @@ var Launcher = (function() {
   }
 
   window.addEventListener('mozbrowserlocationchange', onLocationChange);
+
+  var bookmarkButton = document.getElementById('bookmark-button');
+  function onDisplayedApplicationChange() {
+    var name = currentAppFrame().dataset.name;
+    if (name) {
+      bookmarkButton.dataset.disabled = true;
+      return;
+    }
+    delete bookmarkButton.dataset.disabled;
+  }
+
+  bookmarkButton.addEventListener('click', function doBookmark(evt) {
+    if (bookmarkButton.dataset.disabled)
+      return;
+
+    clearButtonBarTimeout();
+
+    var dataset = currentAppFrame().dataset;
+    function confirm(value) {
+      if (!value)
+        return;
+
+      new MozActivity({
+        name: 'save-bookmark',
+        data: {
+          type: 'url',
+          url: dataset.frameOrigin,
+          name: dataset.name,
+          icon: dataset.icon
+        }
+      });
+    }
+    ModalDialog.confirm('Bookmark ' + dataset.name + '?', confirm);
+  });
 }());

@@ -439,7 +439,8 @@ var WindowManager = (function() {
       if (!screenshot)
         return;
 
-      putAppScreenshotToDatabase(frame.src, screenshot);
+      putAppScreenshotToDatabase(frame.src || frame.dataset.frameOrigin,
+                                 screenshot);
     }, true);
   }
 
@@ -452,13 +453,15 @@ var WindowManager = (function() {
     // If the frame is just being append and app content is just being loaded,
     // let's get the screenshot from the database instead.
     if ('unpainted' in frame.dataset) {
-      getAppScreenshotFromDatabase(frame.src, callback);
+      getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+                                   callback);
       return;
     }
 
     getAppScreenshotFromFrame(frame, function(screenshot, isCached) {
       if (!screenshot) {
-        getAppScreenshotFromDatabase(frame.src, callback);
+        getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+                                     callback);
         return;
       }
 
@@ -1102,7 +1105,14 @@ var WindowManager = (function() {
 
       var url = detail.url;
       if (!isRunning(url)) {
-        appendFrame(detail.frameElement, url, url, url, {}, null);
+        var icon = detail.features.split(/icon=(.+)$/g)[1] || '';
+        detail.frameElement.dataset.icon = icon;
+
+        var name = detail.features.split(/name=(.+),/g)[1] || '';
+        detail.frameElement.dataset.name = name;
+        appendFrame(detail.frameElement, url, url, name, {
+          'name': name
+        }, null);
       } else if (displayedApp === url) {
         return;
       }
