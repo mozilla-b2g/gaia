@@ -4,10 +4,7 @@
 
 /* Main dialog setup */
 form[role="dialog"] {
-  background: url(action_menu/images/ui/pattern.png) repeat left top, url(action_menu/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  /* We can't use shortand with background size because is not implemented yet:
-  https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
+  background: url(action_menu/images/ui/pattern.png) repeat left top, url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -19,7 +16,7 @@ form[role="dialog"] {
   font-family: "Open Sans", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
-  created by white-spaces and break lines in the code betewen inline-block elements */
+  created by white-spaces and break lines in the code between inline-block elements */
   color: #fff;
 }
 
