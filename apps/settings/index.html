@@ -497,7 +497,7 @@
         </h1>
       </header>
 
-      <!-- Phone -->
+      <!-- Ring Tones -->
       <ul>
         <li>
           <p data-l10n-id="volume">Volume</p>
@@ -506,28 +506,29 @@
           </label>
         </li>
         <li>
-          <label>
+          <label onmouseup="audioPreview(this)">
             <input type="radio" name="dialer.ringtone" value="classic.ogg" checked />
             <span></span>
           </label>
           <a data-l10n-id="classic">Default</a>
         </li>
         <li>
-          <label>
-            <input type="radio" name="dialer.ringtone" value="old school.ogg"/>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="dialer.ringtone" value="old_school.ogg"/>
             <span></span>
           </label>
-          <a data-l10n-id="oldSchool">Bosscaling</a>
+          <a data-l10n-id="oldSchool">Old School</a>
         </li>
         <li>
-          <label>
-            <input type="radio" name="dialer.ringtone" value="low bit.ogg"/>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="dialer.ringtone" value="low_bit.ogg"/>
             <span></span>
           </label>
           <a data-l10n-id="lowBit">Low Bit</a>
         </li>
       </ul>
 
+      <!-- Phone -->
       <header>
         <h2 data-l10n-id="phone">Phone</h2>
       </header>
@@ -555,6 +556,7 @@
         </li>
       </ul>
 
+      <!-- Messages -->
       <header>
         <h2 data-l10n-id="messages">Messages</h2>
       </header>
@@ -574,6 +576,9 @@
           <a data-l10n-id="ring">Ring</a>
         </li>
       </ul>
+
+      <!-- Audio Preview -->
+      <audio style="display: none;" src="style/ringtones/classic.ogg" />
     </section>
 
     <!-- Personalization :: Display -->
