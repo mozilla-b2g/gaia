@@ -4,33 +4,40 @@
 var EvmeManager = (function() {
 
   function openApp(params) {
-    var url = params.url;
+    // TODO Evme guys will provide both URLs (specific search and origin)
+    // params.origin is null currently, only specific search url
+    var origin = params.origin || params.url;
+    if (origin.indexOf('?') !== -1) {
+      origin = origin.substring(0, origin.indexOf('?'));
+    }
 
     var evmeApp = new EvmeApp({
-      url: url,
+      url: origin,
       name: params.title,
       icon: params.icon
     });
 
-    //TODO Evme guys will provide both URLs (specific search and bookmark URLs)
-    if (url.indexOf('?') !== -1) {
-      url = url.substring(0, url.indexOf('?'));
+    if (!Applications.isInstalled(origin)) {
+      evmeApp.manifest.addBookmarkActivity = true;
     }
 
-    if (!Applications.isInstalled(url)) {
-      evmeApp.manifest.bookmarkURL = url;
-    }
-
-    evmeApp.launch();
+    evmeApp.launch(params.url);
     setVisibilityChange(false);
   }
 
   function addBookmark(params) {
+    var origin = params.url;
+    // TODO Evme guys will provide the origin here -> This code should be
+    // removed
+    if (origin.indexOf('?') !== -1) {
+      origin = origin.substring(0, origin.indexOf('?'));
+    }
+
     new MozActivity({
       name: 'save-bookmark',
       data: {
         type: 'url',
-        url: params.url,
+        url: origin,
         name: params.title,
         icon: params.icon
       }
