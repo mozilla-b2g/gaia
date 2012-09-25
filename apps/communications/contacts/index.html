@@ -67,7 +67,7 @@
           <menu type="toolbar" role="menu">
             <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button" onclick="Contacts.showPopup('view-settings');">
+            <button role="menuitem" id="settings-button" onclick="Contacts.navigation.go('view-settings', 'popup');">
               <span class="icon icon-settings" data-l10n-id="settings">settings</span>
             </button>
           </menu>
@@ -404,7 +404,7 @@
       <!-- Settings section -->
       <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
         <header>
-          <button class="negative" onclick="Contacts.hidePopup('view-settings');">
+          <button class="negative" onclick="Contacts.cancel();">
             <span class="icon icon-close"data-l10n-id="exit">Exit</span>
           </button>
           <h1 data-l10n-id="settings">Settings</h1>

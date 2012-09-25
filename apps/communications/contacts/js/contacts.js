@@ -7,10 +7,8 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    showPopup('view-contact-form');
+    navigation.go('view-contact-form', 'popup');
   };
-
-  var inForm = false;
 
   var currentContactId,
       detailsName,
@@ -43,7 +41,6 @@ var Contacts = (function() {
     switch (sectionId) {
       case 'view-contact-details':
         overlay = false;
-        inForm = false;
         if (params == -1 || !('id' in params)) {
           console.log('Param missing');
           return;
@@ -60,7 +57,6 @@ var Contacts = (function() {
 
       case 'view-contact-form':
         overlay = false;
-        inForm = true;
         if (params == -1 || !('id' in params)) {
           contactsForm.render(params, goToForm);
         } else {
@@ -461,11 +457,6 @@ var Contacts = (function() {
   }
 
   var handleBack = function handleBack() {
-    if (inForm === true) {
-      inForm = false;
-      hidePopup('view-contact-form');
-      return;
-    }
     navigation.back();
   };
 
@@ -540,27 +531,9 @@ var Contacts = (function() {
   };
 
   var showForm = function c_showForm(edit) {
-    inForm = true;
     var contact = edit ? currentContact : null;
-    contactsForm.render(contact, function() {
-      showPopup('view-contact-form');
-    });
+    contactsForm.render(contact, goToForm);
   };
-
-  var showPopup = function c_showPopup(id) {
-    var popup = document.getElementById(id);
-    popup.classList.remove('view-bottom');
-    popup.dataset['state'] = 'active';
-  }
-
-  var hidePopup = function c_hidePopup(id) {
-    var popup = document.getElementById(id);
-    popup.classList.add('view-bottom');
-    popup.addEventListener('transitionend', function hideView() {
-      popup.dataset['state'] = 'inactive';
-      popup.removeEventListener('transitionend', hideView);
-    });
-  }
 
   var setCurrent = function c_setCurrent(contact) {
     currentContact = contact;
@@ -581,8 +554,6 @@ var Contacts = (function() {
     'getLength': getLength,
     'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
-    'showPopup': showPopup,
-    'hidePopup': hidePopup,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS
   };
