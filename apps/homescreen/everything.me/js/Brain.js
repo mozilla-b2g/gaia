@@ -622,7 +622,7 @@ Evme.Brain = new function() {
             Evme.Utils.getRoundIcon(appIcon, 58, 2, function(appIcon) {
                 // bookmark
                 Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.APP_INSTALL, {
-                    "url": data.app.getFavLink(),
+                    "originUrl": data.app.getFavLink(),
                     "title": data.data.name,
                     "icon": appIcon
                 });
