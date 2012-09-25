@@ -59,31 +59,10 @@ Evme.Utils = new function() {
             // send to get shadow
             var data = canvas.toDataURL();
             callback(data);
-            //getShadow(data, size, shadowOffset, callback)
         };
         img.src = imageSrc;
     };
-
-    var getShadow = function(imageSrc, size, shadowOffset, callback) {
-        var canvas = document.createElement("canvas"),
-            ctx = canvas.getContext("2d");
-
-        canvas.setAttribute("width", size+shadowOffset);
-        canvas.setAttribute("height", size+shadowOffset);
-
-        ctx.shadowColor="rgba(0,0,0,0.3)";
-        ctx.shadowOffsetY = shadowOffset;
-
-        // generate image
-        var img = new Image()
-        img.onload = function() {
-            ctx.drawImage(img,0,0, size, size);
-            var data = canvas.toDataURL();
-            callback(data);
-        };
-        img.src = imageSrc;
-    }
-
+    
     this.init = function() {
         userAgent = navigator.userAgent;
         cssPrefix = _getCSSPrefix();
