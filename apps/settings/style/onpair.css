@@ -30,3 +30,10 @@ form[role="dialog"] menu button {
 #alert-view menu button {
   width: 100%;
 }
+
+#device-info {
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 2rem;
+}
+.bluetooth-default { background-image: url(images/settings_bluetooth.png); }

@@ -24,6 +24,7 @@ var PairView = {
   alertView: document.getElementById('alert-view'),
 
   title: document.getElementById('pair-title'),
+  deviceInfo: document.getElementById('device-info'),
   nameLabel: document.getElementById('label-name'),
   addressLabel: document.getElementById('label-address'),
   pairDescription: document.getElementById('pair-description'),
@@ -44,39 +45,38 @@ var PairView = {
     this.closeButton.addEventListener('click', this);
     this.okButton.addEventListener('click', this);
 
-    this.title.textContent = _(this._pairMode+'-pair');
+    this.title.textContent = _(this._pairMode + '-pair');
     this.nameLabel.textContent = this._device.name;
     this.addressLabel.textContent = this._device.address;
+    this.deviceInfo.className = this._device.icon;
     //XXX this.iconImage.src = device.icon
     this.pairView.hidden = false;
     this.alertView.hidden = true;
 
+    var stringName = this._pairMode + '-pair-' + this._pairMethod;
+    this.pairDescription.textContent =
+      _(stringName, {device: this._device.name});
+
     switch (this._pairMethod) {
       case 'confirmation':
-        this.pairDescription.textContent = 
-          _(this._pairMode+'-pair-confirmation', {device: this._device.name});
-
         this.passkey.textContent = this._passkey;
+        this.comfirmationItem.hidden = false;
         this.pinInputItem.hidden = true;
         this.passkeyInputItem.hidden = true;
         break;
 
       case 'pincode':
-        /**
-         * XXX hard-coded here because attention screen
-         *     doesn't support keyboard input now.
-         * https://github.com/mozilla-b2g/gaia/issues/4669
-         */
-        this.pinInput.value = '0000';
-        this.pinInput.focus();
+        this.pinInputItem.hidden = false;
         this.comfirmationItem.hidden = true;
         this.passkeyInputItem.hidden = true;
+        this.pinInput.focus();
         break;
 
       case 'passkey':
-        this.passkeyInput.focus();
+        this.passkeyInputItem.hidden = false;
         this.comfirmationItem.hidden = true;
         this.pinInputItem.hidden = true;
+        this.passkeyInput.focus();
         break;
     }
   },
@@ -86,8 +86,8 @@ var PairView = {
     this._pairMethod = method;
     this._device = device;
     if (passkey) {
-      var zeros = (passkey.length < 6) ?
-        (new Array((6 - passkey.length) + 1)).join('0') : '';
+      var len = passkey.toString().length;
+      var zeros = (len < 6) ? (new Array((6 - len) + 1)).join('0') : '';
       this._passkey = zeros + passkey;
     }
   },
@@ -99,7 +99,7 @@ var PairView = {
     evt.preventDefault();
     switch (evt.target.id) {
       case 'button-pair':
-        this.pairDescription.textContent = _('device-status-waiting'); 
+        this.pairDescription.textContent = _('device-status-waiting');
         this.pairButton.disabled = true;
         this.closeButton.disabled = true;
         switch (this._pairMethod) {
@@ -125,7 +125,6 @@ var PairView = {
   },
 
   pairFailed: function pv_showFailed() {
-    dump("==== in child window: pair failed");
     this.pairView.hidden = true;
     this.alertView.hidden = false;
   }
