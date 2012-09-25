@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 // TODO:
@@ -123,13 +123,16 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
-var pickView = $('pick-view');
 var editView = $('edit-view');
+var pickView = $('pick-view');
+var cropView = $('crop-view');
+var openView = $('open-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+  thumbnailListView, thumbnailSelectView, photoView, editView,
+  pickView, cropView, openView
 ];
 var currentView;
 
@@ -183,7 +186,6 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -229,6 +231,7 @@ function init() {
   photodb.ondeleted = function(event) {
     event.detail.forEach(imageDeleted);
   };
+
 
   // Start off in thumbnail list view, unless there is a pending activity
   // request message. In that case, the message handler will set the
@@ -310,10 +313,10 @@ function imageCreated(fileinfo) {
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
-      if (a.name < b.name)
+      if (a.date < b.date)
+        return 1;  // larger (newer) dates come first
+      else if (a.date > b.date)
         return -1;
-      else if (a.name > b.name)
-        return 1;
       return 0;
     });
   }
@@ -383,9 +386,6 @@ function setView(view) {
     Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
                   function(elt) { elt.classList.remove('selected'); });
     break;
-  case editView:
-    // Cleanup is done in exitEditMode() before this function is called
-    break;
   }
 
   // Show the specified view, and hide the others
@@ -410,13 +410,11 @@ function setView(view) {
   case pickView:
     pickView.appendChild(thumbnails);
     break;
-  case photoView:
-    // No thumbnails in photoView
-    break;
-  case editView:
-    // We don't display the thumbnails in edit view.
-    // the editPhoto() function does the necessary setup and
-    // calls setView(), so there isn't anything to do here.
+  default:
+    // In any other view, remove the thumbnails from the document so
+    // they don't show anywhere
+    if (thumbnails.parentNode)
+      thumbnails.parentNode.removeChild(thumbnails);
     break;
   }
 
@@ -465,47 +463,110 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  var activityName = activityRequest.source.name;
+  // We can't handle any kind of activity if the MediaDB is not ready
+  if (photodb.state === MediaDB.READY)
+    handleActivity();
+  else {
+    photodb.addEventListener('ready', function waitTillReady() {
+      photodb.removeEventListener('ready', waitTillReady);
+      handleActivity();
+    });
+  }
 
-  switch (activityName) {
-  case 'browse':
-    if (launchedAsInlineActivity)
-      return;
-
-    // The 'browse' activity is just the way we launch the app
-    // There's nothing else to do here.
-    setView(thumbnailListView);
-    break;
-  case 'pick':
-    if (!launchedAsInlineActivity)
-      return;
-
-    if (pendingPick)
-      cancelPick();
-    startPick(activityRequest);
-    break;
+  function handleActivity() {
+    var activityName = activityRequest.source.name;
+    switch (activityName) {
+    case 'browse':
+      if (launchedAsInlineActivity)
+        return;
+      // The 'browse' activity is just the way we launch the app
+      // There's nothing else to do here.
+      setView(thumbnailListView);
+      break;
+    case 'pick':
+      if (!launchedAsInlineActivity)
+        return;
+      if (pendingPick)
+        cancelPick();
+      startPick(activityRequest);
+      break;
+    case 'open':
+      if (!launchedAsInlineActivity)
+        return;
+      handleOpenActivity(activityRequest);
+      break;
+    }
   }
 }
 
-var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
+var launchedAsInlineActivity =
+  window.location.hash === '#pick' || window.location.hash === '#open';
 var pendingPick;
+var pickType;
+var pickWidth, pickHeight;
+var cropURL;
+var cropEditor;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
+  pickType = activityRequest.source.data.type;
+  if (pendingPick.source.data.width && pendingPick.source.data.height) {
+    pickWidth = pendingPick.source.data.width;
+    pickHeight = pendingPick.source.data.height;
+  }
+  else {
+    pickWidth = pickHeight = 0;
+  }
   setView(pickView);
 }
 
-function finishPick(filename) {
+function cropPickedImage(fileinfo) {
+  setView(cropView);
+
+  photodb.getFile(fileinfo.name, function(file) {
+    cropURL = URL.createObjectURL(file);
+    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      cropEditor.showCropOverlay();
+      if (pickWidth)
+        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+      else
+        cropEditor.setCropAspectRatio(); // free form cropping
+    });
+  });
+}
+
+function finishPick() {
+  var url;
+  if (pickWidth)
+    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
+  else
+    url = cropEditor.getCroppedRegionDataURL(pickType);
+
   pendingPick.postResult({
     type: 'image/jpeg',
-    filename: filename
+    url: url
   });
-  pendingPick = null;
-  setView(thumbnailListView);
+  cleanupPick();
 }
 
 function cancelPick() {
   pendingPick.postError('pick cancelled');
+  cleanupPick();
+}
+
+function cleanupCrop() {
+  if (cropURL) {
+    URL.revokeObjectURL(cropURL);
+    cropURL = null;
+  }
+  if (cropEditor) {
+    cropEditor.destroy();
+    cropEditor = null;
+  }
+}
+
+function cleanupPick() {
+  cleanupCrop();
   pendingPick = null;
   setView(thumbnailListView);
 }
@@ -520,6 +581,92 @@ window.addEventListener('mozvisiblitychange', function() {
   if (document.mozHidden && pendingPick)
     cancelPick();
 });
+
+function handleOpenActivity(request) {
+  var filename = request.source.data.filename;
+
+  var frame = $('open-frame');
+  var image = $('open-image');
+  var cameraButton = $('open-camera-button');
+  var deleteButton = $('open-delete-button');
+
+  setView(openView);
+  displayFile(image, filename);
+
+  var gestureDetector = new GestureDetector(frame);
+  var openPhotoState = null;  // lazily initialized
+
+  gestureDetector.startDetecting();
+  cameraButton.addEventListener('click', handleCameraButton);
+  deleteButton.addEventListener('click', handleDeleteButton);
+  frame.addEventListener('dbltap', handleDoubleTap);
+  frame.addEventListener('transform', handleTransform);
+  frame.addEventListener('pan', handlePan);
+  frame.addEventListener('swipe', handleSwipe);
+
+  function done(result) {
+    if (request) {
+      request.postResult(result);
+      request = null;
+    }
+    cleanup();
+  }
+
+  function cleanup() {
+    cameraButton.removeEventListener('click', handleCameraButton);
+    deleteButton.removeEventListener('click', handleDeleteButton);
+    frame.removeEventListener('dbltap', handleDoubleTap);
+    frame.removeEventListener('transform', handleTransform);
+    frame.removeEventListener('pan', handlePan);
+    frame.removeEventListener('swipe', handleSwipe);
+    gestureDetector.stopDetecting();
+    setView(thumbnailListView);
+  }
+
+  function handleCameraButton() {
+    done({'delete': false});
+  }
+  function handleDeleteButton() {
+    done({'delete': true});
+  }
+
+  function initPhotoState() {
+    if (!openPhotoState) {
+      openPhotoState = new PhotoState(image,
+                                      image.naturalWidth, image.naturalHeight);
+    }
+  }
+
+  function handleDoubleTap(e) {
+    initPhotoState();
+    var scale;
+    if (openPhotoState.fit.scale > openPhotoState.fit.baseScale)
+      scale = openPhotoState.fit.baseScale / openPhotoState.scale;
+    else
+      scale = 2;
+
+    openPhotoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+  }
+
+  function handleTransform(e) {
+    initPhotoState();
+    openPhotoState.zoom(e.detail.relative.scale,
+                        e.detail.midpoint.clientX,
+                        e.detail.midpoint.clientY);
+  }
+
+  function handlePan(e) {
+    initPhotoState();
+    openPhotoState.pan(e.detail.relative.dx, e.detail.relative.dy);
+  }
+
+  function handleSwipe(e) {
+    var direction = e.detail.direction;
+    var velocity = e.detail.vy;
+    if (direction === 'down' && velocity > 2)
+      done('done');
+  }
+}
 
 
 //
@@ -559,7 +706,7 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
     updateSelectionState();
   }
   else if (currentView === pickView) {
-    finishPick(images[parseInt(target.dataset.index)].name);
+    cropPickedImage(images[parseInt(target.dataset.index)]);
   }
 });
 
@@ -596,11 +743,22 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
-// Clicking on the pick cancel button cancels the pick activity, which sends
-// us back to thumbail list view
-$('pick-cancel-button').onclick = function() {
+// Clicking on the pick back button cancels the pick activity.
+$('pick-back-button').onclick = function() {
   cancelPick();
 };
+
+// In crop view, the back button goes back to pick view
+$('crop-back-button').onclick = function() {
+  setView(pickView);
+  cleanupCrop();
+};
+
+// In crop view, the done button finishes the pick
+$('crop-done-button').onclick = function() {
+  finishPick();
+};
+
 
 // The camera buttons should both launch the camera app
 $('photos-camera-button').onclick =
@@ -671,39 +829,64 @@ $('thumbnails-share-button').onclick = function() {
 /*
  * Share one or more images using Web Activities.
  *
- * XXX
- * This is a preliminary implementation with two bug workarounds:
+ * Because multiple images may have different mime types we just
+ * use 'image/*' as the type.
  *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
- * we just use a type of "image" since the activity handler app can't
- * register an array of the image mime types it accepts
- *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
- * we can share blobs directly, this function just shares filenames.
- * This means that the app on the receiving end has to use device storage
- * to get the actual file. Since that requires special permissions
- * it might not be what we want.  We could change this code to use a
- * data url and pass the whole image as a long, long string. Because this
- * is sub-optimal and unstable, I'm using the activity name "share-filenames"
- * instead of the more generic "share".
+ * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
+  var urls = [];
+  getDataURLForNextFile();
+
+  function getDataURLForNextFile() {
+    if (urls.length === filenames.length) {
+      shareURLs(urls);
+    }
+    else {
+      var i = urls.length;
+      var filename = filenames[i];
+      photodb.getFile(filename, function(file) {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function() {
+          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
+          getDataURLForNextFile();
+        }
+      });
+    }
+  }
+}
+
+// This is called by shareFile once the filenames have
+// been converted to data URLs
+function shareURLs(urls) {
   var a = new MozActivity({
-    name: 'share-filenames',
+    name: 'share',
     data: {
-      type: 'image',
-      filenames: filenames
+      type: 'image/*',
+      number: urls.length,
+      urls: urls
     }
   });
 
+  function reopen() {
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      e.target.result.launch();
+    };
+  }
+
+  a.onsuccess = function() {
+    reopen();
+  }
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     }
     else {
-      console.log('share activity error:', a.error.name);
+      console.warn('share activity error:', a.error.name);
     }
+    reopen();
   };
 }
 
@@ -858,20 +1041,40 @@ function displayImageInFrame(n, frame) {
     return;
   }
 
-  // Asynchronously set the image url
   var imagedata = images[n];
-  photodb.getFile(imagedata.name, function(file) {
+  displayFile(img, imagedata.name,
+              imagedata.metadata.width, imagedata.metadata.height);
+}
+
+function displayFile(element, filename, width, height) {
+  var container = element.parentNode;
+  // Asynchronously set the image url
+  photodb.getFile(filename, function(file) {
     var url = URL.createObjectURL(file);
-    img.src = url;
-    img.onload = function() { URL.revokeObjectURL(url); };
+    element.src = url;
+    element.onload = function() {
+      URL.revokeObjectURL(url);
+
+      // If we didn't know the width or height before, then get them
+      // from the image now, and use that information to position
+      // the image in its container
+      if (!width || !height) {
+        var fit = fitImage(element.naturalWidth, element.naturalHeight,
+                           container.offsetWidth, container.offsetHeight);
+        positionImage(element, fit);
+      }
+    };
   });
 
-  // Figure out the size and position of the image
-  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
-                     photoView.offsetWidth, photoView.offsetHeight);
-
-  positionImage(img, fit);
+  // If we know the image size from its metadata, then position it now
+  // even before it is loaded
+  if (width && height) {
+    var fit = fitImage(width, height,
+                       container.offsetWidth, container.offsetHeight);
+    positionImage(element, fit);
+  }
 }
+
 
 function positionImage(img, fit) {
   img.style.transform =
@@ -1125,8 +1328,8 @@ PhotoState.prototype._reposition = function() {
 PhotoState.prototype.reset = function() {
   // Store the display space we have for photos
   // call reset() when we get a resize or orientationchange event
-  this.viewportWidth = photoFrames.offsetWidth;
-  this.viewportHeight = photoFrames.offsetHeight;
+  this.viewportWidth = this.img.parentNode.offsetWidth;
+  this.viewportHeight = this.img.parentNode.offsetHeight;
 
   // Compute the default size and position of the image
   this.fit = fitImage(this.photoWidth, this.photoHeight,

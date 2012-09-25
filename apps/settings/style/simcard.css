@@ -1,18 +1,36 @@
-[role="dialog"] header button {
-  font-size: 1.2em;
+#sim dl > * {
+  padding-left: 20px;
+  font-size: 1.6em;
 }
-[role="dialog"] .error {
+
+#sim dl dt {
+  font-weight: bold;
+}
+
+
+#simpin-dialog .container {
+  padding-left: 20px;
+  font-size: 1.5em;
+}
+
+#simpin-dialog .container > div {
+  padding-top: 10px;
+}
+
+#simpin-dialog .error #messageHeader {
   color: red; 
-  padding-left: 20px;
 }
-[role="dialog"] .input-wrapper {
+
+#simpin-dialog .input-wrapper {
   position: relative;
-  padding-left: 20px;
 }
-[role="dialog"] .input-wrapper input {
-  font-size: 2.6em;
+
+#simpin-dialog .input-wrapper input {
+  font-size: 2.0em;
+  display: block;
 }
-[role="dialog"] .input-wrapper input[type="text"] {
+
+#simpin-dialog .input-wrapper input[type="text"] {
   width: auto;
   pointer-events: none;
   position: absolute;

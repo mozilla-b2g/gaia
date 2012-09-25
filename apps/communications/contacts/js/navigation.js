@@ -6,6 +6,7 @@ function navigationStack(currentView) {
     'top-bottom': { from: 'view-bottom', to: 'view-top'},
     'right-left': { from: 'view-right', to: 'view-left'},
     'bottom-top': { from: 'view-top', to: 'view-bottom'},
+    'popup': { from: 'popup', to: 'popup'},
     'none': { from: 'none', to: 'none'}
   };
 
@@ -63,12 +64,20 @@ function navigationStack(currentView) {
       return;
     var current = document.getElementById(_currentView);
     var next = document.getElementById(nextView);
-    if (transition == 'none') {
-      setAppView(current, next);
-    } else {
-      setCacheView(current, next, transition);
-    }
 
+    switch (transition) {
+      case 'none':
+        setAppView(current, next);
+        break;
+
+      case 'popup':
+        showPopup(current, next);
+        break;
+
+      default:
+        setCacheView(current, next, transition);
+        break;
+    }
     stack.push({ view: _currentView, transition: transition});
     _currentView = nextView;
   };
@@ -79,13 +88,20 @@ function navigationStack(currentView) {
     var current = document.getElementById(_currentView);
     var nextView = stack.pop();
     var next = document.getElementById(nextView.view);
-    var from = transitions[nextView.transition].from;
-    var to = transitions[nextView.transition].to;
-    if (from == 'none' || to == 'none') {
-      setAppView(current, next);
-    } else {
-      var reverted = revertTransition(nextView.transition);
-      setCacheView(current, next, reverted);
+
+    switch (nextView.transition) {
+      case 'none':
+        setAppView(current, next);
+        break;
+
+      case 'popup':
+        hidePopup(current, next);
+        break;
+
+      default:
+        var reverted = revertTransition(nextView.transition);
+        setCacheView(current, next, reverted);
+        break;
     }
     _currentView = nextView.view;
   };
@@ -103,6 +119,30 @@ function navigationStack(currentView) {
     // the home, so we can use back method
     this.back();
   };
+
+  var showPopup = function c_showPopup(current, next) {
+    next.dataset.state = 'active';
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    next.classList.remove('view-bottom');
+    next.addEventListener('transitionend', function hideView() {
+      currentMirror.style.display ='none';
+      nextMirror.classList.remove('view-bottom');
+      next.removeEventListener('transitionend', hideView);
+    });
+  }
+
+  var hidePopup = function c_hidePopup(current, next) {
+    next.dataset.state = 'active';
+    current.classList.add('view-bottom');
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    nextMirror.style.display = '';
+    current.addEventListener('transitionend', function hideView() {
+      currentMirror.classList.add('view-bottom');
+      current.removeEventListener('transitionend', hideView);
+    });
+  }
 
   this.currentView = function currentView() {
     return _currentView != null ? _currentView : '';

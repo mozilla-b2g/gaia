@@ -22,7 +22,7 @@ body {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -415,12 +415,12 @@ a.button.disabled {
   right: 0;
 }
 
-#pick-cancel-button {
+#pick-back-button {
   position: absolute;
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/actionicon_cancel.png');
+  background-image: url('images/back.png');
 }
 
 #pick-header {
@@ -429,6 +429,103 @@ a.button.disabled {
   height: 100%;
   left: 25%;
   margin-top: 15px;
+}
+
+#crop-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#crop-back-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/back.png');
+}
+
+#crop-header {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
+#crop-done-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 75%;
+  background-image: url('images/actionicon_done.png');
+}
+
+/* like .photoFrame */
+#crop-frame {
+  position: absolute;
+  top: 50px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+/* like .photoFrame */
+#open-frame {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  bottom: 50px;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+/* copied from .photoFrame > img */
+#open-image, #crop-image {
+  top: 0px;  /* javascript modifies this position with a transform */
+  left: 0px;
+  position: relative;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px;
+  transform-origin: 0px 0px;
+  pointer-events: none;
+  -moz-user-select: none;
+}
+
+#open-bottom {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#open-camera-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/camera.png');
+}
+
+#open-delete-button {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 50%;
+  background-image: url('images/delete.png');
 }
 
 #edit-view {

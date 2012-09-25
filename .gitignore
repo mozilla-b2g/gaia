@@ -9,6 +9,7 @@ manifest.appcache
 /apps/system/camera
 /apps/settings/gaia-commit.txt
 /apps/homescreen/js/init.json
+/apps/costcontrol/js/config.json
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 

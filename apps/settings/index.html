@@ -11,156 +11,132 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
-    <link rel="stylesheet" type="text/css" href="style/dialogs.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
+    <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
 
     <!-- Specific code -->
+    <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
     <script type="application/javascript" defer src="js/data.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
+    <script type="application/javascript" defer src="js/simcard_lock.js"></script>
+    <script type="application/javascript" defer src="js/simcard_dialog.js"></script>
+    <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
+    <script type="application/javascript" defer src="js/storage.js"></script>
   </head>
   <body class="hidden skin-organic">
 
-    <!-- Main List -->
-    <section role="region" id="root">
+    <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
+    <section role="region" id="wifi-status" data-leaf>
       <header>
-        <h1 data-l10n-id="settings">Settings</h1>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="forget">Forget</span></button>
+        </menu>
+        <h1 data-ssid> Network Status </h1>
       </header>
 
-      <!-- Main :: Network & Connectivity -->
+      <!-- network properties -->
+      <ul>
+        <li>
+          <a data-l10n-id="security">security:
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength:
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed:
+            <span data-speed></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi :: Network Authentication Dialog -->
+    <section role="region" id="wifi-auth" data-leaf>
       <header>
-        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-ssid> Network Authentication </h1>
+      </header>
+
+      <!-- network properties + identity/password input -->
+      <ul>
+        <li>
+          <a data-l10n-id="security">security:
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength:
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input data-identity data-ignore name="identity" type="text" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input data-password data-ignore name="password" type="password" maxlength="63" />
+          <label for="show-pwd">
+            <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi :: WPS Dialog -->
+    <section role="region" id="wifi-wps" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1> Wi-Fi Protected Setup </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="wpsMethodSelection">Select WPS method:</h2>
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.radio.disabled" />
+          <label>
+            <input type="radio" name="wifi.wps.method" value="pbc" checked />
             <span></span>
           </label>
-          <a data-l10n-id="airplaneMode">Airplane Mode</a>
+          <a data-l10n-id="wpsPbcLabel">Button connection</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="geolocation.enabled" />
+          <label>
+            <input type="radio" name="wifi.wps.method" value="myPin" />
             <span></span>
           </label>
-          <a data-l10n-id="gps">GPS</a>
+          <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
         </li>
         <li>
-          <small id="wifi-desc" data-l10n-id="fullStatus-disconnected">offline</small>
-          <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+          <label>
+            <input type="radio" name="wifi.wps.method" value="apPin" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
         </li>
-        <li>
-          <small id="data-desc"></small>
-          <a href="#data" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
-        </li>
-        <li>
-          <small id="bluetooth-desc"></small>
-          <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
-        </li>
-        <li>
-          <small id="hotspot-desc"></small>
-          <a href="#hotspot" data-l10n-id="hotspot">HotSpot</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Personalization -->
-      <header>
-        <h2 data-l10n-id="personalization">Personalization</h2>
-      </header>
-      <ul>
-        <li>
-          <a href="#sounds" data-l10n-id="sound">Sound</a>
-        </li>
-        <li>
-          <a href="#display" data-l10n-id="display">Display</a>
-        </li>
-        <li>
-          <a href="#wallpaper" data-l10n-id="wallpaper">Wallpaper</a>
-        </li>
-        <li>
-          <a href="#notifications" data-l10n-id="notifications">Notifications</a>
-        </li>
-        <li hidden>
-          <small id="time-desc"></small>
-          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
-        </li>
-        <li>
-          <small id="language-desc"></small>
-          <a href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
-        </li>
-        <li>
-          <small id="keyboard-desc"></small>
-          <a href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Accounts -->
-      <header hidden>
-        <h2 data-l10n-id="accounts">Accounts</h2>
-      </header>
-      <ul hidden>
-        <li>
-          <a href="#persona" data-l10n-id="persona">Persona</a>
-        </li>
-        <li>
-          <a href="#mail" data-l10n-id="mail">Mail</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Security & Privacy -->
-      <header>
-        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
-      </header>
-      <ul>
-        <li>
-          <small id="phoneLock-desc"></small>
-          <a href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
-        </li>
-        <li hidden>
-          <small id="simCardLock-desc"></small>
-          <a href="#simCardLock" data-l10n-id="simCardLock">SIM Card Lock</a>
-        </li>
-        <li hidden>
-          <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
-        </li>
-        <li>
-          <small id="doNotTrack-desc"></small>
-          <a href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Device -->
-      <header>
-        <h2 data-l10n-id="device">Device</h2>
-      </header>
-      <ul>
-        <li>
-          <a href="#about" data-l10n-id="deviceInfo">Device Information</a>
-        </li>
-        <li>
-          <small id="battery-desc"></small>
-          <a href="#battery" data-l10n-id="battery">Battery</a>
-        </li>
-        <li>
-          <small id="device-storage-desc"></small>
-          <a href="#device-storage" data-l10n-id="deviceStorage">Device Storage</a>
-        </li>
-        <li>
-          <small id="media-storage-desc"></small>
-          <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li>
-          <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
-        </li>
-        <li>
-          <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+        <li id="wifi-wps-pin-area">
+          <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
+          <input type="text" />
         </li>
       </ul>
     </section>
@@ -217,108 +193,82 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-status">
+    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
+    <section role="region" id="apnSettings" data-leaf>
       <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Network Status </h2>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="apnSettings"> APN Settings </h1>
       </header>
 
-      <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-PSK</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-        <dt data-l10n-id="linkSpeed">link speed:</dt>
-        <dd data-speed></dd>
-      </dl>
-
-      <!-- disconnect from network -->
-      <footer>
-        <button type="submit" data-l10n-id="forget">Forget</button>
-      </footer>
-    </form>
-
-    <!-- Connectivity :: Wi-Fi :: Network Authentication Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-auth">
-      <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2 data-ssid> Network Authentication </h2>
-      </header>
-
-      <!-- network properties -->
-      <dl>
-        <dt data-l10n-id="security">security:</dt>
-        <dd data-security>WPA-EAP</dd>
-        <dt data-l10n-id="signalStrength">signal strength:</dt>
-        <dd data-signal>good</dd>
-      </dl>
-
-      <!-- identity/password input -->
-      <label for="identity">
-        <span data-l10n-id="identity">identity</span>
-        <input data-identity data-ignore name="identity" type="text" />
-      </label>
-      <label for="password">
-        <span data-l10n-id="password">password</span>
-        <input data-password data-ignore name="password" type="password"
-          maxlength="63" />
-      </label>
-      <label for="show-pwd">
-        <input data-ignore id="show-pwd" name="show-pwd" type="checkbox" />
-        <span data-l10n-id="showPassword">show password</span>
-      </label>
-
-      <!-- connect to network -->
-      <footer>
-        <button type="submit" data-l10n-id="ok">OK</button>
-      </footer>
-    </form>
-
-    <!-- Connectivity :: Wi-Fi :: WPS Dialog -->
-    <form role="dialog" action="#wifi" id="wifi-wps">
-      <header>
-        <button type="reset" data-l10n-id="back">Back</button>
-        <h2> Wi-Fi Protected Setup </h2>
-      </header>
-
-      <p style="clear: both;" data-l10n-id="wpsMethodSelection">Select WPS method:</p>
-      <ul>
-        <li>
+      <!-- APN List -->
+      <ul id="apnSettings-list">
+        <!-- APNs matching the phone's MCC/MNC are inserted here dynamically -->
+        <li id="apnSettings-custom">
           <label>
-            <input type="radio" name="wifi.wps.method" value="pbc" checked />
+            <input type="radio" name="APN.name" value="_custom_" selected />
             <span></span>
           </label>
-          <a data-l10n-id="wpsPbcLabel">Button connection</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="wifi.wps.method" value="myPin" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="wifi.wps.method" value="apPin" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
-        </li>
-        <li>
-          <label id="wifi-wps-pin-area">
-            <span data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</span>
-            <input type="text" />
-          </label>
+          <a data-l10n-id="custom">(custom settings)</a>
         </li>
       </ul>
 
-      <!-- start WPS -->
-      <footer>
-        <button type="submit" data-l10n-id="ok">OK</button>
-      </footer>
-    </form>
+      <!-- Advanced APN settings -->
+      <header>
+        <h2 data-l10n-id="advancedSettings">Advanced Settings</h2>
+      </header>
+      <ul id="apnSettings-advanced">
+        <li>
+          <p data-l10n-id="apn">APN</p>
+          <input type="text" data-setting="ril.data.apn" />
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-setting="ril.data.user" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="text" data-setting="ril.data.passwd" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+          <input type="text" data-setting="ril.data.httpProxyHost" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+          <input type="text" data-setting="ril.data.httpProxyPort" />
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
+    <section role="region" id="mmsSettings" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="mmsSettings"> MMS Settings </h1>
+      </header>
+
+      <!-- MMS settings -->
+      <ul>
+        <li>
+          <p data-l10n-id="mmsproxy">MMS Proxy</p>
+          <input type="text" data-setting="ril.data.mmsproxy" value="foo" />
+        </li>
+        <li>
+          <p data-l10n-id="mmsport">MMS Port</p>
+          <input type="text" data-setting="ril.data.mmsport" value="bar" />
+        </li>
+        <li>
+          <p data-l10n-id="mmsc">MMSC</p>
+          <input type="text" data-setting="ril.data.mmsc" value="baz" />
+        </li>
+      </ul>
+    </section>
 
     <!-- Connectivity :: 3G/data -->
     <section role="region" id="data">
@@ -336,6 +286,19 @@
         </li>
         <li>
           <label class="switch">
+            <input type="checkbox" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
+      </header>
+      <ul>
+        <li>
+          <label class="switch">
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
@@ -348,12 +311,8 @@
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
-        <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.callwaiting.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
+        <li id="dataRoaming-expl" class="explanation">
+          <!-- filled dynamically - text only -->
         </li>
       </ul>
 
@@ -376,58 +335,30 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
-    <form role="dialog" action="#data" id="apnSettings">
+    <!-- Connectivity :: Bluetooth :: Advanced Settings -->
+    <section role="region" id="bluetooth-advanced-menu" data-leaf>
       <header>
-        <button data-l10n-id="back" type="reset">Back</button>
-        <button data-l10n-id="ok" type="submit">OK</button>
-        <h2 data-l10n-id="apnSettings"> APN Settings </h2>
+        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="bt-advanced-settings">
+          Advanced Settings
+        </h1>
       </header>
 
-      <!-- APN List -->
-      <ul id="apnSettings-list">
-        <!-- APNs matching the phone's MCC/MNC are inserted here dynamically -->
-        <li id="apnSettings-custom">
+      <ul id="bluetooth-rename-btn">
+        <li>
           <label>
-            <input type="radio" name="APN.name" value="_custom_" selected />
-            <span></span>
+            <button data-l10n-id="renameDevice">Rename Device</button>
           </label>
-          <a data-l10n-id="custom">(custom settings)</a>
         </li>
       </ul>
 
-      <!-- Advanced APN settings -->
-      <div id="apnSettings-advanced" class="collapsed">
-        <h3 data-l10n-id="advancedSettings">Advanced Settings</h3>
-        <p data-l10n-id="apn">APN</p>
-        <input type="text" data-setting="ril.data.apn" />
-        <p data-l10n-id="identity">identity</p>
-        <input type="text" data-setting="ril.data.user" />
-        <p data-l10n-id="password">password</p>
-        <input type="text" data-setting="ril.data.passwd" />
-        <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
-        <input type="text" data-setting="ril.data.httpProxyHost" />
-        <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
-        <input type="text" data-setting="ril.data.httpProxyPort" />
-      </div>
-    </form>
-
-    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
-    <form role="dialog" action="#data" id="mmsSettings">
       <header>
-        <button data-l10n-id="back" type="reset">Back</button>
-        <button data-l10n-id="ok" type="submit">OK</button>
-        <h2 data-l10n-id="mmsSettings"> MMS Settings </h2>
+        <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
       </header>
-
-      <!-- MMS settings -->
-      <p data-l10n-id="mmsproxy">MMS Proxy</p>
-      <input type="text" data-setting="ril.data.mmsproxy" value="foo" />
-      <p data-l10n-id="mmsport">MMS Port</p>
-      <input type="text" data-setting="ril.data.mmsport" value="bar" />
-      <p data-l10n-id="mmsc">MMSC</p>
-      <input type="text" data-setting="ril.data.mmsc" value="baz" />
-    </form>
+      <ul id="bluetooth-paired-devices">
+        <!-- filled by bluetooth.js -->
+      </ul>
+    </section>
 
     <!-- Connectivity :: Bluetooth -->
     <section role="region" id="bluetooth">
@@ -459,9 +390,8 @@
       <header>
         <h2 data-l10n-id="bluetoothDevices">Devices</h2>
       </header>
-      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
-        Turn Bluetooth on to pair with devices that are
-        within range.
+      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg" class="explanation">
+        Turn Bluetooth on to pair with devices that are within range.
       </div>
       <ul id="bluetooth-show-paired-devices">
         <!-- filled by bluetooth.js -->
@@ -484,44 +414,40 @@
       <ul id="bluetooth-advanced">
         <li>
           <label>
-            <button data-l10n-id="bt-advanced-settings">Advanced Settings</button>
+            <!-- TODO: use <a role="button"> + the shared/style/buttons -->
+            <button onclick="openDialog('bluetooth-advanced-menu')"
+                data-l10n-id="bt-advanced-settings">Advanced Settings</button>
           </label>
         </li>
       </ul>
     </section>
 
-    <!-- Connectivity :: Bluetooth Advanced Settings -->
-    <section role="region" id="bluetooth-advanced-menu">
+    <!-- Connectivity :: HotSpot :: Wi-Fi Settings Dialog -->
+    <section role="region" id="hotspotSettings" data-leaf>
       <header>
-        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bt-advanced-settings">
-          Advanced Settings
-        </h1>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="hotspotSettings">HotSpot Settings</h1>
       </header>
-      <ul id="bluetooth-rename-btn">
+
+      <!-- wifi hotspot settings -->
+      <ul>
         <li>
-          <label>
-            <button data-l10n-id="renameDevice">Rename Device</button>
-          </label>
+          <p data-l10n-id="ssid">SSID</p>
+          <input type="text" data-setting="tethering.wifi.ssid" />
+        </li>
+        <li>
+          <p data-l10n-id="encryption">encryption</p>
+          <input type="text" data-setting="tethering.wifi.security.type" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
       </ul>
-      <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
-      <ul id="bluetooth-paired-devices">
-        <!-- filled by bluetooth.js -->
-      </ul>
     </section>
-
-    <!-- Connectivity :: Bluetooth :: Rename Device Dialog -->
-    <form role="dialog" action="#bluetooth" id="bluetooth-rename">
-      <header>
-        <button data-l10n-id="cancel" type="reset">Cancel</button>
-        <button data-l10n-id="ok" type="submit">OK</button>
-        <h2 data-l10n-id="bluetoothRename">Change Phone Name</h2>
-      </header>
-
-      <p data-l10n-id="bluetoothRenameMsg">New Name</p>
-      <input type="text"/>
-    </form>
 
     <!-- Connectivity :: HotSpot -->
     <section role="region" id="hotspot">
@@ -562,25 +488,8 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: HotSpot :: Wi-Fi Settings Dialog -->
-    <form role="dialog" action="#hotspot" id="hotspotSettings">
-      <header>
-        <button data-l10n-id="back" type="reset">Back</button>
-        <button data-l10n-id="ok" type="submit">OK</button>
-        <h2 data-l10n-id="hotspotSettings">HotSpot Settings</h2>
-      </header>
-
-      <!-- wifi hotspot settings -->
-      <p data-l10n-id="ssid">SSID</p>
-      <input type="text" data-setting="tethering.wifi.ssid" />
-      <p data-l10n-id="encryption">encryption</p>
-      <input type="text" data-setting="tethering.wifi.security.type" />
-      <p data-l10n-id="password">password</p>
-      <input type="text" data-setting="tethering.wifi.security.password" />
-    </form>
-
     <!-- Personalization :: Sound -->
-    <section role="region" id="sounds">
+    <section role="region" id="sounds" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="sound">
@@ -591,7 +500,7 @@
       <!-- Phone -->
       <ul>
         <li>
-          <h3 data-l10n-id="volume">Volume</h3>
+          <p data-l10n-id="volume">Volume</p>
           <label>
             <progress data-name="audio.volume.master" value="5" max="10"></progress>
           </label>
@@ -668,17 +577,20 @@
     </section>
 
     <!-- Personalization :: Display -->
-    <section role="region" id="display">
+    <section role="region" id="display" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="display">
           Display
         </h1>
       </header>
-
       <ul>
         <li>
-          <h3 data-l10n-id="brightness">Brightness level</h3>
+          <a data-l10n-id="wallpaper">Wallpaper</a>
+          <img id="wallpaper-preview"></img>
+        </li>
+        <li>
+          <p data-l10n-id="brightness">Brightness level</p>
           <label>
             <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
           </label>
@@ -705,86 +617,8 @@
       </ul>
     </section>
 
-    <!-- Personalization :: Wallpaper -->
-    <section role="region" id="wallpaper">
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="wallpaper">
-          Wallpaper
-        </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="lockScreen">Lock Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="lockscreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="homeScreen">Home Screen</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="default.png" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="default">Default</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="balloon.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="balloon">Balloon</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="water.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="water">Water</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="homescreen.wallpaper" value="leaves.png"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="leaves">Leaves</a>
-        </li>
-      </ul>
-    </section>
-
     <!-- Personalization :: Notifications -->
-    <section role="region" id="notifications">
+    <section role="region" id="notifications" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="notifications">
@@ -805,7 +639,7 @@
     <!-- [TODO] Personalization :: Time & Date -->
 
     <!-- Personalization :: Language & Region -->
-    <section role="region" id="languages">
+    <section role="region" id="languages" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="languageAndRegion">
@@ -902,7 +736,7 @@
     </section>
 
     <!-- Personalization :: Keyboard -->
-    <section role="region" id="keyboard">
+    <section role="region" id="keyboard" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="keyboard">
@@ -1034,7 +868,7 @@
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
-    <section role="region" id="phoneLock">
+    <section role="region" id="phoneLock" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="phoneLock">
@@ -1069,10 +903,107 @@
     </section>
 
     <!-- [TODO] Security :: Phone Lock -->
-    <!-- [TODO] Security :: SIM Card Lock -->
+
+    <!-- Security :: SIM Security :: SIM PIN Input Dialog -->
+    <section role="region" id="simpin-dialog" data-leaf>
+      <header>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <menu type="toolbar">
+        <button data-l10n-id="done" type="submit">Done</button>
+        </menu>
+        <h1></h1>
+      </header>
+
+      <div class="container">
+        <div id="errorMsg" class="error" hidden>
+          <div id="messageHeader">The PIN was incorrect.</div>
+          <span id="messageBody">3 tries left.</span>
+        </div>
+        <!-- sim pin input field -->
+        <div id="pinArea">
+          <div data-l10n-id="simPin">SIM PIN</div>
+          <div class="input-wrapper">
+            <input name="simpin" type="number" size="8" maxlength="8" />
+            <input name="simpinVis" type="text" size="8" maxlength="8"/>
+          </div>
+        </div>
+        <!-- sim puk input field -->
+        <div id="pukArea">
+          <div data-l10n-id="pukCode">PUK Code</div>
+          <div class="input-wrapper">
+            <input name="simpuk" type="number" size="8" maxlength="8" />
+            <input name="simpukVis" type="text" size="8" maxlength="8"/>
+          </div>
+        </div>
+        <!-- new sim pin input field -->
+        <div id="newPinArea">
+          <div data-l10n-id="newSimPinMsg">
+            Create PIN (must contain 4 to 8 digits)
+          </div>
+          <div class="input-wrapper">
+            <input name="newSimpin" type="number" size="8" maxlength="8" />
+            <input name="newSimpinVis" type="text" size="8" maxlength="8" />
+          </div>
+        </div>
+        <!-- confirm new sim pin input field -->
+        <div id="confirmPinArea">
+          <div>Confirm New PIN</div>
+          <div class="input-wrapper">
+            <input name="confirmNewSimpin" type="number" size="8" maxlength="8" />
+            <input name="confirmNewSimpinVis" type="text" size="8" maxlength="8" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security :: SIM Security -->
+    <section role="region" id="sim">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="simSecurity">
+          SIM Security
+        </h1>
+      </header>
+
+      <ul>
+        <li id="simpin-enabled">
+          <label class="switch">
+            <input type="checkbox"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="simPin">SIM PIN</a>
+        </li>
+      </ul>
+
+      <dl>
+        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
+        <dd data-l10n-id="simPinIntro1">
+          A SIM PIN prevents access to the SIM card's
+          cellular data networks. When it's on, any device
+          containing the SIM card will request the PIN upon
+          restart.
+        </dd>
+        <dd data-l10n-id="simPinIntro2">
+          A SIM PIN is not the same as the Passcode used
+          to unlock the device.
+        </dd>
+      </dl>
+
+      <ul>
+        <li id="simpin-change">
+          <label>
+            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+
     <!-- [TODO] Security :: App Permissions -->
     <!-- Security :: Do Not Track -->
-    <section role="region" id="doNotTrack">
+    <section role="region" id="doNotTrack" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="doNotTrack">
@@ -1092,7 +1023,7 @@
     </section>
 
     <!-- Device :: About -->
-    <section role="region" id="about">
+    <section role="region" id="about" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="deviceInfo">
@@ -1160,7 +1091,7 @@
     </section>
 
     <!-- Device :: Battery -->
-    <section role="region" id="battery">
+    <section role="region" id="battery" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="battery">
@@ -1171,19 +1102,19 @@
       <ul>
         <li>
           <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
-            <span class="level-desc"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="battery-remaining" data-l10n-id="batteryEstLeft">Estimated Time Left
-            <span class="level-desc"></span>
+            <span></span>
           </a>
         </li>
       </ul>
     </section>
 
     <!-- Device :: Device Storage -->
-    <section role="region" id="device-storage">
+    <section role="region" id="device-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="deviceStorage">
@@ -1197,13 +1128,14 @@
             <input type="checkbox" name="ums.enabled"/>
             <span></span>
           </label>
+          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
     </section>
 
     <!-- Device :: Media Storage -->
-    <section role="region" id="media-storage">
+    <section role="region" id="media-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="mediaStorage">
@@ -1236,7 +1168,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section role="region" id="accessibility">
+    <section role="region" id="accessibility" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="accessibility">
@@ -1252,7 +1184,7 @@
           </label>
           <a data-l10n-id="invertColors">Invert Colors</a>
         </li>
-        <li>
+        <li hidden>
           <label>
             <input type="checkbox" name="accessibility.screenreader"/>
             <span></span>
@@ -1263,7 +1195,7 @@
     </section>
 
     <!-- Device :: Help -->
-    <section role="region" id="help">
+    <section role="region" id="help" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="helpAndFeedback">
@@ -1272,9 +1204,142 @@
       </header>
 
       <!-- TODO -->
-
     </section>
 
+    <!-- Main List -->
+    <section role="region" id="root">
+      <header>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <!-- Main :: Network & Connectivity -->
+      <header>
+        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="ril.radio.disabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="airplaneMode">Airplane Mode</a>
+        </li>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="geolocation.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="gps">GPS</a>
+        </li>
+        <li>
+          <small id="wifi-desc" data-l10n-id="fullStatus-disconnected">offline</small>
+          <a href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li>
+          <small id="data-desc"></small>
+          <a href="#data" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+        </li>
+        <li>
+          <small id="bluetooth-desc"></small>
+          <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+        </li>
+        <li>
+          <small id="hotspot-desc"></small>
+          <a href="#hotspot" data-l10n-id="hotspot">HotSpot</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Personalization -->
+      <header>
+        <h2 data-l10n-id="personalization">Personalization</h2>
+      </header>
+      <ul>
+        <li>
+          <a href="#sounds" data-l10n-id="sound">Sound</a>
+        </li>
+        <li>
+          <a href="#display" data-l10n-id="display">Display</a>
+        </li>
+        <li>
+          <a href="#notifications" data-l10n-id="notifications">Notifications</a>
+        </li>
+        <li hidden>
+          <small id="time-desc"></small>
+          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
+        </li>
+        <li>
+          <small id="language-desc"></small>
+          <a href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
+        </li>
+        <li>
+          <small id="keyboard-desc"></small>
+          <a href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Accounts -->
+      <header hidden>
+        <h2 data-l10n-id="accounts">Accounts</h2>
+      </header>
+      <ul hidden>
+        <li>
+          <a href="#persona" data-l10n-id="persona">Persona</a>
+        </li>
+        <li>
+          <a href="#mail" data-l10n-id="mail">Mail</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Security & Privacy -->
+      <header>
+        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="phoneLock-desc"></small>
+          <a href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
+        </li>
+        <li>
+          <small id="simCardLock-desc"></small>
+          <a href="#sim" data-l10n-id="simSecurity">SIM Security</a>
+        </li>
+        <li hidden>
+          <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
+        </li>
+        <li>
+          <small id="doNotTrack-desc"></small>
+          <a href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Device -->
+      <header>
+        <h2 data-l10n-id="device">Device</h2>
+      </header>
+      <ul>
+        <li>
+          <a href="#about" data-l10n-id="deviceInfo">Device Information</a>
+        </li>
+        <li>
+          <small id="battery-desc"></small>
+          <a href="#battery" data-l10n-id="battery">Battery</a>
+        </li>
+        <li>
+          <small id="device-storage-desc"></small>
+          <a href="#device-storage" data-l10n-id="deviceStorage">Device Storage</a>
+        </li>
+        <li>
+          <small id="media-storage-desc"></small>
+          <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
+        </li>
+        <li hidden>
+          <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+        </li>
+        <li>
+          <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+        </li>
+      </ul>
+    </section>
   </body>
 </html>
 

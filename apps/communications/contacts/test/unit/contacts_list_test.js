@@ -8,6 +8,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_extfb.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -42,18 +43,21 @@ suite('Render contacts list', function() {
       groupB,
       groupC,
       groupD,
+      groupT,
       groupFav,
       groupUnd,
       containerA,
       containerB,
       containerC,
       containerD,
+      containerT,
       containerFav,
       containerUnd,
       list,
       loading,
       searchBox,
-      noResults;
+      noResults,
+      settings;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -69,19 +73,60 @@ suite('Render contacts list', function() {
   function assertTotal(lengthTitles, lengthContacts) {
     var total = list.querySelectorAll('h2:not(.hide)').length;
     var totalC = list.querySelectorAll('li[data-uuid]').length;
+
     assert.equal(total, lengthTitles);
     assert.equal(totalC, lengthContacts);
   }
 
-  function assertImportButton() {
-    var importButton = list.nextElementSibling;
-    assert.isNotNull(importButton);
-    assert.equal(importButton.id, 'sim_import_button');
-    assert.isNull(importButton.nextElementSibling);
+  function assertFbMark(container) {
+    var content = container.innerHTML;
+    var markPosition = content.indexOf('icon-fb');
+
+    assert.isTrue(markPosition > -1);
   }
-  function assertNoImportButton() {
-    var importButton = list.nextElementSibling;
-    assert.isNull(importButton);
+
+  function resetDom(document) {
+    if (container) {
+      document.body.removeChild(container);
+    }
+
+    if (loading) {
+      document.body.removeChild(loading);
+    }
+
+    if (searchSection) {
+      document.body.removeChild(searchSection);
+    }
+
+    container = document.createElement('div');
+    var groupsContainer = document.createElement('div');
+    groupsContainer.id = 'groups-container';
+    groupsContainer.innerHTML = '<p id="no-result" class="hide" ' +
+      'data-l10n-id="noResults">No contacts found</p>';
+    groupsContainer.innerHTML += '<ol class="block-list" ' +
+      'id="groups-list"></ol>';
+    groupsContainer.innerHTML += '<div id="fixed-container" ';
+    groupsContainer.innerHTML += 'class="fixed-title"> </div>';
+    groupsContainer.innerHTML += '<div id="current-jumper" ';
+    groupsContainer.innerHTML += 'class="view-jumper-current"></div>';
+    container.appendChild(groupsContainer);
+    loading = document.createElement('div');
+    loading.id = 'loading-overlay';
+    settings = document.createElement('div');
+    settings.id = 'view-settings';
+    settings.innerHTML = '<div class="view-body-inner"></div>';
+    list = container.querySelector('#groups-list');
+    document.body.appendChild(container);
+    document.body.appendChild(loading);
+    document.body.appendChild(settings);
+
+    var searchSection = document.createElement('section');
+    searchSection.id = 'search-view';
+    searchSection.innerHTML = '<input type="text" id="search-contact"/>';
+    document.body.appendChild(searchSection);
+
+    searchBox = document.getElementById('search-contact');
+    noResults = document.getElementById('no-result');
   }
 
   suiteSetup(function() {
@@ -101,36 +146,14 @@ suite('Render contacts list', function() {
     window.Contacts = MockContactsApp;
     realFb = window.fb;
     window.fb = MockFb;
+    window.Contacts.extFb = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     subject = contacts.List;
-    container = document.createElement('div');
-    var groupsContainer = document.createElement('div');
-    groupsContainer.id = 'groups-container';
-    groupsContainer.innerHTML = '<p id="no-result" class="hide" ' +
-      'data-l10n-id="noResults">No contacts found</p>';
-    groupsContainer.innerHTML += '<ol class="block-list" ' +
-      'id="groups-list"></ol>';
-    groupsContainer.innerHTML += '<div id="fixed-container" ';
-    groupsContainer.innerHTML += 'class="fixed-title"> </div>';
-    groupsContainer.innerHTML += '<div id="current-jumper" ';
-    groupsContainer.innerHTML += 'class="view-jumper-current"></div>';
-    container.appendChild(groupsContainer);
-    loading = document.createElement('div');
-    loading.id = 'loading-overlay';
-    list = container.querySelector('#groups-list');
-    document.body.appendChild(container);
-    document.body.appendChild(loading);
 
-    var searchSection = document.createElement('section');
-    searchSection.id = 'search-view';
-    searchSection.innerHTML = '<input type="text" id="search-contact"/>';
-    document.body.appendChild(searchSection);
-
-    searchBox = document.getElementById('search-contact');
-    noResults = document.getElementById('no-result');
+    resetDom(window.document);
 
     subject.init(list);
   });
@@ -155,6 +178,7 @@ suite('Render contacts list', function() {
       containerC = container.querySelector('#contacts-list-C');
       groupD = container.querySelector('#group-D');
       containerD = container.querySelector('#contacts-list-D');
+
       groupUnd = container.querySelector('#group-und');
       containerUnd = container.querySelector('#contacts-list-und');
 
@@ -165,7 +189,6 @@ suite('Render contacts list', function() {
       assertGroup(groupB, containerC, 1);
       assertNoGroup(groupD, containerD);
 
-      assertNoImportButton();
     });
 
     test('adding one at the beginning', function() {
@@ -384,10 +407,47 @@ suite('Render contacts list', function() {
     test('removing all contacts', function() {
       subject.load([]);
       assertNoGroup(groupFav, containerFav);
-      assertImportButton();
       assertTotal(0, 0);
     });
-  });
+  });  // suite ends
+
+  suite('Facebook Contacts List', function() {
+    suiteSetup(function() {
+      resetDom(window.document);
+      subject.init(list);
+    });
+
+    test('adding one FB Contact to an empty list', function() {
+      var deviceContact = new MockContactAllFields();
+
+      deviceContact.id = '567';
+      deviceContact.familyName = ['Taylor'];
+      deviceContact.givenName = ['Bret'];
+      deviceContact.name = [deviceContact.givenName + ' ' +
+                            deviceContact.familyName];
+      var newContact = new MockFb.Contact(deviceContact);
+      newContact.uid = '220439';
+
+      newContact.getData().onsuccess = function cb() {
+        var newList = [this.result];
+
+        assertTotal(0, 0);
+        subject.load(newList);
+
+        groupT = container.querySelector('#group-T');
+        containerT = container.querySelector('#contacts-list-T');
+
+        var tContacts = assertGroup(groupT, containerT, 1);
+
+        assert.isTrue(tContacts[0].innerHTML.indexOf('Taylor') > -1);
+
+        assertFbMark(containerT);
+
+        // Two instances as this contact is a favorite one also
+        assertTotal(2, 2);
+      };
+    }); // test ends
+  });  // suite ends
 
   suite('Contact search', function() {
     test('check search', function() {
@@ -421,6 +481,25 @@ suite('Render contacts list', function() {
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
+    });
+
+    test('import button with fb enabled', function() {
+      var settDiv = document.querySelector('#view-settings .view-body-inner');
+      settDiv.innerHTML = '';
+      MockFb.setIsEnabled(true);
+      subject.init(list);
+      var selector = '#view-settings .view-body-inner #fb_import_button';
+      assert.isFalse(document.querySelector(selector) == null);
+    });
+
+    test('import button with fb disabled', function() {
+      var settDiv = document.querySelector('#view-settings .view-body-inner');
+      settDiv.innerHTML = '';
+      MockFb.setIsEnabled(false);
+      subject.init(list);
+      var selector = '#view-settings .view-body-inner #fb_import_button';
+      assert.isTrue(document.querySelector(selector) == null);
+      MockFb.setIsEnabled(true);
     });
   });
 });

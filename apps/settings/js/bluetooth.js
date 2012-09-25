@@ -1,12 +1,13 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
-/*
-   gDeviceList here because child window created for pair request
-   needs to access its method via window.opener
+/**
+ * gDeviceList here because child window created for pair request
+ * needs to access its method via window.opener
  */
+
 var gDeviceList = null;
 
 // handle BlueTooth settings
@@ -64,7 +65,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var visibleCheckBox =
       document.querySelector('#bluetooth-visible-device input');
     var advancedItem = document.querySelector('#bluetooth-advanced');
-    var advancedButton = document.querySelector('#bluetooth-advanced button');
     var renameButton = document.querySelector('#bluetooth-rename-btn button');
     var myName = '';
 
@@ -73,53 +73,17 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       setDiscoverable(this.checked);
     };
 
-    advancedButton.onclick = function advancedMenuClicked() {
-      window.location.hash = '#bluetooth-advanced-menu';
-    };
-
     renameButton.onclick = function renameBtnClicked() {
-      renameDialog.show();
+      var nameEntered = window.prompt(_('bluetoothRename'), myName);
+      if (!nameEntered || nameEntered === '' || nameEntered === myName)
+        return;
+
+      var req = defaultAdapter.setName(nameEntered);
+      req.onsuccess = function bt_renameSuccess() {
+        myName = visibleName.textContent = defaultAdapter.name;
+        return close();
+      }
     };
-
-    // Wrapper rename dialog to be interactive.
-    var renameDialog = (function wrapperDialog() {
-      var dialog = document.querySelector('#bluetooth-rename');
-      var inputField = document.querySelector('#bluetooth-rename input');
-      if (!dialog)
-        return null;
-
-      // OK|Cancel buttons
-      dialog.onreset = close;
-      dialog.onsubmit = function() {
-        var nameEntered = inputField.value;
-        if (nameEntered === '')
-          return;
-
-        if (nameEntered === myName)
-          return close();
-
-        var req = defaultAdapter.setName(nameEntered);
-        req.onsuccess = function bt_renameSuccess() {
-          myName = visibleName.textContent = defaultAdapter.name;
-          return close();
-        }
-      };
-
-      function close() {
-        dialog.removeAttribute('class');
-        return false; // ignore <form> action
-      }
-
-      // The only exposed method.
-      function show() {
-        inputField.value = myName;
-        dialog.className = 'active';
-      }
-
-      return {
-        show: show
-      };
-    })();
 
     // immediatly UI update, DOM element manipulation.
     function updateDeviceInfo(show) {
