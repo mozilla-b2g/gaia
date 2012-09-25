@@ -13,7 +13,8 @@ Evme.Utils = new function() {
 
     var FFOSMessages = this.FFOSMessages = {
         "APP_CLICK": "open-in-app",
-        "APP_INSTALL": "add-bookmark"
+        "APP_INSTALL": "add-bookmark",
+        "IS_APP_INSTALLED": "is-app-installed"
     };
 
     this.log = function(message) {
@@ -26,6 +27,9 @@ Evme.Utils = new function() {
                 break;
             case FFOSMessages.APP_INSTALL:
                 EvmeManager.addBookmark(data);
+                break;
+            case FFOSMessages.IS_APP_INSTALLED:
+                return EvmeManager.isAppInstalled(data)
                 break;
         }
     };

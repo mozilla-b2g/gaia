@@ -602,8 +602,13 @@ Evme.Brain = new function() {
         };
 
         this.hold = function(data) {
-            if (Applications.isInstalled(data.data.appUrl)) {
-                new Tip({
+            var isAppInstalled = Evme.Utils.sendToFFOS(
+                Evme.Utils.FFOSMessages.IS_APP_INSTALLED,
+                { "url": data.data.appUrl }
+            );
+
+            if (isAppInstalled) {
+                new Evme.Tip({
                     "id": "install-app-exists",
                     "text": "This bookmark was added previously",
                     "closeAfter": 2000
@@ -1063,7 +1068,9 @@ Evme.Brain = new function() {
             $el.find(".shortcut.add").remove();
 
             $elCustomize.bind("click", function(){
-                Evme.ShortcutsCustomize.show(false);
+                if (!EvmePageMoved) {
+                    Evme.ShortcutsCustomize.show(false);    
+                }
             });
 
             $el.append($elCustomize);

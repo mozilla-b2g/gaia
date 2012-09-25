@@ -56,6 +56,10 @@ var EvmeManager = (function() {
     hide: function doHide() {
       footerStyle.MozTransform = 'translateY(0)';
       Evme.setOpacityBackground(0);
+    },
+    
+    isAppInstalled: function(data) {
+        return Applications.isInstalled(data.url);
     }
   };
 
