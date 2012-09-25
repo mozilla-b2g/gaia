@@ -188,14 +188,4 @@
 #evmeContainer #dialog_location_os_error .content {
     position: relative;
     padding-top: 5px;
-    padding-bottom: 120px;
-}
-#evmeContainer #dialog_location_os_error .content:before {
-    background: transparent url('/everything.me/images/location/location-settings-iphone.png') 0 0 no-repeat;
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: -4px;
-    width: 270px;
-    height: 120px;
 }
