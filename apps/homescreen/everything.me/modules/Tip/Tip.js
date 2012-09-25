@@ -143,5 +143,5 @@
         _config && _this.init(_config);
     };
     
-    window.Tip = Tip;
+    window.Evme.Tip = Tip;
 })();
