@@ -56,7 +56,8 @@ suite('Render contacts list', function() {
       list,
       loading,
       searchBox,
-      noResults;
+      noResults,
+      settings;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -75,25 +76,6 @@ suite('Render contacts list', function() {
 
     assert.equal(total, lengthTitles);
     assert.equal(totalC, lengthContacts);
-  }
-
-
-  function assertImportButton() {
-    var importButton = list.nextElementSibling;
-    assert.isNotNull(importButton);
-    assert.equal(importButton.id, 'sim_import_button');
-    if (window.fb.isEnabled) {
-      assert.equal(importButton.nextElementSibling.id, 'fb_import_button');
-    }
-    else {
-      assert.isNull(importButton.nextElementSibling);
-    }
-  }
-
-  function assertNoImportButton() {
-    var importButton = list.nextElementSibling;
-
-    assert.isNull(importButton);
   }
 
   function assertFbMark(container) {
@@ -130,9 +112,13 @@ suite('Render contacts list', function() {
     container.appendChild(groupsContainer);
     loading = document.createElement('div');
     loading.id = 'loading-overlay';
+    settings = document.createElement('div');
+    settings.id = 'view-settings';
+    settings.innerHTML = '<div class="view-body-inner"></div>';
     list = container.querySelector('#groups-list');
     document.body.appendChild(container);
     document.body.appendChild(loading);
+    document.body.appendChild(settings);
 
     var searchSection = document.createElement('section');
     searchSection.id = 'search-view';
@@ -422,7 +408,6 @@ suite('Render contacts list', function() {
     test('removing all contacts', function() {
       subject.load([]);
       assertNoGroup(groupFav, containerFav);
-      assertImportButton();
       assertTotal(0, 0);
     });
   });  // suite ends
