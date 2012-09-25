@@ -3,6 +3,8 @@
 var UssdUI = {
 
   _: window.navigator.mozL10n.get,
+  
+  _origin: null,
 
   get closeNode() {
     delete this.closeNode;

@@ -1,12 +1,15 @@
 'use strict';
 
 var UssdManager = {
-  _conn: window.navigator.mozMobileConnection,
+  
+  _conn: null,
   _popup: null,
-  _origin: document.location.protocol + '//' +
-    document.location.host,
+  _origin: null,
 
   init: function um_init() {
+    this._conn = window.navigator.mozMobileConnection;
+    this._origin = document.location.protocol + '//' +
+      document.location.host;
     if (this._conn) {
       this._conn.addEventListener('ussdreceived', this);
       window.addEventListener('message', this);
