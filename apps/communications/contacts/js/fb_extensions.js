@@ -35,6 +35,31 @@ if (typeof Contacts.extFb === 'undefined') {
       extensionFrame.className = 'closing';
     }
 
+    extFb.showProfile = function(cid) {
+      var req = fb.utils.getContactData(cid);
+
+      req.onsuccess = function() {
+        var fbContact = new fb.Contact(req.result);
+
+        var uid = fbContact.uid;
+        var profileUrl = 'http://m.facebook.com/' + uid;
+
+        var activityDesc = {
+          name: 'view',
+          data: {
+            type: 'url',
+            url: profileUrl
+          }
+        };
+
+        var activity = new MozActivity(activityDesc);
+      }
+
+      req.onerror = function() {
+        window.console.error('Contacts FB Profile: Contact not found');
+      }
+    }
+
     function doLink(uid) {
       // We need to obtain the mozContact id for the UID
       var mozContReq = fb.utils.getMozContact(uid);
