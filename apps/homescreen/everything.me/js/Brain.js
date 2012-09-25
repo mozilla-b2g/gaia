@@ -793,8 +793,6 @@ Evme.Brain = new function() {
                 Evme.BackgroundImage.cancelFullScreenFade();
                 $body.removeClass("loading-app");
 
-                Brain.Core.onresize();
-
                 if (Evme.Storage.get(STORAGE_KEY_CLOSE_WHEN_RETURNING)) {
                     Searcher.searchAgain();
                 }
