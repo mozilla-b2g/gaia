@@ -13,18 +13,19 @@ var Launcher = (function() {
   var BUTTONBAR_TIMEOUT = 5000;
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
-  var back = document.getElementById('back-button');
-  var forward = document.getElementById('forward-button');
-
   var footer = document.querySelector('#wrapper');
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in e.target.dataset) {
+      window.addEventListener('mozbrowserlocationchange', onLocationChange);
+      onLocationChange();
       footer.classList.add('visible');
+      setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
     }
   });
 
   window.addEventListener('appwillclose', function onAppClose(e) {
     if ('wrapper' in e.target.dataset) {
+      window.removeEventListener('mozbrowserlocationchange', onLocationChange);
       footer.classList.remove('visible');
     }
   });
@@ -74,51 +75,33 @@ var Launcher = (function() {
     currentAppFrame().reload(true);
   });
 
-  function goBack(evt) {
+  var back = document.getElementById('back-button');
+  back.addEventListener('click', function goBack() {
     clearButtonBarTimeout();
-    evt.stopPropagation();
-    currentAppFrame().getCanGoBack().onsuccess = function(e) {
-      if (e.target.result === true) {
-        currentAppFrame().goBack();
-      }
-    }
-  }
+    currentAppFrame().goBack();
+  });
 
-  function goForward(evt) {
+  var forward = document.getElementById('forward-button');
+  forward.addEventListener('click', function goForward() {
     clearButtonBarTimeout();
-    currentAppFrame().getCanGoForward().onsuccess = function(e) {
-      if (e.target.result === true) {
-        currentAppFrame().goForward();
-      }
-    }
-  }
+    currentAppFrame().goForward();
+  });
 
-  setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
-
-  function onLocationChange(evt) {
-    if (evt.target !== currentAppFrame())
-      return;
-
-    currentAppFrame().getCanGoForward().onsuccess = function(e) {
+  function onLocationChange() {
+    currentAppFrame().getCanGoForward().onsuccess = function forwardSuccess(e) {
       if (e.target.result === true) {
         delete forward.dataset.disabled;
-        forward.addEventListener('click', goForward);
       } else {
         forward.dataset.disabled = true;
-        forward.removeEventListener('click', goForward);
       }
     }
 
-    currentAppFrame().getCanGoBack().onsuccess = function(e) {
+    currentAppFrame().getCanGoBack().onsuccess = function backSuccess(e) {
       if (e.target.result === true) {
         delete back.dataset.disabled;
-        back.addEventListener('click', goBack);
       } else {
         back.dataset.disabled = true;
-        back.removeEventListener('click', goBack);
       }
     }
   }
-
-  window.addEventListener('mozbrowserlocationchange', onLocationChange);
 }());
