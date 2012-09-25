@@ -359,6 +359,7 @@ form.search button {
 .removed dl, .removed a, .removed input {
   background-color: transparent;
   color: #cccccc;
+  pointer-events: none;
 }
 
 .removed button span.icon-delete {
