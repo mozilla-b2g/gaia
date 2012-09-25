@@ -8,7 +8,7 @@
   }
 
   var _;
-  window.addEventListener('localized', function wifiSettings(evt) {
+  window.addEventListener('localized', function iccSettings(evt) {
     _ = navigator.mozL10n.get;
   });
 
@@ -114,6 +114,8 @@
       console.log("STK Main App Menu title:", menu.title);
       console.log("STK Main App Menu default item:", menu.defaultItem);
 
+      document.getElementById('iccMenuItem').innerHTML = menu.title;
+      document.getElementById('icc-stk-operator-header').innerHTML = menu.title;
       menu.items.forEach(function (menuItem) {
         console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
         var li = document.createElement("li");
@@ -131,7 +133,9 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute("stk-menuitem-identifier");
+    var appName = event.target.innerHTML;
     console.log("sendStkMenuSelection: " + JSON.stringify(identifier));
+    document.getElementById('icc-stk-selection-header').innerHTML = appName;
     icc.sendStkMenuSelection(identifier, false);
   }
 
@@ -174,9 +178,11 @@
 
   /**
    * Show an INPUT box requiring data
+   * Command options like:
+   * { "options": {
+   *   "text":"Caption String","minLength":3,"maxLength":15,"isAlphabet":true}}
    */
   function updateInput(command) {
-    // "options":{"text":"Al Canal","minLength":3,"maxLength":15,"isAlphabet":true}
     console.log("Showing STK input box");
     while (iccStkSelection.hasChildNodes()) {
       iccStkSelection.removeChild(iccStkSelection.lastChild);
@@ -220,7 +226,6 @@
       value = document.getElementById('stk-item-input').value;
       icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                     input: value});
-
     };
     li.appendChild(button);
     iccStkSelection.appendChild(li);
