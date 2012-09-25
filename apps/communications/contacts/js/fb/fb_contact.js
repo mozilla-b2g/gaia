@@ -92,6 +92,14 @@ fb.Contact = function(deviceContact, cid) {
     return dcontact;
   }
 
+  function promoteToLinked(dcontact) {
+    var idx = dcontact.category.indexOf(fb.NOT_LINKED);
+
+    if(idx != -1) {
+      dcontact.category[idx] = fb.LINKED;
+    }
+  }
+
   // The contact is now totally unlinked
   // [...,facebook, fb_not_linked, 123456,....]
   function markAsUnlinked(dcontact) {
@@ -332,6 +340,9 @@ fb.Contact = function(deviceContact, cid) {
     return outReq;
   }
 
+  this.promoteToLinked = function() {
+    promoteToLinked(devContact);
+  }
 
   this.linkTo = function(fbFriend) {
     var out = new fb.utils.Request();

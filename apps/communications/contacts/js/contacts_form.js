@@ -232,7 +232,7 @@ contacts.Form = (function() {
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
 
-    if(nonEditable[currField.value]) {
+    if(nonEditableValues[currField.value]) {
       var nodeClass = rendered.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
@@ -298,7 +298,8 @@ contacts.Form = (function() {
 
     for (field in inputs) {
       var value = inputs[field].value;
-      if (value && value.length > 0) {
+      if (!inputs[field].parentNode.classList.contains(REMOVED_CLASS)
+                                          && value && value.length > 0) {
         myContact[field] = [value];
       } else {
         myContact[field] = null;
@@ -349,23 +350,36 @@ contacts.Form = (function() {
         }
       }
       contact = currentContact;
+
+      // If it is a FB Contact not linked it will be automatically linked
+      // As now there is additional info entered by the user
+      if(fb.isFbContact(contact)) {
+        var fbContact = new fb.Contact(contact);
+        // Here the contact has been promoted to linked but not saved yet
+        fbContact.promoteToLinked();
+      }
+
     } else {
       contact = new mozContact();
       contact.init(myContact);
     }
-
-    window.console.log('OWDError: ', JSON.stringify(contact));
 
     var request = navigator.mozContacts.save(contact);
 
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
       var cList = contacts.List;
-      cList.getContactById(contact.id, function onSuccess(savedContact) {
+      cList.getContactById(contact.id, function onSuccess(savedContact,
+                                        enrichedContact) {
+        var nextCurrent = enrichedContact || savedContact;
+
         Contacts.setCurrent(savedContact);
         myContact.id = savedContact.id;
-        myContact.photo = savedContact.photo;
-        myContact.category = savedContact.category;
+
+        myContact.photo = nextCurrent.photo;
+        myContact.org = nextCurrent.org;
+        myContact.category = nextCurrent.category;
+
         cList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postNewSuccess(savedContact);
