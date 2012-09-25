@@ -356,12 +356,34 @@ var Recents = {
     var src = '/contacts/index.html';
     if (contactId) {
       src += '#view-contact-details?id=' + contactId;
+      var timestamp = new Date().getTime();
+      contactsIframe.src = src + '&timestamp=' + timestamp;
+      window.location.hash = '#contacts-view';
     } else {
-      src += '#view-contact-form?tel=' + phoneNumber;
+      var action = new ActionMenu(_('addNewNumber'), [
+      {
+        label: _('createNewContact'),
+        callback: function() {
+          src += '#view-contact-form?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      },
+      {
+        label: _('addToExistingContact'),
+        callback: function() {
+          src += '#add-parameters?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      }
+      ]);
+      action.show();
     }
-    var timestamp = new Date().getTime();
-    contactsIframe.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
@@ -397,8 +419,12 @@ var Recents = {
       '  </section>' +
       '  <section class="log-item-info grid">' +
       '    <div class="grid-cell grid-v-align">' +
-      '      <section class="primary-info ellipsis">' +
-               recent.number +
+      '      <section class="primary-info">' +
+      '        <span class="primary-info-main ellipsis">' +
+                 recent.number +
+      '        </span>' +
+      '        <span class="entry-count">' +
+      '        </span>' +
       '      </section>' +
       '      <section class="secondary-info">' +
       '        <span class="call-time">' +
@@ -486,14 +512,14 @@ var Recents = {
   contactCallBack: function re_contactCallBack(logItem, contact) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact != null) {
-      // Update name
-      var primaryInfo = logItem.querySelector('.primary-info'),
+      var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
         phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
-      primaryInfo.innerHTML = ((contact.name && contact.name != '') ?
-        contact.name : _('unknown'));
-      primaryInfo.innerHTML = primaryInfo.innerHTML.trim() +
-        ((count > 1) ? '&nbsp;&nbsp;(' + count + ')' : '');
+      primaryInfoMainNode.textContent = (contact.name && contact.name != '') ?
+        contact.name : _('unknown');
+      var entryCountNode = logItem.querySelector('.entry-count');
+      entryCountNode.textContent = (count > 1) ? '(' + count + ')' : '';
+      this.fitPrimaryInfoToSpace(logItem);
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
@@ -579,16 +605,9 @@ var Recents = {
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
     olderCallEl.classList.add('hide');
     olderCallEl.classList.add('collapsed');
-    var primaryInfo = newerCallEl.querySelector('.primary-info'),
-      callDetails = primaryInfo.textContent.trim(),
-      countIndex = callDetails.indexOf('(' + count + ')');
     count += inc;
-    if (countIndex != -1) {
-      primaryInfo.innerHTML = callDetails.substr(0, countIndex).trim() +
-        '&nbsp;&nbsp;(' + count + ')';
-    } else {
-      primaryInfo.innerHTML = callDetails + '&nbsp;&nbsp;(' + count + ')';
-    }
+    var entryCountNode = newerCallEl.querySelector('.entry-count');
+    entryCountNode.textContent = '(' + count + ')';
     newerCallEl.dataset.count = count;
   },
 
@@ -602,6 +621,25 @@ var Recents = {
       itemsLength = items.length;
     for (var i = 0; i < itemsLength; i++) {
       items[i].classList.remove('highlighted');
+    }
+  },
+
+  fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
+    var primaryInfoNode = logItemNode.querySelector('.primary-info'),
+      primaryInfoMainNode = logItemNode.querySelector('.primary-info-main'),
+      entryCountNode = logItemNode.querySelector('.entry-count'),
+      primaryInfoNodeCS = window.getComputedStyle(primaryInfoNode),
+      primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode),
+      entryCountNodeCS = window.getComputedStyle(entryCountNode),
+      primaryInfoNodeWidth = parseInt(primaryInfoNodeCS.width),
+      primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width),
+      entryCountNodeWidth = parseInt(entryCountNodeCS.width);
+    if (!isNaN(primaryInfoNodeWidth) && !isNaN(primaryInfoMainNodeWidth) &&
+      !isNaN(entryCountNodeWidth) &&
+      (primaryInfoNodeWidth < primaryInfoMainNodeWidth + entryCountNodeWidth)) {
+      var newWidth = primaryInfoNodeWidth - entryCountNodeWidth - 4;
+      primaryInfoMainNode.classList.add('ellipsed');
+      primaryInfoMainNode.style.width = newWidth + 'px';
     }
   }
 };

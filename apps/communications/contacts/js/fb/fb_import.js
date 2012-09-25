@@ -96,6 +96,7 @@ if (typeof fb.importer === 'undefined') {
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
+        from: 'import',
         data: ''
       };
 
@@ -624,7 +625,7 @@ if (typeof fb.importer === 'undefined') {
         var syear = sbday.substring(iyear + 1, sbday.length);
 
         ret.setDate(parseInt(sday));
-        ret.setMonth(parseInt(smonth), parseInt(sday));
+        ret.setMonth(parseInt(smonth) - 1, parseInt(sday));
 
         if (syear && syear.length > 0) {
           ret.setYear(parseInt(syear));

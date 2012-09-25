@@ -34,7 +34,6 @@
 //    getAppFrame(origin): returns the iframe element for the specified origin
 //      which is assumed to be running.  This is only currently used
 //      for tests and chrome stuff: see the end of the file
-//    getNumberOfRunningApps(): returns the numbers of running apps.
 //    setDisplayedApp(origin): set displayed app.
 //      XXX: should be removed.
 //
@@ -139,6 +138,9 @@ var WindowManager = (function() {
     var cssWidth = window.innerWidth + 'px';
     var cssHeight = window.innerHeight - StatusBar.height + 'px';
 
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight + 'px';
+
     frame.style.width = cssWidth;
 
     frame.style.height = cssHeight;
@@ -157,6 +159,9 @@ var WindowManager = (function() {
 
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
+
+    if (app.manifest.fullscreen)
+      cssHeight = window.innerHeight - keyboardHeight + 'px';
 
     frame.style.height = cssHeight;
 
@@ -226,6 +231,12 @@ var WindowManager = (function() {
         break;
 
       case 'opened':
+        // Take the focus away from the currently displayed app
+        var app = runningApps[displayedApp];
+        if (app && app.frame)
+          app.frame.blur();
+
+        // Give the focus to the frame
         openFrame.setVisible(true);
         openFrame.focus();
 
@@ -288,6 +299,10 @@ var WindowManager = (function() {
         break;
 
       case 'inline-activity-opened':
+        openFrame.setVisible(true);
+        openFrame.focus();
+
+        sprite.style.background = '';
         sprite.className = '';
         openFrame = null;
 
@@ -685,17 +700,9 @@ var WindowManager = (function() {
     // run out of process. All other apps will be run OOP.
     //
     var outOfProcessBlackList = [
-      // Bugs that are shared among multiple apps are listed here.
-      // Bugs that affect only specific apps should be listed under
-      // the apps themselves.
-      //
-      // Keyboard always shows up alpha when app using keyboard is run OOP
-      //   https://bugzilla.mozilla.org/show_bug.cgi?id=776118
-      // Keyboard doesn't show up correctly when app run OOP
-      //   https://github.com/mozilla-b2g/gaia/issues/2656
-
       'Browser',
-      // Requires nested content processes (bug 761935)
+      // Requires nested content processes (bug 761935).  This is not
+      // on the schedule for v1.
 
       'Cost Control',
       // Cross-process SMS (bug 775997)
@@ -704,10 +711,6 @@ var WindowManager = (function() {
       // SSL/TLS support can only happen in the main process although
       // the TCP support without security will accidentally work OOP
       // (bug 770778)
-
-      'Image Uploader',
-      // Cannot upload files when OOP
-      // bug 783878
 
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
@@ -831,20 +834,36 @@ var WindowManager = (function() {
     if (!inlineActivityFrame)
       return;
 
+    // Remore the inlineActivityFrame reference
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
 
+    // If frame is transitioning we should cancel the transition.
     if (openFrame == frame)
       sprite.className = '';
 
+    // If frame is never set visible, we can remove the frame directly
+    // without closing transition
     if (!frame.classList.contains('active')) {
       windows.removeChild(frame);
+
       return;
     }
 
+    // Take keyboard focus away from the closing window
+    frame.blur();
+    frame.setVisible(false);
+
+    // Give back focus to the displayed app
+    var app = runningApps[displayedApp];
+    if (app && app.frame)
+      app.frame.focus();
+
+    // Remove the active class and start the closing transition
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
 
+    // When closing transition ends, remove the frame
     frame.addEventListener('transitionend', function frameTransitionend() {
       frame.removeEventListener('transitionend', frameTransitionend);
       windows.removeChild(frame);
@@ -1162,18 +1181,18 @@ var WindowManager = (function() {
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
-  'keyboardchange', 'keyboardhide', 'attentionscreenshow', 'attentionscreenhide'];
+  'keyboardchange', 'keyboardhide'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
-      if (event == 'keyboardchange') {
-        if (document.mozFullScreen)
-          document.mozCancelFullScreen();
-        setAppHeight(evt.detail.height);
-      } else if (event == 'attentionscreenshow') {
-        if (document.mozFullScreen)
-          document.mozCancelFullScreen();
-      } else if (displayedApp) {
+      if (displayedApp)
         setAppSize(displayedApp);
+
+      if (event == 'keyboardchange') {
+        // Cancel fullscreen if keyboard pops
+        if (document.mozFullScreen)
+          document.mozCancelFullScreen();
+
+        setAppHeight(evt.detail.height);
       }
     });
   });
@@ -1223,6 +1242,19 @@ var WindowManager = (function() {
     window.dispatchEvent(evt);
   });
 
+  // This is code copied from
+  // http://dl.dropbox.com/u/8727858/physical-events/index.html
+  // It appears to workaround the Nexus S bug where we're not
+  // getting orientation data.  See:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  // It seems it needs to be in both window_manager.js and bootstrap.js.
+  function dumbListener2(event) {}
+  window.addEventListener('devicemotion', dumbListener2);
+
+  window.setTimeout(function() {
+    window.removeEventListener('devicemotion', dumbListener2);
+  }, 2000);
+
   // Return the object that holds the public API
   return {
     launch: launch,
@@ -1231,9 +1263,6 @@ var WindowManager = (function() {
     getDisplayedApp: getDisplayedApp,
     setOrientationForApp: setOrientationForApp,
     getAppFrame: getAppFrame,
-    getNumberOfRunningApps: function() {
-      return numRunningApps;
-    },
     getRunningApps: function() {
        return runningApps;
     },

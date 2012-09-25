@@ -19,11 +19,19 @@
     },
     "pick": {
       "filters": {
+        "type": ["image/jpeg", "image/png"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#pick"
+    },
+    "open": {
+      "filters": {
         "type": "image/jpeg"
        },
       "disposition": "inline",
       "returnValue": true,
-      "href": "/index.html#inlineActivity"
+      "href": "/index.html#open"
     }
   },
   "locales": {

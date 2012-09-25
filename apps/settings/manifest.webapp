@@ -24,6 +24,14 @@
         "target": "device"
        },
       "disposition": "window"
+    },
+    "configure": {
+      "filters": {
+        "target": "simpin-unlock"
+       },
+      "disposition": "inline",
+      "href": "unlock-simpin.html",
+      "returnValue": true
     }
   },
   "messages": ["bluetooth-requestconfirmation", 
