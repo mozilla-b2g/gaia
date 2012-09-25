@@ -240,6 +240,8 @@ var Camera = {
   filmStripPressed: function camera_filmStripPressed(e) {
     // Launch the gallery with an open activity to view this specific photo
     var filename = e.target.getAttribute('data-filename');
+    var storage = this._storage;
+
     var a = new MozActivity({
       name: 'open',
       data: {
@@ -253,7 +255,7 @@ var Camera = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         evt.target.result.launch();
       };
-    };
+    }
 
     a.onerror = function(e) {
       reopen();
@@ -263,9 +265,10 @@ var Camera = {
       reopen();
 
       if (a.result.delete) {
-        // XXX: the user asked to delete this photo, so
-        // delete it from device storage and remove from the filmstrip
-        console.warn('delete feature is not yet implemented');
+        storage.delete(filename).onerror = function(e) {
+          console.error('Failed to delete', filename,
+                        'from DeviceStorage:', e.target.error);
+        };
       }
     };
   },
