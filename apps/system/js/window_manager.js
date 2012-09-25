@@ -137,7 +137,12 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight - StatusBar.height + 'px';
+    var cssHeight = window.innerHeight - StatusBar.height;
+    if ('wrapper' in frame.dataset) {
+      cssHeight -= 10;
+    }
+    cssHeight += 'px';
+
 
     if (app.manifest.fullscreen)
       cssHeight = window.innerHeight + 'px';
