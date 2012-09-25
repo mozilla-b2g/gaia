@@ -16029,8 +16029,8 @@ function MailParser(options){
     /**
      * An array of multipart nodes
      * @private */ this._multipartTree = [];
-     
-     
+
+
     /**
      * This is the final mail structure object that is returned to the client
      * @public  */ this.mailData       = {};
@@ -16775,6 +16775,12 @@ MailParser.prototype._finalizeContents = function(){
 
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
                 this._currentNode.content = mimelib.decodeQuotedPrintable(this._currentNode.content, false, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
+              if (this._currentNode.meta.textFormat === "flowed") {
+                if (this._currentNode.meta.textDelSp === "yes")
+                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, '');
+                else
+                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, ' ');
+                }
             }else if(this._currentNode.meta.transferEncoding == "base64"){
                 this._currentNode.content = mimelib.decodeBase64(this._currentNode.content, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
             }else{
@@ -17066,15 +17072,15 @@ MailParser.prototype._convertString = function(value, fromCharset, toCharset){
     if(toCharset == fromCharset){
         return value;
     }
-    
+
     value = encodinglib.convert(value, toCharset, fromCharset);
-    
+
     return value;
 };
 
 /**
  * <p>Converts a string to UTF-8</p>
- * 
+ *
  * @param {String} value String to be encoded
  * @returns {String} UTF-8 encoded string
  */
