@@ -16,8 +16,7 @@
     "settings",
     "wifi-manage",
     "wifi",
-    "attention",
-    "telephony"
+    "attention"
   ],
   "activities": {
     "configure": {

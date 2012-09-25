@@ -51,9 +51,10 @@
         break;
       case icc.STK_CMD_SET_UP_CALL:
         console.log(" STK:Setup Phone Call. Number: " + command.options.address);
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         if(confirm(command.options.confirmMessage)) {
-          window.navigator.mozTelephony.dial(command.options.address);
+          icc.sendStkResponse(command, { hasConfirmed: true, resultCode: icc.STK_RESULT_OK });
+        } else {
+          icc.sendStkResponse(command, { hasConfirmed: false, resultCode: icc.STK_RESULT_OK });
         }
         break;
       case icc.STK_CMD_LAUNCH_BROWSER:
