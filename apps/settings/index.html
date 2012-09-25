@@ -286,6 +286,19 @@
         </li>
         <li>
           <label class="switch">
+            <input type="checkbox" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
+      </header>
+      <ul>
+        <li>
+          <label class="switch">
             <input type="checkbox" name="ril.data.enabled"/>
             <span></span>
           </label>
@@ -298,12 +311,8 @@
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
         </li>
-        <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.callwaiting.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
+        <li id="dataRoaming-expl" class="explanation">
+          <!-- filled dynamically - text only -->
         </li>
       </ul>
 
@@ -381,7 +390,7 @@
       <header>
         <h2 data-l10n-id="bluetoothDevices">Devices</h2>
       </header>
-      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg">
+      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg" class="explanation">
         Turn Bluetooth on to pair with devices that are within range.
       </div>
       <ul id="bluetooth-show-paired-devices">
@@ -1159,7 +1168,7 @@
     </section>
 
     <!-- Device :: Accessibility -->
-    <section role="region" id="accessibility" data-leaf>
+    <section role="region" id="accessibility" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="accessibility">
@@ -1175,7 +1184,7 @@
           </label>
           <a data-l10n-id="invertColors">Invert Colors</a>
         </li>
-        <li>
+        <li hidden>
           <label>
             <input type="checkbox" name="accessibility.screenreader"/>
             <span></span>
@@ -1323,7 +1332,7 @@
           <small id="media-storage-desc"></small>
           <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
         </li>
-        <li>
+        <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
         <li>

@@ -7,20 +7,34 @@
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+  <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
+  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
 
   <!-- Specific code -->
-  <script type="text/javascript" src="js/debug.js"></script>
-  <script type="text/javascript" src="js/service_utils.js"></script>
+  <script type="text/javascript" src="js/utils/debug.js"></script>
+  <script type="text/javascript" src="js/utils/formatting.js"></script>
+
+  <script type="text/javascript" src="js/service/service_utils.js"></script>
   <script type="text/javascript" defer src="js/widget.js"></script>
 </head>
 <body>
   <section id="cost-control">
-    <div id="cost-control-icon"></div>
+    <section id="balance-view">
+      <div id="balance-icon"></div>
     <div>
-      <p><span id="cost-control-currency"></span><span id="cost-control-credit"></span></p>
-      <p><time id="cost-control-time"></time></p>
+        <p><span class="unit" id="balance-currency"></span><span id="balance-credit"></span></p>
+        <p class="time"><time id="balance-time"></time></p>
     </div>
+    </section>
+
+    <section id="telephony-view" aria-hidden="true">
+      <div>
+        <p><span id="telephony-calltime"></span><span class="unit">min</span> <span id="telephony-smscount"></span><span class="unit">SMS</span></p>
+        <p class="time"><time id="telephony-from-date"></time> – <time id="telephony-to-date"></time></p>
+      </div>
+    </section>
   </section>
 </body>
 </html>
