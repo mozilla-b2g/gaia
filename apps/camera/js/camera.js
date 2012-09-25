@@ -321,7 +321,7 @@ var Camera = {
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
-        this._largestPictureSize(camera.capabilities.pictureSizes);
+        this.largestPictureSize(camera.capabilities.pictureSizes);
       camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
@@ -557,7 +557,7 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  _largestPictureSize: function camera_largestPictureSize(pictureSizes) {
+  largestPictureSize: function camera_largestPictureSize(pictureSizes) {
     return pictureSizes.reduce(function(acc, size) {
       if (size.width + size.height > acc.width + acc.height) {
         return size;
