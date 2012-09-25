@@ -37,6 +37,7 @@
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         break;
+      case icc.STK_CMD_GET_INKEY:
       case icc.STK_CMD_GET_INPUT:
         updateInput(command);
         break;
