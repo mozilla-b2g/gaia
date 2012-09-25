@@ -57,7 +57,8 @@ Evme.Location = new function() {
         ERROR_TIP_BUTTON_OK = options.texts.errorTipButtonOK;
         ERROR_CANT_LOCATE_TITLE = options.texts.errorCantLocateTitle;
         ERROR_CANT_LOCATE_TEXT = options.texts.errorCantLocateText;
-        ERROR_CANT_LOCATE_BUTTON = options.texts.errorCantLocateButton;
+        ERROR_CANT_LOCATE_BUTTON_CANCEL = options.texts.errorCantLocateButtonCancel;
+        ERROR_CANT_LOCATE_BUTTON_SETTINGS = options.texts.errorCantLocateButtonSettings;
         
         $elSelectorDialog.find(".title").html(TEXT_MENU_TITLE);
         $elSelectorDialog.find(".manual h2").html(TEXT_MANUAL_TITLE);
@@ -585,10 +586,17 @@ Evme.Location = new function() {
             "title": ERROR_CANT_LOCATE_TITLE,
             "content": ERROR_CANT_LOCATE_TEXT,
             "buttons": {
-                "ok": {
-                    "text": ERROR_CANT_LOCATE_BUTTON,
-                    "remove": true,
-                    "entireDialog": true
+                "cancel": {
+                    "text": ERROR_CANT_LOCATE_BUTTON_CANCEL,
+                    "remove": true
+                },
+                "settings": {
+                    "text": ERROR_CANT_LOCATE_BUTTON_SETTINGS,
+                    "callback": function() {
+                        var host = document.location.host;
+                        var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+                        Applications.getByOrigin(document.location.protocol + '//settings.' + domain).launch();
+                    }
                 }
             },
             "blackout": true,
