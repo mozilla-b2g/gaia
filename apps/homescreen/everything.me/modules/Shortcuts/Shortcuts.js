@@ -427,10 +427,8 @@ Evme.Shortcuts = new function() {
 Evme.Shortcut = function() {
     var _name = "Shortcut", _this = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
         $el = null, $thumb = null,  index = -1, query = "", image = "", imageLoadingRetry = 0,
-        onClick = null, onDragStart = null, onRemove = null, alreadyRemoved = false,
-        timeoutDrag = null;
-        
-    var DRAG_THRESHOLD = 100;
+        onClick = null, onDragStart = null, onRemove = null, alreadyRemoved = false, tapIgnored = false,
+        timeoutDrag = null, touchStartPos = null, DISTANCE_TO_IGNORE_AS_MOVE = 5, DRAG_THRESHOLD = 100;
     
     this.init = function(_cfg, _index, _onClick, _onDragStart, _onRemove) {
         cfg = _cfg;
@@ -454,10 +452,10 @@ Evme.Shortcut = function() {
         
         _this.setImage(cfg.appIds);
         
-        if (onDragStart) {
-            $el.bind("touchstart", touchstart);
-        }
-        $el.bind("click", clicked);
+        $el.bind("touchstart", touchstart)
+           .bind("touchmove", touchmove)
+           .bind("click", clicked);
+           
         //$el.find(".remove").bind("click", removed);
         
         return $el;
@@ -488,15 +486,33 @@ Evme.Shortcut = function() {
     };
     
     function touchstart(e) {
-        timeoutDrag = window.setTimeout(function(){
-            onDragStart && onDragStart({
-                "e": e,
-                "shortcut": _this
-            });
-        }, DRAG_THRESHOLD);
+        if (onDragStart) {
+            timeoutDrag = window.setTimeout(function(){
+                onDragStart && onDragStart({
+                    "e": e,
+                    "shortcut": _this
+                });
+            }, DRAG_THRESHOLD);    
+        }
+        
+        tapIgnored = false;
+        touchStartPos = getEventPoint(e);
+    }
+    
+    function touchmove(e) {
+        if (!touchStartPos) { return; }
+        
+        var point = getEventPoint(e),
+            distanceX = [point[0] - touchStartPos[0]];
+            
+        if (Math.abs(distanceX[0]) > DISTANCE_TO_IGNORE_AS_MOVE) {
+            tapIgnored = true;
+        }
     }
     
     function clicked() {
+        if (tapIgnored) { return false; }
+
         window.clearTimeout(timeoutDrag);
         
         onClick({
@@ -523,5 +539,12 @@ Evme.Shortcut = function() {
             "$el": $el,
             "index": index
         });
+    }
+    
+    function getEventPoint(e) {
+        var touch = e.touches && e.touches[0] ? e.touches[0] : e,
+            point = touch && [touch.pageX || touch.clientX, touch.pageY || touch.clientY];
+        
+        return point;
     }
 };
