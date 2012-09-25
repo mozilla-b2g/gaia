@@ -259,13 +259,19 @@ contacts.Details = (function() {
     });
 
     if (!isFbContact) {
-      social.querySelector('#profile_button').classList.add('hide');
+      var profileButton = social.querySelector('#profile_button');
+      if (profileButton)
+        profileButton.classList.add('hide');
     } else {
-      social.querySelector('#social-label').textContent = _('facebook');
+        var socialLabel = social.querySelector('#social-label');
+        if (socialLabel)
+          socialLabel.textContent = _('facebook');
     }
 
     if (isFbContact && !linked) {
-      social.querySelector('#link_button').classList.add('hide');
+      var linkButton = social.querySelector('#link_button');
+      if (linkButton)
+        linkButton.classList.add('hide');
     }
 
     listContainer.appendChild(social);
