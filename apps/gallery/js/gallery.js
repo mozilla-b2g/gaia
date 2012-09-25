@@ -1,18 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-// TODO:
-// - Get orientation working when leaving fullscreen
-// - Don't say "no photos" on startup... say "scanning" and localize it.
-// - Don't show wrong photo when panning at edges
-// - retain scroll position in thumbnail view
-// - put most recent photos (or screenshots) first
-// - in landscape mode, the 'no photos' message is too low
-// - match visual design and wireframes better
-// - add delete capability
-// - add filter effects
-
-
 'use strict';
 
 /*
