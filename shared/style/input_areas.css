@@ -26,13 +26,18 @@ textarea:-moz-placeholder {
   color: #666;
 }
 
-label {
+form p {
   display: block;
   position: relative;
+  margin: 0;
 }
 
-label input + button[type="reset"],
-label textarea + button[type="reset"] {
+form p + p {
+  margin-top: 1rem;
+}
+
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
   width: 3.4rem;
   height: 3.4rem;
   padding: 0;
@@ -47,8 +52,8 @@ label textarea + button[type="reset"] {
   pointer-events: none;
 }
 
-label input:valid + button[type="reset"],
-label textarea:valid + button[type="reset"] {
+form p input:valid + button[type="reset"],
+form p textarea:valid + button[type="reset"] {
   opacity: 1;
   pointer-events: all;
 }
@@ -61,6 +66,10 @@ fieldset {
   font: 1.4rem/1em "Open Sans", Sans-serif;
   padding: 0;
   overflow: hidden;
+}
+
+fieldset  + fieldset {
+  margin-top: 1.5rem;
 }
 
 fieldset legend {
@@ -79,11 +88,11 @@ fieldset legend {
   text-transform: uppercase;
 }
 
-fieldset legend[role="button"] {
+fieldset legend.action {
   position: relative;
 }
 
-fieldset legend[role="button"]:after {
+fieldset legend.action:after {
   content: "";
   width: 0;
   height: 0;
@@ -111,11 +120,12 @@ fieldset section {
   overflow: hidden;
 }
 
-fieldset section label {
+fieldset section p {
   border-bottom: 1px solid #DDD;
+  margin: 0;
 }
 
-fieldset section label:last-child {
+fieldset section p:last-child {
   border-bottom: medium none;
 }
 
@@ -127,7 +137,7 @@ form[role="search"] {
   position: relative;
 }
 
-form[role="search"].full label {
+form[role="search"].full p {
   width: 100%;
   background: none;
 }
@@ -157,7 +167,7 @@ form[role="search"].bottom:after {
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
-form[role="search"] label {
+form[role="search"] p {
   display: block;
   overflow: hidden;
   -moz-box-sizing: border-box;
@@ -165,17 +175,17 @@ form[role="search"] label {
   background: url(input_areas/images/ui/separator.png) no-repeat right center;
 }
 
-form[role="search"] label input {
+form[role="search"] p input {
   height: 2.4rem;
   width: 100%;
   padding-right: 3rem;
 }
 
-form[role="search"] label input:focus {
+form[role="search"] p input:focus {
   border-color: #a4a4a4;
 }
 
-form[role="search"] label button[type="reset"] {
+form[role="search"] p button[type="reset"] {
   right: 1rem;
 }
 
@@ -195,10 +205,8 @@ form[role="search"] button[type="submit"]:active {
   background: url(input_areas/images/ui/active.png) repeat-x left bottom;
 }
 
-form[role="search"] button:focus,
-label button[type="reset"]:focus,
-form[role="search"] button::-moz-focus-inner,
-label button[type="reset"]::-moz-focus-inner {
+form p button[type="reset"]:focus,
+form p button[type="reset"]::-moz-focus-inner {
   border: none;
   outline: none;
 }

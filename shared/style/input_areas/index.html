@@ -27,80 +27,80 @@
       padding: 0.4rem 0.4rem 0.4rem 3rem;
       border: solid 1px #e8e8e8;
     }
-    body > label {
-      margin: 1rem 2rem;
-      display: block;
-    }
-    fieldset, form { margin: 1rem 2rem; }
+   form { margin: 1rem 2rem; }
   </style>
 </head>
 
 <body role="application">
 
     <h2 class="bb-docs">Default inputs</h2>
-    <label for="myinput-1">
-      <input type="text" placeholder="Placeholder" required id="myinput-1">
-      <button type="reset">Clear</button>
-    </label>
+    <form>
+      <p>
+        <input type="text" placeholder="Placeholder" required>
+        <button type="reset">Clear</button>
+      </p>
 
-    <label for="myinput-2">
-      <textarea placeholder="Placeholder in textarea" required id="myinput-2"></textarea>
-      <button type="reset">Clear</button>
-    </label>
+      <p>
+        <textarea placeholder="Placeholder in textarea" required></textarea>
+        <button type="reset">Clear</button>
+      </p>
 
-    <label for="myinput-3">
-      <input type="text" placeholder="Placeholder" value="Some written text" required id="myinput-3">
-      <button type="reset">Clear</button>
-    </label>
+      <p>
+        <input type="text" placeholder="Placeholder" value="Some written text" required>
+        <button type="reset">Clear</button>
+      </p>
+    </form>
 
     <h2 class="bb-docs">Fieldset</h2>
-     <fieldset>
-      <legend role="button">Mobile</legend>
-      <section>
-        <label for="myinput-4">
-          <input type="tel" placeholder="Phone number" required id="myinput-4">
-          <button type="reset">Clear</button>
-        </label>
-        <label for="myinput-5">
-          <input type="text" placeholder="Name" value="Jessy James" required id="myinput-5">
-          <button type="reset">Clear</button>
-        </label>
-      </section>
-    </fieldset>
+     <form>
+      <fieldset>
+        <legend class="action">Mobile</legend>
+        <section>
+          <p>
+            <input type="tel" placeholder="Phone number" required>
+            <button type="reset">Clear</button>
+          </p>
+          <p>
+            <input type="text" placeholder="Name" value="Jessy James" required>
+            <button type="reset">Clear</button>
+          </p>
+        </section>
+      </fieldset>
 
-    <fieldset>
-      <legend>Work</legend>
-      <section>
-        <label for="myinput-6">
-          <input type="tel" placeholder="Email" required id="myinput-6">
-          <button type="reset">Clear</button>
-        </label>
-      </section>
-    </fieldset>
+      <fieldset>
+        <legend>Work</legend>
+        <section>
+          <p>
+            <input type="tel" placeholder="Email" required>
+            <button type="reset">Clear</button>
+          </p>
+        </section>
+      </fieldset>
+     </form>
 
     <h2 class="bb-docs">Search form</h2>
     <form role="search">
       <button type="submit">Send</button>
-      <label for="myinput-7">
-        <input type="tel" placeholder="Email" required id="myinput-7">
+      <p>
+        <input type="tel" placeholder="Email" required>
         <button type="reset">Clear</button>
-      </label>
+      </p>
     </form>
 
     <form role="search" class="full">
       <button type="submit">Send</button>
-      <label for="myinput-8">
-        <input type="tel" placeholder="Email" required id="myinput-8">
+      <p>
+        <input type="tel" placeholder="Email" required>
         <button type="reset">Clear</button>
-      </label>
+      </p>
     </form>
 
     <form  role="search" class="bottom">
       <button type="submit">Send</button>
-      <label for="myinput-9">
-        <input type="tel" placeholder="Email" required id="myinput-9">
+      <p>
+        <input type="tel" placeholder="Email" required>
         <button type="reset">Clear</button>
-      </label>
+      </p>
     </form>
 
 
