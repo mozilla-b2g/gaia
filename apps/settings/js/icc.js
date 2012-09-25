@@ -87,7 +87,6 @@
    * Handle session end
    */
   function handleSTKSessionEnd(event) {
-    icc.sendStkResponse(event.command, { resultCode: icc.STK_RESULT_OK });
     updateMenu();
   }
 
