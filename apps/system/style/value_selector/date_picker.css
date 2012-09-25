@@ -1,0 +1,152 @@
+/* override section[role="dialog"] h3 */
+#date-picker h3 {
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 1em;
+  color: #fff;
+  border-bottom: 0.1rem solid #686868;
+  margin: 0 2.5rem 1rem 2rem;
+  padding-bottom: 1rem;
+}
+
+/* specific component code for date picker */
+#date-picker {
+  height: 87.5%;
+  width: calc(100% + 5px);
+  padding: 0;
+  font-size: 2.2rem;
+  line-height: 1em;
+  margin-left: -5px;
+  display: inline-block;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+#date-picker ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#date-picker-controls > button {
+  float: none;
+  width: auto;
+  text-overflow: none;
+  font: 0/0 a;
+  position: absolute;
+  top: 0.5rem;
+  z-index: 100;
+  width: 7.5rem;
+  height: 4.5rem;
+  border: none;
+  background: transparent no-repeat center center;
+}
+
+#date-picker-controls {
+  position: relative;
+  overflow: hidden;
+}
+
+#date-picker-controls h1 {
+  font-weight: 200;
+  font-size: 2.2rem;
+  line-height: 1em;
+  text-align: center;
+  margin: 1.5rem 0px 2rem;
+}
+
+#date-picker-controls button.next {
+  background-image: url(images/icons/next.png);
+  right: 0;
+}
+
+#date-picker-controls button.previous {
+  background-image: url(images/icons/prev.png);
+  left: 0;
+}
+
+#date-picker:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 13.4rem;
+  bottom: 0;
+  background: url(images/ui/shadow.png) repeat-y left top, url(images/ui/shadow-invert.png) repeat-y right top;
+  pointer-events: none;
+}
+
+#date-picker ol {
+  width: 100%;
+  overflow: hidden;
+  clear: both;
+}
+
+#date-picker li {
+  width: 14.285%;
+  text-align: center;
+  float: left;
+}
+
+#date-picker-weekdays li {
+  width: 14.285%;
+  font-size: 1.1rem;
+  line-height: 1em;
+  font-weight: normal;
+  text-transform: uppercase;
+  background: #333;
+  padding: 0.5rem 0.2rem;
+  border-top: solid 1px #000;
+}
+
+#date-picker-container {
+  border-bottom: 1px solid #000;
+}
+
+#date-picker-container li {
+  border: solid 1px #000;
+  border-bottom: none;
+  line-height: 4.5rem;
+  height: 4.5rem;
+}
+
+#date-picker-container .weeks-4 li {
+  line-height: 5.625rem;
+  height: 5.625rem;
+}
+
+#date-picker-container .weeks-6 li {
+  line-height: 3.75rem;
+  height: 3.75rem;
+}
+
+#date-picker-container li > span {
+  display: block;
+  font-weight: 200;
+  text-align: center;
+  transition: background 0.2s ease;
+  border: solid 1px #555;
+  border-left: none;
+  border-bottom: none;
+}
+
+#date-picker-container li.past span {
+  color: #717171;
+}
+
+#date-picker-container li.present {
+  background: url(images/ui/pattern-current.png) repeat left top;
+}
+
+#date-picker-container span.selected  {
+  background: #00A5C5;
+}
+
+#date-picker-container ol li:last-child {
+  border-right: none;
+}
+
+#date-picker * {
+  -moz-box-sizing: border-box;
+}

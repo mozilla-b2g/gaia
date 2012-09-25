@@ -26,7 +26,6 @@ var Camera = {
   _cameraObj: null,
 
   _photosTaken: [],
-  _effect: 0,
   _cameraProfile: null,
 
   _filmStripShown: false,
@@ -115,7 +114,7 @@ var Camera = {
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
-    this.filmStrip.addEventListener('click', this.filmStripPressed.bind(this));
+
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
     this.captureButton
@@ -225,14 +224,36 @@ var Camera = {
   },
 
   filmStripPressed: function camera_filmStripPressed(e) {
-    if (e.target.nodeName !== 'IMG')
-      return;
+    // Launch the gallery with an open activity to view this specific photo
+    var filename = e.target.getAttribute('data-filename');
+    var a = new MozActivity({
+      name: 'open',
+      data: {
+        type: 'image/jpeg',
+        filename: filename
+      }
+    });
 
-    //var filename = e.target.getAttribute('data-filename');
-    // TODO: We should launch the gallery with an activity that opens
-    // with the filename fullscreen, needs to be implemented in the gallery
-    // https://github.com/mozilla-b2g/gaia/issues/4161
-    this.galleryBtnPressed();
+    // XXX: this seems like it should not be necessary
+    function reopen() {
+      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+        evt.target.result.launch();
+      };
+    };
+
+    a.onerror = function(e) {
+      reopen();
+      console.warn('open activity error:', a.error.name);
+    };
+    a.onsuccess = function(e) {
+      reopen();
+
+      if (a.result.delete) {
+        // XXX: the user asked to delete this photo, so
+        // delete it from device storage and remove from the filmstrip
+        console.warn('delete feature is not yet implemented');
+      }
+    };
   },
 
   setSource: function camera_setSource(camera) {
@@ -280,7 +301,6 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this._largestPictureSize(camera.capabilities.pictureSizes);
-      camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
         width: width
@@ -339,11 +359,13 @@ var Camera = {
   showFilmStrip: function camera_showFilmStrip() {
     var strip = this.filmStrip;
     strip.innerHTML = '';
+    var self = this;
 
     this._photosTaken.forEach(function(image) {
       var preview = document.createElement('img');
       preview.src = window.URL.createObjectURL(image.blob);
       preview.setAttribute('data-filename', image.name);
+      preview.onclick = self.filmStripPressed.bind(self);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
       }

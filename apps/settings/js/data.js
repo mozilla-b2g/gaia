@@ -215,6 +215,31 @@ window.addEventListener('load', function getCarrierSettings() {
         restartDataConnection;
   }
 
+  // 'Data Roaming' message
+  var settings = Settings.mozSettings;
+  if (settings) {
+    var _ = window.navigator.mozL10n.get;
+    var dataRoamingSetting = 'ril.data.roaming_enabled';
+
+    var displayDataRoamingMessage = function(enabled) {
+      var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
+      document.getElementById('dataRoaming-expl').textContent = _(messageID);
+    }
+
+    // register an observer to monitor setting changes
+    settings.addObserver(dataRoamingSetting, function(event) {
+      displayDataRoamingMessage(event.settingValue);
+    });
+
+    // get the initial setting value
+    var req = settings.createLock().get(dataRoamingSetting);
+    req.onsuccess = function roaming_getStatusSuccess() {
+      displayDataRoamingMessage(req.result[dataRoamingSetting]);
+    };
+  } else {
+    document.getElementById('dataRoaming-expl').hidden = true;
+  }
+
   // initialize data settings
   gMobileConnection.addEventListener('datachange', updateConnection);
   updateConnection();

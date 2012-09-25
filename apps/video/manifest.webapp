@@ -64,5 +64,12 @@
   "icons": {
     "120": "/style/icons/Video.png",
     "60": "/style/icons/60/Video.png"
+  },
+  "activities": {
+    "view" : {
+      "filters": {
+        "type": ["video/webm", "video/mp4"]
+      }
+    }
   }
 }
