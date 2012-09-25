@@ -5,9 +5,9 @@ var Camera = {
   _cameras: null,
   _camera: 0,
   _captureMode: null,
+
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
-  _storageChecked: false,
   _currentOverlay: null,
 
   CAMERA: 'camera',
@@ -38,7 +38,16 @@ var Camera = {
   _phoneOrientation: 0,
 
   _storage: navigator.getDeviceStorage('pictures'),
+  _storageState: null,
+
+  STORAGE_INIT: 0,
+  STORAGE_AVAILABLE: 1,
+  STORAGE_UNAVAILABLE: 2,
+  STORAGE_UNMOUNTED: 3,
+  STORAGE_CAPACITY: 4,
+
   _pictureSize: null,
+  _previewPaused: false,
   _previewActive: false,
 
   _flashModes: [],
@@ -102,6 +111,7 @@ var Camera = {
 
   init: function camera_init() {
 
+    this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
 
     // We lock the screen orientation and deal with rotating
@@ -133,6 +143,9 @@ var Camera = {
     if (this._secureMode) {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
+
+    this._storage
+      .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
 
     this.setToggleCameraStyle();
     this.setSource(this._camera);
@@ -370,7 +383,7 @@ var Camera = {
       preview.onclick = self.filmStripPressed.bind(self);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
-      }
+      };
       strip.appendChild(preview);
     });
     strip.classList.remove('hidden');
@@ -419,21 +432,83 @@ var Camera = {
   },
 
   checkStorageSpace: function camera_checkStorageSpace() {
+    if (this.showDialog()) {
+      return;
+    }
     var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height *
       4 + 4096;
     this._storage.stat().onsuccess = (function(e) {
-      if (e.target.result.freeBytes > MAX_IMAGE_SIZE) {
-        this.showOverlay(null);
-        if (!this._previewActive) {
-          this.stop();
-        }
-      } else {
-        this.showOverlay('nospace');
-        if (this._previewActive) {
-          this.start();
-        }
+      var stats = e.target.result;
+
+      // If we have not yet checked the state of the storage, do so
+      if (this._storageState === this.STORAGE_INIT) {
+        this.updateStorageState(stats.state);
+        this.showDialog();
       }
+
+      if (this._storageState !== this.STORAGE_AVAILABLE) {
+        return;
+      }
+      if (stats.freeBytes < MAX_IMAGE_SIZE) {
+        this._storageState = this.STORAGE_CAPACITY;
+      }
+      this.showDialog();
+
     }).bind(this);
+  },
+
+  deviceStorageChangeHandler: function camera_deviceStorageChangeHandler(e) {
+    switch (e.reason) {
+    case 'available':
+    case 'unavailable':
+    case 'shared':
+      this.updateStorageState(e.reason);
+      break;
+    case 'deleted':
+      this.removeFromFilmStrip(e.path);
+    }
+    this.checkStorageSpace();
+  },
+
+  updateStorageState: function camera_updateStorageState(state) {
+    switch (state) {
+    case 'available':
+      this._storageState = this.STORAGE_AVAILABLE;
+      break;
+    case 'unavailable':
+      this._storageState = this.STORAGE_UNAVAILABLE;
+      break;
+    case 'shared':
+      this._storageState = this.STORAGE_UNMOUNTED;
+      break;
+    }
+  },
+
+  removeFromFilmStrip: function camera_removeFromFilmStrip(filename) {
+    this._photosTaken = this._photosTaken.filter(function(image) {
+      return image.name !== filename;
+    });
+    if (this._filmStripShown) {
+      this.showFilmStrip();
+    }
+  },
+
+  showDialog: function camera_updateDialog() {
+    if (this._storageState === this.STORAGE_UNAVAILABLE ||
+        this._storageState === this.STORAGE_UNMOUNTED ||
+        this._storageState === this.STORAGE_CAPACITY) {
+      this.showOverlay('nospace');
+      if (this._previewActive) {
+        this.stop();
+      }
+      return true;
+    }
+
+    if (!this._previewActive && !document.mozHidden) {
+      this.start();
+    }
+    this.showOverlay(null);
+    return false;
   },
 
   takePictureAutoFocusDone: function camera_takePictureAutoFocusDone(success) {
