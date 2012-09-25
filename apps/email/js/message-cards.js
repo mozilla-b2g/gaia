@@ -509,11 +509,20 @@ MessageListCard.prototype = {
             header.setRead(false);
             break;
           case 'msg-edit-menu-delete':
+            var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+            if (!req) {
+              return;
+            }
             op = header.deleteMessage();
             break;
           case 'msg-edit-menu-move':
-            //TODO: Add folder select panel and apply while move api ready.
-            //op = header.moveMessage(folderName);
+            // TODO: Move back-end mail api is not ready now.
+            //       Please verify this function when api landed.
+            Cards.folderSelector(function(folder) {
+              op = header.moveMessage(folder);
+              Toaster.logMutation(op);
+            });
+
             break;
 
           // Deletion, and moves, on the other hand, require a lot of manual
@@ -521,7 +530,7 @@ MessageListCard.prototype = {
         }
         if (op)
           Toaster.logMutation(op);
-      });
+      }.bind(this));
   },
 
   onRefresh: function() {
@@ -542,17 +551,26 @@ MessageListCard.prototype = {
   },
 
   onDeleteMessages: function() {
-    // TODO: Enable the batch delete when back-end api ready.
-    // var op = MailAPI.deleteMessages(this.selectedMessages);
-    // Toaster.logMutation(op);
+    // TODO: Batch delete back-end mail api is not ready for IMAP now.
+    //       Please verify this function under IMAP when api completed.
+    var req = confirm(mozL10n.get('message-multiedit-delete-confirm',
+                      { n: this.selectedMessages.length }));
+    if (!req) {
+      return;
+    }
+    var op = MailAPI.deleteMessages(this.selectedMessages);
+    Toaster.logMutation(op);
     this.setEditMode(false);
   },
 
   onMoveMessages: function() {
-    // TODO: Enable the batch move when back-end api ready.
-    // var op = MailAPI.moveMessages(this.selectedMessages, targetFolder);
-    // Toaster.logMutation(op);
-    this.setEditMode(false);
+    // TODO: Batch move back-end mail api is not ready now.
+    //       Please verify this function when api landed.
+    Cards.folderSelector(function(folder) {
+      var op = MailAPI.moveMessages(this.selectedMessages, folder);
+      Toaster.logMutation(op);
+      this.setEditMode(false);
+    }.bind(this));
   },
 
   buildEditMenuForMessage: function(header) {
@@ -716,6 +734,10 @@ MessageReaderCard.prototype = {
   },
 
   onDelete: function() {
+    var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+    if (!req) {
+      return;
+    }
     var op = this.header.deleteMessage();
     Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
@@ -744,9 +766,11 @@ MessageReaderCard.prototype = {
   },
 
   onMove: function() {
-    //TODO: Open the folder card view and pick a folder.
-    // var op = this.header.moveMessage(folder);
-    // Toaster.logMutation(op);
+    //TODO: Please verify move functionality after api landed.
+    Cards.folderSelector(function(folder) {
+      var op = this.header.moveMessage(folder);
+      Toaster.logMutation(op);
+    }.bind(this));
   },
 
   /**
