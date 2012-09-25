@@ -186,7 +186,6 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -314,10 +313,10 @@ function imageCreated(fileinfo) {
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
-      if (a.name < b.name)
+      if (a.date < b.date)
+        return 1;  // larger (newer) dates come first
+      else if (a.date > b.date)
         return -1;
-      else if (a.name > b.name)
-        return 1;
       return 0;
     });
   }
