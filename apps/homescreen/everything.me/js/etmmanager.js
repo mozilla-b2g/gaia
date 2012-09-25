@@ -74,3 +74,8 @@ var EvmeApp = function createEvmeApp(params) {
 };
 
 extend(EvmeApp, Bookmark);
+
+// Initialize Evme
+document.addEventListener("DOMContentLoaded", function() {
+  Evme.init(); 
+});
