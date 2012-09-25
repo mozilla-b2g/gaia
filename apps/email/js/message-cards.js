@@ -126,7 +126,7 @@ MessageListCard.prototype = {
       var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
       for (var i = 0; i < cbs.length; i++) {
         cbs[i].checked = false;
-      };
+      }
       this.selectedMessagesUpdated();
     }
     else {
@@ -276,6 +276,15 @@ MessageListCard.prototype = {
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
     this.onScroll(null);
+
+    // TODO: New message notification: We should find proper timing to trigger
+    //       notification. Here we pretend every update complete will trigger
+    //       this function and show notification if needed.
+    // Notification.show(notify_title, nofify_message, callback);
+
+    // XXX: Since the interval update is not ready yet, we set a fake sending
+    //      notification interval for testing.
+    // Notification.intervalNotifyTest(30000); // Show notification every 30 sec
   },
 
   /**

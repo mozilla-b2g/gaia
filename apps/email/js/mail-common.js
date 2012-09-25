@@ -751,6 +751,38 @@ var Toaster = {
   }
 };
 
+var Notification = {
+  show: function(sender, message, callback) {
+    // TODO: We only has vibrate/ringtone settings for dialer/sms app now.
+    //       Maybe we also need settings for email or unify for all other
+    //       apps which also need notification.
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      var iconURL = 'style/icons/Email.png';
+      var notiClick = function() {
+        // Asking to launch itself
+        app.launch();
+        if (callback) {
+          callback();
+        }
+      };
+
+      var notification = navigator.mozNotification.
+                           createNotification(sender, message, iconURL);
+      notification.onclick = notiClick;
+      notification.show();
+    }
+  },
+
+  intervalNotifyTest: function(duration) {
+    if (!this.intervalNotification) {
+      this.intervalNotification = window.setInterval(
+        this.show.bind(this, 'Email title', 'Email message', function() {
+            alert('test callback.');
+        }), duration);
+    }
+  }
+};
 ////////////////////////////////////////////////////////////////////////////////
 // Pretty date logic; copied from the SMS app.
 // Based on Resig's pretty date
