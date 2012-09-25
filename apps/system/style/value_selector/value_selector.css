@@ -1,15 +1,20 @@
-#value-selector [role="dialog"] {
-    top: 20px;
+#value-selector {
+  width: 100%;
+  height: -moz-calc(100% - 20px);
+  top: 20px;
+  left: 0;
+  position: absolute;
 }
 
-#value-selector [role="dialog"] [role="listbox"] {
-    max-height: 35rem;
+#screen.active-statusbar #value-selector {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
 }
 
-#value-selector [role="dialog"] [data-mode="scroll"] [role="listbox"] {
-  /* original style: 4rem - 1.2rem = 2.8rem (1.2rem scrollbar width) */
-  /* no need to minus scrollbar width */
-  padding: 0 4rem;
+#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen.fullscreen-app #value-selector {
+  height: 100%;
+  top: 0;
 }
 
 #select-options-buttons,
@@ -77,12 +82,6 @@ button.affirmative.active {
 
 #value-selector-container li > label {
     pointer-events: none;
-}
-
-#value-selector-container li.selected span {
-  padding-right: 0.5rem;
-  color: #00abcd;
-  background: url(../bb/menus_dialogs/value_selector/images/icons/checked.png) content-box right center no-repeat;
 }
 
 #value-selector-container li.active label span {

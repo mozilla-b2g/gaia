@@ -39,10 +39,12 @@ var Calculator = {
   appendValue: function calculator_appendValue(value) {
 
     // To avoid decimal separator repetition
-    if (value === '.' && this.isDecimalSeparatorPresent) {
-      return;
-    } else if (value === '.') {
-      this.isDecimalSeparatorPresent = true;
+    if (value == '.') {
+      if (this.isDecimalSeparatorPresent) {
+        return;
+      } else {
+        this.DecimalSeparatorPresent = true;
+      }
     }
 
     if (this.toClear) {
@@ -62,15 +64,17 @@ var Calculator = {
       return;
     }
 
-    if (this.stack.length === 0) {
-      return;
-    }
-
     // New operators will overwrite any current operators, because subtraction
     // is allowed after other operators there may be more than 1
     while (this.isOperator(this.stack[this.stack.length - 1])) {
       this.stack.pop();
     }
+
+    if (this.stack.length === 0) {
+      this.updateDisplay();
+      return;
+    }
+
     this.stack.push(value);
     this.updateDisplay();
   },

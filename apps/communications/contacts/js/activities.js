@@ -1,6 +1,8 @@
 var ActivityHandler = {
   _currentActivity: null,
 
+  _launchedAsInlineActivity: (window.location.search == '?pick'),
+
   get currentlyHandling() {
     return !!this._currentActivity;
   },
@@ -24,6 +26,9 @@ var ActivityHandler = {
   handle: function ah_handle(activity) {
     switch (activity.source.name) {
       case 'new':
+        if (this._launchedAsInlineActivity)
+          return;
+
         this._currentActivity = activity;
         document.location.hash = 'view-contact-form';
         if (this._currentActivity.source.data.params) {
@@ -36,10 +41,14 @@ var ActivityHandler = {
         }
         break;
       case 'pick':
+        if (!this._launchedAsInlineActivity)
+          return;
+
         this._currentActivity = activity;
         Contacts.navigation.home();
         break;
     }
+    Contacts.checkCancelableActivity();
   },
 
   postNewSuccess: function ah_postNewSuccess(contact) {

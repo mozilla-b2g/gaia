@@ -13,13 +13,8 @@ function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
-  musicdb = new MediaDB('music', metadataParser, {
-    indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
-    // mp3 mediaType: 'audio/mpeg'
-    // ogg mediaType: 'video/ogg'
-    // empty mediaType: no mp3 mediaType on B2G device
-    // desktop build does not have this issue
-    mimeTypes: ['audio/mpeg', 'video/ogg', '']
+  musicdb = new MediaDB('music', parseAudioMetadata, {
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title']
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -268,13 +263,13 @@ var TilesView = {
     showOverlay('nosongs');
   },
 
-  setItemImage: function tv_setItemImage(item, image) {
+  setItemImage: function tv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (!image)
+    if (!fileinfo.metadata.picture)
       return;
 
     item.addEventListener('load', cropImage);
-    item.src = createBase64URL(image);
+    createAndSetCoverURL(item, fileinfo);
   },
 
   update: function tv_update(result) {
@@ -301,8 +296,7 @@ var TilesView = {
     var img = document.createElement('img');
     img.className = 'tile-image';
 
-    var image = result.metadata.picture;
-    this.setItemImage(img, image);
+    this.setItemImage(img, result);
 
     // There are 6 tiles in one group
     // and the first tile is the main-tile
@@ -395,11 +389,11 @@ var ListView = {
     this.view.scrollTop = 0;
   },
 
-  setItemImage: function lv_setItemImage(item, image) {
+  setItemImage: function lv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
+    if (fileinfo.metadata.picture) {
       item.addEventListener('load', cropImage);
-      item.src = createBase64URL(image);
+      createAndSetCoverURL(item, fileinfo);
     }
   },
 
@@ -427,8 +421,7 @@ var ListView = {
     parent.appendChild(div);
     parent.appendChild(img);
 
-    var image = result.metadata.picture;
-    this.setItemImage(img, image);
+    this.setItemImage(img, result);
 
     switch (option) {
       case 'album':
@@ -490,10 +483,9 @@ var ListView = {
 
           var index = target.dataset.index;
           var data = this.dataSource[index];
-          var image = data.metadata.picture;
 
-          if (image)
-            SubListView.setAlbumSrc(createBase64URL(image));
+          if (data.metadata.picture)
+            SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
             SubListView.setAlbumName(data.metadata.artist);
@@ -546,6 +538,9 @@ var SubListView = {
 
     this.albumImage = document.getElementById('views-sublist-header-image');
     this.albumName = document.getElementById('views-sublist-header-name');
+    this.playAllButton = document.getElementById('views-sublist-controls-play');
+    this.shuffleButton =
+      document.getElementById('views-sublist-controls-shuffle');
 
     this.view.addEventListener('click', this);
   },
@@ -558,13 +553,39 @@ var SubListView = {
     this.view.scrollTop = 0;
   },
 
-  setAlbumSrc: function slv_setAlbumSrc(url) {
+  shuffle: function slv_shuffle() {
+    var list = this.dataSource;
+    shuffle(list);
+    this.dataSource = [];
+    this.index = 0;
+    this.anchor.innerHTML = '';
+    for (var i = 0; i < list.length; i++)
+      this.update(list[i]);
+
+    // shuffle the elements of array a in place
+    // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    function shuffle(a) {
+      for (var i = a.length - 1; i >= 1; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        if (j < i) {
+          var tmp = a[j];
+          a[j] = a[i];
+          a[i] = tmp;
+        }
+      }
+    }
+
+  },
+
+  setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    this.albumImage.src = url;
+    createAndSetCoverURL(this.albumImage, fileinfo);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
     function slv_showImage(evt) {
+      // Don't register multiple copies
+      evt.target.removeEventListener('load', slv_showImage);
       cropImage(evt);
       this.albumImage.classList.add('fadeIn');
     };
@@ -607,10 +628,19 @@ var SubListView = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        if (!target)
-          return;
 
-        if (target.dataset.index) {
+        if (target === this.shuffleButton) {
+          this.shuffle();
+          break;
+        }
+
+        if (target === this.playAllButton) {
+          // Clicking the play all button is the same as clicking
+          // on the first item in the list.
+          target = this.view.querySelector('li > a[data-index="0"]');
+        }
+
+        if (target && target.dataset.index) {
           PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
           PlayerView.play(target);
@@ -681,6 +711,10 @@ var PlayerView = {
 
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+
+    // A timer we use to work around
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+    this.endedTimer = null;
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -707,32 +741,37 @@ var PlayerView = {
     );
   },
 
-  setCoverImage: function pv_setCoverImage(image) {
+  setCoverImage: function pv_setCoverImage(fileinfo) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
-      this.coverImage.src = createBase64URL(image);
-      this.coverImage.addEventListener('load', pv_showImage.bind(this));
+    if (fileinfo.metadata.picture) {
+      createAndSetCoverURL(this.coverImage, fileinfo);
+      this.coverImage.addEventListener('load', pv_showImage);
     }
 
     function pv_showImage(evt) {
+      evt.target.removeEventListener('load', pv_showImage);
       cropImage(evt);
-      this.coverImage.classList.add('fadeIn');
+      evt.target.classList.add('fadeIn');
     };
   },
 
   play: function pv_play(target) {
     this.isPlaying = true;
 
+    if (this.endedTimer) {
+      clearTimeout(this.endedTimer);
+      this.endedTimer = null;
+    }
+
     this.showInfo();
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
-      var image = songData.metadata.picture;
 
       TitleBar.changeTitleText((songData.metadata.title) ?
         songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
@@ -742,7 +781,7 @@ var PlayerView = {
         songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
       this.currentIndex = targetIndex;
 
-      this.setCoverImage(image);
+      this.setCoverImage(songData);
 
       musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
         // On B2G devices, file.type of mp3 format is missing
@@ -890,9 +929,27 @@ var PlayerView = {
         break;
       case 'timeupdate':
         this.updateSeekBar();
+
+        // Since we don't always get reliable 'ended' events, see if
+        // we've reached the end this way.
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+        // If we're within 1 second of the end of the song, register
+        // a timeout to skip to the next song one second after the song ends
+        if (this.audio.currentTime >= this.audio.duration - 1 &&
+            this.endedTimer == null) {
+          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
+          this.endedTimer = setTimeout(function() {
+                                         this.endedTimer = null;
+                                         this.next();
+                                       }.bind(this),
+                                       timeToNext * 1000);
+        }
         break;
       case 'ended':
-        this.next();
+        // Because of the workaround above, we have to ignore real ended
+        // events if we already have a timer set to emulate them
+        if (!this.endedTimer)
+          this.next();
         break;
 
       default:

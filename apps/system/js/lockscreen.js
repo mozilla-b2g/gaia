@@ -20,6 +20,11 @@ var LockScreen = {
   enabled: true,
 
   /*
+  * Boolean returns wether we want a sound effect when unlocking.
+  */
+  unlockSoundEnabled: true,
+
+  /*
   * Boolean return whether if the lock screen is enabled or not.
   * Must not multate directly - use setPassCodeEnabled(val)
   * Only Settings Listener should change this value to sync with data
@@ -95,6 +100,9 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('home', this);
 
+    /* blocking holdhome and prevent Cards View from show up */
+    window.addEventListener('holdhome', this, true);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -119,11 +127,12 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe(
-      'lockscreen.wallpaper', 'balloon.png', function(value) {
-      self.updateBackground(value);
-      self.overlay.classList.remove('uninit');
-    });
+    SettingsListener.observe('wallpaper.image',
+                             'resources/images/backgrounds/default.png',
+                             function(value) {
+                               self.updateBackground(value);
+                               self.overlay.classList.remove('uninit');
+                             });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
@@ -133,6 +142,11 @@ var LockScreen = {
     SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
+    });
+
+    SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      true, function(value) {
+      self.setUnlockSoundEnabled(value);
     });
   },
 
@@ -158,6 +172,14 @@ var LockScreen = {
       this.passCodeEnabled = val == 'false' ? false : true;
     } else {
       this.passCodeEnabled = val;
+    }
+  },
+
+  setUnlockSoundEnabled: function ls_setUnlockSoundEnabled(val) {
+    if (typeof val === 'string') {
+      this.unlockSoundEnabled = val == 'false' ? false : true;
+    } else {
+      this.unlockSoundEnabled = val;
     }
   },
 
@@ -273,6 +295,14 @@ var LockScreen = {
           this.switchPanel();
           evt.stopImmediatePropagation();
         }
+        break;
+
+      case 'holdhome':
+        if (!this.locked)
+          return;
+
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
         break;
     }
   },
@@ -503,8 +533,10 @@ var LockScreen = {
       if (instant)
         return;
 
-      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
-      unlockAudio.play();
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+        unlockAudio.play();
+      }
     }
   },
 
@@ -646,6 +678,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
+          self.dispatchEvent('lockpanelchange');
           overlay.dataset.panel = panel;
         });
     });
@@ -659,8 +692,10 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    this.clock.textContent = f.localeFormat(d, _('timeFormat') || '%R');
-    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
+    var timeFormat = _('shortTimeFormat') || '%R';
+    var dateFormat = _('longDateFormat') || '%A %e %B';
+    this.clock.textContent = f.localeFormat(d, timeFormat);
+    this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -823,8 +858,7 @@ var LockScreen = {
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(resources/images/backgrounds/' + value + ')';
-
+    var url = 'url(' + value + ')';
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
@@ -850,15 +884,6 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
-  },
-
-  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
-    var generatedEvent = document.createEvent('KeyboardEvent');
-    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
-                                evt.altKey, evt.shiftKey, evt.metaKey,
-                                evt.keyCode, evt.charCode);
-
-    this.camera.dispatchEvent(generatedEvent);
   },
 
   dispatchEvent: function ls_dispatchEvent(name) {

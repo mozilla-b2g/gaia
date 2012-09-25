@@ -9,14 +9,12 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
-    <!-- Use external libraries of mp3 and ogg -->
-    <script type="text/javascript" src="js/ext/id3-minimized.js"></script>
-    <script type="text/javascript" src="js/ext/ogg.js"></script>
+    <script type="text/javascript" defer src="shared/js/media_db.js"></script>
     <!-- Specific code -->
-    <script type="text/javascript" src="js/MetadataParser.js"></script>
-    <script type="text/javascript" src="js/utils.js"></script>
-    <script type="text/javascript" src="js/music.js"></script>
+    <script type="text/javascript" defer src="js/blobview.js"></script>
+    <script type="text/javascript" defer src="js/metadata.js"></script>
+    <script type="text/javascript" defer src="js/utils.js"></script>
+    <script type="text/javascript" defer src="js/music.js"></script>
   </head>
 
   <body class="invisible">
@@ -37,8 +35,8 @@
           </div>
           <div id="views-sublist-header-controls">
             <div id="views-sublist-header-name">Name</div>
-            <button id="views-sublist-controls-play" class="album-controls-button" disabled>Play All</button>
-            <button id="views-sublist-controls-shuffle" class="album-controls-button" disabled>Shuffle</button>
+            <button id="views-sublist-controls-play" class="album-controls-button">Play All</button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button">Shuffle</button>
           </div>
         </div>
         <div id="views-sublist-anchor"></div>

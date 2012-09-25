@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 // TODO:
@@ -123,13 +123,15 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
-var pickView = $('pick-view');
 var editView = $('edit-view');
+var pickView = $('pick-view');
+var cropView = $('crop-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+  thumbnailListView, thumbnailSelectView, photoView, editView,
+  pickView, cropView
 ];
 var currentView;
 
@@ -190,48 +192,44 @@ function init() {
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  photodb.onunavailable = function(why) {
-    if (why === 'unavailable')
+  photodb.onunavailable = function(event) {
+    var why = event.detail;
+    if (why === MediaDB.NOCARD)
       showOverlay('nocard');
-    else if (why === 'shared')
+    else if (why === MediaDB.UNMOUNTED)
       showOverlay('cardinuse');
   }
 
   photodb.onready = function() {
-    // Hide the nocard overlay if it is displayed
-    if (currentOverlay === 'nocard')
+    // Hide the nocard or cardinuse overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
       showOverlay(null);
 
     createThumbnailList();  // Display thumbnails for the images we know about
-
-    // Each time we become ready there may be an entirely new set of
-    // photos in device storage (new SD card, or USB mass storage transfer)
-    // so we have to rescan each time.
-    scan();
   };
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // This means that if we switch to camera and take a photo, then when
-  // we come back to gallery we should be able to find the new photo.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && photodb.ready) {
-      scan();
-    }
-  });
+  // When photodb scans, let the user know
+  photodb.onscanstart = function() {
+    $('progress').classList.remove('hidden');
+    $('throbber').classList.add('throb');
+  };
 
-  // Notification of files that are added or deleted.
-  // Eventually device storage will let us know about these.
-  // For now we have to call scan(), which will trigger this function.
-  photodb.onchange = function(type, files) {
-    if (type === 'deleted') {
-      files.forEach(imageDeleted);
-    }
-    else if (type === 'created') {
-      files.forEach(imageCreated);
-    }
+  // And hide the throbber when scanning is done
+  photodb.onscanend = function() {
+    $('progress').classList.add('hidden');
+    $('throbber').classList.remove('throb');
+  };
+
+  // One or more files was created (or was just discovered by a scan)
+  // XXX If the array is big, we should just rebuild the UI from scratch
+  photodb.oncreated = function(event) {
+    event.detail.forEach(imageCreated);
+  };
+
+  // One or more files were deleted (or were just discovered missing by a scan)
+  // XXX If the array is big, we should just rebuild the UI from scratch
+  photodb.ondeleted = function(event) {
+    event.detail.forEach(imageDeleted);
   };
 
   // Start off in thumbnail list view, unless there is a pending activity
@@ -244,27 +242,10 @@ function init() {
   navigator.mozSetMessageHandler('activity', webActivityHandler);
 }
 
-function scan() {
-  //
-  // XXX: is it too intrusive to display the scan overlay every time?
-  //
-  // Can I do it on first launch only and after that
-  // display some smaller scanning indicator that does not prevent
-  // the user from using the app right away?
-  //
-  showOverlay('scanning');   // Tell the user we're scanning
-  photodb.scan(function() {  // Run this function when scan is complete
-    if (images.length === 0)
-      showOverlay('nopix');
-    else
-      showOverlay(null);     // Hide the overlay
-  });
-}
-
-function imageDeleted(fileinfo) {
+function imageDeleted(filename) {
   // Find the deleted file in our images array
   for (var n = 0; n < images.length; n++) {
-    if (images[n].name === fileinfo.name)
+    if (images[n].name === filename)
       break;
   }
 
@@ -422,27 +403,17 @@ function setView(view) {
   switch (view) {
   case thumbnailListView:
     thumbnailListView.appendChild(thumbnails);
-    thumbnails.style.width = '';
     break;
   case thumbnailSelectView:
     thumbnailSelectView.appendChild(thumbnails);
-    thumbnails.style.width = '';
     // Set the view header to a localized string
     updateSelectionState();
     break;
-  case photoView:
-    // photoView is a special case because we need to insert
-    // the thumbnails into the filmstrip container and set its width
-    $('photos-filmstrip').appendChild(thumbnails);
-    // In order to get a working scrollbar, we apparently have to specify
-    // an explict width for list of thumbnails.
-    // XXX: we need to update this when images are added or deleted.
-    // XXX: avoid using hardcoded 50px per image?
-    thumbnails.style.width = (images.length * 50) + 'px';
-    break;
   case pickView:
     pickView.appendChild(thumbnails);
-    thumbnails.style.width = '';
+    break;
+  case photoView:
+    // No thumbnails in photoView
     break;
   case editView:
     // We don't display the thumbnails in edit view.
@@ -496,41 +467,108 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  if (pendingPick)
-    cancelPick();
+  // We can't handle any kind of activity if the MediaDB is not ready
+  if (photodb.state === MediaDB.READY)
+    handleActivity();
+  else {
+    photodb.addEventListener('ready', function waitTillReady() {
+      photodb.removeEventListener('ready', waitTillReady);
+      handleActivity();
+    });
+  }
 
-  var activityName = activityRequest.source.name;
+  function handleActivity() {
 
-  switch (activityName) {
-  case 'browse':
-    // The 'browse' activity is just the way we launch the app
-    // There's nothing else to do here.
-    setView(thumbnailListView);
-    break;
-  case 'pick':
-    startPick(activityRequest);
-    break;
+    var activityName = activityRequest.source.name;
+
+    switch (activityName) {
+    case 'browse':
+      if (launchedAsInlineActivity)
+        return;
+
+      // The 'browse' activity is just the way we launch the app
+      // There's nothing else to do here.
+      setView(thumbnailListView);
+      break;
+    case 'pick':
+      if (!launchedAsInlineActivity)
+        return;
+
+      if (pendingPick)
+        cancelPick();
+      startPick(activityRequest);
+      break;
+    }
   }
 }
 
+var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
 var pendingPick;
+var pickType;
+var pickWidth, pickHeight;
+var cropURL;
+var cropEditor;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
+  pickType = activityRequest.source.data.type;
+  if (pendingPick.source.data.width && pendingPick.source.data.height) {
+    pickWidth = pendingPick.source.data.width;
+    pickHeight = pendingPick.source.data.height;
+  }
+  else {
+    pickWidth = pickHeight = 0;
+  }
   setView(pickView);
 }
 
-function finishPick(filename) {
+function cropPickedImage(fileinfo) {
+  setView(cropView);
+
+  photodb.getFile(fileinfo.name, function(file) {
+    cropURL = URL.createObjectURL(file);
+    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      cropEditor.showCropOverlay();
+      if (pickWidth)
+        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+      else
+        cropEditor.setCropAspectRatio(); // free form cropping
+    });
+  });
+}
+
+function finishPick() {
+  var url;
+  if (pickWidth)
+    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
+  else
+    url = cropEditor.getCroppedRegionDataURL(pickType);
+
   pendingPick.postResult({
     type: 'image/jpeg',
-    filename: filename
+    url: url
   });
-  pendingPick = null;
-  setView(thumbnailListView);
+  cleanupPick();
 }
 
 function cancelPick() {
   pendingPick.postError('pick cancelled');
+  cleanupPick();
+}
+
+function cleanupCrop() {
+  if (cropURL) {
+    URL.revokeObjectURL(cropURL);
+    cropURL = null;
+  }
+  if (cropEditor) {
+    cropEditor.destroy();
+    cropEditor = null;
+  }
+}
+
+function cleanupPick() {
+  cleanupCrop();
   pendingPick = null;
   setView(thumbnailListView);
 }
@@ -584,7 +622,7 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
     updateSelectionState();
   }
   else if (currentView === pickView) {
-    finishPick(images[parseInt(target.dataset.index)].name);
+    cropPickedImage(images[parseInt(target.dataset.index)]);
   }
 });
 
@@ -621,11 +659,22 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
-// Clicking on the pick cancel button cancels the pick activity, which sends
-// us back to thumbail list view
-$('pick-cancel-button').onclick = function() {
+// Clicking on the pick back button cancels the pick activity.
+$('pick-back-button').onclick = function() {
   cancelPick();
 };
+
+// In crop view, the back button goes back to pick view
+$('crop-back-button').onclick = function() {
+  setView(pickView);
+  cleanupCrop();
+};
+
+// In crop view, the done button finishes the pick
+$('crop-done-button').onclick = function() {
+  finishPick();
+};
+
 
 // The camera buttons should both launch the camera app
 $('photos-camera-button').onclick =
@@ -696,39 +745,64 @@ $('thumbnails-share-button').onclick = function() {
 /*
  * Share one or more images using Web Activities.
  *
- * XXX
- * This is a preliminary implementation with two bug workarounds:
+ * Because multiple images may have different mime types we just
+ * use 'image/*' as the type.
  *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
- * we just use a type of "image" since the activity handler app can't
- * register an array of the image mime types it accepts
- *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
- * we can share blobs directly, this function just shares filenames.
- * This means that the app on the receiving end has to use device storage
- * to get the actual file. Since that requires special permissions
- * it might not be what we want.  We could change this code to use a
- * data url and pass the whole image as a long, long string. Because this
- * is sub-optimal and unstable, I'm using the activity name "share-filenames"
- * instead of the more generic "share".
+ * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
+  var urls = [];
+  getDataURLForNextFile();
+
+  function getDataURLForNextFile() {
+    if (urls.length === filenames.length) {
+      shareURLs(urls);
+    }
+    else {
+      var i = urls.length;
+      var filename = filenames[i];
+      photodb.getFile(filename, function(file) {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function() {
+          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
+          getDataURLForNextFile();
+        }
+      });
+    }
+  }
+}
+
+// This is called by shareFile once the filenames have
+// been converted to data URLs
+function shareURLs(urls) {
   var a = new MozActivity({
-    name: 'share-filenames',
+    name: 'share',
     data: {
-      type: 'image',
-      filenames: filenames
+      type: 'image/*',
+      number: urls.length,
+      urls: urls
     }
   });
 
+  function reopen() {
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      e.target.result.launch();
+    };
+  }
+
+  a.onsuccess = function() {
+    reopen();
+  }
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     }
     else {
-      console.log('share activity error:', a.error.name);
+      console.warn('share activity error:', a.error.name);
     }
+    reopen();
   };
 }
 
@@ -740,13 +814,15 @@ $('edit-cancel-button').onclick = function() {
 
 // We get a resize event when the user rotates the screen
 window.addEventListener('resize', function resizeHandler(evt) {
-  // Abandon any current pan or zoom and reset the current photo view
-  photoState.reset();
-  photoState.setFramesPosition();
+  if (currentView === photoView) {
+    // Abandon any current pan or zoom and reset the current photo view
+    photoState.reset();
+    photoState.setFramesPosition();
 
-  // Also reset the size and position of the previous and next photos
-  resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
-  resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
+    // Also reset the size and position of the previous and next photos
+    resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
+    resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
+  }
 
   function resetPhoto(n, img) {
     if (!img || n < 0 || n >= images.length)
@@ -883,18 +959,39 @@ function displayImageInFrame(n, frame) {
 
   // Asynchronously set the image url
   var imagedata = images[n];
-  photodb.getFile(imagedata.name, function(file) {
+  displayFile(img, imagedata.name,
+              imagedata.metadata.width, imagedata.metadata.height);
+}
+
+function displayFile(element, filename, width, height) {
+  var container = element.parentNode;
+  // Asynchronously set the image url
+  photodb.getFile(filename, function(file) {
     var url = URL.createObjectURL(file);
-    img.src = url;
-    img.onload = function() { URL.revokeObjectURL(url); };
+    element.src = url;
+    element.onload = function() {
+      URL.revokeObjectURL(url);
+
+      // If we didn't know the width or height before, then get them
+      // from the image now, and use that information to position
+      // the image in its container
+      if (!width || !height) {
+        var fit = fitImage(element.naturalWidth, element.naturalHeight,
+                           container.offsetWidth, container.offsetHeight);
+        positionImage(element, fit);
+      }
+    };
   });
 
-  // Figure out the size and position of the image
-  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
-                     photoView.offsetWidth, photoView.offsetHeight);
-
-  positionImage(img, fit);
+  // If we know the image size from its metadata, then position it now
+  // even before it is loaded
+  if (width && height) {
+    var fit = fitImage(width, height,
+                       container.offsetWidth, container.offsetHeight);
+    positionImage(element, fit);
+  }
 }
+
 
 function positionImage(img, fit) {
   img.style.transform =
@@ -1640,7 +1737,6 @@ var currentOverlay;  // The id of the current overlay or null if none.
 //   nocard: no sdcard is installed in the phone
 //   cardinuse: the sdcard is being used by USB mass storage
 //   nopix: no pictures found
-//   scanning: the app is scanning for new photos
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.

@@ -14,8 +14,10 @@
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
+  <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
+  <script type="text/javascript" src="shared/js/l10n_date.js"></script>
   <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
   <!-- Specific code -->
   <script type="text/javascript">
@@ -163,6 +165,10 @@
         <div class="msg-listedit-action-toolbar bottom-edit-toolbar bottom-toolbar collapsed">
           <button class="msg-star-btn bottom-btn"></button>
           <button class="msg-mark-read-btn bottom-btn"></button>
+          <button class="msg-delete-btn bottom-btn"></button>
+          <button class="msg-move-btn bottom-btn"></button>
+        </div>
+        <div class="msg-list-empty" data-l10n-id="messages-folder-empty">No messagE
         </div>
       </div>
 
@@ -215,22 +221,22 @@
           <div class="msg-envelope-bar">
             <div class="msg-envelope-date"></div>
             <div class="msg-envelope-from-line msg-envelope-line">
-              <label class="msg-envelope-key"
-                     data-l10n-id="envelope-from">FroM</label>
+              <span class="msg-envelope-key"
+                     data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
             <div class="msg-envelope-details collapsed">
               <div class="msg-envelope-to-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-to">tO</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-to">tO</span>
               </div>
               <div class="msg-envelope-cc-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-cc">cC</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-cc">cC</span>
               </div>
               <div class="msg-envelope-bcc-line msg-envelope-line">
-                <label class="msg-envelope-key"
-                       data-l10n-id="envelope-bcc">BcC</label>
+                <span class="msg-envelope-key"
+                       data-l10n-id="envelope-bcc">BcC</span>
               </div>
             </div>
             <h3 class="msg-envelope-subject"></h3>
@@ -266,10 +272,12 @@
         <div class="scrollregion-below-header">
           <div class="cmp-envelope-bar">
             <div class="cmp-envelope-line">
-              <label class="cmp-to-label cmp-addr-label"
-                     data-l10n-id="compose-to">tO:</label>
+              <span class="cmp-to-label cmp-addr-label"
+                     data-l10n-id="compose-to">tO:</span>
               <div class="cmp-to-container cmp-addr-container">
-                <input class="cmp-to-text cmp-addr-text" type="text" />
+                <div class="cmp-bubble-container">
+                    <input class="cmp-to-text cmp-addr-text" type="text" />
+                </div>
                 <div class="cmp-to-add cmp-contact-add"></div>
               </div>
             </div>
@@ -277,24 +285,28 @@
                  but there is also the case where replying itself might need
                  to expand, so we are deferring that feature -->
             <div class="cmp-envelope-line">
-              <label class="cmp-cc-label cmp-addr-label"
-                     data-l10n-id="compose-cc">cC:</label>
+              <span class="cmp-cc-label cmp-addr-label"
+                     data-l10n-id="compose-cc">cC:</span>
               <div class="cmp-cc-container cmp-addr-container">
-                <input class="cmp-cc-text cmp-addr-text" type="text" />
+                <div class="cmp-bubble-container">
+                  <input class="cmp-cc-text cmp-addr-text" type="text" />
+                </div>
                 <div class="cmp-cc-add cmp-contact-add"></div>
               </div>
             </div>
             <div class="cmp-envelope-line">
-              <label class="cmp-bcc-label cmp-addr-label"
-                     data-l10n-id="compose-bcc">BcC:</label>
+              <span class="cmp-bcc-label cmp-addr-label"
+                     data-l10n-id="compose-bcc">BcC:</span>
               <div class="cmp-bcc-container cmp-addr-container">
-                <input class="cmp-bcc-text cmp-addr-text" type="text" />
+                <div class="cmp-bubble-container">
+                  <input class="cmp-bcc-text cmp-addr-text" type="text" />
+                </div>
                 <div class="cmp-bcc-add cmp-contact-add"></div>
               </div>
             </div>
             <div class="cmp-envelope-line">
-              <label class="cmp-subject-label"
-                     data-l10n-id="compose-subject">SubjecT:</label>
+              <span class="cmp-subject-label"
+                     data-l10n-id="compose-subject">SubjecT:</span>
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
@@ -348,7 +360,7 @@
           <input class="sup-info-password sup-form-text" type="password"
                  placeholder="PassworD" />
           <button class="sup-info-next-btn sup-form-btn"
-                  data-l10n-id="setup-info-next">NexT</button>
+                  data-l10n-id="setup-info-next" disabled="">NexT</button>
         </div>
       </div>
       <!-- I am setting up your account, please wait or read errors! -->
@@ -361,10 +373,10 @@
               data-l10n-id="setup-account-header">NeW MaiL AccounT SetuP</h2>
         </div>
         <div class="sup-progress-region">
-          <span class="sup-progress-spinner"></span>
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
             PleasE WaiT WhilE I SetuP YouR AccounT
           </span>
+          <span class="sup-progress-spinner"></span>
         </div>
         <div class="sup-error-region collapsed">
           <span class="sup-error-message"></span>
@@ -421,17 +433,33 @@
           </header>
           <div class="tng-accounts-container"></div>
             <li>
-              <a href="#" data-l10n-id="settings-account-add" class="tng-account-add list-text">AdD AccounT</a>
+              <a href="#" data-l10n-id="settings-account-add"
+                class="tng-account-add list-text">AdD AccounT</a>
             </li>
           <header class="tng-main-about-label">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
           </header>
             <li>
-              <span data-l10n-id="settings-check-mail" class="list-text">ChecK MaiL</span>
-              <em class="aside end">5 min</em>
+              <span data-l10n-id="settings-check-mail" class="list-text">
+                ChecK MaiL</span>
+              <em class="aside end">
+                <select class="mail-select">
+                  <option value="1" data-l10n-id="settings-check-three">
+                    3 Minutes</option>
+                  <option value="2" data-l10n-id="settings-check-five">
+                    5 Minutes</option>
+                  <option value="3" data-l10n-id="settings-check-ten">
+                    10 Minutes</option>
+                  <option value="4" data-l10n-id="settings-check-fifteen">
+                    15 Minutes</option>
+                  <option value="5" data-l10n-id="settings-check-manually">
+                    Manually</option>
+                </select>
+              </em>
             </li>
             <li>
-              <span data-l10n-id="settings-show-images" class="list-text">AlwayS ShoW ImageS</span>
+              <span data-l10n-id="settings-show-images" class="list-text">
+                AlwayS ShoW ImageS</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
@@ -440,7 +468,8 @@
               </em>
             </li>
             <li>
-              <span data-l10n-id="settings-download-attachments" class="list-text">DownloaD AttachmentS</span>
+              <span data-l10n-id="settings-download-attachments"
+                class="list-text">DownloaD AttachmentS</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
@@ -449,7 +478,8 @@
               </em>
             </li>
             <li>
-              <span data-l10n-id="settings-notify-mail" class="list-text">NotifY ME OF NeW MaiL</span>
+              <span data-l10n-id="settings-notify-mail" class="list-text">
+                NotifY ME OF NeW MaiL</span>
               <em class="aside end">
                 <label class="switch">
                   <input type="checkbox" checked="checked">
@@ -457,19 +487,121 @@
                 </label>
               </em>
             </li>
-          <a class="tng-email-lib-version collapsed">v1</a>
+          <a class="tng-email-lib-version list-text">v1</a>
         </section>
       </section>
 
       <!-- Per-account settings menu; largely read-only for now -->
-      <div class="card-settings-account card">
-        <div class="tng-account-header top-header">
-          <button class="tng-back-btn back-btn header-left-btn">
+      <section class="card-settings-account card skin-organic" role="region">
+        <header class="tng-account-header">
+          <a href="#" class="tng-back-btn back-btn header-left-btn">
             <span class="icon icon-back"></span>
-          </button>
-          <h2 class="tng-account-header-label header-label"></h2>
-        </div>
-      </div>
+          </a>
+          <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <li>
+            <span data-l10n-id="settings-default-account" class="list-text">
+              DefaulT AccounT</span>
+            <em class="aside end">
+              <label>
+                <!-- When the input is focused, a resize event will be fired
+                     and will trigger _showCard() in mail-common.js
+                     the UI state will become wrong after _showCard() is called
+                     so disable the input first to prevent the wrong state
+                  -->
+                <input disabled type="checkbox" checked="checked">
+                <span></span>
+              </label>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-account-type" class="list-text">
+              AccounT TypE</span>
+            <em class="aside end">
+              <span class="tng-account-type list-value">AccounT TypE</span>
+            </em>
+          </li>
+          <li>
+            <a href="#" data-l10n-id="settings-account-credentials"
+              class="tng-account-credentials list-text">CredentialS</a>
+            <em class="aside end"></em>
+          </li>
+          <div class="tng-account-server-container"></div>
+        </section>
+      </section>
+
+      <!-- Per-account credentials settings menu -->
+      <section class="card-settings-account-credentials card skin-organic"
+        role="region">
+        <header class="tng-account-server-header">
+          <a href="#" class="tng-back-btn back-btn header-left-btn">
+            <span class="icon icon-back"></span>
+          </a>
+          <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <header class="collapsed"></header>
+          <header>
+            <h2 data-l10n-id="settings-account-credentials"
+              class="tng-account-credentials-label">CredentialS</h2>
+          </header>
+          <li class="tng-account-server-username settings-input-list">
+            <span data-l10n-id="settings-username"
+              class="tng-server-username-title settings-input-title">
+                UsernamE</span>
+            <input disabled class="tng-server-username-input sup-form-text"
+              type="text" placeholder="UsernamE">
+          </li>
+          <li class="tng-account-server-password settings-input-list">
+            <span data-l10n-id="settings-password"
+              class="tng-server-password-title settings-input-title">
+                PassworD</span>
+            <!-- When the input is focused, a resize event will be fired
+                 and will trigger _showCard() in mail-common.js
+                 the UI state will become wrong after _showCard() is called
+                 so disable the input first to prevent the wrong state
+              -->
+            <input disabled class="tng-server-password-input sup-form-text"
+              type="password" placeholder="PassworD">
+          </li>
+          <button data-l10n-id="settings-save"
+            class="tng-account-save settings-button"></button>
+        </section>
+      </section>
+
+      <!-- Per-account server settings menu -->
+      <section class="card-settings-account-servers card skin-organic"
+        role="region">
+        <header class="tng-account-server-header">
+          <a href="#" class="tng-back-btn back-btn header-left-btn">
+            <span class="icon icon-back"></span>
+          </a>
+          <h1 class="tng-account-header-label header-label">
+            AccounT NamE</h1>
+        </header>
+        <section class="scrollregion-below-header skin-organic" role="region">
+          <header class="collapsed"></header>
+          <header>
+            <h2 class="tng-account-server-label">ServeR TypE</h2>
+          </header>
+          <li class="tng-account-server-hostname settings-input-list">
+            <span data-l10n-id="settings-hostname"
+              class="tng-server-hostname-title settings-input-title">
+                HostnamE</span>
+            <input disabled class="tng-server-hostname-input sup-form-text"
+              type="text" placeholder="HostnamE">
+          </li>
+          <li class="tng-account-server-port settings-input-list">
+            <span data-l10n-id="settings-port"
+              class="tng-server-port-title settings-input-title">PorT</span>
+            <input disabled class="tng-server-port-input sup-form-text"
+              type="text" placeholder="PorT">
+          </li>
+          <button data-l10n-id="settings-save"
+            class="tng-account-save settings-button"></button>
+        </section>
+      </section>
 
       <!-- Developer debug page; for those in the know -->
       <div class="card-settings-debug card">
@@ -508,8 +640,12 @@
     </div>
     <!-- Widget nodes for the message cards; styles use the msg prefix -->
     <div id="templ-msg">
-      <a class="msg-header-item"><div class="msg-header-unread-section">
-        </div><div class="msg-header-details-section">
+      <a class="msg-header-item">
+        <label class="negative">
+          <input type="checkbox"><span></span>
+        </label>
+        <div class="msg-header-unread-section"></div>
+        <div class="msg-header-details-section">
           <span class="msg-header-author-and-date">
             <span class="msg-header-author"></span>
             <span class="msg-header-date"></span>
@@ -541,6 +677,10 @@
             data-l10n-id="message-edit-menu-mark-read">MarK ReaD</li>
         <li class="msg-edit-menu-mark-unread menu-item"
             data-l10n-id="message-edit-menu-mark-unread">MarK UnreaD</li>
+        <li class="msg-edit-menu-delete menu-item"
+            data-l10n-id="message-edit-menu-delete">DeletE</li>
+        <li class="msg-edit-menu-move menu-item"
+            data-l10n-id="message-edit-menu-move">MovE</li>
       </ul>
 
       <ul class="msg-contact-menu menu">
@@ -556,6 +696,10 @@
         <span class="cmp-peep-name"></span>
         (<span class="cmp-peep-address"></span>)
       </div>
+      <ul class="cmp-contact-menu menu">
+        <li class="cmp-contact-menu-delete menu-item"
+            data-l10n-id="message-edit-menu-delete">DeletE</li>
+      </ul>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">
@@ -572,6 +716,10 @@
         <li class="tng-account-menu-delete menu-item"
             data-l10n-id="settings-account-delete">DeletE AccounT</li>
       </ul>
+
+      <li class="tng-account-settings-server">
+        <a href="#" class="tng-account-server-label list-text"></a>
+      </li>
     </div>
   </div>
 </body>

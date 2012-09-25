@@ -42,16 +42,6 @@ var ClockView = {
     return this.dayDate = document.getElementById('clock-day-date');
   },
 
-  get day() {
-    delete this.day;
-    return this.day = document.getElementById('clock-day');
-  },
-
-  get date() {
-    delete this.date;
-    return this.date = document.getElementById('clock-date');
-  },
-
   get alarmNewBtn() {
     delete this.alarmNewBtn;
     return this.alarmNewBtn = document.getElementById('alarm-new');
@@ -78,9 +68,9 @@ var ClockView = {
 
   updateDaydate: function cv_updateDaydate() {
     var d = new Date();
-    this.day.textContent = d.toLocaleFormat('%A ');
+    var f = new navigator.mozL10n.DateTimeFormat();
     var format = navigator.mozL10n.get('dateFormat');
-    this.date.textContent = d.toLocaleFormat(format);
+    this.dayDate.textContent = f.localeFormat(d, format);
 
     var self = this;
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
@@ -94,13 +84,9 @@ var ClockView = {
 
   updateDigitalClock: function cv_updateDigitalClock() {
     var d = new Date();
-
-    // XXX: respect clock format in Settings
-    var hour = d.getHours() % 12;
-    if (!hour)
-      hour = 12;
-    this.time.textContent = hour + d.toLocaleFormat(':%M');
-    this.hourState.textContent = d.toLocaleFormat('%p');
+    var time = getLocaleTime(d);
+    this.time.textContent = time.t;
+    this.hourState.textContent = time.p || '  '; // 2 non-break spaces
 
     var self = this;
     this._updateDigitalClockTimeout =
@@ -240,18 +226,6 @@ var BannerView = {
     return this.bannerCountdown = document.getElementById('banner-countdown');
   },
 
-  get remainHours() {
-    delete this.remainHours;
-    return this.remainHours =
-      document.getElementById('banner-remain-hours');
-  },
-
-  get remainMinutes() {
-    delete this.remainMinutes;
-    return this.remainMinutes =
-      document.getElementById('banner-remain-minutes');
-  },
-
   calRemainTime: function BV_calRemainTime(targetTime) {
     var now = new Date();
     var remainTime = targetTime.getTime() - now.getTime();
@@ -262,9 +236,20 @@ var BannerView = {
 
   setStatus: function BV_setStatus(nextAlarmFireTime) {
     this.calRemainTime(nextAlarmFireTime);
-    this.remainHours.innerHTML = _('nRemainHours', {n: this._remainHours});
-    this.remainMinutes.innerHTML =
-      _('nRemainMinutes', {n: this._remainMinutes});
+
+    var innerHTML = '';
+    if (this._remainHours == 0) {
+      innerHTML = _('countdown-lessThanAnHour', {
+        minutes: _('nMinutes', { n: this._remainMinutes })
+      });
+    } else {
+      innerHTML = _('countdown-moreThanAnHour', {
+        hours: _('nRemainHours', { n: this._remainHours }),
+        minutes: _('nRemainMinutes', { n: this._remainMinutes })
+      });
+    }
+    this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
+
     this.showBannerStatus();
     var self = this;
     window.setTimeout(function cv_hideBannerTimeout() {
@@ -354,9 +339,10 @@ var AlarmList = {
       var paddingTop = (summaryRepeat == 'Never') ? 'paddingTop' : '';
       var hiddenSummary = (summaryRepeat == 'Never') ? 'hiddenSummary' : '';
       var isChecked = alarm.enabled ? ' checked="true"' : '';
-      var hour = (alarm.hour > 12) ? alarm.hour - 12 : alarm.hour;
-      hour = (hour == 0) ? 12 : hour;
-      var hour12state = (alarm.hour >= 12) ? 'PM' : 'AM';
+      var d = new Date();
+      d.setHours(alarm.hour);
+      d.setMinutes(alarm.minute);
+      var time = getLocaleTime(d);
       content += '<li>' +
                  '  <label class="alarmList">' +
                  '    <input id="input-enable" data-id="' + alarm.id +
@@ -369,10 +355,8 @@ var AlarmList = {
                       alarm.id + '">' +
                  '    <div class="description">' +
                  '      <div class="alarmList-time">' +
-                 '        <span class="time">' + hour +
-                            ':' + alarm.minute + '</span>' +
-                 '        <span class="hour24-state">' +
-                            hour12state + '</span>' +
+                 '        <span class="time">' + time.t + '</span>' +
+                 '        <span class="hour24-state">' + time.p + '</span>' +
                  '      </div>' +
                  '      <div class="alarmList-detail">' +
                  '        <div class="label ' + paddingTop + '">' +
@@ -543,7 +527,8 @@ var AlarmManager = {
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {
       var hasAlarmEnabled = !!e.target.result.length;
-      navigator.mozSettings.getLock().set({'alarm.enabled': hasAlarmEnabled});
+      navigator.mozSettings.createLock().set({'alarm.enabled':
+          hasAlarmEnabled});
       ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
     };
     request.onerror = function(e) {
@@ -553,6 +538,10 @@ var AlarmManager = {
 
   getAlarmLabel: function am_getAlarmLabel() {
     return this._onFireAlarm.label;
+  },
+
+  getAlarmSound: function am_getAlarmSound() {
+    return this._onFireAlarm.sound;
   }
 
 };
@@ -563,7 +552,8 @@ var AlarmEditView = {
   timePicker: {
     hour: null,
     minute: null,
-    hour24State: null
+    hour24State: null,
+    is12hFormat: false
   },
 
   get element() {
@@ -653,9 +643,14 @@ var AlarmEditView = {
   },
 
   initTimePicker: function aev_initTimePicker() {
+    var is12h = is12hFormat();
+    this.timePicker.is12hFormat = is12h;
+    this.setTimePickerStyle();
+    var startHour = is12h ? 1 : 0;
+    var endHour = is12h ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
     var hourDisplayedText = [];
-    for (var i = 1; i < 13; i++) {
+    for (var i = startHour; i < endHour; i++) {
       var value = i;
       hourDisplayedText.push(value);
     }
@@ -677,12 +672,19 @@ var AlarmEditView = {
     this.timePicker.minute =
       new ValuePicker(this.minuteSelector, minuteUnitStyle);
 
-    var hour24StateUnitStyle = {
-      valueDisplayedText: ['AM', 'PM'],
-      className: unitClassName
-    };
-    this.timePicker.hour24State =
-      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    if (is12h) {
+      var hour24StateUnitStyle = {
+        valueDisplayedText: ['AM', 'PM'],
+        className: unitClassName
+      };
+      this.timePicker.hour24State =
+        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    }
+  },
+
+  setTimePickerStyle: function aev_setTimePickerStyle() {
+    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    document.getElementById('picker-bar').classList.add(style);
   },
 
   handleEvent: function aev_handleEvent(evt) {
@@ -744,27 +746,37 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'classic.ogg',
+      sound: 'ALARM_progressive_dapple.mp3',
       snooze: 5,
       color: 'Darkorange'
     };
   },
 
   load: function aev_load(alarm) {
-    if (!alarm)
+    if (!alarm) {
+      this.alarmTitle.textContent = _('newAlarm');
       alarm = this.getDefaultAlarm();
+    } else {
+      this.alarmTitle.textContent = _('editAlarm');
+    }
 
     this.alarm = alarm;
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
-    var hour = (alarm.hour % 12);
-    hour = (hour == 0) ? 12 : hour;
-    // 24-hour state value selector: AM = 0, PM = 1
-    var hour24State = (alarm.hour >= 12) ? 1 : 0;
-    this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
+    // Set the value of time picker according to alarm time.
+    if (this.timePicker.is12hFormat) {
+      var hour = (alarm.hour % 12);
+      hour = (hour == 0) ? 12 : hour;
+      // 24-hour state value selector: AM = 0, PM = 1
+      var hour24State = (alarm.hour >= 12) ? 1 : 0;
+      this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
+      this.timePicker.hour24State.setSelectedIndex(hour24State);
+    } else {
+      this.timePicker.hour.setSelectedIndex(alarm.hour);
+    }
     this.timePicker.minute.setSelectedIndex(alarm.minute);
-    this.timePicker.hour24State.setSelectedIndex(hour24State);
+    // Init repeat, sound, snooze selection menu.
     this.initRepeatSelect();
     this.refreshRepeatMenu();
     this.initSoundSelect();
@@ -820,7 +832,7 @@ var AlarmEditView = {
 
   refreshSnoozeMenu: function aev_refreshSnoozeMenu(snooze) {
     var snooze = (snooze) ? this.getSnoozeSelect() : this.alarm.snooze;
-    this.snoozeMenu.innerHTML = _('nMinutes', {n: snooze});
+    this.snoozeMenu.textContent = _('nMinutes', {n: snooze});
   },
 
   save: function aev_save() {
@@ -834,11 +846,16 @@ var AlarmEditView = {
     var label = this.labelInput.value;
     this.alarm.label = (label) ? label : 'Alarm';
     this.alarm.enabled = true;
-    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-    var hour = this.timePicker.hour.getSelectedDisplayedText();
-    hour = (hour == 12) ? 0 : hour;
-    hour = hour + hour24Offset;
-    this.alarm.hour = hour;
+    // Get alarm time from time picker.
+    if (this.timePicker.is12hFormat) {
+      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+      var hour = this.timePicker.hour.getSelectedDisplayedText();
+      hour = (hour == 12) ? 0 : hour;
+      hour = hour + hour24Offset;
+      this.alarm.hour = hour;
+    } else {
+      this.alarm.hour = this.timePicker.hour.getSelectedIndex();
+    }
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();
@@ -891,3 +908,4 @@ window.addEventListener('localized', function showBody() {
   AlarmEditView.init();
   AlarmManager.init();
 });
+

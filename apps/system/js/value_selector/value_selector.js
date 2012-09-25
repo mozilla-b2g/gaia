@@ -120,14 +120,17 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._containers['select'].querySelectorAll('.selected');
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
-        selectee[i].classList.remove('selected');
+        selectee[i].removeAttribute('aria-checked');
       }
 
-      target.classList.add('selected');
+      target.setAttribute('aria-checked', 'true');
+    } else if (target.getAttribute('aria-checked') === 'true') {
+      target.removeAttribute('aria-checked');
     } else {
-      target.classList.toggle('selected');
+      target.setAttribute('aria-checked', 'true');
     }
   },
 
@@ -160,6 +163,12 @@ var ValueSelector = {
     var optionIndices = [];
 
     var selectee = this._containers['select'].querySelectorAll('.selected');
+
+    if (this._currentPickerType === 'select-one' ||
+        this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
+    }
 
     if (this._currentPickerType === 'select-one') {
 
@@ -214,7 +223,7 @@ var ValueSelector = {
 
     for (var i = 0, n = options.length; i < n; i++) {
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
@@ -234,9 +243,9 @@ var ValueSelector = {
 
     // Apply different style when the options are more than 1 page
     if (options.length > 5) {
-      this._containers['select'].dataset.mode = 'scroll';
+      this._containers['select'].classList.add('scrollable');
     } else {
-      this._containers['select'].dataset.mode = '';
+      this._containers['select'].classList.remove('scrollable');
     }
 
     // Change the title for multiple select
@@ -245,7 +254,7 @@ var ValueSelector = {
       titleL10nId = 'choose-option';
 
     var optionsTitle = document.querySelector(
-                       '#value-selector-container h3');
+                       '#value-selector-container h1');
 
     if (optionsTitle) {
       optionsTitle.dataset.l10nId = titleL10nId;
@@ -300,7 +309,8 @@ var TimePicker = {
   timePicker: {
     hour: null,
     minute: null,
-    hour24State: null
+    hour24State: null,
+    is12hFormat: false
   },
 
   get hourSelector() {
@@ -321,10 +331,16 @@ var TimePicker = {
       document.getElementById('value-picker-hour24-state');
   },
 
-  initTimePicker: function aev_initTimePicker() {
+  initTimePicker: function tp_initTimePicker() {
+    var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
+    this.timePicker.is12hFormat = is12hFormat;
+    this.setTimePickerStyle();
+    var startHour = is12hFormat ? 1 : 0;
+    var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
     var hourDisplayedText = [];
-    for (var i = 1; i < 13; i++) {
+    for (var i = startHour; i < endHour; i++) {
       var value = i;
       hourDisplayedText.push(value);
     }
@@ -346,20 +362,32 @@ var TimePicker = {
     this.timePicker.minute =
       new ValuePicker(this.minuteSelector, minuteUnitStyle);
 
-    var hour24StateUnitStyle = {
-      valueDisplayedText: ['AM', 'PM'],
-      className: unitClassName
-    };
-    this.timePicker.hour24State =
-      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    if (is12hFormat) {
+      var hour24StateUnitStyle = {
+        valueDisplayedText: ['AM', 'PM'],
+        className: unitClassName
+      };
+      this.timePicker.hour24State =
+        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    }
+  },
+
+  setTimePickerStyle: function tp_setTimePickerStyle() {
+    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    document.getElementById('picker-bar').classList.add(style);
   },
 
   // return a string for the time value, format: "16:37"
-  getTimeValue: function aev_getTimeValue() {
-    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-    var hour = this.timePicker.hour.getSelectedDisplayedText();
-    hour = (hour == 12) ? 0 : hour;
-    hour = hour + hour24Offset;
+  getTimeValue: function tp_getTimeValue() {
+    var hour = 0;
+    if (this.timePicker.is12hFormat) {
+      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+      hour = this.timePicker.hour.getSelectedDisplayedText();
+      hour = (hour == 12) ? 0 : hour;
+      hour = hour + hour24Offset;
+    } else {
+      hour = this.timePicker.hour.getSelectedIndex();
+    }
     var minute = this.timePicker.minute.getSelectedDisplayedText();
 
     return hour + ':' + minute;
@@ -377,7 +405,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseDown(evt) {
-    console.log('mousedown: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, true);
@@ -385,7 +412,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseUp(evt) {
-    console.log('mouseup: ' + evt.target);
     var target = evt.target;
 
     _setActive(target, false);
@@ -393,7 +419,6 @@ var ActiveEffectHelper = (function() {
   }
 
   function _onMouseLeave(evt) {
-    console.log('mouseLeave: ' + evt.target);
     var target = evt.target;
     _setActive(target, false);
     target.removeEventListener('mouseleave', _onMouseLeave);
@@ -408,10 +433,8 @@ var ActiveEffectHelper = (function() {
     // Attach event listeners
     for (var event in _events) {
       var callback = _events[event] || null;
-      if (callback) {
-        console.log('bind event: ' + event);
+      if (callback)
         element.addEventListener(event, callback);
-      }
     }
   }
 
@@ -422,3 +445,4 @@ var ActiveEffectHelper = (function() {
 })();
 
 ValueSelector.init();
+

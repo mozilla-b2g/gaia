@@ -13,14 +13,14 @@ if (typeof fb.oauth === 'undefined') {
     // and the hash state matches <state>
     var accessTokenCbData;
 
+    var STORAGE_KEY = 'tokenData';
+
     /**
      *  Clears credential data stored locally
      *
      */
     function clearStorage() {
-      window.localStorage.removeItem('access_token');
-      window.localStorage.removeItem('expires');
-      window.localStorage.removeItem('token_ts');
+      window.asyncStorage.removeItem(STORAGE_KEY);
     }
 
 
@@ -31,33 +31,32 @@ if (typeof fb.oauth === 'undefined') {
      *
      */
     fboauth.getAccessToken = function(ready, state) {
-      var ret;
-
       accessTokenCbData = {
         callback: ready,
         state: state
       };
 
-      if (!window.localStorage.access_token) {
-          startOAuth(state);
-          return;
-      } else {
-        var timeEllapsed = Date.now() - window.localStorage.token_ts;
-        var expires = Number(window.localStorage.expires);
-
-        if (timeEllapsed < expires || expires === 0) {
-           ret = window.localStorage.access_token;
-        } else {
+      asyncStorage.getItem(STORAGE_KEY,
+                           function getAccessToken(tokenData) {
+        if (!tokenData || !tokenData.access_token) {
           startOAuth(state);
           return;
         }
-      }
 
-      if (typeof ready === 'function' && typeof ret !== 'undefined') {
-        ready(ret);
-      }
+        var access_token = tokenData.access_token;
+        var expires = Number(tokenData.expires);
+        var token_ts = tokenData.token_ts;
+
+        if (expires !== 0 && Date.now() - token_ts >= expires) {
+          startOAuth(state);
+          return;
+        }
+
+        if (typeof ready === 'function') {
+          ready(access_token);
+        }
+      });
     }
-
 
     /**
      *  Starts a OAuth 2.0 flow to obtain the user information
@@ -80,9 +79,12 @@ if (typeof fb.oauth === 'undefined') {
         var end = parameters.expires_in;
         var access_token = parameters.access_token;
 
-        window.localStorage.access_token = access_token;
-        window.localStorage.expires = end * 1000;
-        window.localStorage.token_ts = Date.now();
+        // Don't wait for callback because it's not necessary
+        window.asyncStorage.setItem(STORAGE_KEY, {
+          access_token: access_token,
+          expires: end * 1000,
+          token_ts: Date.now()
+        });
       }
 
       if (parameters.state === accessTokenCbData.state) {

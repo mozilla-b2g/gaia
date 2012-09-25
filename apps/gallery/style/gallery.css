@@ -84,12 +84,8 @@ body {
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
  * resize the image as needed.
- * 
  * The thumbnail list appears in regular browsing mode, in selection mode, 
- * and also in "filmstrip" form in single-photo mode. So the thumbnail list
- * and the individual thumbnails are styled differently depending on 
- * what element they are contained within, and also depending on the phone
- * resolution and orientation (and also language direction).
+ * and in pick mode.
  */
 
 #thumbnails {
@@ -176,29 +172,6 @@ body {
   bottom: 0;
 }
 
-/*
- * In photo view mode, the thumbnail list becomes a "filmstrip"
- * and the thumbnail images become much smaller.
- * JavaScript will set the width of the thumbnails container so that 
- * we get working scrollbars
- */
-#photos-filmstrip #thumbnails {
-  left:0;
-  top:0;
-  height:50px;
-  overflow-y: hidden;
-  overflow-x: scroll;
-}
-
-#photos-filmstrip li.thumbnail {
-    border-left: solid black 2px;
-    border-right: none;
-    border-top: solid black 2px;
-    border-bottom: solid black 2px;
-    width: 50px;
-    height: 50px;
-}
-
 #photo-frames {
   position: absolute;
   top: 0px;
@@ -244,6 +217,31 @@ body.hidden *[data-l10n-id] {
 
 *[dir=rtl] .thumbnail {
   float: right;
+}
+
+/* the indeterminate progress bar displayed while scanning */
+#progress {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  height: 4px;
+  border: none;
+  overflow: hidden;
+}
+
+#throbber.throb
+{
+  animation: .5s throb infinite steps(12);
+}
+
+@keyframes throb {
+  from {
+    transform: translate(0px, 0px);
+  }
+  to {
+    transform: translate(0px, -48px);
+  }
 }
 
 /* buttons */
@@ -346,17 +344,6 @@ a.button.disabled {
   background-image: url('images/share.png');
 }
 
-#photos-overlay-top {
-  position: absolute;
-  height: 50px;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.4);
-  /* the filmstrip is taller than 50px so we can hide its scrollbar */
-  overflow: hidden; 
-}
-
 #photos-filmstrip {
   position: absolute;
   height: 100%;
@@ -365,19 +352,6 @@ a.button.disabled {
   overflow-x: scroll;
   overflow-y: hidden;
 }
-
-#photos-back-button {
-  position: absolute;
-  width: 50px;
-  height: 100%;
-  right: 0;
-  /*
-   * XXX
-   * The dialpad icon looks kind of like a  grid of thumbnail images
-   */
-  background-image: url('images/actionicon_dialpad.png');
-}
-
 
 #photos-overlay-bottom {
   background: rgba(0, 0, 0, 0.4);
@@ -388,35 +362,47 @@ a.button.disabled {
   right: 0;
 }
 
-#photos-camera-button {
+#photos-back-button {
   position: absolute;
-  width: 25%;
+  width: 20%;
   height: 100%;
   left: 0;
+  /*
+   * XXX
+   * The dialpad icon looks kind of like a  grid of thumbnail images
+   */
+  background-image: url('images/actionicon_dialpad.png');
+}
+
+#photos-camera-button {
+  position: absolute;
+  width: 20%;
+  height: 100%;
+  left: 20%;
   background-image: url('images/camera.png');
 }
 
 #photos-edit-button {
   position: absolute;
-  width: 25%;
+  width: 20%;
   height: 100%;
-  left: 25%;
+  left: 40%;
   background-image: url('images/edit.png');
 }
 
 #photos-share-button {
   position: absolute;
-  width: 25%;
+  width: 20%;
   height: 100%;
-  left: 50%;
+  left: 60%;
   background-image: url('images/share.png');
 }
 
 #photos-delete-button {
   position: absolute;
-  width: 25%;
+  width: 20%;
   height: 100%;
-  left: 75%;
+  left: 80%;
   background-image: url('images/delete.png');
 }
 
@@ -429,12 +415,12 @@ a.button.disabled {
   right: 0;
 }
 
-#pick-cancel-button {
+#pick-back-button {
   position: absolute;
   width: 25%;
   height: 100%;
   left: 0;
-  background-image: url('images/actionicon_cancel.png');
+  background-image: url('images/back.png');
 }
 
 #pick-header {
@@ -443,6 +429,64 @@ a.button.disabled {
   height: 100%;
   left: 25%;
   margin-top: 15px;
+}
+
+#crop-top {
+  background: #888;
+  height: 50px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+
+#crop-back-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 0;
+  background-image: url('images/back.png');
+}
+
+#crop-header {
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  left: 25%;
+  margin-top: 15px;
+}
+
+#crop-done-button {
+  position: absolute;
+  width: 25%;
+  height: 100%;
+  left: 75%;
+  background-image: url('images/actionicon_done.png');
+}
+
+/* like .photoFrame */
+#crop-frame {
+  position: absolute;
+  top: 50px;
+  left: 0px;
+  width: 100%;
+  height: 100%;
+  padding: 0px;
+  margin: 0px;
+  overflow: hidden;
+  -moz-user-select: none;
+}
+
+#crop-image {
+  top: 0px;  /* javascript modifies this position with a transform */
+  left: 0px;
+  position: relative;
+  border-width: 0px;
+  padding: 0px;
+  margin: 0px;
+  transform-origin: 0px 0px;
+  pointer-events: none;
+  -moz-user-select: none;
 }
 
 #edit-view {

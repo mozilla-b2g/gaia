@@ -1,11 +1,13 @@
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt,
-#modal-dialog-authentication,
+#authentication-dialog,
+#authentication-dialog-http,
 #modal-dialog-error {
   display: none;
 }
 
+#authentication-dialog input,
 #modal-dialog input {
   border-radius: 2px 2px 2px 2px;
   height: 40px;
@@ -19,6 +21,7 @@
 /* 480x800 phones */
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
+  #authentication-dialog input,
   #modal-dialog input {
     border-radius: 3px 3px 3px 3px;
     height: 60px;
@@ -30,10 +33,11 @@
 }
 
 #screen.modal-dialog #modal-dialog,
+#screen.authentication-dialog #authentication-dialog,
+#authentication-dialog-http.visible,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible,
-#modal-dialog-authentication.visible,
 #modal-dialog-error.visible {
   display: block;
 }

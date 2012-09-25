@@ -46,7 +46,7 @@ var Applications = (function() {
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
       if (!manifest ||
-          (isCore(app.origin) && manifest.launch_path === undefined)) {
+          (isCore(app) && manifest.launch_path === undefined)) {
         return;
       }
 
@@ -89,22 +89,48 @@ var Applications = (function() {
 
   installer.oninstall = function install(event) {
     var app = event.application;
-    if (!installedApps[app.origin]) {
-      installedApps[app.origin] = app;
+    if (installedApps[app.origin])
+      return;
 
-      var icon = getIcon(app.origin);
-      // No need to put data: URIs in the cache
-      if (icon && icon.indexOf('data:') == -1) {
-        try {
-          window.applicationCache.mozAdd(icon);
-        } catch (e) {}
-      }
+    installedApps[app.origin] = app;
 
+    var fireCallbacks = function() {
       callbacks.forEach(function(callback) {
         if (callback.type == 'install') {
           callback.callback(app);
         }
       });
+    }
+
+    var icon = getIcon(app.origin);
+
+    // No need to put data: URIs in the cache
+    if (!icon || icon.indexOf('data:') != -1) {
+      fireCallbacks();
+      return;
+    }
+
+    // Download the application icon and assign it as an attribute of
+    // the manifest. As a side effect the icon will be store in the
+    // application database. Should it be an explicit method instead?
+    var xhr = new XMLHttpRequest({mozSystem: true});
+    xhr.open('GET', icon, true);
+    xhr.responseType = 'blob';
+    xhr.send(null);
+
+    xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
+      if (xhr.readyState == 4 && (xhr.status == 0 || xhr.status == 200)) {
+        var fileReader = new FileReader();
+        fileReader.onload = function fileReader_load(evt) {
+          cacheIcon(app.origin, evt.target.result);
+          fireCallbacks();
+        }
+        fileReader.readAsDataURL(xhr.response);
+      }
+    }
+
+    xhr.onerror = function saveIcon_onerror() {
+      fireCallbacks();
     }
   };
 
@@ -129,8 +155,6 @@ var Applications = (function() {
     if (app) {
       return app;
     }
-
-    // XXX We are affected by the port!
 
     // Trailing '/'
     var trimmedOrigin = origin.slice(0, origin.length - 1);
@@ -171,32 +195,21 @@ var Applications = (function() {
     return app ? app.manifest : null;
   };
 
-  // Core applications should be flagged at some point. Not sure how?
-  var protocol = window.location.protocol;
-  var host = window.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-
-  var coreApplications = [
-    'dialer', 'sms', 'settings', 'camera', 'gallery', 'browser',
-    'contacts', 'music', 'clock', 'email', 'fm', 'calculator',
-    'calendar', 'video', 'fm', 'pdfjs', 'keyboard', 'system',
-    'homescreen'
-  ];
-
-  coreApplications = coreApplications.map(function mapCoreApp(name) {
-    return protocol + '//' + name + '.' + domain;
-  });
-
-  coreApplications.push('https://marketplace.mozilla.org/telefonica/');
+  function cacheIcon(origin, icon) {
+    var manifest = getManifest(origin);
+    if (manifest && icon) {
+      manifest._icon = icon;
+    }
+  };
 
   /*
    *  Returns true if it's a core application
    *
-   *  {String} App origin
+   *  {Object} Moz application
    *
    */
-  function isCore(origin) {
-    return coreApplications.indexOf(origin) !== -1;
+  function isCore(app) {
+    return !app.removable;
   };
 
   var deviceWidth = document.documentElement.clientWidth;
@@ -265,7 +278,7 @@ var Applications = (function() {
     }
 
     if ('locales' in manifest) {
-      var locale = manifest.locales[navigator.language];
+      var locale = manifest.locales[document.documentElement.lang];
       if (locale && locale.name) {
         return locale.name;
       }
@@ -328,6 +341,7 @@ var Applications = (function() {
     getOrigin: getOrigin,
     getName: getName,
     getIcon: getIcon,
+    cacheIcon: cacheIcon,
     getManifest: getManifest,
     getInstalledApplications: getInstalledApplications,
     isReady: isReady,

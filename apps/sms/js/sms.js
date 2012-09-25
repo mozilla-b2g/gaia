@@ -5,6 +5,8 @@
 
 var MessageManager = {
   init: function mm_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
       MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -14,7 +16,6 @@ var MessageManager = {
     ThreadListUI.init();
     // Init first time
     this.getMessages(ThreadListUI.renderThreads);
-
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -41,13 +42,15 @@ var MessageManager = {
       case 'received':
         var num = this.getNumFromHash();
         var sender = event.message.sender;
+        if (window.location.hash == '#edit')
+          break;
         if (num == sender) {
           //Append message and mark as unread
           MessageManager.markMessageRead(event.message.id, true, function() {
             MessageManager.getMessages(ThreadListUI.renderThreads);
           });
           ThreadUI.appendMessage(event.message, function() {
-              Utils.updateHeaders();
+              Utils.updateTimeHeaders();
             });
         } else {
           MessageManager.getMessages(ThreadListUI.renderThreads);
@@ -71,16 +74,21 @@ var MessageManager = {
             break;
           case '#thread-list':
             if (mainWrapper.classList.contains('edit')) {
+              this.getMessages(ThreadListUI.renderThreads);
               mainWrapper.classList.remove('edit');
             } else if (threadMessages.classList.contains('new')) {
               MessageManager.slide(function() {
                 threadMessages.classList.remove('new');
               });
             } else {
-              MessageManager.slide();
+              MessageManager.slide(function() {
+                if (MessageManager.activityTarget) {
+                  window.location.hash =
+                    '#num=' + MessageManager.activityTarget;
+                  delete MessageManager.activityTarget;
+                }
+              });
             }
-            // Update the data for next time we enter a thread
-            delete ThreadUI.title.dataset.isContact;
             break;
           case '#edit':
             ThreadListUI.cleanForm();
@@ -90,18 +98,18 @@ var MessageManager = {
           default:
             var num = this.getNumFromHash();
             if (num) {
+              var filter = this.createFilter(num);
               MessageManager.currentNum = num;
               if (mainWrapper.classList.contains('edit')) {
+                this.getMessages(ThreadUI.renderMessages, filter);
                 mainWrapper.classList.remove('edit');
               } else if (threadMessages.classList.contains('new')) {
-                var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages, filter);
                 threadMessages.classList.remove('new');
               } else {
-                var filter = this.createFilter(num);
                 this.getMessages(ThreadUI.renderMessages,
                   filter, null, function() {
-                   MessageManager.slide(function() {
+                    MessageManager.slide(function() {
                       document.getElementById('message-to-send').focus();
                     });
                   });
@@ -125,7 +133,11 @@ var MessageManager = {
 
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
-    filter.numbers = [num || ''];
+    if (num) {
+      filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
+    } else {
+      filter.numbers = [''];
+    }
     return filter;
   },
 
@@ -149,8 +161,10 @@ var MessageManager = {
           return;
         }
         var filterNum = filter ? filter.numbers[0] : null;
+        var numNormalized = PhoneNumberManager.
+          getNormalizedInternationalNumber(filterNum);
         //TODO: Refine the pending message append with non-blocking method.
-        PendingMsgManager.getMsgDB(filterNum, function msgCb(pendingMsgs) {
+        PendingMsgManager.getMsgDB(numNormalized, function msgCb(pendingMsgs) {
           if (!pendingMsgs) {
             return;
           }
@@ -233,6 +247,16 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value);
       }
     }
+  },
+
+  reopenSelf: function reopenSelf(number) {
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch();
+      if (number) {
+        window.location.hash = '#num=' + number;
+      }
+    }
   }
 };
 
@@ -258,9 +282,9 @@ var ThreadListUI = {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
   },
-  get editHeader() {
-    delete this.editHeader;
-    return this.editHeader = document.getElementById('list-edit-title');
+  get pageHeader() {
+    delete this.pageHeader;
+    return this.pageHeader = document.getElementById('list-edit-title');
   },
 
   init: function thlui_init() {
@@ -277,18 +301,24 @@ var ThreadListUI = {
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
-    var choosenContact = contact[0];
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
-    var selector = 'a[data-num="' + number + '"] div.photo img';
-    var photo = this.view.querySelector(selector);
-    if (name && choosenContact.name && choosenContact.name != '') {
-      name.innerHTML = choosenContact.name;
-    }
+    if (contact && contact.length > 0) {
+      var choosenContact = contact[0];
+      var name =
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
+      var selector = 'a[data-num="' + number + '"] div.photo img';
+      var photo = this.view.querySelector(selector);
+      if (name && choosenContact.name && choosenContact.name != '') {
+        name.innerHTML = choosenContact.name;
+      }
 
-    if (photo && choosenContact.photo && choosenContact.photo[0]) {
-      var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-      photo.src = photoURL;
+      if (photo && choosenContact.photo && choosenContact.photo[0]) {
+        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+        photo.src = photoURL;
+      }
+    } else {
+      name.innerHTML = number;
     }
   },
 
@@ -324,11 +354,11 @@ var ThreadListUI = {
     if (selected > 0) {
       ThreadListUI.deselectAllButton.classList.remove('disabled');
       ThreadListUI.deleteButton.classList.remove('disabled');
-      this.editHeader.innerHTML = _('selected', {n: selected});
+      this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
       ThreadListUI.deselectAllButton.classList.add('disabled');
       ThreadListUI.deleteButton.classList.add('disabled');
-      this.editHeader.innerHTML = _('editMode');
+      this.pageHeader.innerHTML = _('editMode');
     }
   },
 
@@ -340,10 +370,8 @@ var ThreadListUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = _('editMode');
-    this.deselectAllButton.classList.add('disabled');
-    this.selectAllButton.classList.remove('disabled');
-    this.deleteButton.classList.add('disabled');
+    this.pageHeader.innerHTML = _('editMode');
+    this.checkInputs();
   },
 
   selectAllThreads: function thlui_selectAllThreads() {
@@ -428,37 +456,42 @@ var ThreadListUI = {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
       ThreadListUI.iconEdit.classList.remove('disabled');
-      var threadIds = [], headerIndex, unreadThreads = [];
+      var threadIds = [],
+          dayHeaderIndex = 0,
+          unreadThreads = [];
       for (var i = 0; i < messages.length; i++) {
+
         var message = messages[i];
+        var time = message.timestamp.getTime();
         var num = message.delivery == 'received' ?
         message.sender : message.receiver;
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         if (!message.read) {
-          if (unreadThreads.indexOf(num) == -1) {
-            unreadThreads.push(num);
+          if (unreadThreads.indexOf(numNormalized) == -1) {
+            unreadThreads.push(numNormalized);
           }
         }
-        if (threadIds.indexOf(num) == -1) {
+        if (threadIds.indexOf(numNormalized) == -1) {
           var thread = {
             'body': message.body,
-            'name': num,
-            'num': num,
-            'timestamp': message.timestamp.getTime(),
+            'name': numNormalized,
+            'num': numNormalized,
+            'timestamp': time,
             'unreadCount': !message.read ? 1 : 0,
-            'id': num
+            'id': numNormalized
           };
           if (threadIds.length == 0) {
-            var currentTS = (new Date()).getTime();
-            headerIndex = Utils.getDayDate(currentTS);
-            ThreadListUI.createNewHeader(currentTS);
+            dayHeaderIndex = Utils.getDayDate(time);
+            ThreadListUI.createNewHeader(time);
           }else {
-            var tmpIndex = Utils.getDayDate(message.timestamp.getTime());
-            if (tmpIndex < headerIndex) {
-              ThreadListUI.createNewHeader(message.timestamp.getTime());
-              headerIndex = tmpIndex;
+            var tmpDayIndex = Utils.getDayDate(time);
+            if (tmpDayIndex < dayHeaderIndex) {
+              ThreadListUI.createNewHeader(time);
+              dayHeaderIndex = tmpDayIndex;
             }
           }
-          threadIds.push(num);
+          threadIds.push(numNormalized);
           ThreadListUI.appendThread(thread);
         }
       }
@@ -467,7 +500,7 @@ var ThreadListUI = {
         document.getElementById(unreadThreads[i]).classList.add('unread');
       }
       // Boot update of headers
-      Utils.updateHeaderScheduler();
+      Utils.updateTimeHeaderScheduler();
 
     } else {
       var noResultHTML = '<div id="no-result-container">' +
@@ -511,7 +544,7 @@ var ThreadListUI = {
             '    <div class="time ' +
                   (thread.unreadCount > 0 ? 'unread' : '') +
             '      " data-time="' + thread.timestamp + '">' +
-                  Utils.getHourMinute(thread.timestamp) +
+                  Utils.getFormattedHour(thread.timestamp) +
             '    </div>') +
             '    <div class="msg">"' + bodyHTML + '"</div>' +
             '    <div class="unread-tag"></div>' +
@@ -529,9 +562,7 @@ var ThreadListUI = {
 
     // Get the contact data for the number
     ContactDataManager.getContactData(thread.num, function gotContact(contact) {
-      if (contact && contact.length > 0) {
-        ThreadListUI.updateMsgWithContact(thread.num, contact);
-      }
+      ThreadListUI.updateMsgWithContact(thread.num, contact);
     });
   },
 
@@ -542,6 +573,7 @@ var ThreadListUI = {
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
+    headerHTML.dataset.isThread = true;
     // Add text
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
@@ -602,10 +634,9 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-
-  get editHeader() {
-      delete this.editHeader;
-      return this.editHeader = document.getElementById('messages-edit-title');
+  get pageHeader() {
+      delete this.pageHeader;
+      return this.pageHeader = document.getElementById('messages-edit-title');
   },
 
   init: function thui_init() {
@@ -679,59 +710,53 @@ var ThreadUI = {
     this.scrollViewToBottom();
   },
   // Adds a new grouping header if necessary (today, tomorrow, ...)
-  createHeader: function thui_createHeader(timestamp) {
+  createTimeHeader: function thui_createTimeHeader(timestamp, hourOnly) {
     // Create DOM Element
     var headerHTML = document.createElement('h2');
     // Append 'time-update' state
     headerHTML.dataset.timeUpdate = true;
     headerHTML.dataset.time = timestamp;
     // Add text
-    headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
+    var content;
+    if (!hourOnly) {
+      content = Utils.getHeaderDate(timestamp) + ' ' +
+                Utils.getFormattedHour(timestamp);
+    } else {
+      content = Utils.getFormattedHour(timestamp);
+      headerHTML.dataset.hourOnly = 'true';
+    }
+    headerHTML.innerHTML = content;
     // Append to DOM
     ThreadUI.view.appendChild(headerHTML);
   },
+
   updateHeaderData: function thui_updateHeaderData(number) {
     var self = this;
-    self.title.innerHTML = number;
     // Add data to contact activity interaction
     self.title.dataset.phoneNumber = number;
 
-    ContactDataManager.getContactData(number, function gotContact(contact) {
-      //TODO what if return multiple contacts?
-      var carrierTag = document.getElementById('contact-carrier');
-      if (contact.length > 0) { // we have a contact
-        var name = contact[0].name,
-            phone = contact[0].tel[0],
-            carrierToShow = phone.carrier;
-        // Check which of the contacts phone number we are using
-        for (var i = 0; i < contact[0].tel.length; i++) {
-          if (contact[0].tel[i].value == number) {
-            phone = contact[0].tel[i];
-            carrierToShow = phone.carrier;
-          }
+    ContactDataManager.getContactData(number, function gotContact(contacts) {
+      //TODO what if different contacts with same number?
+      Utils.getPhoneDetails(number,
+                            contacts[0],
+                            function returnedDetails(details) {
+        if (details.isContact) {
+          self.title.dataset.isContact = true;
+        } else {
+          delete self.title.dataset.isContact;
         }
-        // Add data values for contact activity interaction
-        self.title.dataset.isContact = true;
-
-        if (name && name != '') { // contact with name
-          for (var i = 0; i < contact[0].tel.length; i++) {
-            if (contact[0].tel[i].value !== phone.value &&
-                contact[0].tel[i].type == phone.type &&
-                contact[0].tel[i].carrier == phone.carrier) {
-              carrierToShow = phone.value;
-            }
-          }
-          self.title.innerHTML = name;
-          carrierTag.innerHTML = phone.type + ' | ' +
-                                (carrierToShow || phone.value);
-        } else { // no name of contact
-          carrierTag.innerHTML = phone.type;
+        self.title.innerHTML = details.title || number;
+        var carrierTag = document.getElementById('contact-carrier');
+        if (details.carrier) {
+          carrierTag.innerHTML = details.carrier;
+          carrierTag.classList.remove('hide');
+        } else {
+          carrierTag.classList.add('hide');
         }
-      } else { // we don't have a contact
-        carrierTag.style.display = 'none';
-      }
+      });
     });
   },
+
   renderMessages: function thui_renderMessages(messages, callback) {
     // Update Header
     ThreadUI.updateHeaderData(MessageManager.currentNum);
@@ -742,7 +767,8 @@ var ThreadUI = {
     // Clean list of messages
     ThreadUI.view.innerHTML = '';
     // Update header index
-    ThreadUI.headerIndex = 0;
+    ThreadUI.dayHeaderIndex = 0;
+    ThreadUI.timeHeaderIndex = 0;
     // Init readMessages array
     ThreadUI.readMessages = [];
     // Per each message I will append DOM element
@@ -755,12 +781,13 @@ var ThreadUI = {
       });
     }
     // Boot update of headers
-    Utils.updateHeaderScheduler();
+    Utils.updateTimeHeaderScheduler();
     // Callback when every message is appended
     if (callback) {
       callback();
     }
   },
+
   appendMessage: function thui_appendMessage(message, callback) {
     if (!message.read) {
       ThreadUI.readMessages.push(message.id);
@@ -817,10 +844,18 @@ var ThreadUI = {
       });
     }
     //Check if we need a new header
-    var tmpIndex = Utils.getDayDate(timestamp);
-    if (tmpIndex > ThreadUI.headerIndex) {
-      ThreadUI.createHeader(timestamp);
-      ThreadUI.headerIndex = tmpIndex;
+    var tmpDayIndex = Utils.getDayDate(timestamp);
+    var tmpHourIndex = timestamp;
+
+    if (tmpDayIndex > ThreadUI.dayHeaderIndex) { // Different day
+      ThreadUI.createTimeHeader(timestamp);
+      ThreadUI.dayHeaderIndex = tmpDayIndex;
+      ThreadUI.timeHeaderIndex = tmpHourIndex;
+    } else { // Same day
+      if (tmpHourIndex > ThreadUI.timeHeaderIndex + 10 * 60 * 1000) { // 10min
+        ThreadUI.createTimeHeader(timestamp, true);
+        ThreadUI.timeHeaderIndex = tmpHourIndex;
+      }
     }
     // Append element
     ThreadUI.view.appendChild(messageDOM);
@@ -840,10 +875,8 @@ var ThreadUI = {
     }
     this.delNumList = [];
     this.selectedInputList = [];
-    this.editHeader.innerHTML = _('editMode');
-    this.selectAllButton.classList.remove('disabled');
-    this.deselectAllButton.classList.add('disabled');
-    this.deleteButton.classList.add('disabled');
+    this.pageHeader.innerHTML = _('editMode');
+    this.checkInputs();
   },
 
   clearContact: function thui_clearContact() {
@@ -940,8 +973,11 @@ var ThreadUI = {
             MessageManager.getMessages(function recoverMessages(messages) {
               if (messages.length > 0) {
                 ThreadUI.renderMessages(messages);
-                WaitingScreen.hide();
-                window.history.back();
+                MessageManager.getMessages(ThreadListUI.renderThreads,
+                                           null, null, function() {
+                  WaitingScreen.hide();
+                  window.history.back();
+                });
               }else {
                 ThreadUI.view.innerHTML = '';
                 MessageManager.getMessages(ThreadListUI.renderThreads,
@@ -955,8 +991,6 @@ var ThreadUI = {
             },filter);
           }
         });
-
-
       });
     }
   },
@@ -985,11 +1019,11 @@ var ThreadUI = {
     if (selected > 0) {
       ThreadUI.deselectAllButton.classList.remove('disabled');
       ThreadUI.deleteButton.classList.remove('disabled');
-      this.editHeader.innerHTML = _('selected', {n: selected});
+      this.pageHeader.innerHTML = _('selected', {n: selected});
     } else {
       ThreadUI.deselectAllButton.classList.add('disabled');
       ThreadUI.deleteButton.classList.add('disabled');
-      this.editHeader.innerHTML = _('editMode');
+      this.pageHeader.innerHTML = _('editMode');
     }
   },
 
@@ -1003,6 +1037,7 @@ var ThreadUI = {
       break;
     }
   },
+
   cleanFields: function thui_cleanFields() {
     this.contactInput.value = '';
     this.input.value = '';
@@ -1028,7 +1063,7 @@ var ThreadUI = {
 
     if (settings) {
 
-      var req = settings.getLock().get('ril.radio.disabled');
+      var req = settings.createLock().get('ril.radio.disabled');
       req.addEventListener('success', (function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
@@ -1040,15 +1075,17 @@ var ThreadUI = {
         } else {
           var num = MessageManager.getNumFromHash();
         }
+        var numNormalized =
+          PhoneNumberManager.getNormalizedInternationalNumber(num);
         // Retrieve text
         var text = this.input.value || resendText;
         // If we have something to send
-        if (num != '' && text != '') {
+        if (numNormalized != '' && text != '') {
           // Create 'PendingMessage'
           var tempDate = new Date();
           var message = {
             sender: null,
-            receiver: num,
+            receiver: numNormalized,
             delivery: 'sending',
             body: text,
             read: 1,
@@ -1066,9 +1103,11 @@ var ThreadUI = {
                 // Append to DOM
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
-                  Utils.updateHeaders();
+                  Utils.updateTimeHeaders();
+
                 });
               }
+              MessageManager.getMessages(ThreadListUI.renderThreads);
               MessageManager.send(num, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
@@ -1115,7 +1154,7 @@ var ThreadUI = {
                 // Append to DOM
                 ThreadUI.appendMessage(message, function() {
                    // Call to update headers
-                  Utils.updateHeaders();
+                  Utils.updateTimeHeaders();
                 });
               }
               CustomDialog.show(
@@ -1160,36 +1199,48 @@ var ThreadUI = {
 
   renderContactData: function thui_renderContactData(contact) {
     // Retrieve info from thread
-    var phoneType = ContactDataManager.phoneType;
-    var name = contact.name.toString();
+    var self = this;
     var tels = contact.tel;
     for (var i = 0; i < tels.length; i++) {
-      var input = this.contactInput.value;
-      var number = tels[i].value.toString();
-      var reg = new RegExp(input, 'ig');
-      if (!(name.match(reg) || (number.match(reg)))) {
-        continue;
-      }
-      var nameHTML = SearchUtils.createHighlightHTML(name, reg, 'highlight');
-      var numHTML = SearchUtils.createHighlightHTML(number, reg, 'highlight');
-      // Create DOM element
-      var threadHTML = document.createElement('div');
-      threadHTML.classList.add('item');
-      if (name == '') {
-        nameHTML = 'Unknown';
-      }
-      var carrier = tels[i].carrier;
-      //TODO Implement algorithm for this part following Wireframes
-      // Create HTML structure
-      var structureHTML =
-              '  <a href="#num=' + tels[i].value + '">' +
-              '    <div class="name">' + nameHTML + '</div>' +
-              '    <div class="type">' + tels[i].type + ' ' + numHTML +
-              '    </div>' +
-              '  </a>';
-      // Update HTML and append
-      threadHTML.innerHTML = structureHTML;
-      ThreadUI.view.appendChild(threadHTML);
+      Utils.getPhoneDetails(tels[i].value,
+                            contact,
+                            function gotDetails(details) {
+        var name = (contact.name || details.title).toString();
+        //TODO ask UX if we should use type+carrier or just number
+        var number = tels[i].value.toString();
+        var input = self.contactInput.value;
+        // For name, as long as we do a startsWith on API, we want only to show
+        // highlight of the startsWith also
+        var regName = new RegExp('\\b' + input, 'ig');
+        // For number we search in any position to avoid country code issues
+        var regNumber = new RegExp(input, 'ig');
+        if (!(name.match(regName) || number.match(regNumber))) {
+          return;
+        }
+        var nameHTML =
+            SearchUtils.createHighlightHTML(name, regName, 'highlight');
+        var numHTML =
+            SearchUtils.createHighlightHTML(number, regNumber, 'highlight');
+        // Create DOM element
+        var threadHTML = document.createElement('div');
+        threadHTML.classList.add('item');
+
+
+        //TODO Implement algorithm for this part following Wireframes
+        // Create HTML structure
+        var structureHTML =
+                '  <a href="#num=' + number + '">' +
+                '    <div class="name">' + nameHTML + '</div>' +
+                '    <div class="type">' + numHTML + '</div>' +
+                //TODO what if no photo? hide or default?
+                '    <div class="photo">' +
+                '      <img src="' + details.photoURL + '">' +
+                '    </div>' +
+                '  </a>';
+        // Update HTML and append
+        threadHTML.innerHTML = structureHTML;
+        ThreadUI.view.appendChild(threadHTML);
+      });
     }
   },
 
@@ -1197,7 +1248,7 @@ var ThreadUI = {
     var input = this.contactInput;
     var string = input.value;
     var self = this;
-    this.view.innerHTML = '';
+    self.view.innerHTML = '';
     if (!string) {
       return;
     }
@@ -1205,21 +1256,13 @@ var ThreadUI = {
       if (!contacts || contacts.length == 0) {
         return;
       }
+      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
 
   pickContact: function thui_pickContact() {
     try {
-      var reopenSelf = function reopenSelf(number) {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-          if (number) {
-            window.location.hash = '#num=' + number;
-          }
-        };
-      };
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -1228,10 +1271,10 @@ var ThreadUI = {
       });
       activity.onsuccess = function success() {
         var number = this.result.number;
-        reopenSelf(number);
+        MessageManager.reopenSelf(number);
       }
       activity.onerror = function error() {
-        reopenSelf();
+        MessageManager.reopenSelf();
       }
 
     } catch (e) {
@@ -1264,6 +1307,12 @@ var ThreadUI = {
 
     try {
       var activity = new MozActivity(options);
+      activity.onsuccess = function success() {
+        MessageManager.reopenSelf();
+      }
+      activity.onerror = function error() {
+        MessageManager.reopenSelf();
+      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1300,20 +1349,41 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   var number = activity.source.data.number;
-  var displayThread = function actHandleDisplay() {
-    if (number)
-      window.location.hash = '#num=' + number;
-  }
+  var activityAction = function act_action() {
+    var currentLocation = window.location.hash;
+    switch (currentLocation) {
+      case '#thread-list':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#new':
+        window.location.hash = '#num=' + number;
+        break;
+      case '#edit':
+        history.back();
+        activityAction();
+        break;
+      default:
+        if (currentLocation.indexOf('#num=') != -1) {
+          MessageManager.activityTarget = number;
+          window.location.hash = '#thread-list';
+        } else {
+          window.location.hash = '#num=' + number;
+        }
+        break;
+    }
+  };
 
-  if (document.readyState == 'complete') {
-    displayThread();
+  if (!document.documentElement.lang) {
+    window.addEventListener('localized', function waitLocalized() {
+      window.removeEventListener('localized', waitLocalized);
+      activityAction();
+    });
   } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      displayThread();
+    document.addEventListener('mozvisibilitychange', function waitVisibility() {
+      document.removeEventListener('mozvisibilitychange', waitVisibility);
+      activityAction();
     });
   }
-
   activity.postResult({ status: 'accepted' });
 });
 

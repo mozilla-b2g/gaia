@@ -4,6 +4,8 @@
 var Bookmark = function Bookmark(params) {
   this.origin = params.url;
 
+  this.removable = true;
+
   this.manifest = {
     name: params.name,
     icons: {

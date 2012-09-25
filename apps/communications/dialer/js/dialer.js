@@ -1,74 +1,91 @@
 'use strict';
 
-document.addEventListener('mozvisibilitychange', function visibility(e) {
-  if (!document.mozHidden) {
-    RecentsDBManager.get(function(recents) {
-      Recents.render(recents);
-    });
-  }
-});
+var CallHandler = (function callHandler() {
+  var telephony = navigator.mozTelephony;
+  var _ = navigator.mozL10n.get;
 
-var CallHandler = {
-  call: function ch_call(number) {
+  var callScreenDisplayed = false;
+  var currentActivity = null;
+
+  /* === Settings === */
+  var screenState = 'locked';
+  SettingsListener.observe('lockscreen.locked', false, function(value) {
+    if (value) {
+      screenState = 'locked';
+    } else {
+      screenState = 'unlocked';
+    }
+  });
+
+  /* === WebActivity === */
+  function handleActivity(activity) {
+    // Workaround here until the bug 787415 is fixed
+    // Gecko is sending an activity event in every multiple entry point
+    // instead only the one that the href match.
+    if (activity.source.name != 'dial')
+      return;
+
+    currentActivity = activity;
+
+    var number = activity.source.data.number;
+    var fillNumber = function actHandleDisplay() {
+      if (number) {
+        KeypadManager.updatePhoneNumber(number);
+        if (window.location.hash != '#keyboard-view') {
+          window.location.hash = '#keyboard-view';
+        }
+        call(number);
+      }
+    }
+
+    if (document.readyState == 'complete') {
+      fillNumber();
+    } else {
+      window.addEventListener('localized', function loadWait() {
+        window.removeEventListener('localized', loadWait);
+        fillNumber();
+      });
+    }
+
+    activity.postResult({ status: 'accepted' });
+  }
+  window.navigator.mozSetMessageHandler('activity', handleActivity);
+
+  /* === Incoming calls === */
+  function incoming() {
+    if (callScreenDisplayed)
+      return;
+
+    openCallScreen();
+  }
+  window.navigator.mozSetMessageHandler('telephony-incoming', incoming);
+
+  /* === Calls === */
+  function call(number) {
     var settings = window.navigator.mozSettings, req;
 
     if (settings) {
-      // Once
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=788561
-      // lands, we should get rid of `getLock()` call below.
-      var settingsLock;
-      if (settings.createLock) {
-        settingsLock = settings.createLock();
-      } else {
-        settingsLock = settings.getLock();
-      }
+      var settingsLock = settings.createLock();
       req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
 
         if (!status) {
-          this.startDial(number);
+          startDial(number);
         } else {
-          CustomDialog.show(
-            _('callFlightModeTitle'),
-            _('callFlightModeBody'),
-            {
-              title: _('callFlightModeBtnOk'),
-              callback: function() {
-                CustomDialog.hide();
-
-                if (CallHandler.activityCurrent) {
-                  CallHandler.activityCurrent.postError('canceled');
-                  CallHandler.activityCurrent = null;
-                }
-              }
-            }
-          );
+          handleFlightMode();
         }
-      }.bind(this));
+      });
     } else {
-      this.startDial(number);
+      startDial(number);
     }
-  },
+  }
 
-  _isUSSD: function ch_isUSSD(number) {
-    var ussdChars = ['*', '#'];
-
-    var relevantNumbers = [];
-    relevantNumbers.push(number.slice(0, 1));
-    relevantNumbers.push(number.slice(-1));
-
-    return relevantNumbers.every(function ussdTest(number) {
-      return ussdChars.indexOf(number) !== -1;
-    });
-  },
-
-  startDial: function ch_startDial(number) {
-    if (this._isUSSD(number)) {
+  function startDial(number) {
+    if (isUSSD(number)) {
       UssdManager.send(number);
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
-      var telephony = window.navigator.mozTelephony;
       if (telephony) {
         var call = telephony.dial(sanitizedNumber);
 
@@ -78,11 +95,97 @@ var CallHandler = {
           };
           call.onconnected = cb;
           call.ondisconnected = cb;
+          call.onerror = handleError;
+
+          if (!callScreenDisplayed)
+            openCallScreen();
         }
       }
     }
   }
-};
+
+  function isUSSD(number) {
+    var ussdChars = ['*', '#'];
+
+    var relevantNumbers = [];
+    relevantNumbers.push(number.slice(0, 1));
+    relevantNumbers.push(number.slice(-1));
+
+    return relevantNumbers.every(function ussdTest(number) {
+      return ussdChars.indexOf(number) !== -1;
+    });
+  }
+
+  function handleFlightMode() {
+    CustomDialog.show(
+      _('callFlightModeTitle'),
+      _('callFlightModeBody'),
+      {
+        title: _('callFlightModeBtnOk'),
+        callback: function() {
+          CustomDialog.hide();
+
+          if (currentActivity) {
+            currentActivity.postError('canceled');
+            currentActivity = null;
+          }
+        }
+      }
+    );
+  }
+
+  function handleError(event) {
+    var erName = event.call.error.name, emgcyDialogBody,
+        errorRecognized = false;
+
+    if (erName === 'BadNumberError') {
+      errorRecognized = true;
+      emgcyDialogBody = 'emergencyDialogBodyBadNumber';
+    } else if (erName === 'DeviceNotAcceptedError') {
+      errorRecognized = true;
+      emgcyDialogBody = 'emergencyDialogBodyDeviceNotAccepted';
+    }
+
+    if (errorRecognized) {
+      CustomDialog.show(
+        _('emergencyDialogTitle'),
+        _(emgcyDialogBody),
+        {
+          title: _('emergencyDialogBtnOk'),
+          callback: function() {
+            CustomDialog.hide();
+          }
+        }
+      );
+    }
+  }
+
+  /* === Attention Screen === */
+  function openCallScreen() {
+    if (callScreenDisplayed)
+      return;
+
+    callScreenDisplayed = true;
+
+    var host = document.location.host;
+    var protocol = document.location.protocol;
+    var urlBase = protocol + '//' + host + '/dialer/oncall.html';
+    window.open(urlBase + '#' + screenState,
+                'call_screen', 'attention');
+  }
+
+  // We use a simple postMessage protocol to know when the call screen is closed
+  function handleMessage(evt) {
+    if (evt.data == 'closing') {
+      callScreenDisplayed = false;
+    }
+  }
+  window.addEventListener('message', handleMessage);
+
+  return {
+    call: call
+  };
+})();
 
 var NavbarManager = {
   init: function nm_init() {
@@ -105,9 +208,23 @@ var NavbarManager = {
     contacts.classList.remove('toolbar-option-selected');
     keypad.classList.remove('toolbar-option-selected');
 
+    // XXX : Move this to whole activity approach, so far
+    // we don't have time to do a deep modification of
+    // contacts activites. Postponed to v2
+    var checkContactsTab = function() {
+      var contactsIframe = document.getElementById('iframe-contacts');
+
+      var index = contactsIframe.src.indexOf('#add-parameters');
+      if (index != -1) {
+        contactsIframe.src = contactsIframe.src.substr(0, index);
+      }
+    };
+
     var destination = window.location.hash;
     switch (destination) {
       case '#recents-view':
+        checkContactsTab();
+        Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
         Recents.updateLatestVisit();
         break;
@@ -116,6 +233,7 @@ var NavbarManager = {
         Recents.updateHighlighted();
         break;
       case '#keyboard-view':
+        checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
         Recents.updateHighlighted();
         break;
@@ -136,38 +254,6 @@ window.addEventListener('localized', function startup(evt) {
   document.body.classList.remove('hidden');
 });
 
-window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  // Workaround here until the bug 787415 is fixed
-  // Gecko is sending an activity event in every multiple entry point
-  // instead only the one that the href match.
-  if (activity.source.name != 'dial')
-    return;
-
-  CallHandler.activityCurrent = activity;
-
-  var number = activity.source.data.number;
-  var fillNumber = function actHandleDisplay() {
-    if (number) {
-      KeypadManager.updatePhoneNumber(number);
-      if (window.location.hash != '#keyboard-view') {
-        window.location.hash = '#keyboard-view';
-      }
-      CallHandler.call(number);
-    }
-  }
-
-  if (document.readyState == 'complete') {
-    fillNumber();
-  } else {
-    window.addEventListener('localized', function loadWait() {
-      window.removeEventListener('localized', loadWait);
-      fillNumber();
-    });
-  }
-
-  activity.postResult({ status: 'accepted' });
-});
-
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed
 window.onresize = function(e) {
@@ -178,3 +264,13 @@ window.onresize = function(e) {
   }
 };
 
+// Keeping the call history up to date
+document.addEventListener('mozvisibilitychange', function visibility(e) {
+  if (!document.mozHidden) {
+    RecentsDBManager.init(function dbReady() {
+      RecentsDBManager.get(function(recents) {
+        Recents.render(recents);
+      });
+    });
+  }
+});

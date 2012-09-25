@@ -1,7 +1,8 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
+
 
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
@@ -9,11 +10,19 @@
  */
 
 var Settings = {
+  get mozSettings() {
+    // return navigator.mozSettings when properly supported, null otherwise
+    // (e.g. when debugging on a browser...)
+    var settings = window.navigator.mozSettings;
+    return (settings && typeof(settings.createLock) == 'function') ?
+        settings : null;
+  },
+
   init: function settings_init() {
     this.loadGaiaCommit();
 
-    var settings = window.navigator.mozSettings;
-    if (!settings) // e.g. when debugging on a browser...
+    var settings = this.mozSettings;
+    if (!settings)
       return;
 
     settings.onsettingchange = function settingChanged(event) {
@@ -137,12 +146,30 @@ var Settings = {
         }
       }
     );
+
+    // preset all select
+    var selects = document.querySelectorAll('select');
+    for (i = 0; i < selects.length; i++) {
+      (function(select) {
+        var key = select.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          var value = request.result[key];
+          if (value != undefined) {
+            select.querySelector('option[value="' + value + '"]').selected = true;
+          }
+        };
+      })(selects[i]);
+    }
   },
 
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
     var key = input.name || input.dataset.name;
-    var settings = window.navigator.mozSettings;
+    var settings = this.mozSettings;
     if (!key || !settings || input.dataset.ignore)
       return;
 
@@ -153,7 +180,8 @@ var Settings = {
           value = input.checked;
         } else if ((input.type == 'radio') ||
                    (input.type == 'text') ||
-                   (input.type == 'password')) {
+                   (input.type == 'password') ||
+                   (input.tagName.toLowerCase() == 'select')) {
           value = input.value;
         }
         var cset = {}; cset[key] = value;
@@ -164,13 +192,14 @@ var Settings = {
         if (input.tagName.toLowerCase() != 'progress')
           return;
         var rect = input.getBoundingClientRect();
-        var position = Math.ceil((evt.clientX - rect.left) / (rect.width / 10));
+        var position = Math.ceil(10 * (evt.clientX - rect.left) / rect.width);
 
-        var value = position / input.max;
-        value = Math.max(0, Math.min(1, value));
+        var min = parseFloat(input.getAttribute('min')) || 0;
+        var max = parseFloat(input.getAttribute('max')) || 10;
+        position = Math.max(min, Math.min(max, position));
         input.value = position;
 
-        var cset = {}; cset[key] = value;
+        var cset = {}; cset[key] = position / 10;
         settings.createLock().set(cset);
         break;
     }
@@ -215,35 +244,23 @@ var Settings = {
   },
 
   openDialog: function settings_openDialog(dialogID) {
-    var settings = window.navigator.mozSettings;
+    var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
     var fields =
         dialog.querySelectorAll('input[data-setting]:not([data-ignore])');
 
     /**
-      * In Settings dialog boxes, we don't want the input fields to be preset
-      * by Settings.init() and we don't want them to set the related settings
-      * without any user validation.
-      *
-      * So instead of assigning a `name' attribute to these inputs, a
-      * `data-setting' attribute is used and the input values are set
-      * explicitely when the dialog is shown.  If the dialog is validated
-      * (submit), their values are stored into B2G settings.
-      *
-      * XXX warning, this only supports text/password/radio input types.
-      */
-
-    // show dialog box
-    function open() {
-      reset(); // preset all fields
-      dialog.style.display = 'block';
-    }
-
-    // hide dialog box
-    function close() {
-      dialog.style.display = 'none';
-      return false;
-    }
+     * In Settings dialog boxes, we don't want the input fields to be preset
+     * by Settings.init() and we don't want them to set the related settings
+     * without any user validation.
+     *
+     * So instead of assigning a `name' attribute to these inputs, a
+     * `data-setting' attribute is used and the input values are set
+     * explicitely when the dialog is shown.  If the dialog is validated
+     * (submit), their values are stored into B2G settings.
+     *
+     * XXX warning, this only supports text/password/radio input types.
+     */
 
     // initialize all setting fields in the dialog box
     function reset() {
@@ -264,20 +281,22 @@ var Settings = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
-        var cset = {};
+        // mozSettings does not support multiple keys in the cset object
+        // with one set() call,
+        // see https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+        var lock = settings.createLock();
         for (var i = 0; i < fields.length; i++) {
           var input = fields[i];
+          var cset = {};
           var key = input.dataset.setting;
           cset[key] = input.value;
+          lock.set(cset);
         }
-        settings.createLock().set(cset);
       }
-      return close();
     }
 
-    dialog.onsubmit = submit;
-    dialog.onreset = close;
-    open();
+    reset(); // preset all fields before opening the dialog
+    openDialog(dialogID, submit);
   }
 };
 
@@ -312,7 +331,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
 });
 
 // set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showPanel() {
+window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 

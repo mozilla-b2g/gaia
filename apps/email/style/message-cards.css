@@ -60,7 +60,7 @@
   border-bottom: 1px solid gray;
   vertical-align: 0%;
 }
-.msg-header-item-selected {
+.msg-header-item:active {
   background-color: #ffc48c;
 }
 .msg-header-unread-section {
@@ -100,7 +100,7 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 29.2rem;
+  right: 0rem;
   width: 2.8rem;
   height: 100%;
 }
@@ -348,4 +348,37 @@
   border: none;
   width: 6rem;
   background: url("images/icons/forward.png") no-repeat scroll center transparent;
+}
+
+.msg-list-empty {
+  position: absolute;
+  top: 40%;
+  width: 80%;
+  margin : 0 10%;
+  font-size: 2rem;
+  font-weight: bolder;
+  text-align: center;
+  display: none;
+}
+.msg-list-empty.show {
+  display: block;
+}
+
+/* Message list edit mode layout control */
+.msg-messages-container label.negative {
+  height: 8rem;
+  width: 4rem;
+  display: none;
+  pointer-events: none;
+}
+.msg-messages-container.show-edit label.negative {
+  display: inline-block;
+}
+
+.msg-messages-container.show-edit .msg-header-unread-section {
+  left: 4.5rem;
+}
+.msg-messages-container.show-edit .msg-header-details-section {
+  left: 5.9rem;
+  width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
 }

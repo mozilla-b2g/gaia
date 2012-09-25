@@ -34,7 +34,7 @@
   text-align: left;
   padding-left: 3rem;
   text-overflow: ellipsis;
-  overflow: hidden; 
+  overflow: hidden;
   height: 2rem;
   box-sizing: border-box;
   box-shadow: inset 0 0.1rem 0.1rem #666666;
@@ -90,6 +90,7 @@
   overflow: hidden;
   -moz-box-sizing: border-box;
   width: -moz-calc(100% - 8rem);
+  padding-right: 4rem;
   margin: 1rem 3rem;
   position: relative;
   height: -moz-calc(100% - 2rem);

@@ -1,575 +1,794 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
-/*
- * MediaDB.js: a simple interface to DeviceStorage and IndexedDB.
+/**
+ * MediaDB.js: a simple interface to DeviceStorage and IndexedDB that serves
+ *             as a model of the filesystem and provides easy access to the
+ *             user's media files and their metadata.
  *
  * Gaia's media apps (Gallery, Music, Videos) read media files from the phone
- * using the DeviceStorage API. They need to keep track of the complete list
- * of media files, as well as the metadata (image sizes, song titles,
- * etc.) that they have extracted from those files. It would be much too slow
- * to scan the filesystem and read all the metadata from all files each time
- * the apps starts up, so the apps need to store filenames and metadata in an
- * IndexedDB database.  This library integrates both DeviceStorage and
- * IndexedDB into a single API. It keeps the database in sync with the
- * filesystem and provides notifications when files are added or deleted.
+ * using the DeviceStorage API. They need to keep track of the complete list of
+ * media files, as well as the metadata (image thumbnails, song titles, etc.)
+ * they have extracted from those files. It would be much too slow to scan the
+ * filesystem and read all the metadata from all files each time the apps starts
+ * up, so the apps need to store the list of files and metadata in an IndexedDB
+ * database. This library integrates both DeviceStorage and IndexedDB into a
+ * single API. It keeps the database in sync with the filesystem and provides
+ * notifications when files are added or deleted.
+ *
+ * CONSTRUCTOR
  *
  * Create a MediaDB object with the MediaDB() constructor. It takes three
  * arguments:
  *
  *   mediaType:
- *     one of the DeviceStorage media types such as
- *     "pictures", "movies" or "music".
+ *     one of the DeviceStorage media types: "pictures", "movies" or "music".
  *
  *   metadataParser:
- *     your metadata parser function. This function should
- *     expect two arguments. It will be called with a file to parse and
- *     a callback function.  It should read metadata from the file and then
- *     pass an object of metadata to the callback. If you omit this argument
- *     or pass null, a dummy parser that invokes the callback with an empty
- *     object will be used instead.
+ *     your metadata parser function. This function should expect three
+ *     arguments. It will be called with a file to parse and two callback
+ *     functions. It should read metadata from the file and then pass an object
+ *     of metadata to the first callback. If parsing fails it should pass an
+ *     Error object or error message to the second callback. If you omit this
+ *     argument or pass null, a dummy parser that invokes the callback with an
+ *     empty object will be used instead.
  *
  *   options:
  *     An optional object containing additional MediaDB options.
  *     Supported options are:
  *
  *       directory:
- *          a subdirectory of the DeviceStorage directory. If you are
- *          only interested in images in the screenshots/ subdirectory
- *          for example, you can set this property to "screenshots/".
+ *          a subdirectory of the DeviceStorage directory. If you are only
+ *          interested in images in the screenshots/ subdirectory for example,
+ *          you can set this property to "screenshots/".
  *
  *       mimeTypes:
- *          an array of MIME types that specifies the kind of files
- *          you are interested in and that your metadata parser function
- *          knows how to handle.
+ *          an array of MIME types that specifies the kind of files you are
+ *          interested in and that your metadata parser function knows how to
+ *          handle. DeviceStorage infers MIME type from filename extension and
+ *          filters the files it returns based on their extension. Use this
+ *          property if you want to restrict the set of mime types further.
  *
  *       indexes:
- *          an array of IndexedDB key path specifications that specify
- *          which properties of each media record should be indexed. If
- *          you want to search or sort on anything other than the file name
- *          specify this property. "size", "date", "type" are valid keypaths
- *          as is "metadata.x" where x is any metadata property returned by
- *          your metadata parser.
+ *          an array of IndexedDB key path specifications that specify which
+ *          properties of each media record should be indexed. If you want to
+ *          search or sort on anything other than the file name and date you
+ *          should set this property. "size", and "type" are valid keypaths as
+ *          is "metadata.x" where x is any metadata property returned by your
+ *          metadata parser.
  *
  *       version:
  *          The version of your IndexedDB database. The default value is 1
  *          Setting it to a larger value will delete all data in the database
- *          and rebuild it from scratch. If you ever change your metadata
- *          parser function or alter any of the options above, you should
- *          update the version number.
+ *          and rebuild it from scratch. If you ever change your metadata parser
+ *          function or alter the array of indexes.
  *
- * A MediaDB object must asynchronously open a connection to its database,
- * and asynchronously check on the availability of device storage, which
- * means that it is not ready for use when first created.  After calling
- * the MediaDB() constructor, set the onready property of the returned object
- * to a callback function. When the database is ready for use, that function
- * will be invoked with the MediaDB object as its this value. (Note that
- * MediaDB does not define addEventListener: you can only set a single
- * onready property.)
+ * MediaDB STATE
  *
- * The DeviceStorage API is not always available, and MediaDB is not
- * usable if DeviceStorage is not usable. If the user removes the SD
- * card from their phone, then DeviceStorage will not be able to read
- * or write files, obviously. Also, when a USB Mass Storage session is
- * in progress, DeviceStorage is not available either.  If
- * DeviceStorage is not available when a MediaDB object is created,
- * the onunavailable callback will be invoked instead of the onready
- * callback. Subsequently, onready will be called whenever
- * DeviceStorage becomes available, and onunavailble will be called
- * whenver DeviceStorage becomes unavailable. Media apps can handle
- * the unavailble case by displaying an informative message in an overlay
- * that prevents all user interaction with the app.
+ * A MediaDB object must asynchronously open a connection to its database, and
+ * asynchronously check on the availability of device storage, which means that
+ * it is not ready for use when first created. After calling the MediaDB()
+ * constructor, register an event listener for 'ready' events with
+ * addEventListener() or by setting the onready property. You must not use
+ * the MediaDB object until the ready event has been delivered or until
+ * the state property is set to MediaDB.READY.
  *
- * Typically, the first thing an app will do with a MediaDB object after the
- * onready callback is called is call its enumerate() method. This gets entries
- * from the database and passes them to the specified callback. Each entry
- * that is passed to the callback is an object like this:
+ * The DeviceStorage API is not always available, and MediaDB is not usable if
+ * DeviceStorage is not usable. If the user removes the SD card from their
+ * phone, then DeviceStorage will not be able to read or write files,
+ * obviously.  Also, when a USB Mass Storage session is in progress,
+ * DeviceStorage is not available either. If DeviceStorage is not available
+ * when a MediaDB object is created, an 'unavailable' event will be fired
+ * instead of a 'ready' event. Subsequently, a 'ready' event will be fired
+ * whenever DeviceStorage becomes available, and 'unavailable' will be fired
+ * whenever DeviceStorage becomes unavailable. Media apps can handle the
+ * unavailable case by displaying an informative message in an overlay that
+ * prevents all user interaction with the app.
+ *
+ * The 'ready' and 'unavailable' events signal changes to the state of a
+ * MediaDB object. The state is also available in the state property of the
+ * object.  The possible values of this property are the following:
+ *
+ *   Value        Constant           Meaning
+ *   ----------------------------------------------------------------------
+ *   'opening'    MediaDB.OPENING    MediaDB is initializing itself
+ *   'ready'      MediaDB.READY      MediaDB is available and ready for use
+ *   'nocard'     MediaDB.NOCARD     Unavailable because there is no sd card
+ *   'unmounted'  MediaDB.UNMOUNTED  Unavailable because the card is unmounted
+ *   'closed'     MediaDB.CLOSED     Unavailable because close() was called
+ *
+ * When an 'unavailable' event is fired, the detail property of the event
+ * object specifies the reason that the MediaDB is unavailable. It is one of
+ * the state values 'nocard', 'unmounted' or 'closed'.
+ *
+ * The 'nocard' state occurs when device storage is not available because
+ * there is no SD card in the device. This is typically a permanent failure
+ * state, and media apps cannot run without an SD card. It can occur
+ * transiently, however, if the user is swapping SD cards while a media app is
+ * open.
+ *
+ * The 'unmounted' state occurs when the device's SD card is unmounted. This
+ * is generally a temporary condition that occurs when the user starts a USB
+ * Mass Storage transfer session by plugging their device into a computer.  In
+ * this case, MediaDB will become available again as soon as the device is
+ * unplugged (it may have different files on it, though: see the SCANNING
+ * section below).
+ *
+ * DATABASE RECORDS
+ *
+ * MediaDB stores a record in its IndexedDB database for each DeviceStorage
+ * file of the appropriate media type, directory and mime type. The records
+ * are objects of this form:
  *
  *   {
  *     name:     // the filename (relative to the DeviceStorage root)
- *     type:     // the file MIME type
+ *     type:     // the file MIME type (extension-based, from DeviceStorage)
  *     size:     // the file size in bytes
- *     date:     // file mod time (as ms since the epoch)
+ *     date:     // file modification time (as ms since the epoch)
  *     metadata: // whatever object the metadata parser returned
  *   }
  *
- * Note that db entries do not include the file itself, but only its name.
- * Use the getFile() method to get a File object by name.
- * If you pass only a callback to enumerate(), it calls the callback once
- * for each entry in the database and then calls the callback with an argument
- * of null to indicate that it is done.
+ * Note that the database records do not include the file itself, but only its
+ * name. Use the getFile() method to get a File object (a Blob) by name.
+ *
+ * ENUMERATING FILES
+ *
+ * Typically, the first thing an app will do with a MediaDB object after the
+ * ready event is triggered is call the enumerate() method to obtain the list
+ * of files that MediaDB already knows about from previous app invocations.
+ * enumerate() gets records from the database and passes them to the specified
+ * callback. Each record that is passed to the callback is an object in the
+ * form shown above.
+ *
+ * If you pass only a callback to enumerate(), it calls the callback once for
+ * each entry in the database and then calls the callback with an argument of
+ * null to indicate that it is done.
  *
  * By default, entries are returned in alphabetical order by filename and all
  * entries in the database are returned. You can specify other arguments to
- * enumerate() to change the set of entries that are returned and the order
- * that they are enumerated in.  The full set of arguments are:
+ * enumerate() to change the set of entries that are returned and the order that
+ * they are enumerated in. The full set of arguments are:
  *
  *   key:
- *     A keypath specification that specifies what field to sort on.
- *     If you specify this argument, it must be one of the values in the
- *     options.indexes array passed to the MediaDB() constructor.
- *     This argument is optional. If omitted, the default is to use the
- *     file name as the key.
+ *     A keypath specification that specifies what field to sort on.  If you
+ *     specify this argument, it must be 'name', 'date', or one of the values
+ *     in the options.indexes array passed to the MediaDB() constructor.  This
+ *     argument is optional. If omitted, the default is to use the file name
+ *     as the key.
  *
  *   range:
- *     An IDBKeyRange object that optionally specifies upper and lower bounds
- *     on the specified key. This argument is optional. If omitted, all
- *     entries in the database are enumerated.
+ *     An IDBKeyRange object that optionally specifies upper and lower bounds on
+ *     the specified key. This argument is optional. If omitted, all entries in
+ *     the database are enumerated. See IndexedDB documentation for more on
+ *     key ranges.
  *
  *   direction:
- *     One of the IndexedDB direction string "next", "nextunique", "prev"
- *     or "prevunique". This argument is optional. If omitted, the default
- *     is "next", which enumerates entries in ascending order.
+ *     One of the IndexedDB direction string "next", "nextunique", "prev" or
+ *     "prevunique". This argument is optional. If omitted, the default is
+ *     "next", which enumerates entries in ascending order.
  *
  *   callback:
- *     The function that database entries should be passed to. This
- *     argument is not optional, and is always passed as the last argument
- *     to enumerate().
+ *     The function that database entries should be passed to. This argument is
+ *     not optional, and is always passed as the last argument to enumerate().
  *
  * The enumerate() method returns database entries. These include file names,
  * but not the files themselves. enumerate() interacts solely with the
  * IndexedDB; it does not use DeviceStorage. If you want to use a media file
  * (to play a song or display a photo, for example) call the getFile() method.
- * This method takes the filename (the name property of the database entry)
- * as its first argument, and a callback as its second. It looks the named
- * file up with DeviceStorage and passes it to the callback function. You can
- * pass an optional error callback as the third argument. Any error reported
- * by DeviceStorage will be passed to this argument. If the named file does
- * not exist, the error callback will be invoked.
  *
- * enumerate() returns an object with a 'state' property that starts out
- * as 'enumerating' and switches to 'complete' when the enumeration is done.
- * You can cancel a pending enumeration by passing this object to the
- * cancelEnumeration() method. This switches the state to 'cancelling' and
- * then it switches to 'cancelled' when the cancellation is complete. If you
- * call cancelEnumeration(), the callback function you passed to enumerate()
- * is guaranteed not to be called again.
+ * enumerate() returns an object with a 'state' property that starts out as
+ * 'enumerating' and switches to 'complete' when the enumeration is done. You
+ * can cancel a pending enumeration by passing this object to the
+ * cancelEnumeration() method. This switches the state to 'cancelling' and then
+ * it switches to 'cancelled' when the cancellation is complete. If you call
+ * cancelEnumeration(), the callback function you passed to enumerate() is
+ * guaranteed not to be called again.
  *
- * If you set the onchange property of a MediaDB object to a function, it will
- * be called whenever files are added or removed from the DeviceStorage
- * directory. The first argument passed to the onchange callback is a
- * string that specifies the type of change that has occurred:
+ * FILESYSTEM CHANGES
  *
- *   "created":
- *     Media files were added to the device. The second argument is an
- *     array of database entries describing the new files and their metadata.
- *     When DeviceStorage detects the creation of a single new file, this
- *     array will have only a single entry. When the scan() method runs, however
- *     it may detect many new files and the array can be large. Apps may
- *     want to handle these cases differently, incrementally updating their UI
- *     when single-file changes occur and completely rebuilding the UI (with
- *     a new call to enumerate() when many files are added
+ * When media files are added or removed, MediaDB reports this by triggering
+ * 'created' and 'deleted' events.
  *
- *   "deleted":
- *     Media files were deleted from the device, and their records have been
- *     deleted from the database.  The second argument is an array of database
- *     entries that describe the deleted files and their metadata. As with
- *     "created" changes, this array may have multiple entries when the callback
- *     is invoked as a result of a scan() call.
+ * When a 'created' event is fired, the detail property of the event is an
+ * array of database record objects. When a single file is created (for
+ * example when the user takes a picture with the Camera app) this array has
+ * only a single element. But when MediaDB scans for new files (see SCANNING
+ * below) it may batch multiple records into a single created event. If a
+ * 'created' event has many records, apps may choose to simply rebuild their
+ * UI from scratch with a new call to enumerate() instead of handling the new
+ * files one at a time.
  *
- * Another MediaDB method is scan(). It takes no arguments and launches an
- * asynchronous scan of DeviceStorage for new, changed, and deleted file.
- * File creations and deletions are batched and reported through the onchange
- * handler.  Changes are treated as deletions followed by creations. As an
- * optimization, scan() first attempts a quick scan, looking only for files
- * that are newer than the last scan time. Any new files are reported as
- * creations, and then scan() starts a full scan to search for changed or
- * deleted files.  This means that a call to scan() may result in up to three
- * calls to onchange to report new files, deleted files and changed files.
- * This is an implementation detail, however, and apps should be prepared to
- * handle any number of calls to onchange.
+ * When a 'deleted' event is fired, the detail property of the event is an
+ * array of the names of the files that have been deleted. As with 'created'
+ * events, the array may have a single element or may have many batched
+ * elements.
  *
- * Other MediaDB methods include:
+ * If MediaDB detects that a file has been modified in place (because its
+ * size or date changes) it treats this as a deletion of the old version and
+ * the creation of a new version, and will fire a deleted event followed by
+ * a created event.
  *
- *  - updateMetadata(): updates the metadata for a named file
+ * The created and deleted events are not triggered until the corresponding
+ * files have actually been created and deleted and their database records
+ * have been updated.
  *
- *  - addFile(): takes a filename and a blob, saves the blob as a file to
- *      device storage, parses its metadata, and updates the database.
+ * SCANNING
  *
- *  - deleteFile(): deletes the named file from device storage and the database
+ * MediaDB automatically scans for new and deleted files every time it enters
+ * the MediaDB.READY state. This happens when the MediaDB object is first
+ * created, and also when an SD card is removed and reinserted or when the
+ * user finishes a USB Mass Storage session. If the scan finds new files, it
+ * reports them with one or more 'created' events. If the scan finds that
+ * files have been deleted, it reports them with one or more 'deleted' events.
+ *
+ * MediaDB fires a 'scanstart' event when a scan begins and fires a 'scanend'
+ * event when the scan is complete. Apps can use these events to let the user
+ * know that a scan is in progress.
+ *
+ * The scan algorithm attempts to quickly look for new files and reports those
+ * first. It then begins a slower full scan phase where it checks that each of
+ * the files it already knows about is still present.
+ *
+ * EVENTS
+ *
+ * As described above, MediaDB sends events to communicate with the apps
+ * that use it. The event types and their meanings are:
+ *
+ *   Event         Meaning
+ *  --------------------------------------------------------------------------
+ *   ready         MediaDB is ready for use
+ *   unavailable   MediaDB is unavailable (often because of USB file transfer)
+ *   created       One or more files were created
+ *   deleted       One or more files were deleted
+ *   scanstart     MediaDB is scanning
+ *   scanend       MediaDB has finished scanning
+ *
+ * Because MediaDB is a JavaScript library, these are not real DOM events, but
+ * simulations.
+ *
+ * MediaDB defines two-argument versions of addEventListener() and
+ * removeEventListener() and also allows you to define event handlers by
+ * setting 'on' properties like 'onready' and 'onscanstart'.
+ *
+ * The objects passed on MediaDB event handlers are not true Event objects but
+ * simulate a CustomEvent by defining type, target, currentTarget, timestamp
+ * and detail properties.  For MediaDB events, it is the detail property that
+ * always holds the useful information. These simulated event objects do not
+ * have preventDefault(), stopPropagation() or stopImmediatePropagation()
+ * methods.
+ *
+ * MediaDB events do not bubble and cannot be captured.
+ *
+ * METHODS
+ *
+ * MediaDB defines the following methods:
+ *
+ * - addEventListener(): register a function to call when an event is fired
+ *
+ * - removeEventListener(): unregister an event listener function
+ *
+ * - enumerate(): for each file that MediaDB knows about, pass its database
+ *     record object to the specified callback. By default, records are returned
+ *     in alphabetical order by name, but optional arguments allow you to
+ *     specify a database index, a key range, and a sort direction.
+ *
+ * - cancelEnumeration(): stops an enumeration in progress. Pass the object
+ *     returned by enumerate().
+ *
+ * - getFile(): given a filename and a callback, this method looks up the
+ *     named file in DeviceStorage and passes it (a Blob) to the callback.
+ *     An error callback is available as an optional third argument.
+ *
+ * - count(): count the number of records in the database and pass the value
+ *     to the specified callback. Like enumerate(), this method allows you
+ *     to specify the name of an index and a key range if you only want to
+ *     count some of the records.
+ *
+ * - updateMetadata(): updates the metadata associated with a named file
+ *
+ * - addFile(): given a filename and a blob this method saves the blob as a
+ *     named file to device storage.
+ *
+ * - deleteFile(): deletes the named file from device storage and the database
+ *
+ * - close(): closes the IndexedDB connections and stops listening to
+ *     DeviceStorage events. This permanently puts the MediaDB object into
+ *     the MediaDB.CLOSED state in which it is unusable.
+ *
  */
-function MediaDB(mediaType, metadataParser, options) {
-  this.mediaType = mediaType;
-  this.metadataParser = metadataParser;
-  if (!options)
-    options = {};
-  this.indexes = options.indexes || [];
-  this.version = options.version || 1;
-  this.directory = options.directory || '';
-  this.mimeTypes = options.mimeTypes;
-  this.ready = false;
+var MediaDB = (function() {
 
-  // Define a dummy metadata parser if we're not given one
-  if (!this.metadataParser) {
-    this.metadataParser = function(file, callback) {
-      setTimeout(function() { callback({}); }, 0);
-    }
-  }
+  function MediaDB(mediaType, metadataParser, options) {
+    this.mediaType = mediaType;
+    this.metadataParser = metadataParser;
+    if (!options)
+      options = {};
+    this.indexes = options.indexes || [];
+    this.version = options.version || 1;
+    this.directory = options.directory || '';
+    this.mimeTypes = options.mimeTypes;
+    this.state = MediaDB.OPENING;
+    this.scanning = false;  // becomes true while scanning
 
-  var mediadb = this;  // for the nested functions below
+    if (this.directory &&
+        this.directory[this.directory.length - 1] !== '/')
+      this.directory += '/';
 
+    this.dbname = 'MediaDB/' + this.mediaType + '/' + this.directory;
 
-  // Set up IndexedDB
-  var indexedDB = window.indexedDB || window.mozIndexedDB;
-  if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
-    IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
-  }
+    var media = this;  // for the nested functions below
 
-  this.dbname = 'MediaDB/' + mediaType + '/' + this.directory;
-  var openRequest = indexedDB.open(this.dbname, this.version);
+    // Private implementation details in this object
+    this.details = {
+      // This maps event type -> array of listeners
+      // See addEventListener and removeEventListener
+      eventListeners: {},
 
-  this.lastScanTime =
-    parseInt(localStorage.getItem(this.dbname + '.lastScanTime')) || null;
+      // Properties for queuing up db insertions and deletions and also
+      // for queueing up notifications to be sent
+      pendingInsertions: [],   // Array of filenames to insert
+      pendingDeletions: [],    // Array of filenames to remove
+      whenDoneProcessing: [],  // Functions to run when queue is empty
 
-  // This should never happen for Gaia apps
-  openRequest.onerror = function(e) {
-    console.error('MediaDB():', openRequest.error.name);
-  };
+      pendingCreateNotifications: [],  // Array of fileinfo objects
+      pendingDeleteNotifications: [],  // Ditto
+      pendingNotificationTimer: null,
 
-  // This should never happen for Gaia apps
-  openRequest.onblocked = function(e) {
-    console.error('indexedDB.open() is blocked in MediaDB()');
-  };
+      // This property holds the modification date of the newest file we have.
+      // We need to know the newest file in order to look for newer ones during
+      // scanning. We initialize newestFileModTime during initialization by
+      // actually checking the database (using the date index). We also update
+      // this property every time a new record is added to the database.
+      newestFileModTime: 0
+    };
 
-  // This is where we create (or delete and recreate) the database
-  openRequest.onupgradeneeded = function(e) {
-    var db = openRequest.result;
-
-    // If there are already existing object stores, delete them all
-    // If the version number changes we just want to start over.
-    var existingStoreNames = db.objectStoreNames;
-    for (var i = 0; i < existingStoreNames.length; i++) {
-      db.deleteObjectStore(existingStoreNames);
-    }
-
-    // Now build the database
-    var filestore = db.createObjectStore('files', { keyPath: 'name' });
-    mediadb.indexes.forEach(function(indexName)  {
-      // the index name is also the keypath
-      filestore.createIndex(indexName, indexName);
-    });
-  }
-
-  // This is called when we've got the database open and ready.
-  // Call the onready callback
-  openRequest.onsuccess = function(e) {
-    mediadb.db = openRequest.result;
-
-    // Log any errors that propagate up to here
-    mediadb.db.onerror = function(event) {
-      console.error('MediaDB: ', event.target.error && event.target.error.name);
+    // Define a dummy metadata parser if we're not given one
+    if (!this.metadataParser) {
+      this.metadataParser = function(file, callback) {
+        setTimeout(function() { callback({}); }, 0);
+      }
     }
 
-    // DB is initialized, now initialize device storage
-    initDeviceStorage();
-  };
+    // Open the database
+    // Note that the user can upgrade the version and we can upgrade the version
+    var openRequest = indexedDB.open(this.dbname,
+                                     this.version * MediaDB.VERSION);
 
-  function initDeviceStorage() {
-    // Set up DeviceStorage
-    // If storage is null, then there is no sdcard installed and
-    // we have to abort.
-    mediadb.storage = navigator.getDeviceStorage(mediaType);
+    // This should never happen for Gaia apps
+    openRequest.onerror = function(e) {
+      console.error('MediaDB():', openRequest.error.name);
+    };
 
-    // Handle change notifications from device storage
-    mediadb.storage.onchange = function(e) {
-      if (e.reason === 'available') {
-        mediadb.ready = true;
-        if (mediadb.onready)
-          mediadb.onready();
+    // This should never happen for Gaia apps
+    openRequest.onblocked = function(e) {
+      console.error('indexedDB.open() is blocked in MediaDB()');
+    };
+
+    // This is where we create (or delete and recreate) the database
+    openRequest.onupgradeneeded = function(e) {
+      var db = openRequest.result;
+
+      // If there are already existing object stores, delete them all
+      // If the version number changes we just want to start over.
+      var existingStoreNames = db.objectStoreNames;
+      for (var i = 0; i < existingStoreNames.length; i++) {
+        db.deleteObjectStore(existingStoreNames);
       }
-      else if (e.reason === 'unavailable' || e.reason === 'shared') {
-        mediadb.ready = false;
-        if (mediadb.onunavailable)
-          mediadb.onunavailable(e.reason);
-      }
 
-      //
-      // XXX When other change event types are implemented, handle
-      // them here. When we get a change, modify the DB, and then call
-      // the onchange callback And don't forget to update and persist
-      // the lastchangetime, too.
-      //
-    };
-
-    // Use stat() to figure out if there is actually an sdcard there
-    // and call onready or onunavailable based on the result
-    var statreq = mediadb.storage.stat();
-    statreq.onsuccess = function(e) {
-      var stats = e.target.result;
-      // XXX
-      // If we don't get any state, then assume that means 'available'
-      // This avoids version skew and make this code work with older
-      // versions of gecko that have stat() but don't have the state property
-      if (!stats.state || stats.state === 'available') {
-        mediadb.ready = true;
-        if (mediadb.onready)
-          mediadb.onready();
-      }
-      else {
-        // XXX: this is not working right now
-        // stat fails instead of returning us the card state
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
-        if (mediadb.onunavailable)
-          mediadb.onunavailable(stats.state);
-      }
-    };
-    statreq.onerror = function(e) {
-      // XXX stat fails for unavailable and shared,
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
-      // No way to distinguish these cases so just guess
-      if (mediadb.onunavailable)
-        mediadb.onunavailable('unavailable');
-      console.error('stat() failed', statreq.error && statreq.error.name);
-    };
-  }
-}
-
-MediaDB.prototype = {
-  get onready() {
-    return this._onready;
-  },
-  // If the user sets onready when the db is already ready, call it
-  set onready(cb) {
-    this._onready = cb;
-    if (this.ready)
-      setTimeout(cb.bind(this), 0);
-  },
-
-  // Look up the specified filename in DeviceStorage and pass the
-  // resulting File object to the specified callback.
-  getFile: function getFile(filename, callback, errback) {
-    var getRequest = this.storage.get(filename);
-    getRequest.onsuccess = function() {
-      callback(getRequest.result);
-    };
-    getRequest.onerror = function() {
-      var errmsg = getRequest.error && getRequest.error.name;
-      if (errback)
-        errback(errmsg);
-      else
-        console.error('MediaDB.getFile:', errmsg);
-    }
-  },
-
-  // Delete the named file from the database and from device storage.
-  // Runs asynchronously and returns before the deletions are complete.
-  // Sends an change event for the deleted file.
-  deleteFile: function deleteFile(filename) {
-    var media = this;
-
-    // First, look up the fileinfo record in the db
-    media.db.transaction('files', 'readonly')
-      .objectStore('files')
-      .get(filename)
-      .onsuccess = function(e) {
-        var fileinfo = e.target.result;
-        // Now delete it from the db
-        var dbrequest = media.db.transaction('files', 'readwrite').
-          objectStore('files').
-          delete(filename);
-        dbrequest.onerror = function(e) {
-          console.error('MediaDB: Failed to delete', filename,
-                        'from IndexedDB:', e.target.error);
-        };
-        dbrequest.onsuccess = function() {
-          // Delete it from device storage, too
-          // XXX: when device storage starts generating change events,
-          // this will send one that we may have to supress
-          var dsrequest = media.storage.delete(filename);
-          dsrequest.onerror = function(e) {
-            console.error('MediaDB: Failed to delete', filename,
-                          'from DeviceStorage:', e.target.error);
-          }
-          dsrequest.onsuccess = function() {
-            if (media.onchange) {
-              media.onchange('deleted', [fileinfo]);
-            }
-          };
-        };
-      };
-  },
-
-  // Add a new file to both the database and device storage.
-  addFile: function addFile(filename, file) {
-    var media = this;
-
-    // Delete any existing file by this name, then save the file.
-    media.storage.delete(filename);
-    var storeRequest = media.storage.addNamed(file, filename);
-    storeRequest.onerror = function() {
-      console.error('MediaDB: Failed to store', filename,
-                    'in DeviceStorage:', storeRequest.error);
-    };
-    storeRequest.onsuccess = function() {
-      // We've stored it in device storage, so now save it in the db, too.
-      // XXX
-      // Device storage will send a change event here, and we may have
-      // to ignore it somehow
-
-      // Start with basic information about the file
-      var fileinfo = {
-        name: filename,
-        type: file.type,
-        size: file.size,
-        // XXX: this should be the lastModifiedTime of the actual
-        // file that is now on the disk
-        date: Date.now()
-      };
-
-      // Get its metadata
-      media.metadataParser(file,
-                           function gotMetadata(metadata) {
-                             // When we get the metadata, store everything
-                             // in the database
-                             fileinfo.metadata = metadata;
-                             var store =
-                               media.db.transaction('files', 'readwrite').
-                               objectStore('files');
-                             var request = store.put(fileinfo);
-                             request.onsuccess = function(e) {
-                               // When done call the onchange handler
-                               // XXX: do I have to handle the case of
-                               // overwriting an existing file?
-                               if (media.onchange)
-                                 media.onchange('created', [fileinfo]);
-                             };
-                             request.onerror = function(e) {
-                               console.error('MediaDB: Failed to store',
-                                             filename,
-                                             'in IndexedDB:', e.target.error);
-                             };
-                           },
-                           function(error) {
-                             console.error('MediaDB: Metadata read failed for',
-                                           filename, ':', error);
-                           });
-    };
-  },
-
-  // Look up the database record for the named file, and copy the properties
-  // of the metadata object into the file's metadata, and then write the
-  // updated record back to the database. The third argument is optional. If
-  // you pass a function, it will be called when the metadata is written.
-  updateMetadata: function(filename, metadata, callback) {
-    var media = this;
-
-    // First, look up the fileinfo record in the db
-    var read = media.db.transaction('files', 'readonly')
-      .objectStore('files')
-      .get(filename);
-
-    read.onerror = function() {
-      console.error('MediaDB.updateMetadata called with unknown filename');
-    };
-
-    read.onsuccess = function() {
-      var fileinfo = read.result;
-
-      // Update the fileinfo metadata
-      Object.keys(metadata).forEach(function(key) {
-        fileinfo.metadata[key] = metadata[key];
+      // Now build the database
+      var filestore = db.createObjectStore('files', { keyPath: 'name' });
+      // Always index the files by modification date
+      filestore.createIndex('date', 'date');
+      // And index them by any other file properties or metadata properties
+      // passed to the constructor
+      media.indexes.forEach(function(indexName)  {
+        // Don't recreate indexes we've already got
+        if (indexName === 'name' || indexName === 'date')
+          return;
+        // the index name is also the keypath
+        filestore.createIndex(indexName, indexName);
       });
+    }
 
-      // And write it back into the database.
-      var write = media.db.transaction('files', 'readwrite')
+    // This is called when we've got the database open and ready.
+    openRequest.onsuccess = function(e) {
+      media.db = openRequest.result;
+
+      // Log any errors that propagate up to here
+      media.db.onerror = function(event) {
+        console.error('MediaDB: ',
+                      event.target.error && event.target.error.name);
+      }
+
+      // Query the db to find the modification time of the newest file
+      var cursorRequest =
+        media.db.transaction('files', 'readonly')
         .objectStore('files')
-        .put(fileinfo);
+        .index('date')
+        .openCursor(null, 'prev');
 
-      write.onerror = function() {
-        console.error('MediaDB.updateMetadata: database write failed',
-                      write.error && write.error.name);
+      cursorRequest.onerror = function() {
+        // If anything goes wrong just display an error.
+        // If this fails, don't even attempt error recovery
+        console.error('MediaDB initialization error', cursorRequest.error);
+      };
+      cursorRequest.onsuccess = function() {
+        var cursor = cursorRequest.result;
+        if (cursor) {
+          media.details.newestFileModTime = cursor.value.date;
+        }
+        else {
+          // No files in the db yet, so use a really old time
+          media.details.newestFileModTime = 0;
+        }
+
+        // The DB is initialized, and we've got our mod time
+        // so move on and initialize device storage
+        initDeviceStorage();
+      };
+    };
+
+    function initDeviceStorage() {
+      // Set up DeviceStorage
+      // If storage is null, then there is no sdcard installed and
+      // we have to abort.
+      media.storage = navigator.getDeviceStorage(mediaType);
+
+      // Handle change notifications from device storage
+      // We set this onchange property to null in the close() method
+      // so don't use addEventListener here
+      media.storage.addEventListener('change', deviceStorageChangeHandler);
+      media.details.dsEventListener = deviceStorageChangeHandler;
+
+      // Use stat() to figure out if there is actually an sdcard there
+      // and emit a ready or unavailable event
+      var statreq = media.storage.stat();
+      statreq.onsuccess = function(e) {
+        var stats = e.target.result;
+        switch (stats.state) {
+        case 'available':
+          changeState(media, MediaDB.READY);
+          scan(media); // Start scanning as soon as we're ready
+          break;
+        case 'unavailable':
+          changeState(media, MediaDB.NOCARD);
+          break;
+        case 'shared':
+          changeState(media, MediaDB.UNMOUNTED);
+          break;
+        }
+      };
+      statreq.onerror = function(e) {
+        // XXX stat fails for unavailable and shared,
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=782351
+        // No way to distinguish these cases so just guess
+        console.error('stat() failed', statreq.error && statreq.error.name);
+        changeState(media, MediaDB.UNMOUNTED);
+      };
+    }
+
+    function deviceStorageChangeHandler(e) {
+      var filename;
+      switch (e.reason) {
+      case 'available':
+        changeState(media, MediaDB.READY);
+        scan(media); // automatically scan every time the card comes back
+        break;
+      case 'unavailable':
+        changeState(media, MediaDB.NOCARD);
+        endscan(media);
+        break;
+      case 'shared':
+        changeState(media, MediaDB.UNMOUNTED);
+        endscan(media);
+        break;
+      case 'modified':
+      case 'deleted':
+        filename = e.path;
+        if (media.directory) {
+          // Ignore changes outside of our directory
+          if (filename.substring(0, media.directory.length) !==
+              media.directory)
+            break;
+          // And strip the directory from changes inside of it
+          filename = filename.substring(media.directory.length);
+        }
+        if (e.reason === 'modified')
+          insertRecord(media, filename);
+        else
+          deleteRecord(media, filename);
+        break;
+      }
+    }
+  }
+
+  MediaDB.prototype = {
+    close: function close() {
+      // Close the database
+      this.db.close();
+
+      // There is no way to close device storage, but we at least want
+      // to stop receiving events from it.
+      this.storage.removeEventListener('change', this.details.dsEventListener);
+
+      // Change state and send out an event
+      changeState(this, MediaDB.CLOSED);
+    },
+
+    addEventListener: function addEventListener(type, listener) {
+      if (!this.details.eventListeners.hasOwnProperty(type))
+        this.details.eventListeners[type] = [];
+      var listeners = this.details.eventListeners[type];
+      if (listeners.indexOf(listener) !== -1)
+        return;
+      listeners.push(listener);
+    },
+
+    removeEventListener: function removeEventListener(type, listener) {
+      if (!this.details.eventListeners.hasOwnProperty(type))
+        return;
+      var listeners = this.details.eventListeners[type];
+      var position = listeners.indexOf(listener);
+      if (position === -1)
+        return;
+      listeners.splice(position, 1);
+    },
+
+    // Look up the specified filename in DeviceStorage and pass the
+    // resulting File object to the specified callback.
+    getFile: function getFile(filename, callback, errback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+      var getRequest = this.storage.get(this.directory + filename);
+      getRequest.onsuccess = function() {
+        callback(getRequest.result);
+      };
+      getRequest.onerror = function() {
+        var errmsg = getRequest.error && getRequest.error.name;
+        if (errback)
+          errback(errmsg);
+        else
+          console.error('MediaDB.getFile:', errmsg);
+      }
+    },
+
+    // Delete the named file from device storage.
+    // This will cause a device storage change event, which will cause
+    // mediadb to remove the file from the database and send out a
+    // mediadb change event, which will notify the application UI.
+    deleteFile: function deleteFile(filename) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      this.storage.delete(this.directory + filename).onerror = function(e) {
+        console.error('MediaDB.deleteFile(): Failed to delete', filename,
+                      'from DeviceStorage:', e.target.error);
+      };
+    },
+
+    //
+    // Save the specified blob to device storage, using the specified filename.
+    // This will cause device storage to send us an event, and that event
+    // will cause mediadb to add the file to its database, and that will
+    // send out a mediadb event to the application UI.
+    //
+    addFile: function addFile(filename, file) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var media = this;
+
+      // Delete any existing file by this name, then save the file.
+      var deletereq = media.storage.delete(media.directory + filename);
+      deletereq.onsuccess = deletereq.onerror = save;
+
+      function save() {
+        var request = media.storage.addNamed(file, media.directory + filename);
+        request.onerror = function() {
+          console.error('MediaDB: Failed to store', filename,
+                        'in DeviceStorage:', storeRequest.error);
+        };
+      }
+    },
+
+    // Look up the database record for the named file, and copy the properties
+    // of the metadata object into the file's metadata, and then write the
+    // updated record back to the database. The third argument is optional. If
+    // you pass a function, it will be called when the metadata is written.
+    updateMetadata: function(filename, metadata, callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var media = this;
+
+      // First, look up the fileinfo record in the db
+      var read = media.db.transaction('files', 'readonly')
+        .objectStore('files')
+        .get(filename);
+
+      read.onerror = function() {
+        console.error('MediaDB.updateMetadata called with unknown filename');
       };
 
-      if (callback) {
-        write.onsuccess = function() {
-          callback();
+      read.onsuccess = function() {
+        var fileinfo = read.result;
+
+        // Update the fileinfo metadata
+        Object.keys(metadata).forEach(function(key) {
+          fileinfo.metadata[key] = metadata[key];
+        });
+
+        // And write it back into the database.
+        var write = media.db.transaction('files', 'readwrite')
+          .objectStore('files')
+          .put(fileinfo);
+
+        write.onerror = function() {
+          console.error('MediaDB.updateMetadata: database write failed',
+                        write.error && write.error.name);
+        };
+
+        if (callback) {
+          write.onsuccess = function() {
+            callback();
+          }
         }
       }
-    }
-  },
+    },
 
+    // Count the number of records in the database and pass that number to the
+    // specified callback. key is 'name', 'date' or one of the index names
+    // passed to the constructor. range is be an IDBKeyRange that defines a
+    // the range of key values to count.  key and range are optional
+    // arguments.  If one argument is passed, it is the callback. If two
+    // arguments are passed, they are assumed to be the range and callback.
+    count: function(key, range, callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
 
-  // Enumerate all files in the filesystem, sorting by the specified
-  // property (which must be one of the indexes, or null for the filename).
-  // Direction is ascending or descending. Use whatever string
-  // constant IndexedDB uses.  f is the function to pass each record to.
-  //
-  // Each record is an object like this:
-  //
-  // {
-  //    // The basic fields are all from the File object
-  //    name: // the filename
-  //    type: // the file type
-  //    size: // the file size
-  //    date: // file mod time
-  //    metadata: // whatever object the metadata parser returns
-  // }
-  //
-  // This method returns an object that you can pass to cancelEnumeration()
-  // to cancel an enumeration in progress. You can use the state property
-  // of the returned object to find out the state of the enumeration. It
-  // should be one of the strings 'enumerating', 'complete', 'cancelling'
-  // or 'cancelled'.
-  //
-  enumerate: function enumerate(key, range, direction, callback) {
-    if (!this.db)
-      throw Error('MediaDB is not ready yet. Use the onready callback');
-
-    var handle = { state: 'enumerating' };
-
-    // The first three arguments are optional, but the callback
-    // is required, and we don't want to have to pass three nulls
-    if (arguments.length === 1) {
-      callback = key;
-      key = undefined;
-    }
-    else if (arguments.length === 2) {
-      callback = range;
-      range = undefined;
-    }
-    else if (arguments.length === 3) {
-      callback = direction;
-      direction = undefined;
-    }
-
-    var store = this.db.transaction('files').objectStore('files');
-
-    // If a key other than "name" is specified, then use the index for that
-    // key instead of the store.
-    if (key && key !== 'name')
-      store = store.index(key);
-
-    // Now create a cursor for the store or index.
-    var cursorRequest = store.openCursor(range || null, direction || 'next');
-
-    cursorRequest.onsuccess = function() {
-      // If the enumeration has been cancelled, return without
-      // calling the callback and without calling cursor.continue();
-      if (handle.state === 'cancelling') {
-        handle.state = 'cancelled';
-        return;
+      // range is an optional argument
+      if (arguments.length === 1) {
+        callback = key;
+        range = undefined;
+        key = undefined;
+      }
+      else if (arguments.length === 2) {
+        callback = range;
+        range = key;
+        key = undefined;
       }
 
-      var cursor = cursorRequest.result;
-      if (cursor) {
-        callback(cursor.value);
-        cursor.continue();
-      }
-      else {
-        // Final time, tell the callback that there are no more.
-        handle.state = 'complete';
-        callback(null);  // XXX: is this actually useful?
-      }
-    };
+      var store = this.db.transaction('files').objectStore('files');
+      if (key && key !== 'name')
+        store = store.index(key);
 
-    return handle;
-  },
+      var countRequest = store.count(range || null);
 
-  // Cancel a pending enumeration. After calling this the callback for
-  // the specified enumeration will not be invoked again.
-  cancelEnumeration: function(handle) {
-    if (handle.state === 'enumerating')
-      handle.state = 'cancelling';
-  },
+      countRequest.onerror = function() {
+        console.error('MediaDB.count() failed with', countRequest.error);
+      };
+
+      countRequest.onsuccess = function(e) {
+        callback(e.target.result);
+      };
+    },
+
+
+    // Enumerate all files in the filesystem, sorting by the specified
+    // property (which must be one of the indexes, or null for the filename).
+    // Direction is ascending or descending. Use whatever string
+    // constant IndexedDB uses.  f is the function to pass each record to.
+    //
+    // Each record is an object like this:
+    //
+    // {
+    //    // The basic fields are all from the File object
+    //    name: // the filename
+    //    type: // the file type
+    //    size: // the file size
+    //    date: // file mod time
+    //    metadata: // whatever object the metadata parser returns
+    // }
+    //
+    // This method returns an object that you can pass to cancelEnumeration()
+    // to cancel an enumeration in progress. You can use the state property
+    // of the returned object to find out the state of the enumeration. It
+    // should be one of the strings 'enumerating', 'complete', 'cancelling'
+    // 'cancelled', or 'error'
+    //
+    enumerate: function enumerate(key, range, direction, callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var handle = { state: 'enumerating' };
+
+      // The first three arguments are optional, but the callback
+      // is required, and we don't want to have to pass three nulls
+      if (arguments.length === 1) {
+        callback = key;
+        key = undefined;
+      }
+      else if (arguments.length === 2) {
+        callback = range;
+        range = undefined;
+      }
+      else if (arguments.length === 3) {
+        callback = direction;
+        direction = undefined;
+      }
+
+      var store = this.db.transaction('files').objectStore('files');
+
+      // If a key other than "name" is specified, then use the index for that
+      // key instead of the store.
+      if (key && key !== 'name')
+        store = store.index(key);
+
+      // Now create a cursor for the store or index.
+      var cursorRequest = store.openCursor(range || null, direction || 'next');
+
+      cursorRequest.onerror = function() {
+        console.error('MediaDB.enumerate() failed with', cursorRequest.error);
+        handle.state = 'error';
+      };
+
+      cursorRequest.onsuccess = function() {
+        // If the enumeration has been cancelled, return without
+        // calling the callback and without calling cursor.continue();
+        if (handle.state === 'cancelling') {
+          handle.state = 'cancelled';
+          return;
+        }
+
+        var cursor = cursorRequest.result;
+        if (cursor) {
+          callback(cursor.value);
+          cursor.continue();
+        }
+        else {
+          // Final time, tell the callback that there are no more.
+          handle.state = 'complete';
+          callback(null);  // XXX: is this actually useful?
+        }
+      };
+
+      return handle;
+    },
+
+    // Cancel a pending enumeration. After calling this the callback for
+    // the specified enumeration will not be invoked again.
+    cancelEnumeration: function(handle) {
+      if (handle.state === 'enumerating')
+        handle.state = 'cancelling';
+    }
+  };
+
+  // This is the version number of the MediaDB schema. If we change this
+  // number it will cause existing data stores to be deleted and rebuilt,
+  // which is useful when the schema changes. Note that the user can also
+  // upgrade the version number with an option to the MediaDB constructor.
+  // The final indexedDB version number we use is the product of our version
+  // and the user's version.
+  // This is version 2 because we modified the default schema to include
+  // an index for file modification date.
+  MediaDB.VERSION = 2;
+
+  // Hold create and delete onchange events for this long to batch up events
+  // that come in rapid succession. This happens when scanning, e.g.
+  MediaDB.NOTIFICATION_HOLD_TIME = 100;
+
+  // These are the values of the state property of a MediaDB object
+  // The NOCARD, UNMOUNTED, and CLOSED values are also used as the detail
+  // property of 'unavailable' events
+  MediaDB.OPENING = 'opening';     // MediaDB is initializing itself
+  MediaDB.READY = 'ready';         // MediaDB is available and ready for use
+  MediaDB.NOCARD = 'nocard';       // Unavailable because there is no sd card
+  MediaDB.UNMOUNTED = 'unmounted'; // Unavailable because card unmounted
+  MediaDB.CLOSED = 'closed';       // Unavailalbe because MediaDB has closed
+
+  /* Details helper functions follow */
 
   // Tell the db to start a manual scan. I think we don't do
   // this automatically from the constructor, but most apps will start
@@ -594,188 +813,113 @@ MediaDB.prototype = {
   // that, a full scan will be compared with a full dump of the DB
   // to see if any files have been deleted.
   //
-  scan: function scan(scanCompleteCallback) {
-    if (!this.db)
-      throw Error('MediaDB is not ready yet. Use the onready callback');
-
-    var media = this;
+  function scan(media) {
+    media.scanning = true;
+    dispatchEvent(media, 'scanstart');
 
     // First, scan for new files since the last scan, if there was one
     // When the quickScan is done it will begin a full scan.  If we don't
     // have a last scan date, then we just begin a full scan immediately
-    if (media.lastScanTime) {
-      quickScan(media.lastScanTime);
+    if (media.details.newestFileModTime > 0) {
+      quickScan(media.details.newestFileModTime);
     }
     else {
       fullScan();
     }
 
-    // Do a quick scan and then follow with a full scan
-    function quickScan(date) {
-      var newfiles = [];
+    // Return true if media db should ignore this file.
+    // If the file name begins with a . we'll ignore it.
+    // (. files seem to be created during USB Mass Storage sessions on a Mac)
+    // If an array of media types was specified when the MediaDB was created
+    // and the type of this file is not a member of that list, then ignore it.
+    function ignore(file) {
+      if (file.name[file.name.lastIndexOf('/') + 1] === '.')
+        return true;
+      if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
+        return true;
+      return false;
+    }
 
+    // Do a quick scan and then follow with a full scan
+    function quickScan(timestamp) {
       var cursor = media.storage.enumerate(media.directory, {
-        since: new Date(date)
+        // add 1 so we don't find the same newest file again
+        since: new Date(timestamp + 1)
       });
 
       cursor.onsuccess = function() {
-        var result = cursor.result;
-        if (result) {
-          processNewFile(result);
-        }
-        else {// When no more files
-          if (newfiles.length > 0) {
-            // report new files we found, then do a full scan
-            saveAndReportQuickScanResults(fullScan);
-          }
-          else {
-            // If we didn't find any new files, go direct to the full scan
-            fullScan();                         // do full scan
-          }
-        }
-      }
-
-      // We found a new file in device storage.
-      // Extract its metadata and remember it.
-      // (Don't store it in the db yet)
-      // Then call cursor.continue to move on to the next file
-      function processNewFile(file) {
-        try {
-          // Skip the file if it isn't the right type
-          if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1) {
-            cursor.continue();
-            return;
-          }
-
-          var fileinfo = {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            date: file.lastModifiedDate.getTime()
-          };
-
-          media.metadataParser(file, function(metadata) {
-            fileinfo.metadata = metadata;
-            // Only remember this file if we got valid metadata for it
-            if (metadata != null)
-              newfiles.push(fileinfo);
-            cursor.continue();
-          }, function(error) {
-            console.error(error);
-            cursor.continue();
-          });
-        }
-        catch (e) {
-          console.error(e);
+        var file = cursor.result;
+        if (file) {
+          if (!ignore(file))
+            insertRecord(media, file);
           cursor.continue();
         }
-      }
-
-      // Take all the file info objects we found and save them
-      // to the database, then report them with the fileAdded callback
-      // And finally, call the next() function to continue with a full scan
-      function saveAndReportQuickScanResults(next) {
-        var transaction = media.db.transaction('files', 'readwrite');
-        var store = transaction.objectStore('files');
-        var numSaved = 0;
-        var errors = [];
-
-        // Save the new files
-        for (var i = 0; i < newfiles.length; i++) {
-          saveFile(i);
+        else {
+          // Quick scan is done. When the queue is empty, force out
+          // any batched created events and move on to the slower
+          // more thorough full scan.
+          whenDoneProcessing(media, function() {
+            sendNotifications(media);
+            fullScan();
+          });
         }
+      };
 
-        function saveFile(i) {
-          // When an existing file is overwritten, we should report
-          // it as a deletion followed by a creation. So for this quick
-          // scan pass, we're only interested in new files, which means
-          // that we need to use add() rather than put() to add to the db.
-          var addRequest = store.add(newfiles[i]);
-
-          addRequest.onerror = function(e) {
-            // It probably failed because a file by that name is
-            // already in the db. Don't save or report it now. We'll
-            // handle it when we do a full scan.
-            errors.push(i);
-
-            // Don't let the higher-level DB error handler report the error
-            e.stopPropagation();
-            // And don't spew a default error message to the console either
-            e.preventDefault();
-
-            if (++numSaved === newfiles.length)
-              report();
-          };
-
-          addRequest.onsuccess = function() {
-            if (++numSaved === newfiles.length)
-              report();
-          };
-        }
-
-        function report() {
-          // If there were errors saving any of the files, it was because
-          // those files were already in the db. That means they're changed
-          // files not new files, and we'll report them later.
-          // Carefully remove those new files, taking care about the
-          // shifting indexes
-          if (errors.length > 0) {
-            errors.forEach(function(i) { newfiles[errors[i]] = null; });
-            newfiles = newfiles.filter(function(f) { return f != null; });
-          }
-
-          // Finally, call the onchange handler about the new files
-          // if there are any
-          if (newfiles.length > 0 && media.onchange)
-            media.onchange('created', newfiles);
-
-          // Finally, move on to the next thing
-          next();
-        }
-      }
+      cursor.onerror = function() {
+        // We can't scan if we can't read device storage.
+        // Perhaps the card was unmounted or pulled out
+        console.warning('Error while scanning', cursor.error);
+        endscan(media);
+      };
     }
 
     // Get a complete list of files from DeviceStorage
     // Get a complete list of files from IndexedDB.
-    // Sort them both (the indexedDB list may already be sorted)
+    // Sort them both (the indexedDB list will already be sorted)
     // Step through the lists noting deleted files and created files.
     // Pay attention to files whose size or date has changed and
     // treat those as deletions followed by insertions.
-    // Sync up the database while stepping through the lists and
-    // then call the onchange handler to report deleted files and
-    // created files.  (Report deleted files first because we model
-    // file changes as deletions followed by creations)
+    // Sync up the database while stepping through the lists.
     function fullScan() {
-      media.lastScanTime = Date.now();
-      localStorage[media.dbname + '.lastScanTime'] = media.lastScanTime;
+      if (media.state !== MediaDB.READY) {
+        endscan(media);
+        return;
+      }
 
-      var store = media.db.transaction('files').objectStore('files');
-      var getAllRequest = store.getAll();
-
-      getAllRequest.onsuccess = function() {
-        var dbfiles = getAllRequest.result;  // Should already be sorted
-
-        // Now get all the files in device storage
-        var dsfiles = [];
-        var cursor = media.storage.enumerate(media.directory);
-
-        cursor.onsuccess = function() {
-          var file = cursor.result;
-          if (file) {
-            if (!media.mimeTypes || media.mimeTypes.indexOf(file.type) !== -1) {
-              dsfiles.push({
-                name: file.name,
-                type: file.type,
-                size: file.size,
-                date: file.lastModifiedDate.getTime()
-              });
-            }
-            cursor.continue();
+      // The db may be busy right about now, processing files that
+      // were found during the quick scan.  So we'll start off by
+      // enumerating all files in device storage
+      var dsfiles = [];
+      var cursor = media.storage.enumerate(media.directory);
+      cursor.onsuccess = function() {
+        var file = cursor.result;
+        if (file) {
+          if (!ignore(file)) {
+            dsfiles.push(file);
           }
-          else { // When no more files
-            compareLists(dbfiles, dsfiles);
-          }
+          cursor.continue();
         }
+        else {
+          // We're done enumerating device storage, so get all files from db
+          getDBFiles();
+        }
+      }
+
+      cursor.onerror = function() {
+        // We can't scan if we can't read device storage.
+        // Perhaps the card was unmounted or pulled out
+        console.warning('Error while scanning', cursor.error);
+        endscan(media);
+      };
+
+      function getDBFiles() {
+        var store = media.db.transaction('files').objectStore('files');
+        var getAllRequest = store.mozGetAll();
+
+        getAllRequest.onsuccess = function() {
+          var dbfiles = getAllRequest.result;  // Should already be sorted
+          compareLists(dbfiles, dsfiles);
+        };
       }
 
       function compareLists(dbfiles, dsfiles) {
@@ -787,9 +931,6 @@ MediaDB.prototype = {
           else
             return 1;
         });
-
-        var deletedFiles = [];
-        var createdFiles = [];
 
         // Loop through both the dsfiles and dbfiles lists
         var dsindex = 0, dbindex = 0;
@@ -815,7 +956,7 @@ MediaDB.prototype = {
           // Case 2: no more files in the db.  This means that
           // the file from ds is a new one
           if (dbfile === null) {
-            createdFiles.push(dsfile);
+            insertRecord(media, dsfile);
             dsindex++;
             continue;
           }
@@ -823,7 +964,7 @@ MediaDB.prototype = {
           // Case 3: no more files in ds. This means that the db file
           // has been deleted
           if (dsfile === null) {
-            deletedFiles.push(dbfile);
+            deleteRecord(media, dbfile.name);
             dbindex++;
             continue;
           }
@@ -832,9 +973,10 @@ MediaDB.prototype = {
           // 4a: date and size are the same for both: do nothing
           // 4b: file has changed: it is both a deletion and a creation
           if (dsfile.name === dbfile.name) {
-            if (dsfile.date !== dbfile.date || dsfile.size !== dbfile.size) {
-              deletedFiles.push(dbfile);
-              createdFiles.push(dsfile);
+            if (dsfile.lastModifiedDate.getTime() !== dbfile.date ||
+                dsfile.size !== dbfile.size) {
+              deleteRecord(media, dbfile.name);
+              insertRecord(media, dsfile);
             }
             dsindex++;
             dbindex++;
@@ -844,7 +986,7 @@ MediaDB.prototype = {
           // Case 5: the dsfile name is less than the dbfile name.
           // This means that the dsfile is new.  Like case 2
           if (dsfile.name < dbfile.name) {
-            createdFiles.push(dsfile);
+            insertRecord(media, dsfile);
             dsindex++;
             continue;
           }
@@ -852,7 +994,7 @@ MediaDB.prototype = {
           // Case 6: the dsfile name is greater than the dbfile name.
           // this means that the dbfile no longer exists on disk
           if (dsfile.name > dbfile.name) {
-            deletedFiles.push(dbfile);
+            deleteRecord(media, dbfile.name);
             dbindex++;
             continue;
           }
@@ -862,94 +1004,344 @@ MediaDB.prototype = {
           console.error('Assertion failed');
         }
 
-        // Deal with the deleted files first
-        if (deletedFiles.length > 0) {
-          var transaction = media.db.transaction('files', 'readwrite');
-          var store = transaction.objectStore('files');
-          deletedFiles.forEach(function(fileinfo) {
-            store.delete(fileinfo.name);
-          });
-          // When all the deletions are done, report the deleted files
-          // And then deal with the new files
-          transaction.oncomplete = function() {
-            if (media.onchange)
-              media.onchange('deleted', deletedFiles);
-
-            // If there were created files, handle them.
-            // Otherwise, we're done scanning.
-            if (createdFiles.length > 0)
-              handleCreatedFiles();
-            else if (scanCompleteCallback)
-              scanCompleteCallback();
-          };
-        }
-        else if (createdFiles.length > 0) {
-          // If there were no deleted files, we still need to
-          // handle the created ones.  Especially for first-run
-          handleCreatedFiles();
-        }
-        else {
-          // If the full scan didn't find any changes at all, we're done
-          if (scanCompleteCallback)
-            scanCompleteCallback();
-        }
-
-        function handleCreatedFiles() {
-          // Get file metadata and then store the files
-          getMetadataForFile(0, storeCreatedFiles);
-        }
-
-        // This function gets metadata for created files n and up
-        // and then calls the callback. We
-        function getMetadataForFile(n, callback) {
-          var fileinfo = createdFiles[n];
-          var fileRequest = media.storage.get(fileinfo.name);
-          var isComplete = function() {
-            if (n === createdFiles.length) { // if we're done
-              callback();
-            } else { // Otherwise get the next one
-              getMetadataForFile(n, callback);
-            }
-          }
-          fileRequest.onsuccess = function() {
-            var file = fileRequest.result;
-            media.metadataParser(file, function parser_success(metadata) {
-              fileinfo.metadata = metadata;
-              n++;
-              isComplete();
-            }, function parser_error() {
-              n++;
-              isComplete();
-            });
-          }
-        }
-
-        function storeCreatedFiles() {
-          // Only store files that have metadata. If the parser couldn't
-          // return valid metadata, then the file is probably of the wrong type
-          var validFiles = createdFiles.filter(function(f) {
-            return f.metadata;
-          });
-
-          var transaction = media.db.transaction('files', 'readwrite');
-          var store = transaction.objectStore('files');
-          for (var i = 0; i < validFiles.length; i++) {
-            store.add(validFiles[i]).onerror = function(e) {
-              // XXX: 6/22: this is failing AbortError on otoro
-              console.error(e.target.error.name + ' while storing fileinfo');
-              e.stopPropagation();
-            };
-          }
-
-          // Now once we're done storing the files deliver a notification
-          if (media.onchange)
-            media.onchange('created', validFiles);
-
-          // And finally, call the scanCompleteCallback
-          if (scanCompleteCallback)
-            scanCompleteCallback();
-        }
+        // Push a special value onto the queue so that when it is
+        // processed we can trigger a 'scanend' event
+        insertRecord(media, null);
       }
     }
   }
-};
+
+  // Called to send out a scanend event when scanning is done.
+  // This event is sent on normal scan termination and also
+  // when something goes wrong, such as the device storage being
+  // unmounted during a scan.
+  function endscan(media) {
+    if (media.scanning) {
+      media.scanning = false;
+      dispatchEvent(media, 'scanend');
+    }
+  }
+
+  // Pass in a file, or a filename.  The function queues it up for
+  // metadata parsing and insertion into the database, and will send a
+  // mediadb change event (possibly batched with other changes).
+  // Ensures that only one file is being parsed at a time, but tries
+  // to make as many db changes in one transaction as possible.  The
+  // special value null indicates that scanning is complete.  If the
+  // 2nd argument is a File, it should come from enumerate() so that
+  // the name property does not include the directory prefix.  If it
+  // is a name, then the directory prefix must already have been
+  // stripped.
+  function insertRecord(media, fileOrName) {
+    var details = media.details;
+
+    // Add this file to the queue of files to process
+    details.pendingInsertions.push(fileOrName);
+
+    // If the queue is already being processed, just return
+    if (details.processingQueue)
+      return;
+
+    // Otherwise, start processing the queue.
+    processQueue(media);
+  }
+
+  // Delete the database record associated with filename.
+  // filename must not include the directory prefix.
+  function deleteRecord(media, filename) {
+    var details = media.details;
+
+    // Add this file to the queue of files to process
+    details.pendingDeletions.push(filename);
+
+    // If there is already a transaction in progress return now.
+    if (details.processingQueue)
+      return;
+
+    // Otherwise, start processing the queue
+    processQueue(media);
+  }
+
+  function whenDoneProcessing(media, f) {
+    var details = media.details;
+    if (details.processingQueue)
+      details.whenDoneProcessing.push(f);
+    else
+      f();
+  }
+
+  function processQueue(media) {
+    var details = media.details;
+
+    details.processingQueue = true;
+
+    // Now get one filename off a queue and store it
+    next();
+
+    // Take an item from a queue and process it.
+    // Deletions are always processed before insertions because we want
+    // to clear away non-functional parts of the UI ASAP.
+    function next() {
+      if (details.pendingDeletions.length > 0) {
+        deleteFiles();
+      }
+      else if (details.pendingInsertions.length > 0) {
+        insertFile(details.pendingInsertions.shift());
+      }
+      else {
+        details.processingQueue = false;
+        if (details.whenDoneProcessing.length > 0) {
+          var functions = details.whenDoneProcessing;
+          details.whenDoneProcessing = [];
+          functions.forEach(function(f) { f(); });
+        }
+      }
+    }
+
+    // Delete all of the pending files in a single transaction
+    function deleteFiles() {
+      var transaction = media.db.transaction('files', 'readwrite');
+      var store = transaction.objectStore('files');
+
+      deleteNextFile();
+
+      function deleteNextFile() {
+        if (details.pendingDeletions.length === 0) {
+          next();
+          return;
+        }
+        var filename = details.pendingDeletions.shift();
+        var request = store.delete(filename);
+        request.onerror = function() {
+          // This probably means that the file wasn't in the db yet
+          console.warn('MediaDB: Unknown file in deleteRecord:',
+                       filename, getreq.error);
+          deleteNextFile();
+        };
+        request.onsuccess = function() {
+          // We succeeded, so remember to send out an event about it.
+          queueDeleteNotification(media, filename);
+          deleteNextFile();
+        };
+      }
+    }
+
+    // Insert a file into the db. One transaction per insertion.
+    // The argument might be a filename or a File object
+    // If it is a File, then it came from enumerate and its name
+    // property already has the directory stripped off.  If it is a
+    // filename, it came from a device storage change event and we
+    // stripped of the directory before calling insertRecord.
+    function insertFile(f) {
+      // null is a special value pushed on to the queue when a scan()
+      // is complete.  We use it to trigger a scanend event
+      // after all the change events from the scan are delivered
+      if (f === null) {
+        sendNotifications(media);
+        endscan(media);
+        next();
+        return;
+      }
+
+      // If we got a filename, look up the file in device storage
+      if (typeof f === 'string') {
+        var getreq = media.storage.get(media.directory + f);
+        getreq.onerror = function() {
+          console.warn('MediaDB: Unknown file in insertRecord:',
+                       filename, getreq.error);
+          next();
+        };
+        getreq.onsuccess = function() {
+          parseMetadata(getreq.result, f);
+        };
+      }
+      else {
+        // otherwise f is the file we want
+        parseMetadata(f, f.name);
+      }
+    }
+
+    function parseMetadata(file, filename) {
+      // Basic information about the file
+      var fileinfo = {
+        name: filename, // we can't trust file.name
+        type: file.type,
+        size: file.size,
+        date: file.lastModifiedDate ? file.lastModifiedDate.getTime() : null
+      };
+
+      if (fileinfo.date === null) {
+        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
+                     filename);
+      }
+
+      if (fileinfo.date && fileinfo.date > details.newestFileModTime)
+        details.newestFileModTime = fileinfo.date;
+
+      // Get metadata about the file
+      media.metadataParser(file, gotMetadata, metadataError);
+      function metadataError(e) {
+        console.warn('MediaDB: error parsing metadata for',
+                     filename, ':', e);
+        // If we get an error parsing the metadata, treat the file
+        // as malformed, and don't insert it into the database.
+        next();
+      }
+      function gotMetadata(metadata) {
+        fileinfo.metadata = metadata;
+        storeRecord(fileinfo);
+      }
+    }
+
+    function storeRecord(fileinfo) {
+      var transaction = media.db.transaction('files', 'readwrite');
+      var store = transaction.objectStore('files');
+      var request = store.add(fileinfo);
+      request.onsuccess = function() {
+        // Remember to send an event about this new file
+        queueCreateNotification(media, fileinfo);
+        // And go on to the next
+        next();
+      };
+      request.onerror = function(event) {
+        // If the error name is 'ConstraintError' it means that the
+        // file already exists in the database. So try again, using put()
+        // instead of add(). If that succeeds, then queue a delete
+        // notification along with the insert notification.  If the
+        // second try fails, or if the error was something different
+        // then issue a warning and continue with the next.
+        if (request.error.name === 'ConstraintError') {
+          // Don't let the higher-level DB error handler report the error
+          event.stopPropagation();
+          // And don't spew a default error message to the console either
+          event.preventDefault();
+          var putrequest = store.put(fileinfo);
+          putrequest.onsuccess = function() {
+            queueDeleteNotification(media, fileinfo.name);
+            queueCreateNotification(media, fileinfo);
+            next();
+          };
+          putrequest.onerror = function() {
+            // Report and move on
+            console.error('MediaDB: unexpected ConstraintError',
+                          'in insertRecord for file:', fileinfo.name);
+            next();
+          };
+        }
+        else {
+          // Something unexpected happened!
+          // All we can do is report it and move on
+          console.error('MediaDB: unexpected error in insertRecord:',
+                        request.error, 'for file:', fileinfo.name);
+          next();
+        }
+      };
+    }
+  }
+
+  // Don't send out notification events right away. Wait a short time to
+  // see if others arrive that we can batch up.  This is common for scanning
+  // But if we're invoked with null as the argument that is the signal that
+  // a scan() has just completed, so push out all notifications right away
+  // and trigger a scanend event.
+  function queueCreateNotification(media, fileinfo) {
+    var details = media.details;
+    details.pendingCreateNotifications.push(fileinfo);
+    resetNotificationTimer(media);
+  }
+
+  function queueDeleteNotification(media, filename) {
+    var details = media.details;
+    details.pendingDeleteNotifications.push(filename);
+    resetNotificationTimer(media);
+  }
+
+  function resetNotificationTimer(media) {
+    var details = media.details;
+    if (details.pendingNotificationTimer)
+      clearTimeout(details.pendingNotificationTimer);
+    details.pendingNotificationTimer =
+      setTimeout(function() { sendNotifications(media); },
+                 MediaDB.NOTIFICATION_HOLD_TIME);
+  }
+
+  // Send out notifications for creations and deletions
+  function sendNotifications(media) {
+    var details = media.details;
+    if (details.pendingNotificationTimer) {
+      clearTimeout(details.pendingNotificationTimer);
+      details.pendingNotificationTimer = null;
+    }
+    if (details.pendingDeleteNotifications.length > 0) {
+      var deletions = details.pendingDeleteNotifications;
+      details.pendingDeleteNotifications = [];
+      dispatchEvent(media, 'deleted', deletions);
+    }
+
+    if (details.pendingCreateNotifications.length > 0) {
+      var creations = details.pendingCreateNotifications;
+      details.pendingCreateNotifications = [];
+      dispatchEvent(media, 'created', creations);
+    }
+  }
+
+  function dispatchEvent(media, type, detail) {
+    var handler = media['on' + type];
+    var listeners = media.details.eventListeners[type];
+
+    // Return if there is nothing to handle the event
+    if (!handler && (!listeners || listeners.length == 0))
+      return;
+
+    // We use a fake event object
+    var event = {
+      type: type,
+      target: media,
+      currentTarget: media,
+      timestamp: Date.now(),
+      detail: detail
+    };
+
+
+    // Call the 'on' handler property if there is one
+    if (typeof handler === 'function') {
+      try {
+        handler.call(media, event);
+      }
+      catch (e) {
+        console.log('MediaDB: ', 'on' + type, 'event handler threw', e);
+      }
+    }
+
+    // Now call the listeners if there are any
+    if (!listeners)
+      return;
+    for (var i = 0; i < listeners.length; i++) {
+      try {
+        var listener = listeners[i];
+        if (typeof listener === 'function') {
+          listener.call(media, event);
+        }
+        else {
+          listener.handleEvent(event);
+        }
+      }
+      catch (e) {
+        console.log('MediaDB: ', type, 'event listener threw', e);
+      }
+    }
+  }
+
+  function changeState(media, state) {
+    if (media.state !== state) {
+      media.state = state;
+      if (state === MediaDB.READY)
+        dispatchEvent(media, 'ready');
+      else
+        dispatchEvent(media, 'unavailable', state);
+    }
+  }
+
+  return MediaDB;
+
+}());

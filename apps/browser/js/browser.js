@@ -28,6 +28,8 @@ var Browser = {
     '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
+  UPPER_SCROLL_THRESHOLD: 50, // hide address bar
+  LOWER_SCROLL_THRESHOLD: 5, // show address bar
 
   urlButtonMode: null,
   inTransition: false,
@@ -64,6 +66,7 @@ var Browser = {
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
     this.settingsButton.addEventListener('click',
       this.showSettingsScreen.bind(this));
+    this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
     this.aboutFirefoxButton.addEventListener('click',
@@ -88,6 +91,8 @@ var Browser = {
       this.hideBookmarkEntrySheet.bind(this));
     this.bookmarkEntrySheetDone.addEventListener('click',
       this.saveBookmark.bind(this));
+    this.awesomescreenCancelButton.addEventListener('click',
+     this.handleAwesomescreenCancel.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -107,10 +112,11 @@ var Browser = {
     this.handleWindowResize();
 
     ModalDialog.init(false);
+    AuthenticationDialog.init(false);
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
-    Places.init((function() {
+    Places.init((function(firstRun) {
       this.hasLoaded = true;
       if (this.waitingActivities.length) {
         this.waitingActivities.forEach(this.handleActivity, this);
@@ -118,6 +124,8 @@ var Browser = {
       }
       this.selectTab(this.createTab(this.START_PAGE_URL));
       this.showPageScreen();
+      if (firstRun)
+        this.populateDefaultData();
     }).bind(this));
   },
 
@@ -139,12 +147,35 @@ var Browser = {
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url', 'bookmark-menu-add-home'];
+      'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
+      'awesomescreen-cancel-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
     }, this);
+  },
+
+  populateDefaultData: function browser_populateDefaultData() {
+    console.log('Populating default data.');
+    // Fetch default data
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/init.json', true);
+    xhr.addEventListener('load', (function browser_defaultDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0))
+        return;
+      var data = JSON.parse(xhr.responseText);
+
+      // Save bookmarks
+      data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
+        Places.addBookmark(bookmark.uri, bookmark.title);
+      });
+
+    }).bind(this), false);
+    xhr.onerror = function getDefaultDataError() {
+      console.log('Error getting default data.');
+    };
+    xhr.send();
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -186,27 +217,27 @@ var Browser = {
   // Tabs badge is the button at the top right, used to show the number of tabs
   // and to create new ones
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
-    if (this.inTransition) {
+    if (this.inTransition)
       return;
-    }
-    if (this.currentScreen === this.TABS_SCREEN) {
-      this.inTransition = true;
-      var tabId = this.createTab();
-      this.showNewTabAnimation((function browser_showNewTabAnimation() {
-        this.selectTab(tabId);
-        this.showAwesomeScreen();
-      }).bind(this));
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN &&
-        this.previousScreen === this.PAGE_SCREEN) {
-      this.showPageScreen();
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN) {
-      this.deleteTab(this.currentTab.id);
-    }
     this.showTabScreen();
+  },
+
+  handleAwesomescreenCancel: function browser_handleAwesomescreenCancel(e) {
+    if (this.previousScreen === this.PAGE_SCREEN) {
+      this.showPageScreen();
+    } else {
+      this.deleteTab(this.currentTab.id);
+      this.showTabScreen();
+    }
+  },
+
+  handleNewTab: function browserHandleNewTab(e) {
+    this.inTransition = true;
+    var tabId = this.createTab();
+    this.showNewTabAnimation((function browser_showNewTabAnimation() {
+      this.selectTab(tabId);
+      this.showAwesomeScreen();
+    }).bind(this));
   },
 
   // Each browser gets their own listener
@@ -221,6 +252,8 @@ var Browser = {
         if (!tab.url || tab.crashed) {
           return;
         }
+        // If address bar is hidden then show it
+        this.mainScreen.classList.remove('address-hidden');
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -323,7 +356,20 @@ var Browser = {
         this.updateTabsCount();
         if (tab.id === ModalDialog.currentOrigin) {
           ModalDialog.hide();
+        } else if (tab.id === AuthenticationDialog.currentOrigin) {
+          AuthenticationDialog.hide();
         }
+        break;
+
+      case 'mozbrowserusernameandpasswordrequired':
+        if (!isCurrentTab) {
+          this.hideCurrentTab();
+          this.selectTab(tab.id);
+        }
+        if (this.currentScreen !== this.PAGE_SCREEN) {
+          this.showPageScreen();
+        }
+        AuthenticationDialog.handleEvent(evt, tab.id);
         break;
 
       case 'mozbrowsershowmodalprompt':
@@ -340,6 +386,14 @@ var Browser = {
       case 'mozbrowsererror':
         if (evt.detail.type === 'fatal') {
           this.handleCrashedTab(tab);
+        }
+        break;
+
+      case 'mozbrowserscroll':
+        if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+          this.mainScreen.classList.remove('address-hidden');
+        } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+          this.mainScreen.classList.add('address-hidden');
         }
         break;
       }
@@ -641,6 +695,10 @@ var Browser = {
 
   urlFocus: function browser_urlFocus(e) {
     if (this.currentScreen === this.PAGE_SCREEN) {
+      // Hide modal dialog
+      ModalDialog.hide();
+      AuthenticationDialog.hide();
+
       this.urlInput.value = this.currentTab.url;
       this.setUrlBar(this.currentTab.url);
       this.showAwesomeScreen();
@@ -961,6 +1019,14 @@ var Browser = {
         ModalDialog.hide();
       }
     }
+
+    if (AuthenticationDialog.originHasEvent(tab.id)) {
+      if (visible) {
+        AuthenticationDialog.show(tab.id);
+      } else {
+        AuthenticationDialog.hide();
+      }
+    }
     // We put loading tabs off screen as we want to screenshot
     // them when loaded
     if (tab.loading && !visible) {
@@ -981,8 +1047,8 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-
-                         'showmodalprompt', 'error'];
+                         'showmodalprompt', 'error', 'scroll',
+                         'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
                               this.handleBrowserEvent(tab));
@@ -1214,7 +1280,7 @@ var Browser = {
 
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.75,
-    DEFAULT_TRANSITION: '0.2s ease-in-out',
+    DEFAULT_TRANSITION: 'transform 0.2s ease-in-out, height 0.2s ease-in-out',
 
     gestureDetector: null,
     browser: null,

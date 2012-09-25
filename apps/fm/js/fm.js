@@ -392,32 +392,41 @@ var favoritesList = {
 
   KEYNAME: 'favlist',
 
-  init: function() {
-    var savedList = localStorage.getItem(this.KEYNAME);
-    this._favList = !savedList ? { } : JSON.parse(savedList);
-
-    this._showListUI();
-
+  init: function(callback) {
     var self = this;
+    window.asyncStorage.getItem(this.KEYNAME, function storage_getItem(value) {
+      self._favList = value || { };
+      self._showListUI();
+
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
+
     var _container = $('fav-list-container');
     _container.addEventListener('click', function _onclick(event) {
+      var frequency = self._getElemFreq(event.target);
+      if (!frequency) {
+        return;
+      }
+
       if (event.target.classList.contains('fav-list-remove-button')) {
-        // remove from favorites list
-        self.remove(self._getElemFreq(event.target));
+        // Remove the item from the favorites list.
+        self.remove(frequency);
         updateFreqUI();
       } else {
         if (mozFMRadio.enabled) {
-          cancelSeekAndSetFreq(self._getElemFreq(event.target));
+          cancelSeekAndSetFreq(frequency);
         } else {
-          // If fm is disabled, then turnon the radio first
-          mozFMRadio.enable(self._getElemFreq(event.target));
+          // If fm is disabled, turn the radio on.
+          mozFMRadio.enable(frequency);
         }
       }
-    }, false);
+    });
   },
 
   _save: function() {
-    localStorage.setItem(this.KEYNAME, JSON.stringify(this._favList));
+    window.asyncStorage.setItem(this.KEYNAME, this._favList);
   },
 
   _showListUI: function() {
@@ -491,6 +500,9 @@ var favoritesList = {
    *  Check if frequency is in fav list.
    */
   contains: function(freq) {
+    if (!this._favList) {
+      return false;
+    }
     return typeof this._favList[freq] != 'undefined';
   },
 
@@ -536,7 +548,7 @@ var favoritesList = {
 };
 
 function init() {
-  favoritesList.init();
+  favoritesList.init(updateFreqUI);
   frequencyDialer.init();
 
   var seeking = false;
@@ -611,7 +623,6 @@ function init() {
     }
   };
 
-  updateFreqUI();
   if (mozFMRadio.antennaAvailable) {
     // Enable FM immediately
     mozFMRadio.enable(mozFMRadio.frequencyLowerBound);

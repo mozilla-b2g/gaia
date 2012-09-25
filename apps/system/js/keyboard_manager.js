@@ -10,6 +10,12 @@ var KeyboardManager = (function() {
     keyboardURL += '/index.html';
   }
 
+  var dispatchEvent = function km_dispatchEvent(name, data) {
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent(name, true, true, data);
+    window.dispatchEvent(evt);
+  };
+
   var keyboardFrame = document.getElementById('keyboard-frame');
   keyboardFrame.src = keyboardURL;
 
@@ -28,55 +34,34 @@ var KeyboardManager = (function() {
     if (message.action !== 'updateHeight')
       return;
 
-    var app = WindowManager.getDisplayedApp();
-
-    var currentApp, appHeight;
-    if (ModalDialog.isVisible() || PopupManager.isVisible()) {
-      // XXX: As system has no iframe, we calc the height separately
-      currentApp = document.getElementById('dialog-overlay');
-      appHeight = window.innerHeight;
-
-    } else if (app) {
-      // XXX: The correct approach here should be firing keyboardchange
-      // for WindowManager to handle the resize, instead of exposing
-      // this internal method.
-      WindowManager.setAppSize(app);
-      currentApp = WindowManager.getAppFrame(app);
-      appHeight = currentApp.getBoundingClientRect().height;
-
-    } else {
-      console.error('There is no current application, nor modal dialog, ' +
-                    'nor popup. The resize event is acting on nothing.');
-      return;
-    }
-
-    var height = appHeight - message.keyboardHeight;
     keyboardOverlay.hidden = true;
 
     if (message.hidden) {
       // To reset dialog height
-      if (ModalDialog.isVisible() || PopupManager.isVisible())
-        currentApp.style.height = height + 'px';
+      dispatchEvent('keyboardhide');
 
       keyboardFrame.classList.add('hide');
       keyboardFrame.classList.remove('visible');
       return;
     }
 
+    var height = window.innerHeight - message.keyboardHeight;
+
     if (!keyboardFrame.classList.contains('hide')) {
-      currentApp.style.height = height + 'px';
-      keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
+      keyboardOverlay.style.height = height + 'px';
       keyboardOverlay.hidden = false;
+      dispatchEvent('keyboardchange', { height: message.keyboardHeight });
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
         keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        currentApp.style.height = height + 'px';
-        keyboardOverlay.style.height = (height + StatusBar.height) + 'px';
+        keyboardOverlay.style.height = height + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
+        dispatchEvent('keyboardchange', { height: message.keyboardHeight });
       });
     }
+
   });
 })();
 

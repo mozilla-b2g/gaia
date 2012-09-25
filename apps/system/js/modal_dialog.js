@@ -20,8 +20,6 @@ var ModalDialog = {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'authentication', 'username-input', 'password-input',
-      'authentication-message',
       'error', 'error-back', 'error-reload'];
 
     var toCamelCase = function toCamelCase(str) {
@@ -55,7 +53,10 @@ var ModalDialog = {
     window.addEventListener('mozbrowsererror', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('appterminated', this);
     window.addEventListener('resize', this);
+    window.addEventListener('keyboardchange', this);
+    window.addEventListener('keyboardhide', this);
 
     for (var id in elements) {
       if (elements[id].tagName.toLowerCase() == 'button') {
@@ -95,7 +96,7 @@ var ModalDialog = {
           this.cancelHandler();
           WindowManager.reload(this.currentOrigin);
         } else if (evt.currentTarget === elements.confirmCancel ||
-            evt.currentTarget === elements.promptCancel) {
+          evt.currentTarget === elements.promptCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -115,16 +116,30 @@ var ModalDialog = {
         this.hide();
         break;
 
+      case 'appterminated':
+        if (this.currentEvents[evt.detail.origin])
+          delete this.currentEvents[evt.detail.origin];
+
+        break;
+
       case 'resize':
+      case 'keyboardhide':
         if (!this.currentOrigin)
           return;
 
-        this.setHeight();
+        this.setHeight(window.innerHeight - StatusBar.height);
+        break;
+
+      case 'keyboardchange':
+        this.setHeight(window.innerHeight -
+          evt.detail.height - StatusBar.height);
+        break;
     }
   },
 
-  setHeight: function md_setHeight() {
-    this.overlay.style.height = window.innerHeight + 'px';
+  setHeight: function md_setHeight(height) {
+    if (this.isVisible())
+      this.overlay.style.height = height + 'px';
   },
 
   // Show relative dialog and set message/input value well
@@ -164,21 +179,13 @@ var ModalDialog = {
         elements.confirmMessage.innerHTML = message;
         break;
 
-      // HTTP Authentication
-      case 'usernameandpassword':
-        elements.authentication.classList.add('visible');
-        var l10nArgs = { realm: evt.detail.realm, host: evt.detail.host };
-        var _ = navigator.mozL10n.get;
-        message = _('http-authentication-message', l10nArgs);
-        elements.authenticationMessage.innerHTML = message;
-
       // Error
       case 'other':
         elements.error.classList.add('visible');
-      break;
+        break;
     }
 
-    this.setHeight();
+    this.setHeight(window.innerHeight - StatusBar.height);
   },
 
   hide: function md_hide() {
@@ -186,9 +193,6 @@ var ModalDialog = {
     var type = evt.detail.promptType || evt.detail.type;
     if (type == 'prompt') {
       this.elements.promptInput.blur();
-    } else if (type == 'usernameandpassword') {
-      this.elements.usernameInput.blur();
-      this.elements.passwordInput.blur();
     }
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
@@ -216,14 +220,6 @@ var ModalDialog = {
       case 'confirm':
         evt.detail.returnValue = true;
         elements.confirm.classList.remove('visible');
-        break;
-
-      case 'usernameandpassword':
-        evt.detail.returnValue = {
-          username: elements.usernameInput.value,
-          password: elements.password.value
-        };
-        elements.authentication.classList.remove('visible');
         break;
 
       case 'other':
@@ -264,11 +260,6 @@ var ModalDialog = {
         /* return false when click cancel */
         evt.detail.returnValue = false;
         elements.confirm.classList.remove('visible');
-        break;
-
-      case 'usernameandpassword':
-        evt.detail.returnValue = { ok: false };
-        elements.authentication.classList.remove('visible');
         break;
 
       case 'other':

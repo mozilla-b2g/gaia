@@ -766,6 +766,7 @@ function prettyDate(time) {
       break;
   }
 
+  var f = new navigator.mozL10n.DateTimeFormat();
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
@@ -774,7 +775,7 @@ function prettyDate(time) {
 
   if (day_diff < 0 || diff < 0) {
     // future time
-    return (new Date(time)).toLocaleFormat('%x %R');
+    return f.localeFormat(new Date(time), _('shortDateTimeFormat'));
   }
 
   return day_diff == 0 && (
@@ -784,8 +785,8 @@ function prettyDate(time) {
     diff < 7200 && '1 Hour Ago' ||
     diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
     day_diff == 1 && 'Yesterday' ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
+    day_diff < 7 && f.localeFormat(new Date(time), '%A') ||
+    f.localeFormat(new Date(time), '%x');
 }
 
 (function() {
