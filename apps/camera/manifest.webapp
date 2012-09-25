@@ -11,7 +11,8 @@
   "permissions": [
     "device-storage:pictures",
     "content-camera",
-    "camera"
+    "camera",
+    "geolocation"
   ],
   "activities": {
     "record": {
