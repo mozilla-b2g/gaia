@@ -33,6 +33,16 @@ var EvmeManager = (function() {
   function setVisibilityChange(visible) {
     Evme.visibilityChange(visible);
   }
+  
+  function openUrl(url) {
+    new MozActivity({
+      name: 'view',
+      data: {
+        type: 'url',
+        url: url
+      }
+    });
+  }
 
   var footerStyle = document.querySelector('#footer').style;
   footerStyle.MozTransition = '-moz-transform .3s ease';
@@ -58,9 +68,11 @@ var EvmeManager = (function() {
       Evme.setOpacityBackground(0);
     },
     
-    isAppInstalled: function(data) {
-        return Applications.isInstalled(data.url);
-    }
+    isAppInstalled: function(url) {
+        return Applications.isInstalled(url);
+    },
+    
+    openUrl: openUrl
   };
 
 }());
@@ -73,7 +85,8 @@ var EvmeApp = function createEvmeApp(params) {
 extend(EvmeApp, Bookmark);
 
 // Initialize Evme
-document.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("load", function() {
+//document.addEventListener("DOMContentLoaded", function() {
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
   Evme.init({

@@ -97,8 +97,8 @@ Evme.BackgroundImage = new function() {
         $elFullScreen = $('<div id="bgimage-overlay">' +
                                 '<div class="img" style="background-image: url(' + currentImage.image + ')"></div>' +
                                 '<div class="content">' +
-                                    ((currentImage.query)? '<h2>' + currentImage.query + '</h2>' : '') +
-                                    ((currentImage.source)? '<div class="source">' + SOURCE_LABEL + ' <span>' + currentImage.source + '</span></div>' : '') +
+                                    ((currentImage.query)? '<div class="image-title">' + currentImage.query + '</div>' : '') +
+                                    ((currentImage.source)? '<div class="image-source">' + SOURCE_LABEL + ' <span>' + currentImage.source + '</span></div>' : '') +
                                     '<b class="close"></b>' +
                                 '</div>' +
                             '</div>');
@@ -111,7 +111,9 @@ Evme.BackgroundImage = new function() {
 
         if (currentImage.source) {
             $elFullScreen.find(".content").bind("touchstart", function(e){
-                window.location.href = currentImage.source;
+                Evme.Utils.sendToFFOS(Evme.Utils.FFOSMessages.OPEN_URL, {
+                    "url": currentImage.source
+                });
             });
         } else {
             $elFullScreen.addClass("nosource");

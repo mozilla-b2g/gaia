@@ -81,24 +81,24 @@
         background: -moz-linear-gradient(center top, #3b3b3b 0%, #030303 100%);
         background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #3b3b3b), color-stop(100%, #030303));
     }
-        #bgimage-overlay .content h2 {
+        #bgimage-overlay .content .image-title {
             font-weight: 600;
             color: #b4dae7;
             font-size: 15px;
             height: 17px;
-            line-height: 100%;
             margin-top: 5px;
+            line-height: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             -ms-text-overflow: ellipsis;
         }
-        #bgimage-overlay.nosource .content h2 {
+        #bgimage-overlay.nosource .content .image-title {
             margin-top: 0;
             height: 43px;
             line-height: 43px;
         }
-        #bgimage-overlay .content .source {
+        #bgimage-overlay .content .image-source {
             font-weight: 600;
             color: #fff;
             font-size: 13px;
@@ -109,7 +109,7 @@
             text-overflow: ellipsis;
             -ms-text-overflow: ellipsis;
         }
-            #bgimage-overlay .content .source span {
+            #bgimage-overlay .content .image-source span {
                 font-weight: normal;
                 text-decoration: underline;
             }
