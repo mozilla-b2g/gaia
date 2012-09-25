@@ -11,7 +11,7 @@ Evme.Utils = new function() {
         COOKIE_NAME_CREDENTIALS = "credentials",
         DYNAMIC_TITLE = false;
 
-    this.FFOSMessages = {
+    var FFOSMessages = this.FFOSMessages = {
         "APP_CLICK": "open-in-app",
         "APP_INSTALL": "add-bookmark"
     };
@@ -21,10 +21,10 @@ Evme.Utils = new function() {
     };
     this.sendToFFOS = function(type, data) {
         switch (type) {
-            case Evme.Utils.FFOSMessages.APP_CLICK:
+            case FFOSMessages.APP_CLICK:
                 EvmeManager.openApp(data);
                 break;
-            case Evme.Utils.FFOSMessages.APP_INSTALL:
+            case FFOSMessages.APP_INSTALL:
                 EvmeManager.addBookmark(data);
                 break;
         }
