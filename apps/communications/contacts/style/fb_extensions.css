@@ -8,7 +8,7 @@ iframe#fb-extensions {
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: -moz-transform .8s ease;
+  -moz-transition: all .6s ease;
   background-color: #26272c;
 }
 
@@ -19,6 +19,15 @@ iframe#fb-extensions {
 #fb-extensions.closing {
   -moz-transform: translateY(0);
 }
+
+#fb-extensions.openingImport {
+  top:0;
+}
+
+#fb-extensions.closingImport {
+  top:100%;
+}
+
 
 .facebook.removed dl,
 p.facebook.removed input {

@@ -386,7 +386,7 @@ contacts.Form = (function() {
         } else {
           contacts.Details.render(savedContact, TAG_OPTIONS);
         }
-        Contacts.navigation.back();
+        Contacts.cancel();
       }, function onError() {
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {

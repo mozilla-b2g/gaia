@@ -260,13 +260,28 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
- * Bluetooth
+ * Explanation texts (Data, Bluetooth...)
  */
 
-#bluetooth-enable-msg {
+.explanation {
   padding: 5px 30px;
   font-style: italic;
   font-size: 1.4rem;
   color: #505859;
+}
+
+
+/******************************************************************************
+ * Wallpaper snapshot
+ */
+
+#wallpaper-preview {
+  width: 90px;
+  height: 135px;
+  border: solid black 2px;
+  border-radius: 4px;
+  margin-left: 110px;
+  margin-top: -10px;
+  margin-bottom: 5px;
 }
 

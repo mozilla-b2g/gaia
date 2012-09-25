@@ -277,6 +277,7 @@ input[type="image"] {
   padding: 0 0 0 10px;
   background-color: #fff;
   font-weight: 600;
+  width: calc(100% - 15px);
 }
 
 #url-button {

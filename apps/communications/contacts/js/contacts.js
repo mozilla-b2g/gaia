@@ -7,7 +7,7 @@ var Contacts = (function() {
   var navigation = new navigationStack('view-contacts-list');
 
   var goToForm = function edit() {
-    navigation.go('view-contact-form', 'right-left');
+    navigation.go('view-contact-form', 'popup');
   };
 
   var currentContactId,
@@ -19,7 +19,9 @@ var Contacts = (function() {
       customTag,
       contactTag,
       saveButton,
-      editContactButton;
+      editContactButton,
+      settings,
+      settingsButton;
 
   var currentContact = {};
 
@@ -129,6 +131,8 @@ var Contacts = (function() {
 
   var initContainers = function initContainers() {
     customTag = document.getElementById('custom-tag');
+    settings = document.getElementById('view-settings');
+    settingsButton = document.getElementById('settings-button');
 
     TAG_OPTIONS = {
       'phone-type' : [
@@ -176,9 +180,11 @@ var Contacts = (function() {
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
+      settingsButton.classList.add('hide');
     } else {
       cancelButton.classList.add('hide');
       addButton.classList.remove('hide');
+      settingsButton.classList.remove('hide');
     }
   }
 
