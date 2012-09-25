@@ -527,7 +527,7 @@ var Contacts = (function() {
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
 
-    if(contact && fb.isFbContact(contact)) {
+    if (contact && fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
       var req = fbContact.getDataAndValues();
 

@@ -95,7 +95,7 @@ fb.Contact = function(deviceContact, cid) {
   function promoteToLinked(dcontact) {
     var idx = dcontact.category.indexOf(fb.NOT_LINKED);
 
-    if(idx != -1) {
+    if (idx != -1) {
       dcontact.category[idx] = fb.LINKED;
     }
   }
@@ -306,25 +306,25 @@ fb.Contact = function(deviceContact, cid) {
           Object.keys(fbdata).forEach(function(key) {
             var dataElement = fbdata[key];
 
-            if(dataElement && typeof dataElement.forEach === 'function') {
+            if (dataElement && typeof dataElement.forEach === 'function') {
               dataElement.forEach(function(item) {
-                if(item.value && item.value.length > 0) {
+                if (item.value && item.value.length > 0) {
                   out2[item.value] = 'p';
                 }
-                else if(typeof item === 'string' && item.length > 0) {
+                else if (typeof item === 'string' && item.length > 0) {
                   out2[item] = 'p';
                 }
-                else if(dataElement === 'photo') {
+                else if (dataElement === 'photo') {
                   out2['hasPhoto'] = true;
                 }
-              })
+              });
             }
-            else if(dataElement) {
+            else if (dataElement) {
               out2[dataElement] = 'p';
             }
           });
 
-          outReq.done([out1,out2]);
+          outReq.done([out1, out2]);
 
         }.bind(this);
 
@@ -333,7 +333,7 @@ fb.Contact = function(deviceContact, cid) {
         }
       }
       else {
-        outReq.done([devContact,{}]);
+        outReq.done([devContact, {}]);
       }
     }.bind(this), 0);
 

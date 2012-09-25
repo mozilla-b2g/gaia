@@ -29,7 +29,7 @@ contacts.Form = (function() {
       deviceContact;
 
   var REMOVED_CLASS = 'removed';
-  var FB_CLASS      = 'facebook';
+  var FB_CLASS = 'facebook';
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -129,7 +129,7 @@ contacts.Form = (function() {
     familyName.value = contact.familyName || '';
     company.value = contact.org || '';
 
-    if(nonEditableValues[company.value]) {
+    if (nonEditableValues[company.value]) {
       var nodeClass = company.parentNode.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
@@ -139,7 +139,7 @@ contacts.Form = (function() {
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
       // If the photo comes from FB it cannot be removed
-      if(!nonEditableValues['hasPhoto']) {
+      if (!nonEditableValues['hasPhoto']) {
         thumbAction.classList.add(REMOVED_CLASS);
       } else {
         addRemoveIconToPhoto();
@@ -232,14 +232,14 @@ contacts.Form = (function() {
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
 
-    if(nonEditableValues[currField.value]) {
+    if (nonEditableValues[currField.value]) {
       var nodeClass = rendered.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
     }
 
     // The undo button should not appear on FB disavled fields
-    if(!fb.isFbContact(currentContact)) {
+    if (!fb.isFbContact(currentContact)) {
       rendered.appendChild(removeFieldIcon(rendered.id));
     }
 
@@ -256,7 +256,7 @@ contacts.Form = (function() {
     }
     var request;
 
-    if(fb.isFbContact(contact)) {
+    if (fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
       request = fbContact.remove();
       request.onsuccess = deleteSuccess;
@@ -353,7 +353,7 @@ contacts.Form = (function() {
 
       // If it is a FB Contact not linked it will be automatically linked
       // As now there is additional info entered by the user
-      if(fb.isFbContact(contact)) {
+      if (fb.isFbContact(contact)) {
         var fbContact = new fb.Contact(contact);
         // Here the contact has been promoted to linked but not saved yet
         fbContact.promoteToLinked();
@@ -396,7 +396,7 @@ contacts.Form = (function() {
     };
 
     request.onerror = function onerror() {
-      console.error('Error saving contact',request.error.name);
+      console.error('Error saving contact', request.error.name);
     }
   }
 
