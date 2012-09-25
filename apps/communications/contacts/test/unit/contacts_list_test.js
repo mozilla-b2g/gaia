@@ -499,6 +499,7 @@ suite('Render contacts list', function() {
       subject.init(list);
       var selector = '#view-settings .view-body-inner #fb_import_button';
       assert.isTrue(document.querySelector(selector) == null);
+      MockFb.setIsEnabled(true);
     });
   });
 });
