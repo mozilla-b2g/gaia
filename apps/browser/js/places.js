@@ -153,15 +153,17 @@ var Places = {
 
 Places.db = {
   _db: null,
+  firstRun: false,
   START_PAGE_URI: document.location.protocol + '//' + document.location.host +
     '/start.html',
 
   open: function db_open(callback) {
-    const DB_VERSION = 4;
+    const DB_VERSION = 5;
     const DB_NAME = 'browser';
     var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
+      this.firstRun = true;
       console.log('Browser database upgrade needed, upgrading.');
       this._db = e.target.result;
       this._initializeDB();
@@ -169,7 +171,7 @@ Places.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      callback();
+      callback(this.firstRun);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
