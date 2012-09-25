@@ -699,9 +699,9 @@ var WindowManager = (function() {
       frame.src = url;
     } else {
       var frameSrc = ['wrapper/index.html?url=' + encodeURIComponent(url)];
-      if (manifest.bookmarkURL) {
-        frameSrc.push('&bookmarkURL=');
-        frameSrc.push(encodeURIComponent(manifest.bookmarkURL));
+      if (manifest.addBookmarkActivity) {
+        frameSrc.push('&origin=');
+        frameSrc.push(encodeURIComponent(origin));
         frameSrc.push('&name=');
         frameSrc.push(name);
         frameSrc.push('&icon=');
@@ -1111,35 +1111,40 @@ var WindowManager = (function() {
     var frame = runningApps[homescreen].frame;
     frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
       var detail = evt.detail;
-      if (!detail.name || detail.features !== 'wrapper')
+      if (!detail.url || detail.features !== 'wrapper')
         return;
 
       evt.stopImmediatePropagation();
 
-      var url = detail.url;
-      if (isRunning(url)) {
-        if (displayedApp === url)
-          return;
-      } else {
-        var manifest;
-        try {
-          manifest = JSON.parse(detail.name);
-        } catch (e) {
-          manifest = {name: url};
-        }
-
-        if (manifest.wrapperMode === 'reuse') {
-          var lastWrapperApp = frame.dataset.lastWrapperApp;
-          if (lastWrapperApp && lastWrapperApp !== url) {
-            kill(lastWrapperApp);
+      var app;
+      try {
+        app = JSON.parse(detail.name);
+      } catch (e) {
+        app = {
+          origin: detail.url,
+          manifest: {
+            name: detail.url
           }
-          frame.dataset.lastWrapperApp = url;
-        }
-
-        appendFrame(url, url, manifest.name, manifest, null);
+        };
       }
 
-      setDisplayedApp(url);
+      var origin = app.origin;
+      if (isRunning(origin)) {
+        if (displayedApp === origin)
+          return;
+      } else {
+        if (app.manifest.wrapperMode === 'reuse') {
+          var lastWrapperOrigin = frame.dataset.lastWrapperOrigin;
+          if (lastWrapperOrigin && lastWrapperOrigin !== origin) {
+            kill(lastWrapperOrigin);
+          }
+          frame.dataset.lastWrapperOrigin = origin;
+        }
+
+        appendFrame(origin, detail.url, app.manifest.name, app.manifest, null);
+      }
+
+      setDisplayedApp(origin);
     });
   }
 
