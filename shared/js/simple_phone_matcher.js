@@ -31,6 +31,7 @@ var SimplePhoneMatcher = {
 
     variants = variants.concat(this._internationalPrefixes(sanitizedNumber),
                                this._trunkPrefixes(sanitizedNumber),
+                               this._carrierPrefixes(sanitizedNumber),
                                this._areaPrefixes(sanitizedNumber));
 
     return variants.sort(function shortestFirst(a, b) {
@@ -167,6 +168,25 @@ var SimplePhoneMatcher = {
         return match;
       }, this);
     }, this);
+
+    return variants;
+  },
+
+  // http://thebrazilbusiness.com/article/telephone-system-in-brazil
+  _carrierPrefixes: function spm_carrierPrefix(number) {
+    if (this.mcc != '724') {
+      return [];
+    }
+
+    var variants = [];
+    var withTrunk = new RegExp('^0');
+
+    // A number with carrier prefix will have a trunk code and at
+    // lest 13 digits
+    if (number.length >= 13 && number.match(withTrunk)) {
+      var afterCarrier = 3;
+      variants.push(number.substring(afterCarrier));
+    }
 
     return variants;
   }

@@ -100,6 +100,35 @@ suite('lib/simple_phone_matcher', function() {
       });
     });
 
+    suite('carrier prefix variants in Brazil', function() {
+      var defaultMcc;
+
+      suiteSetup(function() {
+        defaultMcc = SimplePhoneMatcher.mcc;
+        SimplePhoneMatcher.mcc = '724';
+      });
+
+      suiteTeardown(function() {
+        SimplePhoneMatcher.mcc = defaultMcc;
+      });
+
+      test('number dialed with carrier prefix', function() {
+        testVariants('0311112345678', '1112345678');
+      });
+
+      test('long number dialed with carrier prefix', function() {
+        testVariants('03111123456789', '11123456789');
+      });
+
+      test('number dialed with no carrier prefix', function() {
+        testVariants('01112345678', '1112345678');
+      });
+
+      test('long number dialed with no carrier prefix', function() {
+        testVariants('011123456789', '11123456789');
+      });
+    });
+
     suite('trunk prefix variants', function() {
       suite('countries with 0 as trunk prefix', function() {
         test('Brazil', function() {
