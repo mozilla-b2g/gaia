@@ -259,7 +259,7 @@ var Camera = {
 
   setSource: function camera_setSource(camera) {
 
-    this.viewfinder.src = null;
+    this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
 
     var viewfinder = this.viewfinder;
@@ -290,7 +290,7 @@ var Camera = {
 
     function gotPreviewScreen(stream) {
       this._previewActive = true;
-      viewfinder.src = stream;
+      viewfinder.mozSrcObject = stream;
       viewfinder.play();
       this.checkStorageSpace();
     }
@@ -337,7 +337,7 @@ var Camera = {
 
   stop: function camera_stop() {
     this.pause();
-    this.viewfinder.src = null;
+    this.viewfinder.mozSrcObject = null;
   },
 
   pause: function camera_pause() {
@@ -509,5 +509,5 @@ document.addEventListener('mozvisibilitychange', function() {
 window.addEventListener('beforeunload', function() {
   window.clearTimeout(Camera._timeoutId);
   delete Camera._timeoutId;
-  Camera.viewfinder.src = null;
+  Camera.viewfinder.mozSrcObject = null;
 });
