@@ -71,7 +71,7 @@ function navigationStack(currentView) {
         break;
 
       case 'popup':
-        showPopup(nextView);
+        showPopup(current, next);
         break;
 
       default:
@@ -95,7 +95,7 @@ function navigationStack(currentView) {
         break;
 
       case 'popup':
-        hidePopup(_currentView);
+        hidePopup(current, next);
         break;
 
       default:
@@ -120,18 +120,27 @@ function navigationStack(currentView) {
     this.back();
   };
 
-  var showPopup = function c_showPopup(id) {
-    var popup = document.getElementById(id);
-    popup.classList.remove('view-bottom');
-    popup.dataset['state'] = 'active';
+  var showPopup = function c_showPopup(current, next) {
+    next.dataset.state = 'active';
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    next.classList.remove('view-bottom');
+    next.addEventListener('transitionend', function hideView() {
+      currentMirror.style.display ='none';
+      nextMirror.classList.remove('view-bottom');
+      next.removeEventListener('transitionend', hideView);
+    });
   }
 
-  var hidePopup = function c_hidePopup(id) {
-    var popup = document.getElementById(id);
-    popup.classList.add('view-bottom');
-    popup.addEventListener('transitionend', function hideView() {
-      popup.dataset['state'] = 'inactive';
-      popup.removeEventListener('transitionend', hideView);
+  var hidePopup = function c_hidePopup(current, next) {
+    next.dataset.state = 'active';
+    current.classList.add('view-bottom');
+    var nextMirror = document.getElementById(next.dataset.mirror);
+    var currentMirror = document.getElementById(current.dataset.mirror);
+    nextMirror.style.display = '';
+    current.addEventListener('transitionend', function hideView() {
+      currentMirror.classList.add('view-bottom');
+      current.removeEventListener('transitionend', hideView);
     });
   }
 

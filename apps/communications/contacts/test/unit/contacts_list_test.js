@@ -189,7 +189,6 @@ suite('Render contacts list', function() {
       assertGroup(groupB, containerC, 1);
       assertNoGroup(groupD, containerD);
 
-      assertNoImportButton();
     });
 
     test('adding one at the beginning', function() {
@@ -434,8 +433,6 @@ suite('Render contacts list', function() {
 
         assertTotal(0, 0);
         subject.load(newList);
-
-        assertNoImportButton();
 
         groupT = container.querySelector('#group-T');
         containerT = container.querySelector('#contacts-list-T');
