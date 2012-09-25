@@ -78,8 +78,8 @@ var Launcher = (function() {
     return decodeURIComponent(results[1]);
   }
 
-  function getBookmarkURL() {
-    var regex = new RegExp('[\\?&]bookmarkURL=([^&#]*)');
+  function getOrigin() {
+    var regex = new RegExp('[\\?&]origin=([^&#]*)');
     var results = regex.exec(href);
     return decodeURIComponent(results[1]);
   }
@@ -142,7 +142,7 @@ var Launcher = (function() {
         name: 'save-bookmark',
         data: {
           type: 'url',
-          url: getBookmarkURL(),
+          url: getOrigin(),
           name: name,
           icon: getIcon()
         }
