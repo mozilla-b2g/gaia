@@ -314,9 +314,9 @@ function imageCreated(fileinfo) {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
       if (a.date < b.date)
-        return 1;           // newer (larger) dates come first
-      else if (a.date > b.date)
         return -1;
+      else if (a.date > b.date)
+        return 1;
       return 0;
     });
   }
