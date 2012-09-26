@@ -102,9 +102,7 @@ body {
 .thumbnail {
   margin: 0;
   padding: 0;
-  /* borders only on right and bottom */
-  border-right: solid black 1px;
-  border-bottom: solid black 1px;
+  border: solid black 1px;
   overflow: hidden;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
@@ -121,7 +119,7 @@ body {
 
 .thumbnail.selected {
   outline: solid #00aacc 5px;
-  outline-offset: -5px;
+  outline-offset: -6px;
 }
 
 /* 320x480 phones */
