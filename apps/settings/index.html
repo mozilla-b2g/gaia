@@ -336,31 +336,6 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Bluetooth :: Advanced Settings -->
-    <section role="region" id="bluetooth-advanced-menu" data-leaf>
-      <header>
-        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bt-advanced-settings">
-          Advanced Settings
-        </h1>
-      </header>
-
-      <ul id="bluetooth-rename-btn">
-        <li>
-          <label>
-            <button data-l10n-id="renameDevice">Rename Device</button>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
-      </header>
-      <ul id="bluetooth-paired-devices">
-        <!-- filled by bluetooth.js -->
-      </ul>
-    </section>
-
     <!-- Connectivity :: Bluetooth -->
     <section role="region" id="bluetooth">
       <header>
@@ -378,47 +353,53 @@
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
-        <li hidden id="bluetooth-visible-device">
+        <li hidden id="device-visible">
           <label>
             <input type="checkbox" checked/>
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
-          <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
+          <a data-l10n-id="bluetooth-visible-to-other">Visible to other devices</a>
         </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="bluetoothDevices">Devices</h2>
-      </header>
       <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg" class="explanation">
-        Turn Bluetooth on to pair with devices that are within range.
+        Turn Bluetooth on to view devices in the area.
       </div>
-      <ul id="bluetooth-show-paired-devices">
+
+      <header id="bluetooth-paired-title">
+        <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+      </header>
+      <ul id="bluetooth-paired-devices" class="devices">
         <!-- filled by bluetooth.js -->
       </ul>
-      <ul id="bluetooth-devices">
+
+      <header id="bluetooth-found-title">
+        <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+      </header>
+      <ul id="bluetooth-devices" class="devices">
         <!-- filled by bluetooth.js -->
       </ul>
-      <ul>
-        <li hidden id="bluetooth-searching">
-          <a data-l10n-id="scanning">Searching…</a>
+      <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
+        Searching for devices…
+      </div>
+      <div class="toolbar-height"><!-- a placeholder for the following menu --></div>
+      <menu id="bluetooth-options" class="bottom-toolbar toolbar-height">
+        <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+        <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
+      </menu>
+      <ul id="paired-device-option" class="popup" hidden>
+        <li id="connect-option">
+          <a data-l10n-id="device-option-connect">Connect</a>
         </li>
-      </ul>
-      <ul id="bluetooth-search-again" hidden>
-        <li>
-          <label>
-            <button data-l10n-id="searchDeviceAgain">Search Again</button>
-          </label>
+        <li id="disconnect-option">
+          <a data-l10n-id="device-option-disconnect">Disconnect</a>
         </li>
-      </ul>
-      <ul id="bluetooth-advanced">
-        <li>
-          <label>
-            <!-- TODO: use <a role="button"> + the shared/style/buttons -->
-            <button onclick="openDialog('bluetooth-advanced-menu')"
-                data-l10n-id="bt-advanced-settings">Advanced Settings</button>
-          </label>
+        <li id="unpair-option">
+          <a data-l10n-id="device-option-unpair">Unpair</a>
+        </li>
+        <li id="cancel-option">
+          <button data-l10n-id="cancel">Cancel</button>
         </li>
       </ul>
     </section>
