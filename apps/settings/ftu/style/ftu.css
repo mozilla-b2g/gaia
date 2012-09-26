@@ -6,58 +6,40 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-size: 10px;
+  background-color: white;
   background-image: url(images/background.png);
   background-size: 100% 100%;
 }
 
-[role=region] {
+section[role=region] {
   background-image: none;
   background-color: transparent;
+
+  top: 7rem;
+  left: 1.5rem;
+  height: calc(100% - 12.5rem);
+  width: calc(100% - 3rem);
+  background: url(images/shadow.png) repeat-x left bottom;
 }
 
 /* Pages Transition */
 section.page {
-  position: absolute;
-  left: 0;
-  top: 0;
-
-  width: 100%;
-  height: 100%;
-
-  overflow: hidden;
-  transform: translateX(100%);
-}
-
-section.page:target {
-  transform: translateX(0);
-  transition: transform .5s ease;
-}
-
-section.page:target ~ section.page {
-  transform: translateX(-100%);
-  transition: transform .5s ease;
+  overflow: auto;
 }
 
 /* First Run Animation */
-.start > img {
+#logo {
   position: absolute;
   top: 0;
   left: 0;
   opacity: 0;
-  animation: logo-dance 8s 1;
+  /* XXX */
+  /*animation: logo-dance 12s 1;*/
   pointer-events: none;
 }
 
-.start img:nth-child(4) {
-  animation-delay: 12s;
-}
-
-.start img:nth-child(3) {
-  animation-delay: 8s;
-}
-
 @keyframes logo-dance {
-  50%, 80% {
+  1%, 90% {
     opacity: 1;
   }
 
@@ -66,33 +48,44 @@ section.page:target ~ section.page {
   }
 }
 
-.start > *:not(img) {
-  opacity: 0;
-}
-
-.start.show > *:not(img) {
-  opacity: 1;
-  transition: opacity 1s ease;
-}
-
-
 /* Common styles between panels */
 .main {
-  padding: 1rem;
-  height: calc(100% - 1rem);
+  padding: 0 1.5rem 0 1.5rem;
+  overflow-y: auto;
 }
 
-.content {
-  height: calc(100% - 115px);
-  width: 100%;
-  margin: 1rem 0;
-  overflow-y: auto;
-  background: url(images/shadow.png) repeat-x left bottom;
+/* Header */
+#header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5.5rem;
+
+  visibility: visible;
+  transform: none;
+}
+
+#header menu {
+  display: none;
+}
+
+#header[data-current='wifi'] menu {
+  display: block;
+}
+
+#header[data-current='end'] {
+  display: none;
 }
 
 /* Progress bar */
+progress {
+  position: absolute;
+  top: 6rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
 progress[value] {
-  width: 100%;
   background: transparent;
   border: none;
   border-radius: 0.3rem;
@@ -106,21 +99,26 @@ progress[value]::-moz-progress-bar {
   border-radius: 0.4rem;
 }
 
+progress[value=''] {
+  display: none;
+}
+
 /* Navigation buttons */
 #navigation-buttons {
   position: absolute;
   left: 0;
   bottom: -.5rem;
-  width: calc(100% - 2rem);
-  margin: 0 1rem;
+  width: calc(100% - 3rem);
+  margin: 0 1.5rem;
   /* let the buttons be invisible while the logo dance is going on */
+  /* XXX */
   opacity: 0;
   pointer-events: none;
 }
 
 #navigation-buttons.show {
   opacity: 1;
-  transition: opacity 1s ease;
+  transition: opacity .3s ease;
 }
 
 #navigation-buttons button {
@@ -262,29 +260,79 @@ button span, a[role="button"] span {
 
 /* Last screen - mostly done! */
 #end {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
   background-image: url(images/background-dark.png);
 }
 
-#end .content {
-  height: calc(100% - 65px);
+#end .main {
+  height: calc(100% - 5.5rem);
+  width: calc(100% - 3rem);
   color: white;
-  background: url(images/thumb-up.png) no-repeat center 95%, url(images/shadow.png) repeat-x left bottom;
+  background: url(images/thumb-up.png) no-repeat center 90%, url(images/shadow.png) repeat-x left bottom;
 }
 
-#end .content > span {
+#end .main > span {
   display: inline-block;
   margin: .5rem 1rem;
 }
 
-#end .content > span.title {
+#end .main > span.title {
   font-size: 4rem;
 }
 
-#end .content > span.subtitle {
+#end .main > span.subtitle {
   font-size: 2rem;
 }
 
-#end .content > span.text {
+#end .main > span.text {
   font-size: 1.5rem;
 }
 
+#final {
+  position: absolute;
+  bottom: 0rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
+/* buttons */
+button {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  border-radius: 0.3rem;
+  outline: none;
+  border: none;
+  font-size: 1.6rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #fff;
+  text-shadow: -1px -1px 0 #830b0b;
+  text-align: center;
+  text-decoration: none;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  color: #333;
+  background-color: #fafafa;
+  border: solid 1px #9f9f9f;
+}
+
+#next,
+#final {
+  background: url(images/next.png) no-repeat 94% 50%, url(images/button_submit.png) repeat-x;
+  border: solid 1px #008aaa;
+}
+
+#back {
+  background: url(images/prev.png) no-repeat 6% 50%;
+}

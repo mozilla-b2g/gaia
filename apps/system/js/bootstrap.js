@@ -26,14 +26,16 @@ function startup() {
     window.addEventListener('beforeattentionscreenhide', noHome, true);
 
     // Wait for the firstrun application to show up to fade the initlogo
-    window.addEventListener('mozbrowserloadend', function onFirstRun(e) {
+    window.addEventListener('mozbrowserfirstpaint', function onFirstRun(e) {
       var frame = e.target;
       if (frame.dataset.frameType != 'attention') {
         return;
       }
 
       frame.mozRequestFullScreen();
-      handleInitLogo();
+      setTimeout(function() {
+        handleInitLogo();
+      });
 
       frame.addEventListener('mozbrowserclose', function onFirstRunEnd(e) {
         window.removeEventListener('mozbrowserclose', onFirstRunEnd);
@@ -92,6 +94,8 @@ function startup() {
 
   asyncStorage.getItem('system.lastRun', function getLastRun(value) {
     var needFirstRun = !value;
+    // XXX
+    needFirstRun = true;
     asyncStorage.setItem('system.lastRun', Date.now());
 
     if (Applications.ready) {
