@@ -130,18 +130,21 @@ var metadataParser = (function() {
 
       // Take the larger of the two scales: we crop the image to the thumbnail
       var scale = Math.max(scalex, scaley);
-      /* If the image was already thumbnail size, it is its own thumbnail.
-         The following block is commented out as a temporary workaround, because setting
-         images smaller than the thumbnail as thumbnail crashes the gallery app, see
-         issue https://github.com/mozilla-b2g/gaia/issues/4852
-      
+
+      // If the image was already thumbnail size, it is its own thumbnail
       if (scale >= 1) {
         offscreenImage.src = null;
-        metadata.thumbnail = file;
+        //
+        // XXX
+        // Because of a gecko bug, we can't just store the image file itself
+        // we've got to create an equivalent but distinct blob.
+        // When https://bugzilla.mozilla.org/show_bug.cgi?id=794619 is fixed
+        // the line below can change to just assign file.
+        //
+        metadata.thumbnail = file.slice(0, file.size, file.type);
         callback(metadata);
         return;
       }
-      */
 
       // Calculate the region of the image that will be copied to the
       // canvas to create the thumbnail
