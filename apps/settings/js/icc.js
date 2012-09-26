@@ -15,7 +15,7 @@
   var iccMenuItem = document.getElementById("iccMenuItem");
   var iccStkAppsList = document.getElementById("icc-stk-apps");
   var iccStkSelection = document.getElementById("icc-stk-selection");
-  var iccStkSelectionHeader = document.getElementById("icc-stk-selection-header");
+  var iccLastCommand = null;
 
   function handleSTKCommand(command) {
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
@@ -44,7 +44,6 @@
       case icc.STK_CMD_DISPLAY_TEXT:
         console.log(" STK:Show message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        // TODO: This alert is for development, final code should stop the spinner
         alert(command.options.text);
         break;
       case icc.STK_CMD_SEND_SMS:
@@ -52,7 +51,7 @@
       case icc.STK_CMD_SEND_USSD:
         console.log(" STK:Send message: " + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        // TODO: Show a spinner instead the message (UX decission)
+        // TODO: Show a spinner instead the message (UX decission). Stop it on any other command
         break;
       case icc.STK_CMD_SET_UP_CALL:
         console.log(" STK:Setup Phone Call. Number: " + command.options.address);
@@ -124,7 +123,6 @@
         console.log("STK Main App Menu item:", menuItem.text, menuItem.identifer);
         var li = document.createElement("li");
         var a = document.createElement("a");
-        a.href = "#icc-stk-app";
         a.id = "stk-menuitem-" + menuItem.identifier;
         a.setAttribute("stk-menuitem-identifier", menuItem.identifier);
         a.textContent = menuItem.text;
@@ -141,6 +139,12 @@
     console.log("sendStkMenuSelection: " + JSON.stringify(identifier));
     document.getElementById('icc-stk-selection-header').innerHTML = appName;
     icc.sendStkMenuSelection(identifier, false);
+
+    openDialog('icc-stk-app', function submit() {
+      icc.sendStkResponse(iccLastCommand, { resultCode: icc.STK_RESULT_OK });
+      iccLastCommand = null;
+      updateMenu();
+    });
   }
 
   /**
@@ -148,14 +152,12 @@
    */
   function updateSelection(command) {
     var menu = command.options;
+    iccLastCommand = command;
 
     console.log("Showing STK menu");
     while (iccStkSelection.hasChildNodes()) {
       iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
-    document.getElementById('exit_iccapp').onclick = function(e) {
-      icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK })
-    };
 
     console.log("STK App Menu title:", menu.title);
     console.log("STK App Menu default item:", menu.defaultItem);
@@ -170,7 +172,6 @@
       li.appendChild(a);
       iccStkSelection.appendChild(li);
     });
-    Settings.openDialog('icc-stk-app');
   }
 
   function onSelectOptionClick(command, event) {
@@ -187,13 +188,12 @@
    *   "text":"Caption String","minLength":3,"maxLength":15,"isAlphabet":true}}
    */
   function updateInput(command) {
+    iccLastCommand = command;
+
     console.log("Showing STK input box");
     while (iccStkSelection.hasChildNodes()) {
       iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
-    document.getElementById('exit_iccapp').onclick = function(e) {
-      icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK })
-    };
 
     console.log("STK Input title:", command.options.text);
 
@@ -243,8 +243,6 @@
     }
     li.appendChild(button);
     iccStkSelection.appendChild(li);
-    
-    Settings.openDialog('icc-stk-app');
   }
 
   /**

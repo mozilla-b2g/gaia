@@ -1211,7 +1211,7 @@
     </section>
 
     <!-- Device :: SIM Toolkit -->
-    <section role="region" id="icc">
+    <section role="region" id="icc" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 id="icc-stk-operator-header">
@@ -1224,9 +1224,11 @@
     </section>
 
     <!-- Device :: SIM Toolkit -->
-    <section role="region" id="icc-stk-app">
+    <section role="region" id="icc-stk-app" data-leaf>
       <header>
-        <a href="#icc" id="exit_iccapp"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="exit">Exit</span></button>
+        </menu>
         <h1 id="icc-stk-selection-header">
           STK Application Name
         </h1>
