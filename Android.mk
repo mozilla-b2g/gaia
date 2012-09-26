@@ -33,8 +33,8 @@ $(LOCAL_INSTALLED_MODULE):
 	mkdir -p $(GAIA_PROFILE_INSTALL_PARENT) $(GAIA_APP_INSTALL_PARENT)
 	rm -rf $(GAIA_APP_INSTALL_PATH)
 	cd $(GAIA_PROFILE_INSTALL_PARENT) && tar xfz $(abspath $<)
-	mkdir -p $(TARGET_OUT)/b2g/profile
-	cp $(GAIA_PATH)/profile/user.js $(TARGET_OUT)/b2g/profile
+	mkdir -p $(TARGET_OUT)/b2g
+	cp $(GAIA_PATH)/profile/user.js $(TARGET_OUT)/b2g/user.js
 
 ifneq ($(GAIA_PROFILE_INSTALL_PARENT), $(GAIA_APP_INSTALL_PARENT))
 	mv $(GAIA_PROFILE_INSTALL_PARENT)/webapps $(GAIA_APP_INSTALL_PARENT)
