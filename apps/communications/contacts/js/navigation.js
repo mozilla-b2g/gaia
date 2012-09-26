@@ -118,7 +118,7 @@ function navigationStack(currentView) {
     var currentMirror = document.getElementById(current.dataset.mirror);
     next.classList.remove('view-bottom');
     next.addEventListener('transitionend', function hideView() {
-      currentMirror.style.display ='none';
+      currentMirror.style.display = 'none';
       nextMirror.classList.remove('view-bottom');
       next.removeEventListener('transitionend', hideView);
     });
