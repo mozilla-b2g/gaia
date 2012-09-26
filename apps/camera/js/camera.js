@@ -554,7 +554,7 @@ var Camera = {
       return false;
     }
 
-    switch(this._storageState) {
+    switch (this._storageState) {
     case this.STORAGE_NOCARD:
       this.showOverlay('nocard');
       break;
