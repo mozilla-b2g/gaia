@@ -4,6 +4,9 @@
  * This is Music Application of Gaia
  */
 
+var unknownAlbum;
+var unknownArtist;
+var unknownTitle;
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
@@ -46,6 +49,9 @@ function init() {
   // report them so we don't need to do this.
   document.addEventListener('mozvisibilitychange', function vc() {
     if (!document.mozHidden && musicdb.ready) {
+      // Users may change system language, so re-set localization here
+      setLocalization();
+
       scan();
     }
   });
@@ -116,15 +122,20 @@ function showOverlay(id) {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
+// We need two handles here to cancel enumerations
+// one is for tilesView, another one is for listView
+var tilesHandle = null;
+var listHandle = null;
+var sublistHandle = null;
+
 function showCurrentView() {
   TilesView.clean();
   // Enumerate existing song entries in the database
   // List the all, and sort them in ascending order by artist.
   var option = 'artist';
 
-  musicdb.enumerate('metadata.' + option, null, 'nextunique',
-                    TilesView.update.bind(TilesView));
-
+  tilesHandle = musicdb.enumerate('metadata.' + option, null, 'nextunique',
+                                  TilesView.update.bind(TilesView));
   switch (TabBar.option) {
     case 'playlist':
       // TODO update the predefined playlists
@@ -134,8 +145,9 @@ function showCurrentView() {
       changeMode(MODE_LIST);
       ListView.clean();
 
-      musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                        ListView.update.bind(ListView, TabBar.option));
+      listHandle =
+        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                          ListView.update.bind(ListView, TabBar.option));
       break;
   }
 
@@ -254,6 +266,10 @@ var TilesView = {
   },
 
   clean: function tv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (tilesHandle)
+      musicdb.cancelEnumeration(tilesHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
@@ -284,14 +300,21 @@ var TilesView = {
 
     this.dataSource.push(result);
 
+    var tile = document.createElement('div');
+
     var container = document.createElement('div');
     container.className = 'tile-container';
 
-    var tile = document.createElement('div');
+    var titleBar = document.createElement('div');
+    titleBar.className = 'tile-title-bar';
+    var artistName = document.createElement('div');
+    artistName.className = 'tile-title-artist';
+    var albumName = document.createElement('div');
+    albumName.className = 'tile-title-album';
 
-    var defaultImage = document.createElement('div');
-    defaultImage.textContent = result.metadata.title ||
-      navigator.mozL10n.get('unknownTitle');
+    artistName.textContent = result.metadata.artist || unknownArtist;
+    albumName.textContent = result.metadata.album || unknownAlbum;
+    titleBar.appendChild(artistName);
 
     var img = document.createElement('img');
     img.className = 'tile-image';
@@ -303,10 +326,10 @@ var TilesView = {
     // so we mod 6 to find out who is the main-tile
     if (this.index % 6 === 0) {
       tile.classList.add('main-tile');
-      defaultImage.classList.add('main-tile-default-image');
+      artistName.classList.add('main-tile-title');
+      titleBar.appendChild(albumName);
     } else {
       tile.classList.add('sub-tile');
-      defaultImage.classList.add('sub-tile-default-image');
     }
 
     // Since 6 tiles are in one group
@@ -318,12 +341,12 @@ var TilesView = {
       tile.classList.add('float-right');
     }
 
-    tile.classList.add('color-' + this.index % 7);
+    tile.classList.add('default-album-' + this.index % 10);
 
     container.dataset.index = this.index;
 
-    container.appendChild(defaultImage);
     container.appendChild(img);
+    container.appendChild(titleBar);
     tile.appendChild(container);
     this.view.appendChild(tile);
 
@@ -383,6 +406,10 @@ var ListView = {
   },
 
   clean: function lv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (listHandle)
+      musicdb.cancelEnumeration(listHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
@@ -412,14 +439,12 @@ var ListView = {
 
     var parent = document.createElement('div');
     parent.className = 'list-image-parent';
-    var div = document.createElement('div');
-    div.className = 'list-default-image';
-    div.innerHTML = '&#9834;';
+    parent.classList.add('default-album-' + this.index % 10);
     var img = document.createElement('img');
     img.className = 'list-image';
 
-    parent.appendChild(div);
-    parent.appendChild(img);
+    if (result.metadata.picture)
+      parent.appendChild(img);
 
     this.setItemImage(img, result);
 
@@ -484,6 +509,8 @@ var ListView = {
           var index = target.dataset.index;
           var data = this.dataSource[index];
 
+          SubListView.setAlbumDefault(index);
+
           if (data.metadata.picture)
             SubListView.setAlbumSrc(data);
 
@@ -498,8 +525,9 @@ var ListView = {
           var keyRange = (target.dataset.keyRange != 'all') ?
             IDBKeyRange.only(target.dataset.keyRange) : null;
 
-          musicdb.enumerate('metadata.' + option, keyRange, 'next',
-            SubListView.update.bind(SubListView));
+          sublistHandle =
+            musicdb.enumerate('metadata.' + option, keyRange, 'next',
+                              SubListView.update.bind(SubListView));
 
           changeMode(MODE_SUBLIST);
         }
@@ -535,7 +563,9 @@ var SubListView = {
   init: function slv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.backgroundIndex = 0;
 
+    this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
     this.albumName = document.getElementById('views-sublist-header-name');
     this.playAllButton = document.getElementById('views-sublist-controls-play');
@@ -546,6 +576,10 @@ var SubListView = {
   },
 
   clean: function slv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (sublistHandle)
+      musicdb.cancelEnumeration(sublistHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.albumImage.src = '';
@@ -575,6 +609,14 @@ var SubListView = {
       }
     }
 
+  },
+
+  setAlbumDefault: function slv_setAlbumDefault(index) {
+    var realIndex = index % 10;
+
+    this.albumDefault.classList.remove('default-album-' + this.backgroundIndex);
+    this.albumDefault.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
   },
 
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
@@ -607,8 +649,8 @@ var SubListView = {
     var a = document.createElement('a');
     a.href = '#';
 
-    var songTitle = (result.metadata.title) ? result.metadata.title :
-      navigator.mozL10n.get('unknownTitle');
+    var songTitle = (result.metadata.title) ?
+      result.metadata.title : unknownTitle;
 
     a.dataset.index = this.index;
 
@@ -643,7 +685,7 @@ var SubListView = {
         if (target && target.dataset.index) {
           PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
-          PlayerView.play(target);
+          PlayerView.play(target, this.backgroundIndex);
 
           changeMode(MODE_PLAYER);
         }
@@ -702,6 +744,7 @@ var PlayerView = {
     this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
+    this.backgroundIndex = 0;
 
     this.view.addEventListener('click', this);
 
@@ -741,6 +784,14 @@ var PlayerView = {
     );
   },
 
+  setCoverBackground: function pv_setCoverBackground(index) {
+    var realIndex = index % 10;
+
+    this.cover.classList.remove('default-album-' + this.backgroundIndex);
+    this.cover.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
+  },
+
   setCoverImage: function pv_setCoverImage(fileinfo) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
@@ -759,7 +810,7 @@ var PlayerView = {
     };
   },
 
-  play: function pv_play(target) {
+  play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
     if (this.endedTimer) {
@@ -774,12 +825,23 @@ var PlayerView = {
       var songData = this.dataSource[targetIndex];
 
       TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
+        songData.metadata.title : unknownTitle);
       this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : navigator.mozL10n.get('unknownArtist');
+        songData.metadata.artist : unknownArtist;
       this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
+        songData.metadata.album : unknownAlbum;
       this.currentIndex = targetIndex;
+
+      // backgroundIndex is from the index of sublistView
+      // for playerView to show same default album art (same index)
+      if (backgroundIndex || backgroundIndex === 0) {
+        this.setCoverBackground(backgroundIndex);
+      }
+
+      // We only update the default album art when source type is MIX
+      if (this.sourceType === TYPE_MIX) {
+        this.setCoverBackground(targetIndex);
+      }
 
       this.setCoverImage(songData);
 
@@ -888,7 +950,7 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
-          case 'player-cover-default-image':
+          case 'player-cover':
           case 'player-cover-image':
             this.showInfo();
 
@@ -1000,8 +1062,10 @@ var TabBar = {
             changeMode(MODE_LIST);
             ListView.clean();
 
-            musicdb.enumerate('metadata.' + this.option, null, 'nextunique',
-              ListView.update.bind(ListView, this.option));
+            listHandle =
+              musicdb.enumerate('metadata.' + this.option, null,
+                                'nextunique',
+                                ListView.update.bind(ListView, this.option));
 
             break;
           case 'tabs-more':
@@ -1051,10 +1115,19 @@ window.addEventListener('DOMContentLoaded', function() {
   });
 });
 
-window.addEventListener('localized', function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+// Set the 'lang' and 'dir' attributes to <html> when the page is translated
+function setLocalization() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // Get prepared for the unknown strings, these will be used later
+  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
+  unknownArtist = navigator.mozL10n.get('unknownArtist');
+  unknownTitle = navigator.mozL10n.get('unknownTitle');
+}
+
+window.addEventListener('localized', function showBody() {
+  setLocalization();
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
