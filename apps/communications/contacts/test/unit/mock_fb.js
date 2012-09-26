@@ -102,7 +102,30 @@ MockFb.Contact = function(devContact, mozCid) {
       set onerror(callback) {
 
       }
-    };
+    }
+  }
+
+  this.getDataAndValues = function getDataAndValues() {
+    return {
+      set onsuccess(callback) {
+        // Fetch FB data, that is returning a contact info
+        this.result = [];
+        this.result[0] = deviceContact;
+        this.result[1] = {
+          '+346578888888': 'p',
+          'test@test.com': 'p'
+        };
+
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    }
+  }
+
+  this.promoteToLinked = function promoteToLinked() {
+
   }
 
   Object.defineProperty(this, 'uid', {

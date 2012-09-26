@@ -104,7 +104,7 @@ contacts.Form = (function() {
 
   var render = function cf_render(contact, callback, pFbContactData) {
     var fbContactData = pFbContactData || [];
-    
+
     nonEditableValues = fbContactData[1] || {};
     deviceContact = contact;
     var renderedContact = fbContactData[0] || deviceContact;
@@ -234,7 +234,7 @@ contacts.Form = (function() {
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
 
-    if (nonEditableValues[currField.value]) {
+    if (currField.value && nonEditableValues[currField.value]) {
       var nodeClass = rendered.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
