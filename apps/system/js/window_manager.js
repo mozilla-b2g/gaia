@@ -524,6 +524,7 @@ var WindowManager = (function() {
     }
   }
 
+  // Perform a "close" animation for the app's iframe
   function closeWindow(origin, callback) {
     var app = runningApps[origin];
     closeFrame = app.frame;
@@ -559,6 +560,75 @@ var WindowManager = (function() {
         sprite.className = 'closing';
       });
     });
+  }
+
+  // Perform a "switching" animation for the closing frame and the opening frame
+  function switchWindow(origin, newOrigin, callback) {
+    screenElement.classList.add('switch-app');
+
+    function createSprite() {
+      var el = document.createElement('div');
+      el.className = 'windowSprite';
+      el.dataset.zIndexLevel = 'window-sprite';
+      el.appendChild(document.createElement('div'));
+      screenElement.insertBefore(el, sprite);
+      return el;
+    }
+
+    // First, create two cards for switching animation
+    var closingAppSprite = createSprite();
+    var openingAppSprite = createSprite();
+
+    openingAppSprite.classList.add('right');
+
+    var closingAppFrame = runningApps[origin].frame;
+    var openingAppFrame = runningApps[newOrigin].frame;
+
+    // Fill the opening app sprite with screenshot.
+    getAppScreenshot(openingAppFrame,
+      function gotScreenshot(screenshot, isCached) {
+        if (!screenshot || !useScreenshotInSprite) {
+          openingAppSprite.dataset.mask = false;
+        } else {
+          openingAppSprite.dataset.mask = isCached;
+          openingAppSprite.style.background = '#fff url(' + screenshot + ')';
+        }
+      }
+    );
+
+    // Fill the closing app sprite with screenshot.
+    // when the closing one got filled we start the animation
+    getAppScreenshot(closingAppFrame,
+      function gotScreenshot(screenshot, isCached) {
+        if (!screenshot || !useScreenshotInSprite) {
+          closingAppSprite.dataset.mask = false;
+        } else {
+          closingAppSprite.dataset.mask = isCached;
+          closingAppSprite.style.background = '#fff url(' + screenshot + ')';
+        }
+
+        // Start the animation
+        closeWindow(origin, function windowClosed() {
+          // Start the switching animation
+          closingAppSprite.classList.add('left');
+          openingAppSprite.classList.remove('right');
+
+          // Wait for the switching animation to finish
+          openingAppSprite.addEventListener('transitionend',
+            function switched() {
+              openingAppSprite.removeEventListener('transitionend', switched);
+              screenElement.removeChild(closingAppSprite);
+              screenElement.removeChild(openingAppSprite);
+
+              // Show the new app
+              openWindow(newOrigin, function opened() {
+                screenElement.classList.remove('switch-app');
+
+                callback();
+              });
+            });
+        });
+      });
   }
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
@@ -625,9 +695,7 @@ var WindowManager = (function() {
     // Case 4: app-to-app transition
     else {
       setAppSize(newApp);
-      closeWindow(currentApp, function closeWindow() {
-        openWindow(newApp, callback);
-      });
+      switchWindow(currentApp, newApp, callback);
     }
 
     // Set homescreen as active,
