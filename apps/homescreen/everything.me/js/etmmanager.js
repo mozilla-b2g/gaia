@@ -2,6 +2,7 @@
 'use strict';
 
 var EvmeManager = (function() {
+  var currentWindow = null;
 
   function openApp(params) {
     var evmeApp = new EvmeApp({
@@ -10,24 +11,29 @@ var EvmeManager = (function() {
       icon: params.icon
     });
 
-    if (!Applications.isInstalled(params.originUrl)) {
-      evmeApp.manifest.addBookmarkActivity = true;
+    if (currentWindow) {
+      currentWindow.close();
     }
-
-    evmeApp.launch(params.url);
+    currentWindow = evmeApp.launch(true);
     setVisibilityChange(false);
   }
 
   function addBookmark(params) {
-    new MozActivity({
-      name: 'save-bookmark',
-      data: {
-        type: 'url',
-        url: params.originUrl,
-        name: params.title,
-        icon: params.icon
-      }
-    });
+    var data = {
+      url: params.originUrl,
+      name: params.title,
+      icon: params.icon
+    }
+
+    function success() {
+      Applications.installBookmark(new Bookmark(data));
+    }
+
+    function error() {
+      // Anything to do in case of error?
+    }
+
+    HomeState.saveBookmark(data, success, error);
   }
 
   function setVisibilityChange(visible) {
