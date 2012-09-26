@@ -1,9 +1,21 @@
-*[data-template] {
+.hide, *[data-template] {
   display: none !important;
 }
 
 html, body {
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.view {
+  position: fixed;
+  left: 0;
+  top: -2px;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #curtain {
@@ -30,10 +42,18 @@ html, body {
   margin: 2.5rem auto 1.5rem;
 }
 
+.friends-msg {
+  position: absolute;
+  top: 5.3rem;
+  height: 2rem !important;
+  width: 100%;
+  z-index: 1;
+  background-color: #fff;
+}
+
 p#friends-msg {
   font-size: 1.5rem;
   margin-left: 3rem;
-  height: 2rem !important;
 }
 
 #curtain > p.submessage {
@@ -52,8 +72,6 @@ p#friends-msg {
   margin-top: 1rem;
 }
 
-
-
 body[data-state='waiting'] #curtain {
   display: block;
 }
@@ -62,14 +80,15 @@ body[data-state='waiting'] #content {
   display: none;
 }
 
-
 h2.block-title {
   border-bottom: 1px solid #4D77CF; color: #4D77CF;
   margin: 0;
 }
 
 #main {
-  height: -moz-calc(100% - 5.3rem);
+  position: absolute;
+  top: 7.3rem;
+  height: -moz-calc(100% - 7.3rem);
 }
 
 #mainContent {
@@ -80,11 +99,10 @@ h2.block-title {
 
   -moz-box-sizing: border-box;
 
-  background: #f4f4f4;
   color: #333;
   text-align: left;
 
-  height: -moz-calc(100% - 8.5rem);
+  height: -moz-calc(100% - 6.5rem);
 }
 
 #groups-list {
@@ -104,7 +122,6 @@ h2.block-title {
 
   z-index:100;
 }
-
 
 #shortcuts ol li[data-letter] {
   display:block;

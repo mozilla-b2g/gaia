@@ -32,7 +32,7 @@ var FixedHeader = (function FixedHeader() {
     var currentScroll = view.scrollTop;
     for (var i = headings.length - 1; i >= 0; i--) {
       var currentHeader = headings[i];
-      var headingPosition = currentHeader.offsetTop - view.offsetTop;
+      var headingPosition = currentHeader.offsetTop;
       var offset = headingPosition - currentScroll;
       var currentHeight = currentHeader.offsetHeight;
       var differentHeaders = currentlyFixed != currentHeader;
