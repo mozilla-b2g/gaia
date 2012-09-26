@@ -774,7 +774,6 @@ var WindowManager = (function() {
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
-    frame.setAttribute('remote', 'true');
     frame.setAttribute('mozbrowser', 'true');
 
     // These apps currently have bugs preventing them from being
