@@ -93,5 +93,29 @@ var StorageSettings = {
   }
 };
 
+var DeviceStorageHelper = (function DeviceStorageHelper() {
+
+    function getStat(type, callback) {
+      var deviceStorage = navigator.getDeviceStorage(type);
+
+      if (!deviceStorage) {
+        console.error('Cannot get DeviceStorage for: ' + type);
+        return;
+      }
+
+      var request = deviceStorage.stat();
+
+      request.onsuccess = function(e) {
+        var totalSize = e.target.result.totalBytes;
+        callback(e.target.result.totalBytes,
+                 e.target.result.freeBytes);
+      };
+    }
+
+    return {
+      getStat: getStat
+    };
+})();
+
 StorageSettings.init();
 
