@@ -312,63 +312,21 @@ Evme.Utils = new function() {
                     "name": "3g",
                     "speed": consts.SPEED_MED
                 }
-            ],
-            onLine = true, imageToPoll = "", pollingInterval = 0, timeoutPolling = null,
-            ERROR_TIMEOUT = 0,
-            EVENT_ONLINE = "ononline", EVENT_OFFLINE = "onoffline";
+            ];
 
         this.init = function() {
-            imageToPoll = "http://corp.everything.me/img/bg-pages.png";
-            pollingInterval = 2000;
-            ERROR_TIMEOUT = 5000;
-
-            window.addEventListener(EVENT_ONLINE, function(){
-                onLine = true;
-                window.clearTimeout(timeoutPolling);
+            window.addEventListener("online", function() {
+                Evme.EventHandler.trigger("Connection", "online");
             });
-            window.addEventListener(EVENT_OFFLINE, function(){
-                onLine = false;
-                checkConnection();
+            window.addEventListener("offline", function() {
+                Evme.EventHandler.trigger("Connection", "offline");
             });
-
-            if (imageToPoll && pollingInterval) {
-                checkConnection();
-            }
-
+                
             _this.set();
         };
 
-        function checkConnection(cb) {
-            window.clearTimeout(timeoutPolling);
-
-            var img = new Image();
-            img.timeout = null;
-            img.onload = function() {
-                window.clearTimeout(img.timeout);
-                if (!onLine) {
-                    fireEvent(EVENT_ONLINE);
-                }
-                cb && cb(true);
-            };
-            img.onerror = function() {
-                window.clearTimeout(img.timeout);
-                timeoutPolling = window.setTimeout(checkConnection, pollingInterval);
-                if (onLine) {
-                    fireEvent(EVENT_OFFLINE);
-                }
-                cb && cb(false);
-            };
-
-            img.timeout = window.setTimeout(function(){
-                img.onload = null;
-                img.onerror();
-            }, ERROR_TIMEOUT);
-
-            img.src = imageToPoll + "?ts=" + new Date().getTime();
-        }
-
         this.online = function(callback) {
-            checkConnection(callback);
+            callback(navigator.onLine);
         };
 
         this.get = function(){
@@ -379,12 +337,6 @@ Evme.Utils = new function() {
              currentIndex = index || (navigator.connection && navigator.connection.type) || 0;
              return getCurrent();
         };
-
-        function fireEvent(ev) {
-            var e = document.createEvent("Events");
-            e.initEvent(ev, true, false);
-            window.dispatchEvent(e);
-        }
 
         function getCurrent(){
             return aug({}, consts, types[currentIndex]);

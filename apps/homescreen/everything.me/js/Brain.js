@@ -103,7 +103,7 @@ Evme.Brain = new function() {
             if (Evme.Searchbar.getValue() !== "") {
                 Evme.Helper.showSuggestions();
             } else {
-                Brain.Evme.Helper.showDefault();
+                Brain.Helper.showDefault();
             }
 
             if (!tipKeyboard) {
@@ -152,9 +152,10 @@ Evme.Brain = new function() {
             Searcher.cancelRequests();
             Evme.Apps.clear();
             Evme.Helper.setTitle();
-            Brain.Evme.Helper.showDefault();
+            Brain.Helper.showDefault();
 
             Evme.DoATAPI.cancelQueue();
+
             Evme.Connection.hide();
         };
 
@@ -878,10 +879,6 @@ Evme.Brain = new function() {
             }
         };
 
-        this.load = function() {
-            checkForMissingShortcutIcons();
-        };
-
         function checkForMissingShortcutIcons() {
             var $elsWithMissingIcons = Evme.Shortcuts.getElement().find("*[iconToGet]"),
                 appIds = [];
@@ -1048,7 +1045,7 @@ Evme.Brain = new function() {
         this.done = function(data) {
             Evme.Shortcuts.show();
             Evme.ShortcutsCustomize.hide();
-                        
+
             Evme.DoATAPI.Shortcuts.set({
                 "shortcuts": JSON.stringify(data.shortcuts)
             }, function(data){
@@ -1066,9 +1063,9 @@ Evme.Brain = new function() {
             $el.find(".shortcut.add").remove();
 
             $elCustomize.bind("click", function(){
-                if (!EvmePageMoved) {
+                //if (!EvmePageMoved) {
                     Evme.ShortcutsCustomize.show(false);    
-                }
+                //}
             });
 
             $el.append($elCustomize);
@@ -1165,7 +1162,7 @@ Evme.Brain = new function() {
 
     this.Connection = new function() {
         this.online = function() {
-            Connection.hide();
+            Evme.Connection.hide();
             Evme.DoATAPI.backOnline();
         };
         this.offline = function() {
@@ -1182,7 +1179,7 @@ Evme.Brain = new function() {
             if (Evme.Searchbar.getValue()) {
                 message = "To get apps for \""+Evme.Searchbar.getValue()+"\" please connect to the internet";
             }
-            Connection.show(message);
+            Evme.Connection.show(message);
         };
     };
 
