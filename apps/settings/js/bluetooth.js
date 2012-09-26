@@ -144,12 +144,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         }
         this.index = [];
       },
-      show: function showArea(isShow) {
-        if (!isShow) {
+      show: function showArea(isShown) {
+        if (!isShown) {
           this.clear();
         }
-        this.title.hidden = !isShow;
-        this.list.hidden = !isShow;
+        this.title.hidden = !isShown;
+        this.list.hidden = !isShown;
       }
     };
     var openList = {
@@ -162,12 +162,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         }
         this.index = [];
       },
-      show: function showArea(isShow) {
-        if (!isShow) {
+      show: function showArea(isShown) {
+        if (!isShown) {
           this.clear();
         }
-        this.title.hidden = !isShow;
-        this.list.hidden = !isShow;
+        this.title.hidden = !isShown;
+        this.list.hidden = !isShown;
       }
     };
     var optionMenu = {

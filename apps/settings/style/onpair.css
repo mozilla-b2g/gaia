@@ -36,4 +36,7 @@ form[role="dialog"] menu button {
   background-position: left center;
   padding-left: 2rem;
 }
-.bluetooth-default { background-image: url(images/settings_bluetooth.png); }
+
+.bluetooth-default { 
+  background-image: url(images/settings_bluetooth.png); 
+}

@@ -273,6 +273,7 @@ ul li p + input[type=password] {
 .toolbar-height {
   height: 4.8rem;
 }
+
 .bottom-toolbar {
   background-color: rgba(0, 0, 0, 0.7);
   bottom: 0;
@@ -317,6 +318,7 @@ ul li p + input[type=password] {
   line-height: 2em;
   padding: 0;
 }
+
 #paired-device-option #cancel-option {
   height: 4.6rem;
   min-height: 4.6rem;
