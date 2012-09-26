@@ -211,15 +211,17 @@
     iccStkSelection.appendChild(li);
 
     li = document.createElement('li');
+    var label = document.createElement('label');
     var button = document.createElement('button');
     button.id = 'stk-item-' + 'ok';
     button.textContent = 'Ok';
     button.onclick = function(event) {
-      value = document.getElementById('stk-item-input').value;
+      var value = document.getElementById('stk-item-input').value;
       icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                     input: value});
     };
-    li.appendChild(button);
+    label.appendChild(button);
+    li.appendChild(label);
     iccStkSelection.appendChild(li);
   }
 
