@@ -160,7 +160,7 @@ var Settings = {
         request.onsuccess = function() {
           var value = request.result[key];
           if (value != undefined) {
-            select.querySelector('option[value=' + value + ']').selected = true;
+            select.querySelector('option[value="' + value + '"]').selected = true;
           }
         };
       })(selects[i]);

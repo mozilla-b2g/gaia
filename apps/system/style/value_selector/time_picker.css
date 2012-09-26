@@ -1,10 +1,17 @@
 /* ----------- TimeSelectorView ---------- */
 #picker-bar {
   position: relative;
-  width: 85%;
   margin-left: auto;
   margin-right: auto;
   overflow: hidden;
+}
+
+#picker-bar.format12h {
+  width: 85%;
+}
+
+#picker-bar.format24h {
+  width: 60%;
 }
 
 #picker-bar-gradient {
@@ -62,10 +69,17 @@
   pointer-events: none;
   background-color: #00A5C5;
   position: absolute;
-  width: 66%;
   height: 100%;
   font: 3rem/6rem 'Open Sans',sans-serif;
   text-align: center;
+}
+
+#picker-bar.format12h #value-indicator-hover-time {
+  width: 66%;
+}
+
+#picker-bar.format24h #value-indicator-hover-time {
+  width: 100%;
 }
 
 #value-indicator-hover {
@@ -77,6 +91,14 @@
   right:0;
 }
 
+#picker-bar.format12h #value-indicator-hover {
+  display: block;
+}
+
+#picker-bar.format24h #value-indicator-hover {
+  display: none;
+}
+
 div.animation-on {
   -moz-transition-duration: 0.5s;
   -moz-transition-property: top, left;
@@ -85,16 +107,30 @@ div.animation-on {
 #value-picker-hours {
   position: relative;
   -moz-user-select: none;
-  width: 33%;
   float: left;
   text-align: center;
+}
+
+#picker-bar.format12h #value-picker-hours {
+  width: 33%;
+}
+
+#picker-bar.format24h #value-picker-hours {
+  width: 50%;
 }
 
 #value-picker-minutes {
   position: relative;
   -moz-user-select: none;
-  width: 34%;
   float: left;
+}
+
+#picker-bar.format12h #value-picker-minutes {
+  width: 34%;
+}
+
+#picker-bar.format24h #value-picker-minutes {
+  width: 50%;
 }
 
 #value-picker-hour24-state {
@@ -102,6 +138,14 @@ div.animation-on {
   -moz-user-select: none;
   width: 33%;
   float: left;
+}
+
+#picker-bar.format12h #value-picker-hour24-state {
+  display: block;
+}
+
+#picker-bar.format24h #value-picker-hour24-state {
+  display: none;
 }
 
 .picker-unit {
@@ -124,17 +168,32 @@ div.animation-on {
   top: 0;
 }
 
-.left-picker-separator {
+#picker-bar.format12h #picker-bar-background {
+  display: block;
+}
+
+#picker-bar.format24h #picker-bar-background {
+  display: none;
+}
+
+#left-picker-separator {
   position: absolute;
   width: 0.2rem;
   height: 100%;
   top: 0;
-  left: 33%;
   background: -moz-linear-gradient(center left, #555 50%, #000 50%);
   pointer-events: none;
 }
 
-.right-picker-separator {
+#picker-bar.format12h #left-picker-separator {
+  left: 33%;
+}
+
+#picker-bar.format24h #left-picker-separator {
+  left: 49.5%;
+}
+
+#right-picker-separator {
   position: absolute;
   width: 0.2rem;
   height: 100%;
@@ -142,4 +201,12 @@ div.animation-on {
   left: 66%;
   background: -moz-linear-gradient(center left, #555 50%, #000 50%);
   pointer-events: none;
+}
+
+#picker-bar.format12h #right-picker-separator {
+  display: block;
+}
+
+#picker-bar.format24h #right-picker-separator {
+  display: none;
 }
