@@ -130,14 +130,13 @@ var metadataParser = (function() {
 
       // Take the larger of the two scales: we crop the image to the thumbnail
       var scale = Math.max(scalex, scaley);
-
       // If the image was already thumbnail size, it is its own thumbnail
-      if (scale >= 1) {
+      /*if (scale >= 1) {
         offscreenImage.src = null;
         metadata.thumbnail = file;
         callback(metadata);
         return;
-      }
+      }*/
 
       // Calculate the region of the image that will be copied to the
       // canvas to create the thumbnail
