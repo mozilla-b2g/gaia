@@ -542,11 +542,11 @@ var Contacts = (function() {
       }
 
       req.onerror = function() {
-        contactsForm.render(contact, goToForm, []);
+        contactsForm.render(contact, goToForm);
       }
     }
     else {
-      contactsForm.render(contact, goToForm, []);
+      contactsForm.render(contact, goToForm);
     }
   };
 

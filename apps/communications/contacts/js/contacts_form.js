@@ -102,7 +102,9 @@ contacts.Form = (function() {
 
   };
 
-  var render = function cf_render(contact, callback, fbContactData) {
+  var render = function cf_render(contact, callback, pFbContactData) {
+    var fbContactData = pFbContactData || [];
+    
     nonEditableValues = fbContactData[1] || {};
     deviceContact = contact;
     var renderedContact = fbContactData[0] || deviceContact;
