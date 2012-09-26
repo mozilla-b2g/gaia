@@ -53,16 +53,6 @@ fieldset {
     -o-box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
 }
-
-
-#evmeContainer .textpage {
-    background: #833068 url('/everything.me/images/bgpattern.jpg') 0 0 repeat;
-    background-size: 36px 36px;
-    font-family: 'Open Sans';
-    font-size: 15px;
-    color: #fff;
-}
-
 #evmeContainer .screen {
     position: absolute;
     top: 0;
@@ -190,24 +180,10 @@ fieldset {
 #shortcuts-favorites li.on:before,
 #close-category
 {
-    background-image: url('/everything.me/images/sprite.png?14');
+    background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
-    -moz-background-size: 131px 250px !important;
-    -webkit-background-size: 131px 250px !important;
-    -o-background-size: 131px 250px !important;
-    background-size: 131px 250px !important;
 }
 #location-selector .options div:before,
 #dialog_location .content:before {
-    background-image: url('/everything.me/images/location/location_sprite.png?1');
-    -moz-background-size: 64px 106px !important;
-    -webkit-background-size: 64px 106px !important;
-    -o-background-size: 64px 106px !important;
-    background-size: 64px 106px !important;
-}
-#dialog_location_os_error .content:before {
-    -moz-background-size: 271px 250px !important;
-    -webkit-background-size: 271px 250px !important;
-    -o-background-size: 271px 250px !important;
-    background-size: 271px 250px !important;
+    background-image: url('/everything.me/images/location/location_sprite.png');
 }
