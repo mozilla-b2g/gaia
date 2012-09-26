@@ -198,6 +198,11 @@ ul li p + input[type=password] {
   font-size: 1.5rem;
 }
 
+li.disabled > a {
+  color: gray;
+  pointer-events: none;
+}
+
 /******************************************************************************
  * Wi-Fi
  */
