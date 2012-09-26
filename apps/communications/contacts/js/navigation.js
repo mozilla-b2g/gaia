@@ -17,6 +17,8 @@ function navigationStack(currentView) {
 
   var stack = [];
 
+  stack.push({view: currentView, transition: 'none'});
+
   var revertTransition = function(transition) {
     return {
       from: transitions[transition].to,
@@ -53,12 +55,6 @@ function navigationStack(currentView) {
     });
   };
 
-  var resetMirror = function resetMirror(view, transition) {
-    var mirror = document.getElementById(view.dataset.mirror);
-    mirror.classList.remove(transition.to);
-    mirror.classList.add(transition.from);
-  };
-
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
@@ -78,18 +74,19 @@ function navigationStack(currentView) {
         setCacheView(current, next, transition);
         break;
     }
-    stack.push({ view: _currentView, transition: transition});
+    stack.push({ view: nextView, transition: transition});
     _currentView = nextView;
   };
 
   this.back = function back() {
-    if (stack.length < 1)
+    if (stack.length < 2)
       return;
-    var current = document.getElementById(_currentView);
-    var nextView = stack.pop();
+    var currentView = stack.pop();
+    var current = document.getElementById(currentView.view);
+    var nextView = stack[stack.length - 1];
     var next = document.getElementById(nextView.view);
 
-    switch (nextView.transition) {
+    switch (currentView.transition) {
       case 'none':
         setAppView(current, next);
         break;
@@ -99,7 +96,7 @@ function navigationStack(currentView) {
         break;
 
       default:
-        var reverted = revertTransition(nextView.transition);
+        var reverted = revertTransition(currentView.transition);
         setCacheView(current, next, reverted);
         break;
     }
@@ -107,17 +104,12 @@ function navigationStack(currentView) {
   };
 
   this.home = function home() {
-    if (stack.length < 1)
+    if (stack.length < 2)
       return;
 
     while (stack.length > 1) {
-      var currentObject = stack.pop();
-      var currentView = document.getElementById(currentObject.view);
-      resetMirror(currentView, transitions[currentObject.transition]);
+      this.back();
     }
-    // As stack.length == 1 next view is going to be
-    // the home, so we can use back method
-    this.back();
   };
 
   var showPopup = function c_showPopup(current, next) {
