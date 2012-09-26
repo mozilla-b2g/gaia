@@ -13,6 +13,8 @@
     "device-storage:pictures",
     "device-storage:music",
     "device-storage:videos",
+    "device-storage:apps",
+    "webapps-manage",
     "settings",
     "wifi-manage",
     "wifi",
