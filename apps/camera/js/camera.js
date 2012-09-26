@@ -655,7 +655,7 @@ var Camera = {
 
   cancelPositionUpdate: function camera_cancelPositionUpdate() {
     window.clearInterval(this._positionTimer);
-    this._positionTimer(null);
+    this._positionTimer = null;
   }
 };
 
