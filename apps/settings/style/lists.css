@@ -168,7 +168,7 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="display"]           { background-image: url(images/settings_display.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
 #root li [data-l10n-id="notifications"]     { background-image: url(images/settings_notifications.png); }
-#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
+#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings_datetime.png); }
 #root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
 #root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
 #root li [data-l10n-id="accessibility"]     { background-image: url(images/settings_accessibility.png); }
@@ -292,5 +292,19 @@ li.disabled > a {
   margin-left: 110px;
   margin-top: -10px;
   margin-bottom: 5px;
+}
+
+
+/******************************************************************************
+ * Date and Time
+ */
+
+#date-picker, #time-picker {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
 }
 
