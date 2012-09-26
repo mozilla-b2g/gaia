@@ -29,8 +29,7 @@ var Calculator = {
     this.display.style.MozTransform = 'scale(' + scaleFactor + ')';
   },
 
-  isNumeric: function calculator_isNumeric(value)
-  {
+  isNumeric: function calculator_isNumeric(value) {
     return (value - 0) == value && value.length > 0;
   },
 
