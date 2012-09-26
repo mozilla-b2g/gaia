@@ -1,6 +1,4 @@
-/*
- Overriding BB styles
-*/
+/* Overriding BB styles for headers */
 section[role="region"] > header:first-child .icon {
   pointer-events: auto;
 }
@@ -8,6 +6,25 @@ section[role="region"] > header:first-child .icon {
 section[role="region"] > header:first-child a[aria-disabled="true"] .icon,
 section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
   pointer-events: none;
+}
+
+/* Overriding BB styles for edit mode */
+form.edit[role="dialog"] header .icon {
+  pointer-events: auto;
+}
+
+form.edit[role="dialog"] header,
+form.edit[role="dialog"] > menu {
+  transition: transform 0.25s ease;
+}
+
+form.edit[role="dialog"],
+form.edit[role="dialog"] header {
+  transform: translateY(-100%);
+}
+
+form.edit[role="dialog"] > menu {
+  transform: translateY(100%);
 }
 
 .disabled {
@@ -236,50 +253,11 @@ button::-moz-focus-inner {
   background-image: url('images/timeline_checkbox_on.png');
 }
 
-/*
-  Edit mode bar
-*/
-
-.options {
-  height: 6.5rem;
-  background: rgba(0,0,0,.85);
-  width: 100%;
-}
-
-.option {
-  width: 50%;
-  height: 100%;
-  float: left;
-  padding: 1.5rem .5rem 1.5rem 1.5rem;
-  -moz-box-sizing: border-box;
-}
-
-.option:last-child {
-  padding: 1.5rem 1.5rem 1.5rem .5rem;
-}
-
-.edit-button {
-  background: -moz-linear-gradient(top, #b50404 0%, #850a0a 100%);
-  height: 100%;
-  width: 100%;
-  -moz-box-sizing: border-box;
-  font-family: 'Open Sans';
-  font-weight: 600;
-  font-size: -moz-calc(7 * 0.226rem);
-  color: white;
-}
-
-.recents-edit .header-wrapper{
-  left: -100%;
-}
-
-.recents-edit .view-body {
-  height: -moz-calc(100% - 10.5rem);
-}
-
-.recents-edit .options {
-  position: absolute;
-  bottom: 0;
+/* Edit mode state */
+.recents-edit form.edit[role="dialog"],
+.recents-edit form.edit[role="dialog"] header,
+.recents-edit form.edit[role="dialog"] > menu {
+  transform: translateY(0);
 }
 
 .recents-edit .call-log-selection {

@@ -17,7 +17,7 @@ var Recents = {
 
   get recentsIconClose() {
     delete this.recentsIconClose;
-    return this.recentsIconClose = document.getElementById('cancel-button');
+    return this.recentsIconClose = document.getElementById('recents-icon-close');
   },
 
   get recentsIconDelete() {
@@ -69,7 +69,7 @@ var Recents = {
       this.recentsFilterContainer.addEventListener('click',
         function re_recentsFilterHandler(event) {
           if (document.body.classList.contains('recents-edit')) {
-            self.recentsHeaderAction('cancel-button');
+            self.recentsHeaderAction('recents-icon-close');
           }
           self.filter(event);
       });
@@ -115,7 +115,7 @@ var Recents = {
           this.deselectSelectedEntries();
           document.body.classList.toggle('recents-edit');
           break;
-        case 'cancel-button': // Exit edit mode with no deletions
+        case 'recents-icon-close': // Exit edit mode with no deletions
           document.body.classList.toggle('recents-edit');
           break;
       }

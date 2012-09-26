@@ -181,15 +181,6 @@
             </menu>
             <h1 data-l10n-id="callLog">Call log</h1>
           </header>
-          <header>
-            <a id="recents-icon-close" role="link">
-              <span id="cancel-button" class="recents-icon icon-close">close</span>
-            </a>
-            <menu type="toolbar">
-               <button id="delete-button" data-l10n-id="delete" class="disabled">Delete</button>
-            </menu>
-            <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
-          </header>
           <nav id="recents-filter-container">
             <ul>
               <li class="recents-filter-entry">
@@ -223,18 +214,24 @@
         <div class="icon icon-keypad"></div>
       </a>
     </nav>
-    <footer class="options">
-      <section class="option">
-        <button id="deselect-all-threads" class="edit-button disabled" data-l10n-id="deselectAll">
-          Deselect all
-        </button>
+
+    <form role="dialog" class="edit" onsubmit="return false;">
+      <section>
+        <header>
+          <button id="recents-icon-close">
+            <span id="cancel-button" class="icon icon-close">close</span>
+          </button>
+          <menu type="toolbar">
+            <button id="delete-button" data-l10n-id="delete" class="disabled">Delete</button>
+          </menu>
+          <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
+        </header>
       </section>
-      <section class="option">
-        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">
-          Select all
-        </button>
-      </section>
-    </footer>
+      <menu>
+        <button id="deselect-all-threads" class="edit-button danger disabled" data-l10n-id="deselectAll">Delete all</button>
+        <button id="select-all-threads" class="edit-button danger" data-l10n-id="selectAll">Delete selected</button>
+      </menu>
+    </form>
   </body>
     <script>
       // If no entry point, redirect to the keyboard-view
