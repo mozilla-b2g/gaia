@@ -17,7 +17,7 @@ if (!window.navigator.mozKeyboard) {
   window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
 
     var typeToSkip = ['select-one', 'select-multiple', 'date',
-                        'time', 'datetime', 'datetime-local'];
+                      'time', 'datetime', 'datetime-local'];
     var type = evt.detail.type;
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
