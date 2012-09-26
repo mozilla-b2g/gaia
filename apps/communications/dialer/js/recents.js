@@ -145,9 +145,9 @@ var Recents = {
       var visibleCalls = this.recentsContainer.
         querySelectorAll('.log-item:not(.hide)');
       if (visibleCalls.length > 0) {
-        this.recentsIconEdit.classList.remove('disabled');
+        this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
       } else {
-        this.recentsIconEdit.classList.add('disabled');
+        this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
       }
       if (document.body.classList.contains('recents-edit')) {
         var selectedCalls = this.recentsContainer.
@@ -179,9 +179,9 @@ var Recents = {
         var visibleCalls = this.recentsContainer.
           querySelectorAll('.log-item:not(.hide)');
         if (visibleCalls.length == 0) {
-          this.recentsIconEdit.classList.add('disabled');
+          this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
         } else {
-          this.recentsIconEdit.classList.remove('disabled');
+          this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
         }
         if (document.body.classList.contains('recents-edit')) {
           var selectedCalls = this.recentsContainer.
@@ -453,11 +453,11 @@ var Recents = {
         ' </div>' +
         '</div>';
       navigator.mozL10n.translate(this.recentsContainer);
-      this.recentsIconEdit.classList.add('disabled');
+      this.recentsIconEdit.parentNode.setAttribute('aria-disabled', 'true');
       return;
     }
 
-    this.recentsIconEdit.classList.remove('disabled');
+    this.recentsIconEdit.parentNode.removeAttribute('aria-disabled');
     var content = '',
       currentDay = '';
     for (var i = 0; i < recents.length; i++) {
