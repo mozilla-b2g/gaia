@@ -34,3 +34,21 @@ function openDialog(dialogID, onSubmit, onReset) {
   document.location.hash = dialogID; // show dialog box
 }
 
+/**
+ * Audio Preview
+ * First click = play, second click = pause.
+ */
+
+function audioPreview(element) {
+  var audio = document.querySelector('#sounds audio');
+  var source = audio.src;
+  var playing = !audio.paused;
+
+  audio.src = 'style/ringtones/' + element.querySelector('input').value;
+  if (source == audio.src && playing) {
+    audio.stop();
+  } else {
+    audio.play();
+  }
+}
+
