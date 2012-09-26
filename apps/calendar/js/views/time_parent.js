@@ -17,6 +17,7 @@ Calendar.ns('Views').TimeParent = (function() {
     this.children = new Calendar.OrderedMap();
     this._activeChildren = new Calendar.OrderedMap();
 
+    this.recalculateWidth();
     this._initEvents();
   }
 
@@ -62,6 +63,21 @@ Calendar.ns('Views').TimeParent = (function() {
 
     currentChild: null,
 
+    get childContainer() {
+      return this.element;
+    },
+
+    /**
+     * Recalculate internal width based on visibleChildren & viewportSize.
+     */
+    recalculateWidth: function() {
+      this._childWidth =
+        this.viewportSize / this.visibleChildren;
+
+      this._childThreshold =
+        this._childWidth / this.childThreshold;
+    },
+
     _initEvents: function() {
       this.app.timeController.on('purge', this);
       this.element.addEventListener('pan', this);
@@ -97,7 +113,7 @@ Calendar.ns('Views').TimeParent = (function() {
       this._startEvent = null;
 
       this.deactivateChildren();
-      this.currentChild.element.style.transform = this._getPos(1, 0);
+      this._moveFrames(0, 1);
     },
 
     handleEvent: function(e) {
@@ -180,7 +196,7 @@ Calendar.ns('Views').TimeParent = (function() {
         // on top of each other until we move them
         // with translateX so order is not important.
         // XXX: a11y <- check here!
-        this.element.appendChild(child.create());
+        this.childContainer.appendChild(child.create());
         this._addChild(child);
       }
 
@@ -335,10 +351,18 @@ Calendar.ns('Views').TimeParent = (function() {
     },
 
     _getPos: function(i, offset) {
-      var pos = (this._childWidth * (i - 1)) + offset;
+      var pos = (this._childWidth * i) + offset;
       return 'translateX(' + pos + 'px)';
     },
 
+    /**
+     * Moves currently active frames.
+     * If total number of active frames exceeds .visibleChildren
+     * extra positions are assumed as padding and will be positioned
+     * around the activeChildren.
+     *
+     * @param {Numeric} offset numeric offset (like the panning offset).
+     */
     _moveFrames: function(offset) {
       offset -= this._frameMoveOffset;
 
@@ -348,11 +372,18 @@ Calendar.ns('Views').TimeParent = (function() {
       var width = this._childWidth;
       var frame;
 
+      var frameOffset = 0;
+
+      if (this._activeChildren.length > this.visibleChildren) {
+        frameOffset = -1;
+      }
+
       for (; i < len; i++) {
         // remember the first element in the frame
         // is actually the _previous_ element so
         // it should have a negative offset always...
-        items[i][1].element.style.transform = this._getPos(i, offset);
+        items[i][1].element.style.transform =
+          this._getPos(i + frameOffset, offset);
       }
     },
 
@@ -377,7 +408,7 @@ Calendar.ns('Views').TimeParent = (function() {
       );
 
       child.element.style.transform = this._getPos(
-        1, this.viewportSize + 100
+        0, this.viewportSize + 100
       );
     },
 
@@ -400,24 +431,13 @@ Calendar.ns('Views').TimeParent = (function() {
       );
 
       child.element.style.transform = this._getPos(
-        1, this.viewportSize + 100
+        0, this.viewportSize + 100
       );
 
       this._frameMoveOffset += this._childWidth;
     },
 
     _pan: function(offset) {
-
-      if (!this._childWidth) {
-        this._childWidth =
-          this.viewportSize / this.visibleChildren;
-      }
-
-      if (!this._childThreshold) {
-        this._childThreshold =
-          this._childWidth / this.childThreshold;
-      }
-
       this._moveFrames(offset);
 
       var abs = Math.abs(offset) - this._panOffset;
