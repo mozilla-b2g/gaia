@@ -28,7 +28,6 @@ var Camera = {
   _cameraObj: null,
 
   _photosTaken: [],
-  _effect: 0,
   _cameraProfile: null,
 
   _filmStripShown: false,
@@ -359,7 +358,6 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.largestPictureSize(camera.capabilities.pictureSizes);
-      camera.effect = camera.capabilities.effects[this._effect];
       var config = {
         height: height,
         width: width

@@ -422,6 +422,34 @@ var Cards = {
       return this._findCardUsingImpl(query);
   },
 
+  findCardObject: function(query) {
+    return this._cardStack[this._findCard(query)];
+  },
+
+  folderSelector: function(callback) {
+    // XXX: Unified folders will require us to make sure we get the folder list
+    //      for the account the message originates from.
+    if (!this.folderPrompt) {
+      var selectorTitle = mozL10n.get('messages-folder-select');
+      this.folderPrompt = new ValueSelector(selectorTitle);
+    }
+    var self = this;
+    var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
+    var folderImpl = folderCardObj.cardImpl;
+    var folders = folderImpl.foldersSlice.items;
+    for (var i = 0; i < folders.length; i++) {
+      var folder = folders[i];
+      this.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
+        return function() {
+          self.folderPrompt.hide();
+          callback(folder);
+        }
+      }(folder));
+
+    }
+    this.folderPrompt.show();
+  },
+
   moveToCard: function(query, showMethod) {
     this._showCard(this._findCard(query), showMethod || 'animate');
   },

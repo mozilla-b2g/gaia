@@ -26,7 +26,7 @@
   text-align: center;
 }
 .sup-service-choice {
-  margin: 1rem 6rem;
+  margin: 1rem calc((100% - 20rem) / 2);
   width: 20rem;
 }
 
