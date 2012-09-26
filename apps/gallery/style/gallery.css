@@ -120,7 +120,7 @@ body {
 }
 
 .thumbnail.selected {
-  outline: solid orange 5px;
+  outline: solid #00aacc 5px;
   outline-offset: -5px;
 }
 
