@@ -7060,11 +7060,6 @@ var TestActorProtoBase = {
     if (this._expectNothing &&
         (this._expectations.length || this._iExpectation))
       return false;
-    // Fail immediately if a synchronous check already failed.  (It would
-    // have tried to generate a rejection, but there was no deferral at the
-    // time.)
-    if (!this._expectationsMetSoFar)
-      return false;
     if ((this._iExpectation >= this._expectations.length) &&
         (this._expectDeath ? (this._logger && this._logger._died) : true)) {
       this._resolved = true;
@@ -9085,10 +9080,7 @@ module.exports.decodeBase64 = function(str, charset){
  * @return {Array} An array of parsed e-mails addresses in the form of [{name, address}]
  */
 module.exports.parseAddresses = function(addresses){
-    return [].concat.apply([], [].concat(addresses).map(addressparser)).map(function(address){
-        address.name = module.exports.parseMimeWords(address.name);
-        return address;
-    });
+    return [].concat.apply([], [].concat(addresses).map(addressparser));
 };
 
 /**
@@ -9504,10 +9496,7 @@ function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
         }
         
         if(pos + line.length < len && line.substr(-1)!="\n"){
-            if(line.length==76 && line.match(/\=[\da-f]{2}$/i)){
-                line = line.substr(0, line.length-3);
-            }
-            else if(line.length==76){
+            if(line.length==76){
                 line = line.substr(0, line.length-1);
             }
             pos += line.length;
@@ -9536,7 +9525,6 @@ function checkRanges(nr, ranges){
     }
     return false;
 }
-
 });
 define('mimelib/lib/content-types',['require','exports','module'],function (require, exports, module) {
 // list of mime types
@@ -15804,11 +15792,60 @@ this.strtotime = function(str, now) {
     return (now.getTime()/1000);
 }
 });
-define('mailparser/streams',['require','exports','module','stream','util','mimelib','encoding','crypto'],function (require, exports, module) {
+/**
+ * Wrap the stringencoding polyfill (or standard, if that has happend :) so that
+ * it resembles the node iconv binding.  Note that although iconv proper
+ * supports transliteration, the module we are replacing (iconv-lite) did not,
+ * and we don't need transliteration for e-mail anyways.  We only need
+ * conversions to process non-unicode encodings into encoding; we will never try
+ * and convert the more full unicode character-space into legacy encodings.
+ *
+ * This assumes our node-buffer.js shim is in use and providing the global Buffer.
+ **/
+
+define('iconv',['require','exports','module'],function(require, exports, module) {
+
+var ENCODER_OPTIONS = { fatal: false };
+
+exports.Iconv = function Iconv(sourceEnc, destEnc) {
+
+  // - decoding
+  if (/^UTF-8/.test(destEnc)) {
+    this.decode = true;
+    this.coder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
+  }
+  // - encoding
+  else {
+    var idxSlash = destEnc.indexOf('/');
+    // ignore '//TRANSLIT//IGNORE' and the like.
+    if (idxSlash !== -1 && destEnc[idxSlash+1] === '/')
+      destEnc = destEnc.substring(0, idxSlash);
+    this.decode = false;
+    this.coder = new TextEncoder(destEnc, ENCODER_OPTIONS);
+  }
+
+};
+exports.Iconv.prototype = {
+  /**
+   * Takes a buffer, returns a (different) buffer.
+   */
+  convert: function(inbuf) {
+    if (this.decode) {
+      return this.coder.decode(inbuf);
+    }
+    else {
+      return Buffer(this.coder.encode(inbuf));
+    }
+  },
+};
+
+});
+
+define('mailparser/streams',['require','exports','module','stream','util','mimelib','iconv','crypto'],function (require, exports, module) {
 var Stream = require('stream').Stream,
     utillib = require('util'),
     mimelib = require('mimelib'),
-    encodinglib = require('encoding'),
+    Iconv = require('iconv').Iconv,
     crypto = require('crypto');
 
 module.exports.Base64Stream = Base64Stream;
@@ -15891,9 +15928,6 @@ QPStream.prototype.handleInput = function(data){
     }
     
     data = (data || "").toString("utf-8");
-    if(data.match(/^\r\n/)){
-        data = data.substr(2);
-    }
     
     if(typeof this.current !="string"){
         this.current = data;
@@ -15903,12 +15937,13 @@ QPStream.prototype.handleInput = function(data){
 };
 
 QPStream.prototype.flush = function(){
-    var buffer = mimelib.decodeQuotedPrintable(this.current, false, this.charset);
+    var iconv, buffer = mimelib.decodeQuotedPrintable(this.current, false, this.charset);
 
     if(this.charset.toLowerCase() == "binary"){
         // do nothing
     }else if(this.charset.toLowerCase() != "utf-8"){
-        buffer = encodinglib.convert(buffer, "utf-8", this.charset);
+        iconv =  new Iconv('UTF-8', this.charset+"//TRANSLIT//IGNORE");
+        buffer = iconv.convert(buffer);
     }else{
         buffer = new Buffer(buffer, "utf-8");
     }
@@ -15951,7 +15986,7 @@ BinaryStream.prototype.end = function(data){
     };
 };
 });
-define('mailparser/mailparser',['require','exports','module','stream','util','mimelib','./datetime','encoding','./streams','crypto'],function (require, exports, module) {
+define('mailparser/mailparser',['require','exports','module','stream','util','mimelib','./datetime','iconv','./streams','crypto'],function (require, exports, module) {
 
 /**
  * @fileOverview This is the main file for the MailParser library to parse raw e-mail data
@@ -15963,7 +15998,7 @@ var Stream = require('stream').Stream,
     utillib = require('util'),
     mimelib = require('mimelib'),
     datetime = require('./datetime'),
-    encodinglib = require('encoding'),
+    Iconv = require('iconv').Iconv,
     Streams = require('./streams'),
     crypto = require('crypto');
 
@@ -15983,7 +16018,7 @@ var STATES = {
  * <p>Options object has the following properties:</p>
  *
  * <ul>
- *   <li><b>debug</b> - if set to true print all incoming lines to decodeq</li>
+ *   <li><b>debug</b> - if set to true print all incoming lines to console</li>
  *   <li><b>streamAttachments</b> - if set to true, stream attachments instead of including them</li>
  *   <li><b>unescapeSMTP</b> - if set to true replace double dots in the beginning of the file</li>
  *   <li><b>defaultCharset</b> - the default charset for text/plain, text/html content, if not set reverts to Latin-1
@@ -16030,6 +16065,10 @@ function MailParser(options){
      * An array of multipart nodes
      * @private */ this._multipartTree = [];
 
+
+    /**
+     * Cache for iconv converter objects
+     * @private */ this._iconv         = {};
 
     /**
      * This is the final mail structure object that is returned to the client
@@ -16775,16 +16814,16 @@ MailParser.prototype._finalizeContents = function(){
 
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
                 this._currentNode.content = mimelib.decodeQuotedPrintable(this._currentNode.content, false, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
-              if (this._currentNode.meta.textFormat === "flowed") {
-                if (this._currentNode.meta.textDelSp === "yes")
-                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, '');
-                else
-                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, ' ');
-                }
             }else if(this._currentNode.meta.transferEncoding == "base64"){
                 this._currentNode.content = mimelib.decodeBase64(this._currentNode.content, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
             }else{
-                this._currentNode.content = this._convertStringToUTF8(this._currentNode.content);
+                this._currentNode.content =
+                  this._convertString(
+                    this._currentNode.content,
+                    this._currentNode.meta.charset ||
+                      this.options.defaultCharset ||
+                      "iso-8859-1"
+                  ).toString("utf-8");
             }
         }else{
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
@@ -17073,19 +17112,13 @@ MailParser.prototype._convertString = function(value, fromCharset, toCharset){
         return value;
     }
 
-    value = encodinglib.convert(value, toCharset, fromCharset);
+    try{ // in case there is no such charset or EINVAL occurs leave the string untouched
+        if(!this._iconv[fromCharset+toCharset]){
+            this._iconv[fromCharset+toCharset] = new Iconv(fromCharset, toCharset+'//TRANSLIT//IGNORE');
+        }
+        value = this._iconv[fromCharset+toCharset].convert(value);
+    }catch(E){}
 
-    return value;
-};
-
-/**
- * <p>Converts a string to UTF-8</p>
- *
- * @param {String} value String to be encoded
- * @returns {String} UTF-8 encoded string
- */
-MailParser.prototype._convertStringToUTF8 = function(value){
-    value = this._convertString(value, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1").toString("utf-8");
     return value;
 };
 
@@ -17096,7 +17129,7 @@ MailParser.prototype._convertStringToUTF8 = function(value){
  * @returns {String} UTF-8 encoded string
  */
 MailParser.prototype._encodeString = function(value){
-    value = this._replaceMimeWords(this._convertStringToUTF8(value));
+    value = this._replaceMimeWords(this._convertString(value, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1").toString("utf-8"));
     return value;
 };
 

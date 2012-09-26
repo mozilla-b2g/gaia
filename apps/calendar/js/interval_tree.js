@@ -5,7 +5,7 @@
  * such a way that we can optimally query them.
  *
  * To store an item in the tree the item
- * must have `START`, `END` and `_id` properties
+ * must have both `start`, `end` and `_id` properties
  * both properties must be numeric and start
  * must always be < then end. ID should be unique
  * to each interval though it should be possible
@@ -17,7 +17,6 @@
  * times.
  *
  *
- *    // _start is a constant see below
  *    var list = [
  *      { start: 100, end: 200 },
  *      { start: 120, end: 150 },
@@ -45,6 +44,9 @@
  */
 Calendar.IntervalTree = (function() {
 
+  var compareObjectStart = Calendar.compareByStart;
+  var compareObjectEnd = Calendar.compareByEnd;
+
   /**
    * Internal function to add an item
    * to an array via binary search insert.
@@ -62,36 +64,16 @@ Calendar.IntervalTree = (function() {
     array.splice(idx, 0, item);
   }
 
-
-  /**
-   * TODO: change these hard coded values.
-   *       into a more flexible system later.
-   */
-
-  const START = '_startDateMS';
-  const END = '_endDateMS';
-
-  function compareObjectStart(a, b) {
-    return Calendar.compare(a[START], b[START]);
-  }
-
-  function compareObjectEnd(a, b) {
-    return Calendar.compare(a[END], b[END]);
-  }
-
-  IntervalTree.compareObjectStart = compareObjectStart;
-  IntervalTree.compareObjectEnd = compareObjectEnd;
-
   /**
    * Internal function to create an endpoint
    * list. Assumed this is the array to insert
    * endpoint values into.
    *
-   * @param {Object} item object with [START] & [END] properties.
+   * @param {Object} item object with .start & .end properties.
    */
   function buildEndpoints(item) {
-    addOrdered(item[START], this);
-    addOrdered(item[END], this);
+    addOrdered(item.start, this);
+    addOrdered(item.end, this);
   }
 
   function Node() {
@@ -150,11 +132,11 @@ Calendar.IntervalTree = (function() {
       for (; i < len; i++) {
         item = this.list[i];
 
-        if (item[START] > span.end) {
+        if (item.start > span.end) {
           break;
         }
 
-        if (span.overlaps(item[START], item[END])) {
+        if (span.overlaps(item.start, item.end)) {
           fn(item, this);
         }
       }
@@ -189,8 +171,6 @@ Calendar.IntervalTree = (function() {
   };
 
   IntervalTree.Node = Node;
-  IntervalTree.START = START;
-  IntervalTree.END = END;
 
   /**
    * Start point for creation of the tree
@@ -235,15 +215,6 @@ Calendar.IntervalTree = (function() {
       if (id in this.byId)
         return;
 
-
-      if (!item[START] && item.startDate) {
-        item[START] = item.startDate.valueOf();
-      }
-
-      if (!item[END] && item.endDate) {
-        item[END] = item.endDate.valueOf();
-      }
-
       var idx = Calendar.binsearch.insert(
         this.items,
         item,
@@ -258,11 +229,9 @@ Calendar.IntervalTree = (function() {
     },
 
     indexOf: function(item) {
-      var query = {};
-      query[START] = item[START];
       var idx = Calendar.binsearch.find(
         this.items,
-        query,
+        item.start,
         compareObjectStart
       );
 
@@ -283,7 +252,7 @@ Calendar.IntervalTree = (function() {
           while (prevIdx > -1) {
             prevIdx--;
             current = this.items[prevIdx];
-            if (current && current[START] === item[START]) {
+            if (current && current.start === item.start) {
               if (current === item) {
                 return prevIdx;
               }
@@ -302,7 +271,7 @@ Calendar.IntervalTree = (function() {
 
           current = this.items[++idx];
 
-          if (!current || current[START] !== item[START]) {
+          if (!current || current.start !== item.start) {
             return null;
           }
         }
@@ -355,12 +324,9 @@ Calendar.IntervalTree = (function() {
      * @param {Numeric} start last start point.
      */
     removeFutureIntervals: function(start) {
-      var query = {};
-      query[START] = start;
-
       var idx = Calendar.binsearch.insert(
         this.items,
-        query,
+        { start: start },
         compareObjectStart
       );
 
@@ -373,7 +339,7 @@ Calendar.IntervalTree = (function() {
       // for duplicate values we need
       // to find the very last one
       // before the split point.
-      while (this.items[idx] && this.items[idx][START] <= start) {
+      while (this.items[idx] && this.items[idx].start <= start) {
         idx++;
         if (idx === max) {
           break;
@@ -386,6 +352,7 @@ Calendar.IntervalTree = (function() {
       );
 
       this._removeIds(remove);
+
       return remove;
     },
 
@@ -411,11 +378,9 @@ Calendar.IntervalTree = (function() {
 
       // 2. find index of the last date ending
       // on or before end.
-      var endQuery = {};
-      endQuery[END] = end;
       var idx = Calendar.binsearch.insert(
         items,
-        endQuery,
+        { end: end },
         compareObjectEnd
       );
 
@@ -427,7 +392,7 @@ Calendar.IntervalTree = (function() {
       // for duplicate values we need
       // to find the very last one
       // before the split point.
-      while (items[idx][END] <= end) {
+      while (items[idx].end <= end) {
         idx++;
         if (idx === max) {
           break;
@@ -473,9 +438,9 @@ Calendar.IntervalTree = (function() {
 
       list.forEach(function(item) {
 
-        if (item[END] < median) {
+        if (item.end < median) {
           left.push(item);
-        } else if (item[START] > median) {
+        } else if (item.start > median) {
           right.push(item);
         } else {
           rootNode.list.push(item);

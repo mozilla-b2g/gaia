@@ -39,10 +39,6 @@
 
       list[LOCAL_CALENDAR_ID] = cal;
       callback(null, list);
-    },
-
-    syncEvents: function(account, calendar, cb) {
-      cb(null);
     }
 
   };
