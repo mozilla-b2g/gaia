@@ -151,7 +151,7 @@ suite('Render contact form', function() {
 
       var fbContact = new MockFb.Contact(mockContact);
       fbContact.getDataAndValues().onsuccess = function() {
-        subject.render(mockContact,null,this.result);
+        subject.render(mockContact, null, this.result);
 
         var cont = document.body.innerHTML;
         var toCheck = ['phone', 'email'];
@@ -160,9 +160,9 @@ suite('Render contact form', function() {
           assert.isTrue(cont.indexOf(element + '-0') > -1);
           assert.isTrue(cont.indexOf(element + '-1') == -1);
 
-          var domElement0 = document.querySelector('#' + element + "-" + '0');
-          assert.isTrue(domElement0.classList.contains('removed')
-                      && domElement0.classList.contains('facebook'));
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'));
           assert.isTrue(domElement0.querySelector('.icon-delete') === null);
         }
 
@@ -181,17 +181,17 @@ suite('Render contact form', function() {
         'value': '+34616885989',
         'type': 'Mobile',
         'carrier': 'NTT'
-      }
+      };
 
       mockContact.email[1] = {
         'type': 'work',
         'value': 'workwithme@tid.es'
-      }
+      };
 
       var fbContact = new MockFb.Contact(mockContact);
 
       fbContact.getDataAndValues().onsuccess = function() {
-        subject.render(mockContact,null,this.result);
+        subject.render(mockContact, null, this.result);
 
         var cont = document.body.innerHTML;
         var toCheck = ['phone', 'email'];
@@ -201,18 +201,18 @@ suite('Render contact form', function() {
           assert.isTrue(cont.indexOf(element + '-0') > -1);
           assert.isTrue(cont.indexOf(element + '-1') > -1);
 
-          var domElement0 = document.querySelector('#' + element + "-" + '0');
-          assert.isTrue(domElement0.classList.contains('removed')
-                      && domElement0.classList.contains('facebook'));
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'));
           assert.isTrue(domElement0.querySelector('.icon-delete') === null);
 
-          var domElement1 = document.querySelector('#' + element + "-" + '1');
-          assert.isFalse(domElement1.classList.contains('removed')
-                      || domElement1.classList.contains('facebook'));
+          var domElement1 = document.querySelector('#' + element + '-' + '1');
+          assert.isFalse(domElement1.classList.contains('removed') ||
+                          domElement1.classList.contains('facebook'));
           assert.isTrue(domElement1.querySelector('.icon-delete') !== null);
         }
 
-        for(var c = 0; c < 2; c++) {
+        for (var c = 0; c < 2; c++) {
           assertPhoneData(c);
           assertEmailData(c);
         }

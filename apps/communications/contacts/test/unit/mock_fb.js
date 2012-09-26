@@ -102,7 +102,7 @@ MockFb.Contact = function(devContact, mozCid) {
       set onerror(callback) {
 
       }
-    }
+    };
   }
 
   this.getDataAndValues = function getDataAndValues() {
@@ -121,7 +121,7 @@ MockFb.Contact = function(devContact, mozCid) {
       set onerror(callback) {
 
       }
-    }
+    };
   }
 
   this.promoteToLinked = function promoteToLinked() {
