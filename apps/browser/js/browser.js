@@ -454,15 +454,7 @@ var Browser = {
     delete tab.dom;
     delete tab.screenshot;
     tab.loading = false;
-
-    var newIframe = document.createElement('iframe');
-    newIframe.mozbrowser = true;
-    // FIXME: content shouldn't control this directly
-    newIframe.setAttribute('remote', 'true');
-
-    tab.dom = newIframe;
-    this.bindBrowserEvents(tab.dom, tab);
-    this.frames.appendChild(tab.dom);
+    this.createTab(null, null, tab);
     this.refreshButtons();
   },
 
@@ -479,12 +471,7 @@ var Browser = {
   },
 
   reviveKilledTab: function browser_reviveKilledTab(tab) {
-    var frame = document.createElement('iframe');
-    frame.mozbrowser = true;
-    frame.setAttribute('remote', 'true');
-    tab.dom = frame;
-    this.bindBrowserEvents(tab.dom, tab);
-    this.frames.appendChild(tab.dom);
+    this.createTab(null, null, tab);
     this.refreshButtons();
     this.navigate(tab.url);
     tab.killed = false;
@@ -1103,7 +1090,7 @@ var Browser = {
     }, this);
   },
 
-  createTab: function browser_createTab(url, iframe) {
+  createTab: function browser_createTab(url, iframe, tab) {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
@@ -1118,20 +1105,24 @@ var Browser = {
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
 
-    var tab = {
-      id: 'tab_' + this.tabCounter++,
-      dom: iframe,
-      url: url || null,
-      title: null,
-      loading: false,
-      screenshot: null,
-      security: null
-    };
+    if (tab) {
+      tab.dom = iframe;
+    } else {
+      var tab = {
+        id: 'tab_' + this.tabCounter++,
+        dom: iframe,
+        url: url || null,
+        title: null,
+        loading: false,
+        screenshot: null,
+        security: null
+      };
+    }
+
     this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
-
     return tab.id;
   },
 
