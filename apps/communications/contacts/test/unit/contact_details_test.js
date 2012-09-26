@@ -169,7 +169,6 @@ suite('Render contact', function() {
 
       // The edit mode should be disabled
       subject.render();
-      assert.isTrue(editContactButton.disabled);
       assert.equal('FB', orgTitle.textContent);
 
       assert.isFalse(container.

@@ -145,43 +145,6 @@ suite('store/calendar', function() {
     });
   });
 
-  suite('#sync - syncToken skip', function() {
-    var account, calendar;
-
-    setup(function() {
-      account = Factory('account', {
-        providerType: 'Caldav'
-      });
-
-      calendar = Factory('calendar', {
-        _id: 1,
-        lastEventSyncToken: 'synced',
-        remote: { syncToken: 'synced' }
-      });
-
-    });
-
-    setup(function(done) {
-      subject.db.getStore('Account').persist(account, done);
-    });
-
-    setup(function(done) {
-      subject.persist(calendar, done);
-    });
-
-    test('result', function(done) {
-      subject._syncEvents = function() {
-        done(new Error('should not sync!'));
-      }
-
-      // tokens match should not sync!
-      subject.sync(account, calendar, function() {
-        done();
-      });
-    });
-
-  });
-
   suite('#sync - provider skip', function() {
    var account, calendar;
 
@@ -207,249 +170,12 @@ suite('store/calendar', function() {
     });
 
     test('result', function(done) {
-      subject._syncEvents = function() {
-        done(new Error('should not sync!'));
-      }
-
       // should not sync because local cannot sync
       subject.sync(account, calendar, function() {
         done();
       });
     });
 
-  });
-
-  suite('#sync - real', function() {
-
-    var events;
-    var account;
-    var calendar;
-    var eventStore;
-
-    setup(function() {
-      account = Factory('account', {
-        providerType: 'Caldav'
-      });
-
-      eventStore = subject.db.getStore('Event');
-
-      calendar = Factory('calendar', {
-        _id: 1,
-        lastEventSyncToken: null,
-        remote: { syncToken: 'synced' }
-      });
-
-      events = {
-        add: [
-          Factory('event', {
-            calendarId: 1,
-            _type: 'add',
-            remote: { title: 'add me', syncToken: '1-1' }
-          })
-        ],
-
-        remove: [
-          Factory('event', {
-            _type: 'remove',
-            calendarId: 1,
-            removeThisGuy: true,
-            remote: { title: 'remove me!', syncToken: '77' }
-          })
-        ],
-
-        same: [
-          Factory('event', {
-            _type: 'same',
-            calendarId: 1,
-            remote: { title: 'same', syncToken: 'neverchanged' }
-          })
-        ],
-
-        update: [
-          Factory('event', {
-            _type: 'update',
-            calendarId: 1,
-            remote: {
-              title: 'update',
-              syncToken: 'orig'
-            }
-          })
-        ]
-      };
-    });
-
-    setup(function(done) {
-      subject.persist(calendar, done);
-    });
-
-    setup(function(done) {
-      eventStore.persist(events.remove[0], done);
-    });
-
-    setup(function(done) {
-      eventStore.persist(events.same[0], done);
-    });
-
-    setup(function(done) {
-      eventStore.persist(events.update[0], done);
-    });
-
-    setup(function() {
-      // clear the event cache
-      // this is to ensure sync is done
-      // by pulling everything into memory...
-      eventStore._cached = Object.create(null);
-      eventStore._eventsByTime = Object.create(null);
-      eventStore._times = [];
-      eventStore._cachedSpan = null;
-    });
-
-    var providerCall;
-    var realProviderStream;
-    var stream;
-    var provider;
-    var firedEvent;
-
-    function getId(obj) {
-      var id;
-      if (obj._id) {
-        id = obj._id;
-      } else {
-        id = obj.calendarId + '-' + obj.remote.id;
-      }
-
-      return id;
-    }
-
-    function watchEvent(eventName) {
-      eventStore.on(eventName, function() {
-        if (!(eventName in firedEvent)) {
-          firedEvent[eventName] = [];
-        }
-        firedEvent[eventName].push(arguments);
-      });
-    }
-
-    setup(function() {
-
-      stream = new Calendar.Responder();
-      stream.open = function(cb) {
-        stream.emit(
-          'data',
-          events.add[0].remote
-        );
-
-        events.update[0].remote.syncToken = 'newsync';
-
-        stream.emit(
-          'data',
-          events.update[0].remote
-        );
-
-        stream.emit(
-          'data',
-          events.same[0].remote
-        );
-
-        setTimeout(function() {
-          cb(null);
-        }, 0);
-      }
-
-      provider = app.provider(
-        account.providerType
-      );
-
-      realProviderStream = provider.streamEvents;
-      provider.streamEvents = function() {
-        providerCall = arguments;
-        return stream;
-      };
-    });
-
-    teardown(function() {
-      provider.streamEvents = realProviderStream;
-    });
-
-    setup(function(done) {
-      // we are monitoring events
-      // there is a bug? in mocha
-      // where calling 'done' immediately
-      // moves to the next test rather then
-      // in the next event loop. Manually
-      // wait for the next loop so the events fire.
-      setTimeout(function() {
-        done();
-      }, 0);
-    });
-
-    setup(function(done) {
-      firedEvent = {};
-      watchEvent('remove');
-      watchEvent('add');
-      watchEvent('update');
-
-      subject.sync(account, calendar, function() {
-        done();
-      });
-    });
-
-    test('called remote', function() {
-      assert.deepEqual(
-        providerCall[0],
-        account.toJSON()
-      );
-
-      assert.deepEqual(
-        providerCall[1].id,
-        calendar.remote.id
-      );
-
-      assert.equal(firedEvent.remove.length, 1);
-      assert.equal(firedEvent.add.length, 1);
-      assert.equal(firedEvent.update.length, 1);
-
-      assert.equal(
-        firedEvent.remove[0][0],
-        events.remove[0]._id
-      );
-
-      assert.equal(
-        firedEvent.add[0][0],
-        events.add[0]._id
-      );
-
-      assert.equal(
-        firedEvent.update[0][0],
-        events.update[0]._id
-      );
-
-      var removeId = getId(events.remove[0]);
-      var addId = getId(events.add[0]);
-      var updateId = getId(events.update[0]);
-      var sameId = getId(events.same[0]);
-
-      assert.ok(!eventStore.cached[removeId]);
-      assert.ok(eventStore.cached[addId]);
-      assert.ok(eventStore.cached[updateId]);
-
-      assert.equal(
-        eventStore.cached[updateId].remote.syncToken,
-        'newsync'
-      );
-
-      var savedCal = subject.cached[calendar._id];
-
-      assert.equal(
-        savedCal.lastEventSyncToken,
-        calendar.remote.syncToken
-      );
-
-      assert.instanceOf(
-        savedCal.lastEventSyncDate,
-        Date
-      );
-    });
   });
 
   suite('#remove', function() {
@@ -495,12 +221,15 @@ suite('store/calendar', function() {
       assert.equal(keys.length, 2);
 
       subject.remove(model._id, function() {
-        done(function() {
-          assert.ok(!subject.cached[id]);
+        // wait until next tick
+        setTimeout(function() {
+          done(function() {
+            assert.ok(!subject.cached[id]);
 
-          var keys = Object.keys(eventStore.cached);
-          assert.equal(keys.length, 1);
-        });
+            var keys = Object.keys(eventStore.cached);
+            assert.equal(keys.length, 1);
+          });
+        }, 0);
       });
     });
   });
