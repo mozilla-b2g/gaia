@@ -30,6 +30,18 @@
     <script defer type="application/javascript" src="/dialer/js/recents.js"></script>
     <script defer type="application/javascript" src="/dialer/js/proximity.js"></script>
     <script defer type="application/javascript" src="/dialer/js/ussd.js"></script>
+    <!-- phone number utils -->
+    <script type="text/javascript" src="js/phoneNumberUtils.js"></script>
+    <script type="text/javascript" src="js/ext/closure-library/base.js"></script>
+    <script>
+      goog.require('goog.proto2.ObjectSerializer');
+    </script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonemetadata.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumber.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/metadata.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumberutil.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/asyoutypeformatter.js"></script>
+    <script type="text/javascript" src="js/ext/mcc_iso3166_table.js"></script>
     <!-- Shared code. We need to have 'recents_db.js' loaded before loading 'desktop'-->
     <script defer type="application/javascript" src="/shared/js/desktop.js"></script>
   <body role="application" class="hidden">
