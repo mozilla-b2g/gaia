@@ -10,7 +10,7 @@ var MockUssdUI = {
 
   reply: function muui_reply(message) {
     var evt = {
-      type: "message",
+      type: 'message',
       data: {
         type: 'reply',
         message: message
@@ -21,7 +21,7 @@ var MockUssdUI = {
 
   closeWindow: function muui_closeWindow() {
     var evt = {
-      type: "message",
+      type: 'message',
       data: {
         type: 'close'
       }

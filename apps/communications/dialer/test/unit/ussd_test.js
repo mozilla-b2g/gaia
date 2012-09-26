@@ -3,7 +3,7 @@ requireApp('communications/dialer/js/ussd.js');
 requireApp('communications/dialer/test/unit/mock_ussd_ui.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 
-suite('dialer/ussd', function () {
+suite('dialer/ussd', function() {
 
   var realMozMobileConnection;
   var realL10n;
@@ -14,7 +14,7 @@ suite('dialer/ussd', function () {
       get: function ml_get(key) {
         return key;
       }
-    }
+    };
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
     UssdManager.init();
@@ -27,7 +27,7 @@ suite('dialer/ussd', function () {
     UssdManager._popup = null;
   });
 
-  suite('ussd message sending', function () {
+  suite('ussd message sending', function() {
 
     suiteSetup(function() {
       UssdManager.send('This is a message.');
@@ -37,8 +37,9 @@ suite('dialer/ussd', function () {
       assert.isTrue(navigator.mozMobileConnection._ussd_message_sent);
     });
 
-    test('ussd response by server', function (){
-      assert.equal(UssdManager._popup._messageReceived, 'This is a message.- Received');
+    test('ussd response by server', function() {
+      assert.equal(UssdManager._popup._messageReceived,
+        'This is a message.- Received');
     });
 
     suiteTeardown(function() {
@@ -48,7 +49,7 @@ suite('dialer/ussd', function () {
 
   });
 
-  suite('ussd message reply via UI', function () {
+  suite('ussd message reply via UI', function() {
 
     suiteSetup(function() {
       UssdManager._popup.reply('This is a second message.');
@@ -58,20 +59,21 @@ suite('dialer/ussd', function () {
       assert.isTrue(navigator.mozMobileConnection._ussd_message_sent);
     });
 
-    test('ussd response to reply message by server', function (){
-      assert.equal(UssdManager._popup._messageReceived, 'This is a second message.- Received');
+    test('ussd response to reply message by server', function() {
+      assert.equal(UssdManager._popup._messageReceived,
+        'This is a second message.- Received');
     });
 
-    suiteTeardown(function () {
+    suiteTeardown(function() {
       navigator.mozMobileConnection.teardown();
       UssdManager._popup.teardown();
     });
 
   });
 
-  suite('ussd cancelling via UI', function () {
+  suite('ussd cancelling via UI', function() {
 
-    suiteSetup(function() {  
+    suiteSetup(function() {
       UssdManager._popup.closeWindow();
     });
 
@@ -79,11 +81,11 @@ suite('dialer/ussd', function () {
       assert.isTrue(navigator.mozMobileConnection._ussd_cancelled);
     });
 
-    test('ussd UI closed', function (){
+    test('ussd UI closed', function() {
       assert.isNull(UssdManager._popup);
     });
 
-    suiteTeardown(function () {
+    suiteTeardown(function() {
       navigator.mozMobileConnection.teardown();
     });
 
