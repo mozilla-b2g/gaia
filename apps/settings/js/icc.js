@@ -3,7 +3,6 @@
 
 'use strict';
 
-//var gIccManager = (function(window) {
 (function(){
   var icc;
   if (navigator.mozMobileConnection) {
@@ -108,8 +107,8 @@
       console.log('STK Main App Menu title:', menu.title);
       console.log('STK Main App Menu default item:', menu.defaultItem);
 
-      document.getElementById('iccMenuItem').innerHTML = menu.title;
-      document.getElementById('icc-stk-operator-header').innerHTML = menu.title;
+      document.getElementById('iccMenuItem').textContent = menu.title;
+      document.getElementById('icc-stk-operator-header').textContent = menu.title;
       menu.items.forEach(function (menuItem) {
         console.log('STK Main App Menu item:', menuItem.text, menuItem.identifer);
         var li = document.createElement('li');
@@ -126,9 +125,9 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menuitem-identifier');
-    var appName = event.target.innerHTML;
+    var appName = event.target.textContent;
     console.log('sendStkMenuSelection: ' + JSON.stringify(identifier));
-    document.getElementById('icc-stk-selection-header').innerHTML = appName;
+    document.getElementById('icc-stk-selection-header').textContent = appName;
     icc.sendStkMenuSelection(identifier, false);
 
     openDialog('icc-stk-app', function submit() {
@@ -189,13 +188,11 @@
     console.log('STK Input title:', command.options.text);
 
     var li = document.createElement('li');
-    var a = document.createElement('a');
-    a.id = 'stk-item-' + 'title';
-    a.textContent = command.options.text;
-    li.appendChild(a);
-    iccStkSelection.appendChild(li);
-    
-    li = document.createElement('li');
+    var p = document.createElement('p');
+    p.id = 'stk-item-' + 'title';
+    p.textContent = command.options.text;
+    li.appendChild(p);
+
     var input = document.createElement('input');
     input.id = 'stk-item-input';
     input.maxLength = command.options.maxLength;
@@ -216,22 +213,12 @@
     li = document.createElement('li');
     var button = document.createElement('button');
     button.id = 'stk-item-' + 'ok';
-    button.innerHTML = 'Ok';
+    button.textContent = 'Ok';
     button.onclick = function(event) {
       value = document.getElementById('stk-item-input').value;
       icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                     input: value});
     };
-    li.appendChild(button);
-    iccStkSelection.appendChild(li);
-
-    li = document.createElement('li');
-    button = document.createElement('button');
-    button.id = 'stk-item-' + 'reset';
-    button.innerHTML = 'Reset';
-    button.onclick = function() {
-      document.getElementById('stk-item-input').value = '';
-    }
     li.appendChild(button);
     iccStkSelection.appendChild(li);
   }
