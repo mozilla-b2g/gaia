@@ -17,9 +17,12 @@ var Bookmark = function Bookmark(params) {
 
 Bookmark.prototype = {
   launch: function bookmark_launch() {
-    var features = 'name=' + this.manifest.name + ',' +
-                   'icon=' + this.manifest.icons['60'];
-    window.open(this.origin, '_blank', features);
+    var features = {
+      name: this.manifest.name,
+      icon: this.manifest.icons['60']
+    }
+
+    window.open(this.origin, '_blank', JSON.stringify(features));
   },
 
   uninstall: function bookmark_uninstall() {
