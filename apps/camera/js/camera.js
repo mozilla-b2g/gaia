@@ -59,6 +59,8 @@ var Camera = {
     fileFormat: 'jpeg'
   },
 
+  _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
+
   // Because we dont want to wait for the geolocation query
   // before we can take a photo, we keep a track of the users
   // position, when the camera jumps into foreground or every
@@ -227,7 +229,7 @@ var Camera = {
     }
 
     if (this.captureMode === this.CAMERA) {
-      this.takePicture();
+      this.prepareTakePicture();
     }
   },
 
@@ -557,38 +559,36 @@ var Camera = {
     return false;
   },
 
-  takePictureAutoFocusDone: function camera_takePictureAutoFocusDone(success) {
+  prepareTakePicture: function camera_takePicture() {
+    this.captureButton.setAttribute('disabled', 'disabled');
+    this.focusRing.setAttribute('data-state', 'focusing');
+    if (this._autoFocusSupported && !this._manuallyFocused) {
+      this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
+    } else {
+      this.takePicture();
+    }
+  },
+
+  autoFocusDone: function camera_autoFocusDone(success) {
     if (!success) {
       this.focusRing.setAttribute('data-state', 'fail');
       this.captureButton.removeAttribute('disabled');
       window.setTimeout(this.hideFocusRing.bind(this), 1000);
       return;
     }
-
     this.focusRing.setAttribute('data-state', 'focused');
+    this.takePicture();
+  },
+
+  takePicture: function camera_takePicture() {
     this._config.rotation =
       this.layoutToPhoneOrientation(this._phoneOrientation);
     if (this._position) {
       this._config.position = this._position;
     }
+    this._shutterSound.play();
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
-  },
-
-  takePicture: function camera_takePicture() {
-    this.captureButton.setAttribute('disabled', 'disabled');
-    this.focusRing.setAttribute('data-state', 'focusing');
-    if (this._autoFocusSupported && !this._manuallyFocused) {
-      this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
-    } else {
-      this._config.rotation =
-        this.layoutToPhoneOrientation(this._phoneOrientation);
-      if (this._position) {
-        this._config.position = this._position;
-      }
-      this._cameraObj
-        .takePicture(this._config, this.takePictureSuccess.bind(this));
-    }
   },
 
   // The layout (icons) and the phone calculate orientation in the
