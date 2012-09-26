@@ -20,6 +20,13 @@
         "type": "photos"
        },
       "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": ["image/jpeg"]
+       },
+      "returnValue": true,
+      "disposition": "inline"
     }
   },
   "locales": {

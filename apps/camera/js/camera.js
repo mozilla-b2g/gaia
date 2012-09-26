@@ -2,6 +2,8 @@
 
 var Camera = {
 
+  _started: false,
+
   _cameras: null,
   _camera: 0,
   _captureMode: null,
@@ -54,7 +56,7 @@ var Camera = {
   _currentFlashMode: 0,
 
   _config: {
-    fileFormat: 'jpeg',
+    fileFormat: 'jpeg'
   },
 
   // Because we dont want to wait for the geolocation query
@@ -64,6 +66,8 @@ var Camera = {
   POSITION_TIMEOUT: 1000 * 60 * 10,
   _positionTimer: null,
   _position: null,
+
+  _pendingPick: null,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -137,7 +141,8 @@ var Camera = {
       .addEventListener('click', this.capturePressed.bind(this));
     this.galleryButton
       .addEventListener('click', this.galleryBtnPressed.bind(this));
-    // TODO: Remove once support is available
+    // TODO: Remove once video recoding support lands
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=776062
     this.switchButton.setAttribute('disabled', 'disabled');
 
     if (!navigator.mozCameras) {
@@ -154,6 +159,31 @@ var Camera = {
 
     this.setToggleCameraStyle();
     this.setSource(this._camera);
+
+    this._started = true;
+
+    if (this._pendingPick) {
+      this.initActivity();
+    }
+  },
+
+  initActivity: function camera_initActivity() {
+    this.galleryButton.setAttribute('disabled', 'disabled');
+    this.switchButton.setAttribute('disabled', 'disabled');
+  },
+
+  cancelActivity: function camera_cancelActivity(error) {
+    if (error && this._pendingPick) {
+      this._pendingPick.postError('pick cancelled');
+    }
+    this._pendingPick = null;
+
+    if (!this._secureMode) {
+      this.galleryButton.removeAttribute('disabled');
+    }
+    // TODO: Remove once video recoding support lands
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=776062
+    //this.switchButton.removeAttribute('disabled');
   },
 
   toggleModePressed: function camera_toggleCaptureMode(e) {
@@ -420,6 +450,16 @@ var Camera = {
     var addreq = this._storage.addNamed(blob, name);
 
     addreq.onsuccess = (function() {
+
+      if (this._pendingPick) {
+        this._pendingPick.postResult({
+          type: 'image/jpeg',
+          filename: name
+        });
+        this.cancelActivity();
+        return;
+      }
+
       this._photosTaken.push({name: name, blob: blob});
       if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
         this._photosTaken.shift();
@@ -607,6 +647,20 @@ var Camera = {
   }
 };
 
+function actHandle(activity) {
+  var name = activity.source.name;
+  if (name === 'pick') {
+    Camera._pendingPick = activity;
+    if (Camera._started) {
+      Camera.initActivity();
+    }
+  }
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
+}
+
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
 });
@@ -614,6 +668,7 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stop();
+    Camera.cancelActivity(true);
   } else {
     Camera.start();
   }
