@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* Duplicated from communications/dialer/js/contacts.js, KEEP IN SYNC */
 
 'use strict';
 
@@ -49,10 +50,10 @@ var Contacts = {
       });
 
       // Finding the best match
-      var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
+      var bestMatchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
-      var contact = request.result[matchResult.bestMatchIndex];
-      var matchingTel = contact.tel[matchResult.localIndex];
+      var contact = request.result[bestMatchResult.bestMatchIndex];
+      var matchingTel = contact.tel[bestMatchResult.localIndex];
       callback(contact, matchingTel);
     };
     request.onerror = function findError() {
