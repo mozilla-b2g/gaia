@@ -1112,17 +1112,23 @@ var WindowManager = (function() {
     var frame = runningApps[homescreen].frame;
     frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
       var detail = evt.detail;
-      if (detail.name != '_blank')
+      if (detail.name !== '_blank')
         return;
       evt.stopImmediatePropagation();
 
       var url = detail.url;
       if (!isRunning(url)) {
-        var icon = detail.features.split(/icon=(.+)$/g)[1] || '';
+        var name = '';
+        var icon = '';
+        try {
+          var features = JSON.parse(detail.features);
+          name = features.name || '';
+          icon = features.icon || '';
+        } catch(ex) { }
+
+        detail.frameElement.dataset.name = name;
         detail.frameElement.dataset.icon = icon;
 
-        var name = detail.features.split(/name=(.+),/g)[1] || '';
-        detail.frameElement.dataset.name = name;
         appendFrame(detail.frameElement, url, url, name, {
           'name': name
         }, null);
