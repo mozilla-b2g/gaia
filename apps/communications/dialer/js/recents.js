@@ -99,6 +99,12 @@ var Recents = {
         this.click.bind(this));
     }
 
+    // Setting up the SimplePhoneMatcher
+    var conn = window.navigator.mozMobileConnection;
+    if (conn) {
+      SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+    }
+
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
@@ -509,11 +515,10 @@ var Recents = {
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, contact) {
+  contactCallBack: function re_contactCallBack(logItem, contact, matchingTel) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
     if (contact != null) {
       var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
-        phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
       primaryInfoMainNode.textContent = (contact.name && contact.name != '') ?
         contact.name : _('unknown');
@@ -526,7 +531,7 @@ var Recents = {
         logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        phoneNumber, contact);
+        matchingTel, contact);
       var phoneNumberAdditionalInfoNode = logItem.
         querySelector('.call-additional-info');
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
