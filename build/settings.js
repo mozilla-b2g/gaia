@@ -66,7 +66,6 @@ var settings = [
  new Setting("screen.brightness", 1),
  new Setting("sms.ring.received", true),
  new Setting("sms.vibration.received", true),
- new Setting("sms.blacklist", "[\"1515\"]"),
  new Setting("tethering.usb.enabled", false),
  new Setting("tethering.usb.ip", "192.168.0.1"),
  new Setting("tethering.usb.prefix", "24"),
