@@ -79,6 +79,9 @@ Calendar.ns('Views').DayBased = (function() {
       var id = busytime._id;
       var hours = this._idsToHours[id];
 
+      if (!hours)
+        return;
+
       hours.forEach(function(number) {
         var hour = this.hours.get(number);
         if (hour) {
