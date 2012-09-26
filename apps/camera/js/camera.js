@@ -43,7 +43,7 @@ var Camera = {
 
   STORAGE_INIT: 0,
   STORAGE_AVAILABLE: 1,
-  STORAGE_UNAVAILABLE: 2,
+  STORAGE_NOCARD: 2,
   STORAGE_UNMOUNTED: 3,
   STORAGE_CAPACITY: 4,
 
@@ -522,7 +522,7 @@ var Camera = {
       this._storageState = this.STORAGE_AVAILABLE;
       break;
     case 'unavailable':
-      this._storageState = this.STORAGE_UNAVAILABLE;
+      this._storageState = this.STORAGE_NOCARD;
       break;
     case 'shared':
       this._storageState = this.STORAGE_UNMOUNTED;
@@ -539,22 +539,36 @@ var Camera = {
     }
   },
 
-  showDialog: function camera_updateDialog() {
-    if (this._storageState === this.STORAGE_UNAVAILABLE ||
-        this._storageState === this.STORAGE_UNMOUNTED ||
-        this._storageState === this.STORAGE_CAPACITY) {
-      this.showOverlay('nospace');
-      if (this._previewActive) {
-        this.stop();
-      }
-      return true;
+  showDialog: function camera_showDialog() {
+    if (this._storageState === this.STORAGE_INIT) {
+      return false;
     }
 
-    if (!this._previewActive && !document.mozHidden) {
-      this.start();
+    if (this._storageState === this.STORAGE_AVAILABLE) {
+      // Preview may have previously been paused if storage
+      // was not available
+      if (!this._previewActive && !document.mozHidden) {
+        this.start();
+      }
+      this.showOverlay(null);
+      return false;
     }
-    this.showOverlay(null);
-    return false;
+
+    switch(this._storageState) {
+    case this.STORAGE_NOCARD:
+      this.showOverlay('nocard');
+      break;
+    case this.STORAGE_UNMOUNTED:
+      this.showOverlay('cardinuse');
+      break;
+    case this.STORAGE_CAPACITY:
+      this.showOverlay('nospace');
+      break;
+    }
+    if (this._previewActive) {
+      this.stop();
+    }
+    return true;
   },
 
   prepareTakePicture: function camera_takePicture() {
