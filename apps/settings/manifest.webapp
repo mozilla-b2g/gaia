@@ -13,6 +13,8 @@
     "device-storage:pictures",
     "device-storage:music",
     "device-storage:videos",
+    "device-storage:apps",
+    "webapps-manage",
     "settings",
     "wifi-manage",
     "wifi",
@@ -38,7 +40,9 @@
                "bluetooth-requestpasskey", 
                "bluetooth-requestpincode", 
                "bluetooth-authorize", 
-               "bluetooth-cancel"],
+               "bluetooth-cancel",
+               "bluetooth-pairedstatuschanged",
+               "bluetooth-hfp-status-changed"],
   "locales": {
     "ar": {
       "name": "الضبط",

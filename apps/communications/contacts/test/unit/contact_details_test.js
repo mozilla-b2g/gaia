@@ -157,6 +157,11 @@ suite('Render contact', function() {
       assert.include(container.innerHTML, 'social-template');
       var toCheck = 'Contacts.extFb.startLink(" 1","true")';
       assert.include(container.innerHTML, toCheck);
+
+      assert.isTrue(container.
+                       querySelector('#profile_button').
+                       classList.contains('hide')
+      );
     });
 
     test('Fb Contact', function() {
@@ -164,8 +169,12 @@ suite('Render contact', function() {
 
       // The edit mode should be disabled
       subject.render();
-      assert.isTrue(editContactButton.disabled);
       assert.equal('FB', orgTitle.textContent);
+
+      assert.isFalse(container.
+                       querySelector('#profile_button').
+                       classList.contains('hide')
+      );
 
       window.fb.setIsFbContact(false);
     });

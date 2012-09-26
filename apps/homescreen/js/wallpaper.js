@@ -1,6 +1,6 @@
 'use strict';
 
-(function() {
+const Wallpaper = (function() {
   var overlay = document.getElementById('icongrid');
 
   // XXX: need automation app switch to activity caller itself
@@ -11,13 +11,13 @@
     };
   };
 
-  overlay.addEventListener('contextmenu', function onHomescreenContextmenu() {
+  function onHomescreenContextmenu() {
     var a = new MozActivity({
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        width: window.innerWidth,
-        height: window.innerHeight
+        width: 320,
+        height: 480
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
@@ -32,5 +32,11 @@
       console.warn('pick failed!');
       reopenSelf();
     };
-  });
+  }
+
+  return {
+    init: function init() {
+      overlay.addEventListener('contextmenu', onHomescreenContextmenu);
+    }
+  };
 })();

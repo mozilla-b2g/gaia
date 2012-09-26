@@ -3,7 +3,11 @@
 var MockFb = {
   fbContact: false,
   fbLinked: false,
-  isEnabled: true
+  isEnabled: true,
+
+  CATEGORY: 'facebook',
+  NOT_LINKED: 'not_linked',
+  LINKED: 'fb_linked'
 };
 
 MockFb.setIsFbContact = function(isFB) {
@@ -18,27 +22,119 @@ MockFb.setIsEnabled = function(isEnabled) {
   this.isEnabled = isEnabled;
 };
 
-MockFb.Contact = function(deviceContact, cid) {
-  this.deviceContact = deviceContact;
-  this.cid = cid;
+MockFb.Contact = function(devContact, mozCid) {
+  var deviceContact = devContact;
+  var cid = mozCid;
 
-  var getData = function getData() {
+  function markAsFb(deviceContact) {
+    if (!deviceContact.category) {
+      deviceContact.category = [];
+    }
+
+    if (deviceContact.category.indexOf(MockFb.CATEGORY) === -1) {
+      deviceContact.category.push(MockFb.CATEGORY);
+      deviceContact.category.push(MockFb.NOT_LINKED);
+    }
+
+    return deviceContact;
+  }
+
+  function doGetFacebookUid(data) {
+    var out = data.uid;
+    if (!out) {
+      if (MockFb.isFbLinked(data)) {
+        out = getLinkedTo(data);
+      }
+      else if (data.category) {
+        var idx = data.category.indexOf(fb.CATEGORY);
+        if (idx !== -1) {
+          out = data.category[idx + 2];
+        }
+      }
+    }
+    return out;
+  }
+
+  function getLinkedTo(c) {
+    var out;
+
+    if (c.category) {
+      var idx = c.category.indexOf(fb.LINKED);
+      if (idx !== -1) {
+        out = c.category[idx + 1];
+      }
+    }
+
+    return out;
+  }
+
+  function doSetFacebookUid(deviceContact, value) {
+    if (!deviceContact.category) {
+      deviceContact.category = [];
+    }
+
+    if (deviceContact.category.indexOf(fb.CATEGORY) === -1) {
+      markAsFb(deviceContact);
+    }
+
+    var idx = deviceContact.category.indexOf(fb.CATEGORY);
+
+    deviceContact.category[idx + 2] = value;
+  }
+
+  function getFacebookUid() {
+    return doGetFacebookUid(deviceContact);
+  }
+
+  function setFacebookUid(value) {
+    doSetFacebookUid(deviceContact, value);
+  }
+
+  this.getData = function getData() {
     return {
       set onsuccess(callback) {
         // Fetch FB data, that is returning a contact info
-        this.result = new MockContactAllFields();
+        this.result = deviceContact;
         this.result.org[0] = 'FB';
+
         callback.call(this);
       },
       set onerror(callback) {
 
       }
     };
-  };
+  }
 
-  return {
-    'getData': getData
-  };
+  this.getDataAndValues = function getDataAndValues() {
+    return {
+      set onsuccess(callback) {
+        // Fetch FB data, that is returning a contact info
+        this.result = [];
+        this.result[0] = deviceContact;
+        this.result[1] = {
+          '+346578888888': 'p',
+          'test@test.com': 'p'
+        };
+
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    };
+  }
+
+  this.promoteToLinked = function promoteToLinked() {
+
+  }
+
+  Object.defineProperty(this, 'uid', {
+    get: getFacebookUid,
+    set: setFacebookUid,
+    enumerable: true,
+    configurable: false
+  });
+
 };
 
 MockFb.isFbContact = function(contact) {

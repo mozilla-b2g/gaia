@@ -231,22 +231,38 @@ var NotificationScreen = {
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
 
-    // Notification toast
-    this.toaster.dataset.notificationID = detail.id;
+    // We turn the screen on if needed in order to let
+    // the user see the notification toaster
+    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
+    if (this._screenInitiallyDisabled) {
+      ScreenManager.turnScreenOn();
+    }
 
-    this.toaster.classList.add('displayed');
-    this._toasterGD.startDetecting();
-
-    if (this._toasterTimeout)
-      clearTimeout(this._toasterTimeout);
-
-    this._toasterTimeout = setTimeout((function() {
-      this.toaster.classList.remove('displayed');
-      this._toasterTimeout = null;
-      this._toasterGD.stopDetecting();
+    setTimeout((function() {
+      if (this._screenInitiallyDisabled) {
+        ScreenManager.turnScreenOff(false);
+      }
     }).bind(this), this.TOASTER_TIMEOUT);
 
+
     this.updateStatusBarIcon(true);
+
+    // Notification toaster
+    if (this.lockscreenPreview || !LockScreen.locked) {
+      this.toaster.dataset.notificationID = detail.id;
+
+      this.toaster.classList.add('displayed');
+      this._toasterGD.startDetecting();
+
+      if (this._toasterTimeout)
+        clearTimeout(this._toasterTimeout);
+
+      this._toasterTimeout = setTimeout((function() {
+        this.toaster.classList.remove('displayed');
+        this._toasterTimeout = null;
+        this._toasterGD.stopDetecting();
+      }).bind(this), this.TOASTER_TIMEOUT);
+    }
 
     // Adding it to the lockscreen if locked and the privacy setting
     // does not prevent it.

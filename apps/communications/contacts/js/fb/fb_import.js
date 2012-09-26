@@ -96,6 +96,7 @@ if (typeof fb.importer === 'undefined') {
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
+        from: 'import',
         data: ''
       };
 
@@ -311,16 +312,17 @@ if (typeof fb.importer === 'undefined') {
       f.additionalName = [f.middle_name];
       f.givenName = [f.first_name + ' ' + f.middle_name];
 
+      var privateType = 'personal';
 
       if (f.email) {
         f.email1 = f.email;
-        f.email = [{type: ['facebook'], value: f.email}];
+        f.email = [{type: [privateType], value: f.email}];
       }
       else { f.email1 = ''; }
 
       var nextidx = 0;
       if (f.cell) {
-        f.tel = [{type: ['facebook'], value: f.cell}];
+        f.tel = [{type: [privateType], value: f.cell}];
         nextidx = 1;
       }
 
@@ -328,7 +330,7 @@ if (typeof fb.importer === 'undefined') {
         if (!f.tel) {
           f.tel = [];
         }
-        f.tel[nextidx] = {type: ['facebook'], value: f.other_phone};
+        f.tel[nextidx] = {type: [privateType], value: f.other_phone};
       }
 
       f.uid = f.uid.toString();
@@ -624,7 +626,7 @@ if (typeof fb.importer === 'undefined') {
         var syear = sbday.substring(iyear + 1, sbday.length);
 
         ret.setDate(parseInt(sday));
-        ret.setMonth(parseInt(smonth), parseInt(sday));
+        ret.setMonth(parseInt(smonth) - 1, parseInt(sday));
 
         if (syear && syear.length > 0) {
           ret.setYear(parseInt(syear));

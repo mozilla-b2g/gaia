@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 // TODO:
@@ -126,12 +126,13 @@ var photoView = $('photo-view');
 var editView = $('edit-view');
 var pickView = $('pick-view');
 var cropView = $('crop-view');
+var openView = $('open-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
   thumbnailListView, thumbnailSelectView, photoView, editView,
-  pickView, cropView
+  pickView, cropView, openView
 ];
 var currentView;
 
@@ -185,7 +186,6 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -231,6 +231,7 @@ function init() {
   photodb.ondeleted = function(event) {
     event.detail.forEach(imageDeleted);
   };
+
 
   // Start off in thumbnail list view, unless there is a pending activity
   // request message. In that case, the message handler will set the
@@ -312,10 +313,10 @@ function imageCreated(fileinfo) {
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
-      if (a.name < b.name)
+      if (a.date < b.date)
+        return 1;  // larger (newer) dates come first
+      else if (a.date > b.date)
         return -1;
-      else if (a.name > b.name)
-        return 1;
       return 0;
     });
   }
@@ -385,9 +386,6 @@ function setView(view) {
     Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
                   function(elt) { elt.classList.remove('selected'); });
     break;
-  case editView:
-    // Cleanup is done in exitEditMode() before this function is called
-    break;
   }
 
   // Show the specified view, and hide the others
@@ -412,13 +410,11 @@ function setView(view) {
   case pickView:
     pickView.appendChild(thumbnails);
     break;
-  case photoView:
-    // No thumbnails in photoView
-    break;
-  case editView:
-    // We don't display the thumbnails in edit view.
-    // the editPhoto() function does the necessary setup and
-    // calls setView(), so there isn't anything to do here.
+  default:
+    // In any other view, remove the thumbnails from the document so
+    // they don't show anywhere
+    if (thumbnails.parentNode)
+      thumbnails.parentNode.removeChild(thumbnails);
     break;
   }
 
@@ -478,14 +474,11 @@ function webActivityHandler(activityRequest) {
   }
 
   function handleActivity() {
-
     var activityName = activityRequest.source.name;
-
     switch (activityName) {
     case 'browse':
       if (launchedAsInlineActivity)
         return;
-
       // The 'browse' activity is just the way we launch the app
       // There's nothing else to do here.
       setView(thumbnailListView);
@@ -493,16 +486,21 @@ function webActivityHandler(activityRequest) {
     case 'pick':
       if (!launchedAsInlineActivity)
         return;
-
       if (pendingPick)
         cancelPick();
       startPick(activityRequest);
+      break;
+    case 'open':
+      if (!launchedAsInlineActivity)
+        return;
+      handleOpenActivity(activityRequest);
       break;
     }
   }
 }
 
-var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
+var launchedAsInlineActivity =
+  window.location.hash === '#pick' || window.location.hash === '#open';
 var pendingPick;
 var pickType;
 var pickWidth, pickHeight;
@@ -583,6 +581,92 @@ window.addEventListener('mozvisiblitychange', function() {
   if (document.mozHidden && pendingPick)
     cancelPick();
 });
+
+function handleOpenActivity(request) {
+  var filename = request.source.data.filename;
+
+  var frame = $('open-frame');
+  var image = $('open-image');
+  var cameraButton = $('open-camera-button');
+  var deleteButton = $('open-delete-button');
+
+  setView(openView);
+  displayFile(image, filename);
+
+  var gestureDetector = new GestureDetector(frame);
+  var openPhotoState = null;  // lazily initialized
+
+  gestureDetector.startDetecting();
+  cameraButton.addEventListener('click', handleCameraButton);
+  deleteButton.addEventListener('click', handleDeleteButton);
+  frame.addEventListener('dbltap', handleDoubleTap);
+  frame.addEventListener('transform', handleTransform);
+  frame.addEventListener('pan', handlePan);
+  frame.addEventListener('swipe', handleSwipe);
+
+  function done(result) {
+    if (request) {
+      request.postResult(result);
+      request = null;
+    }
+    cleanup();
+  }
+
+  function cleanup() {
+    cameraButton.removeEventListener('click', handleCameraButton);
+    deleteButton.removeEventListener('click', handleDeleteButton);
+    frame.removeEventListener('dbltap', handleDoubleTap);
+    frame.removeEventListener('transform', handleTransform);
+    frame.removeEventListener('pan', handlePan);
+    frame.removeEventListener('swipe', handleSwipe);
+    gestureDetector.stopDetecting();
+    setView(thumbnailListView);
+  }
+
+  function handleCameraButton() {
+    done({'delete': false});
+  }
+  function handleDeleteButton() {
+    done({'delete': true});
+  }
+
+  function initPhotoState() {
+    if (!openPhotoState) {
+      openPhotoState = new PhotoState(image,
+                                      image.naturalWidth, image.naturalHeight);
+    }
+  }
+
+  function handleDoubleTap(e) {
+    initPhotoState();
+    var scale;
+    if (openPhotoState.fit.scale > openPhotoState.fit.baseScale)
+      scale = openPhotoState.fit.baseScale / openPhotoState.scale;
+    else
+      scale = 2;
+
+    openPhotoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+  }
+
+  function handleTransform(e) {
+    initPhotoState();
+    openPhotoState.zoom(e.detail.relative.scale,
+                        e.detail.midpoint.clientX,
+                        e.detail.midpoint.clientY);
+  }
+
+  function handlePan(e) {
+    initPhotoState();
+    openPhotoState.pan(e.detail.relative.dx, e.detail.relative.dy);
+  }
+
+  function handleSwipe(e) {
+    var direction = e.detail.direction;
+    var velocity = e.detail.vy;
+    if (direction === 'down' && velocity > 2)
+      done('done');
+  }
+}
 
 
 //
@@ -745,39 +829,64 @@ $('thumbnails-share-button').onclick = function() {
 /*
  * Share one or more images using Web Activities.
  *
- * XXX
- * This is a preliminary implementation with two bug workarounds:
+ * Because multiple images may have different mime types we just
+ * use 'image/*' as the type.
  *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
- * we just use a type of "image" since the activity handler app can't
- * register an array of the image mime types it accepts
- *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
- * we can share blobs directly, this function just shares filenames.
- * This means that the app on the receiving end has to use device storage
- * to get the actual file. Since that requires special permissions
- * it might not be what we want.  We could change this code to use a
- * data url and pass the whole image as a long, long string. Because this
- * is sub-optimal and unstable, I'm using the activity name "share-filenames"
- * instead of the more generic "share".
+ * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
+  var urls = [];
+  getDataURLForNextFile();
+
+  function getDataURLForNextFile() {
+    if (urls.length === filenames.length) {
+      shareURLs(urls);
+    }
+    else {
+      var i = urls.length;
+      var filename = filenames[i];
+      photodb.getFile(filename, function(file) {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function() {
+          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
+          getDataURLForNextFile();
+        }
+      });
+    }
+  }
+}
+
+// This is called by shareFile once the filenames have
+// been converted to data URLs
+function shareURLs(urls) {
   var a = new MozActivity({
-    name: 'share-filenames',
+    name: 'share',
     data: {
-      type: 'image',
-      filenames: filenames
+      type: 'image/*',
+      number: urls.length,
+      urls: urls
     }
   });
 
+  function reopen() {
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      e.target.result.launch();
+    };
+  }
+
+  a.onsuccess = function() {
+    reopen();
+  }
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     }
     else {
-      console.log('share activity error:', a.error.name);
+      console.warn('share activity error:', a.error.name);
     }
+    reopen();
   };
 }
 
@@ -932,7 +1041,6 @@ function displayImageInFrame(n, frame) {
     return;
   }
 
-  // Asynchronously set the image url
   var imagedata = images[n];
   displayFile(img, imagedata.name,
               imagedata.metadata.width, imagedata.metadata.height);
@@ -1220,8 +1328,8 @@ PhotoState.prototype._reposition = function() {
 PhotoState.prototype.reset = function() {
   // Store the display space we have for photos
   // call reset() when we get a resize or orientationchange event
-  this.viewportWidth = photoFrames.offsetWidth;
-  this.viewportHeight = photoFrames.offsetHeight;
+  this.viewportWidth = this.img.parentNode.offsetWidth;
+  this.viewportHeight = this.img.parentNode.offsetHeight;
 
   // Compute the default size and position of the image
   this.fit = fitImage(this.photoWidth, this.photoHeight,

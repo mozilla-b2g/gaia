@@ -37,6 +37,9 @@
         !cset['operatorvariant.mnc']) {
       return;
     }
+    if (gNetwork.mcc == 0 && gNetwork.mnc == 0) {
+      return;
+    }
     if ((gNetwork.mcc == cset['operatorvariant.mcc']) &&
         (gNetwork.mnc == cset['operatorvariant.mnc'])) {
       return;
@@ -64,6 +67,9 @@
                                         cset['operatorvariant.mnc'],
                                         'voicemail');
     var voicemailNode = voicemailResult.iterateNext();
+    if (!voicemailNode) {
+      return;
+    }
     cset['ro.moz.ril.iccmbdn'] = voicemailNode.textContent;
   };
 
