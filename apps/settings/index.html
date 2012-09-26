@@ -46,17 +46,22 @@
       <!-- network properties -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="linkSpeed">link speed:
+          <a data-l10n-id="ipAddress">IP Adddress
+            <span data-ip></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed
             <span data-speed></span>
           </a>
         </li>
@@ -76,12 +81,12 @@
       <!-- network properties + identity/password input -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
@@ -176,20 +181,42 @@
       <header>
         <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       </header>
-      <ul id="wifi-networks">
-        <!-- filled by wifi.js -->
+      <ul id="wifi-availableNetworks" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+          Turn Wi-Fi on to view available networks.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by wifi.js: one list item per available network
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
       </ul>
 
-      <header hidden>
+      <header>
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
-      <ul hidden id="wifi-advanced">
-        <li>
+      <ul>
+        <li id="macAddress">
           <small id="macAddress-desc"></small>
           <a data-l10n-id="macAddress">MAC Address</a>
         </li>
-        <li>
-          <button data-l10n-id="manageNetworks">Manage Networks</button>
+        <li hidden>
+          <label>
+            <button onclick="openDialog('wifiSettings');"
+              data-l10n-id="manageNetworks">Manage Networks</button>
+          </label>
+        </li>
+        <li hidden>
+          <label>
+            <button onclick="openDialog('wifiJoinHidden');"
+              data-l10n-id="joinHiddenNetwork">Join Hidden Network</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -987,7 +1014,6 @@
       </ul>
     </section>
 
-
     <!-- [TODO] Security :: App Permissions -->
 
     <!-- Security :: Do Not Track -->
@@ -1125,8 +1151,8 @@
       </ul>
 
       <p class="detailed-desc" data-l10n-id="media-storage-details">
-      Photos, videos, and music are stored in the SD Card.
-      See Media Storage for details.
+        Photos, videos, and music are stored in the SD Card.
+        See Media Storage for details.
       </p>
 
     </section>

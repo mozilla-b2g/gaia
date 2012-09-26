@@ -52,32 +52,35 @@ function audioPreview(element) {
   }
 }
 
-// A helper class to provide some functions for formatting file size string
+/**
+ * Helper class providing some functions for formatting file size strings
+ */
+
 var FileSizeFormatter = (function FileSizeFormatter(fixed) {
-
-    // in: size in Bytes
-    function getReadableFileSize(size, digits) {
-
-      if (digits === undefined)
-        digits = 0;
-
-      var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-      var i = 0;
-      while (size >= 1024) {
-        size /= 1024;
-        ++i;
-      }
-
-      var sizeString = size.toFixed(digits);
-      var sizeDecimal = parseFloat(sizeString);
-
-      return { size: sizeDecimal.toString(),
-               unit: units[i]
-      };
+  // in: size in Bytes
+  function getReadableFileSize(size, digits) {
+    if (digits === undefined) {
+      digits = 0;
     }
 
-    return {
-      getReadableFileSize: getReadableFileSize
-    };
+    var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    var i = 0;
+    while (size >= 1024) {
+      size /= 1024;
+      ++i;
+    }
 
+    var sizeString = size.toFixed(digits);
+    var sizeDecimal = parseFloat(sizeString);
+
+    return {
+      size: sizeDecimal.toString(),
+      unit: units[i]
+    };
+  }
+
+  return {
+    getReadableFileSize: getReadableFileSize
+  };
 })();
+
