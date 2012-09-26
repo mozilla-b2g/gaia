@@ -108,8 +108,8 @@ contacts.Form = (function() {
     var renderedContact = fbContactData[0] || deviceContact;
 
     resetForm();
-    (renderedContact && renderedContact.id)
-                        ? showEdit(renderedContact) : showAdd(renderedContact);
+    (renderedContact && renderedContact.id) ?
+                        showEdit(renderedContact) : showAdd(renderedContact);
     if (callback) {
       callback();
     }
@@ -238,8 +238,9 @@ contacts.Form = (function() {
       nodeClass.add(FB_CLASS);
     }
 
-    // The undo button should not appear on FB disavled fields
-    if (!fb.isFbContact(currentContact)) {
+    // The undo button should not appear on FB disabled fields
+    if (!rendered.classList.contains(REMOVED_CLASS) &&
+        !rendered.classList.contains(FB_CLASS)) {
       rendered.appendChild(removeFieldIcon(rendered.id));
     }
 
@@ -298,8 +299,8 @@ contacts.Form = (function() {
 
     for (field in inputs) {
       var value = inputs[field].value;
-      if (!inputs[field].parentNode.classList.contains(REMOVED_CLASS)
-                                          && value && value.length > 0) {
+      if (!inputs[field].parentNode.classList.contains(REMOVED_CLASS) &&
+                                          value && value.length > 0) {
         myContact[field] = [value];
       } else {
         myContact[field] = null;
@@ -352,7 +353,7 @@ contacts.Form = (function() {
       contact = currentContact;
 
       // If it is a FB Contact not linked it will be automatically linked
-      // As now there is additional info entered by the user
+      // As now there is additional contact data entered by the user
       if (fb.isFbContact(contact)) {
         var fbContact = new fb.Contact(contact);
         // Here the contact has been promoted to linked but not saved yet
