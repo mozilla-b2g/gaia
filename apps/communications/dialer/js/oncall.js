@@ -179,6 +179,12 @@ var OnCallHandler = (function onCallHandler() {
     }
   });
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+  }
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
@@ -519,10 +525,4 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.init();
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
-
-  // Setting up the SimplePhoneMatcher
-  var conn = window.navigator.mozMobileConnection;
-  if (conn) {
-    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
-  }
 });

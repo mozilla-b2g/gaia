@@ -41,12 +41,6 @@ var Contacts = {
         return;
       }
 
-      // If only one match no need to find the best one
-      if (request.result.length === 1) {
-        callback(request.result[0]);
-        return;
-      }
-
       // formatting the matches as an array (contacts) of arrays (phone numbers)
       var matches = request.result.map(function getTels(contact) {
         return contact.tel.map(function getNumber(tel) {
@@ -55,10 +49,11 @@ var Contacts = {
       });
 
       // Finding the best match
-      var bestMatchIndex = SimplePhoneMatcher.bestMatchIndex(variants, matches);
+      var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
-      var contact = request.result[bestMatchIndex];
-      callback(contact);
+      var contact = request.result[matchResult.bestMatchIndex];
+      var matchingTel = contact.tel[matchResult.localIndex];
+      callback(contact, matchingTel);
     };
     request.onerror = function findError() {
       callback(null);

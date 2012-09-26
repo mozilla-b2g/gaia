@@ -44,12 +44,19 @@ var SimplePhoneMatcher = {
   // |matches| is an array of arrays
   // This way we can easily go trough the results of a mozContacts request:
   // array (contacts) of arrays (phone numbers).
-  bestMatchIndex: function spm_bestMatchIndex(variants, matches) {
+  // => {
+  //      bestMatchIndex: i,
+  //      localIndex: j
+  //    }
+  // ie. bestMatchIndex will be the index in the contact arrays, localIndex
+  // the index in the phone numbers array of this contact
+  bestMatch: function spm_bestMatchIndex(variants, matches) {
     var bestMatchIndex = null;
+    var bestLocalIndex = null;
     var bestMatchLength = 0;
 
     matches.forEach(function(match, matchIndex) {
-      match.forEach(function(number) {
+      match.forEach(function(number, localIndex) {
         var sanitizedNumber = this.sanitizedNumber(number)
 
         variants.forEach(function match(variant) {
@@ -60,16 +67,20 @@ var SimplePhoneMatcher = {
             if (length > bestMatchLength) {
               bestMatchLength = length;
               bestMatchIndex = matchIndex;
+              bestLocalIndex = localIndex;
             }
           }
         });
       }, this);
     }, this);
 
-    return bestMatchIndex;
+    return {
+      bestMatchIndex: bestMatchIndex,
+      localIndex: bestLocalIndex
+    };
   },
 
-  _formattingChars: [' ', '-', '.', '(', ')'],
+  _formattingChars: ['\s', '-', '.', '(', ')'],
 
   // https://en.wikipedia.org/wiki/International_call_prefix
   _mccWith00Prefix: ['208', '214', '234', '235', '724'],

@@ -1,10 +1,5 @@
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_phone_matcher.js');
-
-if (!this.SimplePhoneMatcher) {
-  this.SimplePhoneMatcher = null;
-}
 
 suite('dialer/utils', function() {
   var realPhoneMatcher;
@@ -20,20 +15,13 @@ suite('dialer/utils', function() {
 
   suiteSetup(function() {
     subject = Utils;
-
-    realPhoneMatcher = window.SimplePhoneMatcher;
-    window.SimplePhoneMatcher = MockPhoneMatcher;
-  });
-
-  suiteTeardown(function() {
-    window.SimplePhoneMatcher = realPhoneMatcher;
   });
 
   suite('Utility library', function() {
     test('#additional info WITHOUT carrier', function(done) {
       MockContacts.mCarrier = null; // No carrier
-      MockContacts.findByNumber(number, function(contact) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(number,
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact);
         assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
         done();
@@ -42,8 +30,8 @@ suite('dialer/utils', function() {
 
     test('#additional info WITH carrier', function(done) {
       MockContacts.mCarrier = 'carrier'; // Carrier value
-      MockContacts.findByNumber(number, function(contact) {
-        var additionalInfo = subject.getPhoneNumberAdditionalInfo(number,
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact);
         assert.equal(MockContacts.mType + ', ' +
           MockContacts.mCarrier, additionalInfo);

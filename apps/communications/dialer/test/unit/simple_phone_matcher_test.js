@@ -12,6 +12,11 @@ suite('lib/simple_phone_matcher', function() {
       assert.equal('+34764456098', SimplePhoneMatcher.sanitizedNumber(number));
     });
 
+    test('should remove returns', function() {
+      var number = '+34 764 456 098\n';
+      assert.equal('+34764456098', SimplePhoneMatcher.sanitizedNumber(number));
+    });
+
     test('should remove dashes', function() {
       var number = '97-111-8876';
       assert.equal('971118876', SimplePhoneMatcher.sanitizedNumber(number));
@@ -190,27 +195,35 @@ suite('lib/simple_phone_matcher', function() {
   suite('best match search', function() {
     var variants;
 
+    function testBestMatch(bestMatchIndex, localIndex, variants, matches) {
+      var result = {
+        bestMatchIndex: bestMatchIndex,
+        localIndex: localIndex
+      };
+      assert.deepEqual(result, SimplePhoneMatcher.bestMatch(variants, matches));
+    }
+
     setup(function() {
       variants = ['1118876', '0971118876', '+55971118876', '0055971118876'];
     });
 
     test('should return the index with the longest match', function() {
       var matches = [['1118876', '12333'], ['111', '8876'], ['0055971118876']];
-      assert.equal(2, SimplePhoneMatcher.bestMatchIndex(variants, matches));
+      testBestMatch(2, 0, variants, matches);
     });
 
     test('should sanitize matches', function() {
       var matches = [['1118876', '12333'], ['+55 (97) 111 8876']];
-      assert.equal(1, SimplePhoneMatcher.bestMatchIndex(variants, matches));
+      testBestMatch(1, 0, variants, matches);
     });
 
     test('should be compatible with contains matches', function() {
-      var matches = [['118876', '12333'], ['000']];
-      assert.equal(0, SimplePhoneMatcher.bestMatchIndex(variants, matches));
+      var matches = [['112233', '118876'], ['000']];
+      testBestMatch(0, 1, variants, matches);
 
       variants = ['1118876', '0971118876'];
       matches = [['0055971118876', '12333'], ['000'], ['12345']];
-      assert.equal(0, SimplePhoneMatcher.bestMatchIndex(variants, matches));
+      testBestMatch(0, 0, variants, matches);
     });
   });
 });

@@ -17,10 +17,10 @@ var MockUtils = {
   },
 
   getPhoneNumberAdditionalInfo: function getPhoneNumberAdditionalInfo(
-    phoneNumber, associatedContact) {
+    matchingTel, associatedContact) {
     this.mCalledGetPhoneNumberAdditionalInfo = true;
 
-    return phoneNumber % 2 == 0 ? phoneNumber : undefined;
+    return matchingTel.value % 2 == 0 ? matchingTel.value : undefined;
   },
 
   mTearDown: function tearDown() {

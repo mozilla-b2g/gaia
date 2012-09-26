@@ -35,32 +35,21 @@ var Utils = {
 
   // XXX: this is way too complex for the task accomplished
   getPhoneNumberAdditionalInfo: function ut_getPhoneNumberAdditionalInfo(
-    phoneNumber, associatedContact) {
+    matchingTel, associatedContact) {
     var additionalInfo, phoneType, phoneCarrier,
         contactPhoneEntry, contactPhoneNumber, contactPhoneType,
         contactPhoneCarrier, multipleNumbersSameCarrier,
         length = associatedContact.tel.length;
 
-    var variants = SimplePhoneMatcher.generateVariants(phoneNumber);
-
-    associatedContact.tel.forEach(function telIterator(tel) {
-      var sanitizedNumber = SimplePhoneMatcher.sanitizedNumber(tel.value);
-      variants.forEach(function variantIterator(variant) {
-        if (variant.indexOf(sanitizedNumber) !== -1 ||
-            sanitizedNumber.indexOf(variant) !== -1) {
-
-          // Phone type is a mandatory field.
-          contactPhoneNumber = tel.value;
-          additionalInfo = tel.type;
-          phoneType = tel.type;
-          if (tel.carrier) {
-            phoneCarrier = tel.carrier;
-          } else {
-            additionalInfo = additionalInfo + ', ' + sanitizedNumber;
-          }
-        }
-      });
-    });
+    // Phone type is a mandatory field.
+    contactPhoneNumber = matchingTel.value;
+    additionalInfo = matchingTel.type;
+    phoneType = matchingTel.type;
+    if (matchingTel.carrier) {
+      phoneCarrier = matchingTel.carrier;
+    } else {
+      additionalInfo = additionalInfo + ', ' + matchingTel.value;
+    }
 
     if (phoneType && phoneCarrier) {
       var multipleNumbersSameCarrier = false;
