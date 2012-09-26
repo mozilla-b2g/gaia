@@ -157,7 +157,7 @@ var Contacts = (function() {
     };
   };
 
-  window.addEventListener('localized', function initContacts(evt) {
+  var onLocalized = function onLocalized() {
     initLanguages();
     initContainers();
     initContactsList();
@@ -166,7 +166,7 @@ var Contacts = (function() {
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
-  });
+  };
 
   var initContactsList = function initContactsList() {
     var list = document.getElementById('groups-list');
@@ -555,23 +555,29 @@ var Contacts = (function() {
     'handleVisibilityChange': handleVisibilityChange,
     'showForm': showForm,
     'setCurrent': setCurrent,
-    'getTags': TAG_OPTIONS
+    'getTags': TAG_OPTIONS,
+    'onLocalized': onLocalized
   };
 })();
 
-fb.init(function contacts_init() {
-  if (window.navigator.mozSetMessageHandler && window.self == window.top) {
-    var actHandler = ActivityHandler.handle.bind(ActivityHandler);
-    window.navigator.mozSetMessageHandler('activity', actHandler);
-  }
-  document.addEventListener('mozvisibilitychange', function visibility(e) {
-    if (ActivityHandler.currentlyHandling && document.mozHidden) {
-      ActivityHandler.postCancel();
-      return;
+window.addEventListener('localized', function initContacts(evt) {
+  fb.init(function contacts_init() {
+    Contacts.onLocalized();
+
+    if (window.navigator.mozSetMessageHandler && window.self == window.top) {
+      var actHandler = ActivityHandler.handle.bind(ActivityHandler);
+      window.navigator.mozSetMessageHandler('activity', actHandler);
     }
-    if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
-      Contacts.handleVisibilityChange();
-    }
-    Contacts.checkCancelableActivity();
+    document.addEventListener('mozvisibilitychange', function visibility(e) {
+      if (ActivityHandler.currentlyHandling && document.mozHidden) {
+        ActivityHandler.postCancel();
+        return;
+      }
+      if (!ActivityHandler.currentlyHandling && !document.mozHidden) {
+        Contacts.handleVisibilityChange();
+      }
+      Contacts.checkCancelableActivity();
+    });
   });
+
 });

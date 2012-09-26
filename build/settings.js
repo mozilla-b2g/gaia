@@ -131,7 +131,7 @@ function Setting(aName, aValue) {
 
   let settingsDBService = Cc["@mozilla.org/settingsService;1"]
                             .getService(Ci.nsISettingsService);
-  let lock = settingsDBService.createLock();
+  let lock = settingsDBService.getLock();
 
   for (let i in settings) {
     debug("add seting: " + settings[i].name + ", " + settings[i].value);

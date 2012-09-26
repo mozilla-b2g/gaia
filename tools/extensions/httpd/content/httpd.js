@@ -1436,17 +1436,15 @@ RequestReader.prototype =
             // building packages apps, there is no provision for DEBUG=1 in
             // the build system, so we must map things here.
             var filePath = this._findRealPath(applicationName);
-            if (oldPath.indexOf('/shared/') === 0) {
-              filePath += '/../..';
+            if (oldPath.indexOf("/shared/") === 0) {
+              filePath += "/../..";
             }
             request._path = filePath + oldPath;
 
             // Handle localization files
-            if (oldPath.indexOf('.properties') !== -1 && 
-                oldPath.indexOf('en-US.properties') === -1) {
-              request._path = this._findPropertiesPath(oldPath, 
-                                                       applicationName, 
-                                                       filePath);
+            if (oldPath.indexOf(".properties") !== -1 && 
+                oldPath.indexOf("en-US.properties") === -1) {
+              request._path = this._findPropertiesPath(request._path);
             }
           }
         } catch (e) {
@@ -1477,7 +1475,7 @@ RequestReader.prototype =
 
     var appPathList = GAIA_APP_RELATIVEPATH.trim().split(" ");
     for (var i = 0; i < appPathList.length; i++) {
-      var currentAppName = appPathList[i].split('/')[1];
+      var currentAppName = appPathList[i].split("/")[1];
 
       if (!currentAppName) {
         continue;
@@ -1485,22 +1483,44 @@ RequestReader.prototype =
 
       this._realPath[currentAppName] = appPathList[i];
     }
-    return '/' + this._realPath[appName];
+    return "/" + this._realPath[appName];
   },
 
   /**
    * Try finding the localization files in GAIA_LOCALES_PATH
    */ 
-  _findPropertiesPath: function(oldPath, appName, appPath) {
-    var parts = oldPath.split(".");
-    var localeCode = parts[parts.length - 2];
-    var path = ('/' + GAIA_LOCALES_PATH + '/' + localeCode + '/gaia' + 
-                appPath + '/' + appName + '.properties');
-    dumpn(path)
-    var file = this._connection.server._handler._getFileForPath(path);
+  _findPropertiesPath: function(path) {
+    // /apps/browser/locales/browser.fr.properties
+    // /apps/calendar/../../shared/locales/date/date.fr.properties
+    var parts = path.split("/");
+    var appDir = parts[1]; // apps, apps
+    var appName = parts[2]; // browser, calendar
+    var component = parts[3]; // locales, ..
+
+    // browser.fr.properties, date/date.fr.properties
+    var resource = path.split("/locales/")[1];
+    var resourceParts = resource.split(".");
+    var resourceName = resourceParts[0]; // browser
+    var localeCode = resourceParts[1]; // date/date
+
+    var debugPath;
+    if (component === "locales") {
+      // /locales/fr/apps/browser/browser.properties
+      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir + 
+                   "/" + appName + "/" + resourceName + ".properties");
+    } else {
+      // /locales/fr/shared/date/date.properties
+      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" + 
+                   "/" + resourceName + ".properties");
+    }
+
+    dumpn("l10n: try loading " + debugPath + " instead of " + path);
+
+    // check if the file at the new path exists
+    var file = this._connection.server._handler._getFileForPath(debugPath);
     if (file.exists() && file.isFile())
-      return path;
-    return appPath + oldPath;
+      return debugPath;
+    return path;
   },
 
   /**
