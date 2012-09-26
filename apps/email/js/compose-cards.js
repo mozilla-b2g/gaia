@@ -112,7 +112,7 @@ ComposeCard.prototype = {
       // TODO: We will apply email address parser for setting name properly.
       //       We set both name to null and address to text input value
       //       before parser is ready.
-      if (address.trim().length !== 0)
+      if (node.value.trim().length !== 0)
         addrList.push({ name: null, address: node.value });
       return addrList;
     }
