@@ -231,6 +231,13 @@ var NotificationScreen = {
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
 
+
+    // We turn the screen on if needed in order to let
+    // the user see the notification toaster
+    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
+    if (this._screenInitiallyDisabled)
+      ScreenManager.turnScreenOn();
+
     // Notification toast
     this.toaster.dataset.notificationID = detail.id;
 
@@ -244,6 +251,9 @@ var NotificationScreen = {
       this.toaster.classList.remove('displayed');
       this._toasterTimeout = null;
       this._toasterGD.stopDetecting();
+
+      if (this._screenInitiallyDisabled)
+        ScreenManager.turnScreenOff(false);
     }).bind(this), this.TOASTER_TIMEOUT);
 
     this.updateStatusBarIcon(true);
