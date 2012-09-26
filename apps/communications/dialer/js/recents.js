@@ -532,7 +532,7 @@ var Recents = {
         logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        phoneNumber, contact);
+        matchingTel, contact);
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
