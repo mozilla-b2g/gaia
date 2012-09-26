@@ -59,7 +59,7 @@
 
     <div id="app" class="views" data-state="active">
 
-       <iframe id="fb-extensions" hidden></iframe>
+       <iframe id="fb-extensions"></iframe>
 
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
@@ -67,6 +67,9 @@
           <menu type="toolbar" role="menu">
             <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
             <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem" id="settings-button" onclick="Contacts.navigation.go('view-settings', 'popup');">
+              <span class="icon icon-settings" data-l10n-id="settings">settings</span>
+            </button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -102,8 +105,7 @@
         <section id="search-view" class="view">
            <form id="searchview-container" class="search">
               <label for="search-contact">
-                <input required type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
-                <button type="reset"></button>
+                <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
                 <button id='cancel-search' onclick='return contacts.List.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
               </label>
             </form>
@@ -159,13 +161,19 @@
                 </div>
               </li>
 
+              <!-- Social Template -->
               <li id="social-template-#i#" data-template>
-                <h2 data-l10n-id="social-network">Social Network</h2>
+                <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
                   <div class="item">
                     <div class="item-body-exp">
-                      <button class="fillflow-row action action-add"
+                      <button id="link_button" class="fillflow-row action action-add"
                               onclick="Contacts.extFb.startLink('#i#','#linked#')">
                         #action#
+                      </button>
+                      <button id="profile_button" data-l10n-id="show-profile"
+                              class="fillflow-row action action-add"
+                              onclick="Contacts.extFb.showProfile('#i#')">
+                        Show Profile
                       </button>
                     </div>
                   </div>
@@ -208,7 +216,7 @@
 
 
       <!-- Edit Section -->
-      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">
+      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
         <header>
           <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
@@ -398,6 +406,21 @@
         </article>
       </section>
 
+      <!-- Settings section -->
+      <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
+        <header>
+          <button class="negative" onclick="Contacts.cancel();">
+            <span class="icon icon-close"data-l10n-id="exit">Exit</span>
+          </button>
+          <h1 data-l10n-id="settings">Settings</h1>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner">
+          </div>
+        </article>
+      </section>
+
       <article id="loading-overlay">
         <section class="loading-container">
           <header class="loading-header" data-l10n-id="loadingContacts">
@@ -412,9 +435,10 @@
 
     <div class="cache" id="cache">
       <div id="mirror-contacts-list" class="view" style="background-image: -moz-element(#view-contacts-list);"></div>
-      <div id="mirror-contact-form" class="view view-right" style="background-image: -moz-element(#view-contact-form);"></div>
+      <div id="mirror-contact-form" class="view view-bottom" style="background-image: -moz-element(#view-contact-form);"></div>
       <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
       <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
+      <div id="mirror-settings" class="view view-bottom" style="background-image: -moz-element(#view-settings);"></div>
     </div>
 
   </body>

@@ -136,7 +136,12 @@ var WindowManager = (function() {
     var manifest = app.manifest;
 
     var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight - StatusBar.height + 'px';
+    var cssHeight = window.innerHeight - StatusBar.height;
+    if ('wrapper' in frame.dataset) {
+      cssHeight -= 10;
+    }
+    cssHeight += 'px';
+
 
     if (app.manifest.fullscreen)
       cssHeight = window.innerHeight + 'px';
@@ -443,7 +448,8 @@ var WindowManager = (function() {
       if (!screenshot)
         return;
 
-      putAppScreenshotToDatabase(frame.src, screenshot);
+      putAppScreenshotToDatabase(frame.src || frame.dataset.frameOrigin,
+                                 screenshot);
     }, true);
   }
 
@@ -456,13 +462,15 @@ var WindowManager = (function() {
     // If the frame is just being append and app content is just being loaded,
     // let's get the screenshot from the database instead.
     if ('unpainted' in frame.dataset) {
-      getAppScreenshotFromDatabase(frame.src, callback);
+      getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+                                   callback);
       return;
     }
 
     getAppScreenshotFromFrame(frame, function(screenshot, isCached) {
       if (!screenshot) {
-        getAppScreenshotFromDatabase(frame.src, callback);
+        getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
+                                     callback);
         return;
       }
 
@@ -558,7 +566,7 @@ var WindowManager = (function() {
   function ensureHomescreen() {
     if (!isRunning(homescreen)) {
       var app = Applications.getByManifestURL(homescreenManifestURL);
-      appendFrame(homescreen, homescreenURL,
+      appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
       setAppSize(homescreen);
       openWindow(homescreen, null);
@@ -681,8 +689,8 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
-  function createFrame(origin, url, name, manifest, manifestURL) {
-    var frame = document.createElement('iframe');
+  function createFrame(originalFrame, origin, url, name, manifest, manifestURL) {
+    var frame = originalFrame || document.createElement('iframe');
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
@@ -690,25 +698,16 @@ var WindowManager = (function() {
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
+    if (!manifestURL) {
+      frame.setAttribute('data-wrapper', 'true');
+      return frame;
+    }
+
     // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
     // They also need to be marked as 'mozapp' to be recognized as apps by the
     // platform.
+    frame.setAttribute('remote', 'true');
     frame.setAttribute('mozbrowser', 'true');
-    if (manifestURL) {
-      frame.setAttribute('mozapp', manifestURL);
-      frame.src = url;
-    } else {
-      var frameSrc = ['wrapper/index.html?url=' + encodeURIComponent(url)];
-      if (manifest.addBookmarkActivity) {
-        frameSrc.push('&origin=');
-        frameSrc.push(encodeURIComponent(origin));
-        frameSrc.push('&name=');
-        frameSrc.push(name);
-        frameSrc.push('&icon=');
-        frameSrc.push(manifest.icons[60]);
-      }
-      frame.src = frameSrc.join('');
-    }
 
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
@@ -741,12 +740,14 @@ var WindowManager = (function() {
       console.info('%%%%% Launching', name, 'as local');
     }
 
+    frame.setAttribute('mozapp', manifestURL);
+    frame.src = url;
     return frame;
   }
 
-  function appendFrame(origin, url, name, manifest, manifestURL) {
+  function appendFrame(originalFrame, origin, url, name, manifest, manifestURL) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    var frame = createFrame(originalFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
@@ -781,7 +782,7 @@ var WindowManager = (function() {
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame = createFrame(origin, url, name, manifest, manifestURL);
+    var frame = createFrame(null, origin, url, name, manifest, manifestURL);
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
 
@@ -945,7 +946,7 @@ var WindowManager = (function() {
       // We will launch it in foreground
       case 'webapps-launch':
         if (!isRunning(origin)) {
-          appendFrame(origin, e.detail.url,
+          appendFrame(null, origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
         }
 
@@ -984,7 +985,7 @@ var WindowManager = (function() {
         } else if (origin !== homescreen) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
-          appendFrame(origin, e.detail.url,
+          appendFrame(null, origin, e.detail.url,
                       name, app.manifest, app.manifestURL);
         } else {
           ensureHomescreen();
@@ -1111,40 +1112,31 @@ var WindowManager = (function() {
     var frame = runningApps[homescreen].frame;
     frame.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
       var detail = evt.detail;
-      if (!detail.url || detail.features !== 'wrapper')
+      if (detail.name !== '_blank')
         return;
-
       evt.stopImmediatePropagation();
 
-      var app;
-      try {
-        app = JSON.parse(detail.name);
-      } catch (e) {
-        app = {
-          origin: detail.url,
-          manifest: {
-            name: detail.url
-          }
-        };
+      var url = detail.url;
+      if (!isRunning(url)) {
+        var name = '';
+        var icon = '';
+        try {
+          var features = JSON.parse(detail.features);
+          name = features.name || '';
+          icon = features.icon || '';
+        } catch(ex) { }
+
+        detail.frameElement.dataset.name = name;
+        detail.frameElement.dataset.icon = icon;
+
+        appendFrame(detail.frameElement, url, url, name, {
+          'name': name
+        }, null);
+      } else if (displayedApp === url) {
+        return;
       }
 
-      var origin = app.origin;
-      if (isRunning(origin)) {
-        if (displayedApp === origin)
-          return;
-      } else {
-        if (app.manifest.wrapperMode === 'reuse') {
-          var lastWrapperOrigin = frame.dataset.lastWrapperOrigin;
-          if (lastWrapperOrigin && lastWrapperOrigin !== origin) {
-            kill(lastWrapperOrigin);
-          }
-          frame.dataset.lastWrapperOrigin = origin;
-        }
-
-        appendFrame(origin, detail.url, app.manifest.name, app.manifest, null);
-      }
-
-      setDisplayedApp(origin);
+      setDisplayedApp(url);
     });
   }
 
@@ -1322,6 +1314,9 @@ var WindowManager = (function() {
     getRunningApps: function() {
        return runningApps;
     },
-    setDisplayedApp: setDisplayedApp
+    setDisplayedApp: setDisplayedApp,
+    getCurrentDisplayedApp: function() {
+      return runningApps[displayedApp];
+    }
   };
 }());

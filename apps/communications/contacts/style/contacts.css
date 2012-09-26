@@ -218,19 +218,6 @@ form.search button {
   box-shadow: none;
 }
 
-#search-view form.search button[type="reset"] {
-  background: url(gphx/bitmap/default/vw-header/icons/clear.png) no-repeat center center;
-  width: 3.5rem;
-  height: 3.5rem;
-  margin: -0.5rem 0 -0.5rem -4rem;
-  float: none;
-  opacity: 0;
-}
-
-#search-view form.search input:valid + button[type="reset"] {
-  opacity: 1;
-}
-
 /* Searching state */
 #view-contacts-list.searching > header {
   transform: scale(0);
@@ -359,6 +346,7 @@ form.search button {
 .removed dl, .removed a, .removed input {
   background-color: transparent;
   color: #cccccc;
+  pointer-events: none;
 }
 
 .removed button span.icon-delete {
@@ -389,4 +377,13 @@ form.search button {
   font-size: 1.05rem;
   line-height: 1.23rem;
  }
+}
+
+/* SETTINGS */
+
+body[role="application"] section[role="region"] > header .icon.icon-settings
+     { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
+
+section.view[data-state="active"] {
+  -moz-transition: transform 0.5s ease;
 }

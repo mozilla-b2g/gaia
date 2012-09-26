@@ -8,6 +8,7 @@ var ValueSelector = {
   _containers: {},
   _popups: {},
   _buttons: {},
+  _datePicker: null,
 
   debug: function(msg) {
     var debugFlag = false;
@@ -64,6 +65,8 @@ var ValueSelector = {
       document.getElementById('select-option-popup');
     this._popups['time'] =
       document.getElementById('time-picker-popup');
+    this._popups['date'] =
+      document.getElementById('date-picker-popup');
 
     this._buttons['select'] = document.getElementById('select-options-buttons');
     this._buttons['select'].addEventListener('click', this);
@@ -71,7 +74,12 @@ var ValueSelector = {
     this._buttons['time'] = document.getElementById('time-picker-buttons');
     this._buttons['time'].addEventListener('click', this);
 
+    this._buttons['date'] = document.getElementById('date-picker-buttons');
+    this._buttons['date'].addEventListener('click', this);
+
     this._containers['time'] = document.getElementById('picker-bar');
+    this._containers['date'] = document.getElementById('date-picker-container');
+
 
     ActiveEffectHelper.enableActive(this._buttons['select']);
     ActiveEffectHelper.enableActive(this._buttons['time']);
@@ -92,6 +100,7 @@ var ValueSelector = {
         switch (currentTarget) {
           case this._buttons['select']:
           case this._buttons['time']:
+          case this._buttons['date']:
             var target = evt.target;
             if (target.dataset.type == 'cancel') {
               this.cancel();
@@ -177,13 +186,18 @@ var ValueSelector = {
 
       window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
 
-    } else if (this._currentPickerType === 'date' ||
-               this._currentPickerType === 'time') {
+    } else if (this._currentPickerType === 'time') {
 
       var timeValue = TimePicker.getTimeValue();
       this.debug('output value: ' + timeValue);
 
       window.navigator.mozKeyboard.setValue(timeValue);
+    } else if (this._currentPickerType === 'date') {
+      var dateValue = this._datePicker.value;
+      // The format should be 2012-09-19
+      dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
+      this.debug('output value: ' + dateValue);
+      window.navigator.mozKeyboard.setValue(dateValue);
     } else {
       // Multiple select case
       for (var i = 0; i < selectee.length; i++) {
@@ -275,33 +289,35 @@ var ValueSelector = {
 
   showDatePicker: function vs_showDatePicker() {
     this._currentPickerType = 'date';
-    this.buildDatePicker();
     this.show();
-  },
+    this.showPanel('date');
 
-  buildDatePicker: function vs_buildDatePicker() {
-    var optionHTML = '<ol>';
+    if (!this._datePicker) {
+      var picker = new DatePicker(this._containers['date']);
+      this._datePicker = picker;
 
-    //TODO: for test only
-    var options = [
-       '2012/08/01',
-       '2012/08/02'
-    ];
+      var nextEl = document.querySelector('.next');
+      var prevEl = document.querySelector('.previous');
+      var accept = document.querySelector('#date-picker-confirm');
 
-    for (var i = 0, n = options.length; i < n; i++) {
+      nextEl.onclick = function() {
+        picker.next();
+      }
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      prevEl.onclick = function() {
+        picker.previous();
+      }
 
-      optionHTML += '<li data-option-value="' + options[i] + '"' +
-                     checked + '>' +
-                     options[i] +
-                     '<span class="checkmark">&#10004;</span>' +
-                    '</li>';
+      var currentMonth = document.getElementById('current-month');
+      var updateMonth = function updateMonth(date) {
+        picker.value = null;
+        currentMonth.textContent = date.toLocaleFormat('%B %Y');
+      }
+      picker.onmonthchange = updateMonth;
+
+      var date = new Date();
+      picker.display(date.getFullYear(), date.getMonth());
     }
-
-    optionHTML += '</ol>';
-
-    this._container.innerHTML = optionHTML;
   }
 };
 
@@ -309,7 +325,8 @@ var TimePicker = {
   timePicker: {
     hour: null,
     minute: null,
-    hour24State: null
+    hour24State: null,
+    is12hFormat: false
   },
 
   get hourSelector() {
@@ -330,10 +347,16 @@ var TimePicker = {
       document.getElementById('value-picker-hour24-state');
   },
 
-  initTimePicker: function aev_initTimePicker() {
+  initTimePicker: function tp_initTimePicker() {
+    var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
+    this.timePicker.is12hFormat = is12hFormat;
+    this.setTimePickerStyle();
+    var startHour = is12hFormat ? 1 : 0;
+    var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
     var hourDisplayedText = [];
-    for (var i = 1; i < 13; i++) {
+    for (var i = startHour; i < endHour; i++) {
       var value = i;
       hourDisplayedText.push(value);
     }
@@ -355,20 +378,32 @@ var TimePicker = {
     this.timePicker.minute =
       new ValuePicker(this.minuteSelector, minuteUnitStyle);
 
-    var hour24StateUnitStyle = {
-      valueDisplayedText: ['AM', 'PM'],
-      className: unitClassName
-    };
-    this.timePicker.hour24State =
-      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    if (is12hFormat) {
+      var hour24StateUnitStyle = {
+        valueDisplayedText: ['AM', 'PM'],
+        className: unitClassName
+      };
+      this.timePicker.hour24State =
+        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    }
+  },
+
+  setTimePickerStyle: function tp_setTimePickerStyle() {
+    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    document.getElementById('picker-bar').classList.add(style);
   },
 
   // return a string for the time value, format: "16:37"
-  getTimeValue: function aev_getTimeValue() {
-    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-    var hour = this.timePicker.hour.getSelectedDisplayedText();
-    hour = (hour == 12) ? 0 : hour;
-    hour = hour + hour24Offset;
+  getTimeValue: function tp_getTimeValue() {
+    var hour = 0;
+    if (this.timePicker.is12hFormat) {
+      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+      hour = this.timePicker.hour.getSelectedDisplayedText();
+      hour = (hour == 12) ? 0 : hour;
+      hour = hour + hour24Offset;
+    } else {
+      hour = this.timePicker.hour.getSelectedIndex();
+    }
     var minute = this.timePicker.minute.getSelectedDisplayedText();
 
     return hour + ':' + minute;

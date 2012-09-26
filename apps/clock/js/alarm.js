@@ -552,7 +552,8 @@ var AlarmEditView = {
   timePicker: {
     hour: null,
     minute: null,
-    hour24State: null
+    hour24State: null,
+    is12hFormat: false
   },
 
   get element() {
@@ -642,9 +643,14 @@ var AlarmEditView = {
   },
 
   initTimePicker: function aev_initTimePicker() {
+    var is12h = is12hFormat();
+    this.timePicker.is12hFormat = is12h;
+    this.setTimePickerStyle();
+    var startHour = is12h ? 1 : 0;
+    var endHour = is12h ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
     var hourDisplayedText = [];
-    for (var i = 1; i < 13; i++) {
+    for (var i = startHour; i < endHour; i++) {
       var value = i;
       hourDisplayedText.push(value);
     }
@@ -666,12 +672,19 @@ var AlarmEditView = {
     this.timePicker.minute =
       new ValuePicker(this.minuteSelector, minuteUnitStyle);
 
-    var hour24StateUnitStyle = {
-      valueDisplayedText: ['AM', 'PM'],
-      className: unitClassName
-    };
-    this.timePicker.hour24State =
-      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    if (is12h) {
+      var hour24StateUnitStyle = {
+        valueDisplayedText: ['AM', 'PM'],
+        className: unitClassName
+      };
+      this.timePicker.hour24State =
+        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    }
+  },
+
+  setTimePickerStyle: function aev_setTimePickerStyle() {
+    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    document.getElementById('picker-bar').classList.add(style);
   },
 
   handleEvent: function aev_handleEvent(evt) {
@@ -751,13 +764,19 @@ var AlarmEditView = {
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
-    var hour = (alarm.hour % 12);
-    hour = (hour == 0) ? 12 : hour;
-    // 24-hour state value selector: AM = 0, PM = 1
-    var hour24State = (alarm.hour >= 12) ? 1 : 0;
-    this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
+    // Set the value of time picker according to alarm time.
+    if (this.timePicker.is12hFormat) {
+      var hour = (alarm.hour % 12);
+      hour = (hour == 0) ? 12 : hour;
+      // 24-hour state value selector: AM = 0, PM = 1
+      var hour24State = (alarm.hour >= 12) ? 1 : 0;
+      this.timePicker.hour.setSelectedIndexByDisplayedText(hour);
+      this.timePicker.hour24State.setSelectedIndex(hour24State);
+    } else {
+      this.timePicker.hour.setSelectedIndex(alarm.hour);
+    }
     this.timePicker.minute.setSelectedIndex(alarm.minute);
-    this.timePicker.hour24State.setSelectedIndex(hour24State);
+    // Init repeat, sound, snooze selection menu.
     this.initRepeatSelect();
     this.refreshRepeatMenu();
     this.initSoundSelect();
@@ -827,11 +846,16 @@ var AlarmEditView = {
     var label = this.labelInput.value;
     this.alarm.label = (label) ? label : 'Alarm';
     this.alarm.enabled = true;
-    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-    var hour = this.timePicker.hour.getSelectedDisplayedText();
-    hour = (hour == 12) ? 0 : hour;
-    hour = hour + hour24Offset;
-    this.alarm.hour = hour;
+    // Get alarm time from time picker.
+    if (this.timePicker.is12hFormat) {
+      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+      var hour = this.timePicker.hour.getSelectedDisplayedText();
+      hour = (hour == 12) ? 0 : hour;
+      hour = hour + hour24Offset;
+      this.alarm.hour = hour;
+    } else {
+      this.alarm.hour = this.timePicker.hour.getSelectedIndex();
+    }
     this.alarm.minute = this.timePicker.minute.getSelectedDisplayedText();
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();

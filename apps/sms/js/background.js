@@ -5,6 +5,12 @@
   if (!mozSms)
     return;
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
+  }
+
   /* === Setup === */
   var ringtonePlayer = new Audio();
 
@@ -39,7 +45,6 @@
     if (activateSMSVibration && 'vibrate' in navigator) {
       navigator.vibrate([200, 200, 200, 200]);
     }
-    PhoneNumberManager.init();
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
 
@@ -55,11 +60,11 @@
         app.launch();
       };
 
-      ContactDataManager.getContactData(message.sender,
+      Contacts.findByNumber(message.sender,
       function gotContact(contact) {
         var sender;
-        if (contact && contact.length > 0) {
-          sender = contact[0].name;
+        if (contact) {
+          sender = contact.name;
         } else {
           sender = message.sender;
         }
