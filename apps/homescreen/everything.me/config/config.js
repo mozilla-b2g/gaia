@@ -18,6 +18,7 @@ Evme.__config = {
     "minHeightForMoreButton": 470,
     "minimumLettersForSearch": 1,
     "defaultBGImage": "/everything.me/images/clouds.jpg?1",
+    "bgImageSize": [320, 460],
     "defaultSuggestions": [
         "News",
         "Music",

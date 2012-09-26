@@ -1439,8 +1439,8 @@ Evme.Brain = new function() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": screen.width,
-                "height": screen.height
+                "width": Evme.__config.bgImageSize[0] || screen.width,
+                "height": Evme.__config.bgImageSize[1] || screen.height
             }, getBackgroundImageComplete);
         };
 
