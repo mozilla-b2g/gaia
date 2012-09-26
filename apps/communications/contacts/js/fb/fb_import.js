@@ -91,6 +91,7 @@ if (typeof fb.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
+      contacts.Search.init(document.getElementById('content'));
     }
 
     UI.end = function(event) {
@@ -104,9 +105,7 @@ if (typeof fb.importer === 'undefined') {
     }
 
     function scrollToCb(groupContainer) {
-      scrollableElement.scrollTop = groupContainer.offsetTop -
-                                    headerElement.clientHeight -
-                                    friendsMsgElement.clientHeight;
+      scrollableElement.scrollTop = groupContainer.offsetTop;
     }
 
     UI.getFriends = function() {

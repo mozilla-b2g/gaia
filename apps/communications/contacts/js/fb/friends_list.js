@@ -42,6 +42,14 @@ contacts.List = (function() {
       var friends = groups[group];
       // For each friend in the group
       friends.forEach(function(friend) {
+        var searchInfo = [];
+        var searchable = ['givenName', 'familyName', 'org'];
+        searchable.forEach(function(field) {
+          if (friend[field] && friend[field][0]) {
+            searchInfo.push(friend[field][0]);
+          }
+        });
+        friend.search = normalizeText(searchInfo.join(' '));
         // New friend appended
         utils.templates.append(ele, friend);
         // We check wether this friend was in the AB or not before
@@ -49,9 +57,7 @@ contacts.List = (function() {
     });
 
     groupsList.removeChild(groupsList.children[0]); // Deleting template
-    FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title',
-                     true);
-    FixedHeader.start();
+    FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title');
 
     if (typeof cb === 'function') {
       window.setTimeout(function() { cb(); }, 0);
