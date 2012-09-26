@@ -50,6 +50,8 @@ var settings = [
  new Setting("phone.ring.incoming", true),
  new Setting("phone.ring.keypad", true),
  new Setting("phone.vibration.incoming", true),
+ new Setting("powersave.enabled", false),
+ new Setting("powersave.threshold", 0),
  new Setting("ril.data.enabled", false),
  new Setting("ril.data.apn", ""),
  new Setting("ril.data.passwd", ""),
