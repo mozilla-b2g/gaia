@@ -17,6 +17,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -30,6 +31,7 @@
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
+    <script type="application/javascript" defer src="js/datetime.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -638,7 +640,47 @@
         </li>
     </section>
 
-    <!-- [TODO] Personalization :: Time & Date -->
+    <!-- Personalization :: Date & Time -->
+    <section role="region" id="time">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="dateAndTime">
+          Date &amp; Time
+        </h1>
+      </header>
+      <ul>
+        <li id="time-nitz-automatic-update">
+          <label class="switch">
+            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
+      </header>
+      <ul id="time-manual" hidden>
+        <li id="setDate">
+          <small id="clock-date"></small>
+          <a data-l10n-id="dateMessage">Date</a>
+          <input type="date" id="date-picker"/>
+        </li>
+        <li id="setTime">
+          <small id="clock-display">
+            <span id="clock-time"></span>
+            <span id="clock-hour24-state"></span>
+          </small>
+          <a data-l10n-id="timeMessage">Time</a>
+          <input type="time" id="time-picker"/>
+        </li>
+        <li>
+          <label>
+            <button id="confirmTime-button">Confirm</button>
+          </label>
+        </li>
+      </ul>
+    </section>
 
     <!-- Personalization :: Language & Region -->
     <section role="region" id="languages" data-leaf>
@@ -1327,9 +1369,9 @@
         <li>
           <a href="#notifications" data-l10n-id="notifications">Notifications</a>
         </li>
-        <li hidden>
+        <li>
           <small id="time-desc"></small>
-          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
+          <a href="#time" data-l10n-id="dateAndTime">Date &amp; Time</a>
         </li>
         <li>
           <small id="language-desc"></small>
