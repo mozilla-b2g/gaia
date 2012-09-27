@@ -66,6 +66,7 @@
   <script defer src="/js/store/event.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/calendar.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/setting.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
@@ -89,7 +90,6 @@
 
   <!-- workers / main / controller -->
   <script defer src="/js/worker/manager.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/worker/thread.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/service.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/time.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/sync.js" type="text/javascript" charset="utf-8"></script>
@@ -229,9 +229,28 @@
     <h2 data-l10n-id="account-list-header">
       Accounts
     </h2>
-    </header>
+  </header>
 
   <ol class="account-list link-list">
+  </ol>
+
+  <header>
+    <h2 data-l10n-id="advanced-settings-personalization">
+      Personalization
+    </h2>
+  </header>
+
+  <ol class="settings-list link-list">
+    <li>
+      <label>
+        <span data-l10n-id="sync-frequency">Sync Calendar</span>
+        <select id="setting-sync-frequency" name="syncFrequency">
+          <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
+          <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
+          <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
+        </select>
+      </label>
+    </li>
   </ol>
 
 </section>
