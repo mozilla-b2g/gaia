@@ -101,6 +101,7 @@ section[role="region"] > header:first-child sup {
   font-weight: 600;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
+  word-wrap: break-word;
 }
 
 #contact-detail li .item-body-exp {
