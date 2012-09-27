@@ -35,7 +35,7 @@ form.search label {
 form.search input {
   height: 2.5rem;
   pointer-events: none;
-  width: 21.5rem;
+  width: 100%;
 }
 
 form.search button {
