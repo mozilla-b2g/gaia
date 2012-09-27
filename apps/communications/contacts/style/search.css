@@ -96,7 +96,10 @@ form.search button {
   transform: scale(0);
 }
 
-#view-contacts-list.searching #groups-list h2,
+#view-contacts-list.searching #groups-list {
+  display: none;
+}
+
 #content.searching #groups-list h2 {
   display: none;
 }

@@ -92,7 +92,7 @@ h2.block-title {
 }
 
 #mainContent {
-  width: -moz-calc(100% + 0.8rem);
+  width: -moz-calc(100% + 8px);
 
   overflow-x: hidden;
   overflow-y: auto;
@@ -106,8 +106,10 @@ h2.block-title {
 }
 
 #groups-list {
-  width: -moz-calc(100% - 5rem) !important;
-  padding: 0 2.5rem;
+  width: -moz-calc(100% - 5rem - 8px) !important;
+  margin: 0;
+  margin-left: 2.5rem;
+  padding: 0;
 }
 
 #shortcuts {
