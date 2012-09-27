@@ -8,7 +8,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
     this.store = this.app.store('Event');
     this._changeToken = 0;
     this._fields = Object.create(null);
+
     this.save = this.save.bind(this);
+    this.deleteRecord = this.deleteRecord.bind(this);
 
     this._initEvents();
   }
@@ -24,7 +26,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
     selectors: {
       element: '#modify-event-view',
       form: '#modify-event-view form',
-      saveButton: '#modify-event-view .save'
+      saveButton: '#modify-event-view .save',
+      deleteButton: '#modify-event-view .delete-record'
     },
 
     _initEvents: function() {
@@ -35,6 +38,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       calendars.on('update', this._updateCalendarId.bind(this));
 
       this.saveButton.addEventListener('click', this.save);
+      this.deleteButton.addEventListener('click', this.deleteRecord);
     },
 
     /**
@@ -128,6 +132,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
       return this._findElement('form');
     },
 
+    get deleteButton() {
+      return this._findElement('deleteButton');
+    },
+
     get saveButton() {
       return this._findElement('saveButton');
     },
@@ -143,6 +151,27 @@ Calendar.ns('Views').ModifyEvent = (function() {
         }
       }
       return this._fields[name];
+    },
+
+    /**
+     * Returns the url the view will "redirect" to
+     * after completing the current add/edit/delete operation.
+     *
+     * @return {String} redirect url.
+     */
+    returnTo: function() {
+      var defaultValue = '/month/';
+      var path;
+
+      if (this._returnTo && this._returnTo.path) {
+        path = this._returnTo.path;
+      }
+
+      if (/^\/add\//.test(path)) {
+        return defaultValue;
+      }
+
+      return path || defaultValue;
     },
 
     _create: function() {
@@ -166,22 +195,28 @@ Calendar.ns('Views').ModifyEvent = (function() {
         var self = this;
         var redirectTo;
 
-        // setup redirect point once we create the
-        // event we want to display it I would think.
-        if (this._returnTo && this._returnTo.path) {
-          redirectTo = this._returnTo.path;
-        } else {
-          redirectTo = '/month/';
-        }
-
         // mark view as 'in progress' so we can style
         // it via css during that time period
         list.add(this.PROGRESS);
 
         provider.createEvent(this.model.data, function() {
           list.remove(self.PROGRESS);
-          self.app.go(redirectTo);
+          self.app.go(self.returnTo());
         });
+      }
+    },
+
+    /**
+     * Deletes current record if provider is present and has the capability.
+     */
+    deleteRecord: function() {
+      if (this.provider && this.provider.canDeleteEvent) {
+        // XXX: unlike the save we don't wait for the transaction
+        // to complete before moving on. Providers (should) take
+        // action to remove the event from the display instantly
+        // then queue a async action to actually remove the whole event.
+        this.provider.deleteEvent(this.model.data);
+        this.app.go(this.returnTo());
       }
     },
 

@@ -63,6 +63,7 @@ suite('views/modify_event', function() {
     div.innerHTML = [
       '<div id="modify-event-view">',
         '<button class="save">save</button>',
+        '<button class="delete-record">delete</button>',
         '<div class="errors"></div>',
         '<form>',
           '<input name="title" />',
@@ -124,6 +125,10 @@ suite('views/modify_event', function() {
 
   test('.saveButton', function() {
     assert.ok(subject.saveButton);
+  });
+
+  test('.deleteButton', function() {
+    assert.ok(subject.deleteButton);
   });
 
   suite('#_loadModel', function() {
@@ -406,6 +411,44 @@ suite('views/modify_event', function() {
 
   });
 
+  suite('#deleteRecord', function() {
+    var calledWith;
+    var redirectTo;
+    var provider;
+
+    setup(function() {
+      redirectTo = null;
+      calledWith = null;
+      provider = app.provider(account.providerType);
+
+      app.go = function(place) {
+        redirectTo = place;
+      };
+
+      provider.deleteEvent = function() {
+        calledWith = arguments;
+      };
+
+      // setup the delete
+      subject.useModel(event);
+
+      // must come after dispatch
+      subject._returnTo = { path: '/foo' };
+    });
+
+    test('in create mode', function() {
+      subject.provider = null;
+      subject.deleteRecord();
+      assert.ok(!calledWith);
+    });
+
+    test('with valid provider', function() {
+      subject.deleteRecord();
+      assert.equal(calledWith[0], subject.model.data, 'delete event');
+      assert.equal(redirectTo, '/foo', 'redirect');
+    });
+  });
+
   suite('#save', function() {
 
     suite('create', function() {
@@ -415,7 +458,8 @@ suite('views/modify_event', function() {
       var provider;
 
       setup(function() {
-        provider = app.provider(account.providerType);
+        calledWith = null;
+        provider = eventStore.providerFor(event);
         list = subject.element.classList;
 
         app.go = function(place) {
@@ -522,10 +566,21 @@ suite('views/modify_event', function() {
       var option = element.querySelector('[value="' + list.two._id + '"]');
       assert.ok(option, 'removed correct item');
     });
-
   });
 
   suite('dom events', function() {
+    test('delete button click', function(done) {
+      var calledWith;
+      var provider = eventStore.providerFor(event);
+      subject.useModel(event);
+
+      provider.deleteEvent = function() {
+        done();
+      }
+
+      triggerEvent(subject.deleteButton, 'click');
+    });
+
     test('save button click', function() {
       var calledWith;
       subject.dispatch({ params: {} });
