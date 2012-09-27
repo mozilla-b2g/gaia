@@ -171,10 +171,11 @@ var Settings = {
         request.onsuccess = function() {
           var value = request.result[key];
           if (value != undefined) {
-            var selectOption = select.querySelector(
-              'option[value="' + value + '"]');
-            if (selectOption)
+            var option = 'option[value="' + value + '"]';
+            var selectOption = select.querySelector(option);
+            if (selectOption) {
               selectOption.selected = true;
+            }
           }
         };
       })(selects[i]);
