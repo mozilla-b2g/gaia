@@ -109,3 +109,4 @@ window.addEventListener('localized', function SettingsAppStorage(evt) {
     }
   });
 });
+
