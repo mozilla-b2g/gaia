@@ -98,6 +98,12 @@ var metadataParser = (function() {
     offscreenImage.src = url;
 
     offscreenImage.onerror = function() {
+      // XXX When launched as an inline activity this gets into a failure
+      // loop where this function is called over and over. Unsetting
+      // onerror here works around it. I don't know why the error is
+      // happening in the first place..
+      offscreenImage.onerror = null;
+      URL.revokeObjectURL(url);
       offscreenImage.src = null;
       errback('Image failed to load');
     };
@@ -128,7 +134,14 @@ var metadataParser = (function() {
       // If the image was already thumbnail size, it is its own thumbnail
       if (scale >= 1) {
         offscreenImage.src = null;
-        metadata.thumbnail = file;
+        //
+        // XXX
+        // Because of a gecko bug, we can't just store the image file itself
+        // we've got to create an equivalent but distinct blob.
+        // When https://bugzilla.mozilla.org/show_bug.cgi?id=794619 is fixed
+        // the line below can change to just assign file.
+        //
+        metadata.thumbnail = file.slice(0, file.size, file.type);
         callback(metadata);
         return;
       }

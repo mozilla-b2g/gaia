@@ -90,6 +90,10 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onStarMessages.bind(this, true), false);
   domNode.getElementsByClassName('msg-mark-read-btn')[0]
     .addEventListener('click', this.onMarkMessagesRead.bind(this, true), false);
+  domNode.getElementsByClassName('msg-delete-btn')[0]
+    .addEventListener('click', this.onDeleteMessages.bind(this, true), false);
+  domNode.getElementsByClassName('msg-move-btn')[0]
+    .addEventListener('click', this.onMoveMessages.bind(this, true), false);
 
   this.editMode = false;
   this.selectedMessages = null;
@@ -126,7 +130,7 @@ MessageListCard.prototype = {
       var cbs = this.messagesContainer.querySelectorAll('input[type=checkbox]');
       for (var i = 0; i < cbs.length; i++) {
         cbs[i].checked = false;
-      };
+      }
       this.selectedMessagesUpdated();
     }
     else {
@@ -504,13 +508,29 @@ MessageListCard.prototype = {
           case 'msg-edit-menu-mark-unread':
             header.setRead(false);
             break;
+          case 'msg-edit-menu-delete':
+            var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+            if (!req) {
+              return;
+            }
+            op = header.deleteMessage();
+            break;
+          case 'msg-edit-menu-move':
+            // TODO: Move back-end mail api is not ready now.
+            //       Please verify this function when api landed.
+            Cards.folderSelector(function(folder) {
+              op = header.moveMessage(folder);
+              Toaster.logMutation(op);
+            });
+
+            break;
 
           // Deletion, and moves, on the other hand, require a lot of manual
           // labor, so we need to expose their undo op's.
         }
         if (op)
           Toaster.logMutation(op);
-      });
+      }.bind(this));
   },
 
   onRefresh: function() {
@@ -528,6 +548,29 @@ MessageListCard.prototype = {
     var op = MailAPI.markMessagesRead(this.selectedMessages, this.setAsRead);
     this.setEditMode(false);
     Toaster.logMutation(op);
+  },
+
+  onDeleteMessages: function() {
+    // TODO: Batch delete back-end mail api is not ready for IMAP now.
+    //       Please verify this function under IMAP when api completed.
+    var req = confirm(mozL10n.get('message-multiedit-delete-confirm',
+                      { n: this.selectedMessages.length }));
+    if (!req) {
+      return;
+    }
+    var op = MailAPI.deleteMessages(this.selectedMessages);
+    Toaster.logMutation(op);
+    this.setEditMode(false);
+  },
+
+  onMoveMessages: function() {
+    // TODO: Batch move back-end mail api is not ready now.
+    //       Please verify this function when api landed.
+    Cards.folderSelector(function(folder) {
+      var op = MailAPI.moveMessages(this.selectedMessages, folder);
+      Toaster.logMutation(op);
+      this.setEditMode(false);
+    }.bind(this));
   },
 
   buildEditMenuForMessage: function(header) {
@@ -616,6 +659,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
+  domNode.getElementsByClassName('msg-forward-btn')[0]
+    .addEventListener('click', this.onForward.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -665,6 +710,7 @@ MessageReaderCard.prototype = {
   },
 
   onReply: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage(null, function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
@@ -672,13 +718,26 @@ MessageReaderCard.prototype = {
   },
 
   onReplyAll: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage('all', function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });
   },
 
+  onForward: function(event) {
+    Cards.eatEventsUntilNextCard();
+    var composer = this.header.forwardMessage('inline', function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
+  },
+
   onDelete: function() {
+    var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+    if (!req) {
+      return;
+    }
     var op = this.header.deleteMessage();
     Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
@@ -707,9 +766,11 @@ MessageReaderCard.prototype = {
   },
 
   onMove: function() {
-    //TODO: Open the folder card view and pick a folder.
-    // var op = this.header.moveMessage(folder);
-    // Toaster.logMutation(op);
+    //TODO: Please verify move functionality after api landed.
+    Cards.folderSelector(function(folder) {
+      var op = this.header.moveMessage(folder);
+      Toaster.logMutation(op);
+    }.bind(this));
   },
 
   /**

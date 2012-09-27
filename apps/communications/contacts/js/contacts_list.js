@@ -15,9 +15,10 @@ contacts.List = (function() {
       searchBox,
       searchNoResult,
       fastScroll,
-      scrollable;
+      scrollable,
+      settingsView;
 
-  var init = function load(element) {
+  var init = function load(element, overlay) {
     _ = navigator.mozL10n.get;
 
     cancel = document.getElementById('cancel-search'),
@@ -27,6 +28,10 @@ contacts.List = (function() {
     searchNoResult = document.getElementById('no-result'),
     fastScroll = document.querySelector('.view-jumper'),
     scrollable = document.querySelector('#groups-container');
+    settingsView = document.querySelector('#view-settings .view-body-inner');
+
+    addImportFacebookButton();
+    addImportSimButton();
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
@@ -44,7 +49,6 @@ contacts.List = (function() {
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initAlphaScroll();
-    showOverlay();
   }
 
   var initAlphaScroll = function initAlphaScroll() {
@@ -67,13 +71,16 @@ contacts.List = (function() {
     scrollable.scrollTop = domTarget.offsetTop;
   }
 
-  var load = function load(contacts) {
-
+  var load = function load(contacts, overlay) {
+    if (overlay) {
+      showOverlay();
+    }
     var onError = function() {
       console.log('ERROR Retrieving contacts');
     }
 
     getContactsByGroup(onError, contacts);
+
     this.loaded = true;
   };
 
@@ -183,7 +190,7 @@ contacts.List = (function() {
   }
 
   var addImportSimButton = function addImportSimButton() {
-    var container = groupsList.parentNode; // #groups-container
+    var container = settingsView;
 
     if (container.querySelector('#sim_import_button')) {
       return;
@@ -191,7 +198,7 @@ contacts.List = (function() {
 
     var button = document.createElement('button');
     button.id = 'sim_import_button';
-    button.setAttribute('class', 'simContacts action action-add');
+    button.setAttribute('class', 'importContacts action action-add');
     button.textContent = _('simContacts-import');
     container.appendChild(button);
 
@@ -199,13 +206,12 @@ contacts.List = (function() {
 
     button.onclick = function readFromSIM() {
       // replace the button with a throbber
-      container.removeChild(button);
       var span = document.createElement('span');
       span.textContent = _('simContacts-importing');
       var small = document.createElement('small');
       small.textContent = _('simContacts-reading');
       var throbber = document.createElement('p');
-      throbber.className = 'simContacts';
+      throbber.className = 'importContacts';
       throbber.appendChild(span);
       throbber.appendChild(small);
       container.appendChild(throbber);
@@ -217,22 +223,28 @@ contacts.List = (function() {
           },
           function onimport() {
             container.removeChild(throbber);
-            getContactsByGroup();
+            load();
           },
           function onerror() {
-            container.removeChild(throbber);
             console.log('Error reading SIM contacts.');
           }
       );
     };
   }
 
-  var removeImportSimButton = function removeImportSimButton() {
-    var container = groupsList.parentNode; // #groups-container
-    var button = container.querySelector('button.simContacts');
-    if (button) {
-      container.removeChild(button);
+  var addImportFacebookButton = function addImportFacebookButton() {
+    var container = settingsView;
+    if (container.querySelector('#fb_import_button') || !fb.isEnabled) {
+      return;
     }
+
+    var button = document.createElement('button');
+    button.id = 'fb_import_button';
+    button.setAttribute('class', 'importContacts action action-add');
+    button.textContent = _('facebook-import');
+    container.appendChild(button);
+
+    button.onclick = Contacts.extFb.importFB;
   }
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
@@ -286,7 +298,6 @@ contacts.List = (function() {
     }
     renderFavorites(favorites);
     cleanLastElements(counter);
-    checkEmptyList();
     hideOverlay();
     FixedHeader.refresh();
   };
@@ -313,15 +324,6 @@ contacts.List = (function() {
         resetGroup(currentGroup, currentCount);
       }
       currentCount > 0 ? showGroup(group) : hideGroup(group);
-    }
-  }
-
-  var checkEmptyList = function checkEmptyList() {
-    // Check if we removed all the groups, and show the import contacts from SIM
-    var selectorString = 'li h2:not(.hide)';
-    var nodes = groupsList.querySelectorAll(selectorString);
-    if (nodes.length == 0) {
-      addImportSimButton();
     }
   }
 
@@ -373,7 +375,7 @@ contacts.List = (function() {
   }
 
   var getContactsByGroup = function gCtByGroup(errorCb, contacts) {
-    if (typeof contacts !== 'undefined') {
+    if (contacts) {
       buildContacts(contacts);
       return;
     }
@@ -447,7 +449,6 @@ contacts.List = (function() {
 
     var list = groupsList.querySelector('#contacts-list-' + group);
 
-    removeImportSimButton();
     addToGroup(theContact, list);
 
     if (list.children.length === 1) {
@@ -534,7 +535,6 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
-    checkEmptyList();
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
@@ -578,6 +578,10 @@ contacts.List = (function() {
   var callbacks = [];
   var handleClick = function handleClick(callback) {
     callbacks.push(callback);
+  }
+
+  var clearClickHandlers = function clearClickHandlers() {
+    callbacks = [];
   }
 
   function onClickHandler(evt) {
@@ -670,6 +674,7 @@ contacts.List = (function() {
     'search': search,
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
-    'loaded': loaded
+    'loaded': loaded,
+    'clearClickHandlers': clearClickHandlers
   };
 })();

@@ -7,7 +7,7 @@ var MailAPI = null;
 
 var App = {
   /**
-   * Bind any global notifications.
+   * Bind any global notifications, relay localizations to the back-end.
    */
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
@@ -17,6 +17,19 @@ var App = {
                      { account: account, restoreCard: Cards.activeCardIndex },
                      'right');
     };
+
+    MailAPI.useLocalizedStrings({
+      wrote: mozL10n.get('reply-quoting-wrote'),
+      originalMessage: mozL10n.get('forward-original-message'),
+      forwardHeaderLabels: {
+        subject: mozL10n.get('forward-header-subject'),
+        date: mozL10n.get('forward-header-date'),
+        from: mozL10n.get('forward-header-from'),
+        replyTo: mozL10n.get('forward-header-reply-to'),
+        to: mozL10n.get('forward-header-to'),
+        cc: mozL10n.get('forward-header-cc'),
+      }
+    });
   },
 
   /**
@@ -65,6 +78,12 @@ var App = {
       // - no accounts, show the setup page!
       else {
         acctsSlice.die();
+        if (activityCallback) {
+          var result = activityCallback();
+          activityCallback = null;
+          if (!result)
+            return;
+        }
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
@@ -157,8 +176,23 @@ if ('mozSetMessageHandler' in window.navigator) {
       if (!to)
         return;
 
-      var folderToUse = Cards._cardStack[Cards
-        ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      var folderToUse;
+      try {
+        folderToUse = Cards._cardStack[Cards
+          ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      } catch (e) {
+        var req = confirm(mozL10n.get('setup-empty-account-prompt'));
+        // TODO: Since we can not switch back to previous app if activity type
+        //       is not "pick", both buttons in confirm dialog will enter setup
+        //       page now.
+        //
+        // if (!req) {
+        //   activity.postError('No Email Account');
+        //   return false;
+        // }
+        activity.postResult({ status: 'accepted' });
+        return true;
+      }
       var composer = MailAPI.beginMessageComposition(
         null, folderToUse, null,
         function() {
@@ -177,7 +211,7 @@ if ('mozSetMessageHandler' in window.navigator) {
           Cards.pushCard('compose',
             'default', 'immediate', { composer: composer });
         });
-
+      activity.postResult({ status: 'accepted' });
     };
 
     if (document.readyState == 'complete') {
@@ -186,6 +220,5 @@ if ('mozSetMessageHandler' in window.navigator) {
       activityCallback = sendMail;
     }
 
-    activity.postResult({ status: 'accepted' });
   });
 }

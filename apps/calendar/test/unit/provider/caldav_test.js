@@ -1,6 +1,10 @@
 requireApp('calendar/test/unit/helper.js', function() {
+  requireApp('calendar/test/unit/provider/mock_stream.js');
+  requireLib('provider/caldav_pull_events.js');
   requireLib('provider/abstract.js');
   requireLib('provider/caldav.js');
+  requireLib('models/account.js');
+  requireLib('models/calendar.js');
 });
 
 suite('provider/caldav', function() {
@@ -8,14 +12,36 @@ suite('provider/caldav', function() {
   var subject;
   var app;
   var controller;
+  var db;
 
-  setup(function() {
+  var calendarStore;
+  var eventStore;
+
+  setup(function(done) {
+    this.timeout(10000);
     app = testSupport.calendar.app();
     controller = app.serviceController;
+    db = app.db;
 
     subject = new Calendar.Provider.Caldav({
       app: app
     });
+
+    calendarStore = app.store('Calendar');
+    eventStore = app.store('Event');
+    db.open(done);
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      db,
+      ['accounts', 'calendars', 'events', 'busytimes'],
+      done
+    );
+  });
+
+  teardown(function() {
+    db.close();
   });
 
   test('initialization', function() {
@@ -83,5 +109,82 @@ suite('provider/caldav', function() {
       });
     });
   });
+
+  suite('#_buildEventsFor', function() {
+    var events = [];
+    var calendar;
+
+    setup(function(done) {
+      events.length = 0;
+      calendar = Factory('calendar');
+      calendarStore.persist(calendar, done);
+    });
+
+    // create some events
+    var i = 0;
+    for (; i < 2; i++) {
+      setup(function(done) {
+        var event = Factory('event', {
+          calendarId: calendar._id
+        });
+
+        events.push(event);
+        eventStore.persist(event, done);
+      });
+    }
+
+    test('result', function(done) {
+      var expected = Object.create(null);
+      events.forEach(function(item) {
+        expected[item._id] = item;
+      });
+
+      subject._buildEventsFor(calendar, function(err, result) {
+        done(function() {
+          assert.deepEqual(result, expected);
+        });
+      });
+    });
+
+  });
+
+  suite('#syncEvents - calendar syncToken skip', function() {
+    var account, calendar;
+
+    setup(function() {
+      account = Factory('account', {
+        providerType: 'Caldav'
+      });
+
+      calendar = Factory('calendar', {
+        _id: 1,
+        lastEventSyncToken: 'synced',
+        remote: { syncToken: 'synced' }
+      });
+
+    });
+
+    setup(function(done) {
+      app.store('Account').persist(account, done);
+    });
+
+    setup(function(done) {
+      calendarStore.persist(calendar, done);
+    });
+
+    test('result', function(done) {
+      subject._syncEvents = function() {
+        done(new Error('should not sync!'));
+      }
+
+      // tokens match should not sync!
+      subject.syncEvents(account, calendar, function() {
+        done();
+      });
+    });
+  });
+
+
+
 });
 

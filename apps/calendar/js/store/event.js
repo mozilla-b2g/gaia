@@ -9,10 +9,27 @@
     _store: 'events',
     _dependentStores: ['events', 'busytimes'],
 
+    _createModel: function(input, id) {
+      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var model = _super.apply(this, arguments);
+
+      model.remote.startDate = Calendar.Calc.dateFromTransport(
+        model.remote.start
+      );
+
+      model.remote.endDate = Calendar.Calc.dateFromTransport(
+        model.remote.end
+      );
+
+      return model;
+    },
+
     /**
      * Link busytime dependants see _addDependents.
      */
     _removeDependents: function(id, trans) {
+      this.removeByIndex('parentId', id, trans);
+
       var busy = this.db.getStore('Busytime');
       busy.removeEvent(id, trans);
     },
@@ -144,7 +161,7 @@
      * and returns results. Does not cache.
      *
      * @param {String} calendarId calendar to find.
-     * @param {Function} callback node style err, array of events.
+     * @param {Function} callback node style [err, array of events].
      */
     eventsForCalendar: function(calendarId, callback) {
       var trans = this.db.transaction('events');
@@ -182,13 +199,14 @@
      * This method is automatically called downstream of a calendar
      * removal as part of the _removeDependents step.
      *
-     * @param {Numeric} calendarId should match index.
+     * @param {String} indexName name of event index.
+     * @param {Numeric} indexValue should match index.
      * @param {IDBTransation} [trans] optional transaction to reuse.
      * @param {Function} [callback] optional callback to use.
      *                   When called without a transaction chances
      *                   are you should pass a callback.
      */
-    removeByCalendarId: function(calendarId, trans, callback) {
+    removeByIndex: function(indexName, indexValue, trans, callback) {
       var self = this;
       if (typeof(trans) === 'function') {
         callback = trans;
@@ -211,9 +229,9 @@
         });
       }
 
-      var index = trans.objectStore('events').index('calendarId');
+      var index = trans.objectStore('events').index(indexName);
       var req = index.openCursor(
-        IDBKeyRange.only(calendarId)
+        IDBKeyRange.only(indexValue)
       );
 
       req.onsuccess = function(event) {
@@ -223,8 +241,10 @@
           //     action here? Events are not tied
           //     directly to anything else right now but they
           //     may be in the future...
-          self._removeFromCache(cursor.primaryKey);
+
+          // remove deps first intentionally to mimic, removes normal behaviour
           self._removeDependents(cursor.primaryKey, trans);
+          self._removeFromCache(cursor.primaryKey);
           cursor.delete();
           cursor.continue();
         }

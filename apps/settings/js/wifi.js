@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -15,15 +15,17 @@ var gWifiManager = (function(window) {
     dump(e);
   }
 
-  /** fake network list, where each network object looks like:
-    * {
-    *   ssid              : SSID string (human-readable name)
-    *   bssid             : network identifier string
-    *   capabilities      : array of strings (supported authentication methods)
-    *   relSignalStrength : 0-100 signal level (integer)
-    *   connected         : boolean state
-    * }
-    */
+  /**
+   * fake network list, where each network object looks like:
+   * {
+   *   ssid              : SSID string (human-readable name)
+   *   bssid             : network identifier string
+   *   capabilities      : array of strings (supported authentication methods)
+   *   relSignalStrength : 0-100 signal level (integer)
+   *   connected         : boolean state
+   * }
+   */
+
   var fakeNetworks = {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
@@ -162,27 +164,30 @@ window.addEventListener('localized', function wifiSettings(evt) {
   var gWpsInfoBlock = document.querySelector('#wps-column small');
   var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
 
+  var gCurrentNetwork = gWifiManager.connection.network;
+
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
     settings.createLock().set({'wifi.enabled': this.checked});
   };
 
-  /** mozWifiManager status
-    * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
-    *  - connecting:
-    *        fires when we start the process of connecting to a network.
-    *  - associated:
-    *        fires when we have connected to an access point but do not yet
-    *        have an IP address.
-    *  - connected:
-    *        fires once we are fully connected to an access point and can
-    *        access the internet.
-    *  - disconnected:
-    *        fires when we either fail to connect to an access point
-    *          (transition: associated -> disconnected)
-    *        or when we were connected to a network but have disconnected
-    *          (transition: connected -> disconnected).
-    */
+  /**
+   * mozWifiManager status
+   * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
+   *  - connecting:
+   *        fires when we start the process of connecting to a network.
+   *  - associated:
+   *        fires when we have connected to an access point but do not yet
+   *        have an IP address.
+   *  - connected:
+   *        fires once we are fully connected to an access point.
+   *  - connectingfailed:
+   *        fires when we fail to connect to an access point.
+   *  - disconnected:
+   *        fires when we were connected to a network but have been
+   *        disconnected.
+   */
+
   gWifiManager.onstatuschange = function(event) {
     updateNetworkState();
 
@@ -220,7 +225,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           ' [' + req.error.name + ']';
       };
     } else {
-      wpsDialog('#wifi-wps', wpsCallback);
+      wpsDialog('wifi-wps', wpsCallback);
     }
 
     function wpsCallback(method, pin) {
@@ -253,18 +258,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
       };
     }
 
-    function wpsDialog(selector, callback) {
-      var dialog = document.querySelector(selector);
+    function wpsDialog(dialogID, callback) {
+      var dialog = document.getElementById(dialogID);
       if (!dialog)
         return null;
 
       // hide dialog box
-      function close() {
-        // 'close' (hide) the dialog
-        dialog.removeAttribute('class');
-        return false; // ignore <form> action
-      }
-
       function pinChecksum(pin) {
         var accum = 0;
         while (pin > 0) {
@@ -287,9 +286,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return pinChecksum(Math.floor(num / 10)) === (num % 10);
       }
 
-      var submitWpsButton = dialog.querySelector('footer button');
-      var pinDesc = dialog.querySelector('#wifi-wps-pin-area span');
-      var pinInput = dialog.querySelector('#wifi-wps-pin-area input');
+      var submitWpsButton = dialog.querySelector('button[type=submit]');
+      var pinItem = document.getElementById('wifi-wps-pin-area');
+      var pinDesc = pinItem.querySelector('p');
+      var pinInput = pinItem.querySelector('input');
       pinInput.onchange = function() {
         submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
       }
@@ -299,12 +299,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
           dialog.querySelector("input[type='radio']:checked").value;
         if (method === 'apPin') {
           submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-          pinDesc.hidden = false;
-          pinInput.hidden = false;
+          pinItem.hidden = false;
         } else {
           submitWpsButton.disabled = false;
-          pinDesc.hidden = true;
-          pinInput.hidden = true;
+          pinItem.hidden = true;
         }
       }
 
@@ -314,17 +312,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
       }
       onWpsMethodChange();
 
-      // OK|Cancel buttons
-      dialog.onreset = close;
-      dialog.onsubmit = function() {
+      openDialog(dialogID, function submit() {
         callback(dialog.querySelector("input[type='radio']:checked").value,
           pinInput.value);
-        return close();
-      };
-
-      // show dialog box
-      dialog.className = 'active';
-      return dialog;
+      });
     }
   };
 
@@ -504,7 +495,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   function toggleNetwork(network) {
     if (isConnected(network)) {
       // online: show status + offer to disconnect
-      wifiDialog('#wifi-status', wifiDisconnect);
+      wifiDialog('wifi-status', wifiDisconnect);
     } else if (network.password && (network.password == '*')) {
       // offline, known network (hence the '*' password value):
       // no further authentication required.
@@ -517,7 +508,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         case 'WEP':
         case 'WPA-PSK':
         case 'WPA-EAP':
-          wifiDialog('#wifi-auth', wifiConnect, key);
+          wifiDialog('wifi-auth', wifiConnect, key);
           break;
         default:
           wifiConnect();
@@ -525,6 +516,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     function wifiConnect() {
+      gCurrentNetwork = network;
       gWifiManager.associate(network);
       gNetworkList.display(network.ssid, _('shortStatus-connecting'));
     }
@@ -534,6 +526,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.display(network.ssid, _('shortStatus-disconnected'));
       // get available network list
       gNetworkList.scan();
+      gCurrentNetwork = null;
     }
 
     function getKeyManagement() {
@@ -563,9 +556,9 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     // generic wifi property dialog
-    function wifiDialog(selector, callback, key) {
-      var dialog = document.querySelector(selector);
-      if (!dialog || !network)
+    function wifiDialog(dialogID, callback, key) {
+      var dialog = document.getElementById(dialogID);
+      if (!network)
         return null;
 
       // network info
@@ -602,20 +595,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.type = this.checked ? 'text' : 'password';
         };
 
-        // XXX hack: hide the footer (which contains the 'OK' button...)
-        //           when the virtual keyboard is shown
-        var footer = dialog.querySelector('footer');
-        var inputs = dialog.querySelectorAll('[type=text], [type=password]');
-        for (var i = 0; i < inputs.length; i++) {
-          inputs[i].onfocus = function hideFooter() {
-            footer.style.display = 'none';
-          };
-          inputs[i].onblur = function showFooter() {
-            footer.style.display = 'block';
-          };
-        }
-
-        var submitButton = footer.querySelector('button');
+        var submitButton = dialog.querySelector('button[type=submit]');
         if (key === 'WPA-PSK') {
           password.onchange = function() {
             submitButton.disabled = password.value.length < 8;
@@ -627,8 +607,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
         }
       }
 
-      // hide dialog box
-      function close() {
+      // reset dialog box
+      function reset() {
         if (speed) {
           gWifiManager.connectionInfoUpdate = null;
         }
@@ -638,39 +618,41 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.value = '';
           showPassword.checked = false;
         }
-        // 'close' (hide) the dialog
-        dialog.removeAttribute('class');
-        return false; // ignore <form> action
       }
 
       // OK|Cancel buttons
-      dialog.onreset = close;
-      dialog.onsubmit = function() {
+      function submit() {
         if (key) {
           setPassword(password.value, identity.value);
         }
         if (callback) {
           callback();
         }
-        return close();
+        reset();
       };
 
       // show dialog box
-      dialog.className = 'active ' + key;
-      return dialog;
+      openDialog(dialogID, submit, reset);
     }
   }
 
   // update network state, called only when wifi enabled.
   function updateNetworkState() {
-    var currentNetwork = gWifiManager.connection.network;
     var networkStatus = gWifiManager.connection.status;
-    if (networkStatus === 'disconnected') {
-      gWifiInfoBlock.textContent = _('fullStatus-disconnected');
-    } else {
-      gWifiInfoBlock.textContent =
-          _('fullStatus-' + networkStatus, currentNetwork);
+
+    // networkStatus has one of the following values:
+    // connecting, associated, connected, connectingfailed, disconnected.
+    gWifiInfoBlock.textContent =
+        _('fullStatus-' + networkStatus, gWifiManager.connection.network);
+
+    if (networkStatus === 'connectingfailed') {
+      // connection has failed, probably an authentication issue...
+      delete(gCurrentNetwork.password); // force a new authentication dialog
+      gNetworkList.display(gCurrentNetwork.ssid,
+          _('shortStatus-connectingfailed'));
+      gCurrentNetwork = null;
     }
+
     if (gWpsInProgress) {
       if (networkStatus !== 'disconnected') {
         gWpsInfoBlock.textContent = gWifiInfoBlock.textContent;
@@ -689,8 +671,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
     gWifiCheckBox.checked = value;
     if (value) {
       // gWifiManager may not be ready (enabled) at this moment.
-      // to be responsive, show 'initializing' status and 'search...' first.
-      // a 'scan' would be called when gWifiManager is enabled.
+      // To be responsive, show 'initializing' status and 'search...' first.
+      // A 'scan' would be called when gWifiManager is enabled.
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
     } else {

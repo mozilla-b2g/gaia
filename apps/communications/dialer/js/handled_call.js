@@ -84,18 +84,19 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   var voicemail = navigator.mozVoicemail;
   if (voicemail) {
     if (voicemail.number == number) {
-      node.textContent = voicemail.displayName;
+      node.textContent = voicemail.displayName ?
+        voicemail.displayName : number;
       return;
     }
   }
 
   var self = this;
-  Contacts.findByNumber(number, function lookupContact(contact) {
+  Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
     if (contact && contact.name) {
       node.textContent = contact.name;
       KeypadManager.formatPhoneNumber('right');
-      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        number, contact);
+      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
+                                                              contact);
       additionalInfoNode.textContent = additionalInfo ?
         additionalInfo : '';
       if (contact.photo && contact.photo.length > 0) {

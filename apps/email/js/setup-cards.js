@@ -21,7 +21,7 @@ var MAIL_SERVICES = [
   {
     name: 'GmaiL AccounT',
     l10nId: 'setup-gmail-account',
-    domain: 'gmail.com',
+    domain: 'gmail.com'
   },
   {
     name: 'OtheR EmaiL',
@@ -107,8 +107,8 @@ function SetupAccountInfoCard(domNode, mode, args) {
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
 
-  var nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
-  nextButton.addEventListener('click', this.onNext.bind(this), false);
+  this.nextButton = domNode.getElementsByClassName('sup-info-next-btn')[0];
+  this.nextButton.addEventListener('click', this.onNext.bind(this), false);
 
   // placeholders need to be translated; they aren't automatically done
   // XXX actually, can we just have the l10n use ".placeholder"?
@@ -129,11 +129,17 @@ function SetupAccountInfoCard(domNode, mode, args) {
   this.passwordNode.setAttribute(
     'placeholder', mozL10n.get('setup-info-password-placeholder'));
 
+  // Add input event handler to prevent user submit empty name or password.
+  this.emailNode.addEventListener('input', this.onInfoInput.bind(this));
+  this.nameNode.addEventListener('input', this.onInfoInput.bind(this));
+  this.passwordNode.addEventListener('input', this.onInfoInput.bind(this));
+
   // XXX testing, fake account
   if (args.serviceDef.domain === 'example.com') {
     this.nameNode.value = 'John Madeup';
     this.emailNode.value = 'john@example.com';
     this.passwordNode.value = 'secret!sosecret!';
+    this.nextButton.disabled = false;
   }
 }
 SetupAccountInfoCard.prototype = {
@@ -155,7 +161,15 @@ SetupAccountInfoCard.prototype = {
         password: this.passwordNode.value
       });
   },
-
+  onInfoInput: function(event) {
+    var nameValid = this.nameNode.classList.contains('collapsed') ||
+                    this.nameNode.value.length > 0;
+    var emailValid = this.emailNode.classList.contains('collapsed') ||
+                     this.emailNode.value.length > 0;
+    var passwordValid = this.passwordNode.classList.contains('collapsed') ||
+                        this.passwordNode.value.length > 0;
+    this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
+  },
   die: function() {
   }
 };
@@ -464,16 +478,59 @@ Cards.defineCardWithDefaultMode(
  */
 function SettingsAccountCard(domNode, mode, args) {
   this.domNode = domNode;
+  this.account = args.account;
+
+  var serversContainer =
+    domNode.getElementsByClassName('tng-account-server-container')[0];
 
   domNode.getElementsByClassName('tng-account-header-label')[0]
     .textContent = args.account.name;
 
   domNode.getElementsByClassName('tng-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
+
+  // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
+  domNode.getElementsByClassName('tng-account-type')[0].textContent =
+    (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
+
+  this.account.servers.forEach(function(server, index) {
+    var serverNode = tngNodes['account-settings-server'].cloneNode(true);
+    var serverLabel =
+      serverNode.getElementsByClassName('tng-account-server-label')[0];
+
+    serverLabel.textContent = mozL10n.get('settings-' + server.type + '-label');
+    serverLabel.addEventListener('click',
+      this.onClickServers.bind(this, index), false);
+
+    serversContainer.appendChild(serverNode);
+  }.bind(this));
+
+  domNode.getElementsByClassName('tng-account-credentials')[0]
+    .addEventListener('click',
+      this.onClickCredentials.bind(this), false);
 }
 SettingsAccountCard.prototype = {
   onBack: function() {
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  onClickCredentials: function() {
+    Cards.pushCard(
+      'settings-account-credentials', 'default', 'animate',
+      {
+        account: this.account
+      },
+      'right');
+  },
+
+  onClickServers: function(index) {
+    Cards.pushCard(
+      'settings-account-servers', 'default', 'animate',
+      {
+        account: this.account,
+        index: index
+      },
+      'right');
   },
 
   die: function() {
@@ -483,6 +540,113 @@ Cards.defineCardWithDefaultMode(
     'settings-account',
     { tray: false },
     SettingsAccountCard
+);
+
+/**
+ * Per-account credentials settings, it can be activesync or imap+smtp
+ */
+function SettingsAccountCredentialsCard(domNode, mode, args) {
+  this.domNode = domNode;
+  this.account = args.account;
+
+  var connInfoContainer =
+    domNode.getElementsByClassName('tng-account-connInfo-container')[0];
+
+  domNode.getElementsByClassName('tng-account-header-label')[0]
+    .textContent = this.account.name;
+
+  domNode.getElementsByClassName('tng-back-btn')[0]
+    .addEventListener('click', this.onBack.bind(this), false);
+
+  domNode.getElementsByClassName('tng-account-save')[0]
+    .addEventListener('click', this.onBack.bind(this), false);
+
+  var usernameNodeInput =
+    this.domNode.getElementsByClassName('tng-server-username-input')[0];
+  usernameNodeInput.setAttribute('placeholder',
+                                 mozL10n.get('settings-username'));
+  this.passwordNodeInput =
+    this.domNode.getElementsByClassName('tng-server-password-input')[0];
+  this.passwordNodeInput.setAttribute('placeholder',
+                                      mozL10n.get('settings-password'));
+
+  usernameNodeInput.value = this.account.username;
+  this.passwordNodeInput.value = '********';
+}
+SettingsAccountCredentialsCard.prototype = {
+  onBack: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  onClickSave: function() {
+    var password = this.passwordNodeInput.value;
+
+    if (password) {
+      this.account.modifyAccount({password: password});
+      this.account.clearProblems();
+    } else {
+      alert(mozL10n.get('settings-password-empty'));
+    }
+
+    this.onBack();
+  },
+
+  die: function() {
+  }
+};
+Cards.defineCardWithDefaultMode(
+    'settings-account-credentials',
+    { tray: false },
+    SettingsAccountCredentialsCard
+);
+
+/**
+ * Per-account server settings, it can be activesync or imap+smtp
+ */
+function SettingsAccountServerCard(domNode, mode, args) {
+  this.domNode = domNode;
+  this.account = args.account;
+  this.server = args.account.servers[args.index];
+
+  var connInfoContainer =
+    domNode.getElementsByClassName('tng-account-connInfo-container')[0];
+
+  domNode.getElementsByClassName('tng-account-header-label')[0]
+    .textContent = this.account.name;
+
+  domNode.getElementsByClassName('tng-back-btn')[0]
+    .addEventListener('click', this.onBack.bind(this), false);
+
+  domNode.getElementsByClassName('tng-account-save')[0]
+    .addEventListener('click', this.onBack.bind(this), false);
+
+  domNode.getElementsByClassName('tng-account-server-label')[0]
+    .textContent = mozL10n.get('settings-' + this.server.type + '-label');
+
+  var hostnameNodeInput =
+    this.domNode.getElementsByClassName('tng-server-hostname-input')[0];
+  hostnameNodeInput.setAttribute('placeholder',
+                                 mozL10n.get('settings-hostname'));
+  var portNodeInput =
+    this.domNode.getElementsByClassName('tng-server-port-input')[0];
+  portNodeInput.setAttribute('placeholder',
+                                 mozL10n.get('settings-port'));
+
+  hostnameNodeInput.value = this.server.connInfo.hostname;
+  portNodeInput.value = this.server.connInfo.port;
+}
+SettingsAccountServerCard.prototype = {
+  onBack: function() {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
+  },
+
+  die: function() {
+  }
+};
+Cards.defineCardWithDefaultMode(
+    'settings-account-servers',
+    { tray: false },
+    SettingsAccountServerCard
 );
 
 /**

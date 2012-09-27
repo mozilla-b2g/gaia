@@ -218,19 +218,6 @@ form.search button {
   box-shadow: none;
 }
 
-#search-view form.search button[type="reset"] {
-  background: url(gphx/bitmap/default/vw-header/icons/clear.png) no-repeat center center;
-  width: 3.5rem;
-  height: 3.5rem;
-  margin: -0.5rem 0 -0.5rem -4rem;
-  float: none;
-  opacity: 0;
-}
-
-#search-view form.search input:valid + button[type="reset"] {
-  opacity: 1;
-}
-
 /* Searching state */
 #view-contacts-list.searching > header {
   transform: scale(0);
@@ -260,22 +247,22 @@ form.search button {
   margin-left: -0.8rem;
 }
 
-/* "import SIM contacts" button and throbber */
-.simContacts {
+/* "import contacts" button and throbber */
+.importContacts {
   font-size: 1.6rem;
   margin-top: 5rem;
   margin-left: 1.5rem;
   width: calc(100% - 6rem); /* 4.5rem = view-jumper width */
 }
 
-.simContacts button {
+.importContacts button {
   height: 2rem;
   line-height: 2rem;
   font-weight: bold;
   font-size: 1.4rem;
 }
 
-.simContacts span, .simContacts small {
+.importContacts span, .importContacts small {
   display: block;
 }
 
@@ -349,10 +336,54 @@ form.search button {
   text-overflow: ellipsis;
 }
 
+/* MARK AS REMOVED */
+
+.removed {
+  border-color: #c8c8c8;
+  opacity: 0.85;
+}
+
+.removed dl, .removed a, .removed input {
+  background-color: transparent;
+  color: #cccccc;
+  pointer-events: none;
+}
+
+.removed button span.icon-delete {
+  background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
+}
+
+.with-photo {
+  padding-right: 5rem;
+  border:1px solid #C8C8C8;
+  background: none;
+}
+
+.with-photo.removed img {
+  pointer-events: none;
+}
+
+.with-photo p {
+  display: none;
+}
+
+.view-edit-contact .with-photo .fillflow-row-action {
+  margin-left: -5rem;
+}
+
 /* Contacts in comms application */
 @media screen and (max-height: 450px) and (min-height: 420px) {
  .view-jumper li {
   font-size: 1.05rem;
   line-height: 1.23rem;
  }
+}
+
+/* SETTINGS */
+
+body[role="application"] section[role="region"] > header .icon.icon-settings
+     { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
+
+section.view[data-state="active"] {
+  -moz-transition: transform 0.5s ease;
 }

@@ -127,11 +127,12 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe(
-      'lockscreen.wallpaper', 'balloon.png', function(value) {
-      self.updateBackground(value);
-      self.overlay.classList.remove('uninit');
-    });
+    SettingsListener.observe('wallpaper.image',
+                             'resources/images/backgrounds/default.png',
+                             function(value) {
+                               self.updateBackground(value);
+                               self.overlay.classList.remove('uninit');
+                             });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
@@ -691,8 +692,10 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    this.clock.textContent = f.localeFormat(d, _('timeFormat') || '%R');
-    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
+    var timeFormat = _('shortTimeFormat') || '%R';
+    var dateFormat = _('longDateFormat') || '%A %e %B';
+    this.clock.textContent = f.localeFormat(d, timeFormat);
+    this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -855,8 +858,7 @@ var LockScreen = {
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(resources/images/backgrounds/' + value + ')';
-
+    var url = 'url(' + value + ')';
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }

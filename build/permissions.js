@@ -8,18 +8,16 @@ function log(msg) {
 let permissionList = ["power", "sms", "contacts", "telephony",
                       "mozBluetooth", "browser", "mozApps",
                       "mobileconnection", "mozFM", "systemXHR",
-                      "background", "backgroundservice", "settings", "offline-app",
-                      "indexedDB-unlimited", "alarm", "camera",
+                      "background", "backgroundservice", "settings",
+                      "alarm", "camera",
                       "fmradio", "voicemail",
-                      "pin-app", "wifi-manage", "wifi", "geolocation",
+                      "wifi-manage", "wifi", "geolocation",
                       "webapps-manage", "desktop-notification",
                       "device-storage:pictures", "device-storage:music", "device-storage:videos", "device-storage:apps",
                       "alarms", "alarm", "attention",
-                      "content-camera", "camera", "tcp-socket", "bluetooth"];
-
-let commonPermissionList = ['offline-app', 'indexedDB-unlimited',
-                            'pin-app',
-                            'desktop-notification'];
+                      "content-camera", "camera", "tcp-socket", "bluetooth", "storage",
+                      // Just don't.
+                      "deprecated-hwvideo"];
 
 let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
                .getService(Ci.nsIScriptSecurityManager)
@@ -40,8 +38,7 @@ Gaia.webapps.forEach(function (webapp) {
   let principal = secMan.getAppCodebasePrincipal(Services.io.newURI(rootURL, null, null),
                                                  appId, false);
 
-  let perms = manifest.permissions ? commonPermissionList.concat(manifest.permissions)
-                                   : commonPermissionList;
+  let perms = manifest.permissions;
   if (!perms)
     return;
 
@@ -49,6 +46,14 @@ Gaia.webapps.forEach(function (webapp) {
     if (permissionList.indexOf(name) == -1) {
       dump("WARNING: permission unknown:" + name + "\n");
       continue;
+    }
+
+    if (name == "storage") {
+      Services.perms.addFromPrincipal(principal, "indexedDB-unlimited", Ci.nsIPermissionManager.ALLOW_ACTION);
+      Services.perms.addFromPrincipal(principal, "offline-app", Ci.nsIPermissionManager.ALLOW_ACTION);
+      Services.perms.addFromPrincipal(principal, "pin-app", Ci.nsIPermissionManager.ALLOW_ACTION);
+    } else {
+      Services.perms.addFromPrincipal(principal, name, Ci.nsIPermissionManager.ALLOW_ACTION);
     }
 
     log("name: " + name + "\n");
