@@ -457,7 +457,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
             _('shortStatus-disconnected');
       }
       if (listItem) {
-        listItem.classList.add('active')
+        listItem.classList.add('active');
         listItem.querySelector('small').textContent = message;
       }
     }
@@ -672,6 +672,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.clear(true);
       document.querySelector('#macAddress small').textContent =
         gWifiManager.macAddress;
+      document.querySelector('[data-l10n-id="macAddress"] span').textContent =
+        gWifiManager.macAddress; // XXX should be stored in a setting
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {

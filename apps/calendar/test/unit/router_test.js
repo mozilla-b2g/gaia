@@ -69,7 +69,7 @@ suite('router', function() {
     function hasClear() {
       assert.equal(page.routes[0].length, 4);
       assert.equal(page.routes[0][1], subject._clearObjects);
-      assert.equal(page.routes[0][3], subject._noop);
+      assert.equal(page.routes[0][3], subject._lastState);
     }
 
     test('without objects', function() {

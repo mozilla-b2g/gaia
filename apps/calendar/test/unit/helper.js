@@ -235,6 +235,7 @@
   requireLib('store/busytime.js');
   requireLib('store/calendar.js');
   requireLib('store/event.js');
+  requireLib('store/setting.js');
   requireLib('view.js');
   requireLib('calc.js');
   requireLib('router.js');

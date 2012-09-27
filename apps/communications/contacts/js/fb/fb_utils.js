@@ -5,6 +5,8 @@ var fb = window.fb || {};
 if (!fb.utils) {
   fb.utils = {};
 
+  var TIMEOUT_QUERY = 15000;
+
   fb.utils.getContactData = function(cid) {
     var outReq = new fb.utils.Request();
 
@@ -65,14 +67,44 @@ if (!fb.utils) {
     queryService += encodeURIComponent(query);
 
     var params = [fb.ACC_T + '=' + access_token,
-                    'format=json', 'callback' + '=' + callback];
+                    'format=json'];
 
     var queryParams = params.join('&');
 
-    var jsonp = document.createElement('script');
-    jsonp.src = queryService + '&' + queryParams;
+    var remote = queryService + '&' + queryParams;
 
-    document.body.appendChild(jsonp);
+    var xhr = new XMLHttpRequest({mozSystem: true});
+
+    xhr.open('GET', remote, true);
+    xhr.responseType = 'json';
+
+    xhr.timeout = TIMEOUT_QUERY;
+
+    xhr.onload = function(e) {
+      if (xhr.status === 200 || xhr.status === 0) {
+        if (callback && typeof callback.success === 'function')
+          callback.success(xhr.response);
+      }
+      else {
+        window.console.error('FB: Error executing query. Status: ', xhr.status);
+        if (callback && typeof callback.error === 'function')
+          callback.error();
+      }
+    }
+
+    xhr.ontimeout = function(e) {
+      window.console.error('FB: Timeout!!! while executing query', query);
+      if (callback && typeof callback.timeout === 'function')
+        callback.timeout();
+    }
+
+    xhr.onerror = function(e) {
+      window.console.error('FB: Error while executing query', e);
+      if (callback && typeof callback.error === 'function')
+        callback.error();
+    }
+
+    xhr.send();
   };
 
 

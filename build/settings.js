@@ -23,6 +23,7 @@ var settings = [
  new Setting("debug.fps.enabled", false),
  new Setting("debug.log-animations.enabled", false),
  new Setting("debug.paint-flashing.enabled", false),
+ new Setting("debug.peformancedata.shared", false),
  new Setting("devtools.debugger.force-local", true),
  new Setting("devtools.debugger.log", false),
  new Setting("devtools.debugger.remote-enabled", false),

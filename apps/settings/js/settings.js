@@ -179,6 +179,23 @@ var Settings = {
         };
       })(selects[i]);
     }
+
+    // preset all span with data-name fields
+    rule = 'span[data-name]:not([data-ignore])';
+    var spanFields = document.querySelectorAll(rule);
+    for (i = 0; i < spanFields.length; i++) {
+      (function(span) {
+        var key = span.dataset.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined)
+            span.textContent = request.result[key];
+        };
+      })(spanFields[i]);
+    }
   },
 
   handleEvent: function settings_handleEvent(evt) {
