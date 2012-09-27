@@ -59,7 +59,7 @@
   height: 2rem;
   position: absolute;
   background: #fff;
-  border: solid 1px #9c9c9c;
+  border: solid 1px #979797;
   left: 1rem;
   top: 50%;
   margin: -1.2rem 0 0;
@@ -75,17 +75,20 @@
 
 /* Active state */
 #datausage-tab .toggle-data li input:checked + span {
-  background: url(../images/app/ui/datausage/toggle-sh.png) repeat-x left top;
+  background: #efefef;
+  box-shadow: inset 0 3px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+#datausage-tab .toggle-data li input:checked + span:before {
+  background: url(../images/app/ui/datausage/pattern.png) repeat left top;
 }
 
 #datausage-tab .toggle-data li:first-child input:checked + span:before {
-  background: #009d89;
-  border-color: #086b5e;
+  background-color: #901560;
 }
 
 #datausage-tab .toggle-data li:last-child input:checked + span:before {
-  background: #cbd936;
-  border-color: #aab71d;
+  background-color: #cbd936;
 }
 
 #datausage-tab .toggle-data li input:checked + span em {
