@@ -17,6 +17,7 @@ suite('store/calendar', function() {
   var subject;
   var db;
   var model;
+  var account;
   var app;
 
   setup(function(done) {
@@ -25,7 +26,14 @@ suite('store/calendar', function() {
     db = testSupport.calendar.db();
     app = testSupport.calendar.app();
 
+    var accountStore = db.getStore('Account');
+
     subject = db.getStore('Calendar');
+
+    account = accountStore.cached.acc1 = {
+      _id: 'acc1',
+      providerType: 'Local'
+    };
 
     model = {
       _id: 1,
@@ -34,7 +42,6 @@ suite('store/calendar', function() {
     };
 
     db.open(function(err) {
-      assert.ok(!err);
       done();
     });
   });
@@ -54,17 +61,11 @@ suite('store/calendar', function() {
   });
 
   teardown(function(done) {
-    var trans = db.transaction('events', 'readwrite');
-    var accounts = trans.objectStore('events');
-    var res = accounts.clear();
-
-    res.onerror = function() {
-      done(new Error('could not wipe events db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
+    testSupport.calendar.clearStore(
+      db,
+      ['accounts', 'calendars'],
+      done
+    );
   });
 
   teardown(function() {
@@ -234,5 +235,67 @@ suite('store/calendar', function() {
     });
   });
 
+  test('#providerFor', function() {
+    account.providerType = 'Local';
+    assert.equal(
+      subject.providerFor(model),
+      app.provider('Local')
+    );
+  });
+
+  suite('#findWithCapability', function() {
+    var abstractAccount;
+    var localAccount;
+
+    var localCal;
+    var absCal;
+
+    setup(function(done) {
+      var trans = subject.db.transaction(
+        ['accounts', 'calendars'],
+        'readwrite'
+      );
+
+      trans.addEventListener('complete', function() {
+        done();
+      });
+
+      abstractAccount = Factory('account', {
+        _id: 'abstract',
+        providerType: 'Abstract'
+      });
+
+      localAccount = Factory('account', {
+        _id: 'local',
+        providerType: 'Local'
+      });
+
+      localCal = Factory('calendar', {
+        accountId: localAccount._id
+      });
+
+      absCal = Factory('calendar', {
+        accountId: abstractAccount._id
+      });
+
+      var account = db.getStore('Account');
+
+      account.persist(abstractAccount, trans);
+      account.persist(localAccount, trans);
+      subject.persist(localCal, trans);
+      subject.persist(absCal, trans);
+    });
+
+    var caps = ['createEvent', 'deleteEvent', 'editEvent'];
+
+    caps.forEach(function(name) {
+      test('find: ' + name, function() {
+        var result = subject.findWithCapability(name);
+        assert.length(result, 1);
+        assert.equal(result[0], localCal);
+      });
+    });
+
+  });
 
 });

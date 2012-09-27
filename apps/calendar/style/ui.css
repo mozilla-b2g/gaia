@@ -43,10 +43,6 @@ ol.link-list a {
 
 /* view management */
 
-#time-header > menu {
-  display: none;
-}
-
 #time-views {
   height: 100%;
 }
@@ -177,16 +173,20 @@ ol.link-list a {
 
 /* add event view */
 
-#modify-event-view header > menu {
-  display: none;
-}
-
 #modify-event-view form {
   margin: 1rem;
 }
 
 #modify-event-view form ol li {
   margin: 0rem;
+}
+
+#modify-event-view.update .calendar-id {
+  display: none;
+}
+
+#modify-event-view.create .current-calendar {
+  display: none;
 }
 
 .fullscreen-view.active {
