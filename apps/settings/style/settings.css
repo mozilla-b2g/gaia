@@ -23,7 +23,7 @@ body.hidden * {
   height: 100%;
   border: 0;
   overflow-y: scroll;
-  background: url(images/document-bg.png);
+  background: url(images/document_bg.png);
 }
 
 
@@ -92,15 +92,6 @@ body.hidden #root {
  * Right-to-Left layout
  */
 
-[dir=rtl] header h1 a {
-  background-image: url(images/header-right-arrow.png);
-  background-position: right 20px top 50%;
-}
-
-[dir=rtl] [role=region] > h2 {
-  padding: 0 30px 0 0;
-}
-
 /* transitions */
 
 [dir=rtl] [role="region"] {
@@ -158,17 +149,3 @@ body.hidden #root {
   text-align: right;
 }
 
-
-/******************************************************************************
- * Wallpaper snapshot
- */
-
-#wallpaper-preview {
-  width: 90px;
-  height: 135px;
-  border: solid black 2px;
-  border-radius: 4px;
-  margin-left: 110px;
-  margin-top: -10px;
-  margin-bottom: 5px;
-}

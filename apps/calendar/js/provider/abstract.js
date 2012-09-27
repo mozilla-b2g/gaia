@@ -55,44 +55,12 @@ Calendar.ns('Provider').Abstract = (function() {
     findCalendars: function() {},
 
     /**
-     * Opens an event stream expected
-     * to return a responder that
-     * will emit to "data" and "error"
-     * events.
+     * Sync remote and local events.
      *
-     * account: (same as getAccount)
-     * calendar:
-     *  - url: (String) Url/URI based on .useUrl
-     *  - syncToken: (String)
-     *  - ...: additional options based on provider
-     *
-     * Each event will be emitted in the following format:
-     *
-     * event:
-     *  recurring:
-     *    expandedUntil: (Date) date expanded until
-     *    isExpaned: (Boolean) is fully expanded?
-     *    expandedUntil (Date) last occurrence expanded
-     *
-     *  title: (String)
-     *  description: (String)
-     *  location: (String)
-     *  occurs: (Array[Date]) list of dates events occur
-     *  startDate: (Date)
-     *  endDate: (Date)
-     *  uid: (String) unique id for event
-     *  [_rawData]: (String) optional raw data.
-     *              In cases where we can do field
-     *              based updates we don't
-     *              need to store this...
-     *
-     * @param {Object} account user credentials.
-     * @param {Object} calendar calendar location and last sync state.
-     * @param {Function} callback node style (err, result).
-     * @return {Calendar.Responder} stream that will emit
-     *                              'data' events for each event.
      */
-    streamEvents: function(account, calendar, callback) {}
+    syncEvents: function(account, calendar, callback) {
+
+    }
   };
 
   return Abstract;
