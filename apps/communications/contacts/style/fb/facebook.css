@@ -11,7 +11,7 @@ html, body {
 .view {
   position: fixed;
   left: 0;
-  top: -2px;
+  top: 0;
   width: 100%;
   height: 100%;
   margin: 0;
@@ -86,9 +86,10 @@ h2.block-title {
 }
 
 #main {
-  position: absolute;
+  position: fixed;
   top: 7.3rem;
   height: -moz-calc(100% - 7.3rem);
+  width: 100%;
 }
 
 #mainContent {

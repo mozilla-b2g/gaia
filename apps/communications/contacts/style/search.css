@@ -25,6 +25,7 @@ form.search {
 
 .facebook form.search {
   position: relative;
+  height: 3.5rem;
 }
 
 form.search label {
@@ -109,9 +110,13 @@ form.search button {
   margin-top: -5rem;
 }
 
+#content.searching #main {
+  height: 100%;
+  margin-top: -7.2rem;
+}
+
 #content.searching #mainContent {
-  height: calc(100% + 7.3rem);
-  margin-top: -7.5rem;
+  height: 100%;
 }
 
 #content.searching #select-all-wrapper, #content.searching .friends-msg,
