@@ -522,6 +522,11 @@ var WindowManager = (function() {
         });
       });
     }
+
+    // Dispatch a appwillopen event
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillopen', true, false, { origin: displayedApp });
+    openFrame.dispatchEvent(evt);
   }
 
   // Perform a "close" animation for the app's iframe
