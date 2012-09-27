@@ -1010,8 +1010,66 @@
       </ul>
     </section>
 
+    <!-- Device :: About :: Developer -->
+    <section role="region" id="developer" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="developer">
+          Developer
+        </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="debug">Debug</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.grid.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="grid">Grid</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.fps.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="fps-monitor">Show frames per second</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.paint-flashing.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="paint-flashing">Flash repainted area</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.log-animations.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="log-animations">Log slow animations</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.dev-mode"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="dev-mode">Developer Mode</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.oop.disabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
+        </li>
+       </ul>
+    </section>
+
     <!-- Device :: About -->
-    <section role="region" id="about" data-leaf>
+    <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="deviceInfo">
@@ -1026,6 +1084,12 @@
         <li>
           <small id="gaia-commit-hash"></small>
           <a id="gaia-commit-date"></a>
+        </li>
+        <li>
+          <label>
+            <button onclick="openDialog('developer');"
+              data-l10n-id="developer">Developer</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -1157,64 +1221,6 @@
           </a>
         </li>
       </ul>
-    </section>
-
-    <!-- Device :: Developer -->
-    <section role="region" id="developer" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="developer">
-          Developer
-        </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="debug">Debug</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.grid.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="grid">Grid</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.fps.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="fps-monitor">Show frames per second</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.paint-flashing.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="paint-flashing">Flash repainted area</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.log-animations.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="log-animations">Log slow animations</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.dev-mode"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dev-mode">Developer Mode</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.oop.disabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
-        </li>
-       </ul>
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1381,9 +1387,6 @@
         <li id="media-storage-section">
           <small id="media-storage-desc"></small>
           <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li>
-          <a href="#developer" data-l10n-id="developer">Developer</a>
         </li>
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
