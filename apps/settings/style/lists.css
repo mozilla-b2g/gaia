@@ -291,33 +291,6 @@ ul li p + input[type=password] {
  * Bluetooth panel
  */
 
-.toolbar-height {
-  height: 4.8rem;
-}
-
-.bottom-toolbar {
-  background-color: rgba(0, 0, 0, 0.7);
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  width: 100%;
-  padding: 0.5rem;
-  padding-top: 0.6rem;
-  margin: 0px;
-}
-
-.bottom-toolbar button {
-  -moz-box-sizing: border-box;
-  background: url("buttons/images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
-  border: 0.1rem solid #9F9F9F;
-  border-radius: 0.5rem 0.5rem 0.5rem 0.5rem;
-  display: inline-block;
-  font-size: 1.4rem;
-  font-weight: 600; 
-  height: 4rem;
-  width: calc((100% - 1rem)/2);
-}
-
 .popup {
   bottom: 0;
   left: 5px;

@@ -377,11 +377,16 @@
         </li>
         <li hidden id="device-visible">
           <label>
-            <input type="checkbox" checked/>
+            <input type="checkbox" checked />
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
           <a data-l10n-id="bluetooth-visible-to-other">Visible to other devices</a>
+        </li>
+        <li hidden id="bluetooth-rename">
+          <label>
+            <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
+          </label>
         </li>
       </ul>
 
@@ -405,11 +410,15 @@
       <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
         Searching for devices…
       </div>
-      <div class="toolbar-height"><!-- a placeholder for the following menu --></div>
-      <menu id="bluetooth-options" class="bottom-toolbar toolbar-height">
-        <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
-        <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
-      </menu>
+      <ul hidden id="bluetooth-search">
+        <li>
+          <label>
+            <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+          </label>
+        </li>
+      </ul>
+
+      <!-- popup menu -->
       <ul id="paired-device-option" class="popup" hidden>
         <li id="connect-option">
           <a data-l10n-id="device-option-connect">Connect</a>
