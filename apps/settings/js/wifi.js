@@ -457,7 +457,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
             _('shortStatus-disconnected');
       }
       if (listItem) {
-        listItem.classList.add('active')
+        listItem.classList.add('active');
         listItem.querySelector('small').textContent = message;
       }
     }
