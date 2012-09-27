@@ -1,19 +1,3 @@
-#sim dl > * {
-  font-size: 1.6em;
-}
-
-#sim dl dt {
-  padding-left: 30px;
-  font-weight: bold;
-  border-bottom: 1px solid black;
-}
-
-#sim dl dd {
-  margin: 0;
-  padding: 10px 30px;
-  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
-}
-
 #simpin-dialog .container {
   padding-left: 20px;
   font-size: 1.5em;
