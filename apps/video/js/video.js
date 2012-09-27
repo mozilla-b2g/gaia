@@ -154,7 +154,7 @@ function updateDialog() {
   if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
-    showOverlay('cardinuse');
+    showOverlay('pluggedin');
   }
 }
 
