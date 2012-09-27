@@ -1,0 +1,22 @@
+{
+  "name": "Feedback",
+  "default_locale": "en-US",
+  "description": "Gaia Feedback",
+  "launch_path": "/index.html",
+  "permissions": [
+    "power"
+  ],
+  "locales": {
+    "en-US": {
+      "name": "Feedback",
+      "description": "Gaia Feedback"
+    }
+  },
+  "developer": {
+    "url": "https://github.com/mozilla-b2g/gaia",
+    "name": "The Gaia Team"
+  },
+  "orientation": "portrait-primary"
+}
+
+
