@@ -653,8 +653,8 @@ var Recents = {
   }
 };
 
-window.addEventListener('localized', function recentsSetup() {
-  window.removeEventListener('localized', recentsSetup);
+window.addEventListener('load', function recentsSetup() {
+  window.removeEventListener('load', recentsSetup);
     var headerSelector = '#recents-container h2';
     FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
