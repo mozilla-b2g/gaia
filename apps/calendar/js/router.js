@@ -12,6 +12,8 @@
     for (; i < len; i++) {
       this[COPY_METHODS[i]] = this.page[COPY_METHODS[i]].bind(this.page);
     }
+
+    this._lastState = this._lastState.bind(this);
   }
 
   Router.prototype = {
@@ -51,19 +53,23 @@
       next();
     },
 
-    // needed so next works correctly
-    // the idea is the last hook
-    // will not call next but we don't
-    // manage that here so we need to
-    // have an extra function which will now
-    // call next.
-    _noop: function() {},
+    /**
+     * This method serves two purposes.
+     *
+     * 1. to safely end the loop by _not_ calling next.
+     * 2. to store the last location.
+     *
+     * This function is added to the end of every rule.
+     */
+    _lastState: function(ctx) {
+      this.last = ctx;
+    },
 
     _route: function() {
       var args = Array.prototype.slice.call(arguments);
 
       //add noop so next works correctly...
-      args.push(this._noop);
+      args.push(this._lastState);
 
       var len = args.length;
       var i = 0;

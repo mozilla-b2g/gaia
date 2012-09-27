@@ -97,9 +97,9 @@
         putReq = store.add(data);
       }
 
-      trans.addEventListener('error', function() {
+      trans.addEventListener('error', function(event) {
         if (callback) {
-          callback(err);
+          callback(event);
         }
       });
 

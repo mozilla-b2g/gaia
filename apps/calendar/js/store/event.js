@@ -56,6 +56,32 @@
     },
 
     /**
+     * Shortcut finds the calendar model for given event.
+     *
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Calendar} related calendar.
+     */
+    calendarFor: function(event) {
+      var calStore = this.db.getStore('Calendar');
+      return calStore.cached[event.calendarId];
+    },
+
+    /**
+     * Shortcut finds provider for given event.
+     *
+     * @param {Object} event full event record from db.
+     */
+    providerFor: function(event) {
+      // XXX: maybe we need to shortcut this somehow?
+      var accStore = this.db.getStore('Account');
+
+      var cal = this.calendarFor(event);
+      var acc = accStore.cached[cal.accountId];
+
+      return Calendar.App.provider(acc.providerType);
+    },
+
+    /**
      * Finds associated events with a given
      * list of records that have a eventId property.
      * Results are returned in the same order
@@ -115,6 +141,7 @@
     findByIds: function(ids, callback) {
       var results = {};
       var pending = ids.length;
+      var self = this;
 
       function next() {
         if (!(--pending)) {
@@ -129,7 +156,7 @@
         var item = e.target.result;
 
         if (item) {
-          results[item._id] = item;
+          results[item._id] = self._createModel(item);
         }
 
         next();

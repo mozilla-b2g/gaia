@@ -25,6 +25,7 @@
 
   <!--- vendor -->
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/uuid.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- lib root must load before anything else -->
   <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
@@ -42,6 +43,7 @@
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/input_parser.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
@@ -65,6 +67,7 @@
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/models/calendar.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/models/event.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- views -->
   <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
@@ -241,7 +244,7 @@
     </a>
 
     <menu type="toolbar">
-      <a href="#">
+      <a class="save" href="#">
         <span data-l10n-id="save">Save</span>
       </a>
     </menu>
@@ -254,31 +257,40 @@
   <form>
     <ol>
       <li class="title">
-        <input name="title" readonly data-l10n-id="event-title" placeholder="Title" />
+        <input name="title" data-l10n-id="event-title" placeholder="Title" />
       </li>
 
       <li class="location">
-        <input name="location" readonly data-l10n-id="event-location" placeholder="Where?" />
+        <input name="location" data-l10n-id="event-location" placeholder="Where?" />
       </li>
 
       <li class="start-date">
-        <input name="startDate" data-l10n-id="event-start-date"  placeholder="Date" readonly type="date" />
+        <input name="startDate" data-l10n-id="event-start-date" placeholder="Date" type="date" />
       </li>
 
       <li class="start-time">
-        <input type="time" data-l10n-id="event-start-time"  placeholder="Start Time" readonly name="startTime" />
+        <input type="time" data-l10n-id="event-start-time" placeholder="Start Time" name="startTime" />
       </li>
 
       <li class="end-date">
-        <input name="endDate" data-l10n-id="event-end-date"  placeholder="Date" readonly type="date" />
+        <input name="endDate" data-l10n-id="event-end-date" placeholder="Date" type="date" />
       </li>
 
       <li class="end-time">
-        <input type="time" data-l10n-id="event-end-time" placeholder="End Time" readonly name="endTime" />
+        <input type="time" data-l10n-id="event-end-time" placeholder="End Time" name="endTime" />
+      </li>
+
+      <li class="current-calendar">
+        <input name="currentCalendar" />
+      </li>
+
+      <li class="calendar-id">
+        <select name="calendarId">
+        </select>
       </li>
 
       <li class="notes">
-        <textarea class="fieldbox" readonly name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
+        <textarea class="fieldbox" name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
       </li>
 
     </ol>
