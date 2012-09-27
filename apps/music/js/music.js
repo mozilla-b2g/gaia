@@ -13,6 +13,9 @@ var unknownTitle;
 // See init()
 var musicdb;
 
+var scanning = false;
+var scanningFoundChanges = false;
+
 // We get a localized event when the application is launched and when
 // the user switches languages.
 window.addEventListener('localized', function onlocalized() {
@@ -63,26 +66,35 @@ function init() {
 
   // When musicdb scans, let the user know
   musicdb.onscanstart = function() {
+    scanning = true;
+    scanningFoundChanges = false;
     showScanProgress();
   };
 
   // And hide the throbber when scanning is done
   musicdb.onscanend = function() {
+    scanning = false;
     hideScanProgress();
+
+    // if the scan found any changes, update the UI now
+    if (scanningFoundChanges) {
+      scanningFoundChanges = false;
+      showCurrentView();
+    }
   };
 
-  // One or more files was created (or was just discovered by a scan)
-  // XXX If the array is big, we should just rebuild the UI from scratch
-  musicdb.oncreated = function(event) {
-    // TODO handle deleted files, currently we just rebuild the whole UI
-    showCurrentView();
-  };
-
-  // One or more files were deleted (or were just discovered missing by a scan)
-  // XXX If the array is big, we should just rebuild the UI from scratch
-  musicdb.ondeleted = function(event) {
-    // TODO handle new files, currently we just rebuild the whole UI
-    showCurrentView();
+  // When MediaDB finds new or deleted files, it sends created and deleted
+  // events. During scanning we may get lots of them. Bluetooth file transfer
+  // can also result in created events. The way the app is currently
+  // structured, all we can do is rebuild the entire UI with the updated
+  // list of files. We don't want to do this while scanning, though because
+  // it we may end up rebuilding it over and over. So we defer the rebuild
+  // until the scan ends
+  musicdb.oncreated = musicdb.ondeleted = function(event) {
+    if (scanning)
+      scanningFoundChanges = true;
+    else
+      showCurrentView();
   };
 }
 
