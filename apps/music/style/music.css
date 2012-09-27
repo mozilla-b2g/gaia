@@ -167,7 +167,6 @@ body.player-mode #views {
   line-height: 1.9em;
   text-align: left;
   text-indent: 3%;
-  opacity: 0.75;
   text-shadow: black 1px 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -239,29 +238,16 @@ body.player-mode #views {
   width: 100%;
 }
 
-#views-sublist-header-album,
+#views-sublist-header-default,
 #views-sublist-header-controls {
   position: relative;
   float: left;
 }
 
-#views-sublist-header-album {
+#views-sublist-header-default {
   width: 8em;
   height: 8em;
   overflow: hidden;
-  background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);
-}
-
-#views-sublist-header-default {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 8em;
-  line-height: 100%;
-  opacity: 0.4;
-  color: orange;
-  text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
 }
 
 #views-sublist-header-image {
@@ -318,52 +304,68 @@ body.player-mode #views {
 .main-tile {
   width: 318px;
   height: 318px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 0, 0, 1);
   background-color: black;
   overflow: hidden;
-}
-
-.main-tile-default-image {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 10em;
-  line-height: 100%;
-  opacity: 0.4;
-  pointer-events: none;
 }
 
 .sub-tile {
   width: 158px;
   height: 158px;
-  border: 1px solid rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 0, 0, 1);
   font-weight: lighter;
   font-variant: small-caps;
   background-color: #303030;
   overflow: hidden;
 }
 
-.sub-tile-default-image {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 5em;
-  line-height: 100%;
-  opacity: 0.4;
-  pointer-events: none;
-}
-
 .tile-container {
   width: 100%;
   height: 100%;
-  -moz-transform: scale(1);
-  -moz-transition: -moz-transform 166ms ease-in-out;
+  opacity: 1;
+  background-color: rgba(0 ,0, 0, 0);
+  transition: opacity 166ms ease-in-out,
+              background-color 166ms ease-in-out;
 }
 
 .tile-container:active {
-  -moz-transform: scale(0.9);
+  opacity: 0.3;
+  background-color: rgba(0 ,0, 0, 0.5);
+}
+
+.tile-title-bar {
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+
+.tile-title-artist,
+.tile-title-album {
+  padding: 0.1rem 0.3rem;
+  width: calc(100% - 0.6rem);
+  height: 1.5rem;
+  line-height: 1.5rem;
+  font-weight: normal;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: black 1px 1px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.tile-title-artist {
+  color: #FFFFFF;
+  font-size: 1rem;
+}
+
+.tile-title-album {
+  color: #B8B8B8;
+  font-size: 1rem;
+}
+
+.main-tile-title {
+  font-size: 1.2rem;
 }
 
 .tile-image {
@@ -381,35 +383,54 @@ body.player-mode #views {
   float: right;
 }
 
-.color-0 {
-  color: LightSkyBlue;
-  font-weight: normal;
+.default-album-0 {
+  background-image: url('./images/AlbumArt1_small.png');
+  background-size: 100% 100%;
 }
 
-.color-1 {
-  color: red;
+.default-album-1 {
+  background-image: url('./images/AlbumArt2_small.png');
+  background-size: 100% 100%;
 }
 
-.color-2 {
-  color: HotPink;
+.default-album-2 {
+  background-image: url('./images/AlbumArt3_small.png');
+  background-size: 100% 100%;
 }
 
-.color-3 {
-  color: YellowGreen;
-  font-weight: normal;
+.default-album-3 {
+  background-image: url('./images/AlbumArt4_small.png');
+  background-size: 100% 100%;
 }
 
-.color-4 {
-  color: turquoise;
+.default-album-4 {
+  background-image: url('./images/AlbumArt5_small.png');
+  background-size: 100% 100%;
 }
 
-.color-5 {
-  color: orange;
-  font-weight: normal;
+.default-album-5 {
+  background-image: url('./images/AlbumArt6_small.png');
+  background-size: 100% 100%;
 }
 
-.color-6 {
-  color: white;
+.default-album-6 {
+  background-image: url('./images/AlbumArt7_small.png');
+  background-size: 100% 100%;
+}
+
+.default-album-7 {
+  background-image: url('./images/AlbumArt8_small.png');
+  background-size: 100% 100%;
+}
+
+.default-album-8 {
+  background-image: url('./images/AlbumArt9_small.png');
+  background-size: 100% 100%;
+}
+
+.default-album-9 {
+  background-image: url('./images/AlbumArt10_small.png');
+  background-size: 100% 100%;
 }
 
 /* 320x480 phones */
@@ -424,6 +445,10 @@ body.player-mode #views {
   .sub-tile {
     width: 104px;
     height: 104px;
+  }
+
+  .float-right {
+    right: 2px;
   }
 }
 
@@ -447,19 +472,6 @@ body.player-mode #views {
   width: 100%;
   height: 74%;
   overflow: hidden;
-  background-image: -moz-radial-gradient(50% 50%, ellipse farthest-corner, rgba(255, 255, 255, 1) 0%, rgba(0, 0, 0, 0.4) 100%);
-}
-
-#player-cover-default-image {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 28em;
-  line-height: 100%;
-  opacity: 0.4;
-  color: orange;
-  text-shadow: 0.2em 0.5em 0.1em #660000, -0.3em 0.1em 0.1em #006600, 0.4em -0.3em 0.1em #000066;
 }
 
 @-moz-keyframes fadeIn {
@@ -498,7 +510,7 @@ body.player-mode #views {
   position: relative;
   width: 100%;
   height: 16%;
-  background-color: rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
 #player-cover-caption {
@@ -513,7 +525,6 @@ body.player-mode #views {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  opacity: 0.75;
   text-shadow: black 1px 1px;
 }
 
@@ -846,17 +857,6 @@ li.list-song-item a:active {
   overflow: hidden;
   background-color: gray;
   box-shadow: 0 0 1px black;
-}
-
-.list-default-image {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  font-size: 6em;
-  line-height: 100%;
-  opacity: 0.4;
-  color: orange;
 }
 
 .list-image {

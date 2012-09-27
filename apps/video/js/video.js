@@ -154,7 +154,7 @@ function updateDialog() {
   if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
-    showOverlay('cardinuse');
+    showOverlay('pluggedin');
   }
 }
 
@@ -209,7 +209,7 @@ function captureFrame(player, callback) {
       canvas.height = THUMBNAIL_HEIGHT;
       ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
       image = canvas.mozGetAsFile('poster', 'image/jpeg');
-    } catch(e) {
+    } catch (e) {
       console.error('Failed to create a poster image:', e);
     }
     if (skipped) {

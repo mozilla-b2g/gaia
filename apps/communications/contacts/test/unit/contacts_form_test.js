@@ -139,17 +139,84 @@ suite('Render contact form', function() {
         assert.isTrue(cont.indexOf(element + '-0') > -1);
         assert.isTrue(cont.indexOf(element + '-1') == -1);
       }
-      var valuePhone = document.querySelector('#number_0').value;
-      var typePhone = document.querySelector('#tel_type_0').textContent;
-      var carrierPhone = document.querySelector('#carrier_0').value;
-      assert.isTrue(valuePhone === mockContact.tel[0].value);
-      assert.isTrue(typePhone === mockContact.tel[0].type);
-      assert.isTrue(carrierPhone === mockContact.tel[0].carrier);
-      var valueEmail = document.querySelector('#email_0').value;
-      var typeEmail = document.querySelector('#email_type_0').textContent;
-      assert.isTrue(valueEmail === mockContact.email[0].value);
-      assert.isTrue(typeEmail === mockContact.email[0].type);
+
+      assertPhoneData(0);
+      assertEmailData(0);
+
       assert.isFalse(deleteButton.classList.contains('hide'));
+    });
+
+    test('FB Contact. e-mail and phone from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var fbContact = new MockFb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+
+        var cont = document.body.innerHTML;
+        var toCheck = ['phone', 'email'];
+        for (var i = 0; i < toCheck.length; i++) {
+          var element = 'add-' + toCheck[i];
+          assert.isTrue(cont.indexOf(element + '-0') > -1);
+          assert.isTrue(cont.indexOf(element + '-1') == -1);
+
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'));
+          assert.isTrue(domElement0.querySelector('.icon-delete') === null);
+        }
+
+        assertPhoneData(0);
+        assertEmailData(0);
+
+        assert.isFalse(deleteButton.classList.contains('hide'));
+      }
+    });
+
+    test('FB Linked. e-mail and phone both from FB and device', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(true);
+
+      mockContact.tel[1] = {
+        'value': '+34616885989',
+        'type': 'Mobile',
+        'carrier': 'NTT'
+      };
+
+      mockContact.email[1] = {
+        'type': 'work',
+        'value': 'workwithme@tid.es'
+      };
+
+      var fbContact = new MockFb.Contact(mockContact);
+
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+
+        var cont = document.body.innerHTML;
+        var toCheck = ['phone', 'email'];
+        for (var i = 0; i < toCheck.length; i++) {
+          var element = 'add-' + toCheck[i];
+
+          assert.isTrue(cont.indexOf(element + '-0') > -1);
+          assert.isTrue(cont.indexOf(element + '-1') > -1);
+
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'));
+          assert.isTrue(domElement0.querySelector('.icon-delete') === null);
+
+          var domElement1 = document.querySelector('#' + element + '-' + '1');
+          assert.isFalse(domElement1.classList.contains('removed') ||
+                          domElement1.classList.contains('facebook'));
+          assert.isTrue(domElement1.querySelector('.icon-delete') !== null);
+        }
+
+        for (var c = 0; c < 2; c++) {
+          assertPhoneData(c);
+          assertEmailData(c);
+        }
+      }
     });
   });
 
@@ -157,10 +224,27 @@ suite('Render contact form', function() {
     var fields = document.querySelectorAll('#' + id + ' input');
     for (var i = 0; i < fields.length; i++) {
       var currField = fields[i];
-      if (currField.dataset['field'] != 'type') {
+
+      if (currField.dataset['field'] && currField.dataset['field'] != 'type') {
         assert.isTrue(fields[i].value == '');
       }
     }
+  }
+
+  function assertPhoneData(c) {
+    var valuePhone = document.querySelector('#number_' + c).value;
+    var typePhone = document.querySelector('#tel_type_' + c).textContent;
+    var carrierPhone = document.querySelector('#carrier_' + c).value;
+    assert.isTrue(valuePhone === mockContact.tel[c].value);
+    assert.isTrue(typePhone === mockContact.tel[c].type);
+    assert.isTrue(carrierPhone === mockContact.tel[c].carrier);
+  }
+
+  function assertEmailData(c) {
+    var valueEmail = document.querySelector('#email_' + c).value;
+    var typeEmail = document.querySelector('#email_type_' + c).textContent;
+    assert.isTrue(valueEmail === mockContact.email[c].value);
+    assert.isTrue(typeEmail === mockContact.email[c].type);
   }
 
 });

@@ -99,6 +99,12 @@ var Recents = {
         this.click.bind(this));
     }
 
+    // Setting up the SimplePhoneMatcher
+    var conn = window.navigator.mozMobileConnection;
+    if (conn) {
+      SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+    }
+
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
@@ -503,39 +509,47 @@ var Recents = {
     var itemSelector = '.log-item:not(.hide)',
       callLogItems = document.querySelectorAll(itemSelector);
     for (var i = 0; i < callLogItems.length; i++) {
-      var phoneNumber = callLogItems[i].dataset.num.trim();
+      var logItem = callLogItems[i];
+      var phoneNumber = logItem.dataset.num.trim();
       Contacts.findByNumber(phoneNumber,
-        this.contactCallBack.bind(this, callLogItems[i]));
+        this.contactCallBack.bind(this, logItem));
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, contact) {
+  contactCallBack: function re_contactCallBack(logItem, contact, matchingTel) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
-    if (contact != null) {
-      var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+    var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+        phoneNumberAdditionalInfoNode =
+          logItem.querySelector('.call-additional-info'),
         phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
-      primaryInfoMainNode.textContent = (contact.name && contact.name != '') ?
+    if (contact !== null) {
+      primaryInfoMainNode.textContent = (contact.name && contact.name !== '') ?
         contact.name : _('unknown');
-      var entryCountNode = logItem.querySelector('.entry-count');
-      entryCountNode.textContent = (count > 1) ? '(' + count + ')' : '';
-      this.fitPrimaryInfoToSpace(logItem);
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
         logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        phoneNumber, contact);
-      var phoneNumberAdditionalInfoNode = logItem.
-        querySelector('.call-additional-info');
+        matchingTel, contact);
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
     } else {
       contactPhoto.classList.add('unknownContact');
       delete logItem.dataset['contactId'];
+      var isContact = logItem.classList.contains('isContact');
+      if (isContact) {
+        primaryInfoMainNode.textContent = phoneNumber;
+        phoneNumberAdditionalInfoNode.textContent = '';
+        logItem.classList.remove('isContact');
+        logItem.classList.remove('contact-photo-available');
+      }
     }
+    var entryCountNode = logItem.querySelector('.entry-count');
+    entryCountNode.textContent = (count > 1) ? '(' + count + ')' : '';
+    this.fitPrimaryInfoToSpace(logItem);
   },
 
   groupCallsInCallLog: function re_groupCallsInCallLog() {
