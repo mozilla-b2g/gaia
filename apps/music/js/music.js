@@ -283,13 +283,22 @@ var TilesView = {
     TabBar.setDisabled(!this.dataSource.length);
 
     if (result === null) {
+      // The enumeration is complete, so hide the animated progress bar
       hideScanProgress();
+
+      // If we don't know about any songs, display the 'empty' overlay.
+      // If we do know about songs and the 'empty overlay is being displayed
+      // then hide it.
+      if (this.dataSource.length > 0) {
+        if (currentOverlay === 'empty')
+          showOverlay(null);
+      }
+      else {
+        showOverlay('empty');
+      }
+
       return;
     }
-
-    // If we were showing the 'no songs' overlay, hide it
-    if (currentOverlay === 'empty')
-      showOverlay(null);
 
     this.dataSource.push(result);
 
