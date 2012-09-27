@@ -11,7 +11,7 @@ const GridManager = (function() {
 
   var dragging = false;
 
-  var kPageTransitionDuration = .3ss'';
+  var kPageTransitionDuration = .3;
   var landingOverlay = document.querySelector('#landing-overlay');
   var opacityMax = .7;
 
