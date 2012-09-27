@@ -18,7 +18,8 @@
     "settings",
     "wifi-manage",
     "wifi",
-    "attention"
+    "attention",
+    "time"
   ],
   "activities": {
     "configure": {
@@ -40,7 +41,9 @@
                "bluetooth-requestpasskey", 
                "bluetooth-requestpincode", 
                "bluetooth-authorize", 
-               "bluetooth-cancel"],
+               "bluetooth-cancel",
+               "bluetooth-pairedstatuschanged",
+               "bluetooth-hfp-status-changed"],
   "locales": {
     "ar": {
       "name": "الضبط",

@@ -1122,7 +1122,7 @@ var Browser = {
   showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
     var ul = this.tabsList.childNodes[0];
     var li = document.createElement('li');
-    li.innerHTML = '<a><img /><span>New Tab</span></a>';
+    li.innerHTML = '<a><img /><span>' + _('new-tab') + '</span></a>';
     li.style.height = '0px';
     li.style.transition = 'height 0.2s ease-in';
     ul.insertBefore(li, ul.childNodes[0]);

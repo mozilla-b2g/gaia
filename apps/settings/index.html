@@ -17,6 +17,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -30,6 +31,7 @@
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
+    <script type="application/javascript" defer src="js/datetime.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -46,17 +48,22 @@
       <!-- network properties -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="linkSpeed">link speed:
+          <a data-l10n-id="ipAddress">IP Adddress
+            <span data-ip></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed
             <span data-speed></span>
           </a>
         </li>
@@ -76,12 +83,12 @@
       <!-- network properties + identity/password input -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
@@ -176,20 +183,34 @@
       <header>
         <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       </header>
-      <ul id="wifi-networks">
-        <!-- filled by wifi.js -->
+      <ul id="wifi-availableNetworks" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+          Turn Wi-Fi on to view available networks.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by wifi.js: one list item per available network, e.g.:
+          -   <li class="wifi-signal3">
+          -     <small> WPA2 </small>
+          -     <a> Fake Mozilla </a>
+          -   </li>
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
       </ul>
 
-      <header hidden>
+      <header>
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
-      <ul hidden id="wifi-advanced">
-        <li>
+      <ul>
+        <li id="macAddress">
           <small id="macAddress-desc"></small>
           <a data-l10n-id="macAddress">MAC Address</a>
-        </li>
-        <li>
-          <button data-l10n-id="manageNetworks">Manage Networks</button>
         </li>
       </ul>
     </section>
@@ -336,31 +357,6 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Bluetooth :: Advanced Settings -->
-    <section role="region" id="bluetooth-advanced-menu" data-leaf>
-      <header>
-        <a href="#bluetooth"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bt-advanced-settings">
-          Advanced Settings
-        </h1>
-      </header>
-
-      <ul id="bluetooth-rename-btn">
-        <li>
-          <label>
-            <button data-l10n-id="renameDevice">Rename Device</button>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="bluetoothPairedDevices">Paired Devices</h2>
-      </header>
-      <ul id="bluetooth-paired-devices">
-        <!-- filled by bluetooth.js -->
-      </ul>
-    </section>
-
     <!-- Connectivity :: Bluetooth -->
     <section role="region" id="bluetooth">
       <header>
@@ -378,47 +374,53 @@
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
-        <li hidden id="bluetooth-visible-device">
+        <li hidden id="device-visible">
           <label>
             <input type="checkbox" checked/>
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
-          <a data-l10n-id="bluetooth-visible">Visible to other devices</a>
+          <a data-l10n-id="bluetooth-visible-to-other">Visible to other devices</a>
         </li>
       </ul>
 
-      <header>
-        <h2 data-l10n-id="bluetoothDevices">Devices</h2>
-      </header>
-      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg" class="explanation">
-        Turn Bluetooth on to pair with devices that are within range.
+      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
+        Turn Bluetooth on to view devices in the area.
       </div>
-      <ul id="bluetooth-show-paired-devices">
+
+      <header id="bluetooth-paired-title">
+        <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+      </header>
+      <ul id="bluetooth-paired-devices" class="devices">
         <!-- filled by bluetooth.js -->
       </ul>
-      <ul id="bluetooth-devices">
+
+      <header id="bluetooth-found-title">
+        <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+      </header>
+      <ul id="bluetooth-devices" class="devices">
         <!-- filled by bluetooth.js -->
       </ul>
-      <ul>
-        <li hidden id="bluetooth-searching">
-          <a data-l10n-id="scanning">Searching…</a>
+      <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
+        Searching for devices…
+      </div>
+      <div class="toolbar-height"><!-- a placeholder for the following menu --></div>
+      <menu id="bluetooth-options" class="bottom-toolbar toolbar-height">
+        <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+        <button id="rename-device" data-l10n-id="rename-device" disabled>Rename My Device</button>
+      </menu>
+      <ul id="paired-device-option" class="popup" hidden>
+        <li id="connect-option">
+          <a data-l10n-id="device-option-connect">Connect</a>
         </li>
-      </ul>
-      <ul id="bluetooth-search-again" hidden>
-        <li>
-          <label>
-            <button data-l10n-id="searchDeviceAgain">Search Again</button>
-          </label>
+        <li id="disconnect-option">
+          <a data-l10n-id="device-option-disconnect">Disconnect</a>
         </li>
-      </ul>
-      <ul id="bluetooth-advanced">
-        <li>
-          <label>
-            <!-- TODO: use <a role="button"> + the shared/style/buttons -->
-            <button onclick="openDialog('bluetooth-advanced-menu')"
-                data-l10n-id="bt-advanced-settings">Advanced Settings</button>
-          </label>
+        <li id="unpair-option">
+          <a data-l10n-id="device-option-unpair">Unpair</a>
+        </li>
+        <li id="cancel-option">
+          <button data-l10n-id="cancel">Cancel</button>
         </li>
       </ul>
     </section>
@@ -642,7 +644,37 @@
         </li>
     </section>
 
-    <!-- [TODO] Personalization :: Time & Date -->
+    <!-- Personalization :: Date & Time -->
+    <section role="region" id="time">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="dateAndTime">
+          Date &amp; Time
+        </h1>
+      </header>
+      <ul>
+        <li id="time-nitz-automatic-update">
+          <label class="switch">
+            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
+      </header>
+      <ul id="time-manual" hidden>
+        <li id="setDate">
+          <a data-l10n-id="dateMessage">Date<span id="clock-date"></span></a>
+          <input type="date" id="date-picker"/>
+        </li>
+        <li id="setTime">
+          <a data-l10n-id="timeMessage">Time<span id="clock-time"></span></a>
+          <input type="time" id="time-picker"/>
+        </li>
+      </ul>
+    </section>
 
     <!-- Personalization :: Language & Region -->
     <section role="region" id="languages" data-leaf>
@@ -1006,7 +1038,6 @@
       </ul>
     </section>
 
-
     <!-- [TODO] Security :: App Permissions -->
 
     <!-- Security :: Do Not Track -->
@@ -1029,137 +1060,7 @@
       </ul>
     </section>
 
-    <!-- Device :: About -->
-    <section role="region" id="about" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceInfo">
-          Device Information
-        </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      </header>
-      <ul>
-        <li>
-          <small id="gaia-commit-hash"></small>
-          <a id="gaia-commit-date"></a>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Device :: Battery -->
-    <section role="region" id="battery" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="battery">
-          Battery
-        </h1>
-      </header>
-
-      <ul>
-        <li>
-          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
-            <span></span>
-          </a>
-        </li>
-        <li>
-          <a id="battery-remaining" data-l10n-id="batteryEstLeft">Estimated Time Left
-            <span></span>
-          </a>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Device :: Device Storage -->
-    <section role="region" id="device-storage" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage">
-          Device Storage
-        </h1>
-      </header>
-
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="ums.enabled"/>
-            <span></span>
-          </label>
-          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="appStorage">Application Storage</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <progress id="apps-space-bar" min="0" max="100"></progress>
-          </label>
-        </li>
-
-        <li>
-          <a id="apps-total-space" data-l10n-id="apps-total-space"> Total Space
-            <span class="storage-space"></span>
-          </a>
-        </li>
-        <li>
-          <a id="apps-used-space" data-l10n-id="apps-used-space"> Used
-            <span class="storage-space"></span>
-          </a>
-        </li>
-        <li>
-          <a id="apps-free-space" data-l10n-id="apps-free-space"> Left
-            <span class="storage-space"></span>
-          </a>
-        </li>
-      </ul>
-
-      <p class="detailed-desc" data-l10n-id="media-storage-details">
-      Photos, videos, and music are stored in the SD Card.
-      See Media Storage for details.
-      </p>
-
-    </section>
-
-    <!-- Device :: Media Storage -->
-    <section role="region" id="media-storage" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="mediaStorage">
-          Media Storage
-        </h1>
-      </header>
-
-      <ul>
-        <li>
-          <a data-l10n-id="music-space"> Music
-            <span class="storage-space"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="pictures-space"> Pictures
-            <span class="storage-space"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="videos-space"> Movies
-            <span class="storage-space"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="left-space"> Space Left
-            <span class="storage-space"></span>
-          </a>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Device :: Developer -->
+    <!-- Device :: About :: Developer -->
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1215,6 +1116,161 @@
           <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
         </li>
        </ul>
+    </section>
+
+    <!-- Device :: About -->
+    <section role="region" id="about">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="deviceInfo">
+          Device Information
+        </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="gaia-commit-hash"></small>
+          <a id="gaia-commit-date"></a>
+        </li>
+        <li>
+          <label>
+            <button onclick="openDialog('developer');"
+              data-l10n-id="developer">Developer</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Battery -->
+    <section role="region" id="battery" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="battery">
+          Battery
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
+            <span></span>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="powerSaveMode">Power Save Mode</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="powersave.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="powerSaveMode">Power Save Mode</a>
+        </li>
+        <li>
+        <label>
+          <select name="powersave.threshold">
+            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "5"}'>5% battery left</option>
+            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+            <option value="0" data-l10n-id="never">Never</option>
+          </select>
+        </label>
+        <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Device Storage -->
+    <section role="region" id="device-storage" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="deviceStorage">
+          Device Storage
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
+            <span></span>
+          </label>
+          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="appStorage">Application Storage</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <progress id="apps-space-bar" min="0" max="100"></progress>
+          </label>
+        </li>
+
+        <li>
+          <a id="apps-total-space" data-l10n-id="apps-total-space"> Total Space
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="apps-used-space" data-l10n-id="apps-used-space"> Used
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="apps-free-space" data-l10n-id="apps-free-space"> Left
+            <span class="storage-space"></span>
+          </a>
+        </li>
+      </ul>
+
+      <p class="detailed-desc" data-l10n-id="media-storage-details">
+        Photos, videos, and music are stored in the SD Card.
+        See Media Storage for details.
+      </p>
+
+    </section>
+
+    <!-- Device :: Media Storage -->
+    <section role="region" id="media-storage" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="mediaStorage">
+          Media Storage
+        </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a id="music-space" data-l10n-id="music-space"> Music
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="pictures-space" data-l10n-id="pictures-space"> Pictures
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="videos-space" data-l10n-id="videos-space"> Movies
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <a id="media-free-space" data-l10n-id="left-space"> Space Left
+            <span class="storage-space"></span>
+          </a>
+        </li>
+      </ul>
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1313,9 +1369,9 @@
         <li>
           <a href="#notifications" data-l10n-id="notifications">Notifications</a>
         </li>
-        <li hidden>
+        <li>
           <small id="time-desc"></small>
-          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
+          <a href="#time" data-l10n-id="dateAndTime">Date &amp; Time</a>
         </li>
         <li>
           <small id="language-desc"></small>
@@ -1378,12 +1434,9 @@
           <small id="device-storage-desc"></small>
           <a href="#device-storage" data-l10n-id="deviceStorage">Device Storage</a>
         </li>
-        <li>
+        <li id="media-storage-section">
           <small id="media-storage-desc"></small>
           <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li>
-          <a href="#developer" data-l10n-id="developer">Developer</a>
         </li>
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
