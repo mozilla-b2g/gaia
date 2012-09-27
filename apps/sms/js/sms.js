@@ -1236,10 +1236,10 @@ var ThreadUI = {
         var structureHTML =
                 '  <a href="#num=' + number + '">' +
                 '    <div class="name">' + nameHTML + '</div>' +
-                '    <div class="type">' + numHTML + '</div>' +
-                //TODO what if no photo? hide or default?
-                '    <div class="photo">' +
-                '      <img src="' + details.photoURL + '">' +
+                '    <div class="type">' +
+                      tels[i].type +
+                      ' ' + numHTML +
+                      ' ' + (tels[i].carrier ? tels[i].carrier : '') +
                 '    </div>' +
                 '  </a>';
         // Update HTML and append
@@ -1259,6 +1259,13 @@ var ThreadUI = {
     }
     ContactDataManager.searchContactData(string, function gotContact(contacts) {
       if (!contacts || contacts.length == 0) {
+        var threadHTML = document.createElement('div');
+        threadHTML.classList.add('item');
+        var noResultHTML = '<div class="noResults" data-10ln-id="no-results">' +
+                           'No results returned' +
+                           '</div>';
+        threadHTML.innerHTML = noResultHTML;
+        self.view.appendChild(threadHTML);
         return;
       }
       self.view.innerHTML = '';
