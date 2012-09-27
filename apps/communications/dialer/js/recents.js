@@ -411,8 +411,12 @@ var Recents = {
     }
     var entry =
       '<li class="log-item ' +
-        ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
-          'highlighted' : '') +
+        ((function(){ var valCallLog;
+      	   window.asyncStorage.getItem('latestCallLogVisit', function storage_getItem(value) {
+      	      valCallLog = value;   	
+      	   });
+      	      return valCallLog;
+      	   }() < recent.date) ? 'highlighted' : '') +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -626,7 +630,7 @@ var Recents = {
   },
 
   updateLatestVisit: function re_updateLatestVisit() {
-    localStorage.setItem('latestCallLogVisit', Date.now());
+    window.asyncStorage.setItem('latestCallLogVisit', Date.now());
   },
 
   updateHighlighted: function re_updateHighlighted() {
