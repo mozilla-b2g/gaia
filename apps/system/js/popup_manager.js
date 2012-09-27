@@ -24,7 +24,7 @@ var PopupManager = {
   loadingIcon: document.getElementById('statusbar-loading'),
 
   init: function pm_init() {
-    this.origin = document.getElementById('popup-origin');
+    this.title = document.getElementById('popup-title');
     window.addEventListener('mozbrowseropenwindow', this);
     window.addEventListener('mozbrowserclose', this);
     window.addEventListener('appwillclose', this);
@@ -82,13 +82,13 @@ var PopupManager = {
 
     popup.addEventListener('mozbrowserloadend', this);
     popup.addEventListener('mozbrowserloadstart', this);
+    popup.addEventListener('mozbrowserlocationchange', this);
   },
 
   close: function pm_close(evt, callback) {
     if (evt && (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'popup'))
       return;
-
 
     var self = this;
     this.popupContainer.addEventListener('transitionend', function wait(event) {
@@ -165,29 +165,38 @@ var PopupManager = {
         this.throbber.classList.remove('loading');
         this.handleLoadEnd(evt);
         break;
+
+      case 'mozbrowserlocationchange':
+        evt.target.dataset.url = evt.detail;
+
       case 'mozbrowseropenwindow':
         var detail = evt.detail;
-        // <a href="" target="_blank"> links should opened
-        // outside the application
+        var openerType = evt.target.dataset.frameType;
+        var openerOrigin = evt.target.dataset.frameOrigin;
+
+        // Only app frame is allowed to launch popup
+        if (openerType !== 'window')
+          return;
+
+        // <a href="" target="_blank"> links should opened outside the app
         // itself and fire an activity to be opened into a new browser window.
         if (detail.name === '_blank') {
-          new MozActivity({
-            name: 'view',
-            data: {
-              type: 'url',
-              url: detail.url
-            }
-          });
-        } else {
-          this.throbber.classList.remove('loading');
-          var origin = this.getOrigin(detail.url);
-          this.origin.textContent = origin;
-          detail.frameElement.dataset.origin = origin;
-
-          this.open(detail.name, detail.frameElement,
-                    evt.target.dataset.frameOrigin, false);
+          new MozActivity({ name: 'view',
+                          data: { type: 'url', url: detail.url }});
+          return;
         }
+
+        this.throbber.classList.remove('loading');
+        var popupOrigin = this.getOriginFromUrl(detail.url);
+        this.title.textContent = popupOrigin;
+
+        var frame = detail.frameElement;
+        frame.dataset.url = detail.url;
+
+        this.open(detail.name, frame, openerOrigin, false);
+
         break;
+
       case 'mozbrowserclose':
         this.close(evt);
         break;
@@ -221,7 +230,7 @@ var PopupManager = {
     }
   },
 
-  getOrigin: function pm_getOrigin(url) {
+  getOriginFromUrl: function pm_getOriginFromUrl(url) {
     return url.split('//')[0] + '//' + url.split('//')[1].split('/')[0];
   },
 
@@ -234,15 +243,15 @@ var PopupManager = {
       return;
 
     this.screen.classList.add('popup');
-    this._currentPopup[this._currentOrigin].style.display = 'block';
+    this._currentPopup[this._currentOrigin].hidden = false;
   },
 
   hide: function pm_hide(origin) {
     if (!this._currentPopup[origin])
       return;
 
-    this._currentPopup[origin].style.display = 'none';
     this.screen.classList.remove('popup');
+    this._currentPopup[origin].hidden = true;
   }
 };
 
