@@ -212,6 +212,15 @@ ul li p + input[type=password] {
 }
 
 
+.pref > div {
+  padding: 0 3rem;
+  font-size: 1.5rem;
+}
+
+.link-button {
+  text-decoration: none;
+}
+
 /******************************************************************************
  * Wi-Fi icons
  */

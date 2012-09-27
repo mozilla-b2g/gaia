@@ -1134,7 +1134,57 @@
        </ul>
     </section>
 
-    <!-- Device :: About -->
+    <!-- Device :: Device Information :: More Information Dialog -->
+    <section role="region" id="more-info" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <h1 data-l10n-id="more-info"> More Information </h1>
+      </header>
+      <ul>
+        <li>
+          <a data-l10n-id="model-name"> Model
+            <span class="storage-space" data-name="deviceinfo.hardware"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="os-version"> OS Version
+            <span class="storage-space" data-name="deviceinfo.os"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="MAC-address"> MAC address
+            <span class="storage-space"></span>
+          </a>
+        </li>
+        <li>
+          <label>
+            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Device Information :: About your rights Dialog -->
+    <section role="region" id="about-your-rights" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <h1 data-l10n-id="about-your-rights">  About Your Rights </h1>
+      </header>
+      <p data-l10n-id="your-rights-doc">
+      </p>
+    </section>
+
+    <!-- Device :: Device Information :: Licensing Dialog -->
+    <section role="region" id="licensing" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <h1 data-l10n-id="licensing">  Licensing </h1>
+      </header>
+      <p data-l10n-id="licensing-doc">
+      </p>
+    </section>
+
+    <!-- Device :: Device Information -->
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1142,6 +1192,95 @@
           Device Information
         </h1>
       </header>
+      <ul>
+        <li>
+          <a id="model-name" data-l10n-id="model-name"> Model
+            <span data-name="deviceinfo.hardware"></span>
+          </a>
+        </li>
+        <li>
+          <a id="os-version" data-l10n-id="os-version"> OS Version
+            <span data-name="deviceinfo.os"></span>
+          </a>
+        </li>
+        <li>
+          <a id="last-update-date" data-l10n-id="last-updated"> Last Updated
+            <span></span>
+          </a>
+        </li>
+        <li>
+          <label>
+            <button data-l10n-id="more-info" onclick="Settings.openDialog('more-info')"> More Information </button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <select>
+              <option value="1" data-l10n-id="check-update-daily">Daily</option>
+              <option value="7" data-l10n-id="check-update-weekly">Weekly</option>
+              <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
+              <option value="0" data-l10n-id="never">Never</option>
+            </select>
+          </label>
+          <a data-l10n-id="check-for-updates">Check for Updates</a>
+        </li>
+        <li>
+          <label>
+            <button id="check-update-now" data-l10n-id="check-update-now">Check Now</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS</h2>
+      </header>
+
+      <p class="detailed-desc" data-l10n-id="firefox-os-desc">
+        Firefox OS is the free and open source operating 
+        system from Mozilla. Our mission is to promote 
+        openness, innovation and opportunity by 
+        keeping the power of the Web in your hands.
+      </p>
+
+      <ul>
+        <li>
+          <label>
+            <button data-l10n-id="about-your-rights" onclick="Settings.openDialog('about-your-rights')"> About Your Rights </button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <!-- XXX: need to change it to link to "Privacy Rights" Page in the "Security and Privacy" section  -->
+            <a href="#doNotTrack" class="link-button">
+              <button id="about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </button>
+            </a>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button data-l10n-id="licensing" onclick="Settings.openDialog('licensing')"> Licensing </button>
+          </label>
+        </li>
+        <li>
+          <label for="share-performance-data" class="pref">
+            <div>
+              <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
+              <span data-l10n-id="share-performance-data">
+                I want to help make Firefox OS faster and 
+                easier to use by sharing information about 
+                my phone’s performance.
+              </span>
+              <a href="#" onclick="Settings.openURL('http://mozilla.org'); return false;" data-l10n-id="learn-more"> Learn More </a>
+             </div>
+          </label>
+        </li>
+      </ul>
 
       <header>
         <h2 data-l10n-id="gitInfo"> Git commit info </h2>
