@@ -158,11 +158,6 @@ ol.link-list a {
   display: none;
 }
 
-#modify-account-view.update .delete-record {
-  position: absolute;
-  bottom: 0px;
-}
-
 :target#remove-account-dialog {
   display: block;
 }
@@ -189,6 +184,12 @@ ol.link-list a {
   display: none;
 }
 
+
+#modify-event-view.create .delete-record,
+#modify-event-view.readonly .delete-record {
+  display: none;
+}
+
 .fullscreen-view.active {
   visibility: visible;
 }
@@ -202,6 +203,11 @@ ol.link-list a {
   top: 0px;
   width: 100%;
   height: 100%
+}
+
+.fullscreen-view .delete-record {
+  position: absolute;
+  bottom: 0px;
 }
 
 body[role="application"] section[role="region"] > header h1 {
