@@ -95,6 +95,8 @@ var Browser = {
       this.saveBookmark.bind(this));
     this.awesomescreenCancelButton.addEventListener('click',
      this.handleAwesomescreenCancel.bind(this));
+    this.clearPrivateDataButton.addEventListener('click',
+      this.clearPrivateData.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -150,7 +152,7 @@ var Browser = {
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
-      'awesomescreen-cancel-button'];
+      'awesomescreen-cancel-button', 'clear-private-data-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -1272,6 +1274,7 @@ var Browser = {
   showSettingsScreen: function browser_showSettingsScreen() {
     this.switchScreen(this.SETTINGS_SCREEN);
     this.clearHistoryButton.disabled = false;
+    this.clearPrivateDataButton.disabled = false;
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -1289,6 +1292,17 @@ var Browser = {
       Places.clearHistory((function() {
         this.clearHistoryButton.setAttribute('disabled', 'disabled');
       }).bind(this));
+    }
+  },
+
+  clearPrivateData: function browser_clearPrivateData() {
+    var msg = navigator.mozL10n.get('confirm-clear-private-data');
+    if (confirm(msg)) {
+      var request = navigator.mozApps.getSelf();
+      request.onsuccess = (function() {
+        request.result.clearBrowserData();
+        this.clearPrivateDataButton.setAttribute('disabled', 'disabled');
+      }).bind(this);
     }
   },
 
