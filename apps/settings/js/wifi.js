@@ -463,7 +463,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
         scanning = false;
         window.setTimeout(scan, scanRate);
       };
-
     }
 
     function display(ssid, message) {
