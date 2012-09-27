@@ -3,7 +3,6 @@
 
 'use strict';
 
-
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
  * the `dom.mozSettings.enabled' preference to false.
