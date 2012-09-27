@@ -233,17 +233,9 @@ var NotificationScreen = {
 
     // We turn the screen on if needed in order to let
     // the user see the notification toaster
-    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
-    if (this._screenInitiallyDisabled) {
+    if (!ScreenManager.screenEnabled) {
       ScreenManager.turnScreenOn();
     }
-
-    setTimeout((function() {
-      if (this._screenInitiallyDisabled) {
-        ScreenManager.turnScreenOff(false);
-      }
-    }).bind(this), this.TOASTER_TIMEOUT);
-
 
     this.updateStatusBarIcon(true);
 
