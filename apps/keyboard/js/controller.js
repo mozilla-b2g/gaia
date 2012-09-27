@@ -127,6 +127,8 @@ const IMEController = (function() {
 
   // Check if current layout requires IME
   function _requireIME() {
+    if (!_baseLayoutName)
+      return false;
     return Keyboards[_baseLayoutName].type === 'ime';
   }
 

@@ -455,6 +455,10 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
+      FixedHeader.init('#thread-list-container',
+                       '#threads-fixed-container',
+                       'h2');
+
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [],
           dayHeaderIndex = 0,
@@ -578,6 +582,7 @@ var ThreadListUI = {
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
+    FixedHeader.refresh();
   }
 };
 
@@ -1158,10 +1163,10 @@ var ThreadUI = {
                 });
               }
               CustomDialog.show(
-                _('sendFlightModeTitle'),
-                _('sendFlightModeBody'),
+                _('sendAirplaneModeTitle'),
+                _('sendAirplaneModeBody'),
                 {
-                  title: _('sendFlightModeBtnOk'),
+                  title: _('sendAirplaneModeBtnOk'),
                   callback: function() {
                     CustomDialog.hide();
                   }

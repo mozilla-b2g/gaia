@@ -3,7 +3,6 @@
 
 'use strict';
 
-
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
  * the `dom.mozSettings.enabled' preference to false.
@@ -46,6 +45,18 @@ var Settings = {
           return;
         progressBar.value = intValue;
         return;
+      }
+
+      var select =
+          document.querySelector('select[name="' + key + '"]');
+
+      if (select) {
+        for (var i = 0; i < select.options.length; i++) {
+          if (select.options[i].value == value) {
+            select.options[i].selected = true;
+            break;
+          }
+        }
       }
 
       // XXX: if there are more values needs to be synced.
@@ -159,7 +170,11 @@ var Settings = {
         request.onsuccess = function() {
           var value = request.result[key];
           if (value != undefined) {
-            select.querySelector('option[value="' + value + '"]').selected = true;
+            var option = 'option[value="' + value + '"]';
+            var selectOption = select.querySelector(option);
+            if (selectOption) {
+              selectOption.selected = true;
+            }
           }
         };
       })(selects[i]);
@@ -184,6 +199,7 @@ var Settings = {
                    (input.tagName.toLowerCase() == 'select')) {
           value = input.value;
         }
+
         var cset = {}; cset[key] = value;
         settings.createLock().set(cset);
         break;
