@@ -150,6 +150,26 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
+    <section role="region" id="wifi-manageNetworks">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="knownNetworks">
+          Known Networks
+        </h1>
+      </header>
+
+      <ul id="wifi-knownNetworks">
+        <!--
+          - filled by wifi.js — one list item per known network, e.g.:
+          -   <li>
+          -     <small> Network Security </small>
+          -     <a [class="wifi-secure"]> Network SSID </a>
+          -   </li>
+          -->
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi -->
     <section role="region" id="wifi">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -191,10 +211,10 @@
           Searching…
         </li>
         <!--
-          - filled by wifi.js: one list item per available network, e.g.:
-          -   <li class="wifi-signal3">
-          -     <small> WPA2 </small>
-          -     <a> Fake Mozilla </a>
+          - filled by wifi.js — one list item per available network, e.g.:
+          -   <li class="wifi-signal[0-4]">
+          -     <small> Network Security </small>
+          -     <a [class="wifi-secure"]> Network SSID </a>
           -   </li>
           -->
         <li data-state="ready">
@@ -211,6 +231,11 @@
         <li id="macAddress">
           <small id="macAddress-desc"></small>
           <a data-l10n-id="macAddress">MAC Address</a>
+        </li>
+        <li>
+          <label>
+            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
+          </label>
         </li>
       </ul>
     </section>

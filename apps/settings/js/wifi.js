@@ -319,7 +319,43 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
   };
 
-  // network list
+  // create a network list item
+  function newListItem(network, callback) {
+    /**
+     * A Wi-Fi list item has the following HTML structure:
+     *   <li>
+     *     <small> Network Security </small>
+     *     <a [class="wifi-secure"]> Network SSID </a>
+     *   </li>
+     */
+
+    // ssid
+    var ssid = document.createElement('a');
+    ssid.textContent = network.ssid;
+
+    // supported authentication methods
+    var small = document.createElement('small');
+    var keys = network.capabilities;
+    if (keys && keys.length) {
+      small.textContent = _('securedBy', { capabilities: keys.join(', ') });
+      ssid.className = 'wifi-secure';
+    } else {
+      small.textContent = _('securityOpen');
+    }
+
+    // create list item
+    var li = document.createElement('li');
+    li.appendChild(small);
+    li.appendChild(ssid);
+
+    // bind connection callback
+    li.onclick = function() {
+      callback(network);
+    };
+    return li;
+  }
+
+  // available network list
   var gNetworkList = (function networkList(list) {
     var scanning = false;
     var autoscan = false;
@@ -333,46 +369,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
       clear(true);
       scan();
     };
-
-    // private DOM helper: create a network list item
-    function newListItem(network) {
-      /**
-       * A Wi-Fi list item has the following HTML structure:
-       *   <li class="wifi-signal[0-4]">
-       *     <small> Network Security </small>
-       *     <a> Network SSID </a>
-       *   </li>
-       */
-
-      // ssid
-      var ssid = document.createElement('a');
-      ssid.textContent = network.ssid;
-
-      // supported authentication methods
-      var small = document.createElement('small');
-      var keys = network.capabilities;
-      if (keys && keys.length) {
-        small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-        ssid.className = 'wifi-secure';
-      } else {
-        small.textContent = _('securityOpen');
-      }
-
-      // create list item
-      var li = document.createElement('li');
-      li.appendChild(small);
-      li.appendChild(ssid);
-
-      // signal is between 0 and 100, level should be between 0 and 4
-      var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-      li.className = 'wifi-signal' + level;
-
-      // bind connection callback
-      li.onclick = function() {
-        toggleNetwork(network);
-      };
-      return li;
-    }
 
     // clear the network list
     function clear(addScanningItem) {
@@ -403,7 +399,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var req = gWifiManager.getNetworks();
 
       req.onsuccess = function onScanSuccess() {
-        // clear list again to show scan results
         clear(false);
 
         // sort networks by signal strength
@@ -416,7 +411,11 @@ window.addEventListener('localized', function wifiSettings(evt) {
         // add detected networks
         for (var i = 0; i < ssids.length; i++) {
           var network = networks[ssids[i]];
-          var listItem = newListItem(network);
+          var listItem = newListItem(network, toggleNetwork);
+
+          // signal is between 0 and 100, level should be between 0 and 4
+          var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+          listItem.className = 'wifi-signal' + level;
 
           // put connected network on top of list
           if (isConnected(network)) {
@@ -448,6 +447,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       };
     }
 
+    // display a message on the network item matching the ssid
     function display(ssid, message) {
       var listItem = index[ssid];
       var active = list.querySelector('.active');
@@ -473,11 +473,64 @@ window.addEventListener('localized', function wifiSettings(evt) {
     };
   }) (document.getElementById('wifi-availableNetworks'));
 
+  var gKnownNetworkList = (function knownNetworkList(list) {
+    // clear the network list
+    function clear() {
+      while (list.hasChildNodes()) {
+        list.removeChild(list.lastChild);
+      }
+    }
+
+    // propose to forget a network
+    function forgetNetwork(network) {
+      if (window.confirm(_('forgetNetwork'))) {
+        gWifiManager.forget(network);
+        scan();
+      }
+    }
+
+    // list known networks
+    function scan() {
+      var req = gWifiManager.getKnownNetworks();
+
+      req.onsuccess = function onSuccess() {
+        clear();
+
+        // sort networks alphabetically
+        var networks = req.result;
+        var ssids = Object.getOwnPropertyNames(networks);
+        ssids.sort();
+
+        // display known networks
+        for (var i = 0; i < ssids.length; i++) {
+          list.appendChild(newListItem(networks[ssids[i]], forgetNetwork));
+        }
+      };
+
+      req.onerror = function onScanError(error) {
+        console.warn('wifi: could not retrieve any known network. ');
+      };
+    }
+
+    // API
+    return {
+      clear: clear,
+      scan: scan
+    };
+  }) (document.getElementById('wifi-knownNetworks'));
+
+  document.getElementById('manageNetworks').onclick = function knownNetworks() {
+    gKnownNetworkList.scan();
+    openDialog('wifi-manageNetworks');
+  };
+
   function isConnected(network) {
-    // XXX the API should expose a 'connected' property on 'network',
-    // and 'gWifiManager.connection.network' should be comparable to 'network'.
-    // Until this is properly implemented, we just compare SSIDs to tell wether
-    // the network is already connected or not.
+    /**
+     * XXX the API should expose a 'connected' property on 'network',
+     * and 'gWifiManager.connection.network' should be comparable to 'network'.
+     * Until this is properly implemented, we just compare SSIDs to tell wether
+     * the network is already connected or not.
+     */
     var currentNetwork = gWifiManager.connection.network;
     return currentNetwork && (currentNetwork.ssid == network.ssid);
   }
