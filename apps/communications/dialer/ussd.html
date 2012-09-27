@@ -8,8 +8,8 @@
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/bb/progress_activity/style.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/bb/input_areas/style.css">
     <!-- Specific styles -->
     <link rel="stylesheet" type="text/css" href="/dialer/style/ussd.css">
     <!-- Shared code -->
@@ -51,11 +51,11 @@
         Hey
       </div>
     </section>
-    <section id="response" role="region">
-      <label>
-        <input id="response-text" type="tel" data-l10n-id="type-your-selection" placeholder="Type your selection..." required disabled>
+    <form id="response" role="region">
+      <p>
+        <input id="response-text" type="tel" data-l10n-id="type-your-response" placeholder="Type your selection..." required disabled>
         <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>  
-      </label>
-    </section>
+      </p>
+    </form>
   </body>
 </html>

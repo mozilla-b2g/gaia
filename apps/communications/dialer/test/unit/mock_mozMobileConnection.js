@@ -16,6 +16,8 @@ var MockMozMobileConnection = {
     } else if (this._ussd_listener_function) {
       this._ussd_listener_function(evt);
     }
+    var domRequest = {};
+    return domRequest;
   },
   cancelUSSD: function mmmc_cancelUSSD() {
     this._ussd_cancelled = true;
