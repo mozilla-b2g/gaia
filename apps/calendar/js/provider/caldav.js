@@ -13,6 +13,9 @@ Calendar.ns('Provider').Caldav = (function() {
     useCredentials: true,
     canSync: true,
 
+    canCreate: false,
+    canEdit: false,
+
     getAccount: function(account, callback) {
       this.service.request(
         'caldav',

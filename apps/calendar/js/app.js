@@ -51,7 +51,6 @@ Calendar.App = (function(window) {
 
       /* temp views */
       this.state('/week/', setPath, tempView('#week-view'));
-      this.state('/add/', setPath, tempView('#modify-event-view'));
 
       /* routes */
       this.state('/day/', setPath, 'Day');
@@ -61,6 +60,7 @@ Calendar.App = (function(window) {
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
 
+      this.state('/add/', setPath, 'ModifyEvent');
       this.state('/event/:id', setPath, 'ModifyEvent');
 
       this.modifier('/select-preset/', setPath, 'CreateAccount');
