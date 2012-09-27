@@ -183,7 +183,7 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
 #root li [data-l10n-id="developer"]         { background-image: url(images/settings/developer.png); }
 #root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings/about_phone.png); }
-#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png)}
+#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png); }
 #root li [data-l10n-id="display"]           { background-image: url(images/settings/display.png); }
 #root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings/do_not_track.png); }
 #root li [data-l10n-id="gps"]               { background-image: url(images/settings/gps.png); }
@@ -192,7 +192,7 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="keyboard"]          { background-image: url(images/settings/keyboard.png); }
 #root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings/languages.png); }
 #root li [data-l10n-id="mail"]              { background-image: url(images/settings/email.png); }
-#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png)}
+#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png); }
 #root li [data-l10n-id="notifications"]     { background-image: url(images/settings/notifications.png); }
 #root li [data-l10n-id="persona"]           { background-image: url(images/settings/persona.png); }
 #root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings/phone_lock.png); }
@@ -209,16 +209,6 @@ ul li p + input[type=password] {
 
 #root li small {
   left: 55px;
-}
-
-
-.pref > div {
-  padding: 0 3rem;
-  font-size: 1.5rem;
-}
-
-.link-button {
-  text-decoration: none;
 }
 
 /******************************************************************************
@@ -290,8 +280,8 @@ ul li p + input[type=password] {
   color: #505859;
 }
 
-.detailed-desc {
-  padding: 0 3rem;
+.description {
+  padding: 1rem 3rem;
   font-size: 1.5rem;
 }
 
@@ -398,5 +388,19 @@ ul li p + input[type=password] {
   top: 0;
   left: 0;
   opacity: 0;
+}
+
+
+/******************************************************************************
+ * Device Information
+ */
+
+.pref > div {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+}
+
+label a[href="#doNotTrack"] {
+  text-decoration: none;
 }
 

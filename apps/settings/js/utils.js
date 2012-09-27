@@ -4,6 +4,17 @@
 'use strict';
 
 /**
+ * Open a URL with a web activity
+ */
+
+function openURL(url) {
+  var a = new MozActivity({
+    name: 'view',
+    data: { type: 'url', url: url }
+  });
+}
+
+/**
  * These so-called "dialog boxes" are just standard Settings panels (<section
  * role="region" />) with reset/submit buttons: these buttons both return to the
  * previous panel when clicked, and each button has its own (optional) callback.
