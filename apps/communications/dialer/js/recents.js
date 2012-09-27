@@ -398,7 +398,7 @@ var Recents = {
     return items;
   },
 
-  createRecentEntry: function re_createRecentEntry(recent) {
+  createRecentEntry: function re_createRecentEntry(recent, valCallLatestVisit) {
     var classes = 'icon ';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
@@ -410,9 +410,7 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' +
-        ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
-          'highlighted' : '') +
+      '<li class="log-item ' + valCallLatestVisit +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -466,7 +464,9 @@ var Recents = {
     this.recentsIconEdit.classList.remove('disabled');
     var content = '',
       currentDay = '';
-    for (var i = 0; i < recents.length; i++) {
+      
+    window.asyncStorage.getItem('latestCallLogVisit', function storageGetItem(value) {
+      for (var i = 0; i < recents.length; i++) {
       var day = Utils.getDayDate(recents[i].date);
       if (day != currentDay) {
         if (currentDay != '') {
@@ -479,8 +479,20 @@ var Recents = {
           ' </h2>' +
           ' <ol id="list-day-' + day + '" class="log-group">';
       }
-      content += this.createRecentEntry(recents[i]);
-    }
+      var valCallLatestVisit;
+      if (value < recents[i].date) {
+      	valCallLatestVisit = 'highlighted';
+      } else {
+      	valCallLatestVisit = '';
+      }
+         content += this.createRecentEntry(recents[i], valCallLatestVisit);
+      }
+
+      if (typeof callback == 'function') {
+        callback();
+      }
+    });
+
     this.recentsContainer.innerHTML = content;
 
     FixedHeader.refresh();
@@ -626,7 +638,7 @@ var Recents = {
   },
 
   updateLatestVisit: function re_updateLatestVisit() {
-    localStorage.setItem('latestCallLogVisit', Date.now());
+    window.asyncStorage.setItem('latestCallLogVisit', Date.now());
   },
 
   updateHighlighted: function re_updateHighlighted() {
