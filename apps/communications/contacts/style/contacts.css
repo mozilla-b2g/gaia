@@ -49,7 +49,7 @@ section[role="region"] > header:first-child sup {
   background-color: #f5f5f5;
   overflow: visible;
   position: relative;
-  min-height: calc(100% - 3.6rem);
+  min-height: calc(100% - 5rem);
 }
 
 .view-contact-profile .view-body-inner.up {
