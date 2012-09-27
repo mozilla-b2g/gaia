@@ -170,7 +170,7 @@ if (!fb.link) {
       fb.utils.runQuery(query, {
         success: fb.link.proposalReady,
         error: fb.link.errorHandler,
-        timeout: fb.link.TimeoutHandler
+        timeout: fb.link.timeoutHandler
       }, access_token);
     }
 
@@ -181,7 +181,7 @@ if (!fb.link) {
       fb.utils.runQuery(ALL_QUERY.join(''), {
         success: fb.link.friendsReady,
         error: fb.link.errorHandler,
-        timeout: fb.link.TimeoutHandler
+        timeout: fb.link.timeoutHandler
       }, access_token);
     }
 

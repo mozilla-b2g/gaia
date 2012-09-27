@@ -82,25 +82,25 @@ if (!fb.utils) {
 
     xhr.onload = function(e) {
       if (xhr.status === 200 || xhr.status === 0) {
-        if(callback && typeof callback.success === 'function')
+        if (callback && typeof callback.success === 'function')
           callback.success(xhr.response);
       }
       else {
         window.console.error('FB: Error executing query. Status: ', xhr.status);
-        if(callback && typeof callback.error === 'function')
+        if (callback && typeof callback.error === 'function')
           callback.error();
       }
     }
 
     xhr.ontimeout = function(e) {
       window.console.error('FB: Timeout!!! while executing query', query);
-      if(callback && typeof callback.timeout === 'function')
+      if (callback && typeof callback.timeout === 'function')
         callback.timeout();
     }
 
     xhr.onerror = function(e) {
       window.console.error('FB: Error while executing query', e);
-      if(callback && typeof callback.error === 'function')
+      if (callback && typeof callback.error === 'function')
         callback.error();
     }
 

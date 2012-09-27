@@ -219,7 +219,7 @@ if (typeof fb.importer === 'undefined') {
 
         fb.utils.runQuery(oneFriendQuery, {
                             success: fb.importer.importDataReady,
-                            error:   fb.importer.errorHandler,
+                            error: fb.importer.errorHandler,
                             timeout: fb.importer.timeoutHandler
         }, access_token);
       },0);
