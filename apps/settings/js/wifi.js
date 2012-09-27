@@ -334,55 +334,38 @@ window.addEventListener('localized', function wifiSettings(evt) {
       scan();
     };
 
-    // private DOM helper: create a "Scanning..." list item
-    function newScanItem() {
-      var a = document.createElement('a');
-      a.textContent = _('scanning');
-
-      var span = document.createElement('span');
-      span.className = 'wifi-search';
-
-      var label = document.createElement('label');
-      label.appendChild(span);
-
-      var li = document.createElement('li');
-      li.appendChild(a);
-      li.appendChild(label);
-
-      return li;
-    }
-
     // private DOM helper: create a network list item
     function newListItem(network) {
+      /**
+       * A Wi-Fi list item has the following HTML structure:
+       *   <li class="wifi-signal[0-4]">
+       *     <small> Network Security </small>
+       *     <a> Network SSID </a>
+       *   </li>
+       */
+
       // ssid
       var ssid = document.createElement('a');
       ssid.textContent = network.ssid;
-
-      // signal is between 0 and 100, level should be between 0 and 4
-      var signal = document.createElement('span');
-      var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-      signal.className = 'wifi-signal' + level;
-      var label = document.createElement('label');
-      label.className = 'wifi';
-      label.appendChild(signal);
 
       // supported authentication methods
       var small = document.createElement('small');
       var keys = network.capabilities;
       if (keys && keys.length) {
         small.textContent = _('securedBy', { capabilities: keys.join(', ') });
-        var secure = document.createElement('span');
-        secure.className = 'wifi-secure';
-        label.appendChild(secure);
+        ssid.className = 'wifi-secure';
       } else {
         small.textContent = _('securityOpen');
       }
 
       // create list item
       var li = document.createElement('li');
-      li.appendChild(label);
       li.appendChild(small);
       li.appendChild(ssid);
+
+      // signal is between 0 and 100, level should be between 0 and 4
+      var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+      li.className = 'wifi-signal' + level;
 
       // bind connection callback
       li.onclick = function() {
@@ -437,7 +420,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
           // put connected network on top of list
           if (isConnected(network)) {
-            listItem.className = 'active';
+            listItem.classList.add('active');
             listItem.querySelector('small').textContent =
                 _('shortStatus-connected');
             list.insertBefore(listItem, infoItem.nextSibling);
@@ -469,12 +452,12 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var listItem = index[ssid];
       var active = list.querySelector('.active');
       if (active && active != listItem) {
-        active.className = '';
+        active.classList.remove('active');
         active.querySelector('small').textContent =
             _('shortStatus-disconnected');
       }
       if (listItem) {
-        listItem.className = 'active';
+        listItem.classList.add('active')
         listItem.querySelector('small').textContent = message;
       }
     }
