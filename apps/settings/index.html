@@ -16,6 +16,7 @@
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
@@ -652,6 +653,7 @@
           Date &amp; Time
         </h1>
       </header>
+
       <ul>
         <li id="time-nitz-automatic-update">
           <label class="switch">
@@ -661,17 +663,22 @@
           <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
         </li>
       </ul>
+
       <header>
         <h2 data-l10n-id="setTimeManually">Set Manually</h2>
       </header>
       <ul id="time-manual" hidden>
         <li id="setDate">
-          <a data-l10n-id="dateMessage">Date<span id="clock-date"></span></a>
-          <input type="date" id="date-picker"/>
+          <label>
+            <input type="date" id="date-picker" />
+          </label>
+          <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
         </li>
         <li id="setTime">
-          <a data-l10n-id="timeMessage">Time<span id="clock-time"></span></a>
-          <input type="time" id="time-picker"/>
+          <label>
+            <input type="time" id="time-picker" />
+          </label>
+          <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
         </li>
       </ul>
     </section>
