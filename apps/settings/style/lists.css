@@ -180,6 +180,7 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="battery"]           { background-image: url(images/settings/battery.png); }
 #root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings/bluetooth.png); }
 #root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings/network.png); }
+#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
 #root li [data-l10n-id="developer"]         { background-image: url(images/settings/developer.png); }
 #root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings/about_phone.png); }
 #root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png)}

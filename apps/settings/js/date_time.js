@@ -22,11 +22,9 @@ var SetTime = (function SetTime() {
     init: _init,
     set: set
   };
-
 })();
 
 window.addEventListener('localized', function SettingsDateAndTime(evt) {
-
   var _ = navigator.mozL10n.get;
 
   function initDatePicker() { // Date Picker need to provide init value
@@ -42,8 +40,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   function updateDate() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
-    var format = navigator.mozL10n.get('dateFormat');
-    gDate.textContent = f.localeFormat(d, format);
+    gDate.textContent = f.localeFormat(d, '%x');
 
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
@@ -56,12 +53,9 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   function updateClock() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
-    var localeTimeFormat = _('timeFormat');
-    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
-    var t =
-        f.localeFormat(d, (is12hFormat ? '%I:%M' : '%H:%M')).replace(/^0/, '');
-    var p = is12hFormat ? ('  ' + f.localeFormat(d, '%p')) : '';
-    gClockTime.textContent = t + p;
+    var format = _('shortTimeFormat');
+    gTime.textContent = f.localeFormat(d, format);
+
     _updateClockTimeout = window.setTimeout(function updateClockTimeout() {
       updateClock();
     }, (59 - d.getSeconds()) * 1000);
@@ -105,7 +99,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var gDatePicker = document.getElementById('date-picker');
   var gTimePicker = document.getElementById('time-picker');
   var gDate = document.getElementById('clock-date');
-  var gClockTime = document.getElementById('clock-time');
+  var gTime = document.getElementById('clock-time');
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
 
@@ -160,3 +154,4 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     }
   });
 });
+
