@@ -10,7 +10,7 @@
     __proto__: Calendar.Provider.Abstract.prototype,
 
     canCreateEvent: true,
-    canEditEvent: true,
+    canUpdateEvent: true,
     canDeleteEvent: true,
 
     getAccount: function(account, callback) {
@@ -73,7 +73,7 @@
       this.app.store('Event').remove(event._id, callback);
     },
 
-    editEvent: function(event, busytime, callback) {
+    updateEvent: function(event, busytime, callback) {
       if (typeof(busytime) === 'function') {
         callback = busytime;
         busytime = null;

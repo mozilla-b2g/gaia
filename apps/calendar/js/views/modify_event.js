@@ -23,6 +23,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
     UPDATE: 'update',
     PROGRESS: 'in-progress',
 
+    DEFAULT_VIEW: '/month/',
+
     selectors: {
       element: '#modify-event-view',
       form: '#modify-event-view form',
@@ -160,21 +162,30 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * @return {String} redirect url.
      */
     returnTo: function() {
-      var defaultValue = '/month/';
-      var path;
-
-      if (this._returnTo && this._returnTo.path) {
-        path = this._returnTo.path;
-      }
+      var path = this._returnTo || this.DEFAULT_VIEW;
 
       if (/^\/add\//.test(path)) {
-        return defaultValue;
+        return this.DEFAULT_VIEW;
       }
 
-      return path || defaultValue;
+      return path;
     },
 
-    _create: function() {
+    /**
+     * Ask the provider to an event:
+     *
+     *  1. update the model with form data
+     *
+     *  2. send it to the provider if it has the capability
+     *
+     *  3. set the position of the calendar to startDate of new/edited event.
+     *
+     *  4. redirect to last view.
+     *
+     * For now both update & create share the same
+     * behaviour (redirect) in the future we may change this.
+     */
+    _persistEvent: function(method) {
       // create model data
       var data = this.formData();
       for (var field in data) {
@@ -199,9 +210,19 @@ Calendar.ns('Views').ModifyEvent = (function() {
         // it via css during that time period
         list.add(this.PROGRESS);
 
-        provider.createEvent(this.model.data, function() {
+        var moveDate = this.model.startDate;
+        var redirect = this.returnTo();
+
+        provider[method](this.model.data, function() {
           list.remove(self.PROGRESS);
-          self.app.go(self.returnTo());
+
+          // move the position in the calendar to the added/edited day
+          self.app.timeController.move(moveDate);
+          // order is important the above method triggers the building
+          // of the dom elements so selectedDay must come after.
+          self.app.timeController.selectedDay = moveDate;
+
+          self.app.go(redirect);
         });
       }
     },
@@ -224,10 +245,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Persist current model.
      */
     save: function() {
-      if (this.provider && this.provider.canEditEvent) {
-        // handle edit
+      if (this.provider && this.provider.canUpdateEvent) {
+        this._persistEvent('updateEvent');
       } else {
-        this._create();
+        this._persistEvent('createEvent');
       }
     },
 
@@ -321,7 +342,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var model = this.model;
       var calendar = this.store.calendarFor(model);
 
-      if (!this.provider.canEditEvent) {
+      if (!this.provider.canUpdateEvent) {
         this._markReadonly(true);
         this.element.classList.add(this.READONLY);
       }
@@ -359,8 +380,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
     dispatch: function(data) {
       var id = data.params.id;
       var classList = this.element.classList;
+      var last = this.app.router.last;
 
-      this._returnTo = this.app.router.last;
+      if (last && last.path) {
+        this._returnTo = last.path;
+      }
 
       if (id) {
         this._loadModel(id);

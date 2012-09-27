@@ -433,7 +433,7 @@ suite('views/modify_event', function() {
       subject.useModel(event);
 
       // must come after dispatch
-      subject._returnTo = { path: '/foo' };
+      subject._returnTo = '/foo';
     });
 
     test('in create mode', function() {
@@ -450,21 +450,66 @@ suite('views/modify_event', function() {
   });
 
   suite('#save', function() {
+    var redirectTo;
+    var provider;
+    var list;
 
-    suite('create', function() {
+    setup(function() {
+      provider = eventStore.providerFor(event);
+      list = subject.element.classList;
+
+      app.go = function(place) {
+        redirectTo = place;
+      };
+    });
+
+    suite('update', function() {
       var calledWith;
-      var redirectTo;
-      var list;
-      var provider;
 
       setup(function() {
         calledWith = null;
-        provider = eventStore.providerFor(event);
-        list = subject.element.classList;
 
-        app.go = function(place) {
-          redirectTo = place;
-        };
+        provider.updateEvent = function() {
+          calledWith = arguments;
+        }
+
+        subject.onfirstseen();
+        subject.useModel(event);
+
+        subject._returnTo = '/foo';
+      });
+
+      test('with provider that can edit', function() {
+        setFieldValue('calendarId', calendar._id);
+        setFieldValue('startDate', '2012-1-2');
+        setFieldValue('title', 'myfoo');
+
+        subject.save();
+
+        var data = subject.formData();
+        assert.hasProperties(subject.model, data, 'updated model');
+        assert.isTrue(list.contains(subject.PROGRESS));
+        assert.ok(calledWith);
+
+        var cb = calledWith[calledWith.length - 1];
+        cb();
+
+        assert.isFalse(list.contains(subject.PROGRESS));
+        assert.equal(redirectTo, '/foo');
+
+        assert.deepEqual(
+          app.timeController.position,
+          subject.model.startDate,
+          'moves time controller'
+        );
+      });
+    });
+
+    suite('create', function() {
+      var calledWith;
+
+      setup(function() {
+        calledWith = null;
 
         provider.createEvent = function() {
           calledWith = arguments;
@@ -475,7 +520,7 @@ suite('views/modify_event', function() {
         subject.dispatch({ params: {} });
 
         // must come after dispatch
-        subject._returnTo = { path: '/foo' };
+        subject._returnTo = '/foo';
       });
 
       test('with provider that can create', function() {
@@ -498,6 +543,12 @@ suite('views/modify_event', function() {
 
         assert.isFalse(list.contains(subject.PROGRESS));
         assert.equal(redirectTo, '/foo');
+
+        assert.deepEqual(
+          app.timeController.position,
+          subject.model.startDate,
+          'moves timeController'
+        );
       });
 
     });
@@ -568,6 +619,22 @@ suite('views/modify_event', function() {
     });
   });
 
+  suite('#returnTo', function() {
+    test('without returnTo', function() {
+      assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
+    });
+
+    test('/add set', function() {
+      subject._returnTo = '/add/';
+      assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
+    });
+
+    test('with returnTo', function() {
+      var path = subject._returnTo = '/foo';
+      assert.equal(subject.returnTo(), path);
+    });
+  });
+
   suite('dom events', function() {
     test('delete button click', function(done) {
       var calledWith;
@@ -583,9 +650,12 @@ suite('views/modify_event', function() {
 
     test('save button click', function() {
       var calledWith;
+      var provider = app.provider('Local');
+
+      subject.onfirstseen();
       subject.dispatch({ params: {} });
 
-      subject._create = function() {
+      provider.createEvent = function() {
         calledWith = arguments;
       }
 
