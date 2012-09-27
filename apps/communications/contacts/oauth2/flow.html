@@ -3,10 +3,8 @@
 <!--
    Module: Facebook integration
 
-   This page is loaded in a window.open to start an OAuth 2.0
-   implicit grant flow.
-
-   The page is loaded to start the flow and is the page that is loaded when
+   This page is loaded in a window.open to end an OAuth 2.0
+   implicit grant flow i.e. It is the page that is loaded when
    the redirection happens
 -->
 
@@ -17,6 +15,7 @@
 
   <body>
     <script src="js/flow.js"></script>
+    <script src="js/parameters.js"></script>
     <script>
       fb.oauthflow.init();
     </script>
