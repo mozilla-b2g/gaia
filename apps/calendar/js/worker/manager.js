@@ -216,9 +216,9 @@ Calendar.ns('Worker').Manager = (function(global) {
 
       this.on(id + ' stream', streamData);
 
-      stream.open = function(callback) {
-        stream.open = function() {
-          throw new Error('stream may only be opened once');
+      stream.request = function(callback) {
+        stream.request = function() {
+          throw new Error('stream request has been sent');
         };
 
         this.once(id + ' end', function() {

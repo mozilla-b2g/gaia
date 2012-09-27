@@ -127,6 +127,8 @@ const IMEController = (function() {
 
   // Check if current layout requires IME
   function _requireIME() {
+    if (!_baseLayoutName)
+      return false;
     return Keyboards[_baseLayoutName].type === 'ime';
   }
 
@@ -233,8 +235,14 @@ const IMEController = (function() {
     // lets look for a layout overriding or fallback to defaults
     // There is no memory-share risk here, we will preserve the original
     // layout some lines after if needed.
-    var layout = Keyboards[_baseLayoutName][layoutName] ||
-                 Keyboards[layoutName];
+    if (!_baseLayoutName && !layoutName) {
+      // Keyboard is broken with an updated Gecko. Let's do a temporary
+      // fix in order to understand the real issue.
+      var layout = Keyboards[navigator.language.split('-')[0]];
+    } else {
+      var layout = Keyboards[_baseLayoutName][layoutName] ||
+                   Keyboards[layoutName];
+    }
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;

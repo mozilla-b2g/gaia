@@ -1162,20 +1162,23 @@ var MediaDB = (function() {
     }
 
     function parseMetadata(file, filename) {
+      if (!file.lastModifiedDate) {
+        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
+                     filename,
+                     'using Date.now() until #793955 is fixed');
+      }
+
       // Basic information about the file
       var fileinfo = {
         name: filename, // we can't trust file.name
         type: file.type,
         size: file.size,
-        date: file.lastModifiedDate ? file.lastModifiedDate.getTime() : null
+        date: file.lastModifiedDate ?
+          file.lastModifiedDate.getTime() :
+          Date.now()
       };
 
-      if (fileinfo.date === null) {
-        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
-                     filename);
-      }
-
-      if (fileinfo.date && fileinfo.date > details.newestFileModTime)
+      if (fileinfo.date > details.newestFileModTime)
         details.newestFileModTime = fileinfo.date;
 
       // Get metadata about the file

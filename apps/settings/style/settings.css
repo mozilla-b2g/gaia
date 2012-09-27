@@ -1,6 +1,5 @@
 /**
  * Settings style & layout
- * warning: `lists.css' and `dialogs.css' must be loaded before this file
  */
 
 html, body {
@@ -15,12 +14,78 @@ body.hidden * {
   display: none;
 }
 
+/* Setting panels: full-size blocks, identified by a 'region' role */
+[role=region] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  overflow-y: scroll;
+  background: url(images/document-bg.png);
+}
+
 
 /******************************************************************************
- * Title bars
+ * Panel targets -- transitions
+ *
+ * this looks super nice on a desktop but not on an Otoro :-(
+ *
+ *  [role="region"] {
+ *    visibility: hidden;
+ *    transform: translateX(100%);
+ *    transition: visibility 0s ease 0.3s, transform 0.3s ease;
+ *  }
+ *
+ *  [role="region"]:target, #root:target {
+ *    visibility: visible;
+ *    transform: none;
+ *    transition: visibility 0s ease, transform 0.3s ease;
+ *  }
+ *
+ *  [role="region"]:target ~ [role="region"], #root {
+ *    transform: translateX(-100%);
+ *  }
+ *
+ * So we rely on `data-leaf' attributes to identify tree leafs,
+ * in order not to move them when it's not necessary.
  */
 
-/* title bars don't scroll with the rest of the page, except for #root */
+[role="region"] {
+  visibility: hidden;
+  transform: translateX(100%);
+  transition: visibility 0s ease .5s, transform .5s ease;
+}
+
+section[role="region"]:target {
+  visibility: visible;
+  transform: translateX(0);
+  transition: visibility 0s ease, transform .5s ease;
+}
+
+section[role="region"]:target ~ section[role="region"]:not([data-leaf]) {
+  transform: translateX(-100%);
+}
+
+body.hidden #root {
+  transform: none;
+  transition: none;
+}
+
+
+/******************************************************************************
+ * Headers don't scroll with the rest of the page, except for #root
+ */
+
+[role="region"]:not(#root) > header:first-child {
+  position: fixed;
+  width: 100%;
+}
+
+[role="region"]:not(#root) > header:first-child + * {
+  margin-top: 5rem;
+}
 
 
 /******************************************************************************
@@ -46,8 +111,7 @@ body.hidden * {
 }
 
 [dir=rtl] #root:target,
-[dir=rtl] [role=region]:target,
-[role=dialog] [role=region] {
+[dir=rtl] [role=region]:target {
   transform: none;
 }
 
@@ -92,15 +156,5 @@ body.hidden * {
 
 [dir=rtl] a[dir=ltr] {
   text-align: right;
-}
-
-/* dialogs */
-
-[dir=rtl] [role=dialog] header button {
-  float: right;
-}
-
-[dir=rtl] [role=dialog] header button + button {
-  float: left;
 }
 

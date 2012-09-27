@@ -1,17 +1,5 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
-// TODO:
-// - Get orientation working when leaving fullscreen
-// - Don't say "no photos" on startup... say "scanning" and localize it.
-// - Don't show wrong photo when panning at edges
-// - retain scroll position in thumbnail view
-// - put most recent photos (or screenshots) first
-// - in landscape mode, the 'no photos' message is too low
-// - match visual design and wireframes better
-// - add delete capability
-// - add filter effects
-
 
 'use strict';
 
@@ -88,15 +76,61 @@
  * touch-sensitive devices and can't be tested on the desktop.  They're
  * implemented on top of basic touch events in the separate file gestures.js.
  *
- * This app has varous display states it can be in:
+ * This app has various display states it can be in.
+ * Here's a list of the states and the transitions between them:
  *
- *   - Thumbnail browsing mode
- *   - Thumbnail selection mode (enables delete and share for multiple photos)
- *   - Photo viewing mode with controls hidden
- *   - Photo viewing mode with controls shown
- *   - Edit mode and its sub modes
- *   - Pick a photo mode (when invoked via web activities?)
+ * State 0: Startup/Uninitialized
+ *   -> regular launch: go to state 1
+ *   -> launch for open activity: go to state 5
+ *   -> launch for pick activity: go to state 7
  *
+ * State 1: thumbnail list
+ *   -> click on thumbnail: go to state 2
+ *   -> click on select: go to state 3
+ *
+ * State 2: single photo view (with toolbar)
+ *   -> gallery button: go to state 1
+ *   -> edit button: go to state 4
+ *   -> single tap: enter fullscreen mode, go to state 2a
+ *   -> camera button: launch camera
+ *   -> share button: launch share activity
+ *   -> trash button: delete curent photo
+ *
+ * State 2a: fullscreen photo view (no toolbar)
+ *   -> single tap: exit fullscreen mode, go to state 2
+ *   -> leave fullscreen: go to state 2
+ *
+ * State 3: select mode
+ *   -> click on X button: go to state 1
+ *   -> click on thumbnail: highlight thumbnail
+ *   -> trash button: delete selected images
+ *   -> share button: share selected images
+ *
+ * State 4: edit mode
+ *   -> click on X button: go to state 2
+ *   -> save button: save edits, go to state 1 (?)
+ *   -> exposure, crop, effects, borders buttons: switch among sub-states
+ *    State 4a: exposure
+ *    State 4b: cropping
+ *    State 4c: effects
+ *    State 4d: borders
+ *
+ * State 5: open mode
+ *   Enter fullscreen when entering this mode (?)
+ *   -> camera button: end activity, go to state 1 or just close self
+ *   -> swipe down: end activity, go to state 1 or just close self
+ *   -> trash button: delete file, end activity, go to state 1 or close self
+ *   -> exit fullscreen: end activity, go to state 1 or just close self
+ *
+ * State 6: pick mode
+ *   -> click on thumbnail: go to state 7
+ *   -> back button: end activity, go to state 1 or just exit
+ *   ->
+ *
+ * State 7: crop mode
+ *   -> back button: go to state 6
+ *   -> check button: end activity, go to state 1 or just exit
+ *   -> crop controls: change image size
  */
 
 //
@@ -123,13 +157,16 @@ var photoFrames = $('photo-frames');
 var thumbnailListView = $('thumbnail-list-view');
 var thumbnailSelectView = $('thumbnail-select-view');
 var photoView = $('photo-view');
-var pickView = $('pick-view');
 var editView = $('edit-view');
+var pickView = $('pick-view');
+var cropView = $('crop-view');
+var openView = $('open-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
-  thumbnailListView, thumbnailSelectView, photoView, pickView, editView
+  thumbnailListView, thumbnailSelectView, photoView, editView,
+  pickView, cropView, openView
 ];
 var currentView;
 
@@ -183,7 +220,6 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    indexes: ['date'],
     mimeTypes: ['image/jpeg', 'image/png']
   });
 
@@ -229,6 +265,7 @@ function init() {
   photodb.ondeleted = function(event) {
     event.detail.forEach(imageDeleted);
   };
+
 
   // Start off in thumbnail list view, unless there is a pending activity
   // request message. In that case, the message handler will set the
@@ -310,10 +347,10 @@ function imageCreated(fileinfo) {
   else {
     // Otherwise we have to search for the right insertion spot
     insertPosition = binarysearch(images, fileinfo, function(a, b) {
-      if (a.name < b.name)
+      if (a.date < b.date)
+        return 1;  // larger (newer) dates come first
+      else if (a.date > b.date)
         return -1;
-      else if (a.name > b.name)
-        return 1;
       return 0;
     });
   }
@@ -372,6 +409,7 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
+
 function setView(view) {
   if (currentView === view)
     return;
@@ -382,9 +420,6 @@ function setView(view) {
     // Clear the selection, if there is one
     Array.forEach(thumbnails.querySelectorAll('.selected.thumbnail'),
                   function(elt) { elt.classList.remove('selected'); });
-    break;
-  case editView:
-    // Cleanup is done in exitEditMode() before this function is called
     break;
   }
 
@@ -410,13 +445,11 @@ function setView(view) {
   case pickView:
     pickView.appendChild(thumbnails);
     break;
-  case photoView:
-    // No thumbnails in photoView
-    break;
-  case editView:
-    // We don't display the thumbnails in edit view.
-    // the editPhoto() function does the necessary setup and
-    // calls setView(), so there isn't anything to do here.
+  default:
+    // In any other view, remove the thumbnails from the document so
+    // they don't show anywhere
+    if (thumbnails.parentNode)
+      thumbnails.parentNode.removeChild(thumbnails);
     break;
   }
 
@@ -465,47 +498,110 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  var activityName = activityRequest.source.name;
+  // We can't handle any kind of activity if the MediaDB is not ready
+  if (photodb.state === MediaDB.READY)
+    handleActivity();
+  else {
+    photodb.addEventListener('ready', function waitTillReady() {
+      photodb.removeEventListener('ready', waitTillReady);
+      handleActivity();
+    });
+  }
 
-  switch (activityName) {
-  case 'browse':
-    if (launchedAsInlineActivity)
-      return;
-
-    // The 'browse' activity is just the way we launch the app
-    // There's nothing else to do here.
-    setView(thumbnailListView);
-    break;
-  case 'pick':
-    if (!launchedAsInlineActivity)
-      return;
-
-    if (pendingPick)
-      cancelPick();
-    startPick(activityRequest);
-    break;
+  function handleActivity() {
+    var activityName = activityRequest.source.name;
+    switch (activityName) {
+    case 'browse':
+      if (launchedAsInlineActivity)
+        return;
+      // The 'browse' activity is just the way we launch the app
+      // There's nothing else to do here.
+      setView(thumbnailListView);
+      break;
+    case 'pick':
+      if (!launchedAsInlineActivity)
+        return;
+      if (pendingPick)
+        cancelPick();
+      startPick(activityRequest);
+      break;
+    case 'open':
+      if (!launchedAsInlineActivity)
+        return;
+      handleOpenActivity(activityRequest);
+      break;
+    }
   }
 }
 
-var launchedAsInlineActivity = (window.location.hash == '#inlineActivity');
+var launchedAsInlineActivity =
+  window.location.hash === '#pick' || window.location.hash === '#open';
 var pendingPick;
+var pickType;
+var pickWidth, pickHeight;
+var cropURL;
+var cropEditor;
 
 function startPick(activityRequest) {
   pendingPick = activityRequest;
+  pickType = activityRequest.source.data.type;
+  if (pendingPick.source.data.width && pendingPick.source.data.height) {
+    pickWidth = pendingPick.source.data.width;
+    pickHeight = pendingPick.source.data.height;
+  }
+  else {
+    pickWidth = pickHeight = 0;
+  }
   setView(pickView);
 }
 
-function finishPick(filename) {
+function cropPickedImage(fileinfo) {
+  setView(cropView);
+
+  photodb.getFile(fileinfo.name, function(file) {
+    cropURL = URL.createObjectURL(file);
+    cropEditor = new ImageEditor(cropURL, $('crop-frame'), {}, function() {
+      cropEditor.showCropOverlay();
+      if (pickWidth)
+        cropEditor.setCropAspectRatio(pickWidth, pickHeight);
+      else
+        cropEditor.setCropAspectRatio(); // free form cropping
+    });
+  });
+}
+
+function finishPick() {
+  var url;
+  if (pickWidth)
+    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
+  else
+    url = cropEditor.getCroppedRegionDataURL(pickType);
+
   pendingPick.postResult({
     type: 'image/jpeg',
-    filename: filename
+    url: url
   });
-  pendingPick = null;
-  setView(thumbnailListView);
+  cleanupPick();
 }
 
 function cancelPick() {
   pendingPick.postError('pick cancelled');
+  cleanupPick();
+}
+
+function cleanupCrop() {
+  if (cropURL) {
+    URL.revokeObjectURL(cropURL);
+    cropURL = null;
+  }
+  if (cropEditor) {
+    cropEditor.destroy();
+    cropEditor = null;
+  }
+}
+
+function cleanupPick() {
+  cleanupCrop();
   pendingPick = null;
   setView(thumbnailListView);
 }
@@ -520,6 +616,92 @@ window.addEventListener('mozvisiblitychange', function() {
   if (document.mozHidden && pendingPick)
     cancelPick();
 });
+
+function handleOpenActivity(request) {
+  var filename = request.source.data.filename;
+
+  var frame = $('open-frame');
+  var image = $('open-image');
+  var cameraButton = $('open-camera-button');
+  var deleteButton = $('open-delete-button');
+
+  setView(openView);
+  displayFile(image, filename);
+
+  var gestureDetector = new GestureDetector(frame);
+  var openPhotoState = null;  // lazily initialized
+
+  gestureDetector.startDetecting();
+  cameraButton.addEventListener('click', handleCameraButton);
+  deleteButton.addEventListener('click', handleDeleteButton);
+  frame.addEventListener('dbltap', handleDoubleTap);
+  frame.addEventListener('transform', handleTransform);
+  frame.addEventListener('pan', handlePan);
+  frame.addEventListener('swipe', handleSwipe);
+
+  function done(result) {
+    if (request) {
+      request.postResult(result);
+      request = null;
+    }
+    cleanup();
+  }
+
+  function cleanup() {
+    cameraButton.removeEventListener('click', handleCameraButton);
+    deleteButton.removeEventListener('click', handleDeleteButton);
+    frame.removeEventListener('dbltap', handleDoubleTap);
+    frame.removeEventListener('transform', handleTransform);
+    frame.removeEventListener('pan', handlePan);
+    frame.removeEventListener('swipe', handleSwipe);
+    gestureDetector.stopDetecting();
+    setView(thumbnailListView);
+  }
+
+  function handleCameraButton() {
+    done({'delete': false});
+  }
+  function handleDeleteButton() {
+    done({'delete': true});
+  }
+
+  function initPhotoState() {
+    if (!openPhotoState) {
+      openPhotoState = new PhotoState(image,
+                                      image.naturalWidth, image.naturalHeight);
+    }
+  }
+
+  function handleDoubleTap(e) {
+    initPhotoState();
+    var scale;
+    if (openPhotoState.fit.scale > openPhotoState.fit.baseScale)
+      scale = openPhotoState.fit.baseScale / openPhotoState.fit.scale;
+    else
+      scale = 2;
+
+    openPhotoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+  }
+
+  function handleTransform(e) {
+    initPhotoState();
+    openPhotoState.zoom(e.detail.relative.scale,
+                        e.detail.midpoint.clientX,
+                        e.detail.midpoint.clientY);
+  }
+
+  function handlePan(e) {
+    initPhotoState();
+    openPhotoState.pan(e.detail.relative.dx, e.detail.relative.dy);
+  }
+
+  function handleSwipe(e) {
+    var direction = e.detail.direction;
+    var velocity = e.detail.vy;
+    if (direction === 'down' && velocity > 2)
+      done('done');
+  }
+}
 
 
 //
@@ -559,7 +741,7 @@ thumbnails.addEventListener('click', function thumbnailsClick(evt) {
     updateSelectionState();
   }
   else if (currentView === pickView) {
-    finishPick(images[parseInt(target.dataset.index)].name);
+    cropPickedImage(images[parseInt(target.dataset.index)]);
   }
 });
 
@@ -596,11 +778,22 @@ $('thumbnails-cancel-button').onclick = function() {
   setView(thumbnailListView);
 };
 
-// Clicking on the pick cancel button cancels the pick activity, which sends
-// us back to thumbail list view
-$('pick-cancel-button').onclick = function() {
+// Clicking on the pick back button cancels the pick activity.
+$('pick-back-button').onclick = function() {
   cancelPick();
 };
+
+// In crop view, the back button goes back to pick view
+$('crop-back-button').onclick = function() {
+  setView(pickView);
+  cleanupCrop();
+};
+
+// In crop view, the done button finishes the pick
+$('crop-done-button').onclick = function() {
+  finishPick();
+};
+
 
 // The camera buttons should both launch the camera app
 $('photos-camera-button').onclick =
@@ -671,39 +864,64 @@ $('thumbnails-share-button').onclick = function() {
 /*
  * Share one or more images using Web Activities.
  *
- * XXX
- * This is a preliminary implementation with two bug workarounds:
+ * Because multiple images may have different mime types we just
+ * use 'image/*' as the type.
  *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=773383 is fixed,
- * we just use a type of "image" since the activity handler app can't
- * register an array of the image mime types it accepts
- *
- * Until https://bugzilla.mozilla.org/show_bug.cgi?id=782766 is fixed and
- * we can share blobs directly, this function just shares filenames.
- * This means that the app on the receiving end has to use device storage
- * to get the actual file. Since that requires special permissions
- * it might not be what we want.  We could change this code to use a
- * data url and pass the whole image as a long, long string. Because this
- * is sub-optimal and unstable, I'm using the activity name "share-filenames"
- * instead of the more generic "share".
+ * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
+  var urls = [];
+  getDataURLForNextFile();
+
+  function getDataURLForNextFile() {
+    if (urls.length === filenames.length) {
+      shareURLs(urls);
+    }
+    else {
+      var i = urls.length;
+      var filename = filenames[i];
+      photodb.getFile(filename, function(file) {
+        var reader = new FileReader();
+        reader.readAsBinaryString(file);
+        reader.onload = function() {
+          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
+          getDataURLForNextFile();
+        }
+      });
+    }
+  }
+}
+
+// This is called by shareFile once the filenames have
+// been converted to data URLs
+function shareURLs(urls) {
   var a = new MozActivity({
-    name: 'share-filenames',
+    name: 'share',
     data: {
-      type: 'image',
-      filenames: filenames
+      type: 'image/*',
+      number: urls.length,
+      urls: urls
     }
   });
 
+  function reopen() {
+    navigator.mozApps.getSelf().onsuccess = function(e) {
+      e.target.result.launch();
+    };
+  }
+
+  a.onsuccess = function() {
+    reopen();
+  }
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
       alert(msg);
     }
     else {
-      console.log('share activity error:', a.error.name);
+      console.warn('share activity error:', a.error.name);
     }
+    reopen();
   };
 }
 
@@ -713,13 +931,20 @@ $('edit-cancel-button').onclick = function() {
   exitEditMode();
 };
 
-// We get a resize event when the user rotates the screen
-window.addEventListener('resize', function resizeHandler(evt) {
-  if (currentView === photoView) {
-    // Abandon any current pan or zoom and reset the current photo view
-    photoState.reset();
-    photoState.setFramesPosition();
 
+// That happens when we enter or exit fullscreen mode and also when
+// the user rotates the phone we get a resize event
+window.addEventListener('resize', function resize() {
+  //
+  // When we enter or leave fullscreen mode, we get two resize events.
+  // When we get the first one, we don't know what our new size is,
+  // so we just ignore it.
+  //
+  if (photoView.offsetWidth === 0 && photoView.offsetHeight === 0)
+    return;
+
+  if (currentView === photoView) {
+    photoState.resize();
     // Also reset the size and position of the previous and next photos
     resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
     resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
@@ -736,10 +961,56 @@ window.addEventListener('resize', function resizeHandler(evt) {
   }
 });
 
-// On a tap just show or hide the photo overlay
-photoFrames.addEventListener('tap', function(event) {
-  $('photos-overlay').classList.toggle('hidden');
+// In order to distinguish single taps from double taps, we have to
+// wait after a tap arrives to make sure that a dbltap event isn't
+// coming soon.
+var taptimer = null;
+photoFrames.addEventListener('tap', function(e) {
+  if (!taptimer) {
+    // If there is already a timer set, then this is is the second tap
+    // and we're about to get a dbl tap event
+    taptimer = setTimeout(function() {
+      taptimer = null;
+      singletap(e);
+    }, GestureDetector.DOUBLE_TAP_TIME);
+  }
 });
+
+photoFrames.addEventListener('dbltap', function(e) {
+  clearTimeout(taptimer);
+  taptimer = null;
+  doubletap(e);
+});
+
+function singletap(e) {
+  // If we're not in full-screen mode, then request it otherwise cancel it
+  // We deal with hiding and showing the toolbar when we get the fullscreen
+  // change event
+  if (document.mozFullScreenElement !== photoView)
+    photoView.mozRequestFullScreen();
+  else
+    document.mozCancelFullScreen();
+}
+
+document.addEventListener('mozfullscreenchange', function() {
+  // Once we've transitioned into or out of fullscreen mode,
+  // hide or show the toolbar.
+  if (document.mozFullScreenElement !== photoView)
+    photoView.classList.remove('toolbarhidden');
+  else
+    photoView.classList.add('toolbarhidden');
+});
+
+// Quick zoom in and out with dbltap events
+function doubletap(e) {
+  var scale;
+  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
+    scale = photoState.fit.baseScale / photoState.fit.scale; // zoom out
+  else                                                       // Otherwise
+    scale = 2;                                               // zoom in
+
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+}
 
 // Pan the photos sideways when the user moves their finger across the screen
 photoFrames.addEventListener('pan', function(event) {
@@ -819,17 +1090,6 @@ photoFrames.addEventListener('swipe', function(event) {
   }
 });
 
-// Quick zoom in and out with dbltap events
-photoFrames.addEventListener('dbltap', function(e) {
-  var scale;
-  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
-    scale = photoState.fit.baseScale / photoState.scale; // zoom back out
-  else                                                   // Otherwise
-    scale = 2;                                           // zoom in
-
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
-});
-
 // We also support pinch-to-zoom
 photoFrames.addEventListener('transform', function(e) {
   if (transitioning)
@@ -858,20 +1118,40 @@ function displayImageInFrame(n, frame) {
     return;
   }
 
-  // Asynchronously set the image url
   var imagedata = images[n];
-  photodb.getFile(imagedata.name, function(file) {
+  displayFile(img, imagedata.name,
+              imagedata.metadata.width, imagedata.metadata.height);
+}
+
+function displayFile(element, filename, width, height) {
+  var container = element.parentNode;
+  // Asynchronously set the image url
+  photodb.getFile(filename, function(file) {
     var url = URL.createObjectURL(file);
-    img.src = url;
-    img.onload = function() { URL.revokeObjectURL(url); };
+    element.src = url;
+    element.onload = function() {
+      URL.revokeObjectURL(url);
+
+      // If we didn't know the width or height before, then get them
+      // from the image now, and use that information to position
+      // the image in its container
+      if (!width || !height) {
+        var fit = fitImage(element.naturalWidth, element.naturalHeight,
+                           container.offsetWidth, container.offsetHeight);
+        positionImage(element, fit);
+      }
+    };
   });
 
-  // Figure out the size and position of the image
-  var fit = fitImage(images[n].metadata.width, images[n].metadata.height,
-                     photoView.offsetWidth, photoView.offsetHeight);
-
-  positionImage(img, fit);
+  // If we know the image size from its metadata, then position it now
+  // even before it is loaded
+  if (width && height) {
+    var fit = fitImage(width, height,
+                       container.offsetWidth, container.offsetHeight);
+    positionImage(element, fit);
+  }
 }
+
 
 function positionImage(img, fit) {
   img.style.transform =
@@ -1125,20 +1405,68 @@ PhotoState.prototype._reposition = function() {
 PhotoState.prototype.reset = function() {
   // Store the display space we have for photos
   // call reset() when we get a resize or orientationchange event
-  this.viewportWidth = photoFrames.offsetWidth;
-  this.viewportHeight = photoFrames.offsetHeight;
+  this.viewportWidth = this.img.parentNode.offsetWidth;
+  this.viewportHeight = this.img.parentNode.offsetHeight;
 
   // Compute the default size and position of the image
   this.fit = fitImage(this.photoWidth, this.photoHeight,
                       this.viewportWidth, this.viewportHeight);
 
-  // Start off with no zoom
-  this.scale = 1;
-
   // We start off with no swipe from left to right
   this.swipe = 0;
 
   this._reposition(); // Apply the computed size and position
+};
+
+// We call this from the resize handler when the user rotates the
+// screen or when going into or out of fullscreen mode.  We discard
+// any side-to-side swipe. If the user has not zoomed in, then we just
+// fit the image to the new size (same as reset).  But if the user has
+// zoomed in (and we need to stay zoomed for the new size) then we
+// adjust the fit properties so that the pixel that was at the center
+// of the screen before remains at the center now, or as close as
+// possible
+PhotoState.prototype.resize = function() {
+  var oldWidth = this.viewportWidth;
+  var oldHeight = this.viewportHeight;
+  var newWidth = this.img.parentNode.offsetWidth;
+  var newHeight = this.img.parentNode.offsetHeight;
+
+  var fit = this.fit; // The current image fit
+
+  // this is how the image would fit at the new screen size
+  var newfit = fitImage(this.photoWidth, this.photoHeight,
+                        newWidth, newHeight);
+
+  // If no zooming has been done, then a resize is just a reset.
+  // The same is true if the new fit base scale is greater than the
+  // old scale.
+
+  // The same is true if the image is smaller (in both dimensions)
+  // than the new screen size.
+  if (fit.scale === fit.baseScale || newfit.baseScale > fit.scale) {
+    this.reset();
+    return;
+  }
+
+  // Remember the new screen size
+  this.viewportWidth = newWidth;
+  this.viewportHeight = newHeight;
+
+  // Figure out the change in both dimensions and adjust top and left
+  // to accomodate the change
+  fit.left += (newWidth - oldWidth) / 2;
+  fit.top += (newHeight - oldHeight) / 2;
+
+  // Adjust the base scale, too
+  fit.baseScale = newfit.baseScale;
+
+  // Reposition this image without resetting the zoom
+  this._reposition();
+
+  // Undo any swipe amount
+  this.swipe = 0;
+  this.setFramesPosition();
 };
 
 // Zoom in by the specified factor, adjusting the pan amount so that

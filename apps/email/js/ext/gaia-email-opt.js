@@ -4424,6 +4424,13 @@ MailAPI.prototype = {
    *     The username and password are correct, but the user isn't allowed to
    *     access the mail server.
    *   }
+   *   @case['server-maintenance']{
+   *     The server appears to be undergoing maintenance, at least for this
+   *     account.  We infer this if the server is telling us that login is
+   *     disabled in general or when we try and login the message provides
+   *     positive indications of some type of maintenance rather than a
+   *     generic error string.
+   *   }
    *   @case['unknown']{
    *     We don't know what happened; count this as our bug for not knowing.
    *   }
@@ -4673,6 +4680,15 @@ MailAPI.prototype = {
     return undoableOp;
   },
 
+  createFolder: function(account, parentFolder, containOnlyOtherFolders) {
+    this.__bridgeSend({
+      type: 'createFolder',
+      accountId: account.id,
+      parentFolderId: parentFolder ? parentFolder.id : null,
+      containOnlyOtherFolders: containOnlyOtherFolders
+    });
+  },
+
   _recv_mutationConfirmed: function(msg) {
     var req = this._pendingRequests[msg.handle];
     if (!req) {
@@ -4768,6 +4784,8 @@ MailAPI.prototype = {
       msg.submode = options.forwardMode;
       msg.refSuid = options.forwardOf.id;
       msg.refDate = options.forwardOf.date.valueOf();
+      msg.refGuid = options.forwardOf.guid;
+      msg.refAuthor = options.forwardOf.author;
       msg.refSubject = options.forwardOf.subject;
     }
     else {
@@ -4856,7 +4874,7 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
     if (req.callback) {
-      req.callback.call(null, msg.err, msg.badAddresses);
+      req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
     }
   },
@@ -4873,8 +4891,19 @@ MailAPI.prototype = {
    * - wrote: "{{name}} wrote".  Used for the lead-in to the quoted message.
    * - originalMessage: "Original Message".  Gets put between a bunch of dashes
    *    when forwarding a message inline.
+   * - forwardHeaderLabels:
+   *   - subject
+   *   - date
+   *   - from
+   *   - replyTo (for the "reply-to" header)
+   *   - to
+   *   - cc
    */
   useLocalizedStrings: function(strings) {
+    this.__bridgeSend({
+      type: 'localizedStrings',
+      strings: strings
+    });
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -7047,6 +7076,11 @@ var TestActorProtoBase = {
     if (this._expectNothing &&
         (this._expectations.length || this._iExpectation))
       return false;
+    // Fail immediately if a synchronous check already failed.  (It would
+    // have tried to generate a rejection, but there was no deferral at the
+    // time.)
+    if (!this._expectationsMetSoFar)
+      return false;
     if ((this._iExpectation >= this._expectations.length) &&
         (this._expectDeath ? (this._logger && this._logger._died) : true)) {
       this._resolved = true;
@@ -7424,7 +7458,13 @@ LoggestClassMaker.prototype = {
 
     this.dummyProto[name] = NOP;
 
+    var stateStashName = ':' + name;
     this.logProto[name] = function(val) {
+      var oldVal = this[stateStashName];
+      // only log the transition if it's an actual transition
+      if (oldVal === val)
+        return;
+      this[stateStashName] = val;
       this._entries.push([name, val, $microtime.now(), gSeq++]);
     };
 
@@ -9067,7 +9107,10 @@ module.exports.decodeBase64 = function(str, charset){
  * @return {Array} An array of parsed e-mails addresses in the form of [{name, address}]
  */
 module.exports.parseAddresses = function(addresses){
-    return [].concat.apply([], [].concat(addresses).map(addressparser));
+    return [].concat.apply([], [].concat(addresses).map(addressparser)).map(function(address){
+        address.name = module.exports.parseMimeWords(address.name);
+        return address;
+    });
 };
 
 /**
@@ -9483,7 +9526,10 @@ function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
         }
         
         if(pos + line.length < len && line.substr(-1)!="\n"){
-            if(line.length==76){
+            if(line.length==76 && line.match(/\=[\da-f]{2}$/i)){
+                line = line.substr(0, line.length-3);
+            }
+            else if(line.length==76){
                 line = line.substr(0, line.length-1);
             }
             pos += line.length;
@@ -9512,6 +9558,7 @@ function checkRanges(nr, ranges){
     }
     return false;
 }
+
 });
 define('mimelib/lib/content-types',['require','exports','module'],function (require, exports, module) {
 // list of mime types
@@ -11913,6 +11960,135 @@ define('mailcomposer',['./mailcomposer/lib/mailcomposer'], function (main) {
     return main;
 });
 /**
+ *
+ **/
+
+define('mailapi/util',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+/**
+ * Header info comparator that orders messages in order of numerically
+ * decreasing date and UIDs.  So new messages come before old messages,
+ * and messages with higher UIDs (newer-ish) before those with lower UIDs
+ * (when the date is the same.)
+ */
+const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
+    function cmpHeaderYoungToOld(a, b) {
+  var delta = b.date - a.date;
+  if (delta)
+    return delta;
+  // favor larger UIDs because they are newer-ish.
+  return b.id - a.id;
+}
+
+/**
+ * Perform a binary search on an array to find the correct insertion point
+ *  in the array for an item.  From deuxdrop; tested in
+ *  deuxdrop's `unit-simple-algos.js` test.
+ *
+ * @return[Number]{
+ *   The correct insertion point in the array, thereby falling in the inclusive
+ *   range [0, arr.length].
+ * }
+ */
+const bsearchForInsert = exports.bsearchForInsert =
+    function bsearchForInsert(list, seekVal, cmpfunc) {
+  if (!list.length)
+    return 0;
+  var low  = 0, high = list.length - 1,
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      break;
+  }
+  if (cmpval < 0)
+    return mid; // insertion is displacing, so use mid outright.
+  else if (cmpval > 0)
+    return mid + 1;
+  else
+    return mid;
+};
+
+var bsearchMaybeExists = exports.bsearchMaybeExists =
+    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
+  var low  = ((aLow === undefined)  ? 0                 : aLow),
+      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
+      mid, cmpval;
+  while (low <= high) {
+    mid = low + Math.floor((high - low) / 2);
+    cmpval = cmpfunc(seekVal, list[mid]);
+    if (cmpval < 0)
+      high = mid - 1;
+    else if (cmpval > 0)
+      low = mid + 1;
+    else
+      return mid;
+  }
+  return null;
+};
+
+exports.partitionMessagesByFolderId =
+    function partitionMessagesByFolderId(messageNamers, onlyKeepMsgId) {
+  var results = [], foldersToMsgs = {};
+  for (var i = 0; i < messageNamers.length; i++) {
+    var messageSuid = messageNamers[i].suid,
+        idxLastSlash = messageSuid.lastIndexOf('/'),
+        folderId = messageSuid.substring(0, idxLastSlash),
+        // if we only want the UID, do so, but make sure to parse it as a #!
+        useId = onlyKeepMsgId ? parseInt(messageSuid.substring(idxLastSlash+1))
+                              : messageSuid;
+
+    if (!foldersToMsgs.hasOwnProperty(folderId)) {
+      var messages = [useId];
+      results.push({
+        folderId: folderId,
+        messages: messages,
+      });
+      foldersToMsgs[folderId] = messages;
+    }
+    else {
+      foldersToMsgs[folderId].push(useId);
+    }
+  }
+  return results;
+};
+
+exports.formatAddresses = function(nameAddrPairs) {
+  var addrstrings = [];
+  for (var i = 0; i < nameAddrPairs.length; i++) {
+    var pair = nameAddrPairs[i];
+    // support lazy people providing only an e-mail... or very careful
+    // people who are sure they formatted things correctly.
+    if (typeof(pair) === 'string') {
+      addrstrings.push(pair);
+    }
+    else if (!pair.name) {
+      addrstrings.push(pair.address);
+    }
+    else {
+      addrstrings.push(
+        '"' + pair.name.replace(/["']/g, '') + '" <' +
+          pair.address + '>');
+    }
+  }
+
+  return addrstrings.join(', ');
+};
+
+}); // end define
+;
+/**
  * Process text/plain message bodies for quoting / signatures.
  *
  * We have two main goals in our processing:
@@ -13494,11 +13670,13 @@ exports.escapeAttrValue = function(s) {
 define('mailapi/mailchew',
   [
     'exports',
+    './util',
     './quotechew',
     './htmlchew'
   ],
   function(
     exports,
+    $util,
     $quotechew,
     $htmlchew
   ) {
@@ -13533,7 +13711,7 @@ exports.generateReplySubject = function generateReplySubject(origSubject) {
   return 'Re: ' + origSubject;
 };
 
-var l10n_wroteString = '{{name}} wrote',
+var l10n_wroteString = '{name} wrote',
     l10n_originalMessageString = 'Original Message';
 
 /*
@@ -13561,6 +13739,8 @@ var l10n_forward_header_labels = {
 exports.setLocalizedStrings = function(strings) {
   l10n_wroteString = strings.wrote;
   l10n_originalMessageString = strings.originalMessage;
+
+  l10n_forward_header_labels = strings.forwardHeaderLabels;
 };
 
 /**
@@ -13576,7 +13756,7 @@ exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
   var useName = authorPair.name || authorPair.address;
 
   var textMsg = '\n\n' +
-                l10n_wroteString.replace('{{name}}', useName) + ':\n',
+                l10n_wroteString.replace('{name}', useName) + ':\n',
       htmlMsg = null;
 
   for (var i = 0; i < reps.length; i += 2) {
@@ -13649,6 +13829,7 @@ exports.generateForwardMessage = function generateForwardMessage(
   // localized.)
 
   // : subject
+  textMsg += l10n_forward_header_labels['subject'] + ': ' + subject + '\n';
 
   // We do not track or remotely care about the 'resent' headers
   // : resent-comments
@@ -13657,15 +13838,29 @@ exports.generateForwardMessage = function generateForwardMessage(
   // : resent-to
   // : resent-cc
   // : date
+  textMsg += l10n_forward_header_labels['date'] + ': ' + new Date(date) + '\n';
   // : from
+  textMsg += l10n_forward_header_labels['from'] + ': ' +
+               $util.formatAddresses([author]) + '\n';
   // : reply-to
+  if (bodyInfo.replyTo)
+    textMsg += l10n_forward_header_labels['replyTo'] + ': ' +
+                 $util.formatAddresses([bodyInfo.replyTo]) + '\n';
   // : organization
   // : to
+  if (bodyInfo.to)
+    textMsg += l10n_forward_header_labels['to'] + ': ' +
+                 $util.formatAddresses(bodyInfo.to) + '\n';
   // : cc
+  if (bodyInfo.cc)
+    textMsg += l10n_forward_header_labels['cc'] + ': ' +
+                 $util.formatAddresses(bodyInfo.cc) + '\n';
   // (bcc should never be forwarded)
   // : newsgroups
   // : followup-to
   // : references (only for newsgroups)
+
+  textMsg += '\n';
 
   var reps = bodyInfo.bodyReps;
   for (var i = 0; i < reps.length; i += 2) {
@@ -13709,113 +13904,6 @@ exports.mergeUserTextWithHTML = function mergeReplyTextWithHTML(text, html) {
          $htmlchew.wrapTextIntoSafeHTMLString(text, 'div') +
          html +
          HTML_WRAP_BOTTOM;
-};
-
-}); // end define
-;
-/**
- *
- **/
-
-define('mailapi/util',
-  [
-    'exports'
-  ],
-  function(
-    exports
-  ) {
-
-/**
- * Header info comparator that orders messages in order of numerically
- * decreasing date and UIDs.  So new messages come before old messages,
- * and messages with higher UIDs (newer-ish) before those with lower UIDs
- * (when the date is the same.)
- */
-const cmpHeaderYoungToOld = exports.cmpHeaderYoungToOld =
-    function cmpHeaderYoungToOld(a, b) {
-  var delta = b.date - a.date;
-  if (delta)
-    return delta;
-  // favor larger UIDs because they are newer-ish.
-  return b.id - a.id;
-}
-
-/**
- * Perform a binary search on an array to find the correct insertion point
- *  in the array for an item.  From deuxdrop; tested in
- *  deuxdrop's `unit-simple-algos.js` test.
- *
- * @return[Number]{
- *   The correct insertion point in the array, thereby falling in the inclusive
- *   range [0, arr.length].
- * }
- */
-const bsearchForInsert = exports.bsearchForInsert =
-    function bsearchForInsert(list, seekVal, cmpfunc) {
-  if (!list.length)
-    return 0;
-  var low  = 0, high = list.length - 1,
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      break;
-  }
-  if (cmpval < 0)
-    return mid; // insertion is displacing, so use mid outright.
-  else if (cmpval > 0)
-    return mid + 1;
-  else
-    return mid;
-};
-
-var bsearchMaybeExists = exports.bsearchMaybeExists =
-    function bsearchMaybeExists(list, seekVal, cmpfunc, aLow, aHigh) {
-  var low  = ((aLow === undefined)  ? 0                 : aLow),
-      high = ((aHigh === undefined) ? (list.length - 1) : aHigh),
-      mid, cmpval;
-  while (low <= high) {
-    mid = low + Math.floor((high - low) / 2);
-    cmpval = cmpfunc(seekVal, list[mid]);
-    if (cmpval < 0)
-      high = mid - 1;
-    else if (cmpval > 0)
-      low = mid + 1;
-    else
-      return mid;
-  }
-  return null;
-};
-
-exports.partitionMessagesByFolderId =
-    function partitionMessagesByFolderId(messageNamers, onlyKeepMsgId) {
-  var results = [], foldersToMsgs = {};
-  for (var i = 0; i < messageNamers.length; i++) {
-    var messageSuid = messageNamers[i].suid,
-        idxLastSlash = messageSuid.lastIndexOf('/'),
-        folderId = messageSuid.substring(0, idxLastSlash),
-        // if we only want the UID, do so, but make sure to parse it as a #!
-        useId = onlyKeepMsgId ? parseInt(messageSuid.substring(idxLastSlash+1))
-                              : messageSuid;
-
-    if (!foldersToMsgs.hasOwnProperty(folderId)) {
-      var messages = [useId];
-      results.push({
-        folderId: folderId,
-        messages: messages,
-      });
-      foldersToMsgs[folderId] = messages;
-    }
-    else {
-      foldersToMsgs[folderId].push(useId);
-    }
-  }
-  return results;
 };
 
 }); // end define
@@ -13887,6 +13975,8 @@ function strcmp(a, b) {
 }
 
 function checkIfAddressListContainsAddress(list, addrPair) {
+  if (!list)
+    return false;
   var checkAddress = addrPair.address;
   for (var i = 0; i < list.length; i++) {
     if (list[i].address === checkAddress)
@@ -13955,6 +14045,10 @@ MailBridge.prototype = {
         }
         break;
     }
+  },
+
+  _cmd_localizedStrings: function mb__cmd_localizedStrings(msg) {
+    $mailchew.setLocalizedStrings(msg.strings);
   },
 
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
@@ -14187,6 +14281,13 @@ MailBridge.prototype = {
     proxy.sendSplice(0, 0, wireReps, true, false);
   },
 
+  _cmd_createFolder: function mb__cmd_createFolder(msg) {
+    this.universe.createFolder(
+      msg.accountId,
+      msg.parentFolderId,
+      msg.containOnlyOtherFolders);
+  },
+
   _cmd_viewFolderMessages: function mb__cmd_viewFolderMessages(msg) {
     var proxy = this._slices[msg.handle] =
           new SliceBridgeProxy(this, 'headers', msg.handle);
@@ -14363,7 +14464,10 @@ MailBridge.prototype = {
                 }
                 // add the author as the first 'to' person
                 else {
-                  rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  if (bodyInfo.to && bodyInfo.to.length)
+                    rTo = [effectiveAuthor].concat(bodyInfo.to);
+                  else
+                    rTo = [effectiveAuthor];
                 }
                 rCc = bodyInfo.cc;
                 rBcc = bodyInfo.bcc;
@@ -14432,32 +14536,6 @@ MailBridge.prototype = {
     });
   },
 
-  /**
-   * mailcomposer wants from/to/cc/bcc delivered basically like it will show
-   * up in the e-mail, except it is fine with unicode.  So we convert our
-   * (possibly) structured representation into a flattened representation.
-   *
-   * (mailcomposer will handle punycode and mime-word encoding as needed.)
-   */
-  _formatAddresses: function(nameAddrPairs) {
-    var addrstrings = [];
-    for (var i = 0; i < nameAddrPairs.length; i++) {
-      var pair = nameAddrPairs[i];
-      // support lazy people providing only an e-mail... or very careful
-      // people who are sure they formatted things correctly.
-      if (typeof(pair) === 'string') {
-        addrstrings.push(pair);
-      }
-      else {
-        addrstrings.push(
-          '"' + pair.name.replace(/["']/g, '') + '" <' +
-            pair.address + '>');
-      }
-    }
-
-    return addrstrings.join(', ');
-  },
-
   _cmd_doneCompose: function mb__cmd_doneCompose(msg) {
     if (msg.command === 'delete') {
       // XXX if we have persistedFolder/persistedUID, enqueue a delete of that
@@ -14475,7 +14553,7 @@ MailBridge.prototype = {
     var body = wireRep.body;
 
     var messageOpts = {
-      from: this._formatAddresses([identity]),
+      from: $imaputil.formatAddresses([identity]),
       subject: wireRep.subject,
     };
     if (body.html) {
@@ -14488,11 +14566,11 @@ MailBridge.prototype = {
     if (identity.replyTo)
       messageOpts.replyTo = identity.replyTo;
     if (wireRep.to && wireRep.to.length)
-      messageOpts.to = this._formatAddresses(wireRep.to);
+      messageOpts.to = $imaputil.formatAddresses(wireRep.to);
     if (wireRep.cc && wireRep.cc.length)
-      messageOpts.cc = this._formatAddresses(wireRep.cc);
+      messageOpts.cc = $imaputil.formatAddresses(wireRep.cc);
     if (wireRep.bcc && wireRep.bcc.length)
-      messageOpts.bcc = this._formatAddresses(wireRep.bcc);
+      messageOpts.bcc = $imaputil.formatAddresses(wireRep.bcc);
     composer.setMessageOption(messageOpts);
 
     if (wireRep.customHeaders) {
@@ -14502,7 +14580,8 @@ MailBridge.prototype = {
       }
     }
     composer.addHeader('User-Agent', 'Mozilla Gaia Email Client 0.1alpha');
-    composer.addHeader('Date', new Date().toUTCString());
+    var sentDate = new Date();
+    composer.addHeader('Date', sentDate.toUTCString());
     // we're copying nodemailer here; we might want to include some more...
     var messageId =
       '<' + Date.now() + Math.random().toString(16).substr(1) + '@mozgaia>';
@@ -14520,6 +14599,7 @@ MailBridge.prototype = {
           err: err,
           badAddresses: badAddresses,
           messageId: messageId,
+          sentDate: sentDate.valueOf(),
         });
       });
     }
@@ -15027,6 +15107,368 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 
 }); // end define
 ;
+define('mailapi/date',
+  [
+    'module',
+    'exports'
+  ],
+  function(
+    $module,
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Time
+//
+// == JS Dates
+//
+// We primarily deal in UTC timestamps.  When we need to talk dates with IMAP
+// (see next section), we need these timestamps to line up with midnight for
+// a given day.  We do not need to line up with weeks, months, or years,
+// saving us a lot of complexity.
+//
+// Day algebra is straightforward because JS Date objects have no concept of
+// leap seconds.  We don't need to worry that a leap second will cause adding
+// a day to be less than or more than a day.  Hooray!
+//
+// == IMAP and Time
+//
+// The stock IMAP SEARCH command's SINCE and BEFORE predicates only operate on
+// whole-dates (and ignore the non-date time parts).  Additionally, SINCE is
+// inclusive and BEFORE is exclusive.
+//
+// We use JS millisecond timestamp values throughout, and it's important to us
+// that our date logic is consistent with IMAP's time logic where relevant.
+// All of our IMAP-exposed time-interval related logic operates on day
+// granularities.  Our timestamp/date values are always normalized to midnight
+// which happily works out with intuitive range operations.
+//
+// Observe the pretty ASCII art where as you move to the right you are moving
+// forward in time.
+//
+//             ________________________________________
+//      BEFORE)| midnight (0 millis) ... 11:59:59:999 |
+// ON_OR_BEFORE]
+//             [SINCE......................................
+//              (AFTER.....................................
+//
+// Our date range comparisons (noting that larger timestamps are 'younger') are:
+// SINCE analog:  (testDate >= comparisonDate)
+//   testDate is as-recent-as or more-recent-than the comparisonDate.
+// BEFORE analog: (testDate < comparisonDate)
+//   testDate is less-recent-than the comparisonDate
+//
+// Because "who is the test date and who is the range value under discussion"
+// can be unclear and the numerical direction of time is not always intuitive,
+// I'm introducing simple BEFORE and SINCE helper functions to try and make
+// the comparison logic ridiculously explicit as well as calling out where we
+// are being consistent with IMAP.
+//
+// Not all of our time logic is consistent with IMAP!  Specifically, use of
+// exclusive time bounds without secondary comparison keys means that ranges
+// defined in this way cannot spread messages with the same timestamp over
+// multiple ranges.  This allows for pathological data structure situations
+// where there's too much data in a data block, etc.
+// Our date ranges are defined by 'startTS' and 'endTS'.  Using math syntax, our
+// IMAP-consistent time ranges end up as: [startTS, endTS).  It is always true
+// that BEFORE(startTS, endTS) and SINCE(endTS, startTS) in these cases.
+//
+// As such, I've also created an ON_OR_BEFORE helper that allows equivalence and
+// STRICTLY_AFTER that does not check equivalence to round out all possibilities
+// while still being rather explicit.
+
+
+/**
+ * IMAP-consistent date comparison; read this as "Is `testDate` BEFORE
+ * `comparisonDate`"?
+ *
+ * !BEFORE(a, b) === SINCE(a, b)
+ */
+const BEFORE = exports.BEFORE =
+      function BEFORE(testDate, comparisonDate) {
+  // testDate is numerically less than comparisonDate, so it is chronologically
+  // before it.
+  return testDate < comparisonDate;
+};
+
+const ON_OR_BEFORE = exports.ON_OR_BEFORE =
+      function ON_OR_BEFORE(testDate, comparisonDate) {
+  return testDate <= comparisonDate;
+};
+
+/**
+ * IMAP-consistent date comparison; read this as "Is `testDate` SINCE
+ * `comparisonDate`"?
+ *
+ * !SINCE(a, b) === BEFORE(a, b)
+ */
+const SINCE = exports.SINCE =
+      function SINCE(testDate, comparisonDate) {
+  // testDate is numerically greater-than-or-equal-to comparisonDate, so it
+  // chronologically after/since it.
+  return testDate >= comparisonDate;
+};
+
+const STRICTLY_AFTER = exports.STRICTLY_AFTER =
+      function STRICTLY_AFTER(testDate, comparisonDate) {
+  return testDate > comparisonDate;
+};
+
+const IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
+      function IN_BS_DATE_RANGE(testDate, startTS, endTS) {
+  return testDate >= startTS && testDate < endTS;
+};
+
+//function DATE_RANGES_OVERLAP(A_startTS, A_endTS, B_startTS, B_endTS) {
+//}
+
+const HOUR_MILLIS = exports.HOUR_MILLIS = 60 * 60 * 1000;
+const DAY_MILLIS = exports.DAY_MILLIS = 24 * 60 * 60 * 1000;
+
+/**
+ * Testing override that when present replaces use of Date.now().
+ */
+var TIME_WARPED_NOW = null, FUTURE_TIME_WARPED_NOW = null;
+
+/**
+ * Pretend that 'now' is actually a fixed point in time for the benefit of
+ * unit tests using canned message stores.
+ */
+exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
+  if (typeof(fakeNow) !== 'number')
+    fakeNow = fakeNow.valueOf();
+  TIME_WARPED_NOW = fakeNow;
+  // because of exclusive time comparison ops , we actually want to use the first
+  // day after the TIME_WARPED_NOW...
+  FUTURE_TIME_WARPED_NOW = quantizeDate(fakeNow + DAY_MILLIS);
+};
+
+const NOW = exports.NOW =
+      function NOW() {
+  return TIME_WARPED_NOW || Date.now();
+};
+const FUTURE = exports.FUTURE =
+      function FUTURE() {
+  return FUTURE_TIME_WARPED_NOW || null;
+};
+
+/**
+ * Make a timestamp some number of days in the past, quantized to midnight of
+ * that day.  This results in rounding up; if it's noon right now and you
+ * ask for 2 days ago, you really get 2.5 days worth of time.
+ */
+const makeDaysAgo = exports.makeDaysAgo =
+      function makeDaysAgo(numDays) {
+  var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
+      //past = now - numDays * DAY_MILLIS;
+      past = (FUTURE_TIME_WARPED_NOW || quantizeDate(Date.now())) -
+               (numDays + 1) * DAY_MILLIS;
+  return past;
+};
+const makeDaysBefore = exports.makeDaysBefore =
+      function makeDaysBefore(date, numDaysBefore) {
+  return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
+};
+/**
+ * Quantize a date to midnight on that day.
+ */
+const quantizeDate = exports.quantizeDate =
+      function quantizeDate(date) {
+  if (typeof(date) === 'number')
+    date = new Date(date);
+  return date.setHours(0, 0, 0, 0).valueOf();
+};
+
+}); // end define;
+define('mailapi/syncbase',
+  [
+    './date',
+    'exports'
+  ],
+  function(
+    $date,
+    exports
+  ) {
+
+////////////////////////////////////////////////////////////////////////////////
+// Display Heuristic Time Values
+//
+// Here are some values we can tweak to try and strike a balance between how
+// long before we display something when entering a folder and avoiding visual
+// churn as new messages are added to the display.
+//
+// These are not constants because unit tests need to muck with these.
+
+/**
+ * How recently do we have to have synced a folder for us to to treat a request
+ * to enter the folder as a database-backed load followed by a refresh rather
+ * than falling back to known-date-range sync (which does not display anything
+ * until the sync has completed) or (the same thing we use for initial sync)
+ * iterative deepening?
+ *
+ * This is sync strategy #1 per `sliceOpenFromNow`.
+ *
+ * A good value is approximately how long we would expect it to take for V/2
+ * messages to show up in the folder, where V is the number of messages the
+ * device's screen can display at a time.  This is because since we will
+ * populate the folder prior to the refresh, any new messages will end up
+ * displacing the messages.
+ *
+ * There are non-inbox and inbox variants of this value because we expect
+ * churn in the INBOX to happen at a much different rate than other boxes.
+ * Ideally, we might also be able to detect folders that have new things
+ * filtered into them, as that will affect this too.
+ *
+ * There is also a third variant for folders that we have previously
+ * synchronized and found that their messages start waaaay in the past,
+ * suggesting that this is some type of archival folder with low churn,
+ * `REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH`.
+ */
+exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX = 6 * $date.HOUR_MILLIS;
+exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX = 2 * $date.HOUR_MILLIS;
+
+/**
+ * If the most recent message in a folder is older than this threshold, then
+ * we assume it's some type of archival folder and so is unlikely to have any
+ * meaningful churn so a refresh is optimal.  Also, the time range is
+ * far enough back that our deepening strategy would result in unacceptable
+ * latency.
+ */
+exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH = 4 * 30 * $date.DAY_MILLIS;
+exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD = 2 * 30 * $date.DAY_MILLIS;
+
+/**
+ * How recently do we have to have synced a folder for us to reuse the known
+ * date bounds of the messages contained in the folder as the basis for our
+ * sync?  We will perform a sync with this date range before displaying any
+ * messages, avoiding churn should new messages have appeared.
+ *
+ * This is sync strategy #2 per `sliceOpenFromNow`, and is the fallback mode
+ * if the #1 strategy is not appropriate.
+ *
+ * This is most useful for folders with a message density lower than
+ * INITIAL_FILL_SIZE / INITIAL_SYNC_DAYS messages/day.  If we are able
+ * to characterize folders based on whether new messages show up in them
+ * based on some reliable information, then we could let #1 handle more cases
+ * that this case currently covers.
+ */
+exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * $date.DAY_MILLIS;
+exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * $date.HOUR_MILLIS;
+
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * How many messages should we send to the UI in the first go?
+ */
+exports.INITIAL_FILL_SIZE = 15;
+
+/**
+ * How many days in the past should we first look for messages.
+ */
+exports.INITIAL_SYNC_DAYS = 3;
+
+/**
+ * What should be multiple the current number of sync days by when we perform
+ * a sync and don't find any messages?  There are upper bounds in
+ * `FolderStorage.onSyncCompleted` that cap this and there's more comments
+ * there.
+ */
+exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
+
+/**
+ * What is the furthest back in time we are willing to go?  This is an
+ * arbitrary choice to avoid our logic going crazy, not to punish people with
+ * comprehensive mail collections.
+ */
+exports.OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
+
+/**
+ * If we issued a search for a date range and we are getting told about more
+ * than the following number of messages, we will try and reduce the date
+ * range proportionately (assuming a linear distribution) so that we sync
+ * a smaller number of messages.  This will result in some wasted traffic
+ * but better a small wasted amount (for UIDs) than a larger wasted amount
+ * (to get the dates for all the messages.)
+ */
+exports.BISECT_DATE_AT_N_MESSAGES = 50;
+
+/**
+ * What's the maximum number of messages we should ever handle in a go and
+ * where we should start failing by pretending like we haven't heard of the
+ * excess messages?  This is a question of message time-density and not a
+ * limitation on the number of messages in a folder.
+ *
+ * This could be eliminated by adjusting time ranges when we know the
+ * density is high (from our block indices) or by re-issuing search results
+ * when the server is telling us more than we can handle.
+ */
+exports.TOO_MANY_MESSAGES = 2000;
+
+
+/**
+ * What is the maximum number of tries we should give an operation before
+ * giving up on the operation as hopeless?  Note that in some suspicious
+ * error cases, the try cont will be incremented by more than 1.
+ *
+ * This value is somewhat generous because we do assume that when we do
+ * encounter a flakey connection, there is a high probability of the connection
+ * being flakey in the short term.  The operations will not be excessively
+ * penalized for this since IMAP connections have to do a lot of legwork to
+ * establish the connection before we start the operation (CAPABILITY, LOGIN,
+ * CAPABILITY).
+ */
+exports.MAX_OP_TRY_COUNT = 10;
+
+/**
+ * The value to increment the operation tryCount by if we receive an
+ * unexpected error.
+ */
+exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT = 5;
+
+/**
+ * If we need to defer an operation because the folder/resource was not
+ * available, how long should we defer for?
+ */
+exports.DEFERRED_OP_DELAY_MS = 30 * 1000;
+
+
+/**
+ * Testing support to adjust the value we use for the number of initial sync
+ * days.  The tests are written with a value in mind (7), but 7 turns out to
+ * be too high an initial value for actual use, but is fine for tests.
+ */
+exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
+  exports.INITIAL_FILL_SIZE = syncValues.fillSize;
+  exports.INITIAL_SYNC_DAYS = syncValues.days;
+
+  exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
+  exports.TOO_MANY_MESSAGES = syncValues.tooMany;
+
+  exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
+
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
+    syncValues.refreshNonInbox;
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
+    syncValues.refreshInbox;
+  exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
+    syncValues.oldIsSafeForRefresh;
+  exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
+    syncValues.refreshOld;
+
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
+    syncValues.useRangeNonInbox;
+  exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
+    syncValues.useRangeInbox;
+
+  if (syncValues.hasOwnProperty('MAX_OP_TRY_COUNT'))
+    exports.MAX_OP_TRY_COUNT = syncValues.MAX_OP_TRY_COUNT;
+  if (syncValues.hasOwnProperty('OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT'))
+    exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT =
+      syncValues.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT;
+};
+
+}); // end define
+;
 /**
  *
  **/
@@ -15060,9 +15502,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 8 because our attachment representation has changed from v7.
+ * Bumping to 9 because database operations now have a deferred queue.
  */
-const CUR_VERSION = 8;
+const CUR_VERSION = 9;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -15753,60 +16195,11 @@ this.strtotime = function(str, now) {
     return (now.getTime()/1000);
 }
 });
-/**
- * Wrap the stringencoding polyfill (or standard, if that has happend :) so that
- * it resembles the node iconv binding.  Note that although iconv proper
- * supports transliteration, the module we are replacing (iconv-lite) did not,
- * and we don't need transliteration for e-mail anyways.  We only need
- * conversions to process non-unicode encodings into encoding; we will never try
- * and convert the more full unicode character-space into legacy encodings.
- *
- * This assumes our node-buffer.js shim is in use and providing the global Buffer.
- **/
-
-define('iconv',['require','exports','module'],function(require, exports, module) {
-
-var ENCODER_OPTIONS = { fatal: false };
-
-exports.Iconv = function Iconv(sourceEnc, destEnc) {
-
-  // - decoding
-  if (/^UTF-8/.test(destEnc)) {
-    this.decode = true;
-    this.coder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
-  }
-  // - encoding
-  else {
-    var idxSlash = destEnc.indexOf('/');
-    // ignore '//TRANSLIT//IGNORE' and the like.
-    if (idxSlash !== -1 && destEnc[idxSlash+1] === '/')
-      destEnc = destEnc.substring(0, idxSlash);
-    this.decode = false;
-    this.coder = new TextEncoder(destEnc, ENCODER_OPTIONS);
-  }
-
-};
-exports.Iconv.prototype = {
-  /**
-   * Takes a buffer, returns a (different) buffer.
-   */
-  convert: function(inbuf) {
-    if (this.decode) {
-      return this.coder.decode(inbuf);
-    }
-    else {
-      return Buffer(this.coder.encode(inbuf));
-    }
-  },
-};
-
-});
-
-define('mailparser/streams',['require','exports','module','stream','util','mimelib','iconv','crypto'],function (require, exports, module) {
+define('mailparser/streams',['require','exports','module','stream','util','mimelib','encoding','crypto'],function (require, exports, module) {
 var Stream = require('stream').Stream,
     utillib = require('util'),
     mimelib = require('mimelib'),
-    Iconv = require('iconv').Iconv,
+    encodinglib = require('encoding'),
     crypto = require('crypto');
 
 module.exports.Base64Stream = Base64Stream;
@@ -15889,6 +16282,9 @@ QPStream.prototype.handleInput = function(data){
     }
     
     data = (data || "").toString("utf-8");
+    if(data.match(/^\r\n/)){
+        data = data.substr(2);
+    }
     
     if(typeof this.current !="string"){
         this.current = data;
@@ -15898,13 +16294,12 @@ QPStream.prototype.handleInput = function(data){
 };
 
 QPStream.prototype.flush = function(){
-    var iconv, buffer = mimelib.decodeQuotedPrintable(this.current, false, this.charset);
+    var buffer = mimelib.decodeQuotedPrintable(this.current, false, this.charset);
 
     if(this.charset.toLowerCase() == "binary"){
         // do nothing
     }else if(this.charset.toLowerCase() != "utf-8"){
-        iconv =  new Iconv('UTF-8', this.charset+"//TRANSLIT//IGNORE");
-        buffer = iconv.convert(buffer);
+        buffer = encodinglib.convert(buffer, "utf-8", this.charset);
     }else{
         buffer = new Buffer(buffer, "utf-8");
     }
@@ -15947,7 +16342,7 @@ BinaryStream.prototype.end = function(data){
     };
 };
 });
-define('mailparser/mailparser',['require','exports','module','stream','util','mimelib','./datetime','iconv','./streams','crypto'],function (require, exports, module) {
+define('mailparser/mailparser',['require','exports','module','stream','util','mimelib','./datetime','encoding','./streams','crypto'],function (require, exports, module) {
 
 /**
  * @fileOverview This is the main file for the MailParser library to parse raw e-mail data
@@ -15959,7 +16354,7 @@ var Stream = require('stream').Stream,
     utillib = require('util'),
     mimelib = require('mimelib'),
     datetime = require('./datetime'),
-    Iconv = require('iconv').Iconv,
+    encodinglib = require('encoding'),
     Streams = require('./streams'),
     crypto = require('crypto');
 
@@ -15979,7 +16374,7 @@ var STATES = {
  * <p>Options object has the following properties:</p>
  *
  * <ul>
- *   <li><b>debug</b> - if set to true print all incoming lines to console</li>
+ *   <li><b>debug</b> - if set to true print all incoming lines to decodeq</li>
  *   <li><b>streamAttachments</b> - if set to true, stream attachments instead of including them</li>
  *   <li><b>unescapeSMTP</b> - if set to true replace double dots in the beginning of the file</li>
  *   <li><b>defaultCharset</b> - the default charset for text/plain, text/html content, if not set reverts to Latin-1
@@ -16026,10 +16421,6 @@ function MailParser(options){
      * An array of multipart nodes
      * @private */ this._multipartTree = [];
 
-
-    /**
-     * Cache for iconv converter objects
-     * @private */ this._iconv         = {};
 
     /**
      * This is the final mail structure object that is returned to the client
@@ -16775,16 +17166,16 @@ MailParser.prototype._finalizeContents = function(){
 
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
                 this._currentNode.content = mimelib.decodeQuotedPrintable(this._currentNode.content, false, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
+              if (this._currentNode.meta.textFormat === "flowed") {
+                if (this._currentNode.meta.textDelSp === "yes")
+                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, '');
+                else
+                  this._currentNode.content = this._currentNode.content.replace(/ \n/g, ' ');
+                }
             }else if(this._currentNode.meta.transferEncoding == "base64"){
                 this._currentNode.content = mimelib.decodeBase64(this._currentNode.content, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1");
             }else{
-                this._currentNode.content =
-                  this._convertString(
-                    this._currentNode.content,
-                    this._currentNode.meta.charset ||
-                      this.options.defaultCharset ||
-                      "iso-8859-1"
-                  ).toString("utf-8");
+                this._currentNode.content = this._convertStringToUTF8(this._currentNode.content);
             }
         }else{
             if(this._currentNode.meta.transferEncoding == "quoted-printable"){
@@ -17073,13 +17464,19 @@ MailParser.prototype._convertString = function(value, fromCharset, toCharset){
         return value;
     }
 
-    try{ // in case there is no such charset or EINVAL occurs leave the string untouched
-        if(!this._iconv[fromCharset+toCharset]){
-            this._iconv[fromCharset+toCharset] = new Iconv(fromCharset, toCharset+'//TRANSLIT//IGNORE');
-        }
-        value = this._iconv[fromCharset+toCharset].convert(value);
-    }catch(E){}
+    value = encodinglib.convert(value, toCharset, fromCharset);
 
+    return value;
+};
+
+/**
+ * <p>Converts a string to UTF-8</p>
+ *
+ * @param {String} value String to be encoded
+ * @returns {String} UTF-8 encoded string
+ */
+MailParser.prototype._convertStringToUTF8 = function(value){
+    value = this._convertString(value, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1").toString("utf-8");
     return value;
 };
 
@@ -17090,7 +17487,7 @@ MailParser.prototype._convertString = function(value, fromCharset, toCharset){
  * @returns {String} UTF-8 encoded string
  */
 MailParser.prototype._encodeString = function(value){
-    value = this._replaceMimeWords(this._convertString(value, this._currentNode.meta.charset || this.options.defaultCharset || "iso-8859-1").toString("utf-8"));
+    value = this._replaceMimeWords(this._convertStringToUTF8(value));
     return value;
 };
 
@@ -17373,8 +17770,8 @@ function ImapConnection (options) {
     }
   };
   this._options = extend(true, this._options, options);
-
   this._LOG = (this._options._logParent ? LOGFAB.ImapProtoConn(this, this._options._logParent, null) : null);
+  if (this._LOG) this._LOG.created();
   this.delim = null;
   this.namespaces = { personal: [], other: [], shared: [] };
   this.capabilities = [];
@@ -17431,12 +17828,13 @@ ImapConnection.prototype.connect = function(loginCb) {
   if (this._options.crypto === 'starttls')
     socketOptions.useSSL = 'starttls';
 
+  if (this._LOG) this._LOG.connect(this._options.host, this._options.port);
   this._state.conn = navigator.mozTCPSocket.open(
     this._options.host, this._options.port, socketOptions);
 
   // XXX rely on mozTCPSocket for this?
-  this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this),
-                                   this._options.connTimeout, loginCb);
+  this._state.tmrConn = setTimeout(this._fnTmrConn.bind(this, loginCb),
+                                   this._options.connTimeout);
 
   this._state.conn.onopen = function(evt) {
     if (self._LOG) self._LOG.connected();
@@ -17842,12 +18240,14 @@ ImapConnection.prototype.connect = function(loginCb) {
           if (cmd.indexOf('APPEND') !== 0) {
             err = new Error('Unexpected continuation');
             err.type = 'continuation';
+            err.serverResponse = '';
             err.request = cmd;
           } else
             return self._state.requests[0].callback();
         } else if (data[1] !== 'OK') {
           err = new Error('Error while executing request: ' + data[2]);
           err.type = data[1];
+          err.serverResponse = data[2];
           err.request = cmd;
         } else if (self._state.status === STATES.BOXSELECTED) {
           if (sendBox) // SELECT, EXAMINE, RENAME
@@ -17921,9 +18321,19 @@ ImapConnection.prototype.connect = function(loginCb) {
   this._state.conn.onerror = function(evt) {
     try {
       var err = evt.data;
+      // (only do error probing on things we can safely use 'in' on)
+      if (err && typeof(err) === 'object') {
+        // detect an nsISSLStatus instance by an unusual property.
+        if ('isNotValidAtThisTime' in err)
+          err = 'bad-security';
+      }
       clearTimeout(self._state.tmrConn);
-      if (self._state.status === STATES.NOCONNECT)
-        loginCb(new Error('Unable to connect. Reason: ' + err));
+      if (self._state.status === STATES.NOCONNECT) {
+        var connErr = new Error('Unable to connect. Reason: ' + err);
+        connErr.type = 'unknown';
+        connErr.serverResponse = '';
+        loginCb(connErr);
+      }
       self.emit('error', err);
       if (this._LOG) this._LOG.connError(err);
     }
@@ -18381,7 +18791,7 @@ ImapConnection.prototype._fnTmrConn = function(loginCb) {
   err.type = 'timeout';
   loginCb(err);
   this._state.conn.close();
-}
+};
 
 ImapConnection.prototype._store = function(which, uids, flags, isAdding, cb) {
   if (this._state.status !== STATES.BOXSELECTED)
@@ -18443,8 +18853,12 @@ ImapConnection.prototype._login = function(cb) {
         cb(err);
       };
   if (this._state.status === STATES.NOAUTH) {
+    var connErr;
     if (this.capabilities.indexOf('LOGINDISABLED') > -1) {
-      cb(new Error('Logging in is disabled on this server'));
+      connErr = new Error('Logging in is disabled on this server');
+      connErr.type = 'server-maintenance';
+      connErr.serverResponse = 'LOGINDISABLED';
+      cb(connErr);
       return;
     }
 
@@ -18456,8 +18870,12 @@ ImapConnection.prototype._login = function(cb) {
       this._send('LOGIN', ' "' + escape(this._options.username) + '" "'
                  + escape(this._options.password) + '"', fnReturn);
     } else {
-      return cb(new Error('Unsupported authentication mechanism(s) detected. '
-                          + 'Unable to login.'));
+      connErr = new Error('Unsupported authentication mechanism(s) detected. '
+                          + 'Unable to login.');
+      connErr.type = 'sucky-imap-server';
+      connErr.serverResponse = 'CAPABILITIES: ' + this.capabilities.join(' ');
+      cb(connErr);
+      return;
     }
   }
 };
@@ -19315,6 +19733,8 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
     type: $log.CONNECTION,
     subtype: $log.CLIENNT,
     events: {
+      created: {},
+      connect: {},
       connected: {},
       closed: {},
       sendData: { length: false },
@@ -19322,6 +19742,7 @@ var LOGFAB = exports.LOGFAB = $log.register(module, {
       data: { length: false },
     },
     TEST_ONLY_events: {
+      connect: { host: false, port: false },
       sendData: { data: false },
       // This may be a Buffer and therefore need to be coerced
       data: { data: $log.TOSTRING },
@@ -19380,26 +19801,20 @@ function ImapProber(credentials, connInfo, _LOG) {
 
   console.log("PROBE:IMAP attempting to connect to", connInfo.hostname);
   this._conn = new $imap.ImapConnection(opts);
-  this._conn.connect(this.onConnect.bind(this));
-  // The login callback will get the error, but EventEmitter will freak out if
-  // we don't register a handler for the error, so just do that.
-  this._conn.on('error', function() {});
+  this._conn.connect(this.onLoggedIn.bind(this));
+  this._conn.on('error', this.onError.bind(this));
 
   this.onresult = null;
   this.accountGood = null;
 }
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
-  onConnect: function ImapProber_onConnect(err) {
-    if (err) {
-      console.warn("PROBE:IMAP sad");
-      this.accountGood = false;
-      this._conn = null;
-    }
-    else {
-      console.log("PROBE:IMAP happy");
-      this.accountGood = true;
-    }
+  onLoggedIn: function ImapProber_onLoggedIn(err) {
+    if (err)
+      return;
+
+    console.log('PROBE:IMAP happy');
+    this.accountGood = true;
 
     var conn = this._conn;
     this._conn = null;
@@ -19407,337 +19822,242 @@ ImapProber.prototype = {
     if (this.onresult)
       this.onresult(this.accountGood, conn);
   },
+
+  onError: function ImapProber_onError(err) {
+    console.warn('PROBE:IMAP sad', err);
+    this.accountGood = false;
+    // we really want to make sure we clean up after this dude.
+    try {
+      this._conn.die();
+    }
+    catch (ex) {
+    }
+    this._conn = null;
+
+    if (this.onresult)
+      this.onresult(this.accountGood, null);
+    // we could potentially see many errors...
+    this.onresult = false;
+  },
 };
 
 }); // end define
 ;
-define('mailapi/date',
+/**
+ * Error-handling/backoff logic.
+ *
+ * - All existing-account network-accessing functionality uses this module to
+ *   track the state of accounts and resources within accounts that are may
+ *   experience some type of time-varying failures.
+ * - Account autoconfiguration probing logic does not use this module; it just
+ *   checks whether there is a network connection.
+ *
+ * - Accounts define 'endpoints' with us when they are instantiated for each
+ *   server connection type they have.  For IMAP, this means an SMTP endpoint
+ *   and an IMAP endpoint.
+ * - These 'endpoints' may have internal 'resources' which may manifest failures
+ *   of their own if-and-only-if it is expected that there could be transient
+ *   failures within the endpoint.  For IMAP, it is possible for IMAP servers to
+ *   not let us into certain folders because there are other active connections
+ *   inside them.  If something can't fail, there is no need to name it as a
+ *   resource.
+ *
+ * - All endpoints have exactly one status: 'healthy', 'unreachable', or
+ *   'broken'.  Unreachable implies we are having trouble talking with the
+ *   endpoint because of network issues.  Broken implies that although we can
+ *   talk to the endpoint, it doesn't want to talk to us for reasons of being
+ *   offline for maintenance or account migration or something like that.
+ * - Endpoint resources can only be 'broken' and are only tracked if they are
+ *   broken.
+ *
+ * - If we encounter a network error for an otherwise healthy endpoint then we
+ *   try again once right away, as a lot of network errors only become evident
+ *   once we have a new, good network.
+ * - On subsequent network errors for the previously healthy endpoint where we
+ *   have already retried, we try after a ~1 second delay and then a ~5 second
+ *   delay.  Then we give up and put the endpoint in the unreachable or broken
+ *   state, as appropriate.  These choice of delays are entirely arbitrary.
+ *
+ * - We only try once to connect to endpoints that are in a degraded state.  We
+ *   do not retry because that would be wasteful.
+ *
+ * - Once we put an endpoint in a degraded (unreachable or broken) state, this
+ *   module never does anything to try and probe for the endpoint coming back
+ *   on its own.  We rely on the existing periodic synchronization logic or
+ *   user actions to trigger a new attempt.  WE MAY NEED TO CHANGE THIS AT
+ *   SOME POINT since it's possible that the user may have queued an email for
+ *   sending that they want delivered sooner than the cron logic triggers, but
+ *   that's way down the road.
+ **/
+
+define('mailapi/errbackoff',
   [
+    './date',
+    'rdcommon/log',
     'module',
     'exports'
   ],
   function(
+    $date,
+    $log,
     $module,
     exports
   ) {
 
-////////////////////////////////////////////////////////////////////////////////
-// Time
-//
-// == JS Dates
-//
-// We primarily deal in UTC timestamps.  When we need to talk dates with IMAP
-// (see next section), we need these timestamps to line up with midnight for
-// a given day.  We do not need to line up with weeks, months, or years,
-// saving us a lot of complexity.
-//
-// Day algebra is straightforward because JS Date objects have no concept of
-// leap seconds.  We don't need to worry that a leap second will cause adding
-// a day to be less than or more than a day.  Hooray!
-//
-// == IMAP and Time
-//
-// The stock IMAP SEARCH command's SINCE and BEFORE predicates only operate on
-// whole-dates (and ignore the non-date time parts).  Additionally, SINCE is
-// inclusive and BEFORE is exclusive.
-//
-// We use JS millisecond timestamp values throughout, and it's important to us
-// that our date logic is consistent with IMAP's time logic where relevant.
-// All of our IMAP-exposed time-interval related logic operates on day
-// granularities.  Our timestamp/date values are always normalized to midnight
-// which happily works out with intuitive range operations.
-//
-// Observe the pretty ASCII art where as you move to the right you are moving
-// forward in time.
-//
-//             ________________________________________
-//      BEFORE)| midnight (0 millis) ... 11:59:59:999 |
-// ON_OR_BEFORE]
-//             [SINCE......................................
-//              (AFTER.....................................
-//
-// Our date range comparisons (noting that larger timestamps are 'younger') are:
-// SINCE analog:  (testDate >= comparisonDate)
-//   testDate is as-recent-as or more-recent-than the comparisonDate.
-// BEFORE analog: (testDate < comparisonDate)
-//   testDate is less-recent-than the comparisonDate
-//
-// Because "who is the test date and who is the range value under discussion"
-// can be unclear and the numerical direction of time is not always intuitive,
-// I'm introducing simple BEFORE and SINCE helper functions to try and make
-// the comparison logic ridiculously explicit as well as calling out where we
-// are being consistent with IMAP.
-//
-// Not all of our time logic is consistent with IMAP!  Specifically, use of
-// exclusive time bounds without secondary comparison keys means that ranges
-// defined in this way cannot spread messages with the same timestamp over
-// multiple ranges.  This allows for pathological data structure situations
-// where there's too much data in a data block, etc.
-// Our date ranges are defined by 'startTS' and 'endTS'.  Using math syntax, our
-// IMAP-consistent time ranges end up as: [startTS, endTS).  It is always true
-// that BEFORE(startTS, endTS) and SINCE(endTS, startTS) in these cases.
-//
-// As such, I've also created an ON_OR_BEFORE helper that allows equivalence and
-// STRICTLY_AFTER that does not check equivalence to round out all possibilities
-// while still being rather explicit.
+var BACKOFF_DURATIONS = exports.BACKOFF_DURATIONS = [
+  { fixedMS: 0,    randomMS: 0 },
+  { fixedMS: 800,  randomMS: 400 },
+  { fixedMS: 4500, randomMS: 1000 },
+];
 
+var BAD_RESOURCE_RETRY_DELAYS_MS = [
+  1000,
+  60 * 1000,
+  2 * 60 * 1000,
+];
 
-/**
- * IMAP-consistent date comparison; read this as "Is `testDate` BEFORE
- * `comparisonDate`"?
- *
- * !BEFORE(a, b) === SINCE(a, b)
- */
-const BEFORE = exports.BEFORE =
-      function BEFORE(testDate, comparisonDate) {
-  // testDate is numerically less than comparisonDate, so it is chronologically
-  // before it.
-  return testDate < comparisonDate;
+var setTimeoutFunc = window.setTimeout.bind(window);
+
+exports.TEST_useTimeoutFunc = function(func) {
+  setTimeoutFunc = func;
+  for (var i = 0; i < BACKOFF_DURATIONS.length; i++) {
+    BACKOFF_DURATIONS[i].randomMS = 0;
+  }
 };
 
-const ON_OR_BEFORE = exports.ON_OR_BEFORE =
-      function ON_OR_BEFORE(testDate, comparisonDate) {
-  return testDate <= comparisonDate;
+function BackoffEndpoint(name, listener, _parentLog) {
+  /** @oneof[
+   *    @case['healthy']
+   *    @case['unreachable']
+   *    @case['broken']
+   *    @case['shutdown']{
+   *      We are shutting down; ignore any/all errors and avoid performing
+   *      activities that would result in new network traffic, etc.
+   *    }
+   *  ]
+   */
+  this.state = 'healthy';
+  this._iNextBackoff = 0;
+
+  this._LOG = LOGFAB.BackoffEndpoint(this, _parentLog, name);
+  this._LOG.state(this.state);
+
+  this._badResources = {};
+
+  this.listener = listener;
+}
+BackoffEndpoint.prototype = {
+  noteConnectSuccess: function() {
+    this.state = 'healthy';
+    this._iNextBackoff = 0;
+    this._LOG.state(this.state);
+  },
+
+  /**
+   * Logs a connection failure and returns true if a retry attempt should be
+   * made.
+   *
+   * @args[
+   *   @param[reachable Boolean]{
+   *     If true, we were able to connect to the endpoint, but failed to login
+   *     for some reason.
+   *   }
+   * ]
+   */
+  noteConnectFailureMaybeRetry: function(reachable) {
+    this._LOG.connectFailure(reachable);
+    if (this.state === 'shutdown')
+      return false;
+
+    if (reachable) {
+      this.state = 'broken';
+      this._LOG.state(this.state);
+      return false;
+    }
+
+    if (this._iNextBackoff > 0)
+      this.state = reachable ? 'broken' : 'unreachable';
+    this._LOG.state(this.state);
+    // (Once this saturates, we never perform retries until the connection is
+    // healthy again.  We do attempt re-connections when triggered by user
+    // activity or synchronization logic; they just won't get retries.)
+    if (this._iNextBackoff >= BACKOFF_DURATIONS.length)
+      return false;
+
+    return true;
+  },
+
+  /**
+   * Logs a connection problem where we can talk to the server but we are
+   * confident there is no reason retrying.  In some cases, like bad
+   * credentials, this is part of what you want to do, but you will still also
+   * want to put the kibosh on additional requests at a higher level since
+   * servers can lock people out if they make repeated bad authentication
+   * requests.
+   */
+  noteBrokenConnection: function() {
+    this._LOG.connectFailure(true);
+    this.state = 'broken';
+    this._LOG.state(this.state);
+
+    this._iNextBackoff = BACKOFF_DURATIONS.length;
+  },
+
+  scheduleConnectAttempt: function(connectFunc) {
+    if (this.state === 'shutdown')
+      return;
+
+    var backoff = BACKOFF_DURATIONS[this._iNextBackoff++],
+        delay = backoff.fixedMS +
+                Math.floor(Math.random() * backoff.randomMS);
+    setTimeoutFunc(connectFunc, delay);
+  },
+
+  noteBadResource: function(resourceId) {
+    var now = $date.NOW();
+    if (!this._badResources.hasOwnProperty(resourceId)) {
+      this._badResources[resourceId] = { count: 1, last: now };
+    }
+    else {
+      var info = this._badResources[resourceId];
+      info.count++;
+      info.last = now;
+    }
+  },
+
+  resourceIsOkayToUse: function(resourceId) {
+    if (!this._badResources.hasOwnProperty(resourceId))
+      return true;
+    var info = this._badResources[resourceId], now = $date.NOW();
+
+  },
+
+  shutdown: function() {
+    this.state = 'shutdown';
+    this._LOG.state(this.state);
+  },
 };
 
-/**
- * IMAP-consistent date comparison; read this as "Is `testDate` SINCE
- * `comparisonDate`"?
- *
- * !SINCE(a, b) === BEFORE(a, b)
- */
-const SINCE = exports.SINCE =
-      function SINCE(testDate, comparisonDate) {
-  // testDate is numerically greater-than-or-equal-to comparisonDate, so it
-  // chronologically after/since it.
-  return testDate >= comparisonDate;
+exports.createEndpoint = function(name, listener) {
+  return new BackoffEndpoint(name, listener);
 };
 
-const STRICTLY_AFTER = exports.STRICTLY_AFTER =
-      function STRICTLY_AFTER(testDate, comparisonDate) {
-  return testDate > comparisonDate;
-};
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  BackoffEndpoint: {
+    type: $log.TASK,
+    stateVars: {
+      state: false,
+    },
+    events: {
+      connectFailure: { reachable: true },
+    },
+    errors: {
+    }
+  },
+});
 
-const IN_BS_DATE_RANGE = exports.IN_BS_DATE_RANGE =
-      function IN_BS_DATE_RANGE(testDate, startTS, endTS) {
-  return testDate >= startTS && testDate < endTS;
-};
-
-//function DATE_RANGES_OVERLAP(A_startTS, A_endTS, B_startTS, B_endTS) {
-//}
-
-const HOUR_MILLIS = exports.HOUR_MILLIS = 60 * 60 * 1000;
-const DAY_MILLIS = exports.DAY_MILLIS = 24 * 60 * 60 * 1000;
-
-/**
- * Testing override that when present replaces use of Date.now().
- */
-var TIME_WARPED_NOW = null, FUTURE_TIME_WARPED_NOW = null;
-
-/**
- * Pretend that 'now' is actually a fixed point in time for the benefit of
- * unit tests using canned message stores.
- */
-exports.TEST_LetsDoTheTimewarpAgain = function(fakeNow) {
-  if (typeof(fakeNow) !== 'number')
-    fakeNow = fakeNow.valueOf();
-  TIME_WARPED_NOW = fakeNow;
-  // because of exclusive time comparison ops , we actually want to use the first
-  // day after the TIME_WARPED_NOW...
-  FUTURE_TIME_WARPED_NOW = quantizeDate(fakeNow + DAY_MILLIS);
-};
-
-const NOW = exports.NOW =
-      function NOW() {
-  return TIME_WARPED_NOW || Date.now();
-};
-const FUTURE = exports.FUTURE =
-      function FUTURE() {
-  return FUTURE_TIME_WARPED_NOW || null;
-};
-
-/**
- * Make a timestamp some number of days in the past, quantized to midnight of
- * that day.  This results in rounding up; if it's noon right now and you
- * ask for 2 days ago, you really get 2.5 days worth of time.
- */
-const makeDaysAgo = exports.makeDaysAgo =
-      function makeDaysAgo(numDays) {
-  var //now = quantizeDate(TIME_WARPED_NOW || Date.now()),
-      //past = now - numDays * DAY_MILLIS;
-      past = (FUTURE_TIME_WARPED_NOW || quantizeDate(Date.now())) -
-               (numDays + 1) * DAY_MILLIS;
-  return past;
-};
-const makeDaysBefore = exports.makeDaysBefore =
-      function makeDaysBefore(date, numDaysBefore) {
-  return quantizeDate(date) - numDaysBefore * DAY_MILLIS;
-};
-/**
- * Quantize a date to midnight on that day.
- */
-const quantizeDate = exports.quantizeDate =
-      function quantizeDate(date) {
-  if (typeof(date) === 'number')
-    date = new Date(date);
-  return date.setHours(0, 0, 0, 0).valueOf();
-};
-
-}); // end define;
-define('mailapi/syncbase',
-  [
-    './date',
-    'exports'
-  ],
-  function(
-    $date,
-    exports
-  ) {
-
-////////////////////////////////////////////////////////////////////////////////
-// Display Heuristic Time Values
-//
-// Here are some values we can tweak to try and strike a balance between how
-// long before we display something when entering a folder and avoiding visual
-// churn as new messages are added to the display.
-//
-// These are not constants because unit tests need to muck with these.
-
-/**
- * How recently do we have to have synced a folder for us to to treat a request
- * to enter the folder as a database-backed load followed by a refresh rather
- * than falling back to known-date-range sync (which does not display anything
- * until the sync has completed) or (the same thing we use for initial sync)
- * iterative deepening?
- *
- * This is sync strategy #1 per `sliceOpenFromNow`.
- *
- * A good value is approximately how long we would expect it to take for V/2
- * messages to show up in the folder, where V is the number of messages the
- * device's screen can display at a time.  This is because since we will
- * populate the folder prior to the refresh, any new messages will end up
- * displacing the messages.
- *
- * There are non-inbox and inbox variants of this value because we expect
- * churn in the INBOX to happen at a much different rate than other boxes.
- * Ideally, we might also be able to detect folders that have new things
- * filtered into them, as that will affect this too.
- *
- * There is also a third variant for folders that we have previously
- * synchronized and found that their messages start waaaay in the past,
- * suggesting that this is some type of archival folder with low churn,
- * `REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH`.
- */
-exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX = 6 * $date.HOUR_MILLIS;
-exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX = 2 * $date.HOUR_MILLIS;
-
-/**
- * If the most recent message in a folder is older than this threshold, then
- * we assume it's some type of archival folder and so is unlikely to have any
- * meaningful churn so a refresh is optimal.  Also, the time range is
- * far enough back that our deepening strategy would result in unacceptable
- * latency.
- */
-exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH = 4 * 30 * $date.DAY_MILLIS;
-exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD = 2 * 30 * $date.DAY_MILLIS;
-
-/**
- * How recently do we have to have synced a folder for us to reuse the known
- * date bounds of the messages contained in the folder as the basis for our
- * sync?  We will perform a sync with this date range before displaying any
- * messages, avoiding churn should new messages have appeared.
- *
- * This is sync strategy #2 per `sliceOpenFromNow`, and is the fallback mode
- * if the #1 strategy is not appropriate.
- *
- * This is most useful for folders with a message density lower than
- * INITIAL_FILL_SIZE / INITIAL_SYNC_DAYS messages/day.  If we are able
- * to characterize folders based on whether new messages show up in them
- * based on some reliable information, then we could let #1 handle more cases
- * that this case currently covers.
- */
-exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * $date.DAY_MILLIS;
-exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * $date.HOUR_MILLIS;
-
-////////////////////////////////////////////////////////////////////////////////
-
-/**
- * How many messages should we send to the UI in the first go?
- */
-exports.INITIAL_FILL_SIZE = 15;
-
-/**
- * How many days in the past should we first look for messages.
- */
-exports.INITIAL_SYNC_DAYS = 3;
-
-/**
- * What should be multiple the current number of sync days by when we perform
- * a sync and don't find any messages?  There are upper bounds in
- * `FolderStorage.onSyncCompleted` that cap this and there's more comments
- * there.
- */
-exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = 1.6;
-
-/**
- * What is the furthest back in time we are willing to go?  This is an
- * arbitrary choice to avoid our logic going crazy, not to punish people with
- * comprehensive mail collections.
- */
-exports.OLDEST_SYNC_DATE = (new Date(1990, 0, 1)).valueOf();
-
-/**
- * If we issued a search for a date range and we are getting told about more
- * than the following number of messages, we will try and reduce the date
- * range proportionately (assuming a linear distribution) so that we sync
- * a smaller number of messages.  This will result in some wasted traffic
- * but better a small wasted amount (for UIDs) than a larger wasted amount
- * (to get the dates for all the messages.)
- */
-exports.BISECT_DATE_AT_N_MESSAGES = 50;
-
-/**
- * What's the maximum number of messages we should ever handle in a go and
- * where we should start failing by pretending like we haven't heard of the
- * excess messages?  This is a question of message time-density and not a
- * limitation on the number of messages in a folder.
- *
- * This could be eliminated by adjusting time ranges when we know the
- * density is high (from our block indices) or by re-issuing search results
- * when the server is telling us more than we can handle.
- */
-exports.TOO_MANY_MESSAGES = 2000;
-
-/**
- * Testing support to adjust the value we use for the number of initial sync
- * days.  The tests are written with a value in mind (7), but 7 turns out to
- * be too high an initial value for actual use, but is fine for tests.
- */
-exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
-  exports.INITIAL_FILL_SIZE = syncValues.fillSize;
-  exports.INITIAL_SYNC_DAYS = syncValues.days;
-
-  exports.BISECT_DATE_AT_N_MESSAGES = syncValues.bisectThresh;
-  TOO_MANY_MESSAGES = syncValues.tooMany;
-
-  exports.TIME_SCALE_FACTOR_ON_NO_MESSAGES = syncValues.scaleFactor;
-
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_NON_INBOX =
-    syncValues.refreshNonInbox;
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_INBOX =
-    syncValues.refreshInbox;
-  exports.REFRESH_USABLE_DATA_OLD_IS_SAFE_THRESH =
-    syncValues.oldIsSafeForRefresh;
-  exports.REFRESH_USABLE_DATA_TIME_THRESH_OLD =
-    syncValues.refreshOld;
-
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX =
-    syncValues.useRangeNonInbox;
-  USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX =
-    syncValues.useRangeInbox;
-};
-
-}); // end define;
+}); // end define
+;
 /**
  * Presents a message-centric view of a slice of time from IMAP search results.
  *
@@ -20530,13 +20850,20 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._deferredCalls = [];
 
   /**
-   * The number of pending mutation requests on the folder; currently because
-   * of how mutation operations are scheduled, this will either be 0 or 1.
-   * This will probably still remain true in the future, but we will adopt a
-   * connection reclaimation strategy so we don't keep jumping into and out of
-   * the same folder.
+   * @listof[@dict[
+   *   @key[name String]{
+   *     A string describing the operation to be performed for debugging
+   *     purposes.  This string must not include any user data.
+   *   }
+   *   @key[func @func[@args[callWhenDone]]]{
+   *     The function to be invoked.
+   *   }
+   * ]]{
+   *   The list of mutexed call operations queued.  The first entry is the
+   *   currently executing entry.
+   * }
    */
-  this._pendingMutationCount = 0;
+  this._mutexQueue = [];
 
   /**
    * Active view slices on this folder.
@@ -20565,6 +20892,74 @@ FolderStorage.prototype = {
     this._dirtyBodyBlocks = {};
     this._dirty = false;
     return pinfo;
+  },
+
+  _invokeNextMutexedCall: function() {
+    var callInfo = this._mutexQueue[0], self = this, done = false;
+    this._mutexedCallInProgress = true;
+    this._LOG.mutexedCall_begin(callInfo.name);
+
+    callInfo.func(function mutexedOpDone() {
+      if (done) {
+        self._LOG.tooManyCallbacks(callInfo.name);
+        return;
+      }
+      self._LOG.mutexedCall_end(callInfo.name);
+      done = true;
+      if (self._mutexQueue[0] !== callInfo) {
+        self._LOG.mutexInvariantFail(callInfo.name, self._mutexQueue[0].name);
+        return;
+      }
+      self._mutexQueue.shift();
+      // Although everything should be async, avoid stack explosions by
+      // deferring the execution to a future turn of th eevent loop.
+      if (self._mutexQueue.length)
+        window.setZeroTimeout(self._invokeNextMutexedCall.bind(self));
+      else if (self._slices.length === 0)
+        self.folderSyncer.allConsumersDead();
+    });
+  },
+
+  /**
+   * If you want to modify the state of things in the FolderStorage, or be able
+   * to view the state of the FolderStorage without worrying about some other
+   * logic mutating its state, then use this to schedule your function to run
+   * with (notional) exclusive write access.  Because everything is generally
+   * asynchronous, it's assumed your function is still doing work until it calls
+   * the passed-in function to indicate it is done.
+   *
+   * This mutex should not be held longer than required.  Specifically, if error
+   * handling determines that we should wait a few seconds to retry a network
+   * operation, then the function should mark itself completed and issue a call
+   * to runMutexed again in the future once the timeout has elapsed.
+   *
+   * Keep in mind that there is nothing actually stopping other code from trying
+   * to manipulate the database.
+   *
+   * It's okay to issue reads against the FolderStorage if the value is
+   * immutable or there are other protective mechanisms in place.  For example,
+   * fetching a message body should always be safe even if a block load needs
+   * to occur.  But if you wanted to fetch a header, mutate it, and write it
+   * back, then you would want to do all of that with the mutex held; reading
+   * the header before holding the mutex could result in a race.
+   *
+   * @args[
+   *   @param[name String]{
+   *     A short name to identify what operation this is for debugging purposes.
+   *     No private user data or sensitive data should be included in the name.
+   *   }
+   *   @param[func @func[@args[@param[callWhenDone Function]]]]{
+   *     The function to run with (notional) exclusive access to the
+   *     FolderStorage.
+   *   }
+   * ]
+   */
+  runMutexed: function(name, func) {
+    var doRun = this._mutexQueue.length === 0;
+    this._mutexQueue.push({ name: name, func: func });
+
+    if (doRun)
+      this._invokeNextMutexedCall();
   },
 
   /**
@@ -21557,8 +21952,8 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     var idx = this._slices.indexOf(slice);
     this._slices.splice(idx, 1);
 
-    if (this._slices.length === 0 && this._pendingMutationCount === 0)
-      this.folderSyncer.relinquishConn();
+    if (this._slices.length === 0 && this._mutexQueue.length === 0)
+      this.folderSyncer.allConsumersDead();
   },
 
   /**
@@ -22392,6 +22787,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     asyncJobs: {
       loadBlock: { type: false, blockId: false },
+      mutexedCall: { name: true },
     },
     TEST_ONLY_asyncJobs: {
       loadBlock: { block: false },
@@ -22404,6 +22800,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       badIterationStart: { date: false, uid: false },
       badDeletionRequest: { type: false, date: false, uid: false },
       bodyBlockMissing: { uid: false, idx: false, dict: false },
+
+      tooManyCallbacks: { name: false },
+      mutexInvariantFail: { fireName: false, curName: false },
     }
   },
 }); // end LOGFAB
@@ -22948,6 +23347,12 @@ const FLAG_FETCH_PARAMS = {
  * `ImapFolderConn`, even if the actual mutation logic is being driven by code
  * living in the account.
  *
+ * == Error Handling / Connection Maintenance
+ *
+ * One-off transient connection failures are dealt with by reconnecting and
+ * restarting whatever we were doing.  Because it's possible to be in a
+ * situation where the network is bad, we use a backoff strategy
+ *
  * == IDLE
  *
  * We plan to IDLE in folders that we have active slices in.  We are assuming
@@ -22972,18 +23377,14 @@ function ImapFolderConn(account, storage, _parentLog) {
 ImapFolderConn.prototype = {
   /**
    * Acquire a connection and invoke the callback once we have it and we have
-   * entered the folder.
-   *
-   * XXX This is inherently dangerous in the face of concurrent attempts to
-   * call this method or check whether it has completed.  We need to move to
-   * our queue of operations on the folder, or ensure that a higher level layer
-   * is enforcing this.  To be done with proper mutation logic impl.
+   * entered the folder.  This method should only be called when running
+   * inside `runMutexed`.
    */
-  acquireConn: function(callback) {
-    var self = this;
+  acquireConn: function(callback, deathback, label) {
+    var self = this, handedOff = false;
     this._account.__folderDemandsConnection(
-      this._storage.folderId,
-      function(conn) {
+      this._storage.folderId, label,
+      function gotconn(conn) {
         self._conn = conn;
         // Now we have a connection, but it's not in the folder.
         // (If we were doing fancier sync like QRESYNC, we would not enter
@@ -22993,11 +23394,21 @@ ImapFolderConn.prototype = {
             if (err) {
               console.error('Problem entering folder',
                             self._storage.folderMeta.path);
+              self._conn = null;
+              // hand the connection back, noting a resource problem
+              self._account.__folderDoneWithConnection(
+                self._conn, false, true);
+              deathback();
               return;
             }
             self.box = box;
+            handedOff = true;
             callback(self);
           });
+      },
+      function deadconn() {
+        if (handedOff && deathback)
+          deathback();
       });
   },
 
@@ -23005,8 +23416,7 @@ ImapFolderConn.prototype = {
     if (!this._conn)
       return;
 
-    this._account.__folderDoneWithConnection(this._storage.folderId,
-                                             this._conn);
+    this._account.__folderDoneWithConnection(this._conn, true, false);
     this._conn = null;
   },
 
@@ -23022,7 +23432,8 @@ ImapFolderConn.prototype = {
   _reliaSearch: function(searchOptions, callback) {
     // If we don't have a connection, get one, then re-call.
     if (!this._conn) {
-      this.acquireConn(this._reliaSearch.bind(this, searchOptions, callback));
+      this.acquireConn(this._reliaSearch.bind(this, searchOptions, callback),
+                       /* XXX NULL deathback */ null, 'sync');
       return;
     }
 
@@ -23718,7 +24129,11 @@ console.log("folder message count", folderMessageCount,
                                   null, this.onSyncCompleted.bind(this));
   },
 
-  relinquishConn: function() {
+  /**
+   * Invoked when there are no longer any live slices on the folder and no more
+   * active/enqueued mutex ops.
+   */
+  allConsumersDead: function() {
     this.folderConn.relinquishConn();
   },
 
@@ -23782,19 +24197,23 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * been able to talk to the server), we also need to be able to reflect these
  * changes locally independent of telling the server.
  *
- * In the case of moves/copies, we issue temporary UIDs like Thunderbird.  We
- * use negative values since IMAP servers can never use them so collisions are
- * impossible and it's a simple check.  This differs from Thunderbird's attempt
- * to guess the next UID; we don't try to do that because the chances are good
- * that our information is out-of-date and it would just make debugging more
- * confusing.
+ * In the case of moves/copies, we issue a(n always locally created) id for the
+ * message immediately and just set the server UID (srvid) to 0 to be populated
+ * by the sync process.
  *
  * == Data Integrity ==
  *
- * Our strategy is always to avoid data-loss, so data-destruction actions
+ * Our strategy is always to avoid server data-loss, so data-destruction actions
  * must always take place after successful confirmation of persistence actions.
  * (Just keeping the data in-memory is not acceptable because we could crash,
  * etc.)
+ *
+ * This is in contrast to our concern about losing simple, frequently performed
+ * idempotent user actions in a crash.  We assume that A) crashes will be
+ * rare, B) the user will not be surprised or heart-broken if a message they
+ * marked read a second before a crash needs to manually be marked read after
+ * restarting the app/device, and C) there are performance/system costs to
+ * saving the state which makes this a reasonable trade-off.
  *
  * It is also our strategy to avoid cluttering up the place as a side-effect
  * of half-done things.  For example, if we are trying to move N messages,
@@ -23802,7 +24221,32 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
  * don't naively retry and then copy those first N/2 messages a second time.
  * This means that we track sub-steps explicitly, and that operations that we
  * have issued and may or may not have been performed by the server will be
- * checked before they are re-attempted.
+ * checked before they are re-attempted.  (Although IMAP batch operations
+ * are atomic, and our IndexedDB commits are atomic, they are atomic independent
+ * of each other and so we could have been notified that the copy completed
+ * but not persisted the fact to our database.)
+ *
+ * In the event we restore operations from disk that were enqueued but
+ * apparently not run, we compel them to run a check operation before they are
+ * performed because it's possible (depending on the case) for us to have run
+ * them without saving the account state first.  This is a trade-off between the
+ * cost of checking and the cost of issuing commits to the database frequently
+ * based on the expected likelihood of a crash on our part.  Per comments above,
+ * we expect crashes to be rare and not particularly correlated with operations,
+ * so it's better for the device (both flash and performance) if we don't
+ * continually checkpoint our state.
+ *
+ * All non-idempotent operations / operations that could result in data loss or
+ * duplication require that we save our account state listing the operation and
+ * that it is 'doing'.  In the event of a crash, this allows us to know that we
+ * have to check the state of the operation for completeness before attempting
+ * to run it again and allowing us to finish half-done things.  For particular
+ * example, because moves consist of a copy followed by flagging a message
+ * deleted, it is of the utmost importance that we don't get in a situation
+ * where we have copied the messages but not deleted them and we crash.  In
+ * that case, if we failed to persist our plans, we will have duplicated the
+ * message (and the IMAP server would have no reason to believe that was not
+ * our intent.)
  **/
 
 define('mailapi/imap/jobs',
@@ -23818,73 +24262,95 @@ define('mailapi/imap/jobs',
 /**
  * The evidence suggests the job has not yet been performed.
  */
-const CHECKED_NOTYET = 1;
+const CHECKED_NOTYET = 'checked-notyet';
 /**
  * The operation is idempotent and atomic, just perform the operation again.
  * No checking performed.
  */
-const UNCHECKED_IDEMPOTENT = 2;
+const UNCHECKED_IDEMPOTENT = 'idempotent';
 /**
  * The evidence suggests that the job has already happened.
  */
-const CHECKED_HAPPENED = 3;
+const CHECKED_HAPPENED = 'happened';
 /**
  * The job is no longer relevant because some other sequence of events
  * have mooted it.  For example, we can't change tags on a deleted message
  * or move a message between two folders if it's in neither folder.
  */
-const CHECKED_MOOT = 4;
+const CHECKED_MOOT = 'moot';
 /**
  * A transient error (from the checker's perspective) made it impossible to
  * check.
  */
-const UNCHECKED_BAILED = 5;
+const UNCHECKED_BAILED = 'bailed';
 /**
  * The job has not yet been performed, and the evidence is that the job was
  * not marked finished because our database commits are coherent.  This is
  * appropriate for retrieval of information, like the downloading of
  * attachments.
  */
-const UNCHECKED_COHERENT_NOTYET = 6;
+const UNCHECKED_COHERENT_NOTYET = 'coherent-notyet';
 
 function ImapJobDriver(account) {
   this.account = account;
+  this._heldMutexReleasers = [];
 }
 exports.ImapJobDriver = ImapJobDriver;
 ImapJobDriver.prototype = {
   /**
    * Request access to an IMAP folder to perform a mutation on it.  This
-   * compels the ImapFolderConn in question to acquire an IMAP connection
-   * if it does not already have one.  It will also XXX EVENTUALLY provide
-   * mututal exclusion guarantees that there are no other active requests
-   * in the folder.
+   * acquires a write mutex on the FolderStorage and compels the ImapFolderConn
+   * in question to acquire an IMAP connection if it does not already have one.
    *
    * The callback will be invoked with the folder and raw connections once
    * they are available.  The raw connection will be actively in the folder.
    *
+   * There is no need to explicitly release the connection when done; it will
+   * be automatically released when the mutex is released if desirable.
+   *
    * This will ideally be migrated to whatever mechanism we end up using for
    * mailjobs.
    */
-  _accessFolderForMutation: function(folderId, callback) {
-    var storage = this.account.getFolderStorageForFolderId(folderId);
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount++;
-    var syncer = storage.folderSyncer;
-    if (!syncer.folderConn._conn) {
-      syncer.folderConn.acquireConn(callback);
-    }
-    else {
-      callback(syncer.folderConn, storage);
-    }
+  _accessFolderForMutation: function(folderId, callback, label) {
+    var storage = this.account.getFolderStorageForFolderId(folderId),
+        self = this;
+    storage.runMutexed(label, function(releaseMutex) {
+      self._heldMutexReleasers.push(releaseMutex);
+      var syncer = storage.folderSyncer;
+      if (!syncer.folderConn._conn) {
+        syncer.folderConn.acquireConn(callback, label);
+      }
+      else {
+        callback(syncer.folderConn, storage);
+      }
+    });
   },
 
-  _doneMutatingFolder: function(folderId, folderConn) {
-    var storage = this.account.getFolderStorageForFolderId(folderId),
-        syncer = storage.folderSyncer;
-    // XXX have folder storage be in charge of this / don't violate privacy
-    storage._pendingMutationCount--;
-    if (!storage._slices.length && !storage._pendingMutationCount)
-      syncer.folderConn.relinquishConn();
+  /**
+   * Request access to a connection for some type of IMAP manipulation that does
+   * not involve a folder known to the system (which should then be accessed via
+   * _accessfolderForMutation).
+   *
+   * The connection will be automatically released when the operation completes,
+   * there is no need to release it directly.
+   */
+  _acquireConnWithoutFolder: function(label, callback) {
+    const self = this;
+    this.account.__folderDemandsConnection(
+      null, label,
+      function(conn) {
+        self._heldMutexReleasers.push(function() {
+          self.account.__folderDoneWithConnection(conn, false, false);
+        });
+        callback(conn);
+      });
+  },
+
+  postJobCleanup: function() {
+    for (var i = 0; i < this._heldMutexReleasers.length; i++) {
+      this._heldMutexReleasers[i]();
+    }
+    this._heldMutexReleasers = [];
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -23950,13 +24416,13 @@ ImapJobDriver.prototype = {
       callback(err, bodyInfo, true);
     };
 
-    self._accessFolderForMutation(folderId, gotConn);
+    self._accessFolderForMutation(folderId, gotConn, 'download');
   },
 
   check_download: function(op, callback) {
     // If we had download the file and persisted it successfully, this job would
     // be marked done because of the atomicity guarantee on our commits.
-    return UNCHECKED_COHERENT_NOTYET;
+    callback(null, UNCHECKED_COHERENT_NOTYET);
   },
 
   local_undo_download: function(op, ignoredCallback) {
@@ -24048,12 +24514,10 @@ ImapJobDriver.prototype = {
       curPartition = partitions[iNextPartition++];
       messages = curPartition.messages;
       if (curPartition.folderId !== folderId) {
-        if (folderConn) {
-          self._doneMutatingFolder(folderId, folderConn);
+        if (folderConn)
           folderConn = null;
-        }
         folderId = curPartition.folderId;
-        self._accessFolderForMutation(folderId, gotFolderConn);
+        self._accessFolderForMutation(folderId, gotFolderConn, 'modtags');
       }
     }
     function gotFolderConn(_folderConn) {
@@ -24079,17 +24543,15 @@ ImapJobDriver.prototype = {
         openNextFolder();
     }
     function done(errString) {
-      if (folderConn) {
-        self._doneMutatingFolder(folderId, folderConn);
+      if (folderConn)
         folderConn = null;
-      }
       callback(errString);
     }
     openNextFolder();
   },
 
-  check_modtags: function() {
-    return UNCHECKED_IDEMPOTENT;
+  check_modtags: function(op, callback) {
+    callback(null, UNCHECKED_IDEMPOTENT);
   },
 
   local_undo_modtags: function(op, callback) {
@@ -24113,9 +24575,9 @@ ImapJobDriver.prototype = {
     // set the deleted flag on the message
   },
 
-  check_delete: function() {
+  check_delete: function(op, callback) {
     // deleting on IMAP is effectively idempotent
-    return UNCHECKED_IDEMPOTENT;
+    callback(null, UNCHECKED_IDEMPOTENT);
   },
 
   undo_delete: function() {
@@ -24123,6 +24585,71 @@ ImapJobDriver.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   // move: Move messages between folders (in a single account)
+  //
+  // ## General Strategy ##
+  //
+  // Local Do:
+  //
+  // - Move the header to the target folder's storage.
+  //
+  //   This requires acquiring a write mutex to the target folder while also
+  //   holding one on the source folder.  We are assured there is no deadlock
+  //   because only operations are allowed to manipulate multiple folders at
+  //   once, and only one operation is in-flight per an account at a time.
+  //   (And cross-account moves are not handled by this operation.)
+  //
+  //   Insertion is done using the INTERNALDATE (which must be maintained by the
+  //   COPY operation) and a freshly allocated speculative UID.  The UID is
+  //
+  // ## Possible Problems and their Solutions ##
+  //
+  // Moves are fairly complicated in terms of moving parts, so let's enumate the
+  // way things could go wrong so we can make sure we address them and describe
+  // how we address them.  Note that it's a given that we will have run our
+  // local modifications prior to trying to talk to the server, which reduces
+  // the potential badness.
+  //
+  // #1: We attempt to resynchronize the source folder for a move prior to
+  //     running the operation against the server, resulting in us synchronizing
+  //     a duplicate header into existence that will not be detected until the
+  //     next resync of the time range (which will be strictly after when we
+  //     actually run the mutation.
+  //
+  // #2: Operations scheduled against speculative headers.  It is quite possible
+  //     for the user to perform actions against one of the locally /
+  //     speculatively moved headers while we are offline/have not yet played
+  //     the operation/are racing the UI while playing the operation.  We
+  //     obviously want these changes to succeed.
+  //
+  // Our solutions:
+  //
+  // #1: Prior to resynchronizing a folder, we check if there are any operations
+  //     that block synchronization.  An un-run move with a source of that
+  //     folder counts as such an operation.  We can determine this by either
+  //     having sufficient knowledge to inspect an operation or have operations
+  //     directly modify book-keeping structures in the folders as part of their
+  //     actions.  (Add blocker on local_(un)do, remove on (un)do.)  We choose
+  //     to implement the inspection operation by having all operations
+  //     implement a simple helper to tell us if the operation blocks entry.
+  //     The theory is this will be less prone to bugs since it will be clear
+  //     that operations need to implement the method, whereas it would be less
+  //     clear that operations need to do call the folder-state mutating
+  //     options.
+  //
+  // #2: Operations against speculative headers are a concern only from a naming
+  //     perspective for operations.  Operations are strictly run in the order
+  //     they are enqueued, so we know that the header will have been moved and
+  //     be in the right folder.  Additionally, because both the UI and
+  //     operations name messages using an id we issue rather than the server
+  //     UID, there is no potential for naming inconsistencies.  The UID will be
+  //     resolved at operation run-time which only requires that the move was
+  //     UIDPLUS so we already know the UID, something else already triggered a
+  //     synchronization that covers the messages being moved, or that we
+  //     trigger a synchronization.
+
+
+  local_do_move: function() {
+  },
 
   do_move: function() {
     // get a connection in the source folder, uid validity is asserted
@@ -24131,9 +24658,15 @@ ImapJobDriver.prototype = {
     // mark the source messages deleted
   },
 
-  check_move: function() {
-    // get a connection in the target/source folder
-    // do a search to check if the messages got copied across.
+  /**
+   * Verify the move results.  This is most easily/efficiently done, from our
+   * perspective, by checking based on message-id's.  Another approach would be
+   * to leverage the persistence of the
+   *
+   */
+  check_move: function(op, callback) {
+    // get a connection in the target folder
+    // do a search on message-id's to check if the messages got copied across.
   },
 
   /**
@@ -24154,7 +24687,7 @@ ImapJobDriver.prototype = {
   do_copy: function() {
   },
 
-  check_copy: function() {
+  check_copy: function(op, callback) {
     // get a connection in the target folder
     // do a search to check if the message got copied across
   },
@@ -24213,24 +24746,104 @@ ImapJobDriver.prototype = {
         done(null);
     }
     function done(errString) {
-      if (folderConn) {
-        self._doneMutatingFolder(op.folderId, folderConn);
+      if (folderConn)
         folderConn = null;
-      }
       callback(errString);
     }
 
-    this._accessFolderForMutation(op.folderId, gotFolderConn);
+    this._accessFolderForMutation(op.folderId, gotFolderConn, 'append');
   },
 
   /**
    * Check if the message ended up in the folder.
    */
-  check_append: function() {
+  check_append: function(op, callback) {
+    // XXX search on the message-id in the folder to verify its presence.
   },
 
-  undo_append: function() {
+  //////////////////////////////////////////////////////////////////////////////
+  // createFolder: Create a folder
+
+  local_do_createFolder: function(op) {
+    // we never locally perform this operation.
   },
+
+  do_createFolder: function(op, callback) {
+    var path, delim;
+    if (op.parentFolderId) {
+      if (!this.account._folderInfos.hasOwnProperty(op.parentFolderId))
+        throw new Error("No such folder: " + op.parentFolderId);
+      var parentFolder = this._folderInfos[op.parentFolderId];
+      delim = parentFolder.path;
+      path = parentFolder.path + delim;
+    }
+    else {
+      path = '';
+      delim = this.account.meta.rootDelim;
+    }
+    if (typeof(op.folderName) === 'string')
+      path += op.folderName;
+    else
+      path += op.folderName.join(delim);
+    if (op.containOnlyOtherFolders)
+      path += delim;
+
+    var rawConn = null, self = this;
+    function gotConn(conn) {
+      // create the box
+      rawConn = conn;
+      rawConn.addBox(path, addBoxCallback);
+    }
+    function addBoxCallback(err) {
+      if (err) {
+        console.error('Error creating box:', err);
+        // XXX implement the already-exists check...
+        done('unknown');
+        return;
+      }
+      // Do a list on the folder so that we get the right attributes and any
+      // magical case normalization performed by the server gets observed by
+      // us.
+      rawConn.getBoxes('', path, gotBoxes);
+    }
+    function gotBoxes(err, boxesRoot) {
+      if (err) {
+        console.error('Error looking up box:', err);
+        done('unknown');
+        return;
+      }
+      // We need to re-derive the path.  The hierarchy will only be that
+      // required for our new folder, so we traverse all children and create
+      // the leaf-node when we see it.
+      var folderMeta = null;
+      function walkBoxes(boxLevel, pathSoFar, pathDepth) {
+        for (var boxName in boxLevel) {
+          var box = boxLevel[boxName],
+              boxPath = pathSoFar ? (pathSoFar + boxName) : boxName;
+          if (box.children) {
+            walkBoxes(box.children, boxPath + box.delim, pathDepth + 1);
+          }
+          else {
+            var type = self.account._determineFolderType(box, boxPath);
+            folderMeta = self.account._learnAboutFolder(boxName, boxPath, type,
+                                                        box.delim, pathDepth);
+          }
+        }
+      }
+      walkBoxes(boxesRoot, '', 0);
+      if (folderMeta)
+        done(null, folderMeta);
+      else
+        done('unknown');
+    }
+    function done(errString, folderMeta) {
+      if (rawConn)
+        rawConn = null;
+      if (callback)
+        callback(errString, folderMeta);
+    }
+    this._acquireConnWithoutFolder('createFolder', gotConn);
+  }
 
   //////////////////////////////////////////////////////////////////////////////
 };
@@ -24289,6 +24902,7 @@ define('mailapi/imap/account',
     'imap',
     'rdcommon/log',
     '../a64',
+    '../errbackoff',
     '../mailslice',
     '../util',
     './folder',
@@ -24300,6 +24914,7 @@ define('mailapi/imap/account',
     $imap,
     $log,
     $a64,
+    $errbackoff,
     $mailslice,
     $util,
     $imapfolder,
@@ -24329,12 +24944,50 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.compositeAccount = compositeAccount;
   this.id = accountId;
 
+  this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
+
   this._credentials = credentials;
   this._connInfo = connInfo;
   this._db = dbConn;
 
+  /**
+   * The maximum number of connections we are allowed to have alive at once.  We
+   * want to limit this both because we generally aren't sophisticated enough
+   * to need to use many connections at once (unless we have bugs), and because
+   * servers may enforce a per-account connection limit which can affect both
+   * us and other clients on other devices.
+   *
+   * Thunderbird's default for this is 5.
+   *
+   * gmail currently claims to have a limit of 10 connections per account:
+   * http://support.google.com/mail/bin/answer.py?hl=en&answer=97150
+   *
+   * I am picking 3 right now because it should cover the "I just sent a
+   * messages from the folder I was in and then switched to another folder",
+   * where we could have stuff to do in the old folder, new folder, and sent
+   * mail folder.  I have also seem claims of connection limits of 3 for some
+   * accounts out there, so this avoids us needing logic to infer a need to
+   * lower our connection limit.
+   */
+  this._maxConnsAllowed = 3;
+  /**
+   * The `ImapConnection` we are attempting to open, if any.  We only try to
+   * open one connection at a time.
+   */
+  this._pendingConn = null;
   this._ownedConns = [];
-  this._LOG = LOGFAB.ImapAccount(this, _parentLog, this.id);
+  /**
+   * @listof[@dict[
+   *   @key[folderId]
+   *   @key[callback]
+   * ]]{
+   *   The list of requested connections that have not yet been serviced.  An
+   * }
+   */
+  this._demandedConns = [];
+  this._backoffEndpoint = $errbackoff.createEndpoint('imap:' + this.id, this,
+                                                     this._LOG);
+  this._boundMakeConnection = this._makeConnection.bind(this);
 
   this._jobDriver = new $imapjobs.ImapJobDriver(this);
 
@@ -24397,6 +25050,7 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
    * }
    */
   this.mutations = this._folderInfos.$mutations;
+  this.deferredMutations = this._folderInfos.$deferredMutations;
   for (var folderId in folderInfos) {
     if (folderId[0] === '$')
       continue;
@@ -24508,129 +25162,6 @@ ImapAccount.prototype = {
   },
 
   /**
-   * Create a folder that is the child/descendant of the given parent folder.
-   * If no parent folder id is provided, we attempt to create a root folder.
-   *
-   * @args[
-   *   @param[parentFolderId String]
-   *   @param[folderName]
-   *   @param[containOnlyOtherFolders Boolean]{
-   *     Should this folder only contain other folders (and no messages)?
-   *     On some servers/backends, mail-bearing folders may not be able to
-   *     create sub-folders, in which case one would have to pass this.
-   *   }
-   *   @param[callback @func[
-   *     @args[
-   *       @param[error @oneof[
-   *         @case[null]{
-   *           No error, the folder got created and everything is awesome.
-   *         }
-   *         @case['offline']{
-   *           We are offline and can't create the folder.
-   *         }
-   *         @case['already-exists']{
-   *           The folder appears to already exist.
-   *         }
-   *         @case['unknown']{
-   *           It didn't work and we don't have a better reason.
-   *         }
-   *       ]]
-   *       @param[folderMeta ImapFolderMeta]{
-   *         The meta-information for the folder.
-   *       }
-   *     ]
-   *   ]]{
-   *   }
-   * ]
-   */
-  createFolder: function(parentFolderId, folderName, containOnlyOtherFolders,
-                         callback) {
-    var path, delim;
-    if (parentFolderId) {
-      if (!this._folderInfos.hasOwnProperty(parentFolderId))
-        throw new Error("No such folder: " + parentFolderId);
-      var parentFolder = this._folderInfos[parentFolderId];
-      delim = parentFolder.path;
-      path = parentFolder.path + delim;
-    }
-    else {
-      path = '';
-      delim = this.meta.rootDelim;
-    }
-    if (typeof(folderName) === 'string')
-      path += folderName;
-    else
-      path += folderName.join(delim);
-    if (containOnlyOtherFolders)
-      path += delim;
-
-    if (!this.universe.online) {
-      callback('offline');
-      return;
-    }
-
-    var rawConn = null, self = this;
-    function gotConn(conn) {
-      // create the box
-      rawConn = conn;
-      rawConn.addBox(path, addBoxCallback);
-    }
-    function addBoxCallback(err) {
-      if (err) {
-        console.error('Error creating box:', err);
-        // XXX implement the already-exists check...
-        done('unknown');
-        return;
-      }
-      // Do a list on the folder so that we get the right attributes and any
-      // magical case normalization performed by the server gets observed by
-      // us.
-      rawConn.getBoxes('', path, gotBoxes);
-    }
-    function gotBoxes(err, boxesRoot) {
-      if (err) {
-        console.error('Error looking up box:', err);
-        done('unknown');
-        return;
-      }
-      // We need to re-derive the path.  The hierarchy will only be that
-      // required for our new folder, so we traverse all children and create
-      // the leaf-node when we see it.
-      var folderMeta = null;
-      function walkBoxes(boxLevel, pathSoFar, pathDepth) {
-        for (var boxName in boxLevel) {
-          var box = boxLevel[boxName],
-              boxPath = pathSoFar ? (pathSoFar + boxName) : boxName;
-          if (box.children) {
-            walkBoxes(box.children, boxPath + box.delim, pathDepth + 1);
-          }
-          else {
-            var type = self._determineFolderType(box, boxPath);
-            folderMeta = self._learnAboutFolder(boxName, boxPath, type,
-                                                box.delim, pathDepth);
-          }
-        }
-      }
-      walkBoxes(boxesRoot, '', 0);
-      if (folderMeta)
-        done(null, folderMeta);
-      else
-        done('unknown');
-    }
-    function done(errString, folderMeta) {
-      if (rawConn) {
-        self.__folderDoneWithConnection(null, rawConn);
-        rawConn = null;
-      }
-      if (!errString)
-        self._LOG.createFolder(path);
-      if (callback)
-        callback(errString, folderMeta);
-    }
-    this.__folderDemandsConnection(':createFolder', gotConn);
-  },
-
-  /**
    * Delete an existing folder WITHOUT ANY ABILITY TO UNDO IT.  Current UX
    * does not desire this, but the unit tests do.
    *
@@ -24660,7 +25191,7 @@ ImapAccount.prototype = {
     }
     function done(errString) {
       if (rawConn) {
-        self.__folderDoneWithConnection(null, rawConn);
+        self.__folderDoneWithConnection(rawConn, false, false);
         rawConn = null;
       }
       if (!errString) {
@@ -24670,7 +25201,7 @@ ImapAccount.prototype = {
       if (callback)
         callback(errString, folderMeta);
     }
-    this.__folderDemandsConnection(':deleteFolder', gotConn);
+    this.__folderDemandsConnection(null, 'deleteFolder', gotConn);
   },
 
   getFolderStorageForFolderId: function(folderId) {
@@ -24705,6 +25236,8 @@ ImapAccount.prototype = {
       folderStorage.shutdown();
     }
 
+    this._backoffEndpoint.shutdown();
+
     // - close all connections
     for (var i = 0; i < this._ownedConns.length; i++) {
       var connInfo = this._ownedConns[i];
@@ -24713,6 +25246,14 @@ ImapAccount.prototype = {
 
     this._LOG.__die();
   },
+
+  checkAccount: function(listener) {
+    var self = this;
+    this._makeConnection(listener, null, 'check');
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Connection Pool-ish stuff
 
   get numActiveConns() {
     return this._ownedConns.length;
@@ -24733,54 +25274,97 @@ ImapAccount.prototype = {
    * @args[
    *   @param[folderId #:optional FolderId]{
    *     The folder id of the folder that will be using the connection.  If
-   *     it's not a folder but some task, then pass a string prefixed with
-   *     a colon and a human readable string to explain the task.
+   *     it's not a folder but some task, then pass null (and ideally provide
+   *     a useful `label`).
    *   }
-   *   @param[callback]{
+   *   @param[label #:optional String]{
+   *     A human readable explanation of the activity for debugging purposes.
+   *   }
+   *   @param[callback @func[@args[@param[conn]]]]{
    *     The callback to invoke once the connection has been established.  If
    *     there is a connection present in the reuse pool, this may be invoked
    *     immediately.
    *   }
+   *   @param[deathback Function]{
+   *     A callback to invoke if the connection dies or we feel compelled to
+   *     reclaim it.
+   *   }
    * ]
    */
-  __folderDemandsConnection: function(folderId, callback) {
+  __folderDemandsConnection: function(folderId, label, callback, deathback) {
+    this._demandedConns.push({
+      folderId: folderId,
+      label: label,
+      callback: callback,
+      deathback: deathback
+    });
+
+    // No line-cutting; bail if there was someone ahead of us.
+    if (this._demandedConns.length > 1)
+      return;
+
+    // - try and reuse an existing connection
+    if (this._allocateExistingConnection())
+      return;
+
+    // - we need to wait for a new conn or one to free up
+    this._makeConnectionIfPossible();
+  },
+
+  _allocateExistingConnection: function() {
+    if (!this._demandedConns.length)
+      return false;
+    var demandInfo = this._demandedConns[0];
+
     var reusableConnInfo = null;
     for (var i = 0; i < this._ownedConns.length; i++) {
       var connInfo = this._ownedConns[i];
-      if (!connInfo.inUse)
-        reusableConnInfo = connInfo;
       // It's concerning if the folder already has a connection...
-      if (folderId && connInfo.folderId === folderId) {
-        this._LOG.folderAlreadyHasConn(folderId);
-      }
+      if (demandInfo.folderId && connInfo.folderId === demandInfo.folderId)
+        this._LOG.folderAlreadyHasConn(demandInfo.folderId);
+
+      if (connInfo.inUseBy)
+        continue;
+
+      connInfo.inUseBy = demandInfo;
+      this._demandedConns.shift();
+      this._LOG.reuseConnection(demandInfo.folderId, demandInfo.label);
+      demandInfo.callback(connInfo.conn);
+      return true;
     }
 
-    if (reusableConnInfo) {
-      reusableConnInfo.inUse = true;
-      reusableConnInfo.folderId = folderId;
-      this._LOG.reuseConnection(folderId);
-      callback(reusableConnInfo.conn);
+    return false;
+  },
+
+  /**
+   * Close all connections that aren't currently in use.
+   */
+  closeUnusedConnections: function() {
+    for (var i = this._ownedConns.length - 1; i >= 0; i--) {
+      var connInfo = this._ownedConns[i];
+      if (connInfo.inUseBy)
+        continue;
+      // this eats all future notifications, so we need to splice...
+      connInfo.conn.die();
+      this._ownedConns.splice(i, 1);
+      this._LOG.deadConnection();
+    }
+  },
+
+  _makeConnectionIfPossible: function() {
+    if (this._ownedConns.length >= this._maxConnsAllowed) {
+      this._LOG.maximumConnsNoNew();
       return;
     }
+    if (this._pendingConn)
+      return;
 
-    this._makeConnection(folderId, callback);
+    this._pendingConn = true;
+    this._backoffEndpoint.scheduleConnectAttempt(this._boundMakeConnection);
   },
 
-  checkAccount: function(callback) {
-    var self = this;
-    this._makeConnection(
-      ':check',
-      function success(conn) {
-        self.__folderDoneWithConnection(null, conn);
-        callback(null);
-      },
-      function badness(err) {
-        callback(err);
-      });
-  },
-
-  _makeConnection: function(folderId, callback, errback) {
-    this._LOG.createConnection(folderId);
+  _makeConnection: function(listener, whyFolderId, whyLabel) {
+    this._LOG.createConnection(whyFolderId, whyLabel);
     var opts = {
       host: this._connInfo.hostname,
       port: this._connInfo.port,
@@ -24790,23 +25374,51 @@ ImapAccount.prototype = {
       password: this._credentials.password,
     };
     if (this._LOG) opts._logParent = this._LOG;
-    var conn = new $imap.ImapConnection(opts);
-    this._ownedConns.push({
-        conn: conn,
-        inUse: true,
-        folderId: folderId,
-      });
-    this._bindConnectionDeathHandlers(conn);
-    conn.connect(function(err) {
+    var conn = this._pendingConn = new $imap.ImapConnection(opts);
+    var connectCallbackTriggered = false;
+    // The login callback should get invoked in all cases, but a recent code
+    // inspection for the prober suggested that there may be some cases where
+    // things might fall-through, so let's just convert them.  We need some
+    // type of handler since imap.js currently calls the login callback and
+    // then the 'error' handler, generating an error if there is no error
+    // handler.
+    conn.on('error', function(err) {
+      if (!connectCallbackTriggered)
+        loginCb(err);
+    });
+    var loginCb;
+    conn.connect(loginCb = function(err) {
+      connectCallbackTriggered = true;
+      this._pendingConn = null;
       if (err) {
-        var errName;
+        var errName, reachable = false, maybeRetry = true;
+        // We want to produce error-codes as defined in `MailApi.js` for
+        // tryToCreateAccount.  We have also tried to make imap.js produce
+        // error codes of the right type already, but for various generic paths
+        // (like saying 'NO'), there isn't currently a good spot for that.
         switch (err.type) {
-          // error-codes as defined in `MailApi.js` for tryToCreateAccount
+          // dovecot says after a delay and does not terminate the connection:
+          //   NO [AUTHENTICATIONFAILED] Authentication failed.
+          // zimbra 7.2.x says after a delay and DOES terminate the connection:
+          //   NO LOGIN failed
+          //   * BYE Zimbra IMAP server terminating connection
+          // yahoo says after a delay and does not terminate the connection:
+          //   NO [AUTHENTICATIONFAILED] Incorrect username or password.
           case 'NO':
           case 'no':
             errName = 'bad-user-or-pass';
+            reachable = true;
+            // go directly to the broken state; no retries
+            maybeRetry = false;
+            // tell the higher level to disable our account until we fix our
+            // credentials problem and ideally generate a UI prompt.
             this.universe.__reportAccountProblem(this.compositeAccount,
                                                  errName);
+            break;
+          // errors we can pass through directly:
+          case 'server-maintenance':
+            errName = err.type;
+            reachable = true;
             break;
           case 'timeout':
             errName = 'unresponsive-server';
@@ -24817,24 +25429,47 @@ ImapAccount.prototype = {
         }
         console.error('Connect error:', errName, 'formal:', err, 'on',
                       this._connInfo.hostname, this._connInfo.port);
-        if (errback)
-          errback(errName);
+        if (listener)
+          listener(errName);
         conn.die();
+
+        // track this failure for backoff purposes
+        if (maybeRetry) {
+          if (this._backoffEndpoint.noteConnectFailureMaybeRetry(reachable))
+            this._makeConnectionIfPossible();
+        }
+        else {
+          this._backoffEndpoint.noteBrokenConnection();
+        }
       }
       else {
-        callback(conn);
+        this._bindConnectionDeathHandlers(conn);
+        this._backoffEndpoint.noteConnectSuccess();
+        this._ownedConns.push({
+          conn: conn,
+          inUseBy: null,
+        });
+        this._allocateExistingConnection();
+        if (listener)
+          listener(null);
+        // Keep opening connections if there is more work to do (and possible).
+        if (this._demandedConns.length)
+          this._makeConnectionIfPossible();
       }
     }.bind(this));
   },
 
+  /**
+   * Treat a connection that came from the IMAP prober as a connection we
+   * created ourselves.
+   */
   _reuseConnection: function(existingProtoConn) {
     // We don't want the probe being kept alive and we certainly don't need its
     // listeners.
     existingProtoConn.removeAllListeners();
     this._ownedConns.push({
         conn: existingProtoConn,
-        inUse: false,
-        folderId: null,
+        inUseBy: null,
       });
     this._bindConnectionDeathHandlers(existingProtoConn);
   },
@@ -24845,40 +25480,49 @@ ImapAccount.prototype = {
       for (var i = 0; i < this._ownedConns.length; i++) {
         var connInfo = this._ownedConns[i];
         if (connInfo.conn === conn) {
-          this._LOG.deadConnection(connInfo.folderId);
+          this._LOG.deadConnection(connInfo.inUseBy &&
+                                   connInfo.inUseBy.folderId);
+          if (connInfo.inUseBy && connInfo.inUseBy.deathback)
+            connInfo.inUseBy.deathback(conn);
+          connInfo.inUseBy = null;
           this._ownedConns.splice(i, 1);
           return;
         }
       }
+      this._LOG.unknownDeadConnection();
     }.bind(this));
     conn.on('error', function(err) {
+      this._LOG.connectionError(err);
       // this hears about connection errors too
       console.warn('Conn steady error:', err, 'on',
                    this._connInfo.hostname, this._connInfo.port);
     }.bind(this));
   },
 
-  __folderDoneWithConnection: function(folderId, conn) {
-    // XXX detect if the connection is actually dead and in that case don't
-    // reinsert it.
+  __folderDoneWithConnection: function(conn, closeFolder, resourceProblem) {
     for (var i = 0; i < this._ownedConns.length; i++) {
       var connInfo = this._ownedConns[i];
       if (connInfo.conn === conn) {
-        connInfo.inUse = false;
-        connInfo.folderId = null;
-        this._LOG.releaseConnection(folderId);
-        // XXX this will trigger an expunge if not read-only...
-        if (folderId)
+        if (resourceProblem)
+          this._backoffEndpoint(connInfo.inUseBy.folderId);
+        this._LOG.releaseConnection(connInfo.inUseBy.folderId,
+                                    connInfo.inUseBy.label);
+        connInfo.inUseBy = null;
+        // (this will trigger an expunge if not read-only...)
+        if (closeFolder && !resourceProblem)
           conn.closeBox(function() {});
         return;
       }
     }
-    this._LOG.connectionMismatch(folderId);
+    this._LOG.connectionMismatch();
   },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Folder synchronization
 
   syncFolderList: function(callback) {
     var self = this;
-    this.__folderDemandsConnection(null, function(conn) {
+    this.__folderDemandsConnection(null, 'syncFolderList', function(conn) {
       conn.getBoxes(self._syncFolderComputeDeltas.bind(self, conn, callback));
     });
   },
@@ -24976,7 +25620,7 @@ ImapAccount.prototype = {
     var self = this;
     if (err) {
       // XXX need to deal with transient failure states
-      this.__folderDoneWithConnection(null, conn);
+      this.__folderDoneWithConnection(conn, false, false);
       callback();
       return;
     }
@@ -25024,11 +25668,13 @@ ImapAccount.prototype = {
       this._forgetFolder(folderPub.id);
     }
 
-    this.__folderDoneWithConnection(null, conn);
+    this.__folderDoneWithConnection(conn, false, false);
     // be sure to save our state now that we are up-to-date on this.
     this.saveAccountState();
     callback();
   },
+
+  //////////////////////////////////////////////////////////////////////////////
 
   /**
    * @args[
@@ -25071,21 +25717,19 @@ ImapAccount.prototype = {
       op.status = mode + 'ing';
 
     if (callback) {
-      this._LOG.runOp_begin(mode, op.type, null);
+      this._LOG.runOp_begin(mode, op.type, null, op);
       this._jobDriver[methodName](op, function(error, resultIfAny,
                                                accountSaveSuggested) {
-        self._LOG.runOp_end(mode, op.type, error);
-        if (!isLocal)
-          op.status = mode + 'ne';
+        self._jobDriver.postJobCleanup();
+        self._LOG.runOp_end(mode, op.type, error, op);
         callback(error, resultIfAny, accountSaveSuggested);
       });
     }
     else {
-      this._LOG.runOp_begin(mode, op.type, null);
+      this._LOG.runOp_begin(mode, op.type, null, null);
       var rval = this._jobDriver[methodName](op);
-      if (!isLocal)
-        op.status = mode + 'ne';
-      this._LOG.runOp_end(mode, op.type, rval);
+      this._jobDriver.postJobCleanup();
+      this._LOG.runOp_end(mode, op.type, rval, op);
     }
   },
 
@@ -25116,18 +25760,25 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       releaseConnection: {},
       deadConnection: {},
       connectionMismatch: {},
+
+      /**
+       * The maximum connection limit has been reached, we are intentionally
+       * not creating an additional one.
+       */
+      maximumConnsNoNew: {},
     },
     TEST_ONLY_events: {
-      createFolder: { path: false },
       deleteFolder: { path: false },
 
-      createConnection: { folderId: false },
-      reuseConnection: { folderId: false },
-      releaseConnection: { folderId: false },
+      createConnection: { folderId: false, label: false },
+      reuseConnection: { folderId: false, label: false },
+      releaseConnection: { folderId: false, label: false },
       deadConnection: { folderId: false },
-      connectionMismatch: { folderId: false },
+      connectionMismatch: {},
     },
     errors: {
+      unknownDeadConnection: {},
+      connectionError: {},
       folderAlreadyHasConn: { folderId: false },
     },
     asyncJobs: {
@@ -26997,6 +27648,7 @@ function FakeAccount(universe, accountDef, folderInfo, receiveProtoConn, _LOG) {
 
   this.meta = folderInfo.$meta;
   this.mutations = folderInfo.$mutations;
+  this.deferredMutations = folderInfo.$deferredMutations;
 }
 exports.FakeAccount = FakeAccount;
 FakeAccount.prototype = {
@@ -29333,8 +29985,8 @@ FakeFolderStorage.prototype = {
     },
   };
 
-  // A mapping from domains to configurations appropriate for passing in to
-  // Connection.setConfig(). Used for domains that don't support autodiscovery.
+  // A mapping from domains to URLs appropriate for passing in to
+  // Connection.setServer(). Used for domains that don't support autodiscovery.
   const hardcodedDomains = {
     'gmail.com': 'https://m.google.com',
     'googlemail.com': 'https://m.google.com',
@@ -29353,7 +30005,9 @@ FakeFolderStorage.prototype = {
     this._password = aPassword;
     this._deviceId = aDeviceId || 'v140Device';
     this._deviceType = aDeviceType || 'SmartPhone';
+
     this._connection = 0;
+    this._waitingForConnection = false;
     this._connectionCallbacks = [];
   }
 
@@ -29367,10 +30021,19 @@ FakeFolderStorage.prototype = {
       return 'Basic ' + btoa(this._email + ':' + this._password);
     },
 
+    get _emailDomain() {
+      return this._email.substring(this._email.indexOf('@') + 1);
+    },
+
     /**
      * Perform any callbacks added during the connection process.
+     *
+     * @param aError the error status (if any)
      */
-    _doCallbacks: function() {
+    _notifyConnected: function(aError) {
+      if (aError)
+        this.disconnect();
+
       for (let [,callback] in Iterator(this._connectionCallbacks))
         callback.apply(callback, arguments);
       this._connectionCallbacks = [];
@@ -29382,61 +30045,108 @@ FakeFolderStorage.prototype = {
      * @return true iff we are fully connected to the server
      */
     get connected() {
-      return this._connection === 4;
+      return this._connection === 2;
     },
 
     /**
      * Perform autodiscovery and get the options for the server associated with
      * this account.
      *
-     * @param aCallback a callback taking an error status (if any), and the
-     *        resulting config options.
+     * @param aCallback a callback taking an error status (if any), the
+     *        resulting autodiscovery settings, and the server's options.
      */
     connect: function(aCallback) {
       let conn = this;
       if (aCallback) {
-        if (conn._connection === 4) {
+        if (conn._connection === 2) {
           aCallback(null, conn.config);
           return;
         }
         conn._connectionCallbacks.push(aCallback);
       }
+      if (conn._waitingForConnection)
+        return;
 
-      if (conn._connection === 0) {
-        conn._connection = 1;
+      function getAutodiscovery() {
+        // Check for hardcoded domains first.
+        let domain = conn._emailDomain.toLowerCase();
+        if (domain in hardcodedDomains)
+          conn.setServer(hardcodedDomains[domain]);
+
+        if (conn._connection === 1) {
+          // Pass along minimal configuration info.
+          getOptions({ forced: true,
+                       selectedServer: { url: conn._forcedServer } });
+          return;
+        }
+
+        conn._waitingForConnection = true;
         conn.autodiscover(function (aError, aConfig) {
-          if (aError) {
+          conn._waitingForConnection = false;
+
+          if (aError)
+            return conn._notifyConnected(aError, aConfig);
+
+          // Try to find a MobileSync server from Autodiscovery.
+          for (let [,server] in Iterator(aConfig.servers)) {
+            if (server.type === 'MobileSync') {
+              aConfig.selectedServer = server;
+              break;
+            }
+          }
+          if (!aConfig.selectedServer) {
             conn._connection = 0;
-            return conn._doCallbacks(aError, null);
+            return conn._notifyConnected(
+              new AutodiscoverError('No MobileSync server found'), aConfig);
           }
 
-          conn._connection = 2;
-          conn.config = aConfig;
-          conn.baseURL = conn.config.server.url +
-            '/Microsoft-Server-ActiveSync';
-          conn.connect();
+          conn.setServer(aConfig.selectedServer.url);
+          getOptions(aConfig);
         });
       }
-      else if (conn._connection === 2) {
-        conn._connection = 3;
-        conn.options(conn.baseURL, function(aError, aResult) {
-          if (aError) {
-            conn._connection = 2;
-            return conn._doCallbacks(aError, conn.config);
-          }
 
-          conn._connection = 4;
-          conn.currentVersion = new Version(aResult.versions.slice(-1)[0]);
-          conn.config.options = aResult;
+      function getOptions(aConfig) {
+        if (conn._connection === 2)
+          return;
+
+        conn._waitingForConnection = true;
+        conn.options(function(aError, aOptions) {
+          conn._waitingForConnection = false;
+
+          if (aError)
+            return conn._notifyConnected(aError, aConfig, aOptions);
+
+          conn._connection = 2;
+          conn.versions = aOptions.versions;
+          conn.supportedCommands = aOptions.commands;
+          conn.currentVersion = new Version(aOptions.versions.slice(-1)[0]);
 
           if (!conn.supportsCommand('Provision'))
-            return conn._doCallbacks(null, conn.config);
+            return conn._notifyConnected(null, aConfig, aOptions);
 
           conn.provision(function (aError, aResponse) {
-            conn._doCallbacks(aError, conn.config);
+            conn._notifyConnected(aError, aConfig, aOptions);
           });
         });
       }
+
+      getAutodiscovery();
+    },
+
+    /**
+     * Disconnect from the ActiveSync server, and reset all local state.
+     */
+    disconnect: function() {
+      if (this._waitingForConnection)
+        throw new Error("Can't disconnect while waiting for server response");
+
+      this._connection = 0;
+
+      this.baseUrl = null;
+
+      this.versions = [];
+      this.supportedCommands = [];
+      this.currentVersion = null;
     },
 
     /**
@@ -29450,12 +30160,7 @@ FakeFolderStorage.prototype = {
      */
     autodiscover: function(aCallback, aNoRedirect) {
       if (!aCallback) aCallback = nullCallback;
-      let domain = this._email.substring(this._email.indexOf('@') + 1)
-                       .toLowerCase();
-      if (domain in hardcodedDomains) {
-        aCallback(null, this._fillConfig(hardcodedDomains[domain]));
-        return;
-      }
+      let domain = this._emailDomain;
 
       // The first time we try autodiscovery, we should try to recover from
       // AutodiscoverDomainErrors. The second time, *all* errors should be
@@ -29485,68 +30190,14 @@ FakeFolderStorage.prototype = {
     },
 
     /**
-     * Manually set the configuration for the connection.
+     * Manually set the server for the connection.
      *
-     * @param aConfig a string representing the base URL for commands or an
-     *        object holding the configuration data. In the latter case, if the
-     *        |options| key is specified, we will treat ourselves as fully
-     *        connected; otherwise, we will count as having performed
-     *        autodiscovery but not options detection.
+     * @param aConfig a string representing the server URL for commands.
      */
-    setConfig: function(aConfig) {
-      this.config = this._fillConfig(aConfig);
-      this.baseURL = this.config.server.url + '/Microsoft-Server-ActiveSync';
-
-      if (this.config.options) {
-        this._connection = 4;
-        let versionStr = this.config.options.versions.slice(-1)[0];
-        this.currentVersion = new Version(versionStr);
-      }
-      else {
-        this._connection = 2;
-      }
-    },
-
-    /**
-     * Fill out the configuration for the connection.
-     *
-     * @param aConfig a string representing the base URL for commands or an
-     *        object holding the configuration data
-     * @return the properly-formed configuration object
-     */
-    _fillConfig: function(aConfig) {
-      let config = {
-        user: {
-          name: '',
-          email: this._email,
-        },
-        server: {
-          type: 'MobileSync',
-          url: null,
-          name: null,
-        },
-      };
-
-      if (typeof aConfig === 'string') {
-        config.server.url = config.server.name = aConfig;
-      }
-      else {
-        let deepCopy = function(src, dest) {
-          for (let k in src) {
-            if (typeof src[k] === 'object') {
-              dest[k] = Array.isArray(src[k]) ? [] : {};
-              deepCopy(src[k], dest[k]);
-            }
-            else {
-              dest[k] = src[k];
-            }
-          }
-        };
-
-        deepCopy(aConfig, config);
-      }
-
-      return config;
+    setServer: function(aServer) {
+      this._forcedServer = aServer;
+      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
+      this._connection = 1;
     },
 
     /**
@@ -29580,6 +30231,10 @@ FakeFolderStorage.prototype = {
                               XPathResult.FIRST_ORDERED_NODE_TYPE, null)
                     .singleNodeValue;
         }
+        function getNodes(xpath, rel) {
+          return doc.evaluate(xpath, rel, nsResolver,
+                              XPathResult.ORDERED_NODE_ITERATOR_TYPE, null);
+        }
         function getString(xpath, rel) {
           return doc.evaluate(xpath, rel, nsResolver, XPathResult.STRING_TYPE,
                               null).stringValue;
@@ -29611,19 +30266,25 @@ FakeFolderStorage.prototype = {
         }
 
         let user = getNode('ms:User', responseNode);
-        let server = getNode('ms:Action/ms:Settings/ms:Server', responseNode);
-
         let config = {
+          culture: getString('ms:Culture/text()', responseNode),
           user: {
             name:  getString('ms:DisplayName/text()',  user),
             email: getString('ms:EMailAddress/text()', user),
           },
-          server: {
-            type: getString('ms:Type/text()', server),
-            url:  getString('ms:Url/text()',  server),
-            name: getString('ms:Name/text()', server),
-          }
+          servers: [],
         };
+
+        let servers = getNodes('ms:Action/ms:Settings/ms:Server', responseNode);
+        let server;
+        while (server = servers.iterateNext()) {
+          config.servers.push({
+            type:       getString('ms:Type/text()',       server),
+            url:        getString('ms:Url/text()',        server),
+            name:       getString('ms:Name/text()',       server),
+            serverData: getString('ms:ServerData/text()', server),
+          });
+        }
 
         aCallback(null, config);
       };
@@ -29649,14 +30310,14 @@ FakeFolderStorage.prototype = {
      * @param aCallback a callback taking an error status (if any), and the
      *        resulting options.
      */
-    options: function(aURL, aCallback) {
+    options: function(aCallback) {
       if (!aCallback) aCallback = nullCallback;
-      if (this._connection < 2)
+      if (this._connection < 1)
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('OPTIONS', aURL, true);
+      xhr.open('OPTIONS', this.baseUrl, true);
       xhr.onload = function() {
         if (xhr.status !== 200) {
           console.log('ActiveSync options request failed with response ' +
@@ -29666,8 +30327,8 @@ FakeFolderStorage.prototype = {
         }
 
         let result = {
-          'versions': xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
-          'commands': xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
+          versions: xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
+          commands: xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
         };
 
         aCallback(null, result);
@@ -29689,7 +30350,7 @@ FakeFolderStorage.prototype = {
 
       if (typeof aCommand === 'number')
         aCommand = ASCP.__tagnames__[aCommand];
-      return this.config.options.commands.indexOf(aCommand) !== -1;
+      return this.supportedCommands.indexOf(aCommand) !== -1;
     },
 
     /**
@@ -29753,7 +30414,7 @@ FakeFolderStorage.prototype = {
       }
 
       let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseURL +
+      xhr.open('POST', this.baseUrl +
                '?Cmd='        + encodeURIComponent(commandName) +
                '&User='       + encodeURIComponent(this._email) +
                '&DeviceId='   + encodeURIComponent(this._deviceId) +
@@ -29766,7 +30427,7 @@ FakeFolderStorage.prototype = {
       let conn = this;
       xhr.onload = function() {
         if (xhr.status === 451) {
-          conn.baseURL = xhr.getResponseHeader('X-MS-Location');
+          conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
           conn.doCommand(aCommand, aCallback);
           return;
         }
@@ -30344,8 +31005,7 @@ ActiveSyncFolderSyncer.prototype = {
     this._account.__checkpointSyncCompleted();
   },
 
-  relinquishConn: function() {
-    this.folderConn.relinquishConn();
+  allConsumersDead: function() {
   },
 
   shutdown: function() {
@@ -30398,13 +31058,16 @@ function ActiveSyncJobDriver(account) {
 }
 exports.ActiveSyncJobDriver = ActiveSyncJobDriver;
 ActiveSyncJobDriver.prototype = {
+  postJobCleanup: function() {
+  },
+
   local_do_modtags: function(op, callback) {
     // XXX: we'll probably remove this once deleting stops being a modtag op
     if (op.addTags && op.addTags.indexOf('\\Deleted') !== -1)
       return this.local_do_delete(op, callback);
 
     for (let [,message] in Iterator(op.messages)) {
-      let lslash = message.suid.lastIndexOf('/')
+      let lslash = message.suid.lastIndexOf('/');
       let folderId = message.suid.substring(0, lslash);
       let messageId = message.suid.substring(lslash + 1);
       let folderStorage = this.account.getFolderStorageForFolderId(folderId);
@@ -30473,9 +31136,13 @@ ActiveSyncJobDriver.prototype = {
     });
   },
 
+  check_modtags: function(op, callback) {
+    callback(null, 'idempotent');
+  },
+
   local_do_delete: function(op, callback) {
     for (let [,message] in Iterator(op.messages)) {
-      let lslash = message.suid.lastIndexOf('/')
+      let lslash = message.suid.lastIndexOf('/');
       let folderId = message.suid.substring(0, lslash);
       let messageId = message.suid.substring(lslash + 1);
       let folderStorage = this.account.getFolderStorageForFolderId(folderId);
@@ -30496,6 +31163,10 @@ ActiveSyncJobDriver.prototype = {
          .tag(as.ServerId, messageGuid)
        .etag();
     });
+  },
+
+  check_delete: function(op, callback) {
+    callback(null, 'idempotent');
   },
 
   _do_crossFolderOp: function(op, callback, command) {
@@ -30646,9 +31317,22 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   else {
     this.conn = new $activesync.Connection(accountDef.credentials.username,
                                            accountDef.credentials.password);
-    if (this.accountDef.connInfo)
-      this.conn.setConfig(this.accountDef.connInfo);
-    this.conn.connect();
+
+    // XXX: We should check for errors during connection and alert the user.
+    if (this.accountDef.connInfo) {
+      this.conn.setServer(this.accountDef.connInfo.server);
+      this.conn.connect();
+    }
+    else {
+      // This can happen with an older, broken version of the ActiveSync code.
+      // We can probably remove this eventually.
+      console.warning('ActiveSync connection info not found; ' +
+                      'attempting autodiscovery');
+      this.conn.connect(function (error, config, options) {
+        accountDef.connInfo = { server: config.selectedServer.url };
+        universe.saveAccountDef(accountDef, folderInfos);
+      });
+    }
   }
 
   this._db = dbConn;
@@ -30674,6 +31358,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 
   this.meta = folderInfos.$meta;
   this.mutations = folderInfos.$mutations;
+  this.deferredMutations = folderInfos.$deferredMutations;
 
   // Sync existing folders
   for (var folderId in folderInfos) {
@@ -30739,7 +31424,8 @@ ActiveSyncAccount.prototype = {
     return 0;
   },
 
-  saveAccountState: function asa_saveAccountState(reuseTrans, callback) {
+  saveAccountState: function asa_saveAccountState(reuseTrans, callback,
+                                                  reason) {
     let account = this;
     let perFolderStuff = [];
     for (let [,folder] in Iterator(this.folders)) {
@@ -30749,11 +31435,11 @@ ActiveSyncAccount.prototype = {
         perFolderStuff.push(folderStuff);
     }
 
-    this._LOG.saveAccountState_begin();
+    this._LOG.saveAccountState_begin(reason);
     let trans = this._db.saveAccountFolderStates(
       this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
       function stateSaved() {
-        account._LOG.saveAccountState_end();
+        account._LOG.saveAccountState_end(reason);
         if (callback)
          callback();
       }, reuseTrans);
@@ -30766,7 +31452,7 @@ ActiveSyncAccount.prototype = {
    * want to consider persisting our state.
    */
   __checkpointSyncCompleted: function() {
-    this.saveAccountState();
+    this.saveAccountState(null, null, 'checkpointSync');
   },
 
   shutdown: function asa_shutdown() {
@@ -30831,7 +31517,7 @@ ActiveSyncAccount.prototype = {
       }
 
       console.log('Synced folder list');
-      account.saveAccountState();
+      account.saveAccountState(null, null, 'folderList');
       if (callback)
         callback();
     });
@@ -30974,7 +31660,7 @@ ActiveSyncAccount.prototype = {
       self._folderStorages[folderId] = newStorage;
 
       callback(newStorage);
-    });
+    }, 'recreateFolder');
   },
 
   /**
@@ -31141,26 +31827,29 @@ ActiveSyncAccount.prototype = {
   runOp: function asa_runOp(op, mode, callback) {
     console.log('runOp('+JSON.stringify(op)+', '+mode+', '+callback+')');
 
-    let methodName = mode + '_' + op.type;
-    let isLocal = /^local_/.test(mode);
-
-    if (!isLocal)
-      op.status = mode + 'ing';
+    var methodName = mode + '_' + op.type, self = this,
+        isLocal = (mode === 'local_do' || mode === 'local_undo');
 
     if (!(methodName in this._jobDriver))
       throw new Error("Unsupported op: '" + op.type + "' (mode: " + mode + ")");
 
+    if (!isLocal)
+      op.status = mode + 'ing';
+
     if (callback) {
-      this._jobDriver[methodName](op, function(error) {
-        if (!isLocal)
-          op.status = mode + 'ne';
-        callback(error);
+      this._LOG.runOp_begin(mode, op.type, null, op);
+      this._jobDriver[methodName](op, function(error, resultIfAny,
+                                               accountSaveSuggested) {
+        self._jobDriver.postJobCleanup();
+        self._LOG.runOp_end(mode, op.type, error, op);
+        callback(error, resultIfAny, accountSaveSuggested);
       });
     }
     else {
-      this._jobDriver[methodName](op);
-      if (!isLocal)
-        op.status = mode + 'ne';
+      this._LOG.runOp_begin(mode, op.type, null, null);
+      var rval = this._jobDriver[methodName](op);
+      this._jobDriver.postJobCleanup();
+      this._LOG.runOp_end(mode, op.type, rval, op);
     }
   },
 };
@@ -31174,7 +31863,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
-      saveAccountState: {},
+      saveAccountState: { reason: false },
     },
   },
 });
@@ -31191,6 +31880,7 @@ define('mailapi/mailuniverse',
     'rdcommon/logreaper',
     './a64',
     './allback',
+    './syncbase',
     './maildb',
     './imap/probe',
     './imap/account',
@@ -31207,6 +31897,7 @@ define('mailapi/mailuniverse',
     $logreaper,
     $a64,
     $allback,
+    $syncbase,
     $maildb,
     $imapprobe,
     $imapacct,
@@ -31288,6 +31979,7 @@ function CompositeAccount(universe, accountDef, folderInfo, dbConn,
   this.folders = this._receivePiece.folders;
   this.meta = this._receivePiece.meta;
   this.mutations = this._receivePiece.mutations;
+  this.deferredMutations = this._receivePiece.deferredMutations;
 }
 CompositeAccount.prototype = {
   toString: function() {
@@ -31351,12 +32043,6 @@ CompositeAccount.prototype = {
   shutdown: function() {
     this._sendPiece.shutdown();
     this._receivePiece.shutdown();
-  },
-
-  createFolder: function(parentFolderId, folderName, containOnlyOtherFolders,
-                         callback) {
-    return this._receivePiece.createFolder(
-      parentFolderId, folderName, containOnlyOtherFolders, callback);
   },
 
   deleteFolder: function(folderId, callback) {
@@ -31446,6 +32132,18 @@ var autoconfigByDomain = {
   },
   'example.com': {
     type: 'fake',
+  },
+  // Mapping for a nonexistent domain for testing a bad domain without it being
+  // detected ahead of time by the autoconfiguration logic or otherwise.
+  'nonesuch.nonesuch': {
+    type: 'imap+smtp',
+    imapHost: 'nonesuch.nonesuch',
+    imapPort: 993,
+    imapCrypto: true,
+    smtpHost: 'nonesuch.nonesuch',
+    smtpPort: 465,
+    smtpCrypto: true,
+    usernameIsFullEmail: false,
   },
   'hotmail.com': {
     type: 'activesync',
@@ -31557,6 +32255,7 @@ Configurators['imap+smtp'] = {
         rootDelim: imapProtoConn.delim,
       },
       $mutations: [],
+      $deferredMutations: [],
     };
     universe.saveAccountDef(accountDef, folderInfo);
     return universe._loadAccount(accountDef, folderInfo, imapProtoConn);
@@ -31600,6 +32299,7 @@ Configurators['fake'] = {
         nextMutationNum: 0,
       },
       $mutations: [],
+      $deferredMutations: [],
     };
     universe.saveAccountDef(accountDef, folderInfo);
     var account = universe._loadAccount(accountDef, folderInfo, null);
@@ -31642,11 +32342,12 @@ Configurators['activesync'] = {
         syncKey: '0',
       },
       $mutations: [],
+      $deferredMutations: [],
     };
 
     var conn = new $activesync.Connection(credentials.username,
                                           credentials.password);
-    conn.connect(function(error, config) {
+    conn.connect(function(error, config, options) {
       if (error) {
         var failureType = 'unknown';
 
@@ -31660,10 +32361,12 @@ Configurators['activesync'] = {
         return;
       }
 
-      var account = universe._loadAccount(accountDef, folderInfo, conn);
-      if (!accountDef.identities[0].name)
+      accountDef.connInfo = { server: config.selectedServer.url };
+      if (!accountDef.identities[0].name && config.user)
         accountDef.identities[0].name = config.user.name;
       universe.saveAccountDef(accountDef, folderInfo);
+
+      var account = universe._loadAccount(accountDef, folderInfo, conn);
       account.syncFolderList(function() {
         callback(null, account);
       });
@@ -31770,15 +32473,23 @@ const MAX_LOG_BACKLOG = 30;
  * @typedef[SerializedMutation @dict[
  *   @key[type @oneof[
  *     @case['modtags']{
- *       Modify tags by adding and/or removing them.
+ *       Modify tags by adding and/or removing them.  Idempotent and atomic under
+ *       all implementations;  no explicit account saving required.
  *     }
  *     @case['delete']{
+ *       Delete a message under the "move to trash" model.  For IMAP, this is the
+ *       same as a move operation.
  *     }
  *     @case['move']{
- *       Move message(s) within the same account.
+ *       Move message(s) within the same account.  For IMAP, this is neither
+ *       atomic or idempotent and requires account state to be checkpointed as
+ *       running the operation prior to running it.  Dunno for ActiveSync, but
+ *       probably atomic and idempotent.
  *     }
  *     @case['copy']{
- *       Copy message(s) within the same account.
+ *       NOT YET IMPLEMENTED (no gaia UI requirement).  But will be:
+ *       Copy message(s) within the same account.  For IMAP, atomic and
+ *       idempotent.
  *     }
  *   ]]{
  *     The implementation opcode used to determine what functions to call.
@@ -31788,10 +32499,48 @@ const MAX_LOG_BACKLOG = 30;
  *     to not refer to any pending or still undoable-operation.
  *   }
  *   @key[status @oneof[
- *     @case[null]
- *     @case['running']
- *     @case['done']
+ *     @case[null]{
+ *       'local_do' has been invoked, but the action has not been run against
+ *       the server.  Invoking `undoMutation` will invoke 'local_undo' and mark
+ *       this as 'undone'.
+ *     }
+ *     @case['check']{
+ *       We don't know what has or hasn't happened on the server so we need to
+ *       run a check operation before doing anything.
+ *     }
+ *     @case['doing']{
+ *       'local_do' has been run, and 'do' is currently running.  Invoking
+ *       `undoMutation` will not attempt to stop 'do', but will enqueue
+ *     }
+ *     @case['done']{
+ *       The op ran to completion; all done!  'local_do' and 'do' both ran
+ *       successfully.
+ *     }
+ *     @case['undoing']{
+ *       'local_undo' has been run, and 'undo' is currently happening.
+ *     }
+ *     @case['undone']{
+ *       The operation was 'done', then an undo was run, and it's now 'undone'.
+ *       It is as-if the operation was never scheduled.  This is distinct from
+ *       the null case becase null has run 'local_do'.
+ *     }
+ *     @case['moot']{
+ *       The job is no longer relevant; the messages it operates on don't exist,
+ *       the target folder doesn't exist, or we failed so many times that we
+ *       assume something is fundamentally wrong and the request simply cannot
+ *       be executed.
+ *     }
  *   ]]{
+ *   }
+ *   @key[tryCount Number]{
+ *     How many times have we attempted to run this operation.  If we retry an
+ *     operation too many times, we eventually will discard it with the
+ *     assumption that it's never going to succeed.
+ *   }
+ *   @key[desire @oneof['do' 'undo']]{
+ *     Allows us to indicate that we want to undo an operation even while its
+ *     'do' method is active.  `status` can't be used for this purpose without
+ *     breaking our logic.
  *   }
  *   @key[humanOp String]{
  *     The user friendly opcode where flag manipulations like starring have
@@ -31840,6 +32589,12 @@ function MailUniverse(callAfterBigBang) {
    * }
    */
   this._pendingMutationsByAcct = {};
+  /**
+   * A setTimeout handle for when we next dump deferred operations back onto
+   * their operation queues.
+   */
+  this._deferredOpTimeout = null;
+  this._boundQueueDeferredOps = this._queueDeferredOps.bind(this);
 
   this.config = null;
   this._logReaper = null;
@@ -31957,23 +32712,28 @@ MailUniverse.prototype = {
   },
 
   dumpLogToDeviceStorage: function() {
-    console.log('Planning to dump log to device storage for "pictures"');
+    console.log('Planning to dump log to device storage for "videos"');
     try {
       // 'default' does not work, but pictures does.  Hopefully gallery is
       // smart enough to stay away from my log files!
-      var storage = navigator.getDeviceStorage('pictures');
+      var storage = navigator.getDeviceStorage('videos');
+      // HACK HACK HACK: DeviceStorage does not care about our use-case at all
+      // and brutally fails to write things that do not have a mime type (and
+      // apropriately named file), so we pretend to be a realmedia file because
+      // who would really have such a thing?
       var blob = new Blob([JSON.stringify(this.createLogBacklogRep())],
                           {
-                            type: 'application/json',
+                            type: 'video/lies',
                             endings: 'transparent'
                           });
-      var filename = 'gem-log-' + Date.now() + '.json';
+      var filename = 'gem-log-' + Date.now() + '.json.rm';
       var req = storage.addNamed(blob, filename);
       req.onsuccess = function() {
         console.log('saved log to', filename);
       };
       req.onerror = function() {
-        console.error('failed to save log to', filename);
+        console.error('failed to save log to', filename, 'err:',
+                      this.error.name);
       };
     }
     catch(ex) {
@@ -32037,6 +32797,19 @@ MailUniverse.prototype = {
   },
 
   /**
+   * Helper function to wrap calls to account.runOp since it now gets more
+   * complex with 'check' mode.
+   */
+  _dispatchOpForAccount: function(account, op) {
+    var mode = op.desire;
+    if (op.status === 'check')
+      mode = 'check';
+    account.runOp(
+      op, mode,
+      this._opCompleted.bind(this, account, op));
+  },
+
+  /**
    * Start processing ops for an account if it's able and has ops to run.
    */
   _resumeOpProcessingForAccount: function(account) {
@@ -32047,9 +32820,7 @@ MailUniverse.prototype = {
         // (it's possible there is still an active job right now)
         (queue[0].status !== 'doing' && queue[0].status !== 'undoing')) {
       var op = queue[0];
-      account.runOp(
-        op, op.desire,
-        this._opCompleted.bind(this, account, op));
+      this._dispatchOpForAccount(account, op);
     }
   },
 
@@ -32148,9 +32919,21 @@ MailUniverse.prototype = {
     // - check for mutations that still need to be processed
     for (var i = 0; i < account.mutations.length; i++) {
       var op = account.mutations[i];
-      if (op.desire)
-        this._queueAccountOp(account, op);
+      if (op.desire) {
+        // Per operation strategy documentation, we treat all depersisted
+        // operations as potentially-run, so we change the status to check.
+        // The check will be run before we decide to actually do what the
+        // operation wants.
+        op.status = 'check';
+        this._queueAccountOp(account, op, null, true);
+      }
     }
+    // - propagate deferred mutations to the actual mutations list
+    // (These were deferred because a resource was not available; since we
+    // must have been asleep awhile, the resource is probably fine now.)
+    while (account.deferredMutations.length)
+      this._queueAccountOp(account, account.deferredMutations.shift(),
+                           null, true);
 
     return account;
   },
@@ -32329,39 +33112,216 @@ MailUniverse.prototype = {
     return results;
   },
 
-  _opCompleted: function(account, op, err, resultIfAny, accountSaveSuggested) {
-    // Clear the desire if it is satisfied.  It's possible the desire is now
-    // to undo it, in which case we don't want to clobber the undo desire with
-    // the completion of the do desire.
-    if (op.status === 'done' && op.desire === 'do')
-      op.desire = null;
-    else if (op.status === 'undone' && op.desire === 'undo')
-      op.desire = null;
-    var queue = this._opsByAccount[account.id];
-    // shift the running op off.
-    queue.shift();
+  /**
+   * Put an operation in the deferred mutations queue and ensure the deferred
+   * operation timer is active.  The deferred queue is persisted to disk too
+   * and transferred across to the non-deferred queue at account-load time.
+   */
+  _deferOp: function(account, op) {
+    account.deferredMutations.push(op);
+    if (this._deferredOpTimeout !== null)
+      this._deferredOpTimeout = window.setTimeout(
+        this._boundQueueDeferredOps, $syncbase.DEFERRED_OP_DELAY_MS);
+  },
 
-    if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
-      var callback = this._opCallbacks[op.longtermId];
-      delete this._opCallbacks[op.longtermId];
-      try {
-        callback(err, resultIfAny, account, op);
+  /**
+   * Transfer all deferred ops onto their op queue; invoked by the setTimeout
+   * scheduled by `_deferOp`.  We use a single timeout across all accounts, so
+   * the duration of the defer delay can vary a bit, but our goal is just to
+   * avoid deferrals turning into a tight loop that pounds the server, nothing
+   * fancier.
+   */
+  _queueDeferredOps: function() {
+    this._deferredOpTimeout = null;
+    for (var iAccount = 0; iAccount < this.accounts.length; iAccount++) {
+      var account = this.accounts[iAccount];
+      // we need to mutate in-place, so concat is not an option
+      while (account.deferredMutations.length)
+        account.mutations.push(account.deferredMutations.shift());
+    }
+  },
+
+  /**
+   * @args[
+   *   @param[account[
+   *   @param[op]{
+   *     The operation.
+   *   }
+   *   @param[err @oneof[
+   *     @case[null]{
+   *       Success!
+   *     }
+   *     @case['defer']{
+   *       The resource was unavailable, but might be available again in the
+   *       future.  Defer the operation to be run in the future by putting it on
+   *       a deferred list that will get re-added after an arbitrary timeout.
+   *       This does not imply that a check operation needs to be run.  This
+   *       reordering violates our general ordering guarantee; we could be
+   *       better if we made sure to defer all other operations that can touch
+   *       the same resource, but that's pretty complex.
+   *
+   *       Deferrals do boost the tryCount; our goal with implementing this is
+   *       to support very limited
+   *     }
+   *     @case['aborted-retry']{
+   *       The operation was started, but we lost the connection before we
+   *       managed to accomplish our goal.  Run a check operation then run the
+   *       operation again depending on what 'check' says.
+   *
+   *       'defer' should be used instead if it's known that no mutations could
+   *       have been perceived by the server, etc.
+   *     }
+   *     @case['failure-give-up']{
+   *       Something is broken in a way we don't really understand and it's
+   *       unlikely that retrying is actually going to accomplish anything.
+   *       Although we mark the status 'moot', this is a more sinister failure
+   *       that should generate debugging/support data when appropriate.
+   *     }
+   *     @case['moot']{
+   *       The operation no longer makes any sense.
+   *     }
+   *     @default{
+   *       Some other type of error occurred.  This gets treated the same as
+   *       aborted-retry
+   *     }
+   *   ]]
+   *   @param[resultIfAny]{
+   *     A result to be relayed to the listening callback for the operation, if
+   *     there is one.  This is intended to be used for things like triggering
+   *     attachment downloads where it would be silly to make the callback
+   *     re-get the changed data itself.
+   *   }
+   *   @param[accountSaveSuggested #:optional Boolean]{
+   *     Used to indicate that this has changed the state of the system and a
+   *     save should be performed at some point in the future.
+   *   }
+   * ]
+   */
+  _opCompleted: function(account, op, err, resultIfAny, accountSaveSuggested) {
+    var queue = this._opsByAccount[account.id];
+    if (queue[0] !== op)
+      this._LOG.opInvariantFailure();
+
+    // Should we attempt to retry (but fail if tryCount is reached)?
+    var maybeRetry = false;
+    // Pop the event off the queue? (avoid bugs versus multiple calls)
+    var consumeOp = true;
+    // Generate completion notifications for the op?
+    var completeOp = true;
+    if (err) {
+      switch (err) {
+        case 'defer':
+          this._LOG.opDeferred(op.type, op.longtermId);
+          this._deferOp(op);
+          // remove the op from the queue, but don't mark it completed
+          completeOp = false;
+          break;
+        case 'aborted-retry':
+          op.tryCount++;
+          maybeRetry = true;
+          break;
+        default: // (unknown case)
+          op.tryCount += $syncbase.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT;
+          maybeRetry = true;
+          break;
+        case 'failure-give-up':
+          this._LOG.opGaveUp(op.type, op.longtermId);
+          // we complete the op, but the error flag is propagated
+          op.status = 'moot';
+          break;
+        case 'moot':
+          this._LOG.opMooted(op.type, op.longtermId);
+          // we complete the op, but the error flag is propagated
+          op.status = 'moot';
+          break;
       }
-      catch(ex) {
-        this._LOG.opCallbackErr(op.type);
+    }
+    else {
+      switch (op.status) {
+        case 'checking':
+          // Update the status, and figure out if there is any work to do based
+          // on our desire.
+          switch (resultIfAny) {
+            case 'checked-notyet':
+            case 'coherent-notyet':
+              op.status = null;
+              break;
+            case 'idempotent':
+              if (op.desire === 'do')
+                op.status = null;
+              else
+                op.status = 'done';
+              break;
+            case 'happened':
+              op.status = 'done';
+              break;
+            case 'moot':
+              op.status = 'moot';
+              break;
+            // this is the same thing as defer.
+            case 'bailed':
+              this._LOG.opDeferred(op.type, op.longtermId);
+              this._deferOp(op);
+              completeOp = false;
+              break;
+          }
+          break;
+        case 'doing':
+          op.status = 'done';
+          // clear the desire if it hasn't changed to undo
+          if (op.desire === 'do')
+            op.desire = null;
+          break;
+        case 'undoing':
+          op.status = 'undone';
+          // clear the desire if it hasn't changed back to 'do'
+          if (op.desire === 'undo')
+            op.desire = null;
+          break;
+      }
+      // If we still want to do something, then don't consume the op.
+      if (op.desire)
+        consumeOp = false;
+    }
+
+    if (maybeRetry) {
+      if (op.tryCount < $syncbase.MAX_OP_TRY_COUNT) {
+        // We're still good to try again, but we will need to check the status
+        // first.
+        op.status = 'check';
+        consumeOp = false;
+      }
+      else {
+        this._LOG.opTryLimitReached(op.type, op.longtermId);
+        // we complete the op, but the error flag is propagated
+        op.status = 'moot';
       }
     }
 
-    // This is a suggestion; in the event of high-throughput on operations,
-    // we probably don't want to save the account every tick, etc.
-    if (accountSaveSuggested)
-      account.saveAccountState();
+    if (consumeOp)
+      queue.shift();
+
+    if (completeOp) {
+      if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
+        var callback = this._opCallbacks[op.longtermId];
+        delete this._opCallbacks[op.longtermId];
+        try {
+          callback(err, resultIfAny, account, op);
+        }
+        catch(ex) {
+          this._LOG.opCallbackErr(op.type);
+        }
+      }
+
+      // This is a suggestion; in the event of high-throughput on operations,
+      // we probably don't want to save the account every tick, etc.
+      if (accountSaveSuggested)
+        account.saveAccountState();
+    }
 
     if (queue.length && this.online && account.enabled) {
       op = queue[0];
-      account.runOp(
-        op, op.desire,
-        this._opCompleted.bind(this, account, op));
+      this._dispatchOpForAccount(account, op);
     }
     else if (this._opCompletionListenersByAccount[account.id]) {
       this._opCompletionListenersByAccount[account.id](account);
@@ -32384,9 +33344,13 @@ MailUniverse.prototype = {
    *     A callback to invoke when the operation completes.  Callbacks are
    *     obviously not capable of being persisted and are merely best effort.
    *   }
+   *   @param[justRequeue #:optional Boolean]{
+   *     If true, we are just re-enqueueing the operation and have no desire
+   *     or need to run the local operations.
+   *   }
    * ]
    */
-  _queueAccountOp: function(account, op, optionalCallback) {
+  _queueAccountOp: function(account, op, optionalCallback, justRequeue) {
     var queue = this._opsByAccount[account.id];
     queue.push(op);
 
@@ -32403,14 +33367,20 @@ MailUniverse.prototype = {
       this._opCallbacks[op.longtermId] = optionalCallback;
 
     // - run the local manipulation immediately
-    if (!this._testModeDisablingLocalOps)
-      account.runOp(op, op.desire === 'do' ? 'local_do' : 'local_undo');
+    if (!this._testModeDisablingLocalOps && !justRequeue) {
+      switch (op.desire) {
+        case 'do':
+          account.runOp(op, 'local_do');
+          break;
+        case 'undo':
+          account.runOp(op, 'local_undo');
+          break;
+      }
+    }
 
     // - initiate async execution if this is the first op
     if (this.online && account.enabled && queue.length === 1)
-      account.runOp(
-        op, op.desire,
-        this._opCompleted.bind(this, account, op));
+      this._dispatchOpForAccount(account, op);
     return op.longtermId;
   },
 
@@ -32440,6 +33410,7 @@ MailUniverse.prototype = {
         type: 'download',
         longtermId: null,
         status: null,
+        tryCount: 0,
         desire: 'do',
         humanOp: 'download',
         messageSuid: messageSuid,
@@ -32459,6 +33430,7 @@ MailUniverse.prototype = {
           type: 'modtags',
           longtermId: null,
           status: null,
+          tryCount: 0,
           desire: 'do',
           humanOp: humanOp,
           messages: x.messages,
@@ -32483,11 +33455,74 @@ MailUniverse.prototype = {
         type: 'append',
         longtermId: null,
         status: null,
+        tryCount: 0,
         desire: 'do',
         humanOp: 'append',
         messages: messages,
         folderId: folderId,
       });
+    return [longtermId];
+  },
+
+  /**
+   * Create a folder that is the child/descendant of the given parent folder.
+   * If no parent folder id is provided, we attempt to create a root folder.
+   *
+   * This is not implemented as a job 'operation' because our UX spec does not
+   * call for this to be an undoable operation, nor do we particularly want the
+   * potential permutations of having offline folders that the server does not
+   * know about.
+   *
+   * @args[
+   *   @param[accountId]
+   *   @param[parentFolderId @oneof[null String]]{
+   *     If null, place the folder at the top-level, otherwise place it under
+   *     the given folder.
+   *   }
+   *   @param[folderName]
+   *   @param[containOnlyOtherFolders Boolean]{
+   *     Should this folder only contain other folders (and no messages)?
+   *     On some servers/backends, mail-bearing folders may not be able to
+   *     create sub-folders, in which case one would have to pass this.
+   *   }
+   *   @param[callback @func[
+   *     @args[
+   *       @param[error @oneof[
+   *         @case[null]{
+   *           No error, the folder got created and everything is awesome.
+   *         }
+   *         @case['moot']{
+   *           The folder appears to already exist.
+   *         }
+   *         @case['unknown']{
+   *           It didn't work and we don't have a better reason.
+   *         }
+   *       ]]
+   *       @param[folderMeta ImapFolderMeta]{
+   *         The meta-information for the folder.
+   *       }
+   *     ]
+   *   ]]{
+   *   }
+   * ]
+   */
+  createFolder: function(accountId, parentFolderId, folderName,
+                         containOnlyOtherFolders, callback) {
+    var account = this.getAccountForAccountId(accountId);
+    var longtermId = this._queueAccountOp(
+      account,
+      {
+        type: 'createFolder',
+        longtermId: null,
+        status: null,
+        tryCount: 0,
+        desire: 'do',
+        humanOp: 'createFolder',
+        parentFolderId: parentFolderId,
+        folderName: folderName,
+        containOnlyOtherFolders: containOnlyOtherFolders
+      },
+      callback);
     return [longtermId];
   },
 
@@ -32502,7 +33537,6 @@ MailUniverse.prototype = {
           switch (op.status) {
             // if we haven't started doing the operation, we can cancel it
             case null:
-            case 'undone':
               var queue = this._opsByAccount[account.id],
                   idx = queue.indexOf(op);
               if (idx !== -1) {
@@ -32526,6 +33560,7 @@ MailUniverse.prototype = {
               op.desire = 'undo';
               this._queueAccountOp(account, op);
               break;
+            case 'undone':
             case 'undoing':
               op.desire = 'do';
               this._queueAccountOp(account, op);
@@ -32545,6 +33580,10 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     events: {
       configLoaded: {},
       createAccount: { type: true, id: false },
+      opDeferred: { type: true, id: false },
+      opTryLimitReached: { type: true, id: false },
+      opGaveUp: { type: true, id: false },
+      opMooted: { type: true, id: false },
     },
     TEST_ONLY_events: {
       configLoaded: { config: false, accounts: false },
@@ -32553,6 +33592,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     errors: {
       badAccountType: { type: true },
       opCallbackErr: { type: false },
+      opInvariantFailure: {},
     },
   },
 });

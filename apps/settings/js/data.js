@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -210,20 +210,34 @@ window.addEventListener('load', function getCarrierSettings() {
     document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
 
-    // toggle advanced settings when required
-    var advSettings = document.getElementById('apnSettings-advanced');
-    advSettings.querySelector('h3').onclick = function toggle() {
-      advSettings.classList.toggle('collapsed');
+    // force data connection to restart if changes are validated
+    apnSettings.querySelector('button[type=submit]').onclick =
+        restartDataConnection;
+  }
+
+  // 'Data Roaming' message
+  var settings = Settings.mozSettings;
+  if (settings) {
+    var _ = window.navigator.mozL10n.get;
+    var dataRoamingSetting = 'ril.data.roaming_enabled';
+
+    var displayDataRoamingMessage = function(enabled) {
+      var messageID = 'dataRoaming-' + (enabled ? 'enabled' : 'disabled');
+      document.getElementById('dataRoaming-expl').textContent = _(messageID);
     }
-    var resetBtn = document.querySelector('#apnSettings button[type=reset]');
-    resetBtn.onclick = function onSubmit() {
-      advSettings.classList.add('collapsed');
-    }
-    var submitBtn = document.querySelector('#apnSettings button[type=submit]');
-    submitBtn.onclick = function onSubmit() {
-      advSettings.classList.add('collapsed');
-      restartDataConnection(); // force data connection to restart
-    }
+
+    // register an observer to monitor setting changes
+    settings.addObserver(dataRoamingSetting, function(event) {
+      displayDataRoamingMessage(event.settingValue);
+    });
+
+    // get the initial setting value
+    var req = settings.createLock().get(dataRoamingSetting);
+    req.onsuccess = function roaming_getStatusSuccess() {
+      displayDataRoamingMessage(req.result[dataRoamingSetting]);
+    };
+  } else {
+    document.getElementById('dataRoaming-expl').hidden = true;
   }
 
   // initialize data settings

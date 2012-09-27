@@ -82,6 +82,7 @@
       var store = trans.objectStore(this._store);
       var data = this._objectData(object);
       var id;
+      var model;
 
       var putReq;
       var reqType;
@@ -104,18 +105,26 @@
 
       this._addDependents(object, trans);
 
+      // when we have the id we can add the model to the cache.
+      if (data._id) {
+        id = data._id;
+        model = self._createModel(object, id);
+        self._addToCache(model);
+      }
+
       trans.addEventListener('complete', function(data) {
-        var id = putReq.result;
-        var result = self._createModel(object, id);
-
-        self._addToCache(result);
-
-        if (callback) {
-          callback(null, id, result);
+        if (!model) {
+          id = putReq.result;
+          model = self._createModel(object, id);
+          self._addToCache(model);
         }
 
-        self.emit(reqType, id, result);
-        self.emit('persist', id, result);
+        if (callback) {
+          callback(null, id, model);
+        }
+
+        self.emit(reqType, id, model);
+        self.emit('persist', id, model);
       });
     },
 
@@ -209,13 +218,14 @@
       });
 
       trans.addEventListener('complete', function() {
-        self._removeFromCache(id);
-
         if (callback) {
           callback(null, id);
         }
 
         self.emit('remove', id);
+
+        // intentionally after the callbacks...
+        self._removeFromCache(id);
       });
     },
 

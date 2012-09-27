@@ -1,7 +1,7 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 5;
+  const VERSION = 7;
 
   var store = {
     events: 'events',
@@ -150,12 +150,12 @@
       // busytimes has one event, has one calendar
       var busytimes = db.createObjectStore(
         store.busytimes,
-        { keyPath: '_id', autoIncrement: true }
+        { keyPath: '_id' }
       );
 
       busytimes.createIndex(
         'end',
-        'end',
+        'end.utc',
         { unique: false, multiEntry: false }
       );
 
@@ -178,9 +178,9 @@
       );
 
       events.createIndex(
-        'occurs',
-        'remote.occurs',
-        { unique: false, multiEntry: true }
+        'parentId',
+        'parentId',
+        { unique: false, multiEntry: false }
       );
 
       // accounts -> has many calendars
@@ -213,6 +213,21 @@
       }
     },
 
+    clearNonCredentials: function(callback) {
+      var stores = ['events', 'busytimes'];
+      var trans = this.transaction(
+        stores,
+        'readwrite'
+      );
+
+      trans.addEventListener('complete', callback);
+
+      stores.forEach(function(store) {
+        store = trans.objectStore(store);
+        store.clear();
+      });
+    },
+
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
@@ -231,7 +246,6 @@
     }
 
   };
-
 
   Calendar.Db = Db;
 
