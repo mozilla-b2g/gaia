@@ -110,33 +110,33 @@ body.hidden #root {
 
 [dir=rtl] ul li > a {
   padding-left: inherit;
-  padding-right: 30px;
+  padding-right: 3rem;
 }
 
 [dir=rtl] ul li > small {
   left: auto;
-  right: 30px;
+  right: 3rem;
 }
 
 [dir=rtl] [role=region] label > span {
-  left: 10px;
+  left: 1rem;
   right: auto;
 }
 
 /* root list and icons */
 
 [dir=rtl] #root li [data-l10n-id] {
-  background-position: right 14px top 50%;
+  background-position: right 1.4rem top 50%;
 }
 
 [dir=rtl] #root ul li > a {
   padding-left: inherit;
-  padding-right: 55px;
+  padding-right: 5.5rem;
 }
 
 [dir=rtl] #root ul li > small {
   left: auto;
-  right: 55px;
+  right: 5.5rem;
 }
 
 /* bidi (e.g. language list) */
