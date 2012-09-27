@@ -81,8 +81,6 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     return;
 
   var gTimeManualMenu = document.getElementById('time-manual');
-  var gTimeAutoUpdateCheckBox =
-      document.querySelector('#time-nitz-automatic-update input');
   var gDatePicker = document.getElementById('date-picker');
   var gTimePicker = document.getElementById('time-picker');
   var gDate = document.getElementById('clock-date');
@@ -92,17 +90,15 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
 
+  // issue #5276: PERSONALIZATION SETTINGS ->
+  //             "Date & Time Page" -> toggle "24-hour Clock" ON/OFF
   // [TODO]: toggle 24-Hour clock display on/off
   // register an observer to monitor time.timezone changes
   settings.addObserver('time.timezone', function(event) {
+    //  issue #3989 PERSONALIZATION SETTINGS ->
+    //              "Date & Time Page" -> Manual -> Set Time Zone
     // [TODO]: update display time zone
   });
-
-  // toggle time automatic update on/off
-  gTimeAutoUpdateCheckBox.onchange = function dt_togglegSetTimeAuto() {
-    settings.createLock().set(
-      {'time.nitz.automatic-update.enabled': this.checked});
-  };
 
   // register an observer to monitor time.nitz.automatic-update.enabled changes
   settings.addObserver('time.nitz.automatic-update.enabled', function(event) {
@@ -121,7 +117,9 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   updateDate();
   updateClock();
 
-  // XXX No change event from date/time picker
+  // XXX: No change event from date/time picker
+  // Bug 793553 -
+  // [b2g] oninput is not fired when the content of an input field is changed
   // Use confirm button to set the picked time
   gDatePicker.addEventListener('change', function datePickerChange() {
     // [TODO]: Set time by the changed date.
@@ -131,21 +129,16 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   });
 
   gConfirmTimeButton.addEventListener('click', function confirmTime() {
-    // Get value from date picker. Format 2012-09-28
-    var pDate = gDatePicker.value;
-    var newYear = pDate.slice(0, pDate.indexOf('-'));
-    var newMonth = pDate.slice(pDate.indexOf('-') + 1, pDate.lastIndexOf('-'));
-    var newDay = pDate.slice(pDate.lastIndexOf('-') + 1, pDate.length);
-    // Get value from time picker. Format 21:45
-    var pTime = gTimePicker.value;
-    var newHour = pTime.slice(0, pTime.indexOf(':'));
-    var newMinute = pTime.slice(pTime.indexOf(':') + 1, pTime.length);
-    var newDate = new Date();
-    newDate.setFullYear(parseInt(newYear, 10));
-    newDate.setMonth(parseInt(newMonth, 10));
-    newDate.setDate(parseInt(newDay, 10));
-    newDate.setHours(parseInt(newHour, 10));
-    newDate.setMinutes(parseInt(newMinute, 10));
+    // Get value from date picker.
+    var pDate = gDatePicker.value;  // Format: 2012-09-01
+    // Get value from time picker.
+    var pTime = gTimePicker.value;  // Format: 0:02, 8:05, 23:45
+    if (pTime.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
+      pTime = '0' + pTime;
+    }
+    // Construct a Date object with date time
+    // specified in a ISO 8601 string (YYYY-MM-DDTHH:MM)
+    var newDate = new Date(pDate + 'T' + pTime);
     SetTime.set(newDate);
   });
 
