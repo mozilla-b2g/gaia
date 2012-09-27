@@ -1,0 +1,104 @@
+#shortcuts-favorites {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 550;
+    background: #c9c5cb;
+    color: #292929;
+    font-size: 16px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
+    
+    display: none;
+    
+    /*
+    -moz-transform: translateY(100%);
+    -webkit-transform: translateY(100%);
+    -ms-transform: translateY(100%);
+    transform: translateY(100%);
+    -moz-transition: all .4s ease;
+    -webkit-transition: all .4s ease;
+    -ms-transition: all .4s ease;
+    transition: all .4s ease;
+    */
+}
+
+#shortcuts-favorites.visible {
+    display: block;
+    /*
+    -moz-transform: translateY(0);
+    -webkit-transform: translateY(0);
+    -ms-transform: translateY(0);
+    transform: translateY(0);
+    */
+}
+    #shortcuts-favorites h2 {
+        height: 44px;
+        line-height: 44px;
+        font-size: 20px;
+        font-weight: normal;
+        padding: 0 70px 0 12px;
+        background: #c0bdc2;
+        background: -moz-linear-gradient(center top, #c9c5cb 0, #b4b0b5 100%);
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #c9c5cb), color-stop(1, #b4b0b5));
+    }
+    #shortcuts-favorites .done {
+        position: absolute;
+        top: 7px;
+        right: 6px;
+        z-index: 100;
+        font-size: 12px;
+    }
+    
+    #shortcuts-favorites .scroll-wrapper {
+        position: absolute;
+        top: 44px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+    #shortcuts-favorites .subtitle, #shortcuts-favorites li {
+        position: relative;
+        font-weight: 600;
+        height: 43px;
+        line-height: 43px;
+        padding: 0 12px 0 43px;
+        cursor: pointer;
+        border-top: 1px solid #e4e2e5;
+        border-bottom: 1px solid #aba8ad;
+    }
+    #shortcuts-favorites li:last-child {
+        border-bottom-width: 0;
+    }
+        #shortcuts-favorites li:before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #acacac;
+            margin-top: -12px;
+            border-radius: 12px;
+        }
+        #shortcuts-favorites li.on:before {
+            background-position: -108px 0;
+            border-width: 0;
+            width: 23px;
+            height: 24px;
+            -moz-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
+            -webkit-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
+            -ms-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
+            box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
+        }
+    #shortcuts-favorites .subtitle {
+        font-weight: normal;
+        padding-left: 12px;
+        border-top-width: 0;
+        color: #666;
+        cursor: text;
+    }
+    #shortcuts-favorites .subtitle:before {
+        display: none;
+    }
