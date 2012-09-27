@@ -34,7 +34,6 @@
   <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
   <script type="text/javascript" src="shared/js/l10n_date.js"></script>
-  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/utils/debug.js"></script>
@@ -84,28 +83,31 @@
 
         <!-- Show balance zone -->
         <div id="cost-control-info-area" class="overview">
-          <div class="start">
+          <div class="buttons-list end">
+            <button id="balance-tab-update-button" data-l10n-id="update-button">
+              <span class="end reload"></span>
+              Update
+            </button>
+          </div>
+          <div class="info">
             <div id="cost-control-icon" class="icons">
                 <span class="warning"></span>
                 <progress></progress>
             </div>
-
-            <time id="balance-tab-time"></time>
-          </div>
-          <div class="end">
             <p><span id="balance-tab-currency"></span>&nbsp;<span id="balance-tab-credit"></span></p>
+            <time id="balance-tab-time"></time>
           </div>
         </div>
 
         <!-- Update and top up buttons -->
         <div class="buttons-list">
-          <button id="balance-tab-update-button" data-l10n-id="update-button">
-            <span class="end reload"></span>
-            Update balance
+          <button id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
+            <span class="end topup"></span>
+            Top-Up and pay
           </button>
           <button id="balance-tab-topup-button" data-l10n-id="topup-button">
-            <span class="end topup"></span>
-            Top Up
+            <span class="end topupcode"></span>
+            Top-Up with code
           </button>
         </div>
       </section>
