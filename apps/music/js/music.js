@@ -13,6 +13,27 @@ var unknownTitle;
 // See init()
 var musicdb;
 
+// We get a localized event when the application is launched and when
+// the user switches languages.
+window.addEventListener('localized', function onlocalized() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // Get prepared for the unknown strings, these will be used later
+  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
+  unknownArtist = navigator.mozL10n.get('unknownArtist');
+  unknownTitle = navigator.mozL10n.get('unknownTitle');
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('invisible');
+
+  // The first time we get this event we start running the application.
+  // But don't re-initialize if the user switches languages while we're running.
+  if (!musicdb)
+    init();
+});
+
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
@@ -94,9 +115,6 @@ var currentOverlay;  // The id of the current overlay or null if none.
 // suffixes.
 //
 function showOverlay(id) {
-  // Users may change system language, so reset localization here
-  setLocalization();
-
   currentOverlay = id;
 
   var title = navigator.mozL10n.get(id + '-title');
@@ -1133,24 +1151,4 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-});
-
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-function setLocalization() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // Get prepared for the unknown strings, these will be used later
-  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
-  unknownArtist = navigator.mozL10n.get('unknownArtist');
-  unknownTitle = navigator.mozL10n.get('unknownTitle');
-}
-
-window.addEventListener('localized', function showBody() {
-  setLocalization();
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('invisible');
-
-  init();
 });
