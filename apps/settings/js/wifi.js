@@ -326,6 +326,14 @@ window.addEventListener('localized', function wifiSettings(evt) {
     var scanRate = 5000; // 5s after last scan results
     var index = [];      // index of all scanned networks
 
+    // get the "Searching..." and "Search Again" items, respectively
+    var infoItem = list.querySelector('li[data-state="on"]');
+    var scanItem = list.querySelector('li[data-state="ready"]');
+    scanItem.onclick = function() {
+      clear(true);
+      scan();
+    };
+
     // private DOM helper: create a "Scanning..." list item
     function newScanItem() {
       var a = document.createElement('a');
@@ -385,11 +393,16 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // clear the network list
     function clear(addScanningItem) {
-      while (list.hasChildNodes())
-        list.removeChild(list.lastChild);
-      if (addScanningItem)
-        list.appendChild(newScanItem());
       index = [];
+
+      // remove all items except the text expl. and the "search again" button
+      var wifiItems = list.querySelectorAll('li:not([data-state])');
+      var len = wifiItems.length;
+      for (var i = len - 1; i >= 0; i--) {
+        list.removeChild(wifiItems[i]);
+      }
+
+      list.dataset.state = addScanningItem ? 'on' : 'off';
     }
 
     // scan wifi networks and display them in the list
@@ -407,17 +420,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var req = gWifiManager.getNetworks();
 
       req.onsuccess = function onScanSuccess() {
-        // clear list again for showing scaning result.
+        // clear list again to show scan results
         clear(false);
-        var button = document.createElement('button');
-        button.textContent = _('scanNetworks');
-        button.onclick = function() {
-          clear(true);
-          scan();
-        };
-        var scanItem = document.createElement('li');
-        scanItem.appendChild(button);
-        list.appendChild(scanItem);
 
         // sort networks by signal strength
         var networks = req.result;
@@ -430,21 +434,26 @@ window.addEventListener('localized', function wifiSettings(evt) {
         for (var i = 0; i < ssids.length; i++) {
           var network = networks[ssids[i]];
           var listItem = newListItem(network);
+
           // put connected network on top of list
           if (isConnected(network)) {
             listItem.className = 'active';
             listItem.querySelector('small').textContent =
                 _('shortStatus-connected');
-            list.insertBefore(listItem, list.firstChild);
+            list.insertBefore(listItem, infoItem.nextSibling);
           } else {
             list.insertBefore(listItem, scanItem);
           }
           index[network.ssid] = listItem; // add to index
         }
 
+        // display the "Search Again" button
+        list.dataset.state = 'ready';
+
         // auto-rescan if requested
-        if (autoscan)
+        if (autoscan) {
           window.setTimeout(scan, scanRate);
+        }
 
         scanning = false;
       };
@@ -454,7 +463,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
         scanning = false;
         window.setTimeout(scan, scanRate);
       };
-
     }
 
     function display(ssid, message) {
@@ -480,7 +488,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       scan: scan,
       get scanning() { return scanning; }
     };
-  }) (document.getElementById('wifi-networks'));
+  }) (document.getElementById('wifi-availableNetworks'));
 
   function isConnected(network) {
     // XXX the API should expose a 'connected' property on 'network',
@@ -569,15 +577,17 @@ window.addEventListener('localized', function wifiSettings(evt) {
       dialog.querySelector('[data-security]').textContent =
           (keys && keys.length) ? keys.join(', ') : _('securityNone');
 
-      // network speed (if connected)
-      var speed = dialog.querySelector('[data-speed]');
-      function updateLinkSpeed() {
-        speed.textContent = _('linkSpeedMbs',
-            { linkSpeed: gWifiManager.connectionInformation.linkSpeed });
+      // additional connection info (when connected)
+      var ipAddress = dialog.querySelector('[data-ip]'); // IP address
+      var speed = dialog.querySelector('[data-speed]'); // link speed
+      function updateNetInfo() {
+        var info = gWifiManager.connectionInformation;
+        ipAddress.textContent = info.ipAddress || '';
+        speed.textContent = _('linkSpeedMbs', { linkSpeed: info.linkSpeed });
       }
-      if (speed) {
-        gWifiManager.connectionInfoUpdate = updateLinkSpeed;
-        updateLinkSpeed();
+      if (speed && ipAddress) {
+        gWifiManager.connectionInfoUpdate = updateNetInfo;
+        updateNetInfo();
       }
 
       // authentication fields
@@ -670,11 +680,15 @@ window.addEventListener('localized', function wifiSettings(evt) {
   function setMozSettingsEnabled(value) {
     gWifiCheckBox.checked = value;
     if (value) {
-      // gWifiManager may not be ready (enabled) at this moment.
-      // To be responsive, show 'initializing' status and 'search...' first.
-      // A 'scan' would be called when gWifiManager is enabled.
+      /**
+       * gWifiManager may not be ready (enabled) at this moment.
+       * To be responsive, show 'initializing' status and 'search...' first.
+       * A 'scan' would be called when gWifiManager is enabled.
+       */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
+      document.querySelector('#macAddress small').textContent =
+        gWifiManager.macAddress;
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {
@@ -702,9 +716,11 @@ window.addEventListener('localized', function wifiSettings(evt) {
     lastMozSettingValue = req.result['wifi.enabled'];
     setMozSettingsEnabled(lastMozSettingValue);
     if (lastMozSettingValue) {
-      // at this moment, gWifiManager probably have been enabled.
-      // so there won't invoke any status changed callback function
-      // therefore, we need to get network list here
+      /**
+       * At this moment, gWifiManager has probably been enabled.
+       * This means it won't invoke any status changed callback function;
+       * therefore, we have to get network list here.
+       */
       updateNetworkState();
       gNetworkList.scan();
     }
