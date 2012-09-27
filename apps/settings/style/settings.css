@@ -149,3 +149,24 @@ body.hidden #root {
   text-align: right;
 }
 
+
+/******************************************************************************
+ * Definition lists
+ */
+
+dl > * {
+  font-size: 1.6em;
+}
+
+dl dt {
+  padding-left: 30px;
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+dl dd {
+  margin: 0;
+  padding: 10px 30px;
+  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
+}
+
