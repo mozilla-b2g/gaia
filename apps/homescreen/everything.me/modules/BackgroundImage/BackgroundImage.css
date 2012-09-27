@@ -1,4 +1,4 @@
-#evmeBackgroundImage {
+#search-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -8,10 +8,10 @@
     opacity: 0;
     background: black;
 }
-.evme-displayed #evmeBackgroundImage {
+.evme-displayed #search-overlay {
     opacity: 1;
 }
-    #evmeBackgroundImage .img {
+    #search-overlay .img {
         position: absolute;
         top: 0;
         left: 0;
@@ -23,7 +23,7 @@
         background-size: cover;
 
     }
-    #evmeBackgroundImage .img {
+    #search-overlay .img {
         -moz-transition: opacity .3s linear;
         -webkit-transition: opacity .3s linear;
         -ms-transition: opacity .3s linear;
@@ -33,7 +33,7 @@
         -webkit-box-sizing: border-box;
         -webkit-backface-visibility: hidden;
     }
-    #evmeBackgroundImage .img.visible {
+    #search-overlay .img.visible {
         opacity: 0.4;
     }
 
@@ -128,9 +128,9 @@
     display: none;
 }
 
-#evmeContainer #evmeBackgroundImage .default-image.visible {
+#evmeContainer #search-overlay .default-image.visible {
     opacity: 0;
 }
-#evmeContainer #evmeBackgroundImage.default .default-image.visible {
+#evmeContainer #search-overlay.default .default-image.visible {
     opacity: 1;
 }

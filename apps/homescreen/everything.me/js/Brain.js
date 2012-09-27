@@ -780,8 +780,6 @@ Evme.Brain = new function() {
         };
 
         function returnFromOutside() {
-            Evme.visibilityChange(true);
-    
             if (loadingApp) {
                 loadingApp = null;
 

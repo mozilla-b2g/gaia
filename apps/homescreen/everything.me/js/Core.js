@@ -1,7 +1,7 @@
 window.Evme = new function() {
     var _name = "Core", _this = this, logger,
         recalculateHeightRetries = 1,
-        TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG", displayed = false,
+        TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG",
         OPACITY_CHANGE_DURATION = 300,
         head_ts = new Date().getTime();
 
@@ -46,34 +46,12 @@ window.Evme = new function() {
     };
     
     // Gaia communication methods
-    this.visibilityChange = function(visible) {
-        var method = visible ? "add" : "remove";
-        document.body.classList[method]("evme-displayed");
-        displayed = visible;
-    };
-
     this.setOpacityBackground = function(value) {
-        Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION, function() {
-            if (value === 1) {
-                document.body.classList.add("evme-displayed");
-                displayed = true;
-            } else {
-                document.body.classList.remove("evme-displayed");
-                displayed = false;
-            }
-        });
+        Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION);
     }
 
-    this.pageMove = function(dir, ratio) {
-        if (!displayed && dir === "in") {
-            document.body.classList.add("evme-displayed");
-            displayed = true;
-        }
-
-        ratio = Math.floor(ratio*100)/100;
-        var value = dir === "in" ? ratio : 1 - ratio;
-
-        Evme.BackgroundImage.changeOpacity(value);
+    this.pageMove = function(value) {
+        Evme.BackgroundImage.changeOpacity(Math.floor(value*100)/100);
     }
 
     function initObjects(data) {
@@ -148,7 +126,7 @@ window.Evme = new function() {
         });
 
         Evme.BackgroundImage.init({
-            "$el": $("#evmeBackgroundImage"),
+            "$el": $("#search-overlay"),
             "$elementsToFade": $("#evmeApps, #header, #search-header"),
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
