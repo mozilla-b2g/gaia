@@ -67,14 +67,6 @@ Calendar.App = (function(window) {
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
 
-      // I am not sure where this logic really belongs...
-      this.modifier('/remove-account/:id', function(data) {
-        var store = self.store('Account');
-        store.remove(data.params.id, function(id) {
-          page.replace('/advanced-settings/');
-        });
-      });
-
       this.router.start();
 
       var pathname = window.location.pathname;
