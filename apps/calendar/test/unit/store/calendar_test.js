@@ -286,7 +286,7 @@ suite('store/calendar', function() {
       subject.persist(absCal, trans);
     });
 
-    var caps = ['createEvent', 'deleteEvent', 'editEvent'];
+    var caps = ['createEvent', 'deleteEvent', 'updateEvent'];
 
     caps.forEach(function(name) {
       test('find: ' + name, function() {
