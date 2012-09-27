@@ -63,12 +63,16 @@ window.addEventListener('localized', function SettingsBattery(evt) {
     // display the current battery level
     var element = document.getElementById('battery-level').firstElementChild;
     var level = Math.min(100, Math.round(battery.level * 100));
-    element.textContent = _('batteryLevel-percent-' +
-      (battery.charging ? 'charging' : 'unplugged'), { level: level });
+    var state = 'unplugged';
 
-    // TODO: display the estimated discharging/charging time
-    element = document.getElementById('battery-remaining').firstElementChild;
-    element.textContent = battery.dischargingTime;
+    if (battery.charging && level == 100) {
+      state = 'charged';
+    } else if (battery.charging) {
+      state = 'charging';
+    }
+
+    element.textContent = _('batteryLevel-percent-' + state,
+                            { level: level });
   }
 
   var battery = window.navigator.battery;

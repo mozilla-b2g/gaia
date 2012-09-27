@@ -17,6 +17,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -30,6 +31,7 @@
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
+    <script type="application/javascript" defer src="js/datetime.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -46,17 +48,22 @@
       <!-- network properties -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="linkSpeed">link speed:
+          <a data-l10n-id="ipAddress">IP Adddress
+            <span data-ip></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed
             <span data-speed></span>
           </a>
         </li>
@@ -76,12 +83,12 @@
       <!-- network properties + identity/password input -->
       <ul>
         <li>
-          <a data-l10n-id="security">security:
+          <a data-l10n-id="security">security
             <span data-security>WPA-PSK</span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="signalStrength">signal strength:
+          <a data-l10n-id="signalStrength">signal strength
             <span data-signal>good</span>
           </a>
         </li>
@@ -176,20 +183,34 @@
       <header>
         <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       </header>
-      <ul id="wifi-networks">
-        <!-- filled by wifi.js -->
+      <ul id="wifi-availableNetworks" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+          Turn Wi-Fi on to view available networks.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by wifi.js: one list item per available network, e.g.:
+          -   <li class="wifi-signal3">
+          -     <small> WPA2 </small>
+          -     <a> Fake Mozilla </a>
+          -   </li>
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
       </ul>
 
-      <header hidden>
+      <header>
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
-      <ul hidden id="wifi-advanced">
-        <li>
+      <ul>
+        <li id="macAddress">
           <small id="macAddress-desc"></small>
           <a data-l10n-id="macAddress">MAC Address</a>
-        </li>
-        <li>
-          <button data-l10n-id="manageNetworks">Manage Networks</button>
         </li>
       </ul>
     </section>
@@ -363,7 +384,7 @@
         </li>
       </ul>
 
-      <div data-l10n-id="bluetoothEnableMsg" id="bluetooth-enable-msg" class="explanation">
+      <div data-l10n-id="bluetooth-enable-msg" id="bluetooth-enable-msg" class="explanation">
         Turn Bluetooth on to view devices in the area.
       </div>
 
@@ -623,7 +644,47 @@
         </li>
     </section>
 
-    <!-- [TODO] Personalization :: Time & Date -->
+    <!-- Personalization :: Date & Time -->
+    <section role="region" id="time">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="dateAndTime">
+          Date &amp; Time
+        </h1>
+      </header>
+      <ul>
+        <li id="time-nitz-automatic-update">
+          <label class="switch">
+            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
+      </header>
+      <ul id="time-manual" hidden>
+        <li id="setDate">
+          <small id="clock-date"></small>
+          <a data-l10n-id="dateMessage">Date</a>
+          <input type="date" id="date-picker"/>
+        </li>
+        <li id="setTime">
+          <small id="clock-display">
+            <span id="clock-time"></span>
+            <span id="clock-hour24-state"></span>
+          </small>
+          <a data-l10n-id="timeMessage">Time</a>
+          <input type="time" id="time-picker"/>
+        </li>
+        <li>
+          <label>
+            <button id="confirmTime-button">Confirm</button>
+          </label>
+        </li>
+      </ul>
+    </section>
 
     <!-- Personalization :: Language & Region -->
     <section role="region" id="languages" data-leaf>
@@ -987,7 +1048,6 @@
       </ul>
     </section>
 
-
     <!-- [TODO] Security :: App Permissions -->
 
     <!-- Security :: Do Not Track -->
@@ -1010,8 +1070,66 @@
       </ul>
     </section>
 
+    <!-- Device :: About :: Developer -->
+    <section role="region" id="developer" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="developer">
+          Developer
+        </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="debug">Debug</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.grid.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="grid">Grid</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.fps.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="fps-monitor">Show frames per second</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.paint-flashing.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="paint-flashing">Flash repainted area</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.log-animations.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="log-animations">Log slow animations</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.dev-mode"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="dev-mode">Developer Mode</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.oop.disabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
+        </li>
+       </ul>
+    </section>
+
     <!-- Device :: About -->
-    <section role="region" id="about" data-leaf>
+    <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="deviceInfo">
@@ -1026,6 +1144,12 @@
         <li>
           <small id="gaia-commit-hash"></small>
           <a id="gaia-commit-date"></a>
+        </li>
+        <li>
+          <label>
+            <button onclick="openDialog('developer');"
+              data-l10n-id="developer">Developer</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -1042,11 +1166,6 @@
       <ul>
         <li>
           <a id="battery-level" data-l10n-id="batteryLevel">Current Battery Life
-            <span></span>
-          </a>
-        </li>
-        <li>
-          <a id="battery-remaining" data-l10n-id="batteryEstLeft">Estimated Time Left
             <span></span>
           </a>
         </li>
@@ -1125,8 +1244,8 @@
       </ul>
 
       <p class="detailed-desc" data-l10n-id="media-storage-details">
-      Photos, videos, and music are stored in the SD Card.
-      See Media Storage for details.
+        Photos, videos, and music are stored in the SD Card.
+        See Media Storage for details.
       </p>
 
     </section>
@@ -1162,64 +1281,6 @@
           </a>
         </li>
       </ul>
-    </section>
-
-    <!-- Device :: Developer -->
-    <section role="region" id="developer" data-leaf>
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="developer">
-          Developer
-        </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="debug">Debug</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.grid.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="grid">Grid</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.fps.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="fps-monitor">Show frames per second</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.paint-flashing.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="paint-flashing">Flash repainted area</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.log-animations.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="log-animations">Log slow animations</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.dev-mode"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dev-mode">Developer Mode</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="debug.oop.disabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="oop-disabled">Disable Out-Of-Process</a>
-        </li>
-       </ul>
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1318,9 +1379,9 @@
         <li>
           <a href="#notifications" data-l10n-id="notifications">Notifications</a>
         </li>
-        <li hidden>
+        <li>
           <small id="time-desc"></small>
-          <a href="#time" data-l10n-id="timeAndDate">Time &amp; Date</a>
+          <a href="#time" data-l10n-id="dateAndTime">Date &amp; Time</a>
         </li>
         <li>
           <small id="language-desc"></small>
@@ -1386,9 +1447,6 @@
         <li id="media-storage-section">
           <small id="media-storage-desc"></small>
           <a href="#media-storage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li>
-          <a href="#developer" data-l10n-id="developer">Developer</a>
         </li>
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>

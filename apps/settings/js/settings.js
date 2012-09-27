@@ -3,7 +3,6 @@
 
 'use strict';
 
-
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
  * the `dom.mozSettings.enabled' preference to false.
@@ -171,10 +170,11 @@ var Settings = {
         request.onsuccess = function() {
           var value = request.result[key];
           if (value != undefined) {
-            var selectOption = select.querySelector(
-              'option[value="' + value + '"]');
-            if (selectOption)
+            var option = 'option[value="' + value + '"]';
+            var selectOption = select.querySelector(option);
+            if (selectOption) {
               selectOption.selected = true;
+            }
           }
         };
       })(selects[i]);

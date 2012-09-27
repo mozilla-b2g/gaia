@@ -18,6 +18,10 @@
 
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
+
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -202,8 +206,6 @@
       <div id="initlogo" data-z-index-level="initlogo"></div>
 
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Loading -->
-        <div id="statusbar-loading" hidden></div>
         <!-- Carrier & date label -->
         <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- Notification -->
@@ -223,6 +225,8 @@
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
+        <!-- XXX: this should be real network activity instead of mozbrowserloadstart/end -->
+        <div id="statusbar-loading" class="sb-icon sb-icon-network-activity"></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
 
         <!-- Permissions -->
@@ -288,6 +292,14 @@
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="popup-container">
+          <section role="region" class="title-container skin-dark">
+            <header>
+              <button id="popup-close"><span class="icon icon-close">close</span></button>
+              <h1 id="popup-title"></h1>
+              <div id="popup-throbber"></div>
+            </header>
+          </section>
+          <div id="frame-container"></div>
         </div>
         <div id="authentication-dialog">
           <!--div id="authentication-dialog-ftp" role="dialog">
