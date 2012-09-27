@@ -54,7 +54,6 @@ ul li > * {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 6rem);
 }
 
 /* sublines */
@@ -123,6 +122,11 @@ ul li > label:not([for]).switch > span {
 ul li > label:not([for]) + a,
 ul li > label:not([for]) + small + a {
   padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
 }
 
 
