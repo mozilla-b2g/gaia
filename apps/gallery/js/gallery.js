@@ -214,8 +214,10 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
-  // Now initialize the rest of the app
-  init();
+  // Now initialize the rest of the app. But don't re-initialize if the user
+  // switches languages when the app is already running
+  if (!photodb)
+    init();
 });
 
 function init() {
