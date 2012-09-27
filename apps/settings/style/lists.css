@@ -371,9 +371,9 @@ li.disabled > a {
 .audio-card             { background-image: url(images/bluetooth/settings_bt_audio-card.png); }
 .audio-input-microphone { background-image: url(images/bluetooth/settings_bt_audio-input-microphone.png); }
 .battery                { background-image: url(images/bluetooth/settings_bt_battery.png); }
-.camera-photo           { background-image: url(images/bluetooth/settings_bt_camera-photo-web.png); }
+.camera-photo           { background-image: url(images/bluetooth/settings_bt_camera-photo.png); }
 .camera-video           { background-image: url(images/bluetooth/settings_bt_camera-video.png); }
-.camera-web             { background-image: url(images/bluetooth/settings_bt_camera-photo-web.png); }
+.camera-web             { background-image: url(images/bluetooth/settings_bt_camera-web.png); }
 .computer               { background-image: url(images/bluetooth/settings_bt_computer.png); }
 .drive-harddisk         { background-image: url(images/bluetooth/settings_bt_drive-harddisk.png); }
 .drive-optical          { background-image: url(images/bluetooth/settings_bt_drive-optical.png); }
