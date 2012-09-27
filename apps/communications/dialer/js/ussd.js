@@ -1,7 +1,7 @@
 'use strict';
 
 var UssdManager = {
-  
+
   _conn: null,
   _popup: null,
   _origin: null,
@@ -18,9 +18,9 @@ var UssdManager = {
 
   send: function um_send(message) {
     if (this._conn) {
-      this.clearTimeout();
-      this._conn.sendUSSD(message);
-      this.setTimeout();
+      var request = this._conn.sendUSSD(message);
+      request.onsuccess = this.notifySuccess;
+      request.onerror = this.notifyError;
       if (!this._popup) {
         var urlBase = this._origin + '/dialer/ussd.html';
         this._popup = window.open(urlBase, 'ussd', 'attention');
@@ -28,26 +28,31 @@ var UssdManager = {
     }
   },
 
-  setTimeout: function um_setTimeout() {
-    this._timeout = setTimeout(this.notifyNoResponse.bind(this), 10000);
-  },
-
-  clearTimeout: function um_clearTimeout() {
-    if (this._timeout) {
-      clearTimeout(this._timeout);
-      delete this._timeout;
+  notifySuccess: function um_notifySuccess() {
+    if (UssdManager._popup) {
+      var message = {
+        type: 'success'
+        // For the time being the RIL sends an Object in the
+        // DOMRequest.result with no content so we notify no result
+        // to the UI instead of:
+        // result: this.result
+      };
+      UssdManager._popup.postMessage(message, UssdManager._origin);
     }
   },
 
-  notifyNoResponse: function um_notifyNoResponse() {
-    if (this._popup) {
-      this._popup.postMessage('noresponse', this._origin);
+  notifyError: function um_notifyError() {
+    if (UssdManager._popup) {
+      var message = {
+        type: 'error',
+        error: this.error
+      };
+      UssdManager._popup.postMessage(message, UssdManager._origin);
     }
   },
 
   handleEvent: function ph_handleEvent(evt) {
     if (evt.type == 'ussdreceived') {
-      this.clearTimeout();
       if (this._popup) {
         this._popup.postMessage(evt.message, this._origin);
       }
@@ -59,7 +64,6 @@ var UssdManager = {
         this.send(evt.data.message);
         break;
       case 'close':
-        this.clearTimeout();
         this._conn.cancelUSSD();
         this._popup = null;
         break;

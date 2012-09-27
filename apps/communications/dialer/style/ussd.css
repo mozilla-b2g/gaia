@@ -49,7 +49,7 @@ body:not(.loading) progress {
   background: url(images/header.png) repeat-x 0 0;
 }
 
-#response label {
+#response p {
   height: 3.8rem;
   margin: 0.6rem;
 }

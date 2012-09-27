@@ -27,9 +27,15 @@ suite('dialer/ussd', function() {
     UssdManager._popup = null;
   });
 
+  teardown(function() {
+    navigator.mozMobileConnection.teardown();
+    if (UssdManager._popup)
+      UssdManager._popup.teardown();
+  });
+
   suite('ussd message sending', function() {
 
-    suiteSetup(function() {
+    setup(function() {
       UssdManager.send('This is a message.');
     });
 
@@ -42,16 +48,11 @@ suite('dialer/ussd', function() {
         'This is a message.- Received');
     });
 
-    suiteTeardown(function() {
-      navigator.mozMobileConnection.teardown();
-      UssdManager._popup.teardown();
-    });
-
   });
 
   suite('ussd message reply via UI', function() {
 
-    suiteSetup(function() {
+    setup(function() {
       UssdManager._popup.reply('This is a second message.');
     });
 
@@ -64,16 +65,15 @@ suite('dialer/ussd', function() {
         'This is a second message.- Received');
     });
 
-    suiteTeardown(function() {
-      navigator.mozMobileConnection.teardown();
-      UssdManager._popup.teardown();
-    });
-
   });
 
   suite('ussd cancelling via UI', function() {
 
-    suiteSetup(function() {
+    setup(function() {
+      // UssdManager._popup reset to MockUssdUI since
+      // this suite's setup sets it to null via closeWindow().
+      // Otherwise, the second test setup would fail.
+      UssdManager._popup = MockUssdUI;
       UssdManager._popup.closeWindow();
     });
 
@@ -83,10 +83,6 @@ suite('dialer/ussd', function() {
 
     test('ussd UI closed', function() {
       assert.isNull(UssdManager._popup);
-    });
-
-    suiteTeardown(function() {
-      navigator.mozMobileConnection.teardown();
     });
 
   });
