@@ -133,6 +133,23 @@ ol.link-list a {
   display: none;
 }
 
+#modify-account-view.create .delete-record {
+  display: none;
+}
+
+#modify-account-view.update .delete-record {
+  position: absolute;
+  bottom: 0px;
+}
+
+:target#remove-account-dialog {
+  display: block;
+}
+
+#remove-account-dialog {
+  display: none;
+}
+
 /* add event view */
 
 #modify-event-view header > menu {
