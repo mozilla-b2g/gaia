@@ -1163,10 +1163,10 @@ var ThreadUI = {
                 });
               }
               CustomDialog.show(
-                _('sendFlightModeTitle'),
-                _('sendFlightModeBody'),
+                _('sendAirplaneModeTitle'),
+                _('sendAirplaneModeBody'),
                 {
-                  title: _('sendFlightModeBtnOk'),
+                  title: _('sendAirplaneModeBtnOk'),
                   callback: function() {
                     CustomDialog.hide();
                   }

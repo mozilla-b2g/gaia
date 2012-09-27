@@ -27,7 +27,7 @@ function init() {
     if (why === 'unavailable')
       showOverlay('nocard');
     else if (why === 'shared')
-      showOverlay('cardinuse');
+      showOverlay('pluggedin');
   }
 
   musicdb.onready = function() {
@@ -82,7 +82,7 @@ function scan() {
   showOverlay('scanning');   // Tell the user we're scanning
   musicdb.scan(function() {  // Run this function when scan is complete
     if (isEmpty)
-      showOverlay('nosongs');
+      showOverlay('empty');
     else
       showOverlay(null);     // Hide the overlay
   });
@@ -99,8 +99,8 @@ var currentOverlay;  // The id of the current overlay or null if none.
 // Supported ids include:
 //
 //   nocard: no sdcard is installed in the phone
-//   cardinuse: the sdcard is being used by USB mass storage
-//   nosongs: no songs found
+//   pluggedin: the sdcard is being used by USB mass storage
+//   empty: no songs found
 //   scanning: the app is scanning for new photos
 //
 // Localization is done using the specified id with "-title" and "-text"
@@ -276,7 +276,7 @@ var TilesView = {
     this.view.scrollTop = 0;
 
     isEmpty = true;
-    showOverlay('nosongs');
+    showOverlay('empty');
   },
 
   setItemImage: function tv_setItemImage(item, fileinfo) {
@@ -293,7 +293,7 @@ var TilesView = {
       return;
 
     // If we were showing the 'no songs' overlay, hide it
-    if (currentOverlay === 'nosongs')
+    if (currentOverlay === 'empty')
       showOverlay(null);
 
     isEmpty = false;
