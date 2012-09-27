@@ -330,13 +330,6 @@ var Settings = {
 
     reset(); // preset all fields before opening the dialog
     openDialog(dialogID, submit);
-  },
-
-  openURL: function settings_openURL(url) {
-    var a = new MozActivity(
-      { name: 'view',
-        data: {type: 'url', url: url }
-      });
   }
 };
 

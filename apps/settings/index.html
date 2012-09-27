@@ -919,6 +919,7 @@
     </section>
 
     <!-- [TODO] Accounts :: Persona -->
+
     <!-- [TODO] Accounts :: Mail -->
 
     <!-- Security :: Phone Lock -->
@@ -1034,14 +1035,12 @@
       <dl>
         <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
         <dd data-l10n-id="simPinIntro1">
-          A SIM PIN prevents access to the SIM card's
-          cellular data networks. When it's on, any device
-          containing the SIM card will request the PIN upon
+          A SIM PIN prevents access to the SIM card cellular data networks. When
+          it’s on, any device containing the SIM card will request the PIN upon
           restart.
         </dd>
         <dd data-l10n-id="simPinIntro2">
-          A SIM PIN is not the same as the Passcode used
-          to unlock the device.
+          A SIM PIN is not the same as the Passcode used to unlock the device.
         </dd>
       </dl>
 
@@ -1076,7 +1075,7 @@
       </ul>
     </section>
 
-    <!-- Device :: About :: Developer -->
+    <!-- Device :: Information :: Developer -->
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1134,7 +1133,7 @@
        </ul>
     </section>
 
-    <!-- Device :: Device Information :: More Information Dialog -->
+    <!-- Device :: Information :: More Information Dialog -->
     <section role="region" id="more-info" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1143,17 +1142,17 @@
       <ul>
         <li>
           <a data-l10n-id="model-name"> Model
-            <span class="storage-space" data-name="deviceinfo.hardware"></span>
+            <span data-name="deviceinfo.hardware"></span>
           </a>
         </li>
         <li>
           <a data-l10n-id="os-version"> OS Version
-            <span class="storage-space" data-name="deviceinfo.os"></span>
+            <span data-name="deviceinfo.os"></span>
           </a>
         </li>
         <li>
-          <a data-l10n-id="MAC-address"> MAC address
-            <span class="storage-space"></span>
+          <a data-l10n-id="macAddress"> MAC address
+            <span data-name="deviceinfo.mac"></span>
           </a>
         </li>
         <li>
@@ -1164,7 +1163,7 @@
       </ul>
     </section>
 
-    <!-- Device :: Device Information :: About your rights Dialog -->
+    <!-- Device :: Information :: About your rights Dialog -->
     <section role="region" id="about-your-rights" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1174,7 +1173,7 @@
       </p>
     </section>
 
-    <!-- Device :: Device Information :: Licensing Dialog -->
+    <!-- Device :: Information :: Licensing Dialog -->
     <section role="region" id="licensing" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1184,7 +1183,7 @@
       </p>
     </section>
 
-    <!-- Device :: Device Information -->
+    <!-- Device :: Information -->
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1210,7 +1209,7 @@
         </li>
         <li>
           <label>
-            <button data-l10n-id="more-info" onclick="Settings.openDialog('more-info')"> More Information </button>
+            <button data-l10n-id="more-info" onclick="openDialog('more-info')"> More Information </button>
           </label>
         </li>
       </ul>
@@ -1222,10 +1221,10 @@
         <li>
           <label>
             <select>
-              <option value="1" data-l10n-id="check-update-daily">Daily</option>
-              <option value="7" data-l10n-id="check-update-weekly">Weekly</option>
+              <option value="1"  data-l10n-id="check-update-daily">Daily</option>
+              <option value="7"  data-l10n-id="check-update-weekly">Weekly</option>
               <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
-              <option value="0" data-l10n-id="never">Never</option>
+              <option value="0"  data-l10n-id="never">Never</option>
             </select>
           </label>
           <a data-l10n-id="check-for-updates">Check for Updates</a>
@@ -1240,31 +1239,30 @@
       <header>
         <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS</h2>
       </header>
-
-      <p class="detailed-desc" data-l10n-id="firefox-os-desc">
-        Firefox OS is the free and open source operating 
-        system from Mozilla. Our mission is to promote 
-        openness, innovation and opportunity by 
-        keeping the power of the Web in your hands.
-      </p>
-
       <ul>
         <li>
+          <p class="description" data-l10n-id="firefox-os-desc">
+            Firefox OS is the free and open source operating system from Mozilla.
+            Our mission is to promote openness, innovation and opportunity by
+            keeping the power of the Web in your hands.
+          </p>
+        </li>
+        <li>
           <label>
-            <button data-l10n-id="about-your-rights" onclick="Settings.openDialog('about-your-rights')"> About Your Rights </button>
+            <button data-l10n-id="about-your-rights" onclick="openDialog('about-your-rights')"> About Your Rights </button>
           </label>
         </li>
         <li>
           <label>
-            <!-- XXX: need to change it to link to "Privacy Rights" Page in the "Security and Privacy" section  -->
-            <a href="#doNotTrack" class="link-button">
+            <!-- TODO: need to change it to link to "Privacy Rights" Page in the "Security and Privacy" section  -->
+            <a href="#doNotTrack">
               <button id="about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </button>
             </a>
           </label>
         </li>
         <li>
           <label>
-            <button data-l10n-id="licensing" onclick="Settings.openDialog('licensing')"> Licensing </button>
+            <button data-l10n-id="licensing" onclick="openDialog('licensing')"> Licensing </button>
           </label>
         </li>
         <li>
@@ -1272,12 +1270,11 @@
             <div>
               <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
               <span data-l10n-id="share-performance-data">
-                I want to help make Firefox OS faster and 
-                easier to use by sharing information about 
-                my phone’s performance.
+                I want to help make Firefox OS faster and easier to use by
+                sharing information about my phone’s performance.
               </span>
-              <a href="#" onclick="Settings.openURL('http://mozilla.org'); return false;" data-l10n-id="learn-more"> Learn More </a>
-             </div>
+              <a href="#" onclick="openURL('http://mozilla.org'); return false;" data-l10n-id="learn-more"> Learn More </a>
+            </div>
           </label>
         </li>
       </ul>
@@ -1373,26 +1370,26 @@
 
         <li>
           <a id="apps-total-space" data-l10n-id="apps-total-space"> Total Space
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="apps-used-space" data-l10n-id="apps-used-space"> Used
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="apps-free-space" data-l10n-id="apps-free-space"> Left
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
+        <li>
+          <p class="description" data-l10n-id="media-storage-details">
+            Photos, videos, and music are stored in the SD Card.
+            See Media Storage for details.
+          </p>
+        </li>
       </ul>
-
-      <p class="detailed-desc" data-l10n-id="media-storage-details">
-        Photos, videos, and music are stored in the SD Card.
-        See Media Storage for details.
-      </p>
-
     </section>
 
     <!-- Device :: Media Storage -->
@@ -1407,22 +1404,22 @@
       <ul>
         <li>
           <a id="music-space" data-l10n-id="music-space"> Music
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="pictures-space" data-l10n-id="pictures-space"> Pictures
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="videos-space" data-l10n-id="videos-space"> Movies
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
         <li>
           <a id="media-free-space" data-l10n-id="left-space"> Space Left
-            <span class="storage-space"></span>
+            <span></span>
           </a>
         </li>
       </ul>
@@ -1456,7 +1453,7 @@
     </section>
 
     <!-- Device :: Help -->
-    <section role="region" id="help" data-leaf>
+    <section role="region" id="help" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="helpAndFeedback">
@@ -1596,7 +1593,7 @@
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
-        <li>
+        <li hidden>
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>
