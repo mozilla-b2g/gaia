@@ -1108,7 +1108,7 @@ var Browser = {
     if (tab) {
       tab.dom = iframe;
     } else {
-      var tab = {
+      tab = {
         id: 'tab_' + this.tabCounter++,
         dom: iframe,
         url: url || null,
