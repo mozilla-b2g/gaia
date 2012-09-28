@@ -60,41 +60,8 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
-*/
-
-/* XXX HACK for achieving the transition due to there is a bug in platform
-https://bugzilla.mozilla.org/show_bug.cgi?id=795245
-I've create a transition of left until having again available translateX
-Remove the #main-wrapper once it will be fixed.
 */
 
 #snapshot {
@@ -115,20 +82,6 @@ Remove the #main-wrapper once it will be fixed.
    -moz-transform: translateX(50%);
 }
 
-/* XXX Restore once https://bugzilla.mozilla.org/show_bug.cgi?id=795245 fixed
-.snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
-}
-
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
-}
-*/
 /* Styles for Edit mode */
 
 .edit .options {

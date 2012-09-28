@@ -25,19 +25,12 @@ var MessageManager = {
   slide: function mm_slide(callback) {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var messagesMirror = document.getElementById('thread-messages-snapshot');
-    // XXX Once
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=795245 will be solved
-    // we should remove the code below and restore the old code
-
     var snapshot = document.getElementById('snapshot');
-    
-    if( mainWrapper.classList.contains('to-left')) {
+    if (mainWrapper.classList.contains('to-left')) {
       bodyClass.add('snapshot-back');
     } else {
       bodyClass.add('snapshot');
     }
-    
     mainWrapper.classList.toggle('to-left');
     snapshot.addEventListener('transitionend', function rm_snapshot() {
       snapshot.removeEventListener('transitionend', rm_snapshot);
@@ -47,19 +40,6 @@ var MessageManager = {
         callback();
       }
     });
-
-    // XXX Code to restore once https://bugzilla.mozilla.org/show_bug.cgi?id=795245
-    // bodyClass.add('snapshot');
-    // bodyClass.toggle('mirror-swipe');
-    // mainWrapper.classList.toggle('to-left');
-    // messagesMirror.addEventListener('transitionend', function rm_snapshot() {
-    //   messagesMirror.removeEventListener('transitionend', rm_snapshot);
-    //   bodyClass.remove('snapshot');
-    //   if (callback) {
-    //     callback();
-    //   }
-    // });
-
   },
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
@@ -146,7 +126,7 @@ var MessageManager = {
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
           this.getMessages(ThreadListUI.renderThreads);
-          if(!MessageManager.lockActivity){
+          if (!MessageManager.lockActivity) {
             var num = this.getNumFromHash();
             if (num) {
               var filter = this.createFilter(num);
@@ -1388,7 +1368,7 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // XXX This locks is about https://github.com/mozilla-b2g/gaia/issues/5405
-  if(!MessageManager.lockActivity) {
+  if (!MessageManager.lockActivity) {
     MessageManager.lockActivity = true;
     activity.postResult({ status: 'accepted' });
     var number = activity.source.data.number;
@@ -1411,7 +1391,6 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
           if (currentLocation.indexOf('#num=') != -1) {
             MessageManager.activityTarget = number;
             window.location.hash = '#thread-list';
-            
           } else {
             window.location.hash = '#num=' + number;
             delete MessageManager.lockActivity;
@@ -1426,9 +1405,10 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
         activityAction();
       });
     } else {
-      document.addEventListener('mozvisibilitychange', function waitVisibility() {
-        document.removeEventListener('mozvisibilitychange', waitVisibility);
-        activityAction();
+      document.addEventListener('mozvisibilitychange',
+        function waitVisibility() {
+          document.removeEventListener('mozvisibilitychange', waitVisibility);
+          activityAction();
       });
     }
   }
