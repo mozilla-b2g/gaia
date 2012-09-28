@@ -28,6 +28,12 @@
       return lastPart;
     },
 
+    log: function() {
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift('CALENDAR:');
+      console.error.apply(console, args);
+    },
+
     /**
      * Base compare function.
      */

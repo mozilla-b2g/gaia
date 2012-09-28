@@ -1,4 +1,4 @@
-Calendar.ns('Views').DayChild = (function() {;
+Calendar.ns('Views').DayChild = (function() {
 
   var template = Calendar.Templates.Day;
   var OrderedMap = Calendar.OrderedMap;
