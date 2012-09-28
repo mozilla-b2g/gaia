@@ -299,7 +299,6 @@ fb.Contact = function(deviceContact, cid) {
 
         fbreq.onsuccess = function() {
           var fbdata = fbreq.result;
-          alert(fbdata.photo.length);
 
           var out1 = this.merge(fbdata);
 
