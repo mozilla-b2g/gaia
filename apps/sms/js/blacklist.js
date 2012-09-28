@@ -15,6 +15,7 @@ var BlackList = (function() {
 
   function _init() {
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/blacklist.json', true);
     xhr.send(null);
 
