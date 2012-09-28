@@ -69,7 +69,6 @@ var EvmeManager = (function() {
         return;
       }
 
-      dump('pasa')
       window.addEventListener("load", function loaded() {
         Evme.init();
         window.removeEventListener('load', loaded);
