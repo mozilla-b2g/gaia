@@ -564,6 +564,12 @@ contacts.List = (function() {
     }
   }
 
+  var setOrderByLastName = function setOrderByLastName(value) {
+    orderByLastName = value;
+    cleanContactsList();
+    this.load();
+  };
+
   return {
     'init': init,
     'load': load,
