@@ -397,6 +397,16 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
+ * Language and Region
+ */
+
+#languages select {
+  width: 50%;
+  text-align: center;
+}
+
+
+/******************************************************************************
  * Device Information
  */
 
