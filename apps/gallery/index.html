@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <!-- Shared code -->
@@ -17,33 +18,33 @@
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
-  <body class="hidden">
+  <body role="application">
     <!-- This element gets inserted into the different view elements --> 
     <!-- It gets styled differently depending on what its parent is -->
     <ul id="thumbnails">
       <!-- Thumbnails inserted here -->
     </ul>
 
-    <div id="thumbnail-list-view" class="hidden">
-      <div id="thumbnails-bottom">
+    <section id="thumbnail-list-view" >
+      <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
-    <div id="thumbnail-select-view" class="hidden">
-      <div id="thumbnails-select-top">
-        <a id="thumbnails-cancel-button" class="button"></a>
-        <div id="thumbnails-number-selected"></div>
-      </div>
+    <section role="region" id="thumbnail-select-view" class="hidden skin-organic">
+      <header id="thumbnails-select-top">
+        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+        <h1 id="thumbnails-number-selected"></h1>
+      </header>
 
-      <div id="thumbnails-select-bottom">
+      <footer id="thumbnails-select-bottom">
         <a id="thumbnails-delete-button" class="button"></a>
         <a id="thumbnails-share-button" class="button"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
-    <div id="photo-view" class="hidden">
+    <section id="photo-view" class="hidden">
       <div id="photo-frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div class="photoFrame previousPhoto"><img></div>
@@ -51,14 +52,14 @@
         <div class="photoFrame nextPhoto"><img></div>
       </div>
 
-      <div id="photos-toolbar">
+      <footer id="photos-toolbar">
         <a id="photos-back-button" class="button"></a>
         <a id="photos-camera-button" class="button"></a>
         <a id="photos-edit-button" class="button"></a>
         <a id="photos-share-button" class="button"></a>
         <a id="photos-delete-button" class="button"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
     <div id="pick-view" class="hidden">
       <div id="pick-top">
