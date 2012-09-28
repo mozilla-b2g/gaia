@@ -17,7 +17,7 @@
 
 .fixed-title-fb {
   position: absolute;
-  top: 7.2rem;
+  top: 5rem;
   left: 2.5rem;
   width: -moz-calc(100% - 4.2rem);
   z-index: 0;
