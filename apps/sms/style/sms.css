@@ -6,7 +6,7 @@
   }
 }
 
-@media screen and (max-resolution: 220dpi) {
+@media screen and (min-resolution: 218dpi) {
 
   html {
     font-size: 13.5px;
@@ -51,16 +51,6 @@ html, body {
 
 }
 
-/* XXX HACK for achieving the transition due to there is a bug in platform
-https://bugzilla.mozilla.org/show_bug.cgi?id=795245
-I've create a transition of left until having again available translateX
-Remove the #main-wrapper once it will be fixed.
-*/
-
-#main-wrapper {
-  -moz-transition: left .4s ease;
-}
-
 .to-left {
   left: -100%;
 }
@@ -101,6 +91,30 @@ Remove the #main-wrapper once it will be fixed.
   Smooth lateral slide
 */
 
+/* XXX HACK for achieving the transition due to there is a bug in platform
+https://bugzilla.mozilla.org/show_bug.cgi?id=795245
+I've create a transition of left until having again available translateX
+Remove the #main-wrapper once it will be fixed.
+*/
+#snapshot {
+  top:0;
+  position: absolute;
+  -moz-transition: -moz-transform .4s ease;
+}
+.snapshot #snapshot {
+  z-index: 100;
+  -moz-transform: translateX(-50%);
+}
+
+.snapshot-back #snapshot {
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
+}
+
+
+/*
+XXX Restore when https://bugzilla.mozilla.org/show_bug.cgi?id=795245 fixed
 .snapshot #snapshot {
    top: -100%;
    z-index: 100;
@@ -112,7 +126,7 @@ Remove the #main-wrapper once it will be fixed.
 
 .mirror-swipe #thread-messages-snapshot {
   -moz-transform: translateX(-100%);
-}
+}*/
 
 /* Styles for Edit mode */
 

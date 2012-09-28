@@ -26,11 +26,32 @@ var MessageManager = {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
     var messagesMirror = document.getElementById('thread-messages-snapshot');
-    // XXX All code commented has to be restored once
+    // XXX Once
     // https://bugzilla.mozilla.org/show_bug.cgi?id=795245 will be solved
+    // we should remove the code below and restore the old code
+
+    var snapshot = document.getElementById('snapshot');
+    
+    if( mainWrapper.classList.contains('to-left')) {
+      bodyClass.add('snapshot-back');
+    } else {
+      bodyClass.add('snapshot');
+    }
+    
+    mainWrapper.classList.toggle('to-left');
+    snapshot.addEventListener('transitionend', function rm_snapshot() {
+      snapshot.removeEventListener('transitionend', rm_snapshot);
+      bodyClass.remove('snapshot');
+      bodyClass.remove('snapshot-return');
+      if (callback) {
+        callback();
+      }
+    });
+
+    // XXX Code to restore once https://bugzilla.mozilla.org/show_bug.cgi?id=795245
     // bodyClass.add('snapshot');
     // bodyClass.toggle('mirror-swipe');
-    mainWrapper.classList.toggle('to-left');
+    // mainWrapper.classList.toggle('to-left');
     // messagesMirror.addEventListener('transitionend', function rm_snapshot() {
     //   messagesMirror.removeEventListener('transitionend', rm_snapshot);
     //   bodyClass.remove('snapshot');
@@ -39,13 +60,6 @@ var MessageManager = {
     //   }
     // });
 
-    //Remove following lines when https://bugzilla.mozilla.org/show_bug.cgi?id=795245 will be solved
-    mainWrapper.addEventListener('transitionend', function rm_snapshot() {
-      mainWrapper.removeEventListener('transitionend', rm_snapshot);
-      if (callback) {
-        callback();
-      }
-    });
   },
   handleEvent: function mm_handleEvent(event) {
     switch (event.type) {
