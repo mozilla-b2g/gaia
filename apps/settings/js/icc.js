@@ -19,9 +19,10 @@
 
   function handleSTKCommand(command) {
     debug('STK Proactive Command:' + JSON.stringify(command));
+    var options = command.options;
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
-        window.asyncStorage.setItem('stkMainAppMenu', command.options);
+        window.asyncStorage.setItem('stkMainAppMenu', options);
         updateMenu();
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         break;
@@ -35,14 +36,15 @@
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        alert(command.options.text);
+        alert(options.text);
         break;
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
         debug(' STK:Send message: ' + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        // TODO: Show a spinner instead the message (UX decission). Stop it on any other command
+        // TODO: Show a spinner instead the message (UX decission).
+        // Stop it on any other command
         break;
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + command.options.address);
@@ -53,14 +55,14 @@
         }
         break;
       case icc.STK_CMD_LAUNCH_BROWSER:
-        debug(' STK:Setup Launch Browser. URL: ' + command.options.url);
+        debug(' STK:Setup Launch Browser. URL: ' + options.url);
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        if (confirm(command.options.confirmMessage)) {
+        if (confirm(options.confirmMessage)) {
           var options = {
             name: 'view',
             data: {
               type: 'url',
-              url: command.options.url
+              url: options.url
             }
           };
 
@@ -111,7 +113,8 @@
       document.getElementById('iccMenuItem').textContent = menu.title;
       document.getElementById('icc-stk-operator-header').textContent = menu.title;
       menu.items.forEach(function (menuItem) {
-        debug('STK Main App Menu item:' + menuItem.text + ' # ' + menuItem.identifer);
+        debug('STK Main App Menu item:' + menuItem.text + ' # ' +
+              menuItem.identifer);
         iccStkAppsList.appendChild(getDOMMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
@@ -163,7 +166,8 @@
 
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-selectoption-identifier');
-    debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' + JSON.stringify(command));
+    debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' +
+          JSON.stringify(command));
     icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                   itemIdentifier: identifier});
   }
@@ -183,7 +187,7 @@
       iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
 
-    debug('STK Input title: ' + command.options.text);
+    debug('STK Input title: ' + options.text);
 
     var li = document.createElement('li');
     var p = document.createElement('p');
