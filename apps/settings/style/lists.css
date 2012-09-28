@@ -297,6 +297,7 @@ ul li p + input[type=password] {
 .description {
   padding: 1rem 3rem;
   font-size: 1.5rem;
+  white-space: normal;
 }
 
 
@@ -425,19 +426,5 @@ ul li p + input[type=password] {
 #languages select {
   width: 50%;
   text-align: center;
-}
-
-
-/******************************************************************************
- * Device Information
- */
-
-.pref > div {
-  padding: 1rem 3rem;
-  font-size: 1.5rem;
-}
-
-label a[href="#doNotTrack"] {
-  text-decoration: none;
 }
 
