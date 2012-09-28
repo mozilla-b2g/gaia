@@ -126,7 +126,8 @@
         <section id="search-view" class="view">
            <form id="searchview-container" class="search">
               <label for="search-contact">
-                <input data-cancelable required type="search" name="search" class="textfield" placeholder="Search" id="search-contact" data-l10n-id="search-contact" />
+                <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.List.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.List.search()" data-l10n-id="search-contact" />
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
                 <button id='cancel-search' data-l10n-id="cancel">Cancel</button>
               </label>
             </form>
@@ -268,9 +269,11 @@
             <section>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -285,6 +288,7 @@
             <section>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -299,15 +303,19 @@
             <section>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
                 <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
                 <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
             </section>
           </fieldset>
@@ -319,6 +327,7 @@
             <dd class="setbox-body">
               <p class="setbox-item">
                <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+               <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
             </dd>
           </dl>
@@ -340,13 +349,16 @@
                 <div class="item-body-exp">
                   <p class="fillflow-row">
                     <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                    <button type="reset" onclick="return false;" class="hide">Clear</button>
                   </p>
                   <p class="fillflow-row">
                     <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                    <button type="reset" onclick="return false;" class="hide">Clear</button>
                   </p>
                 </div>
                 <p class="fillflow-row">
                   <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">
+                  <button type="reset" onclick="return false;" class="hide">Clear</button>
                 </p>
               </section>
 
@@ -418,6 +430,7 @@
             <ul id="tags-list" class="selection-list">
             </ul>
             <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
+            <button type="reset" onclick="return false;" class="hide">Clear</button>
           </div>
         </article>
       </section>

@@ -153,10 +153,11 @@ hr {
 }
 
 /* Overriding Input areas BB */
-form p input + button[type="reset"],
-form p textarea + button[type="reset"] {
-  opacity: 1;
-  pointer-events: auto;
+form p input + button[type="reset"].hide,
+form p textarea + button[type="reset"].hide {
+  display: block!important;
+  opacity: 0;
+  pointer-events: none;
 }
 
 fieldset legend.action {
