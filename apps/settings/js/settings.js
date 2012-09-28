@@ -133,8 +133,9 @@ var Settings = {
     }
 
     // handle web activity
-    navigator.mozSetMessageHandler('activity',
-      function settings_handleActivity(activityRequest) {
+    var handler = navigator.mozSetMessageHandler;
+    if (handler && typeof(mozSetMessageHandler) == 'function') {
+      handler('activity', function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
           case 'configure':
@@ -155,8 +156,8 @@ var Settings = {
             });
             break;
         }
-      }
-    );
+      });
+    }
 
     // preset all select
     var selects = document.querySelectorAll('select');
@@ -178,6 +179,23 @@ var Settings = {
           }
         };
       })(selects[i]);
+    }
+
+    // preset all span with data-name fields
+    rule = 'span[data-name]:not([data-ignore])';
+    var spanFields = document.querySelectorAll(rule);
+    for (i = 0; i < spanFields.length; i++) {
+      (function(span) {
+        var key = span.dataset.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined)
+            span.textContent = request.result[key];
+        };
+      })(spanFields[i]);
     }
   },
 
@@ -322,6 +340,33 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
   Settings.init();
+
+  // early way out if we're using a desktop build
+  var settings = Settings.mozSettings;
+  if (!settings)
+    return;
+
+  // brightness control
+  var manualBrightness = document.getElementById('brightness-manual');
+  var autoBrightnessSetting = 'screen.automatic-brightness';
+  settings.addObserver(autoBrightnessSetting, function(event) {
+    manualBrightness.hidden = event.settingValue;
+  });
+  var req = settings.createLock().get(autoBrightnessSetting);
+  req.onsuccess = function brightness_onsuccess() {
+    manualBrightness.hidden = req.result[autoBrightnessSetting];
+  };
+
+  // activate all external links
+  var links = document.querySelectorAll('a[href^="http"]');
+  for (var i = 0; i < links.length; i++) {
+    links[i].dataset.href = links[i].href;
+    links[i].href = '#';
+    links[i].onclick = function() {
+      openURL(this.dataset.href);
+      return false;
+    };
+  }
 });
 
 // back button = close dialog || back to the root page
@@ -363,5 +408,20 @@ window.addEventListener('localized', function showBody() {
       document.location.hash = 'languages';
     });
   }
+
+  // update date and time samples
+  var d = new Date();
+  var f = new navigator.mozL10n.DateTimeFormat();
+  var _ = navigator.mozL10n.get;
+  document.getElementById('region-date').textContent =
+      f.localeFormat(d, _('longDateFormat'));
+  document.getElementById('region-time').textContent =
+      f.localeFormat(d, _('shortTimeFormat'));
+
+  // show current locale in the main panel
+  var selector = 'select[name="language.current"] option[value="' +
+      navigator.mozL10n.language.code + '"]';
+  document.getElementById('language-desc').textContent =
+      document.querySelector(selector).textContent;
 });
 

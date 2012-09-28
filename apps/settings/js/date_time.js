@@ -22,36 +22,30 @@ var SetTime = (function SetTime() {
     init: _init,
     set: set
   };
-
 })();
 
 window.addEventListener('localized', function SettingsDateAndTime(evt) {
-
   var _ = navigator.mozL10n.get;
 
   function initDatePicker() { // Date Picker need to provide init value
     var d = new Date();
-    gDatePicker.value = d.getFullYear() + '-' +
-                        d.getMonth() + '-' +
-                        d.getDate();
+    gDatePicker.value = d.toLocaleFormat('%Y-%m-%d');
   }
 
   function initTimePicker() { // Time Picker need to provide init value
     var d = new Date();
-    gTimePicker.value = d.getHours() + ':' + d.getMinutes();
+    gTimePicker.value = d.toLocaleFormat('%H:%M');
   }
 
   function updateDate() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
-    var format = navigator.mozL10n.get('dateFormat');
-    gDate.textContent = f.localeFormat(d, format);
+    gDate.textContent = f.localeFormat(d, '%x');
 
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
                             d.getMilliseconds();
-    _updateDateTimeout =
-    window.setTimeout(function updateDateTimeout() {
+    _updateDateTimeout = window.setTimeout(function updateDateTimeout() {
       updateDate();
     }, remainMillisecond);
   }
@@ -59,21 +53,42 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   function updateClock() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
-    var localeTimeFormat = _('timeFormat');
-    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
-    var t =
-        f.localeFormat(d, (is12hFormat ? '%I:%M' : '%H:%M')).replace(/^0/, '');
-    var p = is12hFormat ? f.localeFormat(d, '%p') : '';
-    gClockTime.textContent = t;
-    gClockHourState.textContent = p;
-    _updateClockTimeout =
-    window.setTimeout(function updateClockTimeout() {
+    var format = _('shortTimeFormat');
+    gTime.textContent = f.localeFormat(d, format);
+
+    _updateClockTimeout = window.setTimeout(function updateClockTimeout() {
       updateClock();
     }, (59 - d.getSeconds()) * 1000);
   }
 
   function setTimeManualEnabled(enabled) {
     gTimeManualMenu.hidden = enabled ? true : false;
+  }
+
+  function setTime(type) {
+    var pDate = '';
+    var pTime = '';
+    var d = new Date();
+    switch (type) {
+      case 'date':
+        // Get value from date picker.
+        pDate = gDatePicker.value;  // Format: 2012-09-01
+        pTime = d.toLocaleFormat('%H:%M');
+        break;
+
+      case 'time':
+        // Get value from time picker. %Y-%m-%d
+        pDate = d.toLocaleFormat('%Y-%m-%d');
+        pTime = gTimePicker.value;  // Format: 0:02, 8:05, 23:45
+        break;
+    }
+    if (pTime.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
+      pTime = '0' + pTime;
+    }
+    // Construct a Date object with date time
+    // specified in a ISO 8601 string (YYYY-MM-DDTHH:MM)
+    var newDate = new Date(pDate + 'T' + pTime);
+    SetTime.set(newDate);
   }
 
   var settings = window.navigator.mozSettings;
@@ -84,9 +99,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var gDatePicker = document.getElementById('date-picker');
   var gTimePicker = document.getElementById('time-picker');
   var gDate = document.getElementById('clock-date');
-  var gClockTime = document.getElementById('clock-time');
-  var gClockHourState = document.getElementById('clock-hour24-state');
-  var gConfirmTimeButton = document.getElementById('confirmTime-button');
+  var gTime = document.getElementById('clock-time');
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
 
@@ -117,29 +130,11 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   updateDate();
   updateClock();
 
-  // XXX: No change event from date/time picker
-  // Bug 793553 -
-  // [b2g] oninput is not fired when the content of an input field is changed
-  // Use confirm button to set the picked time
-  gDatePicker.addEventListener('change', function datePickerChange() {
-    // [TODO]: Set time by the changed date.
+  gDatePicker.addEventListener('input', function datePickerChange() {
+    setTime('date');
   });
-  gTimePicker.addEventListener('change', function timePickerChange() {
-    // [TODO]: Set time by the changed time.
-  });
-
-  gConfirmTimeButton.addEventListener('click', function confirmTime() {
-    // Get value from date picker.
-    var pDate = gDatePicker.value;  // Format: 2012-09-01
-    // Get value from time picker.
-    var pTime = gTimePicker.value;  // Format: 0:02, 8:05, 23:45
-    if (pTime.indexOf(':') == 1) {  // Format: 8:05 --> 08:05
-      pTime = '0' + pTime;
-    }
-    // Construct a Date object with date time
-    // specified in a ISO 8601 string (YYYY-MM-DDTHH:MM)
-    var newDate = new Date(pDate + 'T' + pTime);
-    SetTime.set(newDate);
+  gTimePicker.addEventListener('input', function timePickerChange() {
+    setTime('time');
   });
 
   window.addEventListener('moztimechange', function moztimechange() {
@@ -159,3 +154,4 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     }
   });
 });
+

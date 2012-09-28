@@ -13,6 +13,8 @@
   <!-- Include shared building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+  <!-- Include building blocks that not in shared folder yet -->
+  <link rel="stylesheet" type="text/css" href="style/banner.css"/>
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
   <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -64,6 +66,14 @@
        should be fairly safe, for example.) -->
   <div id="cardContainer">
     <div id="cards" style="left: 0px;"></div>
+    <section role="dialog" class="banner customized collapsed">
+      <button class="toaster-cancel-btn header-left-btn">
+        <span class="icon icon-close"></span>
+      </button>
+      <p>Toaster Title</p>
+      <button data-l10n-id="toaster-undo" class="toaster-banner-undo">undo</button>
+      <button data-l10n-id="toaster-retry" class="toaster-banner-retry">retry</button>
+    </section>
   </div>
 
   <!-- We have a "card" centric implementation that clones the cards from below.
@@ -522,6 +532,30 @@
               AccounT TypE</span>
             <em class="aside end">
               <span class="tng-account-type list-value">AccounT TypE</span>
+            </em>
+          </li>
+          <li>
+            <span data-l10n-id="settings-account-synchronize" class="list-text">
+              SynchronizE</span>
+            <em class="aside end">
+              <select class="mail-select tng-account-synchronize">
+                <option value="1d" data-l10n-id="settings-synchronize-one-day">
+                  1 DaY</option>
+                <option value="3d" data-l10n-id="settings-synchronize-three-days">
+                  3 DayS</option>
+                <option value="1w" data-l10n-id="settings-synchronize-one-week">
+                  1 WeeK</option>
+                <option value="2w" data-l10n-id="settings-synchronize-two-weeks">
+                  2 WeekS</option>
+                <option value="1m" data-l10n-id="settings-synchronize-one-month">
+                  1 MontH</option>
+                <option value="3m" data-l10n-id="settings-synchronize-three-months">
+                  3 MonthS</option>
+                <option value="6m" data-l10n-id="settings-synchronize-six-months">
+                  6 MonthS</option>
+                <option value="all" data-l10n-id="settings-synchronize-all">
+                  AlL MessageS</option>
+              </select>
             </em>
           </li>
           <li>

@@ -188,17 +188,18 @@ if (typeof fb.importer === 'undefined') {
     Importer.getFriends = function(access_token) {
       document.body.dataset.state = 'waiting';
 
-      fb.utils.runQuery(multiQStr, 'fb.importer.friendsReady', access_token);
+      fb.utils.runQuery(multiQStr, {
+          success: fb.importer.friendsReady,
+          error: fb.importer.errorHandler,
+          timeout: fb.importer.timeoutHandler
+      },access_token);
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (!navigator.mozContacts) {
         return;
       }
 
-      var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
-                        filterBy: ['category']};
-
-      var req = navigator.mozContacts.find(filter);
+      var req = fb.utils.getAllFbContacts();
 
       req.onsuccess = contactsReady;
 
@@ -213,8 +214,11 @@ if (typeof fb.importer === 'undefined') {
       window.setTimeout(function do_importFriend() {
         var oneFriendQuery = buildFriendQuery(uid);
 
-        fb.utils.runQuery(oneFriendQuery,
-                                'fb.importer.importDataReady', access_token);
+        fb.utils.runQuery(oneFriendQuery, {
+                            success: fb.importer.importDataReady,
+                            error: fb.importer.errorHandler,
+                            timeout: fb.importer.timeoutHandler
+        }, access_token);
       },0);
 
       return currentRequest;
@@ -278,6 +282,9 @@ if (typeof fb.importer === 'undefined') {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data[0].fql_result_set;
 
+        // Now caching the number
+        fb.utils.setCachedNumFriends(lmyFriends.length);
+
         myFriendsByUid = {};
         myFriends = [];
 
@@ -305,6 +312,17 @@ if (typeof fb.importer === 'undefined') {
       }
     }
 
+    Importer.timeoutHandler = function() {
+      // TODO: figure out with UX what to do in that case
+      window.alert('Timeout!!');
+      document.body.dataset.state = '';
+    }
+
+    Importer.errorHandler = function() {
+      // TODO: figure out with UX what to do in that case
+      window.alert('Error!');
+      document.body.dataset.state = '';
+    }
 
     function fillData(f) {
       // givenName is put as name but it should be f.first_name

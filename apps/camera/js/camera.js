@@ -559,7 +559,7 @@ var Camera = {
       this.showOverlay('nocard');
       break;
     case this.STORAGE_UNMOUNTED:
-      this.showOverlay('cardinuse');
+      this.showOverlay('pluggedin');
       break;
     case this.STORAGE_CAPACITY:
       this.showOverlay('nospace');

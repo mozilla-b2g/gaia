@@ -1,6 +1,6 @@
 /**
  * Table View
- * line height = 60px, border included
+ * line height = 6rem, border included
  */
 
 ul {
@@ -30,9 +30,9 @@ ul li > a {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
+  height: 6rem;
   font-size: 1.8rem;
-  line-height: 60px;
+  line-height: 6rem;
   padding: 0 3rem;
 }
 
@@ -49,28 +49,31 @@ ul li > a span {
 }
 
 /* text ellipsis */
-ul li > label + *,
-ul li > label + * + * {
+ul li > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 66px);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
-  left: 30px;
+  left: 3rem;
+  right: 3rem;
   top: 50%;
-  padding-top: 4px;
+  padding-top: 0.4rem;
   font-size: 1.2rem;
   color: #505859;
 }
 
+ul li > label:not([for]) + small {
+  right: 6rem;
+}
+
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a {
-  line-height: 44px;
+  line-height: 4.4rem;
 }
 
 /* three-state lists: on|off|ready */
@@ -116,6 +119,16 @@ ul li > label:not([for]).switch > span {
   right: 2rem;
 }
 
+ul li > label:not([for]) + a,
+ul li > label:not([for]) + small + a {
+  padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
+}
+
 
 /******************************************************************************
  * Text inputs
@@ -142,6 +155,7 @@ ul li p + input[type=password] {
   line-height: 2rem;
   margin: -5rem auto 1rem;
 }
+
 
 /******************************************************************************
  * Other inputs
@@ -171,7 +185,7 @@ ul li p + input[type=password] {
 
 #root li [data-l10n-id] {
   background-repeat: no-repeat;
-  background-position: 14px center;
+  background-position: 1.4rem center;
 }
 
 #root li [data-l10n-id="accessibility"]     { background-image: url(images/settings/accessibility.png); }
@@ -180,9 +194,10 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="battery"]           { background-image: url(images/settings/battery.png); }
 #root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings/bluetooth.png); }
 #root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings/network.png); }
+#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
 #root li [data-l10n-id="developer"]         { background-image: url(images/settings/developer.png); }
 #root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings/about_phone.png); }
-#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png)}
+#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png); }
 #root li [data-l10n-id="display"]           { background-image: url(images/settings/display.png); }
 #root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings/do_not_track.png); }
 #root li [data-l10n-id="gps"]               { background-image: url(images/settings/gps.png); }
@@ -191,25 +206,24 @@ ul li p + input[type=password] {
 #root li [data-l10n-id="keyboard"]          { background-image: url(images/settings/keyboard.png); }
 #root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings/languages.png); }
 #root li [data-l10n-id="mail"]              { background-image: url(images/settings/email.png); }
-#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png)}
+#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png); }
 #root li [data-l10n-id="notifications"]     { background-image: url(images/settings/notifications.png); }
 #root li [data-l10n-id="persona"]           { background-image: url(images/settings/persona.png); }
 #root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings/phone_lock.png); }
 #root li [data-l10n-id="simSecurity"]       { background-image: url(images/settings/sim_card_lock.png); }
 #root li [data-l10n-id="sound"]             { background-image: url(images/settings/sound.png); }
 #root li [data-l10n-id="storage"]           { background-image: url(images/settings/storage.png); }
-#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings/date_time.png); }
+#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings/wallpaper.png); }
 #root li [data-l10n-id="wifi"]              { background-image: url(images/settings/wifi.png); }
 
 #root li a {
-  padding-left: 55px;
+  padding-left: 5.5rem;
 }
 
 #root li small {
-  left: 55px;
+  left: 5.5rem;
 }
-
 
 /******************************************************************************
  * Wi-Fi icons
@@ -274,57 +288,37 @@ ul li p + input[type=password] {
  */
 
 .explanation {
-  padding: 5px 30px;
+  padding: 0.5rem 3rem;
   font-style: italic;
   font-size: 1.4rem;
   color: #505859;
 }
 
-.detailed-desc {
-  padding: 0 3rem;
+.description {
+  padding: 1rem 3rem;
   font-size: 1.5rem;
+  white-space: normal;
 }
 
+.link-text,
+.tel-text {
+    font-size: 1.2rem;
+    color: #336699;
+    text-decoration: underline;
+}
 
 /******************************************************************************
  * Bluetooth panel
  */
 
-.toolbar-height {
-  height: 4.8rem;
-}
-
-.bottom-toolbar {
-  background-color: rgba(0, 0, 0, 0.7);
-  bottom: 0;
-  left: 0;
-  position: fixed;
-  width: 100%;
-  padding: 0.5rem;
-  padding-top: 0.6rem;
-  margin: 0px;
-}
-
-.bottom-toolbar button {
-  -moz-box-sizing: border-box;
-  background: url("buttons/images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
-  border: 0.1rem solid #9F9F9F;
-  border-radius: 0.5rem 0.5rem 0.5rem 0.5rem;
-  display: inline-block;
-  font-size: 1.4rem;
-  font-weight: 600; 
-  height: 4rem;
-  width: calc((100% - 1rem)/2);
-}
-
 .popup {
   bottom: 0;
-  left: 5px;
+  left: 0.5rem;
   margin: 0;
   position: fixed;
   background-color: white;
-  border: 1px solid black;
-  border-radius: 6px 6px 6px 6px;
+  border: 0.1rem solid black;
+  border-radius: 0.6rem;
   padding: 0.8rem;
   width: 90%;
 }
@@ -390,17 +384,30 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
+ * Privacy icons
+ */
+
+#about-your-privacy li {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+}
+
+.privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
+.privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+
+
+/******************************************************************************
  * Wallpaper snapshot
  */
 
 #wallpaper-preview {
-  width: 90px;
-  height: 135px;
-  border: solid black 2px;
-  border-radius: 4px;
-  margin-left: 110px;
-  margin-top: -10px;
-  margin-bottom: 5px;
+  width: 9rem;
+  height: 13.5rem;
+  border: solid black 0.2rem;
+  border-radius: 0.4rem;
+  margin-left: 11rem;
+  margin-top: -1rem;
+  margin-bottom: 0.5rem;
 }
 
 
@@ -415,5 +422,15 @@ ul li p + input[type=password] {
   top: 0;
   left: 0;
   opacity: 0;
+}
+
+
+/******************************************************************************
+ * Language and Region
+ */
+
+#languages select {
+  width: 50%;
+  text-align: center;
 }
 

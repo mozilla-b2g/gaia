@@ -214,8 +214,10 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
-  // Now initialize the rest of the app
-  init();
+  // Now initialize the rest of the app. But don't re-initialize if the user
+  // switches languages when the app is already running
+  if (!photodb)
+    init();
 });
 
 function init() {
@@ -231,12 +233,12 @@ function init() {
     if (why === MediaDB.NOCARD)
       showOverlay('nocard');
     else if (why === MediaDB.UNMOUNTED)
-      showOverlay('cardinuse');
+      showOverlay('pluggedin');
   }
 
   photodb.onready = function() {
-    // Hide the nocard or cardinuse overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
     createThumbnailList();  // Display thumbnails for the images we know about
@@ -318,7 +320,7 @@ function imageDeleted(filename) {
   // If there are no more photos show the "no pix" overlay
   if (images.length === 0) {
     setView(thumbnailListView);
-    showOverlay('nopix');
+    showOverlay('emptygallery');
   }
 }
 
@@ -336,7 +338,7 @@ function imageCreated(fileinfo) {
   var insertPosition;
 
   // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'nopix')
+  if (currentOverlay === 'emptygallery')
     showOverlay(null);
 
   // If this new image is newer than the first one, it goes first
@@ -1943,8 +1945,8 @@ var currentOverlay;  // The id of the current overlay or null if none.
 // Supported ids include:
 //
 //   nocard: no sdcard is installed in the phone
-//   cardinuse: the sdcard is being used by USB mass storage
-//   nopix: no pictures found
+//   pluggedin: the sdcard is being used by USB mass storage
+//   emptygallery: no pictures found
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.

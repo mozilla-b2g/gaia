@@ -71,7 +71,7 @@
         trans = undefined;
       }
 
-      if (typeof(trans) === 'undefined') {
+      if (!trans) {
         trans = this.db.transaction(
           this._dependentStores || this._store,
           'readwrite'
@@ -97,9 +97,9 @@
         putReq = store.add(data);
       }
 
-      trans.addEventListener('error', function() {
+      trans.addEventListener('error', function(event) {
         if (callback) {
-          callback(err);
+          callback(event);
         }
       });
 
