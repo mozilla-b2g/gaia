@@ -44,10 +44,7 @@ var StatusBar = {
 
   /* For other app to acquire */
   get height() {
-    if (this.screen.classList.contains('fullscreen-app') ||
-      document.mozFullScreen) {
-      return 0;
-    } else if (this.screen.classList.contains('active-statusbar')) {
+    if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
     } else {
       return this.element.offsetHeight;
