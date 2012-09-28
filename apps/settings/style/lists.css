@@ -368,6 +368,19 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
+ * Privacy icons
+ */
+
+#about-your-privacy li {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+}
+
+.privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
+.privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+
+
+/******************************************************************************
  * Wallpaper snapshot
  */
 
