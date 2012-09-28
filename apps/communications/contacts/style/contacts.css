@@ -390,7 +390,7 @@ section.view[data-state="active"] {
 
 #view-settings ul li {
     -moz-box-sizing: border-box;
-    border-bottom: 0.1rem solid #E6E6E3;
+    border-bottom: 0.1rem solid #BBBBBB; /*#E6E6E3;*/
     color: #000000;
     min-height: 6rem;
     position: relative;

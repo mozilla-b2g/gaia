@@ -10,6 +10,7 @@ contacts.Settings = (function() {
 
   var orderCheckbox,
       orderByLastName,
+      simImportLink,
       newOrderByLastName = null,
       ORDER_KEY = 'order.lastname';
 
@@ -34,16 +35,58 @@ contacts.Settings = (function() {
     orderCheckbox.checked = value;
   }
 
+  var cleanSimImportMessage = function cleanImportMessage() {
+    var numItems = simImportLink.parentNode.children.length;
+    if (numItems != 1) {
+      var parent = simImportLink.parentNode;
+      for (var i = 1; i < numItems; i++) {
+        parent.removeChild(parent.children[i]);
+      }
+    }
+  };
+
+  // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
     orderCheckbox = document.querySelector('[name="order.lastname"]');
     orderCheckbox.addEventListener('change', onOrderingChange.bind(this));
+
+    simImportLink = document.querySelector('[data-l10n-id="importSim"]');
+    simImportLink.addEventListener('click',
+      onSimImport);
   };
 
-  // Listens for any change in the selection preferences
+  // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = evt.target.checked;
     asyncStorage.setItem(ORDER_KEY, newOrderByLastName);
     updateOrderingUI();
+  };
+
+  // Import contacts from SIM card and updates ui
+  var onSimImport = function onSimImport(evt) {
+    // Auto remove previous message if present
+    cleanSimImportMessage();
+
+    Contacts.showOverlay(_('simContacts-importing'));
+
+    var addMessage = function (message) {
+      var p = document.createElement('p');
+      p.innerHTML = message;
+      simImportLink.parentNode.appendChild(p);
+    };
+
+    importSIMContacts(
+      function onread() {
+
+      },
+      function onimport(num) {
+        addMessage(_('simContacts-imported', {n: num}));
+        Contacts.hideOverlay();
+      },
+      function onerror() {
+        addMessage(_('simContacts-error'));
+        Contacts.hideOverlay();
+      });
   };
 
   // Dismiss settings window and execute operations if values got modified
@@ -52,6 +95,9 @@ contacts.Settings = (function() {
       contacts.List.setOrderByLastName(newOrderByLastName);
       orderByLastName = newOrderByLastName;
     }
+
+    // Clean possible messages
+    cleanSimImportMessage();
 
     Contacts.goBack();
   };

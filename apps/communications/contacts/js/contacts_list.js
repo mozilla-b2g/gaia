@@ -4,7 +4,6 @@ var contacts = window.contacts || {};
 
 contacts.List = (function() {
   var _,
-      loading,
       groupsList,
       favoriteGroup,
       inSearchMode = false,
@@ -32,11 +31,9 @@ contacts.List = (function() {
     settingsView = document.querySelector('#view-settings .view-body-inner');
 
     //addImportFacebookButton();
-    //addImportSimButton();
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
-    loading = document.getElementById('loading-overlay');
 
     // Populating contacts by groups
     renderGroupHeader('favorites', '');
@@ -74,7 +71,7 @@ contacts.List = (function() {
 
   var load = function load(contacts, overlay) {
     if (overlay) {
-      showOverlay();
+      Contacts.showOverlay();
     }
     var onError = function() {
       console.log('ERROR Retrieving contacts');
@@ -205,49 +202,6 @@ contacts.List = (function() {
     return ele;
   }
 
-  var addImportSimButton = function addImportSimButton() {
-    var container = settingsView;
-
-    if (container.querySelector('#sim_import_button')) {
-      return;
-    }
-
-    var button = document.createElement('button');
-    button.id = 'sim_import_button';
-    button.setAttribute('class', 'importContacts action action-add');
-    button.textContent = _('simContacts-import');
-    container.appendChild(button);
-
-    // TODO: don't show this button if no SIM card is found...
-
-    button.onclick = function readFromSIM() {
-      // replace the button with a throbber
-      var span = document.createElement('span');
-      span.textContent = _('simContacts-importing');
-      var small = document.createElement('small');
-      small.textContent = _('simContacts-reading');
-      var throbber = document.createElement('p');
-      throbber.className = 'importContacts';
-      throbber.appendChild(span);
-      throbber.appendChild(small);
-      container.appendChild(throbber);
-
-      // import SIM contacts
-      importSIMContacts(
-          function onread() {
-            small.textContent = _('simContacts-storing');
-          },
-          function onimport() {
-            container.removeChild(throbber);
-            load();
-          },
-          function onerror() {
-            console.log('Error reading SIM contacts.');
-          }
-      );
-    };
-  }
-
   var addImportFacebookButton = function addImportFacebookButton() {
     var container = settingsView;
     if (container.querySelector('#fb_import_button') || !fb.isEnabled) {
@@ -314,17 +268,10 @@ contacts.List = (function() {
     }
     renderFavorites(favorites);
     cleanLastElements(counter);
-    hideOverlay();
+    Contacts.hideOverlay();
     FixedHeader.refresh();
   };
 
-  var showOverlay = function showOverlay() {
-    loading.classList.add('show-overlay');
-  };
-
-  var hideOverlay = function showOverlay() {
-    loading.classList.remove('show-overlay');
-  };
   var cleanLastElements = function cleanLastElements(counter) {
     // If reloading contacts, some have been removed and were
     // in the last positions of the letter, the algorithm can't
