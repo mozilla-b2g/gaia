@@ -341,6 +341,22 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('click', Settings);
   Settings.init();
 
+  // early way out if we're using a desktop build
+  var settings = Settings.mozSettings;
+  if (!settings)
+    return;
+
+  // brightness control
+  var manualBrightness = document.getElementById('brightness-manual');
+  var autoBrightnessSetting = 'screen.automatic-brightness';
+  settings.addObserver(autoBrightnessSetting, function(event) {
+    manualBrightness.hidden = event.settingValue;
+  });
+  var req = settings.createLock().get(autoBrightnessSetting);
+  req.onsuccess = function brightness_onsuccess() {
+    manualBrightness.hidden = req.result[autoBrightnessSetting];
+  };
+
   // activate all external links
   var links = document.querySelectorAll('a[href^="http"]');
   for (var i = 0; i < links.length; i++) {
