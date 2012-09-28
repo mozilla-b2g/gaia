@@ -1,4 +1,6 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var SimPinDialog = {
@@ -91,8 +93,10 @@ var SimPinDialog = {
         break;
       case 'pukRequired':
         this.lockType = 'puk';
-        this.errorMsgHeader.textContent = _('simCardLockedMsg');
-        this.errorMsgBody.textContent = _('enterPukMsg');
+        this.errorMsgHeader.textContent = _('simCardLockedMsg') || '';
+        this.errorMsgHeader.dataset.l10nId = 'simCardLockedMsg';
+        this.errorMsgBody.textContent = _('enterPukMsg') || '';
+        this.errorMsgBody.dataset.l10nId = 'enterPukMsg';
         this.errorMsg.hidden = false;
         this.inputFieldControl(false, true, true);
         this.pukInput.focus();
@@ -101,15 +105,25 @@ var SimPinDialog = {
         this.skip();
         break;
     }
-    this.dialogTitle.textContent = _(this.lockType + 'Title');
+    this.dialogTitle.textContent = _(this.lockType + 'Title') || '';
+    this.dialogTitle.dataset.l10nId = this.lockType + 'Title';
   },
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
     var _ = navigator.mozL10n.get;
 
     this.errorMsgHeader.textContent = _(type + 'ErrorMsg');
-    this.errorMsgBody.textContent = (retry === 1) ?
-      _(type + 'LastChanceMsg') : _(type + 'AttemptMsg', {n: retry});
+    this.errorMsgHeader.dataset.l10nId = type + 'ErrorMsg';
+
+    if (retry !== 1) {
+      var l10nArgs = { n: retry };
+      this.errorMsgBody.dataset.l10nId = type + 'AttemptMsg';
+      this.errorMsgBody.dataset.l10nArgs = JSON.stringify(l10nArgs);
+      this.errorMsgBody.textContent = _(type + 'AttemptMsg', l10nArgs);
+    } else {
+      this.errorMsgBody.dataset.l10nId = type + 'LastChanceMsg';
+      this.errorMsgBody.textContent = _(type + 'LastChanceMsg');
+    }
 
     this.errorMsg.hidden = false;
   },
@@ -135,6 +149,7 @@ var SimPinDialog = {
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
+      this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
       return false;
@@ -185,6 +200,7 @@ var SimPinDialog = {
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
+      this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
       return false;
@@ -257,11 +273,13 @@ var SimPinDialog = {
         break;
       case 'enable':
         this.inputFieldControl(true, false, false);
-        this.dialogTitle.textContent = _('pinTitle');
+        this.dialogTitle.textContent = _('pinTitle') || '';
+        this.dialogTitle.dataset.l10nId = 'pinTitle';
         break;
       case 'changePin':
         this.inputFieldControl(true, false, true);
-        this.dialogTitle.textContent = _('newpinTitle');
+        this.dialogTitle.textContent = _('newpinTitle') || '';
+        this.dialogTitle.dataset.l10nId = 'newpinTitle';
         break;
     }
 
@@ -309,3 +327,4 @@ var SimPinDialog = {
 };
 
 SimPinDialog.init();
+

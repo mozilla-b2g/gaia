@@ -24,26 +24,24 @@ menu[type="toolbar"] a {
   text-decoration: none;
 }
 
+ol.link-list label,
 ol.link-list a {
   display: block;
   width: 100%;
   line-height: 150%;
   font-size: 1.8rem;
   padding: 1.5rem 1rem;
-  margin-bottom: 1rem;
   border-bottom: 1px solid #C5C5C5;
   text-decoration: none;
   color: #333;
-  background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
-  margin-left: 2rem;
+  margin: 0 2rem 1rem;
+}
 
+ol.link-list a {
+  background: transparent url('icons/ActionIcons_30x30_forward_nav.png') no-repeat right;
 }
 
 /* view management */
-
-#time-header > menu {
-  display: none;
-}
 
 #time-views {
   height: 100%;
@@ -99,16 +97,39 @@ ol.link-list a {
 
 /* advanced settings */
 
-#advanced-settings-view .account-list {
-  overflow-y: scroll;
-  height: calc(100% - 5rem);
+
+#advanced-settings-view .settings-list label select {
+  display: block;
+  float: left;
+  width: 40%;
+  padding: 0.5rem;
+  background-color: #E1E1E1;
+  border: 1px solid #8F8F8C;
+  box-shadow: 1px 1px 1px 0px #8F8F8C;
 }
 
+#advanced-settings-view .settings-list label span {
+  width: 60%;
+  overflow: hidden;
+  height: 3rem;
+  float: left;
+  display: block;
+  padding-right: 2rem;
+}
+
+#advanced-settings-view .settings-list,
+#advanced-settings-view .account-list {
+  overflow-y: scroll;
+  height: calc(50% - 2.5rem);
+}
+
+#advanced-settings-view .settings-list label,
 #advanced-settings-view .account-list a {
   padding-right: 4rem;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  width: calc(100% - 3rem);
 }
 
 #advanced-settings-view .preset:after {
@@ -133,11 +154,19 @@ ol.link-list a {
   display: none;
 }
 
-/* add event view */
-
-#modify-event-view header > menu {
+#modify-account-view.create .delete-record {
   display: none;
 }
+
+:target#remove-account-dialog {
+  display: block;
+}
+
+#remove-account-dialog {
+  display: none;
+}
+
+/* add event view */
 
 #modify-event-view form {
   margin: 1rem;
@@ -145,6 +174,20 @@ ol.link-list a {
 
 #modify-event-view form ol li {
   margin: 0rem;
+}
+
+#modify-event-view.update .calendar-id {
+  display: none;
+}
+
+#modify-event-view.create .current-calendar {
+  display: none;
+}
+
+
+#modify-event-view.create .delete-record,
+#modify-event-view.readonly .delete-record {
+  display: none;
 }
 
 .fullscreen-view.active {
@@ -160,6 +203,11 @@ ol.link-list a {
   top: 0px;
   width: 100%;
   height: 100%
+}
+
+.fullscreen-view .delete-record {
+  position: absolute;
+  bottom: 0px;
 }
 
 body[role="application"] section[role="region"] > header h1 {

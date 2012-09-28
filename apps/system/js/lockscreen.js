@@ -692,7 +692,7 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = _('shortTimeFormat') || '%R';
+    var timeFormat = _('shortTimeFormat') || '%H:%M';
     var dateFormat = _('longDateFormat') || '%A %e %B';
     this.clock.textContent = f.localeFormat(d, timeFormat);
     this.date.textContent = f.localeFormat(d, dateFormat);

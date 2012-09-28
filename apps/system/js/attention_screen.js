@@ -124,7 +124,7 @@ var AttentionScreen = {
     }
 
     if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff(true);
+      ScreenManager.turnScreenOff(false);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.

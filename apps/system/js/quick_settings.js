@@ -38,6 +38,11 @@ var QuickSettings = {
     SettingsListener.observe('geolocation.enabled', true, function(value) {
       self.geolocationEnabled = value;
     });
+
+    // monitor power save mode
+    SettingsListener.observe('powersave.enabled', false, function(value) {
+      self.powerSave.dataset.enabled = value;
+    });
   },
 
   handleEvent: function qs_handleEvent(evt) {
@@ -86,54 +91,9 @@ var QuickSettings = {
           case this.powerSave:
             var enabled = (this.powerSave.dataset.enabled == 'true');
             this.powerSave.dataset.enabled = !enabled;
-            if (!enabled) {
-              // Keep the original states
-              this._powerSaveResume = {
-                wifi: (this.wifi.dataset.enabled == 'true'),
-                data: (this.data.dataset.enabled == 'true'),
-                bluetooth: (this.bluetooth.dataset.enabled == 'true'),
-                geolocation: this.geolocationEnabled
-              };
-
-              var settingsToSet = {};
-              // Turn off Wifi
-              settingsToSet['wifi.enabled'] = false;
-              // Turn off Data
-              settingsToSet['ril.data.enabled'] = false;
-              // Turn off Bluetooth
-              settingsToSet['bluetooth.enabled'] = false;
-              // Turn off Geolocation
-              settingsToSet['geolocation.enabled'] = false;
-
-              this.setMozSettings(settingsToSet);
-
-            } else if (this._powerSaveResume) {
-              var settingsToSet = {};
-              if (this._powerSaveResume.wifi) {
-                // Turn on Wifi
-                settingsToSet['wifi.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.data) {
-                // Turn on Data
-                settingsToSet['ril.data.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.bluetooth) {
-                // Turn on Bluetooth
-                settingsToSet['bluetooth.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.geolocation) {
-                // Turn on Bluetooth
-                settingsToSet['geolocation.enabled'] = true;
-              }
-
-              this.setMozSettings(settingsToSet);
-
-              delete this._powerSaveResume;
-            }
-
+            SettingsListener.getSettingsLock().set({
+              'powersave.enabled': !enabled
+            });
             break;
 
           case this.fullApp:

@@ -116,9 +116,12 @@ var Utils = {
 
       // Check which of the contacts phone number are we using
       for (var i = 0; i < contact.tel.length; i++) {
-        if (contact.tel[i].value == number) {
+        if (PhoneNumberManager.getOptionalNumbers(
+                          contact.tel[i].value).indexOf(number) != -1) {
           phone = contact.tel[i];
           carrierToShow = phone.carrier;
+          break;
+
         }
       }
 

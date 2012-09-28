@@ -119,13 +119,22 @@ var Applications = (function() {
     xhr.send(null);
 
     xhr.onreadystatechange = function saveIcon_readyStateChange(evt) {
-      if (xhr.readyState == 4 && (xhr.status == 0 || xhr.status == 200)) {
+      if (xhr.readyState != 4) {
+        return;
+      }
+
+      if (xhr.status == 0 || xhr.status == 200) {
         var fileReader = new FileReader();
         fileReader.onload = function fileReader_load(evt) {
           cacheIcon(app.origin, evt.target.result);
           fireCallbacks();
         }
         fileReader.readAsDataURL(xhr.response);
+      } else {
+        // 404 is not an error is the xhr world, so let's make sure
+        // the application is shown on the homescreen even if the icon
+        // does not appears.
+        fireCallbacks();
       }
     }
 
@@ -332,6 +341,10 @@ var Applications = (function() {
     }
   }
 
+  function isInstalled(origin) {
+    return installedApps[origin];
+  }
+
   return {
     launch: launch,
     isCore: isCore,
@@ -347,6 +360,7 @@ var Applications = (function() {
     isReady: isReady,
     addBookmark: addBookmark,
     deleteBookmark: deleteBookmark,
-    installBookmark: installBookmark
+    installBookmark: installBookmark,
+    isInstalled: isInstalled
   };
 })();

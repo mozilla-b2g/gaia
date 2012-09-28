@@ -9,6 +9,10 @@
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
 
+    canCreateEvent: true,
+    canUpdateEvent: true,
+    canDeleteEvent: true,
+
     getAccount: function(account, callback) {
       callback(null, {});
     },
@@ -39,6 +43,46 @@
 
       list[LOCAL_CALENDAR_ID] = cal;
       callback(null, list);
+    },
+
+    syncEvents: function(account, calendar, cb) {
+      cb(null);
+    },
+
+    createEvent: function(event, callback) {
+      // most providers come with their own built in
+      // id system when creating a local event we need to generate
+      // our own UUID.
+      if (!event.remote.id) {
+        // TOOD: uuid is provided by ext/uuid.js
+        //       if/when platform supports a safe
+        //       random number generator (values never conflict)
+        //       we can use that instead of uuid.js
+        event.remote.id = uuid();
+      }
+
+      this.app.store('Event').persist(event, callback);
+    },
+
+    deleteEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      this.app.store('Event').remove(event._id, callback);
+    },
+
+    updateEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      // remove associated busytimes with previous event.
+      this.app.store('Busytime').removeEvent(event._id);
+
+      this.app.store('Event').persist(event, callback);
     }
 
   };

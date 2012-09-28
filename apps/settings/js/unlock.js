@@ -24,6 +24,4 @@ var SimPinUnLock = {
 
 };
 
-window.addEventListener('localized', function spl_ready() {
-  SimPinUnLock.init();
-});
+SimPinUnLock.init();

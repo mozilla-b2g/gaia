@@ -14,6 +14,7 @@ var Browser = {
   GO: 0,
   REFRESH: 1,
   STOP: 2,
+  SEARCH: 3,
 
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
@@ -51,9 +52,10 @@ var Browser = {
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click',
       this.showBookmarkMenu.bind(this));
-    this.urlBar.addEventListener('submit', this);
+    this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
+    this.urlInput.addEventListener('keyup', this.handleUrlInputKeypress.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
@@ -95,6 +97,8 @@ var Browser = {
       this.saveBookmark.bind(this));
     this.awesomescreenCancelButton.addEventListener('click',
      this.handleAwesomescreenCancel.bind(this));
+    this.clearPrivateDataButton.addEventListener('click',
+      this.clearPrivateData.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -150,7 +154,7 @@ var Browser = {
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
-      'awesomescreen-cancel-button'];
+      'awesomescreen-cancel-button', 'clear-private-data-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -404,22 +408,14 @@ var Browser = {
     }).bind(this);
   },
 
-  handleEvent: function browser_handleEvent(evt) {
-    var urlInput = this.urlInput;
-    switch (evt.type) {
-      case 'submit':
-        this.handleUrlFormSubmit(evt);
-        break;
-
-      case 'keyup':
-        if (evt.keyCode === evt.DOM_VK_ESCAPE) {
-          evt.preventDefault();
-          this.showPageScreen();
-          this.urlInput.blur();
-        } else {
-          this.updateAwesomeScreen(this.urlInput.value);
-        }
+  handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
+    var input = this.urlInput.value;
+    if (this.isSearch(input)) {
+      this.setUrlButtonMode(this.SEARCH);
+    } else {
+      this.setUrlButtonMode(this.GO);
     }
+    this.updateAwesomeScreen(input);
   },
 
   showCrashScreen: function browser_showCrashScreen() {
@@ -505,11 +501,16 @@ var Browser = {
     this.setUrlBar(url);
   },
 
-  getUrlFromInput: function browser_getUrlFromInput(url) {
+  isSearch: function browser_isSearch(url) {
     url = url.trim();
     // If the address entered starts with a quote then search, if it
     // contains a . or : then treat as a url, else search
-    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
+    return /^"|\'/.test(url) || !(/\.|\:/.test(url));
+  },
+
+  getUrlFromInput: function browser_getUrlFromInput(url) {
+    url = url.trim();
+    var isSearch = this.isSearch(url);
     var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
     var protocol = protocolRegexp.exec(url);
 
@@ -722,8 +723,6 @@ var Browser = {
   },
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
-    if (this.currentTab.url == this.START_PAGE_URL)
-      mode = this.GO;
     this.urlButtonMode = mode;
     switch (mode) {
       case this.GO:
@@ -734,6 +733,9 @@ var Browser = {
         break;
       case this.STOP:
         this.urlButton.style.backgroundImage = 'url(style/images/stop.png)';
+        break;
+      case this.SEARCH:
+        this.urlButton.style.backgroundImage = 'url(style/images/search.png)';
         break;
     }
   },
@@ -1122,7 +1124,7 @@ var Browser = {
   showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
     var ul = this.tabsList.childNodes[0];
     var li = document.createElement('li');
-    li.innerHTML = '<a><img /><span>New Tab</span></a>';
+    li.innerHTML = '<a><img /><span>' + _('new-tab') + '</span></a>';
     li.style.height = '0px';
     li.style.transition = 'height 0.2s ease-in';
     ul.insertBefore(li, ul.childNodes[0]);
@@ -1272,6 +1274,7 @@ var Browser = {
   showSettingsScreen: function browser_showSettingsScreen() {
     this.switchScreen(this.SETTINGS_SCREEN);
     this.clearHistoryButton.disabled = false;
+    this.clearPrivateDataButton.disabled = false;
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -1289,6 +1292,17 @@ var Browser = {
       Places.clearHistory((function() {
         this.clearHistoryButton.setAttribute('disabled', 'disabled');
       }).bind(this));
+    }
+  },
+
+  clearPrivateData: function browser_clearPrivateData() {
+    var msg = navigator.mozL10n.get('confirm-clear-private-data');
+    if (confirm(msg)) {
+      var request = navigator.mozApps.getSelf();
+      request.onsuccess = (function() {
+        request.result.clearBrowserData();
+        this.clearPrivateDataButton.setAttribute('disabled', 'disabled');
+      }).bind(this);
     }
   },
 
