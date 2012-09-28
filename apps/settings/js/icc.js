@@ -252,7 +252,7 @@
    * Debug method
    */
   function debug(msg) {
-    if(DEBUG) {
+    if (DEBUG) {
       console.log("[DEBUG] STKUI: " + msg);
     }
   }
