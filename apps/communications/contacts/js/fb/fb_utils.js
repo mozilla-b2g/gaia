@@ -6,6 +6,10 @@ if (!fb.utils) {
   fb.utils = {};
 
   var TIMEOUT_QUERY = 15000;
+  var FRIEND_COUNT_QUERY = 'select friend_count from user where uid=me()';
+
+  var IMPORT_INFO_KEY = 'importInfo';
+  var CACHE_FRIENDS_KEY = 'numFacebookFriends';
 
   fb.utils.getContactData = function(cid) {
     var outReq = new fb.utils.Request();
@@ -60,6 +64,128 @@ if (!fb.utils) {
     return outReq;
   };
 
+  fb.utils.getAllFbContacts = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function get_all_fb_contacts() {
+      var filter = {
+      filterValue: fb.CATEGORY,
+      filterOp: 'contains',
+      filterBy: ['category']
+      };
+
+      var req = navigator.mozContacts.find(filter);
+
+      req.onsuccess = function(e) {
+        outReq.done(e.target.result);
+      }
+
+      req.onerror = function(e) {
+        outReq.failed(e.target.error);
+      }
+    }, 0);
+
+    return outReq;
+  };
+
+
+  // On the device
+  fb.utils.getNumFbContacts = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function get_num_fb_contacts() {
+      var req = fb.utils.getAllFbContacts();
+
+      req.onsuccess = function() {
+        var result = req.result || [];
+        outReq.done(result.length);
+      }
+
+      req.onerror = function() {
+        outReq.failed(req.error);
+      }
+    }, 0);
+
+    return outReq;
+  };
+
+  // Requests the number remotely
+  fb.utils.getNumFbFriends = function(callback, access_token) {
+    fb.utils.runQuery(FRIEND_COUNT_QUERY, callback, access_token);
+  };
+
+  fb.utils.getCachedAccessToken = function(callback) {
+    window.asyncStorage.getItem('tokenData', function(data) {
+      var out = null;
+
+      if (data) {
+        out = data.access_token || null;
+      }
+
+      if (typeof callback === 'function') {
+        callback(out);
+      }
+
+    });
+  };
+
+  // Obtains the number locally
+  fb.utils.getCachedNumFbFriends = function(callback) {
+    window.asyncStorage.getItem(CACHE_FRIENDS_KEY, function(data) {
+      if (typeof callback === 'function') {
+        callback(data);
+      }
+    });
+  };
+
+  fb.utils.setCachedNumFriends = function(value) {
+    window.asyncStorage.setItem(CACHE_FRIENDS_KEY, value);
+  };
+
+  fb.utils.getImportChecked = function(callback) {
+    window.asyncStorage.getItem(IMPORT_INFO_KEY, function(data) {
+      var out = false;
+      if (data) {
+        out = data.value || false;
+      }
+      if (typeof callback === 'function') {
+        callback(out);
+      }
+    });
+  };
+
+  // Value true or false
+  fb.utils.setImportChecked = function(value) {
+    window.asyncStorage.setItem(IMPORT_INFO_KEY, {
+      value: value
+    });
+  };
+
+  // Obtains the number locally (cached) and tries to get them remotely
+  fb.utils.numFbFriendsData = function(callback) {
+    var localCb = callback.local;
+    var remoteCb = callback.remote;
+
+    fb.utils.getCachedNumFbFriends(localCb);
+
+    function auxCallback(response) {
+      if (response.data && response.data[0] && response.data[0].friend_count) {
+        remoteCb(response.data[0].friend_count);
+      }
+    }
+
+    var remoteCallbacks = {
+      success: auxCallback,
+      error: null,
+      timeout: null
+    };
+
+    fb.utils.getCachedAccessToken(function(access_token) {
+      if (access_token) {
+        fb.utils.getNumFbFriends(remoteCallbacks, access_token);
+      }
+    });
+  };
 
   // Runs a query against Facebook FQL. Callback is a string!!
   fb.utils.runQuery = function(query, callback, access_token) {
@@ -116,14 +242,18 @@ if (!fb.utils) {
       this.done = function(result) {
         this.result = result;
         if (typeof this.onsuccess === 'function') {
-          this.onsuccess();
+          var ev = {};
+          ev.target = this;
+          this.onsuccess(ev);
         }
       }
 
       this.failed = function(error) {
         this.error = error;
         if (typeof this.onerror === 'function') {
-          this.onerror();
+          var ev = {};
+          ev.target = this;
+          this.onerror(ev);
         }
       }
     };

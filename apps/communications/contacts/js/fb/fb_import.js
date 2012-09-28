@@ -198,10 +198,7 @@ if (typeof fb.importer === 'undefined') {
         return;
       }
 
-      var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
-                        filterBy: ['category']};
-
-      var req = navigator.mozContacts.find(filter);
+      var req = fb.utils.getAllFbContacts();
 
       req.onsuccess = contactsReady;
 
@@ -284,6 +281,9 @@ if (typeof fb.importer === 'undefined') {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data[0].fql_result_set;
 
+        // Now caching the number
+        fb.utils.setCachedNumFriends(lmyFriends.length);
+
         myFriendsByUid = {};
         myFriends = [];
 
@@ -360,6 +360,8 @@ if (typeof fb.importer === 'undefined') {
      */
     UI.importAll = function(e) {
       if (Object.keys(selectedContacts).length > 0) {
+        fb.utils.setImportChecked(true);
+
         Importer.importAll(function() {
 
           document.body.dataset.state = '';
