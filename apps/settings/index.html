@@ -1368,15 +1368,22 @@
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
         </li>
         <li>
-        <label>
-          <select name="powersave.threshold">
-            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "5"}'>5% battery left</option>
-            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-            <option value="0" data-l10n-id="never">Never</option>
-          </select>
-        </label>
-        <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+          <label>
+            <select name="powersave.threshold">
+              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+              <option value="0" data-l10n-id="never">Never</option>
+            </select>
+          </label>
+          <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+        </li>
+        <li>
+          <p data-l10n-id="powerSaveMode-expl" class="description">
+            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and GPS
+            connections to extend battery life. You can still turn these services back on
+            manually.
+          </p>
         </li>
       </ul>
     </section>
