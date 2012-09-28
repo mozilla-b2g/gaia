@@ -27,12 +27,12 @@ var Browser = {
   DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
   DEFAULT_SEARCH_PROVIDER_ICON: 'http://bing.com/favicon.ico',
   DEFAULT_FAVICON: 'style/images/favicon.png',
-  START_PAGE_URL: document.location.protocol + '//' + document.location.host +
-    '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
+  MAX_TOP_SITES: 4, // max number of top sites to display
+  FIRST_TAB: 'tab_0',
 
   urlButtonMode: null,
   inTransition: false,
@@ -97,6 +97,8 @@ var Browser = {
       this.saveBookmark.bind(this));
     this.awesomescreenCancelButton.addEventListener('click',
      this.handleAwesomescreenCancel.bind(this));
+    this.topSiteThumbnails.addEventListener('click',
+      this.followLink.bind(this));
     this.clearPrivateDataButton.addEventListener('click',
       this.clearPrivateData.bind(this));
 
@@ -128,8 +130,9 @@ var Browser = {
         this.waitingActivities.forEach(this.handleActivity, this);
         return;
       }
-      this.selectTab(this.createTab(this.START_PAGE_URL));
+      this.selectTab(this.createTab());
       this.showPageScreen();
+      this.showStartscreen();
       if (firstRun)
         this.populateDefaultData();
     }).bind(this));
@@ -154,7 +157,8 @@ var Browser = {
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
       'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
-      'awesomescreen-cancel-button', 'clear-private-data-button'];
+      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
+      'no-top-sites', 'clear-private-data-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
@@ -203,6 +207,8 @@ var Browser = {
 
   handleCloseTab: function browser_handleCloseTab() {
     this.hideCrashScreen();
+    if (this.currentTab.id = this.FIRST_TAB)
+      this.hideStartScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
@@ -494,6 +500,7 @@ var Browser = {
       this.currentTab.crashed = false;
       this.hideCrashScreen();
     }
+    this.hideStartscreen();
     this.showPageScreen();
     this.currentTab.title = null;
     this.currentTab.url = url;
@@ -581,9 +588,9 @@ var Browser = {
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
-    this.bookmarkMenu.classList.remove('hidden');
     if (!this.currentTab.url)
       return;
+    this.bookmarkMenu.classList.remove('hidden');
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
       if (bookmark) {
         this.bookmarkMenuAdd.parentNode.classList.add('hidden');
@@ -714,8 +721,7 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.START_PAGE_URL ||
-      this.currentTab.url == this.ABOUT_PAGE_URL) {
+    if (this.currentTab.url == this.ABOUT_PAGE_URL) {
       this.urlInput.value = '';
     } else {
       this.urlInput.value = data;
@@ -858,9 +864,7 @@ var Browser = {
     var titleText = data.title ? data.title : data.url;
     title.innerHTML = Utils.createHighlightHTML(titleText, filter);
 
-    if (data.uri == this.START_PAGE_URL) {
-      url.textContent = 'about:home';
-    } else if (data.uri == this.ABOUT_PAGE_URL) {
+    if (data.uri == this.ABOUT_PAGE_URL) {
       url.textContent = 'about:';
     } else if (data.description) {
       url.innerHTML = Utils.createHighlightHTML(data.description);
@@ -1026,6 +1030,7 @@ var Browser = {
     e.preventDefault();
     if (e.target.nodeName === 'A') {
       this.navigate(e.target.getAttribute('href'));
+      this.hideStartscreen();
     }
   },
 
@@ -1154,6 +1159,11 @@ var Browser = {
 
     this.updateSecurityIcon();
     this.refreshButtons();
+    if (id == this.FIRST_TAB && this.currentTab.url == null) {
+      this.showStartscreen();
+    } else {
+      this.hideStartscreen();
+    }
   },
 
   switchScreen: function browser_switchScreen(screen) {
@@ -1164,6 +1174,47 @@ var Browser = {
     this.previousScreen = this.currentScreen;
     this.currentScreen = screen;
     document.body.classList.add(this.currentScreen);
+  },
+
+  showStartscreen: function browser_showStartscreen() {
+    this.startscreen.classList.remove('hidden');
+    Places.getTopSites(this.MAX_TOP_SITES, null,
+      this.showTopSiteThumbnails.bind(this));
+  },
+
+  hideStartscreen: function browser_hideStartScreen() {
+    this.startscreen.classList.add('hidden');
+    this.topSiteThumbnails.innerHTML = '';
+  },
+
+  showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
+    this.topSiteThumbnails.innerHTML = '';
+    var length = places.length;
+    // Display a message if Top Sites empty
+    if (length == 0) {
+      this.noTopSites.classList.remove('hidden');
+      return;
+    } else {
+      this.noTopSites.classList.add('hidden');
+    }
+    // If an odd number greater than one, remove one
+    if (length % 2 && length > 1)
+      places.pop();
+    // If only one, pad with another empty one
+    if (length == 1)
+      places.push({uri: '', title: ''});
+
+    places.forEach(function processPlace(place) {
+      var thumbnail = document.createElement('li');
+      var link = document.createElement('a');
+      var title = document.createElement('span');
+      link.href = place.uri;
+      title.textContent = place.title ? place.title : place.uri;
+      link.style.backgroundImage = 'url(' + place.screenshot + ')';
+      thumbnail.appendChild(link);
+      thumbnail.appendChild(title);
+      this.topSiteThumbnails.appendChild(thumbnail);
+    }, this);
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
