@@ -746,6 +746,9 @@
         <h2 data-l10n-id="setTimeManually">Set Manually</h2>
       </header>
       <ul id="time-manual" hidden>
+        <li id="setTimezone">
+          <a href="#timezone-continent" data-l10n-id="timezoneMessage">Time Zone<span id="timezoneDescription"></span></a>
+        </li>
         <li id="setDate">
           <label>
             <input type="date" id="date-picker" />
@@ -758,6 +761,32 @@
           </label>
           <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
         </li>
+      </ul>
+    </section>
+    
+    <!-- Personalization :: Date & Time :: Time Zone (Continent)-->
+    <section role="region" id="timezone-continent">
+      <header>
+        <a href="#time"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezoneContinent">
+          Select Continent
+        </h1>
+      </header>
+      <ul id="timezone-continents">
+        <!-- Create the continets dynamically -->
+      </ul>
+    </section>
+    
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones)-->
+    <section role="region" id="timezone-zones" data-leaf>
+      <header>
+        <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezone">
+          Select Time Zone
+        </h1>
+      </header>
+      <ul id="timezone-zones-list">
+        <!-- Create the zones dynamically -->
       </ul>
     </section>
 
