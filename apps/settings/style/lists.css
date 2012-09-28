@@ -270,6 +270,66 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
+ * Bluetooth devices
+ */
+
+#bluetooth .devices li {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+}
+
+/* device icons */
+.audio-card             { background-image: url(images/bluetooth/audio_card.png); }
+.audio-input-microphone { background-image: url(images/bluetooth/audio_input_microphone.png); }
+.battery                { background-image: url(images/bluetooth/battery.png); }
+.camera-photo           { background-image: url(images/bluetooth/camera_photo.png); }
+.camera-video           { background-image: url(images/bluetooth/camera_video.png); }
+.camera-web             { background-image: url(images/bluetooth/camera_web.png); }
+.computer               { background-image: url(images/bluetooth/computer.png); }
+.drive-harddisk         { background-image: url(images/bluetooth/drive_harddisk.png); }
+.drive-optical          { background-image: url(images/bluetooth/drive_optical.png); }
+.drive-removable-media  { background-image: url(images/bluetooth/drive_removable_media.png); }
+.input-gaming           { background-image: url(images/bluetooth/input_gaming.png); }
+.input-keyboard         { background-image: url(images/bluetooth/input_keyboard.png); }
+.input-mouse            { background-image: url(images/bluetooth/input_mouse.png); }
+.input-tablet           { background-image: url(images/bluetooth/input_tablet.png); }
+.media-flash            { background-image: url(images/bluetooth/media_flash.png); }
+.media-floppy           { background-image: url(images/bluetooth/media_floppy.png); }
+.media-optical          { background-image: url(images/bluetooth/media_optical.png); }
+.media-tape             { background-image: url(images/bluetooth/media_tape.png); }
+.modem                  { background-image: url(images/bluetooth/modem.png); }
+.multimedia-player      { background-image: url(images/bluetooth/multimedia_player.png); }
+.network-wired          { background-image: url(images/bluetooth/network_wired.png); }
+.network-wireless       { background-image: url(images/bluetooth/network_wireless.png); }
+.pda                    { background-image: url(images/bluetooth/phone_pda.png); }
+.phone                  { background-image: url(images/bluetooth/phone_pda.png); }
+.printer                { background-image: url(images/bluetooth/printer.png); }
+.scanner                { background-image: url(images/bluetooth/scanner.png); }
+.video-display          { background-image: url(images/bluetooth/video_display.png); }
+
+/******************************************************************************
+ * Sound
+ */
+.tone-select {
+  width: 60%;
+  position: absolute;
+  right: 0;
+}
+
+/******************************************************************************
+ * Privacy icons
+ */
+
+#about-your-privacy li {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+}
+
+.privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
+.privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+
+
+/******************************************************************************
  * Wallpaper snapshot
  */
 
