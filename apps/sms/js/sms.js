@@ -26,13 +26,22 @@ var MessageManager = {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
     var messagesMirror = document.getElementById('thread-messages-snapshot');
-    // XXX All code commented has to be restored once ... will be solved
-    bodyClass.add('snapshot');
-    bodyClass.toggle('mirror-swipe');
+    // XXX All code commented has to be restored once
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=795245 will be solved
+    // bodyClass.add('snapshot');
+    // bodyClass.toggle('mirror-swipe');
     mainWrapper.classList.toggle('to-left');
-    messagesMirror.addEventListener('transitionend', function rm_snapshot() {
-      messagesMirror.removeEventListener('transitionend', rm_snapshot);
-      bodyClass.remove('snapshot');
+    // messagesMirror.addEventListener('transitionend', function rm_snapshot() {
+    //   messagesMirror.removeEventListener('transitionend', rm_snapshot);
+    //   bodyClass.remove('snapshot');
+    //   if (callback) {
+    //     callback();
+    //   }
+    // });
+
+    //Remove following lines when https://bugzilla.mozilla.org/show_bug.cgi?id=795245 will be solved
+    mainWrapper.addEventListener('transitionend', function rm_snapshot() {
+      mainWrapper.removeEventListener('transitionend', rm_snapshot);
       if (callback) {
         callback();
       }
