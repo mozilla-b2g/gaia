@@ -22,7 +22,7 @@ body {
   padding-bottom: 50px;
 }
 
-section[role="region"] {
+section {
   margin: 0;
   padding: 0;
   overflow: hidden;
