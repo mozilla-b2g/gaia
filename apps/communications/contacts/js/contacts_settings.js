@@ -72,8 +72,55 @@ contacts.Settings = (function() {
     if (fbImportedValue) {
       fbImportLink.innerHTML = 'Facebook';
       fbAddUnlinkOption();
+      fbGetTotals();
     }
-  }
+  };
+
+  // Get total number of contacts imported from fb
+  var fbGetTotals = function fbGetTotals() {
+    var req = fb.utils.getNumFbContacts();
+
+    req.onsuccess = function() {
+      var friendsOnDevice = req.result;
+
+      var callbackListener = {
+        'local': function localContacts(number) {
+          fbUpdateTotals(friendsOnDevice, number);
+        },
+        'remote': function remoteContacts(number) {
+          fbUpdateTotals(friendsOnDevice, number);
+        }
+      };
+
+      fb.utils.numFbFriendsData(callbackListener);
+    }
+
+    req.onerror = function() {
+      console.error('Could not get number of local contacts');
+    }
+  };
+
+  var fbUpdateTotals = function fbUpdateTotals(imported, total) {
+    cleanFbContactsMessage();
+
+    var p = document.createElement('p');
+    p.innerHTML = _('facebook-stats', {
+      'imported': imported,
+      'total': total
+    });
+
+    fbImportLink.parentNode.appendChild(p);    
+  };
+
+  var cleanFbContactsMessage = function cleanFbContactsMessage() {
+    var numItems = fbImportLink.parentNode.children.length;
+    if (numItems != 1) {
+      var parent = fbImportLink.parentNode;
+      for (var i = 1; i < numItems; i++) {
+        parent.removeChild(parent.children[i]);
+      }
+    }
+  };
 
   // Insert the dom necessary to unlink your FB contacts
   var fbAddUnlinkOption = function fbUnlinkOption() {
