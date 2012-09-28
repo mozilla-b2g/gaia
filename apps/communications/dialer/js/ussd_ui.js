@@ -4,6 +4,12 @@ var UssdUI = {
 
   _: null,
   _origin: null,
+  _conn: null,
+
+  get headerTitleNode() {
+    delete this.headerTitleNode;
+    return this.headerTitleNode = document.getElementById('header-title');
+  },
 
   get closeNode() {
     delete this.closeNode;
@@ -33,6 +39,7 @@ var UssdUI = {
 
   init: function uui_init() {
     this._ = window.navigator.mozL10n.get;
+    this.updateHeader(window.name);
     this.closeNode.addEventListener('click', this.closeWindow.bind(this));
     this.sendNode.addEventListener('click', this.reply.bind(this));
     this.responseTextResetNode.addEventListener('click',
@@ -84,15 +91,30 @@ var UssdUI = {
     this.resetResponse();
   },
 
+  updateHeader: function uui_updateHeader(operator) {
+    this.headerTitleNode.textContent =
+      this._('ussd-services', {operator: operator !== 'Unknown' ? operator : this._('USSD')});
+  },
+
   handleEvent: function ph_handleEvent(evt) {
-    if (evt.type === 'message' && evt.data.type === 'success') {
-      this.showMessage(evt.data.result ?
-        evt.data.result : this._('message-successfully-sent'));
-    } else if (evt.type === 'message' && evt.data.type === 'error') {
+    if (evt.type !== 'message' || !evt.data)
+      return;
+
+    switch (evt.data.type) {
+      case 'success':
+        this.showMessage(evt.data.result ?
+          evt.data.result : this._('message-successfully-sent'));
+        break;
+      case 'error':
         this.showMessage(evt.data.error ?
-          evt.data.error : this._('error-sending-message'));
-    } else if (evt.type === 'message') {
-      this.showMessage(evt.data);
+          evt.data.error : this._('ussd-server-error'));
+        break;
+      case 'ussdreceived':
+        this.showMessage(evt.data.message);
+        break;
+      case 'voicechange':
+        this.updateHeader(evt.data.operator);
+        break;
     }
   }
 };
