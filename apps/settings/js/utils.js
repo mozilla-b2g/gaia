@@ -65,7 +65,7 @@ function openDialog(dialogID, onSubmit, onReset) {
  */
 
 function audioPreview(element) {
-  var audio = document.querySelector('#sounds audio');
+  var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
 

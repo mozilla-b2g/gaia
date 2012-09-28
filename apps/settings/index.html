@@ -36,6 +36,7 @@
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
+    <script type="application/javascript" defer src="js/sound.js"></script>
     <script type="application/javascript" defer src="js/phone_lock.js"></script>
   </head>
   <body class="hidden skin-organic">
@@ -564,16 +565,90 @@
       </ul>
     </section>
 
+    <section role="region" id="sound-selection" date-leaf>
+      <header>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <menu type="toolbar">
+          <button data-l10n-id="done" type="submit">Done</button>
+        </menu>
+        <h1 data-l10n-id="select-tone">Select a Tone</h1>
+      </header>
+      <header>
+        <h2 data-l10n-id="ring-tones">Ringtones</h2>
+      </header>
+      <ul>
+        <li>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Default" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="classic">Default</a>
+        </li>
+        <li>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
+            <span></span>
+          </label>
+          <a data-l10n-id="oldSchool">Old School</a>
+        </li>
+        <li>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
+            <span></span>
+          </label>
+          <a data-l10n-id="lowBit">Low Bit</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="alert-tones">Alert Tones</h2>
+      </header>
+      <ul>
+        <li>
+          <label onmouseup="audioPreview(this)">
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Sound of Message" />
+            <span></span>
+          </label>
+          <a data-l10n-id="lowBit">Sound of Message</a>
+        </li>
+      </ul>
+
+      <!-- Audio Preview -->
+      <audio style="display: none;" src="style/ringtones/classic.ogg" />
+    </section>
+
+
     <!-- Personalization :: Sound -->
-    <section role="region" id="sounds" data-leaf>
+    <section role="region" id="sounds">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="sound">
           Sound
         </h1>
       </header>
+      <!-- Ring and Vibrate -->
+      <ul>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="ring.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="ring">Ring</a>
+        </li>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="vibration.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="vibrate">Vibrate</a>
+        </li>
+      </ul>
 
-      <!-- Ring Tones -->
+      <!-- Volume and Tones -->
+      <header>
+        <h2 data-l10n-id="volume-and-tones">Volume and Tones</h2>
+      </header>
       <ul>
         <li>
           <p data-l10n-id="volume">Volume</p>
@@ -582,40 +657,26 @@
           </label>
         </li>
         <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="dialer.ringtone" value="classic.ogg" checked />
+          <label>
+            <button id="call-tone-selection" class="tone-select">Old School</button>
             <span></span>
           </label>
-          <a data-l10n-id="classic">Default</a>
+          <a data-l10n-id="call">Call</a>
         </li>
         <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="dialer.ringtone" value="old_school.ogg"/>
+          <label>
+            <button id="sms-tone-selection" class="tone-select">Beep Beep</button>
             <span></span>
           </label>
-          <a data-l10n-id="oldSchool">Old School</a>
-        </li>
-        <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="dialer.ringtone" value="low_bit.ogg"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="lowBit">Low Bit</a>
+          <a data-l10n-id="message">Message</a>
         </li>
       </ul>
 
-      <!-- Phone -->
+      <!-- Other Sounds -->
       <header>
-        <h2 data-l10n-id="phone">Phone</h2>
+        <h2 data-l10n-id="other-sounds">Other Sounds</h2>
       </header>
       <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="phone.vibration.incoming" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="vibrate">Vibrate</a>
-        </li>
         <li>
           <label>
             <input type="checkbox" name="phone.ring.keypad" checked />
@@ -625,36 +686,12 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="phone.ring.incoming" checked />
+            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked />
             <span></span>
           </label>
-          <a data-l10n-id="ring">Ring</a>
+          <a data-l10n-id="unlock-screen">Unlock Screen</a>
         </li>
       </ul>
-
-      <!-- Messages -->
-      <header>
-        <h2 data-l10n-id="messages">Messages</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="sms.vibration.received" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="vibrate">Vibrate</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="sms.ring.received" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="ring">Ring</a>
-        </li>
-      </ul>
-
-      <!-- Audio Preview -->
-      <audio style="display: none;" src="style/ringtones/classic.ogg" />
     </section>
 
     <!-- Personalization :: Display -->
@@ -1015,7 +1052,6 @@
             <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
             <span></span>
           </label>
-          <small data-l10n-id="passcode-lock-desc" data-l10n-id='{"code", "0000"}'>Passcode</small>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
         </li>
         <li class="passcode-enabled" id="passcode-timeout-row">
@@ -1033,15 +1069,8 @@
         </li>
         <li class="passcode-enabled">
           <label>
-            <button data-l10n-id="edit-passcode" id="passcode-edit">Edit passcode</button>
+            <button data-l10n-id="change-passcode" id="passcode-edit">Change Passcode</button>
           </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="lockscreen.unlock-sound.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="unlock-sound">Unlock Sound</a>
         </li>
       </ul>
     </section>
