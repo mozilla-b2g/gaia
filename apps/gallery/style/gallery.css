@@ -288,7 +288,7 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1;
   box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
 }
 
@@ -307,15 +307,6 @@ footer {
   height: 100%;
   left: 50%;
   background-image: url('images/select.png');
-}
-
-#thumbnails-select-bottom {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
 
 #thumbnails-delete-button {
