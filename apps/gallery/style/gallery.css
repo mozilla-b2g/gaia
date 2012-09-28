@@ -103,14 +103,14 @@ section[role="region"] {
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  width: 100%;
+  /* Cheating! Due to margins to the right, a row of 3 thumbnails is be thicker than 100% */
+  width: 104%;
 }
 
 .thumbnail {
-  margin: 0;
+  margin-right: 1px;
+  margin-bottom: 1px;
   padding: 0;
-  border: solid black 1px;
-  overflow: hidden;
   /* default to left-to-right, but overridden for rtl languages below */
   float: left;
   /* no list item bullets */
