@@ -9,7 +9,8 @@
     "mozApps",
     "webapps-manage",
     "systemXHR",
-    "settings"
+    "settings",
+    "device-storage:pictures"
   ],
   "locales": {
     "ar": {

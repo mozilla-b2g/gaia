@@ -94,9 +94,7 @@ body {
   margin: 0;
   overflow-y: scroll;
   overflow-x: hidden;
-  /* If we want to scroll up and down, then apparently we have to add */
-  /* some extra width to keep the scrollbar offscreen */
-  width: calc(100% + 10px);
+  width: 100%;
 }
 
 .thumbnail {
@@ -125,8 +123,8 @@ body {
 /* 320x480 phones */
 @media (orientation: portrait) and (width: 320px) {
   .thumbnail {
-    width: 107px;
-    height: 107px;
+    width: 106px;
+    height: 106px;
   }
 }
 

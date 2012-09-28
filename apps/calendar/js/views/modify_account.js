@@ -4,6 +4,7 @@
     Calendar.View.apply(this, arguments);
 
     this.save = this.save.bind(this);
+    this.deleteRecord = this.deleteRecord.bind(this);
   }
 
   ModifyAccount.prototype = {
@@ -14,10 +15,15 @@
       form: '#modify-account-view form',
       fields: '*[name]',
       saveButton: '#modify-account-view .save',
+      deleteButton: '#modify-account-view .delete-confirm',
       errors: '#modify-account-view .errors'
     },
 
     progressClass: 'in-progress',
+
+    get deleteButton() {
+      return this._findElement('deleteButton');
+    },
 
     get saveButton() {
       return this._findElement('saveButton');
@@ -74,6 +80,24 @@
         var field = this.fields[name];
         this.model[name] = field.value;
       }, this);
+    },
+
+    deleteRecord: function() {
+      var app = this.app;
+      var id = this.model._id;
+      var store = app.store('Account');
+
+      store.remove(id, function() {
+        // semi-hack clear the :target - harmless in tests
+        // but important in the current UI because css :target
+        // does not get cleared (for some reason)
+        window.location.replace('#');
+
+        // TODO: in the future we may want to store the entry
+        // url of this view and use that instead of this
+        // hard coded value...
+        app.router.show('/advanced-settings/');
+      });
     },
 
     save: function() {
@@ -146,6 +170,7 @@
 
       if (this.model._id) {
         this.type = 'update';
+        this.deleteButton.addEventListener('click', this.deleteRecord);
       } else {
         this.type = 'create';
       }
@@ -170,6 +195,7 @@
       this.form.reset();
 
       this.saveButton.removeEventListener('click', this.save);
+      this.deleteButton.removeEventListener('click', this.deleteRecord);
     },
 
     dispatch: function(data) {

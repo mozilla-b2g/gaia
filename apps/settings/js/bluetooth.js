@@ -23,14 +23,16 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
   var gBluetoothInfoBlock = document.getElementById('bluetooth-desc');
   var gBluetoothCheckBox = document.querySelector('#bluetooth-status input');
-  var gBluetoothOptions = document.getElementById('bluetooth-options');
+  var gBluetoothRename = document.getElementById('bluetooth-rename');
+  var gBluetoothSearch = document.getElementById('bluetooth-search');
 
   // display Bluetooth power state
   function updateBluetoothState(value) {
     gBluetoothInfoBlock.textContent =
       value ? _('bt-status-nopaired') : _('bt-status-turnoff');
     gBluetoothCheckBox.checked = value;
-    gBluetoothOptions.hidden = !value;
+    gBluetoothRename.hidden = !value;
+    gBluetoothSearch.hidden = !value;
   }
 
   // activate main button

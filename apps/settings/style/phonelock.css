@@ -1,0 +1,114 @@
+#phoneLock[data-enabled="false"] li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#passcode-panel div.passcode-error {
+  display: none;
+  color: red;
+  font-size: 1.6rem;
+  padding-left: 2rem;
+}
+
+#passcode-panel[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#passcode-panel[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
+  display: block;
+}
+
+#passcode-panel[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
+#passcode-panel[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
+  display: block;
+}
+
+#passcode-change div.passcode-overlay {
+  position: relative;
+}
+
+#passcode-panel .passcode-container > span {
+  width: 100%;
+  color: rgb(0, 0, 0);
+  -moz-box-sizing: border-box;
+  font-size: 1.8rem;
+  padding: 0px 2rem;
+}
+
+#passcode-panel [data-mode] {
+  display: none;
+}
+
+#passcode-panel[data-mode="create"] [data-mode*="create"] {
+  display: inherit;
+}
+
+#passcode-panel[data-mode="confirm"] [data-mode*="confirm"] {
+  display: inherit;
+}
+
+#passcode-panel[data-mode="edit"] [data-mode*="edit"] {
+  display: inherit;
+}
+
+#passcode-panel[data-mode="new"] [data-mode*="new"] {
+  display: inherit;
+}
+
+#passcode-confirm {
+  display: none;
+}
+
+#passcode-panel[data-status="success"] #passcode-confirm {
+  display: inherit;
+}
+
+#passcode-input {
+  z-index: -1;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.passcode-container {
+  position: absolute;
+  z-index: 1;
+  width: 100%;
+  top: 5rem;
+  left: 0;
+  background: url(images/document-bg.png);
+}
+
+.passcode {
+  height: 6rem;
+  width: 100%;
+}
+
+.passcode-digit {
+  -moz-box-sizing: border-box;
+  display: block;
+  float: left;
+  width: -moz-calc(25% - 1rem);
+  margin: 1.5rem 0.5rem;
+  height: 4rem;
+  text-align: center;
+  box-shadow: 0 0 0.8rem #999 inset;
+  background-color: #fff;
+  border-radius: 0.5rem;
+  position: relative;
+}
+
+span.passcode-digit[data-dot]::before {
+  content: '';
+  display: block;
+  position: absolute;
+
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #3e3b39;
+  border-radius: 0.75rem;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.75rem;
+  margin-top: -0.75rem;
+}

@@ -498,6 +498,7 @@ var WindowManager = (function() {
       openFrame.classList.add('homescreen');
       openFrame.setVisible(true);
       openFrame.focus();
+      openFrame = null;
     } else {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
@@ -526,7 +527,7 @@ var WindowManager = (function() {
     // Dispatch a appwillopen event
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillopen', true, false, { origin: displayedApp });
-    openFrame.dispatchEvent(evt);
+    app.frame.dispatchEvent(evt);
   }
 
   // Perform a "close" animation for the app's iframe
@@ -911,8 +912,24 @@ var WindowManager = (function() {
 
   function removeFrame(origin) {
     var app = runningApps[origin];
-    if (app.frame)
-      windows.removeChild(app.frame);
+    var frame = app.frame;
+
+    if (frame)
+      windows.removeChild(frame);
+
+    if (openFrame == frame) {
+      sprite.style.background = '';
+      sprite.className = '';
+      openFrame = null;
+      setTimeout(openCallback);
+    }
+    if (closeFrame == frame) {
+      sprite.style.background = '';
+      sprite.className = '';
+      closeFrame = null;
+      setTimeout(closeCallback);
+    }
+
     delete runningApps[origin];
     numRunningApps--;
   }
@@ -1189,24 +1206,25 @@ var WindowManager = (function() {
       evt.stopImmediatePropagation();
 
       var url = detail.url;
-      if (!isRunning(url)) {
-        var name = '';
-        var icon = '';
-        try {
-          var features = JSON.parse(detail.features);
-          name = features.name || '';
-          icon = features.icon || '';
-        } catch(ex) { }
-
-        detail.frameElement.dataset.name = name;
-        detail.frameElement.dataset.icon = icon;
-
-        appendFrame(detail.frameElement, url, url, name, {
-          'name': name
-        }, null);
-      } else if (displayedApp === url) {
+      if (displayedApp === url) {
         return;
       }
+
+      if (isRunning(url)) {
+        setDisplayedApp(url);
+        return;
+      }
+
+      var frameElement = detail.frameElement;
+      try {
+        var features = JSON.parse(detail.features);
+        frameElement.dataset.name = features.name || url;
+        frameElement.dataset.icon = features.icon || '';
+      } catch(ex) { }
+
+      appendFrame(frameElement, url, url, frameElement.dataset.name, {
+        'name': frameElement.dataset.name
+      }, null);
 
       setDisplayedApp(url);
     });
@@ -1384,7 +1402,7 @@ var WindowManager = (function() {
     setOrientationForApp: setOrientationForApp,
     getAppFrame: getAppFrame,
     getRunningApps: function() {
-       return runningApps;
+      return runningApps;
     },
     setDisplayedApp: setDisplayedApp,
     getCurrentDisplayedApp: function() {
