@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="bluetooth-on.svg">
+   sodipodi:docname="power-save-off.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -515,7 +515,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8284271"
-     inkscape:cx="53.130048"
+     inkscape:cx="-2.9081649"
      inkscape:cy="55.528492"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -533,7 +533,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -547,6 +547,6 @@
        inkscape:connector-curvature="0"
        id="path3511"
        d="m 90.325593,963.49886 c -67.188285,12.02659 -84.7396436,55.85964 -59.428708,68.20484 -4.402915,1.6589 -4.114717,2.7839 -21.7137836,7.1829 l 0.369452,2.3104 c 6.2635066,0.3266 11.3657056,-2.1654 23.7973186,-6.9303 2.074405,13.6384 63.546445,13.7151 56.975721,-70.76784 z m -5.863999,3.95974 c -17.588893,14.75314 -27.281118,49.7168 -50.53075,62.215 33.118028,-34.77674 31.422015,-50.85143 50.53075,-62.215 z"
-       style="fill:#555555;fill-opacity:0.66666667;stroke:none" />
+       style="fill:#a0a0a0;fill-opacity:1;stroke:none" />
   </g>
 </svg>
