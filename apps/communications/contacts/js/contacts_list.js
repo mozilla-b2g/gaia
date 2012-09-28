@@ -16,7 +16,8 @@ contacts.List = (function() {
       searchNoResult,
       fastScroll,
       scrollable,
-      settingsView;
+      settingsView,
+      orderByLastName = null;
 
   var init = function load(element, overlay) {
     _ = navigator.mozL10n.get;
@@ -79,9 +80,17 @@ contacts.List = (function() {
       console.log('ERROR Retrieving contacts');
     }
 
-    getContactsByGroup(onError, contacts);
-
-    this.loaded = true;
+    if (orderByLastName === null) {
+      asyncStorage.getItem('order.lastname', (function orderValue(value) {
+        orderByLastName = value || false;
+        getContactsByGroup(onError, contacts);
+        this.loaded = true;
+      }).bind(this));
+    } else {
+      getContactsByGroup(onError, contacts);
+      this.loaded = true;
+    }
+    
   };
 
 
@@ -122,8 +131,7 @@ contacts.List = (function() {
     body.className = 'item-body-exp';
     var name = document.createElement('strong');
     name.className = 'block-name';
-    name.innerHTML = contact.givenName;
-    name.innerHTML += ' <b>' + contact.familyName + '</b>';
+    name.innerHTML = getHighlitedName(contact);
     var searchInfo = [];
     var searchable = ['givenName', 'familyName', 'org'];
     searchable.forEach(function(field) {
@@ -156,6 +164,14 @@ contacts.List = (function() {
     contactContainer.appendChild(link);
     return contactContainer;
   }
+
+  var getHighlitedName = function getHighlitedName(contact) {
+    if (orderByLastName) {
+      return contact.givenName + ' <b>' + contact.familyName + '</b>';
+    } else {
+      return '<b>' + contact.givenName + '</b> ' + contact.familyName; 
+    }
+  };
 
   function buildSocialMarks(category) {
     var marks = [];
@@ -380,8 +396,9 @@ contacts.List = (function() {
       return;
     }
 
+    var sortBy = orderByLastName ? 'givenName' : 'familiyName';
     var options = {
-      sortBy: 'familyName',
+      sortBy: sortBy,
       sortOrder: 'ascending'
     };
 
@@ -389,6 +406,8 @@ contacts.List = (function() {
     request.onsuccess = function findCallback() {
       var fbReq = fb.contacts.getAll();
       fbReq.onsuccess = function() {
+        request.result.forEach(function(contact) {
+        });
         buildContacts(request.result, fbReq.result);
       }
       fbReq.onerror = function() {
@@ -540,10 +559,21 @@ contacts.List = (function() {
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
     var ret = [];
 
-    ret.push(contact.familyName && contact.familyName.length > 0 ?
-      contact.familyName[0] : '');
-    ret.push(contact.givenName && contact.givenName.length > 0 ?
-      contact.givenName[0] : '');
+    var familyName, givenName;
+
+    familyName = contact.familyName && contact.familyName.length > 0 ?
+      contact.familyName[0] : '';
+    givenName = contact.givenName && contact.givenName.length > 0 ?
+      contact.givenName[0] : '';
+
+    var first = givenName, second = familyName;
+    if (orderByLastName) {
+      first = familyName;
+      second = givenName;
+    }
+
+    ret.push(first);
+    ret.push(second);
     ret.push(contact.tel && contact.tel.length > 0 ?
       contact.tel[0].value : '');
     ret.push(contact.email && contact.email.length > 0 ?
@@ -657,7 +687,13 @@ contacts.List = (function() {
   var getContactsDom = function contactsDom() {
     var selector = ".block-item:not([data-uuid='#id#']";
     return document.querySelectorAll(selector);
-  }
+  };
+
+  var setOrderByLastName = function setOrderByLastName(value) {
+    orderByLastName = value;
+    cleanContactsList();
+    this.load();
+  };
 
   // When the cancel button inside the input is clicked
   document.addEventListener('cancelInput', function() {
@@ -675,6 +711,7 @@ contacts.List = (function() {
     'enterSearchMode': enterSearchMode,
     'exitSearchMode': exitSearchMode,
     'loaded': loaded,
-    'clearClickHandlers': clearClickHandlers
+    'clearClickHandlers': clearClickHandlers,
+    'setOrderByLastName': setOrderByLastName
   };
 })();
