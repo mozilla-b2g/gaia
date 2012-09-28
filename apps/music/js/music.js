@@ -4,13 +4,38 @@
  * This is Music Application of Gaia
  */
 
+// unknown strings for localization
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
+
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
-var isEmpty = true;
+
+var scanning = false;
+var scanningFoundChanges = false;
+
+// We get a localized event when the application is launched and when
+// the user switches languages.
+window.addEventListener('localized', function onlocalized() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // Get prepared for the unknown strings, these will be used later
+  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
+  unknownArtist = navigator.mozL10n.get('unknownArtist');
+  unknownTitle = navigator.mozL10n.get('unknownTitle');
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('invisible');
+
+  // The first time we get this event we start running the application.
+  // But don't re-initialize if the user switches languages while we're running.
+  if (!musicdb)
+    init();
+});
 
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
@@ -23,69 +48,65 @@ function init() {
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  musicdb.onunavailable = function(why) {
-    if (why === 'unavailable')
+  musicdb.onunavailable = function(event) {
+    var why = event.detail;
+    if (why === MediaDB.NOCARD)
       showOverlay('nocard');
-    else if (why === 'shared')
+    else if (why === MediaDB.UNMOUNTED)
       showOverlay('pluggedin');
   }
 
   musicdb.onready = function() {
-    // Hide the nocard overlay if it is displayed
-    if (currentOverlay === 'nocard')
+    // Hide the nocard or cardinuse overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
       showOverlay(null);
 
     showCurrentView();  // Display song covers we know about
-
-    // Each time we become ready there may be an entirely new set of
-    // music in device storage (new SD card, or USB mass storage transfer)
-    // so we have to rescan each time.
-    scan();
   };
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && musicdb.ready) {
-      // Users may change system language, so re-set localization here
-      setLocalization();
+  // When musicdb scans, let the user know
+  musicdb.onscanstart = function() {
+    scanning = true;
+    scanningFoundChanges = false;
+    showScanProgress();
+  };
 
-      scan();
-    }
-  });
+  // And hide the throbber when scanning is done
+  musicdb.onscanend = function() {
+    scanning = false;
+    hideScanProgress();
 
-  // Notification of files that are added or deleted.
-  // Eventually device storage will let us know about these.
-  // For now we have to call scan(), which will trigger this function.
-  musicdb.onchange = function(type, files) {
-    if (type === 'deleted') {
-      // TODO handle deleted files
+    // if the scan found any changes, update the UI now
+    if (scanningFoundChanges) {
+      scanningFoundChanges = false;
       showCurrentView();
     }
-    else if (type === 'created') {
-      // TODO handle new files
+  };
+
+  // When MediaDB finds new or deleted files, it sends created and deleted
+  // events. During scanning we may get lots of them. Bluetooth file transfer
+  // can also result in created events. The way the app is currently
+  // structured, all we can do is rebuild the entire UI with the updated
+  // list of files. We don't want to do this while scanning, though because
+  // it we may end up rebuilding it over and over. So we defer the rebuild
+  // until the scan ends
+  musicdb.oncreated = musicdb.ondeleted = function(event) {
+    if (scanning)
+      scanningFoundChanges = true;
+    else
       showCurrentView();
-    }
   };
 }
 
-function scan() {
-  //
-  // XXX: is it too intrusive to display the scan overlay every time?
-  //
-  // Can I do it on first launch only and after that
-  // display some smaller scanning indicator that does not prevent
-  // the user from using the app right away?
-  //
-  showOverlay('scanning');   // Tell the user we're scanning
-  musicdb.scan(function() {  // Run this function when scan is complete
-    if (isEmpty)
-      showOverlay('empty');
-    else
-      showOverlay(null);     // Hide the overlay
-  });
+// show and hide scanning progress
+function showScanProgress() {
+  document.getElementById('progress').classList.remove('hidden');
+  document.getElementById('throbber').classList.add('throb');
+}
+
+function hideScanProgress() {
+  document.getElementById('progress').classList.add('hidden');
+  document.getElementById('throbber').classList.remove('throb');
 }
 
 //
@@ -101,7 +122,6 @@ var currentOverlay;  // The id of the current overlay or null if none.
 //   nocard: no sdcard is installed in the phone
 //   pluggedin: the sdcard is being used by USB mass storage
 //   empty: no songs found
-//   scanning: the app is scanning for new photos
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.
@@ -122,8 +142,8 @@ function showOverlay(id) {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
-// We need two handles here to cancel enumerations
-// one is for tilesView, another one is for listView
+// We need three handles here to cancel enumerations
+// for tilesView, listView and sublistView
 var tilesHandle = null;
 var listHandle = null;
 var sublistHandle = null;
@@ -275,8 +295,7 @@ var TilesView = {
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
 
-    isEmpty = true;
-    showOverlay('empty');
+    showScanProgress();
   },
 
   setItemImage: function tv_setItemImage(item, fileinfo) {
@@ -289,14 +308,27 @@ var TilesView = {
   },
 
   update: function tv_update(result) {
-    if (result === null)
+    // if no songs in dataSource
+    // disable the TabBar to prevent users switch to other page
+    TabBar.setDisabled(!this.dataSource.length);
+
+    if (result === null) {
+      // The enumeration is complete, so hide the animated progress bar
+      hideScanProgress();
+
+      // If we don't know about any songs, display the 'empty' overlay.
+      // If we do know about songs and the 'empty overlay is being displayed
+      // then hide it.
+      if (this.dataSource.length > 0) {
+        if (currentOverlay === 'empty')
+          showOverlay(null);
+      }
+      else {
+        showOverlay('empty');
+      }
+
       return;
-
-    // If we were showing the 'no songs' overlay, hide it
-    if (currentOverlay === 'empty')
-      showOverlay(null);
-
-    isEmpty = false;
+    }
 
     this.dataSource.push(result);
 
@@ -311,7 +343,6 @@ var TilesView = {
     artistName.className = 'tile-title-artist';
     var albumName = document.createElement('div');
     albumName.className = 'tile-title-album';
-
     artistName.textContent = result.metadata.artist || unknownArtist;
     albumName.textContent = result.metadata.album || unknownAlbum;
     titleBar.appendChild(artistName);
@@ -330,6 +361,7 @@ var TilesView = {
       titleBar.appendChild(albumName);
     } else {
       tile.classList.add('sub-tile');
+      artistName.classList.add('sub-tile-title');
     }
 
     // Since 6 tiles are in one group
@@ -414,6 +446,8 @@ var ListView = {
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
   setItemImage: function lv_setItemImage(item, fileinfo) {
@@ -425,8 +459,10 @@ var ListView = {
   },
 
   update: function lv_update(option, result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -585,6 +621,8 @@ var SubListView = {
     this.albumImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
   shuffle: function slv_shuffle() {
@@ -638,8 +676,10 @@ var SubListView = {
   },
 
   update: function slv_update(result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -1032,7 +1072,14 @@ var TabBar = {
     this.view.addEventListener('click', this);
   },
 
+  setDisabled: function tab_setDisabled(option) {
+    this.disabled = option;
+  },
+
   handleEvent: function tab_handleEvent(evt) {
+    if (this.disabled)
+      return;
+
     switch (evt.type) {
       case 'click':
         var target = evt.target;
@@ -1056,6 +1103,9 @@ var TabBar = {
             };
 
             ListView.update(this.option, data);
+
+            // update ListView with null result to hide the scan progress
+            ListView.update(this.option, null);
             break;
           case 'tabs-artists':
           case 'tabs-albums':
@@ -1113,24 +1163,4 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-});
-
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-function setLocalization() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // Get prepared for the unknown strings, these will be used later
-  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
-  unknownArtist = navigator.mozL10n.get('unknownArtist');
-  unknownTitle = navigator.mozL10n.get('unknownTitle');
-}
-
-window.addEventListener('localized', function showBody() {
-  setLocalization();
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('invisible');
-
-  init();
 });
