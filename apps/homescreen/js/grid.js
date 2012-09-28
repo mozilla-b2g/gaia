@@ -244,8 +244,7 @@ const GridManager = (function() {
       pages[currentPage].container.dataset.currentPage = 'true';
     }
 
-    container.addEventListener('transitionend', function transitionEnd(e) {
-      container.removeEventListener('transitionend', transitionEnd);
+    var fireCallback = function() {
       if (!dragging) {
         delete document.body.dataset.transitioning;
       }
@@ -254,7 +253,17 @@ const GridManager = (function() {
       }
       pages[previousPage].container.dispatchEvent(new CustomEvent('pagehide'));
       pages[currentPage].container.dispatchEvent(new CustomEvent('pageshow'));
-    });
+    }
+
+
+    if (isSamePage) {
+      fireCallback();
+    } else {
+      container.addEventListener('transitionend', function transitionEnd(e) {
+        container.removeEventListener('transitionend', transitionEnd);
+        fireCallback();
+      });
+    }
 
     var len = pages.length;
     for (var i = 0; i < len; i++) {
@@ -636,9 +645,8 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, function ins_goToPage() {
-          pageHelper.getCurrent().
-                    applyInstallingEffect(Applications.getOrigin(app));
+        goToPage(index, function install_goToPage() {
+          pageHelper.getCurrent().applyInstallingEffect(origin);
         });
       }
 
