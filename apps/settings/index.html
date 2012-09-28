@@ -630,23 +630,11 @@
           Display
         </h1>
       </header>
+
       <ul>
         <li>
           <a data-l10n-id="wallpaper">Wallpaper</a>
           <img id="wallpaper-preview"></img>
-        </li>
-        <li>
-          <p data-l10n-id="brightness">Brightness level</p>
-          <label>
-            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
         </li>
         <li>
           <label>
@@ -659,6 +647,24 @@
             </select>
           </label>
           <a data-l10n-id="screen-timeout">Screen Timeout</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="brightness">Brightness</h2>
+      </header>
+      <ul>
+        <li id="brightness-auto">
+          <label>
+            <input type="checkbox" name="screen.automatic-brightness" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="brightness-autoAdjust">Adjust Automatically</a>
+        </li>
+        <li id="brightness-manual">
+          <label>
+            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
+          </label>
         </li>
       </ul>
     </section>
@@ -1414,7 +1420,7 @@
           </label>
         </li>
         <li>
-          <label for="share-performance-data" class="pref">
+          <label for="share-performance-data" class="description">
             <div>
               <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
               <span data-l10n-id="share-performance-data">
@@ -1484,7 +1490,7 @@
           <a data-l10n-id="turnOnAuto">Turn on automatically</a>
         </li>
         <li>
-          <p data-l10n-id="powerSaveMode-expl" class="description">
+          <p data-l10n-id="powerSave-expl" class="description">
             Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and GPS
             connections to extend battery life. You can still turn these services back on
             manually.
@@ -1608,7 +1614,7 @@
     </section>
 
     <!-- Device :: Help -->
-    <section role="region" id="help" data-leaf hidden>
+    <section role="region" id="help" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="helpAndFeedback">
@@ -1616,7 +1622,23 @@
         </h1>
       </header>
 
-      <!-- TODO -->
+      <ul>
+        <li>
+          <a href="#" onclick="openURL('http://www.telefonica.com'); return false;" data-l10n-id="online-support"> Online Support:
+            <span class="link-text" data-l10n-id="online-support-link">www.telefonica.com</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="dialNumber('+16509030800'); return false;" data-l10n-id="call-support"> Call Support:
+            <span class="tel-text" data-l10n-id="call-support-number">+1 650-903-0800</span>
+          </a>
+        </li>
+        <li>
+          <label>
+            <button data-l10n-id="user-guide" onclick="openURL('http://mozilla.org')"> User Guide </button>
+          </label>
+        </li>
+      </ul>
     </section>
 
     <!-- Main List -->
@@ -1748,7 +1770,7 @@
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
         </li>
-        <li hidden>
+        <li>
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>

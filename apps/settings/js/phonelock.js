@@ -191,7 +191,6 @@ var PhoneLock = {
   },
 
   updatePassCodeUI: function pl_updatePassCodeUI() {
-    console.log(this.passcodeDigits.length, '=====');
     for (var i = 0; i < 8; i++) {
       if (i < this._passcodeBuffer.length) {
         this.passcodeDigits[i].dataset.dot = true;

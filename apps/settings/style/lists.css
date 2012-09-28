@@ -297,8 +297,15 @@ ul li p + input[type=password] {
 .description {
   padding: 1rem 3rem;
   font-size: 1.5rem;
+  white-space: normal;
 }
 
+.link-text,
+.tel-text {
+    font-size: 1.2rem;
+    color: #336699;
+    text-decoration: underline;
+}
 
 /******************************************************************************
  * Bluetooth panel
@@ -425,19 +432,5 @@ ul li p + input[type=password] {
 #languages select {
   width: 50%;
   text-align: center;
-}
-
-
-/******************************************************************************
- * Device Information
- */
-
-.pref > div {
-  padding: 1rem 3rem;
-  font-size: 1.5rem;
-}
-
-label a[href="#doNotTrack"] {
-  text-decoration: none;
 }
 
