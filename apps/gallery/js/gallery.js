@@ -1899,6 +1899,11 @@ function exitEditMode(saved) {
 // change event when we manually add something to it or at least have that
 // option
 $('edit-save-button').onclick = function() {
+
+  // If we are in crop mode, perform the crop before saving
+  if ($('edit-crop-button').classList.contains('selected'))
+    imageEditor.cropImage();
+
   imageEditor.getFullSizeBlob('image/jpeg', function(blob) {
 
     var original = images[editedPhotoIndex].name;
