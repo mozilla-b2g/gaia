@@ -20,7 +20,7 @@ Bookmark.prototype = {
     var features = {
       name: this.manifest.name,
       icon: this.manifest.icons['60']
-    }
+    };
 
     return window.open(this.origin, '_blank', JSON.stringify(features));
   },
@@ -43,7 +43,7 @@ Bookmark.prototype = {
   }
 };
 
-var BookmarkEditor {
+var BookmarkEditor = {
   init: function bookmarkEditor_show(data) {
     this.data = data;
     this.bookmarkEntrySheet = document.getElementById('bookmark-entry-sheet');
@@ -55,7 +55,7 @@ var BookmarkEditor {
     this.bookmarkEntrySheet.classList.add('active');
 
     this.cancelButton.addEventListener('click', this.close.bind(this));
-    this.addButton.addEventListener('click', 
+    this.addButton.addEventListener('click', this.save.bind(this));
 
     this.bookmarkTitle.value = data.name || '';
     this.bookmarkUrl.value = data.url || '';
