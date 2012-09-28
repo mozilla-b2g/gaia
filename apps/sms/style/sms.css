@@ -86,7 +86,6 @@ html, body {
 }
 
 /* Styles for Edit mode */
-
 .edit .options {
   -moz-transform: translateY(-6.5rem);
 }
