@@ -843,7 +843,7 @@ $('photos-delete-button').onclick = function() {
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 $('photos-edit-button').onclick = function() {
-  editPhoto(currentPhotoIndex);
+  editPhotoIfCardNotFull(currentPhotoIndex);
 };
 
 // In single-photo mode, the share button shares the current photo
@@ -1637,6 +1637,28 @@ var editBgImageButtons =
   Array.slice($('edit-options').querySelectorAll('a.bgimage.button'), 0);
 
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
+
+// Ensure there is enough space to store an edited copy of photo n
+// and if there is, call editPhoto to do so
+function editPhotoIfCardNotFull(n) {
+  var imagedata = images[n];
+  var imagesize = imagedata.size;
+  console.log('editPhotoIfCardNotFull: image size:', imagesize);
+
+  photodb.stat(function(stats) {
+    var freespace = stats.freeBytes;
+    console.log('editPhotoIfCardNotFull: freespace:', freespace);
+
+    // the edited image might take up more space on the disk, but
+    // not all that much more
+    if (freespace > imagesize * 2) {
+      editPhoto(n);
+    }
+    else {
+      alert(navigator.mozL10n.get('memorycardfull'));
+    }
+  });
+}
 
 
 function editPhoto(n) {
