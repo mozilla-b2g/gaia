@@ -36,6 +36,7 @@ html, body {
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -60,52 +61,31 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
 */
 
+#snapshot {
+  top: -100%;
+  width: 200%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
 .snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
+  display: block;
+  z-index: 100;
+  -moz-transform: translateX(-50%);
 }
 
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
+.snapshot-back #snapshot {
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
 }
 
 /* Styles for Edit mode */
-
 .edit .options {
   -moz-transform: translateY(-6.5rem);
 }
