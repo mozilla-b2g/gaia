@@ -330,20 +330,23 @@ Calendar.ns('Views').WeekChild = (function() {
       
       return week.join('');
     },
-    
-    _buildElement: function() {
-      var el = document.createElement('section');
-      var events = document.createElement(
-        'section'
-      );
 
-      this._eventsElement = el;
-      this._element = el;
-      this._eventsElement.classList.add('day-events');
-
-      return el;
+    _renderSidebar: function _renderSidebar(){
+      var hours = [];
+      var hour = 0;
+      hours.push(template.hourSidebarElement.render({
+        hour: this._formatHour('allday')
+      }));
+      
+      for (; hour < 24; hour++) {
+        hours.push(template.hourSidebarElement.render({
+          hour: this._formatHour(String(hour))
+        }));
+      }
+      
+      return template.hourSidebar.render(hours.join(''));
     },
-
+    
     /**
      * Creates and returns
      *
@@ -361,7 +364,7 @@ Calendar.ns('Views').WeekChild = (function() {
       }
 
       return el;*/
-      var html = this._renderWeek();
+      var html = this._renderSidebar() + this._renderWeek();
       var element = document.createElement('section');
 
       element.id = this.id;

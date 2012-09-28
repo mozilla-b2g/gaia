@@ -31,15 +31,15 @@
     hourSidebar: [
       '<section id="hours-sidebar">',
           '{value|s}',
-      '</header>'
+      '</section>'
     ].join(''),
     
     hourSidebarElement: [
-      '<section id="hours-sidebar-element">',
+      '<section class="hours-sidebar-element">',
         '<h4>',
           '<span class="display-hour">{hour}</span>',
         '</h4>',
-      '</header>'
+      '</section>'
     ].join(''),
     
     attendee: '<span class="attendee">{value}</span>',
