@@ -32,7 +32,7 @@ contacts.Settings = (function() {
     }).bind(this));
   };
 
-  var updateOrderingUI = function updateOrdering() {
+  var updateOrderingUI = function updateOrderingUI() {
     var value = newOrderByLastName === null ? orderByLastName :
       newOrderByLastName;
     orderCheckbox.checked = value;
@@ -111,8 +111,8 @@ contacts.Settings = (function() {
     });
     li.appendChild(span);
 
-    fbImportLink.parentNode.parentNode.
-        insertBefore(li, fbImportLink.parentNode.nextSibling);
+    var after = document.getElementById('settingsFb');
+    after.parentNode.insertBefore(li, after.nextSibling);
   };
 
   var cleanFbContactsMessage = function cleanFbContactsMessage() {
@@ -167,8 +167,8 @@ contacts.Settings = (function() {
       span.innerHTML = message;
       li.appendChild(span);
 
-      simImportLink.parentNode.parentNode.
-        insertBefore(li, simImportLink.parentNode.nextSibling);
+      var after = document.getElementById('settingsSIM');
+      after.parentNode.insertBefore(li, after.nextSibling);
     };
 
     importSIMContacts(

@@ -23,7 +23,6 @@ contacts.List = (function() {
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
 
-    //addImportFacebookButton();
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);
@@ -121,7 +120,7 @@ contacts.List = (function() {
     body.className = 'item-body-exp';
     var name = document.createElement('strong');
     name.className = 'block-name';
-    name.innerHTML = getHighlitedName(contact);
+    name.innerHTML = getHighlightedName(contact);
     var searchInfo = [];
     var searchable = ['givenName', 'familyName', 'org'];
     searchable.forEach(function(field) {
@@ -155,7 +154,7 @@ contacts.List = (function() {
     return contactContainer;
   }
 
-  var getHighlitedName = function getHighlitedName(contact) {
+  var getHighlightedName = function getHighlightedName(contact) {
     if (orderByLastName) {
       return contact.givenName + ' <b>' + contact.familyName + '</b>';
     } else {
@@ -193,21 +192,6 @@ contacts.List = (function() {
     ele.classList.add('icon-tw');
 
     return ele;
-  }
-
-  var addImportFacebookButton = function addImportFacebookButton() {
-    var container = settingsView;
-    if (container.querySelector('#fb_import_button') || !fb.isEnabled) {
-      return;
-    }
-
-    var button = document.createElement('button');
-    button.id = 'fb_import_button';
-    button.setAttribute('class', 'importContacts action action-add');
-    button.textContent = _('facebook-import');
-    container.appendChild(button);
-
-    button.onclick = Contacts.extFb.importFB;
   }
 
   var buildContacts = function buildContacts(contacts, fbContacts) {
@@ -346,8 +330,6 @@ contacts.List = (function() {
     request.onsuccess = function findCallback() {
       var fbReq = fb.contacts.getAll();
       fbReq.onsuccess = function() {
-        request.result.forEach(function(contact) {
-        });
         buildContacts(request.result, fbReq.result);
       }
       fbReq.onerror = function() {
