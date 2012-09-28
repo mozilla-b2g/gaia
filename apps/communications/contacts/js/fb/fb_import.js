@@ -282,6 +282,9 @@ if (typeof fb.importer === 'undefined') {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data[0].fql_result_set;
 
+        // Now caching the number
+        fb.utils.setCachedNumFriends(lmyFriends.length);
+
         myFriendsByUid = {};
         myFriends = [];
 

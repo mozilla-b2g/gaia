@@ -6,6 +6,10 @@ if (!fb.utils) {
   fb.utils = {};
 
   var TIMEOUT_QUERY = 15000;
+  var FRIEND_COUNT_QUERY = 'select friend_count from user where uid=me()';
+
+  var IMPORT_INFO_KEY = 'importInfo';
+  var CACHE_FRIENDS_KEY = 'numFacebookFriends';
 
   fb.utils.getContactData = function(cid) {
     var outReq = new fb.utils.Request();
@@ -85,6 +89,7 @@ if (!fb.utils) {
   }
 
 
+  // On the device
   fb.utils.getNumFbContacts = function() {
     var outReq = new fb.utils.Request();
 
@@ -92,7 +97,8 @@ if (!fb.utils) {
       var req = fb.utils.getAllFbContacts();
 
       req.onsuccess = function() {
-        outReq.done(req.result.length);
+        var result = req.result || [];
+        outReq.done(result.length);
       }
 
       req.onerror = function() {
@@ -101,6 +107,82 @@ if (!fb.utils) {
     }, 0);
 
     return outReq;
+  }
+
+  // Requests the number remotely
+  fb.utils.getNumFbFriends = function(callback,access_token) {
+    fb.utils.runQuery(FRIEND_COUNT_QUERY,callback,access_token);
+  }
+
+  fb.utils.getCachedAccessToken = function(callback) {
+    window.asyncStorage.getItem('tokenData',function(data) {
+      var out = null;
+
+      if(data) {
+        out = data.access_token || null;
+      }
+
+      if(typeof callback === 'function') {
+        callback(out);
+      }
+      
+    });
+  }
+
+  // Obtains the number locally
+  fb.utils.getCachedNumFbFriends = function(callback) {
+    window.asyncStorage.getItem(CACHE_FRIENDS_KEY,function(data) {
+      if(typeof callback === 'function') {
+        callback(data);
+      }
+    });
+  }
+
+  fb.utils.setCachedNumFriends = function(value) {
+    window.asyncStorage.setItem(CACHE_FRIENDS_KEY, value);
+  }
+
+  fb.utils.getImportChecked = function(callback) {
+    window.asyncStorage.getItem(IMPORT_INFO_KEY,function(data) {
+      var out = false;
+      if(data) {
+        out = data.value || false;
+      }
+      if(typeof callback === 'function') {
+        callback(out);
+      }
+    });
+  }
+
+  // Value true or false
+  fb.utils.setImportChecked = function(value) {
+    window.asyncStorage.setItem(IMPORT_INFO_KEY, {
+      value: value
+    });
+  }
+
+  // Obtains the number locally (cached) and tries to get them remotely
+  fb.utils.numFbFriendsData = function(callback) {
+    var localCb = callback.local;
+    var remoteCb = callback.remote;
+
+    fb.utils.getCachedNumFbFriends(localCb);
+
+    function auxCallback(response) {
+      remoteCb(response.data[0].friend_count);
+    }
+
+    var remoteCallbacks = {
+      success: auxCallback,
+      error: null,
+      timeout: null
+    }
+
+    fb.utils.getCachedAccessToken(function(access_token) {
+      if(access_token) {
+        fb.utils.getNumFbFriends(remoteCallbacks,access_token);
+      }
+    });
   }
 
   // Runs a query against Facebook FQL. Callback is a string!!
