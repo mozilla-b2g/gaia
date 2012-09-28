@@ -11,6 +11,8 @@ contacts.Settings = (function() {
   var orderCheckbox,
       orderByLastName,
       simImportLink,
+      fbImportLink,
+      fbImportedValue,
       newOrderByLastName = null,
       ORDER_KEY = 'order.lastname';
 
@@ -53,7 +55,40 @@ contacts.Settings = (function() {
     simImportLink = document.querySelector('[data-l10n-id="importSim"]');
     simImportLink.addEventListener('click',
       onSimImport);
+
+    fbImportLink = document.querySelector('[data-l10n-id="importFb"]');
+    fb.utils.getImportChecked(function fbImported(value) {
+      fbImportedValue = value;
+      if (fbImportedValue) {
+        fbImportLink.innerHTML = 'Facebook';
+        fbAddUnlinkOption();
+      }
+    });
+    fbImportLink.addEventListener('click', onFbImport);
   };
+
+  // Insert the dom necessary to unlink your FB contacts
+  var fbAddUnlinkOption = function fbUnlinkOption() {
+    var label = document.createElement('label');
+    label.classList.add('switch');
+    label.innerHTML = '<input type="checkbox" checked="true" name="fb.imported" />';
+    label.innerHTML += '<span></span>';
+
+    fbImportLink.parentNode.insertBefore(label, fbImportLink);
+
+    document.querySelector('[name="fb.imported"]').addEventListener('click',
+      onFbUnlink);
+  }
+
+  var onFbImport = function onFbImportClick(evt) {
+    console.log('Fb import!!');
+    Contacts.extFb.importFB();
+  };
+
+  var onFbUnlink = function onFbUnlink(evt) {
+    console.log('Fb Unlink');
+    evt.stopPropagation();
+  }
 
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
