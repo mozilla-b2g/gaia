@@ -4,11 +4,15 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
   requireLib('calc.js');
   requireLib('store/event.js');
+
+  requireApp('models/account.js');
+  requireApp('models/calendar.js');
 });
 
 suite('store/event', function() {
   var subject;
   var db;
+  var app;
   var id = 0;
 
   function event(date) {
@@ -24,7 +28,8 @@ suite('store/event', function() {
   setup(function(done) {
     this.timeout(5000);
     id = 0;
-    db = testSupport.calendar.db();
+    app = testSupport.calendar.app();
+    db = app.db;
     subject = db.getStore('Event');
 
     db.open(function(err) {
@@ -71,11 +76,64 @@ suite('store/event', function() {
     assert.equal(subject.db, db);
   });
 
+
   test('#_createModel', function() {
-    var input = { name: 'foo'};
+    var input = Factory.build('event');
     var output = subject._createModel(input, 1);
     assert.equal(output._id, 1);
     assert.equal(output.name, output.name);
+
+    assert.deepEqual(
+      output.remote.startDate,
+      Calendar.Calc.dateFromTransport(
+        output.remote.start
+      ),
+      'startDate'
+    );
+
+    assert.deepEqual(
+      output.remote.endDate,
+      Calendar.Calc.dateFromTransport(
+        output.remote.end
+      ),
+      'endDate'
+    );
+  });
+
+  suite('#(x)For', function() {
+    var calStore;
+    var accStore;
+
+    var event;
+    var account;
+    var calendar;
+
+    setup(function() {
+      calStore = db.getStore('Calendar');
+      accStore = db.getStore('Account');
+
+      account = { _id: 'foo', providerType: 'Abstract' };
+      calendar = { _id: 'foo', accountId: 'foo' };
+      event = { calendarId: 'foo' };
+
+      calStore.cached.foo = calendar;
+      accStore.cached.foo = account;
+    });
+
+    test('#calendarFor', function() {
+      assert.equal(
+        subject.calendarFor(event),
+        calendar
+      );
+    });
+
+    test('#providerFor', function() {
+      assert.equal(
+        subject.providerFor(event),
+        Calendar.App.provider('Abstract')
+      );
+    });
+
   });
 
   suite('#eventsForCalendar', function() {
@@ -204,20 +262,15 @@ suite('store/event', function() {
 
       events.oneIn = Factory('event', {
         remote: {
-          endDate: new Date(2012, 1, 10),
-          // end date is the same for all occurrences.
-          occurs: [
-            new Date(2012, 1, 1)
-          ]
+          startDate: new Date(2012, 1, 1),
+          endDate: new Date(2012, 1, 10)
         }
       });
 
       events.twoIn = Factory('event', {
         remote: {
-          endDate: new Date(2012, 1, 9),
-          occurs: [
-            new Date(2012, 1, 7)
-          ]
+          startDate: new Date(2012, 1, 7),
+          endDate: new Date(2012, 1, 9)
         }
       });
     });
@@ -249,11 +302,11 @@ suite('store/event', function() {
 
       subject.findByAssociated(records, function(err, list) {
 
-        function hasEvent(idx, event, occuranceIdx, msg) {
+        function hasEvent(idx, event, msg) {
           var record = list[idx];
           assert.deepEqual(
             record[0].startDate,
-            events[event].remote.occurs[occuranceIdx],
+            events[event].remote.startDate,
             idx + ' - ' + event + ': ' + msg
           );
 
@@ -267,15 +320,54 @@ suite('store/event', function() {
         done(function() {
           assert.equal(list.length, 2);
 
-          hasEvent(0, 'oneIn', 0, 'first date in range');
-          hasEvent(1, 'twoIn', 0, 'second date in range');
+          hasEvent(0, 'oneIn', 'first date in range');
+          hasEvent(1, 'twoIn', 'second date in range');
         });
       });
     });
 
   });
 
-  suite('#removeByCalendarId', function() {
+  suite('#remove', function() {
+
+    //TODO: busytime removal tests?
+
+    suite('parent items /w children', function() {
+      var id = 'parentStuff';
+
+      setup(function(done) {
+        var item = Factory('event', {
+          _id: id
+        });
+        subject.persist(item, done);
+      });
+
+      setup(function(done) {
+        subject.persist(
+          Factory('event', { parentId: id }),
+          done
+        );
+      });
+
+      setup(function(done) {
+        subject.remove(id, done);
+      });
+
+      test('after remove', function(done) {
+        // clear cache
+        subject._cached = Object.create(null);
+
+        subject.load(function(data) {
+          var keys = Object.keys(subject.cached);
+          assert.length(keys, 0);
+          done();
+        });
+      });
+
+    });
+  });
+
+  suite('#removeByIndex', function() {
     var busytime;
     var byCalendar = {};
 
@@ -311,7 +403,7 @@ suite('store/event', function() {
     });
 
     test('removed all events for 1', function(done) {
-      subject.removeByCalendarId(1, function() {
+      subject.removeByIndex('calendarId', 1, function() {
         var keys = Object.keys(subject.cached);
         assert.equal(
           keys.length, 1,
@@ -343,6 +435,14 @@ suite('store/event', function() {
             assert.equal(obj.calendarId, 2);
           });
         });
+      });
+    });
+  });
+
+  suite('creation of dependancies', function() {
+    suite('busytime', function() {
+      var event;
+      setup(function() {
       });
     });
   });

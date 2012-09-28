@@ -103,10 +103,6 @@ contacts.Details = (function() {
     editContactButton.removeAttribute('disabled');
 
     if (isFbContact) {
-      if (!fb.isFbLinked(contactData)) {
-        editContactButton.setAttribute('disabled', 'disabled');
-      }
-
       var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 

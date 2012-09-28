@@ -6,6 +6,7 @@
   z-index: 10000;
   background-image: url('../resources/images/footer/background.png');
   background-size: 100%;
+  overflow: hidden;
 }
 
 #footer .dockWrapper {

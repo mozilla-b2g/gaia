@@ -3,15 +3,17 @@ var MockContacts = {
     this.mCalledWith = number;
     this.mPhoto = 'test';
     this.mName = 'test name';
+
+    var tel = {
+      value: this.mCalledWith,
+      carrier: this.mCarrier,
+      type: this.mType
+    };
     callback({
       name: [this.mName],
-      tel: [{
-        value: this.mCalledWith,
-        carrier: this.mCarrier,
-        type: this.mType
-      }],
+      tel: [tel],
       photo: [this.mPhoto]
-    });
+    }, tel);
   },
   mPhoto: null,
   mName: null,

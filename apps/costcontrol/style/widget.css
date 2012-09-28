@@ -1,5 +1,4 @@
-/* Resetting */
-
+/* Normalizing */
 html {
   font-size: 10px;
   font-family: 'Open Sans', sans-serif;
@@ -15,123 +14,135 @@ body {
   text-align: left;
 }
 
-.unit {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: white;
-}
-
-p {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: white;
-}
-
-p.time {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #AAA;
+button:focus,
+button::-moz-focus-inner {
+  border: 0;
+  outline: none;
 }
 
 [aria-hidden="true"] {
   display: none;
 }
 
-/* WIDGET */
-
-#cost-control button::-moz-focus-inner {
-  border: 0;
+/* Base font patterns */
+.unit {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
 }
 
+p {
+  font-size: 2rem;
+  font-weight: 400;
+  color: white;
+}
+
+p.time {
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Main layout */
 #cost-control {
+  background: url(images/widget/ui/gray-noise-pattern.png) repeat left bottom;
+  position: relative;
   height: 4.5rem;
   width: 100%;
-  background-image: url('./images/widget/ui/glossy-gradient.png'),
-                url('./images/widget/ui/gray-noise-pattern.png');
-  background-repeat: repeat-x, repeat;
-  background-color: black;
-  position: relative;
 }
 
-/* BALANCE VIEW */
+#cost-control.full .credit,
+#cost-control.full .data {
+  width: auto;
+  float: none;
+}
 
-#balance-view {
+/* Credit & Data strcuture */
+.credit,
+.data {
+  float: left;
+  width: 50%;
   height: 100%;
-  width: 100%;
-  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
+  -moz-box-sizing: border-box;
+  background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom;
 }
 
-/* Low credit warning */
-#balance-view.low-credit {
-  background-image: url('./images/widget/icons/icon-go.png'),
-                       url('./images/widget/ui/low-credit-pattern.png');
-  background-repeat: no-repeat, repeat-x;
-  background-position: right center, center;
+.credit {
+  border-right: solid 0.1rem #000;
 }
 
-/* No credit warning */
-#balance-view.no-credit {
-  background-image: url('./images/widget/icons/icon-go.png'),
-                       url('./images/widget/ui/no-credit-pattern.png');
-  background-repeat: no-repeat, repeat-x;
-  background-position: right center, center;
+.data {
+  border-left: solid 0.1rem rgba(255, 255, 255, 0.15);
 }
 
-/* Updating animation */
-#balance-view.updating #balance-icon {
-  background-image: url('./images/widget/icons/reload.png') !important;
-  -moz-animation: balance-spin 1.75s infinite linear !important;
-  -moz-animation-delay: 0.5s !important;
+/* Credit */
+.credit .view {
+  height: 100%;
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 1rem) center ;
 }
 
-/* No automatic updates allowed */
-#balance-view.warning #balance-icon {
-  background-image: url('./images/widget/icons/warning.png');
-  -moz-animation: none;
+.credit .info {
+  padding: 0.5rem 0;
 }
 
-@-moz-keyframes balance-spin {
-  0% { -moz-transform:rotate(0deg); }
-  100% { -moz-transform:rotate(360deg); }
+.credit p:not(.time) {
+  line-height: 1.5rem;
 }
 
-#balance-view > div {
-  display: inline-block;
-  vertical-align: middle;
-  -moz-transform: translateX(-2.5rem);
-  -moz-transition: -moz-transform 0.5s;
-}
-
-#balance-view.warning {
-  background: none;
-  background: #737577 url('./images/widget/icons/icon-go.png') right center no-repeat;
-}
-
-#balance-view.updating > div,
-#balance-view.warning > div {
-  -moz-transform: none;
-}
-
-#balance-view.warning #balance-credit, 
-#balance-view.warning #balance-currency,
-#balance-view.warning #balance-time {
-  color: #2d2e2f;
-}
-
-#balance-icon {
-  width: 2.1rem;
-  height: 2.1rem;
+.credit .icon {
+  width: 4.5rem;
+  height: 4.5rem;
   vertical-align: middle;
   background-position: center;
   background-repeat: no-repeat;
-  padding: 0 0.4rem;
 }
 
-/* TELEPHONY VIEW */
+/* Balance view */
+#balance-view .icon,
+#balance-view .info {
+  display: inline-block;
+  vertical-align: middle;
+  transform: translateX(-4.5rem);
+  transition: transform 0.5s;
+}
 
+/* Low balance credit warning */
+#balance-view.low-credit {
+  background-color: #f9a722;
+}
+
+/* No balance credit warning */
+#balance-view.no-credit {
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 1rem) center, url(images/widget/ui/zero-credit.png) repeat-x left bottom;
+}
+
+/* Updating */
+#balance-view.updating #balance-icon {
+  background-image: url(images/widget/icons/updating.png);
+  animation: balance-spin 1.75s infinite linear;
+  animation-delay: 0.5s;
+}
+
+/* Warning */
+#balance-view.warning #balance-icon {
+  background-image: url(images/widget/icons/warning.png);
+  animation: none;
+}
+
+@keyframes balance-spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
+}
+
+/* Updating & Warning */
+#balance-view.updating .icon,
+#balance-view.updating .info,
+#balance-view.warning .icon,
+#balance-view.warning .info {
+  transform: none;
+}
+
+/* Telephony view */
 #telephony-view {
-  padding-left: 0.4rem;
-  height: 100%;
-  width: 100%;
-  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
+  padding-left: 0.8em;
 }
