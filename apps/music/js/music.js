@@ -57,8 +57,8 @@ function init() {
   }
 
   musicdb.onready = function() {
-    // Hide the nocard or cardinuse overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
     showCurrentView();  // Display song covers we know about
