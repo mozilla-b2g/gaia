@@ -12,6 +12,7 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
+    <link rel="stylesheet" type="text/css" href="style/icons.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phonelock.css"/>
@@ -35,7 +36,7 @@
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
-    <script type="application/javascript" defer src="js/phonelock.js"></script>
+    <script type="application/javascript" defer src="js/phone_lock.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -463,7 +464,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: HotSpot :: Wi-Fi Settings Dialog -->
+    <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section role="region" id="hotspotSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button></button>
@@ -476,29 +477,38 @@
       <!-- wifi hotspot settings -->
       <ul>
         <li>
-          <p data-l10n-id="ssid">SSID</p>
+          <p data-l10n-id="ssid-name">SSID Network Name</p>
           <input type="text" data-setting="tethering.wifi.ssid" />
         </li>
         <li>
-          <p data-l10n-id="encryption">encryption</p>
-          <input type="text" data-setting="tethering.wifi.security.type" />
+          <p data-l10n-id="wifi-password">Password</p>
+          <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <p data-l10n-id="password">password</p>
-          <input type="text" data-setting="tethering.wifi.security.password" />
+          <label>
+            <select data-setting="tethering.wifi.security.type">
+              <option>open</option>
+              <option>WPA</option>
+              <option selected>WPA2</option>
+            </select>
+          </label>
+          <a data-l10n-id="wifi-security">Security</a>
         </li>
       </ul>
     </section>
 
-    <!-- Connectivity :: HotSpot -->
+    <!-- Connectivity :: Internet Sharing -->
     <section role="region" id="hotspot">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="hotspot">
-          HotSpot
+        <h1 data-l10n-id="internetSharing">
+          Internet Sharing
         </h1>
       </header>
 
+      <header>
+        <h2 data-l10n-id="internetSharing-wifi"> Wi-Fi </h2>
+      </header>
       <ul>
         <li>
           <label class="switch">
@@ -508,23 +518,48 @@
           <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.usb.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="usb-hotspot">USB HotSpot</a>
+          <p class="description" data-l10n-id="internetSharing-wifi-desc">
+            Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
+          </p>
         </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul>
+        <li>
+          <a data-l10n-id="wifi-name">Name
+            <span data-name="tethering.wifi.ssid"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="wifi-password">Password
+            <span data-name="tethering.wifi.security.password"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="wifi-security">Security
+            <span data-name="tethering.wifi.security.type"></span>
+          </a>
+        </li>
         <li>
           <label>
             <button onclick="Settings.openDialog('hotspotSettings');"
               data-l10n-id="hotspotSettings">HotSpot Settings</button>
           </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="internetSharing-usb"> USB </h2>
+      </header>
+      <ul>
+        <li>
+          <label class="switch">
+            <input type="checkbox" name="tethering.usb.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="usb-tethering">USB Tethering</a>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="internetSharing-usb-desc">
+            Share my phone’s Internet connection with a USB-connected device.
+          </p>
         </li>
       </ul>
     </section>
@@ -1679,8 +1714,8 @@
           <a href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
         </li>
         <li>
-          <small id="hotspot-desc"></small>
-          <a href="#hotspot" data-l10n-id="hotspot">HotSpot</a>
+          <small id="internetSharing-desc"></small>
+          <a href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
         </li>
       </ul>
 
