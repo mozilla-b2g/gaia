@@ -46,6 +46,8 @@ suite('Render contact form', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
+
+    document.body.innerHTML = '';
   });
 
   setup(function() {
@@ -144,13 +146,20 @@ suite('Render contact form', function() {
       assertEmailData(0);
 
       assert.isFalse(deleteButton.classList.contains('hide'));
+
+      // Remove Field icon on photo is present
+      var thumbnail = document.querySelector('#thumbnail-action');
+      assert.isTrue(thumbnail.querySelector('.icon-delete') !== null);
     });
 
-    test('FB Contact. e-mail and phone from Facebook', function() {
+    test('FB Contact. e-mail, phone and photo from Facebook', function() {
       window.fb.setIsFbContact(true);
 
       var fbContact = new MockFb.Contact(mockContact);
       fbContact.getDataAndValues().onsuccess = function() {
+        // Forcing photo comes from FB
+        this.result[1].hasPhoto = true;
+
         subject.render(mockContact, null, this.result);
 
         var cont = document.body.innerHTML;
@@ -170,6 +179,11 @@ suite('Render contact form', function() {
         assertEmailData(0);
 
         assert.isFalse(deleteButton.classList.contains('hide'));
+
+        // Remove Field icon photo should not be present
+        var thumbnail = document.querySelector('#thumbnail-action');
+        assert.isTrue(thumbnail.querySelector('.icon-delete').
+                        parentNode.classList.contains('hide'));
       }
     });
 
