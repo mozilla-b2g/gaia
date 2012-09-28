@@ -382,6 +382,14 @@ ul li p + input[type=password] {
 .scanner                { background-image: url(images/bluetooth/scanner.png); }
 .video-display          { background-image: url(images/bluetooth/video_display.png); }
 
+/******************************************************************************
+ * Sound
+ */
+.tone-select {
+  width: 60%;
+  position: absolute;
+  right: 0;
+}
 
 /******************************************************************************
  * Privacy icons

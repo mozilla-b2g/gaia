@@ -164,7 +164,7 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('phone.ring.incoming', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
   });
 
@@ -190,7 +190,7 @@ var OnCallHandler = (function onCallHandler() {
   ringtonePlayer.loop = true;
 
   var activateVibration = true;
-  SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+  SettingsListener.observe('vibration.enabled', true, function(value) {
     activateVibration = !!value;
   });
 
