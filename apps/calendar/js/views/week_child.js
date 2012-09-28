@@ -274,14 +274,63 @@ Calendar.ns('Views').WeekChild = (function() {
       });
     },
 
-    _renderAttendees: function(list) {
-      if (!(list instanceof Array)) {
-        list = [list];
-      }
+    /**
+     * Renders out the calendar headers.
+     *
+     * @return {String} returns a list of headers.
+     */
+    _renderDayHeaders: function _renderDayHeaders() {
+        var i = 0;
+        var days = 7;
+        var name;
+        var html = '';
 
-      return template.attendee.renderEach(list).join(',');
+        for (; i < days; i++) {
+          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          html += template.weekDaysHeaderDay.render({
+            day: String(i),
+            dayName: name,
+            //TODO
+            dayNumber: 0
+          });
+        }        
+
+      return template.weekDaysHeader.render(html);
     },
 
+    _renderDay: function _renderDay(day) {
+      var dayhours = [];
+      var hour = 0;
+      var name = navigator.mozL10n.get('weekday-' + day + '-short');
+      dayhours.push(
+        template.weekDaysHeaderDay.render({
+          day: String(day),
+          dayName: name,
+          //TODO
+          dayNumber: 0
+        })
+      );
+      for (; hour < 24; hour++) {
+        dayhours.push(template.hour.render({
+          hour: String(hour)
+        }));
+      }
+      
+      return  template.day.render(dayhours.join(''));
+      
+    },
+    
+    _renderWeek: function _renderWeek() {
+      var day = 0;
+      var week = [];
+      
+      for (; day < 7; day++) {
+        week.push(this._renderDay(day));
+      }
+      
+      return week.join('');
+    },
+    
     _buildElement: function() {
       var el = document.createElement('section');
       var events = document.createElement(
@@ -300,7 +349,7 @@ Calendar.ns('Views').WeekChild = (function() {
      *
      */
     create: function() {
-      var el = this._buildElement();
+      /*var el = this._buildElement();
       this.changeDate(this.date);
 
       if (this.renderAllHours) {
@@ -311,7 +360,17 @@ Calendar.ns('Views').WeekChild = (function() {
         }
       }
 
-      return el;
+      return el;*/
+      var html = this._renderWeek();
+      var element = document.createElement('section');
+
+      element.id = this.id;
+      element.classList.add('week-events');
+      element.innerHTML = html;
+
+      this._element = element;
+      
+      return element;
     },
 
     /**

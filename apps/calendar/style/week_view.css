@@ -1,0 +1,20 @@
+#week-view .hour {
+  border-bottom: 1px solid #D0D0D0;
+  border-right: 1px solid #D0D0D0;
+  min-height: 6rem;
+  padding-left: 0.7rem;
+  position: relative;
+}
+
+#week-view .week-view-day {
+  width: 20%;
+  line-height: 120%;
+  -moz-user-select: none;
+  float: left;
+}
+
+#week-view .day-header {
+  width: 100%;
+  line-height: 120%;
+  -moz-user-select: none;
+}

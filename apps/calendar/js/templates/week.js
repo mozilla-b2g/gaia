@@ -1,16 +1,47 @@
 (function(window) {
   var Week = Calendar.Template.create({
     hour: [
-      '<section class="hour-{hour} {classes} calendar-display calendar-color">',
+      '<section class="hour">',
         '<h4>',
-          '<span class="display-hour {hour}">{displayHour}</span>',
+          '<span class="display-hour {hour} "></span>',
         '</h4>',
-        '<ol class="events">',
-          '{items|s}',
-        '</ol>',
       '</section>'
     ].join(''),
+    
+    weekDaysHeader: [
+      '<header id="month-days">',
+        '<ol role="row">',
+          '{value|s}',
+        '</ol>',
+      '</header>'
+    ].join(''),
 
+    weekDaysHeaderDay: [
+      '<section data-l10n-id="weekday-{day}-short" class="day-header">',
+        '{dayName} {dayNumber}',
+      '</section>'
+    ].join(''),
+    
+    day: [
+      '<section class="week-view-day">',
+        '{value|s}',
+      '</section>'
+    ].join(''),
+    
+    hourSidebar: [
+      '<section id="hours-sidebar">',
+          '{value|s}',
+      '</header>'
+    ].join(''),
+    
+    hourSidebarElement: [
+      '<section id="hours-sidebar-element">',
+        '<h4>',
+          '<span class="display-hour">{hour}</span>',
+        '</h4>',
+      '</header>'
+    ].join(''),
+    
     attendee: '<span class="attendee">{value}</span>',
 
     event: [
