@@ -15,6 +15,20 @@ function openURL(url) {
 }
 
 /**
+ * Dial a number with a web activity
+ */
+
+function dialNumber(number) {
+  var a = new MozActivity({
+    name: 'dial',
+    data: {
+      type: 'webtelephony/number',
+      number: number
+    }
+  });
+}
+
+/**
  * These so-called "dialog boxes" are just standard Settings panels (<section
  * role="region" />) with reset/submit buttons: these buttons both return to the
  * previous panel when clicked, and each button has its own (optional) callback.

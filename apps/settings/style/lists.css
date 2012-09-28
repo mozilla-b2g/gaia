@@ -300,6 +300,12 @@ ul li p + input[type=password] {
   white-space: normal;
 }
 
+.link-text,
+.tel-text {
+    font-size: 1.2rem;
+    color: #336699;
+    text-decoration: underline;
+}
 
 /******************************************************************************
  * Bluetooth panel
