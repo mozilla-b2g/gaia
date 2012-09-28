@@ -56,9 +56,8 @@ var InputCancelButton = (function inputCancelButton() {
 
     var parentElement = input.parentNode;
     input.classList.add('cancel-button');
-    var cancelButton = document.createElement('span');
-    cancelButton.className = 'icon-clear';
-    cancelButton.setAttribute('role', 'button');
+    var cancelButton = document.createElement('button');
+    cancelButton.setAttribute('type', 'reset');
     var afterInput = input.nextSibling;
     var newElement = parentElement.insertBefore(cancelButton, afterInput);
 
