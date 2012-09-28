@@ -113,6 +113,10 @@ h2.block-title {
   padding: 0;
 }
 
+#groups-list > li {
+  display: block;
+}
+
 #shortcuts {
   position: fixed;
   right: 0;
