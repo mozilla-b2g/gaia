@@ -133,8 +133,9 @@ var Settings = {
     }
 
     // handle web activity
-    if (navigator.mozSetMessageHandler) {
-      var handleActivity = function(activityRequest) {
+    var handler = navigator.mozSetMessageHandler;
+    if (handler && typeof(mozSetMessageHandler) == 'function') {
+      handler('activity', function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
           case 'configure':
@@ -155,8 +156,7 @@ var Settings = {
             });
             break;
         }
-      };
-      navigator.mozSetMessageHandler('activity', handleActivity);
+      });
     }
 
     // preset all select
@@ -340,6 +340,17 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
   Settings.init();
+
+  // activate all external links
+  var links = document.querySelectorAll('a[href^="http"]');
+  for (var i = 0; i < links.length; i++) {
+    links[i].dataset.href = links[i].href;
+    links[i].href = '#';
+    links[i].onclick = function() {
+      openURL(this.dataset.href);
+      return false;
+    };
+  }
 });
 
 // back button = close dialog || back to the root page
@@ -381,5 +392,20 @@ window.addEventListener('localized', function showBody() {
       document.location.hash = document.location.hash;
     });
   }
+
+  // update date and time samples
+  var d = new Date();
+  var f = new navigator.mozL10n.DateTimeFormat();
+  var _ = navigator.mozL10n.get;
+  document.getElementById('region-date').textContent =
+      f.localeFormat(d, _('longDateFormat'));
+  document.getElementById('region-time').textContent =
+      f.localeFormat(d, _('shortTimeFormat'));
+
+  // show current locale in the main panel
+  var selector = 'select[name="language.current"] option[value="' +
+      navigator.mozL10n.language.code + '"]';
+  document.getElementById('language-desc').textContent =
+      document.querySelector(selector).textContent;
 });
 
