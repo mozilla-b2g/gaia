@@ -23,7 +23,7 @@ body.hidden * {
   height: 100%;
   border: 0;
   overflow-y: scroll;
-  background: url(images/document-bg.png);
+  background: url(images/document_bg.png);
 }
 
 
@@ -92,15 +92,6 @@ body.hidden #root {
  * Right-to-Left layout
  */
 
-[dir=rtl] header h1 a {
-  background-image: url(images/header-right-arrow.png);
-  background-position: right 20px top 50%;
-}
-
-[dir=rtl] [role=region] > h2 {
-  padding: 0 30px 0 0;
-}
-
 /* transitions */
 
 [dir=rtl] [role="region"] {
@@ -119,33 +110,33 @@ body.hidden #root {
 
 [dir=rtl] ul li > a {
   padding-left: inherit;
-  padding-right: 30px;
+  padding-right: 3rem;
 }
 
 [dir=rtl] ul li > small {
   left: auto;
-  right: 30px;
+  right: 3rem;
 }
 
 [dir=rtl] [role=region] label > span {
-  left: 10px;
+  left: 1rem;
   right: auto;
 }
 
 /* root list and icons */
 
 [dir=rtl] #root li [data-l10n-id] {
-  background-position: right 14px top 50%;
+  background-position: right 1.4rem top 50%;
 }
 
 [dir=rtl] #root ul li > a {
   padding-left: inherit;
-  padding-right: 55px;
+  padding-right: 5.5rem;
 }
 
 [dir=rtl] #root ul li > small {
   left: auto;
-  right: 55px;
+  right: 5.5rem;
 }
 
 /* bidi (e.g. language list) */
@@ -156,5 +147,26 @@ body.hidden #root {
 
 [dir=rtl] a[dir=ltr] {
   text-align: right;
+}
+
+
+/******************************************************************************
+ * Definition lists
+ */
+
+dl > * {
+  font-size: 1.6em;
+}
+
+dl dt {
+  padding-left: 30px;
+  font-weight: bold;
+  border-bottom: 1px solid black;
+}
+
+dl dd {
+  margin: 0;
+  padding: 10px 30px;
+  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 

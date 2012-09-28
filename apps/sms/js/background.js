@@ -5,6 +5,12 @@
   if (!mozSms)
     return;
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
+  }
+
   /* === Setup === */
   var ringtonePlayer = new Audio();
 
@@ -19,6 +25,20 @@
     activateSMSVibration = !!value;
   });
 
+  function ring() {
+    var ringtonePlayer = new Audio();
+    ringtonePlayer.src = 'style/ringtones/sms.wav';
+    ringtonePlayer.play();
+    window.setTimeout(function smsRingtoneEnder() {
+      ringtonePlayer.pause();
+      ringtonePlayer.src = '';
+    }, 500);
+  }
+
+  function vibrate() {
+    navigator.vibrate([200, 200, 200, 200]);
+  }
+
   mozSms.addEventListener('received', function received(evt) {
     var message = evt.message;
     // The black list includes numbers for which notifications should not
@@ -27,19 +47,22 @@
       return;
 
     if (activeSMSSound) {
-      var ringtonePlayer = new Audio();
-      ringtonePlayer.src = 'style/ringtones/sms.wav';
-      ringtonePlayer.play();
-      window.setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = '';
-      }, 500);
+      ring();
     }
 
     if (activateSMSVibration && 'vibrate' in navigator) {
-      navigator.vibrate([200, 200, 200, 200]);
+      // If the screen is turned off we need to wait for it to turn on
+      // again (the notification will turn it on if needed).
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          vibrate();
+        });
+      } else {
+        vibrate();
+      }
     }
-    PhoneNumberManager.init();
+
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
 
@@ -55,11 +78,11 @@
         app.launch();
       };
 
-      ContactDataManager.getContactData(message.sender,
+      Contacts.findByNumber(message.sender,
       function gotContact(contact) {
         var sender;
-        if (contact && contact.length > 0) {
-          sender = contact[0].name;
+        if (contact) {
+          sender = contact.name;
         } else {
           sender = message.sender;
         }
@@ -69,4 +92,3 @@
     };
   });
 }());
-

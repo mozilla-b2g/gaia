@@ -13,11 +13,16 @@
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css" />
 
+
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
-  <!--- shared -->
+  <!--- shared styles -->
+  <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+
+  <!--- shared scripts -->
   <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
   <script src="/shared/js/desktop.js" type="text/javascript" charset="utf-8"></script>
   <script src="/shared/js/gesture_detector.js" type="text/javascript" charset="utf-8"></script>
@@ -25,7 +30,7 @@
 
   <!--- vendor -->
   <script defer src="/js/ext/page.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/ext/caldav.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/ext/uuid.js" type="text/javascript" charset="utf-8"></script>
 
   <!-- lib root must load before anything else -->
   <script defer src="/js/calendar.js" type="text/javascript" charset="utf-8"></script>
@@ -34,8 +39,6 @@
   <script defer src="/js/presets.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/ordered_map.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/calc.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/format.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/batch.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/set.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/template.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/responder.js" type="text/javascript" charset="utf-8"></script>
@@ -45,6 +48,7 @@
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/input_parser.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
@@ -56,6 +60,7 @@
   <script defer src="/js/provider/abstract.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/local.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/provider/caldav.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/provider/caldav_pull_events.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- store -->
   <script defer src="/js/store/abstract.js" type="text/javascript" charset="utf-8"></script>
@@ -63,10 +68,12 @@
   <script defer src="/js/store/event.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/calendar.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/setting.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/models/calendar.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/models/event.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- views -->
   <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
@@ -86,8 +93,6 @@
 
   <!-- workers / main / controller -->
   <script defer src="/js/worker/manager.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/worker/thread.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/service/caldav.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/service.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/time.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/controllers/sync.js" type="text/javascript" charset="utf-8"></script>
@@ -139,7 +144,7 @@
 
     <menu type="toolbar">
       <a href="/add/">
-        <span data-l10n-id="add-event" class="icon icon-add" >
+        <span data-l10n-id="new-event" class="icon icon-add" >
           Add Event
         </span>
       </a>
@@ -227,9 +232,28 @@
     <h2 data-l10n-id="account-list-header">
       Accounts
     </h2>
-    </header>
+  </header>
 
   <ol class="account-list link-list">
+  </ol>
+
+  <header>
+    <h2 data-l10n-id="advanced-settings-personalization">
+      Personalization
+    </h2>
+  </header>
+
+  <ol class="settings-list link-list">
+    <li>
+      <label>
+        <span data-l10n-id="sync-frequency">Sync Calendar</span>
+        <select id="setting-sync-frequency" name="syncFrequency">
+          <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
+          <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
+          <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
+        </select>
+      </label>
+    </li>
   </ol>
 
 </section>
@@ -244,7 +268,7 @@
     </a>
 
     <menu type="toolbar">
-      <a href="#">
+      <a class="save" href="#">
         <span data-l10n-id="save">Save</span>
       </a>
     </menu>
@@ -257,35 +281,48 @@
   <form>
     <ol>
       <li class="title">
-        <input name="title" readonly data-l10n-id="event-title" placeholder="Title" />
+        <input name="title" data-l10n-id="event-title" placeholder="Title" />
       </li>
 
       <li class="location">
-        <input name="location" readonly data-l10n-id="event-location" placeholder="Where?" />
+        <input name="location" data-l10n-id="event-location" placeholder="Where?" />
       </li>
 
       <li class="start-date">
-        <input name="startDate" data-l10n-id="event-start-date"  placeholder="Date" readonly type="date" />
+        <input name="startDate" data-l10n-id="event-start-date" placeholder="Date" type="date" />
       </li>
 
       <li class="start-time">
-        <input type="time" data-l10n-id="event-start-time"  placeholder="Start Time" readonly name="startTime" />
+        <input type="time" data-l10n-id="event-start-time" placeholder="Start Time" name="startTime" />
       </li>
 
       <li class="end-date">
-        <input name="endDate" data-l10n-id="event-end-date"  placeholder="Date" readonly type="date" />
+        <input name="endDate" data-l10n-id="event-end-date" placeholder="Date" type="date" />
       </li>
 
       <li class="end-time">
-        <input type="time" data-l10n-id="event-end-time" placeholder="End Time" readonly name="endTime" />
+        <input type="time" data-l10n-id="event-end-time" placeholder="End Time" name="endTime" />
+      </li>
+
+      <li class="current-calendar">
+        <input name="currentCalendar" />
+      </li>
+
+      <li class="calendar-id">
+        <select name="calendarId">
+        </select>
       </li>
 
       <li class="notes">
-        <textarea class="fieldbox" readonly name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
+        <textarea class="fieldbox" name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
       </li>
 
     </ol>
   </form>
+
+  <button data-l10n-id="event-delete" class="danger delete-record">
+    Delete Event
+  </button>
 </section>
 
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
@@ -324,6 +361,24 @@
   </form>
   <div class="during-progress">
   </div>
+
+  <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
+    Remove Local Data
+  </a>
+
+  <form role="dialog" id="remove-account-dialog">
+    <section>
+      <h1 data-l10n-id="remove-account-dialog">>Remove Account</h1>
+      <p data-l10n-id="remove-account-dialog-details">
+        Removing this account will also remove your local copy of associated calendars and events.
+      </p>
+    </section>
+    <menu>
+      <button type="reset" onclick="window.back()" data-l10n-id="cancel">Cancel</button>
+      <button type="submit" class="delete-confirm" data-l10n-id="confirm">Confirm</button>
+    </menu>
+  </form>
+
 </section>
 
 

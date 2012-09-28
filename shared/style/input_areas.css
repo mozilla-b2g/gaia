@@ -1,0 +1,212 @@
+/* ----------------------------------
+* Input areas
+* ---------------------------------- */
+input:not([type="radio"]),
+input:not([type="checkbox"]),
+input:not([type="hidden"]),
+textarea {
+  width: 100%;
+  height: 3.8rem;
+  display: block;
+  overflow: hidden;
+  resize: none;
+  -moz-box-sizing: border-box;
+  padding: 0 0.5rem;
+  font: 1.4rem/4rem "Open Sans", Sans-serif;
+  border: solid 1px #d1d1d1;
+  border-radius: 0.3rem;
+  box-shadow: none;
+  background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
+}
+
+input:not([type="radio"]):-moz-placeholder,
+input:not([type="checkbox"]):-moz-placeholder,
+input:not([type="hidden"]):-moz-placeholder,
+textarea:-moz-placeholder {
+  color: #666;
+}
+
+form p {
+  display: block;
+  position: relative;
+  margin: 0;
+}
+
+form p + p {
+  margin-top: 1rem;
+}
+
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
+  width: 3.4rem;
+  height: 3.4rem;
+  padding: 0;
+  margin: -1.7rem 0 0;
+  font: 0/0 a;
+  border: none;
+  position: absolute;
+  right: 0rem;
+  top: 50%;
+  background: url(input_areas/images/icons/clear.png) no-repeat center center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+form p input:valid + button[type="reset"],
+form p textarea:valid + button[type="reset"] {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Fieldset */
+fieldset {
+  background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
+  border-radius: 0.3rem;
+  border: 1px solid #C8C8C8;
+  font: 1.4rem/1em "Open Sans", Sans-serif;
+  padding: 0;
+  overflow: hidden;
+}
+
+fieldset  + fieldset {
+  margin-top: 1.5rem;
+}
+
+fieldset legend {
+  -moz-box-sizing: border-box;
+  display: inline;
+  float: left;
+  position: relative;
+  text-transform: uppercase;
+  position: relative;
+  padding: 1.2rem 0.5rem 1.2rem 1.4rem;
+  width: 9.5rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  color: #333;
+  text-transform: uppercase;
+}
+
+fieldset legend.action {
+  position: relative;
+}
+
+fieldset legend.action:after {
+  content: "";
+  width: 0;
+  height: 0;
+  border: solid 0.4rem transparent;
+  border-top-color: #333;
+  position: absolute;
+  top: 1.8rem;
+  margin-left: 0.5rem;
+}
+
+fieldset section input:not([type="radio"]),
+fieldset section input:not([type="checkbox"]),
+fieldset section input:not([type="hidden"]),
+fieldset section textarea {
+  border-radius: 0;
+  border: none;
+  background: none;
+  font-weight: 600;
+}
+
+fieldset section {
+  border-left: 1px solid #DDD;
+  border-radius: 0 0.3rem 0.3rem 0;
+  display: block;
+  overflow: hidden;
+}
+
+fieldset section p {
+  border-bottom: 1px solid #DDD;
+  margin: 0;
+}
+
+fieldset section p:last-child {
+  border-bottom: medium none;
+}
+
+/* Tidy (search/submit) */
+form[role="search"] {
+  background: #f8f8f8 url(input_areas/images/ui/background.png) repeat-x left bottom;
+  border-bottom: solid 1px #989898;
+  height: 3.4rem;
+  position: relative;
+}
+
+form[role="search"].full p {
+  width: 100%;
+  background: none;
+}
+
+form[role="search"].full button[type="submit"] {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  width: 0;
+  font-size: 0;
+}
+
+form[role="search"].bottom {
+  border-top: solid 1px #989898;
+  border-bottom: none;
+}
+
+form[role="search"].bottom:after {
+  content: "";
+  display: block;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  margin-bottom: 1px;
+  height: 0.4rem;
+  background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
+}
+
+form[role="search"] p {
+  display: block;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+  padding: 0.5rem 1.2rem;
+  background: url(input_areas/images/ui/separator.png) no-repeat right center;
+}
+
+form[role="search"] p input {
+  height: 2.4rem;
+  width: 100%;
+  padding-right: 3rem;
+}
+
+form[role="search"] p input:focus {
+  border-color: #a4a4a4;
+}
+
+form[role="search"] p button[type="reset"] {
+  right: 1rem;
+}
+
+form[role="search"] button[type="submit"] {
+  background: none;
+  border: none;
+  float: right;
+  width: 6rem;
+  height: 3.4rem;
+  padding: 0;
+  font: 600 1.4rem/3.2rem "Open Sans", Sans-serif;
+  color: #333;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+form[role="search"] button[type="submit"]:active {
+  background: url(input_areas/images/ui/active.png) repeat-x left bottom;
+}
+
+form p button[type="reset"]:focus,
+form p button[type="reset"]::-moz-focus-inner {
+  border: none;
+  outline: none;
+}

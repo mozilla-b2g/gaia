@@ -19,20 +19,50 @@ if (typeof Contacts.extFb === 'undefined') {
     }
 
     extFb.importFB = function() {
-      open('fb_import.html');
+      open('fb_import.html', 'import');
     }
 
-    function open(uri) {
-      extensionFrame.src = uri;
-      extensionFrame.className = 'opening';
+    function open(uri, target) {
+      extensionFrame.addEventListener('transitionend', function topen() {
+        extensionFrame.removeEventListener('transitionend', topen);
+        extensionFrame.src = uri;
+      });
+      extensionFrame.className = (target === 'import') ?
+                                  'openingImport' : 'opening';
     }
 
-    function close() {
-      extensionFrame.addEventListener('transitionend', function closed() {
-        extensionFrame.removeEventListener('transitionend', closed);
+    function close(target) {
+      extensionFrame.addEventListener('transitionend', function tclose() {
+        extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.src = null;
       });
-      extensionFrame.className = 'closing';
+      extensionFrame.className = (target === 'import') ?
+                                  'closingImport' : 'closing';
+    }
+
+    extFb.showProfile = function(cid) {
+      var req = fb.utils.getContactData(cid);
+
+      req.onsuccess = function() {
+        var fbContact = new fb.Contact(req.result);
+
+        var uid = fbContact.uid;
+        var profileUrl = 'http://m.facebook.com/' + uid;
+
+        var activityDesc = {
+          name: 'view',
+          data: {
+            type: 'url',
+            url: profileUrl
+          }
+        };
+
+        var activity = new MozActivity(activityDesc);
+      }
+
+      req.onerror = function() {
+        window.console.error('Contacts FB Profile: Contact not found');
+      }
     }
 
     function doLink(uid) {
@@ -93,7 +123,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
       switch (data.type) {
         case 'window_close':
-          close();
+          close(data.from);
           if (data.from === 'import') {
             contacts.List.load();
           }

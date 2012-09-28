@@ -1,18 +1,6 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-// TODO:
-// - Get orientation working when leaving fullscreen
-// - Don't say "no photos" on startup... say "scanning" and localize it.
-// - Don't show wrong photo when panning at edges
-// - retain scroll position in thumbnail view
-// - put most recent photos (or screenshots) first
-// - in landscape mode, the 'no photos' message is too low
-// - match visual design and wireframes better
-// - add delete capability
-// - add filter effects
-
-
 'use strict';
 
 /*
@@ -88,15 +76,61 @@
  * touch-sensitive devices and can't be tested on the desktop.  They're
  * implemented on top of basic touch events in the separate file gestures.js.
  *
- * This app has varous display states it can be in:
+ * This app has various display states it can be in.
+ * Here's a list of the states and the transitions between them:
  *
- *   - Thumbnail browsing mode
- *   - Thumbnail selection mode (enables delete and share for multiple photos)
- *   - Photo viewing mode with controls hidden
- *   - Photo viewing mode with controls shown
- *   - Edit mode and its sub modes
- *   - Pick a photo mode (when invoked via web activities?)
+ * State 0: Startup/Uninitialized
+ *   -> regular launch: go to state 1
+ *   -> launch for open activity: go to state 5
+ *   -> launch for pick activity: go to state 7
  *
+ * State 1: thumbnail list
+ *   -> click on thumbnail: go to state 2
+ *   -> click on select: go to state 3
+ *
+ * State 2: single photo view (with toolbar)
+ *   -> gallery button: go to state 1
+ *   -> edit button: go to state 4
+ *   -> single tap: enter fullscreen mode, go to state 2a
+ *   -> camera button: launch camera
+ *   -> share button: launch share activity
+ *   -> trash button: delete curent photo
+ *
+ * State 2a: fullscreen photo view (no toolbar)
+ *   -> single tap: exit fullscreen mode, go to state 2
+ *   -> leave fullscreen: go to state 2
+ *
+ * State 3: select mode
+ *   -> click on X button: go to state 1
+ *   -> click on thumbnail: highlight thumbnail
+ *   -> trash button: delete selected images
+ *   -> share button: share selected images
+ *
+ * State 4: edit mode
+ *   -> click on X button: go to state 2
+ *   -> save button: save edits, go to state 1 (?)
+ *   -> exposure, crop, effects, borders buttons: switch among sub-states
+ *    State 4a: exposure
+ *    State 4b: cropping
+ *    State 4c: effects
+ *    State 4d: borders
+ *
+ * State 5: open mode
+ *   Enter fullscreen when entering this mode (?)
+ *   -> camera button: end activity, go to state 1 or just close self
+ *   -> swipe down: end activity, go to state 1 or just close self
+ *   -> trash button: delete file, end activity, go to state 1 or close self
+ *   -> exit fullscreen: end activity, go to state 1 or just close self
+ *
+ * State 6: pick mode
+ *   -> click on thumbnail: go to state 7
+ *   -> back button: end activity, go to state 1 or just exit
+ *   ->
+ *
+ * State 7: crop mode
+ *   -> back button: go to state 6
+ *   -> check button: end activity, go to state 1 or just exit
+ *   -> crop controls: change image size
  */
 
 //
@@ -180,8 +214,10 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 
-  // Now initialize the rest of the app
-  init();
+  // Now initialize the rest of the app. But don't re-initialize if the user
+  // switches languages when the app is already running
+  if (!photodb)
+    init();
 });
 
 function init() {
@@ -197,12 +233,12 @@ function init() {
     if (why === MediaDB.NOCARD)
       showOverlay('nocard');
     else if (why === MediaDB.UNMOUNTED)
-      showOverlay('cardinuse');
+      showOverlay('pluggedin');
   }
 
   photodb.onready = function() {
-    // Hide the nocard or cardinuse overlay if it is displayed
-    if (currentOverlay === 'nocard' || currentOverlay === 'cardinuse')
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
     createThumbnailList();  // Display thumbnails for the images we know about
@@ -284,7 +320,7 @@ function imageDeleted(filename) {
   // If there are no more photos show the "no pix" overlay
   if (images.length === 0) {
     setView(thumbnailListView);
-    showOverlay('nopix');
+    showOverlay('emptygallery');
   }
 }
 
@@ -302,7 +338,7 @@ function imageCreated(fileinfo) {
   var insertPosition;
 
   // If we were showing the 'no pictures' overlay, hide it
-  if (currentOverlay === 'nopix')
+  if (currentOverlay === 'emptygallery')
     showOverlay(null);
 
   // If this new image is newer than the first one, it goes first
@@ -374,6 +410,7 @@ function binarysearch(array, element, comparator, from, to) {
   else
     return binarysearch(array, element, comparator, mid + 1, to);
 }
+
 
 function setView(view) {
   if (currentView === view)
@@ -641,7 +678,7 @@ function handleOpenActivity(request) {
     initPhotoState();
     var scale;
     if (openPhotoState.fit.scale > openPhotoState.fit.baseScale)
-      scale = openPhotoState.fit.baseScale / openPhotoState.scale;
+      scale = openPhotoState.fit.baseScale / openPhotoState.fit.scale;
     else
       scale = 2;
 
@@ -896,13 +933,20 @@ $('edit-cancel-button').onclick = function() {
   exitEditMode();
 };
 
-// We get a resize event when the user rotates the screen
-window.addEventListener('resize', function resizeHandler(evt) {
-  if (currentView === photoView) {
-    // Abandon any current pan or zoom and reset the current photo view
-    photoState.reset();
-    photoState.setFramesPosition();
 
+// That happens when we enter or exit fullscreen mode and also when
+// the user rotates the phone we get a resize event
+window.addEventListener('resize', function resize() {
+  //
+  // When we enter or leave fullscreen mode, we get two resize events.
+  // When we get the first one, we don't know what our new size is,
+  // so we just ignore it.
+  //
+  if (photoView.offsetWidth === 0 && photoView.offsetHeight === 0)
+    return;
+
+  if (currentView === photoView) {
+    photoState.resize();
     // Also reset the size and position of the previous and next photos
     resetPhoto(currentPhotoIndex - 1, previousPhotoFrame.firstElementChild);
     resetPhoto(currentPhotoIndex + 1, nextPhotoFrame.firstElementChild);
@@ -919,10 +963,56 @@ window.addEventListener('resize', function resizeHandler(evt) {
   }
 });
 
-// On a tap just show or hide the photo overlay
-photoFrames.addEventListener('tap', function(event) {
-  $('photos-overlay').classList.toggle('hidden');
+// In order to distinguish single taps from double taps, we have to
+// wait after a tap arrives to make sure that a dbltap event isn't
+// coming soon.
+var taptimer = null;
+photoFrames.addEventListener('tap', function(e) {
+  if (!taptimer) {
+    // If there is already a timer set, then this is is the second tap
+    // and we're about to get a dbl tap event
+    taptimer = setTimeout(function() {
+      taptimer = null;
+      singletap(e);
+    }, GestureDetector.DOUBLE_TAP_TIME);
+  }
 });
+
+photoFrames.addEventListener('dbltap', function(e) {
+  clearTimeout(taptimer);
+  taptimer = null;
+  doubletap(e);
+});
+
+function singletap(e) {
+  // If we're not in full-screen mode, then request it otherwise cancel it
+  // We deal with hiding and showing the toolbar when we get the fullscreen
+  // change event
+  if (document.mozFullScreenElement !== photoView)
+    photoView.mozRequestFullScreen();
+  else
+    document.mozCancelFullScreen();
+}
+
+document.addEventListener('mozfullscreenchange', function() {
+  // Once we've transitioned into or out of fullscreen mode,
+  // hide or show the toolbar.
+  if (document.mozFullScreenElement !== photoView)
+    photoView.classList.remove('toolbarhidden');
+  else
+    photoView.classList.add('toolbarhidden');
+});
+
+// Quick zoom in and out with dbltap events
+function doubletap(e) {
+  var scale;
+  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
+    scale = photoState.fit.baseScale / photoState.fit.scale; // zoom out
+  else                                                       // Otherwise
+    scale = 2;                                               // zoom in
+
+  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
+}
 
 // Pan the photos sideways when the user moves their finger across the screen
 photoFrames.addEventListener('pan', function(event) {
@@ -1000,17 +1090,6 @@ photoFrames.addEventListener('swipe', function(event) {
     transitioning = true;
     setTimeout(function() { transitioning = false; }, time);
   }
-});
-
-// Quick zoom in and out with dbltap events
-photoFrames.addEventListener('dbltap', function(e) {
-  var scale;
-  if (photoState.fit.scale > photoState.fit.baseScale)   // If already zoomed in
-    scale = photoState.fit.baseScale / photoState.scale; // zoom back out
-  else                                                   // Otherwise
-    scale = 2;                                           // zoom in
-
-  photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
 });
 
 // We also support pinch-to-zoom
@@ -1335,13 +1414,61 @@ PhotoState.prototype.reset = function() {
   this.fit = fitImage(this.photoWidth, this.photoHeight,
                       this.viewportWidth, this.viewportHeight);
 
-  // Start off with no zoom
-  this.scale = 1;
-
   // We start off with no swipe from left to right
   this.swipe = 0;
 
   this._reposition(); // Apply the computed size and position
+};
+
+// We call this from the resize handler when the user rotates the
+// screen or when going into or out of fullscreen mode.  We discard
+// any side-to-side swipe. If the user has not zoomed in, then we just
+// fit the image to the new size (same as reset).  But if the user has
+// zoomed in (and we need to stay zoomed for the new size) then we
+// adjust the fit properties so that the pixel that was at the center
+// of the screen before remains at the center now, or as close as
+// possible
+PhotoState.prototype.resize = function() {
+  var oldWidth = this.viewportWidth;
+  var oldHeight = this.viewportHeight;
+  var newWidth = this.img.parentNode.offsetWidth;
+  var newHeight = this.img.parentNode.offsetHeight;
+
+  var fit = this.fit; // The current image fit
+
+  // this is how the image would fit at the new screen size
+  var newfit = fitImage(this.photoWidth, this.photoHeight,
+                        newWidth, newHeight);
+
+  // If no zooming has been done, then a resize is just a reset.
+  // The same is true if the new fit base scale is greater than the
+  // old scale.
+
+  // The same is true if the image is smaller (in both dimensions)
+  // than the new screen size.
+  if (fit.scale === fit.baseScale || newfit.baseScale > fit.scale) {
+    this.reset();
+    return;
+  }
+
+  // Remember the new screen size
+  this.viewportWidth = newWidth;
+  this.viewportHeight = newHeight;
+
+  // Figure out the change in both dimensions and adjust top and left
+  // to accomodate the change
+  fit.left += (newWidth - oldWidth) / 2;
+  fit.top += (newHeight - oldHeight) / 2;
+
+  // Adjust the base scale, too
+  fit.baseScale = newfit.baseScale;
+
+  // Reposition this image without resetting the zoom
+  this._reposition();
+
+  // Undo any swipe amount
+  this.swipe = 0;
+  this.setFramesPosition();
 };
 
 // Zoom in by the specified factor, adjusting the pan amount so that
@@ -1818,8 +1945,8 @@ var currentOverlay;  // The id of the current overlay or null if none.
 // Supported ids include:
 //
 //   nocard: no sdcard is installed in the phone
-//   cardinuse: the sdcard is being used by USB mass storage
-//   nopix: no pictures found
+//   pluggedin: the sdcard is being used by USB mass storage
+//   emptygallery: no pictures found
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.

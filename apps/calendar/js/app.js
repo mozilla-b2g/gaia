@@ -51,7 +51,6 @@ Calendar.App = (function(window) {
 
       /* temp views */
       this.state('/week/', setPath, tempView('#week-view'));
-      this.state('/add/', setPath, tempView('#modify-event-view'));
 
       /* routes */
       this.state('/day/', setPath, 'Day');
@@ -61,19 +60,12 @@ Calendar.App = (function(window) {
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
 
+      this.state('/add/', setPath, 'ModifyEvent');
       this.state('/event/:id', setPath, 'ModifyEvent');
 
       this.modifier('/select-preset/', setPath, 'CreateAccount');
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
-
-      // I am not sure where this logic really belongs...
-      this.modifier('/remove-account/:id', function(data) {
-        var store = self.store('Account');
-        store.remove(data.params.id, function(id) {
-          page.replace('/advanced-settings/');
-        });
-      });
 
       this.router.start();
 

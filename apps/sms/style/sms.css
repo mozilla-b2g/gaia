@@ -368,6 +368,7 @@ a.unread .unread-mark .icon-unread-mark {
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'Open Sans';
+  z-index: 3;
 }
 
 
@@ -687,6 +688,14 @@ a.unread .unread-mark .icon-unread-mark {
   pointer-events: none;
 }
 
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
+}
+
 /*
   Loading screen while deleting
 */
@@ -757,4 +766,26 @@ a.unread .unread-mark .icon-unread-mark {
   color: #606060;
   font-weight: 300;
   font-size: -moz-calc(10 * 0.226rem);
+}
+
+/*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 3rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  transform: translateY(-100%);
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: -moz-calc(6 * 0.226rem);
+  font-family: 'Open Sans';
+  color: #FF4E00;
+  z-index: 4;
 }
