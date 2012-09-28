@@ -33,7 +33,7 @@ Calendar.ns('Provider').Abstract = (function() {
     /**
      * Can edit events for this provider?
      */
-    canEditEvent: false,
+    canUpdateEvent: false,
 
     /**
      * Can delete events from this provider?
@@ -76,7 +76,7 @@ Calendar.ns('Provider').Abstract = (function() {
     syncEvents: function(account, calendar, callback) {},
 
     /**
-     * Edit an event
+     * Update an event
      *
      * @param {Object} event record from event store.
      *
@@ -86,7 +86,7 @@ Calendar.ns('Provider').Abstract = (function() {
      *                 related to the busytime. This may result in the creation
      *                 of a new "event" related to the busytime.
      */
-    editEvent: function(event, busytime, callback) {},
+    updateEvent: function(event, busytime, callback) {},
 
     /**
      * Delete event

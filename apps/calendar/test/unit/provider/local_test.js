@@ -98,14 +98,11 @@ suite('provider/local', function() {
 
     });
 
-    test('#createEvent', function() {
-    });
-
-    test('#editEvent', function() {
+    test('#updateEvent', function() {
       var event = { _id: 'foo' };
       var cb = function() {};
 
-      subject.editEvent(event, cb);
+      subject.updateEvent(event, cb);
       assert.equal(removeBusytime[0], event._id);
 
       assert.deepEqual(

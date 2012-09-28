@@ -11,8 +11,8 @@
    */
   Store.capabilities = {
     createEvent: 'canCreateEvent',
-    editEvent: 'canEditEvent',
-    deleteEvent: 'canEditEvent'
+    updateEvent: 'canUpdateEvent',
+    deleteEvent: 'canDeleteEvent'
   };
 
   Store.prototype = {
