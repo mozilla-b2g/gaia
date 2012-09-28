@@ -30,6 +30,9 @@
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
     <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
 
+    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_settings.js"></script>
+
     <script defer type="text/javascript" src="/contacts/js/utilities/normalizer.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/responsive.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
@@ -417,6 +420,27 @@
 
         <article class="view-body">
           <div class="view-body-inner">
+            <ul>
+              <li id="settingsOrder">
+                <label class="switch">
+                  <input type="checkbox" name="order.lastname" />
+                  <span></span>
+                </label>                
+                <a data-l10n-id="contactsOrderBy">Order by last name</a>
+              </li>
+              <li id="settingsSIM">
+                <a data-l10n-id="importSim">Import from SIM</a>
+              </li>
+              <li id="settingsFb">
+                <!--
+                <label class="switch hide">
+                  <input type="checkbox" name="fb.imported" />
+                  <span></span>
+                </label> 
+                -->
+                <a data-l10n-id="importFb">Import from Facebook</a>
+              </li>
+            </ul>
           </div>
         </article>
       </section>

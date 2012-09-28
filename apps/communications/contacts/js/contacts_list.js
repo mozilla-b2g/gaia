@@ -30,8 +30,8 @@ contacts.List = (function() {
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
 
-    addImportFacebookButton();
-    addImportSimButton();
+    //addImportFacebookButton();
+    //addImportSimButton();
 
     groupsList = element;
     groupsList.addEventListener('click', onClickHandler);

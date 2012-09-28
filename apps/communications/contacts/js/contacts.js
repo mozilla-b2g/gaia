@@ -579,6 +579,8 @@ window.addEventListener('localized', function initContacts(evt) {
   fb.init(function contacts_init() {
     Contacts.onLocalized();
 
+    contacts.Settings.init();
+
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
       window.navigator.mozSetMessageHandler('activity', actHandler);
