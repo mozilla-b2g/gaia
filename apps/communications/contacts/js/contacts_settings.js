@@ -38,12 +38,9 @@ contacts.Settings = (function() {
   }
 
   var cleanSimImportMessage = function cleanImportMessage() {
-    var numItems = simImportLink.parentNode.children.length;
-    if (numItems != 1) {
-      var parent = simImportLink.parentNode;
-      for (var i = 1; i < numItems; i++) {
-        parent.removeChild(parent.children[i]);
-      }
+    var simImportMessage = document.getElementById('simImportResult');
+    if (simImportMessage) {
+      simImportMessage.parentNode.removeChild(simImportMessage);
     }
   };
 
@@ -103,22 +100,24 @@ contacts.Settings = (function() {
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
     cleanFbContactsMessage();
 
+    var li = document.createElement('li');
+    li.id = 'fbTotalsResult';
+    li.classList.add('result');
     var span = document.createElement('span');
     span.innerHTML = _('facebook-stats', {
       'imported': imported,
       'total': total
     });
+    li.appendChild(span);
 
-    fbImportLink.parentNode.appendChild(span);    
+    fbImportLink.parentNode.parentNode.
+        insertBefore(li, fbImportLink.parentNode.nextSibling);
   };
 
   var cleanFbContactsMessage = function cleanFbContactsMessage() {
-    var numItems = fbImportLink.parentNode.children.length;
-    if (numItems != 2) {
-      var parent = fbImportLink.parentNode;
-      for (var i = 2; i < numItems; i++) {
-        parent.removeChild(parent.children[i]);
-      }
+    var fbTotalsMessage = document.getElementById('fbTotalsResult');
+    if (fbTotalsMessage) {
+      fbTotalsMessage.parentNode.removeChild(fbTotalsMessage);
     }
   };
 
@@ -136,7 +135,6 @@ contacts.Settings = (function() {
   }
 
   var onFbImport = function onFbImportClick(evt) {
-    console.log('Fb import!!');
     Contacts.extFb.importFB();
   };
 
@@ -160,9 +158,15 @@ contacts.Settings = (function() {
     Contacts.showOverlay(_('simContacts-importing'));
 
     var addMessage = function (message) {
+      var li = document.createElement('li');
+      li.id = 'simImportResult';
+      li.classList.add('result');
       var span = document.createElement('span');
       span.innerHTML = message;
-      simImportLink.parentNode.appendChild(span);
+      li.appendChild(span);
+
+      simImportLink.parentNode.parentNode.
+        insertBefore(li, simImportLink.parentNode.nextSibling);
     };
 
     importSIMContacts(
