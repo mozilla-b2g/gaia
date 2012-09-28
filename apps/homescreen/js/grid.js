@@ -239,6 +239,10 @@ const GridManager = (function() {
     var isSamePage = currentPage === index;
     var previousPage = currentPage;
     if (!isSamePage) {
+      if (index === landingPageIndex && previousPage > 2) {
+        // Click on home button
+        pages[landingPageIndex].container.style.display = 'block';
+      }
       delete pages[currentPage].container.dataset.currentPage;
       currentPage = index;
       pages[currentPage].container.dataset.currentPage = 'true';
