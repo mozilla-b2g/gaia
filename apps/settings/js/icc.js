@@ -180,6 +180,7 @@
    */
   function updateInput(command) {
     iccLastCommand = command;
+    var options = command.options;
 
     debug('Showing STK input box');
     while (iccStkSelection.hasChildNodes()) {
@@ -191,22 +192,22 @@
     var li = document.createElement('li');
     var p = document.createElement('p');
     p.id = 'stk-item-' + 'title';
-    p.textContent = command.options.text;
+    p.textContent = options.text;
     li.appendChild(p);
 
     var input = document.createElement('input');
     input.id = 'stk-item-input';
-    input.maxLength = command.options.maxLength;
-    input.placeholder = command.options.text;
-    if (command.options.isAlphabet)
+    input.maxLength = options.maxLength;
+    input.placeholder = options.text;
+    if (options.isAlphabet)
       input.type = 'text';
     else
       input.type = 'number';
-    if (command.options.defaultText)
-      input.value = command.options.defaultText;
-    if (command.options.isYesNoRequired)
+    if (options.defaultText)
+      input.value = options.defaultText;
+    if (options.isYesNoRequired)
       input.type = 'checkbox';
-    if (command.options.hidden)
+    if (options.hidden)
       input.type = 'hidden';
     li.appendChild(input);
     iccStkSelection.appendChild(li);
