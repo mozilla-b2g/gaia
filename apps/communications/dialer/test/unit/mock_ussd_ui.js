@@ -2,10 +2,12 @@
 
 var MockUssdUI = {
 
+  ready: true,
   _messageReceived: null,
 
   postMessage: function muui_postMessage(message) {
-    this._messageReceived = message;
+    if (message.type === 'ussdreceived')
+      this._messageReceived = message.message;
   },
 
   reply: function muui_reply(message) {
