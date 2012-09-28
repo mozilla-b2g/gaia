@@ -185,7 +185,7 @@ section[role="region"] {
 #photo-frames {
   position: absolute;
   top: 0px;
-  bottom: 50px;
+  bottom: 40px;
   left: 0px;
   width: 100%;
   padding: 0px;
@@ -270,7 +270,7 @@ a.button {
   /* for buttons that display text */
   font-size: smaller;
   text-align: center;
-  line-height: 50px;
+  line-height: 40px;
 }
 
 a.button:active, a.button:focus {
@@ -283,7 +283,7 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 50px;
+  height: 40px;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -327,7 +327,7 @@ footer {
 }
 
 #photos-toolbar {
-  height: 50px;
+  height: 40px;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -336,7 +336,7 @@ footer {
 }
 
 #photo-view.toolbarhidden #photos-toolbar {
-  transform: translate(0, 50px);
+  transform: translate(0, 40px);
 }
 
 #photos-back-button {
@@ -541,8 +541,8 @@ footer {
   left: 0;
   width: 100%;
   height: 50px;
-  bottom: 50px;
-  background: #999;
+  bottom: 40px;
+  background: #555;
 }
 
 /* All the effect options radio buttons share these styles */
@@ -701,28 +701,17 @@ a.filter-sepia {
   border: 4px solid black;  
 }
 
-
-#edit-toolbar {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > .button {
   position: absolute;
   width: 25%;
   height: 100%;
-  border-right: 1px solid #000;
-  background: #666;
+  font-size: 15px;
 }
 
 /* If the button is selected, it has a different background */
 #edit-toolbar > .button.selected {
-  background: #999;
+  background: #267594;
 }
 
 #edit-exposure-button {
