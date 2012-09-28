@@ -6,19 +6,27 @@ html {
   padding: 0;
   margin: 0;
   overflow: hidden;
+  font-size: 10px;
 }
 
 body {
   background-color: black;
   color: #fff;
   font-family: "Open Sans", sans-serif;
-  font-size: 20px;
+  font-size: 10px;
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
   padding-bottom: 50px;
+}
+
+section[role="region"] {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-size: 10px;
 }
 
 /* All of the main views fill the screen */
@@ -296,31 +304,6 @@ a.button.disabled {
   height: 100%;
   left: 50%;
   background-image: url('images/select.png');
-}
-
-#thumbnails-select-top {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-#thumbnails-cancel-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/actionicon_cancel.png');
-}
-
-#thumbnails-number-selected {
-  position: absolute;
-  width: 75%;
-  height: 100%;
-  left: 25%;
-  margin-top: 15px;
 }
 
 #thumbnails-select-bottom {
