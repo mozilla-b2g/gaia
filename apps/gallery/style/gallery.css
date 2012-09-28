@@ -413,6 +413,13 @@ a.button.disabled {
   top: 0;
   left: 0;
   right: 0;
+
+  /*
+   * we want the user to be able to push the back button even if
+   * an overlay is displayed, so be sure that this titlebar/toolbar
+   * is above the overlay
+   */
+  z-index: 2;
 }
 
 #pick-back-button {
