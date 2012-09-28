@@ -628,23 +628,11 @@
           Display
         </h1>
       </header>
+
       <ul>
         <li>
           <a data-l10n-id="wallpaper">Wallpaper</a>
           <img id="wallpaper-preview"></img>
-        </li>
-        <li>
-          <p data-l10n-id="brightness">Brightness level</p>
-          <label>
-            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
         </li>
         <li>
           <label>
@@ -657,6 +645,24 @@
             </select>
           </label>
           <a data-l10n-id="screen-timeout">Screen Timeout</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="brightness">Brightness</h2>
+      </header>
+      <ul>
+        <li id="brightness-auto">
+          <label>
+            <input type="checkbox" name="screen.automatic-brightness" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="brightness-autoAdjust">Adjust Automatically</a>
+        </li>
+        <li id="brightness-manual">
+          <label>
+            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
+          </label>
         </li>
       </ul>
     </section>
@@ -1349,7 +1355,7 @@
           </label>
         </li>
         <li>
-          <label for="share-performance-data" class="pref">
+          <label for="share-performance-data" class="description">
             <div>
               <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
               <span data-l10n-id="share-performance-data">
@@ -1419,7 +1425,7 @@
           <a data-l10n-id="turnOnAuto">Turn on automatically</a>
         </li>
         <li>
-          <p data-l10n-id="powerSaveMode-expl" class="description">
+          <p data-l10n-id="powerSave-expl" class="description">
             Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and GPS
             connections to extend battery life. You can still turn these services back on
             manually.
