@@ -339,6 +339,17 @@ window.addEventListener('load', function loadSettings(evt) {
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
   Settings.init();
+
+  // activate all external links
+  var links = document.querySelectorAll('a[href^="http"]');
+  for (var i = 0; i < links.length; i++) {
+    links[i].dataset.href = links[i].href;
+    links[i].href = '#';
+    links[i].onclick = function() {
+      openURL(this.dataset.href);
+      return false;
+    };
+  }
 });
 
 // back button = close dialog || back to the root page
