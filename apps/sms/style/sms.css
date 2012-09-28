@@ -36,6 +36,7 @@ html, body {
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -65,21 +66,23 @@ html, body {
 */
 
 #snapshot {
-  top:0;
-  position: absolute;
+  top: -100%;
+  width: 200%;
+  height: 100%;
   -moz-transition: -moz-transform .4s ease;
   background:-moz-element(#main-wrapper) no-repeat;
 }
 .snapshot #snapshot {
-   
-   z-index: 100;
-   -moz-transform: translateX(-50%);
+  display: block;
+  z-index: 100;
+  -moz-transform: translateX(-50%);
 }
 
 .snapshot-back #snapshot {
-   left: -100%;
-   z-index: 100;
-   -moz-transform: translateX(50%);
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
 }
 
 /* Styles for Edit mode */
