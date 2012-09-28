@@ -91,6 +91,20 @@ form.search button[type="submit"] {
   margin-top: -5rem;
 }
 
+#content.searching #main {
+  height: 100%;
+  margin-top: -5rem;
+}
+
+#content.searching #mainContent {
+  height: 100%;
+}
+
+#content.searching #select-all-wrapper, #content.searching .friends-msg,
+#content.searching .fixed-title-fb {
+  display: none;
+}
+
 #no-result {
   margin-top: -moz-calc((100% - 0.5rem) / 2);
   text-align: center;
