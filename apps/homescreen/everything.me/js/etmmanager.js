@@ -19,9 +19,9 @@ var EvmeManager = (function() {
 
     function addBookmark(params) {
         var data = {
-            url: params.originUrl,
-            name: params.title,
-            icon: params.icon
+          url: params.originUrl,
+          name: params.title,
+          icon: params.icon
         }
 
         function success() {

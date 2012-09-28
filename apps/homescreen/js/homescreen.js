@@ -25,7 +25,6 @@ const Homescreen = (function() {
         setLocale();
         GridManager.localize();
         DockManager.localize();
-        //Evme.localize();
       });
     });
   }
