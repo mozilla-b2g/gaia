@@ -28,7 +28,9 @@ var PermissionManager = (function() {
       cancelRequest(fullscreenRequest);
       fullscreenRequest = undefined;
     }
-    if (detail.fullscreenorigin != WindowManager.getDisplayedApp()) {
+
+    if (detail.fullscreenorigin != WindowManager.getDisplayedApp() &&
+        document.location.toString().indexOf(detail.fullscreenorigin) != 0) {
       // The message to be displayed on the approval UI.
       var message = detail.fullscreenorigin + ' is now fullscreen';
       fullscreenRequest = requestPermission(message,
