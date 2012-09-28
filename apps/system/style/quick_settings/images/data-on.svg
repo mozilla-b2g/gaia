@@ -7,7 +7,6 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="100"
@@ -15,7 +14,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="data-off.svg">
+   sodipodi:docname="data-on.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -29,15 +28,6 @@
          offset="1"
          id="stop3815" />
     </linearGradient>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient3811"
-       id="linearGradient3873"
-       x1="59.788921"
-       y1="972.73578"
-       x2="59.788921"
-       y2="1032.3706"
-       gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
      id="base"
@@ -47,7 +37,7 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="2.8284271"
-     inkscape:cx="16.582233"
+     inkscape:cx="-39.45598"
      inkscape:cy="8.5149256"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
@@ -65,7 +55,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -75,7 +65,7 @@
      id="layer1"
      transform="translate(0,-952.36218)">
     <path
-       style="fill:url(#linearGradient3873);fill-opacity:1;stroke:none"
+       style="fill:#05bce1;fill-opacity:1;stroke:none"
        d="m 31.265625,972.36217 -20,20 10,0 0,40.00003 20,0 0,-40.00003 10,0 -20,-20 z m 27.46875,0 0,40.00003 -10,0 20,20 20,-20 -10,0 0,-40.00003 -20,0 z"
        id="rect3838"
        inkscape:connector-curvature="0" />
