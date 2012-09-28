@@ -4,6 +4,7 @@
 'use strict';
 
 (function(){
+  var DEBUG = false;
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
@@ -17,7 +18,7 @@
   var iccLastCommand = null;
 
   function handleSTKCommand(command) {
-    console.log('STK Proactive Command:', JSON.stringify(command));
+    debug('STK Proactive Command:' + JSON.stringify(command));
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
         window.asyncStorage.setItem('stkMainAppMenu', command.options);
@@ -32,19 +33,19 @@
         updateInput(command);
         break;
       case icc.STK_CMD_DISPLAY_TEXT:
-        console.log(' STK:Show message: ' + JSON.stringify(command));
+        debug(' STK:Show message: ' + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert(command.options.text);
         break;
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
-        console.log(' STK:Send message: ' + JSON.stringify(command));
+        debug(' STK:Send message: ' + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         // TODO: Show a spinner instead the message (UX decission). Stop it on any other command
         break;
       case icc.STK_CMD_SET_UP_CALL:
-        console.log(' STK:Setup Phone Call. Number: ' + command.options.address);
+        debug(' STK:Setup Phone Call. Number: ' + command.options.address);
         if (confirm(command.options.confirmMessage)) {
           icc.sendStkResponse(command, { hasConfirmed: true, resultCode: icc.STK_RESULT_OK });
         } else {
@@ -52,7 +53,7 @@
         }
         break;
       case icc.STK_CMD_LAUNCH_BROWSER:
-        console.log(' STK:Setup Launch Browser. URL: ' + command.options.url);
+        debug(' STK:Setup Launch Browser. URL: ' + command.options.url);
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         if (confirm(command.options.confirmMessage)) {
           var options = {
@@ -66,12 +67,12 @@
           try {
             var activity = new MozActivity(options);
           } catch (e) {
-            console.log('WebActivities unavailable? : ' + e);
+            debug('WebActivities unavailable? : ' + e);
           }
         }
         break;
       default:
-        console.log('STK Message not managed ... response OK');
+        debug('STK Message not managed ... response OK');
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
     }
@@ -88,14 +89,14 @@
    * Navigate through all available STK applications
    */
   function updateMenu() {
-    console.log('Showing STK main menu');
+    debug('Showing STK main menu');
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
       while (iccStkAppsList.hasChildNodes()) {
         iccStkAppsList.removeChild(iccStkAppsList.lastChild);
       }
 
       if (!menu) {
-        console.log('STK Main App Menu not available.');
+        debug('STK Main App Menu not available.');
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.textContent = _('stkAppsNotAvailable');
@@ -104,13 +105,13 @@
         return;
       }
 
-      console.log('STK Main App Menu title:', menu.title);
-      console.log('STK Main App Menu default item:', menu.defaultItem);
+      debug('STK Main App Menu title:', menu.title);
+      debug('STK Main App Menu default item:', menu.defaultItem);
 
       document.getElementById('iccMenuItem').textContent = menu.title;
       document.getElementById('icc-stk-operator-header').textContent = menu.title;
       menu.items.forEach(function (menuItem) {
-        console.log('STK Main App Menu item:', menuItem.text, menuItem.identifer);
+        debug('STK Main App Menu item:' + menuItem.text + ' # ' + menuItem.identifer);
         var li = document.createElement('li');
         var a = document.createElement('a');
         a.id = 'stk-menuitem-' + menuItem.identifier;
@@ -126,7 +127,7 @@
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menuitem-identifier');
     var appName = event.target.textContent;
-    console.log('sendStkMenuSelection: ' + JSON.stringify(identifier));
+    debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
     document.getElementById('icc-stk-selection-header').textContent = appName;
     icc.sendStkMenuSelection(identifier, false);
 
@@ -144,15 +145,15 @@
     var menu = command.options;
     iccLastCommand = command;
 
-    console.log('Showing STK menu');
+    debug('Showing STK menu');
     while (iccStkSelection.hasChildNodes()) {
       iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
 
-    console.log('STK App Menu title:', menu.title);
-    console.log('STK App Menu default item:', menu.defaultItem);
+    debug('STK App Menu title: ' + menu.title);
+    debug('STK App Menu default item: ' + menu.defaultItem);
     menu.items.forEach(function (menuItem) {
-      console.log('STK App Menu item:', menuItem.text, menuItem.identifer);
+      debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
       var li = document.createElement('li');
       var a = document.createElement('a');
       a.id = 'stk-menuitem-' + menuItem.identifier;
@@ -166,7 +167,7 @@
 
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-selectoption-identifier');
-    console.log('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' + JSON.stringify(command));
+    debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' + JSON.stringify(command));
     icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                   itemIdentifier: identifier});
   }
@@ -180,12 +181,12 @@
   function updateInput(command) {
     iccLastCommand = command;
 
-    console.log('Showing STK input box');
+    debug('Showing STK input box');
     while (iccStkSelection.hasChildNodes()) {
       iccStkSelection.removeChild(iccStkSelection.lastChild);
     }
 
-    console.log('STK Input title:', command.options.text);
+    debug('STK Input title: ' + command.options.text);
 
     var li = document.createElement('li');
     var p = document.createElement('p');
@@ -232,4 +233,12 @@
     updateMenu();
   };
 
+  /**
+   * Debug method
+   */
+  function debug(msg) {
+    if(DEBUG) {
+      console.log("[DEBUG] STKUI: " + msg);
+    }
+  }
 })();
