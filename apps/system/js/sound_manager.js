@@ -59,14 +59,14 @@
         classes.add('vibration');
         classes.add('mute');
         SettingsListener.getSettingsLock().set({
-          'phone.vibration.incoming': true
+          'vibration.enabled': true
         });
         break;
       case 'MUTE':
         classes.remove('vibration');
         classes.add('mute');
         SettingsListener.getSettingsLock().set({
-          'phone.vibration.incoming': false
+          'vibration.enabled': false
         });
         break;
     }
