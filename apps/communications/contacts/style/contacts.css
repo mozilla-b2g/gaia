@@ -418,10 +418,16 @@ section.view[data-state="active"] {
     color: #000000;
     display: block;
     font-size: 1.8rem;
-    height: 60px;
-    line-height: 60px;
+    height: 6rem;
+    line-height: 6rem;
     outline: 0 none;
     text-decoration: none;
+}
+
+#view-settings ul li > a ~ span {
+  display: block;
+  text-align: center;
+  line-height: 5rem;
 }
 
 li [data-l10n-id="importSim"] {
@@ -433,7 +439,7 @@ li [data-l10n-id="importSim"] {
 
 li [data-l10n-id="importFb"] {
   background-image: url(/contacts/style/fb/profile_icon.png);
-  background-position: 9px center; /* icons have different size */
+  background-position: 0.9rem center; /* icons have different size */
   background-repeat: no-repeat;
   padding-left: 5.5rem;
 }
