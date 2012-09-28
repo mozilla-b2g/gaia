@@ -299,6 +299,7 @@ fb.Contact = function(deviceContact, cid) {
 
         fbreq.onsuccess = function() {
           var fbdata = fbreq.result;
+
           var out1 = this.merge(fbdata);
 
           var out2 = {};
@@ -306,7 +307,8 @@ fb.Contact = function(deviceContact, cid) {
           Object.keys(fbdata).forEach(function(key) {
             var dataElement = fbdata[key];
 
-            if (dataElement && typeof dataElement.forEach === 'function') {
+            if (dataElement && typeof dataElement.forEach === 'function' &&
+                key !== 'photo') {
               dataElement.forEach(function(item) {
                 if (item.value && item.value.length > 0) {
                   out2[item.value] = 'p';
@@ -314,10 +316,10 @@ fb.Contact = function(deviceContact, cid) {
                 else if (typeof item === 'string' && item.length > 0) {
                   out2[item] = 'p';
                 }
-                else if (dataElement === 'photo') {
-                  out2['hasPhoto'] = true;
-                }
               });
+            }
+            else if (key === 'photo') {
+              out2['hasPhoto'] = true;
             }
             else if (dataElement) {
               out2[dataElement] = 'p';
