@@ -1368,49 +1368,50 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
-  if (!MessageManager.lockActivity) {
-    MessageManager.lockActivity = true;
-    activity.postResult({ status: 'accepted' });
-    var number = activity.source.data.number;
-    var activityAction = function act_action() {
-      var currentLocation = window.location.hash;
-      switch (currentLocation) {
-        case '#thread-list':
+  if (MessageManager.lockActivity) 
+    return;
+  MessageManager.lockActivity = true;
+  activity.postResult({ status: 'accepted' });
+  var number = activity.source.data.number;
+  var activityAction = function act_action() {
+    var currentLocation = window.location.hash;
+    switch (currentLocation) {
+      case '#thread-list':
+        window.location.hash = '#num=' + number;
+        delete MessageManager.lockActivity;
+        break;
+      case '#new':
+        window.location.hash = '#num=' + number;
+       delete MessageManager.lockActivity;
+        break;
+      case '#edit':
+        history.back();
+        activityAction();
+        break;
+      default:
+        if (currentLocation.indexOf('#num=') != -1) {
+          MessageManager.activityTarget = number;
+          window.location.hash = '#thread-list';
+        } else {
           window.location.hash = '#num=' + number;
           delete MessageManager.lockActivity;
-          break;
-        case '#new':
-          window.location.hash = '#num=' + number;
-         delete MessageManager.lockActivity;
-          break;
-        case '#edit':
-          history.back();
-          activityAction();
-          break;
-        default:
-          if (currentLocation.indexOf('#num=') != -1) {
-            MessageManager.activityTarget = number;
-            window.location.hash = '#thread-list';
-          } else {
-            window.location.hash = '#num=' + number;
-            delete MessageManager.lockActivity;
-          }
-          break;
-      }
-    };
-
-    if (!document.documentElement.lang) {
-      window.addEventListener('localized', function waitLocalized() {
-        window.removeEventListener('localized', waitLocalized);
-        activityAction();
-      });
-    } else {
-      document.addEventListener('mozvisibilitychange',
-        function waitVisibility() {
-          document.removeEventListener('mozvisibilitychange', waitVisibility);
-          activityAction();
-      });
+        }
+        break;
     }
+  };
+
+  if (!document.documentElement.lang) {
+    window.addEventListener('localized', function waitLocalized() {
+      window.removeEventListener('localized', waitLocalized);
+      activityAction();
+    });
+  } else {
+    document.addEventListener('mozvisibilitychange',
+      function waitVisibility() {
+        document.removeEventListener('mozvisibilitychange', waitVisibility);
+        activityAction();
+    });
   }
+  
 });
 
