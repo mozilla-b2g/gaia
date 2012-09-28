@@ -117,6 +117,9 @@ var Browser = {
         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
     }, this);
 
+    document.addEventListener('mozvisibilitychange',
+      this.handleVisibilityChange.bind(this));
+
     this.handleWindowResize();
 
     ModalDialog.init(false);
@@ -399,7 +402,12 @@ var Browser = {
 
       case 'mozbrowsererror':
         if (evt.detail.type === 'fatal') {
-          this.handleCrashedTab(tab);
+          // A background crash usually means killed to save memory
+          if (document.mozHidden) {
+            this.handleKilledTab(tab);
+          } else {
+            this.handleCrashedTab(tab);
+          }
         }
         break;
 
@@ -448,16 +456,27 @@ var Browser = {
     delete tab.dom;
     delete tab.screenshot;
     tab.loading = false;
-
-    var newIframe = document.createElement('iframe');
-    newIframe.mozbrowser = true;
-    // FIXME: content shouldn't control this directly
-    newIframe.setAttribute('remote', 'true');
-
-    tab.dom = newIframe;
-    this.bindBrowserEvents(tab.dom, tab);
-    this.frames.appendChild(tab.dom);
+    this.createTab(null, null, tab);
     this.refreshButtons();
+  },
+
+  handleKilledTab: function browser_handleKilledTab(tab) {
+    tab.killed = true;
+    this.frames.removeChild(tab.dom);
+    delete tab.dom;
+    tab.loading = false;
+  },
+
+  handleVisibilityChange: function browser_handleVisibilityChange() {
+    if (!document.mozHidden && this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
+  },
+
+  reviveKilledTab: function browser_reviveKilledTab(tab) {
+    this.createTab(null, null, tab);
+    this.refreshButtons();
+    this.navigate(tab.url);
+    tab.killed = false;
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -467,7 +486,7 @@ var Browser = {
 
     this.hideCurrentTab();
     this.selectTab(tab);
-    // The frame will already be loading once we recieve it, which
+    // The frame will already be loading once we receive it, which
     // means we need to assume it is loading
     this.currentTab.loading = true;
     this.setTabVisibility(this.currentTab, true);
@@ -1078,7 +1097,7 @@ var Browser = {
     }, this);
   },
 
-  createTab: function browser_createTab(url, iframe) {
+  createTab: function browser_createTab(url, iframe, tab) {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
@@ -1093,20 +1112,24 @@ var Browser = {
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
 
-    var tab = {
-      id: 'tab_' + this.tabCounter++,
-      dom: iframe,
-      url: url || null,
-      title: null,
-      loading: false,
-      screenshot: null,
-      security: null
-    };
+    if (tab) {
+      tab.dom = iframe;
+    } else {
+      tab = {
+        id: 'tab_' + this.tabCounter++,
+        dom: iframe,
+        url: url || null,
+        title: null,
+        loading: false,
+        screenshot: null,
+        security: null
+      };
+    }
+
     this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
-
     return tab.id;
   },
 
@@ -1153,10 +1176,12 @@ var Browser = {
 
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
+    // If the tab was killed, bring it back to life
+    if (this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
-
     this.updateSecurityIcon();
     this.refreshButtons();
     if (id == this.FIRST_TAB && this.currentTab.url == null) {
