@@ -180,77 +180,26 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
- * Setting icons
+ * Explanation texts
  */
 
-#root li [data-l10n-id] {
-  background-repeat: no-repeat;
-  background-position: 1.4rem center;
+.explanation {
+  padding: 0.5rem 3rem;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #505859;
 }
 
-#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings/accessibility.png); }
-#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings/airplane_mode.png); }
-#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings/app_permissions.png); }
-#root li [data-l10n-id="battery"]           { background-image: url(images/settings/battery.png); }
-#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings/bluetooth.png); }
-#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings/network.png); }
-#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
-#root li [data-l10n-id="developer"]         { background-image: url(images/settings/developer.png); }
-#root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings/about_phone.png); }
-#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png); }
-#root li [data-l10n-id="display"]           { background-image: url(images/settings/display.png); }
-#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings/do_not_track.png); }
-#root li [data-l10n-id="gps"]               { background-image: url(images/settings/gps.png); }
-#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings/help.png); }
-#root li [data-l10n-id="hotspot"]           { background-image: url(images/settings/hotspot.png); }
-#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings/keyboard.png); }
-#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings/languages.png); }
-#root li [data-l10n-id="mail"]              { background-image: url(images/settings/email.png); }
-#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png); }
-#root li [data-l10n-id="notifications"]     { background-image: url(images/settings/notifications.png); }
-#root li [data-l10n-id="persona"]           { background-image: url(images/settings/persona.png); }
-#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings/phone_lock.png); }
-#root li [data-l10n-id="simSecurity"]       { background-image: url(images/settings/sim_card_lock.png); }
-#root li [data-l10n-id="sound"]             { background-image: url(images/settings/sound.png); }
-#root li [data-l10n-id="storage"]           { background-image: url(images/settings/storage.png); }
-#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
-#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings/wallpaper.png); }
-#root li [data-l10n-id="wifi"]              { background-image: url(images/settings/wifi.png); }
-
-#root li a {
-  padding-left: 5.5rem;
+.description {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  white-space: normal;
 }
 
-#root li small {
-  left: 5.5rem;
-}
-
-/******************************************************************************
- * Wi-Fi icons
- */
-
-/* signal levels */
-#wifi-availableNetworks li {
-  background-repeat: no-repeat;
-  background-position: right 3rem top 50%;
-}
-
-#wifi-availableNetworks li.wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
-#wifi-availableNetworks li.wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
-#wifi-availableNetworks li.wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
-#wifi-availableNetworks li.wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
-#wifi-availableNetworks li.wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
-
-/* secured networks */
-#wifi-availableNetworks a.wifi-secure {
-  background-repeat: no-repeat;
-  background-position: right 1.5rem top 50%;
-  background-image: url(images/wifi_lock.png);
-}
-
-/* searching... */
-#wifi-availableNetworks .wifi-search {
-  background-image: url(images/wifi_scan.png);
+.link-text, .tel-text {
+  font-size: 1.2rem;
+  color: #336699;
+  text-decoration: underline;
 }
 
 
@@ -282,30 +231,6 @@ ul li p + input[type=password] {
   padding-bottom: 1em;
 }
 
-
-/******************************************************************************
- * Explanation texts
- */
-
-.explanation {
-  padding: 0.5rem 3rem;
-  font-style: italic;
-  font-size: 1.4rem;
-  color: #505859;
-}
-
-.description {
-  padding: 1rem 3rem;
-  font-size: 1.5rem;
-  white-space: normal;
-}
-
-.link-text,
-.tel-text {
-    font-size: 1.2rem;
-    color: #336699;
-    text-decoration: underline;
-}
 
 /******************************************************************************
  * Bluetooth panel

@@ -303,6 +303,7 @@ const GridManager = (function() {
     var apps = Applications.getAll();
 
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/init.json', true);
     xhr.send(null);
 
