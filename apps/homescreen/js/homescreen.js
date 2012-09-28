@@ -98,13 +98,7 @@ const Homescreen = (function() {
         // issue 3457: Implement a UI when saving bookmarks to the homescreen
         switch (data.type) {
           case 'url':
-            HomeState.saveBookmark(data,
-              function home_okInstallBookmark() {
-                Applications.installBookmark(new Bookmark(data));
-              },
-              function home_errorInstallBookmark(code) {
-                console.error('Error saving bookmark ' + code);
-            });
+            BookmarkEditor.init(data);
             break;
           case 'application/x-application-list':
             onHomescreenActivity();

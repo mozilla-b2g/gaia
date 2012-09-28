@@ -13,6 +13,10 @@
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/request.js"></script>
     <script type="text/javascript" defer src="js/bookmark.js"></script>
@@ -81,6 +85,24 @@
   <body data-mode="normal">
     <div id="landing-overlay" class="onAppGrid"></div>
     <div id="search-overlay"></div>
+
+    <section id="bookmark-entry-sheet" role="region" class="skin-dark">
+      <header>
+        <button id="button-bookmark-cancel">
+          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+        </button>
+        <h1 data-l10n-id="add-to-homescreen">Add to Home Screen</h1>
+      </header>
+      <form id="bookmark-form">
+        <label data-l10n-id="website-name">
+          Website Name<input type="text" id="bookmark-title"></input>
+        </label>
+        <label data-l10n-id="address">
+          Address <input type="url" id="bookmark-url"></input>
+        </label>
+        <button id="button-bookmark-add" data-l10n-id="add-to-homescreen">Add to Home Screen</button>
+      </form>
+    </section>
 
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
