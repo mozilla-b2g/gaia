@@ -793,11 +793,6 @@ var WindowManager = (function() {
       'Cost Control',
       // Cross-process SMS (bug 775997)
 
-      'E-Mail',
-      // SSL/TLS support can only happen in the main process although
-      // the TCP support without security will accidentally work OOP
-      // (bug 770778)
-
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages'
