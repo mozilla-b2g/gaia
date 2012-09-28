@@ -169,7 +169,9 @@ if (!fb.utils) {
     fb.utils.getCachedNumFbFriends(localCb);
 
     function auxCallback(response) {
-      remoteCb(response.data[0].friend_count);
+      if (response.data && response.data[0] && response.data[0].friend_count) {
+        remoteCb(response.data[0].friend_count);
+      }
     }
 
     var remoteCallbacks = {

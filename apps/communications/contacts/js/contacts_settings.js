@@ -103,20 +103,20 @@ contacts.Settings = (function() {
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
     cleanFbContactsMessage();
 
-    var p = document.createElement('p');
-    p.innerHTML = _('facebook-stats', {
+    var span = document.createElement('span');
+    span.innerHTML = _('facebook-stats', {
       'imported': imported,
       'total': total
     });
 
-    fbImportLink.parentNode.appendChild(p);    
+    fbImportLink.parentNode.appendChild(span);    
   };
 
   var cleanFbContactsMessage = function cleanFbContactsMessage() {
     var numItems = fbImportLink.parentNode.children.length;
-    if (numItems != 1) {
+    if (numItems != 2) {
       var parent = fbImportLink.parentNode;
-      for (var i = 1; i < numItems; i++) {
+      for (var i = 2; i < numItems; i++) {
         parent.removeChild(parent.children[i]);
       }
     }
@@ -160,9 +160,9 @@ contacts.Settings = (function() {
     Contacts.showOverlay(_('simContacts-importing'));
 
     var addMessage = function (message) {
-      var p = document.createElement('p');
-      p.innerHTML = message;
-      simImportLink.parentNode.appendChild(p);
+      var span = document.createElement('span');
+      span.innerHTML = message;
+      simImportLink.parentNode.appendChild(span);
     };
 
     importSIMContacts(
