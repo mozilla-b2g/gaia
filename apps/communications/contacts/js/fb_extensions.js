@@ -124,10 +124,10 @@ if (typeof Contacts.extFb === 'undefined') {
       switch (data.type) {
         case 'window_close':
           // Notify observers that the import happened
-          var event = new CustomEvent('fb_imported', 
+          var event = new CustomEvent('fb_imported',
             {'detail' : true }
           );
-          document.dispatchEvent(event)
+          document.dispatchEvent(event);
           close(data.from);
           if (data.from === 'import') {
             contacts.List.load();

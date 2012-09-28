@@ -33,7 +33,8 @@ contacts.Settings = (function() {
   };
 
   var updateOrderingUI = function updateOrdering() {
-    var value = newOrderByLastName === null ? orderByLastName : newOrderByLastName;
+    var value = newOrderByLastName === null ? orderByLastName :
+      newOrderByLastName;
     orderCheckbox.checked = value;
   }
 
@@ -125,7 +126,8 @@ contacts.Settings = (function() {
   var fbAddUnlinkOption = function fbUnlinkOption() {
     var label = document.createElement('label');
     label.classList.add('switch');
-    label.innerHTML = '<input type="checkbox" checked="true" name="fb.imported" />';
+    label.innerHTML = '<input type="checkbox" checked="true" ' +
+      'name="fb.imported" />';
     label.innerHTML += '<span></span>';
 
     fbImportLink.parentNode.insertBefore(label, fbImportLink);
@@ -157,7 +159,7 @@ contacts.Settings = (function() {
 
     Contacts.showOverlay(_('simContacts-importing'));
 
-    var addMessage = function (message) {
+    var addMessage = function addMessage(message) {
       var li = document.createElement('li');
       li.id = 'simImportResult';
       li.classList.add('result');
@@ -195,7 +197,7 @@ contacts.Settings = (function() {
 
     Contacts.goBack();
   };
-  
+
   return {
     'init': init,
     'close': close

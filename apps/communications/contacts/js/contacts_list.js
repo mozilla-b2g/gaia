@@ -81,7 +81,6 @@ contacts.List = (function() {
       getContactsByGroup(onError, contacts);
       this.loaded = true;
     }
-    
   };
 
 
@@ -160,7 +159,7 @@ contacts.List = (function() {
     if (orderByLastName) {
       return contact.givenName + ' <b>' + contact.familyName + '</b>';
     } else {
-      return '<b>' + contact.givenName + '</b> ' + contact.familyName; 
+      return '<b>' + contact.givenName + '</b> ' + contact.familyName;
     }
   };
 
