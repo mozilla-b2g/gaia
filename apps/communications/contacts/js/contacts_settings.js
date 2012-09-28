@@ -57,15 +57,23 @@ contacts.Settings = (function() {
       onSimImport);
 
     fbImportLink = document.querySelector('[data-l10n-id="importFb"]');
-    fb.utils.getImportChecked(function fbImported(value) {
-      fbImportedValue = value;
-      if (fbImportedValue) {
-        fbImportLink.innerHTML = 'Facebook';
-        fbAddUnlinkOption();
-      }
+    document.addEventListener('fb_imported', function onImported(evt) {
+      // We just received an event sayin we imported the contacts
+      checkFbImported(true);
     });
+    fb.utils.getImportChecked(checkFbImported);
     fbImportLink.addEventListener('click', onFbImport);
   };
+
+  // Callback that will modify the ui depending if we imported or not
+  // contacts from FB
+  var checkFbImported = function checkFbImportedCb(value) {
+    fbImportedValue = value;
+    if (fbImportedValue) {
+      fbImportLink.innerHTML = 'Facebook';
+      fbAddUnlinkOption();
+    }
+  }
 
   // Insert the dom necessary to unlink your FB contacts
   var fbAddUnlinkOption = function fbUnlinkOption() {
