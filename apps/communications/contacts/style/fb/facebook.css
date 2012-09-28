@@ -43,12 +43,11 @@ html, body {
 }
 
 .friends-msg {
-  position: absolute;
-  top: 5.3rem;
   height: 2rem !important;
   width: 100%;
   z-index: 1;
-  background-color: #fff;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
+  -moz-box-sizing: border-box;
 }
 
 p#friends-msg {
@@ -87,8 +86,8 @@ h2.block-title {
 
 #main {
   position: fixed;
-  top: 7.3rem;
-  height: -moz-calc(100% - 7.3rem);
+  top: 5rem;
+  height: -moz-calc(100% - 5rem);
   width: 100%;
 }
 

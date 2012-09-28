@@ -39,6 +39,12 @@ form.search input {
   width: 100%;
 }
 
+.facebook form.search input {
+  height: 2.5rem;
+  pointer-events: none;
+  width: -moz-calc(100% - 7.5rem);
+}
+
 form.search button {
   line-height: 2.5rem;
   padding: 0 .5rem 0 0;
@@ -109,7 +115,7 @@ form.search button {
 
 #content.searching #main {
   height: 100%;
-  margin-top: -7.2rem;
+  margin-top: -5rem;
 }
 
 #content.searching #mainContent {
