@@ -39,6 +39,7 @@ section[role="region"] {
   padding: 0px;
   margin: 0px;
   overflow: hidden;
+  font-size: 20px;
 }
 
 /*
@@ -515,42 +516,7 @@ a.button.disabled {
   background: #888;
 }
 
-#edit-header {
-  background: #ccc;
-  position: absolute;
-  height: 50px;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-#edit-cancel-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/actionicon_cancel.png');
-}
-
 #edit-title {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 25%;
-  border-left: 1px solid black;
-  border-right: 1px solid black;
-  line-height: 50px;
-  vertical-align: 75%;
-  text-align: center;
-  font-variant: small-caps;
-}
-
-#edit-save-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  right: 0;
-  background-image: url('images/actionicon_done.png');
 }
 
 #edit-preview-area {

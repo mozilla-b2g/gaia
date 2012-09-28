@@ -87,12 +87,14 @@
       </div>
     </div>
 
-    <div id="edit-view" class="hidden">
-      <div id="edit-header">
-        <a id="edit-cancel-button" class="button"></a>
-        <div id="edit-title" data-l10n-id="edit"></div>
-        <a id="edit-save-button" class="button"></a>
-      </div>
+    <section role="region" id="edit-view" class="hidden skin-organic">
+      <header id="edit-header">
+        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
+        <menu type="toolbar">
+          <button id="edit-save-button">Done</button>
+        </menu>
+        <h1 id="edit-title" data-l10n-id="edit"></h1>
+      </header>
 
       <!-- preview of edited photo goes here -->
       <!-- canvas elements are dynamically inserted here -->
@@ -155,13 +157,13 @@
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
-      <div id="edit-toolbar">
+      <footer id="edit-toolbar">
         <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
         <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
         <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
         <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
