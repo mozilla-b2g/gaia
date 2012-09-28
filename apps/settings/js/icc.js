@@ -112,14 +112,12 @@
       document.getElementById('icc-stk-operator-header').textContent = menu.title;
       menu.items.forEach(function (menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' + menuItem.identifer);
-        var li = document.createElement('li');
-        var a = document.createElement('a');
-        a.id = 'stk-menuitem-' + menuItem.identifier;
-        a.setAttribute('stk-menuitem-identifier', menuItem.identifier);
-        a.textContent = menuItem.text;
-        a.onclick = onMainMenuItemClick;
-        li.appendChild(a);
-        iccStkAppsList.appendChild(li);
+        iccStkAppsList.appendChild(getDOMMenuEntry({
+          id: 'stk-menuitem-' + menuItem.identifier,
+          text: menuItem.text,
+          onclick: onMainMenuItemClick,
+          attributes: [['stk-menuitem-identifier', menuItem.identifier]]
+        }));
       });
     });
   }
@@ -154,14 +152,12 @@
     debug('STK App Menu default item: ' + menu.defaultItem);
     menu.items.forEach(function (menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
-      var li = document.createElement('li');
-      var a = document.createElement('a');
-      a.id = 'stk-menuitem-' + menuItem.identifier;
-      a.setAttribute('stk-selectoption-identifier', menuItem.identifier);
-      a.textContent = menuItem.text;
-      a.onclick = onSelectOptionClick.bind(null, command);
-      li.appendChild(a);
-      iccStkSelection.appendChild(li);
+      iccStkSelection.appendChild(getDOMMenuEntry({
+        id: 'stk-menuitem-' + menuItem.identifier,
+        text: menuItem.text,
+        onclick: onSelectOptionClick.bind(null, command),
+        attributes: [['stk-selectoption-identifier', menuItem.identifier]]
+      }));
     });
   }
 
@@ -233,6 +229,22 @@
   iccMenuItem.onclick = function onclick() {
     updateMenu();
   };
+
+  /**
+   * DOM Auxiliar methods
+   */
+  function getDOMMenuEntry(entry) {
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.id = entry.id;
+    entry.attributes.forEach(function attrIterator(attr) {
+      a.setAttribute(attr[0], attr[1]);
+    });
+    a.textContent = entry.text;
+    a.onclick = entry.onclick;
+    li.appendChild(a);
+    return li;
+  }
 
   /**
    * Debug method
