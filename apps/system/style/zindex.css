@@ -19,7 +19,8 @@
 }
 */
 
-#screen > [data-z-index-level="debug-grid"] {
+#screen > [data-z-index-level="debug-grid"],
+#screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }
 
