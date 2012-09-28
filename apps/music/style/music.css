@@ -64,6 +64,31 @@ body {
   font-size: 18px;
 }
 
+/* the indeterminate progress bar displayed while scanning */
+#progress {
+  position: absolute;
+  top: 10%;
+  left: 0px;
+  width: 100%;
+  height: 4px;
+  border: none;
+  overflow: hidden;
+}
+
+#throbber.throb
+{
+  animation: .5s throb infinite steps(12);
+}
+
+@keyframes throb {
+  from {
+    transform: translate(0px, 0px);
+  }
+  to {
+    transform: translate(0px, -48px);
+  }
+}
+
 /* 320x480 phones */
 @media (orientation: portrait) and (width: 320px),
        (orientation: landscape) and (width: 480px) {
@@ -314,7 +339,6 @@ body.player-mode #views {
   height: 158px;
   border: 1px solid rgba(0, 0, 0, 1);
   font-weight: lighter;
-  font-variant: small-caps;
   background-color: #303030;
   overflow: hidden;
 }
@@ -341,12 +365,12 @@ body.player-mode #views {
 
 .tile-title-artist,
 .tile-title-album {
-  padding: 0.1rem 0.3rem;
-  width: calc(100% - 0.6rem);
+  padding: 0.1rem 0.6rem;
+  width: calc(100% - 1.2rem);
   height: 1.5rem;
   line-height: 1.5rem;
   font-weight: normal;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -355,17 +379,23 @@ body.player-mode #views {
 }
 
 .tile-title-artist {
-  color: #FFFFFF;
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 1);
+  font-size: 0.9rem;
 }
 
 .tile-title-album {
-  color: #B8B8B8;
-  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.9rem;
 }
 
 .main-tile-title {
   font-size: 1.2rem;
+}
+
+.sub-tile-title {
+  padding: 0.1rem 0.3rem;
+  width: calc(100% - 0.6rem);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .tile-image {
