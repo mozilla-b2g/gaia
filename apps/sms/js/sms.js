@@ -462,6 +462,8 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
+      document.getElementById('threads-fixed-container').
+                                                    classList.remove('hide');
       FixedHeader.init('#thread-list-container',
                        '#threads-fixed-container',
                        'h2');
@@ -514,6 +516,7 @@ var ThreadListUI = {
       Utils.updateTimeHeaderScheduler();
 
     } else {
+      document.getElementById('threads-fixed-container').classList.add('hide');
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
             '   <p>' + _('noMessages-title') + '</p>' +
@@ -1265,6 +1268,7 @@ var ThreadUI = {
       return;
     }
     ContactDataManager.searchContactData(string, function gotContact(contacts) {
+      self.view.innerHTML = '';
       if (!contacts || contacts.length == 0) {
         var threadHTML = document.createElement('div');
         threadHTML.classList.add('item');
@@ -1275,7 +1279,6 @@ var ThreadUI = {
         self.view.appendChild(threadHTML);
         return;
       }
-      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
