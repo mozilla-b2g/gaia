@@ -199,10 +199,7 @@ if (typeof fb.importer === 'undefined') {
         return;
       }
 
-      var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
-                        filterBy: ['category']};
-
-      var req = navigator.mozContacts.find(filter);
+      var req = fb.utils.getAllFbContacts();
 
       req.onsuccess = contactsReady;
 

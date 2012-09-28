@@ -60,6 +60,48 @@ if (!fb.utils) {
     return outReq;
   };
 
+  fb.utils.getAllFbContacts = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function get_all_fb_contacts() {
+      var filter = {
+      filterValue: fb.CATEGORY,
+      filterOp: 'contains',
+      filterBy: ['category']
+      };
+
+      var req = navigator.mozContacts.find(filter);
+
+      req.onsuccess = function(e) {
+        outReq.done(e.target.result);
+      }
+
+      req.onerror = function(e) {
+        outReq.failed(e.target.error);
+      }
+    }, 0);
+
+    return outReq;
+  }
+
+
+  fb.utils.getNumFbContacts = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function get_num_fb_contacts() {
+      var req = fb.utils.getAllFbContacts();
+
+      req.onsuccess = function() {
+        outReq.done(req.result.length);
+      }
+
+      req.onerror = function() {
+        outReq.failed(req.error);
+      }
+    }, 0);
+
+    return outReq;
+  }
 
   // Runs a query against Facebook FQL. Callback is a string!!
   fb.utils.runQuery = function(query, callback, access_token) {
@@ -116,14 +158,18 @@ if (!fb.utils) {
       this.done = function(result) {
         this.result = result;
         if (typeof this.onsuccess === 'function') {
-          this.onsuccess();
+          var ev = {};
+          ev.target = this;
+          this.onsuccess(ev);
         }
       }
 
       this.failed = function(error) {
         this.error = error;
         if (typeof this.onerror === 'function') {
-          this.onerror();
+          var ev = {};
+          ev.target = this;
+          this.onerror(ev);
         }
       }
     };
