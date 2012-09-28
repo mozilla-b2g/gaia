@@ -1167,10 +1167,60 @@
     <section role="region" id="about-your-rights" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <h1 data-l10n-id="about-your-rights">  About Your Rights </h1>
+        <h1 data-l10n-id="about-your-rights"> About Your Rights </h1>
       </header>
-      <p data-l10n-id="your-rights-doc">
-      </p>
+
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-0">
+            Mozilla Firefox is free and open source software, built by a community
+            of thousands from all over the world. There are a few things you should
+            know:
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-1">
+            Firefox is made available to you under the terms of the Mozilla Public
+            License. This means you may use, copy and distribute Firefox to others.
+            You are also welcome to modify the source code of Firefox as you want to
+            meet your needs. The Mozilla Public License also gives you the right to
+            distribute your modified versions.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-2">
+            You are not granted any trademark rights or licenses to the trademarks
+            of the Mozilla Foundation or any party, including without Temporary Text
+            limitation the Firefox name or logo. Additional information on
+            trademarks may be found Only here.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-3">
+            Some features in Firefox, such as the Crash Reporter, give you the
+            option to provide feedback to Mozilla. By choosing to submit feedback,
+            you give Mozilla permission to use the feedback to improve its products,
+            to publish the feedback on its websites, and to distribute the feedback.
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Information :: About your privacy Dialog -->
+    <section role="region" id="about-your-privacy" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <h1 data-l10n-id="about-your-privacy"> About Your Privacy </h1>
+      </header>
+
+      <ul>
+        <li class="privacy-firefoxOS">
+          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Firefox OS</a>
+        </li>
+        <li class="privacy-everythingME">
+          <a href="http://corp.everything.me/#/privacy">everything.me</a>
+        </li>
+      </ul>
     </section>
 
     <!-- Device :: Information :: Licensing Dialog -->
@@ -1179,8 +1229,44 @@
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
         <h1 data-l10n-id="licensing">  Licensing </h1>
       </header>
-      <p data-l10n-id="licensing-doc">
-      </p>
+
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="licensing-1">
+            Binaries of this product have been made available to you by the Mozilla
+            Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="licensing-2">
+            All of the source code to this product is available under licenses which
+            are both free and open source. Most of it is available under the Mozilla
+            Public License 2.0 (MPL).
+          </p>
+        </li>
+        <li>
+          <p class="description">
+            <a href="https://www.mozilla.org/MPL/"
+              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a>
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="licensing-3">
+            The remainder of the software which is not under the Mozilla Public
+            License 2.0 MPL is available under one of a variety of other licenses.
+            Those that require reproduction of the license text in the distribution
+            are given below. (Note: your copy of this product may not contain code
+            covered by one or more of the licenses listed here, depending on the
+            exact product and version you choose.)
+          </p>
+        </li>
+        <li>
+          <p class="description">
+            <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+              data-l10n-id="licensing-Apache">Apache License 2.0</a>
+          </p>
+        </li>
+      </ul>
     </section>
 
     <!-- Device :: Information -->
@@ -1254,10 +1340,7 @@
         </li>
         <li>
           <label>
-            <!-- TODO: need to change it to link to "Privacy Rights" Page in the "Security and Privacy" section  -->
-            <a href="#doNotTrack">
-              <button id="about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </button>
-            </a>
+            <button data-l10n-id="about-your-privacy" onclick="openDialog('about-your-privacy')"> About Your Privacy </button>
           </label>
         </li>
         <li>
@@ -1273,7 +1356,7 @@
                 I want to help make Firefox OS faster and easier to use by
                 sharing information about my phone’s performance.
               </span>
-              <a href="#" onclick="openURL('http://mozilla.org'); return false;" data-l10n-id="learn-more"> Learn More </a>
+              <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
             </div>
           </label>
         </li>
