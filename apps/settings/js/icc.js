@@ -47,12 +47,10 @@
         // Stop it on any other command
         break;
       case icc.STK_CMD_SET_UP_CALL:
-        debug(' STK:Setup Phone Call. Number: ' + command.options.address);
-        if (confirm(command.options.confirmMessage)) {
-          icc.sendStkResponse(command, { hasConfirmed: true, resultCode: icc.STK_RESULT_OK });
-        } else {
-          icc.sendStkResponse(command, { hasConfirmed: false, resultCode: icc.STK_RESULT_OK });
-        }
+        debug(' STK:Setup Phone Call. Number: ' + options.address);
+        var confirmed = confirm(options.confirmMessage);
+        icc.sendStkResponse(command, { hasConfirmed: confirmed,
+                                       resultCode: icc.STK_RESULT_OK });
         break;
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
