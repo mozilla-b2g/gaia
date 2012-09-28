@@ -319,7 +319,7 @@ fb.Contact = function(deviceContact, cid) {
                 }
               });
             }
-            else if(key === 'photo') {
+            else if (key === 'photo') {
               out2['hasPhoto'] = true;
             }
             else if (dataElement) {

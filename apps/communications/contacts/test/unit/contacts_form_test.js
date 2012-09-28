@@ -48,8 +48,6 @@ suite('Render contact form', function() {
     window.mozL10n = realL10n;
 
     document.body.innerHTML = '';
-
-    alert('teeardown');
   });
 
   setup(function() {
