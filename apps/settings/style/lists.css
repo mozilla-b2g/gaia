@@ -49,23 +49,26 @@ ul li > a span {
 }
 
 /* text ellipsis */
-ul li > label + *,
-ul li > label + * + * {
+ul li > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 6rem);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
   left: 3rem;
+  right: 3rem;
   top: 50%;
   padding-top: 0.4rem;
   font-size: 1.2rem;
   color: #505859;
+}
+
+ul li > label:not([for]) + small {
+  right: 6rem;
 }
 
 /* required for empty elements like Bluetooth */
@@ -116,8 +119,14 @@ ul li > label:not([for]).switch > span {
   right: 2rem;
 }
 
-ul li > label:not([for]) + a{
-  padding-right: 0;
+ul li > label:not([for]) + a,
+ul li > label:not([for]) + small + a {
+  padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
 }
 
 
@@ -146,6 +155,7 @@ ul li p + input[type=password] {
   line-height: 2rem;
   margin: -5rem auto 1rem;
 }
+
 
 /******************************************************************************
  * Other inputs
@@ -287,6 +297,7 @@ ul li p + input[type=password] {
 .description {
   padding: 1rem 3rem;
   font-size: 1.5rem;
+  white-space: normal;
 }
 
 
@@ -367,6 +378,19 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
+ * Privacy icons
+ */
+
+#about-your-privacy li {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+}
+
+.privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
+.privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+
+
+/******************************************************************************
  * Wallpaper snapshot
  */
 
@@ -396,15 +420,11 @@ ul li p + input[type=password] {
 
 
 /******************************************************************************
- * Device Information
+ * Language and Region
  */
 
-.pref > div {
-  padding: 1rem 3rem;
-  font-size: 1.5rem;
-}
-
-label a[href="#doNotTrack"] {
-  text-decoration: none;
+#languages select {
+  width: 50%;
+  text-align: center;
 }
 

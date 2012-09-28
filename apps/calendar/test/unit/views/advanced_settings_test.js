@@ -12,6 +12,13 @@ suite('views/advanced_settings', function() {
   var app;
   var store;
   var fixtures;
+  var settings;
+  var tries;
+  var triggerEvent;
+
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   suiteSetup(function() {
     fixtures = {
@@ -42,7 +49,13 @@ suite('views/advanced_settings', function() {
     div.innerHTML = [
       '<div id="advanced-settings-view">',
         '<ul class="account-list"></ul>',
-      '</div>'
+      '</div>',
+      '<select name="syncFrequency" id="setting-sync-frequency">',
+        '<option value="null">null</option>',
+        '<option value="15">15</option>',
+        '<option value="30">30</option>',
+        '<option selected value="60">60</option>',
+      '</select>'
     ].join('');
 
     document.body.appendChild(div);
@@ -55,10 +68,16 @@ suite('views/advanced_settings', function() {
     });
 
     store = app.store('Account');
+    settings = app.store('Setting');
   });
 
   test('#accountList', function() {
     assert.ok(subject.accountList);
+  });
+
+  test('#syncFrequency', function() {
+    var freq = subject.syncFrequency;
+    assert.ok(freq);
   });
 
   test('#element', function() {
@@ -102,6 +121,63 @@ suite('views/advanced_settings', function() {
         children[0].outerHTML,
         modelHtml(fixtures.b)
       );
+    });
+
+  });
+
+  suite('#handleSettingUiChange', function() {
+    var store;
+    var calledWith;
+
+    setup(function() {
+      calledWith = 'notcalled';
+      store = app.store('Setting');
+      store.set = function(name, value) {
+        if (name === 'syncFrequency') {
+          calledWith = value;
+        }
+      }
+    });
+
+    function change(name, value) {
+      var el = subject[name];
+      el.value = value;
+      triggerEvent(el, 'change');
+    }
+
+    suite('syncFrequency', function() {
+      test('null', function() {
+        change('syncFrequency', 'null');
+        assert.equal(calledWith, null);
+      });
+
+      test('numeric', function() {
+        change('syncFrequency', '30');
+        assert.equal(calledWith, 30);
+      });
+    });
+
+  });
+
+  suite('#handleSettingDbChange', function() {
+    var select;
+
+    suite('syncFrequency', function() {
+      setup(function() {
+        select = subject.syncFrequency;
+      });
+
+      test('numeric 15', function() {
+        select.value = 'null';
+        settings.emit('syncFrequencyChange', 15);
+        assert.equal(select.value, '15');
+      });
+
+      test('null', function() {
+        select.value = '15';
+        settings.emit('syncFrequencyChange', null);
+        assert.equal(select.value, 'null');
+      });
     });
 
   });

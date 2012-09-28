@@ -1,65 +1,72 @@
 #quick-settings {
-  height: 60px;
+  display: block;
   width: 100%;
-  background-color: #000;
-  display: table;
+  height: 60px;
+  padding: 0;
+
+  background-image: url(images/background.png);
+  background-size: 100% 60px;
+
+  border-top:1px black solid;
 }
 
 #quick-settings > a {
-  display: table-cell;
-  width: 20%;
-  outline: none;
-  height: 100%;
+  display: block;
+  float: left;
+  width: -moz-calc(20% - 2px);
+  height: 30px;
+  margin: 15px 0;
+  padding: 0;
+
   color: #fff;
   text-align: center;
   text-decoration: none;
-  vertical-align: middle;
+  outline: none;
   font-size: 14px;
   line-height: 18px;
-  padding: 0 5px;
-}
-#quick-settings > #quick-settings-full-app {
-  font-size: 0;
-  border-left: 1px solid rgba(85, 85, 85, 0.6);
+
+  border-right: 1px black solid;
+  border-left: 1px gray solid;
 }
 
-#quick-settings > a:active {
-  background-color: #222;
+#quick-settings > a:first-child {
+  width: -moz-calc(20% - 1px);
+  border-left: 0;
 }
 
-#quick-settings > a::before {
-  content: '';
-  display: block;
-  height: 30px;
+#quick-settings > a:last-child {
+  width: -moz-calc(20% - 1px);
+  border-right: 0;
+}
+
+#quick-settings > a {
   background: center no-repeat;
-  background-size: contain;
-  margin: 5px 0;
+  background-size: 25px 25px;
 }
-#quick-settings > #quick-settings-wifi::before {
+#quick-settings > #quick-settings-wifi {
   background-image: url(images/wifi-off.svg);
 }
-#quick-settings > #quick-settings-wifi[data-enabled="true"]::before {
+#quick-settings > #quick-settings-wifi[data-enabled="true"] {
   background-image: url(images/wifi-on.svg);
 }
-#quick-settings > #quick-settings-data::before {
+#quick-settings > #quick-settings-data {
   background-image: url(images/data-off.svg);
 }
-#quick-settings > #quick-settings-data[data-enabled="true"]::before {
+#quick-settings > #quick-settings-data[data-enabled="true"] {
   background-image: url(images/data-on.svg);
 }
-#quick-settings > #quick-settings-bluetooth::before {
+#quick-settings > #quick-settings-bluetooth {
   background-image: url(images/bluetooth-off.svg);
 }
-#quick-settings > #quick-settings-bluetooth[data-enabled="true"]::before {
+#quick-settings > #quick-settings-bluetooth[data-enabled="true"] {
   background-image: url(images/bluetooth-on.svg);
 }
-#quick-settings > #quick-settings-power-save::before {
+#quick-settings > #quick-settings-power-save {
   background-image: url(images/power-save-off.svg);
 }
-#quick-settings > #quick-settings-power-save[data-enabled="true"]::before {
+#quick-settings > #quick-settings-power-save[data-enabled="true"] {
   background-image: url(images/power-save-on.svg);
 }
-#quick-settings > #quick-settings-full-app::before {
+#quick-settings > #quick-settings-full-app {
   background-image: url(images/settings.svg);
-  height: -moz-calc(100% - 10px);
 }

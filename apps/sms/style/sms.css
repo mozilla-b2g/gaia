@@ -688,6 +688,14 @@ a.unread .unread-mark .icon-unread-mark {
   pointer-events: none;
 }
 
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
+}
+
 /*
   Loading screen while deleting
 */

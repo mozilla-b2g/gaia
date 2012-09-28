@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
+    <link rel="stylesheet" type="text/css" href="style/phonelock.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -34,6 +35,7 @@
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
+    <script type="application/javascript" defer src="js/phonelock.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -152,6 +154,26 @@
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
+    <section role="region" id="wifi-manageNetworks">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="knownNetworks">
+          Known Networks
+        </h1>
+      </header>
+
+      <ul id="wifi-knownNetworks">
+        <!--
+          - filled by wifi.js — one list item per known network, e.g.:
+          -   <li>
+          -     <small> Network Security </small>
+          -     <a [class="wifi-secure"]> Network SSID </a>
+          -   </li>
+          -->
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi -->
     <section role="region" id="wifi">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -193,10 +215,10 @@
           Searching…
         </li>
         <!--
-          - filled by wifi.js: one list item per available network, e.g.:
-          -   <li class="wifi-signal3">
-          -     <small> WPA2 </small>
-          -     <a> Fake Mozilla </a>
+          - filled by wifi.js — one list item per available network, e.g.:
+          -   <li class="wifi-signal[0-4]">
+          -     <small> Network Security </small>
+          -     <a [class="wifi-secure"]> Network SSID </a>
           -   </li>
           -->
         <li data-state="ready">
@@ -213,6 +235,11 @@
         <li id="macAddress">
           <small id="macAddress-desc"></small>
           <a data-l10n-id="macAddress">MAC Address</a>
+        </li>
+        <li>
+          <label>
+            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
+          </label>
         </li>
       </ul>
     </section>
@@ -603,23 +630,11 @@
           Display
         </h1>
       </header>
+
       <ul>
         <li>
           <a data-l10n-id="wallpaper">Wallpaper</a>
           <img id="wallpaper-preview"></img>
-        </li>
-        <li>
-          <p data-l10n-id="brightness">Brightness level</p>
-          <label>
-            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
-          </label>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="screen.automatic-brightness" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="automatic-brightness">Automatic Brightness</a>
         </li>
         <li>
           <label>
@@ -632,6 +647,24 @@
             </select>
           </label>
           <a data-l10n-id="screen-timeout">Screen Timeout</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="brightness">Brightness</h2>
+      </header>
+      <ul>
+        <li id="brightness-auto">
+          <label>
+            <input type="checkbox" name="screen.automatic-brightness" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="brightness-autoAdjust">Adjust Automatically</a>
+        </li>
+        <li id="brightness-manual">
+          <label>
+            <progress data-name="screen.brightness" min="1" value="5" max="10"></progress>
+          </label>
         </li>
       </ul>
     </section>
@@ -704,90 +737,47 @@
 
       <ul>
         <li>
-          <label class="checkbox">
-            <input type="radio" name="language.current" value="ar"/>
-            <span class="checkbox-inner"></span>
+          <label>
+            <select name="language.current">
+              <option value="ar">العربية</option>
+              <option value="de">Deutsch</option>
+              <option value="el">Ελληνικά</option>
+              <option value="en-US">English (US)</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="nb-NO">Norsk</option>
+              <option value="it">Italiano</option>
+              <option value="pt-BR">Português (do Brasil)</option>
+              <option value="ru">Русский</option>
+              <option value="tr">Türkçe</option>
+              <option value="zh-TW">正體中文</option>
+            </select>
           </label>
-          <a>العربية</a>
+          <a data-l10n-id="language">Language</a>
         </li>
         <li>
           <label>
-            <input type="radio" name="language.current" value="de"/>
-            <span></span>
+            <select name="region.current">
+              <option value="BR">Brasil</option>
+              <option value="CO">Columbia</option>
+              <option value="ES">España</option>
+              <option value="FR">France</option>
+              <option value="PT">Portugal</option>
+              <option value="TW">Taiwan</option>
+              <option value="UK">United Kingdom</option>
+              <option value="US">United States</option>
+              <option value="VZ">Venezuela</option>
+            </select>
           </label>
-          <a dir="ltr">Deutsch</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="el"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Ελληνικά</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="en-US" checked />
-            <span></span>
-          </label>
-          <a dir="ltr">English (US)</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="es"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Español</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="fr"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Français</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="nb-NO"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Norsk</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="it"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Italiano</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="pt-BR"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Português (do Brasil)</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="ru"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Русский</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="tr"/>
-            <span></span>
-          </label>
-          <a dir="ltr">Türkçe</a>
-        </li>
-        <li>
-          <label>
-            <input type="radio" name="language.current" value="zh-TW"/>
-            <span></span>
-          </label>
-          <a dir="ltr">正體中文</a>
+          <a data-l10n-id="region">Region</a>
         </li>
       </ul>
+
+      <dl>
+        <dt> Sample Format </dt>
+        <dd id="region-date">Friday, September 28 2012</dd>
+        <dd id="region-time">06:54 PM</dd>
+      </dl>
     </section>
 
     <!-- Personalization :: Keyboard -->
@@ -922,9 +912,54 @@
     <!-- [TODO] Accounts :: Persona -->
 
     <!-- [TODO] Accounts :: Mail -->
+    
+    <section role="region" id="passcode-panel" data-leaf>
+      <header>
+        <a href="#phoneLock"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar" data-mode="new">
+          <button id="passcode-change" data-l10n-id="change">Change</button>
+        </menu>
+        <menu type="toolbar" data-mode="create">
+          <button id="passcode-create" data-l10n-id="create">Create</button>
+        </menu>
+        <h1 data-l10n-id="create-passcode" data-mode="create">
+           Create a Passcode
+        </h1>
+        <h1 data-l10n-id="current-passcode" data-mode="edit">
+           Current Passcode
+        </h1>
+        <h1 data-l10n-id="new-passcode" data-mode="new">
+           New Passcode
+        </h1>
+        <h1 data-l10n-id="enter-passcode" data-mode="confirm">
+           Enter Passcode
+        </h1>
+      </header>
+      <div class="passcode-overlay">
+        <input type="number" id="passcode-input" />
+        <div class="passcode-container">
+          <div class="passcode-error" data-l10-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+          <div class="passcode-error" data-l10-id="passcode-dont-match" data-type="mismatch">Passcode don't match. Try again!</div>
+          <span data-l10n-id="passcode">Passcode</span>
+          <div class="passcode" id="passcode-pseudo-input">
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+          <span data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</span>
+          <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Security :: Phone Lock -->
-    <section role="region" id="phoneLock" data-leaf>
+    <section role="region" id="phoneLock" data-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="phoneLock">
@@ -942,11 +977,29 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked />
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
             <span></span>
           </label>
           <small data-l10n-id="passcode-lock-desc" data-l10n-id='{"code", "0000"}'>Passcode</small>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
+        </li>
+        <li class="passcode-enabled" id="passcode-timeout-row">
+          <label>
+            <select name="lockscreen.passcode-lock.timeout">
+              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+              <option value="60"  data-l10n-id="after-one-minute">After 1 minute</option>
+              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+            </select>
+          </label>
+          <a data-l10n-id="require-passcode">Require passcode</a>
+        </li>
+        <li class="passcode-enabled">
+          <label>
+            <button data-l10n-id="edit-passcode" id="passcode-edit">Edit passcode</button>
+          </label>
         </li>
         <li>
           <label>
@@ -1074,6 +1127,23 @@
           <a data-l10n-id="doNotTrack">Do Not Track</a>
         </li>
       </ul>
+
+      <dl>
+        <dt data-l10n-id="doNotTrack-dt">
+          How does Do Not Track work?
+        </dt>
+        <dd data-l10n-id="doNotTrack-dd1">
+          When you turn on the Do Not Track feature, your device tells every
+          website and app (as well as advertisers and other content providers)
+          that you don’t want your behavior tracked.
+        </dd>
+        <dd data-l10n-id="doNotTrack-dd2">
+          Turning on Do Not Track won’t affect your ability to log into
+          websites, nor cause your device to forget your private information —
+          such as the contents of shopping carts, location information, or
+          log-in information.
+        </dd>
+      </dl>
     </section>
 
     <!-- Device :: Information :: Developer -->
@@ -1168,10 +1238,60 @@
     <section role="region" id="about-your-rights" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <h1 data-l10n-id="about-your-rights">  About Your Rights </h1>
+        <h1 data-l10n-id="about-your-rights"> About Your Rights </h1>
       </header>
-      <p data-l10n-id="your-rights-doc">
-      </p>
+
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-0">
+            Mozilla Firefox is free and open source software, built by a community
+            of thousands from all over the world. There are a few things you should
+            know:
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-1">
+            Firefox is made available to you under the terms of the Mozilla Public
+            License. This means you may use, copy and distribute Firefox to others.
+            You are also welcome to modify the source code of Firefox as you want to
+            meet your needs. The Mozilla Public License also gives you the right to
+            distribute your modified versions.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-2">
+            You are not granted any trademark rights or licenses to the trademarks
+            of the Mozilla Foundation or any party, including without Temporary Text
+            limitation the Firefox name or logo. Additional information on
+            trademarks may be found Only here.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-3">
+            Some features in Firefox, such as the Crash Reporter, give you the
+            option to provide feedback to Mozilla. By choosing to submit feedback,
+            you give Mozilla permission to use the feedback to improve its products,
+            to publish the feedback on its websites, and to distribute the feedback.
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Information :: About your privacy Dialog -->
+    <section role="region" id="about-your-privacy" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <h1 data-l10n-id="about-your-privacy"> About Your Privacy </h1>
+      </header>
+
+      <ul>
+        <li class="privacy-firefoxOS">
+          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Firefox OS</a>
+        </li>
+        <li class="privacy-everythingME">
+          <a href="http://corp.everything.me/#/privacy">everything.me</a>
+        </li>
+      </ul>
     </section>
 
     <!-- Device :: Information :: Licensing Dialog -->
@@ -1180,8 +1300,44 @@
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
         <h1 data-l10n-id="licensing">  Licensing </h1>
       </header>
-      <p data-l10n-id="licensing-doc">
-      </p>
+
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="licensing-1">
+            Binaries of this product have been made available to you by the Mozilla
+            Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="licensing-2">
+            All of the source code to this product is available under licenses which
+            are both free and open source. Most of it is available under the Mozilla
+            Public License 2.0 (MPL).
+          </p>
+        </li>
+        <li>
+          <p class="description">
+            <a href="https://www.mozilla.org/MPL/"
+              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a>
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="licensing-3">
+            The remainder of the software which is not under the Mozilla Public
+            License 2.0 MPL is available under one of a variety of other licenses.
+            Those that require reproduction of the license text in the distribution
+            are given below. (Note: your copy of this product may not contain code
+            covered by one or more of the licenses listed here, depending on the
+            exact product and version you choose.)
+          </p>
+        </li>
+        <li>
+          <p class="description">
+            <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+              data-l10n-id="licensing-Apache">Apache License 2.0</a>
+          </p>
+        </li>
+      </ul>
     </section>
 
     <!-- Device :: Information -->
@@ -1255,10 +1411,7 @@
         </li>
         <li>
           <label>
-            <!-- TODO: need to change it to link to "Privacy Rights" Page in the "Security and Privacy" section  -->
-            <a href="#doNotTrack">
-              <button id="about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </button>
-            </a>
+            <button data-l10n-id="about-your-privacy" onclick="openDialog('about-your-privacy')"> About Your Privacy </button>
           </label>
         </li>
         <li>
@@ -1267,14 +1420,14 @@
           </label>
         </li>
         <li>
-          <label for="share-performance-data" class="pref">
+          <label for="share-performance-data" class="description">
             <div>
               <input id="share-performance-data" name="debug.peformancedata.shared" type="checkbox" />
               <span data-l10n-id="share-performance-data">
                 I want to help make Firefox OS faster and easier to use by
                 sharing information about my phone’s performance.
               </span>
-              <a href="#" onclick="openURL('http://mozilla.org'); return false;" data-l10n-id="learn-more"> Learn More </a>
+              <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
             </div>
           </label>
         </li>
@@ -1326,15 +1479,22 @@
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
         </li>
         <li>
-        <label>
-          <select name="powersave.threshold">
-            <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "5"}'>5% battery left</option>
-            <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
-            <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
-            <option value="0" data-l10n-id="never">Never</option>
-          </select>
-        </label>
-        <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+          <label>
+            <select name="powersave.threshold">
+              <option value="0.05" data-l10n-id="powerSave-threshold" data-l10n-args='{"level":  "5"}'> 5% battery left</option>
+              <option value="0.15" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "15"}'>15% battery left</option>
+              <option value="0.25" data-l10n-id="powerSave-threshold" data-l10n-args='{"level": "25"}'>25% battery left</option>
+              <option value="0" data-l10n-id="never">Never</option>
+            </select>
+          </label>
+          <a data-l10n-id="turnOnAuto">Turn on automatically</a>
+        </li>
+        <li>
+          <p data-l10n-id="powerSave-expl" class="description">
+            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and GPS
+            connections to extend battery life. You can still turn these services back on
+            manually.
+          </p>
         </li>
       </ul>
     </section>

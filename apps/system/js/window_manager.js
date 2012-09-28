@@ -498,6 +498,7 @@ var WindowManager = (function() {
       openFrame.classList.add('homescreen');
       openFrame.setVisible(true);
       openFrame.focus();
+      openFrame = null;
     } else {
       if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
@@ -526,7 +527,7 @@ var WindowManager = (function() {
     // Dispatch a appwillopen event
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillopen', true, false, { origin: displayedApp });
-    openFrame.dispatchEvent(evt);
+    app.frame.dispatchEvent(evt);
   }
 
   // Perform a "close" animation for the app's iframe
@@ -911,8 +912,24 @@ var WindowManager = (function() {
 
   function removeFrame(origin) {
     var app = runningApps[origin];
-    if (app.frame)
-      windows.removeChild(app.frame);
+    var frame = app.frame;
+
+    if (frame)
+      windows.removeChild(frame);
+
+    if (openFrame == frame) {
+      sprite.style.background = '';
+      sprite.className = '';
+      openFrame = null;
+      setTimeout(openCallback);
+    }
+    if (closeFrame == frame) {
+      sprite.style.background = '';
+      sprite.className = '';
+      closeFrame = null;
+      setTimeout(closeCallback);
+    }
+
     delete runningApps[origin];
     numRunningApps--;
   }
