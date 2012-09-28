@@ -629,8 +629,8 @@ var WindowManager = (function() {
               // Show the new app
               openWindow(newOrigin, function opened() {
                 screenElement.classList.remove('switch-app');
-
-                callback();
+                if (callback)
+                  callback();
               });
             });
         });

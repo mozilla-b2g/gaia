@@ -86,6 +86,7 @@ var MessageManager = {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
                   delete MessageManager.activityTarget;
+                  delete MessageManager.lockActivity;
                 }
               });
             }
@@ -121,10 +122,12 @@ var MessageManager = {
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
           this.getMessages(ThreadListUI.renderThreads);
-          var num = this.getNumFromHash();
-          if (num) {
-            var filter = this.createFilter(num);
-            this.getMessages(ThreadUI.renderMessages, filter);
+          if(!MessageManager.lockActivity){
+            var num = this.getNumFromHash();
+            if (num) {
+              var filter = this.createFilter(num);
+              this.getMessages(ThreadUI.renderMessages, filter);
+            }
           }
         }
         break;
@@ -1360,42 +1363,51 @@ window.addEventListener('localized', function showBody() {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  var number = activity.source.data.number;
-  var activityAction = function act_action() {
-    var currentLocation = window.location.hash;
-    switch (currentLocation) {
-      case '#thread-list':
-        window.location.hash = '#num=' + number;
-        break;
-      case '#new':
-        window.location.hash = '#num=' + number;
-        break;
-      case '#edit':
-        history.back();
-        activityAction();
-        break;
-      default:
-        if (currentLocation.indexOf('#num=') != -1) {
-          MessageManager.activityTarget = number;
-          window.location.hash = '#thread-list';
-        } else {
+  console.log("Recibi una actividad");
+  if(!MessageManager.lockActivity) {
+    console.log("EJECUTO una actividad");
+    MessageManager.lockActivity = true;
+    activity.postResult({ status: 'accepted' });
+    var number = activity.source.data.number;
+    var activityAction = function act_action() {
+      var currentLocation = window.location.hash;
+      switch (currentLocation) {
+        case '#thread-list':
           window.location.hash = '#num=' + number;
-        }
-        break;
-    }
-  };
+          delete MessageManager.lockActivity;
+          break;
+        case '#new':
+          window.location.hash = '#num=' + number;
+         delete MessageManager.lockActivity;
+          break;
+        case '#edit':
+          history.back();
+          activityAction();
+          break;
+        default:
+          if (currentLocation.indexOf('#num=') != -1) {
+            MessageManager.activityTarget = number;
+            window.location.hash = '#thread-list';
+            
+          } else {
+            window.location.hash = '#num=' + number;
+            delete MessageManager.lockActivity;
+          }
+          break;
+      }
+    };
 
-  if (!document.documentElement.lang) {
-    window.addEventListener('localized', function waitLocalized() {
-      window.removeEventListener('localized', waitLocalized);
-      activityAction();
-    });
-  } else {
-    document.addEventListener('mozvisibilitychange', function waitVisibility() {
-      document.removeEventListener('mozvisibilitychange', waitVisibility);
-      activityAction();
-    });
+    if (!document.documentElement.lang) {
+      window.addEventListener('localized', function waitLocalized() {
+        window.removeEventListener('localized', waitLocalized);
+        activityAction();
+      });
+    } else {
+      document.addEventListener('mozvisibilitychange', function waitVisibility() {
+        document.removeEventListener('mozvisibilitychange', waitVisibility);
+        activityAction();
+      });
+    }
   }
-  activity.postResult({ status: 'accepted' });
 });
 
