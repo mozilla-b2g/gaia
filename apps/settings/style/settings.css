@@ -1,5 +1,6 @@
 /**
  * Settings style & layout
+ * note: `lists.css' must be loaded before this stylesheet
  */
 
 html, body {
@@ -151,22 +152,117 @@ body.hidden #root {
 
 
 /******************************************************************************
- * Definition lists
+ * Explanation texts
  */
 
-dl > * {
-  font-size: 1.6em;
+.explanation {
+  padding: 0.5rem 3rem;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #505859;
 }
 
-dl dt {
-  padding-left: 30px;
-  font-weight: bold;
-  border-bottom: 1px solid black;
+.description {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  white-space: normal;
 }
 
-dl dd {
+.link-text, .tel-text {
+  font-size: 1.2rem;
+  color: #336699;
+  text-decoration: underline;
+}
+
+
+/******************************************************************************
+ * Wi-Fi dialogs
+ */
+
+#wifi-status, #wifi-auth {
+  font-size: 1.8rem;
+}
+
+/* hide identity field by default */
+
+#wifi-auth label[for=identity] {
+  display: none;
+}
+
+#wifi-auth.WPA-EAP label[for=identity] {
+  display: block;
+}
+
+/* APN Settings */
+
+#apnSettings-custom {
+  font-style: italic;
+}
+
+#apnSettings-advanced {
+  padding-bottom: 1em;
+}
+
+
+/******************************************************************************
+ * Bluetooth panel
+ */
+
+.popup {
+  bottom: 0;
+  left: 0.5rem;
   margin: 0;
-  padding: 10px 30px;
-  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
+  position: fixed;
+  background-color: white;
+  border: 0.1rem solid black;
+  border-radius: 0.6rem;
+  padding: 0.8rem;
+  width: 90%;
+}
+
+#paired-device-option li {
+  height: 4.6rem;
+  min-height: 4.6rem;
+}
+
+#paired-device-option li > a {
+  line-height: 2em;
+  padding: 0;
+}
+
+#paired-device-option #cancel-option {
+  height: 4.6rem;
+  min-height: 4.6rem;
+}
+
+#paired-device-option #cancel-option button {
+  height: calc(100% - 1rem);
+  line-height: normal;
+}
+
+
+/******************************************************************************
+ * Sound
+ */
+
+.tone-select {
+  width: 60%;
+  position: absolute;
+  right: 0;
+}
+
+
+/******************************************************************************
+ * Wallpaper snapshot
+ */
+
+#wallpaper-preview {
+  width: 9rem;
+  height: 13.5rem;
+  border: solid black 0.2rem;
+  border-radius: 0.4rem;
+  margin-left: 11rem;
+  margin-top: -1rem;
+  margin-bottom: 0.5rem;
 }
 
