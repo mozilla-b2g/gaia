@@ -49,23 +49,26 @@ ul li > a span {
 }
 
 /* text ellipsis */
-ul li > label + *,
-ul li > label + * + * {
+ul li > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 6rem);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
   left: 3rem;
+  right: 3rem;
   top: 50%;
   padding-top: 0.4rem;
   font-size: 1.2rem;
   color: #505859;
+}
+
+ul li > label:not([for]) + small {
+  right: 6rem;
 }
 
 /* required for empty elements like Bluetooth */
@@ -116,8 +119,14 @@ ul li > label:not([for]).switch > span {
   right: 2rem;
 }
 
-ul li > label:not([for]) + a{
-  padding-right: 0;
+ul li > label:not([for]) + a,
+ul li > label:not([for]) + small + a {
+  padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
 }
 
 
