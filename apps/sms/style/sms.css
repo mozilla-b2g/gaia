@@ -6,7 +6,7 @@
   }
 }
 
-@media screen and (min-resolution: 218dpi) {
+@media screen and (max-resolution: 220dpi) {
 
   html {
     font-size: 13.5px;
@@ -96,25 +96,26 @@ https://bugzilla.mozilla.org/show_bug.cgi?id=795245
 I've create a transition of left until having again available translateX
 Remove the #main-wrapper once it will be fixed.
 */
+
 #snapshot {
   top:0;
   position: absolute;
   -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
 }
 .snapshot #snapshot {
-  z-index: 100;
-  -moz-transform: translateX(-50%);
+   
+   z-index: 100;
+   -moz-transform: translateX(-50%);
 }
 
 .snapshot-back #snapshot {
-  left: -100%;
-  z-index: 100;
-  -moz-transform: translateX(50%);
+   left: -100%;
+   z-index: 100;
+   -moz-transform: translateX(50%);
 }
 
-
-/*
-XXX Restore when https://bugzilla.mozilla.org/show_bug.cgi?id=795245 fixed
+/* XXX Restore once https://bugzilla.mozilla.org/show_bug.cgi?id=795245 fixed
 .snapshot #snapshot {
    top: -100%;
    z-index: 100;
@@ -126,8 +127,8 @@ XXX Restore when https://bugzilla.mozilla.org/show_bug.cgi?id=795245 fixed
 
 .mirror-swipe #thread-messages-snapshot {
   -moz-transform: translateX(-100%);
-}*/
-
+}
+*/
 /* Styles for Edit mode */
 
 .edit .options {

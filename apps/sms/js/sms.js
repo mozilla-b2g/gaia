@@ -42,7 +42,7 @@ var MessageManager = {
     snapshot.addEventListener('transitionend', function rm_snapshot() {
       snapshot.removeEventListener('transitionend', rm_snapshot);
       bodyClass.remove('snapshot');
-      bodyClass.remove('snapshot-return');
+      bodyClass.remove('snapshot-back');
       if (callback) {
         callback();
       }
