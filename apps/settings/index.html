@@ -14,6 +14,7 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
+    <link rel="stylesheet" type="text/css" href="style/phonelock.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -34,6 +35,7 @@
     <script type="application/javascript" defer src="js/storage.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
+    <script type="application/javascript" defer src="js/phonelock.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -904,9 +906,54 @@
     <!-- [TODO] Accounts :: Persona -->
 
     <!-- [TODO] Accounts :: Mail -->
+    
+    <section role="region" id="passcode-panel" data-leaf>
+      <header>
+        <a href="#phoneLock"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar" data-mode="new">
+          <button id="passcode-change" data-l10n-id="change">Change</button>
+        </menu>
+        <menu type="toolbar" data-mode="create">
+          <button id="passcode-create" data-l10n-id="create">Create</button>
+        </menu>
+        <h1 data-l10n-id="create-passcode" data-mode="create">
+           Create a Passcode
+        </h1>
+        <h1 data-l10n-id="current-passcode" data-mode="edit">
+           Current Passcode
+        </h1>
+        <h1 data-l10n-id="new-passcode" data-mode="new">
+           New Passcode
+        </h1>
+        <h1 data-l10n-id="enter-passcode" data-mode="confirm">
+           Enter Passcode
+        </h1>
+      </header>
+      <div class="passcode-overlay">
+        <input type="number" id="passcode-input" />
+        <div class="passcode-container">
+          <div class="passcode-error" data-l10-id="incorrect-passcode" data-type="incorrect">Incorrect passcode!</div>
+          <div class="passcode-error" data-l10-id="passcode-dont-match" data-type="mismatch">Passcode don't match. Try again!</div>
+          <span data-l10n-id="passcode">Passcode</span>
+          <div class="passcode" id="passcode-pseudo-input">
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+          <span data-l10n-id="confirm-passcode" data-mode="new,create">Confirm Passcode</span>
+          <div class="passcode" data-mode="new,create" id="passcode-pseudo-confirm-input">
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+            <span class="passcode-digit"></span>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Security :: Phone Lock -->
-    <section role="region" id="phoneLock" data-leaf>
+    <section role="region" id="phoneLock" data-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="phoneLock">
@@ -924,11 +971,29 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" checked />
+            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
             <span></span>
           </label>
           <small data-l10n-id="passcode-lock-desc" data-l10n-id='{"code", "0000"}'>Passcode</small>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
+        </li>
+        <li class="passcode-enabled" id="passcode-timeout-row">
+          <label>
+            <select name="lockscreen.passcode-lock.timeout">
+              <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+              <option value="60"  data-l10n-id="after-one-minute">After 1 minute</option>
+              <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+              <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+              <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+              <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+            </select>
+          </label>
+          <a data-l10n-id="require-passcode">Require passcode</a>
+        </li>
+        <li class="passcode-enabled">
+          <label>
+            <button data-l10n-id="edit-passcode" id="passcode-edit">Edit passcode</button>
+          </label>
         </li>
         <li>
           <label>
