@@ -26,6 +26,7 @@ var MessageManager = {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
     var messagesMirror = document.getElementById('thread-messages-snapshot');
+    // XXX All code commented has to be restored once ... will be solved
     bodyClass.add('snapshot');
     bodyClass.toggle('mirror-swipe');
     mainWrapper.classList.toggle('to-left');
@@ -1363,9 +1364,8 @@ window.addEventListener('localized', function showBody() {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
-  console.log("Recibi una actividad");
+  // XXX This locks is about https://github.com/mozilla-b2g/gaia/issues/5405
   if(!MessageManager.lockActivity) {
-    console.log("EJECUTO una actividad");
     MessageManager.lockActivity = true;
     activity.postResult({ status: 'accepted' });
     var number = activity.source.data.number;

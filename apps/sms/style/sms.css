@@ -51,6 +51,16 @@ html, body {
 
 }
 
+/* XXX HACK for achieving the transition due to there is a bug in platform
+https://bugzilla.mozilla.org/show_bug.cgi?id=795245
+I've create a transition of left until having again available translateX
+Remove the #main-wrapper once it will be fixed.
+*/
+
+#main-wrapper {
+  -moz-transition: left .4s ease;
+}
+
 .to-left {
   left: -100%;
 }
