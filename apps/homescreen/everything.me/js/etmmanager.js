@@ -63,6 +63,13 @@ var EvmeManager = (function() {
         Evme.setOpacityBackground(0);
     });
 
+    // Wait for the first page of the homescreen to be shown
+    // before starting anything.
+    window.addEventListener("pageshow", function onPageLoad() {
+        window.removeEventListener("pageshow", onPageLoad);
+        Evme.init();
+    });
+
     return {
         openApp: openApp,
 
@@ -82,7 +89,3 @@ var EvmeApp = function createEvmeApp(params) {
 
 extend(EvmeApp, Bookmark);
 
-// Initialize Evme
-window.addEventListener("load", function() {
-    Evme.init();
-});
