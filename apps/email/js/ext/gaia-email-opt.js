@@ -3127,6 +3127,7 @@ function MailAccount(api, wireRep) {
   this.id = wireRep.id;
   this.type = wireRep.type;
   this.name = wireRep.name;
+  this.syncRange = wireRep.syncRange;
 
   /**
    * Is the account currently enabled, as in will we talk to the server?
@@ -14112,6 +14113,10 @@ MailBridge.prototype = {
           // we expect a list of server mutation objects; namely, the type names
           // the server and the rest are attributes to change
           break;
+
+        case 'syncRange':
+          accountDef.syncRange = val;
+          break;
       }
     }
     this.universe.saveAccountDef(accountDef, null);
@@ -15442,9 +15447,10 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 9 because database operations now have a deferred queue.
+ * Bumping to 10 because accounts now have a synchronization range for messages
+ * (corresponding to ActiveSync's FilterType).
  */
-const CUR_VERSION = 9;
+const CUR_VERSION = 10;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -30380,6 +30386,8 @@ FakeAccount.prototype = {
       enabled: this.enabled,
       problems: this.problems,
 
+      syncRange: this.accountDef.syncRange,
+
       identities: this.identities,
 
       credentials: {
@@ -30498,6 +30506,21 @@ define('mailapi/activesync/folder',
 
 const DESIRED_SNIPPET_LENGTH = 100;
 
+const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
+
+// Map our built-in sync range values to their corresponding ActiveSync
+// FilterType values.
+const SYNC_RANGE_TO_FILTER_TYPE = {
+   '1d': FILTER_TYPE.OneDayBack,
+   '3d': FILTER_TYPE.ThreeDaysBack,
+   '1w': FILTER_TYPE.OneWeekBack,
+   '2w': FILTER_TYPE.TwoWeeksBack,
+   '1m': FILTER_TYPE.OneMonthBack,
+   '3m': FILTER_TYPE.ThreeMonthsBack,
+   '6m': FILTER_TYPE.SixMonthsBack,
+  'all': FILTER_TYPE.NoFilter,
+};
+
 function ActiveSyncFolderConn(account, storage, _parentLog) {
   this._account = account;
   this._storage = storage;
@@ -30508,9 +30531,6 @@ function ActiveSyncFolderConn(account, storage, _parentLog) {
 
   if (!this.syncKey)
     this.syncKey = '0';
-  // Eventually, we should allow the user to modify this, and perhaps
-  // automatically choose a good value.
-  this.filterType = $ascp.AirSync.Enums.FilterType.OneWeekBack;
 }
 ActiveSyncFolderConn.prototype = {
   get syncKey() {
@@ -30519,6 +30539,18 @@ ActiveSyncFolderConn.prototype = {
 
   set syncKey(value) {
     return this.folderMeta.syncKey = value;
+  },
+
+  get filterType() {
+    let syncRange = this._account.accountDef.syncRange;
+    if (SYNC_RANGE_TO_FILTER_TYPE.hasOwnProperty(syncRange)) {
+      return SYNC_RANGE_TO_FILTER_TYPE[syncRange];
+    }
+    else {
+      console.warn('Got an invalid syncRange: ' + syncRange +
+                   ': using three days back instead');
+      return $ascp.AirSync.Enums.FilterType.ThreeDaysBack;
+    }
   },
 
   /**
@@ -31407,6 +31439,8 @@ ActiveSyncAccount.prototype = {
       enabled: this.enabled,
       problems: this.problems,
 
+      syncRange: this.accountDef.syncRange,
+
       identities: this.identities,
 
       credentials: {
@@ -31985,6 +32019,8 @@ CompositeAccount.prototype = {
       enabled: this.enabled,
       problems: this.problems,
 
+      syncRange: this.accountDef.syncRange,
+
       identities: this.identities,
 
       credentials: {
@@ -32204,6 +32240,8 @@ Configurators['imap+smtp'] = {
       receiveType: 'imap',
       sendType: 'smtp',
 
+      syncRange: '3d',
+
       credentials: credentials,
       receiveConnInfo: imapConnInfo,
       sendConnInfo: smtpConnInfo,
@@ -32247,6 +32285,7 @@ Configurators['fake'] = {
       name: userDetails.emailAddress,
 
       type: 'fake',
+      syncRange: '3d',
 
       credentials: credentials,
       connInfo: {
@@ -32292,6 +32331,7 @@ Configurators['activesync'] = {
       name: userDetails.emailAddress,
 
       type: 'activesync',
+      syncRange: '3d',
 
       credentials: credentials,
       connInfo: null,
