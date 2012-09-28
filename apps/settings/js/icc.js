@@ -130,6 +130,11 @@
     document.getElementById('icc-stk-selection-header').textContent = appName;
     icc.sendStkMenuSelection(identifier, false);
 
+    document.getElementById('icc-stk-app-back').onclick = function goBack() {
+      icc.sendStkResponse(iccLastCommand,
+        { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
+      iccLastCommand = null;
+    };
     openDialog('icc-stk-app', function submit() {
       icc.sendStkResponse(iccLastCommand, { resultCode: icc.STK_RESULT_OK });
       iccLastCommand = null;
