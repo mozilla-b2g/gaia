@@ -161,8 +161,8 @@ ul li p + input[type=password] {
  * Date|Time inputs
  */
 
-label input[type="date"],
-label input[type="time"] {
+ul li > label input[type="date"],
+ul li > label input[type="time"] {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -176,7 +176,7 @@ label input[type="time"] {
  * Range inputs
  */
 
-label input[type=range] {
+ul li > label input[type=range] {
   width: 80%;
   width: calc(100% - 6rem);
   margin-left: 3rem;
@@ -203,12 +203,12 @@ label input[type=range] {
  *   </label>
  */
 
-label.bug344618_polyfill input {
+ul li > label.bug344618_polyfill input {
   display: none;
 }
 
 /* slider */
-label.bug344618_polyfill div {
+ul li > label.bug344618_polyfill div {
   position: relative;
   display: block;
   height: 24px;
@@ -222,7 +222,7 @@ label.bug344618_polyfill div {
 }
 
 /* throbber */
-label.bug344618_polyfill div span {
+ul li > label.bug344618_polyfill div span {
   position: absolute;
   left: 25%;
   display: block;
