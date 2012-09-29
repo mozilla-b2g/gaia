@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -187,7 +187,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
   var _timezone = null;
-  var _jsonUrl = 'js/timezones.json';
+  var _jsonUrl = 'timezones.json';
   var _jsonData = [];
 
 
