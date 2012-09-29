@@ -158,6 +158,7 @@ Evme.BackgroundImage = new function() {
             elStyle.MozTransition = 'opacity ' + duration + 'ms linear';
             $el[0].addEventListener('transitionend', transitionEnd);
         }
+        this.closeFullScreen();
         elStyle.opacity = value;
     };
 

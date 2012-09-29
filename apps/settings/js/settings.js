@@ -24,41 +24,35 @@ var Settings = {
     if (!settings)
       return;
 
+    // update <input> values when the corresponding setting is changed
     settings.onsettingchange = function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
-
-      var checkbox =
-          document.querySelector('input[type="checkbox"][name="' + key + '"]');
-      if (checkbox) {
-        if (checkbox.checked == value)
-          return;
-        checkbox.checked = value;
+      var input = document.querySelector('input[name="' + key + '"]');
+      if (!input)
         return;
-      }
 
-      var progressBar =
-          document.querySelector('[data-name="' + key + '"]');
-      if (progressBar) {
-        var intValue = Math.ceil(value * 10);
-        if (progressBar.value == intValue)
-          return;
-        progressBar.value = intValue;
-        return;
-      }
-
-      var select =
-          document.querySelector('select[name="' + key + '"]');
-
-      if (select) {
-        for (var i = 0; i < select.options.length; i++) {
-          if (select.options[i].value == value) {
-            select.options[i].selected = true;
-            break;
+      switch (input.dataset.type || input.type) { // bug344618
+        case 'checkbox':
+          if (input.checked == value)
+            return;
+          input.checked = value;
+          break;
+        case 'range':
+          if (input.value == value)
+            return;
+          input.value = value;
+          input.refresh(); // XXX to be removed when bug344618 lands
+          break;
+        case 'select':
+          for (var i = 0; i < input.options.length; i++) {
+            if (input.options[i].value == value) {
+              input.options[i].selected = true;
+              break;
+            }
           }
-        }
+          break;
       }
-
       // XXX: if there are more values needs to be synced.
     };
 
@@ -76,8 +70,9 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             checkbox.checked = !!request.result[key];
+          }
         };
       })(checkboxes[i]);
     }
@@ -93,8 +88,9 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             radio.checked = (request.result[key] === radio.value);
+          }
         };
       })(radios[i]);
     }
@@ -110,26 +106,30 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             text.value = request.result[key];
+          }
         };
       })(texts[i]);
     }
 
-    // preset all progress indicators
-    var progresses = document.querySelectorAll('progress');
-    for (i = 0; i < progresses.length; i++) {
-      (function(progress) {
-        var key = progress.dataset.name;
+    // preset all range inputs
+    rule = 'input[type="range"]:not([data-ignore])';
+    var ranges = document.querySelectorAll(rule);
+    for (i = 0; i < ranges.length; i++) {
+      (function(range) {
+        var key = range.name;
         if (!key)
           return;
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
-            progress.value = parseFloat(request.result[key]) * 10;
+          if (request.result[key] != undefined) {
+            range.value = parseFloat(request.result[key]);
+            range.refresh(); // XXX to be removed when bug344618 lands
+          }
         };
-      })(progresses[i]);
+      })(ranges[i]);
     }
 
     // handle web activity
@@ -201,42 +201,29 @@ var Settings = {
 
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
-    var key = input.name || input.dataset.name;
-    var settings = this.mozSettings;
-    if (!key || !settings || input.dataset.ignore)
+    var type = input.dataset.type || input.type; // bug344618
+    var key = input.name;
+
+    var settings = window.navigator.mozSettings;
+    if (!key || !settings || evt.type != 'change')
       return;
 
-    switch (evt.type) {
-      case 'change':
-        var value;
-        if (input.type === 'checkbox') {
-          value = input.checked;
-        } else if ((input.type == 'radio') ||
-                   (input.type == 'text') ||
-                   (input.type == 'password') ||
-                   (input.tagName.toLowerCase() == 'select')) {
-          value = input.value;
-        }
-
-        var cset = {}; cset[key] = value;
-        settings.createLock().set(cset);
+    var value;
+    switch (type) {
+      case 'checkbox':
+        value = input.checked; // boolean
         break;
-
-      case 'click':
-        if (input.tagName.toLowerCase() != 'progress')
-          return;
-        var rect = input.getBoundingClientRect();
-        var position = Math.ceil(10 * (evt.clientX - rect.left) / rect.width);
-
-        var min = parseFloat(input.getAttribute('min')) || 0;
-        var max = parseFloat(input.getAttribute('max')) || 10;
-        position = Math.max(min, Math.min(max, position));
-        input.value = position;
-
-        var cset = {}; cset[key] = position / 10;
-        settings.createLock().set(cset);
+      case 'range':
+        value = parseFloat(input.value).toFixed(1); // float
+        break;
+      case 'radio':
+      case 'text':
+      case 'password':
+        value = input.value; // text
         break;
     }
+    var cset = {}; cset[key] = value;
+    settings.createLock().set(cset);
   },
 
   loadGaiaCommit: function settings_loadGaiaCommit() {
@@ -339,6 +326,7 @@ window.addEventListener('load', function loadSettings(evt) {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
+  bug344618_polyfill(); // XXX to be removed when bug344618 is fixed
   Settings.init();
 
   // early way out if we're using a desktop build

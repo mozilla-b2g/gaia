@@ -31,6 +31,7 @@ Calendar.ns('Controllers').Sync = (function() {
      */
     sync: function(callback) {
       var key;
+      var self = this;
       var account = this.app.store('Account');
       var pending = 0;
       var errorList = [];
@@ -41,19 +42,29 @@ Calendar.ns('Controllers').Sync = (function() {
         }
 
         if (!(--pending)) {
-          if (errorList.length) {
-            callback(errorList);
-          } else {
-            callback(null);
+          if (callback) {
+            if (errorList.length) {
+              callback(errorList);
+            } else {
+              callback(null);
+            }
           }
+          self.emit('sync complete');
         }
       }
+
+      this.emit('sync start');
 
       for (key in account.cached) {
         pending++;
         this._syncAccount(
           account.cached[key], next
         );
+      }
+
+      if (!pending) {
+        callback();
+        this.emit('sync complete');
       }
     },
 

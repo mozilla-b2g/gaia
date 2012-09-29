@@ -469,8 +469,14 @@ function createThumbnailList() {
   // Enumerate existing image entries in the database and add thumbnails
   // List them all, and sort them in descending order by date.
   photodb.enumerate('date', null, 'prev', function(imagedata) {
-    if (imagedata === null) // No more images
+    if (imagedata === null) { // No more images
+      // If we're done enumerating, and we don't have any images
+      // let the user know
+      if (images.length === 0)
+        showOverlay('emptygallery');
+
       return;
+    }
 
     images.push(imagedata);                             // remember the image
     var thumbnail = createThumbnail(images.length - 1); // create its thumbnail
@@ -500,39 +506,27 @@ function createThumbnail(imagenum) {
 
 // Register this with navigator.mozSetMessageHandler
 function webActivityHandler(activityRequest) {
-  // We can't handle any kind of activity if the MediaDB is not ready
-  if (photodb.state === MediaDB.READY)
-    handleActivity();
-  else {
-    photodb.addEventListener('ready', function waitTillReady() {
-      photodb.removeEventListener('ready', waitTillReady);
-      handleActivity();
-    });
-  }
-
-  function handleActivity() {
-    var activityName = activityRequest.source.name;
-    switch (activityName) {
-    case 'browse':
-      if (launchedAsInlineActivity)
-        return;
-      // The 'browse' activity is just the way we launch the app
-      // There's nothing else to do here.
-      setView(thumbnailListView);
-      break;
-    case 'pick':
-      if (!launchedAsInlineActivity)
-        return;
-      if (pendingPick)
-        cancelPick();
-      startPick(activityRequest);
-      break;
-    case 'open':
-      if (!launchedAsInlineActivity)
-        return;
-      handleOpenActivity(activityRequest);
-      break;
-    }
+  var activityName = activityRequest.source.name;
+  switch (activityName) {
+  case 'browse':
+    if (launchedAsInlineActivity)
+      return;
+    // The 'browse' activity is just the way we launch the app
+    // There's nothing else to do here.
+    setView(thumbnailListView);
+    break;
+  case 'pick':
+    if (!launchedAsInlineActivity)
+      return;
+    if (pendingPick)
+      cancelPick();
+    startPick(activityRequest);
+    break;
+  case 'open':
+    if (!launchedAsInlineActivity)
+      return;
+    handleOpenActivity(activityRequest);
+    break;
   }
 }
 
@@ -621,18 +615,14 @@ window.addEventListener('mozvisiblitychange', function() {
 
 function handleOpenActivity(request) {
   var filename = request.source.data.filename;
-
   var frame = $('open-frame');
   var image = $('open-image');
   var cameraButton = $('open-camera-button');
   var deleteButton = $('open-delete-button');
-
-  setView(openView);
-  displayFile(image, filename);
-
   var gestureDetector = new GestureDetector(frame);
   var openPhotoState = null;  // lazily initialized
 
+  // Set up events
   gestureDetector.startDetecting();
   cameraButton.addEventListener('click', handleCameraButton);
   deleteButton.addEventListener('click', handleDeleteButton);
@@ -640,6 +630,20 @@ function handleOpenActivity(request) {
   frame.addEventListener('transform', handleTransform);
   frame.addEventListener('pan', handlePan);
   frame.addEventListener('swipe', handleSwipe);
+
+  // Display the UI
+  setView(openView);
+
+  // Display the image, waiting for MediaDB to be ready, if it isn't already
+  if (photodb.state === MediaDB.READY) {
+    displayFile(image, filename);
+  }
+  else {
+    photodb.addEventListener('ready', function waitTillReady() {
+      photodb.removeEventListener('ready', waitTillReady);
+      displayFile(image, filename);
+    });
+  }
 
   function done(result) {
     if (request) {
@@ -839,7 +843,7 @@ $('photos-delete-button').onclick = function() {
 
 // Clicking the Edit button while viewing a photo switches to edit mode
 $('photos-edit-button').onclick = function() {
-  editPhoto(currentPhotoIndex);
+  editPhotoIfCardNotFull(currentPhotoIndex);
 };
 
 // In single-photo mode, the share button shares the current photo
@@ -1634,6 +1638,28 @@ var editBgImageButtons =
 
 editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 
+// Ensure there is enough space to store an edited copy of photo n
+// and if there is, call editPhoto to do so
+function editPhotoIfCardNotFull(n) {
+  var imagedata = images[n];
+  var imagesize = imagedata.size;
+  console.log('editPhotoIfCardNotFull: image size:', imagesize);
+
+  photodb.stat(function(stats) {
+    var freespace = stats.freeBytes;
+    console.log('editPhotoIfCardNotFull: freespace:', freespace);
+
+    // the edited image might take up more space on the disk, but
+    // not all that much more
+    if (freespace > imagesize * 2) {
+      editPhoto(n);
+    }
+    else {
+      alert(navigator.mozL10n.get('memorycardfull'));
+    }
+  });
+}
+
 
 function editPhoto(n) {
   editedPhotoIndex = n;
@@ -1895,6 +1921,11 @@ function exitEditMode(saved) {
 // change event when we manually add something to it or at least have that
 // option
 $('edit-save-button').onclick = function() {
+
+  // If we are in crop mode, perform the crop before saving
+  if ($('edit-crop-button').classList.contains('selected'))
+    imageEditor.cropImage();
+
   imageEditor.getFullSizeBlob('image/jpeg', function(blob) {
 
     var original = images[editedPhotoIndex].name;
@@ -1963,3 +1994,10 @@ function showOverlay(id) {
   $('overlay-text').textContent = navigator.mozL10n.get(id + '-text');
   $('overlay').classList.remove('hidden');
 }
+
+// XXX
+// Until https://bugzilla.mozilla.org/show_bug.cgi?id=795399 is fixed,
+// we have to add a dummy click event handler on the overlay in order to
+// make it opaque to touch events. Without this, it does not prevent
+// the user from interacting with the UI.
+$('overlay').addEventListener('click', function dummyHandler() {});
