@@ -28,6 +28,16 @@ const GridManager = (function() {
     right: 0
   };
 
+  function togglePagesVisibility(start, end) {
+    for (var i = 0; i < pages.length; i++) {
+      if (i < start || i > end) {
+        pages[i].container.classList.remove('visible');
+      } else {
+        pages[i].container.classList.add('visible');;
+      }
+    }
+  }
+
   var startEvent, isPanning = false;
 
   function handleEvent(evt) {
@@ -60,19 +70,9 @@ const GridManager = (function() {
         // to avoid as much as possible allocations while panning.
         window.removeEventListener('mousemove', handleEvent);
 
-        // Before panning all the pages that are not directly next to the
-        // target on will be set to display none. This code could be
-        // smarter. For example pages can start hidden and then the
-        // previous/next page of the current target can be displayed
-        // before panning and previous/next of the new current page
-        // could be hidden after that.
-        for (var i = 0; i < pages.length; i++) {
-          if (i < currentPage - 1 || i > currentPage + 1) {
-            pages[i].container.style.display = 'none';
-          } else {
-            pages[i].container.style.display = 'block';
-          }
-        }
+        // Before panning pages that are directly next to the current
+        // target are set visible.
+        togglePagesVisibility(currentPage -1, currentPage + 1);
 
         var index = currentPage;
         var previous = index ? pages[index - 1].container.style : {};
@@ -257,6 +257,8 @@ const GridManager = (function() {
       }
       pages[previousPage].container.dispatchEvent(new CustomEvent('pagehide'));
       pages[currentPage].container.dispatchEvent(new CustomEvent('pageshow'));
+
+      togglePagesVisibility(currentPage, currentPage);
     }
 
 
