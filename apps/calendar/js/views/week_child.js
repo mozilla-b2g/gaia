@@ -206,74 +206,6 @@ Calendar.ns('Views').WeekChild = (function() {
       });
     },
 
-    _removeHour: function(hour) {
-      var record = this.hours.get(hour);
-      var el = record.element;
-      el.parentNode.removeChild(el);
-    },
-
-    _insertHour: function(hour) {
-      this.hours.indexOf(hour);
-
-      var len = this.hours.items.length;
-      var idx = this.hours.insertIndexOf(hour);
-
-      var html = template.hour.render({
-        displayHour: this._formatHour(hour),
-        hour: String(hour)
-      });
-
-      var el = this._insertElement(
-        html,
-        this.events,
-        this.hours.items,
-        idx
-      );
-
-      return {
-        element: el,
-        records: new OrderedMap(),
-        flags: []
-      };
-    },
-
-    _formatHour: function(hour) {
-      if (hour === Calendar.Calc.ALLDAY) {
-        //XXX: Localize
-        return Calendar.Calc.ALLDAY;
-      }
-
-      newHour = hour;
-      if (hour > 12) {
-        var newHour = (hour - 12) || 12;
-        return String(newHour) + ' pm';
-      } else {
-        if (hour == 0) {
-          hour = 12;
-        }
-        return String(hour) + 'am';
-      }
-    },
-
-    _renderEvent: function(object) {
-      var remote = object.remote;
-      var attendees;
-
-      if (object.remote.attendees) {
-        attendees = this._renderAttendees(
-          object.remote.attendees
-        );
-      }
-
-      return template.event.render({
-        eventId: object._id,
-        calendarId: object.calendarId,
-        title: remote.title,
-        location: remote.location,
-        attendees: attendees
-      });
-    },
-
     /**
      * Renders out the calendar headers.
      *
@@ -293,7 +225,7 @@ Calendar.ns('Views').WeekChild = (function() {
             //TODO
             dayNumber: 0
           });
-        }        
+        }
 
       return template.weekDaysHeader.render(html);
     },
@@ -306,8 +238,7 @@ Calendar.ns('Views').WeekChild = (function() {
         template.weekDaysHeaderDay.render({
           day: String(day),
           dayName: name,
-          //TODO
-          dayNumber: 0
+          dayNumber: this._getDayNumber(day)
         })
       );
       for (; hour < 24; hour++) {
@@ -315,55 +246,54 @@ Calendar.ns('Views').WeekChild = (function() {
           hour: String(hour)
         }));
       }
-      
-      return  template.day.render(dayhours.join(''));
-      
+
+      return template.day.render(dayhours.join(''));
+
     },
-    
+
+    _getDayNumber: function _getDayNumber(number) {
+      var firstWeekday = this.date;
+      var day = firstWeekday.getDay();
+
+      if (day !== 0) {
+        firstWeekday.setHours(-24 * day);
+      }
+
+      return firstWeekday.getDate() + number;
+    },
+
     _renderWeek: function _renderWeek() {
       var day = 0;
       var week = [];
-      
+
       for (; day < 7; day++) {
         week.push(this._renderDay(day));
       }
-      
+
       return week.join('');
     },
 
-    _renderSidebar: function _renderSidebar(){
+    _renderSidebar: function _renderSidebar() {
       var hours = [];
       var hour = 0;
       hours.push(template.hourSidebarElement.render({
         hour: this._formatHour('allday')
       }));
-      
+
       for (; hour < 24; hour++) {
         hours.push(template.hourSidebarElement.render({
           hour: this._formatHour(String(hour))
         }));
       }
-      
+
       return template.hourSidebar.render(hours.join(''));
     },
-    
+
     /**
      * Creates and returns
      *
      */
     create: function() {
-      /*var el = this._buildElement();
-      this.changeDate(this.date);
-
-      if (this.renderAllHours) {
-        var hour = 0;
-        this.createHour('allday');
-        for (; hour < 24; hour++) {
-          this.createHour(hour);
-        }
-      }
-
-      return el;*/
       var html = this._renderSidebar() + this._renderWeek();
       var element = document.createElement('section');
 
@@ -372,7 +302,7 @@ Calendar.ns('Views').WeekChild = (function() {
       element.innerHTML = html;
 
       this._element = element;
-      
+
       return element;
     },
 

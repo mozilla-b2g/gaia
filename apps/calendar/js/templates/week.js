@@ -7,7 +7,7 @@
         '</h4>',
       '</section>'
     ].join(''),
-    
+
     weekDaysHeader: [
       '<header id="month-days">',
         '<ol role="row">',
@@ -21,41 +21,27 @@
         '{dayName} {dayNumber}',
       '</section>'
     ].join(''),
-    
+
     day: [
       '<section class="week-view-day">',
         '{value|s}',
       '</section>'
     ].join(''),
-    
+
     hourSidebar: [
       '<section id="hours-sidebar">',
           '{value|s}',
       '</section>'
     ].join(''),
-    
+
     hourSidebarElement: [
       '<section class="hours-sidebar-element">',
         '<h4>',
           '<span class="display-hour">{hour}</span>',
         '</h4>',
       '</section>'
-    ].join(''),
-    
-    attendee: '<span class="attendee">{value}</span>',
-
-    event: [
-      '<li class="event calendar-id-{calendarId}' +
-           'calendar-display" data-id="{eventId}">',
-        '<h5>{title}</h5>',
-        '<span class="details">',
-          '<span class="location">',
-            '{location}',
-          '</span>',
-          '{attendees|s}',
-        '</span>',
-      '</li>'
     ].join('')
+
   });
 
   Week.hourEventsSelector = '.events';

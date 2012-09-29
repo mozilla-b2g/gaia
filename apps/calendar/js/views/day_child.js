@@ -236,7 +236,7 @@ Calendar.ns('Views').DayChild = (function() {;
         flags: []
       };
     },
-    
+
     _renderEvent: function(object) {
       var remote = object.remote;
       var attendees;

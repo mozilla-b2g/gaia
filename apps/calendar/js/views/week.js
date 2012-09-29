@@ -19,10 +19,6 @@ Calendar.ns('Views').Week = (function() {
 
     _initEvents: function() {
       Parent.prototype._initEvents.call(this);
-
-      this.delegate(this.element, 'click', '[data-id]', function(e, target) {
-        Calendar.App.router.show('/event/' + target.dataset.id + '/');
-      });
     },
 
     handleEvent: function(e) {

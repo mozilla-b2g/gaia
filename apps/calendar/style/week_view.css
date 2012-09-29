@@ -25,6 +25,10 @@
    border-top: none;
 }
 
+#week-view .day-header {
+  font-size: 1.1rem;
+}
+
 #week-view .hours-sidebar-element:first-child {
   border-top: 1px solid #131314;
 }
