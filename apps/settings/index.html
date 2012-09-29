@@ -1243,7 +1243,7 @@
       </dl>
     </section>
 
-    <!-- Device :: Information :: Developer -->
+    <!-- Device :: Information :: More Information :: Developer -->
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1309,11 +1309,12 @@
     </section>
 
     <!-- Device :: Information :: More Information -->
-    <section role="region" id="more-info" data-leaf>
+    <section role="region" id="more-info">
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
         <h1 data-l10n-id="more-info"> More Information </h1>
       </header>
+
       <ul>
         <li>
           <a data-l10n-id="model-name"> Model
@@ -1333,6 +1334,28 @@
         <li>
           <label>
             <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="gaia-commit-hash"></small>
+          <a id="gaia-commit-date"></a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button onclick="openDialog('developer');"
+              data-l10n-id="developer">Developer</button>
           </label>
         </li>
       </ul>
@@ -1531,22 +1554,6 @@
               </span>
               <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
             </div>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      </header>
-      <ul>
-        <li>
-          <small id="gaia-commit-hash"></small>
-          <a id="gaia-commit-date"></a>
-        </li>
-        <li>
-          <label>
-            <button onclick="openDialog('developer');"
-              data-l10n-id="developer">Developer</button>
           </label>
         </li>
       </ul>
