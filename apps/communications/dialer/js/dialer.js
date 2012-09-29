@@ -2,6 +2,7 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
   var callScreenDisplayed = false;
@@ -69,7 +70,6 @@ var CallHandler = (function callHandler() {
       req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
-
         if (!status) {
           startDial(number);
         } else {
@@ -83,7 +83,20 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     if (isUSSD(number)) {
-      UssdManager.send(number);
+      if (conn.cardState === 'ready')
+        UssdManager.send(number);
+      else
+        CustomDialog.show(
+          _('emergencyDialogTitle'),
+          _('emergencyDialogBodyBadNumber'),
+          {
+            title: _('emergencyDialogBtnOk'),
+            callback: function() {
+              CustomDialog.hide();
+            }
+          }
+        );
+
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
       if (telephony) {
