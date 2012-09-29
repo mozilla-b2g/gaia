@@ -36,18 +36,22 @@
         updateMenu();
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         break;
+
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         break;
+
       case icc.STK_CMD_GET_INKEY:
       case icc.STK_CMD_GET_INPUT:
         updateInput(command);
         break;
+
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert(options.text);
         break;
+
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
@@ -56,12 +60,14 @@
         // TODO: Show a spinner instead the message (UX decission).
         // Stop it on any other command
         break;
+
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
         var confirmed = confirm(options.confirmMessage);
         icc.sendStkResponse(command, { hasConfirmed: confirmed,
                                        resultCode: icc.STK_RESULT_OK });
         break;
+
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
@@ -81,6 +87,7 @@
           }
         }
         break;
+
       default:
         debug('STK Message not managed ... response OK');
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
