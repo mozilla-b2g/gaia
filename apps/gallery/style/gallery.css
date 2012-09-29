@@ -384,68 +384,12 @@ footer {
 }
 
 #pick-top {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-
   /*
    * we want the user to be able to push the back button even if
    * an overlay is displayed, so be sure that this titlebar/toolbar
    * is above the overlay
    */
   z-index: 2;
-}
-
-#pick-back-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/back.png');
-}
-
-#pick-header {
-  position: absolute;
-  width: 75%;
-  height: 100%;
-  left: 25%;
-  margin-top: 15px;
-}
-
-#crop-top {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-#crop-back-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/back.png');
-}
-
-#crop-header {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 25%;
-  margin-top: 15px;
-}
-
-#crop-done-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 75%;
-  background-image: url('images/actionicon_done.png');
 }
 
 /* like .photoFrame */
