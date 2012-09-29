@@ -184,6 +184,13 @@ body.hidden #root {
   font-size: 1.8rem;
 }
 
+label[for="show-pwd"] {
+  margin: -1rem 0 1rem 3rem;
+  height: 2rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+}
+
 /* hide identity field by default */
 
 #wifi-auth label[for=identity] {

@@ -42,7 +42,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   if (submit) {
     submit.onclick = function onsubmit() {
       if (onSubmit)
-        onSubmit();
+        (onSubmit.bind(dialog))();
       document.location.hash = origin; // hide dialog box
     };
   }
@@ -51,7 +51,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   if (reset) {
     reset.onclick = function onreset() {
       if (onReset)
-        onReset();
+        (onReset.bind(dialog))();
       document.location.hash = origin; // hide dialog box
     };
   }
