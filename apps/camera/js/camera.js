@@ -57,6 +57,11 @@ var Camera = {
   _config: {
     fileFormat: 'jpeg'
   },
+  _videoConfig: {
+    rotation: 90,
+    width: 352,
+    height: 288
+  },
 
   _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
 
@@ -142,9 +147,6 @@ var Camera = {
       .addEventListener('click', this.capturePressed.bind(this));
     this.galleryButton
       .addEventListener('click', this.galleryBtnPressed.bind(this));
-    // TODO: Remove once video recoding support lands
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=776062
-    this.switchButton.setAttribute('disabled', 'disabled');
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -182,9 +184,7 @@ var Camera = {
     if (!this._secureMode) {
       this.galleryButton.removeAttribute('disabled');
     }
-    // TODO: Remove once video recoding support lands
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=776062
-    //this.switchButton.removeAttribute('disabled');
+    this.switchButton.removeAttribute('disabled');
   },
 
   toggleModePressed: function camera_toggleCaptureMode(e) {
@@ -194,6 +194,19 @@ var Camera = {
 
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.setCaptureMode(newMode);
+
+    function gotPreviewStream(stream) {
+      console.log("[[[ Got video mode preview stream ]]]");
+      this.viewfinder.mozSrcObject = stream;
+      this.viewfinder.play();
+    }
+    if (this.captureMode === this.CAMERA) {
+      // TODO: fix this so we can just call getPreviewStream(), or toggle a mode, or something
+      this.setSource(this._camera); // STOMP
+    } else {
+      console.log("[[[ Switching to video mode ]]]");
+      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig, gotPreviewStream.bind(this));
+    }
   },
 
   toggleCamera: function camera_toggleCamera() {
@@ -222,6 +235,36 @@ var Camera = {
     this._cameraObj.flashMode = flashModeName;
   },
 
+  toggleRecording: function camera_toggleRecording() {
+    if (!this._videoCapturing) {
+      this._videoCapturing = true;
+      this.captureButton.setAttribute('disabled', 'disabled');
+      console.log("[[[ Starting recording... ]]]");
+      document.body.classList.add('capturing');
+      this._cameraObj.startRecording(
+        navigator.getDeviceStorage('videos'),
+        "VID_0001.3gp",
+        function onsuccess() {
+          this.captureButton.removeAttribute('disabled');
+          console.log("[[[ Video recording successfully started ]]]");
+        }.bind(this),
+        function onerror() {
+          this.captureButton.removeAttribute('disabled');
+          this._videoCapturing = false;
+          document.body.classList.remove('capturing');
+          console.log("[[[ Video recording failed to start ]]]");
+        }.bind(this)
+      );
+      console.log("[[[ Post startRecording()... ]]]");
+    } else {
+      this._videoCapturing = false;
+      console.log("[[[ Stopping recording... ]]]");
+      this._cameraObj.stopRecording();
+      document.body.classList.remove('capturing');
+      console.log("[[[ Post stopRecording()... ]]]");
+    }
+  },
+
   capturePressed: function camera_doCapture(e) {
     if (e.target.getAttribute('disabled')) {
       return;
@@ -229,6 +272,8 @@ var Camera = {
 
     if (this.captureMode === this.CAMERA) {
       this.prepareTakePicture();
+    } else {
+      this.toggleRecording();
     }
   },
 
