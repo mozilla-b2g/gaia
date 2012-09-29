@@ -23,6 +23,9 @@
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
+    <!-- Async. Storage -->
+    <script type="application/javascript" src="/shared/js/async_storage.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
@@ -34,11 +37,13 @@
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
+    <script type="application/javascript" defer src="js/icc.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
     <script type="application/javascript" defer src="js/sound.js"></script>
     <script type="application/javascript" defer src="js/phone_lock.js"></script>
     <script type="application/javascript" defer src="js/factory_reset.js"></script>
+    <script type="application/javascript" defer src="js/icc.js"></script>
   </head>
   <body class="hidden skin-organic">
 
@@ -1733,6 +1738,31 @@
       </ul>
     </section>
 
+    <!-- Device :: SIM Toolkit -->
+    <section role="region" id="icc" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 id="icc-stk-operator-header">SIM Toolkit</h1>
+      </header>
+
+      <ul id="icc-stk-apps">
+      </ul>
+    </section>
+
+    <!-- Device :: SIM Toolkit -->
+    <section role="region" id="icc-stk-app" data-leaf>
+      <header>
+        <button id="icc-stk-app-back"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="done">Done</span></button>
+        </menu>
+        <h1 id="icc-stk-selection-header">STK Application Name</h1>
+      </header>
+
+      <ul id="icc-stk-selection">
+      </ul>
+    </section>
+
     <!-- Main List -->
     <section role="region" id="root">
       <header>
@@ -1866,7 +1896,19 @@
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>
+
+      <!-- Main :: STK -->
+      <header>
+        <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="icc-desc"></small>
+          <a href="#icc" data-l10n-id="simToolkit" id="iccMenuItem">SIM Toolkit</a>
+        </li>
+      </ul>
     </section>
+
   </body>
 </html>
 
