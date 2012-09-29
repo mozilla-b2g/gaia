@@ -1,14 +1,15 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 8;
+  const VERSION = 9;
 
   var store = {
     events: 'events',
     accounts: 'accounts',
     calendars: 'calendars',
     busytimes: 'busytimes',
-    settings: 'settings'
+    settings: 'settings',
+    alarms: 'alarms'
   };
 
   Object.freeze(store);
@@ -155,15 +156,15 @@
       for (; curVersion <= newVersion; curVersion++) {
         // if version is < 7 then it was from pre-production
         // db and we can safely discard its information.
-        if (curVersion < 7) {
+        if (curVersion < 6) {
           // ensure clean state if this was an old db.
           var existingNames = db.objectStoreNames;
           for (var i = 0; i < existingNames.length; i++) {
             db.deleteObjectStore(existingNames[i]);
           }
 
-          // version 0-r are not maintained increment to 7
-          curVersion = 7;
+          // version 0-r are not maintained increment to 6
+          curVersion = 6;
 
           // busytimes has one event, has one calendar
           var busytimes = db.createObjectStore(
@@ -211,8 +212,24 @@
             store.calendars, { keyPath: '_id', autoIncrement: true }
           );
 
-        } else if (curVersion === 8) {
+        } else if (curVersion === 7) {
           db.createObjectStore(store.settings, { keyPath: '_id' });
+        } else if (curVersion === 8) {
+          var alarms = db.createObjectStore(
+            store.alarms, { keyPath: '_id', autoIncrement: true }
+          );
+
+          alarms.createIndex(
+            'trigger',
+            'trigger.utc',
+            { unique: false, multiEntry: false }
+          );
+
+          alarms.createIndex(
+            'busytimeId',
+            'busytimeId',
+            { unique: false, multiEntry: false }
+          );
         }
       }
     },

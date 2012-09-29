@@ -65,7 +65,7 @@ function openDialog(dialogID, onSubmit, onReset) {
  */
 
 function audioPreview(element) {
-  var audio = document.querySelector('#sounds audio');
+  var audio = document.querySelector('#sound-selection audio');
   var source = audio.src;
   var playing = !audio.paused;
 
@@ -108,4 +108,118 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
     getReadableFileSize: getReadableFileSize
   };
 })();
+
+/**
+ * This emulates <input type="range"> elements on Gecko until they get
+ * supported natively.  To be removed when bug 344618 lands.
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=344618
+ */
+
+function bug344618_polyfill() {
+  var range = document.createElement('input');
+  range.type = 'range';
+  if (range.type == 'range') {
+    console.warn("bug344618 has landed, there's some dead code to remove.");
+    return; // <input type="range"> is already supported, early way out.
+  };
+
+  /**
+   * The JS polyfill transforms this:
+   *
+   *   <label>
+   *     <input type="range" />
+   *   </label>
+   *
+   * into this:
+   *
+   *   <label class="bug344618_polyfill">
+   *     <div>
+   *       <span></span>
+   *     </div>
+   *     <input type="range" />
+   *   </label>
+   *
+   * JavaScript-wise, two main differences between this polyfill and the
+   * standard implementation:
+   *   - the `.type' property equals `text' instead of `range';
+   *   - the value is a string, not a float.
+   */
+
+  var polyfill = function(input) {
+    input.dataset.type = 'range';
+
+    var slider = document.createElement('div');
+    var thumb = document.createElement('span');
+    var label = input.parentNode;
+    slider.appendChild(thumb);
+    label.insertBefore(slider, input);
+    label.classList.add('bug344618_polyfill');
+
+    var min = parseFloat(input.min);
+    var max = parseFloat(input.max);
+
+    // move the throbber to the proper position, according to input.value
+    var refresh = function refresh() {
+      var pos = (input.value - min) / (max - min);
+      pos = Math.max(pos, 0);
+      pos = Math.min(pos, 1);
+      thumb.style.left = (100 * pos) + '%';
+    };
+
+    // move the throbber to the proper position, according to mouse events
+    var updatePosition = function updatePosition(event) {
+      var rect = slider.getBoundingClientRect();
+      var pos = (event.clientX - rect.left) / rect.width;
+      pos = Math.max(pos, 0);
+      pos = Math.min(pos, 1);
+      thumb.style.left = (100 * pos) + '%';
+      input.value = min + pos * (max - min);
+    };
+
+    // send a 'change' event
+    var notify = function notify() {
+      var evtObject = document.createEvent('Event');
+      evtObject.initEvent('change', true, false);
+      input.dispatchEvent(evtObject);
+    };
+
+    // user interaction support
+    var isDragging = false;
+    var onDragStart = function onDragStart(event) {
+      updatePosition(event);
+      isDragging = true;
+    };
+    var onDragMove = function onDragMove(event) {
+      if (isDragging) {
+        updatePosition(event);
+      }
+    };
+    var onDragStop = function onDragStop(event) {
+      if (isDragging) {
+        updatePosition(event);
+        notify();
+      }
+      isDragging = false;
+    };
+    var onClick = function onClick(event) {
+      updatePosition(event);
+      notify();
+    };
+    slider.onmousedown = onClick;
+    thumb.onmousedown = onDragStart;
+    label.onmousemove = onDragMove;
+    label.onmouseout = onDragStop;
+    label.onmouseup = onDragStop;
+
+    // expose the 'refresh' method on <input>
+    // XXX remember to call it after setting input.value manually...
+    input.refresh = refresh;
+  };
+
+  // apply to all input[type="range"] elements
+  var ranges = document.querySelectorAll('label > input[type="range"]');
+  for (var i = 0; i < ranges.length; i++) {
+    polyfill(ranges[i]);
+  }
+}
 

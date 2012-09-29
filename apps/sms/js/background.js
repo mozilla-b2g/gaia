@@ -16,23 +16,28 @@
 
   /* === Settings === */
   var activeSMSSound = true;
-  SettingsListener.observe('sms.ring.received', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activeSMSSound = !!value;
   });
 
+  var selectedSmsSound = 'style/ringtones/sms.wav';
+  SettingsListener.observe('sms.ringtone', 'sms.wav', function(value) {
+    selectedSmsSound = 'style/ringtones/' + value;
+  });
+
   var activateSMSVibration = false;
-  SettingsListener.observe('sms.vibration.received', true, function(value) {
+  SettingsListener.observe('vibration.enabled', true, function(value) {
     activateSMSVibration = !!value;
   });
 
   function ring() {
     var ringtonePlayer = new Audio();
-    ringtonePlayer.src = 'style/ringtones/sms.wav';
+    ringtonePlayer.src = selectedSmsSound;
     ringtonePlayer.play();
     window.setTimeout(function smsRingtoneEnder() {
       ringtonePlayer.pause();
       ringtonePlayer.src = '';
-    }, 500);
+    }, 2000);
   }
 
   function vibrate() {

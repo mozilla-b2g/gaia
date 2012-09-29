@@ -61,7 +61,6 @@ window.addEventListener('localized', function SettingsBattery(evt) {
     var _ = navigator.mozL10n.get;
 
     // display the current battery level
-    var element = document.getElementById('battery-level').firstElementChild;
     var level = Math.min(100, Math.round(battery.level * 100));
     var state = 'unplugged';
 
@@ -71,8 +70,14 @@ window.addEventListener('localized', function SettingsBattery(evt) {
       state = 'charging';
     }
 
-    element.textContent = _('batteryLevel-percent-' + state,
-                            { level: level });
+    var text = _('batteryLevel-percent-' + state,
+                 { level: level });
+
+    var element = document.getElementById('battery-level').firstElementChild;
+    element.textContent = text;
+
+    element = document.getElementById('battery-desc');
+    element.textContent = text;
   }
 
   var battery = window.navigator.battery;
