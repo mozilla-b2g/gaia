@@ -21,7 +21,7 @@
     _store: 'calendars',
 
     _dependentStores: [
-      'calendars', 'events', 'busytimes'
+      'calendars', 'events', 'busytimes', 'alarms'
     ],
 
     _parseId: function(id) {

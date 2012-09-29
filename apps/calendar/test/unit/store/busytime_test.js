@@ -3,6 +3,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('timespan.js');
   requireLib('store/event.js');
   requireLib('store/busytime.js');
+  requireLib('store/alarm.js');
 });
 
 suite('store/busytime', function() {
@@ -78,6 +79,73 @@ suite('store/busytime', function() {
 
   teardown(function() {
     subject.db.close();
+  });
+
+  suite('#_removeDependents', function() {
+
+    suite('alarm store deps', function() {
+      var alarmStore;
+      var busytime;
+
+      function createTrans(done) {
+        var trans = subject.db.transaction(
+          ['busytimes', 'alarms'], 'readwrite'
+        );
+
+        if (done) {
+          trans.addEventListener('complete', function() {
+            done();
+          });
+        }
+      }
+
+      // create records
+      setup(function(done) {
+        var trans = createTrans(done);
+
+        alarmStore = subject.db.getStore('Alarm');
+        busytime = Factory('busytime', { _id: 'foo' });
+
+        subject.persist(busytime, trans);
+        alarmStore.persist({ _id: 1, busytimeId: busytime._id }, trans);
+      });
+
+      test('count check', function(done) {
+        var pending = 2;
+        var alarmCount = 0;
+        var busytimeCount = 0;
+
+        function next() {
+          if (!(--pending)) {
+            done(function() {
+              assert.equal(busytimeCount, 1, 'busytime');
+              assert.equal(alarmCount, 1, 'alarm');
+            });
+          }
+        }
+
+        subject.count(function(err, value) {
+          alarmCount = value;
+          next();
+        });
+
+        alarmStore.count(function(err, value) {
+          busytimeCount = value;
+          next();
+        });
+      });
+
+      test('after delete', function(done) {
+        subject.remove(busytime._id, function() {
+          alarmStore.count(function(err, value) {
+            done(function() {
+              assert.equal(value, 0, 'removes alarm');
+            });
+          });
+        });
+      });
+    });
+
   });
 
   suite('#loadSpan', function() {
