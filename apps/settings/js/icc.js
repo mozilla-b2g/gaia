@@ -29,6 +29,7 @@
   function handleSTKCommand(command) {
     debug('STK Proactive Command:' + JSON.stringify(command));
     var options = command.options;
+
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
         window.asyncStorage.setItem('stkMainAppMenu', options);
@@ -144,6 +145,7 @@
         { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
       iccLastCommand = null;
     };
+
     openDialog('icc-stk-app', function submit() {
       icc.sendStkResponse(iccLastCommand, { resultCode: icc.STK_RESULT_OK });
       iccLastCommand = null;
