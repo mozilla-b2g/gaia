@@ -108,11 +108,13 @@
       }
 
       if (!menu) {
+        var _ = window.navigator.mozL10n.get;
         debug('STK Main App Menu not available.');
         var li = document.createElement('li');
-        var a = document.createElement('a');
-        a.textContent = _('stkAppsNotAvailable');
-        li.appendChild(a);
+        var p = document.createElement('p');
+        p.textContent = _('stkAppsNotAvailable');
+        p.className = 'description';
+        li.appendChild(p);
         iccStkAppsList.appendChild(li);
         return;
       }
