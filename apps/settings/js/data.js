@@ -37,7 +37,7 @@ var gMobileConnection = (function(window) {
 })(this);
 
 // handle data settings
-window.addEventListener('load', function getCarrierSettings() {
+window.addEventListener('localized', function getCarrierSettings() {
   var APN_FILE = 'serviceproviders.xml';
   var gUserChosenAPN = false;
 

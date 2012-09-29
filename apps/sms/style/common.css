@@ -46,6 +46,7 @@
   width: 50%;
   height: 100%;
   position: relative;
+  z-index: 5;
 }
 
 .view-body {

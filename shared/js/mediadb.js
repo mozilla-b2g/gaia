@@ -297,6 +297,8 @@
  *     DeviceStorage events. This permanently puts the MediaDB object into
  *     the MediaDB.CLOSED state in which it is unusable.
  *
+ * - stat(): call the DeviceStorage stat() method and pass an the stats
+ *     object to the specified callback
  */
 var MediaDB = (function() {
 
@@ -762,6 +764,19 @@ var MediaDB = (function() {
     cancelEnumeration: function(handle) {
       if (handle.state === 'enumerating')
         handle.state = 'cancelling';
+    },
+
+    // Use the device storage stat() method and pass the resulting
+    // stats object to the callback. The stats object has properties
+    // totalBytes, freeBytes and state.
+    stat: function stat(callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var statreq = this.storage.stat();
+      statreq.onsuccess = function() {
+        callback(statreq.result);
+      }
     }
   };
 

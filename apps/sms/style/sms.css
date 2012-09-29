@@ -36,6 +36,7 @@ html, body {
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -60,52 +61,31 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
 */
 
+#snapshot {
+  top: -100%;
+  width: 200%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
 .snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
+  display: block;
+  z-index: 100;
+  -moz-transform: translateX(-50%);
 }
 
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
+.snapshot-back #snapshot {
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
 }
 
 /* Styles for Edit mode */
-
 .edit .options {
   -moz-transform: translateY(-6.5rem);
 }
@@ -368,6 +348,7 @@ a.unread .unread-mark .icon-unread-mark {
   color: #ff4e00;
   text-transform: uppercase;
   font-family: 'Open Sans';
+  z-index: 3;
 }
 
 
@@ -687,6 +668,14 @@ a.unread .unread-mark .icon-unread-mark {
   pointer-events: none;
 }
 
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
+}
+
 /*
   Loading screen while deleting
 */
@@ -757,4 +746,26 @@ a.unread .unread-mark .icon-unread-mark {
   color: #606060;
   font-weight: 300;
   font-size: -moz-calc(10 * 0.226rem);
+}
+
+/*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 3rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  transform: translateY(-100%);
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: -moz-calc(6 * 0.226rem);
+  font-family: 'Open Sans';
+  color: #FF4E00;
+  z-index: 4;
 }

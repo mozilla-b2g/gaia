@@ -1,4 +1,9 @@
-/* Resetting */
+/* Normalizing */
+* {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
 
 html {
   font-size: 10px;
@@ -7,131 +12,239 @@ html {
 
 body {
   background: black;
+  overflow: hidden;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  text-align: left;
-}
-
-.unit {
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: white;
-}
-
-p {
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: white;
-}
-
-p.time {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #AAA;
+button:focus,
+button::-moz-focus-inner {
+  border: 0;
+  outline: none;
 }
 
 [aria-hidden="true"] {
   display: none;
 }
 
-/* WIDGET */
-
-#cost-control button::-moz-focus-inner {
-  border: 0;
+/* Base font patterns */
+.unit {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
 }
 
+p {
+  font-size: 2rem;
+  font-weight: 400;
+  color: white;
+}
+
+p.meta {
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Main layout */
 #cost-control {
+  background: url(images/widget/ui/gray-noise-pattern.png) repeat left bottom;
+  position: relative;
+  overflow: hidden;
   height: 4.5rem;
   width: 100%;
-  background-image: url('./images/widget/ui/glossy-gradient.png'),
-                url('./images/widget/ui/gray-noise-pattern.png');
-  background-repeat: repeat-x, repeat;
-  background-color: black;
-  position: relative;
 }
 
-/* BALANCE VIEW */
+#cost-control.full .credit,
+#cost-control.full .data {
+  width: auto;
+  float: none;
+}
 
-#balance-view {
+/* Credit & Data structure */
+.credit,
+.data {
+  float: left;
+  width: 50%;
   height: 100%;
-  width: 100%;
-  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
+  -moz-box-sizing: border-box;
+  background: url(images/widget/ui/glossy-gradient.png) repeat-x left bottom;
 }
 
-/* Low credit warning */
-#balance-view.low-credit {
-  background-image: url('./images/widget/icons/icon-go.png'),
-                       url('./images/widget/ui/low-credit-pattern.png');
-  background-repeat: no-repeat, repeat-x;
-  background-position: right center, center;
+.credit {
+  border-right: solid 0.1rem #000;
 }
 
-/* No credit warning */
-#balance-view.no-credit {
-  background-image: url('./images/widget/icons/icon-go.png'),
-                       url('./images/widget/ui/no-credit-pattern.png');
-  background-repeat: no-repeat, repeat-x;
-  background-position: right center, center;
+.data {
+  border-left: solid 0.1rem rgba(255, 255, 255, 0.15);
 }
 
-/* Updating animation */
-#balance-view.updating #balance-icon {
-  background-image: url('./images/widget/icons/reload.png') !important;
-  -moz-animation: balance-spin 1.75s infinite linear !important;
-  -moz-animation-delay: 0.5s !important;
+/* Inner structure */
+.view {
+  overflow: hidden;
+  height: 100%;
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center ;
 }
 
-/* No automatic updates allowed */
-#balance-view.warning #balance-icon {
-  background-image: url('./images/widget/icons/warning.png');
-  -moz-animation: none;
+.info {
+  padding: 0.7rem 0 0.7rem 0.8rem;
 }
 
-@-moz-keyframes balance-spin {
-  0% { -moz-transform:rotate(0deg); }
-  100% { -moz-transform:rotate(360deg); }
+.info p:not(.meta) {
+  line-height: 1.5rem;
 }
 
-#balance-view > div {
-  display: inline-block;
-  vertical-align: middle;
-  -moz-transform: translateX(-2.5rem);
-  -moz-transition: -moz-transform 0.5s;
-}
-
-#balance-view.warning {
-  background: none;
-  background: #737577 url('./images/widget/icons/icon-go.png') right center no-repeat;
-}
-
-#balance-view.updating > div,
-#balance-view.warning > div {
-  -moz-transform: none;
-}
-
-#balance-view.warning #balance-credit, 
-#balance-view.warning #balance-currency,
-#balance-view.warning #balance-time {
-  color: #2d2e2f;
-}
-
-#balance-icon {
-  width: 2.1rem;
-  height: 2.1rem;
+/* Credit */
+.credit .icon {
+  width: 4.5rem;
+  height: 4.5rem;
   vertical-align: middle;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+/* Balance view */
+#balance-view .icon,
+#balance-view .info {
+  display: inline-block;
+  vertical-align: middle;
+  transform: translateX(-4.5rem);
+  transition: transform 0.5s;
+}
+
+#balance-view .info {
+  padding-left: 0;
+}
+
+/* Low balance credit warning */
+#balance-view.low-credit {
+  background-color: #f9a722;
+}
+
+/* No balance credit warning */
+#balance-view.no-credit {
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center, url(images/widget/ui/zero-credit.png) repeat-x left bottom;
+}
+
+/* Updating */
+#balance-view.updating #balance-icon {
+  background-image: url(images/widget/icons/updating.png);
+  animation: balance-spin 1.75s infinite linear;
+  animation-delay: 0.5s;
+}
+
+/* Warning */
+#balance-view.warning #balance-icon {
+  background-image: url(images/widget/icons/warning.png);
+  animation: none;
+}
+
+@keyframes balance-spin {
+  0% { transform:rotate(0deg); }
+  100% { transform:rotate(360deg); }
+}
+
+/* Updating & Warning */
+#balance-view.updating .icon,
+#balance-view.updating .info,
+#balance-view.warning .icon,
+#balance-view.warning .info {
+  transform: none;
+}
+
+/* Data */
+.data .stats {
+  margin: 0.6rem 2.5rem 0 1rem;
+  position: relative;
+}
+
+.data .stats:before,
+.data .stats progress,
+.data .stats progress::-moz-progress-bar {
+  border-radius: 0.6rem;
+  height: 1.6rem;
+}
+
+/* Inner shadow */
+.data .stats:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0.1rem;
+  z-index: 5;
+  box-shadow: inset 0 0 2px 0 rgba(0, 0, 0, 0.9);
+}
+
+.data .stats progress {
+  width: 100%;
+  background: #35373a url(images/widget/ui/pattern-progress.png) repeat left top;
+  border: none;
+  border-top: solid 0.1rem rgba(0, 0, 0, 1);
+  border-bottom: solid 0.1rem rgba(255, 255, 255, 0.4);
+}
+
+.data .stats progress::-moz-progress-bar {
+  background: #079d89;
+}
+
+/* Progress labels */
+.data .stats dl {
+  font-size: 1.1rem;
+}
+
+.data .stats dt {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.data .stats dd {
+  font-weight: 600;
+  color: #fff;
+}
+
+.data .stats dl .start,
+.data .stats dl .end {
+  position: absolute;
+  z-index: 1;
+}
+
+.data .stats dt.start,
+.data .stats dd.start {
+  left: 0;
+  text-align: left;
+}
+
+.data .stats dt.end,
+.data .stats dd.end {
+  right: 0;
+  text-align: right;
+}
+
+.data .stats dt.start,
+.data .stats dt.end {
+  top: 2rem;
   padding: 0 0.4rem;
 }
 
-/* TELEPHONY VIEW */
+.data .stats dd.start,
+.data .stats dd.end {
+  top: 0.1rem;
+  line-height: 1.6rem;
+  border-radius: 0.5rem;
+  padding: 0 0.4rem;
+}
 
-#telephony-view {
-  padding-left: 0.4rem;
-  height: 100%;
-  width: 100%;
-  background: url('./images/widget/icons/icon-go.png') right center no-repeat;
+/* States */
+
+.nearby-limit .stats progress::-moz-progress-bar {
+  background: #ea9f2b;
+}
+
+.reached-limit .stats progress::-moz-progress-bar {
+  background: #ca435b;
+}
+
+.reached-limit .stats dd.start {
+  background: #9b0808;
+  border: solid 0.1rem #610707;
+  line-height: 1.4rem;
 }

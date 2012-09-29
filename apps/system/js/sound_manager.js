@@ -23,7 +23,8 @@
 
   var activeTimeout = 0;
   function changeVolume(delta) {
-    if (currentVolume == 0) {
+    if (currentVolume == 0 ||
+        (currentVolume == 1 && delta < 0)) {
       if (delta < 0) {
         if (muteState == 'OFF') {
           muteState = 'VIBRATION';
@@ -58,14 +59,14 @@
         classes.add('vibration');
         classes.add('mute');
         SettingsListener.getSettingsLock().set({
-          'phone.vibration.incoming': true
+          'vibration.enabled': true
         });
         break;
       case 'MUTE':
         classes.remove('vibration');
         classes.add('mute');
         SettingsListener.getSettingsLock().set({
-          'phone.vibration.incoming': false
+          'vibration.enabled': false
         });
         break;
     }
