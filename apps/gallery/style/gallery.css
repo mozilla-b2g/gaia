@@ -30,7 +30,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view, #crop-view {
   position: absolute;
   top: 0px;
   left: 0px;
