@@ -129,14 +129,14 @@
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
           onclick: onMainMenuItemClick,
-          attributes: [['stk-menuitem-identifier', menuItem.identifier]]
+          attributes: [['stk-menu-item-identifier', menuItem.identifier]]
         }));
       });
     });
   }
 
   function onMainMenuItemClick(event) {
-    var identifier = event.target.getAttribute('stk-menuitem-identifier');
+    var identifier = event.target.getAttribute('stk-menu-item-identifier');
     var appName = event.target.textContent;
     debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
     document.getElementById('icc-stk-selection-header').textContent = appName;
@@ -175,13 +175,13 @@
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
         onclick: onSelectOptionClick.bind(null, command),
-        attributes: [['stk-selectoption-identifier', menuItem.identifier]]
+        attributes: [['stk-select-option-identifier', menuItem.identifier]]
       }));
     });
   }
 
   function onSelectOptionClick(command, event) {
-    var identifier = event.target.getAttribute('stk-selectoption-identifier');
+    var identifier = event.target.getAttribute('stk-select-option-identifier');
     debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' +
           JSON.stringify(command));
     icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
