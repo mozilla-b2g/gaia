@@ -215,16 +215,20 @@
     input.id = 'stk-item-input';
     input.maxLength = options.maxLength;
     input.placeholder = options.text;
-    if (options.isAlphabet)
+    if (options.isAlphabet) {
       input.type = 'text';
-    else
+    } else {
       input.type = 'number';
-    if (options.defaultText)
+    }
+    if (options.defaultText) {
       input.value = options.defaultText;
-    if (options.isYesNoRequired)
+    }
+    if (options.isYesNoRequired) {
       input.type = 'checkbox';
-    if (options.hidden)
+    }
+    if (options.hidden) {
       input.type = 'hidden';
+    }
     li.appendChild(input);
     iccStkSelection.appendChild(li);
 
