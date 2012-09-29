@@ -172,6 +172,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         this.list.hidden = !isShown;
       }
     };
+
     var openList = {
       title: document.getElementById('bluetooth-found-title'),
       list: document.getElementById('bluetooth-devices'),
@@ -190,44 +191,46 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         this.list.hidden = !isShown;
       }
     };
+
     var optionMenu = {
       menu: document.getElementById('paired-device-option'),
       connectOpt: document.getElementById('connect-option'),
       disconnectOpt: document.getElementById('disconnect-option'),
       unpairOpt: document.getElementById('unpair-option'),
-      cancelBtn: document.querySelector('#cancel-option button'),
+
       show: function showMenu(device) {
         var self = this;
-        // we only support audio-card device to connect now
+        // we only support audio-card device to connect atm
         if (device.icon === 'audio-card') {
           if (device.connected) {
             this.connectOpt.hidden = true;
             this.disconnectOpt.hidden = false;
             this.disconnectOpt.onclick = function() {
               setDeviceDisconnect(device);
-              self.close();
             };
           } else {
             this.connectOpt.hidden = false;
             this.disconnectOpt.hidden = true;
             this.connectOpt.onclick = function() {
               setDeviceConnect(device);
-              self.close();
             };
           }
         } else {
-            this.connectOpt.hidden = true;
-            this.disconnectOpt.hidden = true;
+          this.connectOpt.hidden = true;
+          this.disconnectOpt.hidden = true;
         }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(device);
-          self.close();
         };
-        this.cancelBtn.onclick = this.close.bind(this);
+        this.menu.onsubmit = function closeMenu() {
+          return self.close();
+        }
         this.menu.hidden = false;
       },
+
       close: function closeMenu() {
         this.menu.hidden = true;
+        return false;
       }
     };
 

@@ -59,13 +59,13 @@ body.hidden * {
   transition: visibility 0s ease .5s, transform .5s ease;
 }
 
-section[role="region"]:target {
+[role="region"]:target {
   visibility: visible;
   transform: translateX(0);
   transition: visibility 0s ease, transform .5s ease;
 }
 
-section[role="region"]:target ~ section[role="region"]:not([data-leaf]) {
+[role="region"]:target ~ [role="region"]:not([data-leaf]) {
   transform: translateX(-100%);
 }
 
@@ -98,6 +98,7 @@ body.hidden #root {
 [dir=rtl] [role="region"] {
   transform: translateX(-100%);
 }
+
 [dir=rtl] #root {
   transform: translateX(+100%);
 }
@@ -176,7 +177,7 @@ body.hidden #root {
 
 
 /******************************************************************************
- * Wi-Fi dialogs
+ * Wi-Fi settings
  */
 
 #wifi-status, #wifi-auth {
@@ -193,7 +194,10 @@ body.hidden #root {
   display: block;
 }
 
-/* APN Settings */
+
+/******************************************************************************
+ * APN settings
+ */
 
 #apnSettings-custom {
   font-style: italic;
@@ -205,44 +209,7 @@ body.hidden #root {
 
 
 /******************************************************************************
- * Bluetooth panel
- */
-
-.popup {
-  bottom: 0;
-  left: 0.5rem;
-  margin: 0;
-  position: fixed;
-  background-color: white;
-  border: 0.1rem solid black;
-  border-radius: 0.6rem;
-  padding: 0.8rem;
-  width: 90%;
-}
-
-#paired-device-option li {
-  height: 4.6rem;
-  min-height: 4.6rem;
-}
-
-#paired-device-option li > a {
-  line-height: 2em;
-  padding: 0;
-}
-
-#paired-device-option #cancel-option {
-  height: 4.6rem;
-  min-height: 4.6rem;
-}
-
-#paired-device-option #cancel-option button {
-  height: calc(100% - 1rem);
-  line-height: normal;
-}
-
-
-/******************************************************************************
- * Sound
+ * Sound settings
  */
 
 .tone-select {

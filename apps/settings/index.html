@@ -16,6 +16,7 @@
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/action_menu.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
@@ -42,7 +43,7 @@
   </head>
   <body class="hidden skin-organic">
 
-    <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
+    <!-- Connectivity :: Wi-Fi :: Network Status -->
     <section role="region" id="wifi-status" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -77,7 +78,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: Network Authentication Dialog -->
+    <!-- Connectivity :: Wi-Fi :: Network Authentication -->
     <section role="region" id="wifi-auth" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -114,7 +115,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: WPS Dialog -->
+    <!-- Connectivity :: Wi-Fi :: WPS -->
     <section role="region" id="wifi-wps" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -156,10 +157,10 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi -->
+    <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section role="region" id="wifi-manageNetworks">
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
         <h1 data-l10n-id="knownNetworks">
           Known Networks
         </h1>
@@ -174,6 +175,14 @@
           -   </li>
           -->
       </ul>
+
+      <!-- action menu -->
+      <form role="dialog" hidden>
+        <menu>
+          <button data-l10n-id="forgetNetwork">Forget network</button>
+          <button data-l10n-id="cancel" type="reset">Cancel</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
@@ -247,7 +256,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
+    <!-- Connectivity :: 3G/data :: APN Settings -->
     <section role="region" id="apnSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -297,7 +306,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
+    <!-- Connectivity :: 3G/data :: MMS Settings -->
     <section role="region" id="mmsSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -425,6 +434,7 @@
         Turn Bluetooth on to view devices in the area.
       </div>
 
+      <!-- paired devices -->
       <header id="bluetooth-paired-title">
         <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
       </header>
@@ -432,6 +442,7 @@
         <!-- filled by bluetooth.js -->
       </ul>
 
+      <!-- available devices -->
       <header id="bluetooth-found-title">
         <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
       </header>
@@ -449,21 +460,15 @@
         </li>
       </ul>
 
-      <!-- popup menu -->
-      <ul id="paired-device-option" class="popup" hidden>
-        <li id="connect-option">
-          <a data-l10n-id="device-option-connect">Connect</a>
-        </li>
-        <li id="disconnect-option">
-          <a data-l10n-id="device-option-disconnect">Disconnect</a>
-        </li>
-        <li id="unpair-option">
-          <a data-l10n-id="device-option-unpair">Unpair</a>
-        </li>
-        <li id="cancel-option">
+      <!-- action menu -->
+      <form role="dialog" id="paired-device-option" hidden>
+        <menu>
+          <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>
+          <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
+          <button data-l10n-id="device-option-unpair" id="unpair-option">Unpair</button>
           <button data-l10n-id="cancel">Cancel</button>
-        </li>
-      </ul>
+        </menu>
+      </form>
     </section>
 
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
@@ -760,7 +765,7 @@
         </li>
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones)-->
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
     <section role="region" id="timezone-zones" data-leaf>
       <header>
         <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
@@ -774,7 +779,7 @@
       </ul>
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent)-->
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
     <section role="region" id="timezone-continent">
       <header>
         <a href="#time"><span class="icon icon-back">back</span></a>
@@ -1010,10 +1015,7 @@
       </ul>
     </section>
 
-    <!-- [TODO] Accounts :: Persona -->
-
-    <!-- [TODO] Accounts :: Mail -->
-
+    <!-- Security :: Phone Lock :: PIN Input -->
     <section role="region" id="passcode-panel" data-leaf>
       <header>
         <a href="#phoneLock"><span class="icon icon-back">back</span></a>
@@ -1024,18 +1026,19 @@
           <button id="passcode-create" data-l10n-id="create">Create</button>
         </menu>
         <h1 data-l10n-id="create-passcode" data-mode="create">
-           Create a Passcode
+          Create a Passcode
         </h1>
         <h1 data-l10n-id="current-passcode" data-mode="edit">
-           Current Passcode
+          Current Passcode
         </h1>
         <h1 data-l10n-id="new-passcode" data-mode="new">
-           New Passcode
+          New Passcode
         </h1>
         <h1 data-l10n-id="enter-passcode" data-mode="confirm">
-           Enter Passcode
+          Enter Passcode
         </h1>
       </header>
+
       <div class="passcode-overlay">
         <input type="number" id="passcode-input" />
         <div class="passcode-container">
@@ -1102,9 +1105,7 @@
       </ul>
     </section>
 
-    <!-- [TODO] Security :: Phone Lock -->
-
-    <!-- Security :: SIM Security :: SIM PIN Input Dialog -->
+    <!-- Security :: SIM Security :: SIM PIN Input -->
     <section role="region" id="simpin-dialog" data-leaf>
       <header>
         <button type="reset">
@@ -1302,7 +1303,7 @@
        </ul>
     </section>
 
-    <!-- Device :: Information :: More Information Dialog -->
+    <!-- Device :: Information :: More Information -->
     <section role="region" id="more-info" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1332,7 +1333,7 @@
       </ul>
     </section>
 
-    <!-- Device :: Information :: About your rights Dialog -->
+    <!-- Device :: Information :: About Your Rights -->
     <section role="region" id="about-your-rights" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1375,7 +1376,7 @@
       </ul>
     </section>
 
-    <!-- Device :: Information :: About your privacy Dialog -->
+    <!-- Device :: Information :: About Your Privacy -->
     <section role="region" id="about-your-privacy" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1392,7 +1393,7 @@
       </ul>
     </section>
 
-    <!-- Device :: Information :: Licensing Dialog -->
+    <!-- Device :: Information :: Licensing -->
     <section role="region" id="licensing" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1688,14 +1689,14 @@
       </header>
 
       <ul>
-        <li hidden>
+        <li>
           <label>
             <input type="checkbox" name="accessibility.invert"/>
             <span></span>
           </label>
           <a data-l10n-id="invertColors">Invert Colors</a>
         </li>
-        <li hidden>
+        <li>
           <label>
             <input type="checkbox" name="accessibility.screenreader"/>
             <span></span>

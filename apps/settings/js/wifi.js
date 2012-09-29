@@ -483,10 +483,18 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // propose to forget a network
     function forgetNetwork(network) {
-      if (window.confirm(_('forgetNetwork'))) {
+      var dialog = document.querySelector('#wifi-manageNetworks form');
+      dialog.hidden = false;
+      dialog.onsubmit = function forget() {
         gWifiManager.forget(network);
         scan();
-      }
+        dialog.hidden = true;
+        return false;
+      };
+      dialog.onreset = function cancel() {
+        dialog.hidden = true;
+        return false;
+      };
     }
 
     // list known networks
