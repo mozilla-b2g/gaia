@@ -33,7 +33,7 @@
         "target": "simpin-unlock"
        },
       "disposition": "inline",
-      "href": "unlock-simpin.html",
+      "href": "unlock_simpin.html",
       "returnValue": true
     }
   },
