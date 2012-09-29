@@ -17,7 +17,9 @@
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
-    icc.onstksessionend = handleSTKSessionEnd;
+    icc.onstksessionend = function handleSTKSessionEnd(event) {
+      updateMenu();
+    };
     navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
   }
 
@@ -93,13 +95,6 @@
         icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
     }
-  }
-
-  /**
-   * Handle session end
-   */
-  function handleSTKSessionEnd(event) {
-    updateMenu();
   }
 
   /**
