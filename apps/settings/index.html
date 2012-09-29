@@ -113,7 +113,49 @@
           <p data-l10n-id="password">password</p>
           <input type="password" data-password data-ignore name="password" maxlength="63" />
           <label for="show-pwd">
-            <input type="checkbox" data-ignore id="show-pwd" name="show-pwd" />
+            <input type="checkbox" data-ignore name="show-pwd" />
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
+    <section role="region" id="wifi-joinHidden" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="authentication"> Authentication </h1>
+      </header>
+
+      <!-- network properties + identity/password input -->
+      <ul>
+        <li>
+          <p data-l10n-id="ssid-name">SSID Network Name</p>
+          <input type="text" data-ignore name="ssid" value="Freebox-4C7D5F" />
+        </li>
+        <li>
+          <a data-l10n-id="security">security
+            <select>
+              <option data-l10n-id="securityNone">none</option>
+              <option>WEP</option>
+              <option>WPA-PSK</option>
+              <option>WPA-EAP</option>
+            </select>
+          </a>
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-ignore name="identity" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="password" data-ignore name="password" maxlength="63"
+                  value="devorsori%-lusiam-reperiendo7." />
+          <label for="show-pwd">
+            <input type="checkbox" data-ignore name="show-pwd" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
@@ -127,7 +169,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1> Wi-Fi Protected Setup </h1>
+        <h1 data-l10n-id="wps"> Wi-Fi Protected Setup </h1>
       </header>
 
       <header>
@@ -256,6 +298,11 @@
         <li>
           <label>
             <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
           </label>
         </li>
       </ul>
