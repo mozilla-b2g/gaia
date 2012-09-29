@@ -9,7 +9,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
-    <script type="text/javascript" defer src="shared/js/media_db.js"></script>
+    <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/blobview.js"></script>
     <script type="text/javascript" defer src="js/metadata.js"></script>
@@ -29,8 +29,7 @@
       <div id="views-list" class="view"></div>
       <div id="views-sublist" class="view">
         <div id="views-sublist-header">
-          <div id="views-sublist-header-album">
-            <div id="views-sublist-header-default">&#9834;</div>
+          <div id="views-sublist-header-default">
             <img id="views-sublist-header-image" />
           </div>
           <div id="views-sublist-header-controls">
@@ -43,7 +42,6 @@
       </div>
       <div id="views-player" class="view">
         <div id="player-cover">
-          <div id="player-cover-default-image">&#9834;</div>
           <img id="player-cover-image" />
           <div id="player-cover-caption">
             <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
@@ -51,7 +49,13 @@
           </div>
           <div id="player-cover-buttons">
             <button id="player-album-shuffle" class="player-cover-button" disabled>S</button>
-            <div id="player-album-rating">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+            <div id="player-album-rating">
+              <button class="rating-star" data-rating="1">&#9733;</button>
+              <button class="rating-star" data-rating="2">&#9733;</button>
+              <button class="rating-star" data-rating="3">&#9733;</button>
+              <button class="rating-star" data-rating="4">&#9733;</button>
+              <button class="rating-star" data-rating="5">&#9733;</button>
+            </div>
             <button id="player-album-repeat" class="player-cover-button" disabled>R</button>
           </div>
         </div>
@@ -77,6 +81,11 @@
       <button class="tabs-button" id="tabs-artists" data-l10n-id="artists" data-option="artist">Artists</button>
       <button class="tabs-button" id="tabs-albums" data-l10n-id="albums" data-option="album">Albums</button>
       <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more" data-option="more">More</button>
+    </div>
+    <!-- A thin indeterminate progress bar to indicate scanning -->
+    <!-- set class to "throb" to make it go, or hidden" to make it stop -->
+    <div id="progress" class="hidden">
+      <img id="throbber" src="style/images/progress.png">
     </div>
     <!-- display messages like "Scanning", "No Songs" and "No SD Card" here -->
     <div id="overlay" class="hidden">

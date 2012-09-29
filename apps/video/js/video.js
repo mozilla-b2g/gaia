@@ -154,7 +154,7 @@ function updateDialog() {
   if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
-    showOverlay('cardinuse');
+    showOverlay('pluggedin');
   }
 }
 
@@ -199,17 +199,23 @@ function metaDataParser(videofile, callback) {
 
 function captureFrame(player, callback) {
   var skipped = false;
+  var image = null;
   function doneSeeking() {
     player.onseeked = null;
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = THUMBNAIL_WIDTH;
-    canvas.height = THUMBNAIL_HEIGHT;
-    ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+    try {
+      var canvas = document.createElement('canvas');
+      var ctx = canvas.getContext('2d');
+      canvas.width = THUMBNAIL_WIDTH;
+      canvas.height = THUMBNAIL_HEIGHT;
+      ctx.drawImage(player, 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+      image = canvas.mozGetAsFile('poster', 'image/jpeg');
+    } catch (e) {
+      console.error('Failed to create a poster image:', e);
+    }
     if (skipped) {
       player.currentTime = 0;
     }
-    callback(canvas.mozGetAsFile('poster', 'image/jpeg'));
+    callback(image);
   }
 
   // If we are on the first frame, lets skip into the video since some
@@ -406,8 +412,10 @@ function hidePlayer() {
       screenLock = null;
     }
 
-    var posterImg = li.querySelectorAll('img')[0];
-    setPosterImage(posterImg, poster);
+    if (poster) {
+      var posterImg = li.querySelectorAll('img')[0];
+      setPosterImage(posterImg, poster);
+    }
 
     var unwatched = li.querySelectorAll('div.unwatched');
     if (unwatched.length) {
@@ -630,7 +638,9 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
-  init();
+
+  // If this is the first time we've been called, initialize the database.
+  // Don't reinitialize it if the user switches languages while we're running
+  if (!videodb)
+    init();
 });
-
-

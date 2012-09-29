@@ -88,11 +88,18 @@ suite('db', function() {
   test('#load', function(done) {
     var loaded = {
       account: false,
-      calendar: false
+      calendar: false,
+      setting: false
     };
 
     var account = subject.getStore('Account');
     var calendar = subject.getStore('Calendar');
+    var setting = subject.getStore('Setting');
+
+    setting.load = function(callback) {
+      callback(null, {});
+      loaded.setting = true;
+    }
 
     account.load = function(callback) {
       callback(null, {});
@@ -115,6 +122,7 @@ suite('db', function() {
       done(function() {
         assert.ok(loaded.account, 'should load account');
         assert.ok(loaded.calendar, 'should load calendar');
+        assert.ok(loaded.setting), 'should load settings';
       });
     });
   });

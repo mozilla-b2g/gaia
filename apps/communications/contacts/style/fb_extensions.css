@@ -8,7 +8,7 @@ iframe#fb-extensions {
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: -moz-transform .8s ease;
+  -moz-transition: all .6s ease;
   background-color: #26272c;
 }
 
@@ -18,4 +18,33 @@ iframe#fb-extensions {
 
 #fb-extensions.closing {
   -moz-transform: translateY(0);
+}
+
+#fb-extensions.openingImport {
+  top:0;
+}
+
+#fb-extensions.closingImport {
+  top:100%;
+}
+
+
+.facebook.removed dl,
+p.facebook.removed input {
+  background-color: rgba(59, 82, 152, 0.2);
+  border: 1px solid #3b5998;
+}
+
+.facebook.removed a,
+.facebook.removed input {
+  color: #969696;
+}
+
+.facebook.removed dl dd p:last-child {
+  border-bottom: none;
+}
+
+.facebook.removed dl dd p {
+  border-bottom: 1px solid #3b5998;
+  border-left: 1px solid #3b5998;
 }

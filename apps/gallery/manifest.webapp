@@ -23,7 +23,15 @@
        },
       "disposition": "inline",
       "returnValue": true,
-      "href": "/index.html#inlineActivity"
+      "href": "/index.html#pick"
+    },
+    "open": {
+      "filters": {
+        "type": "image/jpeg"
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/index.html#open"
     }
   },
   "locales": {

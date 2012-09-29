@@ -493,6 +493,12 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
 
+  var synchronizeNode = domNode.getElementsByClassName(
+    'tng-account-synchronize')[0];
+  synchronizeNode.value = this.account.syncRange;
+  synchronizeNode.addEventListener(
+    'change', this.onChangeSynchronize.bind(this), false);
+
   this.account.servers.forEach(function(server, index) {
     var serverNode = tngNodes['account-settings-server'].cloneNode(true);
     var serverLabel =
@@ -531,6 +537,18 @@ SettingsAccountCard.prototype = {
         index: index
       },
       'right');
+  },
+
+  onChangeSynchronize: function(event) {
+    this.account.modifyAccount({syncRange: event.target.value});
+
+    // If we just changed the currently-selected account, refresh the
+    // currently-open folder to propagate the syncRange change.
+    var curAccount = Cards.findCardObject(['folder-picker', 'navigation'])
+                          .cardImpl.curAccount;
+    if (curAccount.id === this.account.id) {
+      Cards.findCardObject(['message-list', 'default']).cardImpl.onRefresh();
+    }
   },
 
   die: function() {

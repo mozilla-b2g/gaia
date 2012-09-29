@@ -167,15 +167,22 @@ if (!fb.link) {
 
       */
 
-      fb.utils.runQuery(query, 'fb.link.proposalReady', access_token);
+      fb.utils.runQuery(query, {
+        success: fb.link.proposalReady,
+        error: fb.link.errorHandler,
+        timeout: fb.link.timeoutHandler
+      }, access_token);
     }
 
 
     function getRemoteAll() {
       document.body.dataset.state = 'waiting';
 
-      fb.utils.runQuery(ALL_QUERY.join(''), 'fb.link.friendsReady',
-                                                            access_token);
+      fb.utils.runQuery(ALL_QUERY.join(''), {
+        success: fb.link.friendsReady,
+        error: fb.link.errorHandler,
+        timeout: fb.link.timeoutHandler
+      }, access_token);
     }
 
     // When the access_token is available it is executed
@@ -191,7 +198,7 @@ if (!fb.link) {
       fb.oauth.getAccessToken(tokenReady, 'proposal');
     }
 
-    // Executed when the jsonp response is available
+    // Executed when the server response is available
     link.proposalReady = function(response) {
       var inError = false;
 
@@ -223,6 +230,18 @@ if (!fb.link) {
       if (numQueries > 1) {
         document.body.dataset.state = 'selection';
       }
+    }
+
+    link.timeoutHandler = function() {
+       // TODO: figure out with UX what to do in that case
+      window.alert('Timeout!!');
+      document.body.dataset.state = 'selection';
+    }
+
+    link.errorHandler = function() {
+       // TODO: figure out with UX what to do in that case
+      window.alert('Error!!');
+      document.body.dataset.state = 'selection';
     }
 
     /**

@@ -14,10 +14,12 @@
     <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/fixed_header.css">
+    <link rel="stylesheet" href="style/search.css">
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
 
+    <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_utils.js"></script>
     <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
@@ -25,6 +27,7 @@
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
+    <script defer type="text/javascript" src="js/search.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_import.js"></script>
 
     <script defer type="text/javascript" src="oauth2/js/flow.js"></script>
@@ -40,7 +43,7 @@
 
   <body role="application">
 
-    <section role="region" id="content">
+    <section role="region" id="content" class="facebook">
 
       <header>
         <a href="#" onclick="fb.importer.ui.end(event)">
@@ -66,14 +69,18 @@
           </ol>
         </div>
 
-        <div>
-          <output id="num-friends" hidden></output>
-          <p id="friends-msg">
-          </p>
-        </div>
-
         <!-- Contacts List Section -->
         <section id='mainContent' data-state="selection">
+          <form id="search-container" class="search">
+            <label for="search-contact">
+              <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+            </label>
+          </form>
+          <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+          <section class="friends-msg">
+            <output id="num-friends" hidden></output>
+            <p id="friends-msg"></p>
+          </section>
           <ol id="groups-list" class="unbordered">
             <li id="group-#group#" data-template>
               <h2 class="block-title">
@@ -81,7 +88,7 @@
               </h2>
 
               <ol id="contacts-list-#group#">
-                <li data-template data-uuid="#uid#" aria-disabled="false">
+                <li data-template data-uuid="#uid#" data-search="#search#" aria-disabled="false" class="block-item">
                   <div class="aside begin" role="presentation">
                     <input type="checkbox" name="#uid#">
                     <span></span>
@@ -100,7 +107,7 @@
           </ol>
         </section> <!-- mainContent -->
 
-        <menu data-items="1">
+        <menu id="select-all-wrapper" data-items="1">
           <button id="select-all" onclick="fb.importer.ui.selectAll(event)" data-l10n-id="selectAll">
             Select All
           </button>
@@ -108,12 +115,21 @@
 
       </section> <!-- main -->
 
+      <section id='fixed-container' class='fixed-title-fb'></section>
+
+      <section id="search-view" class="view">
+        <form id="searchview-container" class="search">
+           <label for="search-contact">
+             <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.Search.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.Search.search()" data-l10n-id="search-contact" />
+             <button id='cancel-search' onclick='return contacts.Search.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
+           </label>
+         </form>
+      </section>
     </section> <!-- role="region" -->
-    <section id='fixed-container' class='fixed-title-fb'></section>
 
     <section id="curtain" role="region">
       <header>
-        <h1>Facebook</h1>
+        <h1 data-l10n-id="facebook">Facebook</h1>
       </header>
       <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
         <hr>

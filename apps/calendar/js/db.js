@@ -1,13 +1,15 @@
 (function(window) {
   var idb = window.indexedDB || window.mozIndexedDB;
 
-  const VERSION = 5;
+  const VERSION = 9;
 
   var store = {
     events: 'events',
     accounts: 'accounts',
     calendars: 'calendars',
-    busytimes: 'busytimes'
+    busytimes: 'busytimes',
+    settings: 'settings',
+    alarms: 'alarms'
   };
 
   Object.freeze(store);
@@ -43,7 +45,7 @@
      * @param {Function} callback node style.
      */
     load: function(callback) {
-      var pending = 2;
+      var pending = 3;
       var self = this;
 
       function next() {
@@ -61,6 +63,13 @@
       // fatal.
       function loadRecords() {
         self.getStore('Account').load(function(err) {
+          if (err) {
+            throw err;
+          }
+          next();
+        });
+
+        self.getStore('Setting').load(function(err) {
           if (err) {
             throw err;
           }
@@ -113,8 +122,8 @@
         self.emit('error', error);
       }
 
-      req.onupgradeneeded = function() {
-        self._handleVersionChange(req.result);
+      req.onupgradeneeded = function(event) {
+        self._handleVersionChange(req.result, event);
       };
 
       req.onerror = function(error) {
@@ -140,58 +149,89 @@
       return this.connection.transaction(names, state || 'readonly');
     },
 
-    _handleVersionChange: function(db) {
-      // remove previous stores for now
-      var existingNames = db.objectStoreNames;
-      for (var i = 0; i < existingNames.length; i++) {
-        db.deleteObjectStore(existingNames[i]);
+    _handleVersionChange: function(db, event) {
+      var newVersion = event.newVersion;
+      var curVersion = event.oldVersion;
+
+      for (; curVersion <= newVersion; curVersion++) {
+        // if version is < 7 then it was from pre-production
+        // db and we can safely discard its information.
+        if (curVersion < 6) {
+          // ensure clean state if this was an old db.
+          var existingNames = db.objectStoreNames;
+          for (var i = 0; i < existingNames.length; i++) {
+            db.deleteObjectStore(existingNames[i]);
+          }
+
+          // version 0-r are not maintained increment to 6
+          curVersion = 6;
+
+          // busytimes has one event, has one calendar
+          var busytimes = db.createObjectStore(
+            store.busytimes,
+            { keyPath: '_id' }
+          );
+
+          busytimes.createIndex(
+            'end',
+            'end.utc',
+            { unique: false, multiEntry: false }
+          );
+
+          busytimes.createIndex(
+            'eventId',
+            'eventId',
+            { unique: false, multiEntry: false }
+          );
+
+          // events -> belongs to calendar
+          var events = db.createObjectStore(
+            store.events,
+            { keyPath: '_id' }
+          );
+
+          events.createIndex(
+            'calendarId',
+            'calendarId',
+            { unique: false, multiEntry: false }
+          );
+
+          events.createIndex(
+            'parentId',
+            'parentId',
+            { unique: false, multiEntry: false }
+          );
+
+          // accounts -> has many calendars
+          db.createObjectStore(
+            store.accounts, { keyPath: '_id', autoIncrement: true }
+          );
+
+          // calendars -> has many events
+          db.createObjectStore(
+            store.calendars, { keyPath: '_id', autoIncrement: true }
+          );
+
+        } else if (curVersion === 7) {
+          db.createObjectStore(store.settings, { keyPath: '_id' });
+        } else if (curVersion === 8) {
+          var alarms = db.createObjectStore(
+            store.alarms, { keyPath: '_id', autoIncrement: true }
+          );
+
+          alarms.createIndex(
+            'trigger',
+            'trigger.utc',
+            { unique: false, multiEntry: false }
+          );
+
+          alarms.createIndex(
+            'busytimeId',
+            'busytimeId',
+            { unique: false, multiEntry: false }
+          );
+        }
       }
-
-      // busytimes has one event, has one calendar
-      var busytimes = db.createObjectStore(
-        store.busytimes,
-        { keyPath: '_id', autoIncrement: true }
-      );
-
-      busytimes.createIndex(
-        'end',
-        'end',
-        { unique: false, multiEntry: false }
-      );
-
-      busytimes.createIndex(
-        'eventId',
-        'eventId',
-        { unique: false, multiEntry: false }
-      );
-
-      // events -> belongs to calendar
-      var events = db.createObjectStore(
-        store.events,
-        { keyPath: '_id' }
-      );
-
-      events.createIndex(
-        'calendarId',
-        'calendarId',
-        { unique: false, multiEntry: false }
-      );
-
-      events.createIndex(
-        'occurs',
-        'remote.occurs',
-        { unique: false, multiEntry: true }
-      );
-
-      // accounts -> has many calendars
-      db.createObjectStore(
-        store.accounts, { keyPath: '_id', autoIncrement: true }
-      );
-
-      // calendars -> has many events
-      db.createObjectStore(
-        store.calendars, { keyPath: '_id', autoIncrement: true }
-      );
     },
 
     get version() {
@@ -213,6 +253,21 @@
       }
     },
 
+    clearNonCredentials: function(callback) {
+      var stores = ['events', 'busytimes'];
+      var trans = this.transaction(
+        stores,
+        'readwrite'
+      );
+
+      trans.addEventListener('complete', callback);
+
+      stores.forEach(function(store) {
+        store = trans.objectStore(store);
+        store.clear();
+      });
+    },
+
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
@@ -231,7 +286,6 @@
     }
 
   };
-
 
   Calendar.Db = Db;
 

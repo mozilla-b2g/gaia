@@ -26,12 +26,12 @@ var Battery = (function Battery() {
       _callback(_battery);
   }
 
-  function registerEvents() {
+  function attachListeners() {
     _battery.addEventListener('chargingchange', handleEvent);
     _battery.addEventListener('levelchange', handleEvent);
   }
 
-  function unRegisterEvents() {
+  function detachListeners() {
     _battery.removeEventListener('chargingchange', handleEvent);
     _battery.removeEventListener('levelchange', handleEvent);
   }
@@ -44,13 +44,13 @@ var Battery = (function Battery() {
     }
 
     _callback = callback;
-    registerEvents();
+    attachListeners();
   }
 
   return {
     init: _init,
-    registerEvents: registerEvents,
-    unRegisterEvents: unRegisterEvents
+    attachListeners: attachListeners,
+    detachListeners: detachListeners
   };
 
 })();
@@ -61,14 +61,23 @@ window.addEventListener('localized', function SettingsBattery(evt) {
     var _ = navigator.mozL10n.get;
 
     // display the current battery level
-    var element = document.querySelector('#battery-level span');
     var level = Math.min(100, Math.round(battery.level * 100));
-    element.textContent = _('batteryLevel-percent-' +
-      (battery.charging ? 'charging' : 'unplugged'), { level: level });
+    var state = 'unplugged';
 
-    // TODO: display the estimated discharging/charging time
-    element = document.querySelector('#battery-remaining span');
-    element.textContent = battery.dischargingTime;
+    if (battery.charging && level == 100) {
+      state = 'charged';
+    } else if (battery.charging) {
+      state = 'charging';
+    }
+
+    var text = _('batteryLevel-percent-' + state,
+                 { level: level });
+
+    var element = document.getElementById('battery-level').firstElementChild;
+    element.textContent = text;
+
+    element = document.getElementById('battery-desc');
+    element.textContent = text;
   }
 
   var battery = window.navigator.battery;
@@ -77,10 +86,10 @@ window.addEventListener('localized', function SettingsBattery(evt) {
 
   document.addEventListener('mozvisibilitychange', function visibilityChange() {
     if (!document.mozHidden) {
-      Battery.registerEvents();
+      Battery.attachListeners();
       updateInfo(battery);
     } else {
-      Battery.unRegisterEvents();
+      Battery.detachListeners();
     }
   });
 });

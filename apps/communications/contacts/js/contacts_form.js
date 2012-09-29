@@ -24,7 +24,12 @@ contacts.Form = (function() {
       familyName,
       configs,
       _,
-      formView;
+      formView,
+      nonEditableValues,
+      deviceContact;
+
+  var REMOVED_CLASS = 'removed';
+  var FB_CLASS = 'facebook';
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -97,9 +102,16 @@ contacts.Form = (function() {
 
   };
 
-  var render = function cf_render(contact, callback) {
+  var render = function cf_render(contact, callback, pFbContactData) {
+    var fbContactData = pFbContactData || [];
+
+    nonEditableValues = fbContactData[1] || {};
+    deviceContact = contact;
+    var renderedContact = fbContactData[0] || deviceContact;
+
     resetForm();
-    (contact && contact.id) ? showEdit(contact) : showAdd(contact);
+    (renderedContact && renderedContact.id) ?
+                        showEdit(renderedContact) : showAdd(renderedContact);
     if (callback) {
       callback();
     }
@@ -118,10 +130,22 @@ contacts.Form = (function() {
     givenName.value = contact.givenName || '';
     familyName.value = contact.familyName || '';
     company.value = contact.org || '';
+
+    if (nonEditableValues[company.value]) {
+      var nodeClass = company.parentNode.classList;
+      nodeClass.add(REMOVED_CLASS);
+      nodeClass.add(FB_CLASS);
+    }
+
     var photo = null;
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
-      addRemoveIconToPhoto();
+      // If the photo comes from FB it cannot be removed
+      var button = addRemoveIconToPhoto();
+      if (nonEditableValues['hasPhoto']) {
+        thumbAction.classList.add(REMOVED_CLASS);
+        button.classList.add('hide');
+      }
     }
     Contacts.updatePhoto(photo, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
@@ -209,18 +233,41 @@ contacts.Form = (function() {
     }
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
-    rendered.appendChild(removeFieldIcon(rendered.id));
+
+    if (currField.value && nonEditableValues[currField.value]) {
+      var nodeClass = rendered.classList;
+      nodeClass.add(REMOVED_CLASS);
+      nodeClass.add(FB_CLASS);
+    }
+
+    // The undo button should not appear on FB disabled fields
+    if (!rendered.classList.contains(REMOVED_CLASS) &&
+        !rendered.classList.contains(FB_CLASS)) {
+      rendered.appendChild(removeFieldIcon(rendered.id));
+    }
+
     container.appendChild(rendered);
     counters[type]++;
   };
 
+
   var deleteContact = function deleteContact(contact) {
-    var request = navigator.mozContacts.remove(contact);
-    request.onsuccess = function successDelete() {
+    var deleteSuccess = function deleteSuccess() {
       contacts.List.remove(contact.id);
       Contacts.setCurrent({});
       Contacts.navigation.home();
-    };
+    }
+    var request;
+
+    if (fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      request = fbContact.remove();
+      request.onsuccess = deleteSuccess;
+    } else {
+      request = navigator.mozContacts.remove(contact);
+      request.onsuccess = deleteSuccess;
+    }
+
     request.onerror = function errorDelete() {
       console.error('Error removing the contact');
     };
@@ -228,7 +275,7 @@ contacts.Form = (function() {
 
   var getCurrentPhoto = function cf_getCurrentPhoto() {
     var photo = [];
-    var isRemoved = thumbAction.classList.contains('removed');
+    var isRemoved = thumbAction.classList.contains(REMOVED_CLASS);
     if (!isRemoved) {
       photo = currentContact.photo;
     }
@@ -237,6 +284,8 @@ contacts.Form = (function() {
 
   var saveContact = function saveContact() {
     currentContact = currentContact || {};
+    currentContact = deviceContact || currentContact;
+
     saveButton.setAttribute('disabled', 'disabled');
     var myContact = {
       id: document.getElementById('contact-form-id').value,
@@ -252,7 +301,8 @@ contacts.Form = (function() {
 
     for (field in inputs) {
       var value = inputs[field].value;
-      if (value && value.length > 0) {
+      if (!inputs[field].parentNode.classList.contains(REMOVED_CLASS) &&
+                                          value && value.length > 0) {
         myContact[field] = [value];
       } else {
         myContact[field] = null;
@@ -303,27 +353,43 @@ contacts.Form = (function() {
         }
       }
       contact = currentContact;
+
+      // If it is a FB Contact not linked it will be automatically linked
+      // As now there is additional contact data entered by the user
+      if (fb.isFbContact(contact)) {
+        var fbContact = new fb.Contact(contact);
+        // Here the contact has been promoted to linked but not saved yet
+        fbContact.promoteToLinked();
+      }
+
     } else {
       contact = new mozContact();
       contact.init(myContact);
     }
 
     var request = navigator.mozContacts.save(contact);
+
     request.onsuccess = function onsuccess() {
       // Reloading contact, as it only allows to be updated once
       var cList = contacts.List;
-      cList.getContactById(contact.id, function onSuccess(savedContact) {
+      cList.getContactById(contact.id, function onSuccess(savedContact,
+                                        enrichedContact) {
+        var nextCurrent = enrichedContact || savedContact;
+
         Contacts.setCurrent(savedContact);
         myContact.id = savedContact.id;
-        myContact.photo = savedContact.photo;
-        myContact.category = savedContact.category;
+
+        myContact.photo = nextCurrent.photo;
+        myContact.org = nextCurrent.org;
+        myContact.category = nextCurrent.category;
+
         cList.refresh(myContact);
         if (ActivityHandler.currentlyHandling) {
           ActivityHandler.postNewSuccess(savedContact);
         } else {
           contacts.Details.render(savedContact, TAG_OPTIONS);
         }
-        Contacts.navigation.back();
+        Contacts.cancel();
       }, function onError() {
         console.error('Error reloading contact');
         if (ActivityHandler.currentlyHandling) {
@@ -333,7 +399,7 @@ contacts.Form = (function() {
     };
 
     request.onerror = function onerror() {
-      console.error('Error saving contact');
+      console.error('Error saving contact', request.error.name);
     }
   }
 
@@ -463,7 +529,7 @@ contacts.Form = (function() {
   var resetRemoved = function cf_resetRemoved() {
     var removedFields = dom.querySelectorAll('.removed');
     for (var i = 0; i < removedFields.length; i++) {
-      removedFields[i].classList.remove('removed');
+      removedFields[i].classList.remove(REMOVED_CLASS);
     }
     thumbAction.classList.remove('with-photo');
     var removeButton = thumbAction.querySelector('button');
@@ -501,7 +567,7 @@ contacts.Form = (function() {
     delButton.onclick = function removeElement(event) {
       event.preventDefault();
       var elem = document.getElementById(selector);
-      elem.classList.toggle('removed');
+      elem.classList.toggle(REMOVED_CLASS);
       checkDisableButton();
       return false;
     };
@@ -509,8 +575,11 @@ contacts.Form = (function() {
   };
 
   var addRemoveIconToPhoto = function cf_addRemIconPhoto() {
-    thumbAction.appendChild(removeFieldIcon(thumbAction.id));
+    var out = removeFieldIcon(thumbAction.id);
+    thumbAction.appendChild(out);
     thumbAction.classList.add('with-photo');
+
+    return out;
   }
 
   var pickImage = function pickImage() {
