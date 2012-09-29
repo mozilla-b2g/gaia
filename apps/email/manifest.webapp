@@ -72,6 +72,13 @@
         "type": "mail"
       },
       "disposition": "window"
+    },
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },          
+      "disposition": "window",
+      "returnValue": true
     }
   }
 }
