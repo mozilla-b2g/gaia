@@ -4,8 +4,6 @@ requireApp('communications/dialer/test/unit/mock_ussd_ui.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
 
 suite('dialer/ussd', function() {
-
-  var realMozMobileConnection;
   var realL10n;
 
   suiteSetup(function() {
@@ -15,20 +13,18 @@ suite('dialer/ussd', function() {
         return key;
       }
     };
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockMozMobileConnection;
+    UssdManager._conn = MockMozMobileConnection;
     UssdManager.init();
     UssdManager._popup = MockUssdUI;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
-    navigator.mozMobileConnection = realMozMobileConnection;
     UssdManager._popup = null;
   });
 
   teardown(function() {
-    navigator.mozMobileConnection.teardown();
+    UssdManager._conn.teardown();
     if (UssdManager._popup)
       UssdManager._popup.teardown();
   });
@@ -40,7 +36,7 @@ suite('dialer/ussd', function() {
     });
 
     test('ussd message sent', function() {
-      assert.isTrue(navigator.mozMobileConnection._ussd_message_sent);
+      assert.isTrue(UssdManager._conn._ussd_message_sent);
     });
 
     test('ussd response by server', function() {
@@ -57,7 +53,7 @@ suite('dialer/ussd', function() {
     });
 
     test('ussd reply message sent', function() {
-      assert.isTrue(navigator.mozMobileConnection._ussd_message_sent);
+      assert.isTrue(UssdManager._conn._ussd_message_sent);
     });
 
     test('ussd response to reply message by server', function() {
@@ -78,7 +74,7 @@ suite('dialer/ussd', function() {
     });
 
     test('ussd cancelled', function() {
-      assert.isTrue(navigator.mozMobileConnection._ussd_cancelled);
+      assert.isTrue(UssdManager._conn._ussd_cancelled);
     });
 
     test('ussd UI closed', function() {

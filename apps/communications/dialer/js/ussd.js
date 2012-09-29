@@ -3,7 +3,7 @@
 var UssdManager = {
 
   _: null,
-  _conn: null,
+  _conn: window.navigator.mozMobileConnection,
   _popup: null,
   _origin: null,
   _operator: null,
@@ -11,7 +11,6 @@ var UssdManager = {
 
   init: function um_init() {
     this._ = window.navigator.mozL10n.get;
-    this._conn = window.navigator.mozMobileConnection;
     if (this._conn.voice) {
       this._conn.addEventListener('voicechange', this);
       // Even without SIM card, the mozMobileConnection.voice.network object
@@ -83,37 +82,43 @@ var UssdManager = {
   },
 
   handleEvent: function um_handleEvent(evt) {
+    if (!evt.type)
+      return;
+
     var message;
-    if (evt.type === 'ussdreceived') {
-      message = {
-        type: 'ussdreceived',
-        message: evt.message
-      };
-      if (this._popup && this._popup.ready)
-        this._popup.postMessage(message, this._origin);
-      return;
-    } else if (evt.type === 'voicechange') {
-      // Even without SIM card, the mozMobileConnection.voice.network object
-      // exists, although its shortName property is null.
-      this._operator = this._conn.voice.network.shortName ?
-        this._conn.voice.network.shortName : null;
-      message = {
-        type: 'voicechange',
-        operator: (this._operator ? this._operator : 'Unknown')
-      };
-      if (this._popup && this._popup.ready)
-        this._popup.postMessage(message, this._origin);
-      return;
-    } else if (evt.type === 'message') {
-      switch (evt.data.type) {
-        case 'reply':
-          this.send(evt.data.message);
-          break;
-        case 'close':
-          this._conn.cancelUSSD();
-          this._popup = null;
-          break;
-      }
+    switch (evt.type) {
+      case 'ussdreceived':
+        message = {
+          type: 'ussdreceived',
+          message: evt.message
+        };
+        break;
+      case 'voicechange':
+        // Even without SIM card, the mozMobileConnection.voice.network object
+        // exists, although its shortName property is null.
+        this._operator = this._conn.voice.network.shortName ?
+          this._conn.voice.network.shortName : null;
+        message = {
+          type: 'voicechange',
+          operator: (this._operator ? this._operator : 'Unknown')
+        };
+        break;
+      case 'message':
+        switch (evt.data.type) {
+          case 'reply':
+            this.send(evt.data.message);
+            break;
+          case 'close':
+            this._conn.cancelUSSD();
+            this._popup = null;
+            break;
+        }
+        return;
+        break;
+    }
+
+    if (this._popup && this._popup.ready) {
+      this._popup.postMessage(message, this._origin);
     }
   }
 };
