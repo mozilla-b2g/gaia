@@ -91,7 +91,7 @@ button::-moz-focus-inner {
 }
 
 button {
-   outline: none;
+  outline: none;
 }
 
 @media screen and (min-width: 480px) {
@@ -100,10 +100,3 @@ button {
   }
 }
 
-html[dir=rtl] .apps ol > li {
-  float: right;
-}
-
-li:active {
-  background-color: transparent !important;
-}

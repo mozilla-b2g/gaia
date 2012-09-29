@@ -30,10 +30,8 @@
   text-align: center;
 }
 
-/* Container -> icon + label */
-#footer li > div {
-  width: 100%;
-	margin-top: .25rem;
+#footer li > canvas {
+  margin-top: .25rem;
   pointer-events: none;
 }
 
@@ -48,6 +46,3 @@
   background: url(../resources/images/menu.png) no-repeat center top;
 }
 
-#footer li > div > *:not(canvas) {
-  display: none;
-}
