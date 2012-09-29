@@ -25,3 +25,4 @@ window.addEventListener('localized', function SettingsFactoryReset(evt) {
     });
   }
 });
+
