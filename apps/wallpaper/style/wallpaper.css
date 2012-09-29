@@ -34,13 +34,6 @@ html, body {
   height: 50px;
 }
 
-#cancel {
-  position: absolute;
-  left: 0;
-  width: 50%;
-  height: 100%;
-}
-
 #set-wallpaper {
   position: absolute;
   left: 50%;
