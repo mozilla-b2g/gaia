@@ -4,7 +4,16 @@
 'use strict';
 
 (function(){
+  /**
+   * Debug method
+   */
   var DEBUG = false;
+  function debug(msg) {
+    if (DEBUG) {
+      console.log("[DEBUG] STKUI: " + msg);
+    }
+  }
+
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
@@ -251,14 +260,5 @@
     a.onclick = entry.onclick;
     li.appendChild(a);
     return li;
-  }
-
-  /**
-   * Debug method
-   */
-  function debug(msg) {
-    if (DEBUG) {
-      console.log("[DEBUG] STKUI: " + msg);
-    }
   }
 })();
