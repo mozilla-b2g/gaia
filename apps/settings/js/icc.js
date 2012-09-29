@@ -144,7 +144,7 @@
 
     document.getElementById('icc-stk-app-back').onclick = function goBack() {
       icc.sendStkResponse(iccLastCommand,
-        { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
+                          { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
       iccLastCommand = null;
     };
 
