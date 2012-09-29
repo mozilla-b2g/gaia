@@ -16,7 +16,8 @@ let content = {
       makeURL('gallery'),
       makeURL('fm'),
       makeURL('settings'),
-      'https://marketplace.mozilla.org/telefonica/'
+      'https://marketplace.mozilla.org/telefonica/',
+      'http://demo.maps.public.devbln.europe.nokia.com/repository/ffos_buildme_k_b/'
     ],
     [ // page 2
       makeURL('calendar'),
