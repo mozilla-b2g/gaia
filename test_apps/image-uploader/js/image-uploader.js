@@ -1,3 +1,5 @@
+/* vim: set ts=2 sw=2 et: */
+
 function HostingProvider(id, name, auth, keys, urls) {
   this.id      = id;
   this.name    = name;
@@ -109,7 +111,10 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
     div2.appendChild(small);
 
    var p = document.createElement('p');
-    p.innerHTML = 'We now need that you authorize our application. A browser window will get you to ' + this.name + ' website, where you will be able to authenticate yourself and to authorize us. It will give you a PIN code. Please keep it, get back here and fill it in the prompt.';
+   p.innerHTML = 'We now need that you authorize our application. A browser' +
+     'window will get you to ' + this.name + ' website, where you will be able' +
+     'to authenticate yourself and to authorize us. It will give you a PIN' +
+     'code. Please keep it, get back here and fill it in the prompt.';
    div.appendChild(h3);
    div.appendChild(div2);
    div.appendChild(p);
@@ -261,8 +266,15 @@ HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
   menu.appendChild(bcancel);
   menu.appendChild(bcontinue);
 
-  bcancel.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke'));}, false);
-  bcontinue.addEventListener('click', function(evt) { document.body.removeChild(document.getElementById('confirm-revoke')); callback(); }, false);
+  bcancel.addEventListener('click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-revoke'));
+    }, false);
+  bcontinue.addEventListener('click',
+    function(evt) {
+      document.body.removeChild(document.getElementById('confirm-revoke'));
+      callback();
+    }, false);
 
   section.appendChild(div);
   section.appendChild(menu);
@@ -369,7 +381,11 @@ var ImageUploader = {
   files: {},
 
   init: function() {
-    var HostingCanardPC = new HostingProvider('cpc', 'CanardPC', false, {}, {'upload': 'http://tof.canardpc.com/', 'confirm-img': 'style/images/canardpc.jpg'});
+    var HostingCanardPC = new HostingProvider(
+      'cpc', 'CanardPC', false, {}, {
+        'upload': 'http://tof.canardpc.com/',
+        'confirm-img': 'style/images/canardpc.jpg'}
+      );
     HostingCanardPC.upload = function () {
       var picture = new FormData();
       picture.append('email', '');
@@ -474,7 +490,12 @@ var ImageUploader = {
       });
     };
 
-    var HostingImgur = new HostingProvider('imgur', 'Imgur', false, {'apiKey': '4fa922afa12ef6b38c0b5b5e6e548a4f'}, {'upload': 'http://api.imgur.com/2/upload.json', 'confirm-img': 'style/images/imgur-iphone.png'});
+    var HostingImgur = new HostingProvider('imgur', 'Imgur', false,
+      {'apiKey': '4fa922afa12ef6b38c0b5b5e6e548a4f'},
+      {
+        'upload': 'http://api.imgur.com/2/upload.json',
+        'confirm-img': 'style/images/imgur-iphone.png'
+      });
     HostingImgur.upload = function(source, callback) {
       var picture = new FormData();
       picture.append('key', this.keys['apiKey']);
