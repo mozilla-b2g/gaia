@@ -183,6 +183,12 @@ body {
   top: 0;
 }
 
+#screen.attention > #windowSprite,
+#screen.fullscreen-app.attention > #windowSprite {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
+} 
+
 #windowSprite.before-inline-activity {
   transform: translateY(-moz-calc(100% - 1px));
   opacity: 1;

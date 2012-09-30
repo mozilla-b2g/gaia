@@ -37,8 +37,8 @@ var gMobileConnection = (function(window) {
 })(this);
 
 // handle data settings
-window.addEventListener('load', function getCarrierSettings() {
-  var APN_FILE = 'serviceproviders.xml';
+window.addEventListener('localized', function getCarrierSettings() {
+  var APN_FILE = 'service_providers.xml';
   var gUserChosenAPN = false;
 
   // query <apn> elements matching the mcc/mnc arguments

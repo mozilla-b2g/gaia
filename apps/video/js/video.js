@@ -638,7 +638,9 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
-  init();
+
+  // If this is the first time we've been called, initialize the database.
+  // Don't reinitialize it if the user switches languages while we're running
+  if (!videodb)
+    init();
 });
-
-

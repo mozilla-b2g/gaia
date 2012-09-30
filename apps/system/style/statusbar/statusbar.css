@@ -62,12 +62,12 @@
 }
 
 #statusbar-loading {
-  visibility: hidden;
+  display: none;
   opacity: 0;
 }
 
 #statusbar-loading.popup-loading, #statusbar-loading.app-loading {
-  visibility: inherit;
+  display: block;
 
   /* If mozbrowserloadstart/end happens less than 0.5s,
   we will not show the icon at all. */

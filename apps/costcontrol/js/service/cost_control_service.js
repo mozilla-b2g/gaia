@@ -72,16 +72,16 @@ setService(function cc_setupCostControlService() {
 
     // Application settings
     var _cachedOptions = {
-      'calltime': null,
+      'calltime': 0,
       'lastbalance': null,
-      'lastreset': null,
-      'lowlimit': null,
-      'lowlimit_threshold': null,
+      'lastreset': new Date(),
+      'lowlimit': true,
+      'lowlimit_threshold': false,
       'next_reset': null,
-      'plantype': null,
+      'plantype': 'prepaid',
       'reset_time': null,
-      'smscount': null,
-      'tracking_period': null
+      'smscount': 0,
+      'tracking_period': 'never'
     };
 
     var _listeners = {};
@@ -94,12 +94,14 @@ setService(function cc_setupCostControlService() {
         return;
       }
 
-      var event, value;
-      for (var option in options) {
+      var event, value, defaultValue;
+      for (var option in _cachedOptions) {
+        defaultValue = _cachedOptions[option];
         value = options[option];
-        _cachedOptions[option] = value;
+        if (typeof value !== 'undefined')
+          _cachedOptions[option] = value;
 
-        event = _newLocalSettingsChangeEvent(option, value, null);
+        event = _newLocalSettingsChangeEvent(option, value, defaultValue);
         window.dispatchEvent(event);
       }
     }
@@ -211,6 +213,7 @@ setService(function cc_setupCostControlService() {
   // Load the configuration file, then continue executing the afterCallback
   function _loadConfiguration(afterCallback) {
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/config.json', true);
     xhr.send(null);
 

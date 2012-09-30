@@ -10,9 +10,19 @@ var SimLock = {
 
     // Listen to appopen event
     window.addEventListener('appopen', this);
+
+    var conn = window.navigator.mozMobileConnection;
+    if (!conn)
+      return;
+    conn.addEventListener('cardstatechange', this);
   },
   handleEvent: function sl_handleEvent(evt) {
     switch (evt.type) {
+      case 'cardstatechange':
+        this.showIfLocked();
+
+        break;
+
       case 'appwillopen':
         window.removeEventListener('appwillopen', this);
         this.showIfLocked();

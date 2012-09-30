@@ -1,5 +1,6 @@
 /**
  * Settings style & layout
+ * note: `lists.css' must be loaded before this stylesheet
  */
 
 html, body {
@@ -58,13 +59,13 @@ body.hidden * {
   transition: visibility 0s ease .5s, transform .5s ease;
 }
 
-section[role="region"]:target {
+[role="region"]:target {
   visibility: visible;
   transform: translateX(0);
   transition: visibility 0s ease, transform .5s ease;
 }
 
-section[role="region"]:target ~ section[role="region"]:not([data-leaf]) {
+[role="region"]:target ~ [role="region"]:not([data-leaf]) {
   transform: translateX(-100%);
 }
 
@@ -97,6 +98,7 @@ body.hidden #root {
 [dir=rtl] [role="region"] {
   transform: translateX(-100%);
 }
+
 [dir=rtl] #root {
   transform: translateX(+100%);
 }
@@ -110,33 +112,33 @@ body.hidden #root {
 
 [dir=rtl] ul li > a {
   padding-left: inherit;
-  padding-right: 30px;
+  padding-right: 3rem;
 }
 
 [dir=rtl] ul li > small {
   left: auto;
-  right: 30px;
+  right: 3rem;
 }
 
 [dir=rtl] [role=region] label > span {
-  left: 10px;
+  left: 1rem;
   right: auto;
 }
 
 /* root list and icons */
 
 [dir=rtl] #root li [data-l10n-id] {
-  background-position: right 14px top 50%;
+  background-position: right 1.4rem top 50%;
 }
 
 [dir=rtl] #root ul li > a {
   padding-left: inherit;
-  padding-right: 55px;
+  padding-right: 5.5rem;
 }
 
 [dir=rtl] #root ul li > small {
   left: auto;
-  right: 55px;
+  right: 5.5rem;
 }
 
 /* bidi (e.g. language list) */
@@ -147,5 +149,94 @@ body.hidden #root {
 
 [dir=rtl] a[dir=ltr] {
   text-align: right;
+}
+
+
+/******************************************************************************
+ * Explanation texts
+ */
+
+.explanation {
+  padding: 0.5rem 3rem;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+.description {
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  white-space: normal;
+}
+
+.link-text, .tel-text {
+  font-size: 1.2rem;
+  color: #336699;
+  text-decoration: underline;
+}
+
+
+/******************************************************************************
+ * Wi-Fi settings
+ */
+
+#wifi-status, #wifi-auth {
+  font-size: 1.8rem;
+}
+
+label[for="show-pwd"] {
+  margin: -1rem 0 1rem 3rem;
+  height: 2rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+}
+
+/* hide identity field by default */
+
+#wifi-auth label[for=identity] {
+  display: none;
+}
+
+#wifi-auth.WPA-EAP label[for=identity] {
+  display: block;
+}
+
+
+/******************************************************************************
+ * APN settings
+ */
+
+#apnSettings-custom {
+  font-style: italic;
+}
+
+#apnSettings-advanced {
+  padding-bottom: 1em;
+}
+
+
+/******************************************************************************
+ * Sound settings
+ */
+
+.tone-select {
+  width: 60%;
+  position: absolute;
+  right: 0;
+}
+
+
+/******************************************************************************
+ * Wallpaper snapshot
+ */
+
+#wallpaper-preview {
+  width: 9rem;
+  height: 13.5rem;
+  border: solid black 0.2rem;
+  border-radius: 0.4rem;
+  margin-left: 11rem;
+  margin-top: -1rem;
+  margin-bottom: 0.5rem;
 }
 

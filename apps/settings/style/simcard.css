@@ -1,13 +1,3 @@
-#sim dl > * {
-  padding-left: 20px;
-  font-size: 1.6em;
-}
-
-#sim dl dt {
-  font-weight: bold;
-}
-
-
 #simpin-dialog .container {
   padding-left: 20px;
   font-size: 1.5em;
@@ -36,3 +26,4 @@
   position: absolute;
   top: 0;
 }
+

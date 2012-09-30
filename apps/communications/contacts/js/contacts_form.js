@@ -141,10 +141,10 @@ contacts.Form = (function() {
     if (contact.photo && contact.photo.length > 0) {
       photo = contact.photo[0];
       // If the photo comes from FB it cannot be removed
-      if (!nonEditableValues['hasPhoto']) {
+      var button = addRemoveIconToPhoto();
+      if (nonEditableValues['hasPhoto']) {
         thumbAction.classList.add(REMOVED_CLASS);
-      } else {
-        addRemoveIconToPhoto();
+        button.classList.add('hide');
       }
     }
     Contacts.updatePhoto(photo, thumb);
@@ -575,8 +575,11 @@ contacts.Form = (function() {
   };
 
   var addRemoveIconToPhoto = function cf_addRemIconPhoto() {
-    thumbAction.appendChild(removeFieldIcon(thumbAction.id));
+    var out = removeFieldIcon(thumbAction.id);
+    thumbAction.appendChild(out);
     thumbAction.classList.add('with-photo');
+
+    return out;
   }
 
   var pickImage = function pickImage() {

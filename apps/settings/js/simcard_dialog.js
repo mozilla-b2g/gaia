@@ -36,6 +36,15 @@ var SimPinDialog = {
     var inputField = document.querySelector('input[name="' + name + '"]');
     var displayField = document.querySelector('input[name="' + name + 'Vis"]');
     var self = this;
+
+    // Workaround bug 791920 until we found the root cause.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=791920
+    // https://github.com/mozilla-b2g/gaia/issues/4500
+    inputField.addEventListener('click', function (evt) {
+      this.blur();
+      this.focus();
+    });
+
     inputField.addEventListener('keypress', function(evt) {
       if (evt.target !== inputField)
         return;
@@ -131,7 +140,7 @@ var SimPinDialog = {
   unlockPin: function spl_unlockPin() {
     var pin = this.pinInput.value;
     if (pin === '')
-      return false;
+      return;
 
     var options = {lockType: 'pin', pin: pin };
     this.unlockCardLock(options);
@@ -145,14 +154,14 @@ var SimPinDialog = {
     var newPin = this.newPinInput.value;
     var confirmPin = this.confirmPinInput.value;
     if (puk === '' || newPin === '' || confirmPin === '')
-      return false;
+      return;
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
       this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
-      return false;
+      return;
     }
     var options = {lockType: 'puk', pin: pin, newPin: newPin };
     this.unlockCardLock(options);
@@ -178,10 +187,10 @@ var SimPinDialog = {
     };
   },
 
-  enableLock: function spl_enableLock(enabled) {
+  enableLock: function spl_enableLock() {
     var pin = this.pinInput.value;
     if (pin === '')
-      return false;
+      return;
 
     var enabled = SimPinLock.simPinCheckBox.checked;
     var options = {lockType: 'pin', pin: pin, enabled: enabled};
@@ -196,14 +205,14 @@ var SimPinDialog = {
     var newPin = this.newPinInput.value;
     var confirmPin = this.confirmPinInput.value;
     if (pin === '' || newPin === '' || confirmPin === '')
-      return false;
+      return;
 
     if (newPin !== confirmPin) {
       this.errorMsgHeader.textContent = _('newPinErrorMsg');
       this.errorMsgHeader.dataset.l10nId = 'newPinErrorMsg';
       this.errorMsgBody.textContent = '';
       this.errorMsg.hidden = false;
-      return false;
+      return;
     }
     var options = {lockType: 'pin', pin: pin, newPin: newPin};
     this.setCardLock(options);
