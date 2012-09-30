@@ -715,7 +715,7 @@ var ImageUploader = {
       });
     };
 
-    this.services.push(HostingCanardPC);
+    // this.services.push(HostingCanardPC);
     this.services.push(HostingTwitter);
     this.services.push(HostingImgur);
     this.services.push(HostingFlickr);
