@@ -190,14 +190,15 @@ ul li > label input[type=range] {
  * The JS polyfill transforms this:
  *
  *   <label>
- *     <input type="range" />
+ *     <input type="range" value="60" />
  *   </label>
  *
  * into this:
  *
  *   <label class="bug344618_polyfill">
  *     <div>
- *       <span></span>
+ *       <span style="width: 60%"></span>
+ *       <span style="left: 60%"></span>
  *     </div>
  *     <input type="range" />
  *   </label>
@@ -208,6 +209,7 @@ ul li > label.bug344618_polyfill input {
 }
 
 /* slider */
+
 ul li > label.bug344618_polyfill div:before {
   content: "";
   position: absolute;
@@ -226,9 +228,9 @@ ul li > label.bug344618_polyfill div {
   width: calc(100% - 6rem);
 }
 
-/* throbber */
+/* fill */
 
-ul li > label.bug344618_polyfill span:first-child {
+ul li > label.bug344618_polyfill div span:first-child {
   position: absolute;
   display: block;
   top: calc(50% - 0.15rem);
@@ -237,7 +239,9 @@ ul li > label.bug344618_polyfill span:first-child {
   background: #01c5ed;
 }
 
-ul li > label.bug344618_polyfill span:last-child {
+/* throbber */
+
+ul li > label.bug344618_polyfill div span:last-child {
   position: absolute;
   top: 50%;
   margin: -1.5rem 0 0 -1.5rem;
@@ -251,9 +255,10 @@ ul li > label.bug344618_polyfill span:last-child {
   background: url(images/range_thumb.png) no-repeat 50% 50%;
 }
 
-ul li > label.bug344618_polyfill span:last-child:active {
+ul li > label.bug344618_polyfill div span:last-child:active {
   border: solid 0.4rem #01C5ED;
 }
+
 
 /******************************************************************************
  * Select boxes
