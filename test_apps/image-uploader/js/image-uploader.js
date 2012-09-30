@@ -54,7 +54,25 @@ HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
 
   OAuth.completeRequest(message, this.keys);
   OAuth.SignatureMethod.sign(message, this.keys);
-  return url + '?' + OAuth.formEncode(message.parameters);
+  return OAuth.addToURL(url, message.parameters);
+};
+
+HostingProvider.prototype.buildOAuth1Form = function(url, method, parameters) {
+  var keys = this.keys;
+  if (this.creds.length > 0) {
+    this.keys.token = this.creds[0].oauth_token;
+    this.keys.tokenSecret = this.creds[0].oauth_token_secret;
+  }
+
+  var message = {
+    action: url,
+    method: method,
+    parameters: parameters
+  };
+
+  OAuth.completeRequest(message, keys);
+  OAuth.SignatureMethod.sign(message, keys);
+  return message.parameters;
 };
 
 HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callback) {
