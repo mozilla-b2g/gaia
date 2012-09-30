@@ -92,8 +92,8 @@ HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callb
 HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
   ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
-   section.setAttribute('role', 'dialog');
-   section.id = 'confirm-auth';
+  section.setAttribute('role', 'dialog');
+  section.id = 'confirm-auth';
 
   var div = document.createElement('div');
   var h3 = document.createElement('h3');
