@@ -42,7 +42,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   if (submit) {
     submit.onclick = function onsubmit() {
       if (onSubmit)
-        onSubmit();
+        (onSubmit.bind(dialog))();
       document.location.hash = origin; // hide dialog box
     };
   }
@@ -51,7 +51,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   if (reset) {
     reset.onclick = function onreset() {
       if (onReset)
-        onReset();
+        (onReset.bind(dialog))();
       document.location.hash = origin; // hide dialog box
     };
   }
@@ -127,16 +127,17 @@ function bug344618_polyfill() {
    * The JS polyfill transforms this:
    *
    *   <label>
-   *     <input type="range" />
+   *     <input type="range" value="60" />
    *   </label>
    *
    * into this:
    *
    *   <label class="bug344618_polyfill">
    *     <div>
-   *       <span></span>
+   *       <span style="width: 60%"></span>
+   *       <span style="left: 60%"></span>
    *     </div>
-   *     <input type="range" />
+   *     <input type="range" value="60" />
    *   </label>
    *
    * JavaScript-wise, two main differences between this polyfill and the
@@ -150,7 +151,9 @@ function bug344618_polyfill() {
 
     var slider = document.createElement('div');
     var thumb = document.createElement('span');
+    var fill = document.createElement('span');
     var label = input.parentNode;
+    slider.appendChild(fill);
     slider.appendChild(thumb);
     label.insertBefore(slider, input);
     label.classList.add('bug344618_polyfill');
@@ -163,6 +166,7 @@ function bug344618_polyfill() {
       var pos = (input.value - min) / (max - min);
       pos = Math.max(pos, 0);
       pos = Math.min(pos, 1);
+      fill.style.width = (100 * pos) + '%';
       thumb.style.left = (100 * pos) + '%';
     };
 
@@ -172,6 +176,7 @@ function bug344618_polyfill() {
       var pos = (event.clientX - rect.left) / rect.width;
       pos = Math.max(pos, 0);
       pos = Math.min(pos, 1);
+      fill.style.width = (100 * pos) + '%';
       thumb.style.left = (100 * pos) + '%';
       input.value = min + pos * (max - min);
     };

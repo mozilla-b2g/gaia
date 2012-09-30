@@ -36,6 +36,7 @@
 #root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
 #root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings/wallpaper.png); }
 #root li [data-l10n-id="wifi"]              { background-image: url(images/settings/wifi.png); }
+#root li [data-l10n-id="simToolkit"]        { background-image: url(images/settings/sim_card_lock.png); }
 
 #root li a {
   padding-left: 5.5rem;
