@@ -637,13 +637,44 @@ var ImageUploader = {
             for (var sid in ImageUploader.services) {
               var sup = ImageUploader.services[sid];
               if (serv == ('upload-' + sup.id)) {
-                  sup.upload(img, this.finalize.bind(this));
+                this.setStatus('Converting image from base64');
+                var img_content = this.blobFromBase64(img);
+                this.setStatus('Processing with upload');
+                sup.upload(img_content, this.finalize.bind(this));
               }
             }
           }
         }
       }
     }
+  },
+
+  blobFromBase64: function(dataURI) {
+    var byteString;
+    var arrayBuffer;
+    var intArray;
+    var mimeString;
+
+    if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+        // Convert base64 to raw binary data held in a string:
+        byteString = atob(dataURI.split(',')[1]);
+    } else {
+        // Convert base64/URLEncoded data component to raw binary data:
+        byteString = decodeURIComponent(dataURI.split(',')[1]);
+    }
+    // Write the bytes of the string to an ArrayBuffer:
+    arrayBuffer = new ArrayBuffer(byteString.length);
+    intArray = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < byteString.length; i += 1) {
+        intArray[i] = byteString.charCodeAt(i);
+    }
+
+    // Separate out the mime component:
+    mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // Write the ArrayBuffer (or ArrayBufferView) to a blob:
+    var blob = new Blob([arrayBuffer], {type: mimeString});
+    return blob;
   },
 
   enableOnly: function(evt) {
