@@ -526,22 +526,31 @@ var ImageUploader = {
       this.updateCredentials();
     };
     HostingFlickr.upload = function(source, callback) {
-      var url = this.buildOAuth1URL(
+      var payload = this.buildOAuth1Form(
         this.urls['upload'],
         'POST',
         { }
       );
 
       var picture = new FormData();
+      for (var param in payload) {
+        picture.append(param, payload[param]);
+      }
       picture.append('photo', source);
-      picture.append('api_key', this.keys['consumerKey']);
 
-      this.XHRUpload(url, picture, function(xhr) {
-        console.log("Got reply: " + JSON.stringify(xhr.responseText));
-        // var id = json.entities.media[0].id_str;
-        // var ex_url = json.entities.media[0].expanded_url;
-        ImageUploader.setStatus('Uploaded successfully: ');
-        // callback(ex_url);
+      var self = this;
+      this.XHRUpload(this.urls['upload'], picture, function(xhr) {
+        var id_regex =
+          new RegExp('<photoid>(.*)<\/photoid>');
+        var id_ar = id_regex.exec(xhr.responseText);
+        if (id_ar.length > 1) {
+          var id = id_ar[1];
+          var ex_url = self.urls['picture_base'] + self.creds[0]['user_nsid'] + '/' + id + '/';
+          ImageUploader.setStatus('Uploaded successfully: ');
+          callback(ex_url);
+        } else {
+          alert('Error while uploading: ' + xhr.responseText);
+        }
       });
     };
 
