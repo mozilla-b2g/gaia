@@ -322,7 +322,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         apSelect.removeChild(apSelect.childNodes[i]);
       }
       var option = document.createElement('option');
-      option.textContent = 'Any';
+      option.textContent = _('wpsAnyAp');
       option.value = 'any';
       apSelect.appendChild(option);
       for (var i = 0; i < wpsNetworks.length; i++) {
