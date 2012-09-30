@@ -14,6 +14,7 @@ var Browser = {
   GO: 0,
   REFRESH: 1,
   STOP: 2,
+  SEARCH: 3,
 
   PAGE_SCREEN: 'page-screen',
   TABS_SCREEN: 'tabs-screen',
@@ -22,12 +23,16 @@ var Browser = {
   previousScreen: null,
   currentScreen: this.PAGE_SCREEN,
 
-  DEFAULT_SEARCH_PROVIDER: 'm.bing.com',
+  DEFAULT_SEARCH_PROVIDER_URL: 'm.bing.com',
+  DEFAULT_SEARCH_PROVIDER_TITLE: 'Bing',
+  DEFAULT_SEARCH_PROVIDER_ICON: 'http://bing.com/favicon.ico',
   DEFAULT_FAVICON: 'style/images/favicon.png',
-  START_PAGE_URL: document.location.protocol + '//' + document.location.host +
-    '/start.html',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
+  UPPER_SCROLL_THRESHOLD: 50, // hide address bar
+  LOWER_SCROLL_THRESHOLD: 5, // show address bar
+  MAX_TOP_SITES: 4, // max number of top sites to display
+  FIRST_TAB: 'tab_0',
 
   urlButtonMode: null,
   inTransition: false,
@@ -47,9 +52,10 @@ var Browser = {
     this.forwardButton.addEventListener('click', this.goForward.bind(this));
     this.bookmarkButton.addEventListener('click',
       this.showBookmarkMenu.bind(this));
-    this.urlBar.addEventListener('submit', this);
+    this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
+    this.urlInput.addEventListener('keyup', this.handleUrlInputKeypress.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));
@@ -64,6 +70,7 @@ var Browser = {
     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
     this.settingsButton.addEventListener('click',
       this.showSettingsScreen.bind(this));
+    this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
     this.settingsDoneButton.addEventListener('click',
       this.showPageScreen.bind(this));
     this.aboutFirefoxButton.addEventListener('click',
@@ -88,6 +95,12 @@ var Browser = {
       this.hideBookmarkEntrySheet.bind(this));
     this.bookmarkEntrySheetDone.addEventListener('click',
       this.saveBookmark.bind(this));
+    this.awesomescreenCancelButton.addEventListener('click',
+     this.handleAwesomescreenCancel.bind(this));
+    this.topSiteThumbnails.addEventListener('click',
+      this.followLink.bind(this));
+    this.clearPrivateDataButton.addEventListener('click',
+      this.clearPrivateData.bind(this));
 
     this.tabsSwipeMngr.browser = this;
     ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -104,6 +117,9 @@ var Browser = {
         this.screenSwipeMngr[evt].bind(this.screenSwipeMngr));
     }, this);
 
+    document.addEventListener('mozvisibilitychange',
+      this.handleVisibilityChange.bind(this));
+
     this.handleWindowResize();
 
     ModalDialog.init(false);
@@ -111,14 +127,17 @@ var Browser = {
 
     // Load homepage once Places is initialised
     // (currently homepage is blank)
-    Places.init((function() {
+    Places.init((function(firstRun) {
       this.hasLoaded = true;
       if (this.waitingActivities.length) {
         this.waitingActivities.forEach(this.handleActivity, this);
         return;
       }
-      this.selectTab(this.createTab(this.START_PAGE_URL));
+      this.selectTab(this.createTab());
       this.showPageScreen();
+      this.showStartscreen();
+      if (firstRun)
+        this.populateDefaultData();
     }).bind(this));
   },
 
@@ -140,12 +159,38 @@ var Browser = {
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet', 'bookmark-entry-sheet-cancel',
       'bookmark-entry-sheet-done', 'bookmark-title', 'bookmark-url',
-      'bookmark-previous-url', 'bookmark-menu-add-home'];
+      'bookmark-previous-url', 'bookmark-menu-add-home', 'new-tab-button',
+      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
+      'no-top-sites', 'clear-private-data-button'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
     elementIDs.forEach(function createElementRef(name) {
       this[toCamelCase(name)] = document.getElementById(name);
     }, this);
+  },
+
+  populateDefaultData: function browser_populateDefaultData() {
+    console.log('Populating default data.');
+    // Fetch default data
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', '/default_data/init.json', true);
+    xhr.addEventListener('load', (function browser_defaultDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0))
+        return;
+      var data = JSON.parse(xhr.responseText);
+
+      // Save bookmarks
+      data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
+        Places.addBookmark(bookmark.uri, bookmark.title);
+        if (bookmark.iconUri)
+          Places.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
+      });
+
+    }).bind(this), false);
+    xhr.onerror = function getDefaultDataError() {
+      console.log('Error getting default data.');
+    };
+    xhr.send();
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -165,6 +210,8 @@ var Browser = {
 
   handleCloseTab: function browser_handleCloseTab() {
     this.hideCrashScreen();
+    if (this.currentTab.id = this.FIRST_TAB)
+      this.hideStartScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
@@ -187,27 +234,27 @@ var Browser = {
   // Tabs badge is the button at the top right, used to show the number of tabs
   // and to create new ones
   handleTabsBadgeClicked: function browser_handleTabsBadgeClicked(e) {
-    if (this.inTransition) {
+    if (this.inTransition)
       return;
-    }
-    if (this.currentScreen === this.TABS_SCREEN) {
-      this.inTransition = true;
-      var tabId = this.createTab();
-      this.showNewTabAnimation((function browser_showNewTabAnimation() {
-        this.selectTab(tabId);
-        this.showAwesomeScreen();
-      }).bind(this));
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN &&
-        this.previousScreen === this.PAGE_SCREEN) {
-      this.showPageScreen();
-      return;
-    }
-    if (this.currentScreen === this.AWESOME_SCREEN) {
-      this.deleteTab(this.currentTab.id);
-    }
     this.showTabScreen();
+  },
+
+  handleAwesomescreenCancel: function browser_handleAwesomescreenCancel(e) {
+    if (this.previousScreen === this.PAGE_SCREEN) {
+      this.showPageScreen();
+    } else {
+      this.deleteTab(this.currentTab.id);
+      this.showTabScreen();
+    }
+  },
+
+  handleNewTab: function browserHandleNewTab(e) {
+    this.inTransition = true;
+    var tabId = this.createTab();
+    this.showNewTabAnimation((function browser_showNewTabAnimation() {
+      this.selectTab(tabId);
+      this.showAwesomeScreen();
+    }).bind(this));
   },
 
   // Each browser gets their own listener
@@ -222,6 +269,8 @@ var Browser = {
         if (!tab.url || tab.crashed) {
           return;
         }
+        // If address bar is hidden then show it
+        this.mainScreen.classList.remove('address-hidden');
         tab.loading = true;
         if (isCurrentTab && this.currentScreen === this.PAGE_SCREEN) {
           this.throbber.classList.add('loading');
@@ -353,29 +402,34 @@ var Browser = {
 
       case 'mozbrowsererror':
         if (evt.detail.type === 'fatal') {
-          this.handleCrashedTab(tab);
+          // A background crash usually means killed to save memory
+          if (document.mozHidden) {
+            this.handleKilledTab(tab);
+          } else {
+            this.handleCrashedTab(tab);
+          }
+        }
+        break;
+
+      case 'mozbrowserscroll':
+        if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+          this.mainScreen.classList.remove('address-hidden');
+        } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+          this.mainScreen.classList.add('address-hidden');
         }
         break;
       }
     }).bind(this);
   },
 
-  handleEvent: function browser_handleEvent(evt) {
-    var urlInput = this.urlInput;
-    switch (evt.type) {
-      case 'submit':
-        this.handleUrlFormSubmit(evt);
-        break;
-
-      case 'keyup':
-        if (evt.keyCode === evt.DOM_VK_ESCAPE) {
-          evt.preventDefault();
-          this.showPageScreen();
-          this.urlInput.blur();
-        } else {
-          this.updateAwesomeScreen(this.urlInput.value);
-        }
+  handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
+    var input = this.urlInput.value;
+    if (this.isSearch(input)) {
+      this.setUrlButtonMode(this.SEARCH);
+    } else {
+      this.setUrlButtonMode(this.GO);
     }
+    this.updateAwesomeScreen(input);
   },
 
   showCrashScreen: function browser_showCrashScreen() {
@@ -402,16 +456,27 @@ var Browser = {
     delete tab.dom;
     delete tab.screenshot;
     tab.loading = false;
-
-    var newIframe = document.createElement('iframe');
-    newIframe.mozbrowser = true;
-    // FIXME: content shouldn't control this directly
-    newIframe.setAttribute('remote', 'true');
-
-    tab.dom = newIframe;
-    this.bindBrowserEvents(tab.dom, tab);
-    this.frames.appendChild(tab.dom);
+    this.createTab(null, null, tab);
     this.refreshButtons();
+  },
+
+  handleKilledTab: function browser_handleKilledTab(tab) {
+    tab.killed = true;
+    this.frames.removeChild(tab.dom);
+    delete tab.dom;
+    tab.loading = false;
+  },
+
+  handleVisibilityChange: function browser_handleVisibilityChange() {
+    if (!document.mozHidden && this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
+  },
+
+  reviveKilledTab: function browser_reviveKilledTab(tab) {
+    this.createTab(null, null, tab);
+    this.refreshButtons();
+    this.navigate(tab.url);
+    tab.killed = false;
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
@@ -421,7 +486,7 @@ var Browser = {
 
     this.hideCurrentTab();
     this.selectTab(tab);
-    // The frame will already be loading once we recieve it, which
+    // The frame will already be loading once we receive it, which
     // means we need to assume it is loading
     this.currentTab.loading = true;
     this.setTabVisibility(this.currentTab, true);
@@ -454,6 +519,7 @@ var Browser = {
       this.currentTab.crashed = false;
       this.hideCrashScreen();
     }
+    this.hideStartscreen();
     this.showPageScreen();
     this.currentTab.title = null;
     this.currentTab.url = url;
@@ -461,16 +527,21 @@ var Browser = {
     this.setUrlBar(url);
   },
 
-  getUrlFromInput: function browser_getUrlFromInput(url) {
+  isSearch: function browser_isSearch(url) {
     url = url.trim();
     // If the address entered starts with a quote then search, if it
     // contains a . or : then treat as a url, else search
-    var isSearch = /^"|\'/.test(url) || !(/\.|\:/.test(url));
+    return /^"|\'/.test(url) || !(/\.|\:/.test(url));
+  },
+
+  getUrlFromInput: function browser_getUrlFromInput(url) {
+    url = url.trim();
+    var isSearch = this.isSearch(url);
     var protocolRegexp = /^([a-z]+:)(\/\/)?/i;
     var protocol = protocolRegexp.exec(url);
 
     if (isSearch) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER + '/search?q=' + url;
+      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL + '/search?q=' + url;
     }
     if (!protocol) {
       return 'http://' + url;
@@ -536,11 +607,9 @@ var Browser = {
   },
 
   showBookmarkMenu: function browser_showBookmarkMenu() {
-    // Hack until tabsBadge refactored in #1222
-    this.bookmarkMenu.classList.remove('hidden');
-    this.tabsBadge.style.display = 'none';
     if (!this.currentTab.url)
       return;
+    this.bookmarkMenu.classList.remove('hidden');
     Places.getBookmark(this.currentTab.url, (function(bookmark) {
       if (bookmark) {
         this.bookmarkMenuAdd.parentNode.classList.add('hidden');
@@ -555,8 +624,6 @@ var Browser = {
   },
 
   hideBookmarkMenu: function browser_hideBookmarkMenu() {
-    // Hack until tabsBadge refactored in #1222
-    this.tabsBadge.style.display = 'block';
     this.bookmarkMenu.classList.add('hidden');
   },
 
@@ -673,8 +740,7 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.START_PAGE_URL ||
-      this.currentTab.url == this.ABOUT_PAGE_URL) {
+    if (this.currentTab.url == this.ABOUT_PAGE_URL) {
       this.urlInput.value = '';
     } else {
       this.urlInput.value = data;
@@ -682,8 +748,6 @@ var Browser = {
   },
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
-    if (this.currentTab.url == this.START_PAGE_URL)
-      mode = this.GO;
     this.urlButtonMode = mode;
     switch (mode) {
       case this.GO:
@@ -694,6 +758,9 @@ var Browser = {
         break;
       case this.STOP:
         this.urlButton.style.backgroundImage = 'url(style/images/stop.png)';
+        break;
+      case this.SEARCH:
+        this.urlButton.style.backgroundImage = 'url(style/images/search.png)';
         break;
     }
   },
@@ -732,6 +799,16 @@ var Browser = {
     topSites.forEach(function browser_processTopSite(data) {
       this.drawAwesomescreenListItem(list, data, filter);
     }, this);
+    if (topSites.length < 2 && filter) {
+      var data = {
+        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
+        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
+          '/search?q=' + filter,
+        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
+        description: _('search-for') + ' "' + filter + '"'
+      };
+      this.drawAwesomescreenListItem(list, data);
+    }
   },
 
   showHistoryTab: function browser_showHistoryTab() {
@@ -806,10 +883,10 @@ var Browser = {
     var titleText = data.title ? data.title : data.url;
     title.innerHTML = Utils.createHighlightHTML(titleText, filter);
 
-    if (data.uri == this.START_PAGE_URL) {
-      url.textContent = 'about:home';
-    } else if (data.uri == this.ABOUT_PAGE_URL) {
+    if (data.uri == this.ABOUT_PAGE_URL) {
       url.textContent = 'about:';
+    } else if (data.description) {
+      url.innerHTML = Utils.createHighlightHTML(data.description);
     } else {
       url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
     }
@@ -972,6 +1049,7 @@ var Browser = {
     e.preventDefault();
     if (e.target.nodeName === 'A') {
       this.navigate(e.target.getAttribute('href'));
+      this.hideStartscreen();
     }
   },
 
@@ -1011,7 +1089,7 @@ var Browser = {
     var browserEvents = ['loadstart', 'loadend', 'locationchange',
                          'titlechange', 'iconchange', 'contextmenu',
                          'securitychange', 'openwindow', 'close',
-                         'showmodalprompt', 'error',
+                         'showmodalprompt', 'error', 'scroll',
                          'usernameandpasswordrequired'];
     browserEvents.forEach(function attachBrowserEvent(type) {
       iframe.addEventListener('mozbrowser' + type,
@@ -1019,7 +1097,7 @@ var Browser = {
     }, this);
   },
 
-  createTab: function browser_createTab(url, iframe) {
+  createTab: function browser_createTab(url, iframe, tab) {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
@@ -1034,20 +1112,24 @@ var Browser = {
     // FIXME: content shouldn't control this directly
     iframe.setAttribute('remote', 'true');
 
-    var tab = {
-      id: 'tab_' + this.tabCounter++,
-      dom: iframe,
-      url: url || null,
-      title: null,
-      loading: false,
-      screenshot: null,
-      security: null
-    };
+    if (tab) {
+      tab.dom = iframe;
+    } else {
+      tab = {
+        id: 'tab_' + this.tabCounter++,
+        dom: iframe,
+        url: url || null,
+        title: null,
+        loading: false,
+        screenshot: null,
+        security: null
+      };
+    }
+
     this.bindBrowserEvents(iframe, tab);
 
     this.tabs[tab.id] = tab;
     this.frames.appendChild(iframe);
-
     return tab.id;
   },
 
@@ -1070,7 +1152,7 @@ var Browser = {
   showNewTabAnimation: function browser_showNewTab(showTabCompleteFun) {
     var ul = this.tabsList.childNodes[0];
     var li = document.createElement('li');
-    li.innerHTML = '<a><img /><span>New Tab</span></a>';
+    li.innerHTML = '<a><img /><span>' + _('new-tab') + '</span></a>';
     li.style.height = '0px';
     li.style.transition = 'height 0.2s ease-in';
     ul.insertBefore(li, ul.childNodes[0]);
@@ -1094,12 +1176,19 @@ var Browser = {
 
   selectTab: function browser_selectTab(id) {
     this.currentTab = this.tabs[id];
+    // If the tab was killed, bring it back to life
+    if (this.currentTab.killed)
+      this.reviveKilledTab(this.currentTab);
     // We may have picked a currently loading background tab
     // that was positioned off screen
     this.setUrlBar(this.currentTab.title);
-
     this.updateSecurityIcon();
     this.refreshButtons();
+    if (id == this.FIRST_TAB && this.currentTab.url == null) {
+      this.showStartscreen();
+    } else {
+      this.hideStartscreen();
+    }
   },
 
   switchScreen: function browser_switchScreen(screen) {
@@ -1110,6 +1199,47 @@ var Browser = {
     this.previousScreen = this.currentScreen;
     this.currentScreen = screen;
     document.body.classList.add(this.currentScreen);
+  },
+
+  showStartscreen: function browser_showStartscreen() {
+    this.startscreen.classList.remove('hidden');
+    Places.getTopSites(this.MAX_TOP_SITES, null,
+      this.showTopSiteThumbnails.bind(this));
+  },
+
+  hideStartscreen: function browser_hideStartScreen() {
+    this.startscreen.classList.add('hidden');
+    this.topSiteThumbnails.innerHTML = '';
+  },
+
+  showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
+    this.topSiteThumbnails.innerHTML = '';
+    var length = places.length;
+    // Display a message if Top Sites empty
+    if (length == 0) {
+      this.noTopSites.classList.remove('hidden');
+      return;
+    } else {
+      this.noTopSites.classList.add('hidden');
+    }
+    // If an odd number greater than one, remove one
+    if (length % 2 && length > 1)
+      places.pop();
+    // If only one, pad with another empty one
+    if (length == 1)
+      places.push({uri: '', title: ''});
+
+    places.forEach(function processPlace(place) {
+      var thumbnail = document.createElement('li');
+      var link = document.createElement('a');
+      var title = document.createElement('span');
+      link.href = place.uri;
+      title.textContent = place.title ? place.title : place.uri;
+      link.style.backgroundImage = 'url(' + place.screenshot + ')';
+      thumbnail.appendChild(link);
+      thumbnail.appendChild(title);
+      this.topSiteThumbnails.appendChild(thumbnail);
+    }, this);
   },
 
   showAwesomeScreen: function browser_showAwesomeScreen() {
@@ -1220,6 +1350,7 @@ var Browser = {
   showSettingsScreen: function browser_showSettingsScreen() {
     this.switchScreen(this.SETTINGS_SCREEN);
     this.clearHistoryButton.disabled = false;
+    this.clearPrivateDataButton.disabled = false;
   },
 
   showAboutPage: function browser_showAboutPage() {
@@ -1240,11 +1371,22 @@ var Browser = {
     }
   },
 
+  clearPrivateData: function browser_clearPrivateData() {
+    var msg = navigator.mozL10n.get('confirm-clear-private-data');
+    if (confirm(msg)) {
+      var request = navigator.mozApps.getSelf();
+      request.onsuccess = (function() {
+        request.result.clearBrowserData();
+        this.clearPrivateDataButton.setAttribute('disabled', 'disabled');
+      }).bind(this);
+    }
+  },
+
   screenSwipeMngr: {
 
     TRANSITION_SPEED: 1.8,
     TRANSITION_FRACTION: 0.75,
-    DEFAULT_TRANSITION: '0.2s ease-in-out',
+    DEFAULT_TRANSITION: 'transform 0.2s ease-in-out, height 0.2s ease-in-out',
 
     gestureDetector: null,
     browser: null,

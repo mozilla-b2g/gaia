@@ -42,7 +42,7 @@ function importSIMContacts(onread, onimport, onerror) {
     var count = function count() {
       nStored++;
       if (onimport && nStored >= nContacts) {
-        onimport();
+        onimport(nContacts);
       }
     };
 

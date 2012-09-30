@@ -14,6 +14,8 @@ Calendar.ns('Views').Month = (function() {
   Month.prototype = {
     __proto__: Parent.prototype,
 
+    scale: 'month',
+
     selectors: {
       element: '#month-view',
       selectedDay: 'li.selected'
@@ -39,8 +41,9 @@ Calendar.ns('Views').Month = (function() {
       id = this.currentChild._dayId(id);
 
       el = document.getElementById(id);
+
       if (el) {
-        el.classList.add('selected');
+        el.classList.add(this.SELECTED);
       }
     },
 

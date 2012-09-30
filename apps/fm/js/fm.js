@@ -405,16 +405,21 @@ var favoritesList = {
 
     var _container = $('fav-list-container');
     _container.addEventListener('click', function _onclick(event) {
+      var frequency = self._getElemFreq(event.target);
+      if (!frequency) {
+        return;
+      }
+
       if (event.target.classList.contains('fav-list-remove-button')) {
-        // remove from favorites list
-        self.remove(self._getElemFreq(event.target));
+        // Remove the item from the favorites list.
+        self.remove(frequency);
         updateFreqUI();
       } else {
         if (mozFMRadio.enabled) {
-          cancelSeekAndSetFreq(self._getElemFreq(event.target));
+          cancelSeekAndSetFreq(frequency);
         } else {
-          // If fm is disabled, then turnon the radio first
-          mozFMRadio.enable(self._getElemFreq(event.target));
+          // If fm is disabled, turn the radio on.
+          mozFMRadio.enable(frequency);
         }
       }
     });

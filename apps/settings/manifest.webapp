@@ -13,10 +13,13 @@
     "device-storage:pictures",
     "device-storage:music",
     "device-storage:videos",
+    "device-storage:apps",
+    "webapps-manage",
     "settings",
     "wifi-manage",
     "wifi",
-    "attention"
+    "attention",
+    "time"
   ],
   "activities": {
     "configure": {
@@ -24,13 +27,23 @@
         "target": "device"
        },
       "disposition": "window"
+    },
+    "configure": {
+      "filters": {
+        "target": "simpin-unlock"
+       },
+      "disposition": "inline",
+      "href": "unlock-simpin.html",
+      "returnValue": true
     }
   },
   "messages": ["bluetooth-requestconfirmation", 
                "bluetooth-requestpasskey", 
                "bluetooth-requestpincode", 
                "bluetooth-authorize", 
-               "bluetooth-cancel"],
+               "bluetooth-cancel",
+               "bluetooth-pairedstatuschanged",
+               "bluetooth-hfp-status-changed"],
   "locales": {
     "ar": {
       "name": "الضبط",

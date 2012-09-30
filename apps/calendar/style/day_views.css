@@ -1,0 +1,118 @@
+/* common (day/months day) - careful here */
+
+.day-events h4,
+.day-events h5 {
+  font-weight: normal;
+}
+
+.day-events section > ol li {
+  padding: 0rem 0px;
+}
+
+.day-events section > ol li:last-child {
+  border-bottom: 1px solid white;
+}
+
+.day-events section > ol li,
+.day-events section {
+  border-bottom: 1px solid #D0D0D0;
+}
+
+.ltr .day-events section > ol li {
+  padding-left: 6.37rem;
+}
+
+.rtl .day-events section > ol li {
+  padding-right: 6.37rem;
+}
+
+.day-events section > h4 > span {
+  height: 100%;
+  vertical-align: top;
+}
+
+.day-events section > h4 > .display-hour {
+  display: block;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+
+.day-events section > ol li {
+  padding: 1.5rem;
+}
+
+.day-events section > ol h5 {
+  padding-top: 0.18rem;
+  font-size: 1.6rem;
+}
+
+.day-events section > ol .details {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  padding-top: 0.6rem;
+  color: #535353;
+  font-size: 1.1rem;
+}
+
+.attendee {
+  padding-right: 0.3rem;
+}
+
+.day-events {
+  display: table;
+}
+
+.day-events > section {
+  min-height: 6rem;
+  padding-left: 0.7rem;
+  position: relative;
+}
+
+.day-events > section > ol {
+  background-color: #FEFFFE;
+  display: inline-block;
+}
+
+.day-events > section h4 {
+  top: 0.5rem;
+  width: 6rem;
+  line-height: 3rem;
+  position: absolute;
+  text-align: center;
+}
+
+.day-events > section > ol {
+  min-height: 6rem;
+  width: 100%
+}
+
+/* day view */
+
+#day-view > section {
+  top: 4.9rem;
+  overflow: hidden;
+  height: calc(100% - 8.33rem);
+  position: absolute;
+  width: 100%;
+  border-left: 1px solid #AAA;
+  border-right: 1px solid #AAA;
+  display: none;
+}
+
+#day-view h4 {
+  font-size: 1.3rem;
+}
+
+#day-view > section.active {
+  display: block;
+  overflow-y: auto;
+}
+
+#months-day-view .day-events {
+  height: -moz-calc(100% - 3rem);
+  display: block;
+  overflow-y: auto;
+}

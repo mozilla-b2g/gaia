@@ -34,8 +34,8 @@
   margin-top: 20px;
   margin-left: -25%;
   position: relative;
-  background-color: #fff;
-  background-size: 100% 100%;
+  background-size: contain;
+  background-position: center center;
   background-repeat: no-repeat;
   transform: scale(0.6);
 
@@ -67,8 +67,7 @@
   margin-left: 75%;
 }
 
-#cards-view .card h1,
-#cards-view .card img {
+#cards-view .card > * {
   pointer-events: none;
 }
 
@@ -76,6 +75,15 @@
   position: absolute;
   top: 100%;
   width: 100%;
+  font-size: 3rem;
+  line-height: 4rem;
+}
+
+#cards-view .card > p {
+  position: absolute;
+  top: -moz-calc(100% + 4rem);
+  width: 100%;
+  font-size: 2rem;
 }
 
 #cards-view .card > img.appIcon {

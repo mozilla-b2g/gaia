@@ -12,7 +12,8 @@
     "background",
     "backgroundservice",
     "mobileconnection",
-    "settings"
+    "settings",
+    "desktop-notification"
   ],
   "locales": {
     "ar": {

@@ -17,12 +17,13 @@
     "voicemail",
     "device-storage:pictures",
     "settings",
-    "pin-app",
+    "storage",
     "content-camera",
     "camera",
     "geolocation",
     "wifi-manage",
-    "wifi"
+    "wifi",
+    "desktop-notification"
   ],
   "locales": {
     "ar": {

@@ -12,7 +12,9 @@
     "mobileconnection",
     "mozApps",
     "background",
-    "settings"
+    "settings",
+    "desktop-notification",
+    "networkstats-manage"
   ],
   "activities": {
     "costcontrol/open": {

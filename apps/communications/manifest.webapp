@@ -9,7 +9,7 @@
   "entry_points": {
     "dialer": {
       "launch_path": "/dialer/index.html",
-      "name": "Dialer",
+      "name": "Phone",
       "icons": {
         "120": "/style/icons/Dialer.png",
         "60": "/style/icons/60/Dialer.png"
@@ -30,17 +30,18 @@
     "contacts",
     "mobileconnection",
     "attention",
-    "settings"
+    "settings",
+    "desktop-notification"
   ],
   "icons": {
-    "120": "/style/icons/Dialer.png",
-    "60": "/style/icons/60/Dialer.png"
+    "120": "/dialer/style/icons/Dialer.png",
+    "60": "/dialer/style/icons/60/Dialer.png"
   },
   "orientation": "portrait-primary",
   "activities": {
     "pick": {
       "filters": {
-        "type": "webcontacts/contact"
+        "type": ["webcontacts/contact","webcontacts/email"]
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",

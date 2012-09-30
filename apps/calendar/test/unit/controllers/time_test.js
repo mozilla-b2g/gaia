@@ -45,6 +45,84 @@ suite('controller', function() {
     assert.deepEqual(subject._timespans, []);
   });
 
+  suite('#handleEvent', function() {
+
+    test('switching between days', function() {
+      function type() {
+        return subject.mostRecentDayType;
+      }
+
+      subject.selectedDay = new Date(2012, 1, 5);
+
+      assert.equal(
+        type(),
+        'selectedDay',
+        '"selectedDay" change should update type'
+      );
+
+      subject.move(new Date(2012, 1, 10));
+
+      assert.equal(
+        type(), 'day',
+        'move - sets most recent type'
+      );
+
+      // back & forth
+      subject.move(new Date(2012, 1, 15));
+      assert.equal(type(), 'day');
+      subject.selectedDay = new Date(2012, 1, 20);
+      assert.equal(type(), 'selectedDay');
+    });
+
+  });
+
+  test('#scale', function() {
+    var calledWith;
+
+    subject.on('scaleChange', function() {
+      calledWith = arguments;
+    });
+
+    subject.scale = 'year';
+    assert.deepEqual(calledWith, ['year', null]);
+    calledWith = null;
+    subject.scale = 'year';
+    assert.isNull(calledWith, 'should not trigger change when value is same');
+
+    subject.scale = 'day';
+
+    assert.deepEqual(
+      calledWith,
+      ['day', 'year']
+    );
+  });
+
+  test('#moveToMostRecentDay', function() {
+    var date = new Date();
+    var calledMove;
+
+    subject.move(date);
+
+    subject.move = function() {
+      Calendar.Controllers.Time.prototype.move.apply(this, arguments);
+      calledMove = arguments;
+    }
+
+    subject.selectedDay = new Date(2012, 1, 1);
+    subject.moveToMostRecentDay();
+
+    assert.equal(
+      calledMove[0],
+      subject.selectedDay,
+      'should move to selected day'
+    );
+
+    calledMove = null;
+
+    subject.moveToMostRecentDay();
+    assert.ok(!calledMove, 'should not move when "day" was last changed');
+  });
+
   test('#selectedDay', function() {
     var calledWith;
 
@@ -183,6 +261,7 @@ suite('controller', function() {
       expected = spans.slice(8, 14);
     });
 
+
     cacheTest('past - fits', function() {
       var expectedItems = [];
 
@@ -209,23 +288,23 @@ suite('controller', function() {
 
       // before
       subject._collection.add(Factory('busytime', {
-        start: (new Date(2000, 0, 1)).valueOf(),
-        end: expected[0].start
+        _startDateMS: (new Date(2000, 0, 1)).valueOf(),
+        _endDateMS: expected[0].start
       }));
 
       // during
 
       expectedItems.push(subject._collection.add(
         Factory('busytime', {
-          start: expected[0].start + 1,
-          end: expected[expected.length - 1].end - 1
+          _startDateMS: expected[0].start + 1,
+          _endDateMS: expected[expected.length - 1].end - 1
         })
       ));
 
       // after
       subject._collection.add(Factory('busytime', {
-        start: expected[expected.length - 1].end + 1,
-        end: (new Date(2020, 0, 1)).valueOf()
+        _startDateMS: expected[expected.length - 1].end + 1,
+        _endDateMS: (new Date(2020, 0, 1)).valueOf()
       }));
 
       afterCallback = function() {

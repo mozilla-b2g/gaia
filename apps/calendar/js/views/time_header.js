@@ -5,7 +5,7 @@ Calendar.ns('Views').TimeHeader = (function() {
   function TimeHeader() {
     Calendar.View.apply(this, arguments);
     this.controller = this.app.timeController;
-    this.controller.on('monthChange', this);
+    this.controller.on('scaleChange', this);
 
     this.settings.addEventListener('click', function settingsClick(e) {
       e.preventDefault();
@@ -27,10 +27,23 @@ Calendar.ns('Views').TimeHeader = (function() {
       settings: '#time-header .settings'
     },
 
+    scales: {
+      month: '%B %Y',
+      day: '%A %B %e'
+    },
+
     handleEvent: function(e) {
+      // respond to all events here but
+      // we add/remove listeners to reduce
+      // calls
       switch (e.type) {
+        case 'yearChange':
         case 'monthChange':
+        case 'dayChange':
           this._updateTitle();
+          break;
+        case 'scaleChange':
+          this._updateScale.apply(this, e.data);
           break;
       }
     },
@@ -43,19 +56,53 @@ Calendar.ns('Views').TimeHeader = (function() {
       return this._findElement('title');
     },
 
-    monthScaleTitle: function() {
+    _scaleEvent: function(event) {
+      switch (event) {
+        case 'month':
+          return 'monthChange';
+        case 'year':
+          return 'yearChange';
+      }
+
+      return 'dayChange';
+    },
+
+    _updateScale: function(newScale, oldScale) {
+      // we check for month & year
+      // everything else is day based scale (week, etc..)
+      if (oldScale) {
+        this.controller.removeEventListener(
+          this._scaleEvent(oldScale),
+          this
+        );
+      }
+
+      this.controller.addEventListener(
+        this._scaleEvent(newScale),
+        this
+      );
+
+      this._updateTitle();
+    },
+
+    getScale: function(type) {
       return this.app.dateFormat.localeFormat(
-        this.controller.month,
-        '%B %Y'
+        this.controller.position,
+        this.scales[type] || this.scales.month
       );
     },
 
     _updateTitle: function() {
-      this.title.textContent = this.monthScaleTitle();
+      var con = this.app.timeController;
+      this.title.textContent = this.getScale(
+        con.scale
+      );
+    },
+
+    render: function() {
+      this._updateScale(this.controller.scale);
     }
   };
-
-  TimeHeader.prototype.render = TimeHeader.prototype._updateTitle;
 
   return TimeHeader;
 }());

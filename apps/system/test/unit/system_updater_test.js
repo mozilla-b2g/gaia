@@ -70,8 +70,10 @@ suite('system/system_updater', function() {
     statusDiv.id = 'system-update-status';
     statusDiv.innerHTML = [
       '<div id="system-update-status" class="notification">',
-      '  <div class="system-update-progress" data-l10n-id="updateProgress">System update...</div>',
-      '  <div class="system-update-applying" data-l10n-id="applying">Applying...</div>',
+      '  <div class="system-update-progress" data-l10n-id="updateProgress">' +
+           'System update...</div>',
+      '  <div class="system-update-applying" data-l10n-id="applying">' +
+           'Applying...</div>',
       '  <div class="icon"></div>',
       '  <progress value="0" max="1"></progress>',
       '</div>'
@@ -247,3 +249,4 @@ suite('system/system_updater', function() {
     });
   });
 });
+

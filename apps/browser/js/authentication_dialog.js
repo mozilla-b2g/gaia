@@ -4,20 +4,11 @@
 'use strict';
 
 var AuthenticationDialog = {
-  // Used for element id access.
-  // e.g., 'authentication-dialog-alert-ok'
-  prefix: 'authentication-dialog-',
-
-  // DOM
-  elements: {},
 
   _confirmed: {},
 
   // Get all elements when inited.
   getAllElements: function ad_getAllElements() {
-    var elementsID = ['http-authentication', 'username-input', 'password-input',
-      'http-authentication-message', 'http-authentication-ok',
-      'http-authentication-cancel'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -25,12 +16,15 @@ var AuthenticationDialog = {
       });
     };
 
-    elementsID.forEach(function createElementRef(name) {
-      this.elements[toCamelCase(name)] =
-      document.getElementById(this.prefix + name);
-    }, this);
+    var elementIDs = [
+      'http-authentication-dialog', 'http-authentication-username',
+      'http-authentication-password', 'http-authentication-message',
+      'http-authentication-ok', 'http-authentication-cancel'];
 
-    this.screen = document.getElementById('screen');
+    // Loop and add element with camel style name to Modal Dialog attribute.
+    elementIDs.forEach(function createElementRef(name) {
+      this[toCamelCase(name)] = document.getElementById(name);
+    }, this);
   },
 
   currentEvents: {},
@@ -42,29 +36,25 @@ var AuthenticationDialog = {
 
     this.boundToWindow = bindToWindow || false;
 
-    for (var id in elements) {
-      if (elements[id].tagName.toLowerCase() == 'button') {
-        elements[id].addEventListener('click', this);
-      }
-    }
+    this.httpAuthenticationOk.addEventListener('click', this);
+    this.httpAuthenticationCancel.addEventListener('click', this);
   },
 
   // Default event handler
   handleEvent: function ad_handleEvent(evt, origin) {
-    var elements = this.elements;
     switch (evt.type) {
       case 'mozbrowserusernameandpasswordrequired':
         evt.preventDefault();
 
         this.currentEvents[origin] = evt;
 
-        // Show modal dialog only if
+        // Show authentication dialog only if
         // the frame is currently displayed.
         this.show(origin);
         break;
 
       case 'click':
-        if (evt.currentTarget === elements.httpAuthenticationCancel) {
+        if (evt.currentTarget === this.httpAuthenticationCancel) {
           this.cancelHandler();
         } else {
           this.confirmHandler();
@@ -73,64 +63,57 @@ var AuthenticationDialog = {
     }
   },
 
-  // Show relative dialog and set message/input value well
+  // Show dialog and set message
   show: function ad_show(origin) {
     this.currentOrigin = origin;
     var evt = this.currentEvents[origin];
 
     var message = evt.detail.message;
-    var elements = this.elements;
-    this.screen.classList.add('authentication-dialog');
-    elements.httpAuthentication.classList.add('visible');
+    this.httpAuthenticationDialog.classList.remove('hidden');
 
     var _ = navigator.mozL10n.get;
 
     // XXX: We don't have a better way to detect login failed.
     if (this._confirmed[origin]) {
       message = _('the-username-or-password-is-incorrect');
-      elements.httpAuthenticationMessage.classList.add('error');
+      this.httpAuthenticationMessage.classList.add('error');
     } else {
       var l10nArgs = { host: evt.detail.host };
       message = _('http-authentication-message', l10nArgs);
-      elements.httpAuthenticationMessage.classList.remove('error');
+      this.httpAuthenticationMessage.classList.remove('error');
     }
-    elements.httpAuthenticationMessage.textContent = message;
+    this.httpAuthenticationMessage.textContent = message;
 
-    elements.usernameInput.value = '';
-    elements.passwordInput.value = '';
-    elements.usernameInput.focus();
+    this.httpAuthenticationUsername.value = '';
+    this.httpAuthenticationPassword.value = '';
+    this.httpAuthenticationUsername.focus();
   },
 
   hide: function ad_hide() {
     var evt = this.currentEvents[this.currentOrigin];
     if (!evt)
       return;
-    this.elements.httpAuthentication.classList.remove('visible');
+    this.httpAuthenticationDialog.classList.add('hidden');
     this.currentOrigin = null;
-    this.screen.classList.remove('authentication-dialog');
   },
 
-  // When user clicks OK button on alert/confirm/prompt
+  // When user clicks OK button on authentication dialog
   confirmHandler: function ad_confirmHandler() {
-    var elements = this.elements;
-
     var evt = this.currentEvents[this.currentOrigin];
-    evt.detail.authenticate(elements.usernameInput.value,
-      elements.passwordInput.value);
-    elements.httpAuthentication.classList.remove('visible');
+    evt.detail.authenticate(this.httpAuthenticationUsername.value,
+      this.httpAuthenticationPassword.value);
+    this.httpAuthenticationDialog.classList.add('hidden');
 
     // To remember we had ever logged in.
     this._confirmed[this.currentOrigin] = true;
 
     delete this.currentEvents[this.currentOrigin];
-    this.screen.classList.remove('authentication-dialog');
   },
 
-  // When user clicks cancel button on confirm/prompt or
+  // When user clicks cancel button on authentication dialog or
   // when the user try to escape the dialog with the escape key
   cancelHandler: function ad_cancelHandler() {
     var evt = this.currentEvents[this.currentOrigin];
-    var elements = this.elements;
 
     evt.detail.cancel();
 
@@ -138,7 +121,7 @@ var AuthenticationDialog = {
       delete this._confirmed[this.currentOrigin];
 
     delete this.currentEvents[this.currentOrigin];
-    this.screen.classList.remove('authentication-dialog');
+    this.httpAuthenticationDialog.classList.add('hidden');
   },
 
   originHasEvent: function(origin) {
