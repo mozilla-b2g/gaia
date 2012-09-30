@@ -20,7 +20,7 @@ const GridManager = (function() {
   var pages = [];
   var evmePageIndex = 0;
   var landingPageIndex = 1;
-  var currentPage = landingPageIndex;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -239,7 +239,7 @@ const GridManager = (function() {
     var isSamePage = currentPage === index;
     var previousPage = currentPage;
     if (!isSamePage) {
-      if (index === landingPageIndex && previousPage > 2) {
+      if (index === landingPageIndex && previousPage > 1) {
         // Click on home button
         pages[landingPageIndex].container.style.display = 'block';
       }
