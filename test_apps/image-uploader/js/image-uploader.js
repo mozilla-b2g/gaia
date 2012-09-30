@@ -332,7 +332,7 @@ HostingProvider.prototype.updateCredentials = function() {
 HostingProvider.prototype.revokeCredentials = function() {
   var self = this;
   this.OAuth1BuildDialogRevoke(function () {
-    self.credsdb.delcreds(self.creds[0].self.urls['login'], function(res) {
+    self.credsdb.delcreds(self.creds[0]['provider'], function(res) {
       if (res == null) {
         ImageUploader.setStatus('Your ' + self.name + ' account is now revoked!');
         self.creds = undefined;
