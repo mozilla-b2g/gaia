@@ -17,7 +17,6 @@ var Camera = {
 
   THUMBNAIL_LIMIT: 4,
 
-  _videoCapturing: false,
   _videoTimer: null,
   _videoStart: null,
 
@@ -196,7 +195,6 @@ var Camera = {
     this.setCaptureMode(newMode);
 
     function gotPreviewStream(stream) {
-      console.log("[[[ Got video mode preview stream ]]]");
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
     }
@@ -204,7 +202,6 @@ var Camera = {
       // TODO: fix this so we can just call getPreviewStream(), or toggle a mode, or something
       this.setSource(this._camera); // STOMP
     } else {
-      console.log("[[[ Switching to video mode ]]]");
       this._cameraObj.getPreviewStreamVideoMode(this._videoConfig, gotPreviewStream.bind(this));
     }
   },
@@ -236,32 +233,25 @@ var Camera = {
   },
 
   toggleRecording: function camera_toggleRecording() {
-    if (!this._videoCapturing) {
-      this._videoCapturing = true;
-      this.captureButton.setAttribute('disabled', 'disabled');
-      console.log("[[[ Starting recording... ]]]");
+    var captureButton = this.captureButton;
+
+    if (!document.body.classList.contains('capturing')) {
+      captureButton.setAttribute('disabled', 'disabled');
       document.body.classList.add('capturing');
       this._cameraObj.startRecording(
         navigator.getDeviceStorage('videos'),
         "VID_0001.3gp",
         function onsuccess() {
-          this.captureButton.removeAttribute('disabled');
-          console.log("[[[ Video recording successfully started ]]]");
-        }.bind(this),
+          captureButton.removeAttribute('disabled');
+        },
         function onerror() {
-          this.captureButton.removeAttribute('disabled');
-          this._videoCapturing = false;
+          captureButton.removeAttribute('disabled');
           document.body.classList.remove('capturing');
-          console.log("[[[ Video recording failed to start ]]]");
-        }.bind(this)
+        }
       );
-      console.log("[[[ Post startRecording()... ]]]");
     } else {
-      this._videoCapturing = false;
-      console.log("[[[ Stopping recording... ]]]");
       this._cameraObj.stopRecording();
       document.body.classList.remove('capturing');
-      console.log("[[[ Post stopRecording()... ]]]");
     }
   },
 
