@@ -132,29 +132,24 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
   menu.appendChild(bcontinue);
 
   var self = this;
-  bcancel.addEventListener(
-    'click',
-    function(evt) {
-      document.body.removeChild(document.getElementById('confirm-auth'));
-      ImageUploader.setStatus(self.name + ' authentication canceled');
-    },
-    false);
-  bcontinue.addEventListener(
-    'click',
-    function(evt) {
-      document.body.removeChild(document.getElementById('confirm-auth'));
-      try {
-      new MozActivity(
-        {
-          name: 'view',
-          data: {type: 'url', url: url}
-        }
-      );
-      } catch (e) {
-        alert(url);
+  bcancel.addEventListener('click', function(evt) {
+    document.body.removeChild(document.getElementById('confirm-auth'));
+    ImageUploader.setStatus(self.name + ' authentication canceled');
+  }, false);
+  bcontinue.addEventListener('click', function(evt) {
+    document.body.removeChild(document.getElementById('confirm-auth'));
+    try {
+    new MozActivity(
+      {
+        name: 'view',
+        data: {type: 'url', url: url}
       }
-      self.OAuth1BuildDialogPIN();
-    }, false);
+    );
+    } catch (e) {
+      alert(url);
+    }
+    self.OAuth1BuildDialogPIN();
+  }, false);
 
   section.appendChild(div);
   section.appendChild(menu);
@@ -202,36 +197,34 @@ HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
   menu.appendChild(bcontinue);
 
   var self = this;
-  bcontinue.addEventListener(
-    'click',
-    function(evt) {
-      var pin = document.getElementById('pincode').value;
-      document.body.removeChild(document.getElementById('confirm-pin'));
-      ImageUploader.setStatus('Confirming ' + self.name + ' PIN code');
-      self.processOAuth1XHR(
-        self.urls['oauth_access_token'],
-        'POST',
-        {oauth_verifier: pin, oauth_token: self.request_token_only},
-        function(xhr) {
-          if (xhr.status != 200) {
-            alert(
-              'Request refused:' +
-              xhr.status + '::' +
-              xhr.responseText);
-            return;
+  bcontinue.addEventListener('click', function(evt) {
+    var pin = document.getElementById('pincode').value;
+    document.body.removeChild(document.getElementById('confirm-pin'));
+    ImageUploader.setStatus('Confirming ' + self.name + ' PIN code');
+    self.processOAuth1XHR(
+      self.urls['oauth_access_token'],
+      'POST',
+      {oauth_verifier: pin, oauth_token: self.request_token_only},
+      function(xhr) {
+        if (xhr.status != 200) {
+          alert(
+            'Request refused:' +
+            xhr.status + '::' +
+            xhr.responseText);
+          return;
+        }
+        var twitter_account =
+          self.extractOAuth1AccessTokens(xhr.responseText);
+        self.credsdb.setcreds(twitter_account, function(res) {
+          if (res == null) {
+            ImageUploader.setStatus(self.name + ' account configured.');
+            self.updateCredentials();
+          } else {
+            alert('An error occured:', JSON.stringify(res));
           }
-          var twitter_account =
-            self.extractOAuth1AccessTokens(xhr.responseText);
-          self.credsdb.setcreds(twitter_account, function(res) {
-            if (res == null) {
-              ImageUploader.setStatus(self.name + ' account configured.');
-              self.updateCredentials();
-            } else {
-              alert('An error occured:', JSON.stringify(res));
-            }
-          });
-        })
-    }, false);
+        });
+      })
+  }, false);
 
   section.appendChild(div);
   section.appendChild(menu);
@@ -266,15 +259,13 @@ HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
   menu.appendChild(bcancel);
   menu.appendChild(bcontinue);
 
-  bcancel.addEventListener('click',
-    function(evt) {
-      document.body.removeChild(document.getElementById('confirm-revoke'));
-    }, false);
-  bcontinue.addEventListener('click',
-    function(evt) {
-      document.body.removeChild(document.getElementById('confirm-revoke'));
-      callback();
-    }, false);
+  bcancel.addEventListener('click', function(evt) {
+    document.body.removeChild(document.getElementById('confirm-revoke'));
+  }, false);
+  bcontinue.addEventListener('click', function(evt) {
+    document.body.removeChild(document.getElementById('confirm-revoke'));
+    callback();
+  }, false);
 
   section.appendChild(div);
   section.appendChild(menu);
@@ -794,24 +785,26 @@ var ImageUploader = {
   share: function() {
     this.setStatus('Starting to share');
     var services = this.getSelectedServices();
-    if (services.length > 0) {
-      for (var sn in services) {
-        this.lock();
-        var serv = services[sn];
-        var previews = document.getElementById('previews');
-        var imgs = previews.getElementsByTagName('img');
-        for (var i in imgs) {
-          var img = imgs[i].src;
-          if (img != undefined) {
-            ImageUploader.setStatus('Preparing upload');
-            for (var sid in ImageUploader.services) {
-              var sup = ImageUploader.services[sid];
-              if (serv == ('upload-' + sup.id)) {
-                this.setStatus('Converting image from base64');
-                var img_content = this.blobFromBase64(img);
-                this.setStatus('Processing with upload');
-                sup.upload(img_content, this.finalize.bind(this));
-              }
+    if (!services ||!services.length) {
+      return;
+    }
+
+    for (var sn in services) {
+      this.lock();
+      var serv = services[sn];
+      var previews = document.getElementById('previews');
+      var imgs = previews.getElementsByTagName('img');
+      for (var i in imgs) {
+        var img = imgs[i].src;
+        if (img != undefined) {
+          ImageUploader.setStatus('Preparing upload');
+          for (var sid in ImageUploader.services) {
+            var sup = ImageUploader.services[sid];
+            if (serv == ('upload-' + sup.id)) {
+              this.setStatus('Converting image from base64');
+              var img_content = this.blobFromBase64(img);
+              this.setStatus('Processing with upload');
+              sup.upload(img_content, this.finalize.bind(this));
             }
           }
         }
