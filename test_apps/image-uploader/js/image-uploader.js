@@ -36,6 +36,8 @@ HostingProvider.prototype.performLogin = function() {
   if (this.auth == 'oauth1') {
     return this.performOAuth1Login();
   }
+
+  return false;
 };
 
 HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
@@ -52,7 +54,25 @@ HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
 
   OAuth.completeRequest(message, this.keys);
   OAuth.SignatureMethod.sign(message, this.keys);
-  return url + '?' + OAuth.formEncode(message.parameters);
+  return OAuth.addToURL(url, message.parameters);
+};
+
+HostingProvider.prototype.buildOAuth1Form = function(url, method, parameters) {
+  var keys = this.keys;
+  if (this.creds.length > 0) {
+    this.keys.token = this.creds[0].oauth_token;
+    this.keys.tokenSecret = this.creds[0].oauth_token_secret;
+  }
+
+  var message = {
+    action: url,
+    method: method,
+    parameters: parameters
+  };
+
+  OAuth.completeRequest(message, keys);
+  OAuth.SignatureMethod.sign(message, keys);
+  return message.parameters;
 };
 
 HostingProvider.prototype.processOAuth1XHR = function(url, method, params, callback) {
@@ -488,7 +508,7 @@ var ImageUploader = {
         'confirm-img': '',
         'login': 'username',
         'upload': 'https://secure.flickr.com/services/upload/',
-        'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
+        'picture_base': 'http://www.flickr.com/photos/',
         'oauth_request_token': 'https://secure.flickr.com/services/oauth/request_token',
         'oauth_authorize': 'https://secure.flickr.com/services/oauth/authorize',
         'oauth_access_token': 'https://secure.flickr.com/services/oauth/access_token'
@@ -506,22 +526,31 @@ var ImageUploader = {
       this.updateCredentials();
     };
     HostingFlickr.upload = function(source, callback) {
-      var url = this.buildOAuth1URL(
+      var payload = this.buildOAuth1Form(
         this.urls['upload'],
         'POST',
         { }
       );
 
       var picture = new FormData();
+      for (var param in payload) {
+        picture.append(param, payload[param]);
+      }
       picture.append('photo', source);
-      picture.append('api_key', this.keys['consumerKey']);
 
-      this.XHRUpload(url, picture, function(xhr) {
-        console.log("Got reply: " + JSON.stringify(xhr.responseText));
-        // var id = json.entities.media[0].id_str;
-        // var ex_url = json.entities.media[0].expanded_url;
-        ImageUploader.setStatus('Uploaded successfully: ');
-        // callback(ex_url);
+      var self = this;
+      this.XHRUpload(this.urls['upload'], picture, function(xhr) {
+        var id_regex =
+          new RegExp('<photoid>(.*)<\/photoid>');
+        var id_ar = id_regex.exec(xhr.responseText);
+        if (id_ar.length > 1) {
+          var id = id_ar[1];
+          var ex_url = self.urls['picture_base'] + self.creds[0]['user_nsid'] + '/' + id + '/';
+          ImageUploader.setStatus('Uploaded successfully: ');
+          callback(ex_url);
+        } else {
+          alert('Error while uploading: ' + xhr.responseText);
+        }
       });
     };
 
@@ -608,13 +637,44 @@ var ImageUploader = {
             for (var sid in ImageUploader.services) {
               var sup = ImageUploader.services[sid];
               if (serv == ('upload-' + sup.id)) {
-                  sup.upload(img, this.finalize.bind(this));
+                this.setStatus('Converting image from base64');
+                var img_content = this.blobFromBase64(img);
+                this.setStatus('Processing with upload');
+                sup.upload(img_content, this.finalize.bind(this));
               }
             }
           }
         }
       }
     }
+  },
+
+  blobFromBase64: function(dataURI) {
+    var byteString;
+    var arrayBuffer;
+    var intArray;
+    var mimeString;
+
+    if (dataURI.split(',')[0].indexOf('base64') >= 0) {
+        // Convert base64 to raw binary data held in a string:
+        byteString = atob(dataURI.split(',')[1]);
+    } else {
+        // Convert base64/URLEncoded data component to raw binary data:
+        byteString = decodeURIComponent(dataURI.split(',')[1]);
+    }
+    // Write the bytes of the string to an ArrayBuffer:
+    arrayBuffer = new ArrayBuffer(byteString.length);
+    intArray = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < byteString.length; i += 1) {
+        intArray[i] = byteString.charCodeAt(i);
+    }
+
+    // Separate out the mime component:
+    mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // Write the ArrayBuffer (or ArrayBufferView) to a blob:
+    var blob = new Blob([arrayBuffer], {type: mimeString});
+    return blob;
   },
 
   enableOnly: function(evt) {
