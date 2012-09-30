@@ -63,6 +63,18 @@ var EvmeManager = (function() {
         Evme.setOpacityBackground(0);
     });
 
+    function init() {
+      if (this.ready) {
+        Evme.init();
+        return;
+      }
+
+      window.addEventListener("load", function loaded() {
+        Evme.init();
+        window.removeEventListener('load', loaded);
+      });
+    }
+
     return {
         openApp: openApp,
 
@@ -71,8 +83,12 @@ var EvmeManager = (function() {
         isAppInstalled: function isAppInstalled(url) {
             return Applications.isInstalled(url);
         },
-    
-        openUrl: openUrl
+
+        openUrl: openUrl,
+
+        init: init,
+
+        ready: false
     };
 }());
 
@@ -83,6 +99,7 @@ var EvmeApp = function createEvmeApp(params) {
 extend(EvmeApp, Bookmark);
 
 // Initialize Evme
-window.addEventListener("load", function() {
-    Evme.init();
+window.addEventListener("load", function ready() {
+  EvmeManager.ready = true;
+  window.removeEventListener('load', ready);
 });
