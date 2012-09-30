@@ -618,6 +618,7 @@ var ImageUploader = {
   },
 
   enableOnly: function(evt) {
+    this.hideBannerStatus();
     var toKeep = evt.target.id;
     this.purge('service-content');
     for (var service in this.services) {
