@@ -8,6 +8,11 @@
 var unknownAlbum;
 var unknownArtist;
 var unknownTitle;
+var shuffleAllTitle;
+var highestRatedTitle;
+var recentlyAddedTitle;
+var mostPlayedTitle;
+var leastPlayedTitle;
 
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
@@ -27,6 +32,11 @@ window.addEventListener('localized', function onlocalized() {
   unknownAlbum = navigator.mozL10n.get('unknownAlbum');
   unknownArtist = navigator.mozL10n.get('unknownArtist');
   unknownTitle = navigator.mozL10n.get('unknownTitle');
+  shuffleAllTitle = navigator.mozL10n.get('playlists-shuffle-all');
+  highestRatedTitle = navigator.mozL10n.get('playlists-highest-rated');
+  recentlyAddedTitle = navigator.mozL10n.get('playlists-recently-added');
+  mostPlayedTitle = navigator.mozL10n.get('playlists-most-played');
+  leastPlayedTitle = navigator.mozL10n.get('playlists-least-played');
 
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('invisible');
@@ -42,7 +52,8 @@ function init() {
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', parseAudioMetadata, {
-    indexes: ['metadata.album', 'metadata.artist', 'metadata.title']
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
+              'metadata.rated', 'metadata.played', 'date']
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -151,10 +162,10 @@ var sublistHandle = null;
 function showCurrentView() {
   TilesView.clean();
   // Enumerate existing song entries in the database
-  // List the all, and sort them in ascending order by artist.
-  var option = 'artist';
+  // List the all, and sort them in descending order by date.
+  var option = 'date';
 
-  tilesHandle = musicdb.enumerate('metadata.' + option, null, 'nextunique',
+  tilesHandle = musicdb.enumerate(option, null, 'prev',
                                   TilesView.update.bind(TilesView));
   switch (TabBar.option) {
     case 'playlist':
@@ -516,7 +527,7 @@ var ListView = {
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
-        a.dataset.option = 'title';
+        a.dataset.option = result.option;
 
         break;
       default:
@@ -558,11 +569,17 @@ var ListView = {
             SubListView.setAlbumName(data.metadata.title);
           }
 
+          var targetOption =
+            (option === 'date') ? option : 'metadata.' + option;
           var keyRange = (target.dataset.keyRange != 'all') ?
             IDBKeyRange.only(target.dataset.keyRange) : null;
+          var direction =
+           (data.metadata.title === mostPlayedTitle ||
+            data.metadata.title === recentlyAddedTitle ||
+            data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
 
           sublistHandle =
-            musicdb.enumerate('metadata.' + option, keyRange, 'next',
+            musicdb.enumerate(targetOption, keyRange, direction,
                               SubListView.update.bind(SubListView));
 
           changeMode(MODE_SUBLIST);
@@ -774,6 +791,8 @@ var PlayerView = {
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
 
+    this.ratings = document.getElementById('player-album-rating').children;
+
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
     this.seekRemaining = document.getElementById('player-seek-remaining');
@@ -781,7 +800,6 @@ var PlayerView = {
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
-    this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
@@ -850,6 +868,18 @@ var PlayerView = {
     };
   },
 
+  setRatings: function pv_setRatings(rated) {
+    for (var i = 0; i < 5; i++) {
+      var rating = this.ratings[i];
+
+      if (i < rated) {
+        rating.classList.add('star-on');
+      } else {
+        rating.classList.remove('star-on');
+      }
+    }
+  },
+
   play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
@@ -885,11 +915,14 @@ var PlayerView = {
 
       this.setCoverImage(songData);
 
-      musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
-        // On B2G devices, file.type of mp3 format is missing
-        // use file extension instead of file.type
-        this.playingFormat = file.name.slice(-4);
+      // set ratings of the current song
+      this.setRatings(songData.metadata.rated);
 
+      // update the metadata of the current song
+      songData.metadata.played++;
+      musicdb.updateMetadata(songData.name, songData.metadata);
+
+      musicdb.getFile(songData.name, function(file) {
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
@@ -1023,6 +1056,14 @@ var PlayerView = {
             break;
         }
 
+        if (target.dataset.rating) {
+          var songData = this.dataSource[this.currentIndex];
+          songData.metadata.rated = parseInt(target.dataset.rating);
+
+          musicdb.updateMetadata(songData.name, songData.metadata,
+            this.setRatings.bind(this, parseInt(target.dataset.rating)));
+        }
+
         break;
       case 'mousemove':
         // target is the seek bar, and evt.layerX is the moved position
@@ -1096,16 +1137,21 @@ var TabBar = {
             changeMode(MODE_LIST);
             ListView.clean();
 
-            var data = {
-              metadata: {
-                title: 'All Songs'
-              }
-            };
+            // this array is for automated playlists
+            var playlistArray = [
+              {metadata: {title: shuffleAllTitle}, option: 'title'},
+              {metadata: {title: highestRatedTitle}, option: 'rated'},
+              {metadata: {title: recentlyAddedTitle}, option: 'date'},
+              {metadata: {title: mostPlayedTitle}, option: 'played'},
+              {metadata: {title: leastPlayedTitle}, option: 'played'},
+              // update ListView with null result to hide the scan progress
+              null
+            ];
 
-            ListView.update(this.option, data);
+            playlistArray.forEach(function(playlist) {
+              ListView.update(this.option, playlist);
+            }.bind(this));
 
-            // update ListView with null result to hide the scan progress
-            ListView.update(this.option, null);
             break;
           case 'tabs-artists':
           case 'tabs-albums':

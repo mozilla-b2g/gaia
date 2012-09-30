@@ -20,7 +20,7 @@ const GridManager = (function() {
   var pages = [];
   var evmePageIndex = 0;
   var landingPageIndex = 1;
-  var currentPage = landingPageIndex;
+  var currentPage = 0;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -239,6 +239,10 @@ const GridManager = (function() {
     var isSamePage = currentPage === index;
     var previousPage = currentPage;
     if (!isSamePage) {
+      if (index === landingPageIndex && previousPage > 1) {
+        // Click on home button
+        pages[landingPageIndex].container.style.display = 'block';
+      }
       delete pages[currentPage].container.dataset.currentPage;
       currentPage = index;
       pages[currentPage].container.dataset.currentPage = 'true';
@@ -303,6 +307,7 @@ const GridManager = (function() {
     var apps = Applications.getAll();
 
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/init.json', true);
     xhr.send(null);
 
@@ -457,11 +462,6 @@ const GridManager = (function() {
 
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
-        return;
-      }
-
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
       }
@@ -478,11 +478,6 @@ const GridManager = (function() {
     var max = pageHelper.getMaxPerPage();
 
     pages.forEach(function checkIsOverflow(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
-        return;
-      }
-
       // if the page is not full
       if (page.getNumApps() <= max) {
         return;
@@ -556,7 +551,7 @@ const GridManager = (function() {
 
     /*
      * Returns the total number of apps for each page. It could be
-     * more clever. Currently there're twelve apps for page
+     * more clever. Currently there're sixteen apps for page
      */
     getMaxPerPage: function() {
       return 4 * 4;
@@ -597,7 +592,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = i === landingPageIndex ? new SearchPage(i) : new Page(i);
+        var page = new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }

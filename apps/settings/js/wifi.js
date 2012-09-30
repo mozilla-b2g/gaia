@@ -57,6 +57,18 @@ var gWifiManager = (function(window) {
     }
   };
 
+  function getFakeNetworks() {
+    var request = { result: fakeNetworks };
+
+    setTimeout(function() {
+      if (request.onsuccess) {
+        request.onsuccess();
+      }
+    }, 1000);
+
+    return request;
+  }
+
   return {
     // true if the wifi is enabled
     enabled: false,
@@ -81,17 +93,9 @@ var gWifiManager = (function(window) {
       return request;
     },
 
-    // returns a list of visible networks
-    getNetworks: function fakeGetNetworks() {
-      var request = { result: fakeNetworks };
-
-      setTimeout(function() {
-        if (request.onsuccess)
-          request.onsuccess();
-      }, 2000);
-
-      return request;
-    },
+    // returns a list of visible/known networks
+    getNetworks: getFakeNetworks,
+    getKnownNetworks: getFakeNetworks,
 
     // selects a network
     associate: function fakeAssociate(network) {
@@ -233,21 +237,19 @@ function wifiSettings(evt) {
         wpsDialog('wifi-wps', wpsCallback);
       }
 
-      function wpsCallback(method, pin) {
-        var req;
-        if (method === 'pbc') {
-          req = gWifiManager.wps({
-            method: 'pbc'
-          });
-        } else if (method === 'myPin') {
-          req = gWifiManager.wps({
-            method: 'pin'
-          });
-        } else {
-          req = gWifiManager.wps({
-            method: 'pin',
-            pin: pin
-          });
+    function wpsDialog(dialogID, callback) {
+      var dialog = document.getElementById(dialogID);
+      if (!dialog)
+        return;
+
+      // hide dialog box
+      function pinChecksum(pin) {
+        var accum = 0;
+        while (pin > 0) {
+          accum += 3 * (pin % 10);
+          pin = Math.floor(pin / 10);
+          accum += pin % 10;
+          pin = Math.floor(pin / 10);
         }
         req.onsuccess = function() {
           if (method === 'myPin') {
@@ -479,6 +481,7 @@ function wifiSettings(evt) {
     };
   }) (document.getElementById('wifi-availableNetworks'));
 
+  // saved network list
   var gKnownNetworkList = (function knownNetworkList(list) {
     // clear the network list
     function clear() {
@@ -489,10 +492,18 @@ function wifiSettings(evt) {
 
     // propose to forget a network
     function forgetNetwork(network) {
-      if (window.confirm(_('forgetNetwork'))) {
+      var dialog = document.querySelector('#wifi-manageNetworks form');
+      dialog.hidden = false;
+      dialog.onsubmit = function forget() {
         gWifiManager.forget(network);
         scan();
-      }
+        dialog.hidden = true;
+        return false;
+      };
+      dialog.onreset = function cancel() {
+        dialog.hidden = true;
+        return false;
+      };
     }
 
     // list known networks
@@ -528,6 +539,40 @@ function wifiSettings(evt) {
   document.getElementById('manageNetworks').onclick = function knownNetworks() {
     gKnownNetworkList.scan();
     openDialog('wifi-manageNetworks');
+  };
+
+  // join hidden network
+  document.getElementById('joinHidden').onclick = function joinHiddenNetwork() {
+    /**
+     * TODO: factorize with toggleNetwork()
+     */
+    openDialog('wifi-joinHidden', function onOK(){
+      var ssid = this.querySelector('[name=ssid]').value;
+      var identity = this.querySelector('[name=identity]').value;
+      var password = this.querySelector('[name=password]').value;
+      var key = this.querySelector('select').value;
+
+      var network = {
+        ssid: ssid,
+        keyManagement: key,
+        identity: identity
+      };
+
+      // copied from showPassword()
+      if (key == 'WEP') {
+        network.wep = password;
+      } else if (key == 'WPA-PSK') {
+        network.psk = password;
+      } else if (key == 'WPA-EAP') {
+        network.password = password;
+        network.identity = identity;
+      }
+
+      // copied from wifiConnect()
+      gCurrentNetwork = network;
+      gWifiManager.associate(network);
+      gNetworkList.display(network.ssid, _('shortStatus-connecting'));
+    });
   };
 
   function isConnected(network) {
@@ -609,7 +654,7 @@ function wifiSettings(evt) {
     function wifiDialog(dialogID, callback, key) {
       var dialog = document.getElementById(dialogID);
       if (!network)
-        return null;
+        return;
 
       // network info
       var keys = network.capabilities;

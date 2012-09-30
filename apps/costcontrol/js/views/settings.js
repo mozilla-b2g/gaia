@@ -147,7 +147,10 @@ function setupSettings() {
 
       // Add an event listener to switch the option
       guiWidget.addEventListener('change', function ccapp_onSwitchChange() {
-        Service.settings.option(optionKey, guiWidget.value);
+        var value = guiWidget.value;
+        if (guiWidget.type === 'number')
+          value = parseFloat(value);
+        Service.settings.option(optionKey, value);
       });
     }
   };

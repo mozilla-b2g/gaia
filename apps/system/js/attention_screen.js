@@ -96,6 +96,7 @@ var AttentionScreen = {
       }
     }
 
+    this.mainScreen.classList.add('attention');
     this.dispatchEvent('attentionscreenshow');
   },
 
@@ -121,6 +122,7 @@ var AttentionScreen = {
     if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
       this.attentionScreen.classList.remove('displayed');
       this.dispatchEvent('attentionscreenhide');
+      this.mainScreen.classList.remove('attention');
     }
 
     if (this._screenInitiallyDisabled)

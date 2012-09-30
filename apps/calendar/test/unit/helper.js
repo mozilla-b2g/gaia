@@ -222,6 +222,7 @@
   requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
+  requireLib('calc.js');
   requireLib('set.js');
   requireLib('batch.js');
   requireLib('template.js');
@@ -236,9 +237,10 @@
   requireLib('store/calendar.js');
   requireLib('store/event.js');
   requireLib('store/setting.js');
+  requireLib('store/alarm.js');
   requireLib('view.js');
-  requireLib('calc.js');
   requireLib('router.js');
+  requireLib('controllers/alarm.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
   requireLib('worker/manager.js');

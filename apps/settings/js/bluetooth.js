@@ -70,10 +70,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var visibleCheckBox = document.querySelector('#device-visible input');
     var renameButton = document.getElementById('rename-device');
 
+    var visibleTimeout = null;
     var myName = '';
 
     visibleCheckBox.onchange = function changeDiscoverable() {
-      settings.createLock().set({'bluetooth.visible': this.checked});
       setDiscoverable(this.checked);
     };
 
@@ -100,7 +100,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           if (typeof visible === 'undefined') {
             visible = true;
           }
-          visibleCheckBox.checked = visible;
+          setDiscoverable(visible);
         };
         req.onerror = function bt_getVisibleError() {
           visibleCheckBox.checked = true;
@@ -108,6 +108,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       } else {
         visibleItem.hidden = true;
         renameButton.disabled = true;
+        if (visibleTimeout) {
+          clearTimeout(visibleTimeout);
+          visibleTimeout = null;
+        }
       }
     }
 
@@ -120,17 +124,31 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function setDiscoverable(visible) {
+      settings.createLock().set({'bluetooth.visible': visible});
       if (!defaultAdapter)
         return;
 
       defaultAdapter.setDiscoverable(visible);
+      // Visibility will time out after 2 mins.
+      if (visible) {
+        if (!visibleTimeout) {
+          visibleTimeout = setTimeout(function() {
+              setDiscoverable(false);
+            }, 120000);
+        }
+      } else {
+        if (visibleTimeout) {
+          clearTimeout(visibleTimeout);
+          visibleTimeout = null;
+        }
+      }
+      visibleCheckBox.checked = visible;
     }
 
     // API
     return {
       update: updateDeviceInfo,
-      initWithAdapter: initial,
-      setDiscoverable: setDiscoverable
+      initWithAdapter: initial
     };
   })();
 
@@ -154,6 +172,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         this.list.hidden = !isShown;
       }
     };
+
     var openList = {
       title: document.getElementById('bluetooth-found-title'),
       list: document.getElementById('bluetooth-devices'),
@@ -172,44 +191,46 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         this.list.hidden = !isShown;
       }
     };
+
     var optionMenu = {
       menu: document.getElementById('paired-device-option'),
       connectOpt: document.getElementById('connect-option'),
       disconnectOpt: document.getElementById('disconnect-option'),
       unpairOpt: document.getElementById('unpair-option'),
-      cancelBtn: document.querySelector('#cancel-option button'),
+
       show: function showMenu(device) {
         var self = this;
-        // we only support audio-card device to connect now
+        // we only support audio-card device to connect atm
         if (device.icon === 'audio-card') {
           if (device.connected) {
             this.connectOpt.hidden = true;
             this.disconnectOpt.hidden = false;
             this.disconnectOpt.onclick = function() {
               setDeviceDisconnect(device);
-              self.close();
             };
           } else {
             this.connectOpt.hidden = false;
             this.disconnectOpt.hidden = true;
             this.connectOpt.onclick = function() {
               setDeviceConnect(device);
-              self.close();
             };
           }
         } else {
-            this.connectOpt.hidden = true;
-            this.disconnectOpt.hidden = true;
+          this.connectOpt.hidden = true;
+          this.disconnectOpt.hidden = true;
         }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(device);
-          self.close();
         };
-        this.cancelBtn.onclick = this.close.bind(this);
+        this.menu.onsubmit = function closeMenu() {
+          return self.close();
+        }
         this.menu.hidden = false;
       },
+
       close: function closeMenu() {
         this.menu.hidden = true;
+        return false;
       }
     };
 
@@ -427,8 +448,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     function setDeviceDisconnect(device) {
       if (!device.connected)
         return;
-      var req = defaultAdapter.disconnect(device.address,
-          defaultAdapter.HANDSFREE);
+
+      // '0x111E' is a service id to distigush connection type.
+      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
+      var req = defaultAdapter.disconnect(device.address, 0x111E);
       req.onsuccess = function() {
         showDeviceConnected(connectingAddress, false);
         connectingAddress = null;
@@ -444,8 +467,10 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       // we only support audio-card device to connect now
       if (!defaultAdapter || device.icon !== 'audio-card')
         return;
-      var req = defaultAdapter.connect(device.address,
-          defaultAdapter.HANDSFREE);
+
+      // '0x111E' is a service id to distigush connection type.
+      // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
+      var req = defaultAdapter.connect(device.address, 0x111E);
       req.onsuccess = function() {
         showDeviceConnected(connectingAddress, true);
         connectingAddress = null;
@@ -567,6 +592,11 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
 
     gDeviceList.update(enabled);
     gMyDeviceInfo.update(enabled);
+
+    // clear defaultAdapter, we have to acquire it again when enabled.
+    if (!enabled)
+      defaultAdapter = null;
+
   });
 
   // startup, update status

@@ -34,6 +34,12 @@ Calendar.ns('Store').Busytime = (function() {
 
     _store: 'busytimes',
 
+    _dependentStores: ['alarms', 'busytimes'],
+
+    _parseId: function(id) {
+      return id;
+    },
+
     _setupCache: function() {
       // reset time observers
       Calendar.TimeObserver.call(this);
@@ -56,6 +62,10 @@ Calendar.ns('Store').Busytime = (function() {
       return model;
     },
 
+    _removeDependents: function(id, trans) {
+      this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
+    },
+
     addEvent: function(event, trans, callback) {
       if (typeof(trans) === 'function') {
         callback = trans;
@@ -64,7 +74,7 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
@@ -89,26 +99,13 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
 
       this._removeEventTimes(id);
-
-      var store = trans.objectStore('busytimes');
-      var index = store.index('eventId');
-      var range = IDBKeyRange.only(id);
-      var req = index.openCursor(range);
-
-      req.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) {
-          var req = cursor.delete();
-          cursor.continue();
-        }
-      };
-
+      this.removeByIndex('eventId', id, trans);
       this._transactionCallback(trans, callback);
     },
 
@@ -190,22 +187,16 @@ Calendar.ns('Store').Busytime = (function() {
      * @param {Object} event associated event.
      */
     _eventToRecord: function(event) {
+
+      var id = this.db.getStore('Event').busytimeIdFor(event);
+
       var result = {
+        _id: id,
         start: event.remote.start,
         end: event.remote.end,
         eventId: event._id,
         calendarId: event.calendarId
       };
-
-      // Knowing the ID ahead of time
-      // lets us flush it to the UI before
-      // it actually hits the database ( then later
-      // if its removed we can find it by id )
-      // That said I don't like this method of
-      // assigning the id. Maybe use UUID?
-      result._id = result.start.utc + '-' +
-                   result.end.utc + '-' +
-                   result.eventId;
 
       return result;
     },

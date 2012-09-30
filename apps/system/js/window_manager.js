@@ -143,7 +143,7 @@ var WindowManager = (function() {
     cssHeight += 'px';
 
 
-    if (app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
       cssHeight = window.innerHeight + 'px';
 
     frame.style.width = cssWidth;
@@ -165,7 +165,7 @@ var WindowManager = (function() {
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
-    if (app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
       cssHeight = window.innerHeight - keyboardHeight + 'px';
 
     frame.style.height = cssHeight;
@@ -629,8 +629,8 @@ var WindowManager = (function() {
               // Show the new app
               openWindow(newOrigin, function opened() {
                 screenElement.classList.remove('switch-app');
-
-                callback();
+                if (callback)
+                  callback();
               });
             });
         });
@@ -792,11 +792,6 @@ var WindowManager = (function() {
 
       'Cost Control',
       // Cross-process SMS (bug 775997)
-
-      'E-Mail',
-      // SSL/TLS support can only happen in the main process although
-      // the TCP support without security will accidentally work OOP
-      // (bug 770778)
 
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
@@ -1335,6 +1330,8 @@ var WindowManager = (function() {
           document.mozCancelFullScreen();
 
         setAppHeight(evt.detail.height);
+      } else if (displayedApp) {
+        setAppSize(displayedApp);
       }
     });
   });

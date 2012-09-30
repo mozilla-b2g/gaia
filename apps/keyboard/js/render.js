@@ -20,6 +20,8 @@ const IMERender = (function() {
 
   var layoutWidth = 10;
 
+  var suggestionEngineName; // used as a CSS class on the candidatePanel
+
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
@@ -28,6 +30,24 @@ const IMERender = (function() {
     isSpecialKey = keyTest;
     onScroll = scrollHandler;
     this.ime = document.getElementById('keyboard');
+  }
+
+  var setSuggestionEngineName = function(name) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    if (candidatePanel) {
+      if (suggestionEngineName)
+        candidatePanel.classList.remove(suggestionEngineName);
+      candidatePanel.classList.add(name);
+    }
+    var togglebutton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+    if (togglebutton) {
+      if (suggestionEngineName)
+        togglebutton.classList.remove(suggestionEngineName);
+      toggleButton.classList.add(name);
+    }
+
+    suggestionEngineName = name;
   }
 
   // Accepts three values: true / 'locked' / false
@@ -460,6 +480,8 @@ const IMERender = (function() {
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    if (suggestionEngineName)
+      candidatePanel.classList.add(suggestionEngineName);
     candidatePanel.addEventListener('scroll', onScroll);
     return candidatePanel;
   };
@@ -468,6 +490,8 @@ const IMERender = (function() {
     var toggleButton = document.createElement('span');
     toggleButton.innerHTML = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    if (suggestionEngineName)
+      toggleButton.classList.add(suggestionEngineName);
     toggleButton.dataset.keycode = -4;
     return toggleButton;
   };
@@ -530,6 +554,7 @@ const IMERender = (function() {
   // Exposing pattern
   return {
     'init': init,
+    'setSuggestionEngineName': setSuggestionEngineName,
     'draw': draw,
     'ime': ime,
     'hideIME': hideIME,

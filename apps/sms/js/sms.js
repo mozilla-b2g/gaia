@@ -25,13 +25,17 @@ var MessageManager = {
   slide: function mm_slide(callback) {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var messagesMirror = document.getElementById('thread-messages-snapshot');
-    bodyClass.add('snapshot');
-    bodyClass.toggle('mirror-swipe');
+    var snapshot = document.getElementById('snapshot');
+    if (mainWrapper.classList.contains('to-left')) {
+      bodyClass.add('snapshot-back');
+    } else {
+      bodyClass.add('snapshot');
+    }
     mainWrapper.classList.toggle('to-left');
-    messagesMirror.addEventListener('transitionend', function rm_snapshot() {
-      messagesMirror.removeEventListener('transitionend', rm_snapshot);
+    snapshot.addEventListener('transitionend', function rm_snapshot() {
+      snapshot.removeEventListener('transitionend', rm_snapshot);
       bodyClass.remove('snapshot');
+      bodyClass.remove('snapshot-back');
       if (callback) {
         callback();
       }
@@ -86,6 +90,7 @@ var MessageManager = {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
                   delete MessageManager.activityTarget;
+                  delete MessageManager.lockActivity;
                 }
               });
             }
@@ -121,10 +126,12 @@ var MessageManager = {
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
           this.getMessages(ThreadListUI.renderThreads);
-          var num = this.getNumFromHash();
-          if (num) {
-            var filter = this.createFilter(num);
-            this.getMessages(ThreadUI.renderMessages, filter);
+          if (!MessageManager.lockActivity) {
+            var num = this.getNumFromHash();
+            if (num) {
+              var filter = this.createFilter(num);
+              this.getMessages(ThreadUI.renderMessages, filter);
+            }
           }
         }
         break;
@@ -455,6 +462,8 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
+      document.getElementById('threads-fixed-container').
+                                                    classList.remove('hide');
       FixedHeader.init('#thread-list-container',
                        '#threads-fixed-container',
                        'h2');
@@ -507,6 +516,7 @@ var ThreadListUI = {
       Utils.updateTimeHeaderScheduler();
 
     } else {
+      document.getElementById('threads-fixed-container').classList.add('hide');
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
             '   <p>' + _('noMessages-title') + '</p>' +
@@ -1258,6 +1268,7 @@ var ThreadUI = {
       return;
     }
     ContactDataManager.searchContactData(string, function gotContact(contacts) {
+      self.view.innerHTML = '';
       if (!contacts || contacts.length == 0) {
         var threadHTML = document.createElement('div');
         threadHTML.classList.add('item');
@@ -1268,7 +1279,6 @@ var ThreadUI = {
         self.view.appendChild(threadHTML);
         return;
       }
-      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
@@ -1360,15 +1370,22 @@ window.addEventListener('localized', function showBody() {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
+  if (MessageManager.lockActivity) 
+    return;
+  MessageManager.lockActivity = true;
+  activity.postResult({ status: 'accepted' });
   var number = activity.source.data.number;
   var activityAction = function act_action() {
     var currentLocation = window.location.hash;
     switch (currentLocation) {
       case '#thread-list':
         window.location.hash = '#num=' + number;
+        delete MessageManager.lockActivity;
         break;
       case '#new':
         window.location.hash = '#num=' + number;
+       delete MessageManager.lockActivity;
         break;
       case '#edit':
         history.back();
@@ -1380,6 +1397,7 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
           window.location.hash = '#thread-list';
         } else {
           window.location.hash = '#num=' + number;
+          delete MessageManager.lockActivity;
         }
         break;
     }
@@ -1391,11 +1409,12 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
-    document.addEventListener('mozvisibilitychange', function waitVisibility() {
-      document.removeEventListener('mozvisibilitychange', waitVisibility);
-      activityAction();
+    document.addEventListener('mozvisibilitychange',
+      function waitVisibility() {
+        document.removeEventListener('mozvisibilitychange', waitVisibility);
+        activityAction();
     });
   }
-  activity.postResult({ status: 'accepted' });
+  
 });
 

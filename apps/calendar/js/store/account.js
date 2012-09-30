@@ -39,7 +39,7 @@
      * related to it must be removed.
      */
     _dependentStores: [
-      'accounts', 'calendars', 'events', 'busytimes'
+      'accounts', 'calendars', 'events', 'busytimes', 'alarms'
     ],
 
     _removeDependents: function(id, trans) {
