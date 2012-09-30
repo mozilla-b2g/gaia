@@ -492,7 +492,7 @@ var ImageUploader = {
             callback(link);
           }
         } else {
-          console.log("Imgur replied: " + xhr.responseText);
+          alert("Imgur replied: " + xhr.responseText);
         }
       });
     };
