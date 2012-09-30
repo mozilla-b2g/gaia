@@ -456,7 +456,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia
