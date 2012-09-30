@@ -269,8 +269,8 @@ HostingProvider.prototype.performOAuth1Login = function() {
         var request_token_ar = request_token_regex.exec(xhr.responseText);
         var request_token_full = request_token_ar[0];
         self.request_token_only = request_token_ar[1];
-	self.keys.token = request_token_ar[1];
-	self.keys.tokenSecret = request_token_ar[2];
+        self.keys.token = request_token_ar[1];
+        self.keys.tokenSecret = request_token_ar[2];
         var authorize =
           self.urls['oauth_authorize'] + '?' + request_token_full;
         self.OAuth1BuildDialogNotif(authorize);
@@ -381,7 +381,7 @@ var ImageUploader = {
       },
       {
         'confirm-img': 'style/images/twitter-bird-light-bgs.png',
-	'login': 'screen_name',
+        'login': 'screen_name',
         'upload': 'https://upload.twitter.com/1/statuses/update_with_media.json',
         'oauth_request_token': 'https://api.twitter.com/oauth/request_token',
         'oauth_authorize': 'https://api.twitter.com/oauth/authorize',
@@ -462,7 +462,7 @@ var ImageUploader = {
 
       this.XHRUpload(this.urls['upload'], picture, function(xhr) {
         var json = JSON.parse(xhr.responseText);
-	if (json && json.upload) {
+        if (json && json.upload) {
           var link = json.upload.links.imgur_page;
           var img = json.upload.image.hash;
           if (link == undefined) {
@@ -471,9 +471,9 @@ var ImageUploader = {
             ImageUploader.setStatus('Uploaded successfully: ' + img);
             callback(link);
           }
-	} else {
+        } else {
           console.log("Imgur replied: " + xhr.responseText);
-	}
+        }
       });
     };
 
@@ -486,9 +486,9 @@ var ImageUploader = {
       },
       {
         'confirm-img': '',
-	'login': 'username',
+        'login': 'username',
         'upload': 'https://secure.flickr.com/services/upload/',
-	'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
+        'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
         'oauth_request_token': 'https://secure.flickr.com/services/oauth/request_token',
         'oauth_authorize': 'https://secure.flickr.com/services/oauth/authorize',
         'oauth_access_token': 'https://secure.flickr.com/services/oauth/access_token'
@@ -517,7 +517,7 @@ var ImageUploader = {
       picture.append('api_key', this.keys['consumerKey']);
 
       this.XHRUpload(url, picture, function(xhr) {
-	console.log("Got reply: " + JSON.stringify(xhr.responseText));
+        console.log("Got reply: " + JSON.stringify(xhr.responseText));
         // var id = json.entities.media[0].id_str;
         // var ex_url = json.entities.media[0].expanded_url;
         ImageUploader.setStatus('Uploaded successfully: ');
@@ -606,11 +606,11 @@ var ImageUploader = {
           if (img != undefined) {
             ImageUploader.setStatus('Preparing upload');
             for (var sid in ImageUploader.services) {
-                var sup = ImageUploader.services[sid];
-  	      if (serv == ('upload-' + sup.id)) {
+              var sup = ImageUploader.services[sid];
+              if (serv == ('upload-' + sup.id)) {
                   sup.upload(img, this.finalize.bind(this));
-  	      }
-	    }
+              }
+            }
           }
         }
       }
