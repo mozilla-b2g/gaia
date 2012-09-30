@@ -508,7 +508,7 @@ var ImageUploader = {
         'confirm-img': '',
         'login': 'username',
         'upload': 'https://secure.flickr.com/services/upload/',
-        'list_albums': 'https://secure.flickr.com/services/rest/?method=flickr.photosets.getList&format=json',
+        'picture_base': 'http://www.flickr.com/photos/',
         'oauth_request_token': 'https://secure.flickr.com/services/oauth/request_token',
         'oauth_authorize': 'https://secure.flickr.com/services/oauth/authorize',
         'oauth_access_token': 'https://secure.flickr.com/services/oauth/access_token'
