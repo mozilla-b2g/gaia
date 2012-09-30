@@ -60,16 +60,20 @@
     }
     #search-header fieldset {
         height: 100%;
+        background: none;
+		border-radius: none;
+		border: none;
+		line-height: 26px;
     }
     #search-q {
         -webkit-appearance: none;
         border: none;
         z-index: 10;
-        padding-left: 0;
-        padding-right: 18px;
+        padding: 2px 18px 4px 0;
         width: 100%;
-        height: auto;
-        top: -2px;
+        height: 26px;
+        top: -1px;
+        display: inline;
         background: transparent;
     }
     #search-q-bg {
