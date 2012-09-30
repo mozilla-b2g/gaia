@@ -19821,7 +19821,11 @@ function ImapProber(credentials, connInfo, _LOG) {
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
   onLoggedIn: function ImapProber_onLoggedIn(err) {
-    if (err)
+    if (err) {
+      this.onError(err);
+      return;
+    }
+    if (!this.onresult)
       return;
 
     console.log('PROBE:IMAP happy');
@@ -19830,11 +19834,13 @@ ImapProber.prototype = {
     var conn = this._conn;
     this._conn = null;
 
-    if (this.onresult)
-      this.onresult(this.accountGood, conn);
+    this.onresult(this.accountGood, conn);
+    this.onresult = false;
   },
 
   onError: function ImapProber_onError(err) {
+    if (!this.onresult)
+      return;
     console.warn('PROBE:IMAP sad', err);
     this.accountGood = false;
     // we really want to make sure we clean up after this dude.
@@ -19845,8 +19851,7 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    if (this.onresult)
-      this.onresult(this.accountGood, null);
+    this.onresult(this.accountGood, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
