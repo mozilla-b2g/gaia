@@ -654,7 +654,7 @@ var SubListView = {
     // shuffle the elements of array a in place
     // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
     function shuffle(a) {
-      for (var i = a.length - 1; i >= 1; i--) {
+      for (var i = a.length - 1; i >= 0; i--) {
         var j = Math.floor(Math.random() * (i + 1));
         if (j < i) {
           var tmp = a[j];
