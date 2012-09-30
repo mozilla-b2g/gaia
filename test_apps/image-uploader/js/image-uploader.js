@@ -96,38 +96,38 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
    section.id = 'confirm-auth';
 
   var div = document.createElement('div');
-   var h3 = document.createElement('h3');
-    h3.innerHTML = 'Confirmation';
-   var div2 = document.createElement('div');
-    div2.className = 'content';
-    var img = document.createElement('img');
-     img.src = this.urls['confirm-img'];
-    var strong = document.createElement('strong');
-     strong.innerHTML = this.name;
-    var small = document.createElement('small');
-     small.innerHTML = 'Authorization';
-    div2.appendChild(img);
-    div2.appendChild(strong);
-    div2.appendChild(small);
+  var h3 = document.createElement('h3');
+  h3.innerHTML = 'Confirmation';
+  var div2 = document.createElement('div');
+  div2.className = 'content';
+  var img = document.createElement('img');
+  img.src = this.urls['confirm-img'];
+  var strong = document.createElement('strong');
+  strong.innerHTML = this.name;
+  var small = document.createElement('small');
+  small.innerHTML = 'Authorization';
+  div2.appendChild(img);
+  div2.appendChild(strong);
+  div2.appendChild(small);
 
-   var p = document.createElement('p');
-   p.innerHTML = 'We now need that you authorize our application. A browser' +
-     'window will get you to ' + this.name + ' website, where you will be able' +
-     'to authenticate yourself and to authorize us. It will give you a PIN' +
-     'code. Please keep it, get back here and fill it in the prompt.';
-   div.appendChild(h3);
-   div.appendChild(div2);
-   div.appendChild(p);
+  var p = document.createElement('p');
+  p.innerHTML = 'We now need that you authorize our application. A browser' +
+    'window will get you to ' + this.name + ' website, where you will be able' +
+    'to authenticate yourself and to authorize us. It will give you a PIN' +
+    'code. Please keep it, get back here and fill it in the prompt.';
+  div.appendChild(h3);
+  div.appendChild(div2);
+  div.appendChild(p);
 
   var menu = document.createElement('menu');
-   menu.dataset.items = 2;
-   var bcancel = document.createElement('button');
-    bcancel.id = 'auth-cancel';
-    bcancel.innerHTML = 'Cancel';
-   var bcontinue = document.createElement('button');
-    bcontinue.id = 'auth-continue';
-    bcontinue.innerHTML = 'Continue';
-    bcontinue.className = 'affirmative';
+  menu.dataset.items = 2;
+  var bcancel = document.createElement('button');
+  bcancel.id = 'auth-cancel';
+  bcancel.innerHTML = 'Cancel';
+  var bcontinue = document.createElement('button');
+  bcontinue.id = 'auth-continue';
+  bcontinue.innerHTML = 'Continue';
+  bcontinue.className = 'affirmative';
   menu.appendChild(bcancel);
   menu.appendChild(bcontinue);
 
@@ -165,40 +165,40 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
 HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
   ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
-   section.setAttribute('role', 'dialog');
-   section.id = 'confirm-pin';
+  section.setAttribute('role', 'dialog');
+  section.id = 'confirm-pin';
 
   var div = document.createElement('div');
-   var h3 = document.createElement('h3');
-    h3.innerHTML = 'Confirmation';
-   var div2 = document.createElement('div');
-    div2.className = 'content';
-    var img = document.createElement('img');
-    var strong = document.createElement('strong');
-     strong.innerHTML = this.name;
-    var small = document.createElement('small');
-     small.innerHTML = 'Authorization';
-    div2.appendChild(img);
-    div2.appendChild(strong);
-    div2.appendChild(small);
+  var h3 = document.createElement('h3');
+  h3.innerHTML = 'Confirmation';
+  var div2 = document.createElement('div');
+  div2.className = 'content';
+  var img = document.createElement('img');
+  var strong = document.createElement('strong');
+  strong.innerHTML = this.name;
+  var small = document.createElement('small');
+  small.innerHTML = 'Authorization';
+  div2.appendChild(img);
+  div2.appendChild(strong);
+  div2.appendChild(small);
 
-   var p = document.createElement('p');
-    p.innerHTML = 'Please enter PIN code given by ' + this.name;
-   var input = document.createElement('input');
-    input.type = 'text';
-    input.id = 'pincode';
-    input.placeholder = 'PIN Code';
-   div.appendChild(h3);
-   div.appendChild(div2);
-   div.appendChild(p);
-   div.appendChild(input);
+  var p = document.createElement('p');
+  p.innerHTML = 'Please enter PIN code given by ' + this.name;
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'pincode';
+  input.placeholder = 'PIN Code';
+  div.appendChild(h3);
+  div.appendChild(div2);
+  div.appendChild(p);
+  div.appendChild(input);
 
   var menu = document.createElement('menu');
-   menu.dataset.items = 1;
-   var bcontinue = document.createElement('button');
-    bcontinue.id = 'pin-continue';
-    bcontinue.innerHTML = 'Continue';
-    bcontinue.className = 'affirmative';
+  menu.dataset.items = 1;
+  var bcontinue = document.createElement('button');
+  bcontinue.id = 'pin-continue';
+  bcontinue.innerHTML = 'Continue';
+  bcontinue.className = 'affirmative';
   menu.appendChild(bcontinue);
 
   var self = this;
@@ -242,27 +242,27 @@ HostingProvider.prototype.OAuth1BuildDialogPIN = function(url) {
 HostingProvider.prototype.OAuth1BuildDialogRevoke = function(callback) {
   ImageUploader.hideBannerStatus();
   var section = document.createElement('section');
-   section.setAttribute('role', 'dialog');
-   section.id = 'confirm-revoke';
+  section.setAttribute('role', 'dialog');
+  section.id = 'confirm-revoke';
 
   var div = document.createElement('div');
-   var h3 = document.createElement('h3');
-    h3.innerHTML = 'Confirmation';
+  var h3 = document.createElement('h3');
+  h3.innerHTML = 'Confirmation';
 
-   var p = document.createElement('p');
-    p.innerHTML = 'Are you sure you want to revoke this ' + this.name + ' account?';
-   div.appendChild(h3);
-   div.appendChild(p);
+  var p = document.createElement('p');
+  p.innerHTML = 'Are you sure you want to revoke this ' + this.name + ' account?';
+  div.appendChild(h3);
+  div.appendChild(p);
 
   var menu = document.createElement('menu');
-   menu.dataset.items = 2;
-   var bcancel = document.createElement('button');
-    bcancel.id = 'revoke-cancel';
-    bcancel.innerHTML = 'Cancel';
-   var bcontinue = document.createElement('button');
-    bcontinue.id = 'revoke-continue';
-    bcontinue.innerHTML = 'Revoke';
-    bcontinue.className = 'negative';
+  menu.dataset.items = 2;
+  var bcancel = document.createElement('button');
+  bcancel.id = 'revoke-cancel';
+  bcancel.innerHTML = 'Cancel';
+  var bcontinue = document.createElement('button');
+  bcontinue.id = 'revoke-continue';
+  bcontinue.innerHTML = 'Revoke';
+  bcontinue.className = 'negative';
   menu.appendChild(bcancel);
   menu.appendChild(bcontinue);
 
@@ -431,18 +431,18 @@ var ImageUploader = {
       }
 
       var label = document.createElement('label');
-        label.id  = 'label-twitter-message';
-        label.for = 'twitter-message';
-        label.innerHTML = 'Your Tweet:';
+      label.id  = 'label-twitter-message';
+      label.for = 'twitter-message';
+      label.innerHTML = 'Your Tweet:';
       var textarea = document.createElement('textarea');
-        textarea.id = 'twitter-message';
-        textarea.className = 'message';
-        textarea.rows = 3;
-        textarea.cols = 50;
-        textarea.maxlength = 140;
-        textarea.addEventListener('focus', ImageUploader.hideBannerStatus, false);
+      textarea.id = 'twitter-message';
+      textarea.className = 'message';
+      textarea.rows = 3;
+      textarea.cols = 50;
+      textarea.maxlength = 140;
+      textarea.addEventListener('focus', ImageUploader.hideBannerStatus, false);
       var p = document.createElement('p');
-        p.id = 'credentials-status';
+      p.id = 'credentials-status';
 
       container.appendChild(label);
       container.appendChild(textarea);
@@ -541,25 +541,25 @@ var ImageUploader = {
       }
 
       var title = document.createElement('input');
-        title.id = 'flickr-title';
-        title.type = 'text';
-        title.placeholder = 'Title';
+      title.id = 'flickr-title';
+      title.type = 'text';
+      title.placeholder = 'Title';
 
       var textarea = document.createElement('input');
-        textarea.id = 'flickr-description';
-        textarea.placeholder = 'Description (can contain some HTML)';
+      textarea.id = 'flickr-description';
+      textarea.placeholder = 'Description (can contain some HTML)';
 
       var tags = document.createElement('input');
-        tags.id = 'flickr-tags';
-        tags.type = 'text';
-        tags.placeholder = 'Tags (space separated)';
+      tags.id = 'flickr-tags';
+      tags.type = 'text';
+      tags.placeholder = 'Tags (space separated)';
 
       container.appendChild(title);
       container.appendChild(textarea);
       container.appendChild(tags);
 
       var visibility = document.createElement('ul');
-        visibility.dataset.state = 'edit';
+      visibility.dataset.state = 'edit';
       var visibles = [
         {name: 'Public', id: 'public', desc: 'Will be marked as public', default: true},
         {name: 'Friend', id: 'friend', desc: 'Will be marked as friend', default: false},
@@ -572,25 +572,25 @@ var ImageUploader = {
         var img = document.createElement('img');
         var label = document.createElement('label');
         label.className = 'check';
-          var input = document.createElement('input');
-          input.type = 'checkbox';
-          input.checked = e.default ? 'checked' : '';
-          input.id = 'flickr-' + e.id;
-          var span = document.createElement('span');
+        var input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = e.default ? 'checked' : '';
+        input.id = 'flickr-' + e.id;
+        var span = document.createElement('span');
 
-          label.appendChild(input);
-          label.appendChild(span);
+        label.appendChild(input);
+        label.appendChild(span);
 
         var dl = document.createElement('dl');
-          var dt = document.createElement('dt');
-          dt.innerHTML = e.name;
-          var dd = document.createElement('dd');
-            var span2 = document.createElement('span');
-            span2.innerHTML = e.desc;
-            dd.appendChild(span2);
+        var dt = document.createElement('dt');
+        dt.innerHTML = e.name;
+        var dd = document.createElement('dd');
+        var span2 = document.createElement('span');
+        span2.innerHTML = e.desc;
+        dd.appendChild(span2);
 
-          dl.appendChild(dt);
-          dl.appendChild(dd);
+        dl.appendChild(dt);
+        dl.appendChild(dd);
 
         li.appendChild(img);
         li.appendChild(label);
@@ -602,83 +602,83 @@ var ImageUploader = {
       container.appendChild(document.createElement('br'));
 
       var lblSafety = document.createElement('label');
-        lblSafety.for = 'flickr-safety';
-        lblSafety.innerHTML = 'Safety level:';
+      lblSafety.for = 'flickr-safety';
+      lblSafety.innerHTML = 'Safety level:';
       var safety = document.createElement('select');
-        safety.id = 'flickr-safety';
-        var safety_default = document.createElement('option');
-          safety_default.innerHTML = 'Default';
-          safety_default.value = '0';
-        var secure = document.createElement('option');
-          secure.innerHTML = 'Secure';
-          secure.value = '1';
-        var moderated = document.createElement('option');
-          moderated.innerHTML = 'Moderated';
-          moderated.value = '2';
-        var restricted = document.createElement('option');
-          restricted.innerHTML = 'Restricted';
-          restricted.value = '3';
+      safety.id = 'flickr-safety';
+      var safety_default = document.createElement('option');
+      safety_default.innerHTML = 'Default';
+      safety_default.value = '0';
+      var secure = document.createElement('option');
+      secure.innerHTML = 'Secure';
+      secure.value = '1';
+      var moderated = document.createElement('option');
+      moderated.innerHTML = 'Moderated';
+      moderated.value = '2';
+      var restricted = document.createElement('option');
+      restricted.innerHTML = 'Restricted';
+      restricted.value = '3';
 
-        safety.appendChild(safety_default);
-        safety.appendChild(secure);
-        safety.appendChild(moderated);
-        safety.appendChild(restricted);
+      safety.appendChild(safety_default);
+      safety.appendChild(secure);
+      safety.appendChild(moderated);
+      safety.appendChild(restricted);
 
       container.appendChild(lblSafety);
       container.appendChild(safety);
       container.appendChild(document.createElement('br'));
 
       var lblType = document.createElement('label');
-        lblType.for = 'flickr-type';
-        lblType.innerHTML = 'Type:';
+      lblType.for = 'flickr-type';
+      lblType.innerHTML = 'Type:';
       var type = document.createElement('select');
-        type.id = 'flickr-type';
-        var type_default = document.createElement('option');
-          type_default.innerHTML = 'Default';
-          type_default.value = '0';
-        var photo = document.createElement('option');
-          photo.innerHTML = 'Classify as photo';
-          photo.value = '1';
-        var screen = document.createElement('option');
-          screen.innerHTML = 'Classify as screenshot';
-          screen.value = '2';
-        var other = document.createElement('option');
-          other.innerHTML = 'Classify as other';
-          other.value = '3';
+      type.id = 'flickr-type';
+      var type_default = document.createElement('option');
+      type_default.innerHTML = 'Default';
+      type_default.value = '0';
+      var photo = document.createElement('option');
+      photo.innerHTML = 'Classify as photo';
+      photo.value = '1';
+      var screen = document.createElement('option');
+      screen.innerHTML = 'Classify as screenshot';
+      screen.value = '2';
+      var other = document.createElement('option');
+      other.innerHTML = 'Classify as other';
+      other.value = '3';
 
-        type.appendChild(type_default);
-        type.appendChild(photo);
-        type.appendChild(screen);
-        type.appendChild(other);
+      type.appendChild(type_default);
+      type.appendChild(photo);
+      type.appendChild(screen);
+      type.appendChild(other);
 
       container.appendChild(lblType);
       container.appendChild(type);
       container.appendChild(document.createElement('br'));
 
       var lblHide = document.createElement('label');
-        lblHide.for = 'flickr-hide';
-        lblHide.innerHTML = 'Hide:';
+      lblHide.for = 'flickr-hide';
+      lblHide.innerHTML = 'Hide:';
       var hide = document.createElement('select');
-        hide.id = 'flickr-hide';
-        var hide_default = document.createElement('option');
-          hide_default.innerHTML = 'Default';
-          hide_default.value = '0';
-        var general = document.createElement('option');
-          general.innerHTML = 'Hide from general searches';
-          general.value = '1';
-        var public = document.createElement('option');
-          public.innerHTML = 'Hide from public searches';
-          public.value = '2';
+      hide.id = 'flickr-hide';
+      var hide_default = document.createElement('option');
+      hide_default.innerHTML = 'Default';
+      hide_default.value = '0';
+      var general = document.createElement('option');
+      general.innerHTML = 'Hide from general searches';
+      general.value = '1';
+      var public = document.createElement('option');
+      public.innerHTML = 'Hide from public searches';
+      public.value = '2';
 
-        hide.appendChild(hide_default);
-        hide.appendChild(general);
-        hide.appendChild(public);
+      hide.appendChild(hide_default);
+      hide.appendChild(general);
+      hide.appendChild(public);
 
       container.appendChild(lblHide);
       container.appendChild(hide);
 
       var p = document.createElement('p');
-        p.id = 'credentials-status';
+      p.id = 'credentials-status';
 
       container.appendChild(p);
       this.updateCredentials();
@@ -743,30 +743,30 @@ var ImageUploader = {
     var li = document.createElement('li')
 
     var img = document.createElement('img');
-     img.src = service.urls['confirm-img'];
+    img.src = service.urls['confirm-img'];
     var label = document.createElement('label');
     label.className = 'check';
-      var input = document.createElement('input');
-      input.type = 'checkbox'
-      input.name = service.id;
-      input.id = 'upload-' + service.id;
-      input.addEventListener('click', this.enableOnly.bind(this), false);
-      var span = document.createElement('span');
+    var input = document.createElement('input');
+    input.type = 'checkbox'
+    input.name = service.id;
+    input.id = 'upload-' + service.id;
+    input.addEventListener('click', this.enableOnly.bind(this), false);
+    var span = document.createElement('span');
 
-      label.appendChild(input)
-      label.appendChild(span);
+    label.appendChild(input)
+    label.appendChild(span);
 
     var dl = document.createElement('dl');
-      var dt = document.createElement('dt');
-      dt.innerHTML = service.name;
-      var dd = document.createElement('dd');
-        var span2 = document.createElement('span');
-        span2.innerHTML = service.auth == false ? 'anonymous' : service.auth;
+    var dt = document.createElement('dt');
+    dt.innerHTML = service.name;
+    var dd = document.createElement('dd');
+    var span2 = document.createElement('span');
+    span2.innerHTML = service.auth == false ? 'anonymous' : service.auth;
 
-        dd.appendChild(span2);
+    dd.appendChild(span2);
 
-      dl.appendChild(dt);
-      dl.appendChild(dd);
+    dl.appendChild(dt);
+    dl.appendChild(dd);
 
     li.appendChild(img);
     li.appendChild(label);
@@ -826,17 +826,17 @@ var ImageUploader = {
     var mimeString;
 
     if (dataURI.split(',')[0].indexOf('base64') >= 0) {
-        // Convert base64 to raw binary data held in a string:
-        byteString = atob(dataURI.split(',')[1]);
+      // Convert base64 to raw binary data held in a string:
+      byteString = atob(dataURI.split(',')[1]);
     } else {
-        // Convert base64/URLEncoded data component to raw binary data:
-        byteString = decodeURIComponent(dataURI.split(',')[1]);
+      // Convert base64/URLEncoded data component to raw binary data:
+      byteString = decodeURIComponent(dataURI.split(',')[1]);
     }
     // Write the bytes of the string to an ArrayBuffer:
     arrayBuffer = new ArrayBuffer(byteString.length);
     intArray = new Uint8Array(arrayBuffer);
     for (var i = 0; i < byteString.length; i += 1) {
-        intArray[i] = byteString.charCodeAt(i);
+      intArray[i] = byteString.charCodeAt(i);
     }
 
     // Separate out the mime component:
