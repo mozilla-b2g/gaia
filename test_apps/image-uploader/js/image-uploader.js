@@ -519,6 +519,143 @@ var ImageUploader = {
         return;
       }
 
+      var title = document.createElement('input');
+        title.id = 'flickr-title';
+        title.type = 'text';
+        title.placeholder = 'Title';
+
+      var textarea = document.createElement('input');
+        textarea.id = 'flickr-description';
+        textarea.placeholder = 'Description (can contain some HTML)';
+
+      var tags = document.createElement('input');
+        tags.id = 'flickr-tags';
+        tags.type = 'text';
+        tags.placeholder = 'Tags (space separated)';
+
+      container.appendChild(title);
+      container.appendChild(textarea);
+      container.appendChild(tags);
+
+      var visibility = document.createElement('ul');
+        visibility.dataset.state = 'edit';
+      var visibles = [
+        {name: 'Public', id: 'public', desc: 'Will be marked as public', default: true},
+        {name: 'Friend', id: 'friend', desc: 'Will be marked as friend', default: false},
+        {name: 'Family', id: 'family', desc: 'Will be marked as family', default: false},
+      ];
+
+      for (var id in visibles) {
+        var e = visibles[id];
+        var li = document.createElement('li');
+        var img = document.createElement('img');
+        var label = document.createElement('label');
+        label.className = 'check';
+          var input = document.createElement('input');
+          input.type = 'checkbox';
+          input.checked = e.default ? 'checked' : '';
+          input.id = 'flickr-' + e.id;
+          var span = document.createElement('span');
+
+          label.appendChild(input);
+          label.appendChild(span);
+
+        var dl = document.createElement('dl');
+          var dt = document.createElement('dt');
+          dt.innerHTML = e.name;
+          var dd = document.createElement('dd');
+            var span2 = document.createElement('span');
+            span2.innerHTML = e.desc;
+            dd.appendChild(span2);
+
+          dl.appendChild(dt);
+          dl.appendChild(dd);
+
+        li.appendChild(img);
+        li.appendChild(label);
+        li.appendChild(dl);
+        visibility.appendChild(li);
+      }
+
+      container.appendChild(visibility);
+      container.appendChild(document.createElement('br'));
+
+      var lblSafety = document.createElement('label');
+        lblSafety.for = 'flickr-safety';
+        lblSafety.innerHTML = 'Safety level:';
+      var safety = document.createElement('select');
+        safety.id = 'flickr-safety';
+        var safety_default = document.createElement('option');
+          safety_default.innerHTML = 'Default';
+          safety_default.value = '0';
+        var secure = document.createElement('option');
+          secure.innerHTML = 'Secure';
+          secure.value = '1';
+        var moderated = document.createElement('option');
+          moderated.innerHTML = 'Moderated';
+          moderated.value = '2';
+        var restricted = document.createElement('option');
+          restricted.innerHTML = 'Restricted';
+          restricted.value = '3';
+
+        safety.appendChild(safety_default);
+        safety.appendChild(secure);
+        safety.appendChild(moderated);
+        safety.appendChild(restricted);
+
+      container.appendChild(lblSafety);
+      container.appendChild(safety);
+      container.appendChild(document.createElement('br'));
+
+      var lblType = document.createElement('label');
+        lblType.for = 'flickr-type';
+        lblType.innerHTML = 'Type:';
+      var type = document.createElement('select');
+        type.id = 'flickr-type';
+        var type_default = document.createElement('option');
+          type_default.innerHTML = 'Default';
+          type_default.value = '0';
+        var photo = document.createElement('option');
+          photo.innerHTML = 'Classify as photo';
+          photo.value = '1';
+        var screen = document.createElement('option');
+          screen.innerHTML = 'Classify as screenshot';
+          screen.value = '2';
+        var other = document.createElement('option');
+          other.innerHTML = 'Classify as other';
+          other.value = '3';
+
+        type.appendChild(type_default);
+        type.appendChild(photo);
+        type.appendChild(screen);
+        type.appendChild(other);
+
+      container.appendChild(lblType);
+      container.appendChild(type);
+      container.appendChild(document.createElement('br'));
+
+      var lblHide = document.createElement('label');
+        lblHide.for = 'flickr-hide';
+        lblHide.innerHTML = 'Hide:';
+      var hide = document.createElement('select');
+        hide.id = 'flickr-hide';
+        var hide_default = document.createElement('option');
+          hide_default.innerHTML = 'Default';
+          hide_default.value = '0';
+        var general = document.createElement('option');
+          general.innerHTML = 'Hide from general searches';
+          general.value = '1';
+        var public = document.createElement('option');
+          public.innerHTML = 'Hide from public searches';
+          public.value = '2';
+
+        hide.appendChild(hide_default);
+        hide.appendChild(general);
+        hide.appendChild(public);
+
+      container.appendChild(lblHide);
+      container.appendChild(hide);
+
       var p = document.createElement('p');
         p.id = 'credentials-status';
 
@@ -526,10 +663,22 @@ var ImageUploader = {
       this.updateCredentials();
     };
     HostingFlickr.upload = function(source, callback) {
+      var extraParams = {
+        title: document.getElementById('flickr-title').value,
+        description: document.getElementById('flickr-description').value,
+        tags: document.getElementById('flickr-tags').value,
+        is_public: document.getElementById('flickr-public').checked ? '1' : '0',
+        is_friend: document.getElementById('flickr-friend').checked ? '1' : '0',
+        is_family: document.getElementById('flickr-family').checked ? '1' : '0',
+        safety_level: document.getElementById('flickr-safety').value,
+        content_type: document.getElementById('flickr-type').value,
+        hidden: document.getElementById('flickr-hide').value
+      };
+
       var payload = this.buildOAuth1Form(
         this.urls['upload'],
         'POST',
-        { }
+        extraParams
       );
 
       var picture = new FormData();
