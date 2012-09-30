@@ -36,6 +36,8 @@ HostingProvider.prototype.performLogin = function() {
   if (this.auth == 'oauth1') {
     return this.performOAuth1Login();
   }
+
+  return false;
 };
 
 HostingProvider.prototype.buildOAuth1URL = function(url, method, parameters) {
