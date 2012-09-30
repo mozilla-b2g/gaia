@@ -377,7 +377,7 @@ var ImageUploader = {
         'upload': 'http://tof.canardpc.com/',
         'confirm-img': 'style/images/canardpc.jpg'}
       );
-    HostingCanardPC.upload = function () {
+    HostingCanardPC.upload = function (source, callback) {
       var picture = new FormData();
       picture.append('email', '');
       picture.append('envoyer', 'envoyer');
