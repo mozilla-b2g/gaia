@@ -462,11 +462,6 @@ const GridManager = (function() {
 
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
-        return;
-      }
-
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
       }
@@ -483,11 +478,6 @@ const GridManager = (function() {
     var max = pageHelper.getMaxPerPage();
 
     pages.forEach(function checkIsOverflow(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
-        return;
-      }
-
       // if the page is not full
       if (page.getNumApps() <= max) {
         return;
@@ -561,7 +551,7 @@ const GridManager = (function() {
 
     /*
      * Returns the total number of apps for each page. It could be
-     * more clever. Currently there're twelve apps for page
+     * more clever. Currently there're sixteen apps for page
      */
     getMaxPerPage: function() {
       return 4 * 4;
@@ -602,7 +592,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = i === landingPageIndex ? new SearchPage(i) : new Page(i);
+        var page = new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
