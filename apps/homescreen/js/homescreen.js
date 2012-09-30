@@ -2,11 +2,6 @@
 'use strict';
 
 const Homescreen = (function() {
-  // Initialize the search page
-  var host = document.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  Search.init(domain);
-
   var mode = 'normal';
 
   // Initialize the pagination scroller

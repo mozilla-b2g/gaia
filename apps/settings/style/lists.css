@@ -65,6 +65,8 @@ ul li > small {
   padding-top: 0.4rem;
   font-size: 1.2rem;
   color: #505859;
+  /* click/tap events should be caught by the <a> element below the <small> */
+  pointer-events: none;
 }
 
 ul li > label:not([for]) + small {

@@ -92,7 +92,7 @@ h2.block-title {
 }
 
 #mainContent {
-  width: -moz-calc(100% + 8rem);
+  width: -moz-calc(100% + 0.8rem);
 
   overflow-x: hidden;
   overflow-y: auto;
@@ -105,8 +105,22 @@ h2.block-title {
   height: -moz-calc(100% - 6.5rem);
 }
 
+.link #main {
+  top: 9rem;
+  height: -moz-calc(100% - 9rem);
+}
+
+.link #mainContent {
+  background: #f4f4f4;
+  height: -moz-calc(100% - 6.9rem);
+}
+
+.link li img {
+  margin-right: 0.8rem;
+}
+
 #groups-list {
-  width: -moz-calc(100% - 5rem - 8rem) !important;
+  width: -moz-calc(100% - 5rem - 0.8rem) !important;
   margin: 0;
   margin-left: 2.5rem;
   padding: 0;
