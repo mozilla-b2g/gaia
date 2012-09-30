@@ -4073,6 +4073,8 @@ MessageComposition.prototype = {
 };
 
 
+const LEGAL_CONFIG_KEYS = ['syncCheckIntervalEnum'];
+
 /**
  * Error reporting helper; we will probably eventually want different behaviours
  * under development, under unit test, when in use by QA, advanced users, and
@@ -4104,7 +4106,17 @@ function MailAPI() {
   this._pendingRequests = {};
 
   /**
-   * Various, unsupported config data.
+   * @dict[
+   *   @key[debugLogging]
+   *   @key[checkInterval]
+   * ]{
+   *   Configuration data.  This is currently populated by data from
+   *   `MailUniverse.exposeConfigForClient` by the code that constructs us.  In
+   *   the future, we will probably want to ask for this from the `MailUniverse`
+   *   directly over the wire.
+   *
+   *   This should be treated as read-only.
+   * }
    */
   this.config = {};
 
@@ -4908,6 +4920,28 @@ MailAPI.prototype = {
       type: 'localizedStrings',
       strings: strings
     });
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Configuration
+
+  /**
+   * Change one-or-more backend-wide settings; use `MailAccount.modifyAccount`
+   * to chang per-account settings.
+   */
+  modifyConfig: function(mods) {
+    for (var key in mods) {
+      if (LEGAL_CONFIG_KEYS.indexOf(key) === -1)
+        throw new Error(key + ' is not a legal config key!');
+    }
+    this.__bridgeSend({
+      type: 'modifyConfig',
+      mods: mods
+    });
+  },
+
+  _recv_config: function(msg) {
+    this.config = msg.config;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -14035,6 +14069,19 @@ MailBridge.prototype = {
     });
   },
 
+  _cmd_modifyConfig: function mb__cmd_modifyConfig(msg) {
+console.log('received modifyConfig');
+    this.universe.modifyConfig(msg.mods);
+console.log('done proc modifyConfig');
+  },
+
+  notifyConfig: function(config) {
+    this.__sendMessage({
+      type: 'config',
+      config: config,
+    });
+  },
+
   _cmd_debugSupport: function mb__cmd_debugSupport(msg) {
     switch (msg.cmd) {
       case 'setLogging':
@@ -15225,10 +15272,11 @@ const quantizeDate = exports.quantizeDate =
       function quantizeDate(date) {
   if (typeof(date) === 'number')
     date = new Date(date);
-  return date.setHours(0, 0, 0, 0).valueOf();
+  return date.setUTCHours(0, 0, 0, 0).valueOf();
 };
 
-}); // end define;
+}); // end define
+;
 define('mailapi/syncbase',
   [
     './date',
@@ -15353,6 +15401,8 @@ exports.BISECT_DATE_AT_N_MESSAGES = 50;
  */
 exports.TOO_MANY_MESSAGES = 2000;
 
+////////////////////////////////////////////////////////////////////////////////
+// Error / Retry Constants
 
 /**
  * What is the maximum number of tries we should give an operation before
@@ -15380,6 +15430,33 @@ exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT = 5;
  */
 exports.DEFERRED_OP_DELAY_MS = 30 * 1000;
 
+////////////////////////////////////////////////////////////////////////////////
+// General defaults
+
+/**
+ * We use an enumerated set of sync values for UI localization reasons; time
+ * is complex and we don't have/use a helper library for this.
+ */
+exports.CHECK_INTERVALS_ENUMS_TO_MS = {
+  'manual': 0, // 0 disables; no infinite checking!
+  '3min': 3 * 60 * 1000,
+  '5min': 5 * 60 * 1000,
+  '10min': 10 * 60 * 1000,
+  '15min': 15 * 60 * 1000,
+  '30min': 30 * 60 * 1000,
+  '60min': 60 * 60 * 1000,
+};
+
+/**
+ * Default to not automatically checking for e-mail for reasons to avoid
+ * degrading the phone experience until we are more confident about our resource
+ * usage, etc.
+ */
+exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Unit test support
 
 /**
  * Testing support to adjust the value we use for the number of initial sync
@@ -15451,10 +15528,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 10 because accounts now have a synchronization range for messages
- * (corresponding to ActiveSync's FilterType).
+ * Bumping to 11 because of the introduction of the sync check interval.
  */
-const CUR_VERSION = 10;
+const CUR_VERSION = 11;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -15897,6 +15973,449 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 
   return callbacks;
 };
+
+}); // end define
+;
+/**
+ * Drives periodic synchronization, covering the scheduling, deciding what
+ * folders to sync, and generating notifications to relay to the UI.  More
+ * specifically, we have two goals:
+ *
+ * 1) Generate notifications about new messages.
+ *
+ * 2) Cause the device to synchronize its offline store periodically with the
+ *    server for general responsiveness and so the user can use the device
+ *    offline.
+ *
+ * We use mozAlarm to schedule ourselves to wake up when our next
+ * synchronization should occur.
+ *
+ * All synchronization occurs in parallel because we want the interval that we
+ * force the device's radio into higher power modes to be as short as possible.
+ *
+ * IMPORTANT ARCHITECTURAL NOTE:  This logic is part of the back-end, not the
+ * front-end.  We want to serve up the notifications, but we want the front-end
+ * to be the one that services them when the user clicks on them.
+ **/
+
+define('mailapi/cronsync',
+  [
+    'rdcommon/log',
+    './allback',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $allback,
+    $module,
+    exports
+  ) {
+
+
+/**
+ * Sanity demands we do not check more frequently than once a minute.
+ */
+const MINIMUM_SYNC_INTERVAL_MS = 60 * 1000;
+
+/**
+ * How long should we let a synchronization run before we give up on it and
+ * potentially try and kill it (if we can)?
+ */
+const MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
+
+/**
+ * Caps the number of notifications we generate per account.  It would be
+ * sitcom funny to let this grow without bound, but would end badly in reality.
+ */
+const MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
+
+/**
+ * Implements the interface of `MailSlice` as presented to `FolderStorage`, but
+ * it is only interested in accumulating a list of new messages that have not
+ * already been read.
+ *
+ * FUTURE WORK: Listen for changes that make a message that was previously
+ * believed to be new no longer new, such as having been marked read by
+ * another client.  We don't care about that right now because we lack the
+ * ability to revoke notifications via the mozNotifications API.
+ */
+function CronSlice(storage, desiredNew, callback) {
+  this._storage = storage;
+  this._callback = callback;
+
+  this.startTS = null;
+  this.startUID = null;
+  this.endTS = null;
+  this.endUID = null;
+  this.waitingOnData = false;
+  this._accumulating = false;
+
+  // Maintain the list of all headers for the IMAP sync logic's benefit for now.
+  // However, we don't bother sorting it; we just care about the length.
+  this.headers = [];
+  this._desiredNew = desiredNew;
+  this._newHeaders = [];
+  // XXX for now, assume that the 10 most recent headers will cover us.  Being
+  // less than (or the same as) the initial fill sync of 15 is advantageous in
+  // that it avoids us triggering a deepening sync on IMAP.
+  this.desiredHeaders = 10;
+  this.ignoreHeaders = false;
+}
+CronSlice.prototype = {
+  set ignoreHeaders(ignored) {
+    // ActiveSync likes to turn on ignoreHeaders mode because it only cares
+    // about the newest messages and it may be told about messages in a stupid
+    // order.  But old 'new' messages are still 'new' to us and we have punted
+    // on analysis, so we are fine with the potential lossage.  Also, the
+    // batch information loses the newness bit we care about...
+    //
+    // And that's why we ignore the manipulation and always return false in
+    // the getter.
+  },
+  get ignoreHeaders() {
+    return false;
+  },
+
+  // (copied verbatim for consistency)
+  sendEmptyCompletion: function() {
+    this.setStatus('synced', true, false);
+  },
+
+  setStatus: function(status, requested, moreExpected, flushAccumulated) {
+    if (requested && !moreExpected && this._callback) {
+console.log('sync done!');
+      this._callback(this._newHeaders);
+      this._callback = null;
+      this.die();
+    }
+  },
+
+  batchAppendHeaders: function(headers, insertAt, moreComing) {
+    this.headers = this.headers.concat(headers);
+    // Do nothing, batch-appended headers are always coming from the database
+    // and so are not 'new' from our perspective.
+  },
+
+  onHeaderAdded: function(header, syncDriven, messageIsNew) {
+    this.headers.push(header);
+    // we don't care if it's not new or was read (on another client)
+    if (!messageIsNew || header.flags.indexOf('\\Seen') !== -1)
+      return;
+
+    // We don't care if we already know about enough new messages.
+    // (We could also try and decide which messages are most important, but
+    // since this behaviour is not really based on any UX-provided guidance, it
+    // would be silly to do that without said guidance.)
+    if (this._newHeaders.length >= this._desiredNew)
+      return;
+    this._newHeaders.push(header);
+  },
+
+  onHeaderModified: function(header) {
+    // Do nothing, modified headers are obviously already known to us.
+  },
+
+  onHeaderRemoved: function(header) {
+    this.headers.pop();
+    // Do nothing, this would be silly.
+  },
+
+  die: function() {
+    this._storage.dyingSlice(this);
+  },
+};
+
+function generateNotificationForMessage(header, onClick, onClose) {
+  // NB: We don't need to use NotificationHelper because we end up doing
+  // something similar ourselves.
+console.log('generating notification for:', header.suid, header.subject);
+  var notif = navigator.mozNotification.createNotification(
+    header.author.name || header.author.address,
+    header.subject,
+    // XXX it makes no sense that the back-end knows the path of the icon,
+    // but this specific function may need to vary based on host environment
+    // anyways...
+    gIconUrl);
+  notif.onclick = onClick.bind(null, header, notif);
+  notif.onclose = onClose.bind(null, header, notif);
+  notif.show();
+  return notif;
+}
+
+var gApp, gIconUrl;
+navigator.mozApps.getSelf().onsuccess = function(event) {
+  gApp = event.target.result;
+  gIconUrl = gApp.installOrigin + '/style/icons/Email.png';
+};
+/**
+ * Try and bring up the given header in the front-end.
+ *
+ * XXX currently, we just cause the app to display, but we don't do anything
+ * to cause the actual message to be displayed.  Right now, since the back-end
+ * and the front-end are in the same app, we can easily tell ourselves to do
+ * things, but in the separated future, we might want to use a webactivity,
+ * and as such we should consider using that initially too.
+ */
+function displayHeaderInFrontend(header) {
+  gApp.launch();
+}
+
+/**
+ * Creates the synchronizer.  It is does not do anything until the first call
+ * to setSyncInterval.
+ */
+function CronSyncer(universe, _logParent) {
+  this._universe = universe;
+  this._syncIntervalMS = 0;
+
+  this._LOG = LOGFAB.CronSyncer(this, null, _logParent);
+
+  /**
+   * @dictof[
+   *   @key[accountId String]
+   *   @value[@dict[
+   *     @key[clickHandler Function]
+   *     @key[closeHandler Function]
+   *     @key[notes Array]
+   *   ]]
+   * ]{
+   *   Terminology-wise, 'notes' is less awkward than 'notifs'...
+   * }
+   */
+  this._outstandingNotesPerAccount = {};
+
+  this._initialized = false;
+  this._hackTimeout = null;
+
+  this._activeSlices = [];
+}
+exports.CronSyncer = CronSyncer;
+CronSyncer.prototype = {
+  /**
+   * Remove any/all scheduled alarms.
+   */
+  _clearAlarms: function() {
+    // mozalarms doesn't work on desktop; comment out and use setTimeout.
+    if (this._hackTimeout !== null) {
+      window.clearTimeout(this._hackTimeout);
+      this._hackTimeout = null;
+    }
+/*
+    var req = navigator.mozAlarms.getAll();
+    req.onsuccess = function(event) {
+      var alarms = event.target.result;
+      for (var i = 0; i < alarms.length; i++) {
+        navigator.mozAlarms.remove(alarms[i].id);
+      }
+    }.bind(this);
+*/
+  },
+
+  _scheduleNextSync: function() {
+    if (!this._syncIntervalMS)
+      return;
+    console.log("scheduling sync for " + (this._syncIntervalMS / 1000) +
+                " seconds in the future.");
+    this._hackTimeout = window.setTimeout(this.onAlarm.bind(this),
+                                          this._syncIntervalMS);
+/*
+    try {
+      console.log('mpozAlarms', navigator.mozAlarms);
+      var req = navigator.mozAlarms.add(
+        new Date(Date.now() + this._syncIntervalMS),
+        'ignoreTimezone', {});
+      console.log('req:', req);
+      req.onsuccess = function() {
+        console.log('scheduled!');
+      };
+      req.onerror = function(event) {
+        console.warn('alarm scheduling problem!');
+        console.warn(' err:',
+                     event.target && event.target.error &&
+                     event.target.error.name);
+      };
+    }
+    catch (ex) {
+      console.error('problem initiating request:', ex);
+    }
+*/
+  },
+
+  setSyncIntervalMS: function(syncIntervalMS) {
+    console.log('setSyncIntervalMS:', syncIntervalMS);
+    var pendingAlarm = false;
+    if (!this._initialized) {
+      this._initialized = true;
+      // mozAlarms doesn't work on b2g-desktop
+      /*
+      pendingAlarm = navigator.mozHasPendingMessage('alarm');
+      navigator.mozSetMessageHandler('alarm', this.onAlarm.bind(this));
+     */
+    }
+
+    // leave zero intact, otherwise round up to the minimum.
+    if (syncIntervalMS && syncIntervalMS < MINIMUM_SYNC_INTERVAL_MS)
+      syncIntervalMS = MINIMUM_SYNC_INTERVAL_MS;
+
+    this._syncIntervalMS = syncIntervalMS;
+
+    // If we have a pending alarm, then our app was loaded to service the
+    // alarm, so we should just let the alarm fire which will also take
+    // care of rescheduling everything.
+    if (pendingAlarm)
+      return;
+
+    this._clearAlarms();
+    this._scheduleNextSync();
+  },
+
+  /**
+   * Synchronize the given account.  Right now this is just the Inbox for the
+   * account.
+   *
+   * XXX For IMAP, we really want to use the standard iterative growth logic
+   * but generally ignoring the number of headers in the slice and instead
+   * just doing things by date.  Since making that correct without breaking
+   * things or making things really ugly will take a fair bit of work, we are
+   * initially just using the UI-focused logic for this.
+   *
+   * XXX because of this, we totally ignore IMAP's number of days synced
+   * value.  ActiveSync handles that itself, so our ignoring it makes no
+   * difference for it.
+   */
+  syncAccount: function(account, doneCallback) {
+    // - Skip syncing if we are offline or the account is disabled
+    if (!this._universe.online || !account.enabled) {
+      doneCallback(null);
+      return;
+    }
+
+    // - find the inbox
+    var folders = account.folders, inboxFolder;
+    // (It would be nice to have a helper for this like the client side has,
+    // but we should probably factor it into a mix-in so all account types
+    // can use it.)
+    for (var iFolder = 0; iFolder < folders.length; iFolder++) {
+      if (folders[iFolder].type === 'inbox') {
+        inboxFolder = folders[iFolder];
+        break;
+      }
+    }
+
+    var storage = account.getFolderStorageForFolderId(inboxFolder.id);
+    // - Skip syncing this account if there is already a sync in progress.
+
+    // XXX for IMAP, there are conceivable edge cases where the user is in the
+    // process of synchronizing a window far back in time but would want to hear
+    // about new messages in the folder.
+    if (storage.syncInProgress) {
+      doneCallback(null);
+      return;
+    }
+
+    // - Figure out how many additional notifications we can generate
+    var outstandingInfo;
+    if (this._outstandingNotesPerAccount.hasOwnProperty(account.id)) {
+      outstandingInfo = this._outstandingNotesPerAccount[account.id];
+    }
+    else {
+      outstandingInfo = this._outstandingNotesPerAccount[account.id] = {
+        clickHandler: function(header, note, event) {
+          var idx = outstandingInfo.notes.indexOf(note);
+          if (idx === -1)
+            console.warn('bad note index!');
+          outstandingInfo.notes.splice(idx);
+          // trigger the display of the app!
+          displayHeaderInFrontend(header);
+        },
+        closeHandler: function(header, note, event) {
+          var idx = outstandingInfo.notes.indexOf(note);
+          if (idx === -1)
+            console.warn('bad note index!');
+          outstandingInfo.notes.splice(idx);
+        },
+        notes: [],
+      };
+    }
+
+    var desiredNew = MAX_MESSAGES_TO_REPORT_PER_ACCOUNT -
+                       outstandingInfo.notes.length;
+
+    // - Initiate a sync of the folder covering the desired time range.
+    this._LOG.syncAccount_begin(account.id);
+    var slice = new CronSlice(storage, desiredNew, function(newHeaders) {
+      this._LOG.syncAccount_end(account.id);
+      doneCallback(null);
+      this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
+      for (var i = 0; i < newHeaders.length; i++) {
+        var header = newHeaders[i];
+        outstandingInfo.notes.push(
+          generateNotificationForMessage(header,
+                                         outstandingInfo.clickHandler,
+                                         outstandingInfo.closeHandler));
+      }
+    }.bind(this));
+    this._activeSlices.push(slice);
+    // use forceDeepening to ensure that a synchronization happens.
+    storage.sliceOpenFromNow(slice, 3, true);
+
+  },
+
+  onAlarm: function() {
+    this._LOG.alarmFired();
+    // It would probably be better if we only added the new alarm after we
+    // complete our sync, but we could have a problem if our sync progress
+    // triggered our death, so we don't do that.
+    this._scheduleNextSync();
+
+    // Kill off any slices that still exist from the last sync.
+    for (var iSlice = 0; iSlice < this._activeSlices.length; iSlice++) {
+      this._activeSlices[iSlice].die();
+    }
+
+    var doneOrGaveUp = function doneOrGaveUp(results) {
+      // XXX add any life-cycle stuff here, like amending the schedule for the
+      // next firing based on how long it took us.  Or if we need to compute
+      // smarter sync notifications across all accounts, do it here.
+    }.bind(this);
+
+    var accounts = this._universe.accounts, accountIds = [], account, i;
+    for (i = 0; i < accounts.length; i++) {
+      account = accounts[i];
+      accountIds.push(account.id);
+    }
+    var callbacks = $allback.allbackMaker(accountIds, doneOrGaveUp);
+    for (i = 0; i < accounts.length; i++) {
+      account = accounts[i];
+      this.syncAccount(account, callbacks[account.id]);
+    }
+  },
+
+  shutdown: function() {
+    // no actual shutdown is required; we want our alarm to stick around.
+  }
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  CronSyncer: {
+    type: $log.DAEMON,
+    events: {
+      alarmFired: {},
+    },
+    TEST_ONLY_events: {
+    },
+    asyncJobs: {
+      syncAccount: { id: false },
+    },
+    errors: {
+    },
+    calls: {
+    },
+    TEST_ONLY_calls: {
+    },
+  },
+});
 
 }); // end define
 ;
@@ -19105,9 +19624,11 @@ function buildSearchQuery(options, extensions, isOrChild) {
               throw new Error('Search option argument must be a Date object'
                               + ' or a parseable date string');
           }
-          searchargs += modifier + criteria + ' ' + args[0].getDate() + '-'
-                        + MONTHS[args[0].getMonth()] + '-'
-                        + args[0].getFullYear();
+          // XXX/NB: We are currently providing UTC-quantized date values, so
+          // we don't want time-zones to skew this and screw us over.
+          searchargs += modifier + criteria + ' ' + args[0].getUTCDate() + '-'
+                        + MONTHS[args[0].getUTCMonth()] + '-'
+                        + args[0].getUTCFullYear();
         break;
         case 'KEYWORD':
         case 'UNKEYWORD':
@@ -19179,6 +19700,7 @@ function buildSearchQuery(options, extensions, isOrChild) {
     if (isOrChild)
       break;
   }
+  console.log('searchargs:', searchargs);
   return searchargs;
 }
 
@@ -19281,8 +19803,10 @@ function parseFetch(str, literalData, fetchData) {
   for (var i=0,len=result.length; i<len; i+=2) {
     if (result[i] === 'UID')
       fetchData.id = parseInt(result[i+1], 10);
-    else if (result[i] === 'INTERNALDATE')
+    else if (result[i] === 'INTERNALDATE') {
+      fetchData.rawDate = result[i+1];
       fetchData.date = parseImapDateTime(result[i+1]);
+    }
     else if (result[i] === 'FLAGS') {
       fetchData.flags = result[i+1].filter(isNotEmpty);
       // simplify comparison for downstream logic by sorting.
@@ -24130,7 +24654,7 @@ MailSlice.prototype = {
    * called when the header is in the time-range of interest and a refresh,
    * cron-triggered sync, or IDLE/push tells us to do so.
    */
-  onHeaderAdded: function(header, syncDriven) {
+  onHeaderAdded: function(header, syncDriven, messageIsNew) {
     if (!this._bridgeHandle)
       return;
 
@@ -24588,6 +25112,15 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
 }
 exports.FolderStorage = FolderStorage;
 FolderStorage.prototype = {
+  /**
+   * Return true if there is another sync happening in this folder right now.
+   * This allows the `CronSyncer` to avoid starting a sync that will immediately
+   * fail because there is a sync-in-progress.  See its logic for more details.
+   */
+  get syncInProgress() {
+    return this._curSyncSlice !== null;
+  },
+
   generatePersistenceInfo: function() {
     if (!this._dirty)
       return null;
@@ -25405,6 +25938,7 @@ FolderStorage.prototype = {
     if (this._curSyncSlice) {
       console.error("Trying to open a slice and initiate a sync when there",
                     "is already an active sync slice!");
+      return;
     }
     // by definition, we must be at the top
     slice.atTop = true;
@@ -25622,10 +26156,8 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     // - Grow startTS
     // Grow the start-stamp to include the oldest continuous accuracy range
     // coverage date.
-    if (this.headerIsOldestKnown(startTS, slice.startUID)) {
-      var syncStartTS = this.getOldestFullSyncDate(startTS);
-      startTS = syncStartTS;
-    }
+    if (this.headerIsOldestKnown(startTS, slice.startUID))
+      startTS = this.getOldestFullSyncDate(startTS);
     // quantize the start date
     if (startTS)
       startTS = quantizeDate(startTS);
@@ -26197,7 +26729,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     }
 
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
-      this._curSyncSlice.onHeaderAdded(header, true);
+      this._curSyncSlice.onHeaderAdded(header, true, true);
     // - Generate notifications for (other) interested slices
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       var date = header.date, uid = header.id;
@@ -26223,7 +26755,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
                   uid > slice.endUID)) {
           continue;
         }
-        slice.onHeaderAdded(header, false);
+        slice.onHeaderAdded(header, false, true);
       }
     }
 
@@ -26279,7 +26811,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
       self._dirtyHeaderBlocks[info.blockId] = block;
 
       if (partOfSync && self._curSyncSlice && !self._curSyncSlice.ignoreHeaders)
-        self._curSyncSlice.onHeaderAdded(header, false);
+        self._curSyncSlice.onHeaderAdded(header, false, false);
       if (self._slices.length > (self._curSyncSlice ? 1 : 0)) {
         for (var iSlice = 0; iSlice < self._slices.length; iSlice++) {
           var slice = self._slices[iSlice];
@@ -26330,7 +26862,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     }
     // (no block update required)
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
-      this._curSyncSlice.onHeaderAdded(header, true);
+      this._curSyncSlice.onHeaderAdded(header, true, false);
   },
 
   deleteMessageHeaderAndBody: function(header) {
@@ -27270,9 +27802,27 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
           });
       });
 
+    // - Adjust DB time range for server skew on INTERNALDATE
+    // See https://github.com/mozilla-b2g/gaia-email-libs-and-more/issues/12
+    // for more in-depth details.  The nutshell is that the server will secretly
+    // apply a timezone to the question we ask it and will not actually tell us
+    // dates lined up with UTC.  Accordingly, we don't want our DB query to
+    // be lined up with UTC but instead the time zone.
+    // XXX STOPGAP HACK for now: just assume the server is in GMT-7 since
+    // yahoo.com appears to be in GMT-7.  We handle this by adding 7 hours
+    // because the search is run using an effective GMT-7, which means that
+    // if it 11:59pm on the day, it would be 6:59am in UTC land.
+    const HACK_TZ_OFFSET = 7 * 60 * 60 * 1000;
+    var skewedStartTS = startTS + HACK_TZ_OFFSET,
+        skewedEndTS = endTS ? endTS + HACK_TZ_OFFSET : null;
+    console.log('Skewed DB lookup. Start: ',
+                skewedStartTS, new Date(skewedStartTS).toUTCString(),
+                'End: ', skewedEndTS,
+                skewedEndTS ? new Date(skewedEndTS).toUTCString() : null);
     this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
     this._reliaSearch(searchOptions, callbacks.search);
-    this._storage.getAllMessagesInImapDateRange(startTS, endTS, callbacks.db);
+    this._storage.getAllMessagesInImapDateRange(skewedStartTS, skewedEndTS,
+                                                callbacks.db);
   },
 
   searchDateRange: function(endTS, startTS, searchParams,
@@ -27328,7 +27878,7 @@ console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
       var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
       newFetcher.on('message', function onNewMessage(msg) {
           msg.on('end', function onNewMsgEnd() {
-console.log('  new fetched, header processing');
+console.log('  new fetched, header processing, INTERNALDATE: ', msg.rawDate);
             newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
 console.log('   header processed');
           });
@@ -32975,6 +33525,7 @@ define('mailapi/mailuniverse',
     './a64',
     './syncbase',
     './maildb',
+    './cronsync',
     './accountcommon',
     'module',
     'exports'
@@ -32985,6 +33536,7 @@ define('mailapi/mailuniverse',
     $a64,
     $syncbase,
     $maildb,
+    $cronsync,
     $acctcommon,
     $module,
     exports
@@ -33229,6 +33781,7 @@ function MailUniverse(callAfterBigBang) {
 
   this._LOG = null;
   this._db = new $maildb.MailDB();
+  this._cronSyncer = new $cronsync.CronSyncer(this);
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
@@ -33274,6 +33827,7 @@ function MailUniverse(callAfterBigBang) {
         nextAccountNum: 0,
         nextIdentityNum: 0,
         debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false,
+        syncCheckIntervalEnum: $syncbase.DEFAULT_CHECK_INTERVAL_ENUM,
       };
       setupLogging();
       self._LOG = LOGFAB.MailUniverse(self, null, null);
@@ -33292,14 +33846,17 @@ function MailUniverse(callAfterBigBang) {
                                       function() {
             // We don't care how they turn out, just that they get a chance
             // to run to completion before we call our bootstrap complete.
-            if (--waitingCount === 0)
+            if (--waitingCount === 0) {
+              self._initFromConfig();
               callAfterBigBang();
+            }
           });
         }
         // Do not let callAfterBigBang get called.
         return;
       }
     }
+    self._initFromConfig();
     callAfterBigBang();
   });
 }
@@ -33368,20 +33925,51 @@ MailUniverse.prototype = {
   // Config / Settings
 
   /**
+   * Perform initial initialization based on our configuration.
+   */
+  _initFromConfig: function() {
+    this._cronSyncer.setSyncIntervalMS(
+      $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[this.config.syncCheckIntervalEnum]);
+  },
+
+  /**
    * Return the subset of our configuration that the client can know about.
    */
   exposeConfigForClient: function() {
     // eventually, iterate over a whitelist, but for now, it's easy...
     return {
       debugLogging: this.config.debugLogging,
+      syncCheckIntervalEnum: this.config.syncCheckIntervalEnum,
     };
   },
 
   modifyConfig: function(changes) {
     for (var key in changes) {
-      this.config[key] = changes[key];
+      var val = changes[key];
+      switch (key) {
+        case 'syncCheckIntervalEnum':
+          if (!$syncbase.CHECK_INTERVALS_ENUMS_TO_MS.hasOwnProperty(val))
+            continue;
+          this._cronSyncer.setSyncIntervalMS(
+            $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[val]);
+          break;
+        case 'debugLogging':
+          break;
+        default:
+          continue;
+      }
+      this.config[key] = val;
     }
     this._db.saveConfig(this.config);
+    this.__notifyConfig();
+  },
+
+  __notifyConfig: function() {
+    var config = this.exposeConfigForClient();
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyConfig(config);
+    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -33649,6 +34237,7 @@ MailUniverse.prototype = {
       var account = this.accounts[iAcct];
       account.shutdown();
     }
+    this._cronSyncer.shutdown();
     this._db.close();
     this._LOG.__die();
   },
