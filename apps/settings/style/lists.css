@@ -190,14 +190,15 @@ ul li > label input[type=range] {
  * The JS polyfill transforms this:
  *
  *   <label>
- *     <input type="range" />
+ *     <input type="range" value="60" />
  *   </label>
  *
  * into this:
  *
  *   <label class="bug344618_polyfill">
  *     <div>
- *       <span></span>
+ *       <span style="width: 60%"></span>
+ *       <span style="left: 60%"></span>
  *     </div>
  *     <input type="range" />
  *   </label>
@@ -221,8 +222,14 @@ ul li > label.bug344618_polyfill div {
   background-repeat: no-repeat;
 }
 
+/* fill */
+ul li > label.bug344618_polyfill div span:first-child {
+  position: absolute;
+  left: 0;
+}
+
 /* throbber */
-ul li > label.bug344618_polyfill div span {
+ul li > label.bug344618_polyfill div span:last-child {
   position: absolute;
   left: 25%;
   display: block;
