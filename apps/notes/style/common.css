@@ -1,0 +1,687 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+    font-weight: normal;
+}
+html {
+    background: #000;
+}
+body, input, textarea {
+    font: normal 100% 'Open Sans',Arial,Sans-Serif;
+}
+body {
+    width: 320px;
+    height: 460px;
+    margin: 0 auto;
+    background: #fff;
+}
+
+
+.card > .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    height: 48px;
+    line-height: 46px;
+    color: #fff;
+    padding: 0 56px 0 41px;
+    background: #c4582b;
+    background: -moz-linear-gradient(50% 0, #cd6723, #bb482d);
+    border-bottom: 1px solid #9a3124;
+    -moz-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .4);
+    -webkit-box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .4);
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, .4);
+}
+    .card .header h1 {
+        font-size: 22px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .card .header input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        font-size: 22px;
+        width: 100%;
+        height: 46px;
+        background: transparent;
+        border: none;
+        color: #fff;
+        padding: 0 56px 0 40px;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+        display: none;
+    }
+    .edit-title .header h1 {
+        display: none;
+    }
+    .edit-title .header input {
+        display: block;
+        z-index: 50;
+    }
+    .card .header b {
+        position: absolute;
+        cursor: pointer;
+        font-size: 0;
+        overflow: hidden;
+        text-indent: -100px;
+        z-index: 100;
+    }
+    .card .header b.topleft {
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 30px;
+        border-right: 1px solid rgba(255, 255, 255, .3);
+        -moz-box-shadow: -1px 0 0 0 rgba(0, 0, 0, .3) inset;
+        -webkit-box-shadow: -1px 0 0 0 rgba(0, 0, 0, .3) inset;
+        box-shadow: -1px 0 0 0 rgba(0, 0, 0, .3) inset;
+    }
+    #button-notebook-menu:before {
+        -moz-transform: scale(.7, 1);
+        -webkit-transform: scale(.7, 1);
+        transform: scale(.7, 1);
+    }
+    .card .header b.topright {
+        top: 8px;
+        bottom: 8px;
+        right: 0;
+        width: 50px;
+        border-left: 1px solid rgba(0, 0, 0, .3);
+        -moz-box-shadow: 1px 0 0 0 rgba(255, 255, 255, .3) inset;
+        -webkit-box-shadow: 1px 0 0 0 rgba(255, 255, 255, .3) inset;
+        box-shadow: 1px 0 0 0 rgba(255, 255, 255, .3) inset;
+    }
+    .card .header b.topleft:active {
+        background: -moz-linear-gradient(50% 0, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, .18));
+    }
+    
+.card .footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    line-height: 40px;
+    z-index: 50;
+    color: #fff;
+    text-align: center;
+    background: rgba(0, 0, 0, .8);
+}
+    .card .footer b {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 40px;
+        font-size: 0;
+        text-indent: -100px;
+        cursor: pointer;
+    }
+    .card .footer .bottomleft {
+        left: 5px;
+    }
+    .card .footer .bottomright {
+        right: 10px;
+    }
+    .card .footer select {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 50px;
+        height: 40px;
+        opacity: 0;
+    }
+    
+.card > .content {
+    position: absolute;
+    top: 49px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 40px;
+    z-index: 30;
+    overflow-y: auto;
+}
+
+.notebook-notes {
+    list-style-type: none;
+    min-height: 100%;
+    padding-bottom: 40px;
+}
+    .notebook-notes li {
+        position: relative;
+        font-size: 13px;
+        min-height: 21px;
+        overflow: hidden;
+        padding: 12px 40px 12px 20px;
+        border-bottom: 1px solid #dbd9d9;
+        cursor: pointer;
+    }
+        .notebook-notes li .title {
+            font-size: 18px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .notebook-notes li .time {
+            font-size: 13px;
+            color: #666;
+        }
+        .notebook-notes li .image {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 30px;
+            background-size: cover;
+            background-position: 0 50%;
+            background-repeat: no-repeat;
+        }
+        .notebook-notes li b {
+            font-weight: bold;
+        }
+
+#note {
+
+}
+#note.card > .content {
+    top: 85px;
+}
+#note.card > .footer {
+    display: none;
+}
+    #note #note-content, #note .demo-content {
+        background: transparent;
+        border: none;
+        width: 100%;
+        min-height: 250px;
+        padding: 20px;
+        line-height: 130%;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    #note .demo-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0;
+    }
+    #note.show-empty #note-content {
+    }
+    #note.has-images #note-content {
+    }
+    #note #note-resources {
+        list-style-type: none;
+        color: #2c2c2c;
+        font-size: 13px;
+        margin: 0 15px 15px 15px;
+    }
+        #note #note-resources li {
+            position: relative;
+            margin-top: 15px;
+        }
+        
+        #note #note-resources .image {
+            height: 60px;
+            padding-left: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+            #note #note-resources .image:before {
+                content: "";
+                background: transparent url('../images/sprite.png') -240px -80px no-repeat;
+                position: absolute;
+                top: 0;
+                left: 70px;
+                width: 10px;
+                height: 22px;
+            }
+            #note #note-resources .image span {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 60px;
+                height: 60px;
+                background-position: 50% 50%;
+                background-repeat: no-repeat;
+                background-size: cover;
+            }
+        
+    #note #button-note-save {
+        opacity: 0;
+        pointer-events: none;
+        -moz-transition: opacity 150ms linear;
+        -webkit-transition: opacity 150ms linear;
+        transition: opacity 150ms linear;
+    }
+    #note #button-note-save.visible {
+        opacity: 1;
+        pointer-events: inherit;
+    }
+    
+#note.card.readonly > .content {
+    top: 49px;
+}
+    #note.readonly #note-edit-actions {
+        display: none;
+    }
+    #note.readonly #button-note-save {
+        display: none;
+    }
+    #note.readonly #note-content {
+        pointer-events: none;
+    }
+    #note.readonly > .footer {
+        display: block;
+    }
+    
+#note-edit-actions {
+    position: absolute;
+    top: 49px;
+    left: 0;
+    right: 0;
+    list-style-type: none;
+    background: #c9c7c7;
+    border-bottom: 1px solid #c9c7c7;
+}
+    #note-edit-actions:after {
+        display: list-item;
+        float: none;
+        clear: both;
+        height: 0;
+        width: 0;
+    }
+    #note-edit-actions li {
+        position: relative;
+        float: left;
+        width: 20%;
+        height: 36px;
+        line-height: 36px;
+        font-size: 0;
+        text-indent: -100px;
+        cursor: pointer;
+        border-right: 1px solid #a6a5a5;
+        border-left: 1px solid #d9d8d8;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    #note-edit-actions li:first-child {
+        background: #fff;
+        border-left: none;
+    }
+    #note-edit-actions li:last-child {
+        border-right: none;
+    }
+    
+    
+#image-fullscreen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #000;
+    z-index: 600;
+    display: none;
+}
+#image-fullscreen.visible {
+    display: block;
+}
+    #image-fullscreen .image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+        background-size: contain;
+    }
+    #image-fullscreen .footer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        line-height: 40px;
+        padding: 0 50px;
+        z-index: 50;
+        background: rgba(0, 0, 0, .8);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+.empty {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    display: none;
+}
+    .empty p {
+        position: absolute;
+        top: 50%;
+        left: 24px;
+        right: 24px;
+        color: #606060;
+        font-size: 21px;
+        line-height: 130%;
+        padding-top: 5px;
+        margin-top: -25px;
+        border-top: 1px solid rgba(0, 0, 0, .5);
+    }
+#main.show-empty .empty, #note.show-empty:not(.has-images):not(.readonly) .empty {
+    display: block;
+}
+
+#notebooks {
+    background: #3b3b3b;
+    color: #fff;
+    -moz-box-shadow: -5px 0 5px 0 rgba(0, 0, 0, .3) inset;
+    -webkit-box-shadow: -5px 0 5px 0 rgba(0, 0, 0, .3) inset;
+    box-shadow: -5px 0 5px 0 rgba(0, 0, 0, .3) inset;
+}
+    #notebooks h2 {
+        position: relative;
+        height: 47px;
+        line-height: 47px;
+        font-size: 22px;
+        padding: 0 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, .1);
+        -moz-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .3);
+        -webkit-box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .3);
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .3);
+    }
+        #notebooks h2 #button-new-notebook {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 50px;
+            cursor: pointer;
+        }
+    #notebooks .card-next {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50px;
+        right: -50px;
+        cursor: pointer;
+    }
+    #notebooks-list {
+        list-style-type: none;
+    }
+        #notebooks-list li {
+            border-bottom: 1px solid #616666;
+            padding: 13px 20px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+
+#search {
+    position: relative;
+    padding: 5px 20px;
+    background: #e4e4e4;
+    background: -moz-linear-gradient(50% 0, #f8f8f8, #dbd9d9);
+}
+    #search input {
+        height: 25px;
+        width: 100%;
+        padding: 0 24px 0 4px;
+        background: #fff;
+        border: 1px solid #b0b0b0;
+        border-radius: 3px;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+
+#note-info {
+    background: #e1e1e5;
+}
+    #note-info > .content {
+        background: -moz-linear-gradient(50% 0, #efeff1, #e1e1e5);
+    }
+    #note-info .fields {
+        list-style-type: none;
+        font-size: 15px;
+    }
+        #note-info .fields li {
+            position: relative;
+            height: 42px;
+            line-height: 42px;
+            padding: 0 30px 0 131px;
+            text-align: right;
+            border-bottom: 1px solid #e3e3e4;
+        }
+            #note-info .fields li label {
+                position: absolute;
+                top: 0;
+                left: 30px;
+                bottom: 0;
+                display: inline-block;
+                text-align: left;
+                width: 100px;
+            }
+                #note-info .fields li label:before {
+                    content: "";
+                    position: absolute;
+                    top: 5px;
+                    bottom: 5px;
+                    right: -1px;
+                    width: 1px;
+                    background: #c4c4c5;
+                }
+                #note-info .fields li label:after {
+                    content: "";
+                    position: absolute;
+                    top: 5px;
+                    bottom: 5px;
+                    right: -2px;
+                    width: 1px;
+                    background: #fdfdfd;
+                }
+                
+            #note-info .fields li .value {
+                position: relative;
+            }
+            #note-info .fields li select {
+                background: transparent;
+                border-width: 0;
+            }
+
+
+.search-results #main .header,
+.search-results #main .footer,
+.search-results #main .empty {
+    display: none;
+}
+.search-results #main .content {
+    top: 0;
+}
+.search-results .trashed {
+    opacity: .6;
+}
+
+
+.notifier {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 36px;
+    line-height: 36px;
+    font-size: 14px;
+    padding: 0 20px;
+    color: #fff;
+    font-weight: 400;
+    background: #565d65;
+    z-index: 400;
+    pointer-events: none;
+    opacity: 0;
+    -moz-transition: all 300ms ease;
+    -webkit-transition: all 300ms ease;
+    transition: all 300ms ease;
+}
+.notifier.visible {
+    opacity: 1;
+    -moz-transform: translate3d(0, -40px, 0);
+    -webkit-transform: translate3d(0, -40px, 0);
+    transform: translate3d(0, -40px, 0);
+}
+
+
+.sprited:before {
+    content: "";
+    background: transparent url('../images/sprite.png') 0 0 no-repeat;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    pointer-events: none;
+}
+#button-new-notebook:before {
+    background-position: -120px 0;
+    width: 21px;
+    height: 20px;
+    margin: -10px 0 0 -10.5px;
+}
+#button-notebook-menu:before {
+    background-position: -80px 0;
+    width: 26px;
+    height: 21px;
+    margin: -10.5px 0 0 -14px;
+}
+#button-notebook-add:before {
+    background-position: -120px 0;
+    width: 21px;
+    height: 20px;
+    margin: -10px 0 0 -10.5px;
+
+}
+#button-note-save:before {
+    background-position: -40px 0;
+    width: 27px;
+    height: 22px;
+    margin: -11px 0 0 -13px;
+}
+#button-note-cancel:before {
+    background-position: 0 0;
+    width: 17px;
+    height: 17px;
+    margin: -8.5px 0 0 -9px;
+}
+.readonly #button-note-cancel:before {
+    background-position: -280px -40px;
+    width: 11px;
+    height: 17px;
+    margin: -8px 0 0 -5px;
+}
+#button-notebook-search:before {
+    background-position: -160px 0;
+}
+#button-notebook-sortby:before {
+    background-position: -280px 0;
+    width: 18px;
+    height: 17px;
+    margin: -8.5px 0 0 -9px;
+}
+#search:before {
+    background-position: -200px 0;
+    width: 18px;
+    height: 17px;
+    margin: -8.5px 0 0 0;
+    left: auto;
+    right: 23px;
+}
+.empty:before {
+    background-position: 0 -40px;
+    width: 150px;
+    height: 183px;
+    margin: -92px 0 0 -75px;
+}
+.notebook-fake .empty:before {
+    background-position: 0 -240px;
+}
+
+#note-edit-actions .type:before {
+    background-position: -200px -40px;
+    width: 20px;
+    height: 20px;
+    margin: -9px 0 0 -10px;
+}
+#note-edit-actions .photo:before {
+    background-position: -200px -80px;
+    width: 28px;
+    height: 22px;
+    margin: -10px 0 0 -14px;
+}
+#note-edit-actions .info:before {
+    background-position: -200px -120px;
+    width: 24px;
+    height: 24px;
+    margin: -10px 0 0 -12px;
+}
+#note-edit-actions .share:before {
+    background-position: -200px -160px;
+    width: 22px;
+    height: 24px;
+    margin: -10px 0 0 -11px;
+}
+#note-edit-actions .delete:before {
+    background-position: -200px -200px;
+    width: 24px;
+    height: 26px;
+    margin: -11px 0 0 -12px;
+}
+
+#button-note-restore:before {
+    background-position: -240px -40px;
+    width: 28px;
+    height: 26px;
+    margin: -11px 0 0 -14px;
+}
+#button-note-delete:before {
+    background-position: -200px -200px;
+    width: 24px;
+    height: 26px;
+    margin: -11px 0 0 -12px;
+}
+
+#note-info .topleft:before {
+    background-position: -280px -40px;
+    width: 11px;
+    height: 17px;
+    margin: -8px 0 0 -5px;
+}
+
+#button-resource-close:before {
+    background-position: 0 0;
+    width: 17px;
+    height: 17px;
+    margin: -8.5px 0 0 -9px;
+}
+#button-resource-delete:before {
+    background-position: -200px -200px;
+    width: 24px;
+    height: 26px;
+    margin: -11px 0 0 -12px;
+}

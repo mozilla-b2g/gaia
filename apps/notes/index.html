@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1" />
+        
+        <title>Notes</title>
+        
+        
+        <link href="style/dialog.css" rel="Stylesheet" type="text/css" />
+        <script src="js/dialog.js" type="text/javascript"></script>
+        
+        
+        <script src="js/db.js" type="text/javascript"></script>
+        <script src="js/models.js" type="text/javascript"></script>
+        <script src="js/Console.js" type="text/javascript"></script>
+        <script src="js/Searcher.js" type="text/javascript"></script>
+        <script src="js/Cards.js" type="text/javascript"></script>
+        
+        <script src="js/common.js" type="text/javascript"></script>
+        
+        <link href="style/common.css" rel="Stylesheet" type="text/css" />
+    </head>
+    <body onload="App.init();">
+        <div id="container" class="cards">
+            <div class="card drawer" id="notebooks" data-gutter="50">
+                <h2>Notebooks <b id="button-new-notebook" class="sprited"></b></h2>
+                <b class="card-next"></b>
+                <ul id="notebooks-list"></ul>
+            </div>
+            <div class="card active" id="main">
+                <div class="header">
+                    <b class="topleft sprited card-prev" id="button-notebook-menu">Notebooks</b>
+                    <h1></h1>
+                    <input type="text" value="" id="edit-notebook-name" name="edit-notebook-name" />
+                    <b class="topright sprited" id="button-notebook-add">Add</b>
+                </div>
+                <div class="content">
+                    <form method="get" action="" id="search" class="sprited" onsubmit="return false;">
+                        <input type="text" id="searchNotes" name="searchNotes" />
+                    </form>
+                    <ul class="notebook-notes"></ul>
+                    <div class="empty sprited" id="empty-notebook">
+                        <p></p>
+                    </div>
+                </div>
+                <div class="footer" id="notebook-footer">
+                    <b id="button-notebook-search" class="sprited bottomleft">Search</b>
+                    <b id="button-notebook-sortby" class="sprited bottomright">Sort By</b>
+                </div>
+            </div>
+            <div class="card" id="note">
+                <div class="header">
+                    <b class="topleft sprited" id="button-note-cancel">Cancel</b>
+                    <h1></h1>
+                    <input type="text" value="" id="edit-note-name" name="edit-note-name" />
+                    <b class="topright sprited" id="button-note-save">Save</b>
+                </div>
+                <ul id="note-edit-actions">
+                    <li class="sprited type">Type</li>
+                    <li class="sprited photo">Attach Photo</li>
+                    <li class="sprited info">Settings</li>
+                    <li class="sprited share">Share</li>
+                    <li class="sprited delete">Delete</li>
+                </ul>
+                <div class="content">
+                    <textarea id="note-content"></textarea>
+                    <ul id="note-resources"></ul>
+                    <div class="empty sprited">
+                        <p>tap anywhere to start</p>
+                    </div>
+                </div>
+                <div class="footer">
+                    <b id="button-note-restore" class="sprited bottomleft">Restore</b>
+                    <b id="button-note-delete" class="sprited bottomright">Delete</b>
+                </div>
+                <div id="image-fullscreen">
+                    <div class="image"></div>
+                    <div class="footer">
+                        <b id="button-resource-close" class="sprited bottomleft">Close</b>
+                        <span class="name"></span>
+                        <b id="button-resource-delete" class="sprited bottomright">Delete</b>
+                    </div>
+                </div>
+            </div>
+            <div class="card" id="note-info">
+                <div class="header">
+                    <b class="topleft sprited card-prev">Back to Note</b>
+                    <h1>Note Info</h1>
+                </div>
+                <div class="content">
+                    <ul class="fields"></ul>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

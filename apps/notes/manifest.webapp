@@ -1,0 +1,19 @@
+{
+  "name": "Notes",
+  "description": "Notes app",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "DoAT",
+    "url": "http://everything.me/"
+  },
+  "permissions": [
+    "device-storage:pictures",
+    "location"
+  ],
+  "orientation": "portrait-primary",
+  "locales": {},
+  "default_locale": "en-US",
+  "icons": {
+    "64": "/images/icon.png"
+  }
+}
