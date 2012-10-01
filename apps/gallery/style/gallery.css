@@ -30,7 +30,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view, #crop-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -384,68 +384,12 @@ footer {
 }
 
 #pick-top {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-
   /*
    * we want the user to be able to push the back button even if
    * an overlay is displayed, so be sure that this titlebar/toolbar
    * is above the overlay
    */
   z-index: 2;
-}
-
-#pick-back-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/back.png');
-}
-
-#pick-header {
-  position: absolute;
-  width: 75%;
-  height: 100%;
-  left: 25%;
-  margin-top: 15px;
-}
-
-#crop-top {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-#crop-back-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/back.png');
-}
-
-#crop-header {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 25%;
-  margin-top: 15px;
-}
-
-#crop-done-button {
-  position: absolute;
-  width: 25%;
-  height: 100%;
-  left: 75%;
-  background-image: url('images/actionicon_done.png');
 }
 
 /* like .photoFrame */
@@ -532,7 +476,7 @@ footer {
   top: 10px;
   left: 10px;
   width: 300px;  /* I can't do right: 10px here. Bug? */
-  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
+  height: calc(100% - 10px)  /* can't just set bottom: 10px here */
 }
 
 #edit-crop-canvas { 

@@ -61,23 +61,25 @@
       </footer>
     </section>
 
-    <div id="pick-view" class="hidden">
-      <div id="pick-top">
-        <a id="pick-back-button" class="button"></a>
-        <div id="pick-header" data-l10n-id="pickoneimage"></div>
-      </div>
-    </div>
+    <section role="region" id="pick-view" class="hidden skin-organic">
+      <header id="pick-top">
+        <button id="pick-back-button"><span class="icon icon-back"></span></button>
+        <h1 id="pick-header" data-l10n-id="pickoneimage"></h1>
+      </header>
+    </section>
 
-    <div id="crop-view" class="hidden">
-      <div id="crop-top">
-        <a id="crop-back-button" class="button"></a>
-        <div id="crop-header" data-l10n-id="cropimage"></div>
-        <a id="crop-done-button" class="button"></a>
-      </div>
+    <section role="region" id="crop-view" class="hidden skin-organic">
+      <header id="crop-top">
+        <button id="crop-back-button"><span class="icon icon-back"></span></button>
+        <menu type="toolbar">
+          <button id="crop-done-button">Done</button>
+        </menu>
+        <h1 id="crop-header" data-l10n-id="cropimage"></h1>
+      </header>
       <div id="crop-frame">
-        <img id="crop-image">
+        <img id="crop-image"></img>
       </div>
-    </div>
+    </section>
     
     <div id="open-view" class="hidden">
       <div id="open-frame"><img id="open-image"></div>

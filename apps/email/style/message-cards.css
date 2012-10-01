@@ -203,6 +203,9 @@
 }
 
 .msg-attachments-container {
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  line-height: 4rem;
 }
 
 .msg-peep-bubble {
@@ -222,6 +225,7 @@
 
 .msg-attachment-item {
   list-style-type: none;
+  height: 4rem;
 }
 .msg-attachment-icon {
 }

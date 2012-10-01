@@ -57,6 +57,18 @@ var gWifiManager = (function(window) {
     }
   };
 
+  function getFakeNetworks() {
+    var request = { result: fakeNetworks };
+
+    setTimeout(function() {
+      if (request.onsuccess) {
+        request.onsuccess();
+      }
+    }, 1000);
+
+    return request;
+  }
+
   return {
     // true if the wifi is enabled
     enabled: false,
@@ -81,17 +93,9 @@ var gWifiManager = (function(window) {
       return request;
     },
 
-    // returns a list of visible networks
-    getNetworks: function fakeGetNetworks() {
-      var request = { result: fakeNetworks };
-
-      setTimeout(function() {
-        if (request.onsuccess)
-          request.onsuccess();
-      }, 2000);
-
-      return request;
-    },
+    // returns a list of visible/known networks
+    getNetworks: getFakeNetworks,
+    getKnownNetworks: getFakeNetworks,
 
     // selects a network
     associate: function fakeAssociate(network) {
@@ -261,7 +265,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     function wpsDialog(dialogID, callback) {
       var dialog = document.getElementById(dialogID);
       if (!dialog)
-        return null;
+        return;
 
       // hide dialog box
       function pinChecksum(pin) {
@@ -473,6 +477,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     };
   }) (document.getElementById('wifi-availableNetworks'));
 
+  // saved network list
   var gKnownNetworkList = (function knownNetworkList(list) {
     // clear the network list
     function clear() {
@@ -483,10 +488,18 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // propose to forget a network
     function forgetNetwork(network) {
-      if (window.confirm(_('forgetNetwork'))) {
+      var dialog = document.querySelector('#wifi-manageNetworks form');
+      dialog.hidden = false;
+      dialog.onsubmit = function forget() {
         gWifiManager.forget(network);
         scan();
-      }
+        dialog.hidden = true;
+        return false;
+      };
+      dialog.onreset = function cancel() {
+        dialog.hidden = true;
+        return false;
+      };
     }
 
     // list known networks
@@ -524,6 +537,11 @@ window.addEventListener('localized', function wifiSettings(evt) {
     openDialog('wifi-manageNetworks');
   };
 
+  // join hidden network
+  document.getElementById('joinHidden').onclick = function joinHiddenNetwork() {
+    toggleNetwork();
+  }
+
   function isConnected(network) {
     /**
      * XXX the API should expose a 'connected' property on 'network',
@@ -537,7 +555,11 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
   // UI to connect/disconnect
   function toggleNetwork(network) {
-    if (isConnected(network)) {
+    if (!network) {
+      // offline, hidden SSID
+      network = {};
+      wifiDialog('wifi-joinHidden', wifiConnect);
+    } else if (isConnected(network)) {
       // online: show status + offer to disconnect
       wifiDialog('wifi-status', wifiDisconnect);
     } else if (network.password && (network.password == '*')) {
@@ -546,7 +568,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       setPassword();
       wifiConnect();
     } else {
-      // offline, unknonw network: offer to connect
+      // offline, unknown network: propose to connect
       var key = getKeyManagement();
       switch (key) {
         case 'WEP':
@@ -592,7 +614,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         network.psk = password;
       } else if (key == 'WPA-EAP') {
         network.password = password;
-        if (identity) {
+        if (identity && identity.length) {
           network.identity = identity;
         }
       }
@@ -602,55 +624,83 @@ window.addEventListener('localized', function wifiSettings(evt) {
     // generic wifi property dialog
     function wifiDialog(dialogID, callback, key) {
       var dialog = document.getElementById(dialogID);
-      if (!network)
-        return null;
-
-      // network info
-      var keys = network.capabilities;
-      var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-      dialog.querySelector('[data-ssid]').textContent = network.ssid;
-      dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
-      dialog.querySelector('[data-security]').textContent =
-          (keys && keys.length) ? keys.join(', ') : _('securityNone');
-
-      // additional connection info (when connected)
-      var ipAddress = dialog.querySelector('[data-ip]'); // IP address
-      var speed = dialog.querySelector('[data-speed]'); // link speed
-      function updateNetInfo() {
-        var info = gWifiManager.connectionInformation;
-        ipAddress.textContent = info.ipAddress || '';
-        speed.textContent = _('linkSpeedMbs', { linkSpeed: info.linkSpeed });
-      }
-      if (speed && ipAddress) {
-        gWifiManager.connectionInfoUpdate = updateNetInfo;
-        updateNetInfo();
-      }
 
       // authentication fields
-      if (key) {
-        var identity = dialog.querySelector('input[name=identity]');
+      var identity, password, showPassword;
+      if (dialogID != 'wifi-status') {
+        identity = dialog.querySelector('input[name=identity]');
         identity.value = network.identity || '';
 
-        var password = dialog.querySelector('input[name=password]');
+        password = dialog.querySelector('input[name=password]');
         password.type = 'password';
         password.value = network.password || '';
 
-        var showPassword = dialog.querySelector('input[name=show-pwd]');
+        showPassword = dialog.querySelector('input[name=show-pwd]');
         showPassword.checked = false;
         showPassword.onchange = function() {
           password.type = this.checked ? 'text' : 'password';
         };
+      }
 
-        var submitButton = dialog.querySelector('button[type=submit]');
-        if (key === 'WPA-PSK') {
-          password.onchange = function() {
-            submitButton.disabled = password.value.length < 8;
-          };
-          password.onchange();
-        } else {
-          password.onchange = function() {};
-          submitButton.disabled = false;
-        }
+      // disable the "OK" button if the password is too short
+      if (password) {
+        var checkPassword = function checkPassword() {
+          var disabled = false;
+          switch (key) {
+            case 'WPA-PSK':
+              disabled = disabled || (password && password.value.length < 8);
+              break;
+            case 'WPA-EAP':
+              disabled = disabled || (identity && identity.value.length < 1);
+            case 'WEP':
+              disabled = disabled || (password && password.value.length < 1);
+              break;
+          }
+          dialog.querySelector('button[type=submit]').disabled = disabled;
+        };
+        password.oninput = checkPassword;
+        identity.oninput = checkPassword;
+        checkPassword();
+      }
+
+      // initialisation
+      switch (dialogID) {
+        case 'wifi-status':
+          // we're connected, let's display some connection info
+          var ipAddress = dialog.querySelector('[data-ip]'); // IP address
+          var speed = dialog.querySelector('[data-speed]'); // link speed
+          var updateNetInfo = function() {
+            var info = gWifiManager.connectionInformation;
+            ipAddress.textContent = info.ipAddress || '';
+            speed.textContent =
+                _('linkSpeedMbs', { linkSpeed: info.linkSpeed });
+          }
+          gWifiManager.connectionInfoUpdate = updateNetInfo;
+          updateNetInfo();
+
+        case 'wifi-auth':
+          // network info -- #wifi-status and #wifi-auth
+          var keys = network.capabilities;
+          var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+          dialog.querySelector('[data-ssid]').textContent = network.ssid;
+          dialog.querySelector('[data-signal]').textContent =
+              _('signalLevel' + sl);
+          dialog.querySelector('[data-security]').textContent =
+              (keys && keys.length) ? keys.join(', ') : _('securityNone');
+          dialog.className = key;
+          break;
+
+        case 'wifi-joinHidden':
+          var security = dialog.querySelector('select');
+          var onSecurityChange = function() {
+            key = security.selectedIndex ? security.value : '';
+            network.capabilities = [key];
+            dialog.className = key;
+            checkPassword();
+          }
+          security.onchange = onSecurityChange;
+          onSecurityChange();
+          break;
       }
 
       // reset dialog box
@@ -658,8 +708,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         if (speed) {
           gWifiManager.connectionInfoUpdate = null;
         }
-        // reset authentication fields
-        if (key) {
+        if (dialogID != 'wifi-status') {
           identity.value = '';
           password.value = '';
           showPassword.checked = false;
@@ -723,10 +772,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
        */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
-      document.querySelector('#macAddress small').textContent =
-        gWifiManager.macAddress;
-      document.querySelector('[data-l10n-id="macAddress"] span').textContent =
-        gWifiManager.macAddress; // XXX should be stored in a setting
+      var mac = document.querySelectorAll('[data-l10n-id="macAddress"] span');
+      for (var i = 0; i < mac.length; i++) {
+        mac[i].textContent = gWifiManager.macAddress;
+      } // XXX should be stored in a 'deviceinfo.mac' setting
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {

@@ -322,6 +322,8 @@
               <input class="cmp-subject-text" type="text" />
             </div>
           </div>
+          <ul class="cmp-attachments-container">
+          </ul>
           <textarea class="cmp-body-text" rows="1"></textarea>
           <div class="cmp-body-html">
           </div>
@@ -392,6 +394,10 @@
         </div>
         <div class="sup-error-region collapsed">
           <span class="sup-error-message"></span>
+          <button class="sup-manual-config-btn sup-form-btn"
+                  data-l10n-id="setup-manual-config">
+            ManuallY SetuP AccounT
+          </button>
         </div>
       </div>
       <!-- Account all setup, add another or read your mail? -->
@@ -410,6 +416,62 @@
                 data-l10n-id="setup-show-mail">
           ContinuE tO MaiL
         </button>
+      </div>
+
+      <div class="card-setup-manual-config form-card card">
+        <div class="sup-account-header top-header">
+          <button class="sup-back-btn header-left-btn back-btn">
+            <span class="icon icon-back"></span>
+          </button>
+          <h2 class="sup-account-header-label header-label"
+              data-l10n-id="setup-manual-config-header">ManuaL SetuP</h2>
+        </div>
+        <div class="sup-form">
+          <span data-l10n-id="setup-manual-account-type">AccounT TypE</span>
+          <!-- These don't need L10N as they are protocol names. -->
+          <select class="mail-select sup-manual-account-type">
+            <option value="imap+smtp">IMAP+SMTP</option>
+            <option value="activesync">ActiveSync</option>
+          </select>
+
+          <div class="sup-manual-imap-smtp">
+            <h2 data-l10n-id="setup-manual-imap-header">ImaP SettingS</h2>
+            <input class="sup-manual-imap-username sup-form-text" type="text"
+                   placeholder="UsernamE" />
+            <input class="sup-manual-imap-hostname sup-form-text" type="text"
+                   placeholder="HostnamE" />
+            <input class="sup-manual-imap-port sup-form-text" type="text"
+                   placeholder="PorT" />
+            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
+            <select class="mail-select sup-manual-imap-socket">
+              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                SsL</option>
+            </select>
+
+            <h2 data-l10n-id="setup-manual-smtp-header">SmtP SettingS</h2>
+            <input class="sup-manual-smtp-username sup-form-text" type="text"
+                   placeholder="UsernamE" />
+            <input class="sup-manual-smtp-hostname sup-form-text" type="text"
+                   placeholder="HostnamE" />
+            <input class="sup-manual-smtp-port sup-form-text" type="text"
+                   placeholder="PorT" />
+            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
+            <select class="mail-select sup-manual-smtp-socket">
+              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                SsL</option>
+            </select>
+          </div>
+
+          <div class="sup-manual-activesync collapsed">
+            <h2 data-l10n-id="setup-manual-activesync-header">
+              ActivesynC SettingS</h2>
+            <input class="sup-manual-activesync-hostname sup-form-text"
+                   type="text" placeholder="HostnamE" />
+          </div>
+
+          <button class="sup-manual-next-btn sup-form-btn"
+                  data-l10n-id="setup-manual-next">NexT</button>
+        </div>
       </div>
 
       <div class="card-setup-fix-password card">
@@ -455,17 +517,21 @@
               <span data-l10n-id="settings-check-mail" class="list-text">
                 ChecK MaiL</span>
               <em class="aside end">
-                <select class="mail-select">
-                  <option value="1" data-l10n-id="settings-check-three">
-                    3 Minutes</option>
-                  <option value="2" data-l10n-id="settings-check-five">
-                    5 Minutes</option>
-                  <option value="3" data-l10n-id="settings-check-ten">
-                    10 Minutes</option>
-                  <option value="4" data-l10n-id="settings-check-fifteen">
-                    15 Minutes</option>
-                  <option value="5" data-l10n-id="settings-check-manually">
+                <select class="tng-main-check-interval mail-select">
+                  <option value="manual" data-l10n-id="settings-check-manual">
                     Manually</option>
+                  <option value="3min" data-l10n-id="settings-check-3min">
+                    3 Minutes</option>
+                  <option value="5min" data-l10n-id="settings-check-5min">
+                    5 Minutes</option>
+                  <option value="10min" data-l10n-id="settings-check-10min">
+                    10 Minutes</option>
+                  <option value="15min" data-l10n-id="settings-check-15min">
+                    15 Minutes</option>
+                  <option value="30min" data-l10n-id="settings-check-30min">
+                    30 Minutes</option>
+                  <option value="60min" data-l10n-id="settings-check-60min">
+                    60 Minutes</option>
                 </select>
               </em>
             </li>
@@ -736,6 +802,11 @@
         <li class="cmp-contact-menu-delete menu-item"
             data-l10n-id="message-edit-menu-delete">DeletE</li>
       </ul>
+      <li class="cmp-attachment-item">
+        <span class="cmp-attachment-icon">&amp;</span>
+        <span class="cmp-attachment-filename"></span>
+        <span class="cmp-attachment-filesize"></span>
+      </li>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">

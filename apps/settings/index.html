@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -23,6 +24,9 @@
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
+    <!-- Async. Storage -->
+    <script type="application/javascript" src="/shared/js/async_storage.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
@@ -34,15 +38,17 @@
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
+    <script type="application/javascript" defer src="js/icc.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
     <script type="application/javascript" defer src="js/sound.js"></script>
     <script type="application/javascript" defer src="js/phone_lock.js"></script>
     <script type="application/javascript" defer src="js/factory_reset.js"></script>
+    <script type="application/javascript" defer src="js/icc.js"></script>
   </head>
   <body class="hidden skin-organic">
 
-    <!-- Connectivity :: Wi-Fi :: Network Status Dialog -->
+    <!-- Connectivity :: Wi-Fi :: Network Status -->
     <section role="region" id="wifi-status" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -77,7 +83,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: Network Authentication Dialog -->
+    <!-- Connectivity :: Wi-Fi :: Network Authentication -->
     <section role="region" id="wifi-auth" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -99,29 +105,70 @@
             <span data-signal>good</span>
           </a>
         </li>
-        <li>
+        <li class="identity">
           <p data-l10n-id="identity">identity</p>
-          <input type="text" data-identity data-ignore name="identity" />
+          <input type="text" data-ignore name="identity" />
         </li>
-        <li>
+        <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-password data-ignore name="password" maxlength="63" />
-          <label for="show-pwd">
-            <input type="checkbox" data-ignore id="show-pwd" name="show-pwd" />
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-auth">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi :: WPS Dialog -->
+    <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
+    <section role="region" id="wifi-joinHidden" data-leaf>
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="authentication"> Authentication </h1>
+      </header>
+
+      <!-- network properties + identity/password input -->
+      <ul>
+        <li>
+          <p data-l10n-id="ssid-name">SSID Network Name</p>
+          <input type="text" data-ignore name="ssid" />
+        </li>
+        <li>
+          <a data-l10n-id="security">security
+            <select>
+              <option data-l10n-id="securityNone">none</option>
+              <option>WEP</option>
+              <option checked>WPA-PSK</option>
+              <option>WPA-EAP</option>
+            </select>
+          </a>
+        </li>
+        <li class="identity">
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-ignore name="identity" />
+        </li>
+        <li class="password">
+          <p data-l10n-id="password">password</p>
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-joinHidden">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi :: WPS -->
     <section role="region" id="wifi-wps" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1> Wi-Fi Protected Setup </h1>
+        <h1 data-l10n-id="wps"> Wi-Fi Protected Setup </h1>
       </header>
 
       <header>
@@ -156,15 +203,24 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: Wi-Fi -->
+    <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section role="region" id="wifi-manageNetworks">
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="knownNetworks">
-          Known Networks
-        </h1>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <h1 data-l10n-id="manageNetworks"> Manage Networks </h1>
       </header>
 
+      <ul>
+        <li>
+          <a data-l10n-id="macAddress"> MAC address
+            <span data-name="deviceinfo.mac"></span>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="knownNetworks"> Known Networks </h2>
+      </header>
       <ul id="wifi-knownNetworks">
         <!--
           - filled by wifi.js — one list item per known network, e.g.:
@@ -174,15 +230,32 @@
           -   </li>
           -->
       </ul>
+
+      <header>
+        <h2 data-l10n-id="hiddenNetworks"> Hidden Networks </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
+          </label>
+        </li>
+      </ul>
+
+      <!-- action menu -->
+      <form role="dialog" hidden>
+        <menu>
+          <button data-l10n-id="forgetNetwork">Forget network</button>
+          <button data-l10n-id="cancel" type="reset">Cancel</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Connectivity :: Wi-Fi -->
     <section role="region" id="wifi">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="wifi">
-          Wi-Fi
-        </h1>
+        <h1 data-l10n-id="wifi"> Wi-Fi </h1>
       </header>
 
       <ul>
@@ -235,10 +308,6 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
-        <li id="macAddress">
-          <small id="macAddress-desc"></small>
-          <a data-l10n-id="macAddress">MAC Address</a>
-        </li>
         <li>
           <label>
             <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
@@ -247,7 +316,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings Dialog -->
+    <!-- Connectivity :: 3G/data :: APN Settings -->
     <section role="region" id="apnSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -271,7 +340,7 @@
 
       <!-- Advanced APN settings -->
       <header>
-        <h2 data-l10n-id="advancedSettings">Advanced Settings</h2>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul id="apnSettings-advanced">
         <li>
@@ -297,7 +366,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: MMS Settings Dialog -->
+    <!-- Connectivity :: 3G/data :: MMS Settings -->
     <section role="region" id="mmsSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -328,9 +397,7 @@
     <section role="region" id="data">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="cellularAndData">
-          Cellular &amp; Data
-        </h1>
+        <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
       </header>
 
       <ul>
@@ -405,9 +472,7 @@
     <section role="region" id="bluetooth">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bluetooth">
-          Bluetooth
-        </h1>
+        <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
       </header>
 
       <ul>
@@ -437,6 +502,7 @@
         Turn Bluetooth on to view devices in the area.
       </div>
 
+      <!-- paired devices -->
       <header id="bluetooth-paired-title">
         <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
       </header>
@@ -444,6 +510,7 @@
         <!-- filled by bluetooth.js -->
       </ul>
 
+      <!-- available devices -->
       <header id="bluetooth-found-title">
         <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
       </header>
@@ -461,21 +528,15 @@
         </li>
       </ul>
 
-      <!-- popup menu -->
-      <ul id="paired-device-option" class="popup" hidden>
-        <li id="connect-option">
-          <a data-l10n-id="device-option-connect">Connect</a>
-        </li>
-        <li id="disconnect-option">
-          <a data-l10n-id="device-option-disconnect">Disconnect</a>
-        </li>
-        <li id="unpair-option">
-          <a data-l10n-id="device-option-unpair">Unpair</a>
-        </li>
-        <li id="cancel-option">
+      <!-- action menu -->
+      <form role="dialog" id="paired-device-option" hidden>
+        <menu>
+          <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>
+          <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
+          <button data-l10n-id="device-option-unpair" id="unpair-option">Unpair</button>
           <button data-l10n-id="cancel">Cancel</button>
-        </li>
-      </ul>
+        </menu>
+      </form>
     </section>
 
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
@@ -485,7 +546,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings">HotSpot Settings</h1>
+        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
       </header>
 
       <!-- wifi hotspot settings -->
@@ -514,9 +575,7 @@
     <section role="region" id="hotspot">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="internetSharing">
-          Internet Sharing
-        </h1>
+        <h1 data-l10n-id="internetSharing"> Internet Sharing </h1>
       </header>
 
       <header>
@@ -586,7 +645,7 @@
         <menu type="toolbar">
           <button data-l10n-id="done" type="submit">Done</button>
         </menu>
-        <h1 data-l10n-id="select-tone">Select a Tone</h1>
+        <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
       <header>
@@ -637,9 +696,7 @@
     <section role="region" id="sounds">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="sound">
-          Sound
-        </h1>
+        <h1 data-l10n-id="sound"> Sound </h1>
       </header>
 
       <!-- Ring and Vibrate -->
@@ -668,6 +725,7 @@
         <li>
           <label>
             <input type="range" name="audio.volume.master" min="0.1" value="0.5" max="1">
+            <span class="range-icons volume"></span>
           <label>
         </li>
         <li>
@@ -712,9 +770,7 @@
     <section role="region" id="display" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="display">
-          Display
-        </h1>
+        <h1 data-l10n-id="display"> Display </h1>
       </header>
 
       <ul>
@@ -748,6 +804,7 @@
         <li id="brightness-manual">
           <label>
             <input type="range" name="screen.brightness" min="0.1" value="0.5" max="1" />
+            <span class="range-icons brightness"></span>
           </label>
         </li>
       </ul>
@@ -757,9 +814,7 @@
     <section role="region" id="notifications" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="notifications">
-          Notifications
-        </h1>
+        <h1 data-l10n-id="notifications"> Notifications </h1>
       </header>
 
       <ul>
@@ -772,13 +827,11 @@
         </li>
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones)-->
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
     <section role="region" id="timezone-zones" data-leaf>
       <header>
         <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone">
-          Select Time Zone
-        </h1>
+        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
       </header>
 
       <ul id="timezone-zones-list">
@@ -786,13 +839,11 @@
       </ul>
     </section>
 
-    <!-- Personalization :: Date & Time :: Time Zone (Continent)-->
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
     <section role="region" id="timezone-continent">
       <header>
         <a href="#time"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent">
-          Select Continent
-        </h1>
+        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
       </header>
 
       <ul id="timezone-continents">
@@ -804,9 +855,7 @@
     <section role="region" id="time">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="dateAndTime">
-          Date &amp; Time
-        </h1>
+        <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
       <ul>
@@ -845,9 +894,7 @@
     <section role="region" id="languages" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="languageAndRegion">
-          Language &amp; Region
-        </h1>
+        <h1 data-l10n-id="languageAndRegion"> Language &amp; Region </h1>
       </header>
 
       <ul>
@@ -897,9 +944,7 @@
     <section role="region" id="keyboard" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="keyboard">
-          Keyboard
-        </h1>
+        <h1 data-l10n-id="keyboard"> Keyboard </h1>
       </header>
 
       <ul>
@@ -927,7 +972,7 @@
       </ul>
 
       <header>
-        <h2>Layouts</h2>
+        <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
       </header>
       <ul>
         <li>
@@ -1022,10 +1067,7 @@
       </ul>
     </section>
 
-    <!-- [TODO] Accounts :: Persona -->
-
-    <!-- [TODO] Accounts :: Mail -->
-
+    <!-- Security :: Phone Lock :: PIN Input -->
     <section role="region" id="passcode-panel" data-leaf>
       <header>
         <a href="#phoneLock"><span class="icon icon-back">back</span></a>
@@ -1035,19 +1077,12 @@
         <menu type="toolbar" data-mode="create">
           <button id="passcode-create" data-l10n-id="create">Create</button>
         </menu>
-        <h1 data-l10n-id="create-passcode" data-mode="create">
-           Create a Passcode
-        </h1>
-        <h1 data-l10n-id="current-passcode" data-mode="edit">
-           Current Passcode
-        </h1>
-        <h1 data-l10n-id="new-passcode" data-mode="new">
-           New Passcode
-        </h1>
-        <h1 data-l10n-id="enter-passcode" data-mode="confirm">
-           Enter Passcode
-        </h1>
+        <h1 data-l10n-id="create-passcode"  data-mode="create">  Create a Passcode </h1>
+        <h1 data-l10n-id="current-passcode" data-mode="edit">    Current Passcode  </h1>
+        <h1 data-l10n-id="new-passcode"     data-mode="new">     New Passcode      </h1>
+        <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
+
       <div class="passcode-overlay">
         <input type="number" id="passcode-input" />
         <div class="passcode-container">
@@ -1075,9 +1110,7 @@
     <section role="region" id="phoneLock" data-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="phoneLock">
-          Phone Lock
-        </h1>
+        <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
       </header>
 
       <ul>
@@ -1114,9 +1147,7 @@
       </ul>
     </section>
 
-    <!-- [TODO] Security :: Phone Lock -->
-
-    <!-- Security :: SIM Security :: SIM PIN Input Dialog -->
+    <!-- Security :: SIM Security :: SIM PIN Input -->
     <section role="region" id="simpin-dialog" data-leaf>
       <header>
         <button type="reset">
@@ -1174,9 +1205,7 @@
     <section role="region" id="sim">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="simSecurity">
-          SIM Security
-        </h1>
+        <h1 data-l10n-id="simSecurity"> SIM Security </h1>
       </header>
 
       <ul>
@@ -1216,9 +1245,7 @@
     <section role="region" id="doNotTrack" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="doNotTrack">
-          Do Not Track
-        </h1>
+        <h1 data-l10n-id="doNotTrack"> Do Not Track </h1>
       </header>
 
       <ul>
@@ -1249,13 +1276,11 @@
       </dl>
     </section>
 
-    <!-- Device :: Information :: Developer -->
+    <!-- Device :: Information :: More Information :: Developer -->
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="developer">
-          Developer
-        </h1>
+        <h1 data-l10n-id="developer"> Developer </h1>
       </header>
 
       <header>
@@ -1314,12 +1339,13 @@
        </ul>
     </section>
 
-    <!-- Device :: Information :: More Information Dialog -->
-    <section role="region" id="more-info" data-leaf>
+    <!-- Device :: Information :: More Information -->
+    <section role="region" id="more-info">
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
         <h1 data-l10n-id="more-info"> More Information </h1>
       </header>
+
       <ul>
         <li>
           <a data-l10n-id="model-name"> Model
@@ -1342,9 +1368,31 @@
           </label>
         </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="gaia-commit-hash"></small>
+          <a id="gaia-commit-date"></a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button onclick="openDialog('developer');"
+              data-l10n-id="developer">Developer</button>
+          </label>
+        </li>
+      </ul>
     </section>
 
-    <!-- Device :: Information :: About your rights Dialog -->
+    <!-- Device :: Information :: About Your Rights -->
     <section role="region" id="about-your-rights" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1387,7 +1435,7 @@
       </ul>
     </section>
 
-    <!-- Device :: Information :: About your privacy Dialog -->
+    <!-- Device :: Information :: About Your Privacy -->
     <section role="region" id="about-your-privacy" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
@@ -1404,11 +1452,11 @@
       </ul>
     </section>
 
-    <!-- Device :: Information :: Licensing Dialog -->
+    <!-- Device :: Information :: Licensing -->
     <section role="region" id="licensing" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <h1 data-l10n-id="licensing">  Licensing </h1>
+        <h1 data-l10n-id="licensing"> Licensing </h1>
       </header>
 
       <ul>
@@ -1454,9 +1502,7 @@
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceInfo">
-          Device Information
-        </h1>
+        <h1 data-l10n-id="deviceInfo"> Device Information </h1>
       </header>
       <ul>
         <li>
@@ -1540,31 +1586,13 @@
           </label>
         </li>
       </ul>
-
-      <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      </header>
-      <ul>
-        <li>
-          <small id="gaia-commit-hash"></small>
-          <a id="gaia-commit-date"></a>
-        </li>
-        <li>
-          <label>
-            <button onclick="openDialog('developer');"
-              data-l10n-id="developer">Developer</button>
-          </label>
-        </li>
-      </ul>
     </section>
 
     <!-- Device :: Battery -->
     <section role="region" id="battery" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="battery">
-          Battery
-        </h1>
+        <h1 data-l10n-id="battery"> Battery </h1>
       </header>
 
       <ul>
@@ -1609,9 +1637,7 @@
     <section role="region" id="device-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage">
-          Device Storage
-        </h1>
+        <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
       </header>
 
       <ul>
@@ -1661,9 +1687,7 @@
     <section role="region" id="media-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="mediaStorage">
-          Media Storage
-        </h1>
+        <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
 
       <ul>
@@ -1694,20 +1718,18 @@
     <section role="region" id="accessibility" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="accessibility">
-          Accessibility
-        </h1>
+        <h1 data-l10n-id="accessibility"> Accessibility </h1>
       </header>
 
       <ul>
-        <li hidden>
+        <li>
           <label>
             <input type="checkbox" name="accessibility.invert"/>
             <span></span>
           </label>
           <a data-l10n-id="invertColors">Invert Colors</a>
         </li>
-        <li hidden>
+        <li>
           <label>
             <input type="checkbox" name="accessibility.screenreader"/>
             <span></span>
@@ -1721,9 +1743,7 @@
     <section role="region" id="help" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="helpAndFeedback">
-          Help
-        </h1>
+        <h1 data-l10n-id="helpAndFeedback"> Help </h1>
       </header>
 
       <ul>
@@ -1745,10 +1765,36 @@
       </ul>
     </section>
 
+    <!-- SIM Toolkit :: Application -->
+    <section role="region" id="icc-stk-app" data-leaf>
+      <header>
+        <button id="icc-stk-app-back"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="done">Done</span></button>
+        </menu>
+        <!-- the title content is filled by icc.js -->
+        <h1 id="icc-stk-selection-header"> STK Application Name </h1>
+      </header>
+      <ul id="icc-stk-selection">
+        <!-- filled by icc.js -->
+      </ul>
+    </section>
+
+    <!-- SIM Toolkit -->
+    <section role="region" id="icc">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 id="icc-stk-operator-header"> SIM Toolkit </h1>
+      </header>
+      <ul id="icc-stk-apps">
+        <!-- filled by icc.js -->
+      </ul>
+    </section>
+
     <!-- Main List -->
     <section role="region" id="root">
       <header>
-        <h1 data-l10n-id="settings">Settings</h1>
+        <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <!-- Main :: Network & Connectivity -->
@@ -1878,7 +1924,19 @@
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
         </li>
       </ul>
+
+      <!-- Main :: SIM Toolkit -->
+      <header>
+        <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="icc-desc"></small>
+          <a href="#icc" data-l10n-id="simToolkit" id="iccMenuItem">SIM Toolkit</a>
+        </li>
+      </ul>
     </section>
+
   </body>
 </html>
 

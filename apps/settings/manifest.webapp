@@ -33,7 +33,7 @@
         "target": "simpin-unlock"
        },
       "disposition": "inline",
-      "href": "unlock-simpin.html",
+      "href": "unlock_simpin.html",
       "returnValue": true
     }
   },
@@ -43,7 +43,8 @@
                "bluetooth-authorize", 
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
-               "bluetooth-hfp-status-changed"],
+               "bluetooth-hfp-status-changed",
+               "icc-stkcommand"],
   "locales": {
     "ar": {
       "name": "الضبط",

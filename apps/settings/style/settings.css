@@ -59,13 +59,13 @@ body.hidden * {
   transition: visibility 0s ease .5s, transform .5s ease;
 }
 
-section[role="region"]:target {
+[role="region"]:target {
   visibility: visible;
   transform: translateX(0);
   transition: visibility 0s ease, transform .5s ease;
 }
 
-section[role="region"]:target ~ section[role="region"]:not([data-leaf]) {
+[role="region"]:target ~ [role="region"]:not([data-leaf]) {
   transform: translateX(-100%);
 }
 
@@ -98,6 +98,7 @@ body.hidden #root {
 [dir=rtl] [role="region"] {
   transform: translateX(-100%);
 }
+
 [dir=rtl] #root {
   transform: translateX(+100%);
 }
@@ -176,24 +177,61 @@ body.hidden #root {
 
 
 /******************************************************************************
- * Wi-Fi dialogs
+ * Wi-Fi settings
  */
 
-#wifi-status, #wifi-auth {
-  font-size: 1.8rem;
+label[for^="pwd"] {
+  margin-top: -1rem;
+  padding-left: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  font-size: 1.5rem;
 }
 
-/* hide identity field by default */
+/* three-state items: on|off|ready */
 
-#wifi-auth label[for=identity] {
+ul[data-state="off"] ~ *,
+ul[data-state] li[data-state] {
   display: none;
 }
 
-#wifi-auth.WPA-EAP label[for=identity] {
+ul[data-state="on"] li[data-state="on"],
+ul[data-state="off"] li[data-state="off"],
+ul[data-state="ready"] li[data-state="ready"] {
   display: block;
 }
 
-/* APN Settings */
+/* 'show password' checkboxes */
+
+label[for="show-pwd"] {
+  margin: -1rem 0 1rem 3rem;
+  height: 2rem;
+  line-height: 2rem;
+  font-size: 1.4rem;
+}
+
+/* hide identifier field on non-EAP networks */
+
+section.WPA-EAP li.identity {
+  display: block;
+}
+
+/* hide password field on open networks */
+
+section li.password {
+  display: none;
+}
+
+section.WEP li.password,
+section.WPA-PSK li.password,
+section.WPA-EAP li.password {
+  display: block;
+}
+
+
+/******************************************************************************
+ * APN settings
+ */
 
 #apnSettings-custom {
   font-style: italic;
@@ -205,44 +243,7 @@ body.hidden #root {
 
 
 /******************************************************************************
- * Bluetooth panel
- */
-
-.popup {
-  bottom: 0;
-  left: 0.5rem;
-  margin: 0;
-  position: fixed;
-  background-color: white;
-  border: 0.1rem solid black;
-  border-radius: 0.6rem;
-  padding: 0.8rem;
-  width: 90%;
-}
-
-#paired-device-option li {
-  height: 4.6rem;
-  min-height: 4.6rem;
-}
-
-#paired-device-option li > a {
-  line-height: 2em;
-  padding: 0;
-}
-
-#paired-device-option #cancel-option {
-  height: 4.6rem;
-  min-height: 4.6rem;
-}
-
-#paired-device-option #cancel-option button {
-  height: calc(100% - 1rem);
-  line-height: normal;
-}
-
-
-/******************************************************************************
- * Sound
+ * Sound settings
  */
 
 .tone-select {
@@ -264,5 +265,31 @@ body.hidden #root {
   margin-left: 11rem;
   margin-top: -1rem;
   margin-bottom: 0.5rem;
+}
+
+
+/******************************************************************************
+ * Volume & Brightness: min/max icons
+ */
+
+ul li > label .range-icons {
+  position: absolute;
+  top: calc(50% - 1.5rem);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0 auto;
+  width: calc(100% - 6rem);
+  height: 3rem;
+}
+
+ul li > label .range-icons.volume {
+  background: url(images/range_icons_volume_min.png) no-repeat 0 50%,
+              url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+}
+
+ul li > label .range-icons.brightness {
+  background: url(images/range_icons_brightness_min.png) no-repeat 0 50%,
+              url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
 }
 

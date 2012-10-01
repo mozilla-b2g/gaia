@@ -827,6 +827,7 @@ $('thumbnails-delete-button').onclick = function() {
     // selections, it might have noticably bad performance.  If so, we
     // can write a more efficient deleteImages() function.
     for (var i = 0; i < selected.length; i++) {
+      selected[i].classList.toggle('selected');
       deleteImage(parseInt(selected[i].dataset.index));
     }
     updateSelectionState();
