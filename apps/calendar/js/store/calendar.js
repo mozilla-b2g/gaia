@@ -6,13 +6,22 @@
     this._remoteByAccount = Object.create(null);
   }
 
+  /**
+   * List of possible calendar capabilities.
+   */
+  Store.capabilities = {
+    createEvent: 'canCreateEvent',
+    updateEvent: 'canUpdateEvent',
+    deleteEvent: 'canDeleteEvent'
+  };
+
   Store.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
 
     _store: 'calendars',
 
     _dependentStores: [
-      'calendars', 'events', 'busytimes'
+      'calendars', 'events', 'busytimes', 'alarms'
     ],
 
     _parseId: function(id) {
@@ -167,39 +176,72 @@
       var provider = Calendar.App.provider(
         account.providerType
       );
+      provider.syncEvents(account, calendar, callback);
+    },
 
-      if (!calendar._id) {
-        throw new Error('calendar must be assigned an _id');
+    /**
+     * Shortcut to find provider for calendar.
+     *
+     * @param {Calendar.Models.Calendar} calendar input calendar.
+     * @return {Calendar.Provider.Abstract} provider.
+     */
+    providerFor: function(calendar) {
+      var acc = this.accountFor(calendar);
+      return Calendar.App.provider(acc.providerType);
+    },
+
+    /**
+     * Finds account for calendar
+     *
+     * @param {Calendar.Models.Calendar} calendar input calendar.
+     * @return {Calendar.Models.Account} cached account.
+     */
+    accountFor: function(calendar) {
+      return this.db.getStore('Account').cached[calendar.accountId];
+    },
+
+    /**
+     * Find calendar(s) with a specific capability:
+     * NOTE: this method only searches through cached calendars.
+     *
+     * Possible Capabilities:
+     *
+     *  - createEvent
+     *  - deleteEvent
+     *  - editEvent
+     *
+     * @param {String} type name of capability.
+     * @return {Array[Calendar.Model.Calendar]} list of calendar models.
+     */
+    findWithCapability: function(type) {
+      var accounts = this.db.getStore('Account');
+      var propName;
+
+      if (!(type in Store.capabilities)) {
+        throw new Error('invalid capability: "' + type + '"');
       }
 
-      // Don't attempt to sync when provider cannot
-      // or we have matching tokens
-      if (!provider.canSync ||
-          (calendar.lastEventSyncToken &&
-           calendar.lastEventSyncToken === calendar.remote.syncToken)) {
+      propName = Store.capabilities[type];
 
-        callback(null);
+      var list = this.cached;
+      var result = [];
+      var cal;
+      var id;
+      var account;
+      var provider;
 
-        return;
+      for (id in list) {
+        cal = list[id];
+        account = accounts.cached[cal.accountId];
+        if (account) {
+          provider = Calendar.App.provider(account.providerType);
+          if (provider[propName]) {
+            result.push(cal);
+          }
+        }
       }
 
-      store.eventsForCalendar(calendar._id, function(err, results) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        var cached = {};
-        var i = 0;
-        var len = results.length;
-
-        for (i; i < results.length; i++) {
-          cached[results[i]._id] = results[i];
-        }
-
-        self._syncEvents(account, calendar, cached, callback);
-      });
-
+      return result;
     }
 
   };

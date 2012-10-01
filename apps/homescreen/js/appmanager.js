@@ -301,23 +301,24 @@ var Applications = (function() {
   }
 
   function installBookmark(bookmark) {
-    if (!installedApps[bookmark.origin]) {
-      installedApps[bookmark.origin] = bookmark;
-
-      var icon = getIcon(bookmark.origin);
-      // No need to put data: URIs in the cache
-      if (icon && icon.indexOf('data:') == -1) {
-        try {
-          window.applicationCache.mozAdd(icon);
-        } catch (e) {}
-      }
-
-      callbacks.forEach(function(callback) {
-        if (callback.type == 'install') {
-          callback.callback(bookmark);
-        }
-      });
+    if (installedApps[bookmark.origin]) {
+      return;
     }
+    installedApps[bookmark.origin] = bookmark;
+
+    var icon = getIcon(bookmark.origin);
+    // No need to put data: URIs in the cache
+    if (icon && icon.indexOf('data:') == -1) {
+      try {
+        window.applicationCache.mozAdd(icon);
+      } catch (e) {}
+    }
+
+    callbacks.forEach(function(callback) {
+      if (callback.type == 'install') {
+        callback.callback(bookmark);
+      }
+    });
   }
 
   function addBookmark(bookmark) {
@@ -330,6 +331,10 @@ var Applications = (function() {
     if (installedApps[bookmark.origin]) {
       delete installedApps[bookmark.origin];
     }
+  }
+
+  function isInstalled(origin) {
+    return installedApps[origin];
   }
 
   return {
@@ -347,6 +352,7 @@ var Applications = (function() {
     isReady: isReady,
     addBookmark: addBookmark,
     deleteBookmark: deleteBookmark,
-    installBookmark: installBookmark
+    installBookmark: installBookmark,
+    isInstalled: isInstalled
   };
 })();

@@ -4,8 +4,12 @@
   padding: 0;
 }
 
-a:active {
+a:focus,
+button:focus,
+a::-moz-focus-inner,
+button::-moz-focus-inner {
   outline: none;
+  border: none;
 }
 
 html {
@@ -42,7 +46,6 @@ iframe {
 }
 
 .view {
-
   bottom: 4.1rem;
   z-index: 1;
   background: url(images/app/ui/pattern.png) repeat left top;
@@ -116,6 +119,10 @@ body[role="application"] button span.reload {
 
 body[role="application"] button span.topup {
   background-image: url(images/app/icons/topup.png);
+}
+
+body[role="application"] button span.topupcode {
+  background-image: url(images/app/icons/topupcode.png);
 }
 
 body[role="application"] button[disabled] span {
@@ -204,6 +211,11 @@ section.content .error-messages {
 .settings li .meta {
   font-size: 1.4rem;
   color: #505859;
+}
+
+.settings li sub {
+  vertical-align: baseline;
+  font-size: 1.2rem;
 }
 
 /* End elements */

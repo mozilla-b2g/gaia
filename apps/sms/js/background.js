@@ -5,19 +5,44 @@
   if (!mozSms)
     return;
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc;
+  }
+
   /* === Setup === */
   var ringtonePlayer = new Audio();
 
   /* === Settings === */
   var activeSMSSound = true;
-  SettingsListener.observe('sms.ring.received', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activeSMSSound = !!value;
   });
 
+  var selectedSmsSound = 'style/ringtones/sms.wav';
+  SettingsListener.observe('sms.ringtone', 'sms.wav', function(value) {
+    selectedSmsSound = 'style/ringtones/' + value;
+  });
+
   var activateSMSVibration = false;
-  SettingsListener.observe('sms.vibration.received', true, function(value) {
+  SettingsListener.observe('vibration.enabled', true, function(value) {
     activateSMSVibration = !!value;
   });
+
+  function ring() {
+    var ringtonePlayer = new Audio();
+    ringtonePlayer.src = selectedSmsSound;
+    ringtonePlayer.play();
+    window.setTimeout(function smsRingtoneEnder() {
+      ringtonePlayer.pause();
+      ringtonePlayer.src = '';
+    }, 2000);
+  }
+
+  function vibrate() {
+    navigator.vibrate([200, 200, 200, 200]);
+  }
 
   mozSms.addEventListener('received', function received(evt) {
     var message = evt.message;
@@ -27,46 +52,53 @@
       return;
 
     if (activeSMSSound) {
-      var ringtonePlayer = new Audio();
-      ringtonePlayer.src = 'style/ringtones/sms.wav';
-      ringtonePlayer.play();
-      window.setTimeout(function smsRingtoneEnder() {
-        ringtonePlayer.pause();
-        ringtonePlayer.src = '';
-      }, 500);
+      ring();
     }
 
     if (activateSMSVibration && 'vibrate' in navigator) {
-      navigator.vibrate([200, 200, 200, 200]);
+      // If the screen is turned off we need to wait for it to turn on
+      // again (the notification will turn it on if needed).
+      if (document.mozHidden) {
+        window.addEventListener('mozvisibilitychange', function waitOn() {
+          window.removeEventListener('mozvisibilitychange', waitOn);
+          vibrate();
+        });
+      } else {
+        vibrate();
+      }
     }
-    PhoneNumberManager.init();
+
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
-
+      var number = message.sender;
       var iconURL = NotificationHelper.getIconURI(app);
 
-      var notiClick = function() {
-        // Switch to the clicked message conversation panel
-        // XXX: we somehow need to get access to the window object
-        // of the original web app to do this.
-        // window.parent.location.hash = '#num=' + message.sender;
-
-        // Asking to launch itself
-        app.launch();
+      var activityCall = function() {
+        // Go directly to the thread of the received message.  
+        try {
+          var activity = new MozActivity({
+            name: 'new',
+            data: {
+              type: 'websms/sms',
+              number: number
+            }
+          });
+        } catch (e) {
+          console.log('WebActivities unavailable? : ' + e);
+        }
       };
 
-      ContactDataManager.getContactData(message.sender,
+      Contacts.findByNumber(message.sender,
       function gotContact(contact) {
         var sender;
-        if (contact && contact.length > 0) {
-          sender = contact[0].name;
+        if (contact) {
+          sender = contact.name;
         } else {
           sender = message.sender;
         }
 
-        NotificationHelper.send(sender, message.body, iconURL, notiClick);
+        NotificationHelper.send(sender, message.body, iconURL, activityCall);
       });
     };
   });
 }());
-

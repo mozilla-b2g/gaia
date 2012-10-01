@@ -261,7 +261,7 @@ function setupWidget() {
     if (CostControl.settings.option('lowlimit') && balance) {
       if (balance === 0) {
         _balanceView.classList.add('no-credit');
-      } else if (balance < CostControl.getLowLimitThreshold()) {
+      } else if (balance < CostControl.settings.option('lowlimit_threshold')) {
         _balanceView.classList.add('low-credit');
       }
     }

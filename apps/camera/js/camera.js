@@ -15,7 +15,6 @@ var Camera = {
 
   THUMBNAIL_LIMIT: 4,
 
-  _videoCapturing: false,
   _videoTimer: null,
   _videoStart: null,
 
@@ -49,6 +48,11 @@ var Camera = {
       latitude: 43.468005,
       longitude: -80.523399
     }
+  },
+  _videoConfig: {
+    rotation: 90,
+    width: 352,
+    height: 288
   },
 
   get overlayTitle() {
@@ -121,8 +125,6 @@ var Camera = {
       .addEventListener('click', this.capturePressed.bind(this));
     this.galleryButton
       .addEventListener('click', this.galleryBtnPressed.bind(this));
-    // TODO: Remove once support is available
-    this.switchButton.setAttribute('disabled', 'disabled');
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -135,6 +137,29 @@ var Camera = {
 
     this.setToggleCameraStyle();
     this.setSource(this._camera);
+
+    this._started = true;
+
+    if (this._pendingPick) {
+      this.initActivity();
+    }
+  },
+
+  initActivity: function camera_initActivity() {
+    this.galleryButton.setAttribute('disabled', 'disabled');
+    this.switchButton.setAttribute('disabled', 'disabled');
+  },
+
+  cancelActivity: function camera_cancelActivity(error) {
+    if (error && this._pendingPick) {
+      this._pendingPick.postError('pick cancelled');
+    }
+    this._pendingPick = null;
+
+    if (!this._secureMode) {
+      this.galleryButton.removeAttribute('disabled');
+    }
+    this.switchButton.removeAttribute('disabled');
   },
 
   toggleModePressed: function camera_toggleCaptureMode(e) {
@@ -144,6 +169,17 @@ var Camera = {
 
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
     this.setCaptureMode(newMode);
+
+    function gotPreviewStream(stream) {
+      this.viewfinder.mozSrcObject = stream;
+      this.viewfinder.play();
+    }
+    if (this.captureMode === this.CAMERA) {
+      // TODO: fix this so we can just call getPreviewStream(), or toggle a mode, or something
+      this.setSource(this._camera); // STOMP
+    } else {
+      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig, gotPreviewStream.bind(this));
+    }
   },
 
   toggleCamera: function camera_toggleCamera() {
@@ -172,13 +208,38 @@ var Camera = {
     this._cameraObj.flashMode = flashModeName;
   },
 
+  toggleRecording: function camera_toggleRecording() {
+    var captureButton = this.captureButton;
+
+    if (!document.body.classList.contains('capturing')) {
+      captureButton.setAttribute('disabled', 'disabled');
+      document.body.classList.add('capturing');
+      this._cameraObj.startRecording(
+        navigator.getDeviceStorage('videos'),
+        "VID_0001.3gp",
+        function onsuccess() {
+          captureButton.removeAttribute('disabled');
+        },
+        function onerror() {
+          captureButton.removeAttribute('disabled');
+          document.body.classList.remove('capturing');
+        }
+      );
+    } else {
+      this._cameraObj.stopRecording();
+      document.body.classList.remove('capturing');
+    }
+  },
+
   capturePressed: function camera_doCapture(e) {
     if (e.target.getAttribute('disabled')) {
       return;
     }
 
     if (this.captureMode === this.CAMERA) {
-      this.takePicture();
+      this.prepareTakePicture();
+    } else {
+      this.toggleRecording();
     }
   },
 
@@ -434,7 +495,85 @@ var Camera = {
     }).bind(this);
   },
 
-  takePictureAutoFocusDone: function camera_takePictureAutoFocusDone(success) {
+  deviceStorageChangeHandler: function camera_deviceStorageChangeHandler(e) {
+    switch (e.reason) {
+    case 'available':
+    case 'unavailable':
+    case 'shared':
+      this.updateStorageState(e.reason);
+      break;
+    case 'deleted':
+      this.removeFromFilmStrip(e.path);
+    }
+    this.checkStorageSpace();
+  },
+
+  updateStorageState: function camera_updateStorageState(state) {
+    switch (state) {
+    case 'available':
+      this._storageState = this.STORAGE_AVAILABLE;
+      break;
+    case 'unavailable':
+      this._storageState = this.STORAGE_NOCARD;
+      break;
+    case 'shared':
+      this._storageState = this.STORAGE_UNMOUNTED;
+      break;
+    }
+  },
+
+  removeFromFilmStrip: function camera_removeFromFilmStrip(filename) {
+    this._photosTaken = this._photosTaken.filter(function(image) {
+      return image.name !== filename;
+    });
+    if (this._filmStripShown) {
+      this.showFilmStrip();
+    }
+  },
+
+  showDialog: function camera_showDialog() {
+    if (this._storageState === this.STORAGE_INIT) {
+      return false;
+    }
+
+    if (this._storageState === this.STORAGE_AVAILABLE) {
+      // Preview may have previously been paused if storage
+      // was not available
+      if (!this._previewActive && !document.mozHidden) {
+        this.start();
+      }
+      this.showOverlay(null);
+      return false;
+    }
+
+    switch (this._storageState) {
+    case this.STORAGE_NOCARD:
+      this.showOverlay('nocard');
+      break;
+    case this.STORAGE_UNMOUNTED:
+      this.showOverlay('pluggedin');
+      break;
+    case this.STORAGE_CAPACITY:
+      this.showOverlay('nospace');
+      break;
+    }
+    if (this._previewActive) {
+      this.stop();
+    }
+    return true;
+  },
+
+  prepareTakePicture: function camera_takePicture() {
+    this.captureButton.setAttribute('disabled', 'disabled');
+    this.focusRing.setAttribute('data-state', 'focusing');
+    if (this._autoFocusSupported && !this._manuallyFocused) {
+      this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
+    } else {
+      this.takePicture();
+    }
+  },
+
+  autoFocusDone: function camera_autoFocusDone(success) {
     if (!success) {
       this.focusRing.setAttribute('data-state', 'fail');
       this.captureButton.removeAttribute('disabled');

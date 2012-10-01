@@ -127,7 +127,8 @@ body {
   top: 0;
 }
 
-#windowSprite {
+#windowSprite,
+.windowSprite {
   position: absolute;
   top: 20px;
   left: 0;
@@ -138,6 +139,28 @@ body {
   pointer-events: none;
 
   visibility: hidden;
+}
+
+.windowSprite {
+  transition: transform 0.5s ease;
+  transform: scale(0.6);
+  visibility: inherit;
+}
+
+.windowSprite.right {
+  transform: translateX(70%) scale(0.6);
+}
+
+.windowSprite.left {
+  transform: translateX(-70%) scale(0.6);
+}
+
+#screen.switch-app #windowSprite.before-close {
+  opacity: 0.99;
+}
+
+#screen.switch-app #windowSprite:not(.before-close):not(.opened) {
+  opacity: 1;
 }
 
 #screen.active-statusbar #windowSprite {
@@ -159,6 +182,12 @@ body {
   height: 100%;
   top: 0;
 }
+
+#screen.attention > #windowSprite,
+#screen.fullscreen-app.attention > #windowSprite {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
+} 
 
 #windowSprite.before-inline-activity {
   transform: translateY(-moz-calc(100% - 1px));

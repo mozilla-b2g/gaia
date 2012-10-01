@@ -1,0 +1,204 @@
+#evmeContainer .dialog {
+    position: absolute;
+    top: 20px;
+    left: 11px;
+    width: 268px;
+    z-index: 0;
+    padding: 7px 13px 13px 13px;
+    font-size: 17px;
+    color: #fff;
+    opacity: 0;
+    -moz-border-radius: 6px;
+    -webkit-border-radius: 6px;
+    border-radius: 6px;
+    -moz-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
+    -webkit-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
+    -o-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
+    box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
+}
+#evmeContainer .dialog,
+#evmeContainer .dialog .tiparrow:before {
+    background: rgba(0, 0, 0, .9);
+    border: 2px solid #4c4c4c;
+}
+#evmeContainer .dialog-blackout {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0);
+    z-index: 0;
+}
+#evmeContainer .dialog,
+#evmeContainer .dialog-blackout {
+    opacity: 0;
+    -moz-transition: opacity .4s linear;
+    -webkit-transition: opacity .4s linear;
+    -o-transition: opacity .4s linear;
+    transition: opacity .4s linear;
+}
+#evmeContainer .dialog.visible,
+#evmeContainer .dialog-blackout.visible {
+    opacity: 1;
+    z-index: 800;
+}
+#evmeContainer .dialog-blackout.visible {
+    z-index: 790;
+}
+    #evmeContainer .dialog h2 {
+        font-size: 21px;
+        font-weight: 600;
+        padding: 5px 0;
+    }
+    #evmeContainer .dialog h2 em {
+        font-style: normal;
+        color: #6fd3f3;
+    }
+    #evmeContainer .dialog .content {
+        position: relative;
+        line-height: 20px;
+    }
+        #evmeContainer .dialog .content a {
+            text-decoration: underline;
+        }
+        #evmeContainer .dialog .content .br {
+            height: 10px;
+        }
+    #evmeContainer .dialog .buttons {
+        padding-top: 12px;
+    }
+        #evmeContainer .dialog .button,
+        #evmeContainer .ptip .button {
+            position: relative;
+            display: inline-block;
+            font-size: 17px;
+            height: 39px;
+            line-height: 39px;
+            width: 128px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            color: #1d2223;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
+            border: 1px solid #0c3e4d;
+            -moz-border-radius: 6px;
+            -webkit-border-radius: 6px;
+            -o-border-radius: 6px;
+            border-radius: 6px;
+            font-family: 'Helvetica Neue', 'Helvetica', Arial, Sans-Serif;
+            background: #054b62;
+            background: -moz-linear-gradient(center top, #d8ecf3 0%, #bfdee9 50%, #b4dae7 50%, #88c3d7 100%);
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #d8ecf3), color-stop(50%, #bfdee9), color-stop(50%, #b4dae7), color-stop(100%, #88c3d7));
+        }
+        #evmeContainer .dialog .button:hover,
+        #evmeContainer .ptip .button:hover {
+            opacity: .7;
+        }
+        #evmeContainer .dialog .button:last-child {
+            margin-left: 8px;
+        }
+        #evmeContainer .dialog .button:first-child:last-child {
+            display: block;
+            width: auto;
+            margin: 0;
+        }
+    
+    #evmeContainer .dialog .tiparrow {
+        width: 24px;
+        height: 12px;
+        position: absolute;
+        top: -12px;
+        left: 15px;
+        overflow: hidden;
+    }
+    #evmeContainer .dialog .tiparrow:before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin-left: -10px;
+        -moz-transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        transform: rotate(45deg);
+    }
+    
+#evmeContainer .dialog .entity {
+     white-space: nowrap;
+}
+
+
+#evmeContainer .ptip {
+    font-family: 'Open Sans';
+    color: #fff;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .5);
+}
+#evmeContainer .ptip,
+#evmeContainer .ptip .tiparrow:before {
+    background: #833068 url('/everything.me/images/bgpattern.jpg') bottom left repeat;
+    background-size: 36px 36px;
+    border: 2px solid #a6528f;
+}
+#evmeContainer .ptip .content em {
+    font-style: normal;
+    color: #70c8ea;
+}
+
+#evmeContainer #dialog_searchpage-tip {
+    top: 38px;
+    left: 6px;
+    right: 6px;
+    width: auto;
+    padding: 0;
+    font-size: 19px;
+    text-align: center;
+}
+    #evmeContainer #dialog_searchpage-tip .content {
+        padding: 30px 20px 50px 20px;
+        line-height: 140%;
+        overflow: hidden;
+    }
+    #evmeContainer #dialog_searchpage-tip .content .inner {
+        position: relative;
+        z-index: 10;
+    }
+    #evmeContainer #dialog_searchpage-tip .content:before {
+        content: "";
+        background: transparent url('/everything.me/images/temp/welcome-icons.jpg') bottom left no-repeat;
+        background-size: 256px 99px;
+        position: absolute;
+        bottom: -30px;
+        left: -30px;
+        z-index: 5;
+        width: 256px;
+        height: 99px;
+        opacity: .99;
+        -webkit-backface-visibility: hidden;
+    }
+    #evmeContainer #dialog_searchpage-tip .tiparrow {
+        left: 42px;
+    }
+    #evmeContainer .mode-edit #dialog_searchpage-tip .tiparrow {
+        left: 11px;
+    }
+    
+#evmeContainer #dialog_tip-first-exact {
+    text-align: center;
+    font-size: 19px;
+    line-height: 150%;
+    right: auto;
+    left: 50%;
+    width: 270px;
+    margin-left: -152px;
+    padding: 12px 15px 15px 15px;
+}
+    #evmeContainer #dialog_tip-first-exact h2 {
+        padding: 0;
+    }
+    #evmeContainer #dialog_tip-first-exact .content {
+        line-height: 140%;
+    }

@@ -21,21 +21,41 @@
 </head>
 <body>
   <section id="cost-control">
-    <section id="balance-view">
-      <div id="balance-icon"></div>
-    <div>
-        <p><span class="unit" id="balance-currency"></span><span id="balance-credit"></span></p>
-        <p class="time"><time id="balance-time"></time></p>
-    </div>
+    <section class="credit">
+      <section class="view" id="balance-view">
+        <span id="balance-icon" class="icon"></span>
+        <div class="info">
+            <p><span class="unit" id="balance-currency"></span><span id="balance-credit"></span></p>
+            <p class="meta"><time id="balance-time"></time></p>
+        </div>
+      </section>
+      <section class="view" id="telephony-view" aria-hidden="true">
+        <div class="info">
+          <p><span id="telephony-calltime"></span><span class="unit">Min</span> <span id="telephony-smscount"></span><span class="unit">SMS</span></p>
+          <p class="meta"><time id="telephony-from-date"></time> – <time id="telephony-to-date"></time></p>
+        </div>
+      </section>
     </section>
 
-    <section id="telephony-view" aria-hidden="true">
-      <div>
-        <p><span id="telephony-calltime"></span><span class="unit">min</span> <span id="telephony-smscount"></span><span class="unit">SMS</span></p>
-        <p class="time"><time id="telephony-from-date"></time> – <time id="telephony-to-date"></time></p>
-      </div>
+    <section class="data">
+      <section class="view">
+        <div class="stats">
+          <progress max="100" value="50"></progress>
+          <dl>
+            <dt class="start">Used</dt>
+            <dd class="start"><span>343</span><span>MB</span></dd>
+            <dt class="end">Limit</dt>
+            <dd class="end"><span>1</span><span>GB</span></dd>
+          </dl>
+        </div>
+      </section>
+      <section class="view">
+        <div class="info">
+          <p><span>50</span><span class="unit">MB</span></p>
+          <p class="meta">3G data usage</p>
+        </div>
+      </section>
     </section>
   </section>
 </body>
 </html>
-

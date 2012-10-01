@@ -208,4 +208,12 @@
     }
   });
 
+  Factory.define('alarm', {
+    oncreate: function(obj) {
+      if (obj.trigger && obj.trigger instanceof Date) {
+        obj.trigger = Calc.dateToTransport(obj.trigger);
+      }
+    }
+  });
+
 }(this));

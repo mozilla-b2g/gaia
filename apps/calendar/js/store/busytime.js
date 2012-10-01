@@ -34,12 +34,22 @@ Calendar.ns('Store').Busytime = (function() {
 
     _store: 'busytimes',
 
+    _dependentStores: ['alarms', 'busytimes'],
+
+    _parseId: function(id) {
+      return id;
+    },
+
     _setupCache: function() {
       // reset time observers
       Calendar.TimeObserver.call(this);
 
       this._byEventId = Object.create(null);
       this._tree = new Calendar.IntervalTree();
+    },
+
+    _removeDependents: function(id, trans) {
+      this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
     },
 
     addEvent: function(event, trans, callback) {
@@ -50,7 +60,7 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
@@ -78,26 +88,13 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
 
       this._removeEventTimes(id);
-
-      var store = trans.objectStore('busytimes');
-      var index = store.index('eventId');
-      var range = IDBKeyRange.only(id);
-      var req = index.openCursor(range);
-
-      req.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) {
-          var req = cursor.delete();
-          cursor.continue();
-        }
-      };
-
+      this.removeByIndex('eventId', id, trans);
       this._transactionCallback(trans, callback);
     },
 
@@ -167,37 +164,17 @@ Calendar.ns('Store').Busytime = (function() {
      * @param {Date} time position of event.
      * @param {Object} event associated event.
      */
-    _eventToRecord: function(start, event) {
-      // XXX Quick hack - we need to do a recurring lookup
-      var end = event.remote.endDate;
+    _eventToRecord: function(event) {
 
-      if (!(end instanceof Date)) {
-        end = new Date(end);
-      }
-
-      if (!(start instanceof Date)) {
-        start = new Date(start);
-      }
+      var id = this.db.getStore('Event').busytimeIdFor(event);
 
       var result = {
-        startDate: start,
-        endDate: end,
+        _id: id,
+        start: event.remote.start,
+        end: event.remote.end,
         eventId: event._id,
         calendarId: event.calendarId
       };
-
-      result.start = result.startDate.valueOf();
-      result.end = result.endDate.valueOf();
-
-      // Knowing the ID ahead of time
-      // lets us flush it to the UI before
-      // it actually hits the database ( then later
-      // if its removed we can find it by id )
-      // That said I don't like this method of
-      // assigning the id. Maybe use UUID?
-      result._id = result.startDate.valueOf() + '-' +
-                   result.endDate.valueOf() + '-' +
-                   result.eventId;
 
       return result;
     },
