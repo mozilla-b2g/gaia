@@ -156,7 +156,7 @@ var gWifiManager = (function(window) {
 })(this);
 
 // handle Wi-Fi settings
-function wifiSettings(evt) {
+window.addEventListener('localized', function wifiSettings(evt) {
   var _ = navigator.mozL10n.get;
 
   var settings = window.navigator.mozSettings;
@@ -164,18 +164,16 @@ function wifiSettings(evt) {
     return;
 
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
-  var gWifiInfoBlock = document.querySelector('#wifi-desc') || {};
+  var gWifiInfoBlock = document.querySelector('#wifi-desc');
   var gWpsInfoBlock = document.querySelector('#wps-column small');
   var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
 
   var gCurrentNetwork = gWifiManager.connection.network;
 
   // toggle wifi on/off
-  if (gWifiCheckBox) {
-    gWifiCheckBox.onchange = function toggleWifi() {
-      settings.createLock().set({'wifi.enabled': this.checked});
-    };
-  }
+  gWifiCheckBox.onchange = function toggleWifi() {
+    settings.createLock().set({'wifi.enabled': this.checked});
+  };
 
   /**
    * mozWifiManager status
@@ -215,27 +213,54 @@ function wifiSettings(evt) {
   };
 
   // Wi-Fi Protected Setup
-  var wpsCheckbox = document.getElementById('wps-column');
-  if (wpsCheckbox) {
-    var gWpsInProgress = false;
+  var gWpsInProgress = false;
+  document.getElementById('wps-column').onclick = function() {
+    if (gWpsInProgress) {
+      var req = gWifiManager.wps({
+        method: 'cancel'
+      });
+      req.onsuccess = function() {
+        gWpsInProgress = false;
+        gWpsPbcLabelBlock.textContent = _('wpsMessage');
+        gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
+      };
+      req.onerror = function() {
+        gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
+          ' [' + req.error.name + ']';
+      };
+    } else {
+      wpsDialog('wifi-wps', wpsCallback);
+    }
 
-    wpsCheckbox.onclick = function wpsCheckbox_click() {
-      if (gWpsInProgress) {
-        var req = gWifiManager.wps({
-          method: 'cancel'
+    function wpsCallback(method, pin) {
+      var req;
+      if (method === 'pbc') {
+        req = gWifiManager.wps({
+          method: 'pbc'
         });
-        req.onsuccess = function() {
-          gWpsInProgress = false;
-          gWpsPbcLabelBlock.textContent = _('wpsMessage');
-          gWpsInfoBlock.textContent = _('fullStatus-wps-canceled');
-        };
-        req.onerror = function() {
-          gWpsInfoBlock.textContent = _('wpsCancelFailedMessage') +
-                                        ' [' + req.error.name + ']';
-        };
+      } else if (method === 'myPin') {
+        req = gWifiManager.wps({
+          method: 'pin'
+        });
       } else {
-        wpsDialog('wifi-wps', wpsCallback);
+        req = gWifiManager.wps({
+          method: 'pin',
+          pin: pin
+        });
       }
+      req.onsuccess = function() {
+        if (method === 'myPin') {
+          alert(_('wpsPinInput', { pin: req.result }));
+        }
+        gWpsInProgress = true;
+        gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
+        gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
+      };
+      req.onerror = function() {
+        gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
+          ' [' + req.error.name + ']';
+      };
+    }
 
     function wpsDialog(dialogID, callback) {
       var dialog = document.getElementById(dialogID);
@@ -251,81 +276,52 @@ function wifiSettings(evt) {
           accum += pin % 10;
           pin = Math.floor(pin / 10);
         }
-        req.onsuccess = function() {
-          if (method === 'myPin') {
-            alert(_('wpsPinInput', { pin: req.result }));
-          }
-          gWpsInProgress = true;
-          gWpsPbcLabelBlock.textContent = _('wpsCancelMessage');
-          gWpsInfoBlock.textContent = _('fullStatus-wps-inprogress');
-        };
-        req.onerror = function() {
-          gWpsInfoBlock.textContent = _('fullStatus-wps-failed') +
-                                        ' [' + req.error.name + ']';
-        };
+        return (10 - accum % 10) % 10;
       }
 
-      function wpsDialog(dialogID, callback) {
-        var dialog = document.getElementById(dialogID);
-        if (!dialog)
-          return null;
+      function isValidWpsPin(pin) {
+        if (pin.match(/[^0-9]+/))
+          return false;
+        if (pin.length === 4)
+          return true;
+        if (pin.length !== 8)
+          return false;
+        var num = pin - 0;
+        return pinChecksum(Math.floor(num / 10)) === (num % 10);
+      }
 
-        // hide dialog box
-        function pinChecksum(pin) {
-          var accum = 0;
-          while (pin > 0) {
-            accum += 3 * (pin % 10);
-            pin = Math.floor(pin / 10);
-            accum += pin % 10;
-            pin = Math.floor(pin / 10);
-          }
-          return (10 - accum % 10) % 10;
-        }
+      var submitWpsButton = dialog.querySelector('button[type=submit]');
+      var pinItem = document.getElementById('wifi-wps-pin-area');
+      var pinDesc = pinItem.querySelector('p');
+      var pinInput = pinItem.querySelector('input');
+      pinInput.onchange = function() {
+        submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
+      }
 
-        function isValidWpsPin(pin) {
-          if (pin.match(/[^0-9]+/))
-            return false;
-          if (pin.length === 4)
-            return true;
-          if (pin.length !== 8)
-            return false;
-          var num = pin - 0;
-          return pinChecksum(Math.floor(num / 10)) === (num % 10);
-        }
-
-        var submitWpsButton = dialog.querySelector('button[type=submit]');
-        var pinItem = document.getElementById('wifi-wps-pin-area');
-        var pinDesc = pinItem.querySelector('p');
-        var pinInput = pinItem.querySelector('input');
-        pinInput.onchange = function() {
+      function onWpsMethodChange() {
+        var method =
+          dialog.querySelector("input[type='radio']:checked").value;
+        if (method === 'apPin') {
           submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
+          pinItem.hidden = false;
+        } else {
+          submitWpsButton.disabled = false;
+          pinItem.hidden = true;
         }
-
-        function onWpsMethodChange() {
-          var method =
-            dialog.querySelector("input[type='radio']:checked").value;
-          if (method === 'apPin') {
-            submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
-            pinItem.hidden = false;
-          } else {
-            submitWpsButton.disabled = false;
-            pinItem.hidden = true;
-          }
-        }
-
-        var radios = dialog.querySelectorAll('input[type="radio"]');
-        for (var i = 0; i < radios.length; i++) {
-          radios[i].onchange = onWpsMethodChange;
-        }
-        onWpsMethodChange();
-
-        openDialog(dialogID, function submit() {
-          callback(dialog.querySelector("input[type='radio']:checked").value,
-            pinInput.value);
-        });
       }
-    };
-  }
+
+      var radios = dialog.querySelectorAll('input[type="radio"]');
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].onchange = onWpsMethodChange;
+      }
+      onWpsMethodChange();
+
+      openDialog(dialogID, function submit() {
+        callback(dialog.querySelector("input[type='radio']:checked").value,
+          pinInput.value);
+      });
+    }
+  };
 
   // create a network list item
   function newListItem(network, callback) {
@@ -372,7 +368,8 @@ function wifiSettings(evt) {
 
     // get the "Searching..." and "Search Again" items, respectively
     var infoItem = list.querySelector('li[data-state="on"]');
-    var scanItem = list.querySelector('li[data-state="ready"]');
+    var scanItem = list.querySelector('li[data-state="ready"]') ||
+                   document.getElementById('wifi-refresh');
     scanItem.onclick = function() {
       clear(true);
       scan();
@@ -430,9 +427,9 @@ function wifiSettings(evt) {
             listItem.classList.add('active');
             listItem.querySelector('small').textContent =
                 _('shortStatus-connected');
-            list.insertBefore(listItem, infoItem.nextSibling);
+            list.insertBefore(listItem, list.firstElementChild /*infoItem.nextSibling*/);
           } else {
-            list.insertBefore(listItem, list.lastElementChild);
+            list.insertBefore(listItem, null /*scanItem*/);
           }
           index[network.ssid] = listItem; // add to index
         }
@@ -474,8 +471,8 @@ function wifiSettings(evt) {
     return {
       get autoscan() { return autoscan; },
       set autoscan(value) { autoscan = value; },
-      clear: clear,
       display: display,
+      clear: clear,
       scan: scan,
       get scanning() { return scanning; }
     };
@@ -659,7 +656,11 @@ function wifiSettings(evt) {
       // network info
       var keys = network.capabilities;
       var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+      try {
       dialog.querySelector('[data-ssid]').textContent = network.ssid;
+      } catch(e) {
+        document.querySelector('[data-ssid]').textContent = network.ssid;
+      }
       dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
       dialog.querySelector('[data-security]').textContent =
           (keys && keys.length) ? keys.join(', ') : _('securityNone');
@@ -692,6 +693,7 @@ function wifiSettings(evt) {
           password.type = this.checked ? 'text' : 'password';
         };
 
+/*
         var submitButton = dialog.querySelector('button[type=submit]');
         if (key === 'WPA-PSK') {
           password.onchange = function() {
@@ -702,6 +704,7 @@ function wifiSettings(evt) {
           password.onchange = function() {};
           submitButton.disabled = false;
         }
+*/
       }
 
       // reset dialog box
@@ -746,7 +749,7 @@ function wifiSettings(evt) {
       // connection has failed, probably an authentication issue...
       delete(gCurrentNetwork.password); // force a new authentication dialog
       gNetworkList.display(gCurrentNetwork.ssid,
-                           _('shortStatus-connectingfailed'));
+          _('shortStatus-connectingfailed'));
       gCurrentNetwork = null;
     }
 
@@ -765,10 +768,7 @@ function wifiSettings(evt) {
   }
 
   function setMozSettingsEnabled(value) {
-    if (gWifiCheckBox) {
-      gWifiCheckBox.checked = value;
-    }
-
+    gWifiCheckBox.checked = value;
     if (value) {
       /**
        * gWifiManager may not be ready (enabled) at this moment.
@@ -779,7 +779,9 @@ function wifiSettings(evt) {
       gNetworkList.clear(true);
       document.querySelector('#macAddress small').textContent =
         gWifiManager.macAddress;
+/*
       document.querySelector('[data-l10n-id="macAddress"] span').textContent =
+*/
         gWifiManager.macAddress; // XXX should be stored in a setting
     } else {
       gWifiInfoBlock.textContent = _('disabled');
@@ -817,7 +819,5 @@ function wifiSettings(evt) {
       gNetworkList.scan();
     }
   };
-}
-
-window.addEventListener('localized', wifiSettings);
+});
 

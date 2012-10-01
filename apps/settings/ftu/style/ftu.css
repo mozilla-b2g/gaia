@@ -5,6 +5,7 @@ html, body {
   background-color: white;
   background-image: url(images/background.png);
   background-size: 100% 100%;
+  overflow: hidden;
 }
 
 section[role=region] {
@@ -214,45 +215,28 @@ button span, a[role="button"] span {
   background-position: 1rem bottom;
 }
 
+/* This is not possible to use visibility: hidden or display: none
+   here, otherwise Gecko will deny focus to input fields.
+ */
 .invisible {
+  position: absolute;
   width: 1px;
   height: 1px;  
   border: none;
-  position: absolute;
-  left: -100px;
+  left: -10000px;
 }
 
 /* Privacy choices */
 .header {
   display: block;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0 0 1rem 0;
 }
 
-.header.logo {
-  background: url(images/firefox-48.png) no-repeat 0 0;
-  padding-left: 64px;
+.header img {
+  margin: 0.5rem 1rem;
 }
-
-.sub-header {
-  height: 2.2rem;
-  margin-bottom: 1rem;
-}
-
-.sub-header a {
-  font-size: 1.2rem;
-  padding: .5rem 1rem;
-}
-
-.sub-header a:first-child {
-  position: absolute;
-  left: 0;
-}
-
-.sub-header a:last-child {
-  position: absolute;
-  right: 0;
-}
-
 
 /* Last screen - mostly done! */
 #end {
@@ -329,6 +313,52 @@ button {
   border: solid 1px #008aaa;
 }
 
+#back[data-target='wifi'] + #next[data-target="wifi"] {
+  background: url(images/button_submit.png) repeat-x;
+}
+
 #back {
   background: url(images/prev.png) no-repeat 6% 50%;
+}
+
+/* Contacts */
+li [data-l10n-id="importSim"] {
+  display: block;
+  background-image: url(images/sim.png);
+  background-position: 14px center;
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+li[data-state="read"]:after {
+  content: attr(data-read);
+  position: absolute;
+  top: 4.5rem;
+  padding-left: 5.5rem;
+}
+
+li[data-state="import"]:after {
+  content: attr(data-import);
+  position: absolute;
+  top: 4.5rem;
+  padding-left: 5.5rem;
+}
+
+li[data-state="error"]:after {
+  content: attr(data-error);
+  position: absolute;
+  top: 4.5rem;
+  padding-left: 5.5rem;
+}
+
+li [data-l10n-id="importFb"] {
+  background-image: url(images/fb.png);
+  background-position: 0.9rem center; /* icons have different size */
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+li[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
 }

@@ -3,15 +3,10 @@
   <head>
     <!--
       followups:
-        - input events - https://bugzilla.mozilla.org/show_bug.cgi?id=793553
-        - Import Contacts (sim, facebook)
-
-      questions:
-        - How should be used the email field in the last privacy screen.
+        - Import Facebook
+        - Do something with the email address
 
       ui:
-        - Better wifi password dialog.
-        - Navigate to internal linked content (<a href="">) in the privacy section
         - Transitions between pages are slow.
 
       localization:
@@ -25,6 +20,7 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="../locales/locales.ini"/>
     <script type="application/javascript" defer src="../shared/js/l10n.js"></script>
+    <script type="application/javascript" defer src="../shared/js/l10n_date.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="../shared/style/buttons.css"/>
@@ -33,10 +29,12 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="../style/lists.css"/>
+    <link rel="stylesheet" type="text/css" href="../style/icons.css"/>
     <link rel="stylesheet" type="text/css" href="../style/settings.css"/>
 
     <script type="application/javascript" defer src="../js/wifi.js"></script>
     <script type="application/javascript" defer src="../js/settings.js"></script>
+    <script type="application/javascript" defer src="../js/utils.js"></script>
 
     <link rel="stylesheet" type="text/css" href="style/ftu.css"/>
     <script type="application/javascript" src="js/ftu.js"></script>
@@ -44,6 +42,19 @@
   </head>
 
   <body role="application" class="skin-organic">
+    <div id="fake-elements" class="invisible">
+      <span id="wifi-desc"></span>
+      <span id="wifi-enabled"><input></input></span>
+      <span id="wifi-knownNetworks"></span>
+      <span id="wps-column"><small><a></a></small></span>
+      <span id="brightness-manual"></span>
+      <span id="joinHidden"></span>
+      <span id="manageNetworks"></span>
+      <span id="macAddress"><small data-l10n-id="macAddress"><span></span></small></span>
+    </div>
+
+
+    <!-- End Panel -->
     <section role="region" class="page" id="end">
       <div class="main">
         <span class="title">
@@ -60,6 +71,12 @@
     </section>
 
 
+    <!-- Privacy Panels -->
+
+    <!-- Privacy :: Privacy Policy About Emails -->
+    <section role="region" id="privacy-informations" data-leaf>
+    </section>
+
     <section role="region" class="page" id="privacy2">
       <div class="main">
           <div class="header logo">
@@ -75,15 +92,69 @@
           <input type="email" placeholder="Email address"></input>
 
           <div class="header">
-            Learn how Mozilla handle your information in our <a href="#privacy2">privacy policy</a>.
+            Learn how Mozilla handle your information in our <a href="#privacy-informations">privacy policy</a>.
           </div>
       </div>
     </section>
 
+    <!-- Privacy :: About Your Rights -->
+    <section role="region" id="about-your-rights" data-leaf>
+      <ul>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-0">
+            Mozilla Firefox is free and open source software, built by a community
+            of thousands from all over the world. There are a few things you should
+            know:
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-1">
+            Firefox is made available to you under the terms of the Mozilla Public
+            License. This means you may use, copy and distribute Firefox to others.
+            You are also welcome to modify the source code of Firefox as you want to
+            meet your needs. The Mozilla Public License also gives you the right to
+            distribute your modified versions.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-2">
+            You are not granted any trademark rights or licenses to the trademarks
+            of the Mozilla Foundation or any party, including without Temporary Text
+            limitation the Firefox name or logo. Additional information on
+            trademarks may be found Only here.
+          </p>
+        </li>
+        <li>
+          <p class="description" data-l10n-id="about-your-rights-3">
+            Some features in Firefox, such as the Crash Reporter, give you the
+            option to provide feedback to Mozilla. By choosing to submit feedback,
+            you give Mozilla permission to use the feedback to improve its products,
+            to publish the feedback on its websites, and to distribute the feedback.
+          </p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Privacy :: About Your Privacy -->
+    <section role="region" id="about-your-privacy" data-leaf>
+      <ul>
+        <li class="privacy-firefoxOS">
+          <a href="https://www.mozilla.org/legal/privacy/firefox.html">Firefox OS</a>
+        </li>
+        <li class="privacy-everythingME">
+          <a href="http://corp.everything.me/#/privacy">everything.me</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Privacy :: Learn More -->
+    <section role="region" id="learn-more" data-leaf>
+    </section>
 
     <section role="region" class="page" id="privacy">
       <div class="main">
-          <div class="header logo">
+          <div class="header">
+            <img src="style/images/firefox-48.png" align="left">
             Welcome to Firefox OS, the free and
             open source operating system from
             Mozilla. Our mission is to promote
@@ -91,23 +162,19 @@
             by keeping the power of the Web in
             your hands.
           </div>
-          <div class="sub-header">
-            <a href="#privacy">About Firefox OS</a>
-            <a href="#privacy">Your Privacy</a>
-          </div>
+          <a href="#about-your-rights" data-l10n-id="about-your-rights"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </a>
 
           <h2>Give us Feedback</h2>
 
           <div class="header">
-            Help Mozilla improve its product byt automatically sending
+            Help Mozilla improve its product by automatically sending
             performance data. Daily feedback will only be sent when the
             phone is connected to a Wi-Fi network.
-          </div>
-          <div class="sub-header">
-            <a href="#privacy">Learn more</a>
+            <a href="#learn-more" data-l10n-id="learn-more"> Learn More </a>
           </div>
 
-          <label class="switch">
+          <label>
             <input type="checkbox" name="telemetry.enabled" />
             <span></span>
           </label>
@@ -116,12 +183,22 @@
     </section>
 
 
+    <!-- Import Contacts -->
     <section role="region" class="page" id="contacts">
       <div class="main">
+        <ul>
+          <li id="import-sim" data-read="Reading..." data-import="Import successful" data-error="Import error">
+            <a data-l10n-id="importSim">Import from SIM</a>
+          </li>
+          <li id="import-fb" disabled="true">
+            <a data-l10n-id="importFb">Import from Facebook</a>
+          </li>
+        </ul>
       </div>
     </section>
 
 
+    <!-- DateTime -->
     <section role="region" class="page" id="datetime">
       <div class="main">
         <ul class="buttons-list">
@@ -709,15 +786,75 @@
     </section>
 
 
+    <!-- Wifi -->
+
+    <!-- Connectivity :: Wi-Fi :: Network Status -->
+    <section role="region" id="wifi-status">
+      <button type="submit" class="invisible"></button>
+      <!-- network properties -->
+      <ul>
+        <li>
+          <a data-l10n-id="security">security
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="ipAddress">IP Adddress
+            <span data-ip></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="linkSpeed">link speed
+            <span data-speed></span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Wi-Fi :: Network Authentication -->
+    <section role="region" id="wifi-auth">
+      <button type="submit" class="invisible"></button>
+      <!-- network properties + identity/password input -->
+      <ul>
+        <li>
+          <a data-l10n-id="security">security
+            <span data-security>WPA-PSK</span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="signalStrength">signal strength
+            <span data-signal>good</span>
+          </a>
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-identity data-ignore name="identity" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="password" data-password data-ignore name="password" maxlength="63" />
+          <label for="show-pwd">
+            <input type="checkbox" data-ignore name="show-pwd" />
+            <span data-l10n-id="showPassword">show password</span>
+          </label>
+        </li>
+      </ul>
+    </section>
     <section role="region" class="page" id="wifi">
       <div class="main">
-        <ul id="wifi-networks" class="content">
+        <ul id="wifi-availableNetworks" class="content">
           <!-- filled by wifi.js -->
         </ul>
       </div>
     </section>
 
 
+    <!-- Language Selection -->
     <section role="region" class="start page" id="root">
       <div class="main">
         <ul>
@@ -809,20 +946,22 @@
       </div>
     </section>
 
+
     <section role="region" id="header">
       <header>
         <menu type="toolbar">
           <button id="wifi-refresh" data-l10n-id="ftu-wifi-refresh">Refresh</button>
         </menu>
-        <h1 id="title"> Select a Language</h1>
+        <h1 id="title" data-ssid> Select a Language </h1>
       </header>
     </section>
 
+
     <progress id="progress" value="20" max="100"></progress>
 
-    <div id="navigation-buttons" /* XXX */ class="show">
-      <button id="back" data-l10n-id="ftu-back" data-target='' onclick="document.location.hash = this.dataset.target;">Back</button>
-      <button id="next" data-l10n-id="ftu-next" data-target='wifi' onclick="document.location.hash = this.dataset.target;">Next</button>
+    <div id="navigation-buttons" class="show">
+      <button id="back" data-l10n-id="ftu-back" data-target='' onclick="previous(event);">Back</button>
+      <button id="next" data-l10n-id="ftu-next" data-target='wifi' onclick="next(event)">Next</button>
     </div>
 
     <img id="logo" src="style/images/powered.png"></img>

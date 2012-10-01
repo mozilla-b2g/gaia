@@ -2,8 +2,28 @@
 'use strict';
 
 window.addEventListener('load', function onFTUload() {
-  gWifiManager.setEnabled(true);
+  var simImport = document.getElementById('import-sim');
+  simImport.onclick = function importFromSim() {
+    simImport.setAttribute('disabled', 'true');
 
+    function onread() {
+      simImport.dataset.state = 'read';
+    };
+
+    function onimport(count) {
+      simImport.dataset.import = 'Import successfully ' + count + 'contacts';
+      simImport.dataset.state = 'import';
+    };
+
+    function onerror() {
+      simImport.dataset.state = 'error';
+      simImport.removeAttribute('disabled');
+    };
+
+    importSIMContacts(onread, onimport, onerror);
+  };
+
+  gWifiManager.setEnabled(true);
   var settings = window.navigator.mozSettings;
   if (!settings)
     return;
@@ -61,7 +81,12 @@ window.addEventListener('animationend', function(evt) {
 
 window.addEventListener('hashchange', function(evt) {
   var back = document.getElementById('back');
+  back.textContent = 'Back';
+
   var next = document.getElementById('next');
+  next.dataset.action = '';
+  next.textContent = 'Next';
+
   var progress = document.getElementById('progress');
   var title = document.getElementById('title');
 
@@ -81,6 +106,18 @@ window.addEventListener('hashchange', function(evt) {
       progress.value = 40;
       title.textContent = 'Select a network';
       break;
+    case '#wifi-auth':
+      back.dataset.target = 'wifi';
+      next.dataset.target = 'wifi';
+      next.dataset.action = 'join';
+      next.textContent = 'Join';
+      break;
+    case '#wifi-status':
+      back.dataset.target = 'wifi';
+      next.dataset.target = 'wifi';
+      next.dataset.action = 'forget';
+      next.textContent = 'Forget';
+      break;
     case '#datetime':
       back.dataset.target = 'wifi';
       next.dataset.target = 'contacts';
@@ -99,10 +136,30 @@ window.addEventListener('hashchange', function(evt) {
       progress.value = 90;
       title.textContent = 'Firefox Privacy Choices';
       break;
+    case '#about-your-rights':
+      back.dataset.target = 'privacy';
+      next.dataset.target = '';
+      title.textContent = 'About Your Rights';
+      break;
+    case '#about-your-privacy':
+      back.dataset.target = 'privacy';
+      next.dataset.target = '';
+      title.textContent = 'About Your Privacy';
+      break;
+    case '#learn-more':
+      back.dataset.target = 'privacy';
+      next.dataset.target = '';
+      title.textContent = 'Learn More';
+      break;
     case '#privacy2':
       back.dataset.target = 'privacy';
       next.dataset.target = 'end';
       progress.value = 100;
+      break;
+    case '#privacy-informations':
+      back.dataset.target = 'privacy2';
+      next.dataset.target = '';
+      title.textContent = 'Privacy Policy';
       break;
     case '#end':
       progress.value = '';
@@ -112,3 +169,24 @@ window.addEventListener('hashchange', function(evt) {
       break;
   }
 });
+
+function previous(e) {
+  document.location.hash = e.target.dataset.target;
+}
+
+function next(e) {
+  var dataset = e.target.dataset;
+  switch (dataset.action) {
+    case 'forget':
+      var button = document.querySelector('#wifi-status button');
+      button.click();
+      break;
+
+    case 'join':
+      var button = document.querySelector('#wifi-auth button');
+      button.click();
+      break;
+  }
+
+  document.location.hash = dataset.target;
+}

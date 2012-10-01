@@ -10,6 +10,7 @@
     "mobileconnection",
     "mozBluetooth",
     "bluetooth",
+    "contacts",
     "device-storage:pictures",
     "device-storage:music",
     "device-storage:videos",
