@@ -216,6 +216,7 @@ var Settings = {
       case 'range':
         value = parseFloat(input.value).toFixed(1); // float
         break;
+      case 'select-one':
       case 'radio':
       case 'text':
       case 'password':
