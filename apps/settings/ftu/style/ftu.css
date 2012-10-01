@@ -7,6 +7,12 @@ html, body {
   background-size: 100% 100%;
 }
 
+/* 
+  Usually sections have a size of 100% height and 100% width
+  but for the firstrun experience it seems better to not transition
+  between pages but between steps. So title, progress and navigation
+  buttons are static. The moving part is the content between those.
+*/
 section[role=region] {
   background-image: none;
   background-color: transparent;
@@ -17,41 +23,13 @@ section[role=region] {
   width: calc(100% - 3rem);
 }
 
-
-/* Pages Transition */
 section.page {
   overflow: auto;
 }
 
-
-/* First Run Animation */
-#logo {
-  position: absolute;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  /* XXX */
-  /*animation: logo-dance 12s 1;*/
-  pointer-events: none;
-}
-
-@keyframes logo-dance {
-  1%, 90% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
-}
-
-
-/* Common styles between panels */
-.main {
+section.page .content {
   padding: 0 1.5rem 0 1.5rem;
-  overflow-y: auto;
 }
-
 
 /* Header */
 #header {
@@ -63,6 +41,7 @@ section.page {
 
   visibility: visible;
   overflow: hidden;
+
   transform: none;
   box-shadow: 0 0 5px black;
 }
@@ -75,10 +54,9 @@ section.page {
   display: block;
 }
 
-#header[data-current='end'] {
+#header[data-current='last'] {
   display: none;
 }
-
 
 /* Progress bar */
 progress {
@@ -108,7 +86,6 @@ progress[value='100'] {
   background: none;
 }
 
-
 /* Navigation buttons */
 #navigation-buttons {
   position: absolute;
@@ -121,7 +98,6 @@ progress[value='100'] {
   -moz-border-top-colors: #c6c2c2 white;
 
   /* let the buttons be invisible while the logo dance is going on */
-  /* XXX */
   opacity: 0;
   pointer-events: none;
 }
@@ -140,16 +116,6 @@ progress[value='100'] {
   pointer-events: auto;
 }
 
-#navigation-buttons button:first-child {
-  text-align: right;
-  margin-right: .5rem;
-}
-
-#navigation-buttons button:last-child {
-  text-align: left;
-  margin-left: .5rem;
-}
-
 #navigation-buttons button[data-target=''] {
   display: none;
   pointer-events: none;
@@ -160,214 +126,12 @@ progress[value='100'] {
   margin-left: 0;
 }
 
-
-/* ----------------------------------
- * Buttons list
- * ---------------------------------- */
-.buttons-list {
-  padding: 0;
-  margin: 0;
-  list-style: none;
-}
-
-/* Default */
-.buttons-list button::-moz-focus-inner {
-  border: none;
-  outline: none;
-}
-
-.buttons-list button {
-  width: 100%;
-  height: 3.8rem;
-  margin: 0 0 1rem;
-  padding: 0 1.5rem;
-  box-sizing: border-box;
-  display: inline-block;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
-  overflow: visible;
-  background: #e7e7e7;
-  border: 0.1rem solid #b6b6b6;
-  border-radius: 0.3rem;
-  font-size: 1.4rem;
-  font-family: 'Open Sans', Sans-serif;
-  font-weight: 600;
-  line-height: 2.9rem;
-  text-align: left;
-  color: #333;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-  text-decoration: none;
-  outline: none;
-}
-
-.buttons-list button:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 100%;
-  background: url(images/shadow.png) repeat-x left bottom;
-  height: 0.2rem;
-  margin-top: 0.1rem;
-  pointer-events: none;
-}
-
-/* Press */
-.buttons-list button:active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
-.buttons-list button:active:after {
-  opacity: 0;
-}
-
-button span, a[role="button"] span {
-  background: none no-repeat scroll center center transparent;
-  float: left;
-  height: 2.5rem;
-  margin: 0px 0.5rem 0px -1rem;
-  width: 2.5rem;
-}
-
-/* Core icons */
-.buttons-list button span.end {
-  float: right;
-  margin: 0.3rem -1.5rem 0px 1rem;
-}
-
-.buttons-list button span.launch {
-  background-image: url(images/launch.png);
-  background-position: 1rem bottom;
-}
-
-/* This is not possible to use visibility: hidden or display: none
-   here, otherwise Gecko will deny focus to input fields.
- */
-.invisible {
-  position: absolute;
-  width: 1px;
-  height: 1px;  
-  border: none;
-  left: -10000px;
-}
-
-
-/* Privacy choices */
-.privacy {
-  font-size: 1.3rem;
-}
-
-.privacy .header {
-  display: block;
-  margin-bottom: .3rem;
-}
-
-.privacy .header img {
-  margin: .5rem 1.5rem .5rem .5rem;
-}
-
-.privacy a {
-  color: black;
-}
-
-.privacy a:nth-child(2) {
-  float: right;
-}
-
-.privacy h3 {
-  border-bottom: 2px solid black;
-  -moz-border-bottom-colors: grey white;
-  padding-bottom: .3rem;
-  margin-bottom: .3rem;
-}
-
-.privacy label {
-  margin-left: -1.5rem;
-}
-
-.privacy input {
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-}
-
-
-/* Last screen - mostly done! */
-#end {
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  background-image: url(images/background-dark.png);
-}
-
-#end .main {
-  height: calc(100% - 5.5rem);
-  width: calc(100% - 3rem);
-  color: white;
-  background: url(images/thumb-up.png) no-repeat center 90%, url(images/shadow.png) repeat-x left bottom;
-}
-
-#end .main > span {
-  display: inline-block;
-  margin: .5rem 1rem;
-}
-
-#end .main > span.title {
-  font-size: 4rem;
-}
-
-#end .main > span.subtitle {
-  font-size: 2rem;
-}
-
-#end .main > span.text {
-  font-size: 1.5rem;
-}
-
-#final {
-  position: absolute;
-  bottom: 0rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);
-}
-
-/* buttons */
-button {
-  width: 100%;
-  height: 3.8rem;
-  margin: 0 0 1rem;
-  padding: 0 1.5rem;
-  -moz-box-sizing: border-box;
-  display: inline-block;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  border-radius: 0.3rem;
-  outline: none;
-  border: none;
-  font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
-  font-weight: 600;
-  line-height: 3.8rem;
-  color: #fff;
-  text-shadow: -1px -1px 0 #830b0b;
-  text-align: center;
-  text-decoration: none;
-  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-  color: #333;
-  background-color: #fafafa;
-  border: solid 1px #9f9f9f;
-}
-
-#next,
-#final {
+#next {
   background: url(images/next.png) no-repeat 94% 50%, url(images/button_submit.png) repeat-x;
   border: solid 1px #008aaa;
+  text-align: left;
+  margin-left: .5rem;
+
 }
 
 #back[data-target='wifi'] + #next[data-target="wifi"] {
@@ -376,68 +140,7 @@ button {
 
 #back {
   background: url(images/prev.png) no-repeat 6% 50%;
-}
-
-
-/* Contacts */
-li [data-l10n-id="ftu-contacts-import-sim"] {
-  display: block;
-  background-image: url(images/sim.png);
-  background-position: 14px center;
-  background-repeat: no-repeat;
-  padding-left: 5.5rem;
-}
-
-li[data-state]:after {
-  content: attr(data-state);
-  position: absolute;
-  top: 4.5rem;
-  padding-left: 5.5rem;
-}
-
-li.success {
-  background: url(images/checked.png) no-repeat 98% 50%;
-}
-
-li [data-l10n-id="ftu-contacts-import-facebook"] {
-  background-image: url(images/fb.png);
-  background-position: 0.9rem center; /* icons have different size */
-  background-repeat: no-repeat;
-  padding-left: 5.5rem;
-}
-
-li[disabled] {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-
-/* DateTime */
-#datetime {
-  background-image: url(images/datetime.png);
-  background-size: 100% 100%;
-}
-
-#datetime div {
-  padding: 0;
-}
-
-#datetime ul {
-  position: absolute;
-  bottom: 0;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-}
-
-#datetime ul button {
-  margin-left: 0;
-  margin-right: 0;
-  width: 100%;
-}
-
-/* WiFi */
-#wifi li[data-state] {
-  visibility: hidden;
+  text-align: right;
+  margin-right: .5rem;
 }
 

@@ -200,8 +200,8 @@ window.addEventListener('hashchange', function(evt) {
       break;
     case '#privacy2':
       back.dataset.target = 'privacy';
-      next.dataset.target = 'end';
-      progress.value = 100;
+      next.dataset.target = 'last';
+      progress.value = 99;
       title.textContent = _('ftu-privacy-title');
       break;
     case '#privacy-informations':
@@ -209,11 +209,11 @@ window.addEventListener('hashchange', function(evt) {
       next.dataset.target = '';
       title.textContent = _('ftu-privacy-about-informations');
       break;
-    case '#end':
+    case '#last':
       progress.value = '';
       buttons.classList.add('last');
       back.dataset.target = '';
-      next.dataset.target = 'end';
+      next.dataset.target = 'last';
       next.dataset.action = 'close';
       next.textContent = _('ftu-lets-go');
       title.textContent = '';
