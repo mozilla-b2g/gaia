@@ -32,7 +32,10 @@ Calendar.ns('Service').Caldav = (function() {
         'getCalendar',
         'getEvents',
         'streamEvents',
-        'expandRecurringEvent'
+        'expandRecurringEvent',
+        'deleteEvent',
+        'updateEvent',
+        'createEvent'
       ];
 
       events.forEach(function(e) {
@@ -537,6 +540,101 @@ Calendar.ns('Service').Caldav = (function() {
           // notify the requester that we have completed.
           callback(err);
         }
+      });
+    },
+
+    _assetRequest: function(connection, url) {
+      return new Caldav.Request.Asset(connection, url);
+    },
+
+    deleteEvent: function(account, calendar, event, callback) {
+      var connection = new Caldav.Connection(
+        account
+      );
+
+      var req = this._assetRequest(connection, event.url);
+
+      req.delete({ etag: event.syncToken }, function(err, data, xhr) {
+        callback(err);
+      });
+    },
+
+    createEvent: function(account, calendar, event, callback) {
+      var connection = new Caldav.Connection(account);
+      var vcalendar = new ICAL.icalcomponent({ name: 'VCALENDAR' });
+      var icalEvent = new ICAL.Event();
+
+      // text fields
+      icalEvent.uid = uuid();
+      icalEvent.summary = event.title;
+      icalEvent.description = event.description;
+      icalEvent.location = event.location;
+      icalEvent.sequence = 1;
+
+      // time fields
+      icalEvent.startDate = this.formatInputTime(event.start);
+      icalEvent.endDate = this.formatInputTime(event.end);
+
+      vcalendar.addSubcomponent(icalEvent.component);
+      event.icalComponent = vcalendar.toString();
+
+      var url = calendar.url + icalEvent.uid + '.ics';
+      var req = this._assetRequest(connection, url);
+
+      event.id = icalEvent.uid;
+      event.url = url;
+      event.icalComponent = vcalendar.toJSON();
+
+      req.put({}, vcalendar.toString(), function(err, data, xhr) {
+        var token = xhr.getResponseHeader('Etag');
+        event.syncToken = token;
+        // TODO: error handling
+        callback(err, event);
+      });
+
+    },
+
+    updateEvent: function(account, calendar, event, callback) {
+      var connection = new Caldav.Connection(
+        account
+      );
+
+      var self = this;
+      var req = this._assetRequest(connection, event.url);
+      var etag = event.syncToken;
+
+      // parse event
+      this.parseEvent(event.icalComponent, function(err, icalEvent) {
+        var target = icalEvent;
+
+        // find correct event
+        if (event.recurrenceId) {
+          var rid = self.formatInputTime(event.recurrenceId);
+          rid = rid.toString();
+          if (icalEvent.exceptions[rid]) {
+            target = icalEvent.exceptions[rid];
+          }
+        }
+
+        // text fields
+        target.summary = event.title;
+        target.description = event.description;
+        target.location = event.location;
+        target.sequence = parseInt(target.sequence, 10) + 1;
+
+        // time fields
+        target.startDate = self.formatInputTime(event.start);
+        target.endDate = self.formatInputTime(event.end);
+
+        var vcal = target.component.parent.toString();
+        event.icalComponent = target.component.parent.toJSON();
+
+        req.put({ etag: etag }, vcal, function(err, data, xhr) {
+          var token = xhr.getResponseHeader('Etag');
+          event.syncToken = token;
+          // TODO: error handling
+          callback(err, event);
+        });
       });
     }
 

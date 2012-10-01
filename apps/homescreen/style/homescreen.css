@@ -9,16 +9,6 @@ html, body {
   overflow: hidden;
 }
 
-#landing-overlay {
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: #182026;
-  opacity: .7;
-}
-
 #bookmark-entry-sheet {
   position: absolute;
   width: 100%;

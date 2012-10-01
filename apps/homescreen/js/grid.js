@@ -12,15 +12,10 @@ const GridManager = (function() {
   var dragging = false;
 
   var kPageTransitionDuration = .3;
-  var landingOverlay = document.querySelector('#landing-overlay');
-  var opacityMax = .7;
-
   var searchOverlay = document.querySelector('#search-overlay');
 
   var pages = [];
-  var evmePageIndex = 0;
-  var landingPageIndex = 1;
-  var currentPage = 0;
+  var currentPage = 1;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -60,19 +55,9 @@ const GridManager = (function() {
         // to avoid as much as possible allocations while panning.
         window.removeEventListener('mousemove', handleEvent);
 
-        // Before panning all the pages that are not directly next to the
-        // target on will be set to display none. This code could be
-        // smarter. For example pages can start hidden and then the
-        // previous/next page of the current target can be displayed
-        // before panning and previous/next of the new current page
-        // could be hidden after that.
-        for (var i = 0; i < pages.length; i++) {
-          if (i < currentPage - 1 || i > currentPage + 1) {
-            pages[i].container.style.display = 'none';
-          } else {
-            pages[i].container.style.display = 'block';
-          }
-        }
+        // Before panning pages that are directly next to the current
+        // target are set visible.
+        togglePagesVisibility(currentPage - 1, currentPage + 1);
 
         var index = currentPage;
         var previous = index ? pages[index - 1].container.style : {};
@@ -82,14 +67,14 @@ const GridManager = (function() {
         var current = pages[index].container.style;
         current.MozTransition = '';
 
-        var next = index < pages.length - 1 ? pages[index + 1].container.style
-                                            : {};
+        var next =
+          index < pages.length - 1 ? pages[index + 1].container.style : {};
         next.MozTransition = '';
         next.MozTransform = 'translateX(' + windowWidth + 'px)';
 
         var translate = 'translateX($px)';
         var startX = startEvent.clientX;
-        var direction = deltaX > 0;
+        var forward = deltaX > 0;
 
         var refresh = function(e) {
           if (deltaX >= 0) {
@@ -98,8 +83,8 @@ const GridManager = (function() {
 
             // If we change direction make sure there isn't any part
             // of the page on the other side that stays visible.
-            if (!direction) {
-              direction = true;
+            if (!forward) {
+              forward = true;
               next.MozTransform =
                 translate.replace('$', windowWidth);
             }
@@ -109,8 +94,8 @@ const GridManager = (function() {
 
             // If we change direction make sure there isn't any part
             // of the page on the other side that stays visible.
-            if (direction) {
-              direction = false;
+            if (forward) {
+              forward = false;
               previous.MozTransform =
                 translate.replace('$', -windowWidth);
             }
@@ -120,7 +105,7 @@ const GridManager = (function() {
         };
 
         // Generate a function accordingly to the current page position.
-        if (Homescreen.isInEditMode() || currentPage > landingPageIndex + 1) {
+        if (Homescreen.isInEditMode() || currentPage > 1) {
           var pan = function(e) {
             deltaX = e.clientX - startX;
             window.mozRequestAnimationFrame(refresh);
@@ -130,7 +115,7 @@ const GridManager = (function() {
             deltaX = e.clientX - startX;
             window.mozRequestAnimationFrame(refresh);
             window.mozRequestAnimationFrame(function() {
-              setOverlayPanning(deltaX);
+              setOverlayPanning(index, deltaX, forward);
             });
           }
         }
@@ -161,7 +146,7 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (currentPage > landingPageIndex && 'origin' in evt.target.dataset) {
+        if (currentPage != 0 && 'origin' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
           DragDropManager.start(evt, {
@@ -174,33 +159,23 @@ const GridManager = (function() {
     }
   }
 
-  function setOverlayPanning(deltaX) {
-    var forward = dirCtrl.goesForward(deltaX);
-    if (currentPage === landingPageIndex) {
-      if (forward) {
-        applyEffectOverlay(landingOverlay, (deltaX / windowWidth) * -opacityMax);
-      } else {
-        applyEffectOverlay(searchOverlay, deltaX / windowWidth);
-      }
-    } else if (currentPage === landingPageIndex + 1 && !forward) {
-      applyEffectOverlay(landingOverlay,
-                         opacityMax - ((deltaX / windowWidth) * opacityMax));
-    } else if (currentPage === evmePageIndex && forward) {
+  function setOverlayPanning(index, deltaX, backward) {
+    if (index === 0 && !backward) {
       applyEffectOverlay(searchOverlay, 1 - (-deltaX / windowWidth));
+    } else if (index == 1 && backward) {
+      applyEffectOverlay(searchOverlay, deltaX / windowWidth);
     }
   }
 
   function applyEffectOverlay(overlay, value, duration) {
-    var style = overlay.style;
     if (duration) {
-      style.MozTransition = 'opacity ' + duration + 's ease';
+      overlay.style.MozTransition = 'opacity ' + duration + 's ease';
       overlay.addEventListener('transitionend', function end(e) {
-        overlay.removeEventListener('transitionend', end);
-        style.MozTransition = '';
+        e.target.removeEventListener('transitionend', end);
+        e.target.MozTransition = '';
       });
     }
-    style.opacity = value;
-
+    overlay.style.opacity = value;
   }
 
   function onTouchEnd(deltaX) {
@@ -226,64 +201,69 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
+  function togglePagesVisibility(start, end) {
+    for (var i = 0; i < pages.length; i++) {
+      if (i < start || i > end) {
+        pages[i].container.style.display = 'none';
+      } else {
+        pages[i].container.style.display = 'block';
+      }
+    }
+  }
 
   function goToPage(index, callback) {
     if (index < 0 || index >= pages.length)
       return;
 
-    if (index === landingPageIndex && currentPage === landingPageIndex + 1 &&
-        Homescreen.isInEditMode()) {
-      index++;
-    }
-
-    var isSamePage = currentPage === index;
-    var previousPage = currentPage;
-    if (!isSamePage) {
-      if (index === landingPageIndex && previousPage > 1) {
-        // Click on home button
-        pages[landingPageIndex].container.style.display = 'block';
-      }
-      delete pages[currentPage].container.dataset.currentPage;
-      currentPage = index;
-      pages[currentPage].container.dataset.currentPage = 'true';
-    }
-
-    var fireCallback = function() {
-      if (!dragging) {
-        delete document.body.dataset.transitioning;
-      }
+    var goToPageCallback = function() {
+      delete document.body.dataset.transitioning;
       if (callback) {
         callback();
       }
-      pages[previousPage].container.dispatchEvent(new CustomEvent('pagehide'));
-      pages[currentPage].container.dispatchEvent(new CustomEvent('pageshow'));
+
+      previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
+      newPage.container.dispatchEvent(new CustomEvent('pageshow'));
+      togglePagesVisibility(index, index);
     }
 
+    var previousPage = pages[currentPage];
+    var newPage = pages[index];
 
-    if (isSamePage) {
-      fireCallback();
+    if (index >= currentPage) {
+      var forward = 1;
+      var start = currentPage;
+      var end = index;
+      setOverlayPanning(index, 0, true);
     } else {
-      container.addEventListener('transitionend', function transitionEnd(e) {
-        container.removeEventListener('transitionend', transitionEnd);
-        fireCallback();
-      });
+      var forward = -1;
+      var start = index;
+      var end = currentPage;
+      setOverlayPanning(index, 0, false);
     }
 
-    var len = pages.length;
-    for (var i = 0; i < len; i++) {
-      pages[i].moveByWithEffect((-currentPage + i) * windowWidth,
-                                kPageTransitionDuration);
+    togglePagesVisibility(start, end);
+
+    currentPage = index;
+    updatePaginationBar();
+
+    if (previousPage == newPage) {
+      goToPageCallback();
+      newPage.moveByWithEffect(0, kPageTransitionDuration);
+      return;
     }
 
-    if (index === landingPageIndex) {
-      applyEffectOverlay(landingOverlay, 0, kPageTransitionDuration);
-    } else if (index > landingPageIndex) {
-      applyEffectOverlay(landingOverlay, opacityMax, kPageTransitionDuration);
-    }
+    // Force a reflow otherwise the newPage appears immediately because it is
+    // still considered display: none;
+    newPage.container.getBoundingClientRect();
 
-    if (!isSamePage) {
-      updatePaginationBar();
-    }
+    previousPage.moveByWithEffect(-forward * windowWidth,
+                                  kPageTransitionDuration);
+    newPage.moveByWithEffect(0, kPageTransitionDuration);
+
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
+      goToPageCallback();
+    });
   }
 
   function goToNextPage(callback) {
@@ -353,7 +333,6 @@ const GridManager = (function() {
         }
 
         // Renders pagination bar
-        updatePaginationBar();
         finish();
 
         // Saving initial state
@@ -451,7 +430,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pageHelper.total();
-    for (var i = landingPageIndex + 1; i < pagesCount; i++) {
+    for (var i = 1; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
@@ -462,6 +441,9 @@ const GridManager = (function() {
 
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
+      if (index == 0)
+        return;
+
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
       }
@@ -546,7 +528,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(landingPageIndex + 1));
+      HomeState.saveGrid(pages.slice(1));
     },
 
     /*
@@ -689,10 +671,6 @@ const GridManager = (function() {
 
     get pageHelper() {
       return pageHelper;
-    },
-
-    get landingPageIndex() {
-      return landingPageIndex;
     }
   };
 })();

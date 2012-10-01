@@ -436,7 +436,15 @@ contacts.List = (function() {
       var liElem = liElems[i];
       var familyName = liElem.querySelector('strong > b').textContent.trim();
       var givenName = liElem.querySelector('strong');
-      givenName = givenName.childNodes[0].nodeValue.trim();
+
+      if (!orderByLastName) {
+        var aux = familyName;
+        familyName = givenName;
+        givenName = aux;
+      } else {
+        givenName = givenName.childNodes[0].nodeValue.trim();
+      }
+
       var name = getStringToBeOrdered({
         familyName: [familyName],
         givenName: [givenName]

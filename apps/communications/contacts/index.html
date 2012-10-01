@@ -30,6 +30,7 @@
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
     <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
     <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
+    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
 
     <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script defer type="text/javascript" src="/contacts/js/contacts_settings.js"></script>
@@ -51,11 +52,13 @@
     <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
 
     <!-- Needed to deal with FB Contacts -->
+    <script defer type="text/javascript" src="/contacts/oauth2/js/parameters.js"></script>
     <script defer src="/contacts/js/fb/fb_utils.js"></script>
     <script defer src="/contacts/js/fb_extensions.js"></script>
 
     <script defer src="/contacts/js/fb/fb_contact.js"></script>
     <script defer src="/contacts/js/fb/fb_link.js"></script>
+    <script defer src="/contacts/js/fb/fb_messaging.js"></script>
     <script defer type="text/javascript" src="/contacts/js/value_selector.js"></script>
     <link rel="stylesheet" type="text/css" href="/contacts/style/value_selector.css">
   </head>
@@ -171,14 +174,31 @@
                 <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
                   <div class="item">
                     <div class="item-body-exp">
-                      <button id="link_button" class="fillflow-row action action-add"
-                              onclick="Contacts.extFb.startLink('#i#','#linked#')">
-                        #action#
-                      </button>
+
+                      <div>
+                        <button id="msg_button" data-l10n-id="msg-send"
+                                class="fillflow-row action action-add fillflow-twocols fillflow-left"
+                                onclick="Contacts.extFb.sendPrivateMsg('#i#')">
+                          Message
+                        </button>
+
+                        <button id="wall_button" data-l10n-id="wall-post"
+                                class="fillflow-row action action-add fillflow-twocols"
+                                onclick="Contacts.extFb.wallPost('#i#')">
+                          Wall Post
+                        </button>
+                      </div>
+
                       <button id="profile_button" data-l10n-id="show-profile"
                               class="fillflow-row action action-add"
                               onclick="Contacts.extFb.showProfile('#i#')">
                         Show Profile
+                      </button>
+
+
+                      <button id="link_button" class="fillflow-row action action-add"
+                              onclick="Contacts.extFb.startLink('#i#','#linked#')">
+                        #action#
                       </button>
                     </div>
                   </div>

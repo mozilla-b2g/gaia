@@ -65,7 +65,6 @@ var WindowManager = (function() {
   var inlineActivityFrame = null;
 
   // Some document elements we use
-  var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
   var banner = document.getElementById('system-banner');
@@ -729,9 +728,6 @@ var WindowManager = (function() {
     // Set displayedApp to the new value
     displayedApp = newApp;
 
-    // Update the loading icon since the displayedApp is changed
-    updateLoadingIcon();
-
     // If the app has a attention screen open, displaying it
     AttentionScreen.showForOrigin(newApp);
   }
@@ -1075,6 +1071,10 @@ var WindowManager = (function() {
           ensureHomescreen();
         }
 
+        // We will only bring web activity handling apps to the foreground
+        if (!e.detail.isActivity)
+          return;
+
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
         if (!homescreen) {
@@ -1086,10 +1086,6 @@ var WindowManager = (function() {
           homescreenManifestURL = manifestURL;
           return;
         }
-
-        // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
-          return;
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
@@ -1257,59 +1253,6 @@ var WindowManager = (function() {
     var app = runningApps[origin];
     app.frame.reload(true);
   }
-
-  // Update the loading icon on the status bar
-  function updateLoadingIcon() {
-    var origin = displayedApp;
-    // If there aren't any origin, that means we are moving to
-    // the homescreen. Let's hide the icon.
-    if (!origin) {
-      loadingIcon.classList.remove('app-loading');
-      return;
-    }
-
-    // Actually update the icon.
-    // Hide it if the loading property is not true.
-    var app = runningApps[origin];
-
-    if (app.frame.dataset.loading) {
-      loadingIcon.classList.add('app-loading');
-    } else {
-      loadingIcon.classList.remove('app-loading');
-    }
-  };
-
-  // Listen for mozbrowserloadstart to update the loading status
-  // of the frames
-  window.addEventListener('mozbrowserloadstart', function(e) {
-    var dataset = e.target.dataset;
-    // Only update frames open by ourselves
-    if (!('frameType' in dataset) || dataset.frameType !== 'window')
-      return;
-
-    dataset.loading = true;
-
-    // Update the loading icon only if this is the displayed app
-    if (displayedApp == dataset.frameOrigin) {
-      updateLoadingIcon();
-    }
-  });
-
-  // Listen for mozbrowserloadend to update the loading status
-  // of the frames
-  window.addEventListener('mozbrowserloadend', function(e) {
-    var dataset = e.target.dataset;
-    // Only update frames open by ourselves
-    if (!('frameType' in dataset) || dataset.frameType !== 'window')
-      return;
-
-    delete dataset.loading;
-
-    // Update the loading icon only if this is the displayed app
-    if (displayedApp == dataset.frameOrigin) {
-      updateLoadingIcon();
-    }
-  });
 
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize

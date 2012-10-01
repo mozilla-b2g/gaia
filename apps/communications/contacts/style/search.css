@@ -42,7 +42,7 @@ form.search input {
 .facebook form.search input {
   height: 2.5rem;
   pointer-events: none;
-  width: -moz-calc(100% - 7.5rem);
+  width: 100%
 }
 
 form.search button {
