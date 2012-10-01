@@ -18,7 +18,6 @@ addEventListener('message', function prepare(e) {
   require(
     'calendar', 'responder',
     'inspect', 'worker/thread',
-    'ext/ical',
     'ext/caldav',
     'ext/uuid',
     'service/caldav'

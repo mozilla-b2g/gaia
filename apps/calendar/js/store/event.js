@@ -9,27 +9,10 @@
     _store: 'events',
     _dependentStores: ['events', 'busytimes', 'alarms'],
 
-    _createModel: function(input, id) {
-      var _super = Calendar.Store.Abstract.prototype._createModel;
-      var model = _super.apply(this, arguments);
-
-      model.remote.startDate = Calendar.Calc.dateFromTransport(
-        model.remote.start
-      );
-
-      model.remote.endDate = Calendar.Calc.dateFromTransport(
-        model.remote.end
-      );
-
-      return model;
-    },
-
     /**
      * Link busytime dependants see _addDependents.
      */
     _removeDependents: function(id, trans) {
-      this.removeByIndex('parentId', id, trans);
-
       var busy = this.db.getStore('Busytime');
       busy.removeEvent(id, trans);
     },
@@ -207,7 +190,7 @@
      * and returns results. Does not cache.
      *
      * @param {String} calendarId calendar to find.
-     * @param {Function} callback node style [err, array of events].
+     * @param {Function} callback node style err, array of events.
      */
     eventsForCalendar: function(calendarId, callback) {
       var trans = this.db.transaction('events');

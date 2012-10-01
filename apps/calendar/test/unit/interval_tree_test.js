@@ -16,8 +16,8 @@ suite('interval_tree', function() {
   function factory(id, start, end) {
     return {
       _id: id,
-      _startDateMS: start,
-      _endDateMS: end
+      start: start,
+      end: end
     };
   }
 
@@ -422,8 +422,8 @@ suite('interval_tree', function() {
       });
 
       function compare(aObj, bObj) {
-        var a = aObj._startDateMS;
-        var b = bObj._startDateMS;
+        var a = aObj.start;
+        var b = bObj.start;
 
         return Calendar.compare(a, b);
       }

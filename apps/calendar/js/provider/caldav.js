@@ -239,7 +239,6 @@ Calendar.ns('Provider').Caldav = (function() {
         }
       );
     }
-
   };
 
   return CaldavProvider;

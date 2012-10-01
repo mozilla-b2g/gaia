@@ -76,28 +76,11 @@ suite('store/event', function() {
     assert.equal(subject.db, db);
   });
 
-
   test('#_createModel', function() {
-    var input = Factory.build('event');
+    var input = { name: 'foo'};
     var output = subject._createModel(input, 1);
     assert.equal(output._id, 1);
     assert.equal(output.name, output.name);
-
-    assert.deepEqual(
-      output.remote.startDate,
-      Calendar.Calc.dateFromTransport(
-        output.remote.start
-      ),
-      'startDate'
-    );
-
-    assert.deepEqual(
-      output.remote.endDate,
-      Calendar.Calc.dateFromTransport(
-        output.remote.end
-      ),
-      'endDate'
-    );
   });
 
   suite('#(x)For', function() {
@@ -262,15 +245,20 @@ suite('store/event', function() {
 
       events.oneIn = Factory('event', {
         remote: {
-          startDate: new Date(2012, 1, 1),
-          endDate: new Date(2012, 1, 10)
+          endDate: new Date(2012, 1, 10),
+          // end date is the same for all occurrences.
+          occurs: [
+            new Date(2012, 1, 1)
+          ]
         }
       });
 
       events.twoIn = Factory('event', {
         remote: {
-          startDate: new Date(2012, 1, 7),
-          endDate: new Date(2012, 1, 9)
+          endDate: new Date(2012, 1, 9),
+          occurs: [
+            new Date(2012, 1, 7)
+          ]
         }
       });
     });
@@ -302,11 +290,11 @@ suite('store/event', function() {
 
       subject.findByAssociated(records, function(err, list) {
 
-        function hasEvent(idx, event, msg) {
+        function hasEvent(idx, event, occuranceIdx, msg) {
           var record = list[idx];
           assert.deepEqual(
             record[0].startDate,
-            events[event].remote.startDate,
+            events[event].remote.occurs[occuranceIdx],
             idx + ' - ' + event + ': ' + msg
           );
 
@@ -320,54 +308,15 @@ suite('store/event', function() {
         done(function() {
           assert.equal(list.length, 2);
 
-          hasEvent(0, 'oneIn', 'first date in range');
-          hasEvent(1, 'twoIn', 'second date in range');
+          hasEvent(0, 'oneIn', 0, 'first date in range');
+          hasEvent(1, 'twoIn', 0, 'second date in range');
         });
       });
     });
 
   });
 
-  suite('#remove', function() {
-
-    //TODO: busytime removal tests?
-
-    suite('parent items /w children', function() {
-      var id = 'parentStuff';
-
-      setup(function(done) {
-        var item = Factory('event', {
-          _id: id
-        });
-        subject.persist(item, done);
-      });
-
-      setup(function(done) {
-        subject.persist(
-          Factory('event', { parentId: id }),
-          done
-        );
-      });
-
-      setup(function(done) {
-        subject.remove(id, done);
-      });
-
-      test('after remove', function(done) {
-        // clear cache
-        subject._cached = Object.create(null);
-
-        subject.load(function(data) {
-          var keys = Object.keys(subject.cached);
-          assert.length(keys, 0);
-          done();
-        });
-      });
-
-    });
-  });
-
-  suite('#removeByIndex', function() {
+  suite('#removeByCalendarId', function() {
     var busytime;
     var byCalendar = {};
 
@@ -403,7 +352,7 @@ suite('store/event', function() {
     });
 
     test('removed all events for 1', function(done) {
-      subject.removeByIndex('calendarId', 1, function() {
+      subject.removeByCalendarId(1, function() {
         var keys = Object.keys(subject.cached);
         assert.equal(
           keys.length, 1,
@@ -435,14 +384,6 @@ suite('store/event', function() {
             assert.equal(obj.calendarId, 2);
           });
         });
-      });
-    });
-  });
-
-  suite('creation of dependancies', function() {
-    suite('busytime', function() {
-      var event;
-      setup(function() {
       });
     });
   });

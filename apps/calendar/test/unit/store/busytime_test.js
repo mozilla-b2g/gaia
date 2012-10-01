@@ -1,5 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
+  requireLib('interval_tree.js');
   requireLib('timespan.js');
   requireLib('store/event.js');
   requireLib('store/busytime.js');
@@ -8,7 +9,6 @@ requireApp('calendar/test/unit/helper.js', function() {
 
 suite('store/busytime', function() {
 
-  var app;
   var subject;
   var db;
   var id = 0;
@@ -24,15 +24,9 @@ suite('store/busytime', function() {
 
     remote.id = ++id;
 
-    var out = Factory('event', {
+    return Factory('event', {
       remote: remote
     });
-
-    if (!out.remote.end || !out.remote.end.utc) {
-      throw new Error('event has no end');
-    }
-
-    return out;
   }
 
   function eventRecuring(date) {
@@ -45,23 +39,52 @@ suite('store/busytime', function() {
     });
   }
 
-  function time(event) {
-    return event.remote.startDate.valueOf();
+  function time(event, idx) {
+    if (typeof(idx) === 'undefined') {
+      idx = 0;
+    }
+
+    return event.remote.occurs[idx].valueOf();
   }
 
-  function record(event) {
-    var record = subject._eventToRecord(
+  function occurance(event, idx) {
+    if (typeof(idx) === 'undefined') {
+      idx = 0;
+    }
+
+    return event.remote.occurs[idx];
+  }
+
+  function record(event, idx) {
+    return subject._eventToRecord(
+      occurance(event, idx),
       event
     );
+  }
 
-    return subject._createModel(record);
+  function inTree() {
+    var item = record.apply(this, arguments);
+    var id = item._id;
+    var list = subject._byEventId[item.eventId];
+
+    var result = false;
+
+    list.forEach(function(cur) {
+      if (cur._id == id) {
+        result = cur;
+      }
+    });
+
+    if (result) {
+      return subject._tree.indexOf(result) !== null;
+    }
+    return false;
   }
 
   setup(function(done) {
     this.timeout(5000);
     id = 0;
-    app = testSupport.calendar.app();
-    db = app.db;
+    db = testSupport.calendar.db();
     subject = db.getStore('Busytime');
 
     db.open(function(err) {
@@ -241,37 +264,20 @@ suite('store/busytime', function() {
         'load event ids'
       );
 
+      // verify cache
+      assert.deepEqual(
+        subject._tree.items,
+        results,
+        'should add results to cache'
+      );
+
       assert.deepEqual(
         addEvents,
         results,
         'should fire load event'
       );
     });
-  });
 
-  suite('#_createModel', function() {
-    var parentEvent;
-    var start = new Date(2012, 7, 1);
-    var end = new Date(2012, 7, 8);
-
-    setup(function(done) {
-      parentEvent = event(start, end);
-      app.store('Event').persist(parentEvent, done);
-    });
-
-    test('db-round trip', function(done) {
-      var record;
-      subject.once('add time', function(item) {
-        record = item;
-      });
-
-      subject.load(function() {
-        done(function() {
-          assert.deepEqual(record.startDate, start, 'startDate');
-          assert.deepEqual(record.endDate, end, 'endDate');
-        });
-      });
-    });
   });
 
   suite('#addEvent', function(done) {
@@ -282,24 +288,25 @@ suite('store/busytime', function() {
       eventModel = event(new Date(2012, 1, 1));
       expected = [];
 
+      eventModel.remote.occurs.push(
+        new Date(2012, 1, 2)
+      );
+
       expected.push(
-        record(eventModel)
+        record(eventModel),
+        record(eventModel, 1)
       );
 
       subject.addEvent(eventModel, done);
     });
 
     test('result', function(done) {
-      var items = [];
-
       subject._setupCache();
-      subject.on('add time', function(item) {
-        items.push(item);
-      });
 
       subject.load(function(err, results) {
         done(function() {
-          assert.deepEqual(items, expected);
+          results = subject._tree.items;
+          assert.deepEqual(results, expected);
         });
       });
     });
@@ -311,6 +318,10 @@ suite('store/busytime', function() {
 
     setup(function() {
       removeModel = event(new Date(2012, 1, 1));
+      removeModel.remote.occurs.push(
+        new Date(2012, 1, 2)
+      );
+
       keepModel = event(new Date(2013, 1, 1));
     });
 
@@ -335,6 +346,9 @@ suite('store/busytime', function() {
 
       // quick sanity check to make sure
       // we removed in memory stuff
+      assert.equal(subject._tree.items.length, 1);
+      assert.equal(subject._tree.items[0].eventId, keepModel._id);
+
       subject._setupCache();
       subject.loadSpan(span, function(err, results) {
         done(function() {
@@ -377,13 +391,54 @@ suite('store/busytime', function() {
 
       single = event(new Date(2012, 1, 1));
       recurring = event(new Date(2011, 12, 3));
+      recurring.remote.occurs.push(
+        new Date(2012, 2, 1)
+      );
 
-      subject.addEvent(single);
-      subject.addEvent(recurring);
-
-      assert.ok(subject._byEventId[single._id], 'has byEventId');
+      subject._addEventTimes(single);
+      subject._addEventTimes(recurring);
     });
 
+
+    test('#_addEventTimes', function() {
+
+      assert.equal(events.add.length, 3);
+
+      assert.deepEqual(
+        events.add[0].data[0],
+        record(single)
+      );
+
+      assert.deepEqual(
+        events.add[1].data[0],
+        record(recurring)
+      );
+
+      assert.deepEqual(
+        events.add[2].data[0],
+        record(recurring, 1)
+      );
+
+      var byEventId = {};
+
+      byEventId[recurring._id] = [
+        record(recurring),
+        record(recurring, 1)
+      ];
+
+      byEventId[single._id] = [
+        record(single)
+      ];
+
+      assert.deepEqual(
+        subject._byEventId,
+        byEventId
+      );
+
+      assert.isTrue(inTree(single));
+      assert.isTrue(inTree(recurring));
+      assert.isTrue(inTree(recurring, 1));
+    });
 
     suite('#_removeEventTimes', function() {
 
@@ -394,10 +449,11 @@ suite('store/busytime', function() {
 
         assert.equal(events.remove.length, 1);
 
-        assert.hasProperties(
+        assert.deepEqual(
           events.remove[0].data[0],
           record(single)
         );
+
 
         assert.ok(
           subject._byEventId[recurring._id]
@@ -407,13 +463,16 @@ suite('store/busytime', function() {
           !subject._byEventId[single._id]
         );
 
+        assert.isTrue(
+          subject._tree.indexOf(item) === null
+        );
       });
 
       test('remove recurring', function() {
         var removedItems = subject._byEventId[recurring._id];
 
         subject._removeEventTimes(recurring._id);
-        assert.equal(events.remove.length, 1);
+        assert.equal(events.remove.length, 2);
 
         assert.ok(
           !subject._byEventId[recurring._id]
@@ -421,6 +480,14 @@ suite('store/busytime', function() {
 
         assert.ok(
           subject._byEventId[single._id]
+        );
+
+        assert.isTrue(
+          subject._tree.indexOf(removedItems[0]) === null
+        );
+
+        assert.isTrue(
+          subject._tree.indexOf(removedItems[1]) === null
         );
 
       });
@@ -432,18 +499,23 @@ suite('store/busytime', function() {
     var item = event(new Date(2012, 1, 1));
 
     var result = subject._eventToRecord(
+      item.remote.occurs[0],
       item
     );
 
-    assert.deepEqual(
-      result.start,
-      item.remote.start
+    assert.equal(
+      result.startDate,
+      item.remote.occurs[0]
     );
 
-    assert.deepEqual(
-      result.end,
-      item.remote.end
+    assert.equal(result.start, result.startDate.valueOf());
+
+    assert.equal(
+      result.endDate,
+      item.remote.endDate
     );
+
+    assert.equal(result.end, result.endDate.valueOf());
 
     assert.equal(
       result.eventId,

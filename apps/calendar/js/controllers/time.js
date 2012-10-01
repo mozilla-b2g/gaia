@@ -1,9 +1,5 @@
 Calendar.ns('Controllers').Time = (function() {
 
-  function compareStart(a, b) {
-    return Calendar.compare(a.start, b.start);
-  }
-
   function Time(app) {
     this.app = app;
     Calendar.Responder.call(this);
@@ -162,7 +158,7 @@ Calendar.ns('Controllers').Time = (function() {
         var idx = Calendar.binsearch.find(
           spans,
           this._currentTimespan,
-          compareStart
+          Calendar.compareByStart
         );
 
         var isFuture = (dir === 'future');
@@ -251,7 +247,7 @@ Calendar.ns('Controllers').Time = (function() {
       var idx = Calendar.binsearch.find(
         spans,
         span,
-        compareStart
+        Calendar.compareByStart
       );
 
       // if a perfect match is found stop,
@@ -263,7 +259,7 @@ Calendar.ns('Controllers').Time = (function() {
       idx = Calendar.binsearch.insert(
         spans,
         span,
-        compareStart
+        Calendar.compareByStart
       );
 
       // insert it keep all spans ordered
@@ -366,7 +362,7 @@ Calendar.ns('Controllers').Time = (function() {
       var currentIdx = Calendar.binsearch.find(
         this._timespans,
         this._currentTimespan,
-        compareStart
+        Calendar.compareByStart
       );
 
       // When given date's month span is not found

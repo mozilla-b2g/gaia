@@ -7171,11 +7171,6 @@ var TestActorProtoBase = {
     if (this._expectNothing &&
         (this._expectations.length || this._iExpectation))
       return false;
-    // Fail immediately if a synchronous check already failed.  (It would
-    // have tried to generate a rejection, but there was no deferral at the
-    // time.)
-    if (!this._expectationsMetSoFar)
-      return false;
     if ((this._iExpectation >= this._expectations.length) &&
         (this._expectDeath ? (this._logger && this._logger._died) : true)) {
       this._resolved = true;
@@ -9202,10 +9197,7 @@ module.exports.decodeBase64 = function(str, charset){
  * @return {Array} An array of parsed e-mails addresses in the form of [{name, address}]
  */
 module.exports.parseAddresses = function(addresses){
-    return [].concat.apply([], [].concat(addresses).map(addressparser)).map(function(address){
-        address.name = module.exports.parseMimeWords(address.name);
-        return address;
-    });
+    return [].concat.apply([], [].concat(addresses).map(addressparser));
 };
 
 /**
@@ -9621,10 +9613,7 @@ function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
         }
         
         if(pos + line.length < len && line.substr(-1)!="\n"){
-            if(line.length==76 && line.match(/\=[\da-f]{2}$/i)){
-                line = line.substr(0, line.length-3);
-            }
-            else if(line.length==76){
+            if(line.length==76){
                 line = line.substr(0, line.length-1);
             }
             pos += line.length;
@@ -9653,7 +9642,6 @@ function checkRanges(nr, ranges){
     }
     return false;
 }
-
 });
 define('mimelib/lib/content-types',['require','exports','module'],function (require, exports, module) {
 // list of mime types
