@@ -207,11 +207,20 @@
     <section role="region" id="wifi-manageNetworks">
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-        <h1 data-l10n-id="knownNetworks">
-          Known Networks
-        </h1>
+        <h1 data-l10n-id="manageNetworks"> Manage Networks </h1>
       </header>
 
+      <ul>
+        <li>
+          <a data-l10n-id="macAddress"> MAC address
+            <span data-name="deviceinfo.mac"></span>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="knownNetworks"> Known Networks </h2>
+      </header>
       <ul id="wifi-knownNetworks">
         <!--
           - filled by wifi.js — one list item per known network, e.g.:
@@ -220,6 +229,17 @@
           -     <a [class="wifi-secure"]> Network SSID </a>
           -   </li>
           -->
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="hiddenNetworks"> Hidden Networks </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
+          </label>
+        </li>
       </ul>
 
       <!-- action menu -->
@@ -235,9 +255,7 @@
     <section role="region" id="wifi">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="wifi">
-          Wi-Fi
-        </h1>
+        <h1 data-l10n-id="wifi"> Wi-Fi </h1>
       </header>
 
       <ul>
@@ -290,18 +308,9 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
-        <li id="macAddress">
-          <small id="macAddress-desc"></small>
-          <a data-l10n-id="macAddress">MAC Address</a>
-        </li>
         <li>
           <label>
             <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
           </label>
         </li>
       </ul>
@@ -331,7 +340,7 @@
 
       <!-- Advanced APN settings -->
       <header>
-        <h2 data-l10n-id="advancedSettings">Advanced Settings</h2>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul id="apnSettings-advanced">
         <li>
@@ -388,9 +397,7 @@
     <section role="region" id="data">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="cellularAndData">
-          Cellular &amp; Data
-        </h1>
+        <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
       </header>
 
       <ul>
@@ -453,9 +460,7 @@
     <section role="region" id="bluetooth">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bluetooth">
-          Bluetooth
-        </h1>
+        <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
       </header>
 
       <ul>
@@ -529,7 +534,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings">HotSpot Settings</h1>
+        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
       </header>
 
       <!-- wifi hotspot settings -->
@@ -558,9 +563,7 @@
     <section role="region" id="hotspot">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="internetSharing">
-          Internet Sharing
-        </h1>
+        <h1 data-l10n-id="internetSharing"> Internet Sharing </h1>
       </header>
 
       <header>
@@ -630,7 +633,7 @@
         <menu type="toolbar">
           <button data-l10n-id="done" type="submit">Done</button>
         </menu>
-        <h1 data-l10n-id="select-tone">Select a Tone</h1>
+        <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
       <header>
@@ -681,9 +684,7 @@
     <section role="region" id="sounds">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="sound">
-          Sound
-        </h1>
+        <h1 data-l10n-id="sound"> Sound </h1>
       </header>
 
       <!-- Ring and Vibrate -->
@@ -757,9 +758,7 @@
     <section role="region" id="display" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="display">
-          Display
-        </h1>
+        <h1 data-l10n-id="display"> Display </h1>
       </header>
 
       <ul>
@@ -803,9 +802,7 @@
     <section role="region" id="notifications" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="notifications">
-          Notifications
-        </h1>
+        <h1 data-l10n-id="notifications"> Notifications </h1>
       </header>
 
       <ul>
@@ -822,9 +819,7 @@
     <section role="region" id="timezone-zones" data-leaf>
       <header>
         <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone">
-          Select Time Zone
-        </h1>
+        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
       </header>
 
       <ul id="timezone-zones-list">
@@ -836,9 +831,7 @@
     <section role="region" id="timezone-continent">
       <header>
         <a href="#time"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent">
-          Select Continent
-        </h1>
+        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
       </header>
 
       <ul id="timezone-continents">
@@ -850,9 +843,7 @@
     <section role="region" id="time">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="dateAndTime">
-          Date &amp; Time
-        </h1>
+        <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
       <ul>
@@ -891,9 +882,7 @@
     <section role="region" id="languages" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="languageAndRegion">
-          Language &amp; Region
-        </h1>
+        <h1 data-l10n-id="languageAndRegion"> Language &amp; Region </h1>
       </header>
 
       <ul>
@@ -943,9 +932,7 @@
     <section role="region" id="keyboard" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="keyboard">
-          Keyboard
-        </h1>
+        <h1 data-l10n-id="keyboard"> Keyboard </h1>
       </header>
 
       <ul>
@@ -973,7 +960,7 @@
       </ul>
 
       <header>
-        <h2>Layouts</h2>
+        <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
       </header>
       <ul>
         <li>
@@ -1078,18 +1065,10 @@
         <menu type="toolbar" data-mode="create">
           <button id="passcode-create" data-l10n-id="create">Create</button>
         </menu>
-        <h1 data-l10n-id="create-passcode" data-mode="create">
-          Create a Passcode
-        </h1>
-        <h1 data-l10n-id="current-passcode" data-mode="edit">
-          Current Passcode
-        </h1>
-        <h1 data-l10n-id="new-passcode" data-mode="new">
-          New Passcode
-        </h1>
-        <h1 data-l10n-id="enter-passcode" data-mode="confirm">
-          Enter Passcode
-        </h1>
+        <h1 data-l10n-id="create-passcode"  data-mode="create">  Create a Passcode </h1>
+        <h1 data-l10n-id="current-passcode" data-mode="edit">    Current Passcode  </h1>
+        <h1 data-l10n-id="new-passcode"     data-mode="new">     New Passcode      </h1>
+        <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
 
       <div class="passcode-overlay">
@@ -1119,9 +1098,7 @@
     <section role="region" id="phoneLock" data-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="phoneLock">
-          Phone Lock
-        </h1>
+        <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
       </header>
 
       <ul>
@@ -1216,9 +1193,7 @@
     <section role="region" id="sim">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="simSecurity">
-          SIM Security
-        </h1>
+        <h1 data-l10n-id="simSecurity"> SIM Security </h1>
       </header>
 
       <ul>
@@ -1258,9 +1233,7 @@
     <section role="region" id="doNotTrack" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="doNotTrack">
-          Do Not Track
-        </h1>
+        <h1 data-l10n-id="doNotTrack"> Do Not Track </h1>
       </header>
 
       <ul>
@@ -1295,9 +1268,7 @@
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="developer">
-          Developer
-        </h1>
+        <h1 data-l10n-id="developer"> Developer </h1>
       </header>
 
       <header>
@@ -1473,7 +1444,7 @@
     <section role="region" id="licensing" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <h1 data-l10n-id="licensing">  Licensing </h1>
+        <h1 data-l10n-id="licensing"> Licensing </h1>
       </header>
 
       <ul>
@@ -1519,9 +1490,7 @@
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceInfo">
-          Device Information
-        </h1>
+        <h1 data-l10n-id="deviceInfo"> Device Information </h1>
       </header>
       <ul>
         <li>
@@ -1611,9 +1580,7 @@
     <section role="region" id="battery" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="battery">
-          Battery
-        </h1>
+        <h1 data-l10n-id="battery"> Battery </h1>
       </header>
 
       <ul>
@@ -1658,9 +1625,7 @@
     <section role="region" id="device-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage">
-          Device Storage
-        </h1>
+        <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
       </header>
 
       <ul>
@@ -1710,9 +1675,7 @@
     <section role="region" id="media-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="mediaStorage">
-          Media Storage
-        </h1>
+        <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
 
       <ul>
@@ -1743,9 +1706,7 @@
     <section role="region" id="accessibility" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="accessibility">
-          Accessibility
-        </h1>
+        <h1 data-l10n-id="accessibility"> Accessibility </h1>
       </header>
 
       <ul>
@@ -1770,9 +1731,7 @@
     <section role="region" id="help" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="helpAndFeedback">
-          Help
-        </h1>
+        <h1 data-l10n-id="helpAndFeedback"> Help </h1>
       </header>
 
       <ul>
@@ -1802,7 +1761,7 @@
           <button type="submit"><span data-l10n-id="done">Done</span></button>
         </menu>
         <!-- the title content is filled by icc.js -->
-        <h1 id="icc-stk-selection-header">STK Application Name</h1>
+        <h1 id="icc-stk-selection-header"> STK Application Name </h1>
       </header>
       <ul id="icc-stk-selection">
         <!-- filled by icc.js -->
@@ -1813,7 +1772,7 @@
     <section role="region" id="icc">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 id="icc-stk-operator-header">SIM Toolkit</h1>
+        <h1 id="icc-stk-operator-header"> SIM Toolkit </h1>
       </header>
       <ul id="icc-stk-apps">
         <!-- filled by icc.js -->
@@ -1823,7 +1782,7 @@
     <!-- Main List -->
     <section role="region" id="root">
       <header>
-        <h1 data-l10n-id="settings">Settings</h1>
+        <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <!-- Main :: Network & Connectivity -->
