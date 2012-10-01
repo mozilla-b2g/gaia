@@ -15,40 +15,27 @@
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/onpair.css"/>
+    <link rel="stylesheet" type="text/css" href="style/lists.css"/>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/onpair.js"></script>
   </head>
   <body role="application">
-    <form role="dialog">
+    <form role="dialog" id="pair-view">
       <section>
-        <h1 data-l10n-id="confirm-pair">Confirm Devices to Pair</h1>
-        <p>
-          <!-- will be device icon: https://github.com/mozilla-b2g/gaia/issues/4597 --!>
-          <img id="icon" src="style/images/settings_bluetooth.png"/>
+        <h1 id="pair-title"></h1>
+        <p id="device-info" class="deviceInfo">
           <strong id="label-name"></strong>
           <small id="label-address"></small>
         </p>
+        <p id="pair-description"></p>
         <div id="confirmation-method">
-          <p data-l10n-id="pair-msg-confirmation">
-            To pair with this device, make sure
-            that both devices currently have the
-            following PIN displayed:
-          </p>
           <p><strong id="passkey"></strong></p>
         </div>
         <div id="pin-input-method">
-          <p data-l10n-id="pair-msg-pincode">
-            To pair with this device, enter
-            the PIN on the device.
-          </p>
           <p><input type="number" id="pin-input" size="4" maxlength="4" /></p>
         </div>
         <div id="passkey-input-method">
-          <p data-l10n-id="pair-msg-passkey">
-            To pair with this device, enter
-            the Passkey on the device.
-          </p>
           <p><input type="number" id="passkey-input" size="6" maxlength="6" /></p>
         </div>
       </section>
@@ -58,5 +45,16 @@
       </menu>
     </form>
 
+    <form role="dialog" id="alert-view" hidden>
+      <section>
+        <h1 data-l10n-id="error-pair-title">Unable to Pair Devices</h1>
+        <p data-l10n-id="error-pair-pincode">
+          Unable to pair with the device. Check that the PIN is correct.
+        </p>
+      </section>
+      <menu>
+        <button class="danger" id="button-ok" data-l10n-id="ok">OK</button>
+      </menu>
+    </form>
   </body>
 </html>

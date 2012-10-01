@@ -364,6 +364,7 @@ button[disabled] .icon-keypad-visibility {
 
 #calls > section .number {
   font-size: 1.5em;
+  white-space: nowrap;
 }
 
 #calls > section .duration {

@@ -103,10 +103,6 @@ contacts.Details = (function() {
     editContactButton.removeAttribute('disabled');
 
     if (isFbContact) {
-      if (!fb.isFbLinked(contactData)) {
-        editContactButton.setAttribute('disabled', 'disabled');
-      }
-
       var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 
@@ -247,18 +243,43 @@ contacts.Details = (function() {
 
   var renderSocial = function cd_renderSocial(contact) {
     var linked = fb.isFbLinked(contact);
-    if (!fb.isFbContact(contact) || linked) {
-      var action = linked ? _('social-unlink') : _('social-link');
-      var linked = linked ? 'false' : 'true';
+    var isFbContact = fb.isFbContact(contact);
 
-      var social = utils.templates.render(socialTemplate, {
-        i: contact.id,
-        action: action,
-        linked: linked
+    var action = linked ? _('social-unlink') : _('social-link');
+    var slinked = linked ? 'false' : 'true';
+
+    var social = utils.templates.render(socialTemplate, {
+      i: contact.id,
+      action: action,
+      linked: slinked
+    });
+
+    if (!isFbContact) {
+      var buttonsToHide = [
+        '#profile_button',
+        '#wall_button',
+        '#msg_button'
+      ];
+
+      buttonsToHide.forEach(function check(selid) {
+        var button = social.querySelector(selid);
+        if (button) {
+          button.classList.add('hide');
+        }
       });
-
-      listContainer.appendChild(social);
+    } else {
+        var socialLabel = social.querySelector('#social-label');
+        if (socialLabel)
+          socialLabel.textContent = _('facebook');
     }
+
+    if (isFbContact && !linked) {
+      var linkButton = social.querySelector('#link_button');
+      if (linkButton)
+        linkButton.classList.add('hide');
+    }
+
+    listContainer.appendChild(social);
   }
 
   var renderPhones = function cd_renderPhones(contact) {

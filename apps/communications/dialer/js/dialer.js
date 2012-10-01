@@ -2,6 +2,7 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
   var callScreenDisplayed = false;
@@ -69,7 +70,6 @@ var CallHandler = (function callHandler() {
       req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
-
         if (!status) {
           startDial(number);
         } else {
@@ -83,7 +83,20 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     if (isUSSD(number)) {
-      UssdManager.send(number);
+      if (conn.cardState === 'ready')
+        UssdManager.send(number);
+      else
+        CustomDialog.show(
+          _('emergencyDialogTitle'),
+          _('emergencyDialogBodyBadNumber'),
+          {
+            title: _('emergencyDialogBtnOk'),
+            callback: function() {
+              CustomDialog.hide();
+            }
+          }
+        );
+
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
       if (telephony) {
@@ -118,10 +131,10 @@ var CallHandler = (function callHandler() {
 
   function handleFlightMode() {
     CustomDialog.show(
-      _('callFlightModeTitle'),
-      _('callFlightModeBody'),
+      _('callAirplaneModeTitle'),
+      _('callAirplaneModeBody'),
       {
-        title: _('callFlightModeBtnOk'),
+        title: _('callAirplaneModeBtnOk'),
         callback: function() {
           CustomDialog.hide();
 
@@ -208,9 +221,22 @@ var NavbarManager = {
     contacts.classList.remove('toolbar-option-selected');
     keypad.classList.remove('toolbar-option-selected');
 
+    // XXX : Move this to whole activity approach, so far
+    // we don't have time to do a deep modification of
+    // contacts activites. Postponed to v2
+    var checkContactsTab = function() {
+      var contactsIframe = document.getElementById('iframe-contacts');
+
+      var index = contactsIframe.src.indexOf('#add-parameters');
+      if (index != -1) {
+        contactsIframe.src = contactsIframe.src.substr(0, index);
+      }
+    };
+
     var destination = window.location.hash;
     switch (destination) {
       case '#recents-view':
+        checkContactsTab();
         Recents.updateContactDetails();
         recent.classList.add('toolbar-option-selected');
         Recents.updateLatestVisit();
@@ -220,6 +246,7 @@ var NavbarManager = {
         Recents.updateHighlighted();
         break;
       case '#keyboard-view':
+        checkContactsTab();
         keypad.classList.add('toolbar-option-selected');
         Recents.updateHighlighted();
         break;

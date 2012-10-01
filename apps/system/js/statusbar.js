@@ -46,11 +46,6 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (this.screen.classList.contains('attention')) {
-      return this.element.offsetHeight;
-    } else if (this.screen.classList.contains('fullscreen-app') ||
-      document.mozFullScreen) {
-      return 0;
     } else {
       return this.element.offsetHeight;
     }
@@ -97,6 +92,9 @@ var StatusBar = {
 
     // Listen to 'bluetoothconnectionchange' from bluetooth.js
     window.addEventListener('bluetoothconnectionchange', this);
+    
+    // Listen to 'moztimechange'
+    window.addEventListener('moztimechange', this);
 
     this.setActive(true);
   },
@@ -124,6 +122,10 @@ var StatusBar = {
 
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
+        
+      case 'moztimechange':
+        this.update.time.call(this);
+        break;
 
       case 'mozChromeEvent':
         switch (evt.detail.type) {

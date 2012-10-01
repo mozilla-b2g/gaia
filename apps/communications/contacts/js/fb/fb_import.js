@@ -91,11 +91,13 @@ if (typeof fb.importer === 'undefined') {
       };
 
       utils.alphaScroll.init(params);
+      contacts.Search.init(document.getElementById('content'));
     }
 
     UI.end = function(event) {
       var msg = {
         type: 'window_close',
+        from: 'import',
         data: ''
       };
 
@@ -103,9 +105,7 @@ if (typeof fb.importer === 'undefined') {
     }
 
     function scrollToCb(groupContainer) {
-      scrollableElement.scrollTop = groupContainer.offsetTop -
-                                    headerElement.clientHeight -
-                                    friendsMsgElement.clientHeight;
+      scrollableElement.scrollTop = groupContainer.offsetTop;
     }
 
     UI.getFriends = function() {
@@ -187,17 +187,18 @@ if (typeof fb.importer === 'undefined') {
     Importer.getFriends = function(access_token) {
       document.body.dataset.state = 'waiting';
 
-      fb.utils.runQuery(multiQStr, 'fb.importer.friendsReady', access_token);
+      fb.utils.runQuery(multiQStr, {
+          success: fb.importer.friendsReady,
+          error: fb.importer.errorHandler,
+          timeout: fb.importer.timeoutHandler
+      },access_token);
 
       // In the meantime we obtain the FB friends already on the Address Book
       if (!navigator.mozContacts) {
         return;
       }
 
-      var filter = { filterValue: fb.CATEGORY, filterOp: 'contains',
-                        filterBy: ['category']};
-
-      var req = navigator.mozContacts.find(filter);
+      var req = fb.utils.getAllFbContacts();
 
       req.onsuccess = contactsReady;
 
@@ -212,8 +213,11 @@ if (typeof fb.importer === 'undefined') {
       window.setTimeout(function do_importFriend() {
         var oneFriendQuery = buildFriendQuery(uid);
 
-        fb.utils.runQuery(oneFriendQuery,
-                                'fb.importer.importDataReady', access_token);
+        fb.utils.runQuery(oneFriendQuery, {
+                            success: fb.importer.importDataReady,
+                            error: fb.importer.errorHandler,
+                            timeout: fb.importer.timeoutHandler
+        }, access_token);
       },0);
 
       return currentRequest;
@@ -277,6 +281,9 @@ if (typeof fb.importer === 'undefined') {
       if (typeof response.error === 'undefined') {
         var lmyFriends = response.data[0].fql_result_set;
 
+        // Now caching the number
+        fb.utils.setCachedNumFriends(lmyFriends.length);
+
         myFriendsByUid = {};
         myFriends = [];
 
@@ -304,6 +311,17 @@ if (typeof fb.importer === 'undefined') {
       }
     }
 
+    Importer.timeoutHandler = function() {
+      // TODO: figure out with UX what to do in that case
+      window.alert('Timeout!!');
+      document.body.dataset.state = '';
+    }
+
+    Importer.errorHandler = function() {
+      // TODO: figure out with UX what to do in that case
+      window.alert('Error!');
+      document.body.dataset.state = '';
+    }
 
     function fillData(f) {
       // givenName is put as name but it should be f.first_name
@@ -311,16 +329,17 @@ if (typeof fb.importer === 'undefined') {
       f.additionalName = [f.middle_name];
       f.givenName = [f.first_name + ' ' + f.middle_name];
 
+      var privateType = 'personal';
 
       if (f.email) {
         f.email1 = f.email;
-        f.email = [{type: ['facebook'], value: f.email}];
+        f.email = [{type: [privateType], value: f.email}];
       }
       else { f.email1 = ''; }
 
       var nextidx = 0;
       if (f.cell) {
-        f.tel = [{type: ['facebook'], value: f.cell}];
+        f.tel = [{type: [privateType], value: f.cell}];
         nextidx = 1;
       }
 
@@ -328,7 +347,7 @@ if (typeof fb.importer === 'undefined') {
         if (!f.tel) {
           f.tel = [];
         }
-        f.tel[nextidx] = {type: ['facebook'], value: f.other_phone};
+        f.tel[nextidx] = {type: [privateType], value: f.other_phone};
       }
 
       f.uid = f.uid.toString();
@@ -341,6 +360,8 @@ if (typeof fb.importer === 'undefined') {
      */
     UI.importAll = function(e) {
       if (Object.keys(selectedContacts).length > 0) {
+        fb.utils.setImportChecked(true);
+
         Importer.importAll(function() {
 
           document.body.dataset.state = '';
@@ -624,7 +645,7 @@ if (typeof fb.importer === 'undefined') {
         var syear = sbday.substring(iyear + 1, sbday.length);
 
         ret.setDate(parseInt(sday));
-        ret.setMonth(parseInt(smonth), parseInt(sday));
+        ret.setMonth(parseInt(smonth) - 1, parseInt(sday));
 
         if (syear && syear.length > 0) {
           ret.setYear(parseInt(syear));

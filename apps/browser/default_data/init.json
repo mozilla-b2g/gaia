@@ -1,0 +1,13 @@
+{
+  "bookmarks": [
+    {
+      "title": "Músicas Vivo",
+      "uri": "http://vds.vivo.br.com",
+      "iconUri": "/default_data/vivo.ico"
+    },
+    { "title": "Portal Vivo",
+      "uri": "http://www.vivo.com.br/conteudosmartphone",
+      "iconUri": "/default_data/vivo.ico"
+    }
+  ]
+}

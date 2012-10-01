@@ -29,6 +29,7 @@
     <script type="text/javascript" src="js/sms.js"></script>
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/searchUtils.js"></script>
+    <script type="text/javascript" src="js/fixed_header.js"></script>
     <script type="text/javascript">
       if (!navigator.mozSms) {
         document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
@@ -64,6 +65,7 @@
         </header>
         <article id="thread-list-container" class="view-body">
         </article>
+        <div id="threads-fixed-container" class="fixed-title"></div>
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
@@ -141,10 +143,6 @@
       </section>
     </article>
     <article id="snapshot" class="wrapper">
-      <section id="thread-list-snapshot">
-      </section>
-      <section id="thread-messages-snapshot" >
-      </section>
     </article>
     <article id="loading">
       <section class="loading-container">

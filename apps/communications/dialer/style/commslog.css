@@ -336,6 +336,23 @@ button::-moz-focus-inner {
   color: #000000;
 }
 
+.primary-info-main {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: inline-block;
+  white-space: nowrap;
+  padding-right: 0.6rem;
+}
+
+.primary-info-main.ellipsed {
+  padding-right: 0rem;
+}
+
+.entry-count {
+  overflow: hidden;
+  display: inline-block;
+}
+
 .secondary-info {
   font-family: FontRegular;
   font-size: -moz-calc(6 * 0.226rem);

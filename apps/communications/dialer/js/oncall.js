@@ -164,7 +164,7 @@ var OnCallHandler = (function onCallHandler() {
 
   /* === Settings === */
   var activePhoneSound = true;
-  SettingsListener.observe('phone.ring.incoming', true, function(value) {
+  SettingsListener.observe('ring.enabled', true, function(value) {
     activePhoneSound = !!value;
   });
 
@@ -179,12 +179,18 @@ var OnCallHandler = (function onCallHandler() {
     }
   });
 
+  // Setting up the SimplePhoneMatcher
+  var conn = window.navigator.mozMobileConnection;
+  if (conn) {
+    SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+  }
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.src = selectedPhoneSound;
   ringtonePlayer.loop = true;
 
   var activateVibration = true;
-  SettingsListener.observe('phone.vibration.incoming', false, function(value) {
+  SettingsListener.observe('vibration.enabled', true, function(value) {
     activateVibration = !!value;
   });
 

@@ -8,7 +8,7 @@
   display: none;
 }
 
-#screen.attention #attention-screen {
+#attention-screen.displayed {
   display: block;
 }
 

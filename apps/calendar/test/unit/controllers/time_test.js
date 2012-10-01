@@ -261,6 +261,7 @@ suite('controller', function() {
       expected = spans.slice(8, 14);
     });
 
+
     cacheTest('past - fits', function() {
       var expectedItems = [];
 
@@ -287,23 +288,23 @@ suite('controller', function() {
 
       // before
       subject._collection.add(Factory('busytime', {
-        start: (new Date(2000, 0, 1)).valueOf(),
-        end: expected[0].start
+        _startDateMS: (new Date(2000, 0, 1)).valueOf(),
+        _endDateMS: expected[0].start
       }));
 
       // during
 
       expectedItems.push(subject._collection.add(
         Factory('busytime', {
-          start: expected[0].start + 1,
-          end: expected[expected.length - 1].end - 1
+          _startDateMS: expected[0].start + 1,
+          _endDateMS: expected[expected.length - 1].end - 1
         })
       ));
 
       // after
       subject._collection.add(Factory('busytime', {
-        start: expected[expected.length - 1].end + 1,
-        end: (new Date(2020, 0, 1)).valueOf()
+        _startDateMS: expected[expected.length - 1].end + 1,
+        _endDateMS: (new Date(2020, 0, 1)).valueOf()
       }));
 
       afterCallback = function() {

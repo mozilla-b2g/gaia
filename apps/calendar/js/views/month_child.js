@@ -321,11 +321,11 @@
         return this._addBusytime(start, busytime);
       }
 
-      if (busytime.start < span.start) {
+      if (busytime.startDate.valueOf() < span.start) {
         start = new Date(span.start);
       }
 
-      if (busytime.end > span.end) {
+      if (busytime.endDate.valueOf() > span.end) {
         end = new Date(span.end);
       }
 

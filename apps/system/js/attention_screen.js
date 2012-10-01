@@ -19,7 +19,7 @@ var AttentionScreen = {
   },
 
   isVisible: function as_isVisible() {
-    return this.mainScreen.classList.contains('attention');
+    return this.attentionScreen.classList.contains('displayed');
   },
 
   isFullyVisible: function as_isFullyVisible() {
@@ -85,9 +85,7 @@ var AttentionScreen = {
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
 
     this.attentionScreen.appendChild(attentionFrame);
-    this.mainScreen.classList.add('attention');
-    
-    this.dispatchEvent('attentionscreenshow');
+    this.attentionScreen.classList.add('displayed');
 
     // Ensuring the proper mozvisibility change on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
@@ -97,6 +95,9 @@ var AttentionScreen = {
         frame.setVisible(false);
       }
     }
+
+    this.mainScreen.classList.add('attention');
+    this.dispatchEvent('attentionscreenshow');
   },
 
   close: function as_close(evt) {
@@ -119,12 +120,13 @@ var AttentionScreen = {
     this.attentionScreen.removeChild(evt.target);
 
     if (this.attentionScreen.querySelectorAll('iframe').length == 0) {
-      this.mainScreen.classList.remove('attention');
+      this.attentionScreen.classList.remove('displayed');
       this.dispatchEvent('attentionscreenhide');
+      this.mainScreen.classList.remove('attention');
     }
 
     if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff(true);
+      ScreenManager.turnScreenOff(false);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.

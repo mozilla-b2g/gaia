@@ -2,11 +2,6 @@
 'use strict';
 
 const Homescreen = (function() {
-  // Initialize the search page
-  var host = document.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  Search.init(domain);
-
   var mode = 'normal';
 
   // Initialize the pagination scroller
@@ -15,6 +10,7 @@ const Homescreen = (function() {
   function initUI() {
     setLocale();
     GridManager.init('.apps', function gm_init() {
+      Wallpaper.init();
       GridManager.goToPage(GridManager.landingPageIndex);
       DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
@@ -97,13 +93,7 @@ const Homescreen = (function() {
         // issue 3457: Implement a UI when saving bookmarks to the homescreen
         switch (data.type) {
           case 'url':
-            HomeState.saveBookmark(data,
-              function home_okInstallBookmark() {
-                Applications.installBookmark(new Bookmark(data));
-              },
-              function home_errorInstallBookmark(code) {
-                console.error('Error saving bookmark ' + code);
-            });
+            BookmarkEditor.init(data);
             break;
           case 'application/x-application-list':
             onHomescreenActivity();

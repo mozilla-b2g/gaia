@@ -142,14 +142,17 @@ body.hidden *[data-l10n-id] {
   opacity: 0.6;
 }
 
-#iframe-contacts {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: -moz-calc(100% - 4rem);
+#views > [role="tabpanel"] {
+  height: calc(100% - 4rem);
 }
 
-.with-keyboard #views, .with-keyboard #iframe-contacts {
+[role="tablist"] *:target {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.with-keyboard #views, .with-keyboard #contacts-view {
   height: 100%;
 }
 

@@ -99,6 +99,12 @@ var Recents = {
         this.click.bind(this));
     }
 
+    // Setting up the SimplePhoneMatcher
+    var conn = window.navigator.mozMobileConnection;
+    if (conn) {
+      SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
+    }
+
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
@@ -356,12 +362,34 @@ var Recents = {
     var src = '/contacts/index.html';
     if (contactId) {
       src += '#view-contact-details?id=' + contactId;
+      var timestamp = new Date().getTime();
+      contactsIframe.src = src + '&timestamp=' + timestamp;
+      window.location.hash = '#contacts-view';
     } else {
-      src += '#view-contact-form?tel=' + phoneNumber;
+      var action = new ActionMenu(_('addNewNumber'), [
+      {
+        label: _('createNewContact'),
+        callback: function() {
+          src += '#view-contact-form?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      },
+      {
+        label: _('addToExistingContact'),
+        callback: function() {
+          src += '#add-parameters?tel=' + phoneNumber;
+          var timestamp = new Date().getTime();
+          contactsIframe.src = src + '&timestamp=' + timestamp;
+          window.location.hash = '#contacts-view';
+          action.hide();
+        }
+      }
+      ]);
+      action.show();
     }
-    var timestamp = new Date().getTime();
-    contactsIframe.src = src + '&timestamp=' + timestamp;
-    window.location.hash = '#contacts-view';
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
@@ -370,7 +398,7 @@ var Recents = {
     return items;
   },
 
-  createRecentEntry: function re_createRecentEntry(recent) {
+  createRecentEntry: function re_createRecentEntry(recent, highlight) {
     var classes = 'icon ';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
@@ -382,9 +410,7 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' +
-        ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
-          'highlighted' : '') +
+      '<li class="log-item ' + highlight +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -397,8 +423,12 @@ var Recents = {
       '  </section>' +
       '  <section class="log-item-info grid">' +
       '    <div class="grid-cell grid-v-align">' +
-      '      <section class="primary-info ellipsis">' +
-               recent.number +
+      '      <section class="primary-info">' +
+      '        <span class="primary-info-main ellipsis">' +
+                 recent.number +
+      '        </span>' +
+      '        <span class="entry-count">' +
+      '        </span>' +
       '      </section>' +
       '      <section class="secondary-info">' +
       '        <span class="call-time">' +
@@ -418,6 +448,7 @@ var Recents = {
   render: function re_render(recents) {
     if (!this.recentsContainer)
       return;
+
     if (recents.length == 0) {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
@@ -432,84 +463,99 @@ var Recents = {
     }
 
     this.recentsIconEdit.classList.remove('disabled');
-    var content = '',
-      currentDay = '';
-    for (var i = 0; i < recents.length; i++) {
-      var day = Utils.getDayDate(recents[i].date);
-      if (day != currentDay) {
-        if (currentDay != '') {
-          content += '</ol></section>';
-        }
-        currentDay = day;
-        content +=
+
+    var self = this;
+    window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
+      var content = '',
+        currentDay = '';
+
+      for (var i = 0; i < recents.length; i++) {
+        var day = Utils.getDayDate(recents[i].date);
+        if (day != currentDay) {
+          if (currentDay != '') {
+            content += '</ol></section>';
+          }
+          currentDay = day;
+          content +=
           '<section data-timestamp="' + day + '">' +
           ' <h2 id="header-day-' + day + '">' + Utils.headerDate(day) +
           ' </h2>' +
           ' <ol id="list-day-' + day + '" class="log-group">';
+        }
+        var highlight = (value < recents[i].date) ? 'highlighted' : '';
+        content += self.createRecentEntry(recents[i], highlight);
       }
-      content += this.createRecentEntry(recents[i]);
-    }
-    this.recentsContainer.innerHTML = content;
 
-    FixedHeader.refresh();
+      self.recentsContainer.innerHTML = content;
 
-    this.updateContactDetails();
+      FixedHeader.refresh();
 
-    var event = new Object();
-    this._allViewGroupingPending = true;
-    this._missedViewGroupingPending = true;
-    if (this.missedFilter.classList.contains('selected')) {
-      this.missedFilter.classList.remove('selected');
-      event.target = this.missedFilter;
-      this.filter(event);
-      this.missedFilter.classList.add('selected');
-      this.allFilter.classList.remove('selected');
-    } else {
-      this.allFilter.classList.remove('selected');
-      event.target = this.allFilter;
-      this.filter(event);
-      this.missedFilter.classList.remove('selected');
-      this.allFilter.classList.add('selected');
-    }
+      self.updateContactDetails();
+
+      var event = new Object();
+      self._allViewGroupingPending = true;
+      self._missedViewGroupingPending = true;
+      if (self.missedFilter.classList.contains('selected')) {
+        self.missedFilter.classList.remove('selected');
+        event.target = self.missedFilter;
+        self.filter(event);
+        self.missedFilter.classList.add('selected');
+        self.allFilter.classList.remove('selected');
+      } else {
+        self.allFilter.classList.remove('selected');
+        event.target = self.allFilter;
+        self.filter(event);
+        self.missedFilter.classList.remove('selected');
+        self.allFilter.classList.add('selected');
+      }
+    });
   },
 
   updateContactDetails: function re_updateContactDetails() {
     var itemSelector = '.log-item:not(.hide)',
       callLogItems = document.querySelectorAll(itemSelector);
     for (var i = 0; i < callLogItems.length; i++) {
-      var phoneNumber = callLogItems[i].dataset.num.trim();
+      var logItem = callLogItems[i];
+      var phoneNumber = logItem.dataset.num.trim();
       Contacts.findByNumber(phoneNumber,
-        this.contactCallBack.bind(this, callLogItems[i]));
+        this.contactCallBack.bind(this, logItem));
     }
   },
 
-  contactCallBack: function re_contactCallBack(logItem, contact) {
+  contactCallBack: function re_contactCallBack(logItem, contact, matchingTel) {
     var contactPhoto = logItem.querySelector('.call-log-contact-photo');
-    if (contact != null) {
-      // Update name
-      var primaryInfo = logItem.querySelector('.primary-info'),
+    var primaryInfoMainNode = logItem.querySelector('.primary-info-main'),
+        phoneNumberAdditionalInfoNode =
+          logItem.querySelector('.call-additional-info'),
         phoneNumber = logItem.dataset.num.trim(),
         count = logItem.dataset.count;
-      primaryInfo.innerHTML = ((contact.name && contact.name != '') ?
-        contact.name : _('unknown'));
-      primaryInfo.innerHTML = primaryInfo.innerHTML.trim() +
-        ((count > 1) ? '&nbsp;&nbsp;(' + count + ')' : '');
+    if (contact !== null) {
+      primaryInfoMainNode.textContent = (contact.name && contact.name !== '') ?
+        contact.name : _('unknown');
       if (contact.photo && contact.photo[0]) {
         var photoURL = URL.createObjectURL(contact.photo[0]);
         contactPhoto.style.backgroundImage = 'url(' + photoURL + ')';
         logItem.classList.add('contact-photo-available');
       }
       var phoneNumberAdditionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        phoneNumber, contact);
-      var phoneNumberAdditionalInfoNode = logItem.
-        querySelector('.call-additional-info');
+        matchingTel, contact);
       phoneNumberAdditionalInfoNode.textContent = phoneNumberAdditionalInfo;
       logItem.classList.add('isContact');
       logItem.dataset['contactId'] = contact.id;
     } else {
       contactPhoto.classList.add('unknownContact');
       delete logItem.dataset['contactId'];
+      var isContact = logItem.classList.contains('isContact');
+      if (isContact) {
+        primaryInfoMainNode.textContent = phoneNumber;
+        phoneNumberAdditionalInfoNode.textContent = '';
+        logItem.classList.remove('isContact');
+        logItem.classList.remove('contact-photo-available');
+      }
     }
+    var entryCountNode = logItem.querySelector('.entry-count');
+    entryCountNode.textContent = (count > 1) ? '(' + count + ')' : '';
+    this.fitPrimaryInfoToSpace(logItem);
   },
 
   groupCallsInCallLog: function re_groupCallsInCallLog() {
@@ -579,21 +625,14 @@ var Recents = {
   groupCalls: function re_groupCalls(olderCallEl, newerCallEl, count, inc) {
     olderCallEl.classList.add('hide');
     olderCallEl.classList.add('collapsed');
-    var primaryInfo = newerCallEl.querySelector('.primary-info'),
-      callDetails = primaryInfo.textContent.trim(),
-      countIndex = callDetails.indexOf('(' + count + ')');
     count += inc;
-    if (countIndex != -1) {
-      primaryInfo.innerHTML = callDetails.substr(0, countIndex).trim() +
-        '&nbsp;&nbsp;(' + count + ')';
-    } else {
-      primaryInfo.innerHTML = callDetails + '&nbsp;&nbsp;(' + count + ')';
-    }
+    var entryCountNode = newerCallEl.querySelector('.entry-count');
+    entryCountNode.textContent = '(' + count + ')';
     newerCallEl.dataset.count = count;
   },
 
   updateLatestVisit: function re_updateLatestVisit() {
-    localStorage.setItem('latestCallLogVisit', Date.now());
+    window.asyncStorage.setItem('latestCallLogVisit', Date.now());
   },
 
   updateHighlighted: function re_updateHighlighted() {
@@ -602,6 +641,25 @@ var Recents = {
       itemsLength = items.length;
     for (var i = 0; i < itemsLength; i++) {
       items[i].classList.remove('highlighted');
+    }
+  },
+
+  fitPrimaryInfoToSpace: function re_fitPrimaryInfoToSpace(logItemNode) {
+    var primaryInfoNode = logItemNode.querySelector('.primary-info'),
+      primaryInfoMainNode = logItemNode.querySelector('.primary-info-main'),
+      entryCountNode = logItemNode.querySelector('.entry-count'),
+      primaryInfoNodeCS = window.getComputedStyle(primaryInfoNode),
+      primaryInfoMainNodeCS = window.getComputedStyle(primaryInfoMainNode),
+      entryCountNodeCS = window.getComputedStyle(entryCountNode),
+      primaryInfoNodeWidth = parseInt(primaryInfoNodeCS.width),
+      primaryInfoMainNodeWidth = parseInt(primaryInfoMainNodeCS.width),
+      entryCountNodeWidth = parseInt(entryCountNodeCS.width);
+    if (!isNaN(primaryInfoNodeWidth) && !isNaN(primaryInfoMainNodeWidth) &&
+      !isNaN(entryCountNodeWidth) &&
+      (primaryInfoNodeWidth < primaryInfoMainNodeWidth + entryCountNodeWidth)) {
+      var newWidth = primaryInfoNodeWidth - entryCountNodeWidth - 4;
+      primaryInfoMainNode.classList.add('ellipsed');
+      primaryInfoMainNode.style.width = newWidth + 'px';
     }
   }
 };

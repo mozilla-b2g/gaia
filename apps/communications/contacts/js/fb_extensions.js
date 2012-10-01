@@ -12,16 +12,63 @@ if (typeof Contacts.extFb === 'undefined') {
     extFb.startLink = function(cid, linked) {
       contactId = cid;
       if (linked === 'true') {
-        extensionFrame.src = 'fb_link.html' + '?contactId=' + contactId;
-        extensionFrame.hidden = false;
+        open('fb_link.html' + '?contactId=' + contactId);
       } else {
         doUnlink(contactId);
       }
     }
 
     extFb.importFB = function() {
-      extensionFrame.src = 'fb_import.html';
-      extensionFrame.hidden = false;
+      open('fb_import.html', 'import');
+    }
+
+    function open(uri, target) {
+      extensionFrame.addEventListener('transitionend', function topen() {
+        extensionFrame.removeEventListener('transitionend', topen);
+        extensionFrame.src = uri;
+      });
+      extensionFrame.className = (target === 'import') ?
+                                  'openingImport' : 'opening';
+    }
+
+    function close(target) {
+      extensionFrame.addEventListener('transitionend', function tclose() {
+        extensionFrame.removeEventListener('transitionend', tclose);
+        extensionFrame.src = null;
+      });
+      extensionFrame.className = (target === 'import') ?
+                                  'closingImport' : 'closing';
+    }
+
+    function openURL(url) {
+      window.open(url);
+    }
+
+    extFb.showProfile = function(cid) {
+      var req = fb.utils.getContactData(cid);
+
+      req.onsuccess = function() {
+        var fbContact = new fb.Contact(req.result);
+
+        var uid = fbContact.uid;
+        var profileUrl = 'http://m.facebook.com/' + uid;
+
+        openURL(profileUrl);
+      }
+
+      req.onerror = function() {
+        window.console.error('Contacts FB Profile: Contact not found');
+      }
+    }
+
+    extFb.wallPost = function(cid) {
+      contactId = cid;
+      fb.msg.ui.wallPost(contactId);
+    }
+
+    extFb.sendPrivateMsg = function(cid) {
+      contactId = cid;
+      fb.msg.ui.sendPrivateMsg(contactId);
     }
 
     function doLink(uid) {
@@ -41,7 +88,7 @@ if (typeof Contacts.extFb === 'undefined') {
         });
 
         req.onsuccess = function success() {
-          extensionFrame.hidden = true;
+          close();
 
           contacts.List.refresh(contactId);
           if (originalFbContact) {
@@ -82,8 +129,15 @@ if (typeof Contacts.extFb === 'undefined') {
 
       switch (data.type) {
         case 'window_close':
-          extensionFrame.src = null;
-          extensionFrame.hidden = true;
+          // Notify observers that the import happened
+          var event = new CustomEvent('fb_imported',
+            {'detail' : true }
+          );
+          document.dispatchEvent(event);
+          close(data.from);
+          if (data.from === 'import') {
+            contacts.List.load();
+          }
         break;
 
         case 'item_selected':
