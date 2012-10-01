@@ -58,7 +58,7 @@
 .invisible {
   position: absolute;
   width: 1px;
-  height: 1px;  
+  height: 1px;
   border: none;
   left: -10000px;
 }

@@ -7,7 +7,7 @@ html, body {
   background-size: 100% 100%;
 }
 
-/* 
+/*
   Usually sections have a size of 100% height and 100% width
   but for the firstrun experience it seems better to not transition
   between pages but between steps. So title, progress and navigation
