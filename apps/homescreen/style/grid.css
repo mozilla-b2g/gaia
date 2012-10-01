@@ -11,19 +11,7 @@
   height: 100%;
   text-align: center;
   margin: 0 auto;
-  visibility:hidden;
-}
-
-.apps > div[data-current-page] {
-  visibility: visible;
-}
-
-body[data-transitioning] .apps > div {
-  visibility: visible;
-}
-
-.apps > div:first-child {
-  text-align: left;
+  display: none;
 }
 
 .apps ol {

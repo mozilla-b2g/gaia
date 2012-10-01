@@ -1,0 +1,135 @@
+/* Search */
+
+#groups-list {
+  padding-top: 2.5rem;
+}
+
+.facebook #groups-list {
+  padding-top: 0;
+}
+
+/* Common search styles */
+form.search {
+  background: url(gphx/bitmap/default/search/searchbar_1x35.png) repeat-x scroll left bottom transparent;
+  position: absolute;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  top: 0;
+  left: 0;
+  color: #000;
+  font-family: 'Open Sans', Sans-serif;
+  font-size: 1.2rem;
+  text-align: left;
+  pointer-events: auto;
+}
+
+.facebook form.search {
+  position: relative;
+  height: 3.5rem;
+}
+
+form.search label {
+  display: block;
+  padding: 0.5rem 3.3rem 0.5rem 2.5rem;
+}
+
+form.search input {
+  height: 2.5rem;
+  pointer-events: none;
+  width: 100%;
+}
+
+.facebook form.search input {
+  height: 2.5rem;
+  pointer-events: none;
+  width: 100%
+}
+
+form.search button {
+  line-height: 2.5rem;
+  padding: 0 .5rem 0 0;
+  margin-top: -0.5rem;
+  width: 7rem;
+  height: 3.5rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: #707070;
+  float: right;
+  vertical-align: middle;
+  background: none;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+/* Search view */
+#search-view {
+  pointer-events: none;
+  transform: translateX(100%);
+  z-index: 10;
+}
+
+#view-contacts-list.searching #search-view,
+#content.searching #search-view {
+  transform: translateX(0);
+}
+
+#search-view form.search label {
+  padding: 0.5rem 0 0.5rem 2.5rem;
+}
+
+#search-view form.search input {
+  pointer-events: auto;
+  width: 21.5rem;
+  box-shadow: none;
+}
+
+/* Searching state */
+#view-contacts-list.searching > header,
+#content.searching > header {
+  transform: scale(0);
+  pointer-events: none;
+}
+
+#view-contacts-list.searching .fixed-title,
+#content.searching .fixed-title {
+  transform: scale(0) !important;
+}
+
+#view-contacts-list.searching .view-jumper,
+#content.searching #shortcuts {
+  transform: scale(0);
+}
+
+#view-contacts-list.searching #groups-list h2,
+#content.searching #groups-list h2 {
+  display: none;
+}
+
+#view-contacts-list.searching .view-body-inner {
+  height: calc(100% + 5rem);
+  margin-top: -5rem;
+}
+
+#content.searching #main {
+  height: 100%;
+  margin-top: -5rem;
+}
+
+#content.searching #mainContent {
+  height: 100%;
+}
+
+#content.searching #select-all-wrapper, #content.searching .friends-msg,
+#content.searching .fixed-title-fb {
+  display: none;
+}
+
+#no-result {
+  margin-top: -moz-calc((100% - 0.5rem) / 2);
+  text-align: center;
+  margin-left: -0.8rem;
+  font-size: 1.4rem;
+}

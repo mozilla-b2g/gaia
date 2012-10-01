@@ -36,6 +36,7 @@ html, body {
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -60,52 +61,31 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
 */
 
+#snapshot {
+  top: -100%;
+  width: 200%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
 .snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
+  display: block;
+  z-index: 100;
+  -moz-transform: translateX(-50%);
 }
 
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
+.snapshot-back #snapshot {
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
 }
 
 /* Styles for Edit mode */
-
 .edit .options {
   -moz-transform: translateY(-6.5rem);
 }
@@ -305,7 +285,6 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #thread-list-container .name {
-  font-family: 'Open Sans';
   font-size: -moz-calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
@@ -317,7 +296,6 @@ a.unread .unread-mark .icon-unread-mark {
 
 
 #thread-list-container .msg {
-  font-family: 'Open Sans';
   font-size: -moz-calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
@@ -331,7 +309,6 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #thread-list-container .time {
-  font-family: 'Open Sans';
   font-weight: 600;
   font-size: -moz-calc(6 * 0.226rem);
   font-weight: 600;
@@ -367,7 +344,7 @@ a.unread .unread-mark .icon-unread-mark {
   font-size: -moz-calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'Open Sans';
+  z-index: 3;
 }
 
 
@@ -382,7 +359,6 @@ a.unread .unread-mark .icon-unread-mark {
   font-size: -moz-calc(6 * 0.226rem);
   color: #666666;
   text-transform: uppercase;
-  font-family: 'Open Sans';
 }
 
 #messages-container {
@@ -552,7 +528,6 @@ a.unread .unread-mark .icon-unread-mark {
   height: 100%;
   width: 100%;
   -moz-box-sizing: border-box;
-  font-family: 'Open Sans';
   font-weight: 600;
   font-size: -moz-calc(7 * 0.226rem);
   color: white;
@@ -594,7 +569,6 @@ a.unread .unread-mark .icon-unread-mark {
   border: 0.1rem solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: -moz-calc(7 * 0.226rem);
-  font-family: 'Open Sans';
 }
 
 #send-message-container {
@@ -687,6 +661,14 @@ a.unread .unread-mark .icon-unread-mark {
   pointer-events: none;
 }
 
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
+}
+
 /*
   Loading screen while deleting
 */
@@ -757,4 +739,25 @@ a.unread .unread-mark .icon-unread-mark {
   color: #606060;
   font-weight: 300;
   font-size: -moz-calc(10 * 0.226rem);
+}
+
+/*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 3rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  transform: translateY(-100%);
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #FF4E00;
+  z-index: 4;
 }

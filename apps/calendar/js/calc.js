@@ -6,6 +6,8 @@ Calendar.Calc = (function() {
 
   var Calc = {
 
+    FLOATING: 'floating',
+
     ALLDAY: 'allday',
 
     /**
@@ -50,10 +52,6 @@ Calendar.Calc = (function() {
      */
     isToday: function(date) {
       return Calc.isSameDate(date, Calc.today);
-    },
-
-    offsetMinutesToMs: function(offset) {
-      return offset * (60 * 1000);
     },
 
     /**
@@ -210,36 +208,84 @@ Calendar.Calc = (function() {
       );
     },
 
+
     /**
-     * Take a date and convert it to UTC-0 time
-     * removing offset.
+     * Converts transport time into a JS Date object.
+     *
+     * @param {Object} transport date in transport format.
+     * @return {Date} javascript date converts the transport into
+     *                the current time.
      */
-    utcMs: function(date) {
-      var offset = Calc.offsetMinutesToMs(
-        date.getTimezoneOffset()
+    dateFromTransport: function(transport) {
+      var utc = transport.utc;
+      var offset = transport.offset;
+      var zone = transport.tzid;
+
+      var date = new Date(
+        // offset is expected to be 0 in the floating case
+        parseInt(utc) - parseInt(offset)
       );
 
-      return date.valueOf() - offset;
+      if (zone && zone === Calc.FLOATING) {
+        return new Date(
+          date.getUTCFullYear(),
+          date.getUTCMonth(),
+          date.getUTCDate(),
+          date.getUTCHours(),
+          date.getUTCMinutes(),
+          date.getUTCSeconds(),
+          date.getUTCMilliseconds()
+        );
+      }
+
+      return date;
     },
 
-    fromUtcMs: function(ms, offset) {
-      if (typeof(offset) === 'undefined') {
-        // no offset relative position in time.
-        var utcDate = new Date(ms);
-        return new Date(
-          utcDate.getUTCFullYear(),
-          utcDate.getUTCMonth(),
-          utcDate.getUTCDate(),
-          utcDate.getUTCHours(),
-          utcDate.getUTCMinutes(),
-          utcDate.getUTCSeconds()
-        );
+    /**
+     * Converts a date object into a transport value
+     * which can be stored in the database or sent
+     * to a service.
+     *
+     * When the tzid value is given an is the string
+     * value of "floating" it will convert the local
+     * time directly to UTC zero and record no offset.
+     * This along with the tzid is understood to be
+     * a "floating" time which will occur at that position
+     * regardless of the current tzid's offset.
+     *
+     * @param {Date} date js date object.
+     * @param {Date} [tzid] optional tzid.
+     */
+    dateToTransport: function(date, tzid) {
+      var result = Object.create(null);
+      result.utc = utc;
+
+      if (tzid && tzid === Calc.FLOATING) {
+        result.utc = date.valueOf();
+        result.offset = 0;
       } else {
-        // when there is an offset it is an absolute
-        // position in time.
-        ms = ms + Calc.offsetMinutesToMs(offset);
-        return new Date(ms);
+        var utc = Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds()
+        );
+
+        var localUtc = date.valueOf();
+        var offset = utc - localUtc;
+
+        result.utc = utc;
+        result.offset = offset;
       }
+
+      if (tzid) {
+        result.tzid = tzid;
+      }
+
+      return result;
     },
 
     /**
@@ -366,6 +412,17 @@ Calendar.Calc = (function() {
       var last = start.getDate();
       var cur;
 
+      // handle the case where start & end dates
+      // are the same date.
+      if (Calc.isSameDate(start, end)) {
+        if (includeTime) {
+          list.push(end);
+        } else {
+          list.push(this.createDay(start));
+        }
+        return list;
+      }
+
       while (true) {
         var next = new Date(
           start.getFullYear(),
@@ -391,8 +448,8 @@ Calendar.Calc = (function() {
         list.unshift(start);
         list.push(end);
       } else {
-        list.unshift(this.createDay(start));
-        list.push(this.createDay(end));
+        list.unshift(Calc.createDay(start));
+        list.push(Calc.createDay(end));
       }
 
       return list;

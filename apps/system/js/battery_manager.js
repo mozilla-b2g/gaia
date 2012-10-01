@@ -9,6 +9,7 @@ var BatteryManager = {
   TRANSITION_FRACTION: 0.30,
 
   _notification: null,
+  _screenOn: true,
 
   getAllElements: function bm_getAllElements() {
     this.screen = document.getElementById('screen');
@@ -21,26 +22,19 @@ var BatteryManager = {
     var battery = window.navigator.battery;
     if (battery) {
       battery.addEventListener('levelchange', this);
+      battery.addEventListener('chargingchange', this);
     }
     window.addEventListener('screenchange', this);
     this._toasterGD = new GestureDetector(this.notification);
     ['mousedown', 'swipe'].forEach(function(evt) {
       this.notification.addEventListener(evt, this);
     }, this);
-
-
-    // XXX: listen to settings 'powersave.enable' and
-    // 'powersave.threshold' to toggle power saving mode
   },
 
   handleEvent: function bm_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
-        var battery = window.navigator.battery;
-        if (!evt.detail.screenEnabled)
-          battery.removeEventListener('levelchange', this);
-        else
-          battery.addEventListener('levelchange', this);
+        this._screenOn = evt.detail.screenEnabled;
         break;
 
       case 'levelchange':
@@ -48,10 +42,17 @@ var BatteryManager = {
         if (!battery)
           return;
 
-        var level = Math.floor(battery.level * 10) * 10;
-        this.notification.dataset.level = level;
-        if (level == 10 || level == 30 || level == 100)
-          this.display();
+        if (this._screenOn) {
+          var level = Math.floor(battery.level * 10) * 10;
+          this.notification.dataset.level = level;
+          if (level == 10 || level == 30 || level == 100)
+            this.display();
+        }
+
+        PowerSaveHandler.onBatteryChange();
+        break;
+      case 'chargingchange':
+        PowerSaveHandler.onBatteryChange();
         break;
 
       case 'mousedown':
@@ -111,4 +112,111 @@ var BatteryManager = {
   }
 };
 
+var PowerSaveHandler = (function PowerSaveHandler() {
+
+  var _powerSaveResume = {};
+  var _powerSaveEnabled = false;
+  var _states = {
+    'wifi.enabled' : false,
+    'ril.data.enabled' : false,
+    'bluetooth.enabled' : false,
+    'geolocation.enabled' : false
+  };
+
+  function init() {
+    SettingsListener.observe('powersave.enabled', false,
+      function sl_getPowerSave(value) {
+        var enabled = value;
+        if (enabled) {
+          enablePowerSave();
+        } else {
+          disablePowerSave();
+        }
+        _powerSaveEnabled = enabled;
+      });
+
+    // Monitor the states of various modules
+    for (var j in _states) {
+      SettingsListener.observe(j, true, function getState(state, value) {
+        _states[state] = value;
+      }.bind(null, j));
+    }
+  }
+
+  // XXX Break down obj keys in a for each loop because mozSettings
+  // does not currently supports multiple keys in one set()
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
+  function setMozSettings(keypairs) {
+    var setlock = SettingsListener.getSettingsLock();
+    for (var key in keypairs) {
+      var obj = {};
+      obj[key] = keypairs[key];
+      setlock.set(obj);
+    }
+  }
+
+  function enablePowerSave() {
+    // Keep the original states of various modules
+    for (var j in _states) {
+      _powerSaveResume[j] = _states[j];
+    }
+
+    var settingsToSet = {
+      // Turn off Wifi
+      'wifi.enabled' : false,
+      // Turn off Data
+      'ril.data.enabled' : false,
+      // Turn off Bluetooth
+      'bluetooth.enabled' : false,
+      // Turn off Geolocation
+      'geolocation.enabled' : false
+    };
+
+    setMozSettings(settingsToSet);
+  }
+
+  function disablePowerSave() {
+
+    var settingsToSet = {};
+
+    for (var state in _powerSaveResume) {
+      if (_powerSaveResume[state] == true)
+        settingsToSet[state] = true;
+    }
+
+    setMozSettings(settingsToSet);
+  }
+
+  function onBatteryChange() {
+    var battery = window.navigator.battery;
+
+    if (battery.charging) {
+      if (_powerSaveEnabled)
+        setMozSettings({'powersave.enabled' : false});
+
+      return;
+    }
+
+    SettingsListener.observe('powersave.threshold', 0,
+      function getThreshold(value) {
+        if (battery.level <= value && !_powerSaveEnabled) {
+          setMozSettings({'powersave.enabled' : true});
+          return;
+        }
+
+        if (battery.level > value && _powerSaveEnabled) {
+          setMozSettings({'powersave.enabled' : false});
+          return;
+        }
+    });
+  }
+
+  return {
+    init: init,
+    onBatteryChange: onBatteryChange
+  };
+})();
+
+// init PowerSaveHandler first, since it will be used by BatteryManager
+PowerSaveHandler.init();
 BatteryManager.init();

@@ -47,6 +47,7 @@ suite('views/modify_account', function() {
           '<input name="password" />',
           '<input name="fullUrl" />',
         '</form>',
+        '<button class="delete-confirm">',
       '</div>'
     ].join('');
 
@@ -71,6 +72,10 @@ suite('views/modify_account', function() {
       });
     });
 
+  });
+
+  test('#deleteButton', function() {
+    assert.ok(subject.deleteButton);
   });
 
   test('#saveButton', function() {
@@ -137,6 +142,50 @@ suite('views/modify_account', function() {
           });
         });
       });
+    });
+  });
+
+  suite('#deleteRecord', function() {
+    var calledShow;
+    var calledRemove;
+
+    setup(function() {
+
+      var store = app.store('Account');
+      // we don't really need to redirect
+      // in the test just confirm that it does
+      app.router.show = function() {
+        calledShow = arguments;
+      }
+
+      // again fake model so we do a fake remove
+      store.remove = function() {
+        calledRemove = arguments;
+      };
+    });
+
+    test('with existing model', function() {
+      // assign model to simulate
+      // a record that has been dispatched
+      var model = Factory('account');
+      model._id = 'myaccount';
+      subject.model = model;
+      subject.render();
+
+      triggerEvent(subject.deleteButton, 'click');
+
+      assert.ok(!calledShow, 'did not redirect before-removal');
+      assert.ok(calledRemove, 'called remove');
+      assert.equal(calledRemove[0], model._id, 'removes right id');
+
+      var removeCb = calledRemove[calledRemove.length - 1];
+
+      removeCb();
+
+      assert.deepEqual(
+        calledShow,
+        ['/advanced-settings/']
+      );
     });
   });
 
@@ -377,7 +426,6 @@ suite('views/modify_account', function() {
       subject.render();
       subject.destroy();
     });
-
 
     test('save button', function() {
       var called;

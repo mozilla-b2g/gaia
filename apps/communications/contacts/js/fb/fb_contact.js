@@ -92,6 +92,14 @@ fb.Contact = function(deviceContact, cid) {
     return dcontact;
   }
 
+  function promoteToLinked(dcontact) {
+    var idx = dcontact.category.indexOf(fb.NOT_LINKED);
+
+    if (idx != -1) {
+      dcontact.category[idx] = fb.LINKED;
+    }
+  }
+
   // The contact is now totally unlinked
   // [...,facebook, fb_not_linked, 123456,....]
   function markAsUnlinked(dcontact) {
@@ -280,6 +288,64 @@ fb.Contact = function(deviceContact, cid) {
   }
 
 
+  this.getDataAndValues = function() {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function do_getData() {
+      var uid = doGetFacebookUid(devContact);
+
+      if (uid) {
+        var fbreq = fb.contacts.get(uid);
+
+        fbreq.onsuccess = function() {
+          var fbdata = fbreq.result;
+
+          var out1 = this.merge(fbdata);
+
+          var out2 = {};
+
+          Object.keys(fbdata).forEach(function(key) {
+            var dataElement = fbdata[key];
+
+            if (dataElement && typeof dataElement.forEach === 'function' &&
+                key !== 'photo') {
+              dataElement.forEach(function(item) {
+                if (item.value && item.value.length > 0) {
+                  out2[item.value] = 'p';
+                }
+                else if (typeof item === 'string' && item.length > 0) {
+                  out2[item] = 'p';
+                }
+              });
+            }
+            else if (key === 'photo') {
+              out2['hasPhoto'] = true;
+            }
+            else if (dataElement) {
+              out2[dataElement] = 'p';
+            }
+          });
+
+          outReq.done([out1, out2]);
+
+        }.bind(this);
+
+        fbreq.onerror = function() {
+          outReq.failed(fbreq.error);
+        }
+      }
+      else {
+        outReq.done([devContact, {}]);
+      }
+    }.bind(this), 0);
+
+    return outReq;
+  }
+
+  this.promoteToLinked = function() {
+    promoteToLinked(devContact);
+  }
+
   this.linkTo = function(fbFriend) {
     var out = new fb.utils.Request();
 
@@ -413,7 +479,6 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   this.remove = function() {
-    // Removes the FB specific data from the device
     var out = new fb.utils.Request();
 
     window.setTimeout(function do_remove() {
@@ -421,7 +486,7 @@ fb.Contact = function(deviceContact, cid) {
 
       var removeReq = navigator.mozContacts.remove(devContact);
       removeReq.onsuccess = function(e) {
-        var fqReq = fb.contacts.remove(uid);
+        var fbReq = fb.contacts.remove(uid);
         fbReq.onsuccess = function() {
           out.done(fbReq.result);
         }

@@ -71,7 +71,7 @@
         trans = undefined;
       }
 
-      if (typeof(trans) === 'undefined') {
+      if (!trans) {
         trans = this.db.transaction(
           this._dependentStores || this._store,
           'readwrite'
@@ -82,6 +82,7 @@
       var store = trans.objectStore(this._store);
       var data = this._objectData(object);
       var id;
+      var model;
 
       var putReq;
       var reqType;
@@ -96,26 +97,34 @@
         putReq = store.add(data);
       }
 
-      trans.addEventListener('error', function() {
+      trans.addEventListener('error', function(event) {
         if (callback) {
-          callback(err);
+          callback(event);
         }
       });
 
       this._addDependents(object, trans);
 
+      // when we have the id we can add the model to the cache.
+      if (data._id) {
+        id = data._id;
+        model = self._createModel(object, id);
+        self._addToCache(model);
+      }
+
       trans.addEventListener('complete', function(data) {
-        var id = putReq.result;
-        var result = self._createModel(object, id);
-
-        self._addToCache(result);
-
-        if (callback) {
-          callback(null, id, result);
+        if (!model) {
+          id = putReq.result;
+          model = self._createModel(object, id);
+          self._addToCache(model);
         }
 
-        self.emit(reqType, id, result);
-        self.emit('persist', id, result);
+        if (callback) {
+          callback(null, id, model);
+        }
+
+        self.emit(reqType, id, model);
+        self.emit('persist', id, model);
       });
     },
 
@@ -175,6 +184,100 @@
     },
 
     /**
+     * Removes all records a index value and removes
+     * them from the cache. 'remove' events are *not* emitted
+     * when removing in this manner for performance reasons.
+     *
+     * TODO: the test for this method still lives in the event store tests
+     *       where this code began should refactor those tests to be general
+     *       and live in the abstract tests.
+     *
+     * @param {String} indexName name of store index.
+     * @param {Numeric} indexValue value in index.
+     * @param {IDBTransation} [trans] optional transaction to reuse.
+     * @param {Function} [callback] optional callback to use.
+     *                   When called without a transaction chances
+     *                   are you should pass a callback.
+     */
+    removeByIndex: function(indexName, indexValue, trans, callback) {
+      var self = this;
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = undefined;
+      }
+
+      if (!trans) {
+        trans = this.db.transaction(
+          this._dependentStores || this._store,
+          'readwrite'
+        );
+      }
+      if (callback) {
+
+        trans.addEventListener('complete', function() {
+          callback(null);
+        });
+
+        trans.addEventListener('error', function(event) {
+          callback(event);
+        });
+      }
+
+
+      var index = trans.objectStore(this._store).index(indexName);
+      var req = index.openCursor(
+        IDBKeyRange.only(indexValue)
+      );
+
+      req.onsuccess = function(event) {
+        var cursor = event.target.result;
+        if (cursor) {
+          //XXX: We need to trigger a remove dependants
+          //     action here? Events are not tied
+          //     directly to anything else right now but they
+          //     may be in the future...
+
+          // remove deps first intentionally to mimic, removes normal behaviour
+          self._removeDependents(cursor.primaryKey, trans);
+          self._removeFromCache(cursor.primaryKey);
+          cursor.delete();
+          cursor.continue();
+        }
+      };
+    },
+
+    /**
+     * Finds a single record.
+     *
+     * Does not go through any cache or emit any events.
+     *
+     * @param {String} id id of record.
+     * @param {IDBTransaction} [trans] optional transaction.
+     * @param {Function} callback node style [err, record].
+     */
+    get: function(id, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
+      }
+
+      if (!trans) {
+        trans = this.db.transaction(this._store);
+      }
+
+      var store = trans.objectStore(this._store);
+      var req = store.get(id);
+
+      req.onsuccess = function() {
+        callback(null, req.result);
+      }
+
+      req.onerror = function(event) {
+        callback(e);
+      }
+    },
+
+    /**
      * Removes a object from the store.
      *
      * @param {String} id record reference.
@@ -187,7 +290,7 @@
         trans = undefined;
       }
 
-      if (typeof(trans) === 'undefined') {
+      if (!trans) {
         trans = this.db.transaction(
           this._dependentStores || this._store,
           'readwrite'
@@ -209,14 +312,35 @@
       });
 
       trans.addEventListener('complete', function() {
-        self._removeFromCache(id);
-
         if (callback) {
           callback(null, id);
         }
 
         self.emit('remove', id);
+
+        // intentionally after the callbacks...
+        self._removeFromCache(id);
       });
+    },
+
+    /**
+     * Find number of records in store.
+     *
+     * @param {Function} callback node style err/count.
+     */
+    count: function(callback) {
+      var trans = this.db.transaction(this._store);
+      var store = trans.objectStore(this._store);
+
+      var req = store.count();
+
+      req.onsuccess = function() {
+        callback(null, req.result);
+      }
+
+      req.onerror = function(e) {
+        callback(e);
+      }
     },
 
     _objectData: function(data) {

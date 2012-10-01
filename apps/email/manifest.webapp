@@ -6,7 +6,15 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "messages": ["alarm"],
   "permissions": [
+    "alarm",
+    "alarms",
+    "contacts",
+    "desktop-notification",
+    "device-storage:music",
+    "device-storage:pictures",
+    "device-storage:videos",
     "systemXHR",
     "settings",
     "tcp-socket"
@@ -72,6 +80,13 @@
         "type": "mail"
       },
       "disposition": "window"
+    },
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },          
+      "disposition": "window",
+      "returnValue": true
     }
   }
 }

@@ -28,18 +28,10 @@
       return lastPart;
     },
 
-    /**
-     * Compare numeric .start properties on an object
-     */
-    compareByStart: function(a, b) {
-      return Calendar.compare(a.start, b.start);
-    },
-
-    /**
-     * Compare numeric .end properties on an object
-     */
-    compareByEnd: function(a, b) {
-      return Calendar.compare(a.end, b.end);
+    log: function() {
+      var args = Array.prototype.slice.call(arguments);
+      args.unshift('CALENDAR:');
+      console.error.apply(console, args);
     },
 
     /**

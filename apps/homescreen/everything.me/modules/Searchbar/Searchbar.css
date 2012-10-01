@@ -1,0 +1,241 @@
+#header {
+    position: relative;
+    z-index: 50;
+    background: #666;
+    background: rgba(0, 0, 0, .5);
+    background: -moz-linear-gradient(center top, rgba(70, 70, 70, .5) 0, rgba(0, 0, 0, .5) 20px);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(70, 70, 70, .5)), color-stop(0.2, rgba(0, 0, 0, .5)));
+    min-height: 80px;
+    -moz-box-shadow: 0 1px 0 0 rgba(255,255,255,.1);
+    -webkit-box-shadow: 0 1px 0 0 rgba(255,255,255,.1);
+    box-shadow: 0 1px 0 0 rgba(255,255,255,.1);
+}
+#search-header {
+    position: absolute;
+    top: 0;
+    left: 6px;
+    right: 6px;
+    height: 31px;
+    z-index: 51;
+    padding-top: 9px;
+}
+#evmeContainer #search-header.animate,
+#evmeContainer #header.animate {
+    -moz-transition: all .2s linear;
+    -webkit-transition: all .2s linear;
+    -ms-transition: all .2s linear;
+    transition: all .2s linear;
+}
+    #search-rapper {
+        position: absolute;
+        top: 9px;
+        left: 0;
+        right: 0;
+        z-index: 25;
+        vertical-align: middle;
+        height: 28px;
+        line-height: 28px;
+    }
+    
+    .clear-visible #search-rapper {
+        right: 60px;
+    }
+    .clear-visible #button-location {
+        right: 62px;
+    }
+    .location-visible #search-q-bg {
+        padding-right: 86px;
+    }
+    
+    #search-q, #search-q-bg, #search-selection {
+        position: relative;
+        font-size: 15px;
+        vertical-align: middle;
+        padding: 0 4px;
+        text-transform: lowercase;
+        height: 100%;
+        -moz-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+    #search-header fieldset {
+        height: 100%;
+        background: none;
+		border-radius: none;
+		border: none;
+		line-height: 26px;
+    }
+    #search-q {
+        -webkit-appearance: none;
+        border: none;
+        z-index: 10;
+        padding: 2px 18px 4px 0;
+        width: 100%;
+        height: 26px;
+        top: -1px;
+        display: inline;
+        background: transparent;
+    }
+    #search-q-bg {
+        border-radius: 2px;
+        -moz-box-shadow: 1px 1px 0 0 #ccc inset, 0 0 0 1px rgba(0, 0, 0, .3);
+        -webkit-box-shadow: 1px 1px 0 0 #ccc inset, 0 0 0 1px rgba(0, 0, 0, .3);
+        box-shadow: 1px 1px 0 0 #ccc inset, 0 0 0 1px rgba(0, 0, 0, .3);
+        background: #fff;
+        border: none;
+        z-index: 5;
+        width: 100%;
+        top: 0;
+        background-image: url('/images/search-icon.png');
+        background-repeat: no-repeat;
+        background-position: 98% 7px;
+    }
+    #search-q:focus {
+        outline: none;
+    }
+    #search-selection {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: -5px;
+        height: 30px;
+        padding-right: 0;
+    }
+    #search-selection {
+        z-index: 20;
+        white-space: pre;
+        overflow: hidden;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+        #search-selection span {
+            position: relative;
+            background: #def;
+            display: inline-block;
+            padding-right: 1px;
+            left: 1px;
+            top: 0;
+            height: 20px;
+            line-height: 19px;
+        }
+        
+    #button-clear {
+        position: absolute;
+        top: 9px;
+        right: 0;
+        z-index: 20;
+        width: 52px;
+        height: 28px;
+        line-height: 26px;
+        text-align: center;
+        cursor: pointer;
+        color: #666;
+        font-size: 14px;
+        border-radius: 2px;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, .3);
+        font-weight: 600;
+        background: #1ac6ea;
+        background: -moz-linear-gradient(center top, #1ac6ea 0%, #12a8e0 100%);
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #1ac6ea), color-stop(100%, #12a8e0));
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        user-select: none;
+        display: none;
+    }
+    .clear-visible #button-clear {
+        display: block;
+    }
+    
+    #button-location {
+        position: absolute;
+        top: 11px;
+        right: 2px;
+        z-index: 90;
+        color: #43474a;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, .8);
+        text-align: center;
+        font-size: 11px;
+        font-weight: 600;
+        width: 72px;
+        padding: 0 2px;
+        height: 22px;
+        line-height: 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        border: 1px solid #c7c7c7;
+        background: #dcdcdc;
+        background: -moz-linear-gradient(center top, #e3e3e3 0%, #d7d7d7 100%);
+        background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #e3e3e3), color-stop(100%, #d7d7d7));
+        text-overflow: ellipsis;
+        -ms-text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+        -moz-transition: opacity .2s linear;
+        -webkit-transition: opacity .2s linear;
+        -ms-transition: opacity .2s linear;
+        transition: opacity .2s linear;
+    }
+    .active #button-location.visible {
+        opacity: 1;
+        pointer-events: inherit;
+    }
+    
+    .requesting-location #button-location {
+        display: block;
+    }
+    #button-location .doat-loading {
+        margin-left: 4px;
+    }
+    #default-text {
+        position: absolute;
+        top: 0;
+        left: 7px;
+        color: #bbb;
+        text-transform: none;
+        display: none;
+    }
+    .empty-query #default-text {
+        display: block;
+    }
+    
+#homepage-search-text {
+    position: absolute;
+    top: 88px;
+    left: 16px;
+    cursor: pointer;
+    text-indent: 6px;
+    z-index: 305;
+    font-size: 13px;
+    color: #444;
+    -moz-pointer-events: none;
+    -webkit-pointer-events: none;
+    pointer-events: none;
+    display: none;
+    -moz-transition: all .2s linear;
+    -webkit-transition: all .2s linear;
+    -ms-transition: all .2s linear;
+    transition: all .2s linear;
+}
+#homepage-search-text:before {
+    content: "";
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+}
+
+.screen-homepage #homepage-search-text {
+    display: block;
+}
+
+.loading-app #search-header  {
+    -moz-transition: all .2s linear;
+    -webkit-transition: all .2s linear;
+    -ms-transition: all .2s linear;
+    transition: all .2s linear;
+    opacity: 0 !important;
+}

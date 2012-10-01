@@ -19,7 +19,8 @@
 }
 */
 
-#screen > [data-z-index-level="debug-grid"] {
+#screen > [data-z-index-level="debug-grid"],
+#screen > [data-z-index-level="debug-ttl"] {
   z-index: 65536;
 }
 
@@ -76,8 +77,8 @@
 
 /* Demote level 5 elements to homescreen level if there is an active
    full screen app frame */
-#screen.fullscreen-app:not(.locked) > [data-z-index-level="statusbar"],
-#screen.fullscreen-app:not(.locked) > [data-z-index-level="utility-tray"] {
+#screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="statusbar"],
+#screen.fullscreen-app:not(.locked):not(.attention) > [data-z-index-level="utility-tray"] {
   z-index: 0;
 }
 
@@ -136,6 +137,10 @@
  * - finally, everything else need to be on top of them (hence the lowest nums)
  *
  */
+#screen > [data-z-index-level="app"] > #wrapper {
+  z-index: 5;
+}
+
 #screen > [data-z-index-level="app"] > iframe.appWindow.active {
   z-index: 4;
 }

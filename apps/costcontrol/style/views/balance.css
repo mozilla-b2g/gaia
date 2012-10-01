@@ -2,16 +2,14 @@
 #balance-tab .overview {
   font-size: 1.6rem;
   line-height: 1em;
-  font-weight: 600;
-  border-bottom: solid 1px #e5e5e1;
+  border-bottom: solid 1px #b7b7b7;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.8);
   margin-bottom: 1rem;
-  padding: 1.5rem 1rem 1.5rem;
+  padding: 1.5rem 0 1.5rem;
   overflow: hidden;
-  height: 2.8rem;
 }
 
-#balance-tab .overview .start {
-  float: left; 
+#balance-tab .overview .info {
   -moz-transform: translateX(-4.0rem);
   -moz-transition: -moz-transform 0.5s;
 }
@@ -20,19 +18,25 @@
   float: right;
 }
 
+#balance-tab .overview .buttons-list button {
+  margin-bottom: 0;
+}
+
 #balance-tab .overview time {
   font-weight: normal;
+  font-size: 1.3rem;
+  color: #7a8080;
 }
 
 /* ICONS CONTAINER */
 #balance-tab .overview .icons {
   width: 2.1rem;
   height: 2.1rem;
-  vertical-align: middle;
   background-position: center;
   background-repeat: no-repeat;
   padding: 0 0.4rem;
-  display: inline-block;
+  margin: 0.5rem 1rem 0;
+  float: left;
 }
 
 /* ICONS*/
@@ -54,8 +58,8 @@
 }
 
 /* ALL STATES */
-#balance-tab.updating .overview > .start,
-#balance-tab.warning .overview > .start {
+#balance-tab.updating .overview > .info,
+#balance-tab.warning .overview > .info {
   -moz-transform: none;
 }
 
@@ -73,12 +77,29 @@
   display: block;
 }
 
+#balance-tab.warning #balance-tab-credit,
+#balance-tab.warning #balance-tab-currency {
+  color: #777775;
+}
+
 /* LOW CREDIT STATE */
 #balance-tab.low-credit #balance-tab-credit,
 #balance-tab.low-credit #balance-tab-currency {
-  color: #b20000;
+  color: #e7a239;
 }
 
-#balance-tab.low-credit #balance-tab-topup-button {
-  box-shadow: 0px 0px 14px rgba(83, 125, 151, 0.75);
+#balance-tab.low-credit #balance-tab-topup-button,
+#balance-tab.low-credit #balance-tab-topup-ussd-button {
+  box-shadow: 0 0 6px 0px rgba(41, 158, 230, 0.5);
+  border-color: #82C0E7;
 }
+#balance-tab.low-credit #balance-tab-topup-button:after {
+  display: none;
+}
+
+/* ZERO CREDIT STATE */
+#balance-tab.no-credit #balance-tab-credit,
+#balance-tab.no-credit #balance-tab-currency {
+  color: #a50606;
+}
+
