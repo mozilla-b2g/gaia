@@ -1406,6 +1406,11 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
+    if (!document.mozHidden) {
+      // Case of calling from Notification
+      activityAction();
+      return;
+    }
     document.addEventListener('mozvisibilitychange',
       function waitVisibility() {
         document.removeEventListener('mozvisibilitychange', waitVisibility);
