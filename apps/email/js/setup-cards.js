@@ -703,7 +703,7 @@ SettingsAccountCard.prototype = {
     var curAccount = Cards.findCardObject(['folder-picker', 'navigation'])
                           .cardImpl.curAccount;
     if (curAccount.id === this.account.id) {
-      Cards.findCardObject(['message-list', 'default']).cardImpl.onRefresh();
+      Cards.findCardObject(['message-list', 'nonsearch']).cardImpl.onRefresh();
     }
   },
 

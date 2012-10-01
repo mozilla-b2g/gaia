@@ -65,7 +65,7 @@ var App = {
             });
           // Push the message list card
           Cards.pushCard(
-            'message-list', 'default', 'immediate',
+            'message-list', 'nonsearch', 'immediate',
             {
               folder: inboxFolder
             });

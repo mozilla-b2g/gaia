@@ -43,6 +43,48 @@ function populateTemplateNodes() {
   tngNodes = processTemplNodes('tng');
 }
 
+function batchAddClass(domNode, searchClass, classToAdd) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.add(classToAdd);
+  }
+}
+
+function batchRemoveClass(domNode, searchClass, classToRemove) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.remove(classToRemove);
+  }
+}
+
+const MATCHED_TEXT_CLASS = 'highlight';
+
+function appendMatchItemTo(matchItem, node) {
+  const text = matchItem.text;
+  var idx = 0;
+  for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
+    var run;
+    if (iRun === matchItem.matchRuns.length)
+      run = { start: text.length, length: 0 };
+    else
+      run = matchItem.matchRuns[iRun];
+
+    // generate the un-highlighted span
+    if (run.start > idx) {
+      var tnode = document.createTextNode(text.substring(idx, run.start));
+      node.appendChild(tnode);
+    }
+
+    if (!run.length)
+      continue;
+    var hspan = document.createElement('span');
+    hspan.classList.add(MATCHED_TEXT_CLASS);
+    hspan.textContent = text.substr(run.start, run.length);
+    node.appendChild(hspan);
+    idx = run.start + run.length;
+  }
+}
+
 /**
  * Add an event listener on a container that, when an event is encounted on
  * a descendant, walks up the tree to find the immediate child of the container
