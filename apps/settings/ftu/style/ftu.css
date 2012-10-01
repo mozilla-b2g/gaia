@@ -17,10 +17,12 @@ section[role=region] {
   width: calc(100% - 3rem);
 }
 
+
 /* Pages Transition */
 section.page {
   overflow: auto;
 }
+
 
 /* First Run Animation */
 #logo {
@@ -43,11 +45,13 @@ section.page {
   }
 }
 
+
 /* Common styles between panels */
 .main {
   padding: 0 1.5rem 0 1.5rem;
   overflow-y: auto;
 }
+
 
 /* Header */
 #header {
@@ -74,6 +78,7 @@ section.page {
 #header[data-current='end'] {
   display: none;
 }
+
 
 /* Progress bar */
 progress {
@@ -102,6 +107,7 @@ progress[value='100'] {
   display: none;
   background: none;
 }
+
 
 /* Navigation buttons */
 #navigation-buttons {
@@ -153,6 +159,7 @@ progress[value='100'] {
   width: calc(100% - 3rem);
   margin-left: 0;
 }
+
 
 /* ----------------------------------
  * Buttons list
@@ -248,6 +255,7 @@ button span, a[role="button"] span {
   left: -10000px;
 }
 
+
 /* Privacy choices */
 .privacy {
   font-size: 1.3rem;
@@ -285,6 +293,7 @@ button span, a[role="button"] span {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
+
 
 /* Last screen - mostly done! */
 #end {
@@ -369,6 +378,7 @@ button {
   background: url(images/prev.png) no-repeat 6% 50%;
 }
 
+
 /* Contacts */
 li [data-l10n-id="ftu-contacts-import-sim"] {
   display: block;
@@ -401,6 +411,7 @@ li[disabled] {
   pointer-events: none;
 }
 
+
 /* DateTime */
 #datetime {
   background-image: url(images/datetime.png);
@@ -424,3 +435,9 @@ li[disabled] {
   margin-right: 0;
   width: 100%;
 }
+
+/* WiFi */
+#wifi li[data-state] {
+  visibility: hidden;
+}
+

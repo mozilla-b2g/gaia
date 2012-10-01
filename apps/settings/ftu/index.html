@@ -778,6 +778,7 @@
     <!-- Connectivity :: Wi-Fi :: Network Status -->
     <section role="region" id="wifi-status">
       <button type="submit" class="invisible"></button>
+      <span data-ssid class="invisible"></span>
       <!-- network properties -->
       <ul>
         <li>
@@ -806,6 +807,7 @@
     <!-- Connectivity :: Wi-Fi :: Network Authentication -->
     <section role="region" id="wifi-auth">
       <button type="submit" class="invisible"></button>
+      <span data-ssid class="invisible"></span>
       <!-- network properties + identity/password input -->
       <ul>
         <li>
@@ -835,8 +837,16 @@
 
     <section role="region" class="page" id="wifi">
       <div class="main">
-        <ul id="wifi-availableNetworks" class="content">
+        <ul id="wifi-availableNetworks" class="content" data-state="off">
+          <li class="explanation" data-state="on" data-l10n-id="scanning">
+            Searching…
+          </li>
           <!-- filled by wifi.js -->
+          <li data-state="ready">
+            <label>
+              <button data-l10n-id="scanNetworks">Search Again</button>
+            </label>
+          </li>
         </ul>
       </div>
     </section>
@@ -962,7 +972,8 @@
 
 
     <!-- wifi.js relies heavily on dom elements. In order to make it happy
-         here are some ids it needs.
+         here are some ids it needs. In the perfect world wifi.js would be
+         smarter enough to ignore elements that does not exists.
     -->
     <div id="fake-elements" style="display: none;">
       <span id="wifi-desc"></span>
@@ -972,6 +983,6 @@
       <span id="brightness-manual"></span>
       <span id="joinHidden"></span>
       <span id="manageNetworks"></span>
-      <span id="macAddress"><small data-l10n-id="macAddress"><span></span></small></span>
+      <span id="macAddress" data-l10n-id="macAddress"><small></small><span></span></span>
     </div>
 </html>

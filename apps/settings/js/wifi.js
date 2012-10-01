@@ -368,8 +368,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // get the "Searching..." and "Search Again" items, respectively
     var infoItem = list.querySelector('li[data-state="on"]');
-    var scanItem = list.querySelector('li[data-state="ready"]') ||
-                   document.getElementById('wifi-refresh');
+    var scanItem = list.querySelector('li[data-state="ready"]');
     scanItem.onclick = function() {
       clear(true);
       scan();
@@ -427,9 +426,9 @@ window.addEventListener('localized', function wifiSettings(evt) {
             listItem.classList.add('active');
             listItem.querySelector('small').textContent =
                 _('shortStatus-connected');
-            list.insertBefore(listItem, list.firstElementChild /*infoItem.nextSibling*/);
+            list.insertBefore(listItem, infoItem.nextSibling);
           } else {
-            list.insertBefore(listItem, null /*scanItem*/);
+            list.insertBefore(listItem, scanItem);
           }
           index[network.ssid] = listItem; // add to index
         }
@@ -656,11 +655,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       // network info
       var keys = network.capabilities;
       var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-      try {
       dialog.querySelector('[data-ssid]').textContent = network.ssid;
-      } catch(e) {
-        document.querySelector('[data-ssid]').textContent = network.ssid;
-      }
       dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
       dialog.querySelector('[data-security]').textContent =
           (keys && keys.length) ? keys.join(', ') : _('securityNone');
@@ -693,7 +688,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.type = this.checked ? 'text' : 'password';
         };
 
-/*
         var submitButton = dialog.querySelector('button[type=submit]');
         if (key === 'WPA-PSK') {
           password.onchange = function() {
@@ -704,7 +698,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
           password.onchange = function() {};
           submitButton.disabled = false;
         }
-*/
       }
 
       // reset dialog box
@@ -779,9 +772,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       gNetworkList.clear(true);
       document.querySelector('#macAddress small').textContent =
         gWifiManager.macAddress;
-/*
       document.querySelector('[data-l10n-id="macAddress"] span').textContent =
-*/
         gWifiManager.macAddress; // XXX should be stored in a setting
     } else {
       gWifiInfoBlock.textContent = _('disabled');

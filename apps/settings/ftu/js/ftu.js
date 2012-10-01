@@ -22,9 +22,25 @@ function startup() {
       settings.createLock().set({ 'wifi.enabled': true });
     }
 
+    var refresh = document.getElementById('wifi-refresh');
+    refresh.onclick = function wifiRefresh() {
+      var searchAgain = document.querySelector('[data-l10n-id="scanNetworks"]');
+      searchAgain.click();
+    }
+
+    window.addEventListener('hashchange', function wifiHashChange(e) {
+      var hash = document.location.hash;
+      if (hash == '#wifi-auth' || hash == '#wifi-status') {
+        var dialog = document.getElementById(hash.slice(1));
+
+        var title = document.getElementById('title');
+        title.textContent = dialog.querySelector('[data-ssid]').textContent;
+      }
+    });
+
     gWifiManager.setEnabled(true);
   } catch(e) {
-    dump('FOO: ' + e + '\n');
+    dump(e + '\n');
   }
 
 
