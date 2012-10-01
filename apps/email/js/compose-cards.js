@@ -317,7 +317,18 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
+    // TODO: Need to add a toaster while message sending does not complete yet.
+    var self = this;
+    var trackSendHandler = function(error, badAddresses, sentDate) {
+      if (error) {
+        Toaster.trackSendMessage(function() {
+          self.composer.finishCompositionSendMessage(trackSendHandler);
+        });
+      } else {
+        Toaster.trackSendMessage();
+      }
+    }
+    this.composer.finishCompositionSendMessage(trackSendHandler.bind(this));
     if (this.shareActivity) {
       // XXX: Return value under window mode will cause crash easily, disable
       //      return and stay in email until inline mode is stable.
