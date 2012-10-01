@@ -6,7 +6,7 @@
 var LockScreen = {
   /*
   * Boolean return the status of the lock screen.
-  * Must not multate directly - use unlock()/lockIfEnabled()
+  * Must not mutate directly - use unlock()/lockIfEnabled()
   * Listen to 'lock' and 'unlock' event to properly handle status changes
   */
   locked: true,

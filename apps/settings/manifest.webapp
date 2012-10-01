@@ -1,7 +1,7 @@
 {
   "name": "Settings",
   "description": "Gaia Settings",
-  "launch_path": "/index.html#root",
+  "launch_path": "index.html#root",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -10,6 +10,7 @@
     "mobileconnection",
     "mozBluetooth",
     "bluetooth",
+    "contacts",
     "device-storage:pictures",
     "device-storage:music",
     "device-storage:videos",
@@ -37,14 +38,16 @@
       "returnValue": true
     }
   },
-  "messages": ["bluetooth-requestconfirmation", 
-               "bluetooth-requestpasskey", 
-               "bluetooth-requestpincode", 
-               "bluetooth-authorize", 
-               "bluetooth-cancel",
-               "bluetooth-pairedstatuschanged",
-               "bluetooth-hfp-status-changed",
-               "icc-stkcommand"],
+  "messages": [
+    { "firstrun": "ftu/launcher.html" },
+    "bluetooth-requestconfirmation",
+    "bluetooth-requestpasskey",
+    "bluetooth-requestpincode",
+    "bluetooth-authorize",
+    "bluetooth-cancel",
+    "bluetooth-pairedstatuschanged",
+    "bluetooth-hfp-status-changed",
+    "icc-stkcommand"],
   "locales": {
     "ar": {
       "name": "الضبط",

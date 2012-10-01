@@ -24,6 +24,7 @@
     "wifi-manage",
     "wifi",
     "desktop-notification",
+    "fullscreen",
     "idle"
   ],
   "locales": {

@@ -1,3 +1,4 @@
+
 #value-selector {
   width: 100%;
   height: -moz-calc(100% - 20px);
@@ -11,7 +12,7 @@
   top: 40px;
 }
 
-#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen:-moz-full-screen-ancestor #value-selector,
 #screen.fullscreen-app #value-selector {
   height: 100%;
   top: 0;
@@ -36,7 +37,7 @@
 }
 
 #value-selector button:first-child {
-    margin-right: 0rem;
+  margin-right: 0rem;
 }
 
 #select-options-buttons button,
@@ -76,18 +77,18 @@
 /*active class used to complement the "return false" in onmousedown effect */
 #value-selector button.active,
 button.affirmative.active {
-    border-color: #008aaa;
-    background: #008aaa;
-    color: #333;
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
 }
 
 #value-selector-container li > label {
-    pointer-events: none;
+  pointer-events: none;
 }
 
 #value-selector-container li.active label span {
-    background: none repeat scroll 0 0 #00ABCC;
-    color: #FFFFFF !important;
+  background: none repeat scroll 0 0 #00ABCC;
+  color: #FFFFFF !important;
 }
 
 #time-picker-popup {
@@ -99,7 +100,6 @@ button.affirmative.active {
   background-size: auto auto, 100% 100%;
   overflow: hidden;
   position: absolute;
-  z-index: 100;
   left: 0;
   right: 0;
   bottom: 0;
@@ -110,14 +110,14 @@ button.affirmative.active {
 }
 
 #time-picker-popup h3 {
-    font-family: 'Open Sans', Sans-serif;
-    font-weight: normal;
-    font-size: 1.6rem;
-    line-height: 1em;
-    color: #fff;
-    border-bottom: 0.1rem solid #686868;
-    margin: 0 0 1.5rem;
-    padding-bottom: 1.5rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: normal;
+  font-size: 1.6rem;
+  line-height: 1em;
+  color: #fff;
+  border-bottom: 0.1rem solid #686868;
+  margin: 0 0 1.5rem;
+  padding-bottom: 1.5rem;
 }
 
 .table-wrapper {

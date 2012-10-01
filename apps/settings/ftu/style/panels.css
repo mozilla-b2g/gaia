@@ -1,0 +1,169 @@
+
+/* First Run Animation */
+#logo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  animation: logo-dance 12s 1;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+@keyframes logo-dance {
+  1%, 90% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Languages */
+
+/* WiFi */
+#wifi li[data-state] {
+  visibility: hidden;
+}
+
+/* DateTime */
+#datetime {
+  background-image: url(images/datetime.png);
+  background-size: 100% 100%;
+}
+
+#datetime div {
+  padding: 0;
+}
+
+#datetime ul {
+  position: absolute;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+#datetime ul button {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
+}
+
+/*
+  This is not possible to use visibility: hidden or display: none
+  here, otherwise Gecko will deny focus to input fields.
+*/
+.invisible {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  border: none;
+  left: -10000px;
+}
+
+/* Contacts */
+#contacts li [data-l10n-id="ftu-contacts-import-sim"] {
+  display: block;
+  background-image: url(images/sim.png);
+  background-position: 14px center;
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+#contacts li[data-state]:after {
+  content: attr(data-state);
+  position: absolute;
+  top: 4.5rem;
+  padding-left: 5.5rem;
+}
+
+#contacts li.success {
+  background: url(images/checked.png) no-repeat 98% 50%;
+}
+
+#contacts li [data-l10n-id="ftu-contacts-import-facebook"] {
+  background-image: url(images/fb.png);
+  background-position: 0.9rem center; /* icons have different size */
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+#contacts li[disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+
+/* Privacy choices */
+.privacy {
+  font-size: 1.3rem;
+}
+
+.privacy .header {
+  display: block;
+  margin-bottom: .3rem;
+}
+
+.privacy .header img {
+  margin: .5rem 1.5rem .5rem .5rem;
+}
+
+.privacy a {
+  color: black;
+}
+
+.privacy a:nth-child(2) {
+  float: right;
+}
+
+.privacy h3 {
+  border-bottom: 2px solid black;
+  -moz-border-bottom-colors: grey white;
+  padding-bottom: .3rem;
+  margin-bottom: .3rem;
+}
+
+.privacy label {
+  margin-left: -1.5rem;
+}
+
+.privacy input {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Last screen - mostly done! */
+#last {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background-image: url(images/background-dark.png);
+}
+
+#last .content {
+  height: calc(100% - 5.5rem);
+  width: calc(100% - 3rem);
+  color: white;
+  background: url(images/thumb-up.png) no-repeat center 90%, url(images/shadow.png) repeat-x left bottom;
+}
+
+#last .content > span {
+  display: inline-block;
+  margin: .5rem 1rem;
+}
+
+#last .content > span.title {
+  font-size: 4rem;
+}
+
+#last .content > span.subtitle {
+  font-size: 2rem;
+}
+
+#last .content > span.text {
+  font-size: 1.5rem;
+}
+

@@ -1,0 +1,83 @@
+
+/* ----------------------------------
+ * Buttons list
+ * ---------------------------------- */
+.buttons-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+/* Default */
+.buttons-list button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+.buttons-list button {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  overflow: visible;
+  background: #e7e7e7;
+  border: 0.1rem solid #b6b6b6;
+  border-radius: 0.3rem;
+  font-size: 1.4rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 2.9rem;
+  text-align: left;
+  color: #333;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+.buttons-list button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: url(images/shadow.png) repeat-x left bottom;
+  height: 0.2rem;
+  margin-top: 0.1rem;
+  pointer-events: none;
+}
+
+/* Press */
+.buttons-list button:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+.buttons-list button:active:after {
+  opacity: 0;
+}
+
+button span, a[role="button"] span {
+  background: none no-repeat scroll center center transparent;
+  float: left;
+  height: 2.5rem;
+  margin: 0px 0.5rem 0px -1rem;
+  width: 2.5rem;
+}
+
+/* Core icons */
+.buttons-list button span.end {
+  float: right;
+  margin: 0.3rem -1.5rem 0px 1rem;
+}
+
+.buttons-list button span.launch {
+  background-image: url(images/launch.png);
+  background-position: 1rem bottom;
+}
