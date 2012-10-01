@@ -5,7 +5,6 @@ html, body {
   background-color: white;
   background-image: url(images/background.png);
   background-size: 100% 100%;
-  overflow: hidden;
 }
 
 section[role=region] {
@@ -371,7 +370,7 @@ button {
 }
 
 /* Contacts */
-li [data-l10n-id="importSim"] {
+li [data-l10n-id="ftu-contacts-import-sim"] {
   display: block;
   background-image: url(images/sim.png);
   background-position: 14px center;
@@ -379,32 +378,18 @@ li [data-l10n-id="importSim"] {
   padding-left: 5.5rem;
 }
 
-li[data-state="read"]:after {
-  content: attr(data-read);
+li[data-state]:after {
+  content: attr(data-state);
   position: absolute;
   top: 4.5rem;
   padding-left: 5.5rem;
 }
 
-li[data-state="import"]:after {
-  content: attr(data-import);
-  position: absolute;
-  top: 4.5rem;
-  padding-left: 5.5rem;
-}
-
-li[data-state="import"] {
+li.success {
   background: url(images/checked.png) no-repeat 98% 50%;
 }
 
-li[data-state="error"]:after {
-  content: attr(data-error);
-  position: absolute;
-  top: 4.5rem;
-  padding-left: 5.5rem;
-}
-
-li [data-l10n-id="importFb"] {
+li [data-l10n-id="ftu-contacts-import-facebook"] {
   background-image: url(images/fb.png);
   background-position: 0.9rem center; /* icons have different size */
   background-repeat: no-repeat;
