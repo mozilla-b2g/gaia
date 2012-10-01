@@ -25,7 +25,18 @@
       <div id="title-text" data-l10n-id="music">Music</div>
     </div>
     <div id="views">
-      <div id="views-tiles" class="view"></div>
+      <div id="views-tiles" class="view">
+        <div id="views-tiles-search">
+          <input id="views-tiles-search-input" type="search" />
+          <!-- We want to keep the keyboard appearing when users click the clear button -->
+          <!-- So the clear button need to return false on mousedown -->
+          <button id="views-tiles-search-clear" onmousedown="return false;">X</button>
+          <button id="views-tiles-search-cancel" data-l10n-id="search-cancel" class="search-cancel-button">Cancel</button>
+        </div>
+        <div id="views-tiles-search-inner"></div>
+        <div id="views-tiles-search-anchor"></div>
+        <div id="views-tiles-anchor"></div>
+      </div>
       <div id="views-list" class="view"></div>
       <div id="views-sublist" class="view">
         <div id="views-sublist-header">

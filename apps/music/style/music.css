@@ -107,6 +107,10 @@ body {
   }
 }
 
+body.search-mode #title {
+  display: none;
+}
+
 body.tiles-mode #title-back {
   display: none;
 }
@@ -115,27 +119,45 @@ body.list-mode #title-back {
   display: none;
 }
 
-body.player-mode #tabs {
-  -moz-transition: opacity 400ms ease;
+body.player-mode #tabs,
+body.search-mode #tabs {
+  transition: opacity 500ms ease;
   opacity: 0;
-  z-index: 1;
+  pointer-events: none;
+}
+
+body.search-mode #views-tiles-anchor {
+  display: none;
+}
+
+body.search-mode #views-tiles-search-inner {
+  display: none;
+}
+
+body.search-mode #views-tiles-search-anchor {
+  height: calc(100% - 3.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body.tiles-mode #views {
-  -moz-transform: translateX(0%);
+  transform: translateX(0%);
 }
 
 body.list-mode #views {
-  -moz-transform: translateX(-25%);
+  transform: translateX(-25%);
 }
 
 body.sublist-mode #views {
-  -moz-transform: translateX(-50%);
+  transform: translateX(-50%);
 }
 
 body.player-mode #views {
-  -moz-transform: translateX(-75%);
-  z-index: 30;
+  transform: translateX(-75%);
+}
+
+body.search-mode #views {
+  height: 100%;
 }
 
 #title {  
@@ -213,7 +235,7 @@ body.player-mode #views {
   height: 90%;
   overflow-x: hidden;
   background-color: rgba(255, 255, 255, 0.2);
-  -moz-transition: -moz-transform 400ms ease-in-out;
+  transition: transform 400ms ease-in-out;
 }
 
 .view {
@@ -229,12 +251,7 @@ body.player-mode #views {
   float: left;
 }
 
-#views-tiles {
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
+#views-tiles,
 #views-list,
 #views-sublist {
   height: 100%;
@@ -250,6 +267,80 @@ body.player-mode #views {
 #views-player {
   height: 100%;
   overflow: hidden;
+}
+
+#views-tiles-search,
+#views-tiles-anchor,
+#views-tiles-search-anchor {
+  position: relative;
+  width: 100%;
+}
+
+#views-tiles-search {
+  height: 3.5rem;
+  background-color: black;
+}
+
+#views-tiles-search-inner {
+  /* force the tiles view to be tall enough so we can scroll the search bit out of the way by default*/
+  position: absolute;
+  width: 100%;
+  min-height: calc(100% + 3.5rem);
+}
+
+#views-tiles-anchor,
+#views-tiles-search-anchor {
+  height: auto;
+}
+
+#views-tiles-search-input,
+#views-tiles-search-cancel {
+  position: relative;
+  float: left;
+}
+
+#views-tiles-search-input {
+  margin: 8px 10px;
+  border: gray solid 2px;
+  padding: 0 40px 0 0;
+  border-radius: 5px;
+  width: calc(80% - 64px);
+  height: calc(100% - 20px);
+}
+
+#views-tiles-search-clear {
+  position: absolute;
+  font-size: 1.2rem;
+  font-weight: bold;
+  right: calc(20% + 12px);
+  width: 30px;
+  height: 30px;
+  margin: calc(1.75rem - 15px) 5px;
+  border-radius: 15px;
+}
+
+#views-tiles-search-cancel {
+  margin: 8px 10px 8px 0px;
+  border: gray solid 0px;
+  padding: 0px;
+  border-radius: 12px;
+  width: calc(20% - 10px);
+  height: calc(100% - 16px);
+}
+
+.search-cancel-button {
+  background: -moz-linear-gradient(center top , #00ADEE, #0078A5) repeat scroll 0 0 transparent;
+  border: 1px solid #0076A3;
+  color: #D9EEF7;
+}
+
+.search-cancel-button:hover {
+  background: -moz-linear-gradient(center top , #0095CC, #00678E) repeat scroll 0 0 transparent;
+}
+
+.search-cancel-button:active {
+  background: -moz-linear-gradient(center top , #0078A5, #00ADEE) repeat scroll 0 0 transparent;
+  color: #80BED6;
 }
 
 #views-sublist-header,
@@ -289,7 +380,7 @@ body.player-mode #views {
 
 #views-sublist-header-name {
   position:relative;
-  width: -moz-calc(100% - 1em);
+  width: calc(100% - 1em);
   height: 2em;
   padding-left: 0.5em;
   padding-right: 0.5em;
@@ -301,7 +392,7 @@ body.player-mode #views {
 }
 
 #views-sublist-header-controls {
-  width: -moz-calc(100% - 8em);
+  width: calc(100% - 8em);
   height: 8em;
 }
 
@@ -311,7 +402,7 @@ body.player-mode #views {
   float: left;
   width: 50%;
   font-size: 2em;
-  height: -moz-calc(100% - 2em);
+  height: calc(100% - 2em);
 }
 
 .album-controls-button {
@@ -334,16 +425,16 @@ body.player-mode #views {
 }
 
 .main-tile {
-  width: 318px;
-  height: 318px;
+  width: 210px;
+  height: 210px;
   border: 1px solid rgba(0, 0, 0, 1);
   background-color: black;
   overflow: hidden;
 }
 
 .sub-tile {
-  width: 158px;
-  height: 158px;
+  width: 104px;
+  height: 104px;
   border: 1px solid rgba(0, 0, 0, 1);
   font-weight: lighter;
   background-color: #303030;
@@ -511,7 +602,7 @@ body.player-mode #views {
   overflow: hidden;
 }
 
-@-moz-keyframes fadeIn {
+@keyframes fadeIn {
   from {
     opacity: 0;
   }
@@ -522,11 +613,11 @@ body.player-mode #views {
 }
 
 .fadeIn {  
-  -moz-animation-name: fadeIn;
-  -moz-animation-duration: 1500ms;
-  -moz-animation-timing-function: ease-in-out;
-  -moz-animation-fill-mode: forwards;
-  -moz-animation-delay: 500ms;
+  animation-name: fadeIn;
+  animation-duration: 1500ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+  animation-delay: 500ms;
 }
 
 #player-cover-image {
@@ -535,11 +626,11 @@ body.player-mode #views {
 }
 
 #player-cover.slideOut #player-cover-caption {
-  -moz-transform: translateY(100%);
+  transform: translateY(100%);
 }
 
 #player-cover.slideOut #player-cover-buttons {
-  -moz-transform: translateY(-100%);
+  transform: translateY(-100%);
 }
 
 #player-cover-caption,
@@ -552,7 +643,7 @@ body.player-mode #views {
 
 #player-cover-caption {
   top: -16%;
-  -moz-transition: -moz-transform 700ms ease-in-out;
+  transition: transform 700ms ease-in-out;
 }
 
 #player-cover-artist,
@@ -583,7 +674,7 @@ body.player-mode #views {
 
 #player-cover-buttons {
   bottom: -84%;
-  -moz-transition: -moz-transform 700ms ease-in-out;
+  transition: transform 700ms ease-in-out;
 }
 
 #player-album-shuffle, 
@@ -596,7 +687,7 @@ body.player-mode #views {
 #player-album-shuffle, 
 #player-album-repeat {
   top: 15%;
-  width: -moz-calc(25% - 40px);
+  width: calc(25% - 40px);
   height: 70%;
   padding: 0px;
   border-radius: 20px;
@@ -732,7 +823,7 @@ button::-moz-focus-inner {
   width: 100%;
   height: 9%;
   z-index: 20;
-  -moz-transition: opacity 800ms ease;
+  transition: opacity 800ms ease;
 }
 
 #tabs-mix,
@@ -849,6 +940,7 @@ li.list-song-item a {
   border-bottom: solid 1px #666;
   outline: none;
   margin: 0;
+  font-size: 0.6rem;
   text-shadow: black 1px 1px;
   white-space: nowrap;
   overflow: hidden;
@@ -867,7 +959,9 @@ li.list-song-item a:active {
 .list-main-title,
 .list-sub-title,
 .list-single-title,
-.list-song-title {
+.list-song-title,
+.list-search-main-title,
+.list-search-sub-title {
   position: absolute;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -877,28 +971,28 @@ li.list-song-item a:active {
 
 .list-main-title {
   top: 10%;
-  width: -moz-calc(84% - 7em/2);
+  width: calc(84% - 7em/2);
   font-size: 2em;
   color: white;
 }
 
 .list-sub-title {
   top: 50%;
-  width: -moz-calc(84% - 7em/1.6);
+  width: calc(84% - 7em/1.6);
   font-size: 1.6em;
   color: gray;
 }
 
 .list-single-title {
   top: 28%;
-  width: -moz-calc(84% - 7em/2);
+  width: calc(84% - 7em/2);
   font-size: 2em;
   color: white;
 }
 
 .list-song-title {
   top: 28%;
-  width: -moz-calc(89% - 0.5em);
+  width: calc(89% - 0.5em);
   padding-left: 11%;
   padding-right: 0.5em;
   font-size: 2em;
@@ -916,6 +1010,36 @@ li.list-song-item a:active {
   box-shadow: 0 0 1px black;
 }
 
+.list-search-image-parent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 3.6rem;
+  width: 3.6rem;
+  overflow: hidden;
+  background-color: gray;
+  box-shadow: 0 0 1px black;
+}
+
 .list-image {
   position: absolute;
+}
+
+.list-search-main-title,
+.list-search-sub-title {
+  right: 0;
+  width: calc(100% - 5.2rem);
+  padding: 0.2rem 0.8rem;
+}
+
+.list-search-main-title {
+  top: 10%;
+  font-size: 2em;
+  color: white;
+}
+
+.list-search-sub-title {
+  top: 50%;
+  font-size: 1.6em;
+  color: gray;
 }

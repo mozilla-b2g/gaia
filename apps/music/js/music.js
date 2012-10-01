@@ -153,11 +153,20 @@ function showOverlay(id) {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
-// We need three handles here to cancel enumerations
-// for tilesView, listView and sublistView
+// XXX
+// Until https://bugzilla.mozilla.org/show_bug.cgi?id=795399 is fixed,
+// we have to add a dummy click event handler on the overlay in order to
+// make it opaque to touch events. Without this, it does not prevent
+// the user from interacting with the UI.
+document.getElementById('overlay')
+  .addEventListener('click', function dummyHandler() {});
+
+// We need four handles here to cancel enumerations
+// for tilesView, listView, sublistView and searchMode
 var tilesHandle = null;
 var listHandle = null;
 var sublistHandle = null;
+var searchHandle = null;
 
 function showCurrentView() {
   TilesView.clean();
@@ -184,11 +193,12 @@ function showCurrentView() {
 
 }
 
-// This Application has four modes, TILES, LIST, SUBLIST and PLAYER
+// This Application has five modes, TILES, LIST, SUBLIST, PLAYER and SEARCH
 var MODE_TILES = 1;
-var MODE_LIST = 2;
-var MODE_SUBLIST = 3;
-var MODE_PLAYER = 4;
+var MODE_SEARCH = 2;
+var MODE_LIST = 3;
+var MODE_SUBLIST = 4;
+var MODE_PLAYER = 5;
 var currentMode, fromMode;
 
 function changeMode(mode) {
@@ -206,6 +216,7 @@ function changeMode(mode) {
   document.body.classList.remove('list-mode');
   document.body.classList.remove('sublist-mode');
   document.body.classList.remove('player-mode');
+  document.body.classList.remove('search-mode');
 
   switch (mode) {
     case MODE_TILES:
@@ -219,6 +230,9 @@ function changeMode(mode) {
       break;
     case MODE_PLAYER:
       document.body.classList.add('player-mode');
+      break;
+    case MODE_SEARCH:
+      document.body.classList.add('search-mode');
       break;
   }
 }
@@ -293,7 +307,24 @@ var TilesView = {
     this.dataSource = [];
     this.index = 0;
 
+    this.searchDataSource = [];
+    this.searchIndex = 0;
+    searchHandle = null;
+
+    this.anchor = document.getElementById('views-tiles-anchor');
+
+    this.searchBar = document.getElementById('views-tiles-search');
+    this.searchInput = document.getElementById('views-tiles-search-input');
+    this.searchAnchor = document.getElementById('views-tiles-search-anchor');
+
+    // scroll the search bit out of the way
+    this.view.scrollTop = this.searchBar.offsetHeight;
+
     this.view.addEventListener('click', this);
+
+    this.searchInput.addEventListener('focus', this);
+    this.searchInput.addEventListener('blur', this);
+    this.searchInput.addEventListener('input', this);
   },
 
   clean: function tv_clean() {
@@ -303,8 +334,8 @@ var TilesView = {
 
     this.dataSource = [];
     this.index = 0;
-    this.view.innerHTML = '';
-    this.view.scrollTop = 0;
+    this.anchor.innerHTML = '';
+    this.anchor.scrollTop = 0;
 
     showScanProgress();
   },
@@ -391,9 +422,86 @@ var TilesView = {
     container.appendChild(img);
     container.appendChild(titleBar);
     tile.appendChild(container);
-    this.view.appendChild(tile);
+    this.anchor.appendChild(tile);
 
     this.index++;
+  },
+
+  resetSearch: function tv_resetSearch() {
+    // Cancel all the pending enumeration before start a new one
+    if (searchHandle)
+      musicdb.cancelEnumeration(searchHandle);
+
+    // Reset search
+    this.searchAnchor.innerHTML = '';
+    this.searchDataSource = [];
+    this.searchIndex = 0;
+    searchHandle = null;
+  },
+
+  isMatching: function tv_isMatching(result, regExp) {
+    var outcome = regExp.test(result.metadata.title) ||
+                  regExp.test(result.metadata.artist) ||
+                  regExp.test(result.metadata.album);
+
+    return outcome;
+  },
+
+  search: function tv_search() {
+    var regExp = new RegExp(this.searchInput.value, 'i');
+
+    function tv_showResult(result) {
+      if (result === null)
+        return;
+
+      if (this.isMatching(result, regExp)) {
+        this.searchDataSource.push(result);
+
+        var li = document.createElement('li');
+        li.className = 'list-song-item';
+
+        var a = document.createElement('a');
+        a.href = '#';
+
+        var songTitle = (result.metadata.title) ?
+          result.metadata.title : unknownTitle;
+        var songArtist = (result.metadata.artist) ?
+          result.metadata.artist : unknownArtist;
+        var songAlbum = (result.metadata.album) ?
+          result.metadata.album : unknownAlbum;
+
+        a.dataset.index = this.searchIndex;
+
+        var titleSpan = document.createElement('span');
+        var subtitleSpan = document.createElement('span');
+        titleSpan.className = 'list-search-main-title';
+        titleSpan.textContent = songTitle;
+        subtitleSpan.className = 'list-search-sub-title';
+        subtitleSpan.textContent = songAlbum + ' - ' + songArtist;
+        a.appendChild(titleSpan);
+        a.appendChild(subtitleSpan);
+
+        var parent = document.createElement('div');
+        parent.className = 'list-search-image-parent';
+        parent.classList.add('default-album-' + this.searchIndex % 10);
+        var img = document.createElement('img');
+        img.className = 'list-image';
+
+        if (result.metadata.picture) {
+          parent.appendChild(img);
+          this.setItemImage(img, result);
+        }
+
+        li.appendChild(parent);
+        li.appendChild(a);
+
+        this.searchAnchor.appendChild(li);
+
+        this.searchIndex++;
+      }
+    }
+
+    searchHandle = musicdb.enumerate(tv_showResult.bind(this));
   },
 
   handleEvent: function tv_handleEvent(evt) {
@@ -409,6 +517,54 @@ var TilesView = {
           target.addEventListener('transitionend', handler);
         }
 
+        if (target.id && target.id === 'views-tiles-search-clear') {
+          this.searchInput.value = '';
+          this.resetSearch();
+        }
+
+        if (target.id && target.id === 'views-tiles-search-cancel') {
+          this.searchInput.value = '';
+          this.resetSearch();
+
+          changeMode(MODE_TILES);
+
+          // scroll the search bit out of the way
+          this.view.scrollTop = this.searchBar.offsetHeight;
+        }
+
+        if (target.dataset.index && currentMode === MODE_SEARCH) {
+          PlayerView.setSourceType(TYPE_LIST);
+          PlayerView.dataSource = this.searchDataSource;
+          PlayerView.play(target, 0);
+
+          changeMode(MODE_PLAYER);
+        }
+
+        break;
+      case 'focus':
+        changeMode(MODE_SEARCH);
+        break;
+
+      case 'blur':
+        // TODO: Maybe we have to switch to tile mode
+        break;
+
+      case 'input':
+        this.resetSearch();
+
+        if (this.searchInput.value.length == 0) {
+          return;
+        }
+
+        // Here we implemented the most basic search,
+        // which just use a regular expression to test the results
+        // when a user input characters every time
+        // We knew on many conditions, the search can be more efficient.
+        // A way like caching the results
+        // when the new search string that has the old one as a substring
+        // can improve ours search for sure.
+        // So remember to enhance the search!
+        this.search();
         break;
 
       default:
@@ -952,7 +1108,7 @@ var PlayerView = {
 
   next: function pv_next() {
     var songElements = (this.sourceType === TYPE_MIX) ?
-      TilesView.view.children : SubListView.anchor.children;
+      TilesView.anchor.children : SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -964,7 +1120,7 @@ var PlayerView = {
 
   previous: function pv_previous() {
     var songElements = (this.sourceType === TYPE_MIX) ?
-      TilesView.view.children : SubListView.anchor.children;
+      TilesView.anchor.children : SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -1057,6 +1213,8 @@ var PlayerView = {
         }
 
         if (target.dataset.rating) {
+          this.showInfo();
+
           var songData = this.dataSource[this.currentIndex];
           songData.metadata.rated = parseInt(target.dataset.rating);
 
