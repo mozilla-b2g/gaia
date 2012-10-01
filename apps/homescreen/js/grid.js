@@ -217,9 +217,6 @@ const GridManager = (function() {
 
     var goToPageCallback = function() {
       delete document.body.dataset.transitioning;
-
-      currentPage = index;
-
       if (callback) {
         callback();
       }
@@ -227,7 +224,6 @@ const GridManager = (function() {
       previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
       newPage.container.dispatchEvent(new CustomEvent('pageshow'));
       togglePagesVisibility(index, index);
-      updatePaginationBar();
     }
 
     var previousPage = pages[currentPage];
@@ -246,6 +242,9 @@ const GridManager = (function() {
     }
 
     togglePagesVisibility(start, end);
+
+    currentPage = index;
+    updatePaginationBar();
 
     if (previousPage == newPage) {
       goToPageCallback();
