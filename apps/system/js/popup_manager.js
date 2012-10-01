@@ -21,8 +21,6 @@ var PopupManager = {
 
   closeButton: document.getElementById('popup-close'),
 
-  loadingIcon: document.getElementById('statusbar-loading'),
-
   init: function pm_init() {
     this.title = document.getElementById('popup-title');
     window.addEventListener('mozbrowseropenwindow', this);
@@ -34,14 +32,6 @@ var PopupManager = {
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
     this.closeButton.addEventListener('click', this);
-  },
-
-  _showWait: function pm_showWait() {
-    this.loadingIcon.classList.add('popup-loading');
-  },
-
-  _hideWait: function pm_hideWait() {
-    this.loadingIcon.classList.remove('popup-loading');
   },
 
   open: function pm_open(name, frame, origin, trusted) {
@@ -80,8 +70,6 @@ var PopupManager = {
 
     this.screen.classList.add('popup');
 
-    popup.addEventListener('mozbrowserloadend', this);
-    popup.addEventListener('mozbrowserloadstart', this);
     popup.addEventListener('mozbrowserlocationchange', this);
   },
 
@@ -116,26 +104,6 @@ var PopupManager = {
     window.focus();
   },
 
-  // Workaround for Bug: 781452
-  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
-  // are fired two times
-  handleLoadStart: function pm_handleLoadStart(evt) {
-     this._startTimes++;
-     if (this._startTimes > 1) {
-      this._showWait();
-     }
-  },
-
-  // Workaround for Bug: 781452
-  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
-  // are fired two times
-  handleLoadEnd: function pm_handleLoadEnd(evt) {
-      this._endTimes++;
-      if (this._endTimes > 1) {
-        this._hideWait();
-      }
-  },
-
   backHandling: function pm_backHandling() {
     if (!this._currentPopup[this._currentOrigin])
       return;
@@ -156,14 +124,6 @@ var PopupManager = {
     switch (evt.type) {
       case 'click':
         this.backHandling();
-        break;
-      case 'mozbrowserloadstart':
-        this.throbber.classList.add('loading');
-        this.handleLoadStart(evt);
-        break;
-      case 'mozbrowserloadend':
-        this.throbber.classList.remove('loading');
-        this.handleLoadEnd(evt);
         break;
 
       case 'mozbrowserlocationchange':
