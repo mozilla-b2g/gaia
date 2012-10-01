@@ -772,10 +772,10 @@ window.addEventListener('localized', function wifiSettings(evt) {
        */
       gWifiInfoBlock.textContent = _('fullStatus-initializing');
       gNetworkList.clear(true);
-      document.querySelector('#macAddress small').textContent =
-        gWifiManager.macAddress;
-      document.querySelector('[data-l10n-id="macAddress"] span').textContent =
-        gWifiManager.macAddress; // XXX should be stored in a setting
+      var mac = document.querySelectorAll('[data-l10n-id="macAddress"] span');
+      for (var i = 0; i < mac.length; i++) {
+        mac[i].textContent = gWifiManager.macAddress;
+      } // XXX should be stored in a 'deviceinfo.mac' setting
     } else {
       gWifiInfoBlock.textContent = _('disabled');
       if (gWpsInProgress) {
