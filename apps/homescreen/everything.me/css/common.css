@@ -1,7 +1,7 @@
-#evmeContainer, input {
+#evmeContainer {
     font: normal 12px 'Open Sans', Sans-Serif;
 }
-fieldset {
+#evmeContainer fieldset {
     border-width: 0;
 }
 #evmeContainer {
