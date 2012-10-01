@@ -67,6 +67,17 @@
     },
 
     /**
+     * Shortcut finds the account model for given event.
+     *
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Account} related account.
+     */
+    accountFor: function(event) {
+      var cal = this.calendarFor(event);
+      return this.db.getStore('Calendar').accountFor(cal);
+    },
+
+    /**
      * Shortcut finds provider for given event.
      *
      * @param {Object} event full event record from db.

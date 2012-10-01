@@ -1,5 +1,7 @@
 Calendar.ns('Provider').Caldav = (function() {
 
+  var _super = Calendar.Provider.Abstract.prototype;
+
   function CaldavProvider() {
     Calendar.Provider.Abstract.apply(this, arguments);
 
@@ -13,8 +15,25 @@ Calendar.ns('Provider').Caldav = (function() {
     useCredentials: true,
     canSync: true,
 
-    canCreate: false,
-    canEdit: false,
+    canCreateEvent: true,
+    canUpdateEvent: true,
+    canDeleteEvent: true,
+
+    /**
+     * Returns the capabilities of a single event.
+     */
+    eventCapabilities: function(event) {
+      if (event.remote.isRecurring) {
+        // XXX: for now recurring events cannot be edited
+        return {
+          canUpdate: false,
+          canDelete: false,
+          canCreate: false
+        };
+      } else {
+        return _super.eventCapabilities.call(this, event);
+      }
+    },
 
     getAccount: function(account, callback) {
       this.service.request(
@@ -123,6 +142,102 @@ Calendar.ns('Provider').Caldav = (function() {
         );
       });
 
+    },
+
+    createEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var self = this;
+      var store = this.app.store('Event');
+
+      var calendar = store.calendarFor(event);
+      var account = store.accountFor(event);
+
+      this.service.request(
+        'caldav',
+        'createEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleDelete(err, remote) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          var event = {
+            _id: calendar._id + '-' + remote.id,
+            calendarId: calendar._id
+          };
+
+          event.remote = remote;
+          store.persist(event, callback);
+        }
+      );
+    },
+
+    updateEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var self = this;
+      var store = this.app.store('Event');
+
+      var calendar = store.calendarFor(event);
+      var account = store.accountFor(event);
+
+      this.service.request(
+        'caldav',
+        'updateEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleDelete(err, remote) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          self.app.store('Busytime').removeEvent(event._id);
+          //TODO: error handling
+          event.remote = remote;
+          //event.remote = remote;
+          store.persist(event, callback);
+        }
+      );
+    },
+
+    deleteEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var store = this.app.store('Event');
+
+      var calendar = store.calendarFor(event);
+      var account = store.accountFor(event);
+
+      this.service.request(
+        'caldav',
+        'deleteEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleDelete(err) {
+          if (err) {
+            callback(err);
+            return;
+          }
+          //TODO: error handling
+          store.remove(event._id, callback);
+        }
+      );
     }
 
   };
