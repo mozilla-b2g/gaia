@@ -2,19 +2,6 @@
 'use strict';
 
 function startup() {
-  // First-run animation. Wait until it is finished and then show up
-  // the real first run configuration panels.
-  window.addEventListener('animationend', function(evt) {
-    if (evt.target === document.querySelector('#logo')) {
-      var rootSection = document.querySelector('#root');
-      rootSection.classList.add('show');
-
-      var buttons = document.getElementById('navigation-buttons');
-      buttons.classList.add('show');
-    }
-  });
-
-
   // Turn on WiFi.
   try {
     var settings = window.navigator.mozSettings;

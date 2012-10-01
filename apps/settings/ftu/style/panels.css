@@ -5,9 +5,9 @@
   top: 0;
   left: 0;
   opacity: 0;
-  /* XXX */
-  /*animation: logo-dance 12s 1;*/
+  animation: logo-dance 12s 1;
   pointer-events: none;
+  z-index: 1000;
 }
 
 @keyframes logo-dance {

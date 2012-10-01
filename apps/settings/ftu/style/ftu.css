@@ -96,19 +96,10 @@ progress[value='100'] {
   padding: .5rem 1.5rem 0 1.5rem;
   border-top: 2px solid black;
   -moz-border-top-colors: #c6c2c2 white;
-
-  /* let the buttons be invisible while the logo dance is going on */
-  opacity: 0;
-  pointer-events: none;
 }
 
 #navigation-buttons.last {
   border: none;
-}
-
-#navigation-buttons.show {
-  opacity: 1;
-  transition: opacity .3s ease;
 }
 
 #navigation-buttons button {
