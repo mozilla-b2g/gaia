@@ -6,9 +6,6 @@
         - Import Facebook
         - Do something with the email address
 
-      ui:
-        - Transitions between pages are slow.
-
       localization:
         - Finish the localization
     -->
@@ -26,6 +23,7 @@
     <link rel="stylesheet" type="text/css" href="../shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="../shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="../shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="../shared/style/input_areas.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="../style/lists.css"/>
@@ -42,18 +40,6 @@
   </head>
 
   <body role="application" class="skin-organic">
-    <div id="fake-elements" class="invisible">
-      <span id="wifi-desc"></span>
-      <span id="wifi-enabled"><input></input></span>
-      <span id="wifi-knownNetworks"></span>
-      <span id="wps-column"><small><a></a></small></span>
-      <span id="brightness-manual"></span>
-      <span id="joinHidden"></span>
-      <span id="manageNetworks"></span>
-      <span id="macAddress"><small data-l10n-id="macAddress"><span></span></small></span>
-    </div>
-
-
     <!-- End Panel -->
     <section role="region" class="page" id="end">
       <div class="main">
@@ -66,7 +52,6 @@
         <span class="text">
           You can alter the language, Date / Time, Wi-Fi connection in the settings area.
         </span>
-        <button id="final" data-l10n-id="ftu-end" onclick="window.close();">Let's go</button>
       </div>
     </section>
 
@@ -77,9 +62,10 @@
     <section role="region" id="privacy-informations" data-leaf>
     </section>
 
-    <section role="region" class="page" id="privacy2">
+    <section role="region" class="page privacy" id="privacy2">
       <div class="main">
-          <div class="header logo">
+          <div class="header">
+            <img src="style/images/firefox64.png" align="left">
             When you use Firefox OS, you become
             part of a global community helping to
             build a brighter future for the Web.
@@ -151,10 +137,10 @@
     <section role="region" id="learn-more" data-leaf>
     </section>
 
-    <section role="region" class="page" id="privacy">
+    <section role="region" class="page privacy" id="privacy">
       <div class="main">
           <div class="header">
-            <img src="style/images/firefox-48.png" align="left">
+            <img src="style/images/firefox64.png" align="left">
             Welcome to Firefox OS, the free and
             open source operating system from
             Mozilla. Our mission is to promote
@@ -165,12 +151,13 @@
           <a href="#about-your-rights" data-l10n-id="about-your-rights"> About Your Rights </a>
           <a href="#about-your-privacy" data-l10n-id="about-your-privacy"> About Your Privacy </a>
 
-          <h2>Give us Feedback</h2>
+          <h3>Give us Feedback</h3>
 
           <div class="header">
             Help Mozilla improve its product by automatically sending
             performance data. Daily feedback will only be sent when the
             phone is connected to a Wi-Fi network.
+            <br></br>
             <a href="#learn-more" data-l10n-id="learn-more"> Learn More </a>
           </div>
 
@@ -185,16 +172,19 @@
 
     <!-- Import Contacts -->
     <section role="region" class="page" id="contacts">
-      <div class="main">
-        <ul>
-          <li id="import-sim" data-read="Reading..." data-import="Import successful" data-error="Import error">
-            <a data-l10n-id="importSim">Import from SIM</a>
-          </li>
-          <li id="import-fb" disabled="true">
-            <a data-l10n-id="importFb">Import from Facebook</a>
-          </li>
-        </ul>
-      </div>
+      <ul>
+        <li id="import-sim" data-read="Reading..." data-import="Import successful" data-error="Import error">
+          <a data-l10n-id="importSim">Import from SIM</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="other-accounts"> Other Accounts</h2>
+      </header>
+      <ul>
+        <li id="import-fb" disabled="true">
+          <a data-l10n-id="importFb">Import from Facebook</a>
+        </li>
+      </ul>
     </section>
 
 
@@ -947,6 +937,7 @@
     </section>
 
 
+    <!-- Title bar -->
     <section role="region" id="header">
       <header>
         <menu type="toolbar">
@@ -957,12 +948,34 @@
     </section>
 
 
+    <!-- Progress bar -->
     <progress id="progress" value="20" max="100"></progress>
 
+
+    <!-- Navigation Buttons -->
     <div id="navigation-buttons" class="show">
       <button id="back" data-l10n-id="ftu-back" data-target='' onclick="previous(event);">Back</button>
       <button id="next" data-l10n-id="ftu-next" data-target='wifi' onclick="next(event)">Next</button>
     </div>
 
+
+    <!-- Boot logo -->
     <img id="logo" src="style/images/powered.png"></img>
+
+
+    <!-- wifi.js relies heavily on dom elements. In order to make it happy
+         here are some ids it needs.
+    -->
+    <div id="fake-elements" style="display: none;">
+      <span id="wifi-desc"></span>
+      <span id="wifi-enabled"><input></input></span>
+      <span id="wifi-knownNetworks"></span>
+      <span id="wps-column"><small><a></a></small></span>
+      <span id="brightness-manual"></span>
+      <span id="joinHidden"></span>
+      <span id="manageNetworks"></span>
+      <span id="macAddress"><small data-l10n-id="macAddress"><span></span></small></span>
+    </div>
+
+
 </html>

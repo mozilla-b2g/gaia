@@ -80,6 +80,9 @@ window.addEventListener('animationend', function(evt) {
 });
 
 window.addEventListener('hashchange', function(evt) {
+  var buttons = document.getElementById('navigation-buttons');
+  buttons.classList.remove('last');
+
   var back = document.getElementById('back');
   back.textContent = 'Back';
 
@@ -163,9 +166,13 @@ window.addEventListener('hashchange', function(evt) {
       break;
     case '#end':
       progress.value = '';
+      buttons.classList.add('last');
       back.dataset.target = '';
-      next.dataset.target = '';
+      next.dataset.target = 'end';
+      next.dataset.action = 'close';
+      next.textContent = 'Let\' go';
       title.textContent = '';
+      progress.value = 100;
       break;
   }
 });
@@ -185,6 +192,10 @@ function next(e) {
     case 'join':
       var button = document.querySelector('#wifi-auth button');
       button.click();
+      break;
+
+    case 'close':
+      window.close();
       break;
   }
 

@@ -16,7 +16,6 @@ section[role=region] {
   left: 1.5rem;
   height: calc(100% - 12.5rem);
   width: calc(100% - 3rem);
-  background: url(images/shadow.png) repeat-x left bottom;
 }
 
 /* Pages Transition */
@@ -56,10 +55,13 @@ section.page {
   position: absolute;
   top: 0;
   left: 0;
-  height: 5.5rem;
+  height: 5rem;
+  width: 100%;
 
   visibility: visible;
+  overflow: hidden;
   transform: none;
+  box-shadow: 0 0 5px black;
 }
 
 #header menu {
@@ -86,31 +88,41 @@ progress[value] {
   background: transparent;
   border: none;
   border-radius: 0.3rem;
-  height: 0.3rem;
+  height: 0.4rem;
   display: block;
-  background: url(images/shadow.png) repeat-x left bottom;
+  background: url(images/progress-background.png) repeat-x left bottom;
 }
 
 progress[value]::-moz-progress-bar {
   background: #01c5ed;
-  border-radius: 0.4rem;
+  border-radius: 0.1rem;
+  height: .5rem;
 }
 
-progress[value=''] {
+progress[value='100'] {
   display: none;
+  background: none;
 }
 
 /* Navigation buttons */
 #navigation-buttons {
   position: absolute;
   left: 0;
-  bottom: -.5rem;
-  width: calc(100% - 3rem);
-  margin: 0 1.5rem;
+  bottom: 0;
+  width: 100%;
+
+  padding: .5rem 1.5rem 0 1.5rem;
+  border-top: 2px solid black;
+  -moz-border-top-colors: #c6c2c2 white;
+
   /* let the buttons be invisible while the logo dance is going on */
   /* XXX */
   opacity: 0;
   pointer-events: none;
+}
+
+#navigation-buttons.last {
+  border: none;
 }
 
 #navigation-buttons.show {
@@ -119,17 +131,28 @@ progress[value=''] {
 }
 
 #navigation-buttons button {
-  width: calc(50% - .2rem);
+  width: calc(50% - 2rem);
   pointer-events: auto;
 }
 
+#navigation-buttons button:first-child {
+  text-align: right;
+  margin-right: .5rem;
+}
+
+#navigation-buttons button:last-child {
+  text-align: left;
+  margin-left: .5rem;
+}
+
 #navigation-buttons button[data-target=''] {
-  visibility: hidden;
+  display: none;
   pointer-events: none;
 }
 
 #navigation-buttons button[data-target=''] + button {
-  width: calc(100% - .4rem);
+  width: calc(100% - 3rem);
+  margin-left: 0;
 }
 
 /* ----------------------------------
@@ -227,15 +250,41 @@ button span, a[role="button"] span {
 }
 
 /* Privacy choices */
-.header {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 400;
-  margin: 0 0 1rem 0;
+.privacy {
+  font-size: 1.3rem;
 }
 
-.header img {
-  margin: 0.5rem 1rem;
+.privacy .header {
+  display: block;
+  margin-bottom: .3rem;
+}
+
+.privacy .header img {
+  margin: .5rem 1.5rem .5rem .5rem;
+}
+
+.privacy a {
+  color: black;
+}
+
+.privacy a:nth-child(2) {
+  float: right;
+}
+
+.privacy h3 {
+  border-bottom: 2px solid black;
+  -moz-border-bottom-colors: grey white;
+  padding-bottom: .3rem;
+  margin-bottom: .3rem;
+}
+
+.privacy label {
+  margin-left: -1.5rem;
+}
+
+.privacy input {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }
 
 /* Last screen - mostly done! */
@@ -344,6 +393,10 @@ li[data-state="import"]:after {
   padding-left: 5.5rem;
 }
 
+li[data-state="import"] {
+  background: url(images/checked.png) no-repeat 98% 50%;
+}
+
 li[data-state="error"]:after {
   content: attr(data-error);
   position: absolute;
@@ -361,4 +414,28 @@ li [data-l10n-id="importFb"] {
 li[disabled] {
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* DateTime */
+#datetime {
+  background-image: url(images/datetime.png);
+  background-size: 100% 100%;
+}
+
+#datetime div {
+  padding: 0;
+}
+
+#datetime ul {
+  position: absolute;
+  bottom: 0;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+#datetime ul button {
+  margin-left: 0;
+  margin-right: 0;
+  width: 100%;
 }
