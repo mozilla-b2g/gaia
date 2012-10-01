@@ -102,8 +102,6 @@ function startup() {
 
   asyncStorage.getItem('system.lastRun', function getLastRun(value) {
     var needFirstRun = !value;
-    // XXX
-    needFirstRun = true;
     asyncStorage.setItem('system.lastRun', Date.now());
 
     if (Applications.ready) {
