@@ -25,7 +25,8 @@
     "wifi",
     "desktop-notification",
     "fullscreen",
-    "idle"
+    "idle",
+    "network-events"
   ],
   "locales": {
     "ar": {

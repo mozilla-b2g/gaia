@@ -92,7 +92,7 @@ var StatusBar = {
 
     // Listen to 'bluetoothconnectionchange' from bluetooth.js
     window.addEventListener('bluetoothconnectionchange', this);
-    
+
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
@@ -122,7 +122,7 @@ var StatusBar = {
 
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
-        
+
       case 'moztimechange':
         this.update.time.call(this);
         break;
@@ -149,6 +149,13 @@ var StatusBar = {
             this.update.headphones.call(this);
             break;
         }
+
+        break;
+
+      case 'moznetworkupload':
+      case 'moznetworkdownload':
+        this.update.networkActivity.call(this);
+        break;
     }
   },
 
@@ -179,6 +186,9 @@ var StatusBar = {
           wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
         this.update.wifi.call(this);
       }
+
+      window.addEventListener('moznetworkupload', this);
+      window.addEventListener('moznetworkdownload', this);
     } else {
       clearTimeout(this._clockTimer);
 
@@ -194,6 +204,9 @@ var StatusBar = {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
       }
+
+      window.removeEventListener('moznetworkupload', this);
+      window.removeEventListener('moznetworkdownload', this);
     }
   },
 
@@ -263,6 +276,20 @@ var StatusBar = {
       icon.hidden = false;
       icon.dataset.charging = battery.charging;
       icon.dataset.level = Math.floor(battery.level * 10) * 10;
+    },
+
+    networkActivity: function sb_updateNetworkActivity() {
+      // Each time we receive an update, make network activity indicator
+      // show up for 500ms.
+
+      var icon = this.icons.networkActivity;
+
+      clearTimeout(this._networkActivityTimer);
+      icon.hidden = false;
+
+      this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
+        icon.hidden = true;
+      }, 500);
     },
 
     signal: function sb_updateSignal() {
@@ -469,7 +496,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 
