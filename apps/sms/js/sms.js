@@ -1361,6 +1361,13 @@ var WaitingScreen = {
   }
 };
 
+window.addEventListener('resize', function resize() {
+   // Scroll to bottom
+    ThreadUI.scrollViewToBottom();
+});
+
+
+
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
 
@@ -1409,6 +1416,11 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
+    if (!document.mozHidden) {
+      // Case of calling from Notification
+      activityAction();
+      return;
+    }
     document.addEventListener('mozvisibilitychange',
       function waitVisibility() {
         document.removeEventListener('mozvisibilitychange', waitVisibility);
