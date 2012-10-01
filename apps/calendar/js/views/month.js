@@ -41,8 +41,9 @@ Calendar.ns('Views').Month = (function() {
       id = this.currentChild._dayId(id);
 
       el = document.getElementById(id);
+
       if (el) {
-        el.classList.add('selected');
+        el.classList.add(this.SELECTED);
       }
     },
 

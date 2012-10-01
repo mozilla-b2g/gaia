@@ -156,7 +156,7 @@ SetupAccountInfoCard.prototype = {
     Cards.pushCard(
       'setup-progress', 'default', 'animate',
       {
-        name: this.nameNode.value,
+        displayName: this.nameNode.value,
         emailAddress: this.emailNode.value,
         password: this.passwordNode.value
       });
@@ -180,22 +180,155 @@ Cards.defineCardWithDefaultMode(
 );
 
 /**
+ * Asks the user to manually configure their account.
+ */
+function SetupManualConfig(domNode, mode, args) {
+  this.domNode = domNode;
+  this.args = args;
+
+  var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
+  backButton.addEventListener('click', this.onBack.bind(this), false);
+
+  var nextButton = domNode.getElementsByClassName('sup-manual-next-btn')[0];
+  nextButton.addEventListener('click', this.onNext.bind(this), false);
+
+  this.accountTypeNode = domNode.getElementsByClassName(
+    'sup-manual-account-type')[0];
+  this.accountTypeNode.addEventListener(
+    'change', this.onChangeAccountType.bind(this), false);
+
+  this.imapHostnameNode = domNode.getElementsByClassName(
+    'sup-manual-imap-hostname')[0];
+  this.imapHostnameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-hostname-placeholder'));
+
+  this.imapPortNode = domNode.getElementsByClassName(
+    'sup-manual-imap-port')[0];
+  this.imapPortNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-port-placeholder'));
+
+  this.imapSocketNode = domNode.getElementsByClassName(
+    'sup-manual-imap-socket')[0];
+
+  this.imapUsernameNode = domNode.getElementsByClassName(
+    'sup-manual-imap-username')[0];
+  this.imapUsernameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-username-placeholder'));
+
+
+  this.smtpHostnameNode = domNode.getElementsByClassName(
+    'sup-manual-smtp-hostname')[0];
+  this.smtpHostnameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-hostname-placeholder'));
+
+  this.smtpPortNode = domNode.getElementsByClassName(
+    'sup-manual-smtp-port')[0];
+  this.smtpPortNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-port-placeholder'));
+
+  this.smtpSocketNode = domNode.getElementsByClassName(
+    'sup-manual-smtp-socket')[0];
+
+  this.smtpUsernameNode = domNode.getElementsByClassName(
+    'sup-manual-smtp-username')[0];
+  this.smtpUsernameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-username-placeholder'));
+
+
+  this.activeSyncHostnameNode = domNode.getElementsByClassName(
+    'sup-manual-activesync-hostname')[0];
+  this.activeSyncHostnameNode.setAttribute('placeholder',
+     mozL10n.get('setup-manual-hostname-placeholder'));
+}
+SetupManualConfig.prototype = {
+  onBack: function(event) {
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
+  onNext: function(event) {
+    var config = { type: this.accountTypeNode.value };
+
+    if (config.type === 'imap+smtp') {
+      config.incoming = {
+        hostname:   this.imapHostnameNode.value,
+        port:       this.imapPortNode.value,
+        socketType: this.imapSocketNode.value,
+        username:   this.imapUsernameNode.value
+      };
+      config.outgoing = {
+        hostname:   this.smtpHostnameNode.value,
+        port:       this.smtpPortNode.value,
+        socketType: this.smtpSocketNode.value,
+        username:   this.smtpUsernameNode.value
+      };
+    }
+    else { // config.type === 'activesync'
+      config.incoming = {
+        server: 'https://' + this.activeSyncHostnameNode.value
+      };
+    }
+
+    // The progress card is the dude that actually tries to create the account.
+    Cards.pushCard(
+      'setup-progress', 'default', 'animate',
+      {
+        displayName: this.args.displayName,
+        emailAddress: this.args.emailAddress,
+        password: this.args.password,
+
+        domainInfo: config
+      });
+  },
+
+  onChangeAccountType: function(event) {
+    var imapSmtpSection = this.domNode.getElementsByClassName(
+      'sup-manual-imap-smtp')[0];
+    var activeSyncSection = this.domNode.getElementsByClassName(
+      'sup-manual-activesync')[0];
+
+    if (event.target.value === 'imap+smtp') {
+      imapSmtpSection.classList.remove('collapsed');
+      activeSyncSection.classList.add('collapsed');
+    }
+    else {
+      imapSmtpSection.classList.add('collapsed');
+      activeSyncSection.classList.remove('collapsed');
+    }
+  },
+
+  die: function() {
+  }
+};
+Cards.defineCardWithDefaultMode(
+    'setup-manual-config',
+    { tray: false },
+    SetupManualConfig
+);
+
+/**
  * Show a spinner until success, or errors when there is failure.
  */
 function SetupProgressCard(domNode, mode, args) {
   this.domNode = domNode;
+  this.args = args;
 
   var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
   backButton.addEventListener('click', this.onBack.bind(this), false);
+
+  var manualConfig = domNode.getElementsByClassName('sup-manual-config-btn')[0];
+  manualConfig.addEventListener('click', this.onClickManualConfig.bind(this),
+                                false);
+
 
   var self = this;
   this.creationInProcess = true;
   MailAPI.tryToCreateAccount(
     {
-      displayName: args.name,
+      displayName: args.displayName,
       emailAddress: args.emailAddress,
       password: args.password
     },
+    args.domainInfo || null,
     function(err) {
       self.creationInProcess = false;
       if (err)
@@ -216,6 +349,14 @@ SetupProgressCard.prototype = {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
+  onClickManualConfig: function() {
+    // The progress card is the dude that actually tries to create the account.
+    Cards.pushCard(
+      'setup-manual-config', 'default', 'animate',
+      this.args
+    );
+  },
+
   onCreationError: function(err) {
     this.domNode.getElementsByClassName('sup-progress-region')[0]
         .classList.add('collapsed');
@@ -224,9 +365,11 @@ SetupProgressCard.prototype = {
     var errorMessageNode =
       this.domNode.getElementsByClassName('sup-error-message')[0];
 
-    // XXX use the error message to key the right localized explanation
-    // For now, we just show the error code.
-    errorMessageNode.textContent = err;
+    // Attempt to get a user-friendly string for the error we got. If we can't
+    // find a match, just show the "unknown error" string.
+    var unknownErrorStr = mozL10n.get('setup-error-unknown');
+    var errorStr = mozL10n.get('setup-error-' + err, null, unknownErrorStr);
+    errorMessageNode.textContent = errorStr;
   },
 
   onCreationSuccess: function() {
@@ -341,6 +484,13 @@ function SettingsMainCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-close-btn')[0]
     .addEventListener('click', this.onClose.bind(this), false);
 
+  var checkIntervalNode =
+    domNode.getElementsByClassName('tng-main-check-interval')[0];
+console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
+  checkIntervalNode.value = MailAPI.config.syncCheckIntervalEnum;
+  checkIntervalNode.addEventListener(
+    'change', this.onChangeSyncInterval.bind(this), false);
+
   this.accountsContainer =
     domNode.getElementsByClassName('tng-accounts-container')[0];
   bindContainerClickAndHold(this.accountsContainer,
@@ -396,6 +546,12 @@ SettingsMainCard.prototype = {
       accountLabel.addEventListener('click',
         this.onClickEnterAccount.bind(this, account), false);
     }
+  },
+
+  onChangeSyncInterval: function(event) {
+    console.log('sync interval changed to', event.target.value);
+    MailAPI.modifyConfig({
+      syncCheckIntervalEnum: event.target.value });
   },
 
   onClickAccount: function(accountNode, event) {
@@ -493,6 +649,12 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
 
+  var synchronizeNode = domNode.getElementsByClassName(
+    'tng-account-synchronize')[0];
+  synchronizeNode.value = this.account.syncRange;
+  synchronizeNode.addEventListener(
+    'change', this.onChangeSynchronize.bind(this), false);
+
   this.account.servers.forEach(function(server, index) {
     var serverNode = tngNodes['account-settings-server'].cloneNode(true);
     var serverLabel =
@@ -531,6 +693,18 @@ SettingsAccountCard.prototype = {
         index: index
       },
       'right');
+  },
+
+  onChangeSynchronize: function(event) {
+    this.account.modifyAccount({syncRange: event.target.value});
+
+    // If we just changed the currently-selected account, refresh the
+    // currently-open folder to propagate the syncRange change.
+    var curAccount = Cards.findCardObject(['folder-picker', 'navigation'])
+                          .cardImpl.curAccount;
+    if (curAccount.id === this.account.id) {
+      Cards.findCardObject(['message-list', 'nonsearch']).cardImpl.onRefresh();
+    }
   },
 
   die: function() {

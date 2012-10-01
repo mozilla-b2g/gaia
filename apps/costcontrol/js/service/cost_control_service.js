@@ -33,6 +33,7 @@ setService(function cc_setupCostControlService() {
     'CHECK_BALANCE_SENDERS',
     'CHECK_BALANCE_REGEXP',
     'TOP_UP_DESTINATION',
+    'TOP_UP_USSD_DESTINATION',
     'TOP_UP_TEXT',
     'TOP_UP_SENDERS',
     'TOP_UP_CONFIRMATION_REGEXP',
@@ -43,6 +44,7 @@ setService(function cc_setupCostControlService() {
     'CHECK_BALANCE_DESTINATION',
     'CHECK_BALANCE_SENDERS',
     'TOP_UP_DESTINATION',
+    'TOP_UP_USSD_DESTINATION',
     'TOP_UP_SENDERS'
   ];
 
@@ -54,6 +56,7 @@ setService(function cc_setupCostControlService() {
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_UPDATING_BALANCE = 'updatingbalance';
+  var _fte = false;
   var _missconfigured = false;
   var _state = {};
   var _onSMSReceived = {};
@@ -69,26 +72,36 @@ setService(function cc_setupCostControlService() {
 
     // Application settings
     var _cachedOptions = {
-      'calltime': null,
+      'calltime': 0,
       'lastbalance': null,
-      'lastreset': null,
-      'lowlimit': null,
-      'lowlimit_threshold': null,
+      'lastreset': new Date(),
+      'lowlimit': true,
+      'lowlimit_threshold': false,
       'next_reset': null,
-      'plantype': null,
+      'plantype': 'prepaid',
       'reset_time': null,
-      'smscount': null,
-      'tracking_period': null
+      'smscount': 0,
+      'tracking_period': 'never'
     };
 
     var _listeners = {};
 
-    function _getInitializerFor(option) {
-      return function(value) {
-        _cachedOptions[option] = value;
-        // Ensure regitered callbacks are informed the first time the settings
-        // is set.
-        var event = _newLocalSettingsChangeEvent(option, value, null);
+    function _initializeSettings(options) {
+      // No options, first time experience
+      if (!options) {
+        _fte = true;
+        debug('First Time Experience for this SIM');
+        return;
+      }
+
+      var event, value, defaultValue;
+      for (var option in _cachedOptions) {
+        defaultValue = _cachedOptions[option];
+        value = options[option];
+        if (typeof value !== 'undefined')
+          _cachedOptions[option] = value;
+
+        event = _newLocalSettingsChangeEvent(option, value, defaultValue);
         window.dispatchEvent(event);
       }
     }
@@ -128,18 +141,26 @@ setService(function cc_setupCostControlService() {
       if (typeof value === 'undefined')
         return oldValue;
 
-      asyncStorage.setItem(key, value, function dispatchSettingsChange() {
-        _cachedOptions[key] = value; // update cache
-        var event = _newLocalSettingsChangeEvent(key, value, oldValue);
-        window.dispatchEvent(event);
-      });
+      _cachedOptions[key] = value; // update cache
+      asyncStorage.setItem(_iccid, _cachedOptions,
+        function dispatchSettingsChange() {
+          var event = _newLocalSettingsChangeEvent(key, value, oldValue);
+          window.dispatchEvent(event);
+        }
+      );
     }
 
-    // Recover application settings from DB
+    var _iccid;
+
+    // Recover application settings from DB using the ICCID as key
     function _init() {
-      for (var option in _cachedOptions) {
-        asyncStorage.getItem(option, _getInitializerFor(option));
+      _iccid = _conn.iccInfo.iccid;
+      if (!_iccid) {
+        console.warn('No ICCID available, using NOICCID as ICCID instead');
+        _iccid = 'NOICCID';
       }
+      debug('Loading options for SIM: ' + _iccid);
+      asyncStorage.getItem(_iccid, _initializeSettings);
     }
 
     _init();
@@ -192,6 +213,7 @@ setService(function cc_setupCostControlService() {
   // Load the configuration file, then continue executing the afterCallback
   function _loadConfiguration(afterCallback) {
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/config.json', true);
     xhr.send(null);
 
@@ -213,6 +235,7 @@ setService(function cc_setupCostControlService() {
         _config.CHECK_BALANCE_REGEXP = config.balance.regexp;
 
         _config.TOP_UP_DESTINATION = config.topup.destination;
+        _config.TOP_UP_USSD_DESTINATION = config.topup.ussd_destination;
         _config.TOP_UP_TEXT = config.topup.text;
         _config.TOP_UP_SENDERS = config.topup.senders;
         _config.TOP_UP_CONFIRMATION_REGEXP = config.topup.confirmation_regexp;
@@ -327,7 +350,7 @@ setService(function cc_setupCostControlService() {
       nextReset = new Date(year, month, monthday);
 
     // Recalculate with week period
-    } else {
+    } else if (trackingPeriod === TRACKING_WEEKLY) {
       var oneDay = 24 * 60 * 60 * 1000;
       var weekday = parseInt(_appSettings.option('reset_time'));
       var daysToTarget = weekday - today.getDay();
@@ -348,11 +371,10 @@ setService(function cc_setupCostControlService() {
 
   // Check if we met the next reset, if so, reset an recalculate
   function _checkForNextReset() {
-    var nextReset = CostControl.settings.option('next_reset') || null;
+    var nextReset = CostControl.settings.option('next_reset');
     if (!nextReset)
       return;
 
-    nextReset = new Date(nextReset);
     if ((new Date()).getTime() >= nextReset.getTime()) {
       _resetStats();
       _recalculateNextReset();
@@ -431,7 +453,8 @@ setService(function cc_setupCostControlService() {
           'Cost Control: non valid SIM card for balance nor telephony.');
       }
 
-      // State dependant settings allow simultaneous updates and topping up tasks
+      // State dependant settings allow simultaneous updates and
+      // topping up tasks
       _state[STATE_UPDATING_BALANCE] = false;
       _state[STATE_TOPPING_UP] = false;
       _smsTimeout[STATE_UPDATING_BALANCE] = 0;
@@ -464,8 +487,11 @@ setService(function cc_setupCostControlService() {
   //    datausage
   function _getServiceStatus() {
     var status = {
-      availability: false, roaming: null, detail: null,
-      enabledFunctionalities : {
+      availability: false,
+      roaming: null,
+      detail: null,
+      fte: _fte,
+      enabledFunctionalities: {
         balance: _enabledFunctionalities.balance,
         telephony: _enabledFunctionalities.telephony,
         datausage: _enabledFunctionalities.datausage
@@ -494,17 +520,18 @@ setService(function cc_setupCostControlService() {
       return status;
     }
 
-    if (!data.network.shortName) {
+    if (!data.network.shortName && !data.network.longName) {
       status.detail = 'carrier-unknown';
       return status;
     }
 
-    // All depends on balance functionality is enabled or not
-    if (_enabledFunctionalities.balance) {
-      status.availability = true;
-      status.roaming = voice.roaming;
+    if (!_enabledFunctionalities.balance) {
+      status.detail = 'disabled-functionality';
     }
 
+    // All OK
+    status.availability = true;
+    status.roaming = voice.roaming;
     return status;
   }
 
@@ -705,6 +732,18 @@ setService(function cc_setupCostControlService() {
     }
   }
 
+  // Request a top up via USSD, this delegates the task to the dialer
+  // via web activity
+  function _topUpByUSSD() {
+    var dialing = new MozActivity({
+      name: 'dial',
+      data: {
+        type: 'webtelephony/number',
+        number: _config.TOP_UP_USSD_DESTINATION
+      }
+    });
+  }
+
   var _lastServiceStatusHash = '';
 
   // Helper to dispatch a custom event with the new status of the service
@@ -784,13 +823,12 @@ setService(function cc_setupCostControlService() {
     },
     requestBalance: _updateBalance,
     requestTopUp: _topUp,
+    requestUSSDTopUp: _topUpByUSSD,
+    resetTelephonyCounters: _resetStats,
     getLastBalance: _getLastBalance,
     getServiceStatus: _getServiceStatus,
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
       return REQUEST_BALANCE_MAX_DELAY;
-    },
-    getLowLimitThreshold: function cc_getLowLimitThreshold() {
-      return _appSettings.option('lowlimit_threshold');
     },
     getTopUpTimeout: function cc_getTopUpTimeout() {
       return WAITING_TIMEOUT;

@@ -126,7 +126,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
     formatEvent: function(event) {
       // get id or parent id we ignore the exception
       // rules here so children (exceptions) can lookup
-      // their parents id.kd
+      // their parents id.
       var id = this.eventIdFromRemote(event, true);
 
       var result = Object.create(null);

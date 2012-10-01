@@ -39,7 +39,6 @@ ul, ol, dl, dt, dd {
 }
 
 p, li {
-  -moz-hyphens: auto;
   word-wrap: break-word;
   margin: 0;
   padding: 0;
@@ -772,6 +771,15 @@ textarea.textfield {
 .fillflow-row {
   margin-bottom: 0.5rem;
   position: relative;
+}
+
+.fillflow-left {
+  margin-right: 0.7rem;
+}
+
+.fillflow-twocols {
+  width: 14.1rem;
+  float: left;
 }
 
 /* ROW ACTION */

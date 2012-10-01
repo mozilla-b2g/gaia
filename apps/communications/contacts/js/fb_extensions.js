@@ -40,6 +40,10 @@ if (typeof Contacts.extFb === 'undefined') {
                                   'closingImport' : 'closing';
     }
 
+    function openURL(url) {
+      window.open(url);
+    }
+
     extFb.showProfile = function(cid) {
       var req = fb.utils.getContactData(cid);
 
@@ -49,20 +53,22 @@ if (typeof Contacts.extFb === 'undefined') {
         var uid = fbContact.uid;
         var profileUrl = 'http://m.facebook.com/' + uid;
 
-        var activityDesc = {
-          name: 'view',
-          data: {
-            type: 'url',
-            url: profileUrl
-          }
-        };
-
-        var activity = new MozActivity(activityDesc);
+        openURL(profileUrl);
       }
 
       req.onerror = function() {
         window.console.error('Contacts FB Profile: Contact not found');
       }
+    }
+
+    extFb.wallPost = function(cid) {
+      contactId = cid;
+      fb.msg.ui.wallPost(contactId);
+    }
+
+    extFb.sendPrivateMsg = function(cid) {
+      contactId = cid;
+      fb.msg.ui.sendPrivateMsg(contactId);
     }
 
     function doLink(uid) {
@@ -123,6 +129,11 @@ if (typeof Contacts.extFb === 'undefined') {
 
       switch (data.type) {
         case 'window_close':
+          // Notify observers that the import happened
+          var event = new CustomEvent('fb_imported',
+            {'detail' : true }
+          );
+          document.dispatchEvent(event);
           close(data.from);
           if (data.from === 'import') {
             contacts.List.load();

@@ -316,7 +316,7 @@ var ModalDialog = {
     pseudoEvt.callback = config.callback;
     pseudoEvt.detail.promptType = config.type;
     if (config.type == 'prompt') {
-        pseudoEvt.detail.initialValue = config.initialValue;
+      pseudoEvt.detail.initialValue = config.initialValue;
     }
 
     // Create a virtual mapping in this.currentEvents,
