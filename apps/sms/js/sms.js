@@ -1358,6 +1358,13 @@ var WaitingScreen = {
   }
 };
 
+window.addEventListener('resize', function resize() {
+   // Scroll to bottom
+    ThreadUI.scrollViewToBottom();
+});
+
+
+
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
 
