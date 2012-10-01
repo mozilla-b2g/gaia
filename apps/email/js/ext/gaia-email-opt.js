@@ -23671,6 +23671,13 @@ SmtpProber.prototype = {
   /**
    * Create a new ActiveSync connection.
    *
+   * ActiveSync connections use XMLHttpRequests to communicate with the
+   * server. These XHRs are created with mozSystem: true and mozAnon: true to,
+   * respectively, help with CORS, and to ignore the authentication cache. The
+   * latter is important because 1) it prevents the HTTP auth dialog from
+   * appearing if the user's credentials are wrong and 2) it allows us to
+   * connect to the same server as multiple users.
+   *
    * @param aEmail the user's email address
    * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
@@ -23890,7 +23897,7 @@ SmtpProber.prototype = {
       let conn = this;
       if (!aCallback) aCallback = nullCallback;
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
@@ -23996,7 +24003,7 @@ SmtpProber.prototype = {
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
 
       xhr.onload = function() {
@@ -24098,7 +24105,7 @@ SmtpProber.prototype = {
         return;
       }
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', this.baseUrl +
                '?Cmd='        + encodeURIComponent(commandName) +
                '&User='       + encodeURIComponent(this._email) +
