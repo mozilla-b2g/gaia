@@ -26,21 +26,29 @@ function startup() {
     window.addEventListener('beforeattentionscreenhide', noHome, true);
 
     // Wait for the firstrun application to show up to fade the initlogo
-    window.addEventListener('mozbrowserfirstpaint', function onFirstRun(e) {
+    window.addEventListener('mozbrowserloadend', function onFirstRun(e) {
       var frame = e.target;
       if (frame.dataset.frameType != 'attention') {
         return;
       }
+      window.removeEventListener('mozbrowserloadend', onFirstRun);
+
+      var lockscreen = document.getElementById('lockscreen');
 
       frame.mozRequestFullScreen();
-      setTimeout(function() {
-        handleInitLogo();
+      window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
+        window.removeEventListener('mozfullscreenchange', onfullscreen);
+
+        setTimeout(function() {
+          lockscreen.style.display = 'none';
+          handleInitLogo();
+        });
       });
 
       frame.addEventListener('mozbrowserclose', function onFirstRunEnd(e) {
         window.removeEventListener('mozbrowserclose', onFirstRunEnd);
         window.removeEventListener('beforeattentionscreenhide', noHome, true);
-        window.removeEventListener('keyboardchange', noResize, true);
+        lockscreen.style.display = 'block';
       });
     });
 
