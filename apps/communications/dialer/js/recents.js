@@ -398,7 +398,7 @@ var Recents = {
     return items;
   },
 
-  createRecentEntry: function re_createRecentEntry(recent, valCallLatestVisit) {
+  createRecentEntry: function re_createRecentEntry(recent, highlight) {
     var classes = 'icon ';
     if (recent.type.indexOf('dialing') != -1) {
       classes += 'icon-outgoing';
@@ -410,7 +410,7 @@ var Recents = {
       }
     }
     var entry =
-      '<li class="log-item ' + valCallLatestVisit +
+      '<li class="log-item ' + highlight +
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
@@ -448,6 +448,7 @@ var Recents = {
   render: function re_render(recents) {
     if (!this.recentsContainer)
       return;
+
     if (recents.length == 0) {
       this.recentsContainer.innerHTML =
         '<div id="no-result-container">' +
@@ -462,59 +463,52 @@ var Recents = {
     }
 
     this.recentsIconEdit.classList.remove('disabled');
-    var content = '',
-      currentDay = '';
-      
-    window.asyncStorage.getItem('latestCallLogVisit', function storageGetItem(value) {
+
+    var self = this;
+    window.asyncStorage.getItem('latestCallLogVisit', function getItem(value) {
+      var content = '',
+        currentDay = '';
+
       for (var i = 0; i < recents.length; i++) {
-      var day = Utils.getDayDate(recents[i].date);
-      if (day != currentDay) {
-        if (currentDay != '') {
-          content += '</ol></section>';
-        }
-        currentDay = day;
-        content +=
+        var day = Utils.getDayDate(recents[i].date);
+        if (day != currentDay) {
+          if (currentDay != '') {
+            content += '</ol></section>';
+          }
+          currentDay = day;
+          content +=
           '<section data-timestamp="' + day + '">' +
           ' <h2 id="header-day-' + day + '">' + Utils.headerDate(day) +
           ' </h2>' +
           ' <ol id="list-day-' + day + '" class="log-group">';
-      }
-      var valCallLatestVisit;
-      if (value < recents[i].date) {
-      	valCallLatestVisit = 'highlighted';
-      } else {
-      	valCallLatestVisit = '';
-      }
-         content += this.createRecentEntry(recents[i], valCallLatestVisit);
+        }
+        var highlight = (value < recents[i].date) ? 'highlighted' : '';
+        content += self.createRecentEntry(recents[i], highlight);
       }
 
-      if (typeof callback == 'function') {
-        callback();
+      self.recentsContainer.innerHTML = content;
+
+      FixedHeader.refresh();
+
+      self.updateContactDetails();
+
+      var event = new Object();
+      self._allViewGroupingPending = true;
+      self._missedViewGroupingPending = true;
+      if (self.missedFilter.classList.contains('selected')) {
+        self.missedFilter.classList.remove('selected');
+        event.target = self.missedFilter;
+        self.filter(event);
+        self.missedFilter.classList.add('selected');
+        self.allFilter.classList.remove('selected');
+      } else {
+        self.allFilter.classList.remove('selected');
+        event.target = self.allFilter;
+        self.filter(event);
+        self.missedFilter.classList.remove('selected');
+        self.allFilter.classList.add('selected');
       }
     });
-
-    this.recentsContainer.innerHTML = content;
-
-    FixedHeader.refresh();
-
-    this.updateContactDetails();
-
-    var event = new Object();
-    this._allViewGroupingPending = true;
-    this._missedViewGroupingPending = true;
-    if (this.missedFilter.classList.contains('selected')) {
-      this.missedFilter.classList.remove('selected');
-      event.target = this.missedFilter;
-      this.filter(event);
-      this.missedFilter.classList.add('selected');
-      this.allFilter.classList.remove('selected');
-    } else {
-      this.allFilter.classList.remove('selected');
-      event.target = this.allFilter;
-      this.filter(event);
-      this.missedFilter.classList.remove('selected');
-      this.allFilter.classList.add('selected');
-    }
   },
 
   updateContactDetails: function re_updateContactDetails() {
