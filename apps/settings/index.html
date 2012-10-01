@@ -105,15 +105,15 @@
             <span data-signal>good</span>
           </a>
         </li>
-        <li>
+        <li class="identity">
           <p data-l10n-id="identity">identity</p>
-          <input type="text" data-identity data-ignore name="identity" />
+          <input type="text" data-ignore name="identity" />
         </li>
-        <li>
+        <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-password data-ignore name="password" maxlength="63" />
-          <label for="show-pwd">
-            <input type="checkbox" data-ignore name="show-pwd" />
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-auth">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
@@ -134,28 +134,27 @@
       <ul>
         <li>
           <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-ignore name="ssid" value="Freebox-4C7D5F" />
+          <input type="text" data-ignore name="ssid" />
         </li>
         <li>
           <a data-l10n-id="security">security
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
-              <option>WPA-PSK</option>
+              <option checked>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
           </a>
         </li>
-        <li>
+        <li class="identity">
           <p data-l10n-id="identity">identity</p>
           <input type="text" data-ignore name="identity" />
         </li>
-        <li>
+        <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-ignore name="password" maxlength="63"
-                  value="devorsori%-lusiam-reperiendo7." />
-          <label for="show-pwd">
-            <input type="checkbox" data-ignore name="show-pwd" />
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-joinHidden">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
