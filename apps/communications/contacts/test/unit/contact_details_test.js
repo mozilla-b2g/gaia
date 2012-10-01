@@ -176,6 +176,16 @@ suite('Render contact', function() {
                        classList.contains('hide')
       );
 
+      assert.isFalse(container.
+                       querySelector('#msg_button').
+                       classList.contains('hide')
+      );
+
+      assert.isFalse(container.
+                       querySelector('#wall_button').
+                       classList.contains('hide')
+      );
+
       window.fb.setIsFbContact(false);
     });
 

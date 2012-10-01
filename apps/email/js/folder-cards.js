@@ -223,14 +223,14 @@ FolderPickerCard.prototype = {
 
     this._showFolder(folder);
     this.accountsContainer.classList.remove('show');
-    Cards.moveToCard(['message-list', 'default']);
+    Cards.moveToCard(['message-list', 'nonsearch']);
   },
 
   /**
    * Tell the message-list to show this folder; exists for single code path.
    */
   _showFolder: function(folder) {
-    Cards.tellCard(['message-list', 'default'], { folder: folder });
+    Cards.tellCard(['message-list', 'nonsearch'], { folder: folder });
   },
 
   /**

@@ -185,7 +185,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * For now both update & create share the same
      * behaviour (redirect) in the future we may change this.
      */
-    _persistEvent: function(method) {
+    _persistEvent: function(method, capability) {
       // create model data
       var data = this.formData();
       for (var field in data) {
@@ -199,9 +199,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       // now that the model has a calendar id we can find the model
       var provider = this.store.providerFor(this.model);
+      var eventCaps = provider.eventCapabilities(this.model.data);
 
       // safe-guard but should not ever happen.
-      if (provider.canCreateEvent) {
+      if (eventCaps[capability]) {
         var list = this.element.classList;
         var self = this;
         var redirectTo;
@@ -231,13 +232,16 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Deletes current record if provider is present and has the capability.
      */
     deleteRecord: function() {
-      if (this.provider && this.provider.canDeleteEvent) {
+      if (this.provider) {
+        var caps = this.provider.eventCapabilities(this.model.data);
         // XXX: unlike the save we don't wait for the transaction
         // to complete before moving on. Providers (should) take
         // action to remove the event from the display instantly
         // then queue a async action to actually remove the whole event.
-        this.provider.deleteEvent(this.model.data);
-        this.app.go(this.returnTo());
+        if (caps.canDelete) {
+          this.provider.deleteEvent(this.model.data);
+          this.app.go(this.returnTo());
+        }
       }
     },
 
@@ -245,10 +249,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Persist current model.
      */
     save: function() {
-      if (this.provider && this.provider.canUpdateEvent) {
-        this._persistEvent('updateEvent');
+      if (this.provider) {
+        this._persistEvent('updateEvent', 'canUpdate');
       } else {
-        this._persistEvent('createEvent');
+        this._persistEvent('createEvent', 'canCreate');
       }
     },
 
@@ -341,8 +345,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
     _displayModel: function() {
       var model = this.model;
       var calendar = this.store.calendarFor(model);
+      var caps = this.provider.eventCapabilities(model.data);
 
-      if (!this.provider.canUpdateEvent) {
+      if (!caps.canUpdate) {
         this._markReadonly(true);
         this.element.classList.add(this.READONLY);
       }

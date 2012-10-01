@@ -773,6 +773,15 @@ textarea.textfield {
   position: relative;
 }
 
+.fillflow-left {
+  margin-right: 0.7rem;
+}
+
+.fillflow-twocols {
+  width: 14.1rem;
+  float: left;
+}
+
 /* ROW ACTION */
 .fillflow-row-action {
   position: absolute;
