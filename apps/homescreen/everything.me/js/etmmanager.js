@@ -53,12 +53,12 @@ var EvmeManager = (function() {
         evt.stopImmediatePropagation();
     });
 
-    page.addEventListener("pageshow", function onPageShow() {
+    page.addEventListener("pageshowstart", function onPageShow() {
         footerStyle.MozTransform = "translateY(75px)";
         Evme.setOpacityBackground(1);
     });
 
-    page.addEventListener("pagehide", function onPageHide() {
+    page.addEventListener("pagehidestart", function onPageHide() {
         footerStyle.MozTransform = "translateY(0)";
         Evme.setOpacityBackground(0);
     });
@@ -71,7 +71,7 @@ var EvmeManager = (function() {
         isAppInstalled: function isAppInstalled(url) {
             return Applications.isInstalled(url);
         },
-    
+
         openUrl: openUrl
     };
 }());
