@@ -5,9 +5,6 @@ var Calculator = {
   BACKSPACE_TIMEOUT: 750,
 
   display: document.querySelector('#display b'),
-
-  isDecimalSeparatorPresent: false,
-
   backSpaceTimeout: null,
   errorTimeout: null,
   toClear: false,
@@ -32,27 +29,48 @@ var Calculator = {
     this.display.style.MozTransform = 'scale(' + scaleFactor + ')';
   },
 
-  isOperator: function calculator_isOperator(val) {
-    return Calculator.operators.indexOf(val) !== -1;
+  isNumeric: function calculator_isNumeric(value) {
+    return (value - 0) == value && value.length > 0;
+  },
+
+  isOperator: function calculator_isOperator(value) {
+    return Calculator.operators.indexOf(value) !== -1;
   },
 
   appendValue: function calculator_appendValue(value) {
-
-    // To avoid decimal separator repetition
-    if (value == '.') {
-      if (this.isDecimalSeparatorPresent) {
-        return;
-      } else {
-        this.DecimalSeparatorPresent = true;
-      }
-    }
-
     if (this.toClear) {
       this.stack = [];
       this.toClear = false;
     }
     this.stack.push(value);
     this.updateDisplay();
+  },
+
+  appendDigit: function calculator_appendDigit(value) {
+    this.toClear = false;
+
+    var currentNumber = this.stack.pop();
+
+    // Check if the current thing is a number
+    if(this.isNumeric(currentNumber)) {
+      if(value == '.') {
+        // Only add . to the current number if it does not already exist
+        if(currentNumber.indexOf('.') == -1)
+          currentNumber += value;
+      }
+      else
+        currentNumber += value;
+
+      this.appendValue(currentNumber);
+    }
+    else {
+      if(currentNumber != undefined)
+        this.stack.push(currentNumber);
+      if(value == '.')
+        value = '0.';
+
+      this.appendValue(value);
+    }
   },
 
   appendOperator: function calculator_appendOperator(value) {
@@ -113,7 +131,7 @@ var Calculator = {
       var postfix =
         this.infix2postfix(this.stack.map(this.substitute).join(''));
       var result = this.evaluatePostfix(postfix);
-      this.stack = [this.formatNumber(result)];
+      this.stack = [this.formatNumber(result).toString()];
       this.updateDisplay();
       this.toClear = true;
     } catch (err) {
@@ -205,7 +223,6 @@ var Calculator = {
     while (stack.length > 0) {
       output.push(stack.pop());
     }
-
     return output;
   },
 
@@ -250,21 +267,17 @@ var Calculator = {
         var value = target.value;
         switch (target.dataset.type) {
           case 'value':
-            this.appendValue(value);
+            this.appendDigit(value);
             break;
           case 'operator':
             this.appendOperator(value);
-            this.isDecimalSeparatorPresent = false;
             break;
           case 'command':
             switch (value) {
               case '=':
                 this.calculate();
-                this.isDecimalSeparatorPresent = false;
                 break;
               case 'C':
-                if (this.stack[this.stack.length - 1])
-                  this.isDecimalSeparatorPresent = false;
                 this.backSpace();
                 break;
             }

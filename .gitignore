@@ -33,3 +33,5 @@ manifest.appcache
 /local.mk
 
 /tools/xpcwindow/vendor/
+
+/locales/*
