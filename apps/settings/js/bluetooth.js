@@ -203,21 +203,21 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         // we only support audio-card device to connect atm
         if (device.icon === 'audio-card') {
           if (device.connected) {
-            this.connectOpt.hidden = true;
-            this.disconnectOpt.hidden = false;
+            this.connectOpt.style.visibility = 'hidden';
+            this.disconnectOpt.style.visibility = 'visible';
             this.disconnectOpt.onclick = function() {
               setDeviceDisconnect(device);
             };
           } else {
-            this.connectOpt.hidden = false;
-            this.disconnectOpt.hidden = true;
+            this.connectOpt.style.visibility = 'visible';
+            this.disconnectOpt.style.visibility = 'hidden';
             this.connectOpt.onclick = function() {
               setDeviceConnect(device);
             };
           }
         } else {
-          this.connectOpt.hidden = true;
-          this.disconnectOpt.hidden = true;
+          this.connectOpt.style.visibility = 'hidden';
+          this.disconnectOpt.style.visibility = 'hidden';
         }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(device);
