@@ -263,7 +263,7 @@ contacts.Details = (function() {
 
       buttonsToHide.forEach(function check(selid) {
         var button = social.querySelector(selid);
-        if(button) {
+        if (button) {
           button.classList.add('hide');
         }
       });

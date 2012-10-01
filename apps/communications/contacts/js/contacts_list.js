@@ -444,7 +444,7 @@ contacts.List = (function() {
       } else {
         givenName = givenName.childNodes[0].nodeValue.trim();
       }
-      
+
       var name = getStringToBeOrdered({
         familyName: [familyName],
         givenName: [givenName]

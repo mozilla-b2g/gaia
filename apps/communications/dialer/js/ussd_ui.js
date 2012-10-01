@@ -93,7 +93,9 @@ var UssdUI = {
 
   updateHeader: function uui_updateHeader(operator) {
     this.headerTitleNode.textContent =
-      this._('ussd-services', {operator: operator !== 'Unknown' ? operator : this._('USSD')});
+      this._('ussd-services', {
+        operator: operator !== 'Unknown' ? operator : this._('USSD')
+      });
   },
 
   handleEvent: function ph_handleEvent(evt) {
