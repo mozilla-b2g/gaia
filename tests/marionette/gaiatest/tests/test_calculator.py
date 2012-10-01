@@ -11,16 +11,13 @@ class TestCalculator(GaiaTestCase):
         self.assertTrue(self.lockscreen.unlock())
 
         # launch the Calculator app
-        app_frame_id = self.apps.launch('Calculator')
-        self.assertTrue(app_frame_id is not False)
+        app = self.apps.launch('Calculator')
+        self.assertTrue(app.frame_id is not None)
 
         # switch into the Calculator's frame
-        self.marionette.switch_to_frame(app_frame_id)
+        self.marionette.switch_to_frame(app.frame_id)
         url = self.marionette.get_url()
         self.assertTrue('calculator' in url, 'wrong url: %s' % url)
-
-        # dump the DOM so we can find elements to use in the test
-        # print self.marionette.page_source
 
         # clear the calculator's display
         element = self.marionette.find_element('xpath', '//*[@value="C"]')
@@ -39,3 +36,6 @@ class TestCalculator(GaiaTestCase):
         # verify the result
         display = self.marionette.find_element('id', 'display')
         self.assertEquals(display.text, '15', 'wrong calculated value!')
+
+        # close the app
+        self.apps.kill(app)

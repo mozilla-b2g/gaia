@@ -33,6 +33,15 @@ waitFor(
         return success
 
 
+class GaiaApp(object):
+
+    def __init__(self, origin=None, name=None, frame_id=None, src=None):
+        self.frame_id = frame_id
+        self.src = src
+        self.name = name
+        self.origin = origin
+
+
 class GaiaApps(object):
 
     def __init__(self, marionette):
@@ -41,8 +50,19 @@ class GaiaApps(object):
         self.marionette.import_script(js)
 
     def launch(self, name):
-        success = self.marionette.execute_async_script("launchAppWithName('%s')" % name)
-        return success
+        result = self.marionette.execute_async_script("launchAppWithName('%s')" % name)
+        app = GaiaApp(frame_id=result.get('frame'),
+                      src=result.get('src'),
+                      name=result.get('name'),
+                      origin=result.get('origin'))
+        return app
+
+    def kill(self, app):
+        self.marionette.switch_to_frame()
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, "gaia_apps.js"))
+        self.marionette.import_script(js)
+        self.marionette.execute_script("window.wrappedJSObject.WindowManager.kill('%s');"
+                                        % app.origin)
 
 
 class GaiaTestCase(MarionetteTestCase):
