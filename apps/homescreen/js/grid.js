@@ -546,7 +546,8 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(landingPageIndex + 1));
+      // Save all pages starting from the landing page (which is also the first app grid page)
+      HomeState.saveGrid(pages.slice(landingPageIndex));
     },
 
     /*
