@@ -30,7 +30,7 @@
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
-    <script type="application/javascript" defer src="js/data.js"></script>
+    <script type="application/javascript" defer src="js/carrier.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
     <script type="application/javascript" defer src="js/simcard_lock.js"></script>
@@ -316,7 +316,50 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings -->
+    <!-- Connectivity :: Cellular & Data :: Network Operator -->
+    <section role="region" id="operator">
+      <header>
+        <a href="#data"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="networkOperator"> Network Operator </h1>
+      </header>
+
+      <ul>
+        <li id="operator-autoSelect">
+          <label class="switch">
+            <input type="checkbox" />
+            <span></span>
+          </label>
+          <small></small>
+          <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
+      </header>
+      <ul id="availableOperators" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
+          Turn Automatic Selection off to view available network operators.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by carrier.js — one list item per available network, e.g.:
+          -   <li>
+          -     <small> Connection State </small>
+          -     <a> Operator Name </a>
+          -   </li>
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Cellular & Data :: APN Settings -->
     <section role="region" id="apnSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -366,7 +409,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: MMS Settings -->
+    <!-- Connectivity :: Cellular & Data :: MMS Settings -->
     <section role="region" id="mmsSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -393,7 +436,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data -->
+    <!-- Connectivity :: Cellular & Data -->
     <section role="region" id="data">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -441,6 +484,12 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
+        <li>
+          <label>
+            <button onclick="Settings.openDialog('operator');"
+              data-l10n-id="networkOperator"> Network Operator </button>
+          </label>
+        </li>
         <li>
           <label>
             <button onclick="Settings.openDialog('apnSettings');"

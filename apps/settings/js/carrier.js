@@ -27,6 +27,8 @@ var gMobileConnection = (function(window) {
     }, 5000);
   }
 
+  //var automaticNetworkSelection = true;
+
   return {
     addEventListener: fakeEventListener,
     iccInfo: fakeICCInfo,
@@ -240,8 +242,123 @@ window.addEventListener('localized', function getCarrierSettings() {
     document.getElementById('dataRoaming-expl').hidden = true;
   }
 
-  // initialize data settings
+  /* network operator selection: auto/manual */
+  var opAutoSelect = document.getElementById('operator-autoSelect');
+  var opAutoSelectInput = opAutoSelect.querySelector('input');
+  var opAutoSelectState = opAutoSelect.querySelector('small');
+
+  // XXX for some reason, networkSelectionMode is (almost?) always null
+  // so we're assuming the auto-selection is ON by default.
+  function updateSelectionMode() {
+    var mode = gMobileConnection.networkSelectionMode;
+    opAutoSelectState.textContent = mode || '';
+    opAutoSelectInput.checked = !mode || (mode == 'automatic');
+  }
+
+  // create a network operator list item
+  function newListItem(network, callback) {
+    /**
+     * A network list item has the following HTML structure:
+     *   <li>
+     *     <small> Network State </small>
+     *     <a> Network Name </a>
+     *   </li>
+     */
+
+    // name
+    var name = document.createElement('a');
+    name.textContent = network.longName;
+
+    // state
+    var state = document.createElement('small');
+    state.textContent = network.state;
+
+    // create list item
+    var li = document.createElement('li');
+    li.appendChild(state);
+    li.appendChild(name);
+
+    // bind connection callback
+    li.onclick = function() {
+      callback(network, state);
+    };
+    return li;
+  }
+
+  // operator network list
+  // XXX note: scanning takes a while, and most of the time it never succeeds
+  // (doesn't raise any error either) but I swear I've seen it working.
+  var gOperatorNetworkList = (function operatorNetworkList(list) {
+    // get the "Searching..." and "Search Again" items, respectively
+    var infoItem = list.querySelector('li[data-state="on"]');
+    var scanItem = list.querySelector('li[data-state="ready"]');
+    scanItem.onclick = scan;
+
+    // clear the list
+    function clear() {
+      var operatorItems = list.querySelectorAll('li:not([data-state])');
+      var len = operatorItems.length;
+      for (var i = len - 1; i >= 0; i--) {
+        list.removeChild(operatorItems[i]);
+      }
+    }
+
+    // select operator
+    function selectOperator(network, messageElement) {
+      var req = gMobileConnection.selectNetwork(network);
+      messageElement.textContent = _('operator-status-connecting');
+      req.onsuccess = function onsuccess() {
+        messageElement.textContent = _('operator-status-connected');
+      };
+      req.onerror = function onsuccess() {
+        messageElement.textContent = _('operator-status-connectingfailed');
+      };
+    }
+
+    // scan available operators
+    function scan() {
+      list.dataset.state = 'on'; // "Searching..."
+      var req = gMobileConnection.getNetworks();
+
+      req.onsuccess = function onsuccess() {
+        clear();
+        var networks = req.result;
+        for (var i = 0; i < networks.length; i++) {
+          var listItem = newListItem(networks[i], selectOperator);
+          list.insertBefore(listItem, scanItem);
+        }
+        list.dataset.state = 'ready'; // "Search Again" button
+      };
+
+      req.onerror = function onScanError(error) {
+        console.warn('carrier: could not retrieve any network operator. ');
+        list.dataset.state = 'ready'; // "Search Again" button
+      };
+    }
+
+    // API
+    return {
+      get state() { return list.dataset.state; },
+      set state(value) { list.dataset.state = value; },
+      clear: clear,
+      scan: scan
+    };
+  }) (document.getElementById('availableOperators'));
+
+  // toggle autoselection
+  opAutoSelectInput.onchange = function() {
+    if (opAutoSelectInput.checked) {
+      gOperatorNetworkList.state = 'off';
+      // TODO: gMobileConnection.selectNetworkAutomatically()
+      // can't get this to work at the moment...
+    } else {
+      gOperatorNetworkList.scan();
+    }
+  };
+
+  // startup
   gMobileConnection.addEventListener('datachange', updateConnection);
   updateConnection();
+  updateSelectionMode();
 });
 
