@@ -641,7 +641,7 @@ var Camera = {
   // The layout (icons) and the phone calculate orientation in the
   // opposite direction
   layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
-    return 270 - this._phoneOrientation;
+    return 90 - this._phoneOrientation;
   },
 
   showOverlay: function camera_showOverlay(id) {
