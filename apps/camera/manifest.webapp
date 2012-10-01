@@ -11,7 +11,8 @@
   "permissions": [
     "device-storage:pictures",
     "content-camera",
-    "camera"
+    "camera",
+    "geolocation"
   ],
   "activities": {
     "record": {
@@ -19,6 +20,13 @@
         "type": "photos"
        },
       "disposition": "window"
+    },
+    "pick": {
+      "filters": {
+        "type": ["image/jpeg"]
+       },
+      "returnValue": true,
+      "disposition": "inline"
     }
   },
   "locales": {

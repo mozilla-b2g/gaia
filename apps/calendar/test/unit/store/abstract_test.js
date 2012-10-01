@@ -269,7 +269,11 @@ suite('store/abstract', function() {
 
       subject.once('remove', function() {
         removeEvent = arguments;
-        done();
+        // wait until next tick so other events
+        // have finished firing...
+        setTimeout(function() {
+          done();
+        }, 0);
       });
     });
 

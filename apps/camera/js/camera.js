@@ -2,12 +2,14 @@
 
 var Camera = {
 
+  _started: false,
+
   _cameras: null,
   _camera: 0,
   _captureMode: null,
+
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
-  _storageChecked: false,
   _currentOverlay: null,
 
   CAMERA: 'camera',
@@ -36,24 +38,41 @@ var Camera = {
   _phoneOrientation: 0,
 
   _storage: navigator.getDeviceStorage('pictures'),
+  _storageState: null,
+
+  STORAGE_INIT: 0,
+  STORAGE_AVAILABLE: 1,
+  STORAGE_NOCARD: 2,
+  STORAGE_UNMOUNTED: 3,
+  STORAGE_CAPACITY: 4,
+
   _pictureSize: null,
+  _previewPaused: false,
   _previewActive: false,
 
   _flashModes: [],
   _currentFlashMode: 0,
 
   _config: {
-    fileFormat: 'jpeg',
-    position: {
-      latitude: 43.468005,
-      longitude: -80.523399
-    }
+    fileFormat: 'jpeg'
   },
   _videoConfig: {
     rotation: 90,
     width: 352,
     height: 288
   },
+
+  _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
+
+  // Because we dont want to wait for the geolocation query
+  // before we can take a photo, we keep a track of the users
+  // position, when the camera jumps into foreground or every
+  // 10 minutes
+  POSITION_TIMEOUT: 1000 * 60 * 10,
+  _positionTimer: null,
+  _position: null,
+
+  _pendingPick: null,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -105,7 +124,9 @@ var Camera = {
 
   init: function camera_init() {
 
+    this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
+    this.initPositionUpdate();
 
     // We lock the screen orientation and deal with rotating
     // the icons manually
@@ -134,6 +155,9 @@ var Camera = {
     if (this._secureMode) {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
+
+    this._storage
+      .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
 
     this.setToggleCameraStyle();
     this.setSource(this._camera);
@@ -285,8 +309,14 @@ var Camera = {
   },
 
   filmStripPressed: function camera_filmStripPressed(e) {
+    if (this._secureMode) {
+      return;
+    }
+
     // Launch the gallery with an open activity to view this specific photo
     var filename = e.target.getAttribute('data-filename');
+    var storage = this._storage;
+
     var a = new MozActivity({
       name: 'open',
       data: {
@@ -300,7 +330,7 @@ var Camera = {
       navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
         evt.target.result.launch();
       };
-    };
+    }
 
     a.onerror = function(e) {
       reopen();
@@ -310,16 +340,17 @@ var Camera = {
       reopen();
 
       if (a.result.delete) {
-        // XXX: the user asked to delete this photo, so
-        // delete it from device storage and remove from the filmstrip
-        console.warn('delete feature is not yet implemented');
+        storage.delete(filename).onerror = function(e) {
+          console.error('Failed to delete', filename,
+                        'from DeviceStorage:', e.target.error);
+        };
       }
     };
   },
 
   setSource: function camera_setSource(camera) {
 
-    this.viewfinder.src = null;
+    this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
 
     var viewfinder = this.viewfinder;
@@ -350,7 +381,7 @@ var Camera = {
 
     function gotPreviewScreen(stream) {
       this._previewActive = true;
-      viewfinder.src = stream;
+      viewfinder.mozSrcObject = stream;
       viewfinder.play();
       this.checkStorageSpace();
     }
@@ -361,7 +392,7 @@ var Camera = {
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
-        this._largestPictureSize(camera.capabilities.pictureSizes);
+        this.largestPictureSize(camera.capabilities.pictureSizes);
       var config = {
         height: height,
         width: width
@@ -392,11 +423,13 @@ var Camera = {
     this.viewfinder.play();
     this.setSource(this._camera);
     this._previewActive = true;
+    this.initPositionUpdate();
   },
 
   stop: function camera_stop() {
     this.pause();
-    this.viewfinder.src = null;
+    this.viewfinder.mozSrcObject = null;
+    this.cancelPositionUpdate();
   },
 
   pause: function camera_pause() {
@@ -404,16 +437,8 @@ var Camera = {
     this._previewActive = false;
   },
 
-  // resumePreview is upcoming in gecko, avoiding version skew
-  // by doing a clobber on builds without resumePreview.
-  // TODO: remove once resumePreview has landed:
-  //  * https://bugzilla.mozilla.org/show_bug.cgi?id=779139#c21
   resume: function camera_resume() {
-    if ('resumePreview' in this._cameraObj) {
-      this._cameraObj.resumePreview();
-    } else {
-      this.start();
-    }
+    this._cameraObj.resumePreview();
     this._previewActive = true;
   },
 
@@ -429,7 +454,7 @@ var Camera = {
       preview.onclick = self.filmStripPressed.bind(self);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
-      }
+      };
       strip.appendChild(preview);
     });
     strip.classList.remove('hidden');
@@ -460,6 +485,16 @@ var Camera = {
     var addreq = this._storage.addNamed(blob, name);
 
     addreq.onsuccess = (function() {
+
+      if (this._pendingPick) {
+        this._pendingPick.postResult({
+          type: 'image/jpeg',
+          filename: name
+        });
+        this.cancelActivity();
+        return;
+      }
+
       this._photosTaken.push({name: name, blob: blob});
       if (this._photosTaken.length > this.THUMBNAIL_LIMIT) {
         this._photosTaken.shift();
@@ -478,20 +513,28 @@ var Camera = {
   },
 
   checkStorageSpace: function camera_checkStorageSpace() {
+    if (this.showDialog()) {
+      return;
+    }
     var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height *
       4 + 4096;
     this._storage.stat().onsuccess = (function(e) {
-      if (e.target.result.freeBytes > MAX_IMAGE_SIZE) {
-        this.showOverlay(null);
-        if (!this._previewActive) {
-          this.stop();
-        }
-      } else {
-        this.showOverlay('nospace');
-        if (this._previewActive) {
-          this.start();
-        }
+      var stats = e.target.result;
+
+      // If we have not yet checked the state of the storage, do so
+      if (this._storageState === this.STORAGE_INIT) {
+        this.updateStorageState(stats.state);
+        this.showDialog();
       }
+
+      if (this._storageState !== this.STORAGE_AVAILABLE) {
+        return;
+      }
+      if (stats.freeBytes < MAX_IMAGE_SIZE) {
+        this._storageState = this.STORAGE_CAPACITY;
+      }
+      this.showDialog();
+
     }).bind(this);
   },
 
@@ -580,25 +623,19 @@ var Camera = {
       window.setTimeout(this.hideFocusRing.bind(this), 1000);
       return;
     }
-
     this.focusRing.setAttribute('data-state', 'focused');
-    this._config.rotation =
-      this.layoutToPhoneOrientation(this._phoneOrientation);
-    this._cameraObj
-      .takePicture(this._config, this.takePictureSuccess.bind(this));
+    this.takePicture();
   },
 
   takePicture: function camera_takePicture() {
-    this.captureButton.setAttribute('disabled', 'disabled');
-    this.focusRing.setAttribute('data-state', 'focusing');
-    if (this._autoFocusSupported && !this._manuallyFocused) {
-      this._cameraObj.autoFocus(this.takePictureAutoFocusDone.bind(this));
-    } else {
-      this._config.rotation =
-        this.layoutToPhoneOrientation(this._phoneOrientation);
-      this._cameraObj
-        .takePicture(this._config, this.takePictureSuccess.bind(this));
+    this._config.rotation =
+      this.layoutToPhoneOrientation(this._phoneOrientation);
+    if (this._position) {
+      this._config.position = this._position;
     }
+    this._shutterSound.play();
+    this._cameraObj
+      .takePicture(this._config, this.takePictureSuccess.bind(this));
   },
 
   // The layout (icons) and the phone calculate orientation in the
@@ -620,7 +657,7 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  _largestPictureSize: function camera_largestPictureSize(pictureSizes) {
+  largestPictureSize: function camera_largestPictureSize(pictureSizes) {
     return pictureSizes.reduce(function(acc, size) {
       if (size.width + size.height > acc.width + acc.height) {
         return size;
@@ -628,8 +665,48 @@ var Camera = {
         return acc;
       }
     });
+  },
+
+  initPositionUpdate: function camera_initPositionUpdate() {
+    if (this._positionTimer) {
+      return;
+    }
+    this._positionTimer = setInterval(this.updatePosition.bind(this),
+                                      this.POSITION_TIMEOUT);
+    this.updatePosition();
+  },
+
+  updatePosition: function camera_updatePosition() {
+    var self = this;
+    navigator.geolocation.getCurrentPosition(function(position) {
+      self._position = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+      };
+    }, function() {
+      console.warn('Camera: Could not fetch location');
+    });
+  },
+
+  cancelPositionUpdate: function camera_cancelPositionUpdate() {
+    window.clearInterval(this._positionTimer);
+    this._positionTimer = null;
   }
 };
+
+function actHandle(activity) {
+  var name = activity.source.name;
+  if (name === 'pick') {
+    Camera._pendingPick = activity;
+    if (Camera._started) {
+      Camera.initActivity();
+    }
+  }
+}
+
+if (window.navigator.mozSetMessageHandler) {
+  window.navigator.mozSetMessageHandler('activity', actHandle);
+}
 
 window.addEventListener('DOMContentLoaded', function CameraInit() {
   Camera.init();
@@ -638,6 +715,7 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
     Camera.stop();
+    Camera.cancelActivity(true);
   } else {
     Camera.start();
   }
@@ -646,5 +724,5 @@ document.addEventListener('mozvisibilitychange', function() {
 window.addEventListener('beforeunload', function() {
   window.clearTimeout(Camera._timeoutId);
   delete Camera._timeoutId;
-  Camera.viewfinder.src = null;
+  Camera.viewfinder.mozSrcObject = null;
 });

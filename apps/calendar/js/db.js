@@ -253,6 +253,21 @@
       }
     },
 
+    clearNonCredentials: function(callback) {
+      var stores = ['events', 'busytimes'];
+      var trans = this.transaction(
+        stores,
+        'readwrite'
+      );
+
+      trans.addEventListener('complete', callback);
+
+      stores.forEach(function(store) {
+        store = trans.objectStore(store);
+        store.clear();
+      });
+    },
+
     deleteDatabase: function(callback) {
       var req = idb.deleteDatabase(this.name);
 
@@ -271,7 +286,6 @@
     }
 
   };
-
 
   Calendar.Db = Db;
 

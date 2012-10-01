@@ -179,6 +179,31 @@
     }
   }
 
+  // XXX: this is a lame way to do this
+  // in reality we need to fix the above upstream
+  // and leverage new chai 1x methods
+
+  assert.hasProperties = function chai_hasProperties(given, props, msg) {
+    msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
+
+    if (props instanceof Array) {
+      props.forEach(function(prop) {
+        assert.ok(
+          (prop in given),
+          msg + 'given should have "' + prop + '" property'
+        );
+      });
+    } else {
+      for (var key in props) {
+        assert.deepEqual(
+          given[key],
+          props[key],
+          msg + ' property equality for (' + key + ') '
+        );
+      }
+    }
+  }
+
   /* require most of the coupled / util objects */
 
   function l10nLink(href) {
