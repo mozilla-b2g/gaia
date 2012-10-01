@@ -25,7 +25,7 @@ function setupSettings() {
     'lowlimit_threshold': 5
   };
 
-  var viewManager = new ViewManager();
+  var _viewManager = new ViewManager();
 
   function _getEntryParent(item) {
     var current = item;
@@ -47,7 +47,6 @@ function setupSettings() {
 
       var dialog = document.getElementById(guiWidget.dataset.selectdialog);
       var optionKey = guiWidget.dataset.option;
-      var disableOn = guiWidget.dataset.disableon;
 
       // Configure dialog
       var okButton = dialog.querySelector('button.affirmative');
@@ -55,7 +54,7 @@ function setupSettings() {
         okButton.addEventListener('click', function ccapp_onDialogOk() {
           var checked = dialog.querySelector('input[type="radio"]:checked');
           Service.settings.option(optionKey, checked.value);
-          viewManager.closeCurrentView();
+          _viewManager.closeCurrentView();
         });
       }
 
@@ -65,14 +64,14 @@ function setupSettings() {
           function ccapp_onDialogCancel() {
             var currentValue = Service.settings.option(optionKey);
             Service.settings.option(optionKey, currentValue);
-            viewManager.closeCurrentView();
+            _viewManager.closeCurrentView();
           }
         );
       }
 
       // Show the dialog
       guiWidget.addEventListener('click', function ccapp_onWidgetClick() {
-        viewManager.changeViewTo(dialog.id);
+        _viewManager.changeViewTo(dialog.id);
       });
 
       // Keep the widget and the dialog synchronized
@@ -148,7 +147,10 @@ function setupSettings() {
 
       // Add an event listener to switch the option
       guiWidget.addEventListener('change', function ccapp_onSwitchChange() {
-        Service.settings.option(optionKey, guiWidget.value);
+        var value = guiWidget.value;
+        if (guiWidget.type === 'number')
+          value = parseFloat(value);
+        Service.settings.option(optionKey, value);
       });
     }
   };
@@ -166,38 +168,54 @@ function setupSettings() {
         return 'input';
     }
 
+    function installDependency(expression, callback) {
+      var equality = false;
+      var parsed = expression.split('!=');
+      if (parsed.length === 1) {
+        parsed = expression.split('=');
+        equality = true;
+      }
+
+      var dependency = parsed[0];
+      var referenceValue = parsed[1];
+      Service.settings.observe(dependency,
+        function ccapp_dependencyAction(value) {
+          var test = (('' + value) === referenceValue);
+          callback(equality === test); // or is an equality test and values are
+                                       // equal or is an inequality test and
+                                       // values are different.
+        }
+      );
+    }
+
     // Widgets
     var allGUIWidgets = document.querySelectorAll('.localsetting');
     [].forEach.call(allGUIWidgets, function ccapp_eachWidget(guiWidget) {
 
       var type = getWidgetType(guiWidget);
+      var entry = _getEntryParent(guiWidget);
       CONFIGURE_WIDGET[type](guiWidget);
 
-      // Simple dependency resolution: enable / disable some options depending
-      // on the values of other
-      var disableOn = guiWidget.dataset.disableon;
-      if (disableOn) {
-        var not = true;
-        var parsed = disableOn.split('!=');
-        if (parsed.length === 1) {
-          parsed = disableOn.split('=');
-          not = false;
-        }
+      // Simple dependency resolution:
 
-        var dependency = parsed[0];
-        var disablingValue = parsed[1];
-        Service.settings.observe(
-          dependency,
-          function ccapp_disableOnDependency(value) {
-            var entry = _getEntryParent(guiWidget);
-            var test = (('' + value) === disablingValue);
-            if (not)
-              test = !test;
-            guiWidget.disabled = test;
-            if (entry)
-              entry.setAttribute('aria-disabled', test + '');
-          }
-        );
+      // enable / disable some options depending on the values of other
+      var disableOn = guiWidget.dataset.disableOn;
+      if (disableOn) {
+        installDependency(disableOn, function ccapp_toDisable(passed) {
+          guiWidget.disabled = passed;
+          if (entry)
+            entry.setAttribute('aria-disabled', passed + '');
+        });
+      }
+
+      // hide / show some options depending on the values of other
+      var hideOn = guiWidget.dataset.hideOn;
+      if (hideOn) {
+        installDependency(hideOn, function ccapp_toHide(passed) {
+          guiWidget.setAttribute('aria-hidden', passed + '');
+          if (entry)
+            entry.setAttribute('aria-hidden', passed + '');
+        });
       }
 
     });
@@ -236,14 +254,106 @@ function setupSettings() {
     });
   }
 
+  // Shows the reset confirmation
+  function _showResetConfirmation(callback) {
+    var dialogId = 'reset-confirmation-dialog';
+    var dialog = document.getElementById(dialogId);
+    _viewManager.changeViewTo(dialogId);
+
+    var cancel = dialog.querySelector('button.close-dialog');
+    cancel.addEventListener('click', function ccapp_cancelConfimation() {
+      _viewManager.closeCurrentView();
+    });
+
+    var confirm = dialog.querySelector('button.negative');
+    confirm.addEventListener('click', function ccapp_onConfirm(evt) {
+      _viewManager.closeCurrentView();
+      callback(evt);
+    });
+  }
+
+  // Read telephony information
+  function _setTelephonyView() {
+    function toMinutes(milliseconds) {
+      return Math.ceil(milliseconds / (1000 * 60));
+    }
+
+    // Dates
+    var formattedTime = _('never');
+    var lastReset = Service.settings.option('lastreset');
+    if (lastReset !== null)
+      formattedTime = (new Date(lastReset))
+                      .toLocaleFormat(_('short-date-format'));
+    document.getElementById('telephony-from-date').textContent = formattedTime;
+
+    var now = new Date();
+    document.getElementById('telephony-to-date').textContent =
+      _('today') + ', ' + now.toLocaleFormat('%H:%M');
+
+    // Counters
+    document.getElementById('calltime').textContent =
+      toMinutes(Service.settings.option('calltime'));
+    document.getElementById('smscount').textContent =
+      Service.settings.option('smscount');
+  }
+
+  // Attach listener to keep the UI updated
+  function _configureTelephonyView() {
+    Service.settings.observe('calltime', _setTelephonyView);
+    Service.settings.observe('smscount', _setTelephonyView);
+    document.getElementById('reset-telephony').addEventListener('click',
+      function ccapp_resetTelephony() {
+        _showResetConfirmation(Service.resetTelephonyCounters);
+      }
+    );
+  }
+
   function _configureUI() {
     _configureGUIWidgets();
     _configureBalanceView();
+    _configureTelephonyView();
+  }
+
+  // Adapt the layout depending plantype
+  function _changeLayout(planType) {
+    function setSectionVisibility(sectionId, visibility) {
+      var header, entries;
+      header = document.getElementById(sectionId);
+      entries = document.querySelector('#' + sectionId + ' + ul');
+      header.setAttribute('aria-hidden', !visibility + '');
+      entries.setAttribute('aria-hidden', !visibility + '');
+    }
+
+    function moveResetEntriesTo(sectionId) {
+      var entries = document.querySelectorAll('.reset-entry');
+      var ul = document.querySelector('#' + sectionId + ' + ul');
+      [].forEach.call(entries, function ccapp_appendResetEntry(entry) {
+        ul.appendChild(entry);
+      });
+    }
+
+    if (planType === Service.PLAN_PREPAID) {
+      setSectionVisibility('phone-activity-settings', false);
+      setSectionVisibility('balance-settings', true);
+      setSectionVisibility('data-usage-settings', true);
+      setSectionVisibility('phone-internet-settings', false);
+      moveResetEntriesTo('data-usage-settings');
+
+    } else if (planType === Service.PLAN_POSTPAID) {
+      setSectionVisibility('phone-activity-settings', true);
+      setSectionVisibility('balance-settings', false);
+      setSectionVisibility('data-usage-settings', false);
+      setSectionVisibility('phone-internet-settings', true);
+      moveResetEntriesTo('phone-internet-settings');
+    }
   }
 
   // Configure each settings' control and paint the interface
   function _init() {
     _configureUI();
+
+    // Change layout depending on plantype
+    Service.settings.observe('plantype', _changeLayout);
 
     // Close settings
     var close = document.getElementById('close-settings');
@@ -258,6 +368,7 @@ function setupSettings() {
   // Repaint settings interface reading from local settings and localizing
   function _updateUI() {
     _setBalanceView();
+    _setTelephonyView();
   }
 
   // Updates the UI to match the localization

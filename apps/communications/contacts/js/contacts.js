@@ -29,6 +29,8 @@ var Contacts = (function() {
   var contactsDetails = contacts.Details;
   var contactsForm = contacts.Form;
 
+  var loading = document.getElementById('loading-overlay');
+
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -532,12 +534,38 @@ var Contacts = (function() {
 
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
-    contactsForm.render(contact, goToForm);
+
+    if (contact && fb.isFbContact(contact)) {
+      var fbContact = new fb.Contact(contact);
+      var req = fbContact.getDataAndValues();
+
+      req.onsuccess = function() {
+        contactsForm.render(contact, goToForm, req.result);
+      }
+
+      req.onerror = function() {
+        contactsForm.render(contact, goToForm);
+      }
+    }
+    else {
+      contactsForm.render(contact, goToForm);
+    }
   };
 
   var setCurrent = function c_setCurrent(contact) {
     currentContact = contact;
-  }
+  };
+
+  var showOverlay = function showOverlay(message) {
+    var text = message || _('loadingContacts');
+
+    loading.querySelector('[data-l10n-id="loadingContacts"]').innerHTML = text;
+    loading.classList.add('show-overlay');
+  };
+
+  var hideOverlay = function hideOverlay() {
+    loading.classList.remove('show-overlay');
+  };
 
   return {
     'doneTag': doneTag,
@@ -556,13 +584,17 @@ var Contacts = (function() {
     'showForm': showForm,
     'setCurrent': setCurrent,
     'getTags': TAG_OPTIONS,
-    'onLocalized': onLocalized
+    'onLocalized': onLocalized,
+    'showOverlay': showOverlay,
+    'hideOverlay': hideOverlay
   };
 })();
 
 window.addEventListener('localized', function initContacts(evt) {
   fb.init(function contacts_init() {
     Contacts.onLocalized();
+
+    contacts.Settings.init();
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);

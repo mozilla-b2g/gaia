@@ -19,6 +19,7 @@ addEventListener('message', function prepare(e) {
     'calendar', 'responder',
     'inspect', 'worker/thread',
     'ext/caldav',
+    'ext/uuid',
     'service/caldav'
   );
 

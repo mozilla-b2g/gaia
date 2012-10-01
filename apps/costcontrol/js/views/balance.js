@@ -148,6 +148,10 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     var btRequestTopUpButton =
       document.getElementById('balance-tab-topup-button');
     btRequestTopUpButton.addEventListener('click', _requestTopUp);
+
+    var btRequestUSSDTopUpButton =
+      document.getElementById('balance-tab-topup-ussd-button');
+    btRequestUSSDTopUpButton.addEventListener('click', _requestUSSDTopUp);
   }
 
   // TODO: remove when autofocus became available from B2G
@@ -441,6 +445,16 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     viewManager.changeViewTo(VIEW_TOPUP, _focusCodeInput);
   }
 
+  // Check for system availability. If so, ask for USSD topup.
+  function _requestUSSDTopUp() {
+    var status = CostControl.getServiceStatus();
+    if (status.detail in NO_SERVICE_ERRORS) {
+      viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      return;
+    }
+    CostControl.requestUSSDTopUp();
+  }
+
   // Enable / disable waiting mode for the UI
   function _setUpdatingMode(updating) {
     _isUpdating = updating;
@@ -478,7 +492,8 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     // Check for low credit
     var balance = balanceObject ? balanceObject.balance : null;
     if (CostControl.settings.option('lowlimit') &&
-        balance && balance < CostControl.getLowLimitThreshold()) {
+        balance &&
+        balance < CostControl.settings.option('lowlimit_threshold')) {
 
       _balanceTab.classList.add('low-credit');
     } else {

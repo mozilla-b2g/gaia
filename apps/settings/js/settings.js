@@ -3,7 +3,6 @@
 
 'use strict';
 
-
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
  * the `dom.mozSettings.enabled' preference to false.
@@ -25,29 +24,35 @@ var Settings = {
     if (!settings)
       return;
 
+    // update <input> values when the corresponding setting is changed
     settings.onsettingchange = function settingChanged(event) {
       var key = event.settingName;
       var value = event.settingValue;
-
-      var checkbox =
-          document.querySelector('input[type="checkbox"][name="' + key + '"]');
-      if (checkbox) {
-        if (checkbox.checked == value)
-          return;
-        checkbox.checked = value;
+      var input = document.querySelector('input[name="' + key + '"]');
+      if (!input)
         return;
-      }
 
-      var progressBar =
-          document.querySelector('[data-name="' + key + '"]');
-      if (progressBar) {
-        var intValue = Math.ceil(value * 10);
-        if (progressBar.value == intValue)
-          return;
-        progressBar.value = intValue;
-        return;
+      switch (input.dataset.type || input.type) { // bug344618
+        case 'checkbox':
+          if (input.checked == value)
+            return;
+          input.checked = value;
+          break;
+        case 'range':
+          if (input.value == value)
+            return;
+          input.value = value;
+          input.refresh(); // XXX to be removed when bug344618 lands
+          break;
+        case 'select':
+          for (var i = 0; i < input.options.length; i++) {
+            if (input.options[i].value == value) {
+              input.options[i].selected = true;
+              break;
+            }
+          }
+          break;
       }
-
       // XXX: if there are more values needs to be synced.
     };
 
@@ -65,8 +70,9 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             checkbox.checked = !!request.result[key];
+          }
         };
       })(checkboxes[i]);
     }
@@ -82,8 +88,9 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             radio.checked = (request.result[key] === radio.value);
+          }
         };
       })(radios[i]);
     }
@@ -99,31 +106,36 @@ var Settings = {
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
+          if (request.result[key] != undefined) {
             text.value = request.result[key];
+          }
         };
       })(texts[i]);
     }
 
-    // preset all progress indicators
-    var progresses = document.querySelectorAll('progress');
-    for (i = 0; i < progresses.length; i++) {
-      (function(progress) {
-        var key = progress.dataset.name;
+    // preset all range inputs
+    rule = 'input[type="range"]:not([data-ignore])';
+    var ranges = document.querySelectorAll(rule);
+    for (i = 0; i < ranges.length; i++) {
+      (function(range) {
+        var key = range.name;
         if (!key)
           return;
 
         var request = lock.get(key);
         request.onsuccess = function() {
-          if (request.result[key] != undefined)
-            progress.value = parseFloat(request.result[key]) * 10;
+          if (request.result[key] != undefined) {
+            range.value = parseFloat(request.result[key]);
+            range.refresh(); // XXX to be removed when bug344618 lands
+          }
         };
-      })(progresses[i]);
+      })(ranges[i]);
     }
 
     // handle web activity
-    navigator.mozSetMessageHandler('activity',
-      function settings_handleActivity(activityRequest) {
+    var handler = navigator.mozSetMessageHandler;
+    if (handler && typeof(mozSetMessageHandler) == 'function') {
+      handler('activity', function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
           case 'configure':
@@ -144,8 +156,8 @@ var Settings = {
             });
             break;
         }
-      }
-    );
+      });
+    }
 
     // preset all select
     var selects = document.querySelectorAll('select');
@@ -159,50 +171,60 @@ var Settings = {
         request.onsuccess = function() {
           var value = request.result[key];
           if (value != undefined) {
-            select.querySelector('option[value="' + value + '"]').selected = true;
+            var option = 'option[value="' + value + '"]';
+            var selectOption = select.querySelector(option);
+            if (selectOption) {
+              selectOption.selected = true;
+            }
           }
         };
       })(selects[i]);
+    }
+
+    // preset all span with data-name fields
+    rule = 'span[data-name]:not([data-ignore])';
+    var spanFields = document.querySelectorAll(rule);
+    for (i = 0; i < spanFields.length; i++) {
+      (function(span) {
+        var key = span.dataset.name;
+        if (!key)
+          return;
+
+        var request = lock.get(key);
+        request.onsuccess = function() {
+          if (request.result[key] != undefined)
+            span.textContent = request.result[key];
+        };
+      })(spanFields[i]);
     }
   },
 
   handleEvent: function settings_handleEvent(evt) {
     var input = evt.target;
-    var key = input.name || input.dataset.name;
-    var settings = this.mozSettings;
-    if (!key || !settings || input.dataset.ignore)
+    var type = input.dataset.type || input.type; // bug344618
+    var key = input.name;
+
+    var settings = window.navigator.mozSettings;
+    if (!key || !settings || evt.type != 'change')
       return;
 
-    switch (evt.type) {
-      case 'change':
-        var value;
-        if (input.type === 'checkbox') {
-          value = input.checked;
-        } else if ((input.type == 'radio') ||
-                   (input.type == 'text') ||
-                   (input.type == 'password') ||
-                   (input.tagName.toLowerCase() == 'select')) {
-          value = input.value;
-        }
-        var cset = {}; cset[key] = value;
-        settings.createLock().set(cset);
+    var value;
+    switch (type) {
+      case 'checkbox':
+        value = input.checked; // boolean
         break;
-
-      case 'click':
-        if (input.tagName.toLowerCase() != 'progress')
-          return;
-        var rect = input.getBoundingClientRect();
-        var position = Math.ceil(10 * (evt.clientX - rect.left) / rect.width);
-
-        var min = parseFloat(input.getAttribute('min')) || 0;
-        var max = parseFloat(input.getAttribute('max')) || 10;
-        position = Math.max(min, Math.min(max, position));
-        input.value = position;
-
-        var cset = {}; cset[key] = position / 10;
-        settings.createLock().set(cset);
+      case 'range':
+        value = parseFloat(input.value).toFixed(1); // float
+        break;
+      case 'select-one':
+      case 'radio':
+      case 'text':
+      case 'password':
+        value = input.value; // text
         break;
     }
+    var cset = {}; cset[key] = value;
+    settings.createLock().set(cset);
   },
 
   loadGaiaCommit: function settings_loadGaiaCommit() {
@@ -305,7 +327,35 @@ window.addEventListener('load', function loadSettings(evt) {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
   window.addEventListener('click', Settings);
+  bug344618_polyfill(); // XXX to be removed when bug344618 is fixed
   Settings.init();
+
+  // early way out if we're using a desktop build
+  var settings = Settings.mozSettings;
+  if (!settings)
+    return;
+
+  // brightness control
+  var manualBrightness = document.getElementById('brightness-manual');
+  var autoBrightnessSetting = 'screen.automatic-brightness';
+  settings.addObserver(autoBrightnessSetting, function(event) {
+    manualBrightness.hidden = event.settingValue;
+  });
+  var req = settings.createLock().get(autoBrightnessSetting);
+  req.onsuccess = function brightness_onsuccess() {
+    manualBrightness.hidden = req.result[autoBrightnessSetting];
+  };
+
+  // activate all external links
+  var links = document.querySelectorAll('a[href^="http"]');
+  for (var i = 0; i < links.length; i++) {
+    links[i].dataset.href = links[i].href;
+    links[i].href = '#';
+    links[i].onclick = function() {
+      openURL(this.dataset.href);
+      return false;
+    };
+  }
 });
 
 // back button = close dialog || back to the root page
@@ -347,5 +397,20 @@ window.addEventListener('localized', function showBody() {
       document.location.hash = 'languages';
     });
   }
+
+  // update date and time samples
+  var d = new Date();
+  var f = new navigator.mozL10n.DateTimeFormat();
+  var _ = navigator.mozL10n.get;
+  document.getElementById('region-date').textContent =
+      f.localeFormat(d, _('longDateFormat'));
+  document.getElementById('region-time').textContent =
+      f.localeFormat(d, _('shortTimeFormat'));
+
+  // show current locale in the main panel
+  var selector = 'select[name="language.current"] option[value="' +
+      navigator.mozL10n.language.code + '"]';
+  document.getElementById('language-desc').textContent =
+      document.querySelector(selector).textContent;
 });
 

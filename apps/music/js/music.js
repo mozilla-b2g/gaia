@@ -4,82 +4,120 @@
  * This is Music Application of Gaia
  */
 
+// unknown strings for localization
+var unknownAlbum;
+var unknownArtist;
+var unknownTitle;
+var shuffleAllTitle;
+var highestRatedTitle;
+var recentlyAddedTitle;
+var mostPlayedTitle;
+var leastPlayedTitle;
+
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
-var isEmpty = true;
+
+var scanning = false;
+var scanningFoundChanges = false;
+
+// We get a localized event when the application is launched and when
+// the user switches languages.
+window.addEventListener('localized', function onlocalized() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // Get prepared for the unknown strings, these will be used later
+  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
+  unknownArtist = navigator.mozL10n.get('unknownArtist');
+  unknownTitle = navigator.mozL10n.get('unknownTitle');
+  shuffleAllTitle = navigator.mozL10n.get('playlists-shuffle-all');
+  highestRatedTitle = navigator.mozL10n.get('playlists-highest-rated');
+  recentlyAddedTitle = navigator.mozL10n.get('playlists-recently-added');
+  mostPlayedTitle = navigator.mozL10n.get('playlists-most-played');
+  leastPlayedTitle = navigator.mozL10n.get('playlists-least-played');
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('invisible');
+
+  // The first time we get this event we start running the application.
+  // But don't re-initialize if the user switches languages while we're running.
+  if (!musicdb)
+    init();
+});
 
 function init() {
   // Here we use the mediadb.js which gallery is using (in shared/js/)
   // to index our music contents with metadata parsed.
   // So the behaviors of musicdb are the same as the MediaDB in gallery
   musicdb = new MediaDB('music', parseAudioMetadata, {
-    indexes: ['metadata.album', 'metadata.artist', 'metadata.title']
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
+              'metadata.rated', 'metadata.played', 'date']
   });
 
   // This is called when DeviceStorage becomes unavailable because the
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
-  musicdb.onunavailable = function(why) {
-    if (why === 'unavailable')
+  musicdb.onunavailable = function(event) {
+    var why = event.detail;
+    if (why === MediaDB.NOCARD)
       showOverlay('nocard');
-    else if (why === 'shared')
-      showOverlay('cardinuse');
+    else if (why === MediaDB.UNMOUNTED)
+      showOverlay('pluggedin');
   }
 
   musicdb.onready = function() {
-    // Hide the nocard overlay if it is displayed
-    if (currentOverlay === 'nocard')
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
       showOverlay(null);
 
     showCurrentView();  // Display song covers we know about
-
-    // Each time we become ready there may be an entirely new set of
-    // music in device storage (new SD card, or USB mass storage transfer)
-    // so we have to rescan each time.
-    scan();
   };
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function vc() {
-    if (!document.mozHidden && musicdb.ready) {
-      scan();
-    }
-  });
+  // When musicdb scans, let the user know
+  musicdb.onscanstart = function() {
+    scanning = true;
+    scanningFoundChanges = false;
+    showScanProgress();
+  };
 
-  // Notification of files that are added or deleted.
-  // Eventually device storage will let us know about these.
-  // For now we have to call scan(), which will trigger this function.
-  musicdb.onchange = function(type, files) {
-    if (type === 'deleted') {
-      // TODO handle deleted files
+  // And hide the throbber when scanning is done
+  musicdb.onscanend = function() {
+    scanning = false;
+    hideScanProgress();
+
+    // if the scan found any changes, update the UI now
+    if (scanningFoundChanges) {
+      scanningFoundChanges = false;
       showCurrentView();
     }
-    else if (type === 'created') {
-      // TODO handle new files
+  };
+
+  // When MediaDB finds new or deleted files, it sends created and deleted
+  // events. During scanning we may get lots of them. Bluetooth file transfer
+  // can also result in created events. The way the app is currently
+  // structured, all we can do is rebuild the entire UI with the updated
+  // list of files. We don't want to do this while scanning, though because
+  // it we may end up rebuilding it over and over. So we defer the rebuild
+  // until the scan ends
+  musicdb.oncreated = musicdb.ondeleted = function(event) {
+    if (scanning)
+      scanningFoundChanges = true;
+    else
       showCurrentView();
-    }
   };
 }
 
-function scan() {
-  //
-  // XXX: is it too intrusive to display the scan overlay every time?
-  //
-  // Can I do it on first launch only and after that
-  // display some smaller scanning indicator that does not prevent
-  // the user from using the app right away?
-  //
-  showOverlay('scanning');   // Tell the user we're scanning
-  musicdb.scan(function() {  // Run this function when scan is complete
-    if (isEmpty)
-      showOverlay('nosongs');
-    else
-      showOverlay(null);     // Hide the overlay
-  });
+// show and hide scanning progress
+function showScanProgress() {
+  document.getElementById('progress').classList.remove('hidden');
+  document.getElementById('throbber').classList.add('throb');
+}
+
+function hideScanProgress() {
+  document.getElementById('progress').classList.add('hidden');
+  document.getElementById('throbber').classList.remove('throb');
 }
 
 //
@@ -93,9 +131,8 @@ var currentOverlay;  // The id of the current overlay or null if none.
 // Supported ids include:
 //
 //   nocard: no sdcard is installed in the phone
-//   cardinuse: the sdcard is being used by USB mass storage
-//   nosongs: no songs found
-//   scanning: the app is scanning for new photos
+//   pluggedin: the sdcard is being used by USB mass storage
+//   empty: no songs found
 //
 // Localization is done using the specified id with "-title" and "-text"
 // suffixes.
@@ -116,15 +153,20 @@ function showOverlay(id) {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
+// We need three handles here to cancel enumerations
+// for tilesView, listView and sublistView
+var tilesHandle = null;
+var listHandle = null;
+var sublistHandle = null;
+
 function showCurrentView() {
   TilesView.clean();
   // Enumerate existing song entries in the database
-  // List the all, and sort them in ascending order by artist.
-  var option = 'artist';
+  // List the all, and sort them in descending order by date.
+  var option = 'date';
 
-  musicdb.enumerate('metadata.' + option, null, 'nextunique',
-                    TilesView.update.bind(TilesView));
-
+  tilesHandle = musicdb.enumerate(option, null, 'prev',
+                                  TilesView.update.bind(TilesView));
   switch (TabBar.option) {
     case 'playlist':
       // TODO update the predefined playlists
@@ -134,8 +176,9 @@ function showCurrentView() {
       changeMode(MODE_LIST);
       ListView.clean();
 
-      musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                        ListView.update.bind(ListView, TabBar.option));
+      listHandle =
+        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                          ListView.update.bind(ListView, TabBar.option));
       break;
   }
 
@@ -254,13 +297,16 @@ var TilesView = {
   },
 
   clean: function tv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (tilesHandle)
+      musicdb.cancelEnumeration(tilesHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
 
-    isEmpty = true;
-    showOverlay('nosongs');
+    showScanProgress();
   },
 
   setItemImage: function tv_setItemImage(item, fileinfo) {
@@ -273,25 +319,44 @@ var TilesView = {
   },
 
   update: function tv_update(result) {
-    if (result === null)
+    // if no songs in dataSource
+    // disable the TabBar to prevent users switch to other page
+    TabBar.setDisabled(!this.dataSource.length);
+
+    if (result === null) {
+      // The enumeration is complete, so hide the animated progress bar
+      hideScanProgress();
+
+      // If we don't know about any songs, display the 'empty' overlay.
+      // If we do know about songs and the 'empty overlay is being displayed
+      // then hide it.
+      if (this.dataSource.length > 0) {
+        if (currentOverlay === 'empty')
+          showOverlay(null);
+      }
+      else {
+        showOverlay('empty');
+      }
+
       return;
-
-    // If we were showing the 'no songs' overlay, hide it
-    if (currentOverlay === 'nosongs')
-      showOverlay(null);
-
-    isEmpty = false;
+    }
 
     this.dataSource.push(result);
+
+    var tile = document.createElement('div');
 
     var container = document.createElement('div');
     container.className = 'tile-container';
 
-    var tile = document.createElement('div');
-
-    var defaultImage = document.createElement('div');
-    defaultImage.textContent = result.metadata.title ||
-      navigator.mozL10n.get('unknownTitle');
+    var titleBar = document.createElement('div');
+    titleBar.className = 'tile-title-bar';
+    var artistName = document.createElement('div');
+    artistName.className = 'tile-title-artist';
+    var albumName = document.createElement('div');
+    albumName.className = 'tile-title-album';
+    artistName.textContent = result.metadata.artist || unknownArtist;
+    albumName.textContent = result.metadata.album || unknownAlbum;
+    titleBar.appendChild(artistName);
 
     var img = document.createElement('img');
     img.className = 'tile-image';
@@ -303,10 +368,11 @@ var TilesView = {
     // so we mod 6 to find out who is the main-tile
     if (this.index % 6 === 0) {
       tile.classList.add('main-tile');
-      defaultImage.classList.add('main-tile-default-image');
+      artistName.classList.add('main-tile-title');
+      titleBar.appendChild(albumName);
     } else {
       tile.classList.add('sub-tile');
-      defaultImage.classList.add('sub-tile-default-image');
+      artistName.classList.add('sub-tile-title');
     }
 
     // Since 6 tiles are in one group
@@ -318,12 +384,12 @@ var TilesView = {
       tile.classList.add('float-right');
     }
 
-    tile.classList.add('color-' + this.index % 7);
+    tile.classList.add('default-album-' + this.index % 10);
 
     container.dataset.index = this.index;
 
-    container.appendChild(defaultImage);
     container.appendChild(img);
+    container.appendChild(titleBar);
     tile.appendChild(container);
     this.view.appendChild(tile);
 
@@ -383,10 +449,16 @@ var ListView = {
   },
 
   clean: function lv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (listHandle)
+      musicdb.cancelEnumeration(listHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
   setItemImage: function lv_setItemImage(item, fileinfo) {
@@ -398,8 +470,10 @@ var ListView = {
   },
 
   update: function lv_update(option, result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -412,14 +486,12 @@ var ListView = {
 
     var parent = document.createElement('div');
     parent.className = 'list-image-parent';
-    var div = document.createElement('div');
-    div.className = 'list-default-image';
-    div.innerHTML = '&#9834;';
+    parent.classList.add('default-album-' + this.index % 10);
     var img = document.createElement('img');
     img.className = 'list-image';
 
-    parent.appendChild(div);
-    parent.appendChild(img);
+    if (result.metadata.picture)
+      parent.appendChild(img);
 
     this.setItemImage(img, result);
 
@@ -455,7 +527,7 @@ var ListView = {
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
-        a.dataset.option = 'title';
+        a.dataset.option = result.option;
 
         break;
       default:
@@ -484,6 +556,8 @@ var ListView = {
           var index = target.dataset.index;
           var data = this.dataSource[index];
 
+          SubListView.setAlbumDefault(index);
+
           if (data.metadata.picture)
             SubListView.setAlbumSrc(data);
 
@@ -495,11 +569,18 @@ var ListView = {
             SubListView.setAlbumName(data.metadata.title);
           }
 
+          var targetOption =
+            (option === 'date') ? option : 'metadata.' + option;
           var keyRange = (target.dataset.keyRange != 'all') ?
             IDBKeyRange.only(target.dataset.keyRange) : null;
+          var direction =
+           (data.metadata.title === mostPlayedTitle ||
+            data.metadata.title === recentlyAddedTitle ||
+            data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
 
-          musicdb.enumerate('metadata.' + option, keyRange, 'next',
-            SubListView.update.bind(SubListView));
+          sublistHandle =
+            musicdb.enumerate(targetOption, keyRange, direction,
+                              SubListView.update.bind(SubListView));
 
           changeMode(MODE_SUBLIST);
         }
@@ -535,7 +616,9 @@ var SubListView = {
   init: function slv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.backgroundIndex = 0;
 
+    this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
     this.albumName = document.getElementById('views-sublist-header-name');
     this.playAllButton = document.getElementById('views-sublist-controls-play');
@@ -546,11 +629,17 @@ var SubListView = {
   },
 
   clean: function slv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (sublistHandle)
+      musicdb.cancelEnumeration(sublistHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.albumImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
   shuffle: function slv_shuffle() {
@@ -577,6 +666,14 @@ var SubListView = {
 
   },
 
+  setAlbumDefault: function slv_setAlbumDefault(index) {
+    var realIndex = index % 10;
+
+    this.albumDefault.classList.remove('default-album-' + this.backgroundIndex);
+    this.albumDefault.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
+  },
+
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
     createAndSetCoverURL(this.albumImage, fileinfo);
@@ -596,8 +693,10 @@ var SubListView = {
   },
 
   update: function slv_update(result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -607,8 +706,8 @@ var SubListView = {
     var a = document.createElement('a');
     a.href = '#';
 
-    var songTitle = (result.metadata.title) ? result.metadata.title :
-      navigator.mozL10n.get('unknownTitle');
+    var songTitle = (result.metadata.title) ?
+      result.metadata.title : unknownTitle;
 
     a.dataset.index = this.index;
 
@@ -643,7 +742,7 @@ var SubListView = {
         if (target && target.dataset.index) {
           PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
-          PlayerView.play(target);
+          PlayerView.play(target, this.backgroundIndex);
 
           changeMode(MODE_PLAYER);
         }
@@ -692,6 +791,8 @@ var PlayerView = {
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
 
+    this.ratings = document.getElementById('player-album-rating').children;
+
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
     this.seekRemaining = document.getElementById('player-seek-remaining');
@@ -699,9 +800,9 @@ var PlayerView = {
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
-    this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
+    this.backgroundIndex = 0;
 
     this.view.addEventListener('click', this);
 
@@ -741,6 +842,14 @@ var PlayerView = {
     );
   },
 
+  setCoverBackground: function pv_setCoverBackground(index) {
+    var realIndex = index % 10;
+
+    this.cover.classList.remove('default-album-' + this.backgroundIndex);
+    this.cover.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
+  },
+
   setCoverImage: function pv_setCoverImage(fileinfo) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
@@ -759,7 +868,19 @@ var PlayerView = {
     };
   },
 
-  play: function pv_play(target) {
+  setRatings: function pv_setRatings(rated) {
+    for (var i = 0; i < 5; i++) {
+      var rating = this.ratings[i];
+
+      if (i < rated) {
+        rating.classList.add('star-on');
+      } else {
+        rating.classList.remove('star-on');
+      }
+    }
+  },
+
+  play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
 
     if (this.endedTimer) {
@@ -774,20 +895,34 @@ var PlayerView = {
       var songData = this.dataSource[targetIndex];
 
       TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
+        songData.metadata.title : unknownTitle);
       this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : navigator.mozL10n.get('unknownArtist');
+        songData.metadata.artist : unknownArtist;
       this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
+        songData.metadata.album : unknownAlbum;
       this.currentIndex = targetIndex;
+
+      // backgroundIndex is from the index of sublistView
+      // for playerView to show same default album art (same index)
+      if (backgroundIndex || backgroundIndex === 0) {
+        this.setCoverBackground(backgroundIndex);
+      }
+
+      // We only update the default album art when source type is MIX
+      if (this.sourceType === TYPE_MIX) {
+        this.setCoverBackground(targetIndex);
+      }
 
       this.setCoverImage(songData);
 
-      musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
-        // On B2G devices, file.type of mp3 format is missing
-        // use file extension instead of file.type
-        this.playingFormat = file.name.slice(-4);
+      // set ratings of the current song
+      this.setRatings(songData.metadata.rated);
 
+      // update the metadata of the current song
+      songData.metadata.played++;
+      musicdb.updateMetadata(songData.name, songData.metadata);
+
+      musicdb.getFile(songData.name, function(file) {
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
@@ -888,7 +1023,7 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
-          case 'player-cover-default-image':
+          case 'player-cover':
           case 'player-cover-image':
             this.showInfo();
 
@@ -919,6 +1054,14 @@ var PlayerView = {
             this.next();
 
             break;
+        }
+
+        if (target.dataset.rating) {
+          var songData = this.dataSource[this.currentIndex];
+          songData.metadata.rated = parseInt(target.dataset.rating);
+
+          musicdb.updateMetadata(songData.name, songData.metadata,
+            this.setRatings.bind(this, parseInt(target.dataset.rating)));
         }
 
         break;
@@ -970,7 +1113,14 @@ var TabBar = {
     this.view.addEventListener('click', this);
   },
 
+  setDisabled: function tab_setDisabled(option) {
+    this.disabled = option;
+  },
+
   handleEvent: function tab_handleEvent(evt) {
+    if (this.disabled)
+      return;
+
     switch (evt.type) {
       case 'click':
         var target = evt.target;
@@ -987,21 +1137,31 @@ var TabBar = {
             changeMode(MODE_LIST);
             ListView.clean();
 
-            var data = {
-              metadata: {
-                title: 'All Songs'
-              }
-            };
+            // this array is for automated playlists
+            var playlistArray = [
+              {metadata: {title: shuffleAllTitle}, option: 'title'},
+              {metadata: {title: highestRatedTitle}, option: 'rated'},
+              {metadata: {title: recentlyAddedTitle}, option: 'date'},
+              {metadata: {title: mostPlayedTitle}, option: 'played'},
+              {metadata: {title: leastPlayedTitle}, option: 'played'},
+              // update ListView with null result to hide the scan progress
+              null
+            ];
 
-            ListView.update(this.option, data);
+            playlistArray.forEach(function(playlist) {
+              ListView.update(this.option, playlist);
+            }.bind(this));
+
             break;
           case 'tabs-artists':
           case 'tabs-albums':
             changeMode(MODE_LIST);
             ListView.clean();
 
-            musicdb.enumerate('metadata.' + this.option, null, 'nextunique',
-              ListView.update.bind(ListView, this.option));
+            listHandle =
+              musicdb.enumerate('metadata.' + this.option, null,
+                                'nextunique',
+                                ListView.update.bind(ListView, this.option));
 
             break;
           case 'tabs-more':
@@ -1049,15 +1209,4 @@ window.addEventListener('DOMContentLoaded', function() {
       }
     }
   });
-});
-
-window.addEventListener('localized', function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('invisible');
-
-  init();
 });

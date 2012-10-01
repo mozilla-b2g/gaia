@@ -169,11 +169,20 @@ suite('Render contact', function() {
 
       // The edit mode should be disabled
       subject.render();
-      assert.isTrue(editContactButton.disabled);
       assert.equal('FB', orgTitle.textContent);
 
       assert.isFalse(container.
                        querySelector('#profile_button').
+                       classList.contains('hide')
+      );
+
+      assert.isFalse(container.
+                       querySelector('#msg_button').
+                       classList.contains('hide')
+      );
+
+      assert.isFalse(container.
+                       querySelector('#wall_button').
                        classList.contains('hide')
       );
 

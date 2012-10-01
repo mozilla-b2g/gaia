@@ -17,12 +17,13 @@
 
 .fixed-title-fb {
   position: absolute;
-  top: 7.2rem;
+  top: 5rem;
   left: 2.5rem;
   width: -moz-calc(100% - 4.2rem);
-  z-index: 1;
+  z-index: 0;
   border-bottom: 1px solid #4D77CF;
   background: #f4f4f4;
+  transform: translateY(-100%);
   color: #4D77CF;
   font-size: 1.5rem;
   text-align: left;

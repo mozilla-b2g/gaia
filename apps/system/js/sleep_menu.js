@@ -176,10 +176,7 @@ var SleepMenu = {
           return;
 
         SettingsListener.getSettingsLock().set({
-          'phone.ring.incoming': false
-        });
-        SettingsListener.getSettingsLock().set({
-          'sms.ring.received': false
+          'ring.enabled': false
         });
         this.isSilentModeEnabled = true;
 
@@ -190,10 +187,7 @@ var SleepMenu = {
           return;
 
         SettingsListener.getSettingsLock().set({
-          'phone.ring.incoming': true
-        });
-        SettingsListener.getSettingsLock().set({
-          'sms.ring.received': true
+          'ring.enabled': true
         });
         this.isSilentModeEnabled = false;
 
