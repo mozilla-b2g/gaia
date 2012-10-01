@@ -266,10 +266,6 @@ const GridManager = (function() {
     });
   }
 
-  window.addEventListener('keypress', function(e) {
-    GridManager.goToPage(1);
-  });
-
   function goToNextPage(callback) {
     document.body.dataset.transitioning = 'true';
     goToPage(currentPage + 1, callback);
