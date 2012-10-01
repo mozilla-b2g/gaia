@@ -64,6 +64,8 @@ var Recents = {
   },
 
   init: function re_init() {
+    // Init PhoneNumberManager for solving country code issue.
+    PhoneNumberManager.init();
     var self = this;
     if (this.recentsFilterContainer) {
       this.recentsFilterContainer.addEventListener('click',
@@ -409,11 +411,13 @@ var Recents = {
         classes += 'icon-incoming';
       }
     }
+    var numNormalized = PhoneNumberManager.
+          getNormalizedInternationalNumber(recent.number);
     var entry =
       '<li class="log-item ' +
         ((localStorage.getItem('latestCallLogVisit') < recent.date) ?
           'highlighted' : '') +
-      '  " data-num="' + recent.number +
+      '  " data-num="' + numNormalized +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
       '  <section class="call-log-selection">' +
@@ -658,8 +662,8 @@ var Recents = {
   }
 };
 
-window.addEventListener('localized', function recentsSetup() {
-  window.removeEventListener('localized', recentsSetup);
+window.addEventListener('load', function recentsSetup() {
+  window.removeEventListener('load', recentsSetup);
     var headerSelector = '#recents-container h2';
     FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();

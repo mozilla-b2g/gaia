@@ -13,6 +13,12 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <script>
+      window.onload = function () {
+        // We update the src in the iframe. Optimization for timing
+        document.getElementById('iframe-contacts').setAttribute('src','/contacts/index.html'); 
+      }
+    </script>
     <!-- Shared code -->
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -166,7 +172,7 @@
         </article>
       </section>
       <section class="view" role="tabpanel" id="contacts-view">
-        <iframe id="iframe-contacts" src="/contacts/index.html" frameBorder="no" class="grid-wrapper"></iframe>
+        <iframe id="iframe-contacts" src="" frameBorder="no" class="grid-wrapper"></iframe>
       </section>
       <section class="view" role="tabpanel" id="recents-view">
         <div class="header-group">
@@ -236,10 +242,19 @@
     </footer>
   </body>
     <script>
-      // If no entry point, redirect to the keyboard-view
-      if(document.location.href.indexOf("#") == -1) {
-        document.location.href = "#keyboard-view";
-      }
+      document.location.href = "#keyboard-view";
     </script>
+    <!--XXX Hack for phone number lib. This should be part of Gecko -->
+    <script type="text/javascript" src="js/phone_number_manager.js"></script>
+    <script type="text/javascript" src="js/ext/closure-library/base.js"></script>
+    <script>
+      goog.require('goog.proto2.ObjectSerializer');
+    </script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonemetadata.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumber.pb.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/metadata.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/phonenumberutil.js"></script>
+    <script type="text/javascript" src="js/ext/libphonenumber/asyoutypeformatter.js"></script>
+    <script type="text/javascript" src="js/ext/mcc_iso3166_table.js"></script>
 </html>
 
