@@ -2,6 +2,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireApp('calendar/test/unit/service/helper.js');
   requireLib('ext/ical.js');
   requireLib('ext/caldav.js');
+  requireLib('ext/uuid.js');
   requireLib('service/caldav.js');
 });
 
@@ -723,6 +724,207 @@ suite('service/caldav', function() {
           );
         });
       });
+    });
+  });
+
+  suite('asset requests', function() {
+    var account;
+    var calendar;
+    var event;
+
+    var assetReq;
+
+    function mockAsset(method, cb) {
+      var realMethod = subject._assetRequest;
+
+      subject._assetRequest = function() {
+        assetReq = realMethod.apply(this, arguments);
+        assetReq[method] = cb;
+
+        return assetReq;
+      }
+    }
+
+    function mockXhr() {
+      return {
+        status: 201,
+        getResponseHeader: function(name) {
+          return name;
+        }
+      };
+    }
+
+    setup(function() {
+      account = Factory('caldav.account');
+      calendar = Factory('remote.calendar');
+      event = Factory('remote.event', {
+        syncToken: 'token',
+        url: '/foobar.ics'
+      });
+    });
+
+    test('#_assetRequest', function() {
+      var req = subject._assetRequest(account, event.url);
+      assert.instanceOf(req, Caldav.Request.Asset);
+    });
+
+    suite('#createEvent', function(done) {
+      var event;
+      var start = new Date(2012, 1, 1);
+      var end = new Date(2012, 1, 2);
+      var result;
+      var putCall;
+
+      setup(function(done) {
+        event = {
+          title: 'title',
+          description: 'desc',
+          location: 'location',
+          start: Calendar.Calc.dateToTransport(start),
+          end: Calendar.Calc.dateToTransport(end)
+        };
+
+        mockAsset('put', function(options, data, cb) {
+          putCall = [options, data];
+          cb(null, null, mockXhr());
+        });
+
+        subject.createEvent(
+          account,
+          calendar,
+          event,
+          function(err, remote) {
+            result = remote;
+            done();
+          }
+        );
+      });
+
+      test('server request', function(done) {
+        subject.parseEvent(putCall[1], function(err, icalEvent) {
+          done(function() {
+            assert.hasProperties(icalEvent, {
+              summary: event.title,
+              description: event.description,
+              location: event.location
+            });
+
+            assert.deepEqual(
+              Calendar.Calc.dateFromTransport(event.start),
+              new Date(icalEvent.startDate.toJSDate()),
+              'start'
+            );
+
+            assert.deepEqual(
+              Calendar.Calc.dateFromTransport(event.end),
+              new Date(icalEvent.endDate.toJSDate()),
+              'end'
+            );
+          });
+        });
+      });
+
+      test('service response', function() {
+        assert.equal(result.syncToken, 'Etag', 'etag');
+        assert.deepEqual(
+          result.icalComponent,
+          ICAL.parse(putCall[1]),
+          'ical'
+        );
+      });
+
+    });
+
+    suite('#updateEvent', function() {
+      var original;
+      var raw;
+      var update;
+
+      setup(function(done) {
+        raw = fixtures.singleEvent;
+        subject.parseEvent(raw, function(err, event) {
+          original = event;
+          done();
+        });
+
+      });
+
+      test('result', function(done) {
+        var start = new Date(2012, 0, 1, 0, 0);
+        var end = new Date(2012, 0, 5, 0, 0);
+
+        var update = Factory('event', {
+          remote: {
+            title: 'new title',
+            description: 'new desc',
+            location: 'new loc',
+            start: Calendar.Calc.dateToTransport(start),
+            end: Calendar.Calc.dateToTransport(end)
+          }
+        });
+
+        update.remote.icalComponent = ICAL.parse(fixtures.singleEvent);
+        update = update.remote;
+
+        mockAsset('put', function() {
+          var args = Array.prototype.slice.call(arguments);
+          var cb = args.pop();
+          cb(null, null, mockXhr());
+        });
+
+        subject.updateEvent(account, calendar, update, function(err, result) {
+          subject.parseEvent(result.icalComponent,
+                             function(parseErr, newEvent) {
+
+            done(function() {
+              assert.ok(!parseErr, parseErr);
+              assert.equal(
+                newEvent.sequence,
+                parseInt(original.sequence, 10) + 1,
+                'sequence increment'
+              );
+
+              assert.equal(newEvent.summary, update.title);
+              assert.equal(newEvent.description, update.description);
+              assert.equal(newEvent.location, update.location);
+
+              assert.deepEqual(
+                end,
+                new Date(newEvent.endDate.toJSDate()),
+                'end date'
+              );
+
+              assert.deepEqual(
+                start,
+                new Date(newEvent.startDate.toJSDate()),
+                'start date'
+              );
+
+              assert.equal(result.syncToken, 'Etag', 'etag');
+            });
+          });
+        });
+
+      });
+
+    });
+
+    test('#deleteEvent', function(done) {
+      mockAsset('delete', function(options, cb) {
+
+        assert.equal(assetReq.url, event.url);
+        assert.ok(assetReq.connection);
+        assert.deepEqual(options, {
+          etag: event.syncToken
+        });
+
+        cb();
+      });
+
+      subject.deleteEvent(account, calendar, event, function() {
+        done();
+      });
+
     });
 
   });
