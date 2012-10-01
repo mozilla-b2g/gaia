@@ -61,20 +61,6 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading {
-  display: none;
-  opacity: 0;
-}
-
-#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
-  display: block;
-
-  /* If mozbrowserloadstart/end happens less than 0.5s,
-  we will not show the icon at all. */
-  -moz-transition: opacity 0.1s ease 0.5s;
-  opacity: 1;
-}
-
 #statusbar-label {
   padding: 0;
   color: #999;
