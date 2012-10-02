@@ -166,7 +166,7 @@
       showTitle(menu.title);
       menu.items.forEach(function (menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
-              menuItem.identifer);
+              menuItem.identifier);
         iccStkList.appendChild(getDOMMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
@@ -202,7 +202,7 @@
 
     showTitle(menu.title);
     menu.items.forEach(function (menuItem) {
-      debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
+      debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifier);
       iccStkList.appendChild(getDOMMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
