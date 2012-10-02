@@ -120,7 +120,7 @@ Evme.__config = {
             "moreLoading": "Loading..."
         },
         "backgroundImage": {
-            "sourceLabel": "Image source:"
+            "sourceLabel": "Source:"
         },
         "location": {
             "manualTitle": "Enter ZIP or City",
