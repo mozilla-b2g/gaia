@@ -342,7 +342,7 @@ a.unread .unread-mark .icon-unread-mark {
   width: calc(100% - 17rem);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: '..."';
+  text-overflow: ellipsis;
   position: absolute;
   top: 3rem;
   left: 10rem;
