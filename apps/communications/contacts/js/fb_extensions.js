@@ -71,6 +71,71 @@ if (typeof Contacts.extFb === 'undefined') {
       fb.msg.ui.sendPrivateMsg(contactId);
     }
 
+    extFb.initEventHandlers = function(socialNode, contact, linked) {
+      var elements = {
+        '#msg_button': {
+          'elems': ['id'],
+          'callback': onPrivateMsgClick
+        },
+        '#wall_button': {
+          'elems': ['id'],
+          'callback': onWallClick
+        },
+        '#profile_button': {
+          'elems': ['id'],
+          'callback': onProfileClick
+        },
+        '#link_button': {
+          'elems': ['id', 'fb_is_linked'],
+          'callback': onLinkClick
+        }
+      };
+
+      // Add extra info too
+      var extras = {};
+      extras['fb_is_linked'] = linked;
+
+      for(var nodeName in elements) {
+        var node = socialNode.querySelector(nodeName);
+        var variables = elements[nodeName].elems;
+        variables.forEach(function appendData(data) {
+          var value = contact[data] || extras[data];
+          node.dataset[data] = value;
+        });
+        node.addEventListener('click', elements[nodeName].callback);
+      }
+    }
+
+    function onClickWithId(evt, callback) {
+      var contactId = evt.target.dataset['id'];
+      callback(contactId);
+    }
+
+    /*
+      The following functons are similar,
+      but have been splitted for better reading
+      and future different handling
+    */
+    function onPrivateMsgClick(evt) {
+      onClickWithId(extFb.sendPrivateMsg);
+    }
+
+    function onWallClick(evt) {
+      onClickWithId(extFb.wallPost);
+    }
+
+    function onProfileClick(evt) {
+      onClickWithId(extFb.showProfile);
+    }
+
+    // Note this is slightly different
+    function onLinkClick(evt) {
+      var contactId = evt.target.dataset['id'];
+      var linked = evt.target.dataset['fb_is_linked'];
+      linked = linked == 'true';
+      extFb.startLink(contactId, linked);
+    }
+
     function doLink(uid) {
       // We need to obtain the mozContact id for the UID
       var mozContReq = fb.utils.getMozContact(uid);
