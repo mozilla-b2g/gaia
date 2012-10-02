@@ -152,67 +152,49 @@ var FirefoxCom = (function FirefoxComClosure() {
 })();
 
 // Settings Manager - This is a utility for saving settings
-// First we see if localStorage is available
-// If not, we use FUEL in FF
 var Settings = (function SettingsClosure() {
-  var isLocalStorageEnabled = (function localStorageEnabledTest() {
-    // Feature test as per http://diveintohtml5.info/storage.html
-    // The additional localStorage call is to get around a FF quirk, see
-    // bug #495747 in bugzilla
-    try {
-      return 'localStorage' in window && window['localStorage'] !== null &&
-          localStorage;
-    } catch (e) {
-      return false;
-    }
-  })();
-
-  var isFirefoxExtension = PDFJS.isFirefoxExtension;
-
   function Settings(fingerprint) {
-    var database = null;
-    var index;
-    if (isFirefoxExtension)
-      database = FirefoxCom.requestSync('getDatabase', null) || '{}';
-    else if (isLocalStorageEnabled)
-      database = localStorage.getItem('database') || '{}';
-    else
-      return false;
+    this.fingerprint = fingerprint;
+    this.initializedPromise = new PDFJS.Promise();
 
-    database = JSON.parse(database);
-    if (!('files' in database))
-      database.files = [];
-    if (database.files.length >= kSettingsMemory)
-      database.files.shift();
-    for (var i = 0, length = database.files.length; i < length; i++) {
-      var branch = database.files[i];
-      if (branch.fingerprint == fingerprint) {
-        index = i;
-        break;
-      }
-    }
-    if (typeof index != 'number')
-      index = database.files.push({fingerprint: fingerprint}) - 1;
-    this.file = database.files[index];
-    this.database = database;
+    asyncStorage.getItem('database', function (db) {
+      this.initialize(db || '{}');
+      this.initializedPromise.resolve();
+    }.bind(this));
   }
 
   Settings.prototype = {
-    set: function settingsSet(name, val) {
-      if (!('file' in this))
-        return false;
+    initialize: function settingsInitialize(database) {
+      var index;
+      database = JSON.parse(database);
+      if (!('files' in database))
+        database.files = [];
+      if (database.files.length >= kSettingsMemory)
+        database.files.shift();
+      for (var i = 0, length = database.files.length; i < length; i++) {
+        var branch = database.files[i];
+        if (branch.fingerprint == this.fingerprint) {
+          index = i;
+          break;
+        }
+      }
+      if (typeof index != 'number')
+        index = database.files.push({fingerprint: this.fingerprint}) - 1;
+      this.file = database.files[index];
+      this.database = database;
+    },
 
-      var file = this.file;
-      file[name] = val;
+    set: function settingsSet(name, val) {
+      if (!this.initializedPromise.isResolved)
+        return;
+
+      this.file[name] = val;
       var database = JSON.stringify(this.database);
-      if (isFirefoxExtension)
-        FirefoxCom.requestSync('setDatabase', database);
-      else if (isLocalStorageEnabled)
-        localStorage.setItem('database', database);
+      asyncStorage.setItem('database', database);
     },
 
     get: function settingsGet(name, defaultValue) {
-      if (!('file' in this))
+      if (!this.initializedPromise.isResolved)
         return defaultValue;
 
       return this.file[name] || defaultValue;
@@ -653,21 +635,12 @@ var PDFView = {
 
     var pagesCount = pdfDocument.numPages;
     var id = pdfDocument.fingerprint;
-    var storedHash = null;
     document.getElementById('numPages').textContent =
       mozL10n.get('page_of', {pageCount: pagesCount}, 'of {{pageCount}}');
     document.getElementById('pageNumber').max = pagesCount;
     PDFView.documentFingerprint = id;
     var store = PDFView.store = new Settings(id);
-    if (store.get('exists', false)) {
-      var page = store.get('page', '1');
-      var zoom = store.get('zoom', PDFView.currentScale);
-      var left = store.get('scrollLeft', '0');
-      var top = store.get('scrollTop', '0');
-
-      storedHash = 'page=' + page + '&zoom=' + zoom + ',' + left + ',' + top;
-    }
-
+    var storePromise = store.initializedPromise;
     var pages = this.pages = [];
     this.pageText = [];
     this.startedTextExtraction = false;
@@ -701,10 +674,21 @@ var PDFView = {
     });
 
     // outline and initial view depends on destinations and pagesRefMap
-    PDFJS.Promise.all([pagesPromise, destinationsPromise]).then(function() {
+    var promises = [pagesPromise, destinationsPromise, storePromise];
+    PDFJS.Promise.all(promises).then(function() {
       pdfDocument.getOutline().then(function(outline) {
         self.outline = new DocumentOutlineView(outline);
       });
+
+      var storedHash = null;
+      if (store.get('exists', false)) {
+        var page = store.get('page', '1');
+        var zoom = store.get('zoom', PDFView.currentScale);
+        var left = store.get('scrollLeft', '0');
+        var top = store.get('scrollTop', '0');
+
+        storedHash = 'page=' + page + '&zoom=' + zoom + ',' + left + ',' + top;
+      }
 
       self.setInitialView(storedHash, scale);
     });
@@ -1841,11 +1825,13 @@ function updateViewarea() {
   pdfOpenParams += ',' + Math.round(topLeft[0]) + ',' + Math.round(topLeft[1]);
 
   var store = PDFView.store;
-  store.set('exists', true);
-  store.set('page', pageNumber);
-  store.set('zoom', normalizedScaleValue);
-  store.set('scrollLeft', Math.round(topLeft[0]));
-  store.set('scrollTop', Math.round(topLeft[1]));
+  store.initializedPromise.then(function () {
+    store.set('exists', true);
+    store.set('page', pageNumber);
+    store.set('zoom', normalizedScaleValue);
+    store.set('scrollLeft', Math.round(topLeft[0]));
+    store.set('scrollTop', Math.round(topLeft[1]));
+  });
   var href = PDFView.getAnchorUrl(pdfOpenParams);
   document.getElementById('viewBookmark').href = href;
 }
