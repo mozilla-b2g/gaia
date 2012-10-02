@@ -25,6 +25,18 @@ var Payment = (function Payment() {
         if (!requests)
           return;
 
+        // If there is only one request, we skip the confirmation dialog and
+        // send back to the chrome that request as the user choice.
+        if (requests.length == 1) {
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            id: chromeEventId,
+            userSelection: requests[0].type
+          });
+          window.dispatchEvent(event);
+          return;
+        }
+
         // TODO: PopupManager only allows embeding iframe so far. Once we solve
         //       https://github.com/mozilla-b2g/gaia/issues/4185 we should be
         //       using an element different from an iframe.
