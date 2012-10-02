@@ -14,6 +14,10 @@
   display: none;
 }
 
+html[dir=rtl] .apps ol > li {
+  float: right;
+}
+
 .apps ol {
   width: -moz-calc(4 * 8rem);
   padding: 0;
@@ -21,6 +25,10 @@
   display: block;
   margin: 0 auto;
 	margin-top: .3rem;
+}
+
+.apps ol > li:active {
+  background-color: transparent !important;
 }
 
 .apps ol > li {
@@ -62,43 +70,39 @@
   background: url(../resources/images/menu.png) no-repeat center top;
 }
 
-/* Container -> icon + label */
-.apps ol > li > div {
-  height: 100%;
-  width: 100%;
-	margin-top: .4rem;
-	margin-bottom: .4rem;
-  pointer-events: none; /* NO touchable area */
+/* text label */
+.apps ol > li:after {
+  display: block;
+  overflow: hidden; /* We cut the text to avoid messing up the grid */
+
+  content: attr(aria-label); /* App label */
+  color: #fff;
+  font-size: 1.125rem; /* 5pt */
+  font-weight: bold;
+  text-transform: capitalize;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
+  white-space: nowrap; /* NO new lines */
+  word-wrap: break-word;
+
+  position: relative;
+  width: 94%; /* At least 6% of margin between labels of different apps */
+  height: 1.6rem; /* 15px in otoro */
+  margin: 0 auto;
+}
+
+.apps ol > li > canvas {
+  margin-top: .4rem;
+  margin-bottom: .4rem;
+
+  pointer-events: none;
 }
 
 /* Handling the case where the status bar is double size */
-/* XXX remove when the homescreen layout gets more dynamic */
 @media screen and (max-height: 440px) {
-  .apps ol > li > div {
-    margin-top: .2rem;
+  .apps ol > li > canvas {
+    margin-top: .15rem;
+    margin-bottom: .15rem;
   }
 }
 
-/* label wrapper */
-.apps ol > li > div > span {
-  overflow: hidden; /* We cut the text to avoid messing up the grid */
-  word-wrap: break-word;
-}
 
-/* text label */
-.apps ol > li > div > span > span {
-  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
-  text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
-}
-
-.labelWrapper {
-  text-transform: capitalize; /* First letter always capitalized */
-  color: #fff; /* App label color */
-  white-space: nowrap; /* NO new lines */
-  display: block;
-  width: 94%; /* At least 6% of margin between labels of different apps */
-  position: relative;
-  height: 1.6rem; /* 15px in otoro */
-  margin: 0 auto;
-  font-weight: bold;
-}

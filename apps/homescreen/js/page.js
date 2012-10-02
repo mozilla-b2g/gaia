@@ -30,10 +30,7 @@ Icon.prototype = {
   render: function icon_render(target, page) {
     /*
      * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
-     *   <div>
-     *     <img role="presentation" src="the icon image path"></img>
-     *     <span class="label">label</span>
-     *   </div>
+     *   <canvas role="presentation"></canvas>
      *   <span class="options"></span>
      * </li>
      */
@@ -47,16 +44,13 @@ Icon.prototype = {
     container.setAttribute('role', 'button');
     container.setAttribute('aria-label', this.descriptor.name);
 
-    // Icon container
-    var icon = this.icon = document.createElement('div');
-
-    // Image
+    // Icon
     var canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+
     canvas.setAttribute('role', 'presentation');
     canvas.width = 68;
     canvas.height = 68;
-
-    icon.appendChild(canvas);
 
     var img = this.img = new Image();
     img.src = this.descriptor.icon;
@@ -72,20 +66,6 @@ Icon.prototype = {
         self.generateShadow(canvas, img);
       }
     };
-
-    // Label
-
-    // wrapper of the label -> overflow text should be centered
-    // in draggable mode
-    var wrapper = document.createElement('span');
-    wrapper.className = 'labelWrapper';
-    var label = this.label = document.createElement('span');
-    label.textContent = this.descriptor.name;
-    wrapper.appendChild(label);
-
-    icon.appendChild(wrapper);
-
-    container.appendChild(icon);
 
     if (!this.descriptor.isCore) {
       // Menu button to delete the app
@@ -127,7 +107,8 @@ Icon.prototype = {
    */
   translate: function icon_translate() {
     var desc = this.descriptor;
-    this.label.textContent = desc.name = Applications.getName(desc.origin);
+    desc.name = Applications.getName(desc.origin);
+    this.container.setAttribute('aria-title', desc.name);
   },
 
   /*
@@ -144,7 +125,7 @@ Icon.prototype = {
     var draggableElem = this.draggableElem = document.createElement('div');
     draggableElem.className = 'draggable';
 
-    draggableElem.appendChild(this.icon.cloneNode());
+    draggableElem.appendChild(this.container.cloneNode());
     this.generateShadow(draggableElem.querySelector('canvas'), this.img);
 
     var container = this.container;
@@ -199,7 +180,7 @@ Icon.prototype = {
     var style = draggableElem.style;
     style.MozTransition = '-moz-transform .4s';
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
-    draggableElem.querySelector('div').style.MozTransform = 'scale(1)';
+    draggableElem.querySelector('canvas').style.MozTransform = 'scale(1)';
 
     draggableElem.addEventListener('transitionend', function draggableEnd(e) {
       draggableElem.removeEventListener('transitionend', draggableEnd);
@@ -372,13 +353,13 @@ Page.prototype = {
    *
    * @param{Object} DOM element
    */
-  tap: function pg_tap(elem) {
+  tap: function pg_tap(target) {
     if (Homescreen.isInEditMode()) {
-      if (elem.className === 'options') {
-        Homescreen.showAppDialog(elem.dataset.origin);
+      if (target.className === 'options') {
+        Homescreen.showAppDialog(target.dataset.origin);
       }
-    } else if (elem.className === 'icon') {
-      Applications.getByOrigin(elem.dataset.origin).launch();
+    } else if (target.className === 'icon') {
+      Applications.getByOrigin(target.dataset.origin).launch();
     }
   },
 
