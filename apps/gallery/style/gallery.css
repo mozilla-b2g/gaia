@@ -476,7 +476,7 @@ footer {
   top: 10px;
   left: 10px;
   width: 300px;  /* I can't do right: 10px here. Bug? */
-  height: calc(100% - 10px)  /* can't just set bottom: 10px here */
+  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
 }
 
 #edit-crop-canvas { 
