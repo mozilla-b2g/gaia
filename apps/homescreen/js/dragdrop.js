@@ -106,7 +106,7 @@ const DragDropManager = (function() {
       }
     } else if (dirCtrl.limitPrev(currentX)) {
       isDisabledDrop = true;
-      if (pageHelper.getCurrentPageNumber() === 1 || isDisabledCheckingLimits) {
+      if (pageHelper.getCurrentPageNumber() === 2 || isDisabledCheckingLimits) {
         return;
       }
 
