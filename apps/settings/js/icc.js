@@ -7,27 +7,55 @@
   /**
    * Debug method
    */
-  var DEBUG = false;
+  var DEBUG = true;
   function debug(msg) {
     if (DEBUG) {
       console.log("[DEBUG] STKUI: " + msg);
     }
   }
 
+  /**
+   * Init
+   */
+  var iccMenuItem = document.getElementById('iccMenuItem');
+  var iccStkHeader = document.getElementById('icc-stk-header');
+  var iccStkList = document.getElementById('icc-stk-list');
+  var iccLastCommand = null;
+  var stkLastSelectedTest = null;
   var icc;
   if (navigator.mozMobileConnection) {
     icc = navigator.mozMobileConnection.icc;
+
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
     };
+
     navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+
+    document.getElementById('icc-stk-app-back').onclick = function goBack() {
+      icc.sendStkResponse(iccLastCommand,
+                          { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
+      iccLastCommand = null;
+    };
+
+    window.onunload = function() {
+      if (iccLastCommand) {
+        icc.sendStkResponse(iccLastCommand,
+                            { resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+      }
+    };
   }
 
-  var iccMenuItem = document.getElementById('iccMenuItem');
-  var iccStkAppsList = document.getElementById('icc-stk-apps');
-  var iccStkSelection = document.getElementById('icc-stk-selection');
-  var iccLastCommand = null;
+  /**
+   * Open STK applications
+   */
+  iccMenuItem.onclick = function onclick() {
+    updateMenu();
+  };
 
+  /**
+   * STK methods
+   */
   function handleSTKCommand(command) {
     debug('STK Proactive Command:' + JSON.stringify(command));
     var options = command.options;
@@ -102,10 +130,12 @@
    */
   function updateMenu() {
     debug('Showing STK main menu');
+    iccLastCommand = null;
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
-      while (iccStkAppsList.hasChildNodes()) {
-        iccStkAppsList.removeChild(iccStkAppsList.lastChild);
-      }
+      clearDOMList();
+
+      document.getElementById('icc-stk-exit').style.display = 'block';
+      document.getElementById('icc-stk-app-back').style.display = 'none';
 
       if (!menu) {
         var _ = window.navigator.mozL10n.get;
@@ -115,19 +145,19 @@
         p.textContent = _('stkAppsNotAvailable');
         p.className = 'description';
         li.appendChild(p);
-        iccStkAppsList.appendChild(li);
+        iccStkList.appendChild(li);
         return;
       }
 
       debug('STK Main App Menu title:', menu.title);
       debug('STK Main App Menu default item:', menu.defaultItem);
 
-      document.getElementById('iccMenuItem').textContent = menu.title;
-      document.getElementById('icc-stk-operator-header').textContent = menu.title;
+      iccMenuItem.textContent = menu.title;
+      iccStkHeader.textContent = menu.title;
       menu.items.forEach(function (menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
               menuItem.identifer);
-        iccStkAppsList.appendChild(getDOMMenuEntry({
+        iccStkList.appendChild(getDOMMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
           onclick: onMainMenuItemClick,
@@ -139,22 +169,9 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
-    var appName = event.target.textContent;
     debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
-    document.getElementById('icc-stk-selection-header').textContent = appName;
     icc.sendStkMenuSelection(identifier, false);
-
-    document.getElementById('icc-stk-app-back').onclick = function goBack() {
-      icc.sendStkResponse(iccLastCommand,
-                          { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
-      iccLastCommand = null;
-    };
-
-    openDialog('icc-stk-app', function submit() {
-      icc.sendStkResponse(iccLastCommand, { resultCode: icc.STK_RESULT_OK });
-      iccLastCommand = null;
-      updateMenu();
-    });
+    stkLastSelectedTest = event.target.textContent;
   }
 
   /**
@@ -165,15 +182,18 @@
     iccLastCommand = command;
 
     debug('Showing STK menu');
-    while (iccStkSelection.hasChildNodes()) {
-      iccStkSelection.removeChild(iccStkSelection.lastChild);
-    }
+    clearDOMList();
+
+    document.getElementById('icc-stk-exit').style.display = 'none';
+    document.getElementById('icc-stk-app-back').style.display = 'block';
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
+
+    iccStkHeader.textContent = menu.title;
     menu.items.forEach(function (menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
-      iccStkSelection.appendChild(getDOMMenuEntry({
+      iccStkList.appendChild(getDOMMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
         onclick: onSelectOptionClick.bind(null, command),
@@ -188,6 +208,7 @@
           JSON.stringify(command));
     icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
                                   itemIdentifier: identifier});
+    stkLastSelectedTest = event.target.textContent;
   }
 
   /**
@@ -201,9 +222,9 @@
     var options = command.options;
 
     debug('Showing STK input box');
-    while (iccStkSelection.hasChildNodes()) {
-      iccStkSelection.removeChild(iccStkSelection.lastChild);
-    }
+    clearDOMList();
+
+    iccStkHeader.textContent = stkLastSelectedTest;
 
     debug('STK Input title: ' + options.text);
 
@@ -232,7 +253,7 @@
       input.type = 'hidden';
     }
     li.appendChild(input);
-    iccStkSelection.appendChild(li);
+    iccStkList.appendChild(li);
 
     li = document.createElement('li');
     var label = document.createElement('label');
@@ -246,19 +267,18 @@
     };
     label.appendChild(button);
     li.appendChild(label);
-    iccStkSelection.appendChild(li);
+    iccStkList.appendChild(li);
   }
-
-  /**
-   * Open STK applications
-   */
-  iccMenuItem.onclick = function onclick() {
-    updateMenu();
-  };
 
   /**
    * DOM Auxiliar methods
    */
+  function clearDOMList() {
+    while (iccStkList.hasChildNodes()) {
+      iccStkList.removeChild(iccStkList.lastChild);
+    }
+  }
+
   function getDOMMenuEntry(entry) {
     var li = document.createElement('li');
     var a = document.createElement('a');
