@@ -19,8 +19,10 @@
    */
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkHeader = document.getElementById('icc-stk-header');
+  var iccStkSubheader = document.getElementById('icc-stk-subheader');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccLastCommand = null;
+  var stkOpenAppName = null;
   var stkLastSelectedTest = null;
   var icc;
   if (navigator.mozMobileConnection) {
@@ -137,6 +139,8 @@
    */
   function updateMenu() {
     debug('Showing STK main menu');
+    stkOpenAppName = null;
+
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
       clearDOMList();
 
@@ -159,7 +163,7 @@
       debug('STK Main App Menu default item:', menu.defaultItem);
 
       iccMenuItem.textContent = menu.title;
-      iccStkHeader.textContent = menu.title;
+      showTitle(menu.title);
       menu.items.forEach(function (menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
               menuItem.identifer);
@@ -178,6 +182,7 @@
     debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
     icc.sendStkMenuSelection(identifier, false);
     stkLastSelectedTest = event.target.textContent;
+    stkOpenAppName = stkLastSelectedTest;
   }
 
   /**
@@ -195,7 +200,7 @@
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
 
-    iccStkHeader.textContent = menu.title;
+    showTitle(menu.title);
     menu.items.forEach(function (menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
       iccStkList.appendChild(getDOMMenuEntry({
@@ -225,8 +230,7 @@
 
     debug('Showing STK input box');
     clearDOMList();
-
-    iccStkHeader.textContent = stkLastSelectedTest;
+    showTitle(stkLastSelectedTest);
 
     debug('STK Input title: ' + options.text);
 
@@ -273,8 +277,25 @@
   }
 
   /**
-   * DOM Auxiliar methods
+   * Auxiliar methods
    */
+  function showTitle(title) {
+    // If the application is automatically opened (no come from main menu)
+    if(!stkOpenAppName) {
+      stkOpenAppName = title;
+    }
+    iccStkHeader.textContent = stkOpenAppName;
+
+    // Show section
+    if(stkOpenAppName != title) {
+      iccStkSubheader.textContent = title;
+//      iccStkSubheader.parentNode.style.display = 'block';
+    } else {
+      iccStkSubheader.textContent = '';
+//      iccStkSubheader.parentNode.style.display = 'none';
+    }
+  }
+
   function clearDOMList() {
     while (iccStkList.hasChildNodes()) {
       iccStkList.removeChild(iccStkList.lastChild);
