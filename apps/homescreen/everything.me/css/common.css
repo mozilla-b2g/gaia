@@ -1,10 +1,4 @@
 #evmeContainer {
-    font: normal 12px 'Open Sans', Sans-Serif;
-}
-#evmeContainer fieldset {
-    border-width: 0;
-}
-#evmeContainer {
     position: fixed;
     overflow: hidden;
     margin: 0;
@@ -15,10 +9,15 @@
     height: 100%;
     background: transparent;
     background-size: 100% 100%;
+    font: normal 12px 'Open Sans', Sans-Serif;
+    text-align: left;
 }
 #evmeContainer * {
     margin: 0;
     padding: 0;
+}
+#evmeContainer fieldset {
+    border-width: 0;
 }
 #evmeContainer a {
     text-decoration: none;
