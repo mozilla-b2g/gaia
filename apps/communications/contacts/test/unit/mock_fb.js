@@ -7,7 +7,13 @@ var MockFb = {
 
   CATEGORY: 'facebook',
   NOT_LINKED: 'not_linked',
-  LINKED: 'fb_linked'
+  LINKED: 'fb_linked',
+
+  // Default, can be changed by specific tests
+  operationsTimeout: 20000,
+
+  // mocks the saved data
+  savedData: []
 };
 
 MockFb.setIsFbContact = function(isFB) {
@@ -25,6 +31,7 @@ MockFb.setIsEnabled = function(isEnabled) {
 MockFb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
   var cid = mozCid;
+  var contactData;
 
   function markAsFb(deviceContact) {
     if (!deviceContact.category) {
@@ -97,6 +104,22 @@ MockFb.Contact = function(devContact, mozCid) {
         this.result = deviceContact;
         this.result.org[0] = 'FB';
 
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    };
+  }
+
+  this.setData = function(data) {
+    contactData = data;
+  }
+
+  this.save = function() {
+    return {
+      set onsuccess(callback) {
+        MockFb.savedData.push(contactData);
         callback.call(this);
       },
       set onerror(callback) {
