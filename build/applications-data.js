@@ -35,7 +35,8 @@ let content = {
     makeURL('communications', 'dialer'),
     makeURL('sms'),
     makeURL('communications', 'contacts'),
-    makeURL('browser')
+    makeURL('browser'),
+    makeURL('feedback')
   ]
 }
 
