@@ -560,7 +560,7 @@ var ThreadListUI = {
             '      " data-time="' + thread.timestamp + '">' +
                   Utils.getFormattedHour(thread.timestamp) +
             '    </div>') +
-            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="msg">' + bodyHTML + '</div>' +
             '    <div class="unread-tag"></div>' +
             '    <div class="photo">' +
             '    <img src="">' +
