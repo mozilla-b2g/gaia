@@ -1,0 +1,50 @@
+#week-view .hour {
+  border-bottom: 1px solid #D0D0D0;
+  border-right: 1px solid #D0D0D0;
+  min-height: 6rem;
+  padding-left: 0.7rem;
+  position: relative;
+}
+
+#week-view #hours-sidebar {
+  margin-top: 2rem;
+  width: 2em;
+  float:left;
+}
+
+#week-view .hours-sidebar-element {
+   min-height: 6rem;
+   width: 2rem;
+   color: black;
+   text-align: center;
+   text-transform: uppercase;
+   font-size: 1.3rem;
+   padding: 0.185rem 0;
+   border: 1px solid #131314;
+   border-left: none;
+   border-top: none;
+}
+
+#week-view .day-header {
+  font-size: 1.1rem;
+}
+
+#week-view .hours-sidebar-element:first-child {
+  border-top: 1px solid #131314;
+}
+#week-view .hours-sidebar-element h4 {
+  transform: rotate(-90deg) translateX(-3.5rem);
+  line-height: 120%;
+}
+
+#week-view .week-view-day {
+  width: calc((100% - 2rem) / 7);
+  line-height: 120%;
+  -moz-user-select: none;
+  float: left;
+}
+
+#week-view .day-header {
+  line-height: 120%;
+  -moz-user-select: none;
+}

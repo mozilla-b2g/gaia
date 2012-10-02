@@ -105,6 +105,24 @@ Calendar.ns('Views').DayBased = (function() {
       return this.hours.set(hour, details);
     },
 
+    _formatHour: function(hour) {
+      if (hour === Calendar.Calc.ALLDAY) {
+        //XXX: Localize
+        return Calendar.Calc.ALLDAY;
+      }
+
+      newHour = hour;
+      if (hour > 12) {
+        var newHour = (hour - 12) || 12;
+        return String(newHour) + ' pm';
+      } else {
+        if (hour == 0) {
+          hour = 12;
+        }
+        return String(hour) + 'am';
+      }
+    },
+
     /**
      * Creates a record for a given hour.
      * NOTE- this usually needs to be called

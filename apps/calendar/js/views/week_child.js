@@ -1,15 +1,15 @@
-Calendar.ns('Views').DayChild = (function() {
+Calendar.ns('Views').WeekChild = (function() {
 
-  var template = Calendar.Templates.Day;
+  var template = Calendar.Templates.Week;
   var OrderedMap = Calendar.OrderedMap;
 
-  function Day(options) {
+  function Week(options) {
     Calendar.Views.DayBased.apply(this, arguments);
 
     this.controller = this.app.timeController;
   }
 
-  Day.prototype = {
+  Week.prototype = {
 
     __proto__: Calendar.Views.DayBased.prototype,
 
@@ -206,75 +206,91 @@ Calendar.ns('Views').DayChild = (function() {
       });
     },
 
-    _removeHour: function(hour) {
-      var record = this.hours.get(hour);
-      var el = record.element;
-      el.parentNode.removeChild(el);
+    /**
+     * Renders out the calendar headers.
+     *
+     * @return {String} returns a list of headers.
+     */
+    _renderDayHeaders: function _renderDayHeaders() {
+        var i = 0;
+        var days = 7;
+        var name;
+        var html = '';
+
+        for (; i < days; i++) {
+          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          html += template.weekDaysHeaderDay.render({
+            day: String(i),
+            dayName: name,
+            //TODO
+            dayNumber: 0
+          });
+        }
+
+      return template.weekDaysHeader.render(html);
     },
 
-    _insertHour: function(hour) {
-      this.hours.indexOf(hour);
-
-      var len = this.hours.items.length;
-      var idx = this.hours.insertIndexOf(hour);
-
-      var html = template.hour.render({
-        displayHour: this._formatHour(hour),
-        hour: String(hour)
-      });
-
-      var el = this._insertElement(
-        html,
-        this.events,
-        this.hours.items,
-        idx
+    _renderDay: function _renderDay(day) {
+      var dayhours = [];
+      var hour = 0;
+      var name = navigator.mozL10n.get('weekday-' + day + '-short');
+      dayhours.push(
+        template.weekDaysHeaderDay.render({
+          day: String(day),
+          dayName: name,
+          dayNumber: this._getDayNumber(day)
+        })
       );
-
-      return {
-        element: el,
-        records: new OrderedMap(),
-        flags: []
-      };
-    },
-
-    _renderEvent: function(object) {
-      var remote = object.remote;
-      var attendees;
-
-      if (object.remote.attendees) {
-        attendees = this._renderAttendees(
-          object.remote.attendees
-        );
+      for (; hour < 24; hour++) {
+        dayhours.push(template.hour.render({
+          hour: String(hour)
+        }));
       }
 
-      return template.event.render({
-        eventId: object._id,
-        calendarId: object.calendarId,
-        title: remote.title,
-        location: remote.location,
-        attendees: attendees
-      });
+      return template.day.render(dayhours.join(''));
+
     },
 
-    _renderAttendees: function(list) {
-      if (!(list instanceof Array)) {
-        list = [list];
+    _getDayNumber: function _getDayNumber(number) {
+      var firstWeekday = this.date;
+      var day = firstWeekday.getDay();
+
+      if (day !== 0) {
+        firstWeekday.setHours(-24 * day);
       }
 
-      return template.attendee.renderEach(list).join(',');
+      return new Date(
+        firstWeekday.getFullYear(),
+        firstWeekday.getMonth(),
+        firstWeekday.getDate() + number
+      ).getDate(); 
     },
 
-    _buildElement: function() {
-      var el = document.createElement('section');
-      var events = document.createElement(
-        'section'
-      );
+    _renderWeek: function _renderWeek() {
+      var day = 0;
+      var week = [];
 
-      this._eventsElement = el;
-      this._element = el;
-      this._eventsElement.classList.add('day-events');
+      for (; day < 7; day++) {
+        week.push(this._renderDay(day));
+      }
 
-      return el;
+      return week.join('');
+    },
+
+    _renderSidebar: function _renderSidebar() {
+      var hours = [];
+      var hour = 0;
+      hours.push(template.hourSidebarElement.render({
+        hour: this._formatHour('allday')
+      }));
+
+      for (; hour < 24; hour++) {
+        hours.push(template.hourSidebarElement.render({
+          hour: this._formatHour(String(hour))
+        }));
+      }
+
+      return template.hourSidebar.render(hours.join(''));
     },
 
     /**
@@ -282,18 +298,16 @@ Calendar.ns('Views').DayChild = (function() {
      *
      */
     create: function() {
-      var el = this._buildElement();
-      this.changeDate(this.date);
+      var html = this._renderSidebar() + this._renderWeek();
+      var element = document.createElement('section');
 
-      if (this.renderAllHours) {
-        var hour = 0;
-        this.createHour('allday');
-        for (; hour < 24; hour++) {
-          this.createHour(hour);
-        }
-      }
+      element.id = this.id;
+      element.classList.add('week-events');
+      element.innerHTML = html;
 
-      return el;
+      this._element = element;
+
+      return element;
     },
 
     /**
@@ -310,6 +324,6 @@ Calendar.ns('Views').DayChild = (function() {
     }
   };
 
-  return Day;
+  return Week;
 
 }(this));

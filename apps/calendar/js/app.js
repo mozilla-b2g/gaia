@@ -51,9 +51,11 @@ Calendar.App = (function(window) {
       }
 
       /* temp views */
-      this.state('/week/', setPath, tempView('#week-view'));
+      this.state('/add/', setPath, tempView('#modify-event-view'));
+
 
       /* routes */
+      this.state('/week/', setPath, 'Week');
       this.state('/day/', setPath, 'Day');
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
