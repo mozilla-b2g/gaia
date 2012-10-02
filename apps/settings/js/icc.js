@@ -7,7 +7,7 @@
   /**
    * Debug method
    */
-  var DEBUG = true;
+  var DEBUG = false;
   function debug(msg) {
     if (DEBUG) {
       console.log("[DEBUG] STKUI: " + msg);
@@ -33,16 +33,11 @@
     navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
 
     document.getElementById('icc-stk-app-back').onclick = function goBack() {
-      icc.sendStkResponse(iccLastCommand,
-                          { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
-      iccLastCommand = null;
+      responseSTKCommand({ resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
     };
 
     window.onunload = function() {
-      if (iccLastCommand) {
-        icc.sendStkResponse(iccLastCommand,
-                            { resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
-      }
+      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
     };
   }
 
@@ -54,17 +49,29 @@
   };
 
   /**
-   * STK methods
+   * Response ICC Command
+   */
+  function responseSTKCommand(response) {
+    debug("sendStkResponse to command: " +
+      JSON.stringify(iccLastCommand) +
+      " # response = " + JSON.stringify(response));
+    icc.sendStkResponse(iccLastCommand, response);
+    iccLastCommand = null;
+  }
+
+  /**
+   * Handle ICC Commands
    */
   function handleSTKCommand(command) {
     debug('STK Proactive Command:' + JSON.stringify(command));
+    iccLastCommand = command;
     var options = command.options;
 
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
         window.asyncStorage.setItem('stkMainAppMenu', options);
         updateMenu();
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
       case icc.STK_CMD_SELECT_ITEM:
@@ -78,7 +85,7 @@
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         alert(options.text);
         break;
 
@@ -86,7 +93,7 @@
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
         debug(' STK:Send message: ' + JSON.stringify(command));
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         // TODO: Show a spinner instead the message (UX decission).
         // Stop it on any other command
         break;
@@ -94,13 +101,13 @@
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
         var confirmed = confirm(options.confirmMessage);
-        icc.sendStkResponse(command, { hasConfirmed: confirmed,
-                                       resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ hasConfirmed: confirmed,
+                             resultCode: icc.STK_RESULT_OK });
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         if (confirm(options.confirmMessage)) {
           var options = {
             name: 'view',
@@ -120,7 +127,7 @@
 
       default:
         debug('STK Message not managed ... response OK');
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
     }
   }
@@ -130,7 +137,6 @@
    */
   function updateMenu() {
     debug('Showing STK main menu');
-    iccLastCommand = null;
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
       clearDOMList();
 
@@ -179,7 +185,6 @@
    */
   function updateSelection(command) {
     var menu = command.options;
-    iccLastCommand = command;
 
     debug('Showing STK menu');
     clearDOMList();
@@ -204,10 +209,8 @@
 
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
-    debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' +
-          JSON.stringify(command));
-    icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
-                                  itemIdentifier: identifier});
+    responseSTKCommand({resultCode: icc.STK_RESULT_OK,
+                        itemIdentifier: identifier});
     stkLastSelectedTest = event.target.textContent;
   }
 
@@ -218,7 +221,6 @@
    *   'text':'Caption String','minLength':3,'maxLength':15,'isAlphabet':true}}
    */
   function updateInput(command) {
-    iccLastCommand = command;
     var options = command.options;
 
     debug('Showing STK input box');
@@ -262,8 +264,8 @@
     button.textContent = 'Ok';
     button.onclick = function(event) {
       var value = document.getElementById('stk-item-input').value;
-      icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
-                                    input: value});
+      responseSTKCommand({resultCode: icc.STK_RESULT_OK,
+                          input: value});
     };
     label.appendChild(button);
     li.appendChild(label);
