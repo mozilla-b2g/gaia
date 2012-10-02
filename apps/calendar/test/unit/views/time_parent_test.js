@@ -294,6 +294,20 @@ suite('views/time_parent', function() {
     });
   });
 
+  test('#recalculateWidth', function() {
+    subject.viewportSize = 200;
+    subject.visibleChildren = 2;
+    subject.recalculateWidth();
+
+    assert.equal(subject._childWidth, 100, 'width');
+
+    assert.equal(
+      subject._childThreshold,
+      subject._childWidth / subject.childThreshold,
+      'threshold'
+    );
+  });
+
   suite('#purgeChildren', function() {
     var purgeSpan;
     var items;
@@ -562,23 +576,47 @@ suite('views/time_parent', function() {
       assert.length(subject.children, 9);
     });
 
+    suite('#_moveFrames', function() {
+
+      test('while panning', function() {
+        // going into the future...
+        subject._childWidth = 200;
+        subject._moveFrames(-15);
+
+
+        // four frames.
+        // each frame is 200px wide
+        var expected = [
+          -215,
+          -15,
+          185,
+          385
+        ];
+
+        assert.length(subject._activeChildren, 4);
+        expectFrameOffset(expected);
+      });
+
+      test('while not panning', function() {
+        // remove extra padding
+        subject._activeChildren.items.shift();
+        subject._activeChildren.items.pop();
+
+        subject._childWidth = 200;
+        subject._moveFrames(0);
+
+        var expected = [
+          0,
+          200
+        ];
+
+        expectFrameOffset(expected);
+      });
+
+    });
+
     test('#_moveFrames', function() {
-      // going into the future...
-      subject._childWidth = 200;
-      subject._moveFrames(-15);
 
-
-      // four frames.
-      // each frame is 200px wide
-      var expected = [
-        -215,
-        -15,
-        185,
-        385
-      ];
-
-      assert.length(subject._activeChildren, 4);
-      expectFrameOffset(expected);
     });
 
     test('#_unshiftFrame', function() {
@@ -948,5 +986,18 @@ suite('views/time_parent', function() {
 
   });
 
+  suite('multiple children', function() {
+    var start = new Date(2012, 0, 1);
+
+    setup(function() {
+      subject.paddingBefore = 1;
+      subject.visibleChildren = 4;
+      subject.paddingAfter = 5;
+    });
+
+    test('initial render', function() {
+      subject._activateTime(start);
+    });
+  });
 
 });
