@@ -348,7 +348,7 @@ footer {
    * XXX
    * The dialpad icon looks kind of like a  grid of thumbnail images
    */
-  background-image: url('images/actionicon_dialpad.png');
+  background-image: url('images/actionicon_grid_view.png');
 }
 
 #photos-camera-button {
