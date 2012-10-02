@@ -348,10 +348,6 @@ footer {
   width: 20%;
   height: 100%;
   left: 0;
-  /*
-   * XXX
-   * The dialpad icon looks kind of like a  grid of thumbnail images
-   */
   background-image: url('images/actionicon_grid_view.png');
 }
 
