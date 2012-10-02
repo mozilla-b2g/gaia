@@ -184,7 +184,8 @@ const GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
         page = page + 1;
-      } else if (!forward && currentPage > 0) {
+      } else if (!forward &&
+                  (page > 1 || (page === 1 && !Homescreen.isInEditMode()))) {
         page = page - 1;
       }
     }
