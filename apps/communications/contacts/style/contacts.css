@@ -437,3 +437,22 @@ label.switch input:checked + span:before {
 label.switch input:checked + span:after {
   transform: translateX(0);
 }
+
+/* FTE */
+
+#contacts-fte {
+  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 11;
+  color: #000;
+  text-align: left;
+}
+
+#contacts-fte .info {
+  margin: 10rem 4rem 0 4rem;
+  padding-top: 1rem;
+  border-top: 1px solid #B7B7B7;
+  color: #606060;
+}

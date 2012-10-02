@@ -12,6 +12,7 @@ contacts.List = (function() {
       fastScroll,
       scrollable,
       settingsView,
+      contactsFTE,
       orderByLastName = null;
 
   var init = function load(element, overlay) {
@@ -22,6 +23,7 @@ contacts.List = (function() {
     fastScroll = document.querySelector('.view-jumper'),
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
+    contactsFTE = document.querySelector('#contacts-fte');
 
 
     groupsList = element;
@@ -198,6 +200,8 @@ contacts.List = (function() {
     var counter = {};
     var favorites = [];
     counter['favorites'] = 0;
+    var showFTE = contacts.length === 0;
+    toggleFTEScreen(showFTE);
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -247,6 +251,14 @@ contacts.List = (function() {
     cleanLastElements(counter);
     Contacts.hideOverlay();
     FixedHeader.refresh();
+  };
+
+  var toggleFTEScreen = function cl_toggleFTE(show) {
+    if (show) {
+      contactsFTE.classList.remove('hide');
+      return;
+    }
+    contactsFTE.classList.add('hide');
   };
 
   var cleanLastElements = function cleanLastElements(counter) {
@@ -406,6 +418,7 @@ contacts.List = (function() {
         showGroup('favorites');
       }
     }
+    toggleFTEScreen(false);
     FixedHeader.refresh();
   }
 
@@ -484,6 +497,10 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    var selector = 'ol h2:not(.hide)';
+    var visibleElements = groupsList.querySelectorAll(selector);
+    var showFTE = visibleElements.length === 0;
+    toggleFTEScreen(showFTE);
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {
