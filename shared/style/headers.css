@@ -181,6 +181,10 @@ section[role="region"] > header:first-child .icon.icon-edit {
   background-image: url(headers/images/icons/edit.png);
 }
 
+section[role="region"] > header:first-child .icon.icon-done {
+  background-image: url(headers/images/icons/done.png);
+}
+
 section[role="region"] > header:first-child .icon.icon-close {
   background-image: url(headers/images/icons/close.png);
 }
