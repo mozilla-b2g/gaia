@@ -259,7 +259,11 @@ Calendar.ns('Views').WeekChild = (function() {
         firstWeekday.setHours(-24 * day);
       }
 
-      return firstWeekday.getDate() + number;
+      return new Date(
+        firstWeekday.getFullYear(),
+        firstWeekday.getMonth(),
+        firstWeekday.getDate() + number
+      ).getDate(); 
     },
 
     _renderWeek: function _renderWeek() {
