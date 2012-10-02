@@ -66,7 +66,7 @@ Evme.Searchbar = new function() {
     };
     
     this.bindEvents = function($el, cbFocus, inputKeyDown, inputKeyUp){
-        $el.bind("mousedown", cbFocus);
+        $el.bind("touchstart", cbFocus);
         
         $el.bind("keydown", inputKeyDown)
            .bind("keyup", inputKeyUp);
