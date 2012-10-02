@@ -530,7 +530,7 @@ footer {
   overflow: hidden;
   padding-top: 16px;
   font-size: 12px;
-  background-position: center 5px;
+  background-position: center;
 }
 
 #edit-crop-options a.selected.radio.button {
