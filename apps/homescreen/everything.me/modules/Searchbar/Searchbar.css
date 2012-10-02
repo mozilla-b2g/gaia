@@ -35,6 +35,8 @@
         vertical-align: middle;
         height: 28px;
         line-height: 28px;
+        -moz-transition: all .3s ease;
+        transition: all .3s ease;
     }
     
     .clear-visible #search-rapper {
