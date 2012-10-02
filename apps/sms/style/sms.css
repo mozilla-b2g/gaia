@@ -1,3 +1,9 @@
+/*
+Currently media queries with min/max resolution are not working
+in Firefox until fixing:
+https://bugzilla.mozilla.org/show_bug.cgi?id=779527
+That's why in SII or Nexus SMS App is not rendered properly.
+*/
 
 @media screen and (min-resolution: 230dpi) {
 
