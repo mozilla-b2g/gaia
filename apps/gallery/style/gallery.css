@@ -293,7 +293,7 @@ footer {
 }
 
 .icon.icon-done {
-  background-image: url('images/actionicon_done.png');
+  background-image: url('images/actionicon_done.png') !important;
 }
 
 #thumbnails-camera-button {
