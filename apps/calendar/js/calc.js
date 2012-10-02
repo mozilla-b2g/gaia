@@ -6,6 +6,8 @@ Calendar.Calc = (function() {
 
   var Calc = {
 
+    _hourDate: new Date(),
+
     FLOATING: 'floating',
 
     ALLDAY: 'allday',
@@ -37,6 +39,37 @@ Calendar.Calc = (function() {
     get today() {
       //TODO: implement cache
       return new Date();
+    },
+
+    /**
+     * Formats a numeric value for an hour.
+     * Useful to convert absolute hour into
+     * a display hour localizes for am/pm
+     */
+    formatHour: function(hour) {
+      if (hour === Calc.ALLDAY) {
+        return Calc.ALLDAY;
+      }
+
+      var format = navigator.mozL10n.get('hour-format');
+
+      format = format || '%I %p';
+
+      Calc._hourDate.setHours(hour);
+
+      var result = Calendar.App.dateFormat.localeFormat(
+        Calc._hourDate,
+        format
+      );
+
+
+      // remove leading zero
+      // XXX: rethink this?
+      if (result[0] == '0') {
+        result = result.slice(1);
+      }
+
+      return result;
     },
 
     daysInWeek: function() {

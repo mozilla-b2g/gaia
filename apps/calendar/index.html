@@ -8,6 +8,7 @@
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
+  <link rel="stylesheet" type="text/css" href="/style/week_view.css">
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
@@ -53,6 +54,7 @@
   <!--- templates -->
   <script defer src="/js/templates/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/templates/week.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/account.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/templates/calendar.js" type="text/javascript" charset="utf-8"></script>
 
@@ -86,6 +88,8 @@
   <script defer src="/js/views/day_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/week.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/week_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/advanced_settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
@@ -174,7 +178,8 @@
   </section>
 
   <section id="week-view">
-    [Week] Coming soon...
+    <ol class="sidebar"></ol>
+    <section class="children"></section>
   </section>
 
   <menu id="view-selector">

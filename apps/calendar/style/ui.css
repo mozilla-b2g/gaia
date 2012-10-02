@@ -91,8 +91,8 @@ ol.link-list a {
 /* temp views */
 
 #week-view {
-  text-align: center;
-  padding-top: 5rem;
+  height: calc(35% - 3.33rem);
+  overflow: hidden;
 }
 
 /* advanced settings */
@@ -221,7 +221,7 @@ body[role="application"] section[role="region"] > header h1 {
 /* sub common: day headers, day boxes */
 
 #month-days {
-  overflow: hidden;
+  overflow: scroll;
 }
 
 #month-view .month li,
@@ -247,6 +247,7 @@ body[role="application"] section[role="region"] > header h1 {
   overflow: hidden;
 }
 
+#week-view .day-header,
 #month-days li {
   height: 2rem;
   color: white;
