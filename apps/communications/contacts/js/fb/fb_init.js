@@ -13,6 +13,8 @@ if (typeof fb.init === 'undefined') {
           fb.isEnabled = true;
         }
 
+        fb.operationsTimeout = configData.operationsTimeout;
+
         // The FB Contacts DB Cache is initialized regardless FB is enabled
         // or not. That's because we would like to avoid to add extra conditions
         // throughout the code, thus keeping it as simple as possible
