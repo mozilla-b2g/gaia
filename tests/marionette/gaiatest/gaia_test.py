@@ -13,6 +13,9 @@ class LockScreen(object):
 
     def unlock(self):
         success = self.marionette.execute_async_script("""
+let setlock = window.wrappedJSObject.SettingsListener.getSettingsLock();
+let obj = {'screen.timeout': 0};
+setlock.set(obj);
 waitFor(
     function() {
         window.wrappedJSObject.LockScreen.unlock();
@@ -69,7 +72,8 @@ class GaiaTestCase(MarionetteTestCase):
 
     def setUp(self):
         MarionetteTestCase.setUp(self)
-        self.marionette.set_script_timeout(20000)
+        # the emulator can be really slow!
+        self.marionette.set_script_timeout(60000)
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
 
