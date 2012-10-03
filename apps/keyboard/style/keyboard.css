@@ -543,13 +543,13 @@ background-position: center 2.2rem;
 }
 
 /* for latin suggestions we don't need such a tall box */
-#keyboard-candidate-panel.latin {
-  height: 30px;
-}
-
 /* and in latin we hide the toggle button, so we can be full-width */
 #keyboard.candidate-panel #keyboard-candidate-panel.latin {
+  height: 30px;
   width: 100%;
+  background: none;
+  margin: 0;
+  border: none;
 }
 
 #keyboard.full-candidate-panel {
@@ -599,12 +599,13 @@ background-position: center 2.2rem;
 
 #keyboard-candidate-panel.latin span,
 #keyboard-candidate-panel[data-truncated].latin::after {
-  font-family: MozTT;
-  font-size: 12pt;
-  line-height: 30px;
-  height: 30px;
-  width: 33.3%;
-  padding: 0;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10pt;
+  line-height: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  margin: 3px;
 }
 
 #keyboard-candidate-panel-toggle-button {
@@ -625,7 +626,6 @@ background-position: center 2.2rem;
   display: none;
 }
 
-
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
   display: block;
   border-top: 1px solid #e8e8ff;
@@ -642,7 +642,7 @@ background-position: center 2.2rem;
  * For now, at least, we only ever get 3 at a time 
  */
 #keyboard.candidate-panel #keyboard-candidate-panel-toggle-button.latin {
-  display: none
+  display: none;
 }
 
 #keyboard-candidate-panel span[data-active],
