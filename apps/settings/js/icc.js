@@ -111,19 +111,7 @@
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         if (confirm(options.confirmMessage)) {
-          var options = {
-            name: 'view',
-            data: {
-              type: 'url',
-              url: options.url
-            }
-          };
-
-          try {
-            var activity = new MozActivity(options);
-          } catch (e) {
-            debug('WebActivities unavailable? : ' + e);
-          }
+          openURL(options.url);
         }
         break;
 
