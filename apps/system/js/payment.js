@@ -25,9 +25,6 @@ var Payment = (function Payment() {
         if (!requests)
           return;
 
-        // TODO: PopupManager only allows embeding iframe so far. Once we solve
-        //       https://github.com/mozilla-b2g/gaia/issues/4185 we should be
-        //       using an element different from an iframe.
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
@@ -68,8 +65,8 @@ var Payment = (function Payment() {
 
         // The payment request confirmation screen is shown within the trusted
         // UI.
-        PopupManager.open('payment-confirmation', frame,
-                          kPaymentConfirmationScreen, true);
+        TrustedUIManager.open('payment-confirmation', frame,
+                              kPaymentConfirmationScreen);
         break;
 
       // Chrome asks Gaia to show the payment flow according to the
@@ -98,11 +95,11 @@ var Payment = (function Payment() {
         });
 
         // The payment flow is shown within the trusted UI.
-        PopupManager.open('PaymentFlow', frame, e.detail.uri, true);
+        TrustedUIManager.open('PaymentFlow', frame, e.detail.uri);
         break;
 
       case 'close-payment-flow-dialog':
-        PopupManager.close(null, function dialogClosed() {
+        TrustedUIManager.close(function dialogClosed() {
           var event = document.createEvent('customEvent');
           event.initCustomEvent('mozContentEvent', true, true,
                                 { id: chromeEventId });
