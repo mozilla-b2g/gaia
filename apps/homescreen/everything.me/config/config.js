@@ -89,7 +89,7 @@ Evme.__config = {
     "maxHistoryEntries": "10",
     "texts": {
         "searchbar": {
-            "defaultText": "Search Everything",
+            "defaultText": "Show apps related to...",
             "clear": "Back"
         },
         "helper": {
@@ -105,7 +105,7 @@ Evme.__config = {
             "titleDidYouMean": "Did you mean:",
             "titleRefine": "Did you mean:",
             "titlePrefix": "Everything",
-            "titlePrefixEmpty": "Shortcuts"
+            "titlePrefixEmpty": "Everything"
         },
         "shortcutsFavorites": {
             "title": "Select Shortcuts",
