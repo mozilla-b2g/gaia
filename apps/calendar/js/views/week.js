@@ -18,7 +18,8 @@ Calendar.ns('Views').Week = (function() {
     paddingBefore: 1,
     maxChildren: 7,
 
-    scale: 'day',
+    // Needed for proper TimeHeader data
+    scale: 'week',
 
     selectors: {
       element: '#week-view',

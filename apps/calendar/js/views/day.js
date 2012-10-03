@@ -20,9 +20,11 @@ Calendar.ns('Views').Day = (function() {
     _initEvents: function() {
       Parent.prototype._initEvents.call(this);
 
-      this.delegate(this.childContainer, 'click', '[data-id]', function(e, target) {
-        Calendar.App.router.show('/event/' + target.dataset.id + '/');
-      });
+      this.delegate(
+        this.childContainer, 'click', '[data-id]', function(e, target) {
+          Calendar.App.router.show('/event/' + target.dataset.id + '/');
+        }
+      );
     },
 
     handleEvent: function(e) {
