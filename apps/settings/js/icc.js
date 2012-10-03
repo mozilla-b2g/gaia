@@ -18,8 +18,6 @@
    * Init
    */
   var iccMenuItem = document.getElementById('iccMenuItem');
-  var iccStkHeader = document.getElementById('icc-stk-header');
-  var iccStkSubheader = document.getElementById('icc-stk-subheader');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccLastCommand = null;
   var stkOpenAppName = null;
@@ -44,21 +42,10 @@
   }
 
   /**
-   * Open STK applications
+   * Open STK main application
    */
   iccMenuItem.onclick = function onclick() {
     updateMenu();
-  };
-
-  /**
-   * Open settings application with ICC section opened
-   */
-  function openApplication() {
-    document.location.hash="icc";
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch('settings');
-    };
   };
 
   /**
@@ -89,7 +76,7 @@
 
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
-        openApplication();
+        openSTKApplication();
         break;
 
       case icc.STK_CMD_GET_INKEY:
@@ -280,14 +267,17 @@
    * Auxiliar methods
    */
   function showTitle(title) {
+    var iccStkHeader = document.getElementById('icc-stk-header');
+    var iccStkSubheader = document.getElementById('icc-stk-subheader');
+
     // If the application is automatically opened (no come from main menu)
-    if(!stkOpenAppName) {
+    if (!stkOpenAppName) {
       stkOpenAppName = title;
     }
     iccStkHeader.textContent = stkOpenAppName;
 
     // Show section
-    if(stkOpenAppName != title) {
+    if (stkOpenAppName != title) {
       iccStkSubheader.textContent = title;
       iccStkSubheader.parentNode.classList.remove('hiddenheader');
     } else {
@@ -314,4 +304,16 @@
     li.appendChild(a);
     return li;
   }
+
+  /**
+   * Open settings application with ICC section opened
+   */
+  function openSTKApplication() {
+    document.location.hash="icc";
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch('settings');
+    };
+  };
+
 })();
