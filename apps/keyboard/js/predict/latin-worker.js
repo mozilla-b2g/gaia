@@ -566,7 +566,11 @@ var PredictiveText = {
       var candidates = Predict(_currentWord);
       for (var n = 0, len = candidates.length; n < len; ++n) {
         var word = candidates[n].word;
-        wordList.push([word, word]);
+        // For some reason ../render.js expects two copies here.
+        // It displays the first one, but actually inserts the second one.
+        // Maybe this is required for asian input methods. We use it to
+        // add a space after suggestions
+        wordList.push([word, word + ' ']);
       }
     }
     self.postMessage({ cmd: 'sendCandidates', args: [wordList] });
