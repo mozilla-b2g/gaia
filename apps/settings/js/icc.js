@@ -51,6 +51,17 @@
   };
 
   /**
+   * Open settings application with ICC section opened
+   */
+  function openApplication() {
+    document.location.hash="icc";
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch('settings');
+    };
+  };
+
+  /**
    * Response ICC Command
    */
   function responseSTKCommand(response) {
@@ -78,6 +89,7 @@
 
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
+        openApplication();
         break;
 
       case icc.STK_CMD_GET_INKEY:
