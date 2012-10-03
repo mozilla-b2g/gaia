@@ -27,6 +27,10 @@
   visibility: hidden;
 }
 
+#wifi ul li a {
+  padding: 0;
+}
+
 /* DateTime */
 #datetime {
   background-image: url(images/datetime.png);
@@ -101,32 +105,41 @@
   font-size: 1.3rem;
 }
 
-.privacy .header {
+.privacy section {
   display: block;
   margin-bottom: .3rem;
 }
 
-.privacy .header img {
+.privacy section img {
   margin: .5rem 1.5rem .5rem .5rem;
 }
 
 .privacy a {
+  margin-bottom: .5rem;
   color: black;
 }
 
-.privacy a:nth-child(2) {
+.privacy a[href="#about-your-rights"] {
+  float: left;
+}
+
+.privacy a[href="#about-your-privacy"] {
   float: right;
 }
 
 .privacy h3 {
+  display: inline-block;
+  width: 100%;
   border-bottom: 2px solid black;
   -moz-border-bottom-colors: grey white;
   padding-bottom: .3rem;
   margin-bottom: .3rem;
 }
 
-.privacy label {
-  margin-left: -1.5rem;
+.privacy label,
+.privacy label + span {
+  height: 5rem;
+  line-height: 5rem;
 }
 
 .privacy input {
@@ -150,20 +163,20 @@
   background: url(images/thumb-up.png) no-repeat center 90%, url(images/shadow.png) repeat-x left bottom;
 }
 
-#last .content > span {
+#last .content > * {
   display: inline-block;
   margin: .5rem 1rem;
 }
 
-#last .content > span.title {
+#last .content > h1 {
   font-size: 4rem;
 }
 
-#last .content > span.subtitle {
+#last .content > h2 {
   font-size: 2rem;
 }
 
-#last .content > span.text {
+#last .content > p {
   font-size: 1.5rem;
 }
 

@@ -118,7 +118,7 @@ progress[value='100'] {
 }
 
 #next {
-  background: url(images/next.png) no-repeat 94% 50%, url(images/button_submit.png) repeat-x;
+  background: url(images/next.png) no-repeat calc(100% - 1rem) 50%, url(images/button_submit.png) repeat-x;
   border: solid 1px #008aaa;
   text-align: left;
   margin-left: .5rem;
@@ -130,7 +130,7 @@ progress[value='100'] {
 }
 
 #back {
-  background: url(images/prev.png) no-repeat 6% 50%;
+  background: url(images/prev.png) no-repeat 1rem 50%;
   text-align: right;
   margin-right: .5rem;
 }

@@ -40,7 +40,7 @@
 
   /**
    * On desktop build where navigator.language could not be synced with the
-   * value of the 'language.current' setting makesure to use the value of the
+   * value of the 'language.current' setting make sure to use the value of the
    * setting when the page loads.
    */
   var gIgnoreNavigatorLanguage = false;
