@@ -28,3 +28,7 @@ manifest.appcache
 /mocha-test-results.html
 /custom-prefs.js
 /local.mk
+/apps/costcontrol/js/config.json
+/apps/sms/js/blacklist.json
+/.project
+/.xulrunner-url
