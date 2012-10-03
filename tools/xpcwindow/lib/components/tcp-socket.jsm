@@ -1,4 +1,3 @@
-
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
@@ -13,39 +12,6 @@ const CC = Components.Constructor;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
-
-var EXPORTED_SYMBOLS = ['TCPSocket'];
-
-let debug = false;
-function LOG(msg) {
-  if (debug)
-    dump("TCPSocket: " + msg + "\n");
-}
-
-/*
- * nsITCPSocketEvent object
- */
-
-function TCPSocketEvent(type, sock, data) {
-  this.type = type;
-  this.socket = sock;
-  this.data = data;
-}
-
-TCPSocketEvent.prototype = {
-  classID: Components.ID("{f29a577b-e831-431e-a540-1c4856721c82}"),
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsITCPSocketEvent]),
-
-  classInfo: XPCOMUtils.generateCI({
-    classID: Components.ID("{f29a577b-e831-431e-a540-1c4856721c82}"),
-    contractID: "@mozilla.org/tcp-socket-event;1",
-    classDescription: "TCP Socket Event",
-    interfaces: [Ci.nsITCPSocketEvent],
-    flags: Ci.nsIClassInfo.DOM_OBJECT
-  })
-};
-
 
 const InputStreamPump = CC(
         "@mozilla.org/network/input-stream-pump;1", "nsIInputStreamPump", "init"),
@@ -68,27 +34,85 @@ const kCLOSED = 'closed';
 const BUFFER_SIZE = 65536;
 
 /*
+ * Debug logging function
+ */
+
+let debug = false;
+function LOG(msg) {
+  if (debug)
+    dump("TCPSocket: " + msg + "\n");
+}
+
+/*
+ * nsITCPSocketEvent object
+ */
+
+function TCPSocketEvent(type, sock, data) {
+  this._type = type;
+  this._socket = sock;
+  this._data = data;
+}
+
+TCPSocketEvent.prototype = {
+  __exposedProps__: {
+    type: 'r',
+    socket: 'r',
+    data: 'r'
+  },
+  get type() {
+    return this._type;
+  },
+  get socket() {
+    return this._socket;
+  },
+  get data() {
+    return this._data;
+  }
+}
+
+/*
  * nsIDOMTCPSocket object
  */
 
 function TCPSocket() {
-  this.readyState = kCLOSED;
+  this._readyState = kCLOSED;
 
-  this.onopen = null;
-  this.ondrain = null;
-  this.ondata = null;
-  this.onerror = null;
-  this.onclose = null;
+  this._onopen = null;
+  this._ondrain = null;
+  this._ondata = null;
+  this._onerror = null;
+  this._onclose = null;
 
-  this.binaryType = "string";
+  this._binaryType = "string";
 
-  this.host = "";
-  this.port = 0;
-  this.ssl = false;
-};
-
+  this._host = "";
+  this._port = 0;
+  this._ssl = false;
+}
 
 TCPSocket.prototype = {
+  __exposedProps__: {
+    open: 'r',
+    host: 'r',
+    port: 'r',
+    ssl: 'r',
+    bufferedAmount: 'r',
+    suspend: 'r',
+    resume: 'r',
+    close: 'r',
+    send: 'r',
+    readyState: 'r',
+    CONNECTING: 'r',
+    OPEN: 'r',
+    CLOSING: 'r',
+    CLOSED: 'r',
+    binaryType: 'r',
+    onopen: 'rw',
+    ondrain: 'rw',
+    ondata: 'rw',
+    onerror: 'rw',
+    onclose: 'rw'
+  },
   // Constants
   CONNECTING: kCONNECTING,
   OPEN: kOPEN,
@@ -96,11 +120,10 @@ TCPSocket.prototype = {
   CLOSED: kCLOSED,
 
   // The binary type, "string" or "arraybuffer"
-  binaryType: null,
+  _binaryType: null,
 
   // Internal
   _hasPrivileges: null,
-  _binaryType: "string",
 
   // Raw socket streams
   _transport: null,
@@ -113,13 +136,64 @@ TCPSocket.prototype = {
   _inputStreamBinary: null,
 
   // Output stream machinery
-  _outputMultiplexStream: null,
-  _outputStreamCopier: null,
+  _multiplexStream: null,
+  _multiplexStreamCopier: null,
 
   _asyncCopierActive: false,
   _waitingForDrain: false,
   _suspendCount: 0,
 
+  // Public accessors.
+  get readyState() {
+    return this._readyState;
+  },
+  get binaryType() {
+    return this._binaryType;
+  },
+  get host() {
+    return this._host;
+  },
+  get port() {
+    return this._port;
+  },
+  get ssl() {
+    return this._ssl;
+  },
+  get bufferedAmount() {
+    return this._multiplexStream.available();
+  },
+  get onopen() {
+    return this._onopen;
+  },
+  set onopen(f) {
+    this._onopen = f;
+  },
+  get ondrain() {
+    return this._ondrain;
+  },
+  set ondrain(f) {
+    this._ondrain = f;
+  },
+  get ondata() {
+    return this._ondata;
+  },
+  set ondata(f) {
+    this._ondata = f;
+  },
+  get onerror() {
+    return this._onerror;
+  },
+  set onerror(f) {
+    this._onerror = f;
+  },
+  get onclose() {
+    return this._onclose;
+  },
+  set onclose(f) {
+    this._onclose = f;
+  },
+
+  // Helper methods.
   _createTransport: function ts_createTransport(host, port, sslMode) {
     let options, optlen;
     if (sslMode) {
@@ -134,26 +208,39 @@ TCPSocket.prototype = {
              .createTransport(options, optlen, host, port, null);
   },
 
-  _ensureCopying: function ts_ensureCopying(that) {
-    if (that._asyncCopierActive) {
+  _ensureCopying: function ts_ensureCopying() {
+    let self = this;
+    if (this._asyncCopierActive) {
       return;
     }
-    that._asyncCopierActive = true;
-    that._outputStreamCopier.asyncCopy({
+    this._asyncCopierActive = true;
+    this._multiplexStreamCopier.asyncCopy({
       onStartRequest: function ts_output_onStartRequest() {
       },
-      onStopRequest: function ts_output_onStopRequest() {
-        that._asyncCopierActive = false;
-        that._outputMultiplexStream.removeStream(0);
-        if (that._outputMultiplexStream.count) {
-          that._ensureCopying(that);
+      onStopRequest: function ts_output_onStopRequest(request, context, status) {
+        self._asyncCopierActive = false;
+        self._multiplexStream.removeStream(0);
+
+        if (status) {
+          this._readyState = kCLOSED;
+          let err = new Error("Connection closed while writing: " + status);
+          err.status = status;
+          this.callListener("onerror", err);
+          this.callListener("onclose");
+          return;
+        }
+
+        if (self._multiplexStream.count) {
+          self._ensureCopying();
         } else {
-          if (that._waitingForDrain) {
-            that._waitingForDrain = false;
-            that.callListener("ondrain");          
+          if (self._waitingForDrain) {
+            self._waitingForDrain = false;
+            self.callListener("ondrain");
           }
-          if (that.readyState === kCLOSING) {
-            that._socketOutputStream.close();
+          if (self._readyState === kCLOSING) {
+            self._socketOutputStream.close();
+            self._readyState = kCLOSED;
+            self.callListener("onclose");
           }
         }
       }
@@ -167,18 +254,47 @@ TCPSocket.prototype = {
     this[type].call(null, new TCPSocketEvent(type, this, data || ""));
   },
 
-  get bufferedAmount() {
-    return this._outputMultiplexStream.available();
+  init: function ts_init(aWindow) {
+    if (!Services.prefs.getBoolPref("dom.mozTCPSocket.enabled"))
+      return null;
+
+    let principal = aWindow.document.nodePrincipal;
+    let secMan = Cc["@mozilla.org/scriptsecuritymanager;1"]
+                   .getService(Ci.nsIScriptSecurityManager);
+
+    let perm = principal == secMan.getSystemPrincipal()
+                 ? Ci.nsIPermissionManager.ALLOW_ACTION
+                 : Services.perms.testExactPermissionFromPrincipal(principal, "tcp-socket");
+
+    this._hasPrivileges = perm == Ci.nsIPermissionManager.ALLOW_ACTION;
+
+    let util = aWindow.QueryInterface(
+      Ci.nsIInterfaceRequestor
+    ).getInterface(Ci.nsIDOMWindowUtils);
+
+    this.innerWindowID = util.currentInnerWindowID;
+    LOG("window init: " + this.innerWindowID);
   },
 
-  init: function ts_init(aWindow) {
-    // When the TCPSocket property is initialized for each window,
-    // we check to see if the tcp-socket permission is set for this
-    // domain. If not, open will refuse to create and open new sockets.
-    let principal = aWindow.document.nodePrincipal;
-    this._hasPrivileges = (
-      Services.perms.testExactPermission(principal.URI, "tcp-socket")
-      === Ci.nsIPermissionManager.ALLOW_ACTION);
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic == "inner-window-destroyed") {
+      let wId = aSubject.QueryInterface(Ci.nsISupportsPRUint64).data;
+      if (wId == this.innerWindowID) {
+        LOG("inner-window-destroyed: " + this.innerWindowID);
+
+        // This window is now dead, so we want to clear the callbacks
+        // so that we don't get a "can't access dead object" when the
+        // underlying stream goes to tell us that we are closed
+        this.onopen = null;
+        this.ondrain = null;
+        this.ondata = null;
+        this.onerror = null;
+        this.onclose = null;
+
+        // Clean up our socket
+        this.close();
+      }
+    }
   },
 
   // nsIDOMTCPSocket
@@ -190,25 +306,29 @@ TCPSocket.prototype = {
     }
     let that = new TCPSocket();
 
+    that.innerWindowID = this.innerWindowID;
+
+    LOG("window init: " + that.innerWindowID);
+    Services.obs.addObserver(that, "inner-window-destroyed", true);
+
     LOG("startup called\n");
     LOG("Host info: " + host + ":" + port + "\n");
 
-    that.readyState = kCONNECTING;
-    that.host = host;
-    that.port = port;
+    that._readyState = kCONNECTING;
+    that._host = host;
+    that._port = port;
     if (options !== undefined) {
       if (options.useSSL) {
-          that.ssl = 'ssl';
+          that._ssl = 'ssl';
       } else {
-          that.ssl = false;
+          that._ssl = false;
       }
-      that.binaryType = options.binaryType || that.binaryType;
+      that._binaryType = options.binaryType || that._binaryType;
     }
-    that._binaryType = that.binaryType;
 
     LOG("SSL: " + that.ssl + "\n");
 
-    let transport = that._transport = this._createTransport(host, port, that.ssl);
+    let transport = that._transport = this._createTransport(host, port, that._ssl);
     transport.setEventSink(that, Services.tm.currentThread);
     transport.securityCallbacks = new SecurityCallbacks(that);
 
@@ -222,16 +342,16 @@ TCPSocket.prototype = {
     that._socketInputStream.asyncWait(
       that, that._socketInputStream.WAIT_CLOSURE_ONLY, 0, Services.tm.currentThread);
 
-    if (that.binaryType === "arraybuffer") {
+    if (that._binaryType === "arraybuffer") {
       that._inputStreamBinary = new BinaryInputStream(that._socketInputStream);
     } else {
       that._inputStreamScriptable = new ScriptableInputStream(that._socketInputStream);
     }
 
-    that._outputMultiplexStream = new MultiplexInputStream();
+    that._multiplexStream = new MultiplexInputStream();
 
-    that._outputStreamCopier = new AsyncStreamCopier(
-      that._outputMultiplexStream,
+    that._multiplexStreamCopier = new AsyncStreamCopier(
+      that._multiplexStream,
       that._socketOutputStream,
       // (nsSocketTransport uses gSocketTransportService)
       Cc["@mozilla.org/network/socket-transport-service;1"]
@@ -243,20 +363,20 @@ TCPSocket.prototype = {
   },
 
   close: function ts_close() {
-    if (this.readyState === kCLOSED || this.readyState === kCLOSING)
+    if (this._readyState === kCLOSED || this._readyState === kCLOSING)
       return;
 
     LOG("close called\n");
-    this.readyState = kCLOSING;
+    this._readyState = kCLOSING;
 
-    if (!this._outputMultiplexStream.count) {
+    if (!this._multiplexStream.count) {
       this._socketOutputStream.close();
     }
     this._socketInputStream.close();
   },
 
   send: function ts_send(data) {
-    if (this.readyState !== kOPEN) {
+    if (this._readyState !== kOPEN) {
       throw new Error("Socket not open.");
     }
 
@@ -266,31 +386,43 @@ TCPSocket.prototype = {
       // that took an ArrayBuffer like StringInputStream takes
       // a string. There is one, but only in C++ and not exposed
       // to js as far as I can tell
-      data = Array.map(data, function(el, i) {
-        return String.fromCharCode(el);
-      }).join("");
+      var dataLen = data.length;
+      var offset = 0;
+      var result = "";
+      while (dataLen) {
+        var fragmentLen = dataLen;
+        if (fragmentLen > 32768)
+          fragmentLen = 32768;
+        dataLen -= fragmentLen;
+
+        var fragment = data.subarray(offset, offset + fragmentLen);
+        offset += fragmentLen;
+        result += String.fromCharCode.apply(null, fragment);
+      }
+      data = result;
     }
+    var newBufferedAmount = this.bufferedAmount + data.length;
     new_stream.setData(data, data.length);
-    this._outputMultiplexStream.appendStream(new_stream);
+    this._multiplexStream.appendStream(new_stream);
 
-    this._ensureCopying(this);
-
-    if (this.bufferedAmount >= BUFFER_SIZE) {
+    if (newBufferedAmount >= BUFFER_SIZE) {
       // If we buffered more than some arbitrary amount of data,
       // (65535 right now) we should tell the caller so they can
-      // wait until ondrain is called, once all the buffered data
-      // has been written to the socket.
+      // wait until ondrain is called if they so desire. Once all the
+      //buffered data has been written to the socket, ondrain is
+      // called.
       this._waitingForDrain = true;
-      return false;
     }
-    return true;
+
+    this._ensureCopying();
+    return newBufferedAmount < BUFFER_SIZE;
   },
 
   suspend: function ts_suspend() {
     if (this._inputStreamPump) {
       this._inputStreamPump.suspend();
     } else {
-      this._suspendCount++;
+      ++this._suspendCount;
     }
   },
 
@@ -298,7 +430,7 @@ TCPSocket.prototype = {
     if (this._inputStreamPump) {
       this._inputStreamPump.resume();
     } else {
-      this._suspendCount--;
+      --this._suspendCount;
     }
   },
 
@@ -307,17 +439,17 @@ TCPSocket.prototype = {
     transport, status, progress, max) {
 
     if (status === Ci.nsISocketTransport.STATUS_CONNECTED_TO) {
-      this.readyState = kOPEN;
+      this._readyState = kOPEN;
       this.callListener("onopen");
 
       this._inputStreamPump = new InputStreamPump(
         this._socketInputStream, -1, -1, 0, 0, false
-      )
-      while (this._suspendCount) {
+      );
+
+      while (this._suspendCount--) {
         this._inputStreamPump.suspend();
-        this._suspendCount--;
       }
-      
+
       this._inputStreamPump.asyncRead(this, null);
     }
   },
@@ -338,8 +470,20 @@ TCPSocket.prototype = {
 
   // nsIRequestObserver (Triggered by _inputStreamPump.asyncRead)
   onStopRequest: function ts_onStopRequest(request, context, status) {
-    this.readyState = kCLOSED;
+    let buffered_output = this._multiplexStream.count !== 0;
+
     this._inputStreamPump = null;
+
+    if (buffered_output && !status) {
+      // If we have some buffered output still, and status is not an
+      // error, the other side has done a half-close, but we don't 
+      // want to be in the close state until we are done sending
+      // everything that was buffered. We also don't want to call onclose
+      // yet.
+      return;
+    }
+
+    this._readyState = kCLOSED;
 
     if (status) {
       let err = new Error("Connection closed: " + status);
@@ -367,23 +511,29 @@ TCPSocket.prototype = {
     classID: Components.ID("{cda91b22-6472-11e1-aa11-834fec09cd0a}"),
     contractID: "@mozilla.org/tcp-socket;1",
     classDescription: "Client TCP Socket",
-    interfaces: [Ci.nsIDOMTCPSocket],
+    interfaces: [
+      Ci.nsIDOMTCPSocket,
+      Ci.nsIDOMGlobalPropertyInitializer,
+      Ci.nsIObserver,
+      Ci.nsISupportsWeakReference
+    ],
     flags: Ci.nsIClassInfo.DOM_OBJECT,
   }),
 
   QueryInterface: XPCOMUtils.generateQI([
     Ci.nsIDOMTCPSocket,
+    Ci.nsIDOMGlobalPropertyInitializer,
+    Ci.nsIObserver,
+    Ci.nsISupportsWeakReference
   ])
 }
+
 
 function SecurityCallbacks(socket) {
   this._socket = socket;
 }
-SecurityCallbacks.prototype = {
-  notifySSLError: function sc_notifySSLError(socketInfo, error, targetSite) {
-    return true;
-  },
 
+SecurityCallbacks.prototype = {
   notifyCertProblem: function sc_notifyCertProblem(socketInfo, status,
                                                    targetSite) {
     this._socket.callListener("onerror", status);
@@ -392,6 +542,14 @@ SecurityCallbacks.prototype = {
   },
 
   getInterface: function sc_getInterface(iid) {
-    return this;
-  }
+    return this.QueryInterface(iid);
+  },
+
+  QueryInterface: XPCOMUtils.generateQI([
+    Ci.nsIBadCertListener2,
+    Ci.nsIInterfaceRequestor,
+    Ci.nsISupports
+  ])
 };
+
+var EXPORTED_SYMBOLS = ['TCPSocket'];

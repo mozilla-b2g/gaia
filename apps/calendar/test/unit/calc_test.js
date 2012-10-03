@@ -39,14 +39,6 @@ suite('calendar/calc', function() {
     return (date.getTimezoneOffset() * (60 * 1000));
   }
 
-  test('#utcMs', function() {
-    var date = new Date(2012, 0, 1, 2);
-    var offset = date.getTimezoneOffset() * (60 * 1000);
-    var value = date.valueOf() - offset;
-
-    assert.equal(subject.utcMs(date), value);
-  });
-
   suite('#spanOfMonth', function() {
 
     function time(year, month, day, hour, min) {
@@ -116,33 +108,78 @@ suite('calendar/calc', function() {
 
   });
 
-  suite('#fromUtcMs', function() {
-    var start;
-    var ms;
+  suite('#dateToTransport', function() {
 
-    setup(function() {
-      start = new Date(2012, 0, 1, 2);
-      ms = subject.utcMs(start);
-    });
+    test('floating tz', function() {
+      var date = new Date(2012, 0, 1, 11, 1, 7);
 
-    test('with offset', function() {
-      var offset = start.getTimezoneOffset() - (60 * 3);
-      var out = subject.fromUtcMs(
-        ms, offset
+      var expected = {
+        tzid: subject.FLOATING,
+        utc: date.valueOf(),
+        offset: 0
+      };
+
+      assert.deepEqual(
+        subject.dateToTransport(date, subject.FLOATING),
+        expected
       );
-
-      var clone = new Date(start.valueOf());
-      clone.setHours(clone.getHours() - 3);
-      assert.equal(out.valueOf(), clone.valueOf());
     });
 
-    test('without offset', function() {
-      var out = subject.fromUtcMs(
-        ms
+    test('utc', function() {
+      var date = new Date(2012, 0, 1, 11, 1);
+      var utc = Date.UTC(2012, 0, 1, 11, 1);
+      var offset = utc - date;
+
+      var expected = {
+        offset: offset,
+        utc: utc
+      };
+
+      assert.deepEqual(
+        subject.dateToTransport(date),
+        expected
       );
-      assert.equal(start.valueOf(), out.valueOf());
+    });
+  });
+
+  suite('#dateFromTransport', function() {
+
+    test('utc - DST', function() {
+      // NOTE: I don't expect this test to fail
+      //       in other timezones but it relies on
+      //       hard coded DST info to verify that DST
+      //       actually works in PST.
+
+      var date = new Date(2012, 9, 1, 7, 11);
+      var data = subject.dateToTransport(date);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        date
+      );
     });
 
+    test('utc - standard', function() {
+      var expected = new Date(2012, 0, 1, 0, 5);
+      var data = subject.dateToTransport(expected);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        expected
+      );
+    });
+
+    test('floating', function() {
+      var utc = new Date(Date.UTC(2012, 0, 8, 9, 10));
+      var expected = new Date(2012, 0, 8, 9, 10);
+
+      var data = subject.dateToTransport(utc, subject.FLOATING);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        expected
+      );
+    });
   });
 
   suite('#getWeekStartDate', function() {
@@ -166,24 +203,200 @@ suite('calendar/calc', function() {
 
   });
 
-  test('#daysBetween', function() {
+  suite('#compareHours', function() {
+
+    test('already at top', function() {
+      var list = ['allday', 8, 10, 3, 2];
+      var sorted = list.sort(subject.compareHours);
+
+      assert.deepEqual(sorted, ['allday', 2, 3, 8, 10]);
+    });
+
+    test('two all days', function() {
+      var list = [1, 'allday', 10, 3, 2, 'allday'];
+      var sorted = list.sort(subject.compareHours);
+
+      assert.deepEqual(
+        sorted,
+        ['allday', 'allday', 1, 2, 3, 10]
+      );
+    });
+
+  });
+
+  suite('#spanOfDay', function() {
+
+    var date = new Date(2012, 1, 1, 10, 33);
+
+    test('include time', function() {
+      var end = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate() + 1
+      );
+
+      var out = subject.spanOfDay(date, true);
+
+      assert.deepEqual(out, new Calendar.Timespan(
+        date,
+        end
+      ));
+    });
+
+    test('ignore time', function() {
+      var start = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+
+      var end = new Date(start.valueOf());
+      end.setDate(end.getDate() + 1);
+
+      var out = subject.spanOfDay(date);
+
+      assert.deepEqual(out, new Calendar.Timespan(
+        start,
+        end
+      ));
+    });
+
+  });
+
+  suite('#hoursOfOccurance', function() {
+    var center;
+
+    setup(function() {
+      center = new Date(2012, 0, 1);
+    });
+
+    function hoursOfOccurance(start, end) {
+      return subject.hoursOfOccurance(center, start, end);
+    }
+
+    test('overlap before', function() {
+      var out = hoursOfOccurance(
+        new Date(2011, 1, 5),
+        new Date(2012, 0, 1, 3)
+      );
+
+      assert.deepEqual(out, [0, 1, 2]);
+    });
+
+    test('overlap after', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 20),
+        new Date(2012, 0, 2, 2)
+      );
+
+      assert.deepEqual(out, [20, 21, 22, 23]);
+    });
+
+    test('one hour', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 6)
+      );
+
+      assert.deepEqual(out, [5]);
+    });
+
+    test('1 & 1/2 hours', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 6, 30)
+      );
+
+      assert.deepEqual(out, [5, 6]);
+    });
+
+    test('2 hours', function() {
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1, 5),
+        new Date(2012, 0, 1, 7)
+      );
+
+      assert.deepEqual(out, [5, 6]);
+    });
+
+    test('all day', function() {
+      var end = new Date(2012, 0, 2);
+      end.setMilliseconds(end - 1);
+
+      var out = hoursOfOccurance(
+        new Date(2012, 0, 1),
+        end
+      );
+
+      assert.deepEqual(out, [subject.ALLDAY]);
+    });
+
+  });
+
+  test('#hourDiff', function() {
+    var start = new Date(2012, 0, 5);
+    var end = new Date(2012, 0, 7);
+
+    var expected = 48;
+    var out = subject.hourDiff(start, end);
+
+    assert.equal(out, expected);
+  });
+
+  suite('#daysBetween', function() {
     //Nov 29th 2012
-    var start = new Date(2012, 10, 29);
-
+    var start = new Date(2012, 10, 29, 2);
     // Dec 2nd 2012
-    var end = new Date(2012, 11, 2);
+    var end = new Date(2012, 11, 2, 5);
 
-    var expected = [
-      start,
-      new Date(2012, 10, 30),
-      new Date(2012, 11, 1),
-      end
-    ];
+    test('same day', function() {
+      var end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate(),
+        start.getHours() + 1
+      );
 
-    assert.deepEqual(
-      subject.daysBetween(start, end),
-      expected
-    );
+      var expected = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate()
+      );
+
+      assert.deepEqual(
+        subject.daysBetween(start, end),
+        [expected]
+      );
+    });
+
+    test('include time', function() {
+      var expected = [
+        start,
+        new Date(2012, 10, 30),
+        new Date(2012, 11, 1),
+        end
+      ];
+
+      assert.deepEqual(
+        subject.daysBetween(start, end, true),
+        expected
+      );
+    });
+
+    test('exclude time', function() {
+      var expected = [
+        new Date(2012, 10, 29),
+        new Date(2012, 10, 30),
+        new Date(2012, 11, 1),
+        new Date(2012, 11, 2)
+      ];
+
+      assert.deepEqual(
+        subject.daysBetween(start, end),
+        expected
+      );
+    });
+
   });
 
   suite('#getWeekEndDate', function() {

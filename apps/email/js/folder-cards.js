@@ -54,7 +54,7 @@ FolderPickerCard.prototype = {
     var account;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        account = msgSlice.items[i];
+        account = this.acctsSlice.items[i];
         accountsContainer.removeChild(account.element);
       }
     }
@@ -122,7 +122,6 @@ FolderPickerCard.prototype = {
 
     this.accountsContainer.classList.remove('show');
     this.foldersContainer.classList.add('show');
-    //Cards.tellCard(['folder-picker', 'navigation'], { account: account });
   },
 
   onShowHideAccounts: function() {
@@ -157,7 +156,7 @@ FolderPickerCard.prototype = {
     var folder;
     if (howMany) {
       for (var i = index + howMany - 1; i >= index; i--) {
-        folder = msgSlice.items[i];
+        folder = this.foldersSlice.items[i];
         foldersContainer.removeChild(folder.element);
       }
     }
@@ -224,14 +223,14 @@ FolderPickerCard.prototype = {
 
     this._showFolder(folder);
     this.accountsContainer.classList.remove('show');
-    Cards.moveToCard(['message-list', 'default']);
+    Cards.moveToCard(['message-list', 'nonsearch']);
   },
 
   /**
    * Tell the message-list to show this folder; exists for single code path.
    */
   _showFolder: function(folder) {
-    Cards.tellCard(['message-list', 'default'], { folder: folder });
+    Cards.tellCard(['message-list', 'nonsearch'], { folder: folder });
   },
 
   /**

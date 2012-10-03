@@ -20,6 +20,11 @@ var LockScreen = {
   enabled: true,
 
   /*
+  * Boolean returns wether we want a sound effect when unlocking.
+  */
+  unlockSoundEnabled: true,
+
+  /*
   * Boolean return whether if the lock screen is enabled or not.
   * Must not multate directly - use setPassCodeEnabled(val)
   * Only Settings Listener should change this value to sync with data
@@ -33,6 +38,21 @@ var LockScreen = {
   * XXX: should come for Settings
   */
   passCode: '0000',
+
+  /*
+  * The time to request for passcode input since device is off.
+  */
+  passCodeRequestTimeout: 0,
+
+  /*
+  * Store the time that screen is off
+  */
+  _screenOffTime: 0,
+
+  /*
+  * Check the timeout of passcode lock
+  */
+  _passcodeTimeoutCheck: false,
 
   /*
   * passcode to enable the smiley face easter egg.
@@ -95,6 +115,9 @@ var LockScreen = {
     /* switching panels */
     window.addEventListener('home', this);
 
+    /* blocking holdhome and prevent Cards View from show up */
+    window.addEventListener('holdhome', this, true);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -119,11 +142,12 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe(
-      'lockscreen.wallpaper', 'balloon.png', function(value) {
-      self.updateBackground(value);
-      self.overlay.classList.remove('uninit');
-    });
+    SettingsListener.observe('wallpaper.image',
+                             'resources/images/backgrounds/default.png',
+                             function(value) {
+                               self.updateBackground(value);
+                               self.overlay.classList.remove('uninit');
+                             });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
@@ -133,6 +157,16 @@ var LockScreen = {
     SettingsListener.observe(
         'lockscreen.passcode-lock.enabled', false, function(value) {
       self.setPassCodeEnabled(value);
+    });
+
+    SettingsListener.observe('lockscreen.unlock-sound.enabled',
+      true, function(value) {
+      self.setUnlockSoundEnabled(value);
+    });
+
+    SettingsListener.observe('lockscreen.passcode-lock.timeout',
+      0, function(value) {
+      self.passCodeRequestTimeout = value;
     });
   },
 
@@ -161,12 +195,31 @@ var LockScreen = {
     }
   },
 
+  setUnlockSoundEnabled: function ls_setUnlockSoundEnabled(val) {
+    if (typeof val === 'string') {
+      this.unlockSoundEnabled = val == 'false' ? false : true;
+    } else {
+      this.unlockSoundEnabled = val;
+    }
+  },
+
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
+        if (!evt.detail.screenEnabled) {
+          this._screenOffTime = new Date().getTime();
+        } else {
+          var _screenOffInterval = new Date().getTime() - this._screenOffTime;
+          if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
+            this._passCodeTimeoutCheck = true;
+          } else {
+            this._passCodeTimeoutCheck = false;
+          }
+        }
+
         this.lockIfEnabled(true);
         break;
       case 'voicechange':
@@ -274,6 +327,14 @@ var LockScreen = {
           evt.stopImmediatePropagation();
         }
         break;
+
+      case 'holdhome':
+        if (!this.locked)
+          return;
+
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
+        break;
     }
   },
 
@@ -312,33 +373,47 @@ var LockScreen = {
 
     var base = this.overlay.offsetWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
+
+    var leftTarget = touch.leftTarget;
+    var rightTarget = touch.rightTarget;
+
     if (dx > 0) {
-      touch.rightTarget.style.opacity =
+      rightTarget.style.opacity =
         this.railRight.style.opacity = '';
-      touch.leftTarget.style.opacity =
+      leftTarget.style.opacity =
         this.railLeft.style.opacity = opacity;
     } else {
-      touch.rightTarget.style.opacity =
+      rightTarget.style.opacity =
         this.railRight.style.opacity = opacity;
-      touch.leftTarget.style.opacity =
+      leftTarget.style.opacity =
         this.railLeft.style.opacity = '';
     }
 
     var handleWidth = this.areaHandle.offsetWidth;
+    var triggered = false;
 
     if (railLeft < handleWidth / 2) {
-      touch.leftTarget.classList.add('triggered');
-      touch.rightTarget.classList.remove('triggered');
-      touch.target = touch.leftTarget;
+      if (!leftTarget.classList.contains('triggered')) {
+        leftTarget.classList.add('triggered');
+        triggered = true;
+      }
+      rightTarget.classList.remove('triggered');
+      touch.target = leftTarget;
     } else if (railRight < handleWidth / 2) {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.add('triggered');
-      touch.target = touch.rightTarget;
+      leftTarget.classList.remove('triggered');
+      if (!rightTarget.classList.contains('triggered')) {
+        rightTarget.classList.add('triggered');
+        triggered = true;
+      }
+      touch.target = rightTarget;
     } else {
-      touch.leftTarget.classList.remove('triggered');
-      touch.rightTarget.classList.remove('triggered');
+      leftTarget.classList.remove('triggered');
+      rightTarget.classList.remove('triggered');
       touch.target = null;
     }
+
+    if (triggered && navigator.vibrate)
+      navigator.vibrate([200]);
   },
 
   handleGesture: function ls_handleGesture() {
@@ -403,7 +478,7 @@ var LockScreen = {
         this.railRight.style.width = '0';
 
         var passcodeOrUnlock = function passcodeOrUnlock() {
-          if (!self.passCodeEnabled) {
+          if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
             self.unlock();
           } else {
             self.switchPanel('passcode');
@@ -485,6 +560,14 @@ var LockScreen = {
       // also need to be reflected in apps/system/js/storage.js
       this.dispatchEvent('unlock');
       this.writeSetting(false);
+
+      if (instant)
+        return;
+
+      if (this.unlockSoundEnabled) {
+        var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+        unlockAudio.play();
+      }
     }
   },
 
@@ -626,6 +709,7 @@ var LockScreen = {
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
+          self.dispatchEvent('lockpanelchange');
           overlay.dataset.panel = panel;
         });
     });
@@ -639,8 +723,10 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    this.clock.textContent = f.localeFormat(d, _('timeFormat') || '%R');
-    this.date.textContent = f.localeFormat(d, _('dateFormat') || '%A %e %B');
+    var timeFormat = _('shortTimeFormat') || '%H:%M';
+    var dateFormat = _('longDateFormat') || '%A %e %B';
+    this.clock.textContent = f.localeFormat(d, timeFormat);
+    this.date.textContent = f.localeFormat(d, dateFormat);
 
     var self = this;
     window.setTimeout(function ls_clockTimeout() {
@@ -738,8 +824,10 @@ var LockScreen = {
         (regions[lac] ? regions[lac] + ' ' + lac : '');
     }
 
+    var carrierName = voice.network.shortName || voice.network.longName;
+
     if (voice.roaming) {
-      var l10nArgs = { operator: voice.network.shortName };
+      var l10nArgs = { operator: carrierName };
       connstateLine1.dataset.l10nId = 'roaming';
       connstateLine1.dataset.l10nArgs = JSON.stringify(l10nArgs);
       connstateLine1.textContent = _('roaming', l10nArgs);
@@ -748,7 +836,7 @@ var LockScreen = {
     }
 
     delete connstateLine1.dataset.l10nId;
-    connstateLine1.textContent = voice.network.shortName;
+    connstateLine1.textContent = carrierName;
   },
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
@@ -801,8 +889,7 @@ var LockScreen = {
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(resources/images/backgrounds/' + value + ')';
-
+    var url = 'url(' + value + ')';
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }
@@ -830,15 +917,6 @@ var LockScreen = {
     this.mainScreen = document.getElementById('screen');
   },
 
-  redirectKeyEventFromFrame: function ls_redirectKeyEventFromFrame(evt) {
-    var generatedEvent = document.createEvent('KeyboardEvent');
-    generatedEvent.initKeyEvent(evt.type, true, true, evt.view, evt.ctrlKey,
-                                evt.altKey, evt.shiftKey, evt.metaKey,
-                                evt.keyCode, evt.charCode);
-
-    this.camera.dispatchEvent(generatedEvent);
-  },
-
   dispatchEvent: function ls_dispatchEvent(name) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
@@ -846,11 +924,10 @@ var LockScreen = {
   },
 
   writeSetting: function ls_writeSetting(value) {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
-    settings.getLock().set({
+    SettingsListener.getSettingsLock().set({
       'lockscreen.locked': value
     });
   }

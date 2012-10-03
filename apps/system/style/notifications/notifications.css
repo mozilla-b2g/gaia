@@ -9,6 +9,7 @@
 
   background-image: url('images/grey-noise-bg.png');
   background-repeat: repeat-x;
+  -moz-box-sizing: border-box;
   border-bottom: 1px #2c2c2c solid;
 
   font-size: 1em;

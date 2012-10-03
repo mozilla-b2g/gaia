@@ -50,7 +50,7 @@
 'use strict';
 
 (function() {
-  var HOLD_INTERVAL = 1500;   // How long for press and hold Home or Sleep
+  var HOLD_INTERVAL = 750;   // How long for press and hold Home or Sleep
   var REPEAT_DELAY = 700;     // How long before volume autorepeat begins
   var REPEAT_INTERVAL = 100;  // How fast the autorepeat is.
 

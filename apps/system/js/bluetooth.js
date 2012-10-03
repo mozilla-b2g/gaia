@@ -16,22 +16,23 @@ var Bluetooth = {
   connected: false,
 
   init: function bt_init() {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
 
-    // Sync the bluetooth.enabled mozSettings value with real API
-    // These code should be removed once this bug is fixed
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=777665
+    // XXX there is no "bluetooth.onenabled" callback can be hooked.
+    // We will probe for setting enable callback instead for now.
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=782586
+
+    var enabled = false;
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
       if (!bluetooth) {
         // roll back the setting value to notify the UIs
         // that Bluetooth interface is not available
         if (value) {
-          settings.getLock().set({
+          SettingsListener.getSettingsLock().set({
             'bluetooth.enabled': false
           });
         }
@@ -39,20 +40,21 @@ var Bluetooth = {
         return;
       }
 
-      if (bluetooth.enabled == value)
-        return;
+      if (value !== enabled && value) {
+        // Setting value is not actually synced with Bluetooth device,
+        // let's wait a bit before getting adapter.
+        if (!bluetooth.enabled) {
+          setTimeout(function timeout() {
+            self.initDefaultAdapter();
+          }, 5000);
 
-      var req = bluetooth.setEnabled(value);
-      req.onsuccess = function bt_enabledSuccess() {
+          return;
+        }
+
         self.initDefaultAdapter();
-      };
-      req.onerror = function bt_enabledError() {
-        // roll back the setting value to notify the UIs
-        // that bluetooth has failed to enable.
-        settings.getLock().set({
-          'bluetooth.enabled': !value
-        });
-      };
+      }
+
+      enabled = value;
     });
   },
 

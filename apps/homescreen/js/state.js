@@ -40,14 +40,17 @@ const HomeState = (function() {
       request.onupgradeneeded = function(event) {
         var db = event.target.result;
         var gridStore = db.createObjectStore(GRID_STORE_NAME,
-                                               { keyPath: 'id' });
+                                             { keyPath: 'id' });
         gridStore.createIndex('byPage', 'id', { unique: true });
+
         var dockStore = db.createObjectStore(DOCK_STORE_NAME,
-                                               { keyPath: 'id' });
+                                             { keyPath: 'id' });
         dockStore.createIndex('byId', 'id', { unique: true });
-        var bStore = db.createObjectStore(BOOKMARKS_STORE_NAME,
-                                         { keyPath: 'origin' });
-        bStore.createIndex('byOrigin', 'origin', { unique: true });
+
+        var bookmarksStore = db.createObjectStore(BOOKMARKS_STORE_NAME,
+                                                  { keyPath: 'origin' });
+        bookmarksStore.createIndex('byOrigin', 'origin', { unique: true });
+
         onUpgradeNeeded = true;
       };
     } catch (ex) {
@@ -91,7 +94,7 @@ const HomeState = (function() {
       }
 
       newTxn('readwrite', function(txn, store) {
-        if (Object.prototype.toString.call(pages) === '[object Array]') {
+        if (Array.isArray(pages)) {
           store.clear();
           var len = pages.length;
           for (var i = 0; i < len; i++) {

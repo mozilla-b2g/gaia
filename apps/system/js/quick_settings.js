@@ -38,6 +38,11 @@ var QuickSettings = {
     SettingsListener.observe('geolocation.enabled', true, function(value) {
       self.geolocationEnabled = value;
     });
+
+    // monitor power save mode
+    SettingsListener.observe('powersave.enabled', false, function(value) {
+      self.powerSave.dataset.enabled = value;
+    });
   },
 
   handleEvent: function qs_handleEvent(evt) {
@@ -48,7 +53,7 @@ var QuickSettings = {
           case this.wifi:
             var enabled = (this.wifi.dataset.enabled == 'true');
             this.wifi.dataset.enabled = !enabled;
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'wifi.enabled': !enabled
             });
             if (!enabled) {
@@ -69,7 +74,7 @@ var QuickSettings = {
             // and double click so we'll change the UI state here
             this.data.dataset.enabled = !enabled;
 
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'ril.data.enabled': !enabled
             });
 
@@ -78,7 +83,7 @@ var QuickSettings = {
           case this.bluetooth:
             var enabled = (this.bluetooth.dataset.enabled == 'true');
             this.bluetooth.dataset.enabled = !enabled;
-            navigator.mozSettings.getLock().set({
+            SettingsListener.getSettingsLock().set({
               'bluetooth.enabled': !enabled
             });
             break;
@@ -86,54 +91,9 @@ var QuickSettings = {
           case this.powerSave:
             var enabled = (this.powerSave.dataset.enabled == 'true');
             this.powerSave.dataset.enabled = !enabled;
-            if (!enabled) {
-              // Keep the original states
-              this._powerSaveResume = {
-                wifi: (this.wifi.dataset.enabled == 'true'),
-                data: (this.data.dataset.enabled == 'true'),
-                bluetooth: (this.bluetooth.dataset.enabled == 'true'),
-                geolocation: this.geolocationEnabled
-              };
-
-              var settingsToSet = {};
-              // Turn off Wifi
-              settingsToSet['wifi.enabled'] = false;
-              // Turn off Data
-              settingsToSet['ril.data.enabled'] = false;
-              // Turn off Bluetooth
-              settingsToSet['bluetooth.enabled'] = false;
-              // Turn off Geolocation
-              settingsToSet['geolocation.enabled'] = false;
-
-              this.setMozSettings(settingsToSet);
-
-            } else if (this._powerSaveResume) {
-              var settingsToSet = {};
-              if (this._powerSaveResume.wifi) {
-                // Turn on Wifi
-                settingsToSet['wifi.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.data) {
-                // Turn on Data
-                settingsToSet['ril.data.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.bluetooth) {
-                // Turn on Bluetooth
-                settingsToSet['bluetooth.enabled'] = true;
-              }
-
-              if (this._powerSaveResume.geolocation) {
-                // Turn on Bluetooth
-                settingsToSet['geolocation.enabled'] = true;
-              }
-
-              this.setMozSettings(settingsToSet);
-
-              delete this._powerSaveResume;
-            }
-
+            SettingsListener.getSettingsLock().set({
+              'powersave.enabled': !enabled
+            });
             break;
 
           case this.fullApp:
@@ -141,13 +101,10 @@ var QuickSettings = {
             var host = document.location.host;
             var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
             var protocol = document.location.protocol + '//';
-            Applications.getByOrigin(protocol + 'settings.' + domain).launch();
+            Applications.getByManifestURL(protocol + 'settings.' +
+                                          domain + '/manifest.webapp').launch();
 
-            window.addEventListener('appopen', function hideTray(evt) {
-              window.removeEventListener('appopen', hideTray);
-              UtilityTray.hide();
-            });
-
+            UtilityTray.hide();
             break;
         }
         break;
@@ -179,7 +136,7 @@ var QuickSettings = {
   // does not currently supports multiple keys in one set()
   // https://bugzilla.mozilla.org/show_bug.cgi?id=779381
   setMozSettings: function qs_setter(keypairs) {
-    var setlock = window.navigator.mozSettings.getLock();
+    var setlock = SettingsListener.getSettingsLock();
     for (var key in keypairs) {
       var obj = {};
       obj[key] = keypairs[key];

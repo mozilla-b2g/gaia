@@ -7,7 +7,7 @@ var MailAPI = null;
 
 var App = {
   /**
-   * Bind any global notifications.
+   * Bind any global notifications, relay localizations to the back-end.
    */
   _init: function() {
     // If our password is bad, we need to pop up a card to ask for the updated
@@ -17,6 +17,19 @@ var App = {
                      { account: account, restoreCard: Cards.activeCardIndex },
                      'right');
     };
+
+    MailAPI.useLocalizedStrings({
+      wrote: mozL10n.get('reply-quoting-wrote'),
+      originalMessage: mozL10n.get('forward-original-message'),
+      forwardHeaderLabels: {
+        subject: mozL10n.get('forward-header-subject'),
+        date: mozL10n.get('forward-header-date'),
+        from: mozL10n.get('forward-header-from'),
+        replyTo: mozL10n.get('forward-header-reply-to'),
+        to: mozL10n.get('forward-header-to'),
+        cc: mozL10n.get('forward-header-cc')
+      }
+    });
   },
 
   /**
@@ -52,19 +65,31 @@ var App = {
             });
           // Push the message list card
           Cards.pushCard(
-            'message-list', 'default', 'immediate',
+            'message-list', 'nonsearch', 'immediate',
             {
               folder: inboxFolder
             });
+          if (activityCallback) {
+            activityCallback();
+            activityCallback = null;
+          }
         };
       }
       // - no accounts, show the setup page!
       else {
         acctsSlice.die();
+        if (activityCallback) {
+          var result = activityCallback();
+          activityCallback = null;
+          if (!result)
+            return;
+        }
         Cards.assertNoCards();
         Cards.pushCard(
           'setup-pick-service', 'default', 'immediate',
-          {});
+          {
+            allowBack: false
+          });
       }
     };
   }
@@ -142,16 +167,46 @@ var queryURI = function _queryURI(uri) {
 
 };
 
+var activityCallback = null;
+// XXX : Workaround to fix the duplicate activity callback issue:
+var activityLock = false;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
-    var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
-    var sendMail = function actHandleMail() {
+    if (activityLock) {
+      return;
+    } else {
+      activityLock = true;
+    }
+    var activityName = activity.source.name;
+    if (activityName === 'share') {
+      var attachments = activity.source.data.urls;
+    } else if (activityName === 'new') {
+      var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
       if (!to)
         return;
+    }
+    var sendMail = function actHandleMail() {
+      var folderToUse;
+      try {
+        folderToUse = Cards._cardStack[Cards
+          ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+      } catch (e) {
+        var req = confirm(mozL10n.get('setup-empty-account-prompt'));
+        // TODO: Since we can not switch back to previous app if activity type
+        //       is "window", both buttons in confirm dialog will enter
+        //       setup page now(or caller app need to control launch by itself).
+        //
+        if (!req) {
+          // TODO: Since dialog is not working under inline mode, we disable the
+          //       postError now or it will switch back to previous app every
+          //       time while no account.
 
-      var folderToUse = Cards._cardStack[Cards
-        ._findCard(['folder-picker', 'navigation'])].cardImpl.curFolder;
+          // activity.postError('cancelled');
+          // return false;
+        }
+        return true;
+      }
       var composer = MailAPI.beginMessageComposition(
         null, folderToUse, null,
         function() {
@@ -167,21 +222,21 @@ if ('mozSetMessageHandler' in window.navigator) {
             composer.cc = cc;
           if (bcc)
             composer.bcc = bcc;
+          // TODO: We may need to add attachments here:
+          // if (attachments)
+          //   composer.attachments = attachments;
           Cards.pushCard('compose',
-            'default', 'immediate', { composer: composer });
+            'default', 'immediate', { composer: composer,
+            activity: (activityName == 'share' ? activity : null) });
+          activityLock = false;
         });
-
     };
 
     if (document.readyState == 'complete') {
       sendMail();
     } else {
-      window.addEventListener('localized', function loadWait() {
-        window.removeEventListener('localized', loadWait);
-        sendMail();
-      });
+      activityCallback = sendMail;
     }
 
-    activity.postResult({ status: 'accepted' });
   });
 }

@@ -56,6 +56,9 @@
    * @param {Error} error used to create stack.
    */
   ErrorHandle.format = function(error) {
+    if (!error.stack) {
+      return error.toString();
+    }
     var lines = error.stack.split('\n'),
         result = [],
         message;

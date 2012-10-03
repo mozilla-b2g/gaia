@@ -10,13 +10,6 @@ suite('views/create_account', function() {
   var template;
   var app;
 
-
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
-
   teardown(function() {
     var el = document.getElementById('test');
     el.parentNode.removeChild(el);

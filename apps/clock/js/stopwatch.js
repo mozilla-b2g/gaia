@@ -57,8 +57,9 @@ var StopWatch = {
   },
 
   updateChrono: function sw_updateChrono(elapsed) {
+    var f = new navigator.mozL10n.DateTimeFormat();
     var currentValue = this.chronoView.innerHTML;
-    var newValue = new Date(elapsed).toLocaleFormat('%M:%S');
+    var newValue = f.localeFormat(elapsed, '%M:%S');
     if (currentValue != newValue)
       this.chronoView.innerHTML = newValue;
   }

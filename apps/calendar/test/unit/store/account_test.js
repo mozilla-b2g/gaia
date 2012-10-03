@@ -164,17 +164,20 @@ suite('store/account', function() {
       assert.equal(keys.length, 2);
 
       subject.remove(model._id, function() {
-        done(function() {
-          assert.ok(!subject.cached[id]);
+        // wait for next tick so other callbacks fire
+        setTimeout(function() {
+          done(function() {
+            assert.ok(!subject.cached[id]);
 
-          var keys = Object.keys(calStore.cached);
-          var accountKeys = Object.keys(
-            calStore.remotesByAccount(id)
-          );
+            var keys = Object.keys(calStore.cached);
+            var accountKeys = Object.keys(
+              calStore.remotesByAccount(id)
+            );
 
-          assert.equal(accountKeys.length, 0);
-          assert.equal(keys.length, 1);
-        });
+            assert.equal(accountKeys.length, 0);
+            assert.equal(keys.length, 1);
+          });
+        }, 0);
       });
     });
 

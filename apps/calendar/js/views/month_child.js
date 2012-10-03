@@ -1,55 +1,25 @@
 (function(window) {
   var template = Calendar.Templates.Month;
+  var Calc = Calendar.Calc;
 
   function Child() {
     Calendar.View.apply(this, arguments);
 
-    this.monthId = Calendar.Calc.getMonthId(this.month);
+    this.id = this.date.valueOf();
     this.controller = this.app.timeController;
 
     this._days = Object.create(null);
-    this.timespan = Calendar.Calc.spanOfMonth(this.month);
+    this.timespan = Calc.spanOfMonth(this.date);
+
+    var daysInWeek = Calc.daysInWeek();
   }
 
   Child.prototype = {
     __proto__: Calendar.View.prototype,
 
-    INACTIVE: 'inactive',
+    ACTIVE: 'active',
 
     busyPrecision: (24 / 12),
-
-    queueTime: 1,
-
-    /**
-     * Hack this should be localized.
-     */
-    dayNames: [
-      'sun',
-      'mon',
-      'tue',
-      'wed',
-      'thu',
-      'fri',
-      'sat'
-    ],
-
-    /**
-     * Hack this should be localized.
-     */
-    monthNames: [
-      'January',
-      'Feburary',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ],
 
     //Override parent view...
     get element() {
@@ -62,10 +32,10 @@
 
     _dayId: function(date) {
       if (date instanceof Date) {
-        date = Calendar.Calc.getDayId(date);
+        date = Calc.getDayId(date);
       }
 
-      return 'month-view-' + this.monthId + '-' + date;
+      return 'month-view-' + this.id + '-' + date;
     },
 
     _initEvents: function() {
@@ -171,15 +141,15 @@
      * @param {Date} date representing a date.
      */
     _renderDay: function _renderDay(date) {
-      var month = Calendar.Calc.today.getMonth(),
-          id = Calendar.Calc.getDayId(date),
+      var month = Calc.today.getMonth(),
+          id = Calc.getDayId(date),
           state,
           units,
           busytimes = this.app.store('Busytime');
 
-      state = Calendar.Calc.relativeState(
+      state = Calc.relativeState(
         date,
-        this.controller.month
+        this.date
       );
 
       // register instance in map
@@ -210,21 +180,30 @@
     /**
      * Renders out the calendar headers.
      *
-     * TODO: This can be optimized so we only need
-     * to do this once
-     *
      * @return {String} returns a list of headers.
      */
     _renderDayHeaders: function _renderDayHeaders() {
-      var days;
+      if (!Child._dayHeaders) {
+        var i = 0;
+        var days = 7;
+        var name;
+        var html = '';
 
-      days = template.weekDaysHeaderDay.renderEach(
-        this.dayNames
-      );
+        for (; i < days; i++) {
+          name = navigator.mozL10n.get('weekday-' + i + '-short');
+          html += template.weekDaysHeaderDay.render({
+            day: String(i),
+            dayName: name
+          });
+        }
 
-      return template.weekDaysHeader.render(
-        days.join('')
-      );
+        Child._dayHeaders =
+          template.weekDaysHeader.render(html);
+
+        return Child._dayHeaders;
+      }
+
+      return Child._dayHeaders;
     },
 
     /**
@@ -238,7 +217,7 @@
       var found;
 
       if (typeof(stringId) !== 'string') {
-        stringId = Calendar.Calc.getDayId(stringId);
+        stringId = Calc.getDayId(stringId);
       }
 
       id = this._dayId(stringId);
@@ -257,78 +236,54 @@
      * @return {String} return value.
      */
     _renderMonth: function _renderMonth() {
-      var date = this.month,
-          id = Calendar.Calc.getDayId(this.month),
-          weekList = [],
-          numberOfWeeks = 0,
-          lastWeek;
+      var id = Calc.getDayId(this.date);
+      var weekList = [];
 
-      for (; numberOfWeeks < 5; numberOfWeeks++) {
-        lastWeek = Calendar.Calc.getWeeksDays(
-          new Date(
-            date.getFullYear(),
-            date.getMonth(),
-            date.getDate() + (numberOfWeeks * 7)
-          )
+      var week = 0;
+      var slice;
+      var days = this.timespan.daysBetween();
+      var daysInWeek = Calc.daysInWeek();
+      var numberOfWeeks = days.length / daysInWeek;
+      var html = '';
+
+      this.weeks = numberOfWeeks;
+
+      for (week; week <= numberOfWeeks; week++) {
+        slice = days.splice(
+          0,
+          daysInWeek
         );
 
-        weekList.push(
-          this._renderWeek(lastWeek)
-        );
+        if (slice.length)
+          html += this._renderWeek(slice);
       }
 
-     var lastMonthDay = 32 - new Date(
-       date.getFullYear(),
-       date.getMonth(),
-       32).getDate();
-
-     var lastRendered = lastWeek.pop().getDate();
-     var additionalClass = '';
-
-      // If the last rendered day number is lower that the last day of the
-      // month, like on September or December 2012, we need to render
-      // one more week.
-      // We check if the number is bigger than the lowest possible number
-      // of the last day in a month (February) to avoid adding additional
-      // month when the last rendered day belong to the next month
-      if (lastRendered < lastMonthDay && lastRendered > 27) {
-        additionalClass = 'six-weeks';
-        weekList.push(
-          this._renderWeek(
-            Calendar.Calc.getWeeksDays(
-              new Date(
-                date.getFullYear(),
-                date.getMonth(),
-                date.getDate() + (5 * 7)
-              )
-            )
-          )
-        );
-      }
-
-      return template.month.render({
-        id: id,
-        content: weekList.join('\n'),
-        additionalClass: additionalClass
-      });
+      return this._renderDayHeaders() + html;
     },
 
     _calculateBusytime: function(day, busytime) {
+      var startSame;
       var record = {
         _id: this.cssClean(busytime._id),
         eventId: busytime.eventId,
         calendarId: busytime.calendarId
       };
 
-      if (Calendar.Calc.isSameDate(day, busytime.startDate)) {
+      if (Calc.isSameDate(day, busytime.startDate)) {
+        startSame = true;
         record.start = this._hourToBusyUnit(
           busytime.startDate.getHours()
         );
       } else {
+        startSame = false;
         record.start = 1;
       }
 
-      if (Calendar.Calc.isSameDate(day, busytime.endDate)) {
+      if (Calc.isSameDate(day, busytime.endDate)) {
+        if (!startSame && day.valueOf() === busytime.endDate.valueOf()) {
+          return false;
+        }
+
         var end = this._hourToBusyUnit(
           busytime.endDate.getHours()
         );
@@ -344,15 +299,14 @@
 
     _addBusytime: function(date, busytime) {
       var element = this._busyElement(date);
+      var data = this._calculateBusytime(date, busytime);
 
-      var html = template.busy.render(
-        this._calculateBusytime(date, busytime)
-      );
-
-      element.insertAdjacentHTML(
-        'afterbegin',
-        html
-      );
+      if (data) {
+        element.insertAdjacentHTML(
+          'afterbegin',
+          template.busy.render(data)
+        );
+      }
     },
 
     _renderBusytime: function(busytime) {
@@ -363,21 +317,19 @@
       var start = busytime.startDate;
       var end = busytime.endDate;
 
-      if (Calendar.Calc.isSameDate(start, end)) {
+      if (Calc.isSameDate(start, end)) {
         return this._addBusytime(start, busytime);
       }
 
-      var begin = window.performance.now();
-
-      if (busytime.start < span.start) {
+      if (busytime.startDate.valueOf() < span.start) {
         start = new Date(span.start);
       }
 
-      if (busytime.end > span.end) {
+      if (busytime.endDate.valueOf() > span.end) {
         end = new Date(span.end);
       }
 
-      var days = Calendar.Calc.daysBetween(
+      var days = Calc.daysBetween(
         start,
         end
       );
@@ -410,14 +362,14 @@
      * Activate this child view visually.
      */
     activate: function() {
-      this.element.classList.remove(this.INACTIVE);
+      this.element.classList.add(this.ACTIVE);
     },
 
     /**
      * Deactivate this child view visually.
      */
     deactivate: function() {
-      this.element.classList.add(this.INACTIVE);
+      this.element.classList.remove(this.ACTIVE);
     },
 
     /**
@@ -428,13 +380,17 @@
      *
      * @return {DOMElement} inserted dom node.
      */
-    attach: function(element) {
+    create: function() {
       var html = this._renderMonth();
       var controller = this.controller;
+      var element = document.createElement('section');
 
+      element.id = this.id;
+      element.classList.add('month');
+      element.classList.add('weeks-' + this.weeks);
+      element.innerHTML = html;
 
-      element.insertAdjacentHTML('beforeend', html);
-      this.element = element.children[element.children.length - 1];
+      this.element = element;
 
       controller.queryCache(this.timespan).forEach(
         this._renderBusytime,
@@ -443,14 +399,14 @@
 
       this._initEvents();
 
-      return this.element;
+      return element;
     },
 
     destroy: function() {
       this._destroyEvents();
       this._days = Object.create(null);
 
-      if (this.element) {
+      if (this.element && this.element.parentNode) {
         this.element.parentNode.removeChild(this.element);
         this.element = undefined;
       }

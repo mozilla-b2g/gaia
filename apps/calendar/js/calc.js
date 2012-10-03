@@ -1,6 +1,29 @@
 Calendar.Calc = (function() {
 
+  const SECOND = 1000;
+  const MINUTE = (SECOND * 60);
+  const HOUR = MINUTE * 60;
+
   var Calc = {
+
+    FLOATING: 'floating',
+
+    ALLDAY: 'allday',
+
+    /**
+     * MS in a second
+     */
+    SECOND: SECOND,
+    /**
+     * MS in a minute
+     */
+    MINUTE: MINUTE,
+
+    /**
+     * MS in an hour
+     */
+    HOUR: HOUR,
+
     PAST: 'past',
 
     NEXT_MONTH: 'next-month',
@@ -16,6 +39,11 @@ Calendar.Calc = (function() {
       return new Date();
     },
 
+    daysInWeek: function() {
+      //XXX: We need to localize this...
+      return 7;
+    },
+
     /**
      * Checks is given date is today.
      *
@@ -26,8 +54,128 @@ Calendar.Calc = (function() {
       return Calc.isSameDate(date, Calc.today);
     },
 
-    offsetMinutesToMs: function(offset) {
-      return offset * (60 * 1000);
+    /**
+     * Intended to be used in combination
+     * with hoursOfOccurance used to sort
+     * hours. ALLDAY is always first.
+     */
+    compareHours: function(a, b) {
+      var result;
+
+      // to cover the case of a is allday
+      // and b is also allday
+      if (a === b) {
+        return 0;
+      }
+
+      if (a === Calc.ALLDAY) {
+        return -1;
+      }
+
+      if (b === Calc.ALLDAY) {
+        return 1;
+      }
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Given a start and end date will
+     * calculate which hours given
+     * event occurs (in order from allday -> 23).
+     *
+     * When an event occurs all of the given
+     * date will return only "allday"
+     *
+     * @param {Date} day point for all day calculations.
+     * @param {Date} start start point of given span.
+     * @param {Date} end point of given span.
+     * @return {Array} end end point of given span.
+     */
+    hoursOfOccurance: function(day, start, end) {
+      // beginning reference point (start of given date)
+      var refStart = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate()
+      );
+
+      var refEnd = new Date(
+        day.getFullYear(),
+        day.getMonth(),
+        day.getDate() + 1
+      );
+
+      refEnd.setMilliseconds(-1);
+
+      var startBefore = start <= refStart;
+      var endsAfter = end >= refEnd;
+
+      if (startBefore && endsAfter) {
+        return [Calc.ALLDAY];
+      }
+
+      start = (startBefore) ? refStart : start;
+      end = (endsAfter) ? refEnd : end;
+
+      var curHour = start.getHours();
+      var lastHour = end.getHours();
+      var hours = [];
+
+      // using < not <= because we only
+      // want to include the last hour if
+      // it contains some minutes or seconds.
+      for (; curHour < lastHour; curHour++) {
+        hours.push(curHour);
+      }
+
+      //XXX: just minutes would probably be fine?
+      //     seconds are here for consistency.
+      if (end.getMinutes() || end.getSeconds()) {
+        hours.push(end.getHours());
+      }
+
+      return hours;
+    },
+
+    /**
+     * Calculates the difference between
+     * two points in hours.
+     *
+     * @param {Date|Numeric} start start hour.
+     * @param {Date|Numeric} end end hour.
+     */
+    hourDiff: function(start, end) {
+      start = (start instanceof Date) ? start.valueOf() : start;
+      end = (end instanceof Date) ? end.valueOf() : end;
+
+      start = start / HOUR;
+      end = end / HOUR;
+
+      return end - start;
+    },
+
+    /**
+     * Creates timespan for given day.
+     *
+     * @param {Date} date date of span.
+     * @param {Boolean} includeTime uses given date
+     *                           as the start time of the timespan
+     *                           rather then the absolute start of
+     *                           the day of the given date.
+     */
+    spanOfDay: function(date, includeTime) {
+      if (typeof(includeTime) === 'undefined') {
+        date = Calc.createDay(date);
+      }
+
+      var end = Calc.createDay(date);
+      end.setDate(end.getDate() + 1);
+
+      return new Calendar.Timespan(
+        date,
+        end
+      );
     },
 
     /**
@@ -60,36 +208,84 @@ Calendar.Calc = (function() {
       );
     },
 
+
     /**
-     * Take a date and convert it to UTC-0 time
-     * removing offset.
+     * Converts transport time into a JS Date object.
+     *
+     * @param {Object} transport date in transport format.
+     * @return {Date} javascript date converts the transport into
+     *                the current time.
      */
-    utcMs: function(date) {
-      var offset = Calc.offsetMinutesToMs(
-        date.getTimezoneOffset()
+    dateFromTransport: function(transport) {
+      var utc = transport.utc;
+      var offset = transport.offset;
+      var zone = transport.tzid;
+
+      var date = new Date(
+        // offset is expected to be 0 in the floating case
+        parseInt(utc) - parseInt(offset)
       );
 
-      return date.valueOf() - offset;
+      if (zone && zone === Calc.FLOATING) {
+        return new Date(
+          date.getUTCFullYear(),
+          date.getUTCMonth(),
+          date.getUTCDate(),
+          date.getUTCHours(),
+          date.getUTCMinutes(),
+          date.getUTCSeconds(),
+          date.getUTCMilliseconds()
+        );
+      }
+
+      return date;
     },
 
-    fromUtcMs: function(ms, offset) {
-      if (typeof(offset) === 'undefined') {
-        // no offset relative position in time.
-        var utcDate = new Date(ms);
-        return new Date(
-          utcDate.getUTCFullYear(),
-          utcDate.getUTCMonth(),
-          utcDate.getUTCDate(),
-          utcDate.getUTCHours(),
-          utcDate.getUTCMinutes(),
-          utcDate.getUTCSeconds()
-        );
+    /**
+     * Converts a date object into a transport value
+     * which can be stored in the database or sent
+     * to a service.
+     *
+     * When the tzid value is given an is the string
+     * value of "floating" it will convert the local
+     * time directly to UTC zero and record no offset.
+     * This along with the tzid is understood to be
+     * a "floating" time which will occur at that position
+     * regardless of the current tzid's offset.
+     *
+     * @param {Date} date js date object.
+     * @param {Date} [tzid] optional tzid.
+     */
+    dateToTransport: function(date, tzid) {
+      var result = Object.create(null);
+      result.utc = utc;
+
+      if (tzid && tzid === Calc.FLOATING) {
+        result.utc = date.valueOf();
+        result.offset = 0;
       } else {
-        // when there is an offset it is an absolute
-        // position in time.
-        ms = ms + Calc.offsetMinutesToMs(offset);
-        return new Date(ms);
+        var utc = Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+          date.getSeconds(),
+          date.getMilliseconds()
+        );
+
+        var localUtc = date.valueOf();
+        var offset = utc - localUtc;
+
+        result.utc = utc;
+        result.offset = offset;
       }
+
+      if (tzid) {
+        result.tzid = tzid;
+      }
+
+      return result;
     },
 
     /**
@@ -166,9 +362,9 @@ Calendar.Calc = (function() {
 
     createDay: function(date, day, month, year) {
       return new Date(
-        typeof year !== "undefined" ? year : date.getFullYear(),
-        typeof month !== "undefined" ? month : date.getMonth(),
-        typeof day !== "undefined" ? day : date.getDate()
+        typeof year !== 'undefined' ? year : date.getFullYear(),
+        typeof month !== 'undefined' ? month : date.getMonth(),
+        typeof day !== 'undefined' ? day : date.getDate()
       );
     },
 
@@ -202,8 +398,9 @@ Calendar.Calc = (function() {
      *
      * @param {Date} start starting day.
      * @param {Date} end ending day.
+     * @param {Boolean} includeTime include times start/end ?
      */
-    daysBetween: function(start, end) {
+    daysBetween: function(start, end, includeTime) {
       if (start > end) {
         var tmp = end;
         end = start;
@@ -211,9 +408,20 @@ Calendar.Calc = (function() {
         tmp = null;
       }
 
-      var list = [start];
+      var list = [];
       var last = start.getDate();
       var cur;
+
+      // handle the case where start & end dates
+      // are the same date.
+      if (Calc.isSameDate(start, end)) {
+        if (includeTime) {
+          list.push(end);
+        } else {
+          list.push(this.createDay(start));
+        }
+        return list;
+      }
 
       while (true) {
         var next = new Date(
@@ -236,7 +444,14 @@ Calendar.Calc = (function() {
         break;
       }
 
-      list.push(end);
+      if (includeTime) {
+        list.unshift(start);
+        list.push(end);
+      } else {
+        list.unshift(Calc.createDay(start));
+        list.push(Calc.createDay(end));
+      }
+
       return list;
     },
 
@@ -287,18 +502,19 @@ Calendar.Calc = (function() {
       return !Calc.isPast(date);
     },
 
-    /*
+    /**
      * Based on the input date
      * will return one of the following states
      *
      *  past, present, future
      *
      * @param {Date} day for compare.
-     * @param {Date} month today's date.
+     * @param {Date} month comparison month.
      * @return {String} state.
      */
     relativeState: function(day, month) {
       var states;
+      //var today = Calc.today;
 
       // 1. the date is today (real time)
       if (Calc.isToday(day)) {

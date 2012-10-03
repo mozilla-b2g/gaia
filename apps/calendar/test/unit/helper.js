@@ -18,13 +18,19 @@
 
   testSupport.calendar = {
 
+    triggerEvent: function(element, eventName) {
+      var event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    },
+
     loadSample: function(file, cb) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', '/test/unit/fixtures/' + file, true);
       xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
           if (xhr.status !== 200) {
-            cb(new Error('file not found or other error', xhr));
+            cb(new Error('file not found or other error (' + file + ')', xhr));
           } else {
             cb(null, xhr.responseText);
           }
@@ -69,6 +75,8 @@
         this.db(),
         new Calendar.Router(Calendar.Test.FakePage)
       );
+
+      Calendar.App.dateFormat = navigator.mozL10n.DateTimeFormat();
 
       return Calendar.App;
     },
@@ -171,18 +179,50 @@
     }
   }
 
+  // XXX: this is a lame way to do this
+  // in reality we need to fix the above upstream
+  // and leverage new chai 1x methods
+
+  assert.hasProperties = function chai_hasProperties(given, props, msg) {
+    msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
+
+    if (props instanceof Array) {
+      props.forEach(function(prop) {
+        assert.ok(
+          (prop in given),
+          msg + 'given should have "' + prop + '" property'
+        );
+      });
+    } else {
+      for (var key in props) {
+        assert.deepEqual(
+          given[key],
+          props[key],
+          msg + ' property equality for (' + key + ') '
+        );
+      }
+    }
+  }
+
   /* require most of the coupled / util objects */
 
-  // HACK - disable mozL10n right now
-  //        tests that actually use it
-  //        mock it out anyway.
-  navigator.mozL10n = {
-    get: function(value) {
-      return value;
-    }
-  };
+  function l10nLink(href) {
+    var resource = document.createElement('link');
+    resource.setAttribute('href', href);
+    resource.setAttribute('rel', 'resource');
+    resource.setAttribute('type', 'application/l10n');
+    document.head.appendChild(resource);
+  }
+
+
+  l10nLink('/locales/locales.ini');
+  l10nLink('/shared/locales/date.ini');
+
+  requireApp('calendar/shared/js/l10n.js');
+  requireApp('calendar/shared/js/l10n_date.js');
 
   requireLib('calendar.js');
+  requireLib('calc.js');
   requireLib('set.js');
   requireLib('batch.js');
   requireLib('template.js');
@@ -196,9 +236,11 @@
   requireLib('store/busytime.js');
   requireLib('store/calendar.js');
   requireLib('store/event.js');
+  requireLib('store/setting.js');
+  requireLib('store/alarm.js');
   requireLib('view.js');
-  requireLib('calc.js');
   requireLib('router.js');
+  requireLib('controllers/alarm.js');
   requireLib('controllers/time.js');
   requireLib('controllers/sync.js');
   requireLib('worker/manager.js');

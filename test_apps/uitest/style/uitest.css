@@ -27,18 +27,12 @@ body {
   top: 0;
 }
 
-body.test .panel {
-  -moz-transform: translateX(-100%);
-}
-
 #test-panel {
   -moz-transform: translateX(100%);
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
 #tests {
   -moz-transform: translateX(0);
-  -moz-transition: -moz-transform 0.3s ease;
 }
 
 body.test #test-panel {

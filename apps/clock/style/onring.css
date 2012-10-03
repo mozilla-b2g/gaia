@@ -145,3 +145,48 @@ html, body {
     font-size: 10px;
   }
 }
+
+/* Handling the status bar mode */
+@media screen and (max-height: 40px) {
+  #ring-icon {
+    width: 40px;
+    height: 40px;
+    left: 0px;
+    top: 0px;
+    background-image: url('images/attention_overlay_icon.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    position: absolute;
+  }
+  
+  #ring-clock {
+    text-align: left;
+  }
+  
+  #ring-clock-display {
+    position: absolute;
+    bottom: 6px;
+    left: 40px;
+    border-bottom: none;
+  }
+  
+  #ring-clock-time {
+    font: bolder 2.2rem/2.2rem 'Open Sans', sans-serif;
+  }
+  
+  #ring-clock-hour24-state {
+    display: none;
+  }
+  
+  #ring-alarm-label {
+    position: absolute;
+    top: 6px;
+    left: 40px;
+    font: bolder 2.2rem/2.2rem 'Open Sans',sans-serif;
+    color: #00aac8;
+  }
+  
+  #footer-button-container {
+    display: none;
+  }
+}

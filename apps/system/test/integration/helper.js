@@ -34,10 +34,13 @@ testSupport.system = {
 
       for (; i < len; i++) {
         let event = content.document.createEvent('CustomEvent');
-        event.initCustomEvent('mozChromeEvent', true, true, details[i]);
+        event.initCustomEvent(
+          'mozChromeEvent', true, true, ObjectWrapper.wrap(details[i], content)
+        );
+
         content.dispatchEvent(event);
-        console.log('MARIONETTE CHROME EVENT: ', JSON.stringify(details[i]));
       }
+
     }, args, MochaTask.nextNodeStyle);
   }
 };

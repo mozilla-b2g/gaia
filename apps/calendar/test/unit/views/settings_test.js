@@ -13,13 +13,11 @@ suite('views/settings', function() {
   var store;
   var controller;
   var template;
+  var triggerEvent;
 
-
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   teardown(function() {
     var el = document.getElementById('test');

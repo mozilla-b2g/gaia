@@ -10,12 +10,12 @@ function escapeHTML(str, escapeQuotes) {
 }
 
 function summarizeDaysOfWeek(bitStr) {
-  if (bitStr == '')
-    return 'None';
-
   var _ = navigator.mozL10n.get;
 
-  // Formate bits: 0123456(0000000)
+  if (bitStr == '')
+    return _('never');
+
+  // Format bits: 0123456(0000000)
   // Case: Everyday:  1111111
   // Case: Weekdays:  1111100
   // Case: Weekends:  0000011
@@ -23,8 +23,7 @@ function summarizeDaysOfWeek(bitStr) {
   // Case: Specific:  other case  (Mon, Tue, Thu)
 
   var summary = '';
-  switch (bitStr)
-  {
+  switch (bitStr) {
   case '1111111':
     summary = _('everyday');
     break;
@@ -41,12 +40,38 @@ function summarizeDaysOfWeek(bitStr) {
     var weekdays = [];
     for (var i = 0; i < bitStr.length; i++) {
       if (bitStr.substr(i, 1) == '1') {
-        weekdays.push(_('dayofweek-' + i + '-abbr'));
+        // Note: here, Monday is the first day of the week
+        // whereas in JS Date(), it's Sunday -- hence the (+1) here.
+        weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
     }
     summary = weekdays.join(', ');
   }
   return summary;
+}
+
+function is12hFormat() {
+  var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+  var is12h = (localeTimeFormat.indexOf('%p') >= 0);
+  return is12h;
+}
+
+function getLocaleTime(d) {
+  var f = new navigator.mozL10n.DateTimeFormat();
+  var is12h = is12hFormat();
+  return {
+    t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
+    p: is12h ? f.localeFormat(d, '%p') : ''
+  };
+}
+
+function isAlarmPassToday(hour, minute) { // check alarm has passed or not
+  var now = new Date();
+  if (hour > now.getHours() ||
+      (hour == now.getHours() && minute > now.getMinutes())) {
+    return false;
+  }
+  return true;
 }
 
 function getNextAlarmFireTime(alarm) { // get the next alarm fire time
@@ -57,9 +82,7 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
   var nextAlarmFireTime = new Date();
   var diffDays = 0; // calculate the diff days from now
   if (repeat == '0000000') { // one time only and alarm within 24 hours
-    // if alarm has passed already
-    // XXX compare the hour after converted it to format 24-hours
-    if (!(hour >= now.getHours() && minute > now.getMinutes()))
+    if (isAlarmPassToday(hour, minute)) // if alarm has passed already
       diffDays = 1; // alarm tomorrow
   } else { // find out the first alarm day from the repeat info.
     var weekDayFormatRepeat =
@@ -69,8 +92,8 @@ function getNextAlarmFireTime(alarm) { // get the next alarm fire time
     for (var i = 0; i < weekDayFormatRepeat.length; i++) {
       index = (i + weekDayOfToday) % 7;
       if (weekDayFormatRepeat.charAt(index) == '1') {
-        if (diffDays == 0) { // if alarm has passed already
-          if (hour >= now.getHours() && minute > now.getMinutes())
+        if (diffDays == 0) {
+          if (!isAlarmPassToday(hour, minute)) // if alarm has passed already
             break;
 
           diffDays++;
@@ -306,3 +329,4 @@ var ValuePicker = (function() {
 
   return VP;
 }());
+

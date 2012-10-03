@@ -14,21 +14,24 @@ var BlackList = (function() {
   var _blackList = {};
 
   function _init() {
-    SettingsListener.observe('sms.blacklist', '[]',
-      function sms_bl_updateBL(list) {
-        try {
-          list = JSON.parse(list);
-        } catch (error) {
-          console.warn('Invalid blacklist, current blacklist wont be modified');
-          return;
-        }
+    var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
+    xhr.open('GET', 'js/blacklist.json', true);
+    xhr.send(null);
+
+    xhr.onreadystatechange = function cc_loadConfiguration(evt) {
+      if (xhr.readyState != 4)
+        return;
+
+      if (xhr.status == 0 || xhr.status == 200) {
+        var list = JSON.parse(xhr.responseText);
 
         _blackList = {};
         list.forEach(function sms_bl_addToBL(item) {
           _blackList[item] = true;
         });
       }
-    );
+    }
   }
 
   // Return true if value is in the black list

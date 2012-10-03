@@ -1,6 +1,7 @@
-"""Usage: python %prog [ADB_PATH]
+"""Usage: python %prog [ADB_PATH] [REMOTE_PATH]
 
 ADB_PATH is the path to the |adb| executable we should run.
+REMOTE_PATH is the path to push the gaia webapps directory to.
 
 Used by |make install-gaia| to push files to a device.  You shouldn't run
 this file directly.
@@ -138,28 +139,40 @@ def install_gaia_fast():
         os.chdir('..')
 
 def install_gaia_slow():
-    global adb_cmd
-    adb_shell("rm -r /data/local/webapps", ignore_error=True)
+    global adb_cmd, remote_path
+    webapps_path = remote_path + '/webapps'
+    adb_shell("rm -r " + webapps_path, ignore_error=True)
     adb_shell("rm /data/local/user.js", ignore_error=True)
-    adb_push('profile/webapps', '/data/local/webapps')
+    adb_push('profile/webapps', webapps_path)
     adb_push('profile/user.js', '/data/local')
     adb_push('profile/permissions.sqlite', '/data/local')
 
 def install_gaia():
+    global remote_path
     try:
-        install_gaia_fast()
+        if remote_path == "/system/b2g":
+            # XXX Force slow method until we fix the fast one to support
+            # files in both /system/b2g and /data/local
+            # install_gaia_fast()
+            install_gaia_slow()
+        else:
+            install_gaia_fast()
     except:
         # If anything goes wrong, fall back to the slow method.
         install_gaia_slow()
 
 if __name__ == '__main__':
-    if len(sys.argv) > 2:
-        print 'Too many arguments!  Usage: python %s [ADB_PATH]' % __FILE__
+    if len(sys.argv) > 3:
+        print >>sys.stderr, 'Too many arguments!\n'
+        print >>sys.stderr, \
+            'Usage: python %s [ADB_PATH] [REMOTE_PATH]\n' % __FILE__
         sys.exit(1)
 
-    if len(sys.argv) == 2:
+    adb_cmd = 'adb'
+    remote_path = '/data/local/webapps'
+    if len(sys.argv) >= 2:
         adb_cmd = sys.argv[1]
-    else:
-        adb_cmd = 'adb'
+    if len(sys.argv) >= 3:
+        remote_path = sys.argv[2]
 
     install_gaia()

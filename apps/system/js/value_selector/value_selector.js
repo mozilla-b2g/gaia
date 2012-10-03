@@ -6,6 +6,9 @@
 var ValueSelector = {
 
   _containers: {},
+  _popups: {},
+  _buttons: {},
+  _datePicker: null,
 
   debug: function(msg) {
     var debugFlag = false;
@@ -56,14 +59,30 @@ var ValueSelector = {
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
+    ActiveEffectHelper.enableActive(this._containers['select']);
 
-    this._cancelButton = document.getElementById('value-selector-cancel');
-    this._cancelButton.addEventListener('click', this);
+    this._popups['select'] =
+      document.getElementById('select-option-popup');
+    this._popups['time'] =
+      document.getElementById('time-picker-popup');
+    this._popups['date'] =
+      document.getElementById('date-picker-popup');
 
-    this._confirmButton = document.getElementById('value-selector-confirm');
-    this._confirmButton.addEventListener('click', this);
+    this._buttons['select'] = document.getElementById('select-options-buttons');
+    this._buttons['select'].addEventListener('click', this);
+
+    this._buttons['time'] = document.getElementById('time-picker-buttons');
+    this._buttons['time'].addEventListener('click', this);
+
+    this._buttons['date'] = document.getElementById('date-picker-buttons');
+    this._buttons['date'].addEventListener('click', this);
 
     this._containers['time'] = document.getElementById('picker-bar');
+    this._containers['date'] = document.getElementById('date-picker-container');
+
+
+    ActiveEffectHelper.enableActive(this._buttons['select']);
+    ActiveEffectHelper.enableActive(this._buttons['time']);
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -79,12 +98,15 @@ var ValueSelector = {
       case 'click':
         var currentTarget = evt.currentTarget;
         switch (currentTarget) {
-          case this._cancelButton:
-            this.cancel();
-            break;
-
-          case this._confirmButton:
-            this.confirm();
+          case this._buttons['select']:
+          case this._buttons['time']:
+          case this._buttons['date']:
+            var target = evt.target;
+            if (target.dataset.type == 'cancel') {
+              this.cancel();
+            } else if (target.dataset.type == 'ok') {
+              this.confirm();
+            }
             break;
 
           case this._containers['select']:
@@ -107,14 +129,17 @@ var ValueSelector = {
       return;
 
     if (this._currentPickerType === 'select-one') {
-      var selectee = this._containers['select'].querySelectorAll('.selected');
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
-        selectee[i].classList.remove('selected');
+        selectee[i].removeAttribute('aria-checked');
       }
 
-      target.classList.add('selected');
+      target.setAttribute('aria-checked', 'true');
+    } else if (target.getAttribute('aria-checked') === 'true') {
+      target.removeAttribute('aria-checked');
     } else {
-      target.classList.toggle('selected');
+      target.setAttribute('aria-checked', 'true');
     }
   },
 
@@ -125,9 +150,9 @@ var ValueSelector = {
   showPanel: function vs_showPanel(type) {
     for (var p in this._containers) {
       if (p === type) {
-        this._containers[p].hidden = false;
+        this._popups[p].hidden = false;
       } else {
-        this._containers[p].hidden = true;
+        this._popups[p].hidden = true;
       }
     }
   },
@@ -148,6 +173,12 @@ var ValueSelector = {
 
     var selectee = this._containers['select'].querySelectorAll('.selected');
 
+    if (this._currentPickerType === 'select-one' ||
+        this._currentPickerType === 'select-multiple') {
+      var selectee = this._containers['select'].
+          querySelectorAll('[aria-checked="true"]');
+    }
+
     if (this._currentPickerType === 'select-one') {
 
       if (selectee.length > 0)
@@ -155,13 +186,18 @@ var ValueSelector = {
 
       window.navigator.mozKeyboard.setSelectedOption(singleOptionIndex);
 
-    } else if (this._currentPickerType === 'date' ||
-               this._currentPickerType === 'time') {
+    } else if (this._currentPickerType === 'time') {
 
       var timeValue = TimePicker.getTimeValue();
       this.debug('output value: ' + timeValue);
 
       window.navigator.mozKeyboard.setValue(timeValue);
+    } else if (this._currentPickerType === 'date') {
+      var dateValue = this._datePicker.value;
+      // The format should be 2012-09-19
+      dateValue = dateValue.toLocaleFormat('%Y-%m-%d');
+      this.debug('output value: ' + dateValue);
+      window.navigator.mozKeyboard.setValue(dateValue);
     } else {
       // Multiple select case
       for (var i = 0; i < selectee.length; i++) {
@@ -191,22 +227,53 @@ var ValueSelector = {
 
   buildOptions: function(options) {
 
-    var optionHTML = '<ol>';
+    var optionHTML = '';
+
+    function escapeHTML(str) {
+      var span = document.createElement('span');
+      span.textContent = str;
+      return span.innerHTML;
+    }
 
     for (var i = 0, n = options.length; i < n; i++) {
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
 
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
-                     options[i].text +
-                     '<span class="checkmark">&#10004;</span>' +
+                     '<label> <span>' +
+                     escapeHTML(options[i].text) +
+                     '</span></label>' +
                     '</li>';
     }
 
-    optionHTML += '</ol>';
+    var optionsContainer = document.querySelector(
+                             '#value-selector-container ol');
+    if (!optionsContainer)
+      return;
 
-    this._containers['select'].innerHTML = optionHTML;
+    optionsContainer.innerHTML = optionHTML;
+
+
+    // Apply different style when the options are more than 1 page
+    if (options.length > 5) {
+      this._containers['select'].classList.add('scrollable');
+    } else {
+      this._containers['select'].classList.remove('scrollable');
+    }
+
+    // Change the title for multiple select
+    var titleL10nId = 'choose-options';
+    if (this._currentPickerType === 'select-one')
+      titleL10nId = 'choose-option';
+
+    var optionsTitle = document.querySelector(
+                       '#value-selector-container h1');
+
+    if (optionsTitle) {
+      optionsTitle.dataset.l10nId = titleL10nId;
+      optionsTitle.textContent = navigator.mozL10n.get(titleL10nId);
+    }
   },
 
   showTimePicker: function vs_showTimePicker() {
@@ -222,33 +289,35 @@ var ValueSelector = {
 
   showDatePicker: function vs_showDatePicker() {
     this._currentPickerType = 'date';
-    this.buildDatePicker();
     this.show();
-  },
+    this.showPanel('date');
 
-  buildDatePicker: function vs_buildDatePicker() {
-    var optionHTML = '<ol>';
+    if (!this._datePicker) {
+      var picker = new DatePicker(this._containers['date']);
+      this._datePicker = picker;
 
-    //TODO: for test only
-    var options = [
-       '2012/08/01',
-       '2012/08/02'
-    ];
+      var nextEl = document.querySelector('.next');
+      var prevEl = document.querySelector('.previous');
+      var accept = document.querySelector('#date-picker-confirm');
 
-    for (var i = 0, n = options.length; i < n; i++) {
+      nextEl.onclick = function() {
+        picker.next();
+      }
 
-      var checked = options[i].selected ? ' class="selected"' : '';
+      prevEl.onclick = function() {
+        picker.previous();
+      }
 
-      optionHTML += '<li data-option-value="' + options[i] + '"' +
-                     checked + '>' +
-                     options[i] +
-                     '<span class="checkmark">&#10004;</span>' +
-                    '</li>';
+      var currentMonth = document.getElementById('current-month');
+      var updateMonth = function updateMonth(date) {
+        picker.value = null;
+        currentMonth.textContent = date.toLocaleFormat('%B %Y');
+      }
+      picker.onmonthchange = updateMonth;
+
+      var date = new Date();
+      picker.display(date.getFullYear(), date.getMonth());
     }
-
-    optionHTML += '</ol>';
-
-    this._container.innerHTML = optionHTML;
   }
 };
 
@@ -256,7 +325,8 @@ var TimePicker = {
   timePicker: {
     hour: null,
     minute: null,
-    hour24State: null
+    hour24State: null,
+    is12hFormat: false
   },
 
   get hourSelector() {
@@ -277,10 +347,16 @@ var TimePicker = {
       document.getElementById('value-picker-hour24-state');
   },
 
-  initTimePicker: function aev_initTimePicker() {
+  initTimePicker: function tp_initTimePicker() {
+    var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+    var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
+    this.timePicker.is12hFormat = is12hFormat;
+    this.setTimePickerStyle();
+    var startHour = is12hFormat ? 1 : 0;
+    var endHour = is12hFormat ? (startHour + 12) : (startHour + 12 * 2);
     var unitClassName = 'picker-unit';
     var hourDisplayedText = [];
-    for (var i = 1; i < 13; i++) {
+    for (var i = startHour; i < endHour; i++) {
       var value = i;
       hourDisplayedText.push(value);
     }
@@ -302,24 +378,87 @@ var TimePicker = {
     this.timePicker.minute =
       new ValuePicker(this.minuteSelector, minuteUnitStyle);
 
-    var hour24StateUnitStyle = {
-      valueDisplayedText: ['AM', 'PM'],
-      className: unitClassName
-    };
-    this.timePicker.hour24State =
-      new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    if (is12hFormat) {
+      var hour24StateUnitStyle = {
+        valueDisplayedText: ['AM', 'PM'],
+        className: unitClassName
+      };
+      this.timePicker.hour24State =
+        new ValuePicker(this.hour24StateSelector, hour24StateUnitStyle);
+    }
+  },
+
+  setTimePickerStyle: function tp_setTimePickerStyle() {
+    var style = (this.timePicker.is12hFormat) ? 'format12h' : 'format24h';
+    document.getElementById('picker-bar').classList.add(style);
   },
 
   // return a string for the time value, format: "16:37"
-  getTimeValue: function aev_getTimeValue() {
-    var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
-    var hour = this.timePicker.hour.getSelectedDisplayedText();
-    hour = (hour == 12) ? 0 : hour;
-    hour = hour + hour24Offset;
+  getTimeValue: function tp_getTimeValue() {
+    var hour = 0;
+    if (this.timePicker.is12hFormat) {
+      var hour24Offset = 12 * this.timePicker.hour24State.getSelectedIndex();
+      hour = this.timePicker.hour.getSelectedDisplayedText();
+      hour = (hour == 12) ? 0 : hour;
+      hour = hour + hour24Offset;
+    } else {
+      hour = this.timePicker.hour.getSelectedIndex();
+    }
     var minute = this.timePicker.minute.getSelectedDisplayedText();
 
     return hour + ':' + minute;
   }
 };
 
+var ActiveEffectHelper = (function() {
+
+  function _setActive(element, isActive) {
+    if (isActive) {
+      element.classList.add('active');
+    } else {
+      element.classList.remove('active');
+    }
+  }
+
+  function _onMouseDown(evt) {
+    var target = evt.target;
+
+    _setActive(target, true);
+    target.addEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseUp(evt) {
+    var target = evt.target;
+
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  function _onMouseLeave(evt) {
+    var target = evt.target;
+    _setActive(target, false);
+    target.removeEventListener('mouseleave', _onMouseLeave);
+  }
+
+  var _events = {
+    'mousedown': _onMouseDown,
+    'mouseup': _onMouseUp
+  };
+
+  function _enableActive(element) {
+    // Attach event listeners
+    for (var event in _events) {
+      var callback = _events[event] || null;
+      if (callback)
+        element.addEventListener(event, callback);
+    }
+  }
+
+  return {
+    enableActive: _enableActive
+  };
+
+})();
+
 ValueSelector.init();
+

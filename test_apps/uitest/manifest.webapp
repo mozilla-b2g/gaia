@@ -10,8 +10,10 @@
   },
   "permissions": [
     "background",
+    "backgroundservice",
     "attention",
     "contacts",
-    "settings"
+    "settings",
+    "desktop-notification"
   ]
 }

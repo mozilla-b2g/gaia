@@ -31,3 +31,4 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
 });
+

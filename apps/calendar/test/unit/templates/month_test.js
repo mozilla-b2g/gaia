@@ -34,17 +34,6 @@ suite('templates/month', function() {
     assert.include(result, 'busytime-event1');
   });
 
-  test('#currentMonth', function() {
-    var result = renderHTML('currentMonth', {
-      month: 'January',
-      year: '2012'
-    });
-
-    assert.ok(result);
-    assert.include(result, 'January');
-    assert.include(result, '2012');
-  });
-
   test('#weekDaysHeader', function() {
     var result = renderHTML('weekDaysHeader', a());
 
@@ -53,20 +42,13 @@ suite('templates/month', function() {
   });
 
   test('#weekDaysHeaderDay', function() {
-    var result = renderHTML('weekDaysHeaderDay', 'foo');
+    var result = renderHTML('weekDaysHeaderDay', {
+      day: 0,
+      dayName: 'Monday'
+    });
 
     assert.ok(result);
-    assert.include(result, 'foo');
-  });
-
-  test('#month', function() {
-    var result = renderHTML(
-      'month', { id: 'myid', content: a() }
-    );
-
-    assert.ok(result);
-    assert.include(result, 'myid');
-    assert.include(result, '<a></a>');
+    assert.include(result, 'Monday');
   });
 
   test('#week', function() {

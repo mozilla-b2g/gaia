@@ -2,8 +2,11 @@ requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
+
+  requireLib('ordered_map.js');
   requireLib('timespan.js');
   requireLib('templates/month.js');
+  requireLib('views/time_parent.js');
   requireLib('views/month_child.js');
   requireLib('views/month.js');
 });
@@ -12,16 +15,13 @@ suite('views/month', function() {
   var subject,
       app,
       controller,
-      busytimes;
+      busytimes,
+      triggerEvent;
 
-  function range(start, end) {
-    var list = [];
 
-    for (; start <= end; start++) {
-      list.push(start);
-    }
-    return list;
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -35,7 +35,6 @@ suite('views/month', function() {
       '<div id="current-month-year">',
       '</div>',
       '<div id="month-view">',
-        '<div id="month-displays"></div>',
       '</div>'
     ].join('');
 
@@ -43,6 +42,8 @@ suite('views/month', function() {
 
     app = testSupport.calendar.app();
     controller = app.timeController;
+    controller.move(new Date());
+
     busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.Month({
@@ -52,243 +53,147 @@ suite('views/month', function() {
   });
 
   test('initialization', function() {
-    assert.instanceOf(subject, Calendar.View);
+    assert.instanceOf(subject, Calendar.Views.TimeParent);
     assert.equal(subject.controller, controller);
     assert.equal(subject.element, document.querySelector('#month-view'));
   });
 
-  test('#container', function() {
-    assert.ok(subject.container);
-  });
-
-  test('#currentMonth', function() {
-    assert.ok(subject.currentMonth);
-  });
-
   suite('events', function() {
 
-    test('monthChange', function() {
-      var calledUpdate = null,
-          calledActivateMonth = null;
+    test('dom: click', function() {
+      subject.render();
 
-      subject.updateCurrentMonth = function() {
-        calledUpdate = true;
-      };
+      // find something with [data-date];
+      var el = subject.element.querySelector(
+        '[data-date]'
+      );
 
-      subject.activateMonth = function(month) {
-        calledActivateMonth = month;
+      var date = Calendar.Calc.dateFromId(
+        el.dataset.date
+      );
+
+      triggerEvent(el, 'click');
+      assert.deepEqual(
+        controller.selectedDay, date,
+        'tapping element should change selected date'
+      );
+    });
+
+    test('controller: monthChange', function() {
+      var calledClear = null;
+      var calledActivateTime = null;
+
+      subject._clearSelectedDay = function() {
+        calledClear = true;
+      }
+
+      subject._activateTime = function(month) {
+        calledActivateTime = month;
       };
 
       var date = new Date(2012, 1, 1);
       controller.move(date);
 
-      assert.isTrue(calledUpdate);
-      assert.deepEqual(calledActivateMonth, date);
+      assert.ok(calledClear);
+      assert.deepEqual(calledActivateTime, date);
     });
 
+    test('controller: selectedDayChange', function() {
+      var calledWith;
+      var date = new Date();
+
+      subject._selectDay = function() {
+        calledWith = arguments;
+      }
+
+      controller.selectedDay = date;
+      assert.deepEqual(calledWith[0], date);
+    });
+  });
+
+  test('#_createChild', function() {
+    var time = new Date(2012, 1, 1);
+    var child = subject._createChild(time);
+
+    assert.instanceOf(child, Calendar.Views.MonthChild);
+    assert.deepEqual(child.date, time);
+  });
+
+  test('#_nextTime', function() {
+    var date = new Date(2012, 4, 1);
+    var expected = new Date(2012, 5, 1);
+
+    assert.deepEqual(
+      subject._nextTime(date),
+      expected
+    );
+  });
+
+  test('#_previousTime', function() {
+    var date = new Date(2012, 5, 1);
+    var expected = new Date(2012, 4, 1);
+
+    assert.deepEqual(
+      subject._previousTime(date),
+      expected
+    );
   });
 
   test('#onfirstseen', function() {
     assert.equal(subject.onfirstseen, subject.render);
   });
 
-  test('#_renderCurrentMonth', function() {
-    //September 2012
-    controller.move(new Date(2012, 8, 1));
-    var result = subject._renderCurrentMonth();
-
-    assert.ok(result);
-
-    assert.include(
-      result,
-      '2012',
-      'should render year'
-    );
-
-    assert.include(
-      result,
-      subject.monthNames[8],
-      'should render September'
-    );
-  });
-
-  suite('month navigators', function() {
-    var calledWith, now;
-
-    setup(function() {
-      calledWith = null;
-      subject.activateMonth = function(mo) {
-        calledWith = mo;
-      };
-      subject.render();
-      now = controller.month;
-    });
-
-    test('#next', function() {
-      var expected = new Date(
-        now.getFullYear(),
-        now.getMonth() + 1,
-        now.getDate()
+  suite('selected days', function() {
+    function selected() {
+      return subject.element.querySelectorAll(
+        subject.selectors.selectedDay
       );
+    }
 
-      subject.next();
-
-      assert.deepEqual(
-        calledWith.getFullYear(),
-        expected.getFullYear()
-      );
-
-      assert.deepEqual(
-        calledWith.getMonth(),
-        expected.getMonth()
-      );
-
-    });
-
-    test('#previous', function() {
-      var expected = new Date(
-        now.getFullYear(),
-        now.getMonth() - 1,
-        now.getDate()
-      );
-
-      subject.previous();
-
-      assert.deepEqual(
-        calledWith.getFullYear(),
-        expected.getFullYear()
-      );
-
-      assert.deepEqual(
-        calledWith.getMonth(),
-        expected.getMonth()
-      );
-
-    });
-
-  });
-
-  suite('#activateMonth', function() {
-    var date = new Date(2012, 1, 1),
-        container,
-        id;
-
-    setup(function() {
-      controller.move(date);
-      id = Calendar.Calc.getMonthId(date);
-      subject.activateMonth(date);
-      container = document.getElementById('test');
-    });
-
-    test('should append new month into dom', function() {
-      var el = subject.container.children[0];
-
-      assert.ok(subject.children[id]);
-
-      assert.equal(
-        el.id,
-        subject.children[id].element.id
-      );
-    });
-
-    test('when trying to re-render an existing calendar', function() {
-      subject.activateMonth(date);
-      var els = subject.container.children;
-      assert.length(els, 1, 'should not re-render calendar');
-    });
-
-    suite('when there is an active month', function() {
-      var newDate = new Date(2012, 2, 1);
-
-      setup(function() {
-        subject.activateMonth(newDate);
-      });
-
-      test('hides old month and displays new one', function() {
-        var els = subject.container.children;
-        assert.length(els, 2);
-
-        assert.ok(els[0].classList.contains('inactive'));
-        assert.ok(!els[1].classList.contains('inactive'));
-      });
-
-      test('when going back', function() {
-        subject.activateMonth(date);
-        var els = subject.container.children;
-        assert.length(els, 2);
-
-        assert.ok(!els[0].classList.contains('inactive'));
-        assert.ok(els[1].classList.contains('inactive'));
-      });
-    });
-
-  });
-
-  suite('controller: purge event', function() {
-
-    var date;
-    var childId;
-
-    setup(function() {
-      date = new Date(2012, 8, 1);
-      controller.move(date);
-      subject.activateMonth(date);
-
-      childId = Object.keys(subject.children)[0];
-    });
-
-    test('should remove after purge', function() {
-      var child = subject.children[childId];
-      assert.ok(child);
-      assert.ok(child.element);
-
-      controller.emit('purge', child.timespan);
-
-      assert.ok(!child.element);
-      assert.deepEqual(subject.children, {});
-    });
-
-  });
-
-  test('#updateCurrentMonth', function() {
-    controller.move(new Date(2012, 8, 1));
-    subject.updateCurrentMonth();
-
-    assert.include(
-      subject.currentMonth.innerHTML,
-      subject._renderCurrentMonth()
-    );
-  });
-
-  suite('#render', function() {
-    var result;
-
-    setup(function() {
-      result = subject.render();
-    });
-
-    test('rendered elements', function() {
-      var container = subject.container,
-          now = new Date();
-
-      now = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-      );
-
+    test('#_selectDay', function() {
+      var now = new Date(2012, 0, 1);
+      controller.move(now);
       subject.render();
 
-      assert.ok(subject.currentChild.element);
+      var select = new Date(2012, 0, 5);
+      subject._selectDay(select);
 
-      assert.equal(
-        container.children[0].id,
-        subject.currentChild.element.id
-      );
+      var dayEl = selected();
+      assert.length(dayEl, 1, 'should highlight selected');
 
-      assert.deepEqual(controller.month.valueOf(), now.valueOf());
+      dayEl = dayEl[0];
+
+      assert.ok(dayEl.id, 'should have id');
+      assert.include(dayEl.id, Calendar.Calc.getDayId(
+        select
+      ));
     });
 
+    test('#_clearSelectedDay', function() {
+      subject.render();
+      assert.length(selected(), 0);
+
+      var el = subject.element.querySelector('li');
+      el.classList.add('selected');
+
+      assert.length(selected(), 1);
+      subject._clearSelectedDay();
+
+      assert.length(selected(), 0);
+    });
+
+  });
+
+  test('#render', function() {
+    var time = new Date(2012, 1, 1);
+    controller.move(time);
+    subject.render();
+
+    assert.equal(subject.children.length, 3);
+    assert.length(subject._activeChildren, 1);
+    assert.ok(
+      subject._activeChildren.get(subject._getId(time))
+    );
   });
 
 });

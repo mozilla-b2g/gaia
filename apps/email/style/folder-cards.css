@@ -11,6 +11,9 @@
   line-height: 2.5rem;
   padding: 0.6rem 2rem;
   border-bottom: 1px solid gray;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .fld-account-selected {
   background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.5), rgba(50, 50, 50, 0.6));
@@ -63,6 +66,9 @@
 }
 .fld-folders-header-account-label {
   font-size: 1.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fld-folder-item:last-child {

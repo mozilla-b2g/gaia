@@ -27,6 +27,11 @@
   exports.console = console;
 
   console.log = function consoleLog() {
+    //XXX: quick inline hack to fix upstream
+    //marionette js problem when closing sockets...
+    if (typeof(dump) === 'undefined') {
+      return;
+    }
     dump(format.apply(this, arguments) + '\n');
   };
 

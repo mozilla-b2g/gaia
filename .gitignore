@@ -9,6 +9,8 @@ manifest.appcache
 /apps/system/camera
 /apps/settings/gaia-commit.txt
 /apps/homescreen/js/init.json
+/apps/costcontrol/js/config.json
+/apps/sms/js/blacklist.json
 /test_apps/test-agent/test/config.json
 /apps/dialer/contacts
 
@@ -21,6 +23,7 @@ manifest.appcache
 /showcase_apps/*/test/unit/_proxy.html
 
 /profile/
+/.xulrunner-url
 /xulrunner/
 /xulrunner-sdk/
 /tools/test-agent/node_modules
@@ -32,3 +35,5 @@ manifest.appcache
 /apps/sms/js/blacklist.json
 /.project
 /.xulrunner-url
+/tools/xpcwindow/vendor/
+/locales/*

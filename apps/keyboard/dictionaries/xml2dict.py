@@ -13,7 +13,11 @@ import sys, struct, operator, heapq
 # stored as a linear list in the leaf node of the trie (suffix). It might make
 # sense to play with this number depending on the language since some languages
 #  have longer average word lengths. For now we use a constant prefix length.
-PrefixLimit = 6
+PrefixLimit = 10
+
+# To increase lookup speed, we only store a specific number of words in every
+# node and prune the rest.
+MaxWordsPerNode = 3
 
 # Mapping table for diacritics to the corresponding plain letter. The hash for
 # the bloom filter is calculated by converting the word to lower-case plain
@@ -22,22 +26,32 @@ PrefixLimit = 6
 # table to find all matching words the bloom filter indicated exist, so we
 # encode this table in each dictionary file.
 diacritics = {
-    'a': u'áàâäåãāæăą',
-    'c': u'çćč',
-    'd': u'ďđð',
-    'e': u'éèêëēȩ€ɛěėę',
-    'g': u'ğ',
-    'h': u'ħ',
-    'i': u'ïíìîīįıǐ',
-    'o': u'öóòôōœøɵőõơŏ',
-    'u': u'üúùûūůűưũ',
-    'r': u'ř',
-    's': u'ßśš$ŚŠŞş',
-    't': u'ťţ',
-    'n': u'ñńň',
-    'l': u'ł£ľ',
-    'y': u'ÿ¥ý',
-    'z': u'žźż'
+    'a': u'ÁáĂăǍǎÂâÄäȦȧẠạȀȁÀàẢảȂȃĀāĄąÅåḀḁȺⱥÃãǼǽǢǣÆæ',
+    'b': u'ḂḃḄḅƁɓḆḇɃƀƂƃ',
+    'c': u'ĆćČčÇçĈĉĊċƇƈȻȼ',
+    'd': u'ĎďḐḑḒḓḊḋḌḍƊɗḎḏĐđƋƌð',
+    'e': u'ÉéĔĕĚěȨȩÊêḘḙËëĖėẸẹȄȅÈèẺẻȆȇĒēĘę',
+    'f': u'ḞḟƑƒ',
+    'g': u'ǴǵĞğǦǧĢģĜĝĠġƓɠḠḡǤǥ',
+    'h': u'ḪḫȞȟḨḩĤĥⱧⱨḦḧḢḣḤḥĦħ',
+    'i': u'ÍíĬĭǏǐÎîÏïỊịȈȉÌìỈỉȊȋĪīĮįƗɨĨĩḬḭı',
+    'j': u'ĴĵɈɉ',
+    'k': u'ḰḱǨǩĶķⱩⱪꝂꝃḲḳƘƙḴḵꝀꝁ',
+    'l': u'ĹĺȽƚĽľĻļḼḽḶḷⱠⱡꝈꝉḺḻĿŀⱢɫŁł',
+    'm': u'ḾḿṀṁṂṃⱮɱ',
+    'n': u'ŃńŇňŅņṊṋṄṅṆṇǸǹƝɲṈṉȠƞÑñ',
+    'o': u'ÓóŎŏǑǒÔôÖöȮȯỌọŐőȌȍÒòỎỏƠơȎȏꝊꝋꝌꝍŌōǪǫØøÕõŒœ',
+    'p': u'ṔṕṖṗꝒꝓƤƥⱣᵽꝐꝑ',
+    'q': u'Ꝗꝗ',
+    'r': u'ŔŕŘřŖŗṘṙṚṛȐȑȒȓṞṟɌɍⱤɽ',
+    's': u'ŚśŠšŞşŜŝȘșṠṡṢṣß$',
+    't': u'ŤťŢţṰṱȚțȾⱦṪṫṬṭƬƭṮṯƮʈŦŧ',
+    'u': u'ÚúŬŭǓǔÛûṶṷÜüṲṳỤụŰűȔȕÙùỦủƯưȖȗŪūŲųŮůŨũṴṵ',
+    'v': u'ṾṿƲʋṼṽ',
+    'w': u'ẂẃŴŵẄẅẆẇẈẉẀẁⱲⱳ',
+    'x': u'ẌẍẊẋ',
+    'y': u'ÝýŶŷŸÿẎẏỴỵỲỳƳƴỶỷỾỿȲȳɎɏỸỹ',
+    'z': u'ŹźŽžẐẑⱫⱬŻżẒẓȤȥẔẕƵƶ'
 }
 
 # Map all diacritics to the corresponding lower-case base letter. The only
@@ -134,20 +148,30 @@ def add(word, freq, flags):
     # Split the word into a prefix of maximum length PrefixLimit and a suffix.
     # If the word is less than PrefixLimit characters, the suffix will be
     # empty.
-    prefix = word[0:min(len(word), PrefixLimit)]
-    suffix = word[len(prefix):]
-    # Mark in the bloomfilter the bit corresponding to the prefix. For this
-    # we remove all diacritics from the prefix, and convert it to lower case.
-    # This is done to reduce the search space the lookup code has to search
-    # to find matches in. In the trie we will store the word in its original
-    # form.
-    mark(nodiacritics(prefix.lower()))
-    if not prefix in index:
-        index[prefix] = {}
-    # Sometimes the dictionaries contain duplicate entries. In that case pick
-    # the higher frequency one.
-    if not suffix in index[prefix] or index[prefix][suffix] < freq:
-        index[prefix][suffix] = freq
+    # e.g. doorhandle
+    # d : oorhandle
+    # do : orhandle
+    # doo : rhandle
+    # door : handle
+    # doorh : andle
+    # and so on, up until we hit the PrefixLimit
+    curLimit = 1;
+    while curLimit < PrefixLimit:
+        prefix = word[0:min(len(word), curLimit)]
+        suffix = word[len(prefix):]
+        curLimit = curLimit + 1
+        # Mark in the bloomfilter the bit corresponding to the prefix. For this
+        # we remove all diacritics from the prefix, and convert it to lower case.
+        # This is done to reduce the search space the lookup code has to search
+        # to find matches in. In the trie we will store the word in its original
+        # form.
+        mark(nodiacritics(prefix.lower()))
+        if not prefix in index:
+            index[prefix] = {}
+        # Elements are inserted in order, in other words, if that suffix is already
+        # available, or the maximum number of words is reached we can skip the word
+        if not suffix in index[prefix] and len(index[prefix]) < MaxWordsPerNode:
+            index[prefix][suffix] = freq
 
 # Parse the XML input file and build the trie.
 dom = parseString(data)
@@ -161,12 +185,16 @@ for word in words:
     else:
         flags = ""
     freq = int(attr.get("f").nodeValue)
+    if flags == "abbreviation" or freq <= 1:
+        continue
     text = word.childNodes[0].nodeValue
+    if len(text) <= 1:
+        continue;
     add(text, freq, flags)
 
 # Do some statistical sanity checking on the input data. Basically we expect
 # a low collision rate in the bloom filter as long the hash functions work
-# properly. 6% is not really a magic value. Its a good collisition ratio,
+# properly. 8% is not really a magic value. Its a good collisition ratio,
 # and it happens to work for all current dictionaries. This assert is here
 # to make sure we don't accidentally start using a reall bad hash function.
 total = len(index)
@@ -178,7 +206,7 @@ for word in words:
     word = nodiacritics(word.childNodes[0].nodeValue.lower())
     if ismarked(word[::-1]):
         collisions += 1
-assert collisions < total * 0.06
+assert collisions < total * 0.08
 print("collision ratio: {0}/{1}".format(collisions, total))
 
 # If verbose mode was requested, write the index to a human readable file.

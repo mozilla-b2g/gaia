@@ -61,6 +61,11 @@ function getFile() {
   return file;
 }
 
+function ensureFolderExists(file) {
+  if (!file.exists())
+    file.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+}
+
 function getJSON(file) {
   let content = getFileContent(file);
   return JSON.parse(content);
@@ -68,6 +73,7 @@ function getJSON(file) {
 
 const Gaia = {
   engine: GAIA_ENGINE,
+  sharedFolder: getFile(GAIA_DIR, 'shared'),
   webapps: {
     forEach: function (fun) {
       let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
@@ -85,6 +91,7 @@ const Gaia = {
             manifestFile: manifestFile,
             url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
             domain: domain,
+            sourceDirectoryFile: manifestFile.parent,
             sourceDirectoryName: dir,
             sourceAppDirectoryName: directoryName
           };

@@ -20,6 +20,8 @@ const IMERender = (function() {
 
   var layoutWidth = 10;
 
+  var suggestionEngineName; // used as a CSS class on the candidatePanel
+
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
@@ -28,6 +30,24 @@ const IMERender = (function() {
     isSpecialKey = keyTest;
     onScroll = scrollHandler;
     this.ime = document.getElementById('keyboard');
+  }
+
+  var setSuggestionEngineName = function(name) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    if (candidatePanel) {
+      if (suggestionEngineName)
+        candidatePanel.classList.remove(suggestionEngineName);
+      candidatePanel.classList.add(name);
+    }
+    var togglebutton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+    if (togglebutton) {
+      if (suggestionEngineName)
+        togglebutton.classList.remove(suggestionEngineName);
+      toggleButton.classList.add(name);
+    }
+
+    suggestionEngineName = name;
   }
 
   // Accepts three values: true / 'locked' / false
@@ -108,7 +128,8 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth + 'px', dataset);
+        content += buildKey(keyChar, className, keyWidth + 'px',
+                            dataset, key.altNote);
 
       }));
       content += '</div>';
@@ -157,8 +178,13 @@ const IMERender = (function() {
   };
 
   // Highlight a key
-  var highlightKey = function kr_updateKeyHighlight(key) {
+  var highlightKey = function kr_updateKeyHighlight(key, alternativeKey) {
     key.classList.add('highlighted');
+
+    if (alternativeKey) {
+      var spanToReplace = key.querySelector('.visual-wrapper span');
+      spanToReplace.textContent = alternativeKey;
+    }
   }
 
   // Unhighlight a key
@@ -317,8 +343,13 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
-      var cssWidth =
-        key.offsetWidth * (0.9 + 0.5 * (label.length - original.length));
+
+      var cssWidth = key.offsetWidth;
+      if (altCharsCurrent.length != 1) {
+        cssWidth = key.offsetWidth *
+                   (0.9 + 0.5 * (label.length - original.length));
+      }
+
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
       content += buildKey(label, '', cssWidth + 'px', dataset);
@@ -449,6 +480,8 @@ const IMERender = (function() {
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    if (suggestionEngineName)
+      candidatePanel.classList.add(suggestionEngineName);
     candidatePanel.addEventListener('scroll', onScroll);
     return candidatePanel;
   };
@@ -457,18 +490,27 @@ const IMERender = (function() {
     var toggleButton = document.createElement('span');
     toggleButton.innerHTML = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    if (suggestionEngineName)
+      toggleButton.classList.add(suggestionEngineName);
     toggleButton.dataset.keycode = -4;
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+
+    var altNoteHTML = '';
+    if (altNote) {
+      altNoteHTML = '<div class="alt-note">' + altNote + '</div>';
+    }
+
+
     var content = '<button class="keyboard-key ' + className + '"';
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
     content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
-               label + '</span></span></button>';
+               label + '</span>' + altNoteHTML + '</span></button>';
     return content;
   };
 
@@ -512,6 +554,7 @@ const IMERender = (function() {
   // Exposing pattern
   return {
     'init': init,
+    'setSuggestionEngineName': setSuggestionEngineName,
     'draw': draw,
     'ime': ime,
     'hideIME': hideIME,

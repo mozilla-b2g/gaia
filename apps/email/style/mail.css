@@ -50,6 +50,10 @@ button::-moz-focus-inner {
   border: none;
 }
 
+button[disabled=""] {
+  opacity: 0.5;
+}
+
 #cardContainer {
   width: 100%;
   height: 100%;
@@ -109,6 +113,7 @@ button::-moz-focus-inner {
   line-height: 5.2rem;
   margin: 0 0 0 4rem;
   font-size: 2.2rem;
+  font-weight: normal;
 }
 
 .header-btn, .header-left-btn, .header-right-btn {
@@ -153,9 +158,6 @@ button::-moz-focus-inner {
   height: 4.8rem;
   background-color: rgba(0, 0, 0, 0.6);
 }
-.bottom-toolbar.bottom-edit-toolbar {
-  background-color: rgba(0, 0, 64, 0.4);
-}
 .bottom-btn {
   height: 4.8rem;
 }
@@ -194,6 +196,10 @@ button::-moz-focus-inner {
   border-bottom: none;
 }
 
+.highlight {
+  background-color: #f3f3D3;
+}
+
 .icon {
   width: 3rem;
   height: 3rem;
@@ -229,4 +235,39 @@ button::-moz-focus-inner {
 
 .icon-account {
   background-image: url("images/icons/user.png");
+}
+
+.icon-reply {
+  background-image: url("images/icons/reply.png");
+}
+
+.icon-reply-all {
+  background-image: url("images/icons/reply-all.png");
+}
+
+/* Toaset banner extend class */
+section[role="dialog"].banner.customized {
+  bottom: 4.8rem;
+  opacity: 1;
+  padding-left: 3.2rem;
+}
+
+section[role="dialog"].banner.fadeout {
+  -moz-transition: opacity 500ms ease;
+  opacity: 0;
+}
+
+section[role="dialog"].banner .toaster-cancel-btn {
+  height: 8rem;
+}
+
+section[role="dialog"].banner .toaster-banner-undo,
+section[role="dialog"].banner .toaster-banner-retry {
+  display: none;
+  margin-left: 1rem;
+}
+
+section[role="dialog"][title="undo"].banner .toaster-banner-undo,
+section[role="dialog"][title="retry"].banner .toaster-banner-retry {
+  display: inline;
 }

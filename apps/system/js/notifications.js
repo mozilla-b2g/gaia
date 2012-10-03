@@ -48,9 +48,13 @@ var NotificationScreen = {
   _toasterTimeout: null,
   _toasterGD: null,
 
+  lockscreenPreview: true,
+
   get container() {
     delete this.container;
-    return this.container = document.getElementById('notifications-container');
+
+    var id = 'desktop-notifications-container';
+    return this.container = document.getElementById(id);
   },
 
   get lockScreenContainer() {
@@ -227,25 +231,34 @@ var NotificationScreen = {
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
 
-    // Notification toast
-    this.toaster.dataset.notificationID = detail.id;
-
-    this.toaster.classList.add('displayed');
-    this._toasterGD.startDetecting();
-
-    if (this._toasterTimeout)
-      clearTimeout(this._toasterTimeout);
-
-    this._toasterTimeout = setTimeout((function() {
-      this.toaster.classList.remove('displayed');
-      this._toasterTimeout = null;
-      this._toasterGD.stopDetecting();
-    }).bind(this), this.TOASTER_TIMEOUT);
+    // We turn the screen on if needed in order to let
+    // the user see the notification toaster
+    if (!ScreenManager.screenEnabled) {
+      ScreenManager.turnScreenOn();
+    }
 
     this.updateStatusBarIcon(true);
 
-    // Adding it to the lockscreen if locked
-    if (LockScreen.locked) {
+    // Notification toaster
+    if (this.lockscreenPreview || !LockScreen.locked) {
+      this.toaster.dataset.notificationID = detail.id;
+
+      this.toaster.classList.add('displayed');
+      this._toasterGD.startDetecting();
+
+      if (this._toasterTimeout)
+        clearTimeout(this._toasterTimeout);
+
+      this._toasterTimeout = setTimeout((function() {
+        this.toaster.classList.remove('displayed');
+        this._toasterTimeout = null;
+        this._toasterGD.stopDetecting();
+      }).bind(this), this.TOASTER_TIMEOUT);
+    }
+
+    // Adding it to the lockscreen if locked and the privacy setting
+    // does not prevent it.
+    if (LockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
       this.lockScreenContainer.insertBefore(lockScreenNode,
                                this.lockScreenContainer.firstElementChild);
@@ -297,3 +310,9 @@ var NotificationScreen = {
 };
 
 NotificationScreen.init();
+
+SettingsListener.observe(
+    'lockscreen.notifications-preview.enabled', true, function(value) {
+
+  NotificationScreen.lockscreenPreview = value;
+});

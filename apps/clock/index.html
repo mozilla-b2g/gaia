@@ -6,10 +6,13 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
+
     <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <!-- Shared code -->
-    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n.js"></script>
+    <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" src="js/utils.js"></script>
     <script type="application/javascript" src="js/alarmsdb.js"></script>
@@ -22,54 +25,58 @@
   <body class="hidden">
     <div id="views">
       <div id="alarm-view" class="active view">
-        <a id="alarm-new" href="#alarm" class="right button plus"></a>
         <div id="clock-view">
-          <div id="digital-clock-bg">
-            <span id="clock-day"></span>
-            <span id="clock-date"></span>
+          <div id="clock-day-date"></div>
+          <a id="alarm-new" href="#alarm" class="right button plus"></a>  
+          <div id="analog-clock">
+            <div id="analog-clock-background-cache1" class="analog-clock-background-cache"></div>
+            <div id="analog-clock-background-cache2" class="analog-clock-background-cache"></div>
+            <div id="analog-clock-background-cache3" class="analog-clock-background-cache"></div>
+            <div id="analog-clock-background-cache4" class="analog-clock-background-cache"></div>
+            <div id="analog-clock-container">
+              <svg id="analog-clock-svg" viewBox="-50 -50 100 150">
+                <defs> <!-- Define a filter for drop-shadows -->
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feOffset result="offOut" in="SourceAlpha" dx="0" dy="0.6"/>
+                    <feGaussianBlur result="blurOut" in="offOut" stdDeviation="0.8"/>
+                    <feBlend in="SourceGraphic" in2="blurOut" mode="normal"/>
+                  </filter> <!-- Define gradients for hands color -->
+                  <linearGradient id="hourhand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#3a3e40;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#14191b;stop-opacity:1"/>
+                  </linearGradient>
+                  <linearGradient id="minutehand-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#5e696d;stop-opacity:1"/>
+                    <stop offset="100%" style="stop-color:#4f5b5f;stop-opacity:1"/>
+                  </linearGradient>
+                </defs>
+                <g id="analog-clock-svg-body">
+                  <!-- Draw hands pointing straight up. We rotate them in the code. -->
+                  <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
+                    <rect id="hourhand" x="-1.3" y="0" width="2.6" height="26" rx="0.4" ry="0.4" fill="url(#hourhand-gradient)" stroke="url(#hourhand-gradient)" stroke-width="0"/>
+                    <rect id="minutehand" x="-1.3" y="0" width="2.6" height="40" rx="0.4" ry="0.4" fill="url(#minutehand-gradient)" stroke="url(#minutehand-gradient)" stroke-width="0"/>
+                    <circle id="minutehandCentralPoint" cx="0" cy="0" r="2.7"/> <!-- the minute hand central point -->
+                    <line id="secondhand" x1="0" y1="8" x2="0" y2="-41"/>
+                    <circle id="secondhandCentralPoint" cx="0" cy="0" r="1.4"/> <!-- the second hand central point -->
+                  </g>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div id="digital-clock-background">
             <div id="digital-clock">
               <div id="digital-clock-display">
                 <span id="clock-time"></span>
                 <span id="clock-hour24-state"></span>
               </div>
             </div>
-            <div id="analog-clock">
-              <svg id="analog-clock-svg" viewBox="0 0 100 100">
-                <defs> <!-- Define a filter for drop-shadows -->
-                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
-                    <feOffset in="blur" dx="1" dy="1" result="shadow" />
-                    <feMerge>
-                      <feMergeNode in="SourceGraphic"/><feMergeNode in="shadow"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-                <circle id="face" cx="50" cy="50" r="33"/> <!-- the clock face -->
-                
-                <g id="ticks"> <!-- 12 hour tick marks -->
-                  <line id="tick12" x1='50.00' y1='2.000' x2='50.00' y2='16.50'/>
-                  <line x1='91.57' y1='26.00' x2='84.64' y2='30.00'/>
-                  <rect id="tick3" x='82.00' y='48.00' width='30.00' height='4.000' rx='2' ry='4'/>
-                  <line x1='91.57' y1='74.00' x2='84.64' y2='70.00'/>
-                  <line x1='50.00' y1='98.00' x2='50.00' y2='90.00'/>
-                  <line x1='8.431' y1='74.00' x2='15.36' y2='70.00'/>
-                  <rect id="tick9" x='-12.00' y='48.00' width='30.00' height='4.000' rx='2' ry='4'/>
-                  <line x1='8.431' y1='26.00' x2='15.36' y2='30.00'/>
-                </g>
-          
-                <!-- Draw hands pointing straight up. We rotate them in the code. -->
-                <g id="hands" filter="url(#shadow)"> <!-- Add shadows to the hands -->
-                  <circle id="backboardCentralPoint" cx="50" cy="50" r="3.2"/> <!-- the minute hand central point -->
-                  <line id="hourhand" x1="50" y1="50" x2="50" y2="24"/>
-                  <line id="minutehand" x1="50" y1="50" x2="50" y2="10"/>
-                  <circle id="minutehandCentralPoint" cx="50" cy="50" r="2.1"/> <!-- the minute hand central point -->
-                  <line id="secondhand" x1="50" y1="58" x2="50" y2="9"/>
-                  <circle id="secondhandCentralPoint" cx="50" cy="50" r="1.2"/> <!-- the second hand central point -->
-                </g>
-              </svg>
-            </div>
           </div>
           <ul id="alarms" class="tableView"></ul>
+        </div>
+        <div id="banner-countdown" class="banner">
+          <p> <!-- this will be replaced dynamically -->
+            The alarm is set for <strong>8 hours</strong> and <strong>45 minutes</strong> from now.
+          </p>
         </div>
       </div>
 
@@ -136,20 +143,16 @@
           <div class="background-close"></div>
           <div class="icon-close"></div>
         </a>
-        <h1 id="alarm-title" class="label" data-l10n-id="edit_alarm">Edit Alarm</h1>
+        <h1 id="alarm-title" class="label"></h1>
         <a id="alarm-done" href="#alarm-view" class="right button done-button" data-l10n-id="done">Done</a>
       </header>
-      <ul class="tableView">
-        <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="label">Label<sapn>:</sapn></span>
-          <input type="text" class="right" name="alarm.label" placeholder="Alarm" />
-        </li>
-        <li class="multiline">
+      <ul id="edit-alarm" class="tableView">
+        <li class="picker">
           <div id="picker-bar">
             <div id="picker-container">
               <div id="value-indicator-bottom"></div>
               <div id="picker-bar-background"></div>
-              <div class="left-picker-separator"></div>
+              <div id="left-picker-separator"></div>
 
               <div id="value-indicator-wrapper">
                 <div id="value-indicator-hover-time">:</div>
@@ -158,45 +161,54 @@
 
               <div id="value-picker-hours" class="animation-on"></div>
               <div id="value-picker-minutes" class="animation-on"></div>
-              <div class="right-picker-separator"></div>
+              <div id="right-picker-separator"></div>
               <div id="value-picker-hour24-state" class="animation-on"></div>
             </div>
             <div id="picker-bar-gradient"></div>
           </div>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="label">Label</span>
+          <input type="text" class="right" data-l10n-id="alarm" name="alarm.label" placeholder="Alarm"/>
+        </li>
+        <li class="singleline">
+          <span class="view-alarm-lbl" data-l10n-id="repeat">Repeat</span>
           <select id="repeat-select" multiple="true" class="abstract-menu">
-            <option value="0" data-l10n-id="dayofweek-0">Monday</option>
-            <option value="1" data-l10n-id="dayofweek-1">Tuesday</option>
-            <option value="2" data-l10n-id="dayofweek-2">Wednesday</option>
-            <option value="3" data-l10n-id="dayofweek-3">Thursday</option>
-            <option value="4" data-l10n-id="dayofweek-4">Friday</option>
-            <option value="5" data-l10n-id="dayofweek-5">Saturday</option>
-            <option value="6" data-l10n-id="dayofweek-6">Sunday</option>
+            <option value="0" data-l10n-id="weekday-1-long">Monday</option>
+            <option value="1" data-l10n-id="weekday-2-long">Tuesday</option>
+            <option value="2" data-l10n-id="weekday-3-long">Wednesday</option>
+            <option value="3" data-l10n-id="weekday-4-long">Thursday</option>
+            <option value="4" data-l10n-id="weekday-5-long">Friday</option>
+            <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
+            <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
           </select>
-          <a id="repeat-menu" class="abstract-menu">Never</a>
+          <a id="repeat-menu" data-l10n-id="never" class="abstract-menu">Never</a>
           <p></p>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="sound">Sound<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
           <select id="sound-select" class="abstract-menu">
-            <option value="classic.wav">Classic</option>
-            <option value="bosscaling.wav">Bosscaling</option>
-            <option value="goodnight.wav">Goodnight</option>
+            <option value="AC_2_note_Retro_Alarm_Clock.mp3">AC_2_note_Retro_Alarm_Clock</option>
+            <option value="AC_black_plastic_Retro_Alarm_Clock.mp3">AC_black_plastic_Retro_Alarm_Clock</option>
+            <option value="AC_buzzy_Retro_Alarm_Clock.mp3">AC_buzzy_Retro_Alarm_Clock</option>
+            <option value="AC_hear_me!_Retro_Alarm_Clock_RAW.mp3">AC_hear_me!_Retro_Alarm_Clock_RAW</option>
+            <option value="AC_progressive__Retro_Alarm_Clock.mp3">AC_progressive__Retro_Alarm_Clock</option>
+            <option value="AC_reedy_plastic_Retro_Alarm_Clock.mp3">AC_reedy_plastic_Retro_Alarm_Clock</option>
+            <option value="ALARM_progressive_dapple.mp3">ALARM_progressive_dapple</option>
+            <option value="ALARM_progressive2_dapple.mp3">ALARM_progressive2_dapple</option>
           </select>
           <a id="sound-menu" class="abstract-menu">Classic</a>
           <p></p>
         </li>
         <li class="singleline">
-          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze<sapn>:</sapn></span>
+          <span class="view-alarm-lbl" data-l10n-id="snooze">Snooze</span>
           <select id="snooze-select" class="abstract-menu">
-            <option value="5">5 minutes</option>
-            <option value="10">10 minutes</option>
-            <option value="15">15 minutes</option>
-            <option value="20">20 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'  value="5">  5 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "10"}' value="10">10 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "15"}' value="15">15 minutes</option>
+            <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
           </select>
-          <a id="snooze-menu" class="abstract-menu">5 minutes</a>
+          <a id="snooze-menu" class="abstract-menu" data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'>5 minutes</a>
           <p></p>
         </li>
         <li id="alarm-delete-button">

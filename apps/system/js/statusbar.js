@@ -3,6 +3,8 @@
 
 'use strict';
 
+var _ = navigator.mozL10n.get;
+
 var StatusBar = {
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -42,10 +44,11 @@ var StatusBar = {
 
   /* For other app to acquire */
   get height() {
-    if (this.screen.classList.contains('active-statusbar'))
+    if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    else
+    } else {
       return this.element.offsetHeight;
+    }
   },
 
   init: function sb_init() {
@@ -90,6 +93,9 @@ var StatusBar = {
     // Listen to 'bluetoothconnectionchange' from bluetooth.js
     window.addEventListener('bluetoothconnectionchange', this);
 
+    // Listen to 'moztimechange'
+    window.addEventListener('moztimechange', this);
+
     this.setActive(true);
   },
 
@@ -117,6 +123,10 @@ var StatusBar = {
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
 
+      case 'moztimechange':
+        this.update.time.call(this);
+        break;
+
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'geolocation-status':
@@ -139,6 +149,13 @@ var StatusBar = {
             this.update.headphones.call(this);
             break;
         }
+
+        break;
+
+      case 'moznetworkupload':
+      case 'moznetworkdownload':
+        this.update.networkActivity.call(this);
+        break;
     }
   },
 
@@ -169,6 +186,9 @@ var StatusBar = {
           wifiManager.connectionInfoUpdate = (this.update.wifi).bind(this);
         this.update.wifi.call(this);
       }
+
+      window.addEventListener('moznetworkupload', this);
+      window.addEventListener('moznetworkdownload', this);
     } else {
       clearTimeout(this._clockTimer);
 
@@ -184,6 +204,9 @@ var StatusBar = {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
       }
+
+      window.removeEventListener('moznetworkupload', this);
+      window.removeEventListener('moznetworkdownload', this);
     }
   },
 
@@ -204,7 +227,20 @@ var StatusBar = {
         return;
       }
 
-      l10nArgs.operator = conn.voice.network.shortName;
+      var voice = conn.voice;
+      var network = voice.network;
+      l10nArgs.operator = network.shortName || network.longName;
+
+      if (network.mcc == 724 &&
+        voice.cell && voice.cell.gsmLocationAreaCode) {
+        // We are in Brazil, It is legally required to show local region name
+
+        var lac = voice.cell.gsmLocationAreaCode % 100;
+        var region = MobileInfo.brazil.regions[lac];
+        if (region)
+          l10nArgs.operator += ' ' + region;
+      }
+
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
 
       label.dataset.l10nId = 'statusbarLabel';
@@ -213,20 +249,19 @@ var StatusBar = {
 
     time: function sb_updateTime() {
       // Schedule another clock update when a new minute rolls around
+      var f = new navigator.mozL10n.DateTimeFormat();
       var now = new Date();
       var sec = now.getSeconds();
       window.clearTimeout(this._clockTimer);
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
-      // XXX: respect clock format in Settings,
-      // but drop the AM/PM part according to spec
-      this.icons.time.textContent = now.toLocaleFormat('%R');
+      this.icons.time.textContent =
+          f.localeFormat(now, _('statusbarTimeFormat'));
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
-      // XXX: respect date format in Settings
-      l10nArgs.date = now.toLocaleFormat('%e %B');
+      l10nArgs.date = f.localeFormat(now, _('statusbarDateFormat'));
       label.dataset.l10nArgs = JSON.stringify(l10nArgs);
       this.update.label.call(this);
     },
@@ -241,6 +276,20 @@ var StatusBar = {
       icon.hidden = false;
       icon.dataset.charging = battery.charging;
       icon.dataset.level = Math.floor(battery.level * 10) * 10;
+    },
+
+    networkActivity: function sb_updateNetworkActivity() {
+      // Each time we receive an update, make network activity indicator
+      // show up for 500ms.
+
+      var icon = this.icons.networkActivity;
+
+      clearTimeout(this._networkActivityTimer);
+      icon.hidden = false;
+
+      this._networkActivityTimer = setTimeout(function hideNetActivityIcon() {
+        icon.hidden = true;
+      }, 500);
     },
 
     signal: function sb_updateSignal() {
@@ -447,7 +496,7 @@ var StatusBar = {
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
     var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
     'recording', 'sms', 'geolocation', 'usb', 'label'];
 

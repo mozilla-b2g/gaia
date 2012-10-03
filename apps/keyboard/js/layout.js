@@ -60,10 +60,13 @@ const Keyboards = {
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
       [{ value: '7', ratio: 3},{ value: '8', ratio: 3},{ value: '9', ratio: 3}],
       [
-        { value: '.', ratio: 3},{ value: '0', ratio: 3},
+        { value: '.', ratio: 3, altNote: ','},{ value: '0', ratio: 3},
         { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
       ]
-    ]
+    ],
+    alt: {
+      '.' : ','
+    }
   },
   telLayout: {
     type: 'keyboard',
@@ -71,13 +74,20 @@ const Keyboards = {
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
       [{ value: '4', ratio: 3},{ value: '5', ratio: 3},{ value: '6', ratio: 3}],
-      [{ value: '7', ratio: 3},{ value: '8', ratio: 3},{ value: '9', ratio: 3}],
-      [{ value: '*', ratio: 3},{ value: '0', ratio: 3},{ value: '#', ratio: 3}],
-      [
-        { value: '+', ratio: 3},{ value: ',', ratio: 3},
-        { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
-      ]
-    ]
+      [{ value: '7', ratio: 3, altNote: '#'},
+       { value: '8', ratio: 3, altNote: '-'},
+       { value: '9', ratio: 3, altNote: '*'}],
+      [{ value: '(', ratio: 3, altNote: ')'},
+       { value: '0', ratio: 3, altNote: '+'},
+       { value: '⌫', ratio: 3, keyCode: KeyEvent.DOM_VK_BACK_SPACE }]
+    ],
+    alt: {
+      '7' : '#',
+      '8' : '-',
+      '9' : '*',
+      '(' : ')',
+      '0' : '+'
+    }
   },
   en: {
     type: 'keyboard',
@@ -87,7 +97,7 @@ const Keyboards = {
     alt: {
       a: 'áàâäåãāæ',
       c: 'çćč',
-      e: 'éèêëēȩ€ɛ',
+      e: 'éèêëēę€ɛ',
       i: 'ïíìîīį',
       o: 'öóòôōœøɵ',
       u: 'üúùûū',
@@ -791,7 +801,7 @@ const Keyboards = {
     alt: {
       a: 'áªàâäåãāæ',
       c: 'ç',
-      e: 'é€èêëēȩɛ',
+      e: 'é€èêëēęɛ',
       i: 'íïìîīį',
       o: 'óºöòôōœøɵ',
       u: 'üúùûū',
@@ -892,7 +902,7 @@ const Keyboards = {
     menuLabel: 'Português',
     alt: {
       a: 'áãàâäåæª',
-      e: 'éêèȩėēëɛ',
+      e: 'éêèęėēëɛ',
       i: 'íîìïįī',
       o: 'óõôòöœøōɵ',
       u: 'úüùûū',

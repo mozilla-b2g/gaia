@@ -1,53 +1,6 @@
 /**
- * Setting panels
- * = full-size blocks, identified by a 'document' role
- */
-
-[role=document] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  border: 0;
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
-  background: url(images/document-bg.png);
-}
-
-/* list separators */
-[role=document] > h2 {
-  margin: 0;
-  padding: 0 0 0 30px;
-  height: 34px;
-  line-height: 34px;
-  font-size: 0.85em;
-  color: white;
-  background: url(images/title-bg.png) repeat-x;
-}
-
-[role=document] {
-  transition: transform 0.5s ease;
-  transform: translateX(100%);
-}
-
-#root {
-  transform: translateX(-100%);
-}
-
-#root:target, [role=document]:target {
-  transition: transform 0.5s ease;
-  transform: none;
-}
-
-body.hidden #root {
-  transform: none;
-  transition: none;
-}
-
-
-/******************************************************************************
  * Table View
- * line height = 60px, border included
+ * line height = 6rem, border included
  */
 
 ul {
@@ -59,10 +12,10 @@ ul {
 
 ul li {
   position: relative;
-  border-bottom: 1px solid #e6e6e3;
+  border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
+  min-height: 6rem;
 }
 
 ul li.active,
@@ -77,49 +30,72 @@ ul li > a {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
-  line-height: 60px;
-  padding: 0 30px;
+  height: 6rem;
+  font-size: 1.8rem;
+  line-height: 6rem;
+  padding: 0 3rem;
+}
+
+ul li.disabled > a {
+  color: gray;
+  pointer-events: none;
+}
+
+/* description + value on the same line */
+ul li > a span {
+  position: absolute;
+  right: 2rem;
+  color: #505859;
 }
 
 /* text ellipsis */
-ul li > label + *,
-ul li > label + * + * {
+ul li > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 66px);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
-  left: 30px;
+  left: 3rem;
+  right: 3rem;
   top: 50%;
-  padding-top: 4px;
-  font-size: 0.65em;
+  padding-top: 0.4rem;
+  font-size: 1.2rem;
   color: #505859;
+  /* click/tap events should be caught by the <a> element below the <small> */
+  pointer-events: none;
 }
 
-ul li > small + a {
-  line-height: 44px;
+ul li > label:not([for]) + small {
+  right: 6rem;
 }
 
-/* action buttons */
-ul li button {
-  width: 50%;
-  height: 52px;
-  margin: 6px 30px;
-  font-size: 1em;
+/* required for empty elements like Bluetooth */
+ul li > small:not(:empty) + a {
+  line-height: 4.4rem;
 }
 
 
 /******************************************************************************
- * fake input boxes for checkboxes & radio buttons
+ * Boolean inputs
  */
 
-[role=document] label {
+ul li button, ul li a[role=button] {
+  display: block;
+  margin: auto;
+  position: relative;
+  top: 1rem;
+  font-size: 1.5rem;
+  line-height: 1em;
+  width: calc(100% - 5rem);
+  height: calc(100% - 2rem);
+}
+
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li > label:not([for]) {
   position: absolute;
   top: 0;
   left: 0;
@@ -127,150 +103,211 @@ ul li button {
   height: 100%;
 }
 
-[role=document] label > input {
+ul li > label:not([for]) > span,
+ul li > label:not([for]).switch > span {
+  left: auto;
+  right: 2rem;
+}
+
+ul li > label:not([for]) + a,
+ul li > label:not([for]) + small + a {
+  padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
+}
+
+
+/******************************************************************************
+ * Text inputs
+ */
+
+ul li p {
+  font-size: 1.8rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 1rem 3rem;
+}
+
+ul li p + label:not([for]) {
+  top: 2.5rem;
+  height: calc(100% - 2.5rem);
+}
+
+ul li p + input[type=text],
+ul li p + input[type=password] {
+  display: block;
+  width: calc(100% - 6rem);
+  font-size: 1.8rem;
+  height: 2rem;
+  line-height: 2rem;
+  margin: -1rem auto 1rem;
+}
+
+
+/******************************************************************************
+ * Date|Time inputs
+ */
+
+ul li > label input[type="date"],
+ul li > label input[type="time"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+
+/******************************************************************************
+ * Range inputs
+ */
+
+ul li > label input[type=range] {
+  width: 80%;
+  width: calc(100% - 6rem);
+  margin-left: 3rem;
+  margin-top: 2rem;
+}
+
+/**
+ * Polyfill until input[type=range] is natively supported by Gecko:
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=344618
+ *
+ * The JS polyfill transforms this:
+ *
+ *   <label>
+ *     <input type="range" value="60" />
+ *   </label>
+ *
+ * into this:
+ *
+ *   <label class="bug344618_polyfill">
+ *     <div>
+ *       <span style="width: 60%"></span>
+ *       <span style="left: 60%"></span>
+ *     </div>
+ *     <input type="range" />
+ *   </label>
+ */
+
+ul li > label.bug344618_polyfill input {
   display: none;
 }
 
-[role=document] label > span {
+/* slider */
+
+ul li > label.bug344618_polyfill div:before {
+  content: "";
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: calc(50% - 0.1rem);
+  left: 0;
+  right: 0;
+  height: 0.1rem;
+  border-top: 0.1rem solid #7e7e7e;
+}
+
+ul li > label.bug344618_polyfill div {
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 7.5rem;
+  right: 7.5rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+/* fill */
+
+ul li > label.bug344618_polyfill div span:first-child {
+  position: absolute;
   display: block;
-  width: 40px;
-  height: 40px;
+  top: calc(50% - 0.15rem);
+  width: 4rem;
+  height: 0.3rem;
+  background: #01c5ed;
 }
 
-[role=document] label > input[type=radio] + span {
-  background: url(images/radio_off.png) no-repeat scroll center center;
-}
+/* throbber */
 
-[role=document] label > input[type=radio]:checked + span {
-  background: url(images/radio_on.png) no-repeat scroll center center;
-}
-
-[role=document] label > input[type=checkbox] + span {
-  border: 2px solid;
-  border-radius: 5px;
-  -moz-border-top-colors:    #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-right-colors:  #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-bottom-colors: #c3c9cb #c3c9cb #fff #fff;
-  -moz-border-left-colors:   #c3c9cb #c3c9cb #fff #fff;
-  background-color: #eaeae4;
-}
-
-[role=document] label > input[type=checkbox]:checked + span {
-  background: url(images/checked.png) no-repeat scroll center center;
-}
-
-
-/******************************************************************************
- * brightness level
- */
-
-[role=document] label > progress {
-  float: right;
-  width: 150px;
-  margin: 22px 20px 0 0;
-}
-
-#brightness-level:active {
-  background-color: #f5f5f5;
-  text-shadow: none;
-  color: #555;
-}
-
-#brightness-level a {
-  max-width: -moz-calc(60% - 50px);
-  max-width: calc(60% - 50px);
-}
-
-[role=document] progress {
-  width: 40%;
-  height: 40%;
+ul li > label.bug344618_polyfill div span:last-child {
   position: absolute;
-  right: 20px;
-  top: 30%;
+  top: 50%;
+  margin: -1.5rem 0 0 -1.5rem;
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: url(images/range_thumb.png) no-repeat 50% 50%;
+}
+
+ul li > label.bug344618_polyfill div span:last-child:active {
+  border: solid 0.4rem #01C5ED;
 }
 
 
 /******************************************************************************
- * Settings icons
+ * Select boxes
  */
 
-#root li [data-l10n-id] {
-  background-repeat: no-repeat;
-  background-position: 14px center;
+ul li select {
+  font-size: 1.8rem;
+  height: 3rem;
+  line-height: 3rem;
+  text-align: center;
 }
 
-#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings_airplanemode.png); }
-#root li [data-l10n-id="wifi"]              { background-image: url(images/settings_wifi.png); }
-#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings_network.png); }
-#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
-#root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
-#root li [data-l10n-id="brightness"]        { background-image: url(images/settings_brightness.png); }
-#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
-#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
-#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
-#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
-#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings_accessibility.png); }
-#root li [data-l10n-id="persona"]           { background-image: url(images/settings_persona.png); }
-#root li [data-l10n-id="mail"]              { background-image: url(images/settings_email.png); }
-#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings_phonelock.png); }
-#root li [data-l10n-id="simCardLock"]       { background-image: url(images/settings_simcardlock.png); }
-#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings_apppermissions.png); }
-#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings_donottrack.png); }
-#root li [data-l10n-id="aboutPhone"]        { background-image: url(images/settings_help.png); }
-#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings_help.png); }
-#root li [data-l10n-id="storage"]           { background-image: url(images/settings_storage.png); }
-#root li [data-l10n-id="battery"]           { background-image: url(images/settings_battery.png); }
-#root li [data-l10n-id="gps"]               { background-image: url(images/settings_gps); }
-
-#root li a {
-  padding-left: 55px;
+/* half-width select boxes */
+ul li a select {
+  display: inline-block;
+  position: absolute;
+  top: 1.5rem;
+  right: 3rem;
+  width: calc(50% - 2rem);
 }
 
-#root li small {
-  left: 55px;
+/* full-width select boxes */
+ul li p + select {
+  display: block;
+  width: calc(100% - 15rem);
+  margin: -1rem 3rem 1rem 12rem;
 }
 
 
 /******************************************************************************
- * Wi-Fi icons
+ * Progress, Meter
  */
 
-#wifi-networks span {
-  -moz-border-top-colors:    transparent;
-  -moz-border-right-colors:  transparent;
-  -moz-border-bottom-colors: transparent;
-  -moz-border-left-colors:   transparent;
-  background-repeat: no-repeat;
-  background-position: center center;
+ul li progress, ul li meter {
+  display: block;
+  width: calc(100% - 6rem);
+  height: 3rem;
+  margin: 2.5rem auto;
 }
 
-/* signal levels */
-#wifi-networks .wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
-#wifi-networks .wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
-#wifi-networks .wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
-#wifi-networks .wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
-#wifi-networks .wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
-
-/* secured networks */
-#wifi-networks .wifi-secure {
-  background-image: url(images/wifi_lock.png);
-}
-
-/* searching... */
-#wifi-networks .wifi-search {
-  background-image: url(images/wifi_scan.png);
-}
 
 /******************************************************************************
- * Bluetooth 
+ * Definition lists
  */
 
-#bluetooth-enable-msg {
-  padding: 5px 30px;
-  font-style: italic;
-  font-size: 0.65em;
-  color: #505859;
+dl > * {
+  font-size: 1.6em;
 }
+
+dl dt {
+  padding-left: 3rem;
+  font-weight: bold;
+  border-bottom: 0.1rem solid black;
+}
+
+dl dd {
+  margin: 0;
+  padding: 1rem 3rem;
+  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
+}
+

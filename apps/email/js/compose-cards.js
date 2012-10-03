@@ -11,6 +11,7 @@
 function ComposeCard(domNode, mode, args) {
   this.domNode = domNode;
   this.composer = args.composer;
+  this.shareActivity = args.activity;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -28,6 +29,51 @@ function ComposeCard(domNode, mode, args) {
                                      this.onTextBodyDelta.bind(this));
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
+  var inputList = domNode.getElementsByClassName('cmp-addr-text');
+  for (var i = 0; i < inputList.length; i++) {
+    inputList[i].addEventListener('focus', this.onAddrInputFocus.bind(this));
+    inputList[i].addEventListener('blur', this.onAddrInputBlur.bind(this));
+  }
+
+  // Add input event listener for handling the bubble creation/deletion.
+  this.toNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
+  this.ccNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
+  this.bccNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
+  this.toNode.addEventListener('input', this.onAddressInput.bind(this));
+  this.ccNode.addEventListener('input', this.onAddressInput.bind(this));
+  this.bccNode.addEventListener('input', this.onAddressInput.bind(this));
+  // Add Contact-add buttons event listener
+  var addBtns = domNode.getElementsByClassName('cmp-contact-add');
+  for (var i = 0; i < inputList.length; i++) {
+    addBtns[i].addEventListener('click', this.onContactAdd.bind(this));
+  }
+  // Add input focus:
+  var containerList = domNode.getElementsByClassName('cmp-bubble-container');
+  for (var i = 0; i < containerList.length; i++) {
+    containerList[i].addEventListener('click',
+      this.onContainerClick.bind(this));
+  }
+  // Add attachments
+  var attachmentsContainer =
+    domNode.getElementsByClassName('cmp-attachments-container')[0];
+  if (this.composer.attachments && this.composer.attachments.length) {
+    var attTemplate = cmpNodes['attachment-item'],
+        filenameTemplate =
+          attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
+        filesizeTemplate =
+          attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
+    for (var i = 0; i < this.composer.attachments.length; i++) {
+      var attachment = body.attachments[i];
+      filenameTemplate.textContent = attachment.filename;
+      // XXX perform localized mimetype translation stuff
+      filesizeTemplate.textContent = this.formatFileSize(
+        attachment.sizeEstimateInBytes);
+      attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+    }
+  }
+  else {
+    attachmentsContainer.classList.add('collapsed');
+  }
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -36,19 +82,28 @@ ComposeCard.prototype = {
     this._loadStateFromComposer();
   },
   _loadStateFromComposer: function() {
-    function expandAddresses(addresses) {
+    var self = this;
+    function expandAddresses(node, addresses) {
       if (!addresses)
         return '';
+      var container = node.parentNode;
       var normed = addresses.map(function(aval) {
-        if (typeof(aval) === 'string')
-          return aval;
-        return '"' + aval.name + '" <' + aval.address + '>';
+        var name, address;
+        if (typeof(aval) === 'string') {
+          // TODO: We will apply email address parser for showing bubble
+          //       properly. We set both name and address same as aval string
+          //       before parser is ready.
+          name = address = aval;
+        } else {
+          name = aval.name;
+          address = aval.address;
+        }
+        self.insertBubble(node, name, address);
       });
-      return normed.join(', ');
     }
-    this.toNode.value = expandAddresses(this.composer.to);
-    this.ccNode.value = expandAddresses(this.composer.cc);
-    this.bccNode.value = expandAddresses(this.composer.bcc);
+    expandAddresses(this.toNode, this.composer.to);
+    expandAddresses(this.ccNode, this.composer.cc);
+    expandAddresses(this.bccNode, this.composer.bcc);
 
     this.subjectNode.value = this.composer.subject;
     this.textBodyNode.value = this.composer.body.text;
@@ -69,19 +124,139 @@ ComposeCard.prototype = {
 
   _saveStateToComposer: function() {
     function frobAddressNode(node) {
-      if (node.value.trim().length === 0)
-        return [];
-      return node.value.split(',');
+      var container = node.parentNode;
+      var addrList = [];
+      var bubbles = container.querySelectorAll('.cmp-peep-bubble');
+      for (var i = 0; i < bubbles.length; i++) {
+        var dataSet = bubbles[i].dataset;
+        addrList.push({ name: dataSet.name, address: dataSet.address });
+      }
+      // TODO: We will apply email address parser for setting name properly.
+      //       We set both name to null and address to text input value
+      //       before parser is ready.
+      if (node.value.trim().length !== 0)
+        addrList.push({ name: null, address: node.value });
+      return addrList;
     }
     this.composer.to = frobAddressNode(this.toNode);
     this.composer.cc = frobAddressNode(this.ccNode);
     this.composer.bcc = frobAddressNode(this.bccNode);
     this.composer.subject = this.subjectNode.value;
-    this.composer.body.text = this.bodyNode.value;
+    this.composer.body.text = this.textBodyNode.value;
     // The HTML representation cannot currently change in our UI, so no
     // need to save it.  However, what we send to the back-end is what gets
     // sent, so if you want to implement editing UI and change this here,
     // go crazy.
+  },
+
+  createBubbleNode: function(name, address) {
+    var bubble = cmpNodes['peep-bubble'].cloneNode(true);
+    bubble.classList.add('msg-peep-bubble');
+    bubble.setAttribute('data-address', address);
+    bubble.setAttribute('data-name', name);
+    bubble.querySelector('.cmp-peep-address').textContent = address;
+    var nameNode = bubble.querySelector('.cmp-peep-name');
+    if (!name) {
+      nameNode.textContent = address.indexOf('@') !== -1 ?
+                    address.split('@')[0] : address;
+    } else {
+      nameNode.textContent = name;
+    }
+    return bubble;
+  },
+
+  /**
+   * insertBubble: We can set the input text node, name and address to
+   *               insert a bubble before text input.
+   */
+  insertBubble: function(node, name, address) {
+    var container = node.parentNode;
+    var bubble = this.createBubbleNode(name, address);
+    container.insertBefore(bubble, node);
+    var dotInput = document.createElement('input');
+    dotInput.value = ',';
+    dotInput.classList.add('cmp-dot-text');
+    dotInput.size = 1;
+    container.insertBefore(dotInput, node);
+  },
+  /**
+   * deleteBubble: Delete the bubble from the parent container.
+   */
+  deleteBubble: function(node) {
+    var dot = node.nextSibling;
+    var container = node.parentNode;
+    if (dot.classList.contains('cmp-dot-text')) {
+      container.removeChild(dot);
+    }
+    if (node.classList.contains('cmp-peep-bubble')) {
+      container.removeChild(node);
+    }
+  },
+
+  /**
+   * Handle bubble deletion while keyboard backspace keydown.
+   */
+  onAddressKeydown: function(evt) {
+    var node = evt.target;
+    var container = evt.target.parentNode;
+
+    if (evt.keyCode == 8 && node.value == '') {
+      //delete bubble
+      var previousBubble = node.previousSibling.previousSibling;
+      this.deleteBubble(previousBubble);
+    }
+  },
+
+  /**
+   * Handle bubble creation while keyboard comma input.
+   */
+  onAddressInput: function(evt) {
+    var node = evt.target;
+    var container = evt.target.parentNode;
+    if (node.value.slice(-1) == ',') {
+      // TODO: Need to match the email with contact name.
+      node.style.width = '0.5rem';
+      // TODO: We will apply email address parser for showing bubble properly.
+      //       We simply set name as string that splited from address
+      //       before parser is ready.
+      this.insertBubble(node, null, node.value.split(',')[0]);
+      node.value = '';
+    }
+    // XXX: Workaround to get the length of the string. Here we create a dummy
+    //      div for computing actual string size for changing input
+    //      size dynamically.
+    if (!this.stringContainer) {
+      this.stringContainer = document.createElement('div');
+      this.domNode.appendChild(this.stringContainer);
+    }
+    this.stringContainer.style.fontSize = '1.5rem';
+    this.stringContainer.style.display = 'inline-block';
+    this.stringContainer.textContent = node.value;
+    node.style.width = (this.stringContainer.clientWidth + 2) + 'px';
+  },
+
+  onContainerClick: function(evt) {
+    var target = evt.target;
+    // Popup the context menu if clicked target is peer bubble.
+    if (target.classList.contains('cmp-peep-bubble')) {
+      var contents = cmpNodes['contact-menu'].cloneNode(true);
+      Cards.popupMenuForNode(contents, target, ['menu-item'],
+        function(clickedNode) {
+          if (!clickedNode)
+            return;
+
+          switch (clickedNode.classList[0]) {
+            case 'cmp-contact-menu-delete':
+              this.deleteBubble(target);
+              break;
+          }
+        }.bind(this));
+      return;
+    }
+    // While user clicks on the container, focus on input to triger
+    // the keyboard.
+    var input = evt.currentTarget.getElementsByClassName('cmp-addr-text')[0];
+    input.focus();
   },
 
   /**
@@ -102,11 +277,38 @@ ComposeCard.prototype = {
   },
 
   /**
+   * Set the contact add button show/hide while input field focus/blur.
+   */
+  onAddrInputFocus: function(evt) {
+    var addBtn = evt.target.parentElement.parentElement
+                 .querySelector('.cmp-contact-add');
+    addBtn.classList.add('show');
+  },
+
+  onAddrInputBlur: function(evt) {
+    var addBtn = evt.target.parentElement.parentElement
+                 .querySelector('.cmp-contact-add');
+    if (addBtn == evt.explicitOriginalTarget)
+      return;
+    addBtn.classList.remove('show');
+  },
+
+  /**
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
     this.composer.saveDraftEndComposition();
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    if (this.shareActivity) {
+      // XXX: Return value under window mode will cause crash easily, disable
+      //      return and stay in email until inline mode is stable.
+
+      // this.shareActivity.postError('cancelled');
+      // this.shareActivity = null;
+
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    } else {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    }
   },
 
   onSend: function() {
@@ -116,7 +318,50 @@ ComposeCard.prototype = {
     // if you haven't added anyone...)
 
     this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    if (this.shareActivity) {
+      // XXX: Return value under window mode will cause crash easily, disable
+      //      return and stay in email until inline mode is stable.
+
+      // this.shareActivity.postResult('shared');
+      // this.shareActivity = null;
+
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    } else {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    }
+  },
+
+  onContactAdd: function(event) {
+    var contactBtn = event.target;
+    var self = this;
+    contactBtn.classList.remove('show');
+    try {
+      var reopenSelf = function reopenSelf(obj) {
+        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+          var app = evt.target.result;
+          app.launch();
+          if (obj.email) {
+            var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
+            self.insertBubble(emt, obj.name, obj.email);
+          }
+        };
+      };
+      var activity = new MozActivity({
+        name: 'pick',
+        data: {
+          type: 'webcontacts/email'
+        }
+      });
+      activity.onsuccess = function success() {
+        reopenSelf(this.result);
+      }
+      activity.onerror = function error() {
+        reopenSelf();
+      }
+
+    } catch (e) {
+      console.log('WebActivities unavailable? : ' + e);
+    }
   },
 
   die: function() {

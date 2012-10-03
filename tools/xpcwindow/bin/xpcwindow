@@ -11,35 +11,58 @@ else
   DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 fi
 
+ABS_BIN=$DIR/xpcwindow
 ROOT=`dirname $DIR`
 
-IMPORT_DIR=`dirname $1`
-IMPORT_FILENAME=`echo $1 | sed s:$IMPORT_DIR/::`
+install_xulrunner() {
+  make -C $ROOT install-xulrunner-sdk
+}
 
-IMPORT_ROOT=`cd $IMPORT_DIR; pwd`
-IMPORT_FILE="$IMPORT_ROOT/$IMPORT_FILENAME"
+show_help() {
+  echo "xpcwindow is a wrapper around xulrunner to"
+  echo "allow eaiser use of browser & node scripts via xpcshell."
+  echo "You must have xpcshell installed to use this script"
+  echo
+  echo "Usage:"
+  echo "   xpcwindow myscript.js"
+  echo
+  echo "Options:"
+  echo "   --help Show this help screen"
+}
 
-ARGS=`echo $@ | sed s:^$1::`
+execute_script() {
+  which xpcshell 2>&1 1> /dev/null
 
-CONFIG=";const _IMPORT_FILE='$IMPORT_FILE';"
-CONFIG="$CONFIG const _IMPORT_ROOT='$IMPORT_ROOT';"
-CONFIG="$CONFIG const _ARGV=\"$ARGS\";"
-CONFIG="$CONFIG const _ROOT='$ROOT/';"
+  if [ "$?" != "0" ]
+  then
+    install_xulrunner
+    PATH=$ROOT/xulrunner-sdk/bin/:$PATH
+  fi
 
-which run-mozilla.sh 2>&1 1> /dev/null
+  IMPORT_DIR=`dirname $1`
+  IMPORT_FILENAME=`echo $1 | sed s:$IMPORT_DIR/::`
 
-if [ "$?" != "0" ]
-then
-  echo "You must have run-mozilla.sh in your path."
-  exit 1
-fi
+  IMPORT_ROOT=`cd $IMPORT_DIR; pwd`
+  IMPORT_FILE="$IMPORT_ROOT/$IMPORT_FILENAME"
+  ARG_LIST="$ABS_BIN $@"
 
-which xpcshell 2>&1 1> /dev/null
+  CONFIG=";const _IMPORT_FILE='$IMPORT_FILE';"
+  CONFIG="$CONFIG const _IMPORT_ROOT='$IMPORT_ROOT';"
+  CONFIG="$CONFIG const _ARGV=\"$ARG_LIST\";"
+  CONFIG="$CONFIG const _ROOT='$ROOT/';"
 
-if [ "$?" != "0" ]
-then
-  echo "You must have xpcshell in your path."
-  exit 1
-fi
+  `which run-mozilla.sh` `which xpcshell` -w -e "$CONFIG" -f $ROOT/lib/loader.js
+}
 
-`which run-mozilla.sh` `which xpcshell` -w -e "$CONFIG" -f $ROOT/lib/loader.js
+case "$1" in
+"")
+  show_help
+  ;;
+"--help")
+  show_help
+  ;;
+*)
+  execute_script $@
+  ;;
+
+esac

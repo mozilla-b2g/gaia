@@ -1,6 +1,5 @@
 * {
   -moz-box-sizing: border-box;
-   box-sizing: border-box;
 }
 
 html, body {
@@ -20,8 +19,6 @@ h2,
 h3,
 h4,
 h5,
-menu,
-header,
 section {
   /* unscrew up heights */
   font-size: 100%;
