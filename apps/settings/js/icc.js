@@ -289,10 +289,10 @@
     // Show section
     if(stkOpenAppName != title) {
       iccStkSubheader.textContent = title;
-//      iccStkSubheader.parentNode.style.display = 'block';
+      iccStkSubheader.parentNode.classList.remove('hiddenheader');
     } else {
       iccStkSubheader.textContent = '';
-//      iccStkSubheader.parentNode.style.display = 'none';
+      iccStkSubheader.parentNode.classList.add('hiddenheader');
     }
   }
 
