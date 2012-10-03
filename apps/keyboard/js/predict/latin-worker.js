@@ -229,9 +229,6 @@ function MapCodesToBaseLetters(codes, length) {
 // ab -> promote words that start with 'ab'
 const PrefixMatchMultiplier = 3;
 
-// promote words when case of first character matches
-const CaseMatchMultiplier = 2;
-
 // words where accidentaly the wrong key was pressed
 // qas -> was
 // w - neighbourKeys [q,e,a,s,d]
