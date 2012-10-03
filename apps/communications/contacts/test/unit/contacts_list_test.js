@@ -213,7 +213,7 @@ suite('Render contacts list', function() {
       var newList = [newContact].concat(mockContacts);
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
-      var aContacts = assertGroup(groupA, containerA, 2)
+      var aContacts = assertGroup(groupA, containerA, 2);
       assert.isTrue(noContacts.classList.contains('hide'));
       assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > -1);
       assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > -1);

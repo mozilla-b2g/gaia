@@ -438,7 +438,7 @@ label.switch input:checked + span:after {
   transform: translateX(0);
 }
 
-/* FTE */
+/* No Contacts */
 
 #no-contacts {
   background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
