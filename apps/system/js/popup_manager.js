@@ -56,6 +56,8 @@ var PopupManager = {
 
     this.screen.classList.add('popup');
 
+    popup.addEventListener('mozbrowserloadend', this);
+    popup.addEventListener('mozbrowserloadstart', this);
     popup.addEventListener('mozbrowserlocationchange', this);
   },
 
@@ -100,6 +102,14 @@ var PopupManager = {
     switch (evt.type) {
       case 'click':
         this.backHandling();
+        break;
+
+      case 'mozbrowserloadstart':
+        this.throbber.classList.add('loading');
+        break;
+
+      case 'mozbrowserloadend':
+        this.throbber.classList.remove('loading');
         break;
 
       case 'mozbrowserlocationchange':
