@@ -30,17 +30,12 @@
     <script type="text/javascript" src="js/utils.js"></script>
     <script type="text/javascript" src="js/searchUtils.js"></script>
     <script type="text/javascript" src="js/fixed_header.js"></script>
-    <script type="text/javascript">
-      if (!navigator.mozSms) {
-        document.write('<script type="text/javascript" src="js/desktopTesting.js"><\/script>');
-      }
-    </script>
+    <script type="text/javascript" src="js/desktopTesting.js"></script>
+
     <!-- phone number utils -->
     <script type="text/javascript" src="js/phoneNumberUtils.js"></script>
+    <script type="text(javascript" src="js/googRequire.js"></script>
     <script type="text/javascript" src="js/ext/closure-library/base.js"></script>
-    <script>
-      goog.require('goog.proto2.ObjectSerializer');
-    </script>
     <script type="text/javascript" src="js/ext/libphonenumber/phonemetadata.pb.js"></script>
     <script type="text/javascript" src="js/ext/libphonenumber/phonenumber.pb.js"></script>
     <script type="text/javascript" src="js/ext/libphonenumber/metadata.js"></script>
@@ -69,7 +64,7 @@
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
-              <button onclick="window.location.hash = '#thread-list'">
+              <button id="threads-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </button>
               <menu type="toolbar">
@@ -122,7 +117,7 @@
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
-              <button onclick="history.go(-1);">
+              <button id="messages-cancel-button">
                 <span data-l10n-id="cancel" class="icon icon-close">close</span>
               </button>
               <menu type="toolbar">

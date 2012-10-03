@@ -285,6 +285,10 @@ var ThreadListUI = {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('threads-delete-button');
   },
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton = document.getElementById('threads-cancel-button');
+  },
   get iconEdit() {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
@@ -304,6 +308,7 @@ var ThreadListUI = {
                                             this.deselectAllThreads.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.view.addEventListener('click', this);
    },
 
@@ -457,6 +462,10 @@ var ThreadListUI = {
       };
       fillList(filters, fillList);
     }
+  },
+
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.location.hash = '#thread-list';
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
@@ -649,6 +658,12 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton =
+                              document.getElementById('messages-cancel-button');
+  },
+
   get pageHeader() {
       delete this.pageHeader;
       return this.pageHeader = document.getElementById('messages-edit-title');
@@ -669,6 +684,7 @@ var ThreadUI = {
       this.selectAllMessages.bind(this));
     this.deselectAllButton.addEventListener('click',
       this.deselectAllMessages.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
@@ -1008,6 +1024,10 @@ var ThreadUI = {
         });
       });
     }
+  },
+
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.history.go(-1);
   },
 
   clickInput: function thui_clickInput(target) {
