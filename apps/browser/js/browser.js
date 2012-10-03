@@ -55,7 +55,8 @@ var Browser = {
     this.urlBar.addEventListener('submit', this.handleUrlFormSubmit.bind(this));
     this.urlInput.addEventListener('focus', this.urlFocus.bind(this));
     this.urlInput.addEventListener('mouseup', this.urlMouseUp.bind(this));
-    this.urlInput.addEventListener('keyup', this.handleUrlInputKeypress.bind(this));
+    this.urlInput.addEventListener('keyup',
+                                   this.handleUrlInputKeypress.bind(this));
     this.topSites.addEventListener('click', this.followLink.bind(this));
     this.bookmarks.addEventListener('click', this.followLink.bind(this));
     this.history.addEventListener('click', this.followLink.bind(this));

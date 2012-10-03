@@ -143,6 +143,7 @@ var WindowManager = (function() {
 
     if (!screenElement.classList.contains('attention') &&
         app.manifest.fullscreen) {
+
       cssHeight = window.innerHeight + 'px';
     }
 
@@ -166,7 +167,11 @@ var WindowManager = (function() {
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
     if (!screenElement.classList.contains('attention') &&
+<<<<<<< HEAD
         app.manifest.fullscreen) {
+=======
+        app.manifest.fullscreen)
+>>>>>>> Linting other apps errors
       cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
@@ -762,8 +767,18 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
+<<<<<<< HEAD
   function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
     var frame = origFrame || document.createElement('iframe');
+=======
+  function createFrame(originalFrame,
+                       origin,
+                       url,
+                       name,
+                       manifest,
+                       manifestURL) {
+    var frame = originalFrame || document.createElement('iframe');
+>>>>>>> Linting other apps errors
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
@@ -812,10 +827,22 @@ var WindowManager = (function() {
     return frame;
   }
 
+<<<<<<< HEAD
   function appendFrame(origFrame, origin, url, name, manifest, manifestURL) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame =
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
+=======
+  function appendFrame(originalFrame,
+                       origin,
+                       url,
+                       name,
+                       manifest,
+                       manifestURL) {
+    // Create the <iframe mozbrowser mozapp> that hosts the app
+    var frame =
+          createFrame(originalFrame, origin, url, name, manifest, manifestURL);
+>>>>>>> Linting other apps errors
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
@@ -1217,6 +1244,7 @@ var WindowManager = (function() {
 
         frameElement.dataset.name = features.name.replace(regExp, ' ') || url;
         frameElement.dataset.icon = features.icon || '';
+<<<<<<< HEAD
 
         if (features.origin) {
           frameElement.dataset.originName =
@@ -1231,6 +1259,8 @@ var WindowManager = (function() {
           frameElement.dataset.searchURL =
                                   decodeURIComponent(features.search.url);
         }
+=======
+>>>>>>> Linting other apps errors
       } catch (ex) { }
 
       appendFrame(frameElement, url, url, frameElement.dataset.name, {

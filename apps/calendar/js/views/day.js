@@ -27,6 +27,7 @@ Calendar.ns('Views').Day = (function() {
           Calendar.App.router.show('/event/' + target.dataset.id + '/');
         }
       );
+
     },
 
     handleEvent: function(e) {

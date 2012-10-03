@@ -296,6 +296,7 @@ var Camera = {
     var onsuccess = (function onsuccess() {
       captureButton.removeAttribute('disabled');
       document.body.classList.add('capturing');
+<<<<<<< HEAD
       this.startRecordingTimer();
     }).bind(this);
 
@@ -351,6 +352,17 @@ var Camera = {
           image = canvas.mozGetAsFile('poster', 'image/jpeg');
         } catch (e) {
           console.error('Failed to create a poster image:', e);
+=======
+      this._cameraObj.startRecording(
+        navigator.getDeviceStorage('videos'),
+        'VID_0001.3gp',
+        function onsuccess() {
+          captureButton.removeAttribute('disabled');
+        },
+        function onerror() {
+          captureButton.removeAttribute('disabled');
+          document.body.classList.remove('capturing');
+>>>>>>> Linting other apps errors
         }
         callback(image, video.type);
       };
