@@ -285,6 +285,10 @@ var ThreadListUI = {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('threads-delete-button');
   },
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton = document.getElementById('threads-cancel-button');
+  },
   get iconEdit() {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
@@ -292,6 +296,10 @@ var ThreadListUI = {
   get pageHeader() {
     delete this.pageHeader;
     return this.pageHeader = document.getElementById('list-edit-title');
+  },
+  get editForm() {
+    delete this.editForm;
+    return this.editForm = document.getElementById('threads-edit-form');
   },
 
   init: function thlui_init() {
@@ -304,7 +312,9 @@ var ThreadListUI = {
                                             this.deselectAllThreads.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.view.addEventListener('click', this);
+    this.editForm.addEventListener('submit', this);
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
@@ -336,6 +346,9 @@ var ThreadListUI = {
           ThreadListUI.clickInput(evt.target);
           ThreadListUI.checkInputs();
         }
+        break;
+      case 'submit':
+        return false;
         break;
     }
   },
@@ -457,6 +470,10 @@ var ThreadListUI = {
       };
       fillList(filters, fillList);
     }
+  },
+
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.location.hash = '#thread-list';
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
@@ -649,10 +666,26 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
-  get pageHeader() {
-      delete this.pageHeader;
-      return this.pageHeader = document.getElementById('messages-edit-title');
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton =
+                              document.getElementById('messages-cancel-button');
   },
+
+  get pageHeader() {
+    delete this.pageHeader;
+    return this.pageHeader = document.getElementById('messages-edit-title');
+  },
+
+  get editForm() {
+    delete this.editForm;
+    return this.editForm = document.getElementById('messages-edit-form');
+  },
+
+  get telForm() {
+    delete this.telForm;
+    return this.telForm = document.getElementById('messages-tel-form');
+  }
 
   init: function thui_init() {
     this.delNumList = [];
@@ -669,6 +702,7 @@ var ThreadUI = {
       this.selectAllMessages.bind(this));
     this.deselectAllButton.addEventListener('click',
       this.deselectAllMessages.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
@@ -676,6 +710,8 @@ var ThreadUI = {
     this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
+    this.editForm.addEventListener('submit', this);
+    this.telForm.addEventListener('submit', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -1010,6 +1046,10 @@ var ThreadUI = {
     }
   },
 
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.history.go(-1);
+  },
+
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
       ThreadUI.selectedInputList.push(target);
@@ -1049,7 +1089,10 @@ var ThreadUI = {
           ThreadUI.clickInput(evt.target);
           ThreadUI.checkInputs();
         }
-      break;
+        break;
+      case 'submit':
+        return false;
+        break;
     }
   },
 
