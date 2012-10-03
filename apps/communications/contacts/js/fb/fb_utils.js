@@ -5,7 +5,7 @@ var fb = window.fb || {};
 if (!fb.utils) {
   fb.utils = {};
 
-  var TIMEOUT_QUERY = 15000;
+  var TIMEOUT_QUERY = fb.operationsTimeout;
   var FRIEND_COUNT_QUERY = 'select friend_count from user where uid=me()';
 
   var IMPORT_INFO_KEY = 'importInfo';

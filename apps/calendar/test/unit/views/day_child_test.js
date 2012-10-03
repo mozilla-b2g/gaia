@@ -354,7 +354,7 @@ suite('views/day_child', function() {
 
     function hourHTML(hour) {
       return template.hour.render({
-        displayHour: subject._formatHour(hour),
+        displayHour: Calendar.Calc.formatHour(hour),
         hour: hour
       });
     }
@@ -458,14 +458,14 @@ suite('views/day_child', function() {
 
     assert.include(
       html,
-      subject._formatHour('allday'),
+      Calendar.Calc.formatHour('allday'),
       'should have all day'
     );
 
     for (; hour < 24; hour++) {
       assert.include(
         html,
-        subject._formatHour(hour),
+        Calendar.Calc.formatHour(hour),
         'should have rendered:' + hour
       );
     }
