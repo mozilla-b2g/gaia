@@ -1,4 +1,3 @@
-
 function debug(msg) {
   if (DEBUG)
     dump('-*- ' + msg + '\n');
@@ -75,6 +74,8 @@ getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDir
   let url = getFileContent(origin);
   // Strip any leading/ending spaces
   url = url.replace(/^\s+|\s+$/, '');
+  // Strip any trailing slashes for normalization.
+  url = url.replace(/\/$/, '');
 
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
