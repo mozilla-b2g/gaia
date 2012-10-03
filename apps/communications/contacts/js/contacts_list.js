@@ -12,7 +12,7 @@ contacts.List = (function() {
       fastScroll,
       scrollable,
       settingsView,
-      contactsFTE,
+      noContacts,
       orderByLastName = null;
 
   var init = function load(element, overlay) {
@@ -23,7 +23,7 @@ contacts.List = (function() {
     fastScroll = document.querySelector('.view-jumper'),
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
-    contactsFTE = document.querySelector('#contacts-fte');
+    noContacts = document.querySelector('#no-contacts');
 
 
     groupsList = element;
@@ -200,8 +200,8 @@ contacts.List = (function() {
     var counter = {};
     var favorites = [];
     counter['favorites'] = 0;
-    var showFTE = contacts.length === 0;
-    toggleFTEScreen(showFTE);
+    var showNoContacs = contacts.length === 0;
+    toggleNoContactsScreen(showNoContacs);
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -253,12 +253,12 @@ contacts.List = (function() {
     FixedHeader.refresh();
   };
 
-  var toggleFTEScreen = function cl_toggleFTE(show) {
+  var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
     if (show) {
-      contactsFTE.classList.remove('hide');
+      noContacts.classList.remove('hide');
       return;
     }
-    contactsFTE.classList.add('hide');
+    noContacts.classList.add('hide');
   };
 
   var cleanLastElements = function cleanLastElements(counter) {
@@ -418,7 +418,7 @@ contacts.List = (function() {
         showGroup('favorites');
       }
     }
-    toggleFTEScreen(false);
+    toggleNoContactsScreen(false);
     FixedHeader.refresh();
   }
 
@@ -499,8 +499,8 @@ contacts.List = (function() {
     });
     var selector = 'ol h2:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
-    var showFTE = visibleElements.length === 0;
-    toggleFTEScreen(showFTE);
+    var showNoContacts = visibleElements.length === 0;
+    toggleNoContactsScreen(showNoContacts);
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {

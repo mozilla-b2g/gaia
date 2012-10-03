@@ -123,7 +123,7 @@ suite('Render contacts list', function() {
     settings.id = 'view-settings';
     settings.innerHTML = '<div class="view-body-inner"></div>';
     noContacts = document.createElement('div');
-    noContacts.id = 'contacts-fte';
+    noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
     document.body.appendChild(container);
     document.body.appendChild(loading);
@@ -137,7 +137,7 @@ suite('Render contacts list', function() {
 
     searchBox = document.getElementById('search-contact');
     noResults = document.getElementById('no-result');
-    noContacts = document.getElementById('contacts-fte');
+    noContacts = document.getElementById('no-contacts');
   }
 
   suiteSetup(function() {

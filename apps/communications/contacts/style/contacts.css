@@ -440,7 +440,7 @@ label.switch input:checked + span:after {
 
 /* FTE */
 
-#contacts-fte {
+#no-contacts {
   background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
   height: 100%;
   position: absolute;
@@ -450,7 +450,7 @@ label.switch input:checked + span:after {
   text-align: left;
 }
 
-#contacts-fte .info {
+#no-contacts .info {
   border-top: 1px solid rgba(96, 96, 96, 0.5);
   color: #606060;
   font-size: 2rem;
@@ -458,25 +458,25 @@ label.switch input:checked + span:after {
   margin: 15rem 4rem 0;
 }
 
-#contacts-fte .info p {
+#no-contacts .info p {
   margin-top: 1rem;
 }
 
-#contacts-fte p.small {
+#no-contacts p.small {
   font-size: 1.35rem;
   font-weight: lighter;
   margin: 1.5rem 10rem 0 4rem;
 }
 
-#contacts-fte .arrow {
+#no-contacts .arrow {
   position: absolute;
 }
 
-#contacts-fte .small.arrow {
+#no-contacts .small.arrow {
   background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
 }
 
-#contacts-fte .big.arrow {
+#no-contacts .big.arrow {
   background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
   height: 5rem;
   padding-top: 3.5rem;
