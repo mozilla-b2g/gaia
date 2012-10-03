@@ -88,3 +88,133 @@ a[role="button"][aria-disabled="true"].danger {
   text-shadow: none;
   pointer-events: none;
 }
+
+/* Button inside list */
+li > label {
+  font: 1.4rem/1em "Open Sans", Sans-serif;
+  text-transform: uppercase;
+  display: block;
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+li > button::-moz-focus-inner,
+li > a[role="button"]::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+li > button,
+li > a[role="button"] {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  overflow: visible;
+  background: #e7e7e7;
+  border: 0.1rem solid #b6b6b6;
+  border-radius: 0.3rem;
+  font-size: 1.4rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 2.9rem;
+  text-align: left;
+  color: #333;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+li > a[role="button"]:after,
+li > button:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: url(buttons/images/ui/shadow.png) repeat-x left bottom;
+  height: 0.2rem;
+  margin-top: 0.1rem;
+  pointer-events: none;
+}
+
+/* Press */
+li > button:active,
+li > a[role="button"]:active {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+li > a[role="button"]:active:after,
+li > button:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+li > button[disabled],
+li > a[role="button"][aria-disabled="true"] {
+  background: #ededed;
+  border-color: #d3d3d3;
+  color: #a6a6a6;
+}
+
+li > button[disabled]:after,
+li > a[role="button"][aria-disabled="true"]:after {
+  opacity: 1;
+}
+
+li > button[disabled] span,
+li > a[role="button"][aria-disabled="true"] span {
+  opacity: 0.2;
+}
+
+/* Icons */
+li > button span,
+li > a[role="button"] span {
+  background: none no-repeat scroll center center transparent;
+  float: right;
+  height: 2.5rem;
+  margin: 0.3rem -1.5rem 0px 1rem;
+  width: 2.5rem;
+}
+
+li > button span.icon-view,
+li > a[role="button"] span.icon-view {
+  background-image: url(buttons/images/icons/view.png);
+}
+
+li > button span.icon-dialog,
+li > a[role="button"] span.icon-dialog {
+  background-image: url(buttons/images/icons/dialog.png);
+  background-position: 1rem bottom;
+}
+
+/* Compact mode */
+ul.compact,
+ol.compact {
+  margin-bottom: 1rem;
+}
+
+.compact > li button,
+.compact > li a[role="button"] {
+  margin: -0.1rem 0;
+  border-radius: 0;
+}
+
+.compact > li:first-child button,
+.compact > li:first-child a[role="button"] {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.compact > li:last-child button,
+.compact > li:last-child a[role="button"] {
+  border-radius:0 0 0.3rem 0.3rem;
+}
+
