@@ -451,8 +451,33 @@ label.switch input:checked + span:after {
 }
 
 #contacts-fte .info {
-  margin: 10rem 4rem 0 4rem;
-  padding-top: 1rem;
-  border-top: 1px solid #B7B7B7;
+  border-top: 1px solid rgba(96, 96, 96, 0.5);
   color: #606060;
+  font-size: 2rem;
+  font-weight: lighter;
+  margin: 15rem 4rem 0;
+}
+
+#contacts-fte .info p {
+  margin-top: 1rem;
+}
+
+#contacts-fte p.small {
+  font-size: 1.35rem;
+  font-weight: lighter;
+  margin: 1.5rem 10rem 0 4rem;
+}
+
+#contacts-fte .arrow {
+  position: absolute;
+}
+
+#contacts-fte .small.arrow {
+  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+}
+
+#contacts-fte .big.arrow {
+  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
+  height: 5rem;
+  padding-top: 3.5rem;
 }
