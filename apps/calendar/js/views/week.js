@@ -99,6 +99,9 @@ Calendar.ns('Views').Week = (function() {
 
     childClass: Calendar.Views.WeekChild,
 
+    // Needed for proper TimeHeader data
+    scale: 'week',
+
     selectors: {
       element: '#week-view',
       sidebar: '#week-view > .sidebar',
