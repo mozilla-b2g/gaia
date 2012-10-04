@@ -96,6 +96,7 @@ a[role="button"][aria-disabled="true"].danger {
 
 li label {
   font: 1.4rem/1em "Open Sans", Sans-serif;
+  text-transform: uppercase;
   display: block;
   padding-left: 0.5rem;
   margin-bottom: 0.5rem;
@@ -112,7 +113,7 @@ li a[role="button"] {
   position: relative;
   overflow: visible;
   background: #e7e7e7;
-  border-color: solid #b6b6b6;
+  border-color: #b6b6b6;
   font-size: 1.4rem;
   line-height: 2.9rem;
   text-align: left;
