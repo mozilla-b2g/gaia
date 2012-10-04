@@ -336,6 +336,8 @@ section.view[data-state="active"] {
   display: block;
   min-height: 0rem !important;
   text-align: center;
+  height: 5rem;
+  line-height: 5rem;
 }
 
 li [data-l10n-id="importSim"] {

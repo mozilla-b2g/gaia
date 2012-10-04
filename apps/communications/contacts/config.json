@@ -1,3 +1,4 @@
 {
-  "facebookEnabled": true
+  "facebookEnabled": true,
+  "operationsTimeout": 20000
 }

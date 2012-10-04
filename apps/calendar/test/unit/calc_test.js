@@ -39,6 +39,32 @@ suite('calendar/calc', function() {
     return (date.getTimezoneOffset() * (60 * 1000));
   }
 
+  suite('#formatHour', function() {
+    var realDateFormat;
+    var fmt;
+
+    suiteSetup(function() {
+      realDateFormat = Calendar.App.dateFormat;
+      fmt = navigator.mozL10n.DateTimeFormat();
+      Calendar.App.dateFormat = fmt;
+    });
+
+    suiteTeardown(function() {
+      Calendar.App.dateFormat = realDateFormat;
+    });
+
+    test('7 hours', function() {
+      var result = subject.formatHour(7);
+      assert.equal(result, '7 AM');
+    });
+
+    test('23 hours', function() {
+      var result = subject.formatHour(23);
+      assert.equal(result, '11 PM');
+    });
+
+  });
+
   suite('#spanOfMonth', function() {
 
     function time(year, month, day, hour, min) {

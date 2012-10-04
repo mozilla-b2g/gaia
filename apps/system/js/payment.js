@@ -25,9 +25,26 @@ var Payment = (function Payment() {
         if (!requests)
           return;
 
-        // TODO: PopupManager only allows embeding iframe so far. Once we solve
-        //       https://github.com/mozilla-b2g/gaia/issues/4185 we should be
-        //       using an element different from an iframe.
+        var returnSelection = function returnSelection(selection) {
+          if (!selection)
+            return;
+
+          var event = document.createEvent('CustomEvent');
+          event.initCustomEvent('mozContentEvent', true, true, {
+            id: chromeEventId,
+            userSelection: selection
+          });
+          window.dispatchEvent(event);
+        };
+
+        // If there is only one request, we skip the confirmation dialog and
+        // send the request type back to the chrome as a user selection, so
+        // the payment flow can continue.
+        if (requests.length == 1) {
+          returnSelection(requests[0].type);
+          return;
+        }
+
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
         frame.classList.add('screen');
@@ -51,15 +68,10 @@ var Payment = (function Payment() {
                               requests[i].productPrice[0].amount + ' ' +
                               requests[i].productPrice[0].currency;
             button.appendChild(frameDocument.createTextNode(requestText));
-            button.onclick = function selectRequest(evt) {
+            button.onclick = function selectRequest() {
               // We send the selected request back to Chrome so it can start
               // the appropriate payment flow.
-              var event = document.createEvent('CustomEvent');
-              event.initCustomEvent('mozContentEvent', true, true, {
-                id: chromeEventId,
-                userSelection: this.getAttribute('value')
-              });
-              window.dispatchEvent(event);
+              returnSelection(this.getAttribute('value'));
             };
             requestElement.appendChild(button);
             requestsList.appendChild(requestElement);
@@ -68,8 +80,8 @@ var Payment = (function Payment() {
 
         // The payment request confirmation screen is shown within the trusted
         // UI.
-        PopupManager.open('payment-confirmation', frame,
-                          kPaymentConfirmationScreen, true);
+        TrustedUIManager.open('payment-confirmation', frame,
+                              kPaymentConfirmationScreen);
         break;
 
       // Chrome asks Gaia to show the payment flow according to the
@@ -98,11 +110,11 @@ var Payment = (function Payment() {
         });
 
         // The payment flow is shown within the trusted UI.
-        PopupManager.open('PaymentFlow', frame, e.detail.uri, true);
+        TrustedUIManager.open('PaymentFlow', frame, e.detail.uri);
         break;
 
       case 'close-payment-flow-dialog':
-        PopupManager.close(null, function dialogClosed() {
+        TrustedUIManager.close(function dialogClosed() {
           var event = document.createEvent('customEvent');
           event.initCustomEvent('mozContentEvent', true, true,
                                 { id: chromeEventId });

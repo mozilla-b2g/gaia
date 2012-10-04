@@ -12,6 +12,7 @@ contacts.Settings = (function() {
       orderByLastName,
       simImportLink,
       fbImportLink,
+      labelLink,
       fbImportedValue,
       newOrderByLastName = null,
       ORDER_KEY = 'order.lastname';
@@ -38,10 +39,10 @@ contacts.Settings = (function() {
     orderCheckbox.checked = value;
   }
 
-  var cleanSimImportMessage = function cleanImportMessage() {
-    var simImportMessage = document.getElementById('simImportResult');
-    if (simImportMessage) {
-      simImportMessage.parentNode.removeChild(simImportMessage);
+  var cleanMessage = function cleanMessage() {
+    var msg = document.getElementById('taskResult');
+    if (msg) {
+      msg.parentNode.removeChild(msg);
     }
   };
 
@@ -56,8 +57,8 @@ contacts.Settings = (function() {
 
     fbImportLink = document.querySelector('[data-l10n-id="importFb"]');
     document.addEventListener('fb_imported', function onImported(evt) {
-      // We just received an event sayin we imported the contacts
-      checkFbImported(true);
+      // We just received an event saying we imported the contacts
+       fb.utils.getImportChecked(checkFbImported);
     });
     fb.utils.getImportChecked(checkFbImported);
     fbImportLink.addEventListener('click', onFbImport);
@@ -68,9 +69,17 @@ contacts.Settings = (function() {
   var checkFbImported = function checkFbImportedCb(value) {
     fbImportedValue = value;
     if (fbImportedValue) {
-      fbImportLink.innerHTML = 'Facebook';
+      fbImportLink.textContent = _('facebook');
       fbAddUnlinkOption();
       fbGetTotals();
+    }
+    else {
+      if (labelLink) {
+        fbImportLink.textContent = _('importFb');
+        fbImportLink.parentNode.removeChild(labelLink);
+        labelLink = null;
+        cleanFbContactsMessage();
+      }
     }
   };
 
@@ -99,20 +108,32 @@ contacts.Settings = (function() {
   };
 
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
-    cleanFbContactsMessage();
 
-    var li = document.createElement('li');
-    li.id = 'fbTotalsResult';
-    li.classList.add('result');
-    var span = document.createElement('span');
-    span.innerHTML = _('facebook-stats', {
+    // If the total is not available then an empty string is showed
+    var theTotal = total || '';
+    var span;
+
+    if (!document.getElementById('fbTotalsResult')) {
+      var li = document.createElement('li');
+      li.id = 'fbTotalsResult';
+      li.classList.add('result');
+      span = document.createElement('span');
+      li.appendChild(span);
+
+      li.onclick = Contacts.extFb.importFB;
+
+      var after = document.getElementById('settingsFb');
+      after.parentNode.insertBefore(li, after.nextSibling);
+    }
+    else {
+      span = document.querySelector('#fbTotalsResult span');
+    }
+
+    span.textContent = _('facebook-stats', {
       'imported': imported,
-      'total': total
+      'total': theTotal
     });
-    li.appendChild(span);
 
-    var after = document.getElementById('settingsFb');
-    after.parentNode.insertBefore(li, after.nextSibling);
   };
 
   var cleanFbContactsMessage = function cleanFbContactsMessage() {
@@ -124,25 +145,92 @@ contacts.Settings = (function() {
 
   // Insert the dom necessary to unlink your FB contacts
   var fbAddUnlinkOption = function fbUnlinkOption() {
-    var label = document.createElement('label');
-    label.classList.add('switch');
-    label.innerHTML = '<input type="checkbox" checked="true" ' +
-      'name="fb.imported" />';
-    label.innerHTML += '<span></span>';
+    if (!labelLink) {
+      labelLink = document.createElement('label');
+      labelLink.classList.add('switch');
+      labelLink.innerHTML = '<input type="checkbox" checked="true" ' +
+        'name="fb.imported" />';
+      labelLink.innerHTML += '<span></span>';
 
-    fbImportLink.parentNode.insertBefore(label, fbImportLink);
+      fbImportLink.parentNode.insertBefore(labelLink, fbImportLink);
 
-    document.querySelector('[name="fb.imported"]').addEventListener('click',
-      onFbUnlink);
+      document.querySelector('[name="fb.imported"]').addEventListener('click',
+        onFbUnlink);
+    }
   }
 
   var onFbImport = function onFbImportClick(evt) {
     Contacts.extFb.importFB();
   };
 
+   var addMessage = function addMessage(message, after) {
+      var li = document.createElement('li');
+      li.id = 'taskResult';
+      li.classList.add('result');
+      var span = document.createElement('span');
+      span.innerHTML = message;
+      li.appendChild(span);
+
+      after.parentNode.insertBefore(li, after.nextSibling);
+    }
+
   var onFbUnlink = function onFbUnlink(evt) {
-    console.log('Fb Unlink');
+    evt.preventDefault();
     evt.stopPropagation();
+
+    var msg = _('cleanFbConfirmMsg');
+    var yesObject = {
+      title: _('remove'),
+      callback: function() {
+        CustomDialog.hide();
+        doFbUnlink();
+      }
+    };
+
+    var noObject = {
+      title: _('cancel'),
+      callback: function onCancel() {
+        CustomDialog.hide();
+      }
+    };
+
+    CustomDialog.show(null, msg, noObject, yesObject);
+  }
+
+  function doFbUnlink() {
+    Contacts.showOverlay(_('cleaningFbData'));
+
+    var req = fb.utils.clearFbData();
+
+    req.onsuccess = function() {
+      req.result.onsuccess = function() {
+
+        Contacts.showOverlay(_('loggingOutFb'));
+        var logoutReq = fb.utils.logout();
+
+        logoutReq.onsuccess = function() {
+          Contacts.hideOverlay();
+          checkFbImported(false);
+        }
+
+        logoutReq.onerror = function(e) {
+          Contacts.hideOverlay();
+          window.console.error('Contacts: Error while FB logout: ',
+                              e.target.error);
+        }
+
+        contacts.List.load();
+      }
+
+      req.result.oncleaned = function(num) {
+        // Nothing done here for the moment
+      }
+
+      req.result.onerror = function(error) {
+        window.console.error('Contacts: Error while FB cleaning');
+        Contacts.hideOverlay();
+      }
+    }
   }
 
   // Listens for any change in the ordering preferences
@@ -155,32 +243,21 @@ contacts.Settings = (function() {
   // Import contacts from SIM card and updates ui
   var onSimImport = function onSimImport(evt) {
     // Auto remove previous message if present
-    cleanSimImportMessage();
+    cleanMessage();
 
     Contacts.showOverlay(_('simContacts-importing'));
-
-    var addMessage = function addMessage(message) {
-      var li = document.createElement('li');
-      li.id = 'simImportResult';
-      li.classList.add('result');
-      var span = document.createElement('span');
-      span.innerHTML = message;
-      li.appendChild(span);
-
-      var after = document.getElementById('settingsSIM');
-      after.parentNode.insertBefore(li, after.nextSibling);
-    };
+    var after = document.getElementById('settingsSIM');
 
     importSIMContacts(
       function onread() {
 
       },
       function onimport(num) {
-        addMessage(_('simContacts-imported', {n: num}));
+        addMessage(_('simContacts-imported', {n: num}), after);
         Contacts.hideOverlay();
       },
       function onerror() {
-        addMessage(_('simContacts-error'));
+        addMessage(_('simContacts-error'), after);
         Contacts.hideOverlay();
       });
   };
@@ -193,7 +270,7 @@ contacts.Settings = (function() {
     }
 
     // Clean possible messages
-    cleanSimImportMessage();
+    cleanMessage();
 
     Contacts.goBack();
   };

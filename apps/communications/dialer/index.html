@@ -13,6 +13,10 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
+    <!-- Stable BB -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+    <!-- Unstable BB  -->
+    <link rel="stylesheet" type="text/css" href="style/bb/edit_mode.css">
     <!-- Shared code -->
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -170,46 +174,35 @@
         <iframe id="iframe-contacts" src="/contacts/index.html" frameBorder="no" class="grid-wrapper"></iframe>
       </section>
       <section class="view" role="tabpanel" id="recents-view">
-        <div class="header-group">
-          <div class="header-wrapper">
-            <header class="view-header regular-header">
-              <menu type="toolbar">
-                 <a id="recents-icon-edit">
-                  <span id="edit-button" class="recents-icon icon-edit"></span>
-                 </a>
-              </menu>
-              <h1 data-l10n-id="callLog">Call log</h1>
-            </header>
-            <header class="view-header dark-header">
-              <a id="recents-icon-close" role="link">
-                <span id="cancel-button" class="recents-icon icon-close">close</span>
+        <section role="region">
+          <header class="view-header regular-header">
+            <menu type="toolbar">
+              <a id="recents-icon-edit">
+                <span id="edit-button" class="recents-icon icon icon-edit"></span>
               </a>
-              <menu type="toolbar">
-                 <button id="delete-button" data-l10n-id="delete" class="disabled">Delete</button>
-              </menu>
-              <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
-            </header>
+            </menu>
+            <h1 data-l10n-id="callLog">Call log</h1>
+          </header>
+          <nav id="recents-filter-container">
+            <ul>
+              <li class="recents-filter-entry">
+                <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
+                  All
+                </button>
+              </li>
+              <li class="recents-filter-entry">
+                <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
+                  Missed
+                </button>
+              </li>
+            </ul>
+          </nav>
+          <div class="view-body">
+            <div id='fixed-container' class='fixed-title'></div>
+            <article id="recents-container" class="view-body-inner">
+            </article>
           </div>
-        </div>
-        <nav id="recents-filter-container">
-          <ul>
-            <li class="recents-filter-entry">
-              <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
-                All
-              </button>
-            </li>
-            <li class="recents-filter-entry">
-              <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
-                Missed
-              </button>
-            </li>
-          </ul>
-        </nav>
-        <div class="view-body">
-          <div id='fixed-container' class='fixed-title'></div>
-          <article id="recents-container" class="view-body-inner">
-          </article>
-        </div>
+        </section>
       </section>
     </article>
     <nav id="main-toolbar" class="toolbar grid center">
@@ -223,18 +216,24 @@
         <div class="icon icon-keypad"></div>
       </a>
     </nav>
-    <footer class="options">
-      <section class="option">
-        <button id="deselect-all-threads" class="edit-button disabled" data-l10n-id="deselectAll">
-          Deselect all
-        </button>
+
+    <form role="dialog" class="edit" onsubmit="return false;">
+      <section>
+        <header>
+          <button id="recents-icon-close">
+            <span id="cancel-button" class="icon icon-close">close</span>
+          </button>
+          <menu type="toolbar">
+            <button id="delete-button" data-l10n-id="delete" class="disabled">Delete</button>
+          </menu>
+          <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
+        </header>
       </section>
-      <section class="option">
-        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">
-          Select all
-        </button>
-      </section>
-    </footer>
+      <menu>
+        <button id="deselect-all-threads" class="edit-button danger disabled" data-l10n-id="deselectAll">Delete all</button>
+        <button id="select-all-threads" class="edit-button danger" data-l10n-id="selectAll">Delete selected</button>
+      </menu>
+    </form>
   </body>
     <script>
       // If no entry point, redirect to the keyboard-view

@@ -16,6 +16,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   var VIEW_TOPUP = 'topup-view';
   var DIALOG_SERVICE_UNAVAILABLE = 'service-unavailable-info-dialog';
   var DIALOG_APPLICATION_ERROR = 'application-error-info-dialog';
+  var DIALOG_UNSUPPORTED_CARRIER = 'unsupported-carrier';
 
   // Update balance control
   var _plantype;
@@ -399,7 +400,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _init() {
     debug('Initializing Balance Tab');
     _configureUI();
-    _configureAutomaticUpdates();
+
+    if (CostControl.checkEnableConditions()) {
+      _configureAutomaticUpdates();
+    }
+
     _updateUI();
   }
 
@@ -420,6 +425,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     var status = CostControl.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
       viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
+      return;
+    }
+
+    if (!CostControl.checkEnableConditions()) {
+      viewManager.changeViewTo(DIALOG_UNSUPPORTED_CARRIER);
       return;
     }
 

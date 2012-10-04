@@ -25,7 +25,8 @@
     "wifi",
     "desktop-notification",
     "idle",
-    "network-events"
+    "network-events",
+    "embed-apps"
   ],
   "locales": {
     "ar": {

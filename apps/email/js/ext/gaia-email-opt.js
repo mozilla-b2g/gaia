@@ -23671,6 +23671,13 @@ SmtpProber.prototype = {
   /**
    * Create a new ActiveSync connection.
    *
+   * ActiveSync connections use XMLHttpRequests to communicate with the
+   * server. These XHRs are created with mozSystem: true and mozAnon: true to,
+   * respectively, help with CORS, and to ignore the authentication cache. The
+   * latter is important because 1) it prevents the HTTP auth dialog from
+   * appearing if the user's credentials are wrong and 2) it allows us to
+   * connect to the same server as multiple users.
+   *
    * @param aEmail the user's email address
    * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
@@ -23862,7 +23869,7 @@ SmtpProber.prototype = {
       let w = new WBXML.Writer('1.3', 1, 'UTF-8');
       w.stag(pv.Provision)
         .etag();
-      this.doCommand(w, aCallback);
+      this.postCommand(w, aCallback);
     },
 
     /**
@@ -23890,7 +23897,7 @@ SmtpProber.prototype = {
       let conn = this;
       if (!aCallback) aCallback = nullCallback;
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
@@ -23996,7 +24003,7 @@ SmtpProber.prototype = {
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
 
       xhr.onload = function() {
@@ -24039,7 +24046,16 @@ SmtpProber.prototype = {
     },
 
     /**
-     * Send a command to the ActiveSync server and listen for the response.
+     * DEPRECATED. See postCommand() below.
+     */
+    doCommand: function() {
+      console.warn('doCommand is deprecated. Use postCommand instead.');
+      this.postCommand.apply(this, arguments);
+    },
+
+    /**
+     * Send a WBXML command to the ActiveSync server and listen for the
+     * response.
      *
      * @param aCommand the WBXML representing the command or a string/tag
      *        representing the command type for empty commands
@@ -24047,78 +24063,102 @@ SmtpProber.prototype = {
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    doCommand: function(aCommand, aCallback) {
-      if (!aCallback) aCallback = nullCallback;
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
+      const contentType = 'application/vnd.ms-sync.wbxml';
 
-      if (this.connected) {
-        this._doCommandReal(aCommand, aCallback);
+      if (typeof aCommand === 'string' || typeof aCommand === 'number') {
+        this.postData(aCommand, contentType, null, aCallback, aExtraParams,
+                      aExtraHeaders);
       }
       else {
-        this.connect((function(aError, aConfig) {
-          if (aError)
-            aCallback(aError);
-          else {
-            this._doCommandReal(aCommand, aCallback);
-          }
-        }).bind(this));
+        let r = new WBXML.Reader(aCommand, ASCP);
+        let commandName = r.document.next().localTagName;
+        this.postData(commandName, contentType, aCommand.buffer, aCallback,
+                      aExtraParams, aExtraHeaders);
       }
     },
 
     /**
-     * Perform the actual process of sending a command to the ActiveSync server
-     * and getting the response.
+     * Send arbitrary data to the ActiveSync server and listen for the response.
      *
-     * @param aCommand the WBXML representing the command or a string/tag
-     *        representing the command type for empty commands
+     * @param aCommand a string (or WBXML tag) representing the command type
+     * @param aContentType the content type of the post data
+     * @param aData the data to be posted
      * @param aCallback a callback to call when the server has responded; takes
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    _doCommandReal: function(aCommand, aCallback) {
-      let commandName;
+    postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
+                       aExtraHeaders) {
+      // Make sure our command name is a string.
+      if (typeof aCommand === 'number')
+        aCommand = ASCP.__tagnames__[aCommand];
 
-      if (typeof aCommand === 'string') {
-        commandName = aCommand;
-      }
-      else if (typeof aCommand === 'number') {
-        commandName = ASCP.__tagnames__[aCommand];
-      }
-      else {
-        let r = new WBXML.Reader(aCommand, ASCP);
-        commandName = r.document.next().localTagName;
-      }
-
-      if (!this.supportsCommand(commandName)) {
+      if (!this.supportsCommand(aCommand)) {
         let error = new Error("This server doesn't support the command " +
-                              commandName);
+                              aCommand);
         console.log(error);
         aCallback(error);
         return;
       }
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseUrl +
-               '?Cmd='        + encodeURIComponent(commandName) +
-               '&User='       + encodeURIComponent(this._email) +
-               '&DeviceId='   + encodeURIComponent(this._deviceId) +
-               '&DeviceType=' + encodeURIComponent(this._deviceType),
-               true);
+      // Build the URL parameters.
+      let params = [
+        ['Cmd', aCommand],
+        ['User', this._email],
+        ['DeviceId', this._deviceId],
+        ['DeviceType', this._deviceType]
+      ];
+      if (aExtraParams) {
+        for (let [,param] in Iterator(params)) {
+          if (param[0] in aExtraParams)
+            throw new TypeError('reserved URL parameter found');
+        }
+        for (let kv in Iterator(aExtraParams))
+          params.push(kv);
+      }
+      let paramsStr = params.map(function(i) {
+        return encodeURIComponent(i[0]) + '=' + encodeURIComponent(i[1]);
+      }).join('&');
+
+      // Now it's time to make our request!
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
-      xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
+      xhr.setRequestHeader('Content-Type', aContentType);
       xhr.setRequestHeader('Authorization', this._getAuth());
 
+      // Add extra headers if we have any.
+      if (aExtraHeaders) {
+        for (let [key, value] in Iterator(aExtraHeaders))
+          xhr.setRequestHeader(key, value);
+      }
+
       let conn = this;
+      let parentArgs = arguments;
       xhr.onload = function() {
+        // This status code is a proprietary Microsoft extension used to
+        // indicate a redirect, not to be confused with the draft-standard
+        // "Unavailable For Legal Reasons" status. More info available here:
+        // <http://msdn.microsoft.com/en-us/library/gg651019.aspx>
         if (xhr.status === 451) {
           conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
-          conn.doCommand(aCommand, aCallback);
+          conn.postData.apply(conn, parentArgs);
           return;
         }
 
         if (xhr.status !== 200) {
-          console.log('ActiveSync command ' + commandName + ' failed with ' +
+          console.log('ActiveSync command ' + aCommand + ' failed with ' +
                       'response ' + xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
@@ -24135,7 +24175,7 @@ SmtpProber.prototype = {
       };
 
       xhr.responseType = 'arraybuffer';
-      xhr.send(aCommand instanceof WBXML.Writer ? aCommand.buffer : null);
+      xhr.send(aData);
     },
   };
 
@@ -31927,7 +31967,7 @@ ActiveSyncFolderConn.prototype = {
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
         return;
@@ -32014,7 +32054,7 @@ ActiveSyncFolderConn.prototype = {
        .etag();
     }
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       let added   = [];
       let changed = [];
       let deleted = [];
@@ -32610,7 +32650,7 @@ ActiveSyncJobDriver.prototype = {
       w.etag(as.Collections)
      .etag(as.Sync);
 
-    this.account.conn.doCommand(w, function(aError, aResponse) {
+    this.account.conn.postCommand(w, function(aError, aResponse) {
       if (aError)
         return;
 
@@ -32876,7 +32916,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let deferredAddedFolders = [];
 
@@ -33118,7 +33158,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.Type, folderType)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status, serverId;
 
@@ -33168,7 +33208,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.ServerId, folderMeta.serverId)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status;
 
@@ -33195,24 +33235,51 @@ ActiveSyncAccount.prototype = {
     composedMessage._cacheOutput = true;
     composedMessage._composeMessage();
 
-    const cm = $ascp.ComposeMail.Tags;
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-    w.stag(cm.SendMail)
-       .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
-       .tag(cm.SaveInSentItems)
-       .stag(cm.Mime)
-         .opaque(composedMessage._outputBuffer)
-       .etag()
-     .etag();
+    // ActiveSync 14.0 has a completely different API for sending email. Make
+    // sure we format things the right way.
+    if (this.conn.currentVersion.gte('14.0')) {
+      const cm = $ascp.ComposeMail.Tags;
+      let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(cm.SendMail)
+         .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
+         .tag(cm.SaveInSentItems)
+         .stag(cm.Mime)
+           .opaque(composedMessage._outputBuffer)
+         .etag()
+       .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
-      if (aResponse === null)
+      this.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        if (aResponse === null) {
+          console.log('Sent message successfully!');
+          callback(null);
+        }
+        else {
+          console.error('Error sending message. XML dump follows:\n' +
+                        aResponse.dump());
+          callback('unknown');
+        }
+      });
+    }
+    else { // ActiveSync 12.x and lower
+      this.conn.postData('SendMail', 'message/rfc822',
+                         composedMessage._outputBuffer,
+                         function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        console.log('Sent message successfully!');
         callback(null);
-      else {
-        console.log('Error sending message. XML dump follows:\n' +
-                    aResponse.dump());
-      }
-    });
+      }, { SaveInSent: 'T' });
+    }
   },
 
   getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(

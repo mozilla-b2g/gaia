@@ -827,6 +827,7 @@ setService(function cc_setupCostControlService() {
     resetTelephonyCounters: _resetStats,
     getLastBalance: _getLastBalance,
     getServiceStatus: _getServiceStatus,
+    checkEnableConditions: _checkEnableConditions,
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
       return REQUEST_BALANCE_MAX_DELAY;
     },
