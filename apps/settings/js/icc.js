@@ -20,6 +20,7 @@
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccLastCommand = null;
+  var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
   var icc;
@@ -37,7 +38,7 @@
     };
 
     window.onunload = function() {
-      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER }, true);
     };
   }
 
@@ -51,8 +52,8 @@
   /**
    * Response ICC Command
    */
-  function responseSTKCommand(response) {
-    if(!iccLastCommand) {
+  function responseSTKCommand(response, force) {
+    if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
       return debug("sendStkResponse NO COMMAND TO RESPONSE. Ignoring");
     }
 
@@ -61,6 +62,7 @@
       " # response = " + JSON.stringify(response));
     icc.sendStkResponse(iccLastCommand, response);
     iccLastCommand = null;
+    iccLastCommandProcessed = false;
   }
 
   /**
@@ -75,22 +77,26 @@
       case icc.STK_CMD_SET_UP_MENU:
         window.asyncStorage.setItem('stkMainAppMenu', options);
         updateMenu();
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         openSTKApplication();
+        iccLastCommandProcessed = true;
         break;
 
       case icc.STK_CMD_GET_INKEY:
       case icc.STK_CMD_GET_INPUT:
         updateInput(command);
+        iccLastCommandProcessed = true;
         break;
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
         alert(options.text);
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         break;
 
@@ -98,6 +104,7 @@
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
         debug(' STK:Send message: ' + JSON.stringify(command));
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         // TODO: Show a spinner instead the message (UX decission).
         // Stop it on any other command
@@ -106,12 +113,14 @@
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
         var confirmed = confirm(options.confirmMessage);
+        iccLastCommandProcessed = true;
         responseSTKCommand({ hasConfirmed: confirmed,
                              resultCode: icc.STK_RESULT_OK });
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
+        iccLastCommandProcessed = true;
         responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         if (confirm(options.confirmMessage)) {
           openURL(options.url);
@@ -120,8 +129,9 @@
 
       default:
         debug('STK Message not managed ... response OK');
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
+        iccLastCommandProcessed = true;
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
     }
   }
 
