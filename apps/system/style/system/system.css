@@ -113,9 +113,15 @@ body {
   visibility: hidden;
 }
 
-#windows > iframe.appWindow.inlineActivity {
+#windows > iframe.appWindow.inlineActivity,
+#windows > iframe.appWindow.hideBottom {
   transform: translateY(100%);
   transition: transform 0.5s ease, visibility 0.5s ease;
+}
+
+#windows > iframe.appWindow.restored {
+  transform: none;
+  transition: transform 0.5s ease;
 }
 
 #windows > iframe.appWindow.inlineActivity.active {
@@ -329,7 +335,9 @@ iframe.backgroundWindow {
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
-#screen.popup #dialog-overlay {
+#screen.popup #dialog-overlay,
+#screen.trustedui #trustedui-container,
+#screen.trustedui #dialog-overlay {
   visibility: visible;
   pointer-events: auto;
 }
