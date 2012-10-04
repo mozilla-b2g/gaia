@@ -246,6 +246,9 @@
     var p = document.createElement('p');
     p.id = 'stk-item-' + 'title';
     p.textContent = options.text;
+    if (options.minLength && options.maxLength) {
+      p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
+    }
     li.appendChild(p);
 
     var input = document.createElement('input');
@@ -274,11 +277,20 @@
     var button = document.createElement('button');
     button.id = 'stk-item-' + 'ok';
     button.textContent = 'Ok';
+    if (options.minLength) {
+      button.disabled = true;
+    }
     button.onclick = function(event) {
       var value = document.getElementById('stk-item-input').value;
       responseSTKCommand({resultCode: icc.STK_RESULT_OK,
                           input: value});
     };
+
+    input.onkeyup = function(event) {
+      button.disabled = (input.value.length < options.minLength) ||
+                        (input.value.length > options.maxLength);
+    };
+
     label.appendChild(button);
     li.appendChild(label);
     iccStkList.appendChild(li);
