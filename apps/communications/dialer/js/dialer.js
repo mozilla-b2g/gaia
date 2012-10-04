@@ -54,9 +54,6 @@ var CallHandler = (function callHandler() {
 
   /* === Incoming and STK calls === */
   function newCall() {
-    if (callScreenDisplayed)
-      return;
-
     openCallScreen();
   }
   window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
