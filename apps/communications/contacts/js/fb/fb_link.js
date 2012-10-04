@@ -266,6 +266,8 @@ if (!fb.link) {
 
         allFriends = response;
 
+        fb.utils.setCachedNumFriends(response.data.length);
+
         response.data.forEach(function(item) {
             if (!item.email) {
               item.email = '';
