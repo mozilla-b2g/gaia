@@ -225,14 +225,12 @@ var OnCallHandler = (function onCallHandler() {
   function onCallsChanged() {
     // Adding any new calls to handledCalls
     telephony.calls.forEach(function callIterator(call) {
-      if (call.state == 'incoming' || call.state == 'dialing') {
-        var alreadyAdded = handledCalls.some(function hcIterator(hc) {
-          return (hc.call == call);
-        });
+      var alreadyAdded = handledCalls.some(function hcIterator(hc) {
+        return (hc.call == call);
+      });
 
-        if (!alreadyAdded) {
-          addCall(call);
-        }
+      if (!alreadyAdded) {
+        addCall(call);
       }
     });
 
