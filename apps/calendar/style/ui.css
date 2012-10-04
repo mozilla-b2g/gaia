@@ -87,6 +87,11 @@ ol.link-list a {
   height: calc(35% - 3.33rem);
 }
 
+#time-header h1 {
+  max-width: calc(100% - 5rem);
+  direction:rtl;
+}
+
 
 /* temp views */
 
