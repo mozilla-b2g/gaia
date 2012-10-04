@@ -43,6 +43,7 @@ const IMEController = (function() {
   var _currentLayoutMode = LAYOUT_MODE_DEFAULT;
   var _currentKey = null;
   var _realInputType = null;
+  var _elementIsEmpty = false;
   var _currentInputType = null;
   var _menuLockedArea = null;
   var _lastHeight = 0;
@@ -1032,7 +1033,7 @@ const IMEController = (function() {
   // Turn to default values
   function _reset() {
     _currentLayoutMode = LAYOUT_MODE_DEFAULT;
-    _isUpperCase = _requireAutoCapitalize();
+    _isUpperCase = _elementIsEmpty && _realInputType === 'textarea';
     _isUpperCaseLocked = false;
     _lastKeyCode = 0;
 
@@ -1121,11 +1122,12 @@ const IMEController = (function() {
     uninit: _uninit,
 
     // Show IME, receives the input's type
-    showIME: function kc_showIME(type) {
+    showIME: function kc_showIME(type, isEmpty) {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
       _realInputType = type;
+      _elementIsEmpty = isEmpty || false;
       _currentInputType = _mapType(type);
       _reset();
 

@@ -19,6 +19,8 @@ if (!window.navigator.mozKeyboard) {
     var typeToSkip = ['select-one', 'select-multiple', 'date',
                       'time', 'datetime', 'datetime-local'];
     var type = evt.detail.type;
+    var value = evt.detail.value;
+
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
     // Also workaround an issue that type might be empty
@@ -30,7 +32,8 @@ if (!window.navigator.mozKeyboard) {
       if (type === 'blur') {
         IMEController.hideIME();
       } else {
-        IMEController.showIME(type);
+        var isEmpty = !value || value.length === 0;
+        IMEController.showIME(type, isEmpty);
       }
     }, focusChangeDelay);
   };
