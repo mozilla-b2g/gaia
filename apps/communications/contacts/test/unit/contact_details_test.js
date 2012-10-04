@@ -6,6 +6,7 @@ requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_extfb.js');
 
 var subject,
     container,
@@ -54,6 +55,7 @@ suite('Render contact', function() {
     window.Contacts = MockContactsApp;
     realFb = window.fb;
     window.fb = MockFb;
+    window.Contacts.extFb = MockExtFb;
     dom = document.createElement('section');
     dom.id = 'view-contact-details';
     dom.innerHTML = MockDetailsDom;
@@ -155,8 +157,9 @@ suite('Render contact', function() {
     test('!isFbContact', function() {
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
-      var toCheck = 'Contacts.extFb.startLink(" 1","true")';
+      var toCheck = 'id="wall_button"';
       assert.include(container.innerHTML, toCheck);
+      assert.equal(-1, container.innerHTML.indexOf('data-id="1"'));
 
       assert.isTrue(container.
                        querySelector('#profile_button').

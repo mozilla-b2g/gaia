@@ -1,8 +1,8 @@
 var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">';
     MockFormDom += '<header>';
-    MockFormDom += '      <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>';
+    MockFormDom += '      <button class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>';
     MockFormDom += '      <menu type="toolbar" role="menu" id="contact-form-actions">';
-    MockFormDom += '        <button id="save-button" onclick="contacts.Form.saveContact();" role="menuitem" data-l10n-id="done">Done</button>';
+    MockFormDom += '        <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>';
     MockFormDom += '      </menu>';
     MockFormDom += '      <h1 id="contact-form-title"></h1>';
     MockFormDom += '    </header>';
@@ -10,7 +10,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '    <!-- PHONE TEMPLATE -->';
     MockFormDom += '    <div id="add-phone-#i#" data-template class="phone-template" data-index="#i#">';
     MockFormDom += '      <dl class="setbox fillflow-row">';
-    MockFormDom += '        <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">';
+    MockFormDom += '        <dt class="setbox-title">';
     MockFormDom += '          <a class="with-arrow" data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>';
     MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
     MockFormDom += '        </dt>';
@@ -30,7 +30,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '    <!-- EMAIL TEMPLATE -->';
     MockFormDom += '    <div id="add-email-#i#" data-template class="email-template" data-index="#i#">';
     MockFormDom += '      <dl class="setbox fillflow-row">';
-    MockFormDom += '        <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">';
+    MockFormDom += '        <dt class="setbox-title">';
     MockFormDom += '          <a data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>';
     MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
     MockFormDom += '        </dt>';
@@ -46,7 +46,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '    <!-- ADDRESS TEMPLATE -->';
     MockFormDom += '    <div id="add-address-#i#" data-template class="address-template" data-index="#i#">';
     MockFormDom += '      <dl class="setbox fillflow-row">';
-    MockFormDom += '        <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">';
+    MockFormDom += '        <dt class="setbox-title">';
     MockFormDom += '          <a data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>';
     MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
     MockFormDom += '        </dt>';
@@ -119,7 +119,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            </div>';
     MockFormDom += '          </fieldset>';
 
-    MockFormDom += '          <button onclick="contacts.Form.insertField("tel"); return false;" id="add-new-phone" class="fillflow-row action action-add">';
+    MockFormDom += '          <button id="add-new-phone" class="fillflow-row action action-add">';
     MockFormDom += '            <span role="button" class="icon-add"></span>';
     MockFormDom += '            <b data-l10n-id="addPhone">Add phone number</b>';
     MockFormDom += '          </button>';
@@ -131,7 +131,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            </div>';
     MockFormDom += '          </fieldset>';
 
-    MockFormDom += '          <button onclick="contacts.Form.insertField("email"); return false;" id="add-new-email" class="fillflow-row action action-add">';
+    MockFormDom += '          <button id="add-new-email" class="fillflow-row action action-add">';
     MockFormDom += '            <span role="button" class="icon-add"></span>';
     MockFormDom += '            <b data-l10n-id="addEmail">Add email address</b>';
     MockFormDom += '          </button>';
@@ -143,7 +143,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            </div>';
     MockFormDom += '          </fieldset>';
 
-    MockFormDom += '          <button onclick="contacts.Form.insertField("adr"); return false;" id="add-new-address" class="fillflow-row action action-add">';
+    MockFormDom += '          <button id="add-new-address" class="fillflow-row action action-add">';
     MockFormDom += '            <span role="button" class="icon-add"></span>';
     MockFormDom += '            <b data-l10n-id="addAddress">Add new address</b>';
     MockFormDom += '          </button>';
@@ -155,7 +155,7 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
     MockFormDom += '            </div>';
     MockFormDom += '          </fieldset>';
 
-    MockFormDom += '          <button onclick="contacts.Form.insertField("note"); return false;" id="add-new-note" class="fillflow-row action action-add">';
+    MockFormDom += '          <button id="add-new-note" class="fillflow-row action action-add">';
     MockFormDom += '            <span role="button" class="icon-add"></span>';
     MockFormDom += '            <b data-l10n-id="addComment">Add comment</b>';
     MockFormDom += '          </button>';
