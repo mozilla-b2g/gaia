@@ -10,6 +10,7 @@
 
 #root li [data-l10n-id="accessibility"]     { background-image: url(images/settings/accessibility.png); }
 #root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings/airplane_mode.png); }
+#root li [data-l10n-id="applications"]      { background-image: url(images/settings/applications.png); }
 #root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings/app_permissions.png); }
 #root li [data-l10n-id="battery"]           { background-image: url(images/settings/battery.png); }
 #root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings/bluetooth.png); }
@@ -20,6 +21,7 @@
 #root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png); }
 #root li [data-l10n-id="display"]           { background-image: url(images/settings/display.png); }
 #root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings/do_not_track.png); }
+#root li [data-l10n-id="feedback"]          { background-image: url(images/settings/feedback.png); }
 #root li [data-l10n-id="gps"]               { background-image: url(images/settings/gps.png); }
 #root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings/help.png); }
 #root li [data-l10n-id="internetSharing"]   { background-image: url(images/settings/hotspot.png); }
@@ -30,6 +32,7 @@
 #root li [data-l10n-id="notifications"]     { background-image: url(images/settings/notifications.png); }
 #root li [data-l10n-id="persona"]           { background-image: url(images/settings/persona.png); }
 #root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings/phone_lock.png); }
+#root li [data-l10n-id="privacyRights"]     { background-image: url(images/settings/privacy_rights.png); }
 #root li [data-l10n-id="simSecurity"]       { background-image: url(images/settings/sim_card_lock.png); }
 #root li [data-l10n-id="sound"]             { background-image: url(images/settings/sound.png); }
 #root li [data-l10n-id="storage"]           { background-image: url(images/settings/storage.png); }
