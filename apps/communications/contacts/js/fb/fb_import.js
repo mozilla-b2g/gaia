@@ -365,7 +365,6 @@ if (typeof fb.importer === 'undefined') {
      */
     UI.importAll = function(e) {
       if (Object.keys(selectedContacts).length > 0) {
-        fb.utils.setImportChecked(true);
 
         Importer.importAll(function() {
 

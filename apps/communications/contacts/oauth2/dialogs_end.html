@@ -3,17 +3,23 @@
 <!--
    Module: Facebook integration
 
-  Page that the user is redirected to when a FB dialog finishes
+   This page is loaded in a window.open to start an OAuth 2.0
+   implicit grant flow.
 
+   The page is loaded to start the flow and is the page that is loaded when
+   the redirection happens
 -->
 
 <html>
   <head>
     <meta charset="UTF-8">
+    <script src="oauth2/js/parameters.js"></script>
   </head>
 
   <body>
     <script>
+      window.opener.postMessage('closed',
+                                fb.oauthflow.params['contactsAppOrigin']);
       window.close();
     </script>
 </html>
