@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -1820,6 +1821,18 @@
       <ul id="icc-stk-list">
         <!-- filled by icc.js -->
       </ul>
+
+      <form role="dialog" style="display: none" id="icc-stk-alert">
+        <section>
+          <h1 data-l10n-id="message">Message</h1>
+          <p id="icc-stk-alert-msg">
+            <!-- filled by icc.js -->
+          </p>
+        </section>
+        <menu>
+          <button data-l10n-id="ok" type="submit" id="icc-stk-alert-btn">Ok</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Main List -->

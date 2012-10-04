@@ -95,9 +95,16 @@
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
-        alert(options.text);
-        iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        displayText(command, function(userCleared) {
+          iccLastCommandProcessed = true;
+          if(userCleared) {
+            debug("User closed the dialog");
+            responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+          } else {
+            debug("Dialog closed by timeout");
+            responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+          }
+        })
         break;
 
       case icc.STK_CMD_SEND_SMS:
@@ -275,6 +282,35 @@
     label.appendChild(button);
     li.appendChild(label);
     iccStkList.appendChild(li);
+  }
+
+  /**
+   * Display text to the user
+   */
+  function displayText(command, cb) {
+    var options = command.options;
+    var alertbox = document.getElementById('icc-stk-alert');
+
+    if(options.isHighPriority) {
+      cb(true);
+      document.getElementById('icc-stk-alert-btn').onclick = function() {
+        alertbox.style.display = "none";
+      };
+    } else {
+      document.getElementById('icc-stk-alert-btn').onclick = function() {
+        alertbox.style.display = "none";
+        cb(true);
+      };
+      if(options.userClear) {
+        setTimeout(function() {
+          alertbox.style.display = "none";
+          cb(false);
+        }, 30000);
+      }
+    }
+
+    document.getElementById('icc-stk-alert-msg').textContent = options.text;
+    alertbox.style.display = "block";
   }
 
   /**
