@@ -385,7 +385,6 @@
       var controller = this.controller;
       var element = document.createElement('section');
 
-      element.id = this.id;
       element.classList.add('month');
       element.classList.add('weeks-' + this.weeks);
       element.innerHTML = html;

@@ -55,7 +55,7 @@ Calendar.ns('Views').MonthsDay = (function() {
 
       switch (e.type) {
         case 'selectedDayChange':
-          this.changeDate(e.data[0]);
+          this.changeDate(e.data[0], true);
           this._updateHeader();
           break;
       }
