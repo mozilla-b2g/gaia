@@ -107,10 +107,9 @@ Calendar.ns('Views').DayChild = (function() {
      * @param {Object|Array} busytimes list or single busytime.
      */
     _loadRecords: function(busytimes) {
-      // find all records for range.
-      // if change state is the same
-      // then run _renderDay(list)
-      var store = this.app.store('Event');
+      // skip this step of no busytimes are given
+      if (!busytimes || !busytimes.length)
+        return;
 
       // keep local record of original
       // token if this changes we know
@@ -118,15 +117,15 @@ Calendar.ns('Views').DayChild = (function() {
       var token = this._changeToken;
       var self = this;
 
-      store.findByAssociated(busytimes, function(err, list) {
+      this.controller.findAssociated(busytimes, function(err, list) {
         if (self._changeToken !== token) {
           // tokens don't match we don't
           // care about these results anymore...
           return;
         }
 
-        list.forEach(function(pair) {
-          this.add(pair[0], pair[1]);
+        list.forEach(function(record) {
+          this.add(record.busytime, record.event);
         }, self);
       });
     },

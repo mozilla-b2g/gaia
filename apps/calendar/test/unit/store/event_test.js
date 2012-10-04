@@ -173,7 +173,6 @@ suite('store/event', function() {
   suite('#findByIds', function() {
     var events = {};
     var expectedDbIds;
-    var expectedCachedIds;
 
     function persist() {
       setup(function(done) {
@@ -186,33 +185,11 @@ suite('store/event', function() {
 
     persist();
     persist();
-
-    setup(function() {
-      expectedDbIds = Object.keys(subject._cached);
-      // clear cache so we can
-      // see that events can come from
-      // both the db and the cache.
-      subject._cached = Object.create(null);
-    });
-
     persist();
     persist();
 
-    test('find from both db and cache', function(done) {
-      assert.equal(
-        Object.keys(subject.cached).length,
-        2,
-        'should only have cached items'
-      );
-
+    test('result', function(done) {
       var ids = Object.keys(events);
-      var expectedCachedIds = Object.keys(
-        subject.cached
-      );
-
-      assert.equal(expectedDbIds.length, 2);
-      assert.equal(expectedCachedIds.length, 2);
-
       ids.push('random-not-here');
 
       subject.findByIds(ids, function(err, items) {
@@ -223,105 +200,13 @@ suite('store/event', function() {
             'should find all items'
           );
 
-          // check db backed items
-          expectedDbIds.forEach(function(id) {
-            assert.notEqual(
-              items[id],
-              events[id],
-              'should *not* be cached: ' + id
-            );
-
+          for (var id in events) {
             assert.deepEqual(
               items[id],
               events[id],
-              'should be the same data as cached: ' + id
+              'should find event with id ' + id
             );
-          });
-
-          // check cache backed items
-          expectedCachedIds.forEach(function(id) {
-            assert.equal(
-              items[id],
-              events[id],
-              'should be cached! ' + id
-            );
-          });
-        });
-      });
-    });
-
-  });
-
-  suite('#findByAssociated', function() {
-
-    var busyStore;
-    var events = {};
-
-    setup(function() {
-      busyStore = subject.db.getStore('Busytime');
-
-      events.oneIn = Factory('event', {
-        remote: {
-          startDate: new Date(2012, 1, 1),
-          endDate: new Date(2012, 1, 10)
-        }
-      });
-
-      events.twoIn = Factory('event', {
-        remote: {
-          startDate: new Date(2012, 1, 7),
-          endDate: new Date(2012, 1, 9)
-        }
-      });
-    });
-
-    setup(function(done) {
-      subject.persist(events.oneIn, done);
-    });
-
-    setup(function(done) {
-      subject.persist(events.twoIn, done);
-    });
-
-    var records;
-    var span;
-
-    setup(function(done) {
-      span = new Calendar.Timespan(
-        new Date(2012, 1, 5),
-        new Date(2012, 1, 11)
-      );
-
-      busyStore.loadSpan(span, function(err, list) {
-        records = list;
-        done();
-      });
-    });
-
-    test('result', function(done) {
-
-      subject.findByAssociated(records, function(err, list) {
-
-        function hasEvent(idx, event, msg) {
-          var record = list[idx];
-          assert.deepEqual(
-            record[0].startDate,
-            events[event].remote.startDate,
-            idx + ' - ' + event + ': ' + msg
-          );
-
-          assert.deepEqual(
-            record[1],
-            events[event],
-            idx + ' - ' + event + ': ' + msg
-          );
-        }
-
-        done(function() {
-          assert.equal(list.length, 2);
-
-          hasEvent(0, 'oneIn', 'first date in range');
-          hasEvent(1, 'twoIn', 'second date in range');
+          }
         });
       });
     });
@@ -333,18 +218,20 @@ suite('store/event', function() {
     //TODO: busytime removal tests?
 
     suite('parent items /w children', function() {
-      var id = 'parentStuff';
+      var parentId = 'parentStuff';
+      var childId = 'child';
 
       setup(function(done) {
         var item = Factory('event', {
-          _id: id
+          _id: parentId
         });
+
         subject.persist(item, done);
       });
 
       setup(function(done) {
         subject.persist(
-          Factory('event', { parentId: id }),
+          Factory('event', { _id: childId, parentId: id }),
           done
         );
       });
@@ -353,17 +240,23 @@ suite('store/event', function() {
         subject.remove(id, done);
       });
 
-      test('after remove', function(done) {
-        // clear cache
-        subject._cached = Object.create(null);
-
-        subject.load(function(data) {
-          var keys = Object.keys(subject.cached);
-          assert.length(keys, 0);
-          done();
+      test('removes parent event', function(done) {
+        subject.get(parentId, function() {
+          done(function(err, result) {
+            assert.ok(!err);
+            assert.ok(!result);
+          });
         });
       });
 
+      test('removes child event', function(done) {
+        subject.get(childId, function() {
+          done(function(err, result) {
+            assert.ok(!err);
+            assert.ok(!result);
+          });
+        });
+      });
     });
   });
 
@@ -394,28 +287,17 @@ suite('store/event', function() {
     persistEvent(1);
     persistEvent(2);
 
-    setup(function() {
+    setup(function(done) {
       busytime = subject.db.getStore('Busytime');
-      assert.equal(
-        Object.keys(subject.cached).length, 3,
-        'should have some controls'
-      );
+      subject.get(byCalendar[2][0], function(err, result) {
+        done(function() {
+          assert.ok(result, 'has control event');
+        });
+      });
     });
 
     test('removed all events for 1', function(done) {
       subject.removeByIndex('calendarId', 1, function() {
-        var keys = Object.keys(subject.cached);
-        assert.equal(
-          keys.length, 1,
-          'should have removed all but control'
-        );
-
-        assert.equal(
-          subject.cached[keys[0]].calendarId,
-          2,
-          'should not have removed control calendar'
-        );
-
         assert.ok(
           !busytime._byEventId[byCalendar[1][0]],
           'should remove events from busytime'
@@ -426,13 +308,10 @@ suite('store/event', function() {
           'should remove events from busytime'
         );
 
-        subject._cached = {};
-        subject.load(function(err, result) {
+        subject.get(byCalendar[2][0], function(err, result) {
           done(function() {
-            var loadKeys = Object.keys(result);
-            assert.equal(loadKeys.length, 1);
-            var obj = result[loadKeys[0]];
-            assert.equal(obj.calendarId, 2);
+            assert.ok(!err);
+            assert.ok(result, 'should not remove control');
           });
         });
       });
