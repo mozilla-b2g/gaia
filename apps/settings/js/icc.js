@@ -95,16 +95,22 @@
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
-        displayText(command, function(userCleared) {
+        if(options.responseNeeded) {
           iccLastCommandProcessed = true;
-          if(userCleared) {
-            debug("User closed the dialog");
-            responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
-          } else {
-            debug("Dialog closed by timeout");
-            responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
-          }
-        })
+          responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        } else {
+          displayText(command, function(userCleared) {
+            debug("Display Text, cb: "+JSON.stringify(command));
+            iccLastCommandProcessed = true;
+            if(command.options.userClear && !userCleared) {
+              debug("No response from user");
+              responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+            } else {
+              debug("Timeout");
+              responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+            }
+          })
+        }
         break;
 
       case icc.STK_CMD_SEND_SMS:
@@ -302,24 +308,17 @@
   function displayText(command, cb) {
     var options = command.options;
     var alertbox = document.getElementById('icc-stk-alert');
-
-    if(options.isHighPriority) {
+    
+    var timeoutId = setTimeout(function() {
+        alertbox.style.display = "none";
+        cb(false);
+      },
+      5000);
+    document.getElementById('icc-stk-alert-btn').onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.style.display = "none";
       cb(true);
-      document.getElementById('icc-stk-alert-btn').onclick = function() {
-        alertbox.style.display = "none";
-      };
-    } else {
-      document.getElementById('icc-stk-alert-btn').onclick = function() {
-        alertbox.style.display = "none";
-        cb(true);
-      };
-      if(options.userClear) {
-        setTimeout(function() {
-          alertbox.style.display = "none";
-          cb(false);
-        }, 30000);
-      }
-    }
+    };
 
     document.getElementById('icc-stk-alert-msg').textContent = options.text;
     alertbox.style.display = "block";
