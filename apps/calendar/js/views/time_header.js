@@ -8,7 +8,7 @@ Calendar.ns('Views').TimeHeader = (function() {
     this.controller.on('scaleChange', this);
 
     this.settings.addEventListener('click', function settingsClick(e) {
-      e.preventDefault();
+      e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
         Calendar.App.resetState();
