@@ -52,6 +52,10 @@
    * Response ICC Command
    */
   function responseSTKCommand(response) {
+    if(!iccLastCommand) {
+      return debug("sendStkResponse NO COMMAND TO RESPONSE. Ignoring");
+    }
+
     debug("sendStkResponse to command: " +
       JSON.stringify(iccLastCommand) +
       " # response = " + JSON.stringify(response));
