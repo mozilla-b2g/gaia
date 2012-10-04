@@ -89,8 +89,12 @@ a[role="button"][aria-disabled="true"].danger {
   pointer-events: none;
 }
 
-/* Button inside list */
-li > label {
+
+/* ----------------------------------
+ * Buttons inside lists
+ * ---------------------------------- */
+
+li label {
   font: 1.4rem/1em "Open Sans", Sans-serif;
   text-transform: uppercase;
   display: block;
@@ -98,41 +102,25 @@ li > label {
   margin-bottom: 0.5rem;
 }
 
-li > button::-moz-focus-inner,
-li > a[role="button"]::-moz-focus-inner {
+li button::-moz-focus-inner,
+li a[role="button"]::-moz-focus-inner {
   border: none;
   outline: none;
 }
 
-li > button,
-li > a[role="button"] {
-  width: 100%;
-  height: 3.8rem;
-  margin: 0 0 1rem;
-  padding: 0 1.5rem;
-  -moz-box-sizing: border-box;
-  display: inline-block;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+li button,
+li a[role="button"] {
   position: relative;
   overflow: visible;
   background: #e7e7e7;
-  border: 0.1rem solid #b6b6b6;
-  border-radius: 0.3rem;
+  border-color: #b6b6b6;
   font-size: 1.4rem;
-  font-family: 'Open Sans', Sans-serif;
-  font-weight: 600;
   line-height: 2.9rem;
   text-align: left;
-  color: #333;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-  text-decoration: none;
-  outline: none;
 }
 
-li > a[role="button"]:after,
-li > button:after {
+li a[role="button"]:after,
+li button:after {
   content: "";
   position: absolute;
   left: 0;
@@ -145,39 +133,32 @@ li > button:after {
 }
 
 /* Press */
-li > button:active,
-li > a[role="button"]:active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
-li > a[role="button"]:active:after,
-li > button:active:after {
+li a[role="button"]:active:after,
+li button:active:after {
   opacity: 0;
 }
 
 /* Disabled */
-li > button[disabled],
-li > a[role="button"][aria-disabled="true"] {
+li button[disabled],
+li a[role="button"][aria-disabled="true"] {
   background: #ededed;
   border-color: #d3d3d3;
   color: #a6a6a6;
 }
 
-li > button[disabled]:after,
-li > a[role="button"][aria-disabled="true"]:after {
+li button[disabled]:after,
+li a[role="button"][aria-disabled="true"]:after {
   opacity: 1;
 }
 
-li > button[disabled] span,
-li > a[role="button"][aria-disabled="true"] span {
+li button[disabled] span,
+li a[role="button"][aria-disabled="true"] span {
   opacity: 0.2;
 }
 
 /* Icons */
-li > button span,
-li > a[role="button"] span {
+li button span,
+li a[role="button"] span {
   background: none no-repeat scroll center center transparent;
   float: right;
   height: 2.5rem;
@@ -185,18 +166,22 @@ li > a[role="button"] span {
   width: 2.5rem;
 }
 
-li > button span.icon-view,
-li > a[role="button"] span.icon-view {
+li button span.icon-view,
+li a[role="button"] span.icon-view {
   background-image: url(buttons/images/icons/view.png);
 }
 
-li > button span.icon-dialog,
-li > a[role="button"] span.icon-dialog {
+li button span.icon-dialog,
+li a[role="button"] span.icon-dialog {
   background-image: url(buttons/images/icons/dialog.png);
   background-position: 1rem bottom;
 }
 
-/* Compact mode */
+
+/* ----------------------------------
+ * Buttons inside lists, compact mode
+ * ---------------------------------- */
+
 ul.compact,
 ol.compact {
   margin-bottom: 1rem;
