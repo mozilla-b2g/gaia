@@ -6,6 +6,34 @@
     Calendar.Provider.Abstract.apply(this, arguments);
   }
 
+  /**
+   * Returns the details for the default calendars.
+   */
+  Local.defaultCalendar = function() {
+    //XXX: Make async
+    var l10nId = 'calendar-local';
+    var list = {};
+    var name;
+
+    if ('mozL10n' in window.navigator) {
+      name = window.navigator.mozL10n.get(l10nId);
+      if (name === l10nId) {
+        name = null;
+      }
+    }
+
+    if (!name) {
+      name = 'Offline Calendar';
+    }
+
+    return {
+      // XXX localize this name somewhere
+      name: name,
+      id: LOCAL_CALENDAR_ID,
+      color: '#D2642A'
+    };
+  }
+
   Local.prototype = {
     __proto__: Calendar.Provider.Abstract.prototype,
 
@@ -18,30 +46,8 @@
     },
 
     findCalendars: function(account, callback) {
-      //XXX: Make async
-      var l10nId = 'calendar-local';
       var list = {};
-      var name;
-
-      if ('mozL10n' in window.navigator) {
-        name = window.navigator.mozL10n.get(l10nId);
-        if (name === l10nId) {
-          name = null;
-        }
-      }
-
-      if (!name) {
-        name = 'Offline Calendar';
-      }
-
-      var cal = {
-        // XXX localize this name somewhere
-        name: name,
-        id: LOCAL_CALENDAR_ID,
-        color: '#D2642A'
-      };
-
-      list[LOCAL_CALENDAR_ID] = cal;
+      list[LOCAL_CALENDAR_ID] = Local.defaultCalendar();
       callback(null, list);
     },
 
