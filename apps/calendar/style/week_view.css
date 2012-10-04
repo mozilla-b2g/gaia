@@ -1,6 +1,7 @@
 #week-view {
   overflow-x: hidden;
   overflow-y: scroll;
+  user-select: -moz-none;
 }
 
 #week-view h1 {
@@ -18,7 +19,6 @@
 }
 
 #week-view {
-  counter-reset: week-children;
   position: relative;
 }
 
@@ -67,12 +67,26 @@
   width: calc(100% - 2rem);
 }
 
+#week-view .children > section {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+#week-view .children > section.active {
+  display: block;
+}
+
+
+#week-view .days-3 .week-events {
+  width: 33%;
+}
+
 #week-view .week-events {
   display: none;
-  position: absolute;
   height: 100%;
-  width: 20%;
-  top: 0px;
+  width: 25%;
+  float: left;
 }
 
 #week-view .week-events.active {
@@ -87,12 +101,17 @@
   font-size: 120%;
   margin: 1px;
   height: 6rem;
-  width: 6rem;
+  width: 7rem;
+}
+
+#week-view .days-3 .week-events > ol,
+#week-view .days-3 .week-events li {
+  width: 9.5rem;
 }
 
 #week-view .week-events li {
   height: 6rem;
-  width: 6rem;
+  width: 7rem;
   height: 100%;
   margin: 1px;
   line-height: 120%;

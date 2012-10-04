@@ -68,7 +68,7 @@ suite('views/day_child', function() {
       assert.equal(subject._changeToken, 1);
       var day = Calendar.Calc.createDay(startTime);
 
-      subject.changeDate(startTime);
+      subject.changeDate(startTime, true);
 
       assert.deepEqual(subject.date, day);
       assert.equal(subject.events.innerHTML, '');
@@ -96,7 +96,7 @@ suite('views/day_child', function() {
     });
 
     test('from second change', function() {
-      subject.changeDate(new Date());
+      subject.changeDate(new Date(), true);
       var oldRange = subject.timespan;
 
       subject.changeDate(startTime);
@@ -438,6 +438,7 @@ suite('views/day_child', function() {
       date: date
     });
 
+
     subject.changeDate = function() {
       calledWith = arguments;
       Calendar.Views.DayChild.prototype.changeDate.apply(
@@ -447,6 +448,7 @@ suite('views/day_child', function() {
     }
 
     var el = subject.create();
+    assert.equal(subject.id, date.valueOf(), 'id');
 
     assert.ok(el);
     assert.equal(el.tagName.toLowerCase(), 'section');
@@ -454,7 +456,7 @@ suite('views/day_child', function() {
 
     var hour = 0;
     var html = el.innerHTML;
-    assert.ok(html);
+    assert.ok(html, 'has html');
 
     assert.include(
       html,

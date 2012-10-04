@@ -58,7 +58,7 @@ suite('views/day', function() {
 
     setup(function() {
       calledTime = null;
-      subject._activateTime = function() {
+      subject.changeDate = function() {
         calledTime = arguments;
       }
 
@@ -118,21 +118,10 @@ suite('views/day', function() {
     );
   });
 
-  test('#_createChild', function() {
-    var time = new Date();
-    var child = subject._createChild(time);
-
-    assert.equal(child.date, time);
-    assert.equal(child.app, app);
-    assert.instanceOf(
-      child, Calendar.Views.DayChild
-    );
-  });
-
   test('#render', function() {
     var calledWith;
 
-    subject._activateTime = function() {
+    subject.changeDate = function() {
       calledWith = arguments;
     }
 
@@ -148,7 +137,7 @@ suite('views/day', function() {
     test('event disabling', function() {
       var calledWith;
 
-      subject._activateTime = function() {
+      subject.changeDate = function() {
         calledWith = arguments;
       }
 
