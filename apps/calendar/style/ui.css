@@ -196,6 +196,7 @@ ol.link-list a {
 
 .fullscreen-view {
   z-index: 1000;
+  overflow: hidden;
   visibility: hidden;
   /* completely override other views */
   background: #E6E6E0;
@@ -273,14 +274,9 @@ body[data-path^="/month/"] section.month.previous {
   display: block !important;
 }
 
-section.month.previous,
-section.month.next {
-  display: none !important;
-}
-
 section.month {
+  z-index: 200;
   top: 4.9rem;
-  overflow: hidden;
   height: calc(65% - 5rem);
   position: absolute;
   color: #484848;

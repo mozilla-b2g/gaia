@@ -16,9 +16,6 @@ Calendar.OrderedMap = (function() {
   };
 
   OrderedMap.prototype = {
-    _compare: function(a, b) {
-      return this.compare(a[0], b[0]);
-    },
 
     has: function(value) {
       var idx = this.indexOf(value);
@@ -79,6 +76,10 @@ Calendar.OrderedMap = (function() {
     },
 
     get: function(item) {
+      if (typeof(item) === 'undefined') {
+        throw new Error('cannot search "undefined" values');
+      }
+
       var idx = this.indexOf(item);
       if (idx !== null) {
         return this.items[idx][1];

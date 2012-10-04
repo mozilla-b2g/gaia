@@ -94,6 +94,7 @@ suite('views/hour_based', function() {
 
   test('#createHour', function() {
     subject.createHour(1);
+
     var record = subject.hours.get(1);
     assert.instanceOf(record.records, OrderedMap);
   });
