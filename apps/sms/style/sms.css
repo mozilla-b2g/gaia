@@ -171,9 +171,9 @@ form.edit[role="dialog"] > menu {
   display: none;
 }
 
-.edit .msg-checkbox {
+/*.edit .msg-checkbox {
   display: table-cell;
-}
+}*/
 
 .edit .message-block {
   border-top: .1rem solid #DBDBDB;
@@ -308,25 +308,26 @@ a.unread .unread-mark .icon-unread-mark {
   opacity: 0;
 }
 
-#thread-list-container .checkbox-container input {
+/*#thread-list-container .checkbox-container input {
   width: 100%;
   height: 100%;
   position: absolute;
   opacity: 0;
-}
+}*/
+
 #thread-list-container .checkbox-container span {
-  left: 1.85rem;
+  /*  left: 1.85rem;
   top: 1.9rem;
   width: 2.2rem;
   height: 2.2rem;
   position: absolute;
   pointer-events: none;
-  background-image: url('images/check-delete.png');
+  background-image: url('images/check-delete.png');*/
 }
 
-#thread-list-container .checkbox-container input:checked + span {
+/*#thread-list-container .checkbox-container input:checked + span {
   background-position: center bottom;
-}
+}*/
 
 #thread-list-container .name {
   font-family: 'Open Sans';
@@ -423,15 +424,31 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .message-block {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
+  display: block;
+  overflow: hidden;
+  position: relative;
   margin-bottom:1rem;
 }
 
+.message-block label:not([for]) {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+}
+
 .message-block .bubble-container {
-  display: table-cell;
+  display: block;
   padding: 1rem 0rem;
+}
+
+/* Edit mode */
+.edit .message-block label:not([for]) {
+  transform: translateX(100%);
+}
+
+.edit .bubble-container.received {
+  transform: translateX(5.5rem);
 }
 
 .message-block .bubble-container .bubble{
@@ -443,17 +460,17 @@ a.unread .unread-mark .icon-unread-mark {
   -moz-box-sizing: border-box;
 }
 
-.message-option {
+/*.message-option {
   width: 3.5rem;
   vertical-align: middle;
   display: table-cell;
-}
+}*/
 
 .message-option:active {
   background: transparent !important;
 }
 
-.message-option .gif{
+.message-option .gif {
   width: 2.5rem;
   height: 2.5rem;
   margin: 0 auto;
@@ -468,10 +485,10 @@ a.unread .unread-mark .icon-unread-mark {
   height: 4rem;
   position: relative;
   opacity: 0;
-  margin-top: -2rem;
+  /*margin-top: -2rem;*/
   pointer-events: none;
 }
-.message-option span {
+/*.message-option span {
   display: block;
   position: relative;
   margin-top: -4rem;
@@ -484,7 +501,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 .message-option  input:checked + span {
   background-position: center bottom;
-}
+}*/
 
 .sent {
   text-align: right;

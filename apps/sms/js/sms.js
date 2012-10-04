@@ -566,7 +566,7 @@ var ThreadListUI = {
             '    <img src="">' +
             '    </div>' +
             '  </a>' +
-            '  <label class="checkbox-container">' +
+            '  <label class="danger checkbox-container">' +
             '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
             '  </label>';
@@ -824,14 +824,14 @@ var ThreadUI = {
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
-      htmlStructure += '<label class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</label>';
     } else {
       //Add edit options
-      htmlStructure += '<label class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
                         '  <input value="id_' + message.id +
                         '" type="checkbox">' +
                         '  <span></span>' +
