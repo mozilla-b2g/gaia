@@ -36,7 +36,11 @@ html, body {
 }
 
 * {
-  -moz-user-select:none;
+  -moz-user-select: -moz-none;
+}
+
+input {
+  -moz-user-select: text;
 }
 
 section,footer,nav,a,img {
