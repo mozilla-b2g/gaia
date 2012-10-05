@@ -21,6 +21,8 @@ Calendar.ns('Views').Month = (function() {
       selectedDay: 'li.selected'
     },
 
+    childClass: Calendar.Views.MonthChild,
+
     SELECTED: 'selected',
 
     _clearSelectedDay: function() {
@@ -38,7 +40,7 @@ Calendar.ns('Views').Month = (function() {
       this._clearSelectedDay();
 
       id = Calc.getDayId(date);
-      id = this.currentChild._dayId(id);
+      id = this.currentFrame._dayId(id);
 
       el = document.getElementById(id);
 
@@ -73,7 +75,7 @@ Calendar.ns('Views').Month = (function() {
 
         case 'monthChange':
           this._clearSelectedDay();
-          this._activateTime(e.data[0]);
+          this.changeDate(e.data[0]);
           break;
       }
     },
@@ -116,7 +118,7 @@ Calendar.ns('Views').Month = (function() {
      */
     render: function() {
       var time = this.controller.month;
-      this._activateTime(time);
+      this.changeDate(time);
     }
 
   };

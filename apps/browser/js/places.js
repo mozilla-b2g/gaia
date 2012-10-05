@@ -42,8 +42,6 @@ var Places = {
   updateScreenshot: function place_updateScreenshot(uri, screenshot, callback) {
     var maximum = this.TOP_SITE_SCREENSHOTS;
     this.db.getPlaceUrisByFrecency(maximum + 1, (function(topSites) {
-      console.log(topSites);
-
       // Get the site that isn't quite a top site, if there is one
       if (topSites.length > maximum)
         var runnerUp = topSites.pop();

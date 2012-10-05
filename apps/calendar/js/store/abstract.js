@@ -256,6 +256,8 @@
      * @param {Function} callback node style [err, record].
      */
     get: function(id, trans, callback) {
+      var self = this;
+
       if (typeof(trans) === 'function') {
         callback = trans;
         trans = null;
@@ -269,7 +271,13 @@
       var req = store.get(id);
 
       req.onsuccess = function() {
-        callback(null, req.result);
+        var model;
+
+        if (req.result) {
+          model = self._createModel(req.result);
+        }
+
+        callback(null, model);
       }
 
       req.onerror = function(event) {

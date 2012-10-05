@@ -39,6 +39,9 @@ suite('controllers/alarm', function() {
     );
   });
 
+  teardown(function() {
+    db.close();
+  });
 
   suite('#observe', function() {
     var worksQueue;
