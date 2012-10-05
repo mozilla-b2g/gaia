@@ -32,8 +32,6 @@
       updateMenu();
     };
 
-    navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
-
     document.getElementById('icc-stk-app-back').onclick = function goBack() {
       responseSTKCommand({ resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
     };
@@ -42,6 +40,8 @@
       responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER },
                          true);
     };
+
+    navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
   }
 
   /**
