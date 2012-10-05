@@ -566,7 +566,7 @@ var ThreadListUI = {
             '    <img src="">' +
             '    </div>' +
             '  </a>' +
-            '  <label class="checkbox-container">' +
+            '  <label class="danger checkbox-container">' +
             '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
             '  </label>';
@@ -701,6 +701,8 @@ var ThreadUI = {
     var input = this.input;
     var inputCss = window.getComputedStyle(input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'));
+    //Constant difference of height beteween button and growing input
+    var deviationHeight = 30;
     if (input.scrollHeight > inputMaxHeight) {
       return;
     }
@@ -711,15 +713,17 @@ var ThreadUI = {
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
       input.offsetHeight / Utils.getFontSize() + 'rem' :
-      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
+      input.scrollHeight / Utils.getFontSize() + 'rem';
 
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.
-    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
+    var sendButtonTranslate = (input.offsetHeight - deviationHeight) / Utils.getFontSize() + 'rem';
     var bottomToolbar =
         document.querySelector('.new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
+    ThreadUI.sendButton.style.marginTop = sendButtonTranslate; //we should do this with transform, but is buggy right now
 
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
@@ -821,33 +825,37 @@ var ThreadUI = {
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '';
+    var deliveryIcon = '';
+
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
-      htmlStructure += '<label class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
                         '  <input value="ts_' + timestamp +
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</label>';
-    } else {
+
+      // Add 'gif' delivery icon if necessary
+      deliveryIcon = '<span class="message-option icon-delivery">' +
+                        '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
+                          ThreadUI.sendIcons.pending) + '" class="gif">' +
+                      '</span>';
+      } else {
       //Add edit options
-      htmlStructure += '<label class="message-option msg-checkbox">' +
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
                         '  <input value="id_' + message.id +
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</label>';
     }
+
     htmlStructure += '<span class="bubble-container ' + className + '">' +
                         '<div class="bubble">' + bodyHTML + '</div>' +
+                        deliveryIcon +
                         '</span>';
 
-    // Add 'gif' if necessary
-    if (message.delivery == 'sending') {
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
-    }
+
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     if (message.error) {
@@ -1126,7 +1134,10 @@ var ThreadUI = {
               MessageManager.send(num, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
-                  root.removeChild(root.childNodes[2]);
+                  //Removing delivery spinner
+                  var deliveryIcon = root.querySelector('.icon-delivery');
+                  deliveryIcon.parentNode.removeChild(deliveryIcon);
+
                   var inputs = root.querySelectorAll('input[type="checkbox"]');
                   if (inputs) {
                     inputs[0].value = 'id_' + msg.id;
