@@ -17,6 +17,7 @@
   /**
    * Init
    */
+  var displayTextTimeout = 5000;
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccLastCommand = null;
@@ -319,7 +320,7 @@
           cb(false);
         }
       },
-      5000);
+      this.displayTextTimeout);
     document.getElementById('icc-stk-alert-btn').onclick = function() {
       clearTimeout(timeoutId);
       alertbox.style.display = 'none';
