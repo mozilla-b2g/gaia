@@ -10,6 +10,7 @@
   },
   "permissions": [
     "device-storage:pictures",
+    "device-storage:videos",
     "content-camera",
     "camera",
     "geolocation"
