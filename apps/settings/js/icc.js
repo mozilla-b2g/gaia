@@ -321,7 +321,7 @@
           cb(false);
         }
       },
-      this.displayTextTimeout);
+      displayTextTimeout);
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
       alertbox.style.display = 'none';
