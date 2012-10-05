@@ -701,6 +701,8 @@ var ThreadUI = {
     var input = this.input;
     var inputCss = window.getComputedStyle(input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'));
+    //Constant difference of height beteween button and growing input
+    var deviationHeight = 30;
     if (input.scrollHeight > inputMaxHeight) {
       return;
     }
@@ -713,17 +715,15 @@ var ThreadUI = {
       input.offsetHeight / Utils.getFontSize() + 'rem' :
       input.scrollHeight / Utils.getFontSize() + 'rem';
 
-  console.log(Utils.getFontSize())
-  console.log(input.offsetHeigh)
-  console.log(input.scrollHeight)
-
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.
     var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
+    var sendButtonTranslate = (input.offsetHeight - deviationHeight) / Utils.getFontSize() + 'rem';
     var bottomToolbar =
         document.querySelector('.new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
+    ThreadUI.sendButton.style.marginTop = sendButtonTranslate; //we should do this with transform, but is buggy right now
 
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();

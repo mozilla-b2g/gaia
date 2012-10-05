@@ -649,7 +649,12 @@ font-family: 'Open Sans';*/
   border: 0.1rem solid rgba(0, 0, 0, 0.33);
   line-height: 1.8rem;
   height: 3rem;
+  max-height: 10rem;
   width: 100%;
+}
+
+#message-to-send:-moz-placeholder {
+  padding: 0.5rem 0 0 0.5rem;
 }
 
 #send-message-container {
