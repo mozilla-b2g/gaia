@@ -98,15 +98,16 @@
         if(options.responseNeeded) {
           iccLastCommandProcessed = true;
           responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+          displayText(command, null);
         } else {
           displayText(command, function(userCleared) {
             debug("Display Text, cb: "+JSON.stringify(command));
             iccLastCommandProcessed = true;
             if(command.options.userClear && !userCleared) {
-              debug("No response from user");
+              debug("No response from user (Timeout)");
               responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
             } else {
-              debug("Timeout");
+              debug("User closed the alert");
               responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
             }
           })
@@ -311,13 +312,17 @@
     
     var timeoutId = setTimeout(function() {
         alertbox.style.display = "none";
-        cb(false);
+        if(cb) {
+          cb(false);
+        }
       },
       5000);
     document.getElementById('icc-stk-alert-btn').onclick = function() {
       clearTimeout(timeoutId);
       alertbox.style.display = "none";
-      cb(true);
+      if(cb) {
+        cb(true);
+      }
     };
 
     document.getElementById('icc-stk-alert-msg').textContent = options.text;
