@@ -711,11 +711,15 @@ var ThreadUI = {
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
       input.offsetHeight / Utils.getFontSize() + 'rem' :
-      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
+      input.scrollHeight / Utils.getFontSize() + 'rem';
+
+  console.log(Utils.getFontSize())
+  console.log(input.offsetHeigh)
+  console.log(input.scrollHeight)
 
     var newHeight = input.getBoundingClientRect().height;
     // Add 1 rem to fit the margin top and bottom space.
-    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
     var bottomToolbar =
         document.querySelector('.new-sms-form');
 

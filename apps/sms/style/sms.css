@@ -613,21 +613,25 @@ a.unread .unread-mark .icon-unread-mark {
 */
 
 .new-sms-form {
-  height: 3rem;
+/*  height: 3rem;
   bottom: 0rem;
   width: 100%;
-  position: absolute;
+  position: absolute;*/
   transition: transform .2s ease-in;
 }
 
-.new-sms-form {
-  border-top: .1rem solid #C6C6C6;
-  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
-  height: 3.5rem;
+form.bottom[role="search"].new-sms-form {
+  /*border-top: .1rem solid #C6C6C6;*/
+  /*background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);*/
+  /*height: 3.5rem;*/
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #message-to-send {
-  margin-top: .5rem;
+  /*  margin-top: .5rem;
   margin-bottom: .5rem;
   margin-left: 1.5rem;
   height: 2.5rem;
@@ -639,7 +643,13 @@ a.unread .unread-mark .icon-unread-mark {
   border: 0.1rem solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: calc(7 * 0.226rem);
-  font-family: 'Open Sans';
+font-family: 'Open Sans';*/
+  /* Fixing texteareas in BB */
+  background: url("../shared/input_areas/images/ui/shadow-search.png") repeat-x scroll left top #FFFFFF;
+  border: 0.1rem solid rgba(0, 0, 0, 0.33);
+  line-height: 1.8rem;
+  height: 3rem;
+  width: 100%;
 }
 
 #send-message-container {
@@ -649,12 +659,12 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #send-message {
-  position: absolute;
+/*  position: absolute;
   height: 3rem;
   width: 6rem;
   right:0;
   bottom:0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.5rem;*/
 }
 
 /*

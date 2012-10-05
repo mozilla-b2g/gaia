@@ -8,6 +8,7 @@
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
     <!-- App styles -->
@@ -113,12 +114,12 @@
         </div>
         <article id="messages-container" class="view-body">
         </article>
-        <footer class="new-sms-form">
-          <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
-          <div id="send-message-container">
-            <button id="send-message" data-l10n-id="send">SEND</button>
-          </div>
-        </footer>
+        <form role="search" class="bottom new-sms-form" onsubmit="return false;">
+          <button id="send-message" data-l10n-id="send" type="submit">SEND</button>
+          <p>
+            <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
+          </p>
+        </form>
         <form role="dialog" class="edit" onsubmit="return false;">
           <section>
             <header>
