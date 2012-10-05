@@ -311,18 +311,23 @@ var ThreadListUI = {
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (contact && contact.length > 0) {
-      var choosenContact = contact[0];
-      var name =
-              this.view.querySelector('a[data-num="' + number + '"] div.name');
-      var selector = 'a[data-num="' + number + '"] div.photo img';
-      var photo = this.view.querySelector(selector);
-      if (name && choosenContact.name && choosenContact.name != '') {
-        name.innerHTML = choosenContact.name;
-      }
+      if (contact.length > 1) {
+        name.innerHTML = contact[0].name + ' + ' +
+                         _('others', {n: contact.length - 1});
+      }else {
+        var choosenContact = contact[0];
+        var name =
+                this.view.querySelector('a[data-num="' + number + '"] div.name');
+        var selector = 'a[data-num="' + number + '"] div.photo img';
+        var photo = this.view.querySelector(selector);
+        if (name && choosenContact.name && choosenContact.name != '') {
+          name.innerHTML = choosenContact.name;
+        }
 
-      if (photo && choosenContact.photo && choosenContact.photo[0]) {
-        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-        photo.src = photoURL;
+        if (photo && choosenContact.photo && choosenContact.photo[0]) {
+          var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+          photo.src = photoURL;
+        }
       }
     } else {
       name.innerHTML = number;
@@ -751,24 +756,35 @@ var ThreadUI = {
     self.title.dataset.phoneNumber = number;
 
     ContactDataManager.getContactData(number, function gotContact(contacts) {
-      //TODO what if different contacts with same number?
-      Utils.getPhoneDetails(number,
-                            contacts[0],
-                            function returnedDetails(details) {
-        if (details.isContact) {
-          self.title.dataset.isContact = true;
-        } else {
-          delete self.title.dataset.isContact;
-        }
-        self.title.innerHTML = details.title || number;
-        var carrierTag = document.getElementById('contact-carrier');
-        if (details.carrier) {
-          carrierTag.innerHTML = details.carrier;
-          carrierTag.classList.remove('hide');
-        } else {
-          carrierTag.classList.add('hide');
-        }
-      });
+      var carrierTag = document.getElementById('contact-carrier');
+      /** If we have more than one contact sharing the same phone number
+       *  we show the name of the first contact and how many other contacts
+       *  share that same number. We thing it's user's responsability to correct
+       *  this mess with the agenda.
+       */
+      if (contacts.length > 1) {
+        self.title.dataset.isContact = true;
+        self.title.innerHTML = contacts[0].name + ' + ' +
+                               _('others', {n: contacts.length - 1});
+        carrierTag.classList.add('hide');
+      }else {
+        Utils.getPhoneDetails(number,
+                              contacts[0],
+                              function returnedDetails(details) {
+          if (details.isContact) {
+            self.title.dataset.isContact = true;
+          } else {
+            delete self.title.dataset.isContact;
+          }
+          self.title.innerHTML = details.title || number;
+          if (details.carrier) {
+            carrierTag.innerHTML = details.carrier;
+            carrierTag.classList.remove('hide');
+          } else {
+            carrierTag.classList.add('hide');
+          }
+        });
+      }
     });
   },
 
@@ -1365,8 +1381,6 @@ window.addEventListener('resize', function resize() {
    // Scroll to bottom
     ThreadUI.scrollViewToBottom();
 });
-
-
 
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
