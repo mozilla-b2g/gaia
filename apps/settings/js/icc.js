@@ -3,14 +3,14 @@
 
 'use strict';
 
-(function(){
+(function () {
   /**
    * Debug method
    */
   var DEBUG = false;
   function debug(msg) {
     if (DEBUG) {
-      console.log("[DEBUG] STKUI: " + msg);
+      console.log('[DEBUG] STKUI: ' + msg);
     }
   }
 
@@ -38,7 +38,8 @@
     };
 
     window.onunload = function() {
-      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER }, true);
+      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER },
+                         true);
     };
   }
 
@@ -54,12 +55,12 @@
    */
   function responseSTKCommand(response, force) {
     if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
-      return debug("sendStkResponse NO COMMAND TO RESPONSE. Ignoring");
+      return debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
     }
 
-    debug("sendStkResponse to command: " +
+    debug('sendStkResponse to command: ' +
       JSON.stringify(iccLastCommand) +
-      " # response = " + JSON.stringify(response));
+      ' # response = ' + JSON.stringify(response));
     icc.sendStkResponse(iccLastCommand, response);
     iccLastCommand = null;
     iccLastCommandProcessed = false;
@@ -95,19 +96,20 @@
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
-        if(options.responseNeeded) {
+        if (options.responseNeeded) {
           iccLastCommandProcessed = true;
           responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
           displayText(command, null);
         } else {
           displayText(command, function(userCleared) {
-            debug("Display Text, cb: "+JSON.stringify(command));
+            debug('Display Text, cb: '+JSON.stringify(command));
             iccLastCommandProcessed = true;
-            if(command.options.userClear && !userCleared) {
-              debug("No response from user (Timeout)");
-              responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+            if (command.options.userClear && !userCleared) {
+              debug('No response from user (Timeout)');
+              responseSTKCommand(
+                { resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
             } else {
-              debug("User closed the alert");
+              debug('User closed the alert');
               responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
             }
           })
@@ -217,7 +219,8 @@
 
     showTitle(menu.title);
     menu.items.forEach(function (menuItem) {
-      debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifier);
+      debug('STK App Menu item: ' + menuItem.text + ' # ' +
+        menuItem.identifier);
       iccStkList.appendChild(getDOMMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
@@ -311,22 +314,22 @@
     var alertbox = document.getElementById('icc-stk-alert');
     
     var timeoutId = setTimeout(function() {
-        alertbox.style.display = "none";
-        if(cb) {
+        alertbox.style.display = 'none';
+        if (cb) {
           cb(false);
         }
       },
       5000);
     document.getElementById('icc-stk-alert-btn').onclick = function() {
       clearTimeout(timeoutId);
-      alertbox.style.display = "none";
-      if(cb) {
+      alertbox.style.display = 'none';
+      if (cb) {
         cb(true);
       }
     };
 
     document.getElementById('icc-stk-alert-msg').textContent = options.text;
-    alertbox.style.display = "block";
+    alertbox.style.display = 'block';
   }
 
   /**
@@ -375,7 +378,7 @@
    * Open settings application with ICC section opened
    */
   function openSTKApplication() {
-    document.location.hash="icc";
+    document.location.hash='icc';
     navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');
