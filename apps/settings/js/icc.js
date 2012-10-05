@@ -20,6 +20,9 @@
   var displayTextTimeout = 5000;
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
+  var alertbox = document.getElementById('icc-stk-alert');
+  var alertbox_btn = document.getElementById('icc-stk-alert-btn');
+  var alertbox_msg = document.getElementById('icc-stk-alert-msg');
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
@@ -312,8 +315,6 @@
    */
   function displayText(command, cb) {
     var options = command.options;
-    var alertbox = document.getElementById('icc-stk-alert');
-    
     var timeoutId = setTimeout(function() {
         alertbox.style.display = 'none';
         if (cb) {
@@ -321,7 +322,7 @@
         }
       },
       this.displayTextTimeout);
-    document.getElementById('icc-stk-alert-btn').onclick = function() {
+    alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
       alertbox.style.display = 'none';
       if (cb) {
@@ -329,7 +330,7 @@
       }
     };
 
-    document.getElementById('icc-stk-alert-msg').textContent = options.text;
+    alertbox_msg.textContent = options.text;
     alertbox.style.display = 'block';
   }
 
