@@ -185,7 +185,7 @@
       menu.items.forEach(function (menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
               menuItem.identifier);
-        iccStkList.appendChild(getDOMMenuEntry({
+        iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
           onclick: onMainMenuItemClick,
@@ -222,7 +222,7 @@
     menu.items.forEach(function (menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' +
         menuItem.identifier);
-      iccStkList.appendChild(getDOMMenuEntry({
+      iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
         onclick: onSelectOptionClick.bind(null, command),
@@ -362,7 +362,7 @@
     }
   }
 
-  function getDOMMenuEntry(entry) {
+  function buildMenuEntry(entry) {
     var li = document.createElement('li');
     var a = document.createElement('a');
     a.id = entry.id;
