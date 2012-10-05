@@ -20,7 +20,7 @@ var gWifiManager = (function(window) {
    * {
    *   ssid              : SSID string (human-readable name)
    *   bssid             : network identifier string
-   *   capabilities      : array of strings (supported authentication methods)
+   *   security          : array of strings (supported authentication methods)
    *   relSignalStrength : 0-100 signal level (integer)
    *   connected         : boolean state
    * }
@@ -30,28 +30,28 @@ var gWifiManager = (function(window) {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA-EAP'],
+      security: ['WPA-EAP'],
       relSignalStrength: 67,
       connected: false
     },
     'Livebox 6752': {
       ssid: 'Livebox 6752',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WEP'],
+      security: ['WEP'],
       relSignalStrength: 32,
       connected: false
     },
     'Mozilla Guest': {
       ssid: 'Mozilla Guest',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: [],
+      security: [],
       relSignalStrength: 98,
       connected: false
     },
     'Freebox 8953': {
       ssid: 'Freebox 8953',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA2-PSK'],
+      security: ['WPA2-PSK'],
       relSignalStrength: 89,
       connected: false
     }
@@ -383,7 +383,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // supported authentication methods
     var small = document.createElement('small');
-    var keys = network.capabilities;
+    var keys = network.security;
     if (keys && keys.length) {
       small.textContent = _('securedBy', { capabilities: keys.join(', ') });
       ssid.className = 'wifi-secure';
@@ -667,7 +667,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     function getKeyManagement() {
-      var key = network.capabilities[0];
+      var key = network.security[0];
       if (/WEP$/.test(key))
         return 'WEP';
       if (/PSK$/.test(key))
@@ -699,7 +699,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return;
 
       // network info
-      var keys = network.capabilities;
+      var keys = network.security;
       var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
       dialog.querySelector('[data-ssid]').textContent = network.ssid;
       dialog.querySelector('[data-signal]').textContent = _('signalLevel' + sl);
