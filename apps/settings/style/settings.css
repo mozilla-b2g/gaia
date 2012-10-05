@@ -303,3 +303,6 @@ section#icc header.hiddenheader {
   background: none;
 }
 
+section#icc #icc-stk-alert {
+  display: none;
+}
