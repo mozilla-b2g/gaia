@@ -20,6 +20,8 @@
   var displayTextTimeout = 5000;
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
+  var iccStkHeader = document.getElementById('icc-stk-header');
+  var iccStkSubheader = document.getElementById('icc-stk-subheader');
   var alertbox = document.getElementById('icc-stk-alert');
   var alertbox_btn = document.getElementById('icc-stk-alert-btn');
   var alertbox_msg = document.getElementById('icc-stk-alert-msg');
@@ -338,9 +340,6 @@
    * Auxiliar methods
    */
   function showTitle(title) {
-    var iccStkHeader = document.getElementById('icc-stk-header');
-    var iccStkSubheader = document.getElementById('icc-stk-subheader');
-
     // If the application is automatically opened (no come from main menu)
     if (!stkOpenAppName) {
       stkOpenAppName = title;
