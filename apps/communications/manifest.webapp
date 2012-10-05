@@ -64,6 +64,7 @@
     }
   },
   "messages": [
-     { "telephony-incoming": "/dialer/index.html" }
+     { "telephony-incoming": "/dialer/index.html" },
+     { "icc-dialing": "/dialer/index.html" }
   ]
 }

@@ -58,8 +58,6 @@ var SystemUpdater = {
   },
 
   hideStatus: function su_hideStatus() {
-    var _ = navigator.mozL10n.get;
-
     this.updateStatus.classList.remove('displayed');
     this.updateStatus.classList.remove('applying');
 
@@ -67,14 +65,32 @@ var SystemUpdater = {
     progressEl.value = 0;
   },
 
+  showApplyPrompt: function su_showApplyPrompt() {
+    var _ = navigator.mozL10n.get;
+
+    var cancel = {
+      title: _('later'),
+      callback: this.declineInstall.bind(this)
+    };
+
+    var confirm = {
+      title: _('installNow'),
+      callback: this.acceptInstall.bind(this)
+    };
+
+    UtilityTray.hide();
+    CustomDialog.show(_('updateReady'), _('wantToInstall'),
+                      cancel, confirm);
+  },
+
   declineInstall: function su_declineInstall() {
     CustomDialog.hide();
-    this._dispatchEvent('update-downloaded-result', 'wait');
+    this._dispatchEvent('update-prompt-apply-result', 'wait');
   },
 
   acceptInstall: function su_acceptInstall() {
     CustomDialog.hide();
-    this._dispatchEvent('update-downloaded-result', 'restart');
+    this._dispatchEvent('update-prompt-apply-result', 'restart');
   },
 
   handleEvent: function su_handleEvent(evt) {
@@ -95,20 +111,13 @@ var SystemUpdater = {
                                 this.declineDownload.bind(this));
         break;
       case 'update-downloaded':
-        var cancel = {
-          title: _('later'),
-          callback: this.declineInstall.bind(this)
-        };
-
-        var confirm = {
-          title: _('restart'),
-          callback: this.acceptInstall.bind(this)
-        };
-
-        UtilityTray.hide();
         this.hideStatus();
-        CustomDialog.show(_('updateReady'), _('wantToInstall'),
-                          cancel, confirm);
+        NotificationHelper.send(_('updateApplyTitle'), _('updateApplyBody'),
+                                'style/system_updater/images/download.png',
+                                this.showApplyPrompt.bind(this));
+        break;
+      case 'update-prompt-apply':
+        this.showApplyPrompt();
         break;
       case 'update-progress':
         var progress = detail.progress / detail.total;

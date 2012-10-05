@@ -279,6 +279,8 @@ contacts.Details = (function() {
         linkButton.classList.add('hide');
     }
 
+    Contacts.extFb.initEventHandlers(social, contact, linked);
+
     listContainer.appendChild(social);
   }
 
@@ -296,9 +298,29 @@ contacts.Details = (function() {
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
+
+      // Add event listeners to the phone template components
+      var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
+      sendSmsButton.dataset['tel'] = telField.value;
+      sendSmsButton.addEventListener('click', onSendSmsClicked);
+
+      var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
+      callOrPickButton.dataset['tel'] = telField.value;
+      callOrPickButton.addEventListener('click', onCallOrPickClicked);
+
       listContainer.appendChild(template);
     }
   };
+
+  var onSendSmsClicked = function onSendSmsClicked(evt) {
+    var tel = evt.target.dataset['tel'];
+    Contacts.sendSms(tel);
+  };
+
+  var onCallOrPickClicked = function onCallOrPickClicked(evt) {
+    var tel = evt.target.dataset['tel'];
+    Contacts.callOrPick(tel);
+  }
 
   var renderEmails = function cd_renderEmails(contact) {
     if (!contact.email) {
@@ -313,9 +335,22 @@ contacts.Details = (function() {
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
+
+      // Add event listeners to the phone template components
+      var emailButton = template.querySelector('#email-or-pick-' + email);
+      emailButton.dataset['email'] = emailField.value;
+      emailButton.addEventListener('click', onEmailOrPickClick);
+
       listContainer.appendChild(template);
     }
   };
+
+  var onEmailOrPickClick = function onEmailOrPickClick(evt) {
+    evt.preventDefault();
+    var email = evt.target.dataset['email'];
+    Contacts.sendEmailOrPick(email);
+    return false;
+  }
 
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {

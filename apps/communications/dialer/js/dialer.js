@@ -52,14 +52,12 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
-  /* === Incoming calls === */
-  function incoming() {
-    if (callScreenDisplayed)
-      return;
-
+  /* === Incoming and STK calls === */
+  function newCall() {
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-incoming', incoming);
+  window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
+  window.navigator.mozSetMessageHandler('icc-dialing', newCall);
 
   /* === Calls === */
   function call(number) {

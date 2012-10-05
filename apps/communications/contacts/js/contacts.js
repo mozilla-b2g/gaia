@@ -165,6 +165,7 @@ var Contacts = (function() {
     initContactsList();
     contactsDetails.init();
     contactsForm.init(TAG_OPTIONS);
+    initEventListeners();
     checkUrl();
     window.addEventListener('hashchange', checkUrl);
     document.body.classList.remove('hide');
@@ -421,7 +422,7 @@ var Contacts = (function() {
       contactTag.textContent = customTag.value;
     }
     contactTag = null;
-    this.goBack();
+    Contacts.goBack();
   };
 
   var sendSms = function sendSms(number) {
@@ -532,6 +533,14 @@ var Contacts = (function() {
     }
   };
 
+  var showAddContact = function showAddContact() {
+    showForm();
+  };
+
+  var showEditContact = function showEditContact() {
+    showForm(true);
+  }
+
   var showForm = function c_showForm(edit) {
     var contact = edit ? currentContact : null;
 
@@ -556,6 +565,10 @@ var Contacts = (function() {
     currentContact = contact;
   };
 
+  var showSettings = function showSettings() {
+    navigation.go('view-settings', 'popup');
+  }
+
   var showOverlay = function showOverlay(message) {
     var text = message || _('loadingContacts');
 
@@ -567,10 +580,55 @@ var Contacts = (function() {
     loading.classList.remove('show-overlay');
   };
 
+  var initEventListeners = function initEventListener() {
+    // Definition of elements and handlers
+    var handlers = {
+      '#cancel_activty': handleCancel, // Activity (any) cancellation
+      '#cancel-edit': handleCancel, // Cancel edition
+      '#save-button': contacts.Form.saveContact,
+      '#add-contact-button': showAddContact,
+      '#settings-button': showSettings, // Settings related
+      '#settings-cancel': handleBack,
+      '#settings-done': doneTag,
+      '#settings-close': contacts.Settings.close,
+      '#cancel-search': contacts.Search.exitSearchMode, // Search related
+      '#search-contact': [{'event': 'focus',
+        'handler': contacts.Search.enterSearchMode},
+        {'event': 'keyup',
+        'handler': contacts.Search.search}],
+      '#details-back': handleBack, // Details
+      '#edit-contact-button': showEditContact,
+      '#toggle-favorite': contacts.Details.toggleFavorite,
+      '#contact-form > button': contacts.Form.onNewFieldClicked
+    };
+
+    try {
+    for (var id in handlers) {
+      var handler = handlers[id];
+      var nodes = document.querySelectorAll(id);
+      for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        if (Array.isArray(handler)) {
+          handler.forEach(function handle(elem) {
+            if (!elem.hasOwnProperty('event') &&
+              !elem.hasOwnProperty('handler')) {
+              return;
+            }
+            node.addEventListener(
+              elem.event, elem.handler);
+          });
+        } else {
+          node.addEventListener('click', handler);
+        }
+      }
+    }
+    } catch(e) { console.log('---->' + e)}
+  };
+
   return {
     'doneTag': doneTag,
-    'cancel' : handleCancel,
     'goBack' : handleBack,
+    'cancel': handleCancel,
     'goToSelectTag': goToSelectTag,
     'sendSms': sendSms,
     'callOrPick': callOrPick,

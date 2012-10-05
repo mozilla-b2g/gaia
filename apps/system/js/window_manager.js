@@ -1071,6 +1071,10 @@ var WindowManager = (function() {
           ensureHomescreen();
         }
 
+        // We will only bring web activity handling apps to the foreground
+        if (!e.detail.isActivity)
+          return;
+
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
         if (!homescreen) {
@@ -1082,10 +1086,6 @@ var WindowManager = (function() {
           homescreenManifestURL = manifestURL;
           return;
         }
-
-        // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
-          return;
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.

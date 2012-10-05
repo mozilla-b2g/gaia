@@ -6,6 +6,7 @@
   },
   "description": "The Mozilla Marketplace",
   "locales": {},
+  "appcache_path": "/appcache/manifest.appcache",
   "developer": {
     "url": "http://mozilla.org",
     "name": "Mozilla"

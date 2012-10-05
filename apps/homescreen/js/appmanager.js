@@ -224,13 +224,27 @@ var Applications = (function() {
   var deviceWidth = document.documentElement.clientWidth;
 
   /*
-   *  Returns the size of the icon
+   *  Returns the preferred size of the icon
    *
-   *  {Array} Sizes orderer largest to smallest
+   *  {Array} All sizes of the icon
+   *  {Number} Preferred icon size
    *
    */
-  function getIconSize(sizes) {
-    return sizes[(deviceWidth < 480) ? sizes.length - 1 : 0];
+  function getPreferredSize(icons, preferredSize) {
+    var result = Number.MAX_VALUE;
+    var max = 0;
+
+    Object.keys(icons).forEach(function(str) {
+      var size = parseInt(str, 10);
+      if (size > max)
+        max = size;
+
+      if (size >= preferredSize && size < result)
+        result = size;
+    });
+    // If there is an icon matching the preferred size, we return the result,
+    // if there isn't, we will return the maximum available size.
+    return (result === Number.MAX_VALUE) ? max : result;
   }
 
   /*
@@ -255,16 +269,12 @@ var Applications = (function() {
       return 'style/images/default.png';
     }
 
-    var sizes = Object.keys(icons).map(function parse(str) {
-      return parseInt(str, 10);
-    });
-    sizes.sort(function(x, y) { return y - x; });
-
     // If the icons is not fully-qualifed URL, add the origin of the
     // application to it (technically, manifests are supposed to
     // have those). Otherwise return the url directly as it could be
     // a data: url.
-    var icon = icons[getIconSize(sizes)];
+    var PREFERRED_ICON_SIZE = 64;
+    var icon = icons[getPreferredSize(icons, PREFERRED_ICON_SIZE)];
     if ((icon.indexOf('data:') !== 0) &&
         (icon.indexOf('http://') !== 0) &&
         (icon.indexOf('https://') !== 0)) {

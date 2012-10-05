@@ -336,6 +336,8 @@ section.view[data-state="active"] {
   display: block;
   min-height: 0rem !important;
   text-align: center;
+  height: 5rem;
+  line-height: 5rem;
 }
 
 li [data-l10n-id="importSim"] {
@@ -436,4 +438,48 @@ label.switch input:checked + span:before {
 
 label.switch input:checked + span:after {
   transform: translateX(0);
+}
+
+/* No Contacts */
+
+#no-contacts {
+  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 11;
+  color: #000;
+  text-align: left;
+}
+
+#no-contacts .info {
+  border-top: 1px solid rgba(96, 96, 96, 0.5);
+  color: #606060;
+  font-size: 2rem;
+  font-weight: lighter;
+  margin: 15rem 4rem 0;
+}
+
+#no-contacts .info p {
+  margin-top: 1rem;
+}
+
+#no-contacts p.small {
+  font-size: 1.35rem;
+  font-weight: lighter;
+  margin: 1.5rem 10rem 0 4rem;
+}
+
+#no-contacts .arrow {
+  position: absolute;
+}
+
+#no-contacts .small.arrow {
+  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+}
+
+#no-contacts .big.arrow {
+  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
+  height: 5rem;
+  padding-top: 3.5rem;
 }

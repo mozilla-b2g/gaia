@@ -17,7 +17,8 @@ contacts.Search = (function() {
   }
 
   //Search mode instructions
-  var exitSearchMode = function exitSearchMode() {
+  var exitSearchMode = function exitSearchMode(evt) {
+    evt.preventDefault();
     searchNoResult.classList.add('hide');
     conctactsListView.classList.remove('searching');
     searchBox.value = '';
