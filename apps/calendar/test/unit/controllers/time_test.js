@@ -73,6 +73,12 @@ suite('controller', function() {
 
       subject.selectedDay = new Date(2012, 1, 5);
 
+      assert.deepEqual(
+        subject.mostRecentDay,
+        subject.selectedDay,
+        'mostRecentDay - selected day'
+      );
+
       assert.equal(
         type(),
         'selectedDay',
@@ -84,6 +90,12 @@ suite('controller', function() {
       assert.equal(
         type(), 'day',
         'move - sets most recent type'
+      );
+
+      assert.deepEqual(
+        subject.mostRecentDay,
+        subject.position,
+        'mostRecentDay - day'
       );
 
       // back & forth
