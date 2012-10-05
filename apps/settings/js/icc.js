@@ -160,7 +160,7 @@
     stkOpenAppName = null;
 
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
-      clearDOMList();
+      clearList();
 
       document.getElementById('icc-stk-exit').style.display = 'block';
       document.getElementById('icc-stk-app-back').style.display = 'none';
@@ -210,7 +210,7 @@
     var menu = command.options;
 
     debug('Showing STK menu');
-    clearDOMList();
+    clearList();
 
     document.getElementById('icc-stk-exit').style.display = 'none';
     document.getElementById('icc-stk-app-back').style.display = 'block';
@@ -248,7 +248,7 @@
     var options = command.options;
 
     debug('Showing STK input box');
-    clearDOMList();
+    clearList();
     showTitle(stkLastSelectedTest);
 
     debug('STK Input title: ' + options.text);
@@ -356,7 +356,7 @@
     }
   }
 
-  function clearDOMList() {
+  function clearList() {
     while (iccStkList.hasChildNodes()) {
       iccStkList.removeChild(iccStkList.lastChild);
     }
