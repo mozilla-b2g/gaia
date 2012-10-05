@@ -821,6 +821,8 @@ var ThreadUI = {
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '';
+    var deliveryIcon = '';
+
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
@@ -829,7 +831,13 @@ var ThreadUI = {
                         '" type="checkbox">' +
                         '  <span></span>' +
                       '</label>';
-    } else {
+
+      // Add 'gif' delivery icon if necessary
+      deliveryIcon = '<span class="message-option icon-delivery">' +
+                        '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
+                          ThreadUI.sendIcons.pending) + '" class="gif">' +
+                      '</span>';
+      } else {
       //Add edit options
       htmlStructure += '<label class="danger message-option msg-checkbox">' +
                         '  <input value="id_' + message.id +
@@ -837,17 +845,13 @@ var ThreadUI = {
                         '  <span></span>' +
                       '</label>';
     }
+
     htmlStructure += '<span class="bubble-container ' + className + '">' +
                         '<div class="bubble">' + bodyHTML + '</div>' +
+                        deliveryIcon +
                         '</span>';
 
-    // Add 'gif' if necessary
-    if (message.delivery == 'sending') {
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
-    }
+
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     if (message.error) {
@@ -1126,7 +1130,10 @@ var ThreadUI = {
               MessageManager.send(num, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
-                  root.removeChild(root.childNodes[2]);
+                  //Removing delivery spinner
+                  var deliveryIcon = root.querySelector('.icon-delivery');
+                  deliveryIcon.parentNode.removeChild(deliveryIcon);
+
                   var inputs = root.querySelectorAll('input[type="checkbox"]');
                   if (inputs) {
                     inputs[0].value = 'id_' + msg.id;

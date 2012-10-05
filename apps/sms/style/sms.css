@@ -455,9 +455,16 @@ a.unread .unread-mark .icon-unread-mark {
   max-width: 23rem;
   word-wrap:break-word;
   display: inline-block;
+  vertical-align: middle;
   position: relative;
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
+}
+
+.message-block .bubble-container .message-option {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0 1rem 0 0;
 }
 
 /*.message-option {
