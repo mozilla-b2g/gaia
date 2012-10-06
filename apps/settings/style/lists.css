@@ -311,3 +311,11 @@ dl dd {
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 
+/******************************************************************************
+ * Right-to-Left layout
+ */
+[dir=rtl] ul li > label:not([for]) > span,
+ul li > label:not([for]).switch > span {
+  right: auto;
+  left: 4rem;
+}

@@ -151,6 +151,10 @@ body.hidden #root {
   text-align: right;
 }
 
+[dir=rtl] #root h1{
+	text-align:right;
+	padding-right:1rem;
+}
 
 /******************************************************************************
  * Explanation texts
