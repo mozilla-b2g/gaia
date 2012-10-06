@@ -315,7 +315,7 @@ dl dd {
  * Right-to-Left layout
  */
 [dir=rtl] ul li > label:not([for]) > span,
-ul li > label:not([for]).switch > span {
+[dir=rtl] ul li > label:not([for]).switch > span {
   right: auto;
   left: 4rem;
 }
