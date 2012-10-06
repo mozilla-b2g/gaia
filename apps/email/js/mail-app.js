@@ -36,7 +36,7 @@ var App = {
    * Show the best inbox we have (unified if >1 account, just the inbox if 1) or
    * start the setup process if we have no accounts.
    */
-  showMessageViewOrSetup: function() {
+  showMessageViewOrSetup: function(showLatest) {
     // Get the list of accounts including the unified account (if it exists)
     var acctsSlice = MailAPI.viewAccounts(false);
     acctsSlice.oncomplete = function() {
@@ -44,7 +44,10 @@ var App = {
       if (acctsSlice.items.length) {
         // For now, just use the first one; we do attempt to put unified first
         // so this should generally do the right thing.
-        var account = acctsSlice.items[0];
+        // XXX: Because we don't have unified account now, we should switch to
+        //       the latest account which user just added.
+        var account = showLatest ? acctsSlice.items.slice(-1)[0] :
+                                   acctsSlice.items[0];
         var foldersSlice = MailAPI.viewFolders('account', account);
         foldersSlice.oncomplete = function() {
           var inboxFolder = foldersSlice.getFirstFolderWithType('inbox');
