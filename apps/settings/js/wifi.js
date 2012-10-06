@@ -20,7 +20,7 @@ var gWifiManager = (function(window) {
    * {
    *   ssid              : SSID string (human-readable name)
    *   bssid             : network identifier string
-   *   capabilities      : array of strings (supported authentication methods)
+   *   security          : array of strings (supported authentication methods)
    *   relSignalStrength : 0-100 signal level (integer)
    *   connected         : boolean state
    * }
@@ -30,28 +30,28 @@ var gWifiManager = (function(window) {
     'Mozilla-G': {
       ssid: 'Mozilla-G',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA-EAP'],
+      security: ['WPA-EAP'],
       relSignalStrength: 67,
       connected: false
     },
     'Livebox 6752': {
       ssid: 'Livebox 6752',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WEP'],
+      security: ['WEP'],
       relSignalStrength: 32,
       connected: false
     },
     'Mozilla Guest': {
       ssid: 'Mozilla Guest',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: [],
+      security: [],
       relSignalStrength: 98,
       connected: false
     },
     'Freebox 8953': {
       ssid: 'Freebox 8953',
       bssid: 'xx:xx:xx:xx:xx:xx',
-      capabilities: ['WPA2-PSK'],
+      security: ['WPA2-PSK'],
       relSignalStrength: 89,
       connected: false
     }
@@ -232,7 +232,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       wpsDialog('wifi-wps', wpsCallback);
     }
 
-    function wpsCallback(method, pin) {
+    function wpsCallback(bssid, method, pin) {
       var req;
       if (method === 'pbc') {
         req = gWifiManager.wps({
@@ -240,11 +240,13 @@ window.addEventListener('localized', function wifiSettings(evt) {
         });
       } else if (method === 'myPin') {
         req = gWifiManager.wps({
-          method: 'pin'
+          method: 'pin',
+          bssid: bssid
         });
       } else {
         req = gWifiManager.wps({
           method: 'pin',
+          bssid: bssid,
           pin: pin
         });
       }
@@ -290,6 +292,46 @@ window.addEventListener('localized', function wifiSettings(evt) {
         return pinChecksum(Math.floor(num / 10)) === (num % 10);
       }
 
+      function isWpsAvailable(capabilities) {
+        for (var i = 0; i < capabilities.length; i++) {
+          if (/WPS/.test(capabilities[i])) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      var networks = gNetworkList.networks;
+      if (networks === null)
+        return;
+
+      var ssids = Object.getOwnPropertyNames(networks);
+      var wpsNetworks = [];
+      for (var i = 0; i < ssids.length; i++) {
+        var network = networks[ssids[i]];
+        if (isWpsAvailable(network.capabilities)) {
+          wpsNetworks.push(network);
+        }
+      }
+      if (wpsNetworks.length === 0)
+        return;
+
+      var apSelectionArea = dialog.querySelector('#wifi-wps-pin-aps');
+      var apSelect = apSelectionArea.querySelector('select');
+      for (var i = apSelect.childNodes.length - 1; i >= 0; i--) {
+        apSelect.removeChild(apSelect.childNodes[i]);
+      }
+      var option = document.createElement('option');
+      option.textContent = _('wpsAnyAp');
+      option.value = 'any';
+      apSelect.appendChild(option);
+      for (var i = 0; i < wpsNetworks.length; i++) {
+        option = document.createElement('option');
+        option.textContent = wpsNetworks[i].ssid;
+        option.value = wpsNetworks[i].bssid;
+        apSelect.appendChild(option);
+      }
+
       var submitWpsButton = dialog.querySelector('button[type=submit]');
       var pinItem = document.getElementById('wifi-wps-pin-area');
       var pinDesc = pinItem.querySelector('p');
@@ -308,6 +350,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           submitWpsButton.disabled = false;
           pinItem.hidden = true;
         }
+        apSelectionArea.hidden = method === 'pbc';
       }
 
       var radios = dialog.querySelectorAll('input[type="radio"]');
@@ -317,7 +360,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       onWpsMethodChange();
 
       openDialog(dialogID, function submit() {
-        callback(dialog.querySelector("input[type='radio']:checked").value,
+        callback(apSelect.options[apSelect.selectedIndex].value,
+          dialog.querySelector("input[type='radio']:checked").value,
           pinInput.value);
       });
     }
@@ -339,7 +383,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
     // supported authentication methods
     var small = document.createElement('small');
-    var keys = network.capabilities;
+    var keys = network.security;
     if (keys && keys.length) {
       small.textContent = _('securedBy', { capabilities: keys.join(', ') });
       ssid.className = 'wifi-secure';
@@ -365,6 +409,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     var autoscan = false;
     var scanRate = 5000; // 5s after last scan results
     var index = [];      // index of all scanned networks
+    var networks = null;
 
     // get the "Searching..." and "Search Again" items, respectively
     var infoItem = list.querySelector('li[data-state="on"]');
@@ -406,7 +451,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
         clear(false);
 
         // sort networks by signal strength
-        var networks = req.result;
+        networks = req.result;
         var ssids = Object.getOwnPropertyNames(networks);
         ssids.sort(function(a, b) {
           return networks[b].relSignalStrength - networks[a].relSignalStrength;
@@ -473,7 +518,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
       display: display,
       clear: clear,
       scan: scan,
-      get scanning() { return scanning; }
+      get scanning() { return scanning; },
+      get networks() { return networks; }
     };
   }) (document.getElementById('wifi-availableNetworks'));
 
@@ -596,7 +642,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
     }
 
     function getKeyManagement() {
-      var key = network.capabilities[0];
+      var key = network.security[0];
       if (/WEP$/.test(key))
         return 'WEP';
       if (/PSK$/.test(key))
@@ -680,7 +726,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
         case 'wifi-auth':
           // network info -- #wifi-status and #wifi-auth
-          var keys = network.capabilities;
+          var keys = network.security;
           var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           dialog.querySelector('[data-ssid]').textContent = network.ssid;
           dialog.querySelector('[data-signal]').textContent =
@@ -694,7 +740,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           var security = dialog.querySelector('select');
           var onSecurityChange = function() {
             key = security.selectedIndex ? security.value : '';
-            network.capabilities = [key];
+            network.security = [key];
             dialog.className = key;
             checkPassword();
           }
