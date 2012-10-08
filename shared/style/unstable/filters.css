@@ -65,7 +65,6 @@ ul[role="tablist"].bottom.filter li {
   border-top: solid 1px #999;
 }
 
-
 /* Items calcs */
 ul[role="tablist"][data-items="2"].filter li {
   width: -moz-calc(100% / 2);
