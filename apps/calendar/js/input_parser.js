@@ -22,6 +22,10 @@ Calendar.InputParser = (function() {
         seconds: 0
       };
 
+      if (typeof(value) !== 'string') {
+        return result;
+      }
+
       var parts = value.split(':');
       var part;
       var partName;

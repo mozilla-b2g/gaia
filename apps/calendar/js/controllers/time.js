@@ -93,6 +93,14 @@ Calendar.ns('Controllers').Time = (function() {
       return this._mostRecentDayType;
     },
 
+    get mostRecentDay() {
+      if (this.mostRecentDayType === 'selectedDay') {
+        return this.selectedDay;
+      } else {
+        return this.position;
+      }
+    },
+
     get timespan() {
       return this._timespan;
     },

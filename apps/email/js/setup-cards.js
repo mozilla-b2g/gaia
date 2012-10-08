@@ -416,7 +416,7 @@ SetupDoneCard.prototype = {
     // Nuke this card
     Cards.removeCardAndSuccessors(null, 'none');
     // Trigger the startup logic again; this should show the inbox this time.
-    App.showMessageViewOrSetup();
+    App.showMessageViewOrSetup(true);
   },
 
   die: function() {

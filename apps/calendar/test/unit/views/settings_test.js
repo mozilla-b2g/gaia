@@ -28,7 +28,7 @@ suite('views/settings', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="wrapper"></div>',
+      '<div id="time-views"></div>',
       '<div id="settings">',
         '<button class="sync">sync</button>',
         '<ul class="calendars"></ul>',
@@ -53,6 +53,10 @@ suite('views/settings', function() {
     assert.equal(
       subject.element, document.querySelector('#settings')
     );
+  });
+
+  test('#time-views', function() {
+    assert.ok(subject.timeViews);
   });
 
   test('#calendars', function() {
@@ -245,6 +249,32 @@ suite('views/settings', function() {
       assert.isFalse(
         two.querySelector('*[type="checkbox"]').checked
       );
+    });
+
+  });
+
+  suite('tap to navigate away from settings', function() {
+
+    var calledWith;
+
+    setup(function() {
+      calledWith = null;
+      app.resetState = function() {
+        calledWith = arguments;
+      }
+    });
+
+    test('#onactive', function() {
+      subject.onactive();
+      triggerEvent(subject.timeViews, 'click');
+      assert.ok(calledWith, 'navigates away');
+    });
+
+    test('#oninactive', function() {
+      subject.onactive();
+      subject.oninactive();
+      triggerEvent(subject.timeViews, 'click');
+      assert.ok(!calledWith, 'navigates away');
     });
 
   });
