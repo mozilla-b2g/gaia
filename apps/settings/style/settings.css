@@ -212,6 +212,12 @@ label[for="show-pwd"] {
 
 /* hide identifier field on non-EAP networks */
 
+section li.identity,
+section.WEP li.identity,
+section.WPA-PSK li.identity {
+  display: none;
+}
+
 section.WPA-EAP li.identity {
   display: block;
 }
