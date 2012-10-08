@@ -1,3 +1,6 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 'use strict';
 
 var Camera = {
@@ -191,7 +194,8 @@ var Camera = {
       return;
     }
 
-    var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
+    var newMode = (this.captureMode === this.CAMERA) ?
+        this.VIDEO : this.CAMERA;
     this.setCaptureMode(newMode);
 
     function gotPreviewStream(stream) {
@@ -199,10 +203,12 @@ var Camera = {
       this.viewfinder.play();
     }
     if (this.captureMode === this.CAMERA) {
-      // TODO: fix this so we can just call getPreviewStream(), or toggle a mode, or something
+      // TODO: fix this so we can just call getPreviewStream(),
+      // or toggle a mode, or something.
       this.setSource(this._camera); // STOMP
     } else {
-      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig, gotPreviewStream.bind(this));
+      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig,
+          gotPreviewStream.bind(this));
     }
   },
 
@@ -240,7 +246,7 @@ var Camera = {
       document.body.classList.add('capturing');
       this._cameraObj.startRecording(
         navigator.getDeviceStorage('videos'),
-        "VID_0001.3gp",
+        'VID_0001.3gp',
         function onsuccess() {
           captureButton.removeAttribute('disabled');
         },
@@ -726,3 +732,4 @@ window.addEventListener('beforeunload', function() {
   delete Camera._timeoutId;
   Camera.viewfinder.mozSrcObject = null;
 });
+
