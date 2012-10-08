@@ -1,6 +1,6 @@
 /**
  * Table View
- * line height = 60px, border included
+ * line height = 6rem, border included
  */
 
 ul {
@@ -30,10 +30,15 @@ ul li > a {
   outline: 0;
   color: #000;
   -moz-box-sizing: border-box;
-  height: 60px;
+  height: 6rem;
   font-size: 1.8rem;
-  line-height: 60px;
+  line-height: 6rem;
   padding: 0 3rem;
+}
+
+ul li.disabled > a {
+  color: gray;
+  pointer-events: none;
 }
 
 /* description + value on the same line */
@@ -44,28 +49,33 @@ ul li > a span {
 }
 
 /* text ellipsis */
-ul li > label + *,
-ul li > label + * + * {
+ul li > * {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: calc(100% - 66px);
 }
 
 /* sublines */
 ul li > small {
   position: absolute;
-  left: 30px;
+  left: 3rem;
+  right: 3rem;
   top: 50%;
-  padding-top: 4px;
+  padding-top: 0.4rem;
   font-size: 1.2rem;
   color: #505859;
+  /* click/tap events should be caught by the <a> element below the <small> */
+  pointer-events: none;
+}
+
+ul li > label:not([for]) + small {
+  right: 6rem;
 }
 
 /* required for empty elements like Bluetooth */
 ul li > small:not(:empty) + a {
-  line-height: 44px;
+  line-height: 4.4rem;
 }
 
 
@@ -99,6 +109,16 @@ ul li > label:not([for]).switch > span {
   right: 2rem;
 }
 
+ul li > label:not([for]) + a,
+ul li > label:not([for]) + small + a {
+  padding-right: 6rem;
+}
+
+ul li > label.switch + a,
+ul li > label.switch + small + a {
+  padding-right: 8.4rem;
+}
+
 
 /******************************************************************************
  * Text inputs
@@ -108,7 +128,7 @@ ul li p {
   font-size: 1.8rem;
   font-weight: 400;
   margin: 0;
-  padding: 1rem 3rem 5rem;
+  padding: 1rem 3rem;
 }
 
 ul li p + label:not([for]) {
@@ -123,165 +143,171 @@ ul li p + input[type=password] {
   font-size: 1.8rem;
   height: 2rem;
   line-height: 2rem;
-  margin: -5rem auto 1rem;
+  margin: -1rem auto 1rem;
 }
 
 
 /******************************************************************************
- * Other inputs
+ * Date|Time inputs
  */
 
-[role=region] label > progress {
-  display: block;
+ul li > label input[type="date"],
+ul li > label input[type="time"] {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
+
+
+/******************************************************************************
+ * Range inputs
+ */
+
+ul li > label input[type=range] {
+  width: 80%;
   width: calc(100% - 6rem);
-  height: 3rem;
-  margin: 1.5rem auto;
+  margin-left: 3rem;
+  margin-top: 2rem;
 }
 
-[role=region] label > select {
-  display: inline-block;
-  left: auto;
-  right: 2rem;
-  position: absolute;
-  height: 3rem;
-  margin: 1.5rem auto;
-  font-size: 2rem;
-}
-
-
-/******************************************************************************
- * Setting icons
+/**
+ * Polyfill until input[type=range] is natively supported by Gecko:
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=344618
+ *
+ * The JS polyfill transforms this:
+ *
+ *   <label>
+ *     <input type="range" value="60" />
+ *   </label>
+ *
+ * into this:
+ *
+ *   <label class="bug344618_polyfill">
+ *     <div>
+ *       <span style="width: 60%"></span>
+ *       <span style="left: 60%"></span>
+ *     </div>
+ *     <input type="range" />
+ *   </label>
  */
 
-#root li [data-l10n-id] {
-  background-repeat: no-repeat;
-  background-position: 14px center;
-}
-
-#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings_airplanemode.png); }
-#root li [data-l10n-id="gps"]               { background-image: url(images/settings_gps.png); }
-#root li [data-l10n-id="wifi"]              { background-image: url(images/settings_wifi.png); }
-#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings_network.png); }
-#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings_bluetooth.png); }
-#root li [data-l10n-id="hotspot"]           { background-image: url(images/settings_hotspot.png); }
-#root li [data-l10n-id="sound"]             { background-image: url(images/settings_sound.png); }
-#root li [data-l10n-id="display"]           { background-image: url(images/settings_display.png); }
-#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings_wallpaper.png); }
-#root li [data-l10n-id="notifications"]     { background-image: url(images/settings_notifications.png); }
-#root li [data-l10n-id="timeAndDate"]       { background-image: url(images/settings_datetime.png); }
-#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings_languages.png); }
-#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings_keyboard.png); }
-#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings_accessibility.png); }
-#root li [data-l10n-id="persona"]           { background-image: url(images/settings_persona.png); }
-#root li [data-l10n-id="mail"]              { background-image: url(images/settings_email.png); }
-#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings_phonelock.png); }
-#root li [data-l10n-id="simSecurity"]       { background-image: url(images/settings_simcardlock.png); }
-#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings_apppermissions.png); }
-#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings_donottrack.png); }
-#root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings_aboutphone.png); }
-#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings_help.png); }
-#root li [data-l10n-id="storage"]           { background-image: url(images/settings_storage.png); }
-#root li [data-l10n-id="battery"]           { background-image: url(images/settings_battery.png); }
-#root li [data-l10n-id="deviceStorage"],
-#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings_storage.png)}
-
-#root li a {
-  padding-left: 55px;
-}
-
-#root li small {
-  left: 55px;
-}
-
-
-/******************************************************************************
- * Wi-Fi
- */
-
-/* Wi-Fi icons */
-#wifi-networks span {
-  position: absolute;
-  display: block;
-  width: 60px;
-  height: 60px;
-  left: auto;
-  right: 2rem;
-  -moz-border-top-colors:    transparent;
-  -moz-border-right-colors:  transparent;
-  -moz-border-bottom-colors: transparent;
-  -moz-border-left-colors:   transparent;
-  background-repeat: no-repeat;
-  background-position: center center;
-}
-
-/* signal levels */
-#wifi-networks .wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
-#wifi-networks .wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
-#wifi-networks .wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
-#wifi-networks .wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
-#wifi-networks .wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
-
-/* secured networks */
-#wifi-networks .wifi-secure {
-  background-image: url(images/wifi_lock.png);
-}
-
-/* searching... */
-#wifi-networks .wifi-search {
-  background-image: url(images/wifi_scan.png);
-}
-
-/* Wi-Fi dialogs */
-
-#wifi-status, #wifi-auth {
-  font-size: 1.8rem;
-}
-
-/* hide identity field by default */
-
-#wifi-auth label[for=identity] {
+ul li > label.bug344618_polyfill input {
   display: none;
 }
 
-#wifi-auth.WPA-EAP label[for=identity] {
+/* slider */
+
+ul li > label.bug344618_polyfill div:before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 0.1rem);
+  left: 0;
+  right: 0;
+  height: 0.1rem;
+  border-top: 0.1rem solid #7e7e7e;
+}
+
+ul li > label.bug344618_polyfill div {
+  position: relative;
+  top: calc(50% - 1.5rem);
+  left: 7.5rem;
+  right: 7.5rem;
+  height: 3rem;
+  width: calc(100% - 15rem);
+}
+
+/* fill */
+
+ul li > label.bug344618_polyfill div span:first-child {
+  position: absolute;
   display: block;
+  top: calc(50% - 0.15rem);
+  width: 4rem;
+  height: 0.3rem;
+  background: #01c5ed;
 }
 
+/* throbber */
 
-/* APN Settings */
-
-#apnSettings-custom {
-  font-style: italic;
+ul li > label.bug344618_polyfill div span:last-child {
+  position: absolute;
+  top: 50%;
+  margin: -1.5rem 0 0 -1.5rem;
+  display: block;
+  width: 2.8rem;
+  height: 2.8rem;
+  border: solid 0.1rem transparent;
+  border-radius: 3rem;
+  transition: border 0.15s ease;
+  -moz-box-sizing: border-box;
+  background: url(images/range_thumb.png) no-repeat 50% 50%;
 }
 
-#apnSettings-advanced {
-  padding-bottom: 1em;
+ul li > label.bug344618_polyfill div span:last-child:active {
+  border: solid 0.4rem #01C5ED;
 }
 
 
 /******************************************************************************
- * Explanation texts (Data, Bluetooth...)
+ * Select boxes
  */
 
-.explanation {
-  padding: 5px 30px;
-  font-style: italic;
-  font-size: 1.4rem;
-  color: #505859;
+ul li select {
+  font-size: 1.8rem;
+  height: 3rem;
+  line-height: 3rem;
+  text-align: center;
+}
+
+/* half-width select boxes */
+ul li a select {
+  display: inline-block;
+  position: absolute;
+  top: 1.5rem;
+  right: 3rem;
+  width: calc(50% - 2rem);
+}
+
+/* full-width select boxes */
+ul li p + select {
+  display: block;
+  width: calc(100% - 15rem);
+  margin: -1rem 3rem 1rem 12rem;
 }
 
 
 /******************************************************************************
- * Wallpaper snapshot
+ * Progress, Meter
  */
 
-#wallpaper-preview {
-  width: 90px;
-  height: 135px;
-  border: solid black 2px;
-  border-radius: 4px;
-  margin-left: 110px;
-  margin-top: -10px;
-  margin-bottom: 5px;
+ul li progress, ul li meter {
+  display: block;
+  width: calc(100% - 6rem);
+  height: 3rem;
+  margin: 2.5rem auto;
+}
+
+
+/******************************************************************************
+ * Definition lists
+ */
+
+dl > * {
+  font-size: 1.6em;
+}
+
+dl dt {
+  padding-left: 3rem;
+  font-weight: bold;
+  border-bottom: 0.1rem solid black;
+}
+
+dl dd {
+  margin: 0;
+  padding: 1rem 3rem;
+  border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 

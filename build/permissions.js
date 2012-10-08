@@ -15,7 +15,8 @@ let permissionList = ["power", "sms", "contacts", "telephony",
                       "webapps-manage", "desktop-notification",
                       "device-storage:pictures", "device-storage:music", "device-storage:videos", "device-storage:apps",
                       "alarms", "alarm", "attention",
-                      "content-camera", "camera", "tcp-socket", "bluetooth", "storage",
+                      "content-camera", "camera", "tcp-socket", "bluetooth", "storage", "time", "networkstats-manage",
+                      "idle", "network-events", "embed-apps",
                       // Just don't.
                       "deprecated-hwvideo"];
 

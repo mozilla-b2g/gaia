@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
     <!-- Shared code -->
@@ -17,33 +18,33 @@
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
-  <body class="hidden">
+  <body class="hidden" role="application">
     <!-- This element gets inserted into the different view elements --> 
     <!-- It gets styled differently depending on what its parent is -->
     <ul id="thumbnails">
       <!-- Thumbnails inserted here -->
     </ul>
 
-    <div id="thumbnail-list-view" class="hidden">
-      <div id="thumbnails-bottom">
+    <section role="region" id="thumbnail-list-view" class="hidden">
+      <footer id="thumbnails-bottom">
         <a id="thumbnails-camera-button" class="button"></a>
         <a id="thumbnails-select-button" class="button"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
-    <div id="thumbnail-select-view" class="hidden">
-      <div id="thumbnails-select-top">
-        <a id="thumbnails-cancel-button" class="button"></a>
-        <div id="thumbnails-number-selected"></div>
-      </div>
+    <section role="region" id="thumbnail-select-view" class="hidden skin-organic">
+      <header id="thumbnails-select-top">
+        <button id="thumbnails-cancel-button"><span class="icon icon-close"></span></button>
+        <h1 id="thumbnails-number-selected"></h1>
+      </header>
 
-      <div id="thumbnails-select-bottom">
+      <footer id="thumbnails-select-bottom">
         <a id="thumbnails-delete-button" class="button"></a>
         <a id="thumbnails-share-button" class="button"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
-    <div id="photo-view" class="hidden">
+    <section role="region" id="photo-view" class="hidden">
       <div id="photo-frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div class="photoFrame previousPhoto"><img></div>
@@ -51,34 +52,34 @@
         <div class="photoFrame nextPhoto"><img></div>
       </div>
 
-      <div id="photos-overlay">
-        <div id="photos-overlay-bottom">
-          <a id="photos-back-button" class="button"></a>
-          <a id="photos-camera-button" class="button"></a>
-          <a id="photos-edit-button" class="button"></a>
-          <a id="photos-share-button" class="button"></a>
-          <a id="photos-delete-button" class="button"></a>
-        </div>
-      </div>
-    </div>
+      <footer id="photos-toolbar">
+        <a id="photos-back-button" class="button"></a>
+        <a id="photos-camera-button" class="button"></a>
+        <a id="photos-edit-button" class="button"></a>
+        <a id="photos-share-button" class="button"></a>
+        <a id="photos-delete-button" class="button"></a>
+      </footer>
+    </section>
 
-    <div id="pick-view" class="hidden">
-      <div id="pick-top">
-        <a id="pick-back-button" class="button"></a>
-        <div id="pick-header" data-l10n-id="pickoneimage"></div>
-      </div>
-    </div>
+    <section role="region" id="pick-view" class="hidden skin-organic">
+      <header id="pick-top">
+        <button id="pick-back-button"><span class="icon icon-back"></span></button>
+        <h1 id="pick-header" data-l10n-id="pickoneimage"></h1>
+      </header>
+    </section>
 
-    <div id="crop-view" class="hidden">
-      <div id="crop-top">
-        <a id="crop-back-button" class="button"></a>
-        <div id="crop-header" data-l10n-id="cropimage"></div>
-        <a id="crop-done-button" class="button"></a>
-      </div>
+    <section role="region" id="crop-view" class="hidden skin-organic">
+      <header id="crop-top">
+        <button id="crop-back-button"><span class="icon icon-back"></span></button>
+        <menu type="toolbar">
+          <button id="crop-done-button"><span class="icon icon-done"></span></button>
+        </menu>
+        <h1 id="crop-header" data-l10n-id="cropimage"></h1>
+      </header>
       <div id="crop-frame">
-        <img id="crop-image">
+        <img id="crop-image"></img>
       </div>
-    </div>
+    </section>
     
     <div id="open-view" class="hidden">
       <div id="open-frame"><img id="open-image"></div>
@@ -88,12 +89,14 @@
       </div>
     </div>
 
-    <div id="edit-view" class="hidden">
-      <div id="edit-header">
-        <a id="edit-cancel-button" class="button"></a>
-        <div id="edit-title" data-l10n-id="edit"></div>
-        <a id="edit-save-button" class="button"></a>
-      </div>
+    <section role="region" id="edit-view" class="hidden skin-organic">
+      <header id="edit-header">
+        <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
+        <menu type="toolbar">
+          <button id="edit-save-button"><span class="icon icon-done"></span></button>
+        </menu>
+        <h1 id="edit-title" data-l10n-id="edit"></h1>
+      </header>
 
       <!-- preview of edited photo goes here -->
       <!-- canvas elements are dynamically inserted here -->
@@ -120,16 +123,11 @@
         </div>
 
         <div id="edit-crop-options" class="edit-options-bar hidden"> 
-          <a id="edit-crop-none" class="button"
-             data-l10n-id="original"></a>
-          <a id="edit-crop-aspect-free" class="selected radio button"
-             data-l10n-id="freeform"></a>
-          <a id="edit-crop-aspect-portrait" class="radio button"
-             data-l10n-id="portrait"></a>
-          <a id="edit-crop-aspect-landscape" class="radio button"
-             data-l10n-id="landscape"></a>
-          <a id="edit-crop-aspect-square" class="radio button"
-             data-l10n-id="square"></a>
+          <a id="edit-crop-none" class="button"></a>
+          <a id="edit-crop-aspect-free" class="selected radio button"></a>
+          <a id="edit-crop-aspect-portrait" class="radio button"></a>
+          <a id="edit-crop-aspect-landscape" class="radio button"></a>
+          <a id="edit-crop-aspect-square" class="radio button"></a>
         </div>
 
         <div id="edit-effect-options" class="edit-options-bar hidden"> 
@@ -156,13 +154,13 @@
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
-      <div id="edit-toolbar">
+      <footer id="edit-toolbar">
         <a id="edit-exposure-button" class="button" data-l10n-id="exposure"></a>
         <a id="edit-crop-button" class="button" data-l10n-id="crop"></a>
         <a id="edit-effect-button" class="button" data-l10n-id="effects"></a>
         <a id="edit-border-button" class="button" data-l10n-id="borders"></a>
-      </div>
-    </div>
+      </footer>
+    </section>
 
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->

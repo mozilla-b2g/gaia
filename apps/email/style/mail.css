@@ -160,6 +160,8 @@ button[disabled=""] {
 }
 .bottom-btn {
   height: 4.8rem;
+  border: none;
+  width: 6rem;
 }
 /* create a space the size of the toolbar since it is absolute...*/
 .bottom-toolbar-spacer {
@@ -194,6 +196,10 @@ button[disabled=""] {
 
 .menu-item:last-child {
   border-bottom: none;
+}
+
+.highlight {
+  background-color: #f3f3D3;
 }
 
 .icon {
@@ -239,4 +245,31 @@ button[disabled=""] {
 
 .icon-reply-all {
   background-image: url("images/icons/reply-all.png");
+}
+
+/* Toaset banner extend class */
+section[role="dialog"].banner.customized {
+  bottom: 4.8rem;
+  opacity: 1;
+  padding-left: 3.2rem;
+}
+
+section[role="dialog"].banner.fadeout {
+  -moz-transition: opacity 500ms ease;
+  opacity: 0;
+}
+
+section[role="dialog"].banner .toaster-cancel-btn {
+  height: 8rem;
+}
+
+section[role="dialog"].banner .toaster-banner-undo,
+section[role="dialog"].banner .toaster-banner-retry {
+  display: none;
+  margin-left: 1rem;
+}
+
+section[role="dialog"][title="undo"].banner .toaster-banner-undo,
+section[role="dialog"][title="retry"].banner .toaster-banner-retry {
+  display: inline;
 }

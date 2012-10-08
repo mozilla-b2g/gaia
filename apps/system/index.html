@@ -12,8 +12,16 @@
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
 
+    <!-- Wrapper -->
+    <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
+    <script type="text/javascript" defer src="js/wrapper.js"></script>
+
     <!-- System -->
     <link rel="stylesheet" type="text/css" href="style/system/system.css">
+
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -35,6 +43,10 @@
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
     <script defer src="js/gridview.js"></script>
+
+    <!-- TTL View -->
+    <link rel="stylesheet" type="text/css" href="style/ttlview/ttlview.css">
+    <script defer src="js/ttlview.js"></script>
 
     <!-- Accessibility -->
     <link rel="stylesheet" type="text/css" href="style/accessibility/accessibility.css">
@@ -100,6 +112,9 @@
     <!-- Popup Manager -->
     <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
     <script defer src="js/popup_manager.js"></script>
+
+    <!-- Trusted UI -->
+    <script defer src="js/trusted_ui.js"></script>
 
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
@@ -198,8 +213,6 @@
       <div id="initlogo" data-z-index-level="initlogo"></div>
 
       <div id="statusbar" data-z-index-level="statusbar">
-        <!-- Loading -->
-        <div id="statusbar-loading" hidden></div>
         <!-- Carrier & date label -->
         <div id="statusbar-label" class="sb-start-upper"></div>
         <!-- Notification -->
@@ -219,6 +232,7 @@
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
+        <div id="statusbar-network-activity" class="sb-icon sb-icon-network-activity" hidden></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
 
         <!-- Permissions -->
@@ -256,11 +270,11 @@
 
         <!-- quick settings -->
         <div id="quick-settings">
-          <a href="#" id="quick-settings-wifi" data-enabled="false" data-l10n-id="quick-settings-wifi">Wifi</a>
-          <a href="#" id="quick-settings-data" data-enabled="false" data-l10n-id="quick-settings-data">Data</a>
-          <a href="#" id="quick-settings-bluetooth" data-enabled="false" data-l10n-id="quick-settings-bluetooth">Bluetooth</a>
-          <a href="#" id="quick-settings-power-save" data-enabled="false" data-l10n-id="quick-settings-power-save">Power</a>
-          <a href="#" id="quick-settings-full-app" data-enabled="false" data-l10n-id="quick-settings-full-app">Go to Settings</a>
+          <a href="#" id="quick-settings-wifi" data-enabled="false"></a>
+          <a href="#" id="quick-settings-data" data-enabled="false"></a>
+          <a href="#" id="quick-settings-bluetooth" data-enabled="false"></a>
+          <a href="#" id="quick-settings-power-save" data-enabled="false"></a>
+          <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
         </div>
 
         <div id="utility-tray-grippy">
@@ -269,10 +283,29 @@
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
+
+        <footer id="wrapper">
+          <div id="handler"></div>
+          <menu type="buttonbar">
+            <button type="button" id="back-button" alt="Back" data-disabled="disabled"></button>
+            <button type="button" id="forward-button" alt="Forward" data-disabled="disabled"></button>
+            <button type="button" id="reload-button" alt="Reload"></button>
+            <button type="button" id="bookmark-button" alt="Bookmark" data-disabled="disabled"></button>
+            <button type="button" id="close-button" alt="Close"></button>
+          </menu>
+        </footer>
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <div id="popup-container">
+          <section role="region" class="title-container skin-dark">
+            <header>
+              <button id="popup-close"><span class="icon icon-close">close</span></button>
+              <h1 id="popup-title"></h1>
+              <div id="popup-throbber"></div>
+            </header>
+          </section>
+          <div id="frame-container"></div>
         </div>
         <div id="authentication-dialog">
           <!--div id="authentication-dialog-ftp" role="dialog">
@@ -291,8 +324,8 @@
               </p>
             </div>
             <menu data-items="2">
-              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
               <button id="authentication-dialog-http-authentication-cancel" data-l10n-id="cancel">Cancel</button>
+              <button id="authentication-dialog-http-authentication-ok" data-l10n-id="login" class="affirmative">Login</button>
             </menu>
           </div>
         </div>
@@ -317,8 +350,8 @@
               </p>
             </div>
             <menu data-items="2">
-              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
               <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+              <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
             </menu>
           </div>
 
@@ -331,8 +364,8 @@
               </p>
             </div>
             <menu data-items="2">
-              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
               <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+              <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
             </menu>
           </div>
 
@@ -547,8 +580,8 @@
       <div id="system-overlay" data-z-index-level="system-overlay">
         <div id="battery">
           <span class="icon-battery"></span>
-          <span class="battery-notification empty" data-l10n-id="battery-empty">Battery almost empty</span>
-          <span class="battery-notification small" data-l10n-id="battery-small">Battery low</span>
+          <span class="battery-notification empty" data-l10n-id="battery-almost-empty">Battery almost empty</span>
+          <span class="battery-notification small" data-l10n-id="battery-low">Battery low</span>
           <span class="battery-notification full" data-l10n-id="battery-full">Battery 100% charged</span>
         </div>
 

@@ -25,13 +25,17 @@ var MessageManager = {
   slide: function mm_slide(callback) {
     var bodyClass = document.body.classList;
     var mainWrapper = document.getElementById('main-wrapper');
-    var messagesMirror = document.getElementById('thread-messages-snapshot');
-    bodyClass.add('snapshot');
-    bodyClass.toggle('mirror-swipe');
+    var snapshot = document.getElementById('snapshot');
+    if (mainWrapper.classList.contains('to-left')) {
+      bodyClass.add('snapshot-back');
+    } else {
+      bodyClass.add('snapshot');
+    }
     mainWrapper.classList.toggle('to-left');
-    messagesMirror.addEventListener('transitionend', function rm_snapshot() {
-      messagesMirror.removeEventListener('transitionend', rm_snapshot);
+    snapshot.addEventListener('transitionend', function rm_snapshot() {
+      snapshot.removeEventListener('transitionend', rm_snapshot);
       bodyClass.remove('snapshot');
+      bodyClass.remove('snapshot-back');
       if (callback) {
         callback();
       }
@@ -86,6 +90,7 @@ var MessageManager = {
                   window.location.hash =
                     '#num=' + MessageManager.activityTarget;
                   delete MessageManager.activityTarget;
+                  delete MessageManager.lockActivity;
                 }
               });
             }
@@ -121,10 +126,12 @@ var MessageManager = {
       case 'mozvisibilitychange':
         if (!document.mozHidden) {
           this.getMessages(ThreadListUI.renderThreads);
-          var num = this.getNumFromHash();
-          if (num) {
-            var filter = this.createFilter(num);
-            this.getMessages(ThreadUI.renderMessages, filter);
+          if (!MessageManager.lockActivity) {
+            var num = this.getNumFromHash();
+            if (num) {
+              var filter = this.createFilter(num);
+              this.getMessages(ThreadUI.renderMessages, filter);
+            }
           }
         }
         break;
@@ -455,6 +462,12 @@ var ThreadListUI = {
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
+      document.getElementById('threads-fixed-container').
+                                                    classList.remove('hide');
+      FixedHeader.init('#thread-list-container',
+                       '#threads-fixed-container',
+                       'h2');
+
       ThreadListUI.iconEdit.classList.remove('disabled');
       var threadIds = [],
           dayHeaderIndex = 0,
@@ -503,6 +516,7 @@ var ThreadListUI = {
       Utils.updateTimeHeaderScheduler();
 
     } else {
+      document.getElementById('threads-fixed-container').classList.add('hide');
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
             '   <p>' + _('noMessages-title') + '</p>' +
@@ -546,7 +560,7 @@ var ThreadListUI = {
             '      " data-time="' + thread.timestamp + '">' +
                   Utils.getFormattedHour(thread.timestamp) +
             '    </div>') +
-            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="msg">' + bodyHTML + '</div>' +
             '    <div class="unread-tag"></div>' +
             '    <div class="photo">' +
             '    <img src="">' +
@@ -578,6 +592,7 @@ var ThreadListUI = {
     headerHTML.innerHTML = Utils.getHeaderDate(timestamp);
     //Add to DOM
     ThreadListUI.view.appendChild(headerHTML);
+    FixedHeader.refresh();
   }
 };
 
@@ -1158,10 +1173,10 @@ var ThreadUI = {
                 });
               }
               CustomDialog.show(
-                _('sendFlightModeTitle'),
-                _('sendFlightModeBody'),
+                _('sendAirplaneModeTitle'),
+                _('sendAirplaneModeBody'),
                 {
-                  title: _('sendFlightModeBtnOk'),
+                  title: _('sendAirplaneModeBtnOk'),
                   callback: function() {
                     CustomDialog.hide();
                   }
@@ -1231,10 +1246,10 @@ var ThreadUI = {
         var structureHTML =
                 '  <a href="#num=' + number + '">' +
                 '    <div class="name">' + nameHTML + '</div>' +
-                '    <div class="type">' + numHTML + '</div>' +
-                //TODO what if no photo? hide or default?
-                '    <div class="photo">' +
-                '      <img src="' + details.photoURL + '">' +
+                '    <div class="type">' +
+                      tels[i].type +
+                      ' ' + numHTML +
+                      ' ' + (tels[i].carrier ? tels[i].carrier : '') +
                 '    </div>' +
                 '  </a>';
         // Update HTML and append
@@ -1253,10 +1268,17 @@ var ThreadUI = {
       return;
     }
     ContactDataManager.searchContactData(string, function gotContact(contacts) {
+      self.view.innerHTML = '';
       if (!contacts || contacts.length == 0) {
+        var threadHTML = document.createElement('div');
+        threadHTML.classList.add('item');
+        var noResultHTML = '<div class="noResults" data-10ln-id="no-results">' +
+                           'No results returned' +
+                           '</div>';
+        threadHTML.innerHTML = noResultHTML;
+        self.view.appendChild(threadHTML);
         return;
       }
-      self.view.innerHTML = '';
       contacts.forEach(self.renderContactData.bind(self));
     });
   },
@@ -1339,6 +1361,13 @@ var WaitingScreen = {
   }
 };
 
+window.addEventListener('resize', function resize() {
+   // Scroll to bottom
+    ThreadUI.scrollViewToBottom();
+});
+
+
+
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
 
@@ -1348,15 +1377,22 @@ window.addEventListener('localized', function showBody() {
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
+  // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
+  if (MessageManager.lockActivity)
+    return;
+  MessageManager.lockActivity = true;
+  activity.postResult({ status: 'accepted' });
   var number = activity.source.data.number;
   var activityAction = function act_action() {
     var currentLocation = window.location.hash;
     switch (currentLocation) {
       case '#thread-list':
         window.location.hash = '#num=' + number;
+        delete MessageManager.lockActivity;
         break;
       case '#new':
         window.location.hash = '#num=' + number;
+       delete MessageManager.lockActivity;
         break;
       case '#edit':
         history.back();
@@ -1368,6 +1404,7 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
           window.location.hash = '#thread-list';
         } else {
           window.location.hash = '#num=' + number;
+          delete MessageManager.lockActivity;
         }
         break;
     }
@@ -1379,11 +1416,17 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
-    document.addEventListener('mozvisibilitychange', function waitVisibility() {
-      document.removeEventListener('mozvisibilitychange', waitVisibility);
+    if (!document.mozHidden) {
+      // Case of calling from Notification
       activityAction();
+      return;
+    }
+    document.addEventListener('mozvisibilitychange',
+      function waitVisibility() {
+        document.removeEventListener('mozvisibilitychange', waitVisibility);
+        activityAction();
     });
   }
-  activity.postResult({ status: 'accepted' });
+
 });
 

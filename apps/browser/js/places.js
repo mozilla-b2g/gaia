@@ -9,7 +9,7 @@ IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
 var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
-  TOP_SITE_SCREENSHOTS: 6, // Number of top sites to keep screenshots for
+  TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
 
   init: function places_init(callback) {
     this.db.open(callback);
@@ -40,13 +40,22 @@ var Places = {
   },
 
   updateScreenshot: function place_updateScreenshot(uri, screenshot, callback) {
-    this.db.getPlaceUrisByFrecency(this.TOP_SITE_SCREENSHOTS,
-      (function(topSites) {
+    var maximum = this.TOP_SITE_SCREENSHOTS;
+    this.db.getPlaceUrisByFrecency(maximum + 1, (function(topSites) {
+      // Get the site that isn't quite a top site, if there is one
+      if (topSites.length > maximum)
+        var runnerUp = topSites.pop();
+
       // If uri is not one of the top sites, don't store the screenshot
       if (topSites.indexOf(uri) == -1)
         return;
 
       this.db.updatePlaceScreenshot(uri, screenshot);
+
+      // If more top sites than we need screenshots, expire old screenshot
+      if (runnerUp)
+        this.db.updatePlaceScreenshot(runnerUp, null);
+
     }).bind(this));
   },
 

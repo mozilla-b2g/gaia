@@ -1,9 +1,21 @@
-*[data-template] {
+.hide, *[data-template] {
   display: none !important;
 }
 
 html, body {
   overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.view {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 #curtain {
@@ -30,10 +42,17 @@ html, body {
   margin: 2.5rem auto 1.5rem;
 }
 
+.friends-msg {
+  height: 2rem !important;
+  width: 100%;
+  z-index: 1;
+  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
+  -moz-box-sizing: border-box;
+}
+
 p#friends-msg {
   font-size: 1.5rem;
   margin-left: 3rem;
-  height: 2rem !important;
 }
 
 #curtain > p.submessage {
@@ -52,8 +71,6 @@ p#friends-msg {
   margin-top: 1rem;
 }
 
-
-
 body[data-state='waiting'] #curtain {
   display: block;
 }
@@ -62,14 +79,16 @@ body[data-state='waiting'] #content {
   display: none;
 }
 
-
 h2.block-title {
   border-bottom: 1px solid #4D77CF; color: #4D77CF;
   margin: 0;
 }
 
 #main {
-  height: -moz-calc(100% - 5.3rem);
+  position: fixed;
+  top: 5rem;
+  height: -moz-calc(100% - 5rem);
+  width: 100%;
 }
 
 #mainContent {
@@ -80,16 +99,35 @@ h2.block-title {
 
   -moz-box-sizing: border-box;
 
-  background: #f4f4f4;
   color: #333;
   text-align: left;
 
-  height: -moz-calc(100% - 8.5rem);
+  height: -moz-calc(100% - 6.5rem);
+}
+
+.link #main {
+  top: 9rem;
+  height: -moz-calc(100% - 9rem);
+}
+
+.link #mainContent {
+  background: #f4f4f4;
+  height: -moz-calc(100% - 6.9rem);
+}
+
+.link li img {
+  margin-right: 0.8rem;
 }
 
 #groups-list {
-  width: -moz-calc(100% - 5rem) !important;
-  padding: 0 2.5rem;
+  width: -moz-calc(100% - 5rem - 0.8rem) !important;
+  margin: 0;
+  margin-left: 2.5rem;
+  padding: 0;
+}
+
+#groups-list > li {
+  display: block;
 }
 
 #shortcuts {
@@ -104,7 +142,6 @@ h2.block-title {
 
   z-index:100;
 }
-
 
 #shortcuts ol li[data-letter] {
   display:block;

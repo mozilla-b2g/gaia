@@ -178,18 +178,6 @@ var CardsView = (function() {
       // And add it to the card switcher
       var card = document.createElement('li');
       card.classList.add('card');
-
-      // And then switch it with screenshots when one will be ready
-      // (instead of -moz-element backgrounds)
-      app.frame.getScreenshot().onsuccess = function(screenshot) {
-        if (screenshot.target.result) {
-          card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
-        }
-
-        if (displayedApp == origin && displayedAppCallback)
-          setTimeout(displayedAppCallback);
-      };
-
       card.dataset.origin = origin;
 
       //display app icon on the tab
@@ -206,6 +194,31 @@ var CardsView = (function() {
       var title = document.createElement('h1');
       title.textContent = app.name;
       card.appendChild(title);
+
+      var frameForScreenshot = app.frame;
+
+      if (PopupManager.getPopupFromOrigin(origin)) {
+        var popupFrame = PopupManager.getPopupFromOrigin(origin);
+        frameForScreenshot = popupFrame;
+
+        var subtitle = document.createElement('p');
+        subtitle.textContent =
+          PopupManager.getOriginFromUrl(popupFrame.dataset.url);
+        card.appendChild(subtitle);
+        card.classList.add('popup');
+      }
+
+      // And then switch it with screenshots when one will be ready
+      // (instead of -moz-element backgrounds)
+      frameForScreenshot.getScreenshot().onsuccess = function(screenshot) {
+        if (screenshot.target.result) {
+          card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
+        }
+
+        if (displayedApp == origin && displayedAppCallback)
+          setTimeout(displayedAppCallback);
+      };
+
       cardsList.appendChild(card);
 
       // Set up event handling

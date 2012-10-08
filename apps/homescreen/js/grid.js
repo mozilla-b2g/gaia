@@ -1,4 +1,5 @@
 
+
 'use strict';
 
 const GridManager = (function() {
@@ -10,12 +11,12 @@ const GridManager = (function() {
 
   var dragging = false;
 
-  var overlay = document.querySelector('#overlay');
-  var opacityMax = .7;
+  var opacityOnAppGridPageMax = .7;
+  var kPageTransitionDuration = .3;
+  var landingOverlay = document.querySelector('#landing-overlay');
 
   var pages = [];
-  var landingPageIndex = 0;
-  var currentPage = landingPageIndex;
+  var currentPage = 1;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -36,8 +37,8 @@ const GridManager = (function() {
       case 'mousemove':
         evt.stopPropagation();
 
-        // Starts dragging only when tapping does not make sense
-        // anymore. The drag will then start from this point to avoid
+        // Starts panning only when tapping does not make sense
+        // anymore. The pan will then start from this point to avoid
         // a jump effect.
         var deltaX = evt.clientX - startEvent.clientX;
         if (!isPanning) {
@@ -49,11 +50,91 @@ const GridManager = (function() {
           }
         }
 
-        var len = pages.length;
-        for (var i = 0; i < len; i++) {
-          pages[i].moveBy((-currentPage + i) * windowWidth + deltaX);
+        // Panning time! Stop listening here to enter into a dedicated
+        // method for panning only the 2 relevants pages based on the
+        // direction of the inputs. The code here is carefully written
+        // to avoid as much as possible allocations while panning.
+        window.removeEventListener('mousemove', handleEvent);
+
+        // Before panning pages that are directly next to the current
+        // target are set visible.
+        togglePagesVisibility(currentPage - 1, currentPage + 1);
+
+        var index = currentPage;
+        var previous = index ? pages[index - 1].container.style : {};
+        previous.MozTransition = '';
+        previous.MozTransform = 'translateX(' + (-windowWidth) + 'px)';
+
+        var current = pages[index].container.style;
+        current.MozTransition = '';
+
+        var next =
+          index < pages.length - 1 ? pages[index + 1].container.style : {};
+        next.MozTransition = '';
+        next.MozTransform = 'translateX(' + windowWidth + 'px)';
+
+        var translate = 'translateX($px)';
+        var startX = startEvent.clientX;
+        var forward = deltaX > 0;
+
+        var refresh = function(e) {
+          if (deltaX >= 0) {
+            previous.MozTransform =
+              translate.replace('$', -windowWidth + deltaX);
+
+            // If we change direction make sure there isn't any part
+            // of the page on the other side that stays visible.
+            if (!forward) {
+              forward = true;
+              next.MozTransform =
+                translate.replace('$', windowWidth);
+            }
+          } else {
+            next.MozTransform =
+              translate.replace('$', windowWidth + deltaX);
+
+            // If we change direction make sure there isn't any part
+            // of the page on the other side that stays visible.
+            if (forward) {
+              forward = false;
+              previous.MozTransform =
+                translate.replace('$', -windowWidth);
+            }
+          }
+
+          current.MozTransform = translate.replace('$', deltaX);
+        };
+
+        // Generate a function accordingly to the current page position.
+        if (Homescreen.isInEditMode() || currentPage > 2) {
+          var pan = function(e) {
+            deltaX = e.clientX - startX;
+            window.mozRequestAnimationFrame(refresh);
+          };
+        } else {
+          var pan = function(e) {
+            deltaX = e.clientX - startX;
+            window.mozRequestAnimationFrame(refresh);
+            window.mozRequestAnimationFrame(function() {
+              setOverlayPanning(index, deltaX, forward);
+            });
+          }
         }
-        setOverlayPanning(deltaX);
+
+        var container = pages[index].container;
+        container.setCapture(true);
+        container.addEventListener('mousemove', pan, true);
+
+        window.addEventListener('mouseup', function removePanHandler(e) {
+          window.removeEventListener('mouseup', removePanHandler, true);
+
+          container.removeEventListener('mousemove', pan, true);
+          document.releaseCapture();
+
+          window.mozRequestAnimationFrame(function panTouchEnd() {
+            onTouchEnd(deltaX);
+          });
+        }, true);
         break;
 
       case 'mouseup':
@@ -61,15 +142,12 @@ const GridManager = (function() {
         releaseEvents();
         if (!isPanning) {
           pageHelper.getCurrent().tap(evt.target);
-        } else {
-          isPanning = false;
-          onTouchEnd(evt.clientX - startEvent.clientX);
         }
-
+        isPanning = false;
         break;
 
       case 'contextmenu':
-        if (currentPage > landingPageIndex && 'origin' in evt.target.dataset) {
+        if (currentPage > 1 && 'origin' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
           DragDropManager.start(evt, {
@@ -82,29 +160,27 @@ const GridManager = (function() {
     }
   }
 
-  function setOverlayPanning(deltaX) {
-    if (Homescreen.isInEditMode()) {
-      return;
-    }
-    var forward = dirCtrl.goesForward(deltaX);
-    if (currentPage === landingPageIndex && forward) {
-      applyEffectOverlay((deltaX / windowWidth) * -opacityMax);
-    } else if (currentPage === landingPageIndex + 1 && !forward) {
-      applyEffectOverlay(opacityMax - ((deltaX / windowWidth) * opacityMax));
+  function setOverlayPanning(index, deltaX, backward, duration) {
+    if (index === 1 && !backward) {
+      applyEffectOverlay(landingOverlay,
+                         (deltaX / windowWidth) * -opacityOnAppGridPageMax,
+                         duration);
+    } else if (index === 2 && backward) {
+      applyEffectOverlay(landingOverlay, opacityOnAppGridPageMax -
+                         ((deltaX / windowWidth) * opacityOnAppGridPageMax),
+                         duration);
     }
   }
 
-  function applyEffectOverlay(value, duration) {
-    var style = overlay.style;
+  function applyEffectOverlay(overlay, value, duration) {
     if (duration) {
-      style.MozTransition = 'opacity ' + duration + 's ease';
+      overlay.style.MozTransition = 'opacity ' + duration + 's ease';
       overlay.addEventListener('transitionend', function end(e) {
         overlay.removeEventListener('transitionend', end);
-        style.MozTransition = '';
+        overlay.style.MozTransition = '';
       });
     }
-    style.opacity = value;
-
+    overlay.style.opacity = value;
   }
 
   function onTouchEnd(deltaX) {
@@ -113,7 +189,9 @@ const GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
         page = page + 1;
-      } else if (!forward && currentPage > 0) {
+      } else if (!forward &&
+                  (page === 1 || page >= 3 ||
+                    (page === 2 && !Homescreen.isInEditMode()))) {
         page = page - 1;
       }
     }
@@ -130,46 +208,69 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
+  function togglePagesVisibility(start, end) {
+    for (var i = 0; i < pages.length; i++) {
+      if (i < start || i > end) {
+        pages[i].container.style.display = 'none';
+      } else {
+        pages[i].container.style.display = 'block';
+      }
+    }
+  }
 
   function goToPage(index, callback) {
     if (index < 0 || index >= pages.length)
       return;
 
-    if (index === landingPageIndex && currentPage === landingPageIndex + 1 &&
-        Homescreen.isInEditMode()) {
-      index++;
-    }
-
-    var isSamePage = currentPage === index;
-    if (!isSamePage) {
-      delete pages[currentPage].container.dataset.currentPage;
-      currentPage = index;
-      pages[currentPage].container.dataset.currentPage = 'true';
-    }
-
-    container.addEventListener('transitionend', function transitionEnd(e) {
-      container.removeEventListener('transitionend', transitionEnd);
-      if (!dragging) {
-        delete document.body.dataset.transitioning;
-      }
+    var goToPageCallback = function() {
+      delete document.body.dataset.transitioning;
       if (callback) {
         callback();
       }
+
+      previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
+      newPage.container.dispatchEvent(new CustomEvent('pageshow'));
+      togglePagesVisibility(index, index);
+    }
+
+    var previousPage = pages[currentPage];
+    var newPage = pages[index];
+
+    if (index >= currentPage) {
+      var forward = 1;
+      var start = currentPage;
+      var end = index;
+      setOverlayPanning(index, 0, true, kPageTransitionDuration);
+    } else {
+      var forward = -1;
+      var start = index;
+      var end = currentPage;
+      setOverlayPanning(index, 0, false, kPageTransitionDuration);
+    }
+
+    togglePagesVisibility(start, end);
+
+    currentPage = index;
+    updatePaginationBar();
+
+    if (previousPage == newPage) {
+      goToPageCallback();
+      newPage.moveByWithEffect(0, kPageTransitionDuration);
+      return;
+    }
+
+    // Force a reflow otherwise the newPage appears immediately because it is
+    // still considered display: none;
+    newPage.container.getBoundingClientRect();
+
+    previousPage.moveByWithEffect(-forward * windowWidth,
+                                  kPageTransitionDuration);
+    newPage.moveByWithEffect(0, kPageTransitionDuration);
+
+    container.addEventListener('transitionend', function transitionEnd(e) {
+      container.removeEventListener('transitionend', transitionEnd);
+      goToPageCallback();
     });
-
-    var len = pages.length;
-    for (var i = 0; i < len; i++) {
-      pages[i].moveByWithEffect((-currentPage + i) * windowWidth, .3);
-    }
-    if (index === landingPageIndex) {
-      applyEffectOverlay(0, .3);
-    } else if (index > landingPageIndex) {
-      applyEffectOverlay(opacityMax, .3);
-    }
-
-    if (!isSamePage) {
-      updatePaginationBar();
-    }
   }
 
   function goToNextPage(callback) {
@@ -193,6 +294,7 @@ const GridManager = (function() {
     var apps = Applications.getAll();
 
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/init.json', true);
     xhr.send(null);
 
@@ -238,7 +340,6 @@ const GridManager = (function() {
         }
 
         // Renders pagination bar
-        updatePaginationBar();
         finish();
 
         // Saving initial state
@@ -336,7 +437,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pageHelper.total();
-    for (var i = landingPageIndex + 1; i < pagesCount; i++) {
+    for (var i = 2; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
@@ -347,8 +448,8 @@ const GridManager = (function() {
 
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
+      // ignore the landing page
+      if (index <= 1) {
         return;
       }
 
@@ -368,8 +469,8 @@ const GridManager = (function() {
     var max = pageHelper.getMaxPerPage();
 
     pages.forEach(function checkIsOverflow(page, index) {
-      // ignore the search page
-      if (index <= landingPageIndex) {
+      // ignore the landing page
+      if (index <= 1) {
         return;
       }
 
@@ -441,12 +542,12 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(landingPageIndex + 1));
+      HomeState.saveGrid(pages.slice(2));
     },
 
     /*
      * Returns the total number of apps for each page. It could be
-     * more clever. Currently there're twelve apps for page
+     * more clever. Currently there're sixteen apps for page
      */
     getMaxPerPage: function() {
       return 4 * 4;
@@ -487,7 +588,7 @@ const GridManager = (function() {
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
       for (var i = 0; i < container.children.length; i++) {
-        var page = i === landingPageIndex ? new SearchPage(i) : new Page(i);
+        var page = new Page(i);
         page.render([], container.children[i]);
         pages.push(page);
       }
@@ -535,9 +636,8 @@ const GridManager = (function() {
       }
 
       if (animation) {
-        goToPage(index, function ins_goToPage() {
-          pageHelper.getCurrent().
-                    applyInstallingEffect(Applications.getOrigin(app));
+        goToPage(index, function install_goToPage() {
+          pageHelper.getCurrent().applyInstallingEffect(origin);
         });
       }
 
@@ -585,10 +685,6 @@ const GridManager = (function() {
 
     get pageHelper() {
       return pageHelper;
-    },
-
-    get landingPageIndex() {
-      return landingPageIndex;
     }
   };
 })();

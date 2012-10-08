@@ -1,0 +1,305 @@
+#evmeContainer #evmeApps {
+    position: absolute;
+    top: 81px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    overflow: hidden;
+}
+#evmeContainer #evmeApps {
+    -webkit-mask-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, rgba(0, 0, 0, 1)), color-stop(97%, rgba(0, 0, 0, 1)), color-stop(100%, rgba(0, 0, 0, 0)));
+}
+#evmeContainer.loading-app #evmeApps {
+    pointer-events: none;
+}
+
+#evmeContainer #apps-loading,
+#evmeContainer #apps-error {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    margin-top: -20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    text-shadow: 1px 0 2px rgba(0, 0, 0, .5);
+    text-align: center;
+    display: none;
+}
+    #evmeContainer #apps-loading > div,
+    #evmeContainer #apps-error > div {
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+        width: 1px;
+        height: 1px;
+        margin-right: 11px;
+        top: -2px;
+    }
+    #evmeContainer #apps-error #apps-error-retry {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        width: 30px;
+        margin-left: -23px;
+    }
+    
+#evmeContainer #apps-loading.visible,
+#evmeContainer #apps-error.visible {
+    display: block;
+}
+
+#evmeContainer #evmeApps ul {
+    position: absolute;
+    width: 100%;
+    padding-bottom: 30px;
+}
+#evmeContainer.location-input-visible #evmeApps ul {
+    -webkit-transform: none !important;
+}
+    #evmeContainer #evmeApps ul li,
+    #evmeContainer .apps ul li {
+        width: 25%;
+        height: 79px;
+        padding-top: 10px;
+        text-align: center;
+        cursor: pointer;
+        
+        display: inline-block;
+        vertical-align: top;
+        
+        -moz-transition: -moz-transform .2s linear;
+        -webkit-transition: -webkit-transform .2s linear;
+        -ms-transition: -ms-transform .2s linear;
+        transition: transform .2s linear;
+    }
+    #evmeContainer #evmeApps ul li.new,
+    #evmeContainer .apps ul li.new {
+        -moz-transition: none;
+        -webkit-transition: none;
+        -ms-transition: none;
+        transition: none;
+    }
+    #evmeContainer #evmeApps ul #button-more,
+    #evmeContainer .apps ul #button-more {
+        position: absolute;
+        top: auto;
+        bottom: 15px;
+        left: 0;
+        height: auto;
+        color: #b4dae7;
+        font-size: 15px;
+        font-weight: 600;
+        text-shadow: 0 1px 1px #000;
+        cursor: pointer;
+        z-index: 100;
+        opacity: 0;
+    }
+    #evmeContainer #evmeApps ul #button-more.visible,
+    #evmeContainer .apps ul #button-more.visible {
+        opacity: 1;
+    }
+   
+    #evmeContainer #evmeApps ul li:nth-child(4n+1),
+    #evmeContainer .apps ul li:nth-child(4n+1) {
+        clear: both;
+    }
+    #evmeContainer #evmeApps ul li .c,
+    #evmeContainer .apps ul li .c {
+        position: relative;
+        display: block;
+        padding: 44px 2px 0 2px;
+    }
+        #evmeContainer #evmeApps ul li .thumb,
+        #evmeContainer .apps ul li .thumb,
+        #evmeContainer .app-icon {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            z-index: 5;
+            display: block;
+            width: 44px;
+            height: 44px;
+            margin-left: -22px;
+            background-position: 50% 50%;
+            background-repeat: no-repeat;
+            -moz-background-size: contain;
+            -webkit-background-size: contain;
+            -o-background-size: contain;
+            background-size: contain;
+            -moz-border-radius: 23px;
+            -webkit-border-radius: 23px;
+            border-radius: 23px;
+            -moz-transition: -moz-transform .2s linear;
+            -webkit-transition: -webkit-transform .2s linear;
+            -ms-transition: -ms-transform .2s linear;
+            -o-transition: -o-transform .2s linear;
+            transition: transform .2s linear;
+        }
+        #evmeContainer #evmeApps ul li.new .thumb,
+        #evmeContainer .apps ul li.new .thumb {
+            -moz-transform: scale(0);
+            -webkit-transform: scale(0);
+            -ms-transform: scale(0);
+            -o-transform: scale(0);
+            transform: scale(0);
+        }
+        #evmeContainer #evmeApps ul li .thumb:after,
+        #evmeContainer .apps ul li .thumb:after,
+        #evmeContainer .app-icon:after {
+            content: "";
+            background-position: -1px -24px;
+            position: absolute;
+            top: 0;
+            left: -4px;
+            width: 50px;
+            height: 50px;
+            z-index: 10;
+        }
+        #evmeContainer #evmeApps ul li .thumb.noicon,
+        #evmeContainer .apps ul li .thumb.noicon {
+            background: transparent;
+        }
+        #evmeContainer #evmeApps ul li .thumb.noicon:after,
+        #evmeContainer .apps ul li .thumb.noicon:after {
+        }
+        #evmeContainer #evmeApps ul li b,
+        #evmeContainer .apps ul li b {
+            display: inline-block;
+            font-size: 11px;
+            line-height: 12px;
+            max-height: 35px;
+            max-width: 95%;
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -ms-text-overflow: ellipsis;
+            padding: 2px;
+            color: #fff;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+        }
+            #evmeContainer #evmeApps ul li b em,
+            #evmeContainer .apps ul li b em {
+                font-style: normal;
+            }
+        
+        #evmeContainer #evmeApps ul li .close,
+        #evmeContainer .apps ul li .close {
+            position: absolute;
+            top: -4px;
+            left: 50%;
+            margin-left: -30px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 2px 0 #000;
+            width: 18px;
+            height: 18px;
+            line-height: 16px;
+            background: #000;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            border-radius: 18px;
+            font-weight: 600;
+            font-size: 14px;
+            z-index: 0;
+            opacity: 0;
+            display: none;
+            -moz-transition: opacity .2s linear;
+            -webkit-transition: opacity .2s linear;
+            -ms-transition: opacity .2s linear;
+            -o-transition: opacity .2s linear;
+            transition: opacity .2s linear;
+        }
+    #evmeContainer #evmeApps ul li#more-apps,
+    #evmeContainer .apps ul li#more-apps {
+        position: absolute;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 60px;
+        line-height: 60px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 0;
+        margin: 10px 0 0 0;
+        z-index: 50;
+        cursor: default;
+        -moz-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
+        -webkit-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
+        -o-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
+        box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
+        -moz-transition: none;
+        -webkit-transition: none;
+        -ms-transition: none;
+        -o-transition: none;
+        transition: none;
+    }
+    #evmeContainer #evmeApps ul li#more-apps span,
+    #evmeContainer .apps ul li#more-apps span {
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        margin-right: 3px;
+        top: -2px;
+    }
+    
+    
+body:not(.istouch) #evmeApps {
+    
+}
+body:not(.istouch) #evmeApps ul {
+    overflow: hidden;
+}
+body:not(.istouch) #evmeApps ul li:nth-child(4n+1) {
+    clear: both;
+}
+body:not(.istouch) #evmeApps ul li:nth-child(5n+1) {
+    clear: none;
+}
+
+/* Loading an app */
+.loading-app #evmeApps ul li,
+.loading-app #evmeApps ul #button-more.visible {
+    opacity: 0;
+}
+.loading-app #evmeApps ul li.inplace {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 1;
+    overflow: visible;
+    margin-top: 0 !important;
+    -moz-transition: -moz-transform .2s linear;
+    -webkit-transition: -webkit-transform .2s linear;
+    -ms-transition: -ms-transform .2s linear;
+    -o-transition: -o-transform .2s linear;
+    transition: transform .2s linear;
+}
+.loading-app #evmeApps ul li.inplace .doat-loading {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    margin-left: -30px;
+}
+
+.apps-group {
+    position: relative;
+    width: 64px;
+    height: 64px;
+}
+    .apps-group span {
+        position: absolute;
+        background-position: 50% 50%;
+        background-repeat: no-repeat;
+        background-size: contain;
+        -moz-transition: all .4s ease;
+        -webkit-transition: all .4s ease;
+        -ms-transition: all .4s ease;
+        transition: all .4s ease;
+    }

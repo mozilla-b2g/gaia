@@ -80,8 +80,11 @@ var StorageSettings = {
 
   updateInfo: function storageSettingsUpdateInfo() {
     var statreq = this.deviceStorage.stat();
+    var self = this;
+
     statreq.onsuccess = function storageSettingsStatSuccess(evt) {
-      if ((evt.target.result.state === 'shared') &&
+      var state = evt.target.result.state;
+      if ((state === 'shared') &&
           !StorageSettings.umsEnabledCheckBox.checked) {
         // Show the 'Unplug USB cable to disable' message
         StorageSettings.umsEnabledInfoBlock.style.display = 'block';
@@ -89,9 +92,121 @@ var StorageSettings = {
         // Hide the 'Unplug USB cable to disable' message
         StorageSettings.umsEnabledInfoBlock.style.display = 'none';
       }
+
+      var mediaSubtitle = document.getElementById('media-storage-desc');
+      var _ = navigator.mozL10n.get;
+
+      switch (state) {
+        case 'shared':
+          // Keep the media storage enabled, so that the user go inside to
+          // toggle USB Mass storage
+          StorageSettings.enableMediaStorage(true);
+          mediaSubtitle.textContent = '';
+          self.setMediaStorageInfoInvalid();
+          break;
+
+        case 'unavailable':
+          StorageSettings.enableMediaStorage(false);
+          mediaSubtitle.textContent = _('no-storage');
+          self.setMediaStorageInfoInvalid();
+          break;
+
+        case 'available':
+          StorageSettings.enableMediaStorage(true);
+          self.updateMediaStorageInfo();
+          break;
+      }
     };
+  },
+
+  enableMediaStorage: function storageSettingsDisableMediaStorage(enable) {
+
+    var mediaStorageSection = document.getElementById('media-storage-section');
+    if (enable) {
+      mediaStorageSection.classList.remove('disabled');
+    } else {
+      mediaStorageSection.classList.add('disabled');
+    }
+  },
+
+  setMediaStorageInfoInvalid: function setMediaStorageInfoInvalid() {
+    var _ = navigator.mozL10n.get;
+
+    // clear the space info when it is disabled
+    var idList = ['music-space', 'pictures-space', 'videos-space',
+                  'media-free-space'];
+
+    idList.forEach(function clearSpace(id) {
+      var element = document.getElementById(id).firstElementChild;
+      element.textContent = _('size-not-available');
+    });
+  },
+
+  updateMediaStorageInfo: function updateMediaStorageInfo(usedSize, freeSize) {
+    var _ = navigator.mozL10n.get;
+
+    function formatSize(element, size, l10nId) {
+      if (!element)
+        return;
+
+      if (!l10nId)
+        l10nId = 'size-';
+
+      // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
+      var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
+      var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
+
+      element.textContent = _(l10nId + sizeInfo.unit,
+                              {size: sizeInfo.size});
+    }
+
+    // Update the storage details
+    DeviceStorageHelper.getStat('music', function(size) {
+      var element = document.getElementById('music-space').firstElementChild;
+      formatSize(element, size);
+    });
+
+    DeviceStorageHelper.getStat('pictures', function(size) {
+      var element = document.getElementById('pictures-space').firstElementChild;
+      formatSize(element, size);
+    });
+
+    DeviceStorageHelper.getStat('videos', function(size, freeSize) {
+      var element = document.getElementById('videos-space').firstElementChild;
+      formatSize(element, size);
+
+      element = document.getElementById('media-free-space').firstElementChild;
+      formatSize(element, freeSize);
+
+      element = document.getElementById('media-storage-desc');
+      formatSize(element, freeSize, 'available-size-');
+    });
   }
 };
+
+var DeviceStorageHelper = (function DeviceStorageHelper() {
+
+    function getStat(type, callback) {
+      var deviceStorage = navigator.getDeviceStorage(type);
+
+      if (!deviceStorage) {
+        console.error('Cannot get DeviceStorage for: ' + type);
+        return;
+      }
+
+      var request = deviceStorage.stat();
+
+      request.onsuccess = function(e) {
+        var totalSize = e.target.result.totalBytes;
+        callback(e.target.result.totalBytes,
+                 e.target.result.freeBytes);
+      };
+    }
+
+    return {
+      getStat: getStat
+    };
+})();
 
 StorageSettings.init();
 

@@ -2,6 +2,7 @@
 
 var CallHandler = (function callHandler() {
   var telephony = navigator.mozTelephony;
+  var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
   var callScreenDisplayed = false;
@@ -50,14 +51,12 @@ var CallHandler = (function callHandler() {
   }
   window.navigator.mozSetMessageHandler('activity', handleActivity);
 
-  /* === Incoming calls === */
-  function incoming() {
-    if (callScreenDisplayed)
-      return;
-
+  /* === Incoming and STK calls === */
+  function newCall() {
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-incoming', incoming);
+  window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
+  window.navigator.mozSetMessageHandler('icc-dialing', newCall);
 
   /* === Calls === */
   function call(number) {
@@ -68,7 +67,6 @@ var CallHandler = (function callHandler() {
       req = settingsLock.get('ril.radio.disabled');
       req.addEventListener('success', function onsuccess() {
         var status = req.result['ril.radio.disabled'];
-
         if (!status) {
           startDial(number);
         } else {
@@ -82,7 +80,20 @@ var CallHandler = (function callHandler() {
 
   function startDial(number) {
     if (isUSSD(number)) {
-      UssdManager.send(number);
+      if (conn.cardState === 'ready')
+        UssdManager.send(number);
+      else
+        CustomDialog.show(
+          _('emergencyDialogTitle'),
+          _('emergencyDialogBodyBadNumber'),
+          {
+            title: _('emergencyDialogBtnOk'),
+            callback: function() {
+              CustomDialog.hide();
+            }
+          }
+        );
+
     } else {
       var sanitizedNumber = number.replace(/-/g, '');
       if (telephony) {
@@ -117,10 +128,10 @@ var CallHandler = (function callHandler() {
 
   function handleFlightMode() {
     CustomDialog.show(
-      _('callFlightModeTitle'),
-      _('callFlightModeBody'),
+      _('callAirplaneModeTitle'),
+      _('callAirplaneModeBody'),
       {
-        title: _('callFlightModeBtnOk'),
+        title: _('callAirplaneModeBtnOk'),
         callback: function() {
           CustomDialog.hide();
 

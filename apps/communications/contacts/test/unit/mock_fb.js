@@ -7,7 +7,13 @@ var MockFb = {
 
   CATEGORY: 'facebook',
   NOT_LINKED: 'not_linked',
-  LINKED: 'fb_linked'
+  LINKED: 'fb_linked',
+
+  // Default, can be changed by specific tests
+  operationsTimeout: 20000,
+
+  // mocks the saved data
+  savedData: []
 };
 
 MockFb.setIsFbContact = function(isFB) {
@@ -25,6 +31,7 @@ MockFb.setIsEnabled = function(isEnabled) {
 MockFb.Contact = function(devContact, mozCid) {
   var deviceContact = devContact;
   var cid = mozCid;
+  var contactData;
 
   function markAsFb(deviceContact) {
     if (!deviceContact.category) {
@@ -103,6 +110,45 @@ MockFb.Contact = function(devContact, mozCid) {
 
       }
     };
+  }
+
+  this.setData = function(data) {
+    contactData = data;
+  }
+
+  this.save = function() {
+    return {
+      set onsuccess(callback) {
+        MockFb.savedData.push(contactData);
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    };
+  }
+
+  this.getDataAndValues = function getDataAndValues() {
+    return {
+      set onsuccess(callback) {
+        // Fetch FB data, that is returning a contact info
+        this.result = [];
+        this.result[0] = deviceContact;
+        this.result[1] = {
+          '+346578888888': 'p',
+          'test@test.com': 'p'
+        };
+
+        callback.call(this);
+      },
+      set onerror(callback) {
+
+      }
+    };
+  }
+
+  this.promoteToLinked = function promoteToLinked() {
+
   }
 
   Object.defineProperty(this, 'uid', {

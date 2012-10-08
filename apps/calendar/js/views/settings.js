@@ -1,15 +1,17 @@
 (function(window) {
 
   var template = Calendar.Templates.Calendar;
+  var _super = Calendar.View.prototype;
 
   function Settings(options) {
     Calendar.View.apply(this, arguments);
 
     this._initEvents();
+    this._hideSettings = this._hideSettings.bind(this);
   }
 
   Settings.prototype = {
-    __proto__: Object.create(Calendar.View.prototype),
+    __proto__: _super,
 
     /**
      * Local update is a flag
@@ -23,7 +25,8 @@
       element: '#settings',
       calendars: '#settings .calendars',
       calendarName: '.name',
-      syncButton: '#settings .sync'
+      syncButton: '#settings .sync',
+      timeViews: '#time-views'
     },
 
     get calendars() {
@@ -32,6 +35,10 @@
 
     get syncButton() {
       return this._findElement('syncButton');
+    },
+
+    get timeViews() {
+      return this._findElement('timeViews');
     },
 
     _initEvents: function() {
@@ -45,6 +52,8 @@
       this.calendars.addEventListener(
         'change', this._onCalendarDisplayToggle.bind(this)
       );
+
+      var el = document.getElementById('time-views');
     },
 
     _onCalendarDisplayToggle: function(e) {
@@ -122,6 +131,25 @@
       }
 
       list.innerHTML = html;
+    },
+
+    /**
+     * navigate away from settings.
+     * Designed for use when tapping away
+     * from the settings tray.
+     */
+    _hideSettings: function() {
+      this.app.resetState();
+    },
+
+    onactive: function() {
+      _super.onactive.apply(this, arguments);
+      this.timeViews.addEventListener('click', this._hideSettings);
+    },
+
+    oninactive: function() {
+      _super.oninactive.apply(this, arguments);
+      this.timeViews.removeEventListener('click', this._hideSettings);
     }
 
   };

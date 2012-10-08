@@ -33,6 +33,19 @@
       </menu>
 
       <div id="frames">
+
+        <div id="startscreen" class="hidden">
+          <h1 data-l10n-id="firefox">Firefox</h1>
+          <h2 data-l10n-id="top-sites">Top Sites</h2>
+          <div id="start-screen-top-sites">
+            <ul id="top-site-thumbnails">
+            </ul>
+            <p id="no-top-sites" class="hidden" data-l10n-id="start-browsing">
+            Enter a search term or web address to start browsing.
+            </p>
+          </div>
+        </div>
+
         <div id="awesomescreen">
           <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
@@ -59,11 +72,15 @@
         </div>
 
         <div id="crashscreen">
-          <span id="sad-face">:(</span><br />
-          <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
-          <button data-l10n-id="try-reloading" id="try-reloading">
+          <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
+          <img src="style/images/crashed-tab-icon.png" />
+          <p data-l10n-id="not-responding">We tried to display this webpage but it's not responding.</p>
+          <menu type="toolbar">
+            <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
+            <button data-l10n-id="reload-tab" id="try-reloading">
             Try Reloading
-          </button>
+            </button>
+          </menu>
         </div>
 
         <div id="screen">
@@ -188,25 +205,18 @@
       </ul>
       <h3 data-l10n-id="privacy-and-security">Privacy & Security</h3>
       <ul>
-        <li id="enable-cookies">
-          <label>
-            <input type="checkbox" name="enable-cookies" disabled="disabled" />
-            <span data-l10n-id="enable-cookies" disabled="disabled">Enable Cookies</span>
-          </label>
-        </li>
         <li>
           <button id="clear-history-button"
                   data-l10n-id="clear-history">Clear History</button>
         </li>
         <li>
-          <button id="clear-private-data-button" disabled="disabled"
+          <button id="clear-private-data-button"
                   data-l10n-id="clear-private-data">Clear Private Data</button>
         </li>
 
       </ul>
     </div>
 
-    <script src="js/GestureDetector.js"></script>
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>

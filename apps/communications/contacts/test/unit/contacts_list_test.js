@@ -1,4 +1,5 @@
 
+requireApp('communications/contacts/js/search.js');
 requireApp('communications/contacts/js/contacts_list.js');
 requireApp('communications/contacts/js/utilities/normalizer.js');
 requireApp('communications/contacts/js/utilities/templates.js');
@@ -15,6 +16,11 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 if (!this.Contacts) {
   this.Contacts = null;
 }
+
+if (!this.contacts) {
+  this.contacts = null;
+}
+
 if (!this.fb) {
   this.fb = null;
 }
@@ -56,7 +62,9 @@ suite('Render contacts list', function() {
       list,
       loading,
       searchBox,
-      noResults;
+      noResults,
+      settings,
+      noContacts;
 
   function assertNoGroup(title, container) {
     assert.isTrue(title.classList.contains('hide'));
@@ -75,25 +83,6 @@ suite('Render contacts list', function() {
 
     assert.equal(total, lengthTitles);
     assert.equal(totalC, lengthContacts);
-  }
-
-
-  function assertImportButton() {
-    var importButton = list.nextElementSibling;
-    assert.isNotNull(importButton);
-    assert.equal(importButton.id, 'sim_import_button');
-    if (window.fb.isEnabled) {
-      assert.equal(importButton.nextElementSibling.id, 'fb_import_button');
-    }
-    else {
-      assert.isNull(importButton.nextElementSibling);
-    }
-  }
-
-  function assertNoImportButton() {
-    var importButton = list.nextElementSibling;
-
-    assert.isNull(importButton);
   }
 
   function assertFbMark(container) {
@@ -130,9 +119,16 @@ suite('Render contacts list', function() {
     container.appendChild(groupsContainer);
     loading = document.createElement('div');
     loading.id = 'loading-overlay';
+    settings = document.createElement('div');
+    settings.id = 'view-settings';
+    settings.innerHTML = '<div class="view-body-inner"></div>';
+    noContacts = document.createElement('div');
+    noContacts.id = 'no-contacts';
     list = container.querySelector('#groups-list');
     document.body.appendChild(container);
     document.body.appendChild(loading);
+    document.body.appendChild(settings);
+    document.body.appendChild(noContacts);
 
     var searchSection = document.createElement('section');
     searchSection.id = 'search-view';
@@ -141,6 +137,7 @@ suite('Render contacts list', function() {
 
     searchBox = document.getElementById('search-contact');
     noResults = document.getElementById('no-result');
+    noContacts = document.getElementById('no-contacts');
   }
 
   suiteSetup(function() {
@@ -170,6 +167,7 @@ suite('Render contacts list', function() {
     resetDom(window.document);
 
     subject.init(list);
+    subject.setOrderByLastName(true);
   });
 
   suiteTeardown(function() {
@@ -197,13 +195,13 @@ suite('Render contacts list', function() {
       containerUnd = container.querySelector('#contacts-list-und');
 
       assert.isTrue(subject.loaded);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertGroup(groupA, containerA, 1);
       assertGroup(groupB, containerB, 1);
       assertGroup(groupB, containerC, 1);
       assertNoGroup(groupD, containerD);
 
-      assertNoImportButton();
     });
 
     test('adding one at the beginning', function() {
@@ -216,6 +214,7 @@ suite('Render contacts list', function() {
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
       var aContacts = assertGroup(groupA, containerA, 2);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assert.isTrue(aContacts[0].innerHTML.indexOf('AA') > -1);
       assert.isTrue(aContacts[1].innerHTML.indexOf('AD') > -1);
       assertTotal(3, 4);
@@ -231,6 +230,7 @@ suite('Render contacts list', function() {
       subject.load(newList);
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
       assert.isTrue(cContacts[1].innerHTML.indexOf('CZ') > -1);
       assertTotal(3, 4);
@@ -245,6 +245,7 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       assert.isTrue(cContacts[0].innerHTML.indexOf('CC') > -1);
@@ -265,6 +266,7 @@ suite('Render contacts list', function() {
       newContact.email[0].value = 'CZ@CZ.com';
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 2);
       assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
@@ -284,6 +286,7 @@ suite('Render contacts list', function() {
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       assert.notEqual(cContacts[0].innerHTML.indexOf('CC') > -1);
@@ -303,6 +306,7 @@ suite('Render contacts list', function() {
       newContact.email = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       var favContacts = assertGroup(groupFav, containerFav, 1);
       assert.notEqual(favContacts[0].innerHTML.indexOf('noName'), -1);
       var cContacts = assertGroup(groupC, containerC, 1);
@@ -325,6 +329,7 @@ suite('Render contacts list', function() {
       newContact2.category = null;
       var newList = mockContacts.concat([newContact, newContact2]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 3);
       assert.notEqual(cContacts[0].innerHTML.indexOf('CC'), -1);
@@ -341,6 +346,7 @@ suite('Render contacts list', function() {
       newContact.category = null;
       var newList = mockContacts.concat([newContact]);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var cContacts = assertGroup(groupC, containerC, 1);
       var bContacts = assertGroup(groupB, containerB, 2);
@@ -358,6 +364,7 @@ suite('Render contacts list', function() {
       var newList = mockContacts.concat([newContact]);
       assertNoGroup(groupD, containerD);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       var dContacts = assertGroup(groupD, containerD, 1);
       assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
@@ -383,6 +390,7 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       assertNoGroup(groupD, containerD);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       var dContacts = assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 1);
       assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
@@ -400,6 +408,7 @@ suite('Render contacts list', function() {
       assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 1);
       subject.load(newList);
+      assert.isTrue(noContacts.classList.contains('hide'));
       var dContacts = assertGroup(groupD, containerD, 1);
       assertGroup(groupFav, containerFav, 2);
       assert.notEqual(dContacts[0].innerHTML.indexOf('DD'), -1);
@@ -421,8 +430,8 @@ suite('Render contacts list', function() {
 
     test('removing all contacts', function() {
       subject.load([]);
+      assert.isFalse(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
-      assertImportButton();
       assertTotal(0, 0);
     });
   });  // suite ends
@@ -450,8 +459,6 @@ suite('Render contacts list', function() {
         assertTotal(0, 0);
         subject.load(newList);
 
-        assertNoImportButton();
-
         groupT = container.querySelector('#group-T');
         containerT = container.querySelector('#contacts-list-T');
 
@@ -476,7 +483,7 @@ suite('Render contacts list', function() {
       subject.load(mockContacts);
 
       searchBox.value = contact.familyName[0];
-      subject.search();
+      contacts.Search.search();
 
       var selectorStr = 'li.block-item.search.hide';
       var hiddenContacts = container.querySelectorAll(selectorStr);
@@ -493,7 +500,7 @@ suite('Render contacts list', function() {
       mockContacts = new MockContactsList();
       subject.load(mockContacts);
       searchBox.value = 'YYY';
-      subject.search();
+      contacts.Search.search();
 
       var selectorStr = 'li.block-item.search.hide';
       var hiddenContacts = container.querySelectorAll(selectorStr);
