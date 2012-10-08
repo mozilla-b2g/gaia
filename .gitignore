@@ -35,3 +35,4 @@ manifest.appcache
 /tools/xpcwindow/vendor/
 
 /locales/*
+/.project
