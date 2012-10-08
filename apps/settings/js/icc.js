@@ -3,14 +3,14 @@
 
 'use strict';
 
-(function(){
+(function() {
   /**
    * Debug method
    */
   var DEBUG = false;
   function debug(msg) {
     if (DEBUG) {
-      console.log("[DEBUG] STKUI: " + msg);
+      console.log('[DEBUG] STKUI: ' + msg);
     }
   }
 
@@ -123,8 +123,9 @@
       debug('STK Main App Menu default item:', menu.defaultItem);
 
       document.getElementById('iccMenuItem').textContent = menu.title;
-      document.getElementById('icc-stk-operator-header').textContent = menu.title;
-      menu.items.forEach(function (menuItem) {
+      document.getElementById('icc-stk-operator-header').textContent =
+          menu.title;
+      menu.items.forEach(function(menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
               menuItem.identifer);
         iccStkAppsList.appendChild(getDOMMenuEntry({
@@ -171,7 +172,7 @@
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
-    menu.items.forEach(function (menuItem) {
+    menu.items.forEach(function(menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
       iccStkSelection.appendChild(getDOMMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
@@ -272,3 +273,4 @@
     return li;
   }
 })();
+
