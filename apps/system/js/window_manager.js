@@ -1,5 +1,7 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
 
 //
 // This file calls getElementById without waiting for an onload event, so it
@@ -39,7 +41,7 @@
 //
 // This module does not (at least not currently) have anything to do
 // with the homescreen.  It simply assumes that if it hides all running
-// apps the homescreen will show
+// apps the homescreen will show up.
 //
 // TODO
 // It would be nice eventually to centralize much of the homescreen
@@ -47,8 +49,6 @@
 // this module will just expose methods for managing the list of apps
 // and app visibility but will leave all the event handling to another module.
 //
-
-'use strict';
 
 var WindowManager = (function() {
   // Holds the origin of the home screen, which should be the first
@@ -141,9 +141,10 @@ var WindowManager = (function() {
     }
     cssHeight += 'px';
 
-
-    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') &&
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight + 'px';
+    }
 
     frame.style.width = cssWidth;
 
@@ -164,8 +165,10 @@ var WindowManager = (function() {
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
-    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') &&
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight - keyboardHeight + 'px';
+    }
 
     frame.style.height = cssHeight;
 
@@ -759,8 +762,8 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
-  function createFrame(originalFrame, origin, url, name, manifest, manifestURL) {
-    var frame = originalFrame || document.createElement('iframe');
+  function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
+    var frame = origFrame || document.createElement('iframe');
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
@@ -809,9 +812,10 @@ var WindowManager = (function() {
     return frame;
   }
 
-  function appendFrame(originalFrame, origin, url, name, manifest, manifestURL) {
+  function appendFrame(origFrame, origin, url, name, manifest, manifestURL) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame = createFrame(originalFrame, origin, url, name, manifest, manifestURL);
+    var frame =
+        createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
@@ -1211,7 +1215,7 @@ var WindowManager = (function() {
         var features = JSON.parse(detail.features);
         frameElement.dataset.name = features.name || url;
         frameElement.dataset.icon = features.icon || '';
-      } catch(ex) { }
+      } catch (ex) {}
 
       appendFrame(frameElement, url, url, frameElement.dataset.name, {
         'name': frameElement.dataset.name
@@ -1347,3 +1351,4 @@ var WindowManager = (function() {
     }
   };
 }());
+
