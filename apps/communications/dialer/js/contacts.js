@@ -52,6 +52,11 @@ var Contacts = {
       var matchResult = SimplePhoneMatcher.bestMatch(variants, matches);
 
       var contact = request.result[matchResult.bestMatchIndex];
+
+      if (1 < request.result.length) {
+        contact.name[0] = contact.name[0].substring(0,12) + '... or ' + (request.result.length - 1) + ' other';
+      }
+
       var matchingTel = contact.tel[matchResult.localIndex];
       callback(contact, matchingTel);
     };
