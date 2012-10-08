@@ -6,7 +6,7 @@ var EvmeManager = (function() {
 
     function openApp(params) {
         var evmeApp = new EvmeApp({
-            url: params.originUrl,
+            url: params.url,
             name: params.title,
             icon: params.icon
         });
