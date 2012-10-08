@@ -165,6 +165,10 @@ form[role="search"].bottom:after {
   background: url(input_areas/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
+section[role="region"] > header:first-child + form[role="search"]:after{ 
+  background: none;
+}
+
 form[role="search"] p {
   display: block;
   overflow: hidden;
