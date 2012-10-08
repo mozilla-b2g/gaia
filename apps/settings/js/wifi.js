@@ -653,7 +653,8 @@ window.addEventListener('localized', function wifiSettings(evt) {
             case 'WPA-EAP':
               disabled = disabled || (identity && identity.value.length < 1);
             case 'WEP':
-              disabled = disabled || (password && password.value.length < 1);
+              disabled = disabled || (password && password.value.length != 5 &&
+                password.value.length != 13);
               break;
           }
           dialog.querySelector('button[type=submit]').disabled = disabled;
