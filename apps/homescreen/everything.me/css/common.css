@@ -170,7 +170,8 @@
 #shortcuts-customize:before,
 .shortcut.add .thumb:before,
 #shortcuts-favorites li.on:before,
-#close-category
+#close-category,
+.keyboard-visible .clear-visible #button-clear
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
