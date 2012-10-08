@@ -1,3 +1,5 @@
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
@@ -31,7 +33,7 @@ var Launcher = (function() {
   });
 
   window.addEventListener('keyboardchange', function onKeyboardChange(e) {
-    if('wrapper' in currentAppFrame().dataset) {
+    if ('wrapper' in currentAppFrame().dataset) {
       if (footer.classList.contains('visible')) {
         footer.classList.remove('visible');
       }
@@ -39,7 +41,7 @@ var Launcher = (function() {
   });
 
   window.addEventListener('keyboardhide', function onKeyboardChange(e) {
-    if('wrapper' in currentAppFrame().dataset) {
+    if ('wrapper' in currentAppFrame().dataset) {
       if (!footer.classList.contains('visible')) {
         footer.classList.add('visible');
       }
@@ -143,3 +145,4 @@ var Launcher = (function() {
     ModalDialog.confirm('Bookmark ' + dataset.name + '?', confirm);
   });
 }());
+
