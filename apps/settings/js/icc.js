@@ -17,7 +17,7 @@
   /**
    * Init
    */
-  var displayTextTimeout = 5000;
+  var displayTextTimeout = 10000;
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
@@ -321,6 +321,7 @@
    */
   function displayText(command, cb) {
     var options = command.options;
+    if(!options.userClear) {
     var timeoutId = setTimeout(function() {
         alertbox.style.display = 'none';
         if (cb) {
@@ -328,6 +329,8 @@
         }
       },
       displayTextTimeout);
+    }
+
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
       alertbox.style.display = 'none';
