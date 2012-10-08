@@ -305,4 +305,5 @@ section#icc .hiddenheader {
 
 section#icc #icc-stk-alert {
   display: none;
+  position: fixed;
 }
