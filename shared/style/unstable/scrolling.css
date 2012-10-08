@@ -1,7 +1,7 @@
 /* ----------------------------------
  * Scrolling
  * ---------------------------------- */
- body[role="application"] nav[role="scrollbar"] {
+nav[role="scrollbar"] {
   font-family: "Open Sans", Sans-serif;
   position: absolute;
   right: 0;
@@ -9,7 +9,7 @@
  }
 
 /* Mirror */
-body[role="application"] nav[role="scrollbar"] p {
+nav[role="scrollbar"] p {
   position: absolute;
   right: 4rem;
   top: 30%;
@@ -17,21 +17,15 @@ body[role="application"] nav[role="scrollbar"] p {
   width: 10.5rem;
   height: 10.5rem;
   opacity: 0;
-  transition: opacity;
-  background: -moz-element(#scrollbar-state) no-repeat center center, url(scrolling/images/ui/background.png) repeat left top;
-  pointer-events: none;
-  text-align: center;
-}
-
-/* Original element */
-#scrollbar-state {
   font: 200 6rem/10.5rem "Open Sans", Sans-serif;
   color: #fff;
-  position: absolute;
-  right: 100%;
+  background: url(scrolling/images/ui/background.png) repeat left top;
+  pointer-events: none;
+  text-align: center;
+  transition: opacity;
 }
 
-body[role="application"] nav[role="scrollbar"] ol {
+nav[role="scrollbar"] ol {
   padding: 0.3rem 0;
   margin: 0;
   border-radius: 4rem;
@@ -39,7 +33,7 @@ body[role="application"] nav[role="scrollbar"] ol {
   list-style: none;
 }
 
-body[role="application"] nav[role="scrollbar"] li {
+nav[role="scrollbar"] li {
   font-size: 1rem;
   line-height: 1.4em;
   text-align: center;
@@ -47,7 +41,7 @@ body[role="application"] nav[role="scrollbar"] li {
   width: 4.5rem;
 }
 
-body[role="application"] nav[role="scrollbar"] li a {
+nav[role="scrollbar"] li a {
   display: block;
   color: #333;
   width: 100%;
@@ -56,8 +50,8 @@ body[role="application"] nav[role="scrollbar"] li a {
 }
 
 /* Top action icons */
-body[role="application"] nav[role="scrollbar"] li .search,
-body[role="application"] nav[role="scrollbar"] li .favourites {
+nav[role="scrollbar"] li .icon-search,
+nav[role="scrollbar"] li .icon-favourites {
   width: 1.2rem;
   height: 1.2rem;
   font: 0/0 a;
@@ -66,10 +60,10 @@ body[role="application"] nav[role="scrollbar"] li .favourites {
   background: transparent no-repeat center center;
 }
 
-body[role="application"] nav[role="scrollbar"] li .search {
+nav[role="scrollbar"] li .icon-search {
   background-image: url(scrolling/images/icons/search.png);
 }
 
-body[role="application"] nav[role="scrollbar"] li .favourites {
+nav[role="scrollbar"] li .icon-favourites {
   background-image: url(scrolling/images/icons/favourites.png);
 }
