@@ -1,32 +1,34 @@
 (function(window) {
   var Day = Calendar.Template.create({
     hour: [
-      '<section class="hour-{hour} {classes} calendar-display calendar-color">',
+      '<section class="hour hour-{hour} {classes} calendar-display">',
         '<h4>',
           '<span class="display-hour {hour}">{displayHour}</span>',
         '</h4>',
-        '<ol class="events">',
-          '{items|s}',
-        '</ol>',
+        /** has no semantic value - re-evaluate */
+        '<div class="events">{items|s}</div>',
       '</section>'
     ].join(''),
 
     attendee: '<span class="attendee">{value}</span>',
 
     event: [
-      '<li class="event calendar-id-{calendarId}' +
+      '<section class="event calendar-id-{calendarId} ' +
            'calendar-display" data-id="{eventId}">',
-        '<h5>{title}</h5>',
-        '<span class="details">',
-          '<span class="location">',
-            '{location}',
+        '<div class="container calendar-id-{calendarId} calendar-color">',
+          '<h5>{title}</h5>',
+          '<span class="details">',
+            '<span class="location">',
+              '{location}',
+            '</span>',
+            '{attendees|s}',
           '</span>',
-          '{attendees|s}',
-        '</span>',
-      '</li>'
+        '</div>',
+      '</section>'
     ].join('')
   });
 
+  Day.eventSelector = '.event';
   Day.hourEventsSelector = '.events';
 
   Calendar.ns('Templates').Day = Day;
