@@ -54,7 +54,9 @@ var Contacts = {
       var contact = request.result[matchResult.bestMatchIndex];
 
       if (1 < request.result.length) {
-        contact.name[0] = contact.name[0].substring(0,12) + '... or ' + (request.result.length - 1) + ' other';
+        var name = contact.name[0].substring(0, 12),
+            numOfothers = request.result.length - 1;
+        contact.name[0] = name + '... or ' + numOfothers + ' other';
       }
 
       var matchingTel = contact.tel[matchResult.localIndex];
