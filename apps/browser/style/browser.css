@@ -869,11 +869,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#settings h3 {
-  margin: 0 30px 15px 30px;
-  padding: 0;
-}
-
 #settings ul {
   margin: 0;
   padding: 0;
