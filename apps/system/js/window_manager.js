@@ -69,6 +69,7 @@ var WindowManager = (function() {
   var screenElement = document.getElementById('screen');
   var banner = document.getElementById('system-banner');
   var bannerContainer = banner.firstElementChild;
+  var wrapperFooter = document.querySelector('#wrapper');
 
   //
   // The set of running apps.
@@ -228,6 +229,9 @@ var WindowManager = (function() {
               getAppScreenshotFromFrame(openFrame,
                 function screenshotTaken() {
                   sprite.className = 'opened';
+                  if ('wrapper' in openFrame.dataset) {
+                    wrapperFooter.classList.add('visible');
+                  }
                 });
             });
 
@@ -235,6 +239,9 @@ var WindowManager = (function() {
         }
 
         sprite.className = 'opened';
+        if ('wrapper' in openFrame.dataset) {
+          wrapperFooter.classList.add('visible');
+        }
         break;
 
       case 'opened':
@@ -267,6 +274,9 @@ var WindowManager = (function() {
         screenElement.classList.remove('fullscreen-app');
 
         sprite.className = 'closed';
+        if ('wrapper' in closeFrame.dataset) {
+          wrapperFooter.classList.remove('visible');
+        }
         break;
 
       case 'closed':
