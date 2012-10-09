@@ -150,7 +150,6 @@ const IMERender = (function() {
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
       this.ime.insertBefore(pendingSymbolPanelCode(), this.ime.firstChild);
-      this.ime.classList.add('candidate-panel');
       showPendingSymbols('');
       showCandidates([], true);
     }

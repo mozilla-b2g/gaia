@@ -582,7 +582,7 @@ var Contacts = (function() {
 
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
-    var handlers = {
+    utils.listeners.add({
       '#cancel_activty': handleCancel, // Activity (any) cancellation
       '#cancel-edit': handleCancel, // Cancel edition
       '#save-button': contacts.Form.saveContact,
@@ -592,37 +592,21 @@ var Contacts = (function() {
       '#settings-done': doneTag,
       '#settings-close': contacts.Settings.close,
       '#cancel-search': contacts.Search.exitSearchMode, // Search related
-      '#search-contact': [{'event': 'focus',
-        'handler': contacts.Search.enterSearchMode},
-        {'event': 'keyup',
-        'handler': contacts.Search.search}],
+      '#search-contact': [
+        {
+          event: 'focus',
+          handler: contacts.Search.enterSearchMode
+        },
+        {
+          event: 'keyup',
+          handler: contacts.Search.search
+        }
+      ],
       '#details-back': handleBack, // Details
       '#edit-contact-button': showEditContact,
       '#toggle-favorite': contacts.Details.toggleFavorite,
       '#contact-form > button': contacts.Form.onNewFieldClicked
-    };
-
-    try {
-    for (var id in handlers) {
-      var handler = handlers[id];
-      var nodes = document.querySelectorAll(id);
-      for (var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        if (Array.isArray(handler)) {
-          handler.forEach(function handle(elem) {
-            if (!elem.hasOwnProperty('event') &&
-              !elem.hasOwnProperty('handler')) {
-              return;
-            }
-            node.addEventListener(
-              elem.event, elem.handler);
-          });
-        } else {
-          node.addEventListener('click', handler);
-        }
-      }
-    }
-    } catch(e) { console.log('---->' + e)}
+    });
   };
 
   return {

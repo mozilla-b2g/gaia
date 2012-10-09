@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -26,6 +27,9 @@
 
     <!-- Async. Storage -->
     <script type="application/javascript" src="/shared/js/async_storage.js"></script>
+
+    <!-- Load JSON files -->
+    <script type="application/javascript" defer src="js/utilities/config.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -1806,30 +1810,32 @@
       </ul>
     </section>
 
-    <!-- SIM Toolkit :: Application -->
-    <section role="region" id="icc-stk-app" data-leaf>
-      <header>
-        <button id="icc-stk-app-back"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <menu type="toolbar">
-          <button type="submit"><span data-l10n-id="done">Done</span></button>
-        </menu>
-        <!-- the title content is filled by icc.js -->
-        <h1 id="icc-stk-selection-header"> STK Application Name </h1>
-      </header>
-      <ul id="icc-stk-selection">
-        <!-- filled by icc.js -->
-      </ul>
-    </section>
-
     <!-- SIM Toolkit -->
     <section role="region" id="icc">
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 id="icc-stk-operator-header"> SIM Toolkit </h1>
+        <button id="icc-stk-app-back" class="hidden"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
+        <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>
-      <ul id="icc-stk-apps">
+      <header>
+        <h2 id="icc-stk-subheader"></h2>
+      </header>
+
+      <ul id="icc-stk-list">
         <!-- filled by icc.js -->
       </ul>
+
+      <form role="dialog" id="icc-stk-alert" class="hidden">
+        <section>
+          <h1 data-l10n-id="message">Message</h1>
+          <p id="icc-stk-alert-msg">
+            <!-- filled by icc.js -->
+          </p>
+        </section>
+        <menu>
+          <button data-l10n-id="ok" type="submit" id="icc-stk-alert-btn">Ok</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Main List -->

@@ -66,6 +66,7 @@ suite('views/modify_event', function() {
         '<button class="delete-record">delete</button>',
         '<div class="errors"></div>',
         '<form>',
+          '<input type="checkbox" name="allday" />',
           '<input name="title" />',
           '<input type="date" name="startDate" />',
           '<input type="date" name="endDate" />',
@@ -115,7 +116,7 @@ suite('views/modify_event', function() {
     assert.instanceOf(subject, Calendar.View);
     assert.equal(subject._changeToken, 0);
 
-    assert.deepEqual(subject._fields, {});
+    assert.ok(subject._fields, 'has fields');
   });
 
   test('.form', function() {
@@ -198,6 +199,11 @@ suite('views/modify_event', function() {
   });
 
   suite('#_displayModel', function() {
+    var list;
+
+    setup(function() {
+      list = subject.element.classList;
+    });
 
     function updatesValues() {
       // just to verify we actually clear fields...
@@ -248,7 +254,6 @@ suite('views/modify_event', function() {
     }
 
     test('provider can edit', function() {
-      var list = subject.element.classList;
       account.providerType = 'Local';
       updatesValues();
 
@@ -259,13 +264,30 @@ suite('views/modify_event', function() {
     });
 
     test('provider cannot edit', function() {
-      var list = subject.element.classList;
+      remote.startDate = new Date(2012, 0, 1, 10);
       account.providerType = 'Abstract';
       updatesValues();
-      assert.isTrue(list.contains(subject.READONLY));
+
+      assert.isTrue(list.contains(subject.READONLY), 'is readonly');
+      assert.isFalse(list.contains(subject.ALLDAY), 'is allday');
+
+      var allday = subject.getField('allday');
+      assert.isFalse(allday.checked, 'is allday');
 
       assert.equal(subject.provider, app.provider('Abstract'));
       assert.ok(getField('title').readOnly, 'marks readonly');
+
+    });
+
+    test('when start & end times are 00:00:00', function() {
+      remote.startDate = new Date(2012, 0, 1);
+      remote.endDate = new Date(2012, 0, 2);
+      updatesValues();
+
+      var allday = subject.getField('allday');
+      assert.isTrue(allday.checked, 'checks all day');
+
+      assert.ok(list.contains(subject.ALLDAY));
     });
   });
 
@@ -290,6 +312,7 @@ suite('views/modify_event', function() {
     var title = getField('title');
     title.value = 'foo';
 
+    list.add(subject.ALLDAY);
     list.add(subject.UPDATE);
     list.add(subject.CREATE);
     list.add(subject.READONLY);
@@ -298,12 +321,19 @@ suite('views/modify_event', function() {
     subject.provider = 'foobar';
     subject.model = 'foo';
 
+
+    var allday = subject.getField('allday');
+    allday.checked = true;
+
     subject.reset();
+
+    assert.isFalse(allday.checked, 'removes allday check');
 
     assert.isNull(subject._returnTo);
     assert.isNull(subject.provider, 'clear provider');
     assert.isNull(subject.model, 'clear model');
 
+    assert.isFalse(list.contains(subject.ALLDAY), 'allday');
     assert.isFalse(list.contains(subject.READONLY), 'readonly');
     assert.isFalse(list.contains(subject.CREATE), 'remove create class');
     assert.isFalse(list.contains(subject.UPDATE), 'remove update class');
@@ -360,6 +390,27 @@ suite('views/modify_event', function() {
     setup(function() {
       subject.useModel(event);
       subject.onfirstseen();
+    });
+
+    test('when allday', function() {
+      var allday = getField('allday');
+      allday.checked = true;
+
+      setFieldValue('startDate', '2012-01-01');
+      setFieldValue('endDate', '2012-01-02');
+
+      // we are verifying that these values are ignored.
+      // when allday is hidden we want to show the users
+      // originally selected values.
+      setFieldValue('endTime', '01:07:00');
+      setFieldValue('startTime', '01:08:00');
+
+      var props = subject.formData();
+
+      assert.hasProperties(subject.formData(), {
+        startDate: new Date(2012, 0, 1),
+        endDate: new Date(2012, 0, 2)
+      });
     });
 
     test('without modifications', function() {
@@ -635,7 +686,116 @@ suite('views/modify_event', function() {
     });
   });
 
+  suite('#_createModel', function() {
+    var controller;
+    var date = new Date(2012, 0, 1);
+
+    test('time is less then now', function() {
+      var now = new Date();
+      var start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() + 1
+      );
+
+      var end = new Date(start.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      var model = subject._createModel(date);
+
+      assert.hasProperties(
+        model,
+        { startDate: start, endDate: end }
+      );
+    });
+
+    test('time is greater then now', function() {
+      var now = new Date();
+      var start = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours() + 10
+      );
+
+      var end = new Date(start.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      var model = subject._createModel(start);
+
+      assert.hasProperties(
+        model,
+        { startDate: start, endDate: end }
+      );
+    });
+  });
+
   suite('dom events', function() {
+
+    suite('allday', function() {
+      var allday;
+      var list;
+
+      function check(value) {
+        allday.checked = value;
+        triggerEvent(allday, 'change');
+      }
+
+      setup(function() {
+        subject.onfirstseen();
+        subject.useModel(event);
+        list = subject.element.classList;
+        allday = subject.getField('allday');
+      });
+
+      test('initial', function() {
+        check(true);
+        assert.ok(list.contains(subject.ALLDAY), 'has allday');
+      });
+
+      test('uncheck', function() {
+        check(true);
+        check(false);
+        assert.ok(!list.contains(subject.ALLDAY), 'has allday');
+      });
+
+      test('when start & end are same dates', function() {
+        var model = subject.model;
+        var date = new Date(2012, 0, 1);
+        var value = InputParser.exportDate(date);
+
+        setFieldValue('startDate', value);
+        setFieldValue('endDate', value);
+
+        check(true);
+
+        var result = subject.formData();
+        var expected = {
+          startDate: new Date(2012, 0, 1),
+          endDate: new Date(2012, 0, 2)
+        };
+
+        // should increment end date by one.
+        assert.hasProperties(result, expected);
+      });
+    });
+
+    test('submit form', function() {
+      var calledWith;
+      var provider = app.provider('Local');
+
+      subject.onfirstseen();
+      subject.dispatch({ params: {} });
+
+      provider.createEvent = function() {
+        calledWith = arguments;
+      }
+
+      triggerEvent(subject.form, 'submit');
+      assert.ok(calledWith);
+    });
+
     test('delete button click', function(done) {
       var calledWith;
       var provider = eventStore.providerFor(event);
