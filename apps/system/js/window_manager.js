@@ -1213,9 +1213,25 @@ var WindowManager = (function() {
       var frameElement = detail.frameElement;
       try {
         var features = JSON.parse(detail.features);
-        frameElement.dataset.name = features.name || url;
+        var regExp = new RegExp('&nbsp;', 'g');
+
+        frameElement.dataset.name = features.name.replace(regExp, ' ') || url;
         frameElement.dataset.icon = features.icon || '';
-      } catch (ex) {}
+
+        if (features.origin) {
+          frameElement.dataset.originName =
+                                  features.origin.name.replace(regExp, ' ');
+          frameElement.dataset.originURL =
+                                  decodeURIComponent(features.origin.url);
+        }
+
+        if (features.search) {
+          frameElement.dataset.searchName =
+                                  features.search.name.replace(regExp, ' ');
+          frameElement.dataset.searchURL =
+                                  decodeURIComponent(features.search.url);
+        }
+      } catch (ex) { }
 
       appendFrame(frameElement, url, url, frameElement.dataset.name, {
         'name': frameElement.dataset.name
@@ -1351,4 +1367,3 @@ var WindowManager = (function() {
     }
   };
 }());
-
