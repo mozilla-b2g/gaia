@@ -183,6 +183,7 @@ suite('views/time_parent', function() {
     var date = new Date(2012, 0, 1);
 
     setup(function() {
+      subject.dir = 'left';
       subject.changeDate(date);
     });
 
@@ -211,6 +212,13 @@ suite('views/time_parent', function() {
 
       assert.ok(!nextFrame.active, 'has next frame (should be inactive)');
       assert.ok(!prevFrame.active, 'has prev frame (should be inactive)');
+    });
+
+    test('switching dates without animation', function() {
+      assert.ok(!subject.currentFrame.element.classList.contains(
+        'transition-out-' + subject.dir
+      ),
+      'no transition-out class');
     });
 
     test('sequentially activate second frame', function() {
@@ -259,6 +267,26 @@ suite('views/time_parent', function() {
       // verify other children where removed
       assert.length(subject.frameContainer.children, 3);
     });
+
+    test('switching dates with animation', function() {
+      date = new Date(2012, 1, 2);
+      subject.enableChildAnimation = true;
+      subject.changeDate(date);
+      assert.ok(subject.currentFrame.element.classList.contains(
+        'transition-out-' + subject.dir
+      ),
+        'no transition-out class'
+      );
+
+      assert.ok(
+        subject._temporaryCurrentFrame.element.classList.contains(
+          'transition-in-' + subject.dir
+        ),
+        'has transition class'
+      );
+
+    });
+
   });
 
   suite('#handleEvent', function() {
