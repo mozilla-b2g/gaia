@@ -50,11 +50,11 @@
   vertical-align: 0%;
 }
 .msg-header-item:active {
-  background-color: #ffc48c;
+  background-color: #b1f1ff;
 }
 .msg-header-unread-section {
   position: absolute;
-  left: .5rem;
+  left: 1.5rem;
   top: 50%;
   display: inline-block;
   height: .9rem;
@@ -69,12 +69,13 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 1.9rem;
+  left: 3.8rem;
   /* 100% - (unread-section) - (icons-section) - (avatar-section) */
   width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
-  line-height: 2.5rem;
+  line-height: 2.0rem;
+  padding: 1rem 0;
 }
 .msg-header-icons-section {
   display: block;
@@ -121,7 +122,7 @@
 .msg-header-subject {
   display: block;
   color: black;
-  font-weight: bold;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -342,7 +343,7 @@
 }
 
 .msg-messages-container.show-edit .msg-header-unread-section {
-  left: 4.5rem;
+  left: 3.9rem;
 }
 .msg-messages-container.show-edit .msg-header-details-section {
   left: 5.9rem;
