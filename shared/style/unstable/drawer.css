@@ -6,7 +6,7 @@ body[role="application"] section[role="region"][data-state="drawer"] {
   transform: translateX(80%);
 }
 
-body[role="application"] > nav { 
+body[role="application"] > nav {
   position: absolute;
   width: 80%;
   background: url(drawer/images/ui/pattern.png) repeat;
