@@ -1,0 +1,121 @@
+/* ----------------------------------
+* Tabs
+* ---------------------------------- */
+
+[role="tablist"]:not(.filter) {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  font-family: "Open Sans", Sans-serif;
+}
+
+[role="tablist"]:not(.filter) li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  float: left;
+}
+
+/* Items calcs */
+[role="tablist"]:not(.filter)[data-items="2"] li {
+  width: calc(100% / 2);
+}
+
+[role="tablist"]:not(.filter)[data-items="3"] li {
+  width: calc(100% / 3);
+}
+
+[role="tablist"]:not(.filter)[data-items="4"] li {
+  width: calc(100% / 4);
+}
+
+[role="tablist"]:not(.filter)[data-items="5"] li {
+  width: calc(100% / 5);
+}
+
+[role="tablist"]:not(.filter) [role="tab"] {
+  font-size: 1.3rem;
+  text-decoration: none;
+  line-height: 4rem;
+  text-align: center;
+  color: #FFF;
+  float: left;
+  width: 100%;
+  background: #000 no-repeat center top;
+  position: relative;
+}
+
+[role="tablist"]:not(.filter) [role="tab"]:active {
+  background-color: #008aaa;
+}
+
+[role="tablist"]:not(.filter) [role="tab"].icon {
+  font-size: 0;
+}
+
+[role="tablist"]:not(.filter) [role="tab"].icon:after {
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background: none no-repeat center top;
+  left: 0;
+  z-index: 1;
+}
+
+/* Base icons */
+[role="tablist"]:not(.filter) [role="tab"].icon-comms:after {
+  background-image: url(tabs/images/icons/comms.png);
+}
+
+[role="tablist"]:not(.filter) [role="tab"].icon-contacts:after {
+  background-image: url(tabs/images/icons/contacts.png);
+}
+
+[role="tablist"]:not(.filter) [role="tab"].icon-dialer:after {
+  background-image: url(tabs/images/icons/dialer.png);
+}
+
+/* Selected state */
+[role="tablist"]:not(.filter) :target .icon[role="tab"]:after {
+    background-position: center bottom;
+}
+
+[role="tablist"]:not(.filter) li[aria-disabled="true"] [role="tab"] {
+  background: #000;
+  color: #999;
+}
+
+[role="tablist"]:not(.filter) [role="tabpanel"] {
+  position: absolute;
+  top: 4rem;
+  left: 0;
+  visibility: hidden;
+  width: 100%;
+  height: calc(100% - 4rem);
+  z-index: 10;
+  display: block;
+  overflow: auto;
+}
+
+[role="tablist"]:not(.filter) :target [role="tabpanel"] {
+  z-index: 1;
+  visibility: visible;
+}
+
+/* Position bottom */
+[role="tablist"]:not(.filter).bottom li {
+  height: 100%;
+}
+
+[role="tablist"]:not(.filter).bottom [role="tab"] {
+  position: relative;
+  height: 4rem;
+  top: calc(100% - 4rem);
+}
+
+[role="tablist"]:not(.filter).bottom [role="tabpanel"] {
+  top: 0;
+}
