@@ -1,9 +1,6 @@
 .card-message-list {
 }
-.msg-list-header, .msg-listedit-header {
-  position: absolute;
-  top: 0;
-  left: 0;
+.msg-listedit-header {
 }
 .msg-list-scrollouter {
   height: 100%;
@@ -13,7 +10,7 @@
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
-  min-height: 53.6rem;
+  min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
 }
 
 /* Have enough scroll space to have the search bit pull out. */
@@ -32,10 +29,19 @@
 }
 
 .msg-search-tease-bar {
-  height: 2.4rem;
+  height: 4.8rem;
   background-color: #eee;
   border-radius: 4px;
   text-align: center;
+}
+
+.msg-search-text-tease {
+  width: 90%;
+  height: calc(100% - 1rem - 2px);
+  padding: 0;
+  border: 1px solid;
+  border-radius: 3px;
+  margin: 0.5rem 0;
 }
 
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
@@ -287,8 +293,6 @@
 }
 
 .msg-reply-all-btn {
-  position: absolute;
-  right: 6rem;
 }
 
 .msg-refresh-btn {

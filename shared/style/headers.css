@@ -182,6 +182,10 @@ section[role="region"] > header:first-child .icon.icon-edit {
   background-image: url(headers/images/icons/edit.png);
 }
 
+section[role="region"] > header:first-child .icon.icon-send {
+  background-image: url(headers/images/icons/send.png);
+}
+
 section[role="region"] > header:first-child .icon.icon-close {
   background-image: url(headers/images/icons/close.png);
 }
@@ -196,6 +200,14 @@ section[role="region"] > header:first-child .icon.icon-menu {
 
 section[role="region"] > header:first-child .icon.icon-user {
   background-image: url(headers/images/icons/user.png);
+}
+
+section[role="region"] > header:first-child .icon.icon-reply {
+  background-image: url(headers/images/icons/reply.png);
+}
+
+section[role="region"] > header:first-child .icon.icon-reply-all {
+  background-image: url(headers/images/icons/reply-all.png);
 }
 
 /* Navigation links (back, cancel, etc) */

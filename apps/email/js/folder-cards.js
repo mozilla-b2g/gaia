@@ -181,11 +181,11 @@ FolderPickerCard.prototype = {
     // Update header button icon status with title name.
     var icon = this.accountButton.firstElementChild;
     if (isAccount) {
-      icon.classList.remove('icon-account');
+      icon.classList.remove('icon-user');
       icon.classList.add('icon-back');
     } else {
       icon.classList.remove('icon-back');
-      icon.classList.add('icon-account');
+      icon.classList.add('icon-user');
     }
   },
 
