@@ -12,12 +12,14 @@ var Launcher = (function() {
     return WindowManager.getCurrentDisplayedApp().frame;
   }
 
+  var _ = navigator.mozL10n.get;
+
   var BUTTONBAR_TIMEOUT = 5000;
-  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
+  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 800;
 
   var footer = document.querySelector('#wrapper');
   window.addEventListener('appopen', function onAppOpen(e) {
-    if ('wrapper' in e.target.dataset) {
+    if ('wrapper' in currentAppFrame().dataset) {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
       onLocationChange();
       footer.classList.add('visible');
@@ -26,7 +28,7 @@ var Launcher = (function() {
   });
 
   window.addEventListener('appwillclose', function onAppClose(e) {
-    if ('wrapper' in e.target.dataset) {
+    if ('wrapper' in currentAppFrame().dataset) {
       window.removeEventListener('mozbrowserlocationchange', onLocationChange);
       footer.classList.remove('visible');
     }
@@ -66,10 +68,10 @@ var Launcher = (function() {
   }
 
   document.getElementById('handler').
-    addEventListener('click', toggleButtonBar);
+    addEventListener('mousedown', toggleButtonBar);
 
   document.getElementById('close-button').
-    addEventListener('click', toggleButtonBar);
+    addEventListener('mousedown', toggleButtonBar);
 
   var reload = document.getElementById('reload-button');
   reload.addEventListener('click', function doReload(evt) {
@@ -113,12 +115,13 @@ var Launcher = (function() {
   function onDisplayedApplicationChange() {
     setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
-    var name = currentAppFrame().dataset.name;
-    if (name) {
-      bookmarkButton.dataset.disabled = true;
+    var dataset = currentAppFrame().dataset;
+    if (dataset.originURL || dataset.searchURL) {
+      delete bookmarkButton.dataset.disabled;
       return;
     }
-    delete bookmarkButton.dataset.disabled;
+
+    bookmarkButton.dataset.disabled = true;
   }
 
   bookmarkButton.addEventListener('click', function doBookmark(evt) {
@@ -126,23 +129,54 @@ var Launcher = (function() {
       return;
 
     clearButtonBarTimeout();
-
     var dataset = currentAppFrame().dataset;
-    function confirm(value) {
+
+    function selected(value) {
       if (!value)
         return;
+
+      var name, url;
+      if (value === 'origin') {
+        name = dataset.originName;
+        url = dataset.originURL;
+        delete currentAppFrame().dataset.originURL;
+      }
+
+      if (value === 'search') {
+        name = dataset.searchName;
+        url = dataset.searchURL;
+        delete currentAppFrame().dataset.searchURL;
+      }
+
+      if (!currentAppFrame().dataset.originURL &&
+          !currentAppFrame().dataset.searchURL) {
+        bookmarkButton.dataset.disabled = true;
+      }
 
       new MozActivity({
         name: 'save-bookmark',
         data: {
           type: 'url',
-          url: dataset.frameOrigin,
-          name: dataset.name,
+          url: url,
+          name: name,
           icon: dataset.icon
         }
       });
     }
-    ModalDialog.confirm('Bookmark ' + dataset.name + '?', confirm);
+
+    var data = {
+      title: _('add-to-home-screen'),
+      options: []
+    };
+
+    if (dataset.originURL) {
+      data.options.push({ id: 'origin', text: dataset.originName });
+    }
+
+    if (dataset.searchURL) {
+      data.options.push({ id: 'search', text: dataset.searchName });
+    }
+
+    ModalDialog.selectOne(data, selected);
   });
 }());
-

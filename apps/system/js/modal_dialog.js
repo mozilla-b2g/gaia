@@ -20,7 +20,8 @@ var ModalDialog = {
     var elementsID = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
-      'error', 'error-back', 'error-reload'];
+      'error', 'error-back', 'error-reload', 'select-one', 'select-one-cancel',
+      'select-one-menu', 'select-one-title'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -59,7 +60,8 @@ var ModalDialog = {
     window.addEventListener('keyboardhide', this);
 
     for (var id in elements) {
-      if (elements[id].tagName.toLowerCase() == 'button') {
+      var tagName = elements[id].tagName.toLowerCase();
+      if (tagName == 'button' || tagName == 'ul') {
         elements[id].addEventListener('click', this);
       }
     }
@@ -96,8 +98,11 @@ var ModalDialog = {
           this.cancelHandler();
           WindowManager.reload(this.currentOrigin);
         } else if (evt.currentTarget === elements.confirmCancel ||
-          evt.currentTarget === elements.promptCancel) {
+          evt.currentTarget === elements.promptCancel ||
+          evt.currentTarget === elements.selectOneCancel) {
           this.cancelHandler();
+        } else if (evt.currentTarget === elements.selectOneMenu) {
+          this.selectOneHandler(evt.target);
         } else {
           this.confirmHandler();
         }
@@ -159,9 +164,11 @@ var ModalDialog = {
       return span.innerHTML;
     }
 
-    message = escapeHTML(message);
-
     var type = evt.detail.promptType || evt.detail.type;
+    if (type !== 'selectone') {
+      message = escapeHTML(message);
+    }
+
     switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
@@ -177,6 +184,11 @@ var ModalDialog = {
       case 'confirm':
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
+        break;
+
+      case 'selectone':
+        this.buildSelectOneDialog(message);
+        elements.selectOne.classList.add('visible');
         break;
 
       // Error
@@ -262,6 +274,12 @@ var ModalDialog = {
         elements.confirm.classList.remove('visible');
         break;
 
+      case 'selectone':
+        /* return null when click cancel */
+        evt.detail.returnValue = null;
+        elements.selectOne.classList.remove('visible');
+        break;
+
       case 'other':
         elements.error.classList.remove('visible');
         break;
@@ -275,6 +293,47 @@ var ModalDialog = {
       evt.detail.unblock();
 
     delete this.currentEvents[this.currentOrigin];
+  },
+
+  // When user selects an option on selectone dialog
+  selectOneHandler: function md_confirmHandler(target) {
+    this.screen.classList.remove('modal-dialog');
+    var elements = this.elements;
+
+    var evt = this.currentEvents[this.currentOrigin];
+
+    evt.detail.returnValue = target.id;
+    elements.selectOne.classList.remove('visible');
+
+    if (evt.isPseudo && evt.callback) {
+      evt.callback(evt.detail.returnValue);
+    }
+
+    if (evt.detail.unblock)
+      evt.detail.unblock();
+
+    delete this.currentEvents[this.currentOrigin];
+  },
+
+  buildSelectOneDialog: function md_buildSelectOneDialog(data) {
+    var elements = this.elements;
+    elements.selectOneTitle.textContent = data.title;
+    elements.selectOneMenu.innerHTML = '';
+
+    if (!data.options) {
+      return;
+    }
+
+    var itemsHTML = [];
+    for (var i = 0; i < data.options.length; i++) {
+      itemsHTML.push('<li><button id="');
+      itemsHTML.push(data.options[i].id);
+      itemsHTML.push('">');
+      itemsHTML.push(data.options[i].text);
+      itemsHTML.push('</button></li>');
+    }
+
+    elements.selectOneMenu.innerHTML = itemsHTML.join('');
   },
 
   // The below is for system apps to use.
@@ -300,6 +359,14 @@ var ModalDialog = {
       type: 'prompt',
       text: text,
       initialValue: default_value,
+      callback: callback
+    });
+  },
+
+  selectOne: function md_alert(data, callback) {
+    this.showWithPseudoEvent({
+      type: 'selectone',
+      text: data,
       callback: callback
     });
   },
