@@ -323,7 +323,7 @@ console.log('sf: showSearch. phrase:', phrase, phrase.length);
         author: filter === 'all' || filter === 'author',
         recipients: filter === 'all' || filter === 'recipients',
         subject: filter === 'all' || filter === 'subject',
-        body: filter === 'all' || filter === 'body',
+        body: filter === 'all' || filter === 'body'
       });
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMatchedMessageDom.bind(this,
@@ -348,7 +348,7 @@ console.log('sf: typed, now:', this.searchInput.value);
       if (this.messagesSlice)
         this.messagesSlice.die();
     }
-    catch(ex) {
+    catch (ex) {
       console.error('problem killing slice:', ex, '\n', ex.stack);
     }
     this.messagesSlice = null;
@@ -784,8 +784,8 @@ Cards.defineCard({
       tray: false
     },
     search: {
-      tray: false,
-    },
+      tray: false
+    }
   },
   constructor: MessageListCard
 });

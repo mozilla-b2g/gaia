@@ -61,6 +61,25 @@ Calendar.ns('Models').Event = (function() {
       this.remote.startDate = value;
     },
 
+    /**
+     * Checks if date object only contains date information (not time).
+     *
+     * Exampe:
+     *
+     *    var time = new Date(2012, 0, 1, 1);
+     *    this._isOnlyDate(time); // false
+     *
+     *    var time = new Date(2012, 0, 1);
+     *    this._isOnlyDate(time); // true
+     *
+     * @return {Boolean} see above.
+     */
+    _isOnlyDate: function(date) {
+      return (!date.getHours() &&
+              !date.getMinutes() &&
+              !date.getSeconds());
+    },
+
     /* end date */
 
     get endDate() {
@@ -76,6 +95,14 @@ Calendar.ns('Models').Event = (function() {
 
       this.remote.end = time;
       this.remote.endDate = value;
+    },
+
+    get isAllDay() {
+      var start = this.remote.startDate;
+      var end = this.remote.endDate;
+
+      return (this._isOnlyDate(start) &&
+              this._isOnlyDate(end));
     },
 
     /* associated records */

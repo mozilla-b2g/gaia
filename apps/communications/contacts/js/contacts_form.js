@@ -254,7 +254,7 @@ contacts.Form = (function() {
     }
 
     // Add event listeners
-    var boxTitle = rendered.querySelector('.setbox-title');
+    var boxTitle = rendered.querySelector('legend.action');
     if (boxTitle) {
       boxTitle.addEventListener('mousedown', onGoToSelectTag);
     }

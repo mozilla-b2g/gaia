@@ -11,6 +11,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
+    this._toggleAllDay = this._toggleAllDay.bind(this);
 
     this._initEvents();
   }
@@ -22,6 +23,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     CREATE: 'create',
     UPDATE: 'update',
     PROGRESS: 'in-progress',
+    ALLDAY: 'allday',
 
     DEFAULT_VIEW: '/month/',
 
@@ -41,6 +43,51 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this.saveButton.addEventListener('click', this.save);
       this.deleteButton.addEventListener('click', this.deleteRecord);
+      this.form.addEventListener('submit', this.save);
+
+      var allday = this.getField('allday');
+      allday.addEventListener('change', this._toggleAllDay);
+    },
+
+    /**
+     * Fired when the allday checkbox changes.
+     */
+    _toggleAllDay: function() {
+      var allday = this.getField('allday').checked;
+
+      if (allday) {
+        // enable case
+        this.element.classList.add(this.ALLDAY);
+
+        var start = this.getField('startDate').value;
+        var end = this.getField('endDate').value;
+
+        // parse dates so we can determine if they match
+        start = InputParser.importDate(start);
+        end = InputParser.importDate(end);
+
+        // if the dates match then the end date
+        // needs to be incremented by one otherwise
+        // the times are exactly the same.
+        if (start.year === end.year &&
+            start.month === end.month &&
+            start.date === end.date) {
+
+          // XXX: ideally we could pass a non-date
+          // object into the input parser ?
+          end = InputParser.exportDate(new Date(
+            end.year,
+            end.month,
+            end.date + 1
+          ));
+
+          this.getField('endDate').value = end;
+        }
+
+      } else {
+        // disable case
+        this.element.classList.remove(this.ALLDAY);
+      }
     },
 
     /**
@@ -295,14 +342,26 @@ Calendar.ns('Views').ModifyEvent = (function() {
         calendarId: this.getField('calendarId').value
       };
 
+      var startTime;
+      var endTime;
+      var allday = this.getField('allday').checked;
+
+      if (allday) {
+        startTime = null;
+        endTime = null;
+      } else {
+        startTime = this.getField('startTime').value;
+        endTime = this.getField('endTime').value;
+      }
+
       fields.startDate = InputParser.formatInputDate(
         this.getField('startDate').value,
-        this.getField('startTime').value
+        startTime
       );
 
       fields.endDate = InputParser.formatInputDate(
         this.getField('endDate').value,
-        this.getField('endTime').value
+        endTime
       );
 
       return fields;
@@ -354,13 +413,51 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this._updateForm();
 
+      // update calendar id
       this.getField('calendarId').value =
         model.calendarId;
 
+      // calendar display
       var currentCalendar = this.getField('currentCalendar');
+
+      // update the allday status of the view
+      var allday = this.getField('allday');
+      if (allday) {
+        allday.checked = model.isAllDay;
+        if (allday.checked) {
+          this.element.classList.add(this.ALLDAY);
+        }
+      }
 
       currentCalendar.value = calendar.name;
       currentCalendar.readOnly = true;
+    },
+
+    /**
+     * Builds and sets defaults for a new model.
+     *
+     * @return {Calendar.Models.Model} new model.
+     */
+    _createModel: function(time) {
+      var now = new Date();
+
+      if (time < now) {
+        time = now;
+        now.setHours(now.getHours() + 1);
+        now.setMinutes(0);
+        now.setSeconds(0);
+        now.setMilliseconds(0);
+      }
+
+      var model = new Calendar.Models.Event();
+      model.startDate = time;
+
+      var end = new Date(time.valueOf());
+      end.setHours(end.getHours() + 1);
+
+      model.endDate = end;
+
+      return model;
     },
 
     reset: function() {
@@ -369,6 +466,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
       list.remove(this.UPDATE);
       list.remove(this.CREATE);
       list.remove(this.READONLY);
+      list.remove(this.ALLDAY);
+
+      var allday = this.getField('allday');
+
+      if (allday) {
+        allday.checked = false;
+      }
 
       this._returnTo = null;
       this._markReadonly(false);
@@ -395,8 +499,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
         this._loadModel(id);
         classList.add(this.UPDATE);
       } else {
+        var controller = this.app.timeController;
         classList.add(this.CREATE);
-        this.model = new Calendar.Models.Event();
+        this.model = this._createModel(controller.mostRecentDay);
         this._updateForm();
       }
     },

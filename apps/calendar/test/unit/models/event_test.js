@@ -113,7 +113,41 @@ suite('models/event', function() {
         '.start'
       );
     });
+  });
 
+  suite('#isAllDay', function() {
+    setup(function() {
+      subject.startDate = new Date(
+        2012, 0, 1, 1, 1
+      );
+
+      subject.endDate = new Date(
+        2012, 0, 1, 2, 2
+      );
+    });
+
+    test('start 00:00:00', function() {
+      subject.startDate.setMinutes(0);
+      subject.startDate.setHours(0);
+      assert.isFalse(subject.isAllDay);
+    });
+
+    test('end 00:00:00', function() {
+      subject.endDate.setMinutes(0);
+      subject.endDate.setHours(0);
+      assert.isFalse(subject.isAllDay);
+    });
+
+    test('both at 00:00:00', function() {
+      // reset end
+      subject.endDate.setHours(0);
+      subject.endDate.setMinutes(0);
+      // reset start
+      subject.startDate.setHours(0);
+      subject.startDate.setMinutes(0);
+
+      assert.isTrue(subject.isAllDay);
+    });
   });
 
   test('#calendarId', function() {
