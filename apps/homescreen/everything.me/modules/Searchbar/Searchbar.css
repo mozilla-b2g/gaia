@@ -35,10 +35,15 @@
         vertical-align: middle;
         height: 28px;
         line-height: 28px;
+        -moz-transition: all .3s ease;
+        transition: all .3s ease;
     }
     
     .clear-visible #search-rapper {
         right: 60px;
+    }
+    .keyboard-visible .clear-visible #search-rapper {
+        right: 0;
     }
     .clear-visible #button-location {
         right: 62px;
@@ -124,7 +129,7 @@
         position: absolute;
         top: 9px;
         right: 0;
-        z-index: 20;
+        z-index: 30;
         width: 52px;
         height: 28px;
         line-height: 26px;
@@ -141,10 +146,28 @@
         -moz-user-select: none;
         -webkit-user-select: none;
         user-select: none;
+        overflow: hidden;
         display: none;
     }
     .clear-visible #button-clear {
         display: block;
+    }
+    .keyboard-visible .clear-visible #button-clear {
+        width: 20px;
+        height: 20px;
+        top: 14px;
+        right: 4px;
+        background-position: -38px -78px;
+        display: block;
+        font-size: 0;
+    }
+    .keyboard-visible .clear-visible #button-clear:before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        left: -5px;
+        bottom: -5px;
     }
     
     #button-location {

@@ -27,7 +27,7 @@ var UssdManager = {
 
   send: function um_send(message) {
     if (this._conn) {
-      var request = this._conn.sendUSSD(message);
+      var request = this._conn.sendMMI(message);
       request.onsuccess = this.notifySuccess.bind(this);
       request.onerror = this.notifyError.bind(this);
       if (!this._popup) {
@@ -109,7 +109,7 @@ var UssdManager = {
             this.send(evt.data.message);
             break;
           case 'close':
-            this._conn.cancelUSSD();
+            this._conn.cancelMMI();
             this._popup = null;
             break;
         }
