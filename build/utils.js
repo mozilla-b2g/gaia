@@ -1,4 +1,5 @@
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu } = Components;
+const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu,
+        'Constructor': CC } = Components;
 
 Cu.import('resource://gre/modules/Services.jsm');
 

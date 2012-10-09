@@ -160,7 +160,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions offline-cache install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -201,6 +201,11 @@ ifneq ($(DEBUG),1)
 	@$(call run-js-command, webapp-zip)
 	@echo "Done"
 endif
+
+offline-cache: webapp-manifests install-xulrunner-sdk
+	@echo "Populate external apps appcache"
+	@$(call run-js-command, offline-cache)
+	@echo "Done"
 
 # Create webapps
 offline: webapp-manifests webapp-zip
