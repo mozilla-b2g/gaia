@@ -736,6 +736,12 @@ var Cards = {
 
     // Hide toaster while active card index changed:
     Toaster.hide();
+    // Popup toaster that pended for previous card view.
+    var pendingToaster = Toaster.pendingStack.slice(-1)[0];
+    if (pendingToaster && showMethod == 'immediate') {
+      pendingToaster();
+      Toaster.pendingStack.pop();
+    }
 
     this.activeCardIndex = cardIndex;
     if (cardInst)
@@ -804,12 +810,12 @@ var Toaster = {
   get body() {
     delete this.body;
     return this.body =
-           document.querySelector('section[role="dialog"].banner');
+           document.querySelector('section[role="status"]');
   },
   get text() {
     delete this.text;
     return this.text =
-           document.querySelector('section[role="dialog"].banner p');
+           document.querySelector('section[role="status"] p');
   },
   /**
    * Toaster timeout setting.
@@ -835,18 +841,28 @@ var Toaster = {
    * to appropriately report the error or what not when the send conclusively
    * fails or succeeds.
    */
-  trackSendMessage: function() {
+  pendingStack: [],
+  trackSendMessage: function(callback) {
+    if (callback) {
+      this.show('retry', callback);
+    } else {
+      this.show('text', mozL10n.get('toaster-message-send-success'));
+    }
   },
 
   /**
    * Tell toaster listeners about a mutation we just made.
    */
-  logMutation: function(undoableOp) {
+  logMutation: function(undoableOp, pending) {
     //Close previous toaster before showing the new one.
     if (!this.body.classList.contains('collapsed')) {
       this.hide();
     }
-    this.show('undo', undoableOp);
+    if (pending) {
+      this.pendingStack.push(this.show.bind(this, 'undo', undoableOp));
+    } else {
+      this.show('undo', undoableOp);
+    }
   },
 
   handleEvent: function(evt) {
@@ -857,7 +873,10 @@ var Toaster = {
           // this.undoableOp.undo();
           this.hide();
         } else if (evt.target.classList.contains('toaster-banner-retry')) {
-          // TODO: Handle send retry here.
+          // TODO: Need more refine on resend ability. Disable retry operation
+          //       temporary.
+          // this.retryOp();
+          this.hide();
         } else if (evt.target.classList.contains('toaster-cancel-btn')) {
           this.hide();
         }
@@ -873,15 +892,16 @@ var Toaster = {
     if (type == 'undo') {
       this.undoableOp = operation;
       // There is no need to show toaster is affected message count < 1
-      if (this.undoableOp.affectedCount < 1) {
+      if (!this.undoableOp || this.undoableOp.affectedCount < 1) {
         return;
       }
       var textId = 'toaster-message-' + this.undoableOp.operation;
       text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
     } else if (type == 'retry') {
-      // TODO: Showing the send retry text and related operation.
-    } else {
-      // TODO: Maybe we can show pure text only toaster here.
+      this.retryOp = operation;
+      text = mozL10n.get('toaster-message-send-failed');
+    } else if (type == 'text') {
+      text = operation;
     }
 
     this.body.title = type;
@@ -901,6 +921,7 @@ var Toaster = {
     this.body.removeEventListener('transitionend', this);
     // Clear operations:
     this.undoableOp = null;
+    this.retryOp = null;
   }
 };
 
