@@ -303,7 +303,10 @@ section#icc .hiddenheader {
   background: none;
 }
 
-section#icc #icc-stk-alert {
+section#icc .hidden {
   display: none;
+}
+
+section#icc #icc-stk-alert {
   position: fixed;
 }

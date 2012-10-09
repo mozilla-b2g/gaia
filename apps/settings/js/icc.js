@@ -197,8 +197,8 @@
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
       clearList();
 
-      document.getElementById('icc-stk-exit').style.display = 'block';
-      document.getElementById('icc-stk-app-back').style.display = 'none';
+      document.getElementById('icc-stk-exit').classList.remove('hidden');
+      document.getElementById('icc-stk-app-back').classList.add('hidden');
 
       if (!menu) {
         var _ = window.navigator.mozL10n.get;
@@ -247,8 +247,8 @@
     debug('Showing STK menu');
     clearList();
 
-    document.getElementById('icc-stk-exit').style.display = 'none';
-    document.getElementById('icc-stk-app-back').style.display = 'block';
+    document.getElementById('icc-stk-exit').classList.add('hidden');
+    document.getElementById('icc-stk-app-back').classList.remove('hidden');
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
@@ -349,7 +349,7 @@
     var options = command.options;
     if (!options.userClear) {
     var timeoutId = setTimeout(function() {
-        alertbox.style.display = 'none';
+        alertbox.classList.add('hidden');
         if (cb) {
           cb(false);
         }
@@ -359,14 +359,14 @@
 
     alertbox_btn.onclick = function() {
       clearTimeout(timeoutId);
-      alertbox.style.display = 'none';
+      alertbox.classList.add('hidden');
       if (cb) {
         cb(true);
       }
     };
 
     alertbox_msg.textContent = options.text;
-    alertbox.style.display = 'block';
+    alertbox.classList.remove('hidden');
   }
 
   /**
