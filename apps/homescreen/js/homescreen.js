@@ -82,13 +82,18 @@ const Homescreen = (function() {
       function handleActivity(activity) {
         var data = activity.source.data;
 
-        // issue 3457: Implement a UI when saving bookmarks to the homescreen
-        switch (data.type) {
-          case 'url':
-            BookmarkEditor.init(data);
+        switch (activity.source.name) {
+          case 'save-bookmark':
+            if (data.type === 'url') {
+              BookmarkEditor.init(data);
+            }
+
             break;
-          case 'application/x-application-list':
-            onHomescreenActivity();
+          case 'view':
+            if (data.type === 'application/x-application-list') {
+              onHomescreenActivity();
+            }
+
             break;
         }
       });
@@ -106,12 +111,12 @@ const Homescreen = (function() {
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
       if (app.isBookmark) {
-        title = _('remove-title', { app: app.manifest.name });
+        title = _('remove-title', { name: app.manifest.name });
         body = '';
         yesLabel = _('remove');
       } else {
-        title = _('delete-title', { app: app.manifest.name });
-        body = _('delete-body', { app: app.manifest.name });
+        title = _('delete-title', { name: app.manifest.name });
+        body = _('delete-body', { name: app.manifest.name });
         yesLabel = _('delete');
       }
 
