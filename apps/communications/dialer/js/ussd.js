@@ -46,11 +46,8 @@ var UssdManager = {
 
   notifySuccess: function um_notifySuccess(evt) {
     var message = {
-      type: 'success'
-      // For the time being the RIL sends an Object in the
-      // DOMRequest.result with no content so we notify no result
-      // to the UI instead of:
-      // result: evt.target.result
+      type: 'success',
+      result: evt.target.result
     };
     if (this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);

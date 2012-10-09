@@ -104,8 +104,21 @@ var UssdUI = {
 
     switch (evt.data.type) {
       case 'success':
-        this.showMessage(evt.data.result ?
-          evt.data.result : this._('message-successfully-sent'));
+        var message = '',
+          result = evt.data.result;
+        if (typeof result === 'object') {
+          var keys = Object.keys(result),
+            keysLength = keys.length;
+          for (var i = 0; i < keysLength; i++)
+            message += keys[i] + ": " + result[keys[i]] + '\n';
+          // We have observed that in some cases we get an Object as
+          // the evt.data.result with no properties.
+          if (keysLength === 0)
+            message = this._('message-successfully-sent');
+        }
+        else
+          message = this._('message-successfully-sent');
+        this.showMessage(message);
         break;
       case 'error':
         this.showMessage(evt.data.error ?
