@@ -71,12 +71,10 @@ function getJSON(file) {
   return JSON.parse(content);
 }
 
-const Gaia = {
-  engine: GAIA_ENGINE,
-  sharedFolder: getFile(GAIA_DIR, 'shared'),
-  webapps: {
+function makeWebappsObject(dirs) {
+  return {
     forEach: function (fun) {
-      let appSrcDirs = GAIA_APP_SRCDIRS.split(' ');
+      let appSrcDirs = dirs.split(' ');
       appSrcDirs.forEach(function parseDirectory(directoryName) {
         let directories = getSubDirectories(directoryName);
         directories.forEach(function readManifests(dir) {
@@ -95,11 +93,28 @@ const Gaia = {
             sourceDirectoryName: dir,
             sourceAppDirectoryName: directoryName
           };
+
+          // External webapps have an `origin` file
+          let origin = webapp.sourceDirectoryFile.clone();
+          origin.append('origin');
+          if (origin.exists()) {
+            let url = getFileContent(origin);
+            // Strip any leading/ending spaces
+            webapp.origin = url.replace(/^\s+|\s+$/, '');
+          }
+
           fun(webapp);
         });
       });
     }
-  }
+  };
+}
+
+const Gaia = {
+  engine: GAIA_ENGINE,
+  sharedFolder: getFile(GAIA_DIR, 'shared'),
+  webapps: makeWebappsObject(GAIA_APP_SRCDIRS),
+  externalWebapps: makeWebappsObject('external-apps')
 };
 
 function registerProfileDirectory() {
