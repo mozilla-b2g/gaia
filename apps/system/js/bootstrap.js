@@ -1,9 +1,9 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
-function startup() {
+window.addEventListener('load', function startup() {
   function launchHomescreen() {
     var activity = new MozActivity({
       name: 'view',
@@ -43,7 +43,7 @@ function startup() {
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-}
+});
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */

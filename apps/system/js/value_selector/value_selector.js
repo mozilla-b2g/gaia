@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -56,6 +56,7 @@ var ValueSelector = {
 
 
     this._element = document.getElementById('value-selector');
+    this._element.addEventListener('mousedown', this);
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
@@ -63,6 +64,7 @@ var ValueSelector = {
 
     this._popups['select'] =
       document.getElementById('select-option-popup');
+    this._popups['select'].addEventListener('submit', this);
     this._popups['time'] =
       document.getElementById('time-picker-popup');
     this._popups['date'] =
@@ -80,9 +82,20 @@ var ValueSelector = {
     this._containers['time'] = document.getElementById('picker-bar');
     this._containers['date'] = document.getElementById('date-picker-container');
 
-
     ActiveEffectHelper.enableActive(this._buttons['select']);
     ActiveEffectHelper.enableActive(this._buttons['time']);
+    ActiveEffectHelper.enableActive(this._buttons['date']);
+
+    // Prevent focus being taken away by us for time picker.
+    // The event listener on outer box will not be triggered cause
+    // there is a evt.stopPropagation() in value_picker.js
+    var pickerElements = ['value-picker-hours', 'value-picker-minutes',
+                         'value-picker-hour24-state'];
+
+    pickerElements.forEach((function pickerElements_forEach(id) {
+      var element = document.getElementById(id);
+      element.addEventListener('mousedown', this);
+    }).bind(this));
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -113,6 +126,13 @@ var ValueSelector = {
             this.handleSelect(evt.target);
             break;
         }
+        break;
+
+      case 'submit':
+        // Prevent the form from submit.
+      case 'mousedown':
+        // Prevent focus being taken away by us.
+        evt.preventDefault();
         break;
 
       default:
