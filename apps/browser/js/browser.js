@@ -45,7 +45,6 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    window.addEventListener('keyup', this, true);
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
