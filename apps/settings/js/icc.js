@@ -1,9 +1,9 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-(function() {
-  'use strict';
+'use strict';
 
+(function() {
   /**
    * Constants. Set in config.json file
    */
