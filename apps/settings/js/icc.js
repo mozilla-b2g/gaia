@@ -63,12 +63,15 @@
       };
 
       document.getElementById('icc-stk-app-back').onclick = function goBack() {
-        responseSTKCommand({ resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+        });
       };
 
       window.onunload = function() {
-        responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER },
-                           true);
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+        }, true);
       };
 
       navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
@@ -111,7 +114,9 @@
         window.asyncStorage.setItem('stkMainAppMenu', options);
         updateMenu();
         iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         break;
 
       case icc.STK_CMD_SELECT_ITEM:
@@ -130,7 +135,9 @@
         debug(' STK:Show message: ' + JSON.stringify(command));
         if (options.responseNeeded) {
           iccLastCommandProcessed = true;
-          responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+          responseSTKCommand({
+            resultCode: icc.STK_RESULT_OK
+          });
           displayText(command, null);
         } else {
           displayText(command, function(userCleared) {
@@ -138,11 +145,14 @@
             iccLastCommandProcessed = true;
             if (command.options.userClear && !userCleared) {
               debug('No response from user (Timeout)');
-              responseSTKCommand(
-                { resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER });
+              responseSTKCommand({
+                resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+              });
             } else {
               debug('User closed the alert');
-              responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+              responseSTKCommand({
+                resultCode: icc.STK_RESULT_OK
+              });
             }
           });
         }
@@ -153,7 +163,9 @@
       case icc.STK_CMD_SEND_USSD:
         debug(' STK:Send message: ' + JSON.stringify(command));
         iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         // TODO: Show a spinner instead the message (UX decission).
         // Stop it on any other command
         break;
@@ -166,14 +178,18 @@
         }
         var confirmed = confirm(msg + ' ' + options.address);
         iccLastCommandProcessed = true;
-        responseSTKCommand({ hasConfirmed: confirmed,
-                             resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({
+          hasConfirmed: confirmed,
+          resultCode: icc.STK_RESULT_OK
+        });
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
         iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         if (confirm(options.confirmMessage)) {
           openURL(options.url);
         }
@@ -183,7 +199,9 @@
         debug('STK Message not managed ... response OK');
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
         iccLastCommandProcessed = true;
-        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
     }
   }
 
@@ -268,8 +286,10 @@
 
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
-    responseSTKCommand({resultCode: icc.STK_RESULT_OK,
-                        itemIdentifier: identifier});
+    responseSTKCommand({
+      resultCode: icc.STK_RESULT_OK,
+      itemIdentifier: identifier
+    });
     stkLastSelectedTest = event.target.textContent;
   }
 
@@ -328,8 +348,10 @@
     }
     button.onclick = function(event) {
       var value = document.getElementById('stk-item-input').value;
-      responseSTKCommand({resultCode: icc.STK_RESULT_OK,
-                          input: value});
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_OK,
+        input: value
+      });
     };
 
     input.onkeyup = function(event) {
