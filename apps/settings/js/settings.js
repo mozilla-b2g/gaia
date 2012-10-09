@@ -216,6 +216,7 @@ var Settings = {
       case 'range':
         value = parseFloat(input.value).toFixed(1); // float
         break;
+      case 'select-one':
       case 'radio':
       case 'text':
       case 'password':
@@ -387,7 +388,6 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {
     // first run: show main page
-    document.location.hash = 'root';
     document.body.classList.remove('hidden');
   } else {
     // we were in #languages and selected another locale:

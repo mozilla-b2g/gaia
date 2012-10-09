@@ -87,7 +87,7 @@ suite('views/month', function() {
         calledClear = true;
       }
 
-      subject._activateTime = function(month) {
+      subject.changeDate = function(month) {
         calledActivateTime = month;
       };
 
@@ -188,12 +188,6 @@ suite('views/month', function() {
     var time = new Date(2012, 1, 1);
     controller.move(time);
     subject.render();
-
-    assert.equal(subject.children.length, 3);
-    assert.length(subject._activeChildren, 1);
-    assert.ok(
-      subject._activeChildren.get(subject._getId(time))
-    );
   });
 
 });

@@ -292,6 +292,10 @@ footer {
   box-shadow: 0px -2px 5px rgba(50, 50, 50, 0.75);
 }
 
+.icon.icon-done {
+  background-image: url('images/actionicon_done.png') !important;
+}
+
 #thumbnails-camera-button {
   position: absolute;
   width: 50%;
@@ -344,11 +348,7 @@ footer {
   width: 20%;
   height: 100%;
   left: 0;
-  /*
-   * XXX
-   * The dialpad icon looks kind of like a  grid of thumbnail images
-   */
-  background-image: url('images/actionicon_dialpad.png');
+  background-image: url('images/actionicon_grid_view.png');
 }
 
 #photos-camera-button {
@@ -476,7 +476,7 @@ footer {
   top: 10px;
   left: 10px;
   width: 300px;  /* I can't do right: 10px here. Bug? */
-  height: calc(100% - 10px)  /* can't just set bottom: 10px here */
+  height: calc(100% - 20px)  /* can't just set bottom: 10px here */
 }
 
 #edit-crop-canvas { 
@@ -530,7 +530,7 @@ footer {
   overflow: hidden;
   padding-top: 16px;
   font-size: 12px;
-  background-position: center 5px;
+  background-position: center;
 }
 
 #edit-crop-options a.selected.radio.button {

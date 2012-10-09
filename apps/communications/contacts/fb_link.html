@@ -20,10 +20,11 @@
     <script type="text/javascript" src="/shared/js/l10n.js"></script>
 
     <script  defer type="text/javascript" src="js/utilities/templates.js"></script>
-    <script  defer type="text/javascript" src="js/fb/fb_utils.js"></script>
+    <script  defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
 
     <script  defer type="text/javascript" src="oauth2/js/flow.js"></script>
     <script  defer type="text/javascript" src="oauth2/js/parameters.js"></script>
+    <script  defer type="text/javascript" src="js/fb/fb_utils.js"></script>
 
     <script  defer type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
@@ -42,7 +43,7 @@
     <section role="region" id="content" class="link">
 
       <header aria-level="1">
-        <a href="#" onclick="fb.link.ui.end(event)">
+        <a href="#" id="link-close">
           <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
         <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
@@ -55,7 +56,7 @@
       <section id="main">
         <!-- Contacts List Section -->
         <section id="mainContent" data-state="selection">
-          <ol id="friends-list" onclick="fb.link.ui.selected(event)">
+          <ol id="friends-list">
             <li data-template data-uuid="#uid#">
               <img src="https://graph.facebook.com/#uid#/picture?type=square">
                 <dl>
@@ -67,7 +68,7 @@
         </section> <!-- mainContent -->
 
       <menu data-items="1">
-        <button id="view-all" onclick="fb.link.ui.viewAllFriends(event)" data-l10n-id="viewAll">
+        <button id="view-all" data-l10n-id="viewAll">
           View all Facebook Friends
         </button>
       </menu>

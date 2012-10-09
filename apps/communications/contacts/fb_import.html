@@ -21,7 +21,12 @@
 
     <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
+
+    <script defer type="text/javascript" src="oauth2/js/flow.js"></script>
+    <script defer type="text/javascript" src="oauth2/js/parameters.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_utils.js"></script>
+
     <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
     <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
 
@@ -29,9 +34,6 @@
     <script defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
     <script defer type="text/javascript" src="js/search.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_import.js"></script>
-
-    <script defer type="text/javascript" src="oauth2/js/flow.js"></script>
-    <script defer type="text/javascript" src="oauth2/js/parameters.js"></script>
 
     <script defer type="text/javascript" src="js/fb/fb_data.js"></script>
     <script defer type="text/javascript" src="js/fb/fb_contact.js"></script>
@@ -46,11 +48,11 @@
     <section role="region" id="content" class="facebook">
 
       <header>
-        <a href="#" onclick="fb.importer.ui.end(event)">
+        <a href="#" id="import-close">
           <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
         <menu type="toolbar">
-          <button  onclick="fb.importer.ui.importAll(event)" data-l10n-id="import">
+          <button  id="import-action" data-l10n-id="import">
             Import
           </button>
         </menu>
@@ -108,7 +110,7 @@
         </section> <!-- mainContent -->
 
         <menu id="select-all-wrapper" data-items="1">
-          <button id="select-all" onclick="fb.importer.ui.selectAll(event)" data-l10n-id="selectAll">
+          <button id="select-all" data-l10n-id="selectAll">
             Select All
           </button>
         </menu>
@@ -120,8 +122,9 @@
       <section id="search-view" class="view">
         <form id="searchview-container" class="search">
            <label for="search-contact">
-             <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.Search.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.Search.search()" data-l10n-id="search-contact" />
-             <button id='cancel-search' onclick='return contacts.Search.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
+             <input data-cancelable required type="search" name="search" class="textfield"
+                    placeholder="Search" id="search-contact"  data-l10n-id="search-contact">
+             <button id='cancel-search' data-l10n-id="cancel">Cancel</button>
            </label>
          </form>
       </section>

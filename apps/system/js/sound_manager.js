@@ -12,12 +12,16 @@
   });
 
   var currentVolume = 5;
+  var pendingRequestCount = 0;
 
   // We have three virtual states here:
   // OFF -> VIBRATION -> MUTE
   var muteState = 'OFF';
 
   SettingsListener.observe('audio.volume.master', 5, function(volume) {
+    if (pendingRequestCount)
+      return;
+
     currentVolume = volume * 10;
   });
 
@@ -94,8 +98,17 @@
     if (!window.navigator.mozSettings)
       return;
 
-    SettingsListener.getSettingsLock().set({
+    pendingRequestCount++;
+    var req = SettingsListener.getSettingsLock().set({
       'audio.volume.master': currentVolume / 10
     });
+
+    req.onsuccess = function onSuccess() {
+      pendingRequestCount--;
+    };
+
+    req.onerror = function onError() {
+      pendingRequestCount--;
+    };
   }
 })();

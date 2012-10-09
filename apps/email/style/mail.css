@@ -160,6 +160,8 @@ button[disabled=""] {
 }
 .bottom-btn {
   height: 4.8rem;
+  border: none;
+  width: 6rem;
 }
 /* create a space the size of the toolbar since it is absolute...*/
 .bottom-toolbar-spacer {
@@ -194,6 +196,10 @@ button[disabled=""] {
 
 .menu-item:last-child {
   border-bottom: none;
+}
+
+.highlight {
+  background-color: #f3f3D3;
 }
 
 .icon {

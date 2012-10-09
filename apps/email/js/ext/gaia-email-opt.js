@@ -3486,6 +3486,29 @@ MailHeader.prototype = {
 };
 
 /**
+ * Represents a mail message that matched some search criteria by providing
+ * both the header and information about the matches that occurred.
+ */
+function MailMatchedHeader(slice, wireRep) {
+  this.header = new MailHeader(slice, wireRep.header);
+  this.matches = wireRep.matches;
+
+  this.element = null;
+  this.data = null;
+}
+MailMatchedHeader.prototype = {
+  toString: function() {
+    return '[MailMatchedHeader: ' + this.header.id + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailMatchedHeader',
+      id: this.header.id
+    };
+  },
+};
+
+/**
  * Lists the attachments in a message as well as providing a way to display the
  * body while (eventually) also accounting for message quoting.
  *
@@ -4211,6 +4234,13 @@ MailAPI.prototype = {
         }
         break;
 
+      case 'matchedHeaders':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailMatchedHeader(slice, addItems[i]));
+        }
+        break;
+
+
       default:
         console.error('Slice notification for unknown type:', slice._ns);
         break;
@@ -4619,12 +4649,39 @@ MailAPI.prototype = {
    * recipients, or subject fields, as well as (optionally), the body with a
    * default time constraint so we don't entirely kill the server or us.
    *
-   * Expected UX: run the search once without body, then the user can ask for
-   * the body search too if the first match doesn't meet their expectations.
+   * @args[
+   *   @param[folder]{
+   *     The folder whose messages we should search.
+   *   }
+   *   @param[text]{
+   *     The phrase to search for.  We don't split this up into words or
+   *     anything like that.  We just do straight-up indexOf on the whole thing.
+   *   }
+   *   @param[whatToSearch @dict[
+   *     @key[author #:optional Boolean]
+   *     @key[recipients #:optional Boolean]
+   *     @key[subject #:optional Boolean]
+   *     @key[body #:optional @oneof[false 'no-quotes' 'yes-quotes']]
+   *   ]]
+   * ]
    */
-  quicksearchFolderMessages:
-      function ma_quicksearchFolderMessages(folder, text, searchBodyToo) {
-    throw new Error("NOT YET IMPLEMENTED");
+  searchFolderMessages:
+      function ma_searchFolderMessages(folder, text, whatToSearch) {
+    var handle = this._nextHandle++,
+        slice = new BridgedViewSlice(this, 'matchedHeaders', handle);
+    // the initial population counts as a request.
+    slice.pendingRequestCount++;
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'searchFolderMessages',
+      folderId: folder.id,
+      handle: handle,
+      phrase: text,
+      whatToSearch: whatToSearch,
+    });
+
+    return slice;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -14041,6 +14098,7 @@ function MailBridge(universe) {
     identities: [],
     folders: [],
     headers: [],
+    matchedHeaders: [],
   };
   // outstanding persistent objects that aren't slices. covers: composition
   this._pendingRequests = {};
@@ -14351,6 +14409,15 @@ console.log('done proc modifyConfig');
 
     var account = this.universe.getAccountForFolderId(msg.folderId);
     account.sliceFolderMessages(msg.folderId, proxy);
+  },
+
+  _cmd_searchFolderMessages: function mb__cmd_searchFolderMessages(msg) {
+    var proxy = this._slices[msg.handle] =
+          new SliceBridgeProxy(this, 'matchedHeaders', msg.handle);
+    this._slicesByType['matchedHeaders'].push(proxy);
+    var account = this.universe.getAccountForFolderId(msg.folderId);
+    account.searchFolderMessages(
+      msg.folderId, proxy, msg.phrase, msg.whatToSearch);
   },
 
   _cmd_refreshHeaders: function mb__cmd_refreshHeaders(msg) {
@@ -23604,6 +23671,13 @@ SmtpProber.prototype = {
   /**
    * Create a new ActiveSync connection.
    *
+   * ActiveSync connections use XMLHttpRequests to communicate with the
+   * server. These XHRs are created with mozSystem: true and mozAnon: true to,
+   * respectively, help with CORS, and to ignore the authentication cache. The
+   * latter is important because 1) it prevents the HTTP auth dialog from
+   * appearing if the user's credentials are wrong and 2) it allows us to
+   * connect to the same server as multiple users.
+   *
    * @param aEmail the user's email address
    * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
@@ -23795,7 +23869,7 @@ SmtpProber.prototype = {
       let w = new WBXML.Writer('1.3', 1, 'UTF-8');
       w.stag(pv.Provision)
         .etag();
-      this.doCommand(w, aCallback);
+      this.postCommand(w, aCallback);
     },
 
     /**
@@ -23823,7 +23897,7 @@ SmtpProber.prototype = {
       let conn = this;
       if (!aCallback) aCallback = nullCallback;
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
@@ -23929,7 +24003,7 @@ SmtpProber.prototype = {
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
 
       xhr.onload = function() {
@@ -23972,7 +24046,16 @@ SmtpProber.prototype = {
     },
 
     /**
-     * Send a command to the ActiveSync server and listen for the response.
+     * DEPRECATED. See postCommand() below.
+     */
+    doCommand: function() {
+      console.warn('doCommand is deprecated. Use postCommand instead.');
+      this.postCommand.apply(this, arguments);
+    },
+
+    /**
+     * Send a WBXML command to the ActiveSync server and listen for the
+     * response.
      *
      * @param aCommand the WBXML representing the command or a string/tag
      *        representing the command type for empty commands
@@ -23980,78 +24063,102 @@ SmtpProber.prototype = {
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    doCommand: function(aCommand, aCallback) {
-      if (!aCallback) aCallback = nullCallback;
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
+      const contentType = 'application/vnd.ms-sync.wbxml';
 
-      if (this.connected) {
-        this._doCommandReal(aCommand, aCallback);
+      if (typeof aCommand === 'string' || typeof aCommand === 'number') {
+        this.postData(aCommand, contentType, null, aCallback, aExtraParams,
+                      aExtraHeaders);
       }
       else {
-        this.connect((function(aError, aConfig) {
-          if (aError)
-            aCallback(aError);
-          else {
-            this._doCommandReal(aCommand, aCallback);
-          }
-        }).bind(this));
+        let r = new WBXML.Reader(aCommand, ASCP);
+        let commandName = r.document.next().localTagName;
+        this.postData(commandName, contentType, aCommand.buffer, aCallback,
+                      aExtraParams, aExtraHeaders);
       }
     },
 
     /**
-     * Perform the actual process of sending a command to the ActiveSync server
-     * and getting the response.
+     * Send arbitrary data to the ActiveSync server and listen for the response.
      *
-     * @param aCommand the WBXML representing the command or a string/tag
-     *        representing the command type for empty commands
+     * @param aCommand a string (or WBXML tag) representing the command type
+     * @param aContentType the content type of the post data
+     * @param aData the data to be posted
      * @param aCallback a callback to call when the server has responded; takes
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    _doCommandReal: function(aCommand, aCallback) {
-      let commandName;
+    postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
+                       aExtraHeaders) {
+      // Make sure our command name is a string.
+      if (typeof aCommand === 'number')
+        aCommand = ASCP.__tagnames__[aCommand];
 
-      if (typeof aCommand === 'string') {
-        commandName = aCommand;
-      }
-      else if (typeof aCommand === 'number') {
-        commandName = ASCP.__tagnames__[aCommand];
-      }
-      else {
-        let r = new WBXML.Reader(aCommand, ASCP);
-        commandName = r.document.next().localTagName;
-      }
-
-      if (!this.supportsCommand(commandName)) {
+      if (!this.supportsCommand(aCommand)) {
         let error = new Error("This server doesn't support the command " +
-                              commandName);
+                              aCommand);
         console.log(error);
         aCallback(error);
         return;
       }
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseUrl +
-               '?Cmd='        + encodeURIComponent(commandName) +
-               '&User='       + encodeURIComponent(this._email) +
-               '&DeviceId='   + encodeURIComponent(this._deviceId) +
-               '&DeviceType=' + encodeURIComponent(this._deviceType),
-               true);
+      // Build the URL parameters.
+      let params = [
+        ['Cmd', aCommand],
+        ['User', this._email],
+        ['DeviceId', this._deviceId],
+        ['DeviceType', this._deviceType]
+      ];
+      if (aExtraParams) {
+        for (let [,param] in Iterator(params)) {
+          if (param[0] in aExtraParams)
+            throw new TypeError('reserved URL parameter found');
+        }
+        for (let kv in Iterator(aExtraParams))
+          params.push(kv);
+      }
+      let paramsStr = params.map(function(i) {
+        return encodeURIComponent(i[0]) + '=' + encodeURIComponent(i[1]);
+      }).join('&');
+
+      // Now it's time to make our request!
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
-      xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
+      xhr.setRequestHeader('Content-Type', aContentType);
       xhr.setRequestHeader('Authorization', this._getAuth());
 
+      // Add extra headers if we have any.
+      if (aExtraHeaders) {
+        for (let [key, value] in Iterator(aExtraHeaders))
+          xhr.setRequestHeader(key, value);
+      }
+
       let conn = this;
+      let parentArgs = arguments;
       xhr.onload = function() {
+        // This status code is a proprietary Microsoft extension used to
+        // indicate a redirect, not to be confused with the draft-standard
+        // "Unavailable For Legal Reasons" status. More info available here:
+        // <http://msdn.microsoft.com/en-us/library/gg651019.aspx>
         if (xhr.status === 451) {
           conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
-          conn.doCommand(aCommand, aCallback);
+          conn.postData.apply(conn, parentArgs);
           return;
         }
 
         if (xhr.status !== 200) {
-          console.log('ActiveSync command ' + commandName + ' failed with ' +
+          console.log('ActiveSync command ' + aCommand + ' failed with ' +
                       'response ' + xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
@@ -24068,7 +24175,7 @@ SmtpProber.prototype = {
       };
 
       xhr.responseType = 'arraybuffer';
-      xhr.send(aCommand instanceof WBXML.Writer ? aCommand.buffer : null);
+      xhr.send(aData);
     },
   };
 
@@ -27050,6 +27157,717 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end define
 ;
 /**
+ * Searchfilters provide for local searching by checking each message against
+ * one or more tests.  This is similar to Thunderbird's non-global search
+ * mechanism.  Although searching in this fashion could be posed as a
+ * decorated slice, the point of local search is fast local search, so we
+ * don't want to use real synchronized slices.  Instead, we interact directly
+ * with a `FolderStorage` to retrieve known headers in an iterative fashion.  We
+ * expose this data as a slice and therefore are capable of listening for
+ * changes from the server.  We do end up in a possible situation where we have
+ * stale local information that we display to the user, but presumably that's
+ * an okay thing.
+ *
+ * The main fancy/unusual thing we do is that all search predicates contribute
+ * to a match representation that allows us to know which predicates in an 'or'
+ * configuration actually fired and can provide us with the relevant snippets.
+ * In order to be a little bit future proof, wherever we provide a matching
+ * snippet, we actually provide an object of the following type.  (We could
+ * provide a list of the objects, but the reality is that our UI right now
+ * doesn't have the space to display more than one match per filter, so it
+ * would just complicate things and generate bloat to do more work than
+ * providing one match, especially because we provide a boolean match, not a
+ * weighted score.
+ *
+ * @typedef[FilterMatchItem @dict[
+ *   @key[text String]{
+ *     The string we think is appropriate for display purposes.  For short
+ *     things, this might be the entire strings.  For longer things like a
+ *     message subject or the message body, this will be a snippet.
+ *   }
+ *   @key[offset Number]{
+ *     If this is a snippet, the offset of the `text` within the greater whole,
+ *     which may be zero.  In the event this is not a snippet, the value will
+ *     be zero, but you can't use that to disambiguate; use the length of the
+ *     `text` for that.
+ *   }
+ *   @key[matchRuns @listof[@dict[
+ *     @key[start]{
+ *       An offset relative to the snippet provided in `text` that identifies
+ *       the index of the first JS character deemed to be matching.  If you
+ *       want to generate highlights from the raw body, you need to add this
+ *       offset to the offset of the `FilterMatchItem`.
+ *     }
+ *     @key[length]{
+ *       The length in JS characters of what we deem to be the match.  In the
+ *       even there is some horrible multi-JS-character stuff, assume we are
+ *       doing the right thing.  If we are not, patch us, not your code.
+ *     }
+ *   ]]]{
+ *     A list of the offsets within the snippet where matches occurred.  We
+ *     do this so that in the future if we support any type of stemming or the
+ *     like, the front-end doesn't find itself needing to duplicate the logic.
+ *     We provide offsets and lengths rather than pre-splitting the strings so
+ *     that a complicated UI could merge search results from searches for
+ *     different phrases without having to do a ton of reverse engineering.
+ *   }
+ *   @key[path #:optional Array]{
+ *     Identifies the piece in an aggregate where the match occurred by
+ *     providing a traversal path to get to the origin of the string.  For
+ *     example, if the display name of the 3rd recipient, the path would be
+ *     [2 'name'].  If the e-mail address matched, the path would be
+ *     [2 'address'].
+ *
+ *     This is intended to allow the match information to allow the integration
+ *     of the matched data in their context.  For example, the recipients list
+ *     in the message reader could be re-ordered so that matching addresses
+ *     show up first (especially if some are elided), and are not duplicated in
+ *     their original position in the list.
+ *   }
+ * ]
+ *
+ * We implement filters for the following:
+ * - Author
+ * - Recipients
+ * - Subject
+ * - Body, allows ignoring quoted bits
+ *
+ * XXX currently all string searching uses indexOf; we at the very least should
+ * build a regexp that is configured to ignore case.
+ **/
+
+define('mailapi/searchfilter',
+  [
+    'rdcommon/log',
+    './syncbase',
+    './date',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $syncbase,
+    $date,
+    $module,
+    exports
+  ) {
+
+/**
+ * Match a single phrase against the author's display name or e-mail address.
+ * Match results are stored in the 'author' attribute of the match object as a
+ * `FilterMatchItem`.
+ *
+ * We will favor matches on the display name over the e-mail address.
+ */
+function AuthorFilter(phrase) {
+  this.phrase = phrase;
+}
+exports.AuthorFilter = AuthorFilter;
+AuthorFilter.prototype = {
+  needsBody: false,
+
+  testMessage: function(header, body, match) {
+    var author = header.author, phrase = this.phrase, idx;
+    if (author.name && (idx = author.name.indexOf(phrase)) !== -1) {
+      match.author = {
+        text: author.name,
+        offset: 0,
+        matchRuns: [{ start: idx, length: phrase.length }],
+        path: null,
+      };
+      return true;
+    }
+    if (author.address && (idx = author.address.indexOf(phrase)) !== -1) {
+      match.author = {
+        text: author.address,
+        offset: 0,
+        matchRuns: [{ start: idx, length: phrase.length }],
+        path: null,
+      };
+      return true;
+    }
+    match.author = null;
+    return false;
+  },
+};
+
+/**
+ * Checks any combination of the recipients lists.  Match results are stored
+ * as a list of `FilterMatchItem` instances in the 'recipients' attribute with
+ * 'to' matches before 'cc' matches before 'bcc' matches.
+ *
+ * We will stop trying to match after the configured number of matches.  If your
+ * UI doesn't have the room for a lot of matches, just pass 1.
+ *
+ * For a given recipient, if both the display name and e-mail address both
+ * match, we will still only report the display name.
+ */
+function RecipientFilter(phrase, stopAfterNMatches,
+                         checkTo, checkCc, checkBcc) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.checkTo = checkTo;
+  this.checkCc = checkCc;
+  this.checkBcc = checkBcc;
+}
+exports.RecipientFilter = RecipientFilter;
+RecipientFilter.prototype = {
+  needsBody: true,
+
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, stopAfter = this.stopAfter;
+    var matches = [];
+    function checkRecipList(list) {
+      var idx;
+      for (var i = 0; i < list.length; i++) {
+        var recip = list[i];
+        if (recip.name && (idx = recip.name.indexOf(phrase)) !== -1) {
+          matches.push({
+            text: recip.name,
+            offset: 0,
+            matchRuns: [{ start: idx, length: phrase.length }],
+            path: null,
+          });
+          if (matches.length < stopAfter)
+            continue;
+          return;
+        }
+        if (recip.address && (idx = recip.address.indexOf(phrase)) !== -1) {
+          matches.push({
+            text: recip.address,
+            offset: 0,
+            matchRuns: [{ start: idx, length: phrase.length }],
+            path: null,
+          });
+          if (matches.length >= stopAfter)
+            return;
+        }
+      }
+    }
+
+    if (this.checkTo && body.to)
+      checkRecipList(body.to);
+    if (this.checkCc && body.cc && matches.length < stopAfter)
+      checkRecipList(body.cc);
+    if (this.checkBcc && body.bcc && matches.length < stopAfter)
+      checkRecipList(body.bcc);
+
+    if (matches.length) {
+      match.recipients = matches;
+      return true;
+    }
+    else {
+      match.recipients = null;
+      return false;
+    }
+  },
+
+};
+
+/**
+ * Assists in generating a `FilterMatchItem` for a substring that is part of a
+ * much longer string where we expect we need to reduce things down to a
+ * snippet.
+ *
+ * Context generating is whitespace-aware and tries to avoid leaving partial
+ * words.  In the event our truncation would leave us without any context
+ * whatsoever, we will leave partial words.  This is also important for us not
+ * being rude to CJK languages (although the number used for contextBefore may
+ * be too high for CJK, we may want to have them 'cost' more.)
+ *
+ * We don't pursue any whitespace normalization here because we want our offsets
+ * to line up properly with the real data, but also because we can depend on
+ * HTML to help us out and normalize everything anyways.
+ */
+function snippetMatchHelper(str, start, length, contextBefore, contextAfter,
+                            path) {
+  if (contextBefore > start)
+    contextBefore = start;
+  var offset = str.indexOf(' ', start - contextBefore);
+  if (offset >= start)
+    offset = start - contextBefore;
+  var endIdx = str.lastIndexOf(' ', start + length + contextAfter);
+  if (endIdx <= start + length)
+    endIdx = start + length + contextAfter;
+  var snippet = str.substring(offset, endIdx);
+
+  return {
+    text: snippet,
+    offset: offset,
+    matchRuns: [{ start: start - offset, length: length }],
+    path: path
+  };
+}
+
+/**
+ * Searches the subject for a phrase.  Provides snippeting functionality in case
+ * of non-trivial subject lengths.   Multiple matches are supported, but
+ * subsequent matches will never overlap with previous strings.  (So if you
+ * search for 'bob', and the subject is 'bobobob', you will get 2 matches, not
+ * 3.)
+ *
+ * For details on snippet generation, see `snippetMatchHelper`.
+ */
+function SubjectFilter(phrase, stopAfterNMatches, contextBefore, contextAfter) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.contextBefore = contextBefore;
+  this.contextAfter = contextAfter;
+}
+exports.Subjectfilter = SubjectFilter;
+SubjectFilter.prototype = {
+  needsBody: false,
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, phrlen = phrase.length,
+          subject = header.subject, slen = subject.length,
+          stopAfter = this.stopAfter,
+          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+          matches = [];
+    var idx = 0;
+
+    while (idx < slen && matches.length < stopAfter) {
+      idx = subject.indexOf(phrase, idx);
+      if (idx === -1)
+        break;
+
+      matches.push(snippetMatchHelper(subject, idx, phrlen,
+                                      contextBefore, contextAfter, null));
+      idx += phrlen;
+    }
+
+    if (matches.length) {
+      match.subject = matches;
+      return true;
+    }
+    else {
+      match.subject = null;
+      return false;
+    }
+  },
+};
+
+// stable value from quotechew.js; full export regime not currently required.
+const CT_AUTHORED_CONTENT = 0x1;
+// HTML DOM constants
+const ELEMENT_NODE = 1, TEXT_NODE = 3;
+
+/**
+ * Searches the body of the message, it can ignore quoted stuff or not.
+ * Provides snippeting functionality.  Multiple matches are supported, but
+ * subsequent matches will never overlap with previous strings.  (So if you
+ * search for 'bob', and the subject is 'bobobob', you will get 2 matches, not
+ * 3.)
+ *
+ * For details on snippet generation, see `snippetMatchHelper`.
+ */
+function BodyFilter(phrase, matchQuotes, stopAfterNMatches,
+                    contextBefore, contextAfter) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.contextBefore = contextBefore;
+  this.contextAfter = contextAfter;
+  this.matchQuotes = matchQuotes;
+}
+exports.BodyFilter = BodyFilter;
+BodyFilter.prototype = {
+  needsBody: true,
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, phrlen = phrase.length,
+          stopAfter = this.stopAfter,
+          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+          matches = [],
+          matchQuotes = this.matchQuotes;
+    var idx;
+
+    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep += 2) {
+      var bodyType = body.bodyReps[iBodyRep],
+          bodyRep = body.bodyReps[iBodyRep + 1];
+
+      if (bodyType === 'plain') {
+        for (var iRep = 0; iRep < bodyRep.length && matches.length < stopAfter;
+             iRep += 2) {
+          var etype = bodyRep[iRep]&0xf, block = bodyRep[iRep + 1],
+              repPath = null;
+
+          // Ignore blocks that are not message-author authored unless we are
+          // told to match quotes.
+          if (!matchQuotes && etype !== CT_AUTHORED_CONTENT)
+            continue;
+
+          for (idx = 0; idx < block.length && matches.length < stopAfter;) {
+            idx = block.indexOf(phrase, idx);
+            if (idx === -1)
+              break;
+            if (repPath === null)
+              repPath = [iBodyRep, iRep];
+            matches.push(snippetMatchHelper(block, idx, phrlen,
+                                            contextBefore, contextAfter,
+                                            repPath));
+            idx += phrlen;
+          }
+        }
+      }
+      else if (bodyType === 'html') {
+        // NB: this code is derived from htmlchew.js' generateSnippet
+        // functionality.
+
+        // - convert the HMTL into a DOM tree
+        // We don't want our indexOf to run afoul of presentation logic.
+        var htmlPath = [iBodyRep, 0];
+        var htmlDoc = document.implementation.createHTMLDocument(''),
+            rootNode = htmlDoc.createElement('div');
+        rootNode.innerHTML = bodyRep;
+
+        var node = rootNode.firstChild, done = false;
+        while (!done) {
+          if (node.nodeType === ELEMENT_NODE) {
+            switch (node.tagName.toLowerCase()) {
+              // - Things that can't contain useful text.
+              // The style does not belong in the snippet!
+              case 'style':
+                break;
+
+              case 'blockquote':
+                // fall-through if matchQuotes
+                if (!matchQuotes)
+                  break;
+              default:
+                if (node.firstChild) {
+                  node = node.firstChild;
+                  htmlPath.push(0);
+                  continue;
+                }
+                break;
+            }
+          }
+          else if (node.nodeType === TEXT_NODE) {
+            // XXX the snippet generator normalizes whitespace here to avoid
+            // being overwhelmed by ridiculous whitespace.  This is not quite
+            // as much a problem for us, but it would be useful if the
+            // sanitizer layer normalized whitespace so neither of us has to
+            // worry about it.
+            var nodeText = node.data;
+
+            idx = nodeText.indexOf(phrase);
+            if (idx !== -1) {
+              matches.push(
+                snippetMatchHelper(nodeText, idx, phrlen,
+                                   contextBefore, contextAfter,
+                                   htmlPath.concat()));
+              if (matches.length >= stopAfter)
+                break;
+            }
+          }
+
+          while (!node.nextSibling) {
+            node = node.parentNode;
+            htmlPath.pop();
+            if (node === rootNode) {
+              done = true;
+              break;
+            }
+          }
+          if (!done) {
+            node = node.nextSibling;
+            htmlPath[htmlPath.length - 1]++;
+          }
+        }
+      }
+    }
+
+    if (matches.length) {
+      match.body = matches;
+      return true;
+    }
+    else {
+      match.body = null;
+      return false;
+    }
+  },
+};
+
+/**
+ * Filters messages using the 'OR' of all specified filters.  We don't need
+ * 'AND' right now, but we are not opposed to its inclusion.
+ */
+function MessageFilterer(filters) {
+  this.filters = filters;
+  this.bodiesNeeded = false;
+
+  for (var i = 0; i < filters.length; i++) {
+    var filter = filters[i];
+    if (filter.needsBody)
+      this.bodiesNeeded = true;
+  }
+console.log('sf: filterer: bodiesNeeded:', this.bodiesNeeded);
+}
+exports.MessageFilterer = MessageFilterer;
+MessageFilterer.prototype = {
+  /**
+   * Check if the message matches the filter.  If it does not, false is
+   * returned.  If it does match, a match object is returned whose attributes
+   * are defined by the filterers in use.
+   */
+  testMessage: function(header, body) {
+console.log('sf: testMessage(', header.suid, header.author.address,
+            header.subject, 'body?', !!body, ')');
+    var matched = false, matchObj = {};
+    const filters = this.filters;
+    for (var i = 0; i < filters.length; i++) {
+      var filter = filters[i];
+      if (filter.testMessage(header, body, matchObj))
+        matched = true;
+    }
+console.log('   =>', matched, JSON.stringify(matchObj));
+    if (matched)
+      return matchObj;
+    else
+      return false;
+  },
+};
+
+const CONTEXT_CHARS_BEFORE = 16;
+const CONTEXT_CHARS_AFTER = 40;
+
+/**
+ *
+ */
+function SearchSlice(bridgeHandle, storage, phrase, whatToSearch, _parentLog) {
+console.log('sf: creating SearchSlice:', phrase);
+  this._bridgeHandle = bridgeHandle;
+  bridgeHandle.__listener = this;
+  // this mechanism never allows triggering synchronization.
+  bridgeHandle.userCanGrowDownwards = false;
+
+  this._storage = storage;
+  this._LOG = LOGFAB.SearchSlice(this, _parentLog, bridgeHandle._handle);
+
+  // These correspond to the range of headers that we have searched to generate
+  // the current set of matched headers.  Our matches will always be fully
+  // contained by this range.
+  this.startTS = null;
+  this.startUID = null;
+  this.endTS = null;
+  this.endUID = null;
+
+  var filters = [];
+  if (whatToSearch.author)
+    filters.push(new AuthorFilter(phrase));
+  if (whatToSearch.recipients)
+    filters.push(new RecipientFilter(phrase, 1, true, true, true));
+  if (whatToSearch.subject)
+    filters.push(new SubjectFilter(
+                   phrase, 1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+  if (whatToSearch.body)
+    filters.push(new BodyFilter(
+                   phrase, whatToSearch.body === 'yes-quotes',
+                   1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+
+  this.filterer = new MessageFilterer(filters);
+
+  this._bound_gotOlderMessages = this._gotMessages.bind(this, 1);
+  this._bound_gotNewerMessages = this._gotMessages.bind(this, -1);
+
+  this.headers = [];
+  this.desiredHeaders = $syncbase.INITIAL_FILL_SIZE;
+  // Fetch as many headers as we want in our results; we probably will have
+  // less than a 100% hit-rate, but there isn't much savings from getting the
+  // extra headers now, so punt on those.
+  this._storage.getMessagesInImapDateRange(
+    0, $date.FUTURE(), this.desiredHeaders, this.desiredHeaders,
+    this._gotMessages.bind(this, 1));
+}
+exports.SearchSlice = SearchSlice;
+SearchSlice.prototype = {
+  set atTop(val) {
+    this._bridgeHandle.atTop = val;
+  },
+  set atBottom(val) {
+    this._bridgeHandle.atBottom = val;
+  },
+
+  _gotMessages: function(dir, headers, moreMessagesComing) {
+console.log('sf: gotMessages', headers.length);
+    // update the range of what we have seen and searched
+    if (headers.length) {
+      if (dir === -1) { // (more recent)
+        this.endTS = headers[0].date;
+        this.endUID = headers[0].id;
+      }
+      else { // (older)
+        var lastHeader = headers[headers.length - 1];
+        this.startTS = lastHeader.date;
+        this.startUID = lastHeader.id;
+        if (this.endTS === null) {
+          this.endTS = headers[0].date;
+          this.endUID = headers[0].id;
+        }
+      }
+    }
+
+    var checkHandle = function checkHandle(headers, bodies) {
+      // run a filter on these
+      var matchPairs = [];
+      for (i = 0; i < headers.length; i++) {
+        var header = headers[i],
+            body = bodies ? bodies[i] : null;
+        var matchObj = this.filterer.testMessage(header, body);
+        if (matchObj)
+          matchPairs.push({ header: header, matches: matchObj });
+      }
+
+      var atTop = this.atTop = this._storage.headerIsYoungestKnown(
+                    this.endTS, this.endUID);
+      var atBottom = this.atBottom = this._storage.headerIsOldestKnown(
+                       this.startTS, this.startUID);
+      var canGetMore = (dir === -1) ? !atTop : !atBottom;
+      if (matchPairs.length) {
+        var willHave = this.headers.length + matchPairs.length,
+            wantMore = !moreMessagesComing &&
+                       (willHave < this.desiredHeaders) &&
+                       canGetMore;
+console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', wantMore);
+        var insertAt = dir === -1 ? 0 : this.headers.length;
+        this._bridgeHandle.sendSplice(
+          insertAt, 0, matchPairs, true,
+          moreMessagesComing || wantMore);
+        this.headers.splice.apply(this.headers,
+                                  [insertAt, 0].concat(matchPairs));
+        if (wantMore)
+          this.reqGrow(dir, false);
+      }
+      else if (!moreMessagesComing) {
+        // If there aren't more messages coming, we either need to get more
+        // messages (if there are any left in the folder that we haven't seen)
+        // or signal completion.  We can use our growth function directly since
+        // there are no state invariants that will get confused.
+        if (canGetMore)
+          this.reqGrow(dir, false);
+        else
+          this._bridgeHandle.sendStatus('synced', true, false);
+      }
+      // (otherwise we need to wait for the additional messages to show before
+      //  doing anything conclusive)
+    }.bind(this);
+
+    if (this.filterer.bodiesNeeded) {
+      // To batch our updates to the UI, just get all the bodies then advance
+      // to the next stage of processing.  It would be nice
+      var bodies = [];
+      var gotBody = function(body) {
+        if (!body)
+          console.log('failed to get a body for: ',
+                      headers[bodies.length].suid,
+                      headers[bodies.length].subject);
+        bodies.push(body);
+        if (bodies.length === headers.length)
+          checkHandle(headers, bodies);
+      };
+      for (var i = 0; i < headers.length; i++) {
+        var header = headers[i];
+        this._storage.getMessageBody(header.suid, header.date, gotBody);
+      }
+    }
+    else {
+      checkHandle(headers, null);
+    }
+  },
+
+  refresh: function() {
+    // no one should actually call this.
+  },
+
+  reqNoteRanges: function(firstIndex, firstSuid, lastIndex, lastSuid) {
+    // when shrinking our range, we could try and be clever and use the values
+    // of the first thing we are updating to adjust our range, but it's safest/
+    // easiest right now to just use what we are left with.
+
+    // THIS CODE IS COPIED FROM `MailSlice`'s reqNoteRanges implementation
+
+    var i;
+    // - Fixup indices if required
+    if (firstIndex >= this.headers.length ||
+        this.headers[firstIndex].suid !== firstSuid) {
+      firstIndex = 0; // default to not splicing if it's gone
+      for (i = 0; i < this.headers.length; i++) {
+        if (this.headers[i].suid === firstSuid) {
+          firstIndex = i;
+          break;
+        }
+      }
+    }
+    if (lastIndex >= this.headers.length ||
+        this.headers[lastIndex].suid !== lastSuid) {
+      for (i = this.headers.length - 1; i >= 0; i--) {
+        if (this.headers[i].suid === lastSuid) {
+          lastIndex = i;
+          break;
+        }
+      }
+    }
+
+    // - Perform splices as required
+    // (high before low to avoid index changes)
+    if (lastIndex + 1 < this.headers.length) {
+      this.atBottom = false;
+      this.userCanGrowDownwards = false;
+      var delCount = this.headers.length - lastIndex  - 1;
+      this.desiredHeaders -= delCount;
+      if (!this._accumulating)
+        this._bridgeHandle.sendSplice(
+          lastIndex + 1, delCount, [],
+          // This is expected; more coming if there's a low-end splice
+          true, firstIndex > 0);
+      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+      var lastHeader = this.headers[lastIndex];
+      this.startTS = lastHeader.date;
+      this.startUID = lastHeader.id;
+    }
+    if (firstIndex > 0) {
+      this.atTop = false;
+      this.desiredHeaders -= firstIndex;
+      if (!this._accumulating)
+        this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+      this.headers.splice(0, firstIndex);
+      var firstHeader = this.headers[0];
+      this.endTS = firstHeader.date;
+      this.endUID = firstHeader.id;
+    }
+  },
+
+  reqGrow: function(dirMagnitude, userRequestsGrowth) {
+    if (dirMagnitude === -1) {
+      this._storage.getMessagesAfterMessage(this.endTS, this.endUID,
+                                            $syncbase.INITIAL_FILL_SIZE,
+                                            this._gotMessages.bind(this, -1));
+    }
+    else if (dirMagnitude === 1) {
+      this._storage.getMessagesBeforeMessage(this.startTS, this.startUID,
+                                             $syncbase.INITIAL_FILL_SIZE,
+                                             this._gotMessages.bind(this, 1));
+    }
+  },
+
+  die: function() {
+    this._bridgeHandle = null;
+    this._LOG.__die();
+  },
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  SearchSlice: {
+    type: $log.QUERY,
+    events: {
+    },
+    TEST_ONLY_events: {
+    },
+  },
+}); // end LOGFAB
+
+
+}); // end define
+;
+/**
  *
  **/
 
@@ -29162,6 +29980,7 @@ define('mailapi/imap/account',
     '../a64',
     '../errbackoff',
     '../mailslice',
+    '../searchfilter',
     '../util',
     './folder',
     './jobs',
@@ -29174,6 +29993,7 @@ define('mailapi/imap/account',
     $a64,
     $errbackoff,
     $mailslice,
+    $searchfilter,
     $util,
     $imapfolder,
     $imapjobs,
@@ -29484,6 +30304,13 @@ ImapAccount.prototype = {
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
     storage.sliceOpenFromNow(slice);
+  },
+
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    var storage = this._folderStorages[folderId],
+        slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
+                                              whatToSearch, this._LOG);
+    // the slice is self-starting, we don't need to call anything on storage
   },
 
   shutdown: function() {
@@ -31140,7 +31967,7 @@ ActiveSyncFolderConn.prototype = {
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
         return;
@@ -31227,7 +32054,7 @@ ActiveSyncFolderConn.prototype = {
        .etag();
     }
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       let added   = [];
       let changed = [];
       let deleted = [];
@@ -31823,7 +32650,7 @@ ActiveSyncJobDriver.prototype = {
       w.etag(as.Collections)
      .etag(as.Sync);
 
-    this.account.conn.doCommand(w, function(aError, aResponse) {
+    this.account.conn.postCommand(w, function(aError, aResponse) {
       if (aError)
         return;
 
@@ -31884,6 +32711,7 @@ define('mailapi/activesync/account',
     'activesync/protocol',
     '../a64',
     '../mailslice',
+    '../searchfilter',
     './folder',
     './jobs',
     '../util',
@@ -31898,6 +32726,7 @@ define('mailapi/activesync/account',
     $activesync,
     $a64,
     $mailslice,
+    $searchfilter,
     $asfolder,
     $asjobs,
     $util,
@@ -32071,6 +32900,13 @@ ActiveSyncAccount.prototype = {
     storage.sliceOpenFromNow(slice);
   },
 
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    var storage = this._folderStorages[folderId],
+        slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
+                                              whatToSearch, this._LOG);
+    // the slice is self-starting, we don't need to call anything on storage
+  },
+
   syncFolderList: function asa_syncFolderList(callback) {
     let account = this;
 
@@ -32080,7 +32916,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let deferredAddedFolders = [];
 
@@ -32322,7 +33158,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.Type, folderType)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status, serverId;
 
@@ -32372,7 +33208,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.ServerId, folderMeta.serverId)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status;
 
@@ -32399,24 +33235,51 @@ ActiveSyncAccount.prototype = {
     composedMessage._cacheOutput = true;
     composedMessage._composeMessage();
 
-    const cm = $ascp.ComposeMail.Tags;
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-    w.stag(cm.SendMail)
-       .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
-       .tag(cm.SaveInSentItems)
-       .stag(cm.Mime)
-         .opaque(composedMessage._outputBuffer)
-       .etag()
-     .etag();
+    // ActiveSync 14.0 has a completely different API for sending email. Make
+    // sure we format things the right way.
+    if (this.conn.currentVersion.gte('14.0')) {
+      const cm = $ascp.ComposeMail.Tags;
+      let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(cm.SendMail)
+         .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
+         .tag(cm.SaveInSentItems)
+         .stag(cm.Mime)
+           .opaque(composedMessage._outputBuffer)
+         .etag()
+       .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
-      if (aResponse === null)
+      this.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        if (aResponse === null) {
+          console.log('Sent message successfully!');
+          callback(null);
+        }
+        else {
+          console.error('Error sending message. XML dump follows:\n' +
+                        aResponse.dump());
+          callback('unknown');
+        }
+      });
+    }
+    else { // ActiveSync 12.x and lower
+      this.conn.postData('SendMail', 'message/rfc822',
+                         composedMessage._outputBuffer,
+                         function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        console.log('Sent message successfully!');
         callback(null);
-      else {
-        console.log('Error sending message. XML dump follows:\n' +
-                    aResponse.dump());
-      }
-    });
+      }, { SaveInSent: 'T' });
+    }
   },
 
   getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
@@ -32638,6 +33501,11 @@ CompositeAccount.prototype = {
 
   sliceFolderMessages: function(folderId, bridgeProxy) {
     return this._receivePiece.sliceFolderMessages(folderId, bridgeProxy);
+  },
+
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    return this._receivePiece.searchFolderMessages(
+      folderId, bridgeHandle, phrase, whatToSearch);
   },
 
   syncFolderList: function(callback) {

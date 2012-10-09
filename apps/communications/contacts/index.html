@@ -6,6 +6,7 @@
 
     <!-- Buildging Blocks -->
     <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
 
     <link href="/contacts/style/app.css" rel="stylesheet">
     <link href="/contacts/style/contacts.css" rel="stylesheet">
@@ -38,6 +39,7 @@
     <script defer type="text/javascript" src="/contacts/js/utilities/normalizer.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/responsive.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
 
     <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
@@ -73,9 +75,9 @@
       <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
           <menu type="toolbar" role="menu">
-            <button id="cancel_activty" class="hide negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
-            <button role="menuitem" id="add-contact-button" onclick="Contacts.showForm();"><span class="icon icon-add" data-l10n-id="add">add</span></button>
-            <button role="menuitem" id="settings-button" onclick="Contacts.navigation.go('view-settings', 'popup');">
+            <button id="cancel_activty" class="hide negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem" id="settings-button">
               <span class="icon icon-settings" data-l10n-id="settings">settings</span>
             </button>
           </menu>
@@ -83,6 +85,18 @@
         </header>
 
         <article class="view-body">
+          <div id="no-contacts">
+            <div class="arrow small">
+              <p class="small" data-l10n-id="create-new">Create a new contact</p>
+            </div>
+            <div class="arrow big">
+              <p class="small" data-l10n-id="import-now">Import your contacts from your SIM card or from Facebook</p>
+            </div>
+            <div class="info">
+              <p data-l10n-id="no-contacts">no contacts</p>
+              <p data-l10n-id="start-adding">start adding them now </p>
+            </div>
+          </div>
           <div class="view-jumper">
             <ol class="view-jumper-inner">
               <li data-anchor="search-container" data-img="magnifier_icon_big.png"><a href="#"><span role="button" class="icon-search"></span></a></li>
@@ -96,10 +110,12 @@
           </div>
 
           <div id="groups-container" class="view-body-inner">
-            <form id="search-container" class="search">
-              <label for="search-contact">
-                <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
-              </label>
+            <form id="search-container" class="search" role="search">
+              <p>
+                <label for="search-contact">
+                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+                </label>
+              </p>
             </form>
             <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
             <ol class="block-list" id="groups-list">
@@ -111,21 +127,24 @@
         <div id="current-jumper" class="view-jumper-current"></div>
 
         <section id="search-view" class="view">
-           <form id="searchview-container" class="search">
-              <label for="search-contact">
-                <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.Search.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.Search.search()" data-l10n-id="search-contact" />
-                <button id='cancel-search' onclick='return contacts.Search.exitSearchMode()' data-l10n-id="cancel">Cancel</button>
-              </label>
-            </form>
+        <form id="searchview-container" class="search" role="search">
+          <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
+          <p>
+            <label for="search-contact">
+              <input data-cancelable required type="search" name="search" class="textfield" onfocus='return contacts.Search.enterSearchMode();' placeholder="Search" id="search-contact" onkeyup="contacts.Search.search()" data-l10n-id="search-contact" />
+              <button type="reset" onclick="return false;" class="hide">Clear</button>
+            </label>
+          </p>
+        </form>
         </section>
       </section>
 
       <!-- Contact Details Section -->
       <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
         <header id='details-view-header'>
-          <button class="negative" onclick="Contacts.goBack();"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+          <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" role="menu">
-            <button role="menuitem" id="edit-contact-button" onclick="Contacts.showForm(true);"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+            <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
           <sup id='favorite-star' class='hide'></sup>
@@ -139,10 +158,10 @@
                 <h2>#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
-                    <button class="action" onclick="Contacts.sendSms('#value#')"><span role="button" class="icon-message">Message</span></button>
+                    <button id="send-sms-button-#i#" class="action"><span role="button" class="icon-message">Message</span></button>
                   </div>
                   <div class="item-body-exp">
-                    <button class="action" onclick="Contacts.callOrPick('#value#')">
+                    <button class="action" id="call-or-pick-#i#">
                       <span role="button" class="icon-call" data-l10n-id="call">Call</span>
                       <b>#value#</b>
                       <em>#carrier#</em>
@@ -161,7 +180,7 @@
                 <h2>#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
-                    <button class="action" onclick="Contacts.sendEmailOrPick('#value#'); return false">
+                    <button id="email-or-pick-#i#" class="action">
                       <span role="button" class="icon-email">E-mail</span>
                       <b>#value#</b>
                     </button>
@@ -177,27 +196,23 @@
 
                       <div>
                         <button id="msg_button" data-l10n-id="msg-send"
-                                class="fillflow-row action action-add fillflow-twocols fillflow-left"
-                                onclick="Contacts.extFb.sendPrivateMsg('#i#')">
+                                class="fillflow-row action action-add fillflow-twocols fillflow-left">
                           Message
                         </button>
 
                         <button id="wall_button" data-l10n-id="wall-post"
-                                class="fillflow-row action action-add fillflow-twocols"
-                                onclick="Contacts.extFb.wallPost('#i#')">
+                                class="fillflow-row action action-add fillflow-twocols">
                           Wall Post
                         </button>
                       </div>
 
                       <button id="profile_button" data-l10n-id="show-profile"
-                              class="fillflow-row action action-add"
-                              onclick="Contacts.extFb.showProfile('#i#')">
+                              class="fillflow-row action action-add">
                         Show Profile
                       </button>
 
 
-                      <button id="link_button" class="fillflow-row action action-add"
-                              onclick="Contacts.extFb.startLink('#i#','#linked#')">
+                      <button id="link_button" class="fillflow-row action action-add">
                         #action#
                       </button>
                     </div>
@@ -231,7 +246,7 @@
                 </ul>
               </div>
               <hr/>
-              <button onclick='contacts.Details.toggleFavorite(); return false;' id='toggle-favorite' class="fillflow-row action action-add">
+              <button id='toggle-favorite' class="fillflow-row action action-add">
                 <b>Add as favorite</b>
               </button>
             </section>
@@ -243,75 +258,72 @@
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
         <header>
-          <button class="negative" onclick="Contacts.cancel();"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+          <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
           <menu type="toolbar" role="menu" id='contact-form-actions'>
-            <button id="save-button" onclick="contacts.Form.saveContact();" role="menuitem"></button>
+            <button id="save-button" role="menuitem"></button>
           </menu>
           <h1 id='contact-form-title'></h1>
         </header>
 
         <!-- PHONE TEMPLATE -->
         <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
-          <dl class="setbox fillflow-row">
-            <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
-              <a class='with-arrow' data-taglist='phone-type' name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>
-              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </dt>
-            <dd class="setbox-body">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
               <p class="setbox-item">
-                <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>
                 <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <label class="hide" for="carrier_#i#" data-l10n-id="labelCarrier">Carrier:</label>
                 <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
-            </dd>
-          </dl>
+            </section>
+          </fieldset>
         </div>
 
         <!-- EMAIL TEMPLATE -->
         <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
-          <dl class="setbox fillflow-row">
-            <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
-              <a data-taglist='email-type' name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>
-              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </dt>
-            <dd class="setbox-body">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
               <p class="setbox-item">
-                <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>
                 <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
-            </dd>
-          </dl>
+            </section>
+          </fieldset>
         </div>
 
         <!-- ADDRESS TEMPLATE -->
         <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
-          <dl class="setbox fillflow-row">
-            <dt class="setbox-title" onmousedown="Contacts.goToSelectTag(event); return false;">
-              <a data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>
-              <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>
-            </dt>
-            <dd class="setbox-body">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
               <p class="setbox-item">
-                <label class="hide" for="streetAddress_#i#" data-l10n-id="labelStreet">Street:</label>
                 <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <label class="hide" for="postalCode_#i#" data-l10n-id="labelZip">Zip Code:</label>
                 <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <label class="hide" for="locality_#i#" data-l10n-id="labelCity">City:</label>
                 <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <label class="hide" for="countryName_#i#" data-l10n-id="labelCountry">Country:</label>
                 <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
-            </dd>
-          </dl>
+            </section>
+          </fieldset>
         </div>
 
         <!-- COMMENTS TEMPLATE -->
@@ -319,8 +331,8 @@
           <dl class="setbox fillflow-row">
             <dd class="setbox-body">
               <p class="setbox-item">
-                <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>
-                <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+               <button type="reset" onclick="return false;" class="hide">Clear</button>
               </p>
             </dd>
           </dl>
@@ -331,8 +343,7 @@
           <div class="view-body-inner">
             <form id="contact-form" action="#" class="fill-flow">
               <input name="id" id="contact-form-id" type="hidden" value="">
-              <fieldset class="item first">
-                <legend class="hide" data-l10n-id="legendTitleMain">Main information</legend>
+              <section class="item first">
                 <a id="thumbnail-action" href="#" class="item-media fillflow-media">
                   <p>
                     <span role="button" class="icon-addimage"></span>
@@ -342,63 +353,60 @@
                 </a>
                 <div class="item-body-exp">
                   <p class="fillflow-row">
-                    <label class="hide" for="givenName" data-l10n-id="labelName">Name:</label>
                     <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                    <button type="reset" onclick="return false;" class="hide">Clear</button>
                   </p>
                   <p class="fillflow-row">
-                    <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>
                     <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                    <button type="reset" onclick="return false;" class="hide">Clear</button>
                   </p>
                 </div>
                 <p class="fillflow-row">
                   <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">
+                  <button type="reset" onclick="return false;" class="hide">Clear</button>
                 </p>
-              </fieldset>
+              </section>
 
-              <fieldset>
-                <legend data-l10n-id="legendPhones">Phone numbers</legend>
+              <section>
                 <div id="contacts-form-phones">
                   <!-- Iterating over phone template here -->
                 </div>
-              </fieldset>
+              </section>
 
-              <button onclick='contacts.Form.insertField("tel"); return false;' id='add-new-phone' class="fillflow-row action action-add">
+              <button data-field-type="tel" id='add-new-phone' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addPhone">Add phone number</b>
               </button>
 
-              <fieldset>
-                <legend data-l10n-id="legendEmail">E-mail address</legend>
+              <section>
                 <div id="contacts-form-emails">
                   <!-- Iterating over email template here -->
                 </div>
-              </fieldset>
+              </section>
 
-              <button onclick='contacts.Form.insertField("email"); return false;' id='add-new-email' class="fillflow-row action action-add">
+              <button data-field-type="email" id='add-new-email' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addEmail">Add email address</b>
               </button>
 
-              <fieldset>
-                <legend data-l10n-id="legendAddress">Address</legend>
+              <section>
                 <div id="contacts-form-addresses">
                   <!-- Iterating over address template here -->
                 </div>
-              </fieldset>
+              </section>
 
-              <button onclick='contacts.Form.insertField("adr"); return false;' id='add-new-address' class="fillflow-row action action-add">
+              <button data-field-type="adr" id='add-new-address' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addAddress">Add new address</b>
               </button>
 
-              <fieldset>
-                <legend data-l10n-id="comments">Comments</legend>
+              <section>
                 <div id="contacts-form-notes">
                   <!-- Iterating over comment template here -->
                 </div>
-              </fieldset>
+              </section>
 
-              <button onclick='contacts.Form.insertField("note"); return false;' id='add-new-note' class="fillflow-row action action-add">
+              <button data-field-type="note" id='add-new-note' class="fillflow-row action action-add">
                 <span role="button" class="icon-add"></span>
                 <b data-l10n-id="addComment">Add comment</b>
               </button>
@@ -415,26 +423,29 @@
       <!-- Tag selection -->
       <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
         <header>
-          <button class="negative" onclick="Contacts.goBack();"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+          <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar" role="menu" id="contact-form-actions">
-            <button role="menuitem" onclick="Contacts.doneTag();" data-l10n-id="done">Done</button>
+            <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 data-l10n-id="label">Label</h1>
         </header>
 
         <article class="view-body">
-          <div class="view-body-inner">
+          <form class="view-body-inner">
             <ul id="tags-list" class="selection-list">
             </ul>
-            <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
-          </div>
+            <p>
+              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
+              <button type="reset" onclick="return false;" class="hide">Clear</button>
+            </p>
+          </form>
         </article>
       </section>
 
       <!-- Settings section -->
       <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
         <header>
-          <button class="negative" onclick="contacts.Settings.close()">
+          <button id="settings-close" class="negative">
             <span class="icon icon-close"data-l10n-id="exit">Exit</span>
           </button>
           <h1 data-l10n-id="settings">Settings</h1>
@@ -447,7 +458,7 @@
                 <label class="switch">
                   <input type="checkbox" name="order.lastname" />
                   <span></span>
-                </label>                
+                </label>
                 <a data-l10n-id="contactsOrderBy">Order by last name</a>
               </li>
               <li id="settingsSIM">
@@ -458,7 +469,7 @@
                 <label class="switch hide">
                   <input type="checkbox" name="fb.imported" />
                   <span></span>
-                </label> 
+                </label>
                 -->
                 <a data-l10n-id="importFb">Import from Facebook</a>
               </li>

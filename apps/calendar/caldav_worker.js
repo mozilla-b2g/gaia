@@ -20,6 +20,7 @@ addEventListener('message', function prepare(e) {
     'inspect', 'worker/thread',
     'ext/ical',
     'ext/caldav',
+    'ext/uuid',
     'service/caldav'
   );
 

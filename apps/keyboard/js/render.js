@@ -238,16 +238,6 @@ const IMERender = (function() {
     if (candidatePanel) {
       candidatePanel.innerHTML = '';
 
-      if (!candidates.length) {
-        ime.classList.remove('candidate-panel');
-        ime.classList.remove('full-candidate-panel');
-        return;
-      }
-
-      if (!isFullView) {
-        ime.classList.add('candidate-panel');
-      }
-
       candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
       // If there were too many candidate

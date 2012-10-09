@@ -1691,6 +1691,31 @@ ICAL.design = {
       return props;
     },
 
+    /**
+     * Adds or replaces a property with a given value.
+     * Suitable for use when updating properties which
+     * are expected to only have a single value (like DTSTART, SUMMARY, etc..)
+     *
+     * @param {String} aName property name.
+     * @param {Object} aValue property value.
+     */
+    updatePropertyWithValue: function updatePropertyWithValue(aName, aValue) {
+      if (!this.hasProperty(aName)) {
+        return this.addPropertyWithValue(aName, aValue);
+      }
+
+      var prop = this.getFirstProperty(aName);
+
+      var lineData = ICAL.icalparser.detectValueType({
+        name: aName.toUpperCase(),
+        value: aValue
+      });
+
+      prop.setValues(lineData.value, lineData.type);
+
+      return prop;
+    },
+
     addPropertyWithValue: function addStringProperty(aName, aValue) {
       var ucName = aName.toUpperCase();
       var lineData = ICAL.icalparser.detectValueType({
@@ -5503,7 +5528,19 @@ ICAL.RecurExpansion = (function() {
 ICAL.Event = (function() {
 
   function Event(component, options) {
-    this.component = component;
+    if (!(component instanceof ICAL.icalcomponent)) {
+      options = component;
+      component = null;
+    }
+
+    if (!component) {
+      this.component = new ICAL.icalcomponent({
+        name: 'VEVENT'
+      });
+    } else {
+      this.component = component;
+    }
+
     this.exceptions = Object.create(null);
 
     if (options && options.exceptions) {
@@ -5605,10 +5642,6 @@ ICAL.Event = (function() {
       return this.component.hasProperty('RECURRENCE-ID');
     },
 
-    _firstProp: function(name) {
-      return this.component.getFirstPropertyValue(name);
-    },
-
     /**
      * Returns the types of recurrences this event may have.
      *
@@ -5636,31 +5669,28 @@ ICAL.Event = (function() {
       return result;
     },
 
-    /**
-     * Return the first property value.
-     * Most useful in cases where no properties
-     * are expected and the value will be a text type.
-     */
-    _firstPropsValue: function(name) {
-      var prop = this._firstProp(name);
-
-      if (prop && prop.data && prop.data.value) {
-        return prop.data.value[0];
-      }
-
-      return null;
-    },
-
     get uid() {
       return this._firstPropsValue('UID');
+    },
+
+    set uid(value) {
+      this._setProp('UID', value);
     },
 
     get startDate() {
       return this._firstProp('DTSTART');
     },
 
+    set startDate(value) {
+      this._setProp('DTSTART', value);
+    },
+
     get endDate() {
       return this._firstProp('DTEND');
+    },
+
+    set endDate(value) {
+      this._setProp('DTEND', value);
     },
 
     get duration() {
@@ -5679,6 +5709,10 @@ ICAL.Event = (function() {
       return this._firstPropsValue('LOCATION');
     },
 
+    set location(value) {
+      return this._setProp('LOCATION', value);
+    },
+
     get attendees() {
       //XXX: This is way lame we should have a better
       //     data structure for this later.
@@ -5689,17 +5723,69 @@ ICAL.Event = (function() {
       return this._firstPropsValue('SUMMARY');
     },
 
+    set summary(value) {
+      this._setProp('SUMMARY', value);
+    },
+
     get description() {
       return this._firstPropsValue('DESCRIPTION');
+    },
+
+    set description(value) {
+      this._setProp('DESCRIPTION', value);
     },
 
     get organizer() {
       return this._firstProp('ORGANIZER');
     },
 
+    set organizer(value) {
+      this._setProp('ORGANIZER', value);
+    },
+
+    get sequence() {
+      return this._firstPropsValue('SEQUENCE');
+    },
+
+    set sequence(value) {
+      this._setProp('SEQUENCE', value);
+    },
+
     get recurrenceId() {
       return this._firstProp('RECURRENCE-ID');
+    },
+
+    set recurrenceId(value) {
+      this._setProp('RECURRENCE-ID', value);
+    },
+
+    _setProp: function(name, value) {
+      this.component.updatePropertyWithValue(name, value);
+    },
+
+    _firstProp: function(name) {
+      return this.component.getFirstPropertyValue(name);
+    },
+
+    /**
+     * Return the first property value.
+     * Most useful in cases where no properties
+     * are expected and the value will be a text type.
+     */
+    _firstPropsValue: function(name) {
+      var prop = this._firstProp(name);
+
+      if (prop && prop.data && prop.data.value) {
+        return prop.data.value[0];
+      }
+
+      return null;
+    },
+
+    toString: function() {
+      return this.component.toString();
     }
+
   };
 
   return Event;

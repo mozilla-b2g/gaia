@@ -8,7 +8,7 @@ form[role="dialog"] {
     url(action_menu/images/ui/pattern.png) repeat left top,
     url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
-  position: absolute;
+  position: fixed;
   z-index: 100;
   top: 0;
   left: 0;

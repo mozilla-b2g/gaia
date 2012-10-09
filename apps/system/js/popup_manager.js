@@ -5,7 +5,6 @@
 var PopupManager = {
   _currentPopup: {},
   _currentOrigin: '',
-  _lastDisplayedApp: null,
   _endTimes: 0,
   _startTimes: 0,
 
@@ -21,8 +20,6 @@ var PopupManager = {
 
   closeButton: document.getElementById('popup-close'),
 
-  loadingIcon: document.getElementById('statusbar-loading'),
-
   init: function pm_init() {
     this.title = document.getElementById('popup-title');
     window.addEventListener('mozbrowseropenwindow', this);
@@ -36,34 +33,13 @@ var PopupManager = {
     this.closeButton.addEventListener('click', this);
   },
 
-  _showWait: function pm_showWait() {
-    this.loadingIcon.classList.add('popup-loading');
-  },
-
-  _hideWait: function pm_hideWait() {
-    this.loadingIcon.classList.remove('popup-loading');
-  },
-
-  open: function pm_open(name, frame, origin, trusted) {
+  open: function pm_open(name, frame, origin) {
     // Only one popup per origin at a time.
     // If the popup is being shown, we swap frames.
     if (this._currentPopup[origin]) {
       this.container.removeChild(this._currentPopup[origin]);
       delete this._currentPopup[origin];
-    } else if (trusted) {
-      // Save the current displayed app in order to show it after closing the
-      // popup.
-      this._lastDisplayedApp = WindowManager.getDisplayedApp();
-
-      // XXX: The correct approach here should be firing trustdialogshow
-      // and trustdialoghide events for WindowManager to handle the visibility,
-      // instead of exposing this internal method.
-
-      // Show the homescreen.
-      WindowManager.setDisplayedApp(null);
     }
-
-    this.popupContainer.dataset.trusty = trusted;
 
     // Reset overlay height
     this.setHeight(window.innerHeight - StatusBar.height);
@@ -85,7 +61,7 @@ var PopupManager = {
     popup.addEventListener('mozbrowserlocationchange', this);
   },
 
-  close: function pm_close(evt, callback) {
+  close: function pm_close(evt) {
     if (evt && (!'frameType' in evt.target.dataset ||
         evt.target.dataset.frameType !== 'popup'))
       return;
@@ -97,16 +73,6 @@ var PopupManager = {
       self.popupContainer.classList.remove('disappearing');
       self.container.removeChild(self._currentPopup[self._currentOrigin]);
       delete self._currentPopup[self._currentOrigin];
-
-      // If the popup was opened as a trusted UI on top of the homescreen
-      // we show the last displayed application.
-      if (self._lastDisplayedApp) {
-        WindowManager.setDisplayedApp(self._lastDisplayedApp);
-        self._lastDisplayedApp = null;
-      }
-
-      if (callback)
-        callback();
     });
 
     this.popupContainer.classList.add('disappearing');
@@ -114,26 +80,6 @@ var PopupManager = {
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
     window.focus();
-  },
-
-  // Workaround for Bug: 781452
-  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
-  // are fired two times
-  handleLoadStart: function pm_handleLoadStart(evt) {
-     this._startTimes++;
-     if (this._startTimes > 1) {
-      this._showWait();
-     }
-  },
-
-  // Workaround for Bug: 781452
-  // - when window.open is called mozbrowserloadstart and mozbrowserloadend
-  // are fired two times
-  handleLoadEnd: function pm_handleLoadEnd(evt) {
-      this._endTimes++;
-      if (this._endTimes > 1) {
-        this._hideWait();
-      }
   },
 
   backHandling: function pm_backHandling() {
@@ -157,13 +103,13 @@ var PopupManager = {
       case 'click':
         this.backHandling();
         break;
+
       case 'mozbrowserloadstart':
         this.throbber.classList.add('loading');
-        this.handleLoadStart(evt);
         break;
+
       case 'mozbrowserloadend':
         this.throbber.classList.remove('loading');
-        this.handleLoadEnd(evt);
         break;
 
       case 'mozbrowserlocationchange':

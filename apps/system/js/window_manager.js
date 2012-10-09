@@ -1,5 +1,7 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
 
 //
 // This file calls getElementById without waiting for an onload event, so it
@@ -39,7 +41,7 @@
 //
 // This module does not (at least not currently) have anything to do
 // with the homescreen.  It simply assumes that if it hides all running
-// apps the homescreen will show
+// apps the homescreen will show up.
 //
 // TODO
 // It would be nice eventually to centralize much of the homescreen
@@ -47,8 +49,6 @@
 // this module will just expose methods for managing the list of apps
 // and app visibility but will leave all the event handling to another module.
 //
-
-'use strict';
 
 var WindowManager = (function() {
   // Holds the origin of the home screen, which should be the first
@@ -65,7 +65,6 @@ var WindowManager = (function() {
   var inlineActivityFrame = null;
 
   // Some document elements we use
-  var loadingIcon = document.getElementById('statusbar-loading');
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
   var banner = document.getElementById('system-banner');
@@ -142,9 +141,10 @@ var WindowManager = (function() {
     }
     cssHeight += 'px';
 
-
-    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') &&
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight + 'px';
+    }
 
     frame.style.width = cssWidth;
 
@@ -165,8 +165,10 @@ var WindowManager = (function() {
     var cssHeight =
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
-    if (!screenElement.classList.contains('attention') && app.manifest.fullscreen)
+    if (!screenElement.classList.contains('attention') &&
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight - keyboardHeight + 'px';
+    }
 
     frame.style.height = cssHeight;
 
@@ -729,9 +731,6 @@ var WindowManager = (function() {
     // Set displayedApp to the new value
     displayedApp = newApp;
 
-    // Update the loading icon since the displayedApp is changed
-    updateLoadingIcon();
-
     // If the app has a attention screen open, displaying it
     AttentionScreen.showForOrigin(newApp);
   }
@@ -763,8 +762,8 @@ var WindowManager = (function() {
     isOutOfProcessDisabled = value;
   });
 
-  function createFrame(originalFrame, origin, url, name, manifest, manifestURL) {
-    var frame = originalFrame || document.createElement('iframe');
+  function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
+    var frame = origFrame || document.createElement('iframe');
     frame.setAttribute('mozallowfullscreen', 'true');
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
@@ -813,9 +812,10 @@ var WindowManager = (function() {
     return frame;
   }
 
-  function appendFrame(originalFrame, origin, url, name, manifest, manifestURL) {
+  function appendFrame(origFrame, origin, url, name, manifest, manifestURL) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame = createFrame(originalFrame, origin, url, name, manifest, manifestURL);
+    var frame =
+        createFrame(origFrame, origin, url, name, manifest, manifestURL);
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
@@ -1075,6 +1075,10 @@ var WindowManager = (function() {
           ensureHomescreen();
         }
 
+        // We will only bring web activity handling apps to the foreground
+        if (!e.detail.isActivity)
+          return;
+
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
         if (!homescreen) {
@@ -1086,10 +1090,6 @@ var WindowManager = (function() {
           homescreenManifestURL = manifestURL;
           return;
         }
-
-        // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
-          return;
 
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
@@ -1213,9 +1213,25 @@ var WindowManager = (function() {
       var frameElement = detail.frameElement;
       try {
         var features = JSON.parse(detail.features);
-        frameElement.dataset.name = features.name || url;
+        var regExp = new RegExp('&nbsp;', 'g');
+
+        frameElement.dataset.name = features.name.replace(regExp, ' ') || url;
         frameElement.dataset.icon = features.icon || '';
-      } catch(ex) { }
+
+        if (features.origin) {
+          frameElement.dataset.originName =
+                                  features.origin.name.replace(regExp, ' ');
+          frameElement.dataset.originURL =
+                                  decodeURIComponent(features.origin.url);
+        }
+
+        if (features.search) {
+          frameElement.dataset.searchName =
+                                  features.search.name.replace(regExp, ' ');
+          frameElement.dataset.searchURL =
+                                  decodeURIComponent(features.search.url);
+        }
+      } catch (ex) { }
 
       appendFrame(frameElement, url, url, frameElement.dataset.name, {
         'name': frameElement.dataset.name
@@ -1257,59 +1273,6 @@ var WindowManager = (function() {
     var app = runningApps[origin];
     app.frame.reload(true);
   }
-
-  // Update the loading icon on the status bar
-  function updateLoadingIcon() {
-    var origin = displayedApp;
-    // If there aren't any origin, that means we are moving to
-    // the homescreen. Let's hide the icon.
-    if (!origin) {
-      loadingIcon.classList.remove('app-loading');
-      return;
-    }
-
-    // Actually update the icon.
-    // Hide it if the loading property is not true.
-    var app = runningApps[origin];
-
-    if (app.frame.dataset.loading) {
-      loadingIcon.classList.add('app-loading');
-    } else {
-      loadingIcon.classList.remove('app-loading');
-    }
-  };
-
-  // Listen for mozbrowserloadstart to update the loading status
-  // of the frames
-  window.addEventListener('mozbrowserloadstart', function(e) {
-    var dataset = e.target.dataset;
-    // Only update frames open by ourselves
-    if (!('frameType' in dataset) || dataset.frameType !== 'window')
-      return;
-
-    dataset.loading = true;
-
-    // Update the loading icon only if this is the displayed app
-    if (displayedApp == dataset.frameOrigin) {
-      updateLoadingIcon();
-    }
-  });
-
-  // Listen for mozbrowserloadend to update the loading status
-  // of the frames
-  window.addEventListener('mozbrowserloadend', function(e) {
-    var dataset = e.target.dataset;
-    // Only update frames open by ourselves
-    if (!('frameType' in dataset) || dataset.frameType !== 'window')
-      return;
-
-    delete dataset.loading;
-
-    // Update the loading icon only if this is the displayed app
-    if (displayedApp == dataset.frameOrigin) {
-      updateLoadingIcon();
-    }
-  });
 
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize

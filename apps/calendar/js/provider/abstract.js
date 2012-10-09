@@ -101,7 +101,19 @@ Calendar.ns('Provider').Abstract = (function() {
     /**
      * Create an event
      */
-    createEvent: function(event, callback) {}
+    createEvent: function(event, callback) {},
+
+    /**
+     * Returns the capabilities of a single event.
+     */
+    eventCapabilities: function() {
+      return {
+        canUpdate: this.canUpdateEvent,
+        canCreate: this.canUpdateEvent,
+        canDelete: this.canUpdateEvent
+      };
+    }
+
   };
 
   return Abstract;

@@ -1,9 +1,3 @@
-#evmeContainer, input {
-    font: normal 12px 'Open Sans', Sans-Serif;
-}
-fieldset {
-    border-width: 0;
-}
 #evmeContainer {
     position: fixed;
     overflow: hidden;
@@ -15,10 +9,15 @@ fieldset {
     height: 100%;
     background: transparent;
     background-size: 100% 100%;
+    font: normal 12px 'Open Sans', Sans-Serif;
+    text-align: left;
 }
 #evmeContainer * {
     margin: 0;
     padding: 0;
+}
+#evmeContainer fieldset {
+    border-width: 0;
 }
 #evmeContainer a {
     text-decoration: none;
@@ -171,7 +170,8 @@ fieldset {
 #shortcuts-customize:before,
 .shortcut.add .thumb:before,
 #shortcuts-favorites li.on:before,
-#close-category
+#close-category,
+.keyboard-visible .clear-visible #button-clear
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;

@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -27,10 +28,13 @@
     <!-- Async. Storage -->
     <script type="application/javascript" src="/shared/js/async_storage.js"></script>
 
+    <!-- Load JSON files -->
+    <script type="application/javascript" defer src="js/utilities/config.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
-    <script type="application/javascript" defer src="js/data.js"></script>
+    <script type="application/javascript" defer src="js/carrier.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
     <script type="application/javascript" defer src="js/simcard_lock.js"></script>
@@ -38,7 +42,6 @@
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
-    <script type="application/javascript" defer src="js/icc.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
     <script type="application/javascript" defer src="js/sound.js"></script>
@@ -316,7 +319,50 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings -->
+    <!-- Connectivity :: Cellular & Data :: Network Operator -->
+    <section role="region" id="operator">
+      <header>
+        <a href="#data"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="networkOperator"> Network Operator </h1>
+      </header>
+
+      <ul>
+        <li id="operator-autoSelect">
+          <label class="switch">
+            <input type="checkbox" />
+            <span></span>
+          </label>
+          <small></small>
+          <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
+      </header>
+      <ul id="availableOperators" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
+          Turn Automatic Selection off to view available network operators.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by carrier.js — one list item per available network, e.g.:
+          -   <li>
+          -     <small> Connection State </small>
+          -     <a> Operator Name </a>
+          -   </li>
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Cellular & Data :: APN Settings -->
     <section role="region" id="apnSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -366,7 +412,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: MMS Settings -->
+    <!-- Connectivity :: Cellular & Data :: MMS Settings -->
     <section role="region" id="mmsSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -393,7 +439,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data -->
+    <!-- Connectivity :: Cellular & Data -->
     <section role="region" id="data">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -453,6 +499,12 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
+        <li>
+          <label>
+            <button onclick="Settings.openDialog('operator');"
+              data-l10n-id="networkOperator"> Network Operator </button>
+          </label>
+        </li>
         <li>
           <label>
             <button onclick="Settings.openDialog('apnSettings');"
@@ -1640,17 +1692,6 @@
         <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
       </header>
 
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="ums.enabled"/>
-            <span></span>
-          </label>
-          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
-        </li>
-      </ul>
-
       <header>
         <h2 data-l10n-id="appStorage">Application Storage</h2>
       </header>
@@ -1712,6 +1753,22 @@
           </a>
         </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="advanced">Advanced</h2>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
+            <span></span>
+          </label>
+          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        </li>
+      </ul>
+
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1765,30 +1822,32 @@
       </ul>
     </section>
 
-    <!-- SIM Toolkit :: Application -->
-    <section role="region" id="icc-stk-app" data-leaf>
-      <header>
-        <button id="icc-stk-app-back"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <menu type="toolbar">
-          <button type="submit"><span data-l10n-id="done">Done</span></button>
-        </menu>
-        <!-- the title content is filled by icc.js -->
-        <h1 id="icc-stk-selection-header"> STK Application Name </h1>
-      </header>
-      <ul id="icc-stk-selection">
-        <!-- filled by icc.js -->
-      </ul>
-    </section>
-
     <!-- SIM Toolkit -->
     <section role="region" id="icc">
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 id="icc-stk-operator-header"> SIM Toolkit </h1>
+        <button id="icc-stk-app-back" class="hidden"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
+        <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>
-      <ul id="icc-stk-apps">
+      <header>
+        <h2 id="icc-stk-subheader"></h2>
+      </header>
+
+      <ul id="icc-stk-list">
         <!-- filled by icc.js -->
       </ul>
+
+      <form role="dialog" id="icc-stk-alert" class="hidden">
+        <section>
+          <h1 data-l10n-id="message">Message</h1>
+          <p id="icc-stk-alert-msg">
+            <!-- filled by icc.js -->
+          </p>
+        </section>
+        <menu>
+          <button data-l10n-id="ok" type="submit" id="icc-stk-alert-btn">Ok</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Main List -->

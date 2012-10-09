@@ -8,7 +8,7 @@ Calendar.ns('Views').TimeHeader = (function() {
     this.controller.on('scaleChange', this);
 
     this.settings.addEventListener('click', function settingsClick(e) {
-      e.preventDefault();
+      e.stopPropagation();
       var path = window.location.pathname;
       if (SETTINGS.test(path)) {
         Calendar.App.resetState();
@@ -29,7 +29,11 @@ Calendar.ns('Views').TimeHeader = (function() {
 
     scales: {
       month: '%B %Y',
-      day: '%A %B %e'
+      day: '%A %B %e',
+      // when week starts in one month and ends
+      // in another, we need both of them
+      // in the header
+      singleMonth: '%B '
     },
 
     handleEvent: function(e) {
@@ -40,6 +44,7 @@ Calendar.ns('Views').TimeHeader = (function() {
         case 'yearChange':
         case 'monthChange':
         case 'dayChange':
+        case 'weekChange':
           this._updateTitle();
           break;
         case 'scaleChange':
@@ -62,14 +67,14 @@ Calendar.ns('Views').TimeHeader = (function() {
           return 'monthChange';
         case 'year':
           return 'yearChange';
+        case 'week':
+          return 'weekChange';
       }
 
       return 'dayChange';
     },
 
     _updateScale: function(newScale, oldScale) {
-      // we check for month & year
-      // everything else is day based scale (week, etc..)
       if (oldScale) {
         this.controller.removeEventListener(
           this._scaleEvent(oldScale),
@@ -86,6 +91,37 @@ Calendar.ns('Views').TimeHeader = (function() {
     },
 
     getScale: function(type) {
+      // If we are creating header for the week view
+      if (type === 'week') {
+        var scale = '';
+        var firstWeekday = this.controller.position;
+        // We check if current week ends in the current month.
+        // We check only 5 days ahead (so even if last two days
+        // are in the next month we don't care about that - we have
+        // only 5 days visible, and it looks odd when for example we
+        // have Sep 26-30 because 31 & Oct 1 are hidden, and
+        // we use September October 2012 as a header).
+        // According to spec we display only last month's year
+        // (December January 2013, not December 2012 January 2013)
+        // and that's how it's implemented here.
+        var lastWeekday = new Date(
+                firstWeekday.getFullYear(),
+                firstWeekday.getMonth(),
+                firstWeekday.getDate() + 4
+              );
+        if (firstWeekday.getMonth() !== lastWeekday.getMonth()) {
+          scale = this.app.dateFormat.localeFormat(
+            firstWeekday,
+            this.scales.singleMonth
+          );
+        }
+
+        return scale + this.app.dateFormat.localeFormat(
+            lastWeekday,
+            this.scales.month
+        );
+      }
+
       return this.app.dateFormat.localeFormat(
         this.controller.position,
         this.scales[type] || this.scales.month

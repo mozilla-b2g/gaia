@@ -160,6 +160,31 @@ Calendar.ns('Store').Alarm = (function() {
     },
 
     /**
+     * Finds single alarm by busytime id.
+     *
+     * @param {String} busytimeId busytime id.
+     * @param {IDBTransaction} [trans] optional transaction.
+     * @param {Function} callback node style [err, record].
+     */
+    findByBusytimeId: function(busytimeId, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = null;
+      }
+
+      if (!trans) {
+        trans = this.db.transaction(this._dependentStores);
+      }
+
+      var store = trans.objectStore(this._store);
+      var index = store.index('busytimeId');
+
+      index.get(busytimeId).onsuccess = function(e) {
+        callback(null, e.target.result);
+      }
+    },
+
+    /**
      * Works queue putting alarms into the alarm api database where needed.
      *
      */
