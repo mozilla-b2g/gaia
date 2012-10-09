@@ -85,10 +85,12 @@ var UssdManager = {
     var message;
     switch (evt.type) {
       case 'ussdreceived':
-        message = {
-          type: 'ussdreceived',
-          message: evt.message
-        };
+        // Do not notify the UI if no message to show.
+        if (evt.message)
+          message = {
+            type: 'ussdreceived',
+            message: evt.message
+          };
         break;
       case 'voicechange':
         // Even without SIM card, the mozMobileConnection.voice.network object
@@ -111,10 +113,9 @@ var UssdManager = {
             break;
         }
         return;
-        break;
     }
 
-    if (this._popup && this._popup.ready) {
+    if (message && this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
     }
   }

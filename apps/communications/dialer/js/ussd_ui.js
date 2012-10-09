@@ -104,25 +104,10 @@ var UssdUI = {
 
     switch (evt.data.type) {
       case 'success':
-        var message = '',
-          result = evt.data.result;
-        if (typeof result === 'object') {
-          var keys = Object.keys(result),
-            keysLength = keys.length;
-          for (var i = 0; i < keysLength; i++)
-            message += keys[i] + ": " + result[keys[i]] + '\n';
-          // We have observed that in some cases we get an Object as
-          // the evt.data.result with no properties.
-          if (keysLength === 0)
-            message = this._('message-successfully-sent');
-        }
-        else
-          message = this._('message-successfully-sent');
-        this.showMessage(message);
+        this.showMessage(evt.data.result);
         break;
       case 'error':
-        this.showMessage(evt.data.error ?
-          evt.data.error : this._('ussd-server-error'));
+        this.showMessage(evt.data.error);
         break;
       case 'ussdreceived':
         this.showMessage(evt.data.message);
