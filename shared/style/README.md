@@ -21,15 +21,17 @@ Common Class Names
 * `.skin-dark`
 * `.skin-organic`
 
+**Dialogs**
+
+* `.dialog-action`: title + action selection + accept/dismiss buttons
+* `.dialog-confirm`: message + accept/dismiss buttons
+* `.dialog-edit`: edition panel with dialog-like button toolbar
+* `.dialog-object`: action selection + accept/dismiss buttons
+
 **Buttons**
 
 * `.danger`: dangerous choice, e.g. delete something
 * `.recommend`: default/recommended choice, should be safe
-
-**Dialogs**
-
-* `.edit`: accept/dismiss panel with dialog-like button toolbar
-* TODO: `.action` and `.object` could be added as well (w/ prefix)
 
 **Other**
 
