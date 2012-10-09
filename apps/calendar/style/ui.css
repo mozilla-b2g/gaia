@@ -130,6 +130,7 @@ ol.link-list a {
 
 #advanced-settings-view .settings-list label,
 #advanced-settings-view .account-list a {
+  text-transform: none;
   padding-right: 4rem;
   overflow: hidden;
   white-space: nowrap;
@@ -179,6 +180,29 @@ ol.link-list a {
 
 #modify-event-view form ol li {
   margin: 0rem;
+}
+
+#modify-event-view li.allday {
+  padding: 1rem;
+  position: relative;
+}
+
+#modify-event-view li.allday > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#modify-event-view li.allday > label > span {
+  left: auto;
+  right: 1rem;
+}
+
+#modify-event-view.allday .start-time,
+#modify-event-view.allday .end-time {
+  visibility: hidden;
 }
 
 #modify-event-view.update .calendar-id {

@@ -229,9 +229,6 @@ function MapCodesToBaseLetters(codes, length) {
 // ab -> promote words that start with 'ab'
 const PrefixMatchMultiplier = 3;
 
-// promote words when case of first character matches
-const CaseMatchMultiplier = 2;
-
 // words where accidentaly the wrong key was pressed
 // qas -> was
 // w - neighbourKeys [q,e,a,s,d]
@@ -261,18 +258,6 @@ const RankCandidate = (function() {
     //      editdistance = 2, then fact = 1.8
     var factor = 1 + ((10 - Math.min(9, cand.distance)) / 10);
     rank *= factor;
-
-    // promote candidates where starting characters match the input word.
-    // e.g. Af - Africa
-    //      af - after
-    var matchingChars = 0;
-    for (var i = 0, len = word.length; i < len; i++) {
-      if (word[i] != candWord[i])
-        break;
-      matchingChars++;
-    }
-    if (matchingChars > 0)
-      rank *= (CaseMatchMultiplier + matchingChars);
 
     // take input length into account
     // length = 1 then fact = 1.1
@@ -564,8 +549,13 @@ var PredictiveText = {
     var wordList = [];
     if (_currentWord.length > 0) {
       var candidates = Predict(_currentWord);
+      var capitalize = (_currentWord[0] === _currentWord[0].toUpperCase());
       for (var n = 0, len = candidates.length; n < len; ++n) {
         var word = candidates[n].word;
+        if (capitalize) {
+          word = word[0].toUpperCase() + word.substring(1);
+        }
+
         // For some reason ../render.js expects two copies here.
         // It displays the first one, but actually inserts the second one.
         // Maybe this is required for asian input methods. We use it to

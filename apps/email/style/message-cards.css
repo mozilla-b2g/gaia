@@ -296,28 +296,25 @@
   background-color: rgba(16, 16, 16, 0.8);
 }
 
-.msg-edit-btn {
-  position: absolute;
-  right: 6rem;
-}
-
 .msg-reply-all-btn {
   position: absolute;
   right: 6rem;
 }
 
 .msg-refresh-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/refresh.png") no-repeat scroll center transparent;
 }
 
 .msg-search-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/search.png") no-repeat scroll center transparent;
   position: absolute;
   right: 0px;
+}
+
+.msg-edit-btn {
+  background: url("images/icons/edit.png") no-repeat scroll center transparent;
+  position: absolute;
+  left: calc((100% - 6rem)/2);
 }
 
 .msg-btn-active {
@@ -325,32 +322,22 @@
 }
 
 .msg-star-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/star.png") no-repeat scroll center transparent;
 }
 
 .msg-mark-read-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/mark.png") no-repeat scroll center transparent;
 }
 
 .msg-delete-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/delete.png") no-repeat scroll center transparent;
 }
 
 .msg-move-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/move.png") no-repeat scroll center transparent;
 }
 
 .msg-forward-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/forward.png") no-repeat scroll center transparent;
 }
 

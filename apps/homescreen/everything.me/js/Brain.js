@@ -27,7 +27,8 @@ Evme.Brain = new function() {
         },
 
         timeoutSetUrlAsActive = null,
-        timeoutHashChange = null;
+        timeoutHashChange = null,
+        _ = navigator.mozL10n.get;;
 
     this.init = function(options) {
         Evme.EventHandler && Evme.EventHandler.bind(catchCallback);
@@ -609,15 +610,13 @@ Evme.Brain = new function() {
             );
 
             if (isAppInstalled) {
-                new Evme.Tip({
-                    "id": "install-app-exists",
-                    "text": "This bookmark was added previously",
-                    "closeAfter": 2000
-                }).show();
+                var msg = _('app-exists-in-home-screen', {name: data.data.name});
+                window.alert(msg);
                 return;
             }
 
-            var response = window.confirm('Bookmark ' + data.data.name + '?');
+            var msg = _('add-to-home-screen-question', {name: data.data.name})
+            var response = window.confirm(msg);
             if (!response) {
                 return;
             }
@@ -671,7 +670,7 @@ Evme.Brain = new function() {
 
             loadingApp = true;
             var $app = data.$el;
-            
+
             loadingAppAnalyticsData = {
                 "index": data.index,
                 "keyboardVisible": data.keyboardVisible,
@@ -772,7 +771,8 @@ Evme.Brain = new function() {
                     "url": data.appUrl,
                     "originUrl": data.favUrl,
                     "title": data.name,
-                    "icon": appIcon
+                    "icon": appIcon,
+                    "urlTitle": Evme.Searchbar.getValue()
                 });
             });
 
@@ -1062,7 +1062,7 @@ Evme.Brain = new function() {
 
             $elCustomize.bind("click", function(){
                 //if (!EvmePageMoved) {
-                    Evme.ShortcutsCustomize.show(false);    
+                    Evme.ShortcutsCustomize.show(false);
                 //}
             });
 

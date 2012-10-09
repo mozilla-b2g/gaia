@@ -35,7 +35,6 @@ var CallHandler = (function callHandler() {
         if (window.location.hash != '#keyboard-view') {
           window.location.hash = '#keyboard-view';
         }
-        call(number);
       }
     }
 
