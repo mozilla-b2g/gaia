@@ -429,7 +429,7 @@ fb.Contact = function(deviceContact, cid) {
         }
       } // devContact
       else {
-        doUnlink(devContact, out);
+        doUnlink(devContact, out, type);
       }
     }, 0);
 
@@ -437,13 +437,15 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   function doUnlink(dContact, out, type) {
+    var theType = type || 'soft';
     var uid = doGetFacebookUid(dContact);
 
     markAsUnlinked(dContact);
     var req = navigator.mozContacts.save(dContact);
 
     req.onsuccess = function(e) {
-      if (!type === 'hard') {
+      if (theType !== 'hard') {
+
         // Then the original FB imported contact is restored
         var fbDataReq = fb.contacts.get(uid);
 
