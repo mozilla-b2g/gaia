@@ -30,17 +30,6 @@
   min-height: 4.8rem;
   height: 4.8rem;
 }
-.msg-messages-sync-more {
-  vertical-align: 50%;
-}
-.msg-messages-syncing {
-  vertical-align: 50%;
-}
-.msg-messages-syncing-spinner {
-  width: 1.6rem;
-  height: 1.6rem;
-  background-image: url('style/images/spinner-from-statusbar.gif');
-}
 
 .msg-search-tease-bar {
   height: 2.4rem;
@@ -341,20 +330,6 @@
   background: url("images/icons/forward.png") no-repeat scroll center transparent;
 }
 
-.msg-list-empty {
-  position: absolute;
-  top: 40%;
-  width: 80%;
-  margin : 0 10%;
-  font-size: 2rem;
-  font-weight: bolder;
-  text-align: center;
-  display: none;
-}
-.msg-list-empty.show {
-  display: block;
-}
-
 /* Message list edit mode layout control */
 .msg-messages-container label.negative {
   height: 8rem;
@@ -374,6 +349,17 @@
   width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
 }
 
+/* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
+.msg-messages-sync-container > p[role="status"],
+.msg-list-empty {
+  width: 80%;
+  margin : 0 10%;
+  text-align: center;
+}
+.msg-list-empty {
+  position: absolute;
+  top: 40%;
+}
 /* FILTERS BUILDING BLOCKS COPIED AND PASTED */
 
 /* ----------------------------------
