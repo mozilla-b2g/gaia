@@ -75,6 +75,10 @@
   background-image: url("images/bookmark.png");
 }
 
+#bookmark-button[data-disabled] {
+  background-image: none;
+}
+
 #close-button {
   background-image: url("images/close.png");
 }

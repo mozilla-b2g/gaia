@@ -80,18 +80,34 @@
 
     <h2 class="bb-docs">Input forms</h2>
 
+    <!-- form used at the top of the page with fixed/absolute position and content scrolls underneath -->
     <form role="search">
-      <button type="submit">Send</button>
+      <button type="submit">Cancel</button>
       <p>
-        <input placeholder="search" required>
+        <input placeholder="search term here..." required>
         <button type="reset">Clear</button>
       </p>
     </form>
+
+    <!-- form used under a header, this form scrolls together with the content underneath the header -->
+    <section role="region"> 
+      <header>
+          <!-- here should be the content of the header -->
+      </header>
+      <form role="search" class="full">
+        <button type="submit">Send</button>
+        <p>
+          <input placeholder="search term here..." required>
+          <button type="reset">Clear</button>
+        </p>
+      </form>
+    </section>
 
     <form role="search" class="bottom">
       <button type="submit">Send</button>
       <p>
         <input required>
+        <button type="reset">Clear</button>
       </p>
     </form>
 

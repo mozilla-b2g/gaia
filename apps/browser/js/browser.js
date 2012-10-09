@@ -1101,6 +1101,7 @@ var Browser = {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
+      iframe.setAttribute('mozallowfullscreen', true);
 
       if (url) {
         iframe.setAttribute('src', url);

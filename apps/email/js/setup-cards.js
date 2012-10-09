@@ -250,16 +250,16 @@ SetupManualConfig.prototype = {
 
     if (config.type === 'imap+smtp') {
       config.incoming = {
-        hostname:   this.imapHostnameNode.value,
-        port:       this.imapPortNode.value,
+        hostname: this.imapHostnameNode.value,
+        port: this.imapPortNode.value,
         socketType: this.imapSocketNode.value,
-        username:   this.imapUsernameNode.value
+        username: this.imapUsernameNode.value
       };
       config.outgoing = {
-        hostname:   this.smtpHostnameNode.value,
-        port:       this.smtpPortNode.value,
+        hostname: this.smtpHostnameNode.value,
+        port: this.smtpPortNode.value,
         socketType: this.smtpSocketNode.value,
-        username:   this.smtpUsernameNode.value
+        username: this.smtpUsernameNode.value
       };
     }
     else { // config.type === 'activesync'
@@ -416,7 +416,7 @@ SetupDoneCard.prototype = {
     // Nuke this card
     Cards.removeCardAndSuccessors(null, 'none');
     // Trigger the startup logic again; this should show the inbox this time.
-    App.showMessageViewOrSetup();
+    App.showMessageViewOrSetup(true);
   },
 
   die: function() {

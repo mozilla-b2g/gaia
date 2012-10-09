@@ -11,7 +11,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
     extFb.startLink = function(cid, linked) {
       contactId = cid;
-      if (linked === 'true') {
+      if (!linked) {
         open('fb_link.html' + '?contactId=' + contactId);
       } else {
         doUnlink(contactId);
@@ -95,7 +95,7 @@ if (typeof Contacts.extFb === 'undefined') {
       var extras = {};
       extras['fb_is_linked'] = linked;
 
-      for(var nodeName in elements) {
+      for (var nodeName in elements) {
         var node = socialNode.querySelector(nodeName);
         var variables = elements[nodeName].elems;
         variables.forEach(function appendData(data) {
@@ -117,22 +117,23 @@ if (typeof Contacts.extFb === 'undefined') {
       and future different handling
     */
     function onPrivateMsgClick(evt) {
-      onClickWithId(extFb.sendPrivateMsg);
+      onClickWithId(evt, extFb.sendPrivateMsg);
     }
 
     function onWallClick(evt) {
-      onClickWithId(extFb.wallPost);
+      onClickWithId(evt, extFb.wallPost);
     }
 
     function onProfileClick(evt) {
-      onClickWithId(extFb.showProfile);
+      onClickWithId(evt, extFb.showProfile);
     }
 
     // Note this is slightly different
     function onLinkClick(evt) {
       var contactId = evt.target.dataset['id'];
       var linked = evt.target.dataset['fb_is_linked'];
-      linked = linked == 'true';
+
+      linked = (linked === 'true');
       extFb.startLink(contactId, linked);
     }
 
@@ -180,7 +181,9 @@ if (typeof Contacts.extFb === 'undefined') {
 
       freq.onsuccess = function() {
         contacts.List.refresh(cid);
-        contacts.List.refresh(freq.result);
+        if (freq.result) {
+          contacts.List.refresh(freq.result);
+        }
         Contacts.navigation.home();
       }
 

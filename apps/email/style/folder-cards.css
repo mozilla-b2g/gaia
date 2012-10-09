@@ -111,7 +111,5 @@
 }
 
 .fld-nav-settings-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/settings.png") no-repeat scroll center transparent;
 }
