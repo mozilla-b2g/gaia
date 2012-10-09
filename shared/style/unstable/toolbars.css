@@ -1,5 +1,5 @@
 /* ----------------------------------
-* toolbars
+* Toolbars
 * ---------------------------------- */
 
 [role="toolbar"] {
@@ -42,30 +42,30 @@
 }
 
 /* Base icons */
-[role="toolbar"] .update {
+[role="toolbar"] .icon-update {
   background-image: url(toolbars/images/icons/update.png);
 }
 
-[role="toolbar"] .mark {
+[role="toolbar"] .icon-mark {
   background-image: url(toolbars/images/icons/mark.png);
 }
 
-[role="toolbar"] .share {
+[role="toolbar"] .icon-share {
   background-image: url(toolbars/images/icons/share.png);
 }
 
-[role="toolbar"] .send {
+[role="toolbar"] .icon-send {
   background-image: url(toolbars/images/icons/send.png);
 }
 
-[role="toolbar"] .search {
+[role="toolbar"] .icon-search {
   background-image: url(toolbars/images/icons/search.png);
 }
 
-[role="toolbar"] .move {
+[role="toolbar"] .icon-move {
   background-image: url(toolbars/images/icons/move.png);
 }
 
-[role="toolbar"] .delete {
+[role="toolbar"] .icon-delete {
   background-image: url(toolbars/images/icons/delete.png);
 }
