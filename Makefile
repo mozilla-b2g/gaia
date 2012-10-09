@@ -111,6 +111,7 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+MSYS_FIX=
 ifeq (${SYS}/${ARCH},Darwin/i386)
 ARCH=x86_64
 endif
@@ -118,6 +119,8 @@ SEP=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
+# Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
+MSYS_FIX=/
 endif
 
 ifeq ($(SYS),Darwin)
@@ -283,8 +286,8 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
 	@echo 'Rebooting b2g now. '
@@ -478,14 +481,14 @@ stamp-commit-hash:
 delete-databases:
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /data/local/indexedDB/*
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
 	mkdir -p screenshotdata
-	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0
+	$(ADB) pull $(MSYS_FIX)/dev/graphics/fb0 screenshotdata/fb0
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
@@ -493,7 +496,7 @@ screenshot:
 
 # Forward port to use the RIL daemon from the device
 forward:
-	$(ADB) shell touch /data/local/rilproxyd
+	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
@@ -519,6 +522,7 @@ update-offline-manifests:
 		fi \
 	done
 
+
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
@@ -529,17 +533,17 @@ install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /cache/*
+	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 
 ifeq ($(ADB_REMOUNT),1)
 	$(ADB) remount
 endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(GAIA_INSTALL_PARENT)"
+	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
 else
-	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
@@ -552,14 +556,14 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM /sdcard/DCIM
-	$(ADB) push media-samples/Movies /sdcard/Movies
-	$(ADB) push media-samples/Music /sdcard/Music
+	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/DCIM /sdcard/DCIM
-	$(ADB) push test_media/Movies /sdcard/Movies
-	$(ADB) push test_media/Music /sdcard/Music
+	$(ADB) push test_media/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 
 dialer-demo:
 	@cp -R apps/contacts apps/dialer
@@ -578,11 +582,11 @@ reset-gaia: purge install-settingsdb install-gaia
 # remove the memories and apps on the phone
 purge:
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /data/local/*
-	$(ADB) shell mkdir -p /data/local/tmp
-	$(ADB) shell rm -r /cache/*
-	$(ADB) shell rm -r /data/b2g/*
-	$(ADB) shell rm -r $(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/*
+	$(ADB) shell mkdir -p $(MSYS_FIX)/data/local/tmp
+	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
+	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
+	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
 
 # clean out build products
 clean:
