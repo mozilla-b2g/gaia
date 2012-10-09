@@ -5,9 +5,14 @@
   'use strict';
 
   /**
+   * Constants. Set in config.json file
+   */
+  var displayTextTimeout;
+  var DEBUG;
+
+  /**
    * Debug method
    */
-  var DEBUG = false;
   function debug(msg) {
     if (DEBUG) {
       console.log('[DEBUG] STKUI: ' + msg);
@@ -17,7 +22,6 @@
   /**
    * Init
    */
-  var displayTextTimeout = 10000;
   var iccMenuItem = document.getElementById('iccMenuItem');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
@@ -30,31 +34,53 @@
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
   var icc;
-  if (navigator.mozMobileConnection) {
-    icc = navigator.mozMobileConnection.icc;
 
-    icc.onstksessionend = function handleSTKSessionEnd(event) {
-      updateMenu();
-    };
-
-    document.getElementById('icc-stk-app-back').onclick = function goBack() {
-      responseSTKCommand({ resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
-    };
-
-    window.onunload = function() {
-      responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER },
-                         true);
-    };
-
-    navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+  /**
+   * Load configuration data or use default values
+   */
+  var req = utilities.config.load('/config.json');
+  req.onload = function(configData) {
+    DEBUG = configData.iccDebugEnabled;
+    displayTextTimeout = configData.iccDisplayTextTimeout;
+    init();
+  }
+  req.onerror = function(code) {
+    window.console.error('STK: Error while loading config file:', code);
+    DEBUG = false;
+    displayTextTimeout = 10000;
+    init();
   }
 
   /**
-   * Open STK main application
+   * Init STK UI
    */
-  iccMenuItem.onclick = function onclick() {
-    updateMenu();
-  };
+  function init() {
+    if (navigator.mozMobileConnection) {
+      icc = navigator.mozMobileConnection.icc;
+
+      icc.onstksessionend = function handleSTKSessionEnd(event) {
+        updateMenu();
+      };
+
+      document.getElementById('icc-stk-app-back').onclick = function goBack() {
+        responseSTKCommand({ resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
+      };
+
+      window.onunload = function() {
+        responseSTKCommand({ resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER },
+                           true);
+      };
+
+      navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+    }
+
+    /**
+     * Open STK main application
+     */
+    iccMenuItem.onclick = function onclick() {
+      updateMenu();
+    };
+  }
 
   /**
    * Response ICC Command
