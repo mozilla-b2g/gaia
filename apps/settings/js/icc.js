@@ -1,7 +1,7 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-(function () {
+(function() {
   'use strict';
 
   /**
@@ -108,7 +108,7 @@
           displayText(command, null);
         } else {
           displayText(command, function(userCleared) {
-            debug('Display Text, cb: '+JSON.stringify(command));
+            debug('Display Text, cb: ' + JSON.stringify(command));
             iccLastCommandProcessed = true;
             if (command.options.userClear && !userCleared) {
               debug('No response from user (Timeout)');
@@ -118,7 +118,7 @@
               debug('User closed the alert');
               responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
             }
-          })
+          });
         }
         break;
 
@@ -134,11 +134,11 @@
 
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
-        var msg = "";
+        var msg = '';
         if (options.confirmMessage) {
           msg += options.confirmMessage;
         }
-        var confirmed = confirm(msg + " " + options.address);
+        var confirmed = confirm(msg + ' ' + options.address);
         iccLastCommandProcessed = true;
         responseSTKCommand({ hasConfirmed: confirmed,
                              resultCode: icc.STK_RESULT_OK });
@@ -191,7 +191,7 @@
 
       iccMenuItem.textContent = menu.title;
       showTitle(menu.title);
-      menu.items.forEach(function (menuItem) {
+      menu.items.forEach(function(menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
               menuItem.identifier);
         iccStkList.appendChild(buildMenuEntry({
@@ -228,7 +228,7 @@
     debug('STK App Menu default item: ' + menu.defaultItem);
 
     showTitle(menu.title);
-    menu.items.forEach(function (menuItem) {
+    menu.items.forEach(function(menuItem) {
       debug('STK App Menu item: ' + menuItem.text + ' # ' +
         menuItem.identifier);
       iccStkList.appendChild(buildMenuEntry({
@@ -321,7 +321,7 @@
    */
   function displayText(command, cb) {
     var options = command.options;
-    if(!options.userClear) {
+    if (!options.userClear) {
     var timeoutId = setTimeout(function() {
         alertbox.style.display = 'none';
         if (cb) {
@@ -386,7 +386,7 @@
    * Open settings application with ICC section opened
    */
   function openSTKApplication() {
-    document.location.hash='icc';
+    document.location.hash = 'icc';
     navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');
