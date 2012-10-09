@@ -310,3 +310,12 @@ section#icc .hidden {
 section#icc #icc-stk-alert {
   position: fixed;
 }
+
+/******************************************************************************
+ * Date & Time
+ */
+
+#clock-date,
+#clock-time {
+  pointer-events: none;
+}

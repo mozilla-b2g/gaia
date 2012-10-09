@@ -11,6 +11,7 @@
   <link rel="stylesheet" type="text/css" href="style/setup-cards.css">
   <link rel="stylesheet" type="text/css" href="style/value_selector.css">
   <!-- Include shared building blocks -->
+  <link rel="stylesheet" type="text/css" href="style/progress_activity/style.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
   <!-- Include building blocks that not in shared folder yet -->
@@ -187,13 +188,13 @@
                  regardless of their displayed status so we don't scroll them
                  out of the way -->
             <div class="msg-messages-sync-container">
-              <div class="msg-messages-syncing collapsed">
-                <span class="msg-messages-syncing-label"
-                      data-l10n-id="messages-syncing"></span>
-                <img class="msg-messages-syncing-spinner" />
-              </div>
-              <div class="msg-messages-sync-more collapsed"
-                   data-l10n-id="messages-sync-more">SynC MorE</div>
+              <p role="status" class="msg-messages-syncing collapsed">
+                <progress class="small"></progress>
+                <span data-l10n-id="messages-syncing">Message loadinG</span>
+              </p>
+              <p role="status" class="msg-messages-sync-more collapsed">
+                <span data-l10n-id="messages-sync-more">SynC MorE</span>
+              </p>
             </div>
             <div class="bottom-toolbar-spacer"></div>
           </div>
@@ -214,8 +215,9 @@
           <button class="msg-delete-btn bottom-btn"></button>
           <button class="msg-move-btn bottom-btn"></button>
         </div>
-        <div class="msg-list-empty" data-l10n-id="messages-folder-empty">No messagE
-        </div>
+        <p role="status" class="msg-list-empty collapsed">
+          <span data-l10n-id="messages-folder-empty">No messagE</span>
+        </p>
       </div>
 
       <!-- Message Reader -->
