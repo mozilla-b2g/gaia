@@ -23,7 +23,10 @@
     "geolocation",
     "wifi-manage",
     "wifi",
-    "desktop-notification"
+    "desktop-notification",
+    "idle",
+    "network-events",
+    "embed-apps"
   ],
   "locales": {
     "ar": {

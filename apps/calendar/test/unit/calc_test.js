@@ -39,12 +39,30 @@ suite('calendar/calc', function() {
     return (date.getTimezoneOffset() * (60 * 1000));
   }
 
-  test('#utcMs', function() {
-    var date = new Date(2012, 0, 1, 2);
-    var offset = date.getTimezoneOffset() * (60 * 1000);
-    var value = date.valueOf() - offset;
+  suite('#formatHour', function() {
+    var realDateFormat;
+    var fmt;
 
-    assert.equal(subject.utcMs(date), value);
+    suiteSetup(function() {
+      realDateFormat = Calendar.App.dateFormat;
+      fmt = navigator.mozL10n.DateTimeFormat();
+      Calendar.App.dateFormat = fmt;
+    });
+
+    suiteTeardown(function() {
+      Calendar.App.dateFormat = realDateFormat;
+    });
+
+    test('7 hours', function() {
+      var result = subject.formatHour(7);
+      assert.equal(result, '7 AM');
+    });
+
+    test('23 hours', function() {
+      var result = subject.formatHour(23);
+      assert.equal(result, '11 PM');
+    });
+
   });
 
   suite('#spanOfMonth', function() {
@@ -116,33 +134,78 @@ suite('calendar/calc', function() {
 
   });
 
-  suite('#fromUtcMs', function() {
-    var start;
-    var ms;
+  suite('#dateToTransport', function() {
 
-    setup(function() {
-      start = new Date(2012, 0, 1, 2);
-      ms = subject.utcMs(start);
-    });
+    test('floating tz', function() {
+      var date = new Date(2012, 0, 1, 11, 1, 7);
 
-    test('with offset', function() {
-      var offset = start.getTimezoneOffset() - (60 * 3);
-      var out = subject.fromUtcMs(
-        ms, offset
+      var expected = {
+        tzid: subject.FLOATING,
+        utc: date.valueOf(),
+        offset: 0
+      };
+
+      assert.deepEqual(
+        subject.dateToTransport(date, subject.FLOATING),
+        expected
       );
-
-      var clone = new Date(start.valueOf());
-      clone.setHours(clone.getHours() - 3);
-      assert.equal(out.valueOf(), clone.valueOf());
     });
 
-    test('without offset', function() {
-      var out = subject.fromUtcMs(
-        ms
+    test('utc', function() {
+      var date = new Date(2012, 0, 1, 11, 1);
+      var utc = Date.UTC(2012, 0, 1, 11, 1);
+      var offset = utc - date;
+
+      var expected = {
+        offset: offset,
+        utc: utc
+      };
+
+      assert.deepEqual(
+        subject.dateToTransport(date),
+        expected
       );
-      assert.equal(start.valueOf(), out.valueOf());
+    });
+  });
+
+  suite('#dateFromTransport', function() {
+
+    test('utc - DST', function() {
+      // NOTE: I don't expect this test to fail
+      //       in other timezones but it relies on
+      //       hard coded DST info to verify that DST
+      //       actually works in PST.
+
+      var date = new Date(2012, 9, 1, 7, 11);
+      var data = subject.dateToTransport(date);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        date
+      );
     });
 
+    test('utc - standard', function() {
+      var expected = new Date(2012, 0, 1, 0, 5);
+      var data = subject.dateToTransport(expected);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        expected
+      );
+    });
+
+    test('floating', function() {
+      var utc = new Date(Date.UTC(2012, 0, 8, 9, 10));
+      var expected = new Date(2012, 0, 8, 9, 10);
+
+      var data = subject.dateToTransport(utc, subject.FLOATING);
+
+      assert.deepEqual(
+        subject.dateFromTransport(data),
+        expected
+      );
+    });
   });
 
   suite('#getWeekStartDate', function() {
@@ -311,6 +374,26 @@ suite('calendar/calc', function() {
     var start = new Date(2012, 10, 29, 2);
     // Dec 2nd 2012
     var end = new Date(2012, 11, 2, 5);
+
+    test('same day', function() {
+      var end = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate(),
+        start.getHours() + 1
+      );
+
+      var expected = new Date(
+        start.getFullYear(),
+        start.getMonth(),
+        start.getDate()
+      );
+
+      assert.deepEqual(
+        subject.daysBetween(start, end),
+        [expected]
+      );
+    });
 
     test('include time', function() {
       var expected = [

@@ -298,8 +298,11 @@ preferences: install-xulrunner-sdk
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
 	  fi
+	if [ -f build/payment-prefs.js ]; \
+		then \
+			cat build/payment-prefs.js >> profile/user.js; \
+		fi
 	@echo "Done"
-
 
 # Generate profile/permissions.sqlite
 permissions: webapp-manifests install-xulrunner-sdk
@@ -456,7 +459,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia

@@ -154,7 +154,7 @@ form[role="dialog"] menu button:first-child {
 }
 
 form[role="dialog"] menu button {
-  width: -moz-calc((100% - 1rem) / 2);
+  width: calc((100% - 1rem) / 2);
 }
 
 form[role="dialog"] menu button.full {

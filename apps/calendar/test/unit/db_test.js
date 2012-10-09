@@ -1,5 +1,9 @@
 requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('ext/uuid.js');
   requireLib('db.js');
+  requireLib('models/account.js');
+  requireLib('models/calendar.js');
+  requireLib('presets.js');
 });
 
 suite('db', function() {
@@ -88,11 +92,18 @@ suite('db', function() {
   test('#load', function(done) {
     var loaded = {
       account: false,
-      calendar: false
+      calendar: false,
+      setting: false
     };
 
     var account = subject.getStore('Account');
     var calendar = subject.getStore('Calendar');
+    var setting = subject.getStore('Setting');
+
+    setting.load = function(callback) {
+      callback(null, {});
+      loaded.setting = true;
+    }
 
     account.load = function(callback) {
       callback(null, {});
@@ -115,6 +126,7 @@ suite('db', function() {
       done(function() {
         assert.ok(loaded.account, 'should load account');
         assert.ok(loaded.calendar, 'should load calendar');
+        assert.ok(loaded.setting), 'should load settings';
       });
     });
   });
@@ -122,6 +134,50 @@ suite('db', function() {
   suite('#open', function() {
     suite('on version change', function() {
       // db should be destroyed at this point
+
+      suite('#setupDefaults', function() {
+        var accountStore;
+        var calendarStore;
+
+        setup(function(done) {
+          accountStore = subject.getStore('Account');
+          calendarStore = subject.getStore('Calendar');
+          subject.open(function() {
+            subject.load(function() {
+              setTimeout(function() {
+                done();
+              }, 0);
+            });
+          });
+        });
+
+        test('default account', function() {
+          var list = Object.keys(accountStore.cached);
+
+          assert.length(list, 1);
+
+          var item = accountStore.cached[list[0]];
+
+          assert.ok(item);
+          assert.equal(item.providerType, 'Local', 'provider');
+          assert.equal(item.preset, 'local', 'preset');
+        });
+
+        test('default calendar', function() {
+          var list = Object.keys(calendarStore.cached);
+          assert.length(list, 1);
+
+          var item = calendarStore.cached[list[0]];
+
+          assert.ok(item);
+          assert.equal(item.remote.name, 'Offline Calendar');
+
+          var acc = calendarStore.accountFor(item);
+          assert.ok(acc, 'has account');
+          assert.equal(acc.providerType, 'Local');
+        });
+
+      });
 
       test('creation of stores', function(done) {
         var finishedOpen = false;
@@ -152,6 +208,8 @@ suite('db', function() {
         subject.open(function() {
           assert.ok(subject.connection);
           assert.ok(subject.isOpen);
+          assert.equal(subject.oldVersion, 0, 'upgraded from 0');
+          assert.isTrue(subject.hasUpgraded, 'has upgraded');
           assert.equal(subject.connection.name, name);
           finishedOpen = true;
         });

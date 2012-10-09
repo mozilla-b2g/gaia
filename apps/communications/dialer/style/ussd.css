@@ -6,89 +6,100 @@ html, body {
   margin: 0;
   font-family: 'Open Sans', sans-serif;
   font-size: 10px;
-  color: white;
-  background: rgba(0,0,0,.8);
+  background: white;
+  color: black;
 }
 
 html * {
   overflow: hidden;
 }
 
+#message-screen {
+  width: 100%;
+  height: 100%;
+}
+
+#message-container {
+  width: 100%;
+  height: -moz-calc(100% - 5rem - 5rem);
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: center;
+  -moz-box-align: center;
+}
+
 #message {
-  height: -moz-calc(100% - 7rem - 4em);
-  padding: 2em;
-  overflow: scroll;
-
-  font-size: 2em;
+  font-size: 2rem;
+  padding: 1rem;
+  -moz-box-flex: 1;
+  white-space: pre-line;
+  overflow: auto;
 }
 
-#answer {
-  height: -moz-calc(100% - 7rem - 4em);
-  padding: 2em;
-
-  text-align: center;
-}
-
-#answer input {
+#response {
   width: 100%;
-  height: 3rem;
-  margin: 1em 0;
-  border: 1px lightGray solid;
-
-  font-size: 3em;
-  color: white;
-  background: rgba(0,0,0,.7);
+  height: 5rem;
+  background: rgb(245, 245, 245);
 }
 
-#answer button {
-  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
-  margin: 1rem;
-  border: 0;
-
-  border-radius: 6px;
-
-  font-size: 3em;
-  color: white;
-  font-weight: 900;
+#response p {
+  height: 3.8rem;
+  margin: 0.6rem;
 }
 
-#close {
+#response-text[disabled] {
+  opacity: 0.8;
+}
+
+/*
+  Loading screen
+*/
+
+body.loading #loading-overlay {
+  opacity: 1!important;
+}
+
+#loading-overlay {
+  pointer-events: none;
+  z-index: 200;
+  background: rgba(0,0,0,.8);
+  width: 100%;
+  height: 100%;
   position: absolute;
-  width: -moz-calc(50% - 2rem);
+  top: 0;
   left: 0;
-  bottom: 0;
-
-  background: -moz-linear-gradient(top, #ff0000 0%, #ce0000 100%);
-  margin: 1rem;
-
-  border-radius: 6px;
+  padding: 2rem;
+  opacity: 0;
+  -moz-box-sizing: border-box;
+  -moz-transition: opacity 0.3s ease-out;
 }
 
-#close > div {
-  margin: 0 auto;
-  background-image: url('images/ActionIcon_40x40_hangup.png');
-  background-repeat: no-repeat;
-  background-size: 4rem 4rem;
-  background-position: center;
+.loading-container {
+  position: relative;
+  top: 50%;
+  margin-top: -6rem;
+}
+
+.loading-header {
+  text-align: left;
+  padding: 2rem 1rem 4rem 1rem;
+  -moz-box-sizing: border-box;
+  color: white;
+  font-size: -moz-calc(10 * 0.226rem);
+  font-weight: 300;
+  border-top: .1rem solid white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progress-container {
   width: 100%;
-  height: 4rem;
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-pack: center;
+  -moz-box-align: center;
 }
 
-#reply {
-  position: absolute;
-  width: -moz-calc(50% - 2rem);
-  right: 0;
-  bottom: 0;
-
-  background: -moz-linear-gradient(top, #84c82c 0%, #5f9b0a 100%);
-  margin: 1rem;
-
-  border-radius: 6px;
-}
-
-#reply > div {
-  line-height: 4rem;
-  font-size: 2em;
-  text-align: center;
-  font-weight: 900;
+.progress-container progress {
+  -moz-box-flex: 1;
 }

@@ -39,7 +39,8 @@
     margin-right: 0rem;
 }
 
-#value-selector button {
+#select-options-buttons button,
+#time-picker-buttons button{
   /* from building block - other/buttons/style.css*/
   width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
 

@@ -1,23 +1,26 @@
 window.onload = function() {
   navigator.mozSetMessageHandler('activity', function(activityRequest) {
-    if (activityRequest.source.name === 'share-filenames') {
-      addImages(activityRequest.source.data.filenames);
+    activity = activityRequest;
+    if (activityRequest.source.name === 'share') {
+      addImages(activityRequest.source.data.urls);
     }
   });
+
+  document.getElementById('ok').onclick = done;
 };
 
-function addImages(filenames) {
-  console.log('Receiving', filenames.length, 'files');
-  var storage = navigator.getDeviceStorage('pictures');
-  filenames.forEach(function(filename) {
-    storage.get(filename).onsuccess = function(e) {
-      var blob = e.target.result;
-      var url = URL.createObjectURL(blob);
-      var img = document.createElement('img');
-      img.style.width = '100px';
-      img.src = url;
-      img.onload = function() { URL.revokeObjectURL(this.src); };
-      document.body.appendChild(img);
-    };
+var activity;
+
+function done() {
+  activity.postResult('shared');
+}
+
+function addImages(urls) {
+  console.log('share receiver: got', urls.length, 'images');
+  urls.forEach(function(url) {
+    var img = document.createElement('img');
+    img.style.width = '100px';
+    img.src = url;
+    document.body.appendChild(img);
   });
 }
