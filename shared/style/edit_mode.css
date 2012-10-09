@@ -2,7 +2,7 @@
  * Edit mode
  * ---------------------------------- */
 
-form[role="dialog"].edit {
+form[role="dialog"][data-type="edit"] {
   overflow: hidden;
   position: absolute;
   z-index: 100;
@@ -17,7 +17,7 @@ form[role="dialog"].edit {
 }
 
 /* Header */
-form[role="dialog"].edit header {
+form[role="dialog"][data-type="edit"] header {
   pointer-events: auto;
   position: relative;
   z-index: 10;
@@ -28,7 +28,7 @@ form[role="dialog"].edit header {
   border: none;
 }
 
-form[role="dialog"].edit header:after {
+form[role="dialog"][data-type="edit"] header:after {
   content: "";
   display: block;
   height: 0.3rem;
@@ -40,7 +40,7 @@ form[role="dialog"].edit header:after {
   background-size: auto 100%;
 }
 
-form[role="dialog"].edit header h1 {
+form[role="dialog"][data-type="edit"] header h1 {
   font: 2.2rem/4.8rem "Open Sans", Sans-serif;
   text-align: left;
   color: #fff;
@@ -52,7 +52,7 @@ form[role="dialog"].edit header h1 {
   height: 100%
 }
 
-form[role="dialog"].edit header button {
+form[role="dialog"][data-type="edit"] header button {
   border: none;
   background: none;
   padding: 0;
@@ -62,14 +62,14 @@ form[role="dialog"].edit header button {
   border-radius: 0;
 }
 
-form[role="dialog"].edit header menu[type="toolbar"] {
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
   height: 100%;
   float: right;
   margin: 0;
   padding: 0;
 }
 
-form[role="dialog"].edit header menu[type="toolbar"] button {
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   height: 5rem;
   min-width: 5rem;
   width: auto;
@@ -86,26 +86,26 @@ form[role="dialog"].edit header menu[type="toolbar"] button {
   z-index: 5;
 }
 
-form[role="dialog"].edit header menu[type="toolbar"] button:last-child {
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
   background: url(edit_mode/images/ui/separator.png) no-repeat left center;
   margin-left: -2px;
   z-index: 1;
 }
 
 /* Press state */
-form[role="dialog"].edit header button:active .icon:after,
-form[role="dialog"].edit header menu[type="toolbar"] button:active  {
+form[role="dialog"][data-type="edit"] header button:active .icon:after,
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:active  {
   background: #008aaa !important;
   transition: background 0.2s ease;
   border-bottom: solid 1px rgba(0, 0, 0, 0.2) !important;
   color: #fff;
 }
 
-form[role="dialog"].edit header button:first-letter {
+form[role="dialog"][data-type="edit"] header button:first-letter {
   text-transform: uppercase;
 }
 
-form[role="dialog"].edit header > button {
+form[role="dialog"][data-type="edit"] header > button {
   position: absolute;
   left: 0;
   width: 4rem;
@@ -115,7 +115,7 @@ form[role="dialog"].edit header > button {
   text-align: center;
 }
 
-form[role="dialog"].edit header > button span {
+form[role="dialog"][data-type="edit"] header > button span {
   background: url(edit_mode/images/icons/close.png) no-repeat center center;
   overflow: visible;
   font: 0/0 a;
@@ -125,7 +125,7 @@ form[role="dialog"].edit header > button span {
   display: block;
 }
 
-form[role="dialog"].edit header > button span:after {
+form[role="dialog"][data-type="edit"] header > button span:after {
   content: "";
   position: absolute;
   left: 0;
@@ -136,7 +136,7 @@ form[role="dialog"].edit header > button span:after {
 }
 
 /* Menu */
-form[role="dialog"].edit > menu {
+form[role="dialog"][data-type="edit"] > menu {
   pointer-events: auto;
   white-space: nowrap;
   margin: 0;
@@ -151,7 +151,7 @@ form[role="dialog"].edit > menu {
   bottom: 0;
 }
 
-form[role="dialog"] menu button {
+form[role="dialog"][data-type="edit"] menu button {
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
@@ -177,22 +177,22 @@ form[role="dialog"] menu button {
 }
 
 /* Press (default & recommend) */
-form[role="dialog"] menu button:active,
-form[role="dialog"] menu button.recommend:active {
+form[role="dialog"][data-type="edit"] menu button:active,
+form[role="dialog"][data-type="edit"] menu button.recommend:active {
   border-color: #008aaa;
   background: #008aaa;
   color: #333;
 }
 
 /* Recommend */
-form[role="dialog"] menu button.recommend{
+form[role="dialog"][data-type="edit"] menu button.recommend{
   background-image: url(edit_mode/images/ui/recommend.png);
   background-color: #00caf2;
   border-color: #00acce;
 }
 
 /* Danger */
-form[role="dialog"] menu button.danger{
+form[role="dialog"][data-type="edit"] menu button.danger{
   background-image: url(edit_mode/images/ui/danger.png);
   background-color: #b70404;
   color: #fff;
@@ -201,14 +201,14 @@ form[role="dialog"] menu button.danger{
 }
 
 /* Danger Press */
-form[role="dialog"] menu button.danger:active{
+form[role="dialog"][data-type="edit"] menu button.danger:active{
   background-image: url(edit_mode/images/ui/danger-press.png);
   background-color: #890707;
 }
 
 /* Disabled (default & recommend) */
-form[role="dialog"] menu button[disabled],
-form[role="dialog"] menu button[disabled].recommend {
+form[role="dialog"][data-type="edit"] menu button[disabled],
+form[role="dialog"][data-type="edit"] menu button[disabled].recommend {
   background-image: url(edit_mode/images/ui/disabled.png);
   background-color: transparent;
   border: none;
@@ -218,26 +218,27 @@ form[role="dialog"] menu button[disabled].recommend {
 }
 
 /* Danger disabled */
-form[role="dialog"] menu button[disabled].danger {
+form[role="dialog"][data-type="edit"] menu button[disabled].danger {
   background-image: url(edit_mode/images/ui/danger-disabled.png);
   color: #fff;
   text-shadow: none;
   pointer-events: none;
 }
 
-form[role="dialog"] menu button:last-child {
+form[role="dialog"][data-type="edit"] menu button:last-child {
   margin-left: 1rem;
 }
 
-form[role="dialog"] menu button,
-form[role="dialog"] menu button:first-child {
+form[role="dialog"][data-type="edit"] menu button,
+form[role="dialog"][data-type="edit"] menu button:first-child {
   margin: 0;
 }
 
-form[role="dialog"] menu button {
+form[role="dialog"][data-type="edit"] menu button {
   width: calc((100% - 1rem) / 2);
 }
 
-form[role="dialog"] menu button.full {
+form[role="dialog"][data-type="edit"] menu button.full {
   width: 100%;
 }
+
