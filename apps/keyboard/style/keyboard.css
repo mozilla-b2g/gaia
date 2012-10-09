@@ -535,10 +535,21 @@ background-position: center 2.2rem;
   display: none;
   margin: 0 -1rem 0 -1rem;
 }
+
 #keyboard.candidate-panel #keyboard-candidate-panel {
   display: block;
   width: -moz-calc(100% - 62px + 1rem);
   overflow-y: hidden;
+}
+
+/* for latin suggestions we don't need such a tall box */
+/* and in latin we hide the toggle button, so we can be full-width */
+#keyboard.candidate-panel #keyboard-candidate-panel.latin {
+  height: 30px;
+  width: 100%;
+  background: none;
+  margin: 0;
+  border: none;
 }
 
 #keyboard.full-candidate-panel {
@@ -586,6 +597,17 @@ background-position: center 2.2rem;
   background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
 }
 
+#keyboard-candidate-panel.latin span,
+#keyboard-candidate-panel[data-truncated].latin::after {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 10pt;
+  line-height: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  margin: 3px;
+}
+
 #keyboard-candidate-panel-toggle-button {
   border-left: 1px solid #e8e8ff;
   border-right: 1px solid #808098;
@@ -613,6 +635,14 @@ background-position: center 2.2rem;
 
 #keyboard.candidate-panel #keyboard-candidate-panel-toggle-button {
   display: block;
+}
+
+/*
+ * Don't display the toggle button for latin suggestions.
+ * For now, at least, we only ever get 3 at a time 
+ */
+#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button.latin {
+  display: none;
 }
 
 #keyboard-candidate-panel span[data-active],

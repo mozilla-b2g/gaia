@@ -1,21 +1,28 @@
 /* TOPUP VIEW */
-.view.topup {
+#topup-view {
   bottom: 0;
 }
 
-.view.topup form {
+#topup-view form {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
 }
 
+#topup-view form input {
+  text-align: right;
+  color: #333;
+  font-weight: bold;
+  font-size: 2.5rem;
+  height: 3.8rem;
+}
 
-.view.topup .content .info {
+#topup-view .content .info {
   text-align: center;
 }
 
-.view.topup .content .info h2 {
+#topup-view .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
@@ -23,7 +30,7 @@
   margin-bottom: 1rem;
 }
 
-.view.topup .content .info p {
+#topup-view .content .info p {
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;
@@ -31,6 +38,11 @@
   margin-bottom: 0.5rem;
 }
 
-.view.topup .content .info progress {
-  margin-top: 1rem;
+#topup-view .content .info .loading progress {
+  float: left;
+  margin: 1rem;
 }
+#topup-view .content .info .loading p {
+  padding-top: 0.8rem;
+}
+

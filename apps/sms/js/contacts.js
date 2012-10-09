@@ -16,7 +16,7 @@ var ContactDataManager = {
 
   getContactData: function cm_getContactData(number, callback) {
     // so desktop keeps working
-    if (!navigator.mozSms) {
+    if (!navigator.mozContacts) {
       return;
     }
     var numNormalized = PhoneNumberManager.getNormalizedNumber(number);

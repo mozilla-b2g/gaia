@@ -6,9 +6,12 @@
     <title>Test Receiver</title>
     <style>
     button {
-      font-size: 40px;
+      font-size: 30px;
     }
 
+    input {
+      font-size: 30px;
+    }
 
     body {
       background-color: #e0e0e0;
@@ -22,6 +25,8 @@
 
       document.getElementById('button').disabled = '';
       document.getElementById('cancelButton').disabled = '';
+      document.getElementById('number').focus();
+
     };
 
     window.onload = function () {
@@ -82,7 +87,9 @@
   </head>
   <body>
     <h1>Inline Web Activities receiver</h1>
-    <button onclick="go()" disabled id="button">Send "Hello Back!"</button></p>
-    <button onclick="cancel()" disabled id="cancelButton">Cancel</button></p>
+    <p><button onclick="go()" disabled id="button">Send "Hello Back!"</button></p>
+    <!-- add an input field to test keyboard work well -->
+    <p><input type="number" id="number" size="4" /></p>
+    <p><button onclick="cancel()" disabled id="cancelButton">Cancel</button></p>
   </body>
 </html>

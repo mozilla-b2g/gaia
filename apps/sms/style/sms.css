@@ -1,3 +1,9 @@
+/*
+Currently media queries with min/max resolution are not working
+in Firefox until fixing:
+https://bugzilla.mozilla.org/show_bug.cgi?id=779527
+That's why in SII or Nexus SMS App is not rendered properly.
+*/
 
 @media screen and (min-resolution: 230dpi) {
 
@@ -30,12 +36,48 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
+/* Override Building Block [Header] styles */
+section[role="region"] > header:first-child .icon.icon-clear {
+  background-image: url(images/icons/clear.png);
+  right: calc(-50% + 7rem);
+  width: 2rem;
+  margin: 0;
+  padding: 0 2rem;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+section[role="region"] > header:first-child form {
+  display: none;
+}
+
+/* Override Building Block [Edit mode] styles */
+form.edit[role="dialog"] {
+  transform: translateY(-100%);
+}
+
+form.edit[role="dialog"] header,
+form.edit[role="dialog"] > menu {
+  transition: all 0.2s ease;
+}
+
+form.edit[role="dialog"] header {
+  transform: translateY(-100%);
+}
+
+form.edit[role="dialog"] > menu {
+  transform: translateY(100%);
+}
+
+/* Panel handling */
 .wrapper {
   width: 200%;
   height: 100%;
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -60,68 +102,51 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
 */
 
+#snapshot {
+  top: -100%;
+  width: 200%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
+
 .snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
+  display: block;
+  z-index: 100;
+  -moz-transform: translateX(-50%);
 }
 
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
+.snapshot-back #snapshot {
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
 }
 
 /* Styles for Edit mode */
+.edit form[role="dialog"].edit {
+  transform: translateY(0);
+}
 
-.edit .options {
-  -moz-transform: translateY(-6.5rem);
+.edit form[role="dialog"].edit > menu {
+  transform: translateY(0);
 }
 
 .edit .new-sms-form {
-  -moz-transform: translateY(3.6rem);
+  transform: translateY(3.6rem);
 }
 
-.edit .dark-header{
-  -moz-transform: translateY(100%);
-  opacity: .9;
+.edit form[role="dialog"].edit header {
+  transform: translateY(0);
 }
 
 .edit #thread-list-container .name {
   left: 3rem;
-  width: -moz-calc(100% - 10rem);
+  width: calc(100% - 10rem);
 }
 
 .edit #thread-list-container .time {
@@ -158,12 +183,11 @@ html, body {
 /*
   Styles for new message
 */
-
-.new h1 {
+section[role="region"].new > header:first-child h1 {
   display: none;
 }
 
-.new .tel {
+section[role="region"].new > header:first-child form {
   display: block;
 }
 
@@ -251,7 +275,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 #thread-list-container .item > a > span {
   position: absolute;
-  top: -moz-calc(50% - 3.4rem);
+  top: calc(50% - 3.4rem);
   left: 4rem;
   display: block;
   width: 6.4rem;
@@ -306,34 +330,33 @@ a.unread .unread-mark .icon-unread-mark {
 
 #thread-list-container .name {
   font-family: 'Open Sans';
-  font-size: -moz-calc(8 * 0.226rem);
+  font-size: calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 7rem);
+  width: calc(100% - 7rem);
   position: relative;
 }
 
 
 #thread-list-container .msg {
   font-family: 'Open Sans';
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
-  width: -moz-calc(100% - 17rem);
+  width: calc(100% - 17rem);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: '..."';
+  text-overflow: ellipsis;
   position: absolute;
   top: 3rem;
   left: 10rem;
 }
 
 #thread-list-container .time {
-  font-family: 'Open Sans';
   font-weight: 600;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   font-weight: 600;
   color: #5B5B5B;
   position: absolute;
@@ -364,10 +387,10 @@ a.unread .unread-mark .icon-unread-mark {
   border-bottom: solid 0.1rem #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'Open Sans';
+  z-index: 3;
 }
 
 
@@ -379,10 +402,9 @@ a.unread .unread-mark .icon-unread-mark {
   text-align: left;
   padding-left: 3rem;
   padding-top: 1rem;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: #666666;
   text-transform: uppercase;
-  font-family: 'Open Sans';
 }
 
 #messages-container {
@@ -531,7 +553,7 @@ a.unread .unread-mark .icon-unread-mark {
   bottom: -6.5rem;
   width: 100%;
   position: absolute;
-  -moz-transition: -moz-transform .2s ease-in;
+  transition: transform .2s ease-in;
 }
 
 .option {
@@ -552,9 +574,8 @@ a.unread .unread-mark .icon-unread-mark {
   height: 100%;
   width: 100%;
   -moz-box-sizing: border-box;
-  font-family: 'Open Sans';
   font-weight: 600;
-  font-size: -moz-calc(7 * 0.226rem);
+  font-size: calc(7 * 0.226rem);
   color: white;
 }
 
@@ -572,7 +593,7 @@ a.unread .unread-mark .icon-unread-mark {
   bottom: 0rem;
   width: 100%;
   position: absolute;
-  -moz-transition: -moz-transform .2s ease-in;
+  transition: transform .2s ease-in;
 }
 
 .new-sms-form {
@@ -588,12 +609,12 @@ a.unread .unread-mark .icon-unread-mark {
   height: 2.5rem;
   line-height: 2rem;
   max-height: 10rem;
-  width: -moz-calc(100% - 9.5rem);
+  width: calc(100% - 9.5rem);
   -moz-box-sizing: border-box;
   border-radius: 0.3rem;
   border: 0.1rem solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
-  font-size: -moz-calc(7 * 0.226rem);
+  font-size: calc(7 * 0.226rem);
   font-family: 'Open Sans';
 }
 
@@ -636,7 +657,7 @@ a.unread .unread-mark .icon-unread-mark {
   position: relative;
   width: 100%;
   height: 100%;
-  -moz-transition: padding 0.3s ease-out;
+  transition: padding 0.3s ease-out;
   border-bottom: 0.1rem solid hsla(207,22%,92%,1);
 }
 
@@ -644,7 +665,7 @@ a.unread .unread-mark .icon-unread-mark {
   color: black;
   font-size: 2rem;
   line-height: 3rem;
-  width: -moz-calc(100% - 6rem);
+  width: calc(100% - 6rem);
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -687,6 +708,14 @@ a.unread .unread-mark .icon-unread-mark {
   pointer-events: none;
 }
 
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
+}
+
 /*
   Loading screen while deleting
 */
@@ -706,7 +735,7 @@ a.unread .unread-mark .icon-unread-mark {
   padding: 2rem;
   -moz-box-sizing: border-box;
   opacity: 0;
-  -moz-transition: opacity 0.3s ease-out;
+  transition: opacity 0.3s ease-out;
 }
 
 .loading-container {
@@ -720,7 +749,7 @@ a.unread .unread-mark .icon-unread-mark {
   padding: 2rem 1rem 4rem 1rem;
   -moz-box-sizing: border-box;
   color: white;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: calc(10 * 0.226rem);
   font-weight: 300;
   border-top: .1rem solid white;
   overflow: hidden;
@@ -756,5 +785,26 @@ a.unread .unread-mark .icon-unread-mark {
   margin: -8rem auto;
   color: #606060;
   font-weight: 300;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: calc(10 * 0.226rem);
+}
+
+/*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 3rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  transform: translateY(-100%);
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #FF4E00;
+  z-index: 4;
 }

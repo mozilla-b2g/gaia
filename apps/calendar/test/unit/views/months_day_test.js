@@ -93,12 +93,12 @@ suite('views/months_day', function() {
     subject.date = date;
     subject._updateHeader();
 
-    var month = date.toLocaleFormat('%B');
-    var day = date.toLocaleFormat('%A');
+    var expected = date.toLocaleFormat(
+      '%A %B %Y'
+    );
 
-    assert.include(el.innerHTML, '11');
-    assert.include(el.innerHTML, month);
-    assert.include(el.innerHTML, day);
+    assert.ok(el.innerHTML, 'has contents');
+    assert.include(el.innerHTML, expected);
   });
 
   test('#header', function() {

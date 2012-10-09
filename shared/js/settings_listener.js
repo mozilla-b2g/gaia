@@ -41,7 +41,21 @@ var SettingsListener = {
       return;
     }
 
-    var req = this.getSettingsLock().get(name);
+    var req;
+    try {
+      req = this.getSettingsLock().get(name);
+    } catch (e) {
+      // It is possible (but rare) for getSettingsLock() to return
+      // a SettingsLock object that is no longer valid.
+      // Until https://bugzilla.mozilla.org/show_bug.cgi?id=793239
+      // is fixed, we just catch the resulting exception and try
+      // again with a fresh lock
+      console.warn('Stale lock in settings_listener.js.',
+                   'See https://bugzilla.mozilla.org/show_bug.cgi?id=793239');
+      this._lock = null;
+      req = this.getSettingsLock().get(name);
+    }
+
     req.addEventListener('success', (function onsuccess() {
       callback(typeof(req.result[name]) != 'undefined' ?
         req.result[name] : defaultValue);

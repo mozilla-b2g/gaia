@@ -1,4 +1,4 @@
-Calendar.ns('Views').DayChild = (function() {;
+Calendar.ns('Views').DayChild = (function() {
 
   var template = Calendar.Templates.Day;
   var OrderedMap = Calendar.OrderedMap;
@@ -7,6 +7,7 @@ Calendar.ns('Views').DayChild = (function() {;
     Calendar.Views.DayBased.apply(this, arguments);
 
     this.controller = this.app.timeController;
+    this.hourEventsSelector = template.hourEventsSelector;
   }
 
   Day.prototype = {
@@ -14,6 +15,10 @@ Calendar.ns('Views').DayChild = (function() {;
     __proto__: Calendar.Views.DayBased.prototype,
 
     renderAllHours: true,
+
+    hourEventsSelector: null,
+
+    classType: 'day-events',
 
     get element() {
       return this._element;
@@ -73,10 +78,9 @@ Calendar.ns('Views').DayChild = (function() {;
      * a time.
      *
      * @param {Date} date used to calculate events & range.
+     * @param {Boolean} clear when true clears out all elements.
      */
-    changeDate: function(date) {
-      this._resetHourCache();
-
+    changeDate: function(date, clear) {
       ++this._changeToken;
 
       var controller = this.controller;
@@ -88,8 +92,11 @@ Calendar.ns('Views').DayChild = (function() {;
 
       controller.observeTime(this.timespan, this);
 
-      // clear out all children
-      this.events.innerHTML = '';
+      if (clear) {
+        this._resetHourCache();
+        // clear out all children
+        this.events.innerHTML = '';
+      }
 
       this._loadRecords(this.controller.queryCache(
         this.timespan
@@ -102,10 +109,9 @@ Calendar.ns('Views').DayChild = (function() {;
      * @param {Object|Array} busytimes list or single busytime.
      */
     _loadRecords: function(busytimes) {
-      // find all records for range.
-      // if change state is the same
-      // then run _renderDay(list)
-      var store = this.app.store('Event');
+      // skip this step of no busytimes are given
+      if (!busytimes || !busytimes.length)
+        return;
 
       // keep local record of original
       // token if this changes we know
@@ -113,15 +119,15 @@ Calendar.ns('Views').DayChild = (function() {;
       var token = this._changeToken;
       var self = this;
 
-      store.findByAssociated(busytimes, function(err, list) {
+      this.controller.findAssociated(busytimes, function(err, list) {
         if (self._changeToken !== token) {
           // tokens don't match we don't
           // care about these results anymore...
           return;
         }
 
-        list.forEach(function(pair) {
-          this.add(pair[0], pair[1]);
+        list.forEach(function(record) {
+          this.add(record.busytime, record.event);
         }, self);
       });
     },
@@ -154,9 +160,12 @@ Calendar.ns('Views').DayChild = (function() {;
       var idx = records.insertIndexOf(busytime._id);
 
       var html = this._renderEvent(event);
-      var eventArea = hour.element.querySelector(
-        template.hourEventsSelector
-      );
+
+      var eventArea = hour.element;
+
+      if (this.hourEventsSelector) {
+        eventArea = eventArea.querySelector(template.hourEventsSelector);
+      }
 
       var el = this._insertElement(
         html, eventArea, records.items, idx
@@ -219,7 +228,7 @@ Calendar.ns('Views').DayChild = (function() {;
       var idx = this.hours.insertIndexOf(hour);
 
       var html = template.hour.render({
-        displayHour: this._formatHour(hour),
+        displayHour: Calendar.Calc.formatHour(hour),
         hour: String(hour)
       });
 
@@ -235,24 +244,6 @@ Calendar.ns('Views').DayChild = (function() {;
         records: new OrderedMap(),
         flags: []
       };
-    },
-
-    _formatHour: function(hour) {
-      if (hour === Calendar.Calc.ALLDAY) {
-        //XXX: Localize
-        return Calendar.Calc.ALLDAY;
-      }
-
-      newHour = hour;
-      if (hour > 12) {
-        var newHour = (hour - 12) || 12;
-        return String(newHour) + ' pm';
-      } else {
-        if (hour == 0) {
-          hour = 12;
-        }
-        return String(hour) + 'am';
-      }
     },
 
     _renderEvent: function(object) {
@@ -290,7 +281,7 @@ Calendar.ns('Views').DayChild = (function() {;
 
       this._eventsElement = el;
       this._element = el;
-      this._eventsElement.classList.add('day-events');
+      this._eventsElement.classList.add(this.classType);
 
       return el;
     },
@@ -301,7 +292,6 @@ Calendar.ns('Views').DayChild = (function() {;
      */
     create: function() {
       var el = this._buildElement();
-      this.changeDate(this.date);
 
       if (this.renderAllHours) {
         var hour = 0;
@@ -310,6 +300,8 @@ Calendar.ns('Views').DayChild = (function() {;
           this.createHour(hour);
         }
       }
+
+      this.changeDate(this.date);
 
       return el;
     },
