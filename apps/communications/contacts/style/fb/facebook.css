@@ -8,6 +8,42 @@ html, body {
   padding: 0;
 }
 
+/* BB Headers */
+body[role="application"] section[role="region"] > header {
+  background: url(headers/images/ui/header.png);
+}
+
+body[role="application"] section[role="region"] > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header menu[type="toolbar"] button:last-child {
+  background-image: url(headers/images/ui/separator.png);
+}
+
+body[role="application"] section[role="region"] > header > button,
+body[role="application"] section[role="region"] > header > a {
+  background-image: url(headers/images/ui/separator-large.png);
+}
+
+body[role="application"] section[role="region"] > header > button .icon:after,
+body[role="application"] section[role="region"] > header > a .icon:after {
+  background-image: url(headers/images/ui/negative.png);
+}
+
+/* BB Input areas */
+
+form[role="search"].full {
+  border-bottom: 0.1rem solid #C8C8C8;
+  padding-top: 0.3rem;
+}
+
+form[role="search"].full:after {
+  background: none;
+}
+
+form[role="search"].full p {
+  padding: 0.3rem 3.2rem 0.3rem 2.5rem;
+}
+
+
 .view {
   position: fixed;
   left: 0;
