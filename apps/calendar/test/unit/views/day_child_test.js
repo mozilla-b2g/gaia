@@ -9,6 +9,7 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('views/day_child', function() {
   var subject;
   var app;
+  var db;
   var controller;
   var events;
   var template;
@@ -16,6 +17,7 @@ suite('views/day_child', function() {
 
   setup(function() {
     app = testSupport.calendar.app();
+    db = app.db;
     controller = app.timeController;
     events = app.store('Event');
 
@@ -68,7 +70,7 @@ suite('views/day_child', function() {
       assert.equal(subject._changeToken, 1);
       var day = Calendar.Calc.createDay(startTime);
 
-      subject.changeDate(startTime);
+      subject.changeDate(startTime, true);
 
       assert.deepEqual(subject.date, day);
       assert.equal(subject.events.innerHTML, '');
@@ -96,7 +98,7 @@ suite('views/day_child', function() {
     });
 
     test('from second change', function() {
-      subject.changeDate(new Date());
+      subject.changeDate(new Date(), true);
       var oldRange = subject.timespan;
 
       subject.changeDate(startTime);
@@ -116,28 +118,49 @@ suite('views/day_child', function() {
   });
 
   suite('#_loadRecords', function() {
-    var storeCalledWith;
+    var requestCalledWith;
     var addCalledWith;
     var list = [];
+    var start = new Date();
 
     setup(function() {
-      list = [
-        [1, 1],
-        [2, 2]
-      ];
+      list.length = 0;
+      var start = new Date();
+      var end = new Date();
+
+      start.setMinutes(start.getMinutes() - 10);
+      end.setHours(end.getHours() + 10);
+
+      var i = 0;
+      var busy;
+
+      // stage busytimes so they are passed into findAssociated.
+      for (; i < 2; i++) {
+        busy = Factory('busytime', {
+          startDate: start,
+          endDate: end
+        });
+
+        controller._collection.add(busy);
+
+        list.push({
+          event: Factory('event'),
+          busytime: busy
+        });
+      }
 
       // build tree without updating it
       subject._buildElement();
 
-      storeCalledWith = [];
+      requestCalledWith = [];
       addCalledWith = [];
 
       subject.add = function() {
         addCalledWith.push(arguments);
       }
 
-      events.findByAssociated = function() {
-        storeCalledWith.push(arguments);
+      controller.findAssociated = function() {
+        requestCalledWith.push(arguments);
       }
     });
 
@@ -146,31 +169,41 @@ suite('views/day_child', function() {
       subject.changeDate(new Date());
       subject.changeDate(new Date());
 
-      assert.equal(storeCalledWith.length, 2);
+      assert.equal(requestCalledWith.length, 2);
       assert.equal(addCalledWith.length, 0);
 
       // now that token has changed
       // we don't care about this and so
       // it should do nothing...
-      storeCalledWith[0][1](null, list);
+      requestCalledWith[0][1](null, list);
       assert.equal(addCalledWith.length, 0);
 
-      // should fire when the correct set of
+      // should fire wehen the correct set of
       // changes is loaded...
-      storeCalledWith[1][1](null, list);
-      assert.deepEqual(addCalledWith[0], list[0]);
+      requestCalledWith[1][1](null, list);
+      assert.deepEqual(
+        addCalledWith[0],
+        [list[0].busytime, list[0].event]
+      );
     });
 
     test('when change token is same', function() {
       // this fires _load
       subject.changeDate(new Date());
 
-      assert.ok(storeCalledWith.length);
+      assert.ok(requestCalledWith.length);
       assert.ok(!addCalledWith.length);
 
-      storeCalledWith[0][1](null, list);
-      assert.deepEqual(addCalledWith[0], list[0]);
-      assert.deepEqual(addCalledWith[1], list[1]);
+      requestCalledWith[0][1](null, list);
+
+      assert.deepEqual(
+        addCalledWith[0],
+        [list[0].busytime, list[0].event]
+      );
+      assert.deepEqual(
+        addCalledWith[1],
+        [list[1].busytime, list[1].event]
+      );
     });
 
   });
@@ -438,6 +471,7 @@ suite('views/day_child', function() {
       date: date
     });
 
+
     subject.changeDate = function() {
       calledWith = arguments;
       Calendar.Views.DayChild.prototype.changeDate.apply(
@@ -447,6 +481,7 @@ suite('views/day_child', function() {
     }
 
     var el = subject.create();
+    assert.equal(subject.id, date.valueOf(), 'id');
 
     assert.ok(el);
     assert.equal(el.tagName.toLowerCase(), 'section');
@@ -454,7 +489,7 @@ suite('views/day_child', function() {
 
     var hour = 0;
     var html = el.innerHTML;
-    assert.ok(html);
+    assert.ok(html, 'has html');
 
     assert.include(
       html,

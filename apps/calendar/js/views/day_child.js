@@ -78,10 +78,9 @@ Calendar.ns('Views').DayChild = (function() {
      * a time.
      *
      * @param {Date} date used to calculate events & range.
+     * @param {Boolean} clear when true clears out all elements.
      */
-    changeDate: function(date) {
-      this._resetHourCache();
-
+    changeDate: function(date, clear) {
       ++this._changeToken;
 
       var controller = this.controller;
@@ -93,8 +92,11 @@ Calendar.ns('Views').DayChild = (function() {
 
       controller.observeTime(this.timespan, this);
 
-      // clear out all children
-      this.events.innerHTML = '';
+      if (clear) {
+        this._resetHourCache();
+        // clear out all children
+        this.events.innerHTML = '';
+      }
 
       this._loadRecords(this.controller.queryCache(
         this.timespan
@@ -107,10 +109,9 @@ Calendar.ns('Views').DayChild = (function() {
      * @param {Object|Array} busytimes list or single busytime.
      */
     _loadRecords: function(busytimes) {
-      // find all records for range.
-      // if change state is the same
-      // then run _renderDay(list)
-      var store = this.app.store('Event');
+      // skip this step of no busytimes are given
+      if (!busytimes || !busytimes.length)
+        return;
 
       // keep local record of original
       // token if this changes we know
@@ -118,15 +119,15 @@ Calendar.ns('Views').DayChild = (function() {
       var token = this._changeToken;
       var self = this;
 
-      store.findByAssociated(busytimes, function(err, list) {
+      this.controller.findAssociated(busytimes, function(err, list) {
         if (self._changeToken !== token) {
           // tokens don't match we don't
           // care about these results anymore...
           return;
         }
 
-        list.forEach(function(pair) {
-          this.add(pair[0], pair[1]);
+        list.forEach(function(record) {
+          this.add(record.busytime, record.event);
         }, self);
       });
     },
@@ -291,7 +292,6 @@ Calendar.ns('Views').DayChild = (function() {
      */
     create: function() {
       var el = this._buildElement();
-      this.changeDate(this.date);
 
       if (this.renderAllHours) {
         var hour = 0;
@@ -300,6 +300,8 @@ Calendar.ns('Views').DayChild = (function() {
           this.createHour(hour);
         }
       }
+
+      this.changeDate(this.date);
 
       return el;
     },

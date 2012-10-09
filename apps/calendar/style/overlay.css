@@ -8,5 +8,5 @@ body[data-path="/select-preset/"] #create-account-view,
 body[data-path="/advanced-settings/"] #advanced-settings-view,
 body[data-path^="/create-account/"] #modify-account-view,
 body[data-path^="/update-account/"] #modify-account-view {
-  z-index: 120;
+  z-index: 1200;
 }

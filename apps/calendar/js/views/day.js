@@ -13,6 +13,8 @@ Calendar.ns('Views').Day = (function() {
 
     scale: 'day',
 
+    childClass: Calendar.Views.DayChild,
+
     selectors: {
       element: '#day-view'
     },
@@ -20,9 +22,11 @@ Calendar.ns('Views').Day = (function() {
     _initEvents: function() {
       Parent.prototype._initEvents.call(this);
 
-      this.delegate(this.childContainer, 'click', '[data-id]', function(e, target) {
-        Calendar.App.router.show('/event/' + target.dataset.id + '/');
-      });
+      this.delegate(
+        this.frameContainer, 'click', '[data-id]', function(e, target) {
+          Calendar.App.router.show('/event/' + target.dataset.id + '/');
+        }
+      );
     },
 
     handleEvent: function(e) {
@@ -33,13 +37,9 @@ Calendar.ns('Views').Day = (function() {
       switch (e.type) {
         case 'selectedDayChange':
         case 'dayChange':
-          this._activateTime(e.data[0]);
+          this.changeDate(e.data[0]);
           break;
       }
-    },
-
-    _getId: function(date) {
-      return date.valueOf();
     },
 
     _nextTime: function(time) {
@@ -58,20 +58,8 @@ Calendar.ns('Views').Day = (function() {
       );
     },
 
-    /**
-     * Creates child day view.
-     *
-     * @param {Date} time date.
-     */
-    _createChild: function(time) {
-      return new Calendar.Views.DayChild({
-        date: time,
-        app: this.app
-      });
-    },
-
     render: function() {
-      this._activateTime(
+      this.changeDate(
         this.app.timeController.day
       );
     },

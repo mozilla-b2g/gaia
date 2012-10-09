@@ -10,10 +10,10 @@
 }
 
 #popup-container[data-trusty="true"] {
-  width: 90%;
-  left: 5%;
-  top: 5%;
-  height: 90%;
+  width: 85%;
+  left: 7%;
+  top: 7%;
+  height: 85%;
 }
 
 #screen.popup #popup-container {
@@ -71,6 +71,19 @@
   background-color: #fff;
   transform: translateY(100%);
   transition: transform 1.1s ease;
+}
+
+#popup-container[data-trusty="true"] > #frame-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+
+#popup-container[data-trusty="true"] > .title-container {
+  visibility: hidden;
 }
 
 #frame-container > * {

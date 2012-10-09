@@ -35,6 +35,38 @@ suite('store/alarm', function() {
     db.close();
   });
 
+  suite('#findByBusytimeId', function() {
+    suite('existing', function() {
+      var alarm;
+      var busytimeId = 'xfoo';
+
+      setup(function(done) {
+        alarm = Factory('alarm', {
+          busytimeId: busytimeId
+        });
+
+        subject.persist(alarm, done);
+      });
+
+      test('result', function(done) {
+        subject.findByBusytimeId(busytimeId, function(err, result) {
+          done(function() {
+            assert.ok(!err);
+            assert.deepEqual(result, alarm);
+          });
+        });
+      });
+    });
+
+    test('missing', function(done) {
+      subject.findByBusytimeId('foo', function(err, result) {
+        assert.ok(!err);
+        assert.ok(!result);
+        done();
+      });
+    });
+  });
+
   suite('#_addDependents', function() {
     var worksQueue = 0;
 

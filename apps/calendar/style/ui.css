@@ -87,6 +87,11 @@ ol.link-list a {
   height: calc(35% - 3.33rem);
 }
 
+#time-header h1 {
+  max-width: calc(100% - 5rem);
+  direction:rtl;
+}
+
 
 /* temp views */
 
@@ -125,6 +130,7 @@ ol.link-list a {
 
 #advanced-settings-view .settings-list label,
 #advanced-settings-view .account-list a {
+  text-transform: none;
   padding-right: 4rem;
   overflow: hidden;
   white-space: nowrap;
@@ -176,6 +182,29 @@ ol.link-list a {
   margin: 0rem;
 }
 
+#modify-event-view li.allday {
+  padding: 1rem;
+  position: relative;
+}
+
+#modify-event-view li.allday > label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+}
+
+#modify-event-view li.allday > label > span {
+  left: auto;
+  right: 1rem;
+}
+
+#modify-event-view.allday .start-time,
+#modify-event-view.allday .end-time {
+  visibility: hidden;
+}
+
 #modify-event-view.update .calendar-id {
   display: none;
 }
@@ -196,6 +225,7 @@ ol.link-list a {
 
 .fullscreen-view {
   z-index: 1000;
+  overflow: hidden;
   visibility: hidden;
   /* completely override other views */
   background: #E6E6E0;
@@ -273,14 +303,9 @@ body[data-path^="/month/"] section.month.previous {
   display: block !important;
 }
 
-section.month.previous,
-section.month.next {
-  display: none !important;
-}
-
 section.month {
+  z-index: 200;
   top: 4.9rem;
-  overflow: hidden;
   height: calc(65% - 5rem);
   position: absolute;
   color: #484848;

@@ -11,8 +11,9 @@ const GridManager = (function() {
 
   var dragging = false;
 
+  var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration = .3;
-  var searchOverlay = document.querySelector('#search-overlay');
+  var landingOverlay = document.querySelector('#landing-overlay');
 
   var pages = [];
   var currentPage = 1;
@@ -105,7 +106,7 @@ const GridManager = (function() {
         };
 
         // Generate a function accordingly to the current page position.
-        if (Homescreen.isInEditMode() || currentPage > 1) {
+        if (Homescreen.isInEditMode() || currentPage > 2) {
           var pan = function(e) {
             deltaX = e.clientX - startX;
             window.mozRequestAnimationFrame(refresh);
@@ -146,7 +147,7 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (currentPage != 0 && 'origin' in evt.target.dataset) {
+        if (currentPage > 1 && 'origin' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
           DragDropManager.start(evt, {
@@ -159,11 +160,15 @@ const GridManager = (function() {
     }
   }
 
-  function setOverlayPanning(index, deltaX, backward) {
-    if (index === 0 && !backward) {
-      applyEffectOverlay(searchOverlay, 1 - (-deltaX / windowWidth));
-    } else if (index == 1 && backward) {
-      applyEffectOverlay(searchOverlay, deltaX / windowWidth);
+  function setOverlayPanning(index, deltaX, backward, duration) {
+    if (index === 1 && !backward) {
+      applyEffectOverlay(landingOverlay,
+                         (deltaX / windowWidth) * -opacityOnAppGridPageMax,
+                         duration);
+    } else if (index === 2 && backward) {
+      applyEffectOverlay(landingOverlay, opacityOnAppGridPageMax -
+                         ((deltaX / windowWidth) * opacityOnAppGridPageMax),
+                         duration);
     }
   }
 
@@ -171,8 +176,8 @@ const GridManager = (function() {
     if (duration) {
       overlay.style.MozTransition = 'opacity ' + duration + 's ease';
       overlay.addEventListener('transitionend', function end(e) {
-        e.target.removeEventListener('transitionend', end);
-        e.target.MozTransition = '';
+        overlay.removeEventListener('transitionend', end);
+        overlay.style.MozTransition = '';
       });
     }
     overlay.style.opacity = value;
@@ -184,7 +189,9 @@ const GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pageHelper.total() - 1) {
         page = page + 1;
-      } else if (!forward && currentPage > 0) {
+      } else if (!forward &&
+                  (page === 1 || page >= 3 ||
+                    (page === 2 && !Homescreen.isInEditMode()))) {
         page = page - 1;
       }
     }
@@ -233,12 +240,12 @@ const GridManager = (function() {
       var forward = 1;
       var start = currentPage;
       var end = index;
-      setOverlayPanning(index, 0, true);
+      setOverlayPanning(index, 0, true, kPageTransitionDuration);
     } else {
       var forward = -1;
       var start = index;
       var end = currentPage;
-      setOverlayPanning(index, 0, false);
+      setOverlayPanning(index, 0, false, kPageTransitionDuration);
     }
 
     togglePagesVisibility(start, end);
@@ -430,7 +437,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pageHelper.total();
-    for (var i = 1; i < pagesCount; i++) {
+    for (var i = 2; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
@@ -441,8 +448,10 @@ const GridManager = (function() {
 
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
-      if (index == 0)
+      // ignore the landing page
+      if (index <= 1) {
         return;
+      }
 
       if (page.getNumApps() === 0) {
         pageHelper.remove(index);
@@ -460,6 +469,11 @@ const GridManager = (function() {
     var max = pageHelper.getMaxPerPage();
 
     pages.forEach(function checkIsOverflow(page, index) {
+      // ignore the landing page
+      if (index <= 1) {
+        return;
+      }
+
       // if the page is not full
       if (page.getNumApps() <= max) {
         return;
@@ -528,7 +542,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(1));
+      HomeState.saveGrid(pages.slice(2));
     },
 
     /*

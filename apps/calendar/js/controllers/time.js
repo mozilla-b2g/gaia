@@ -93,6 +93,14 @@ Calendar.ns('Controllers').Time = (function() {
       return this._mostRecentDayType;
     },
 
+    get mostRecentDay() {
+      if (this.mostRecentDayType === 'selectedDay') {
+        return this.selectedDay;
+      } else {
+        return this.position;
+      }
+    },
+
     get timespan() {
       return this._timespan;
     },
@@ -448,6 +456,94 @@ Calendar.ns('Controllers').Time = (function() {
      */
     queryCache: function(timespan) {
       return this._collection.query(timespan);
+    },
+
+    /**
+     * Requests associated records for one or more busytimes.
+     *
+     * Options:
+     *
+     *  event: (Boolean) when true returns associated event. (default true).
+     *  alarm: (Boolean) when true returns the associated alarm.
+     *
+     * Returns:
+     *
+     *    [
+     *      { busytime: inputBusytime, event: event, alarm: alarm },
+     *      ...
+     *    ]
+     *
+     * @param {Array[Object]|Object} busytime one or more busytimes.
+     * @param {Object} options see above.
+     * @param {Function} cb node style [err, (see returns above)].
+     */
+    findAssociated: function(busytimes, options, cb) {
+      if (typeof(options) === 'function') {
+        cb = options;
+        options = null;
+      }
+
+      var getEvent = true;
+      var getAlarm = false;
+
+      busytimes = (Array.isArray(busytimes)) ? busytimes : [busytimes];
+
+      if (options && ('alarm' in options)) {
+        getAlarm = options.alarm;
+      }
+
+      if (options && ('event' in options)) {
+        getEvent = options.event;
+      }
+
+      var eventStore = this.app.store('Event');
+      var alarmStore = this.app.store('Alarm');
+      var list = [];
+
+      var stores = [];
+
+      if (getAlarm)
+        stores.push('alarms');
+
+      if (getEvent)
+        stores.push('events');
+
+      var trans = eventStore.db.transaction(stores);
+
+      trans.addEventListener('error', cb);
+      trans.addEventListener('complete', function() {
+        cb(null, list);
+      });
+
+      // using forEach for scoping
+      // XXX: this is a hot code path needs some optimization.
+      busytimes.forEach(function(busytime, idx) {
+        var result = { busytime: busytime };
+        list[idx] = result;
+        // XXX: we should probably cache events
+        if (getEvent) {
+          eventStore.get(busytime.eventId, trans, function(err, event) {
+            if (event) {
+              result.event = event;
+            }
+          });
+        }
+
+        if (getAlarm) {
+          // its possible for more then one alarm to be present
+          // for a given busytime. We are not supporting that right
+          // now but in the future we may need to modify this to
+          // return an array of alarms.
+          alarmStore.findByBusytimeId(busytime._id, trans,
+                                      function(err, alarm) {
+
+            // unlike events we probably never want to cache alarms.
+            if (alarm) {
+              result.alarm = alarm;
+            }
+          });
+        }
+      }, this);
     },
 
     /**

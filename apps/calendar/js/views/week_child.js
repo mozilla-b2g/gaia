@@ -12,7 +12,6 @@ Calendar.ns('Views').WeekChild = (function() {
   Week.prototype = {
     __proto__: Calendar.Views.DayChild.prototype,
 
-
     classType: 'week-events',
 
     _renderHeader: function() {

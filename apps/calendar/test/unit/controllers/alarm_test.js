@@ -43,7 +43,6 @@ suite('controllers/alarm', function() {
     db.close();
   });
 
-
   suite('#observe', function() {
     var worksQueue;
 

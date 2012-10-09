@@ -6,6 +6,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": [
+    "alarm",
+    "alarms",
     "browser",
     "power",
     "mozApps",
@@ -25,7 +27,8 @@
     "wifi",
     "desktop-notification",
     "idle",
-    "network-events"
+    "network-events",
+    "embed-apps"
   ],
   "locales": {
     "ar": {
@@ -77,5 +80,6 @@
       "description": "Main System"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "messages": ["alarm"]
 }

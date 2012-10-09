@@ -20,14 +20,14 @@ window.addEventListener("devicemotion", function (e) {
   }
 }, false);
 
-window.addEventListener("deviceorientation", function (event) {
-  if (event) {
+window.addEventListener("deviceorientation", function (e) {
+  if (e) {
     document.getElementById("orientation-alpha").innerHTML = e.alpha
     document.getElementById("orientation-beta").innerHTML = e.beta
     document.getElementById("orientation-gamma").innerHTML = e.gamma
   }
 }, false);
 
-window.addEventListener("compassneedscalibration", function (event) {
+window.addEventListener("compassneedscalibration", function (e) {
   document.getElementById("compassneedscalibration").innerHTML = "true";
 }, false);

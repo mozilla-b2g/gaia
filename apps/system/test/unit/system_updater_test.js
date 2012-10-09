@@ -195,18 +195,45 @@ suite('system/system_updater', function() {
     });
   });
 
+  function testApplyPrompt() {
+    test('apply prompt shown', function() {
+      assert.isTrue(MockCustomDialog.mShown);
+      assert.equal('updateReady', MockCustomDialog.mShowedTitle);
+      assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
+
+      assert.equal('later', MockCustomDialog.mShowedCancel.title);
+      assert.equal('installNow', MockCustomDialog.mShowedConfirm.title);
+    });
+
+    test('apply prompt cancel callback', function() {
+      assert.equal(subject.declineInstall.name,
+                   MockCustomDialog.mShowedCancel.callback.name);
+
+      subject.declineInstall();
+      assert.isFalse(MockCustomDialog.mShown);
+
+      assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
+      assert.equal('wait', lastDispatchedEvent.value);
+    });
+
+    test('apply prompt confirm callback', function() {
+      assert.equal(subject.acceptInstall.name,
+                   MockCustomDialog.mShowedConfirm.callback.name);
+
+      subject.acceptInstall();
+      assert.isFalse(MockCustomDialog.mShown);
+
+      assert.equal('update-prompt-apply-result', lastDispatchedEvent.type);
+      assert.equal('restart', lastDispatchedEvent.value);
+    });
+  }
+
   suite('update downloaded event', function() {
     setup(function() {
-      MockUtilityTray.show();
-
       var event = new MockChromeEvent({
         type: 'update-downloaded'
       });
       subject.handleEvent(event);
-    });
-
-    test('utility tray hidden', function() {
-      assert.isFalse(MockUtilityTray.mShown);
     });
 
     test('update status hidden', function() {
@@ -217,35 +244,41 @@ suite('system/system_updater', function() {
       assert.equal(-1, subject.updateStatus.className.indexOf('displayed'));
     });
 
-    test('dialog shown', function() {
-      assert.isTrue(MockCustomDialog.mShown);
-      assert.equal('updateReady', MockCustomDialog.mShowedTitle);
-      assert.equal('wantToInstall', MockCustomDialog.mShowedMsg);
-
-      assert.equal('later', MockCustomDialog.mShowedCancel.title);
-      assert.equal('restart', MockCustomDialog.mShowedConfirm.title);
+    test('notification sent', function() {
+      assert.equal('updateApplyTitle', MockNotificationHelper.mTitle);
+      assert.equal('updateApplyBody', MockNotificationHelper.mBody);
+      assert.equal('style/system_updater/images/download.png',
+                   MockNotificationHelper.mIcon);
     });
 
-    test('cancel callback', function() {
-      assert.equal(subject.declineInstall.name,
-                   MockCustomDialog.mShowedCancel.callback.name);
-
-      subject.declineInstall();
-      assert.isFalse(MockCustomDialog.mShown);
-
-      assert.equal('update-downloaded-result', lastDispatchedEvent.type);
-      assert.equal('wait', lastDispatchedEvent.value);
+    test('notification click callback', function() {
+      assert.equal(subject.showApplyPrompt.name,
+                   MockNotificationHelper.mClickCB.name);
     });
 
-    test('confirm callback', function() {
-      assert.equal(subject.acceptInstall.name,
-                   MockCustomDialog.mShowedConfirm.callback.name);
+    suite('apply prompt from notification click', function() {
+      setup(function() {
+        subject.showApplyPrompt();
+      });
+      testApplyPrompt();
+    });
+  });
 
-      subject.acceptInstall();
-      assert.isFalse(MockCustomDialog.mShown);
+  suite('update prompt apply event', function() {
+    setup(function() {
+      MockUtilityTray.show();
+      var event = new MockChromeEvent({
+        type: 'update-prompt-apply'
+      });
+      subject.handleEvent(event);
+    });
 
-      assert.equal('update-downloaded-result', lastDispatchedEvent.type);
-      assert.equal('restart', lastDispatchedEvent.value);
+    test('utility tray not shown', function() {
+      assert.isFalse(MockUtilityTray.mShown);
+    });
+
+    suite('apply prompt from platform event', function() {
+      testApplyPrompt();
     });
   });
 });

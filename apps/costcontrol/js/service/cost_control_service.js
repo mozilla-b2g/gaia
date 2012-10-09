@@ -527,6 +527,7 @@ setService(function cc_setupCostControlService() {
 
     if (!_enabledFunctionalities.balance) {
       status.detail = 'disabled-functionality';
+      return status;
     }
 
     // All OK

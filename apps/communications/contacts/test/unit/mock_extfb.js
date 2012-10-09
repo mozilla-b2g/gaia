@@ -1,5 +1,6 @@
 'use strict';
 
 var MockExtFb = {
-  importFB: function() {}
+  importFB: function() {},
+  initEventHandlers: function(node, contact, linked) {}
 };

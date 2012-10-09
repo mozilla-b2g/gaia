@@ -22,6 +22,7 @@
   <!--- shared styles -->
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
 
   <!--- shared scripts -->
   <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
@@ -82,14 +83,14 @@
   <script defer src="/js/views/calendar_colors.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/time_header.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day_based.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/time_parent.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/month_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day_child.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/week_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/months_day.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/time_parent.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/views/month.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/day.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/week.js" type="text/javascript" charset="utf-8"></script>
-  <script defer src="/js/views/week_child.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/advanced_settings.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/views/create_account.js" type="text/javascript" charset="utf-8"></script>
@@ -184,18 +185,18 @@
 
   <menu id="view-selector">
     <li class="today">
-      <a href="#today">Today</a>
+      <a data-l10n-id="show-today" href="#today">Today</a>
     </li>
     <li class="time-selection">
       <menu>
         <li class="month">
-          <a href="/month/">Month</a>
+          <a data-l10n-id="show-month-view" href="/month/">Month</a>
         </li>
         <li class="week">
-          <a href="/week/">Week</a>
+          <a data-l10n-id="show-week-view" href="/week/">Week</a>
         </li>
         <li class="day">
-          <a href="/day/">Day</a>
+          <a data-l10n-id="show-day-view" href="/day/">Day</a>
         </li>
       </menu>
     </li>
@@ -293,6 +294,14 @@
 
       <li class="location">
         <input name="location" data-l10n-id="event-location" placeholder="Where?" />
+      </li>
+
+      <li class="allday">
+        <label>
+          <input name="allday" type="checkbox" />
+          <span></span>
+        </label>
+        <a data-l10n-id="event-is-allday">All Day Event?</a>
       </li>
 
       <li class="start-date">
