@@ -104,7 +104,7 @@ ul li > label:not([for]) {
 }
 
 ul li > label:not([for]) > span,
-ul li > label:not([for]).switch > span {
+ul li > label:not([for]) > input[data-type="switch"] + span {
   left: auto;
   right: 2rem;
 }
@@ -112,11 +112,6 @@ ul li > label:not([for]).switch > span {
 ul li > label:not([for]) + a,
 ul li > label:not([for]) + small + a {
   padding-right: 6rem;
-}
-
-ul li > label.switch + a,
-ul li > label.switch + small + a {
-  padding-right: 8.4rem;
 }
 
 
