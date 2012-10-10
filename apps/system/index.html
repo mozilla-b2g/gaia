@@ -113,6 +113,9 @@
     <link rel="stylesheet" type="text/css" href="style/popup_manager/popup_manager.css">
     <script defer src="js/popup_manager.js"></script>
 
+    <!-- Trusted UI -->
+    <script defer src="js/trusted_ui.js"></script>
+
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
@@ -229,8 +232,7 @@
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
-        <!-- XXX: this should be real network activity instead of mozbrowserloadstart/end -->
-        <div id="statusbar-loading" class="sb-icon sb-icon-network-activity"></div>
+        <div id="statusbar-network-activity" class="sb-icon sb-icon-network-activity" hidden></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
 
         <!-- Permissions -->
@@ -378,6 +380,16 @@
             <menu data-items="2">
               <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
               <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
+            </menu>
+          </div>
+
+          <div id="modal-dialog-select-one" role="dialog">
+            <div class="modal-dialog-message-container inner">
+              <h3 id="modal-dialog-select-one-title"></h3>
+              <ul id="modal-dialog-select-one-menu"></ul>
+            </div>
+            <menu>
+              <button id="modal-dialog-select-one-cancel" data-l10n-id="cancel">Cancel</button>
             </menu>
           </div>
         </div>

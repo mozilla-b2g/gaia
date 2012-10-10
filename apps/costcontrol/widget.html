@@ -21,7 +21,7 @@
 </head>
 <body>
   <section id="cost-control">
-    <section class="credit">
+    <section class="credit" id="left-panel">
       <section class="view" id="balance-view">
         <span id="balance-icon" class="icon"></span>
         <div class="info">
@@ -37,22 +37,22 @@
       </section>
     </section>
 
-    <section class="data">
-      <section class="view">
+    <section class="data" id="right-panel">
+      <section class="view" id="datausage-limit-view">
         <div class="stats">
-          <progress max="100" value="50"></progress>
+          <progress max="100" value="0"></progress>
           <dl>
-            <dt class="start">Used</dt>
-            <dd class="start"><span>343</span><span>MB</span></dd>
-            <dt class="end">Limit</dt>
-            <dd class="end"><span>1</span><span>GB</span></dd>
+            <dt class="start"></dt>
+            <dd class="start"></dd>
+            <dt class="end"></dt>
+            <dd class="end"></dd>
           </dl>
         </div>
       </section>
-      <section class="view">
+      <section class="view" id="datausage-view">
         <div class="info">
           <p><span>50</span><span class="unit">MB</span></p>
-          <p class="meta">3G data usage</p>
+          <p class="meta" data-l10n-id="3g-data-usage">3G data usage</p>
         </div>
       </section>
     </section>

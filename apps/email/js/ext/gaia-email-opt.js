@@ -3486,6 +3486,29 @@ MailHeader.prototype = {
 };
 
 /**
+ * Represents a mail message that matched some search criteria by providing
+ * both the header and information about the matches that occurred.
+ */
+function MailMatchedHeader(slice, wireRep) {
+  this.header = new MailHeader(slice, wireRep.header);
+  this.matches = wireRep.matches;
+
+  this.element = null;
+  this.data = null;
+}
+MailMatchedHeader.prototype = {
+  toString: function() {
+    return '[MailMatchedHeader: ' + this.header.id + ']';
+  },
+  toJSON: function() {
+    return {
+      type: 'MailMatchedHeader',
+      id: this.header.id
+    };
+  },
+};
+
+/**
  * Lists the attachments in a message as well as providing a way to display the
  * body while (eventually) also accounting for message quoting.
  *
@@ -4073,6 +4096,8 @@ MessageComposition.prototype = {
 };
 
 
+const LEGAL_CONFIG_KEYS = ['syncCheckIntervalEnum'];
+
 /**
  * Error reporting helper; we will probably eventually want different behaviours
  * under development, under unit test, when in use by QA, advanced users, and
@@ -4104,7 +4129,17 @@ function MailAPI() {
   this._pendingRequests = {};
 
   /**
-   * Various, unsupported config data.
+   * @dict[
+   *   @key[debugLogging]
+   *   @key[checkInterval]
+   * ]{
+   *   Configuration data.  This is currently populated by data from
+   *   `MailUniverse.exposeConfigForClient` by the code that constructs us.  In
+   *   the future, we will probably want to ask for this from the `MailUniverse`
+   *   directly over the wire.
+   *
+   *   This should be treated as read-only.
+   * }
    */
   this.config = {};
 
@@ -4198,6 +4233,13 @@ MailAPI.prototype = {
           transformedItems.push(new MailHeader(slice, addItems[i]));
         }
         break;
+
+      case 'matchedHeaders':
+        for (i = 0; i < addItems.length; i++) {
+          transformedItems.push(new MailMatchedHeader(slice, addItems[i]));
+        }
+        break;
+
 
       default:
         console.error('Slice notification for unknown type:', slice._ns);
@@ -4456,17 +4498,20 @@ MailAPI.prototype = {
    *   ]
    * ]
    */
-  tryToCreateAccount: function ma_tryToCreateAccount(details, callback) {
+  tryToCreateAccount: function ma_tryToCreateAccount(details, domainInfo,
+                                                     callback) {
     var handle = this._nextHandle++;
     this._pendingRequests[handle] = {
       type: 'tryToCreateAccount',
       details: details,
+      domainInfo: domainInfo,
       callback: callback
     };
     this.__bridgeSend({
       type: 'tryToCreateAccount',
       handle: handle,
-      details: details
+      details: details,
+      domainInfo: domainInfo
     });
   },
 
@@ -4604,12 +4649,39 @@ MailAPI.prototype = {
    * recipients, or subject fields, as well as (optionally), the body with a
    * default time constraint so we don't entirely kill the server or us.
    *
-   * Expected UX: run the search once without body, then the user can ask for
-   * the body search too if the first match doesn't meet their expectations.
+   * @args[
+   *   @param[folder]{
+   *     The folder whose messages we should search.
+   *   }
+   *   @param[text]{
+   *     The phrase to search for.  We don't split this up into words or
+   *     anything like that.  We just do straight-up indexOf on the whole thing.
+   *   }
+   *   @param[whatToSearch @dict[
+   *     @key[author #:optional Boolean]
+   *     @key[recipients #:optional Boolean]
+   *     @key[subject #:optional Boolean]
+   *     @key[body #:optional @oneof[false 'no-quotes' 'yes-quotes']]
+   *   ]]
+   * ]
    */
-  quicksearchFolderMessages:
-      function ma_quicksearchFolderMessages(folder, text, searchBodyToo) {
-    throw new Error("NOT YET IMPLEMENTED");
+  searchFolderMessages:
+      function ma_searchFolderMessages(folder, text, whatToSearch) {
+    var handle = this._nextHandle++,
+        slice = new BridgedViewSlice(this, 'matchedHeaders', handle);
+    // the initial population counts as a request.
+    slice.pendingRequestCount++;
+    this._slices[handle] = slice;
+
+    this.__bridgeSend({
+      type: 'searchFolderMessages',
+      folderId: folder.id,
+      handle: handle,
+      phrase: text,
+      whatToSearch: whatToSearch,
+    });
+
+    return slice;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -4905,6 +4977,28 @@ MailAPI.prototype = {
       type: 'localizedStrings',
       strings: strings
     });
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Configuration
+
+  /**
+   * Change one-or-more backend-wide settings; use `MailAccount.modifyAccount`
+   * to chang per-account settings.
+   */
+  modifyConfig: function(mods) {
+    for (var key in mods) {
+      if (LEGAL_CONFIG_KEYS.indexOf(key) === -1)
+        throw new Error(key + ' is not a legal config key!');
+    }
+    this.__bridgeSend({
+      type: 'modifyConfig',
+      mods: mods
+    });
+  },
+
+  _recv_config: function(msg) {
+    this.config = msg.config;
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -14004,6 +14098,7 @@ function MailBridge(universe) {
     identities: [],
     folders: [],
     headers: [],
+    matchedHeaders: [],
   };
   // outstanding persistent objects that aren't slices. covers: composition
   this._pendingRequests = {};
@@ -14032,6 +14127,19 @@ MailBridge.prototype = {
     });
   },
 
+  _cmd_modifyConfig: function mb__cmd_modifyConfig(msg) {
+console.log('received modifyConfig');
+    this.universe.modifyConfig(msg.mods);
+console.log('done proc modifyConfig');
+  },
+
+  notifyConfig: function(config) {
+    this.__sendMessage({
+      type: 'config',
+      config: config,
+    });
+  },
+
   _cmd_debugSupport: function mb__cmd_debugSupport(msg) {
     switch (msg.cmd) {
       case 'setLogging':
@@ -14054,7 +14162,8 @@ MailBridge.prototype = {
 
   _cmd_tryToCreateAccount: function mb__cmd_tryToCreateAccount(msg) {
     var self = this;
-    this.universe.tryToCreateAccount(msg.details, function(error, account) {
+    this.universe.tryToCreateAccount(msg.details, msg.domainInfo,
+                                     function(error, account) {
         self.__sendMessage({
             type: 'tryToCreateAccountResults',
             handle: msg.handle,
@@ -14300,6 +14409,15 @@ MailBridge.prototype = {
 
     var account = this.universe.getAccountForFolderId(msg.folderId);
     account.sliceFolderMessages(msg.folderId, proxy);
+  },
+
+  _cmd_searchFolderMessages: function mb__cmd_searchFolderMessages(msg) {
+    var proxy = this._slices[msg.handle] =
+          new SliceBridgeProxy(this, 'matchedHeaders', msg.handle);
+    this._slicesByType['matchedHeaders'].push(proxy);
+    var account = this.universe.getAccountForFolderId(msg.folderId);
+    account.searchFolderMessages(
+      msg.folderId, proxy, msg.phrase, msg.whatToSearch);
   },
 
   _cmd_refreshHeaders: function mb__cmd_refreshHeaders(msg) {
@@ -15221,10 +15339,11 @@ const quantizeDate = exports.quantizeDate =
       function quantizeDate(date) {
   if (typeof(date) === 'number')
     date = new Date(date);
-  return date.setHours(0, 0, 0, 0).valueOf();
+  return date.setUTCHours(0, 0, 0, 0).valueOf();
 };
 
-}); // end define;
+}); // end define
+;
 define('mailapi/syncbase',
   [
     './date',
@@ -15349,6 +15468,8 @@ exports.BISECT_DATE_AT_N_MESSAGES = 50;
  */
 exports.TOO_MANY_MESSAGES = 2000;
 
+////////////////////////////////////////////////////////////////////////////////
+// Error / Retry Constants
 
 /**
  * What is the maximum number of tries we should give an operation before
@@ -15376,6 +15497,33 @@ exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT = 5;
  */
 exports.DEFERRED_OP_DELAY_MS = 30 * 1000;
 
+////////////////////////////////////////////////////////////////////////////////
+// General defaults
+
+/**
+ * We use an enumerated set of sync values for UI localization reasons; time
+ * is complex and we don't have/use a helper library for this.
+ */
+exports.CHECK_INTERVALS_ENUMS_TO_MS = {
+  'manual': 0, // 0 disables; no infinite checking!
+  '3min': 3 * 60 * 1000,
+  '5min': 5 * 60 * 1000,
+  '10min': 10 * 60 * 1000,
+  '15min': 15 * 60 * 1000,
+  '30min': 30 * 60 * 1000,
+  '60min': 60 * 60 * 1000,
+};
+
+/**
+ * Default to not automatically checking for e-mail for reasons to avoid
+ * degrading the phone experience until we are more confident about our resource
+ * usage, etc.
+ */
+exports.DEFAULT_CHECK_INTERVAL_ENUM = 'manual';
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Unit test support
 
 /**
  * Testing support to adjust the value we use for the number of initial sync
@@ -15447,10 +15595,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 10 because accounts now have a synchronization range for messages
- * (corresponding to ActiveSync's FilterType).
+ * Bumping to 11 because of the introduction of the sync check interval.
  */
-const CUR_VERSION = 10;
+const CUR_VERSION = 11;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -15609,6 +15756,7 @@ function MailDB() {
       self.getConfig(function(configObj, accountInfos) {
         if (configObj)
           self._lazyConfigCarryover = {
+            oldVersion: event.oldVersion,
             config: configObj,
             accountInfos: accountInfos
           };
@@ -15892,6 +16040,449 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 
   return callbacks;
 };
+
+}); // end define
+;
+/**
+ * Drives periodic synchronization, covering the scheduling, deciding what
+ * folders to sync, and generating notifications to relay to the UI.  More
+ * specifically, we have two goals:
+ *
+ * 1) Generate notifications about new messages.
+ *
+ * 2) Cause the device to synchronize its offline store periodically with the
+ *    server for general responsiveness and so the user can use the device
+ *    offline.
+ *
+ * We use mozAlarm to schedule ourselves to wake up when our next
+ * synchronization should occur.
+ *
+ * All synchronization occurs in parallel because we want the interval that we
+ * force the device's radio into higher power modes to be as short as possible.
+ *
+ * IMPORTANT ARCHITECTURAL NOTE:  This logic is part of the back-end, not the
+ * front-end.  We want to serve up the notifications, but we want the front-end
+ * to be the one that services them when the user clicks on them.
+ **/
+
+define('mailapi/cronsync',
+  [
+    'rdcommon/log',
+    './allback',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $allback,
+    $module,
+    exports
+  ) {
+
+
+/**
+ * Sanity demands we do not check more frequently than once a minute.
+ */
+const MINIMUM_SYNC_INTERVAL_MS = 60 * 1000;
+
+/**
+ * How long should we let a synchronization run before we give up on it and
+ * potentially try and kill it (if we can)?
+ */
+const MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
+
+/**
+ * Caps the number of notifications we generate per account.  It would be
+ * sitcom funny to let this grow without bound, but would end badly in reality.
+ */
+const MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
+
+/**
+ * Implements the interface of `MailSlice` as presented to `FolderStorage`, but
+ * it is only interested in accumulating a list of new messages that have not
+ * already been read.
+ *
+ * FUTURE WORK: Listen for changes that make a message that was previously
+ * believed to be new no longer new, such as having been marked read by
+ * another client.  We don't care about that right now because we lack the
+ * ability to revoke notifications via the mozNotifications API.
+ */
+function CronSlice(storage, desiredNew, callback) {
+  this._storage = storage;
+  this._callback = callback;
+
+  this.startTS = null;
+  this.startUID = null;
+  this.endTS = null;
+  this.endUID = null;
+  this.waitingOnData = false;
+  this._accumulating = false;
+
+  // Maintain the list of all headers for the IMAP sync logic's benefit for now.
+  // However, we don't bother sorting it; we just care about the length.
+  this.headers = [];
+  this._desiredNew = desiredNew;
+  this._newHeaders = [];
+  // XXX for now, assume that the 10 most recent headers will cover us.  Being
+  // less than (or the same as) the initial fill sync of 15 is advantageous in
+  // that it avoids us triggering a deepening sync on IMAP.
+  this.desiredHeaders = 10;
+  this.ignoreHeaders = false;
+}
+CronSlice.prototype = {
+  set ignoreHeaders(ignored) {
+    // ActiveSync likes to turn on ignoreHeaders mode because it only cares
+    // about the newest messages and it may be told about messages in a stupid
+    // order.  But old 'new' messages are still 'new' to us and we have punted
+    // on analysis, so we are fine with the potential lossage.  Also, the
+    // batch information loses the newness bit we care about...
+    //
+    // And that's why we ignore the manipulation and always return false in
+    // the getter.
+  },
+  get ignoreHeaders() {
+    return false;
+  },
+
+  // (copied verbatim for consistency)
+  sendEmptyCompletion: function() {
+    this.setStatus('synced', true, false);
+  },
+
+  setStatus: function(status, requested, moreExpected, flushAccumulated) {
+    if (requested && !moreExpected && this._callback) {
+console.log('sync done!');
+      this._callback(this._newHeaders);
+      this._callback = null;
+      this.die();
+    }
+  },
+
+  batchAppendHeaders: function(headers, insertAt, moreComing) {
+    this.headers = this.headers.concat(headers);
+    // Do nothing, batch-appended headers are always coming from the database
+    // and so are not 'new' from our perspective.
+  },
+
+  onHeaderAdded: function(header, syncDriven, messageIsNew) {
+    this.headers.push(header);
+    // we don't care if it's not new or was read (on another client)
+    if (!messageIsNew || header.flags.indexOf('\\Seen') !== -1)
+      return;
+
+    // We don't care if we already know about enough new messages.
+    // (We could also try and decide which messages are most important, but
+    // since this behaviour is not really based on any UX-provided guidance, it
+    // would be silly to do that without said guidance.)
+    if (this._newHeaders.length >= this._desiredNew)
+      return;
+    this._newHeaders.push(header);
+  },
+
+  onHeaderModified: function(header) {
+    // Do nothing, modified headers are obviously already known to us.
+  },
+
+  onHeaderRemoved: function(header) {
+    this.headers.pop();
+    // Do nothing, this would be silly.
+  },
+
+  die: function() {
+    this._storage.dyingSlice(this);
+  },
+};
+
+function generateNotificationForMessage(header, onClick, onClose) {
+  // NB: We don't need to use NotificationHelper because we end up doing
+  // something similar ourselves.
+console.log('generating notification for:', header.suid, header.subject);
+  var notif = navigator.mozNotification.createNotification(
+    header.author.name || header.author.address,
+    header.subject,
+    // XXX it makes no sense that the back-end knows the path of the icon,
+    // but this specific function may need to vary based on host environment
+    // anyways...
+    gIconUrl);
+  notif.onclick = onClick.bind(null, header, notif);
+  notif.onclose = onClose.bind(null, header, notif);
+  notif.show();
+  return notif;
+}
+
+var gApp, gIconUrl;
+navigator.mozApps.getSelf().onsuccess = function(event) {
+  gApp = event.target.result;
+  gIconUrl = gApp.installOrigin + '/style/icons/Email.png';
+};
+/**
+ * Try and bring up the given header in the front-end.
+ *
+ * XXX currently, we just cause the app to display, but we don't do anything
+ * to cause the actual message to be displayed.  Right now, since the back-end
+ * and the front-end are in the same app, we can easily tell ourselves to do
+ * things, but in the separated future, we might want to use a webactivity,
+ * and as such we should consider using that initially too.
+ */
+function displayHeaderInFrontend(header) {
+  gApp.launch();
+}
+
+/**
+ * Creates the synchronizer.  It is does not do anything until the first call
+ * to setSyncInterval.
+ */
+function CronSyncer(universe, _logParent) {
+  this._universe = universe;
+  this._syncIntervalMS = 0;
+
+  this._LOG = LOGFAB.CronSyncer(this, null, _logParent);
+
+  /**
+   * @dictof[
+   *   @key[accountId String]
+   *   @value[@dict[
+   *     @key[clickHandler Function]
+   *     @key[closeHandler Function]
+   *     @key[notes Array]
+   *   ]]
+   * ]{
+   *   Terminology-wise, 'notes' is less awkward than 'notifs'...
+   * }
+   */
+  this._outstandingNotesPerAccount = {};
+
+  this._initialized = false;
+  this._hackTimeout = null;
+
+  this._activeSlices = [];
+}
+exports.CronSyncer = CronSyncer;
+CronSyncer.prototype = {
+  /**
+   * Remove any/all scheduled alarms.
+   */
+  _clearAlarms: function() {
+    // mozalarms doesn't work on desktop; comment out and use setTimeout.
+    if (this._hackTimeout !== null) {
+      window.clearTimeout(this._hackTimeout);
+      this._hackTimeout = null;
+    }
+/*
+    var req = navigator.mozAlarms.getAll();
+    req.onsuccess = function(event) {
+      var alarms = event.target.result;
+      for (var i = 0; i < alarms.length; i++) {
+        navigator.mozAlarms.remove(alarms[i].id);
+      }
+    }.bind(this);
+*/
+  },
+
+  _scheduleNextSync: function() {
+    if (!this._syncIntervalMS)
+      return;
+    console.log("scheduling sync for " + (this._syncIntervalMS / 1000) +
+                " seconds in the future.");
+    this._hackTimeout = window.setTimeout(this.onAlarm.bind(this),
+                                          this._syncIntervalMS);
+/*
+    try {
+      console.log('mpozAlarms', navigator.mozAlarms);
+      var req = navigator.mozAlarms.add(
+        new Date(Date.now() + this._syncIntervalMS),
+        'ignoreTimezone', {});
+      console.log('req:', req);
+      req.onsuccess = function() {
+        console.log('scheduled!');
+      };
+      req.onerror = function(event) {
+        console.warn('alarm scheduling problem!');
+        console.warn(' err:',
+                     event.target && event.target.error &&
+                     event.target.error.name);
+      };
+    }
+    catch (ex) {
+      console.error('problem initiating request:', ex);
+    }
+*/
+  },
+
+  setSyncIntervalMS: function(syncIntervalMS) {
+    console.log('setSyncIntervalMS:', syncIntervalMS);
+    var pendingAlarm = false;
+    if (!this._initialized) {
+      this._initialized = true;
+      // mozAlarms doesn't work on b2g-desktop
+      /*
+      pendingAlarm = navigator.mozHasPendingMessage('alarm');
+      navigator.mozSetMessageHandler('alarm', this.onAlarm.bind(this));
+     */
+    }
+
+    // leave zero intact, otherwise round up to the minimum.
+    if (syncIntervalMS && syncIntervalMS < MINIMUM_SYNC_INTERVAL_MS)
+      syncIntervalMS = MINIMUM_SYNC_INTERVAL_MS;
+
+    this._syncIntervalMS = syncIntervalMS;
+
+    // If we have a pending alarm, then our app was loaded to service the
+    // alarm, so we should just let the alarm fire which will also take
+    // care of rescheduling everything.
+    if (pendingAlarm)
+      return;
+
+    this._clearAlarms();
+    this._scheduleNextSync();
+  },
+
+  /**
+   * Synchronize the given account.  Right now this is just the Inbox for the
+   * account.
+   *
+   * XXX For IMAP, we really want to use the standard iterative growth logic
+   * but generally ignoring the number of headers in the slice and instead
+   * just doing things by date.  Since making that correct without breaking
+   * things or making things really ugly will take a fair bit of work, we are
+   * initially just using the UI-focused logic for this.
+   *
+   * XXX because of this, we totally ignore IMAP's number of days synced
+   * value.  ActiveSync handles that itself, so our ignoring it makes no
+   * difference for it.
+   */
+  syncAccount: function(account, doneCallback) {
+    // - Skip syncing if we are offline or the account is disabled
+    if (!this._universe.online || !account.enabled) {
+      doneCallback(null);
+      return;
+    }
+
+    // - find the inbox
+    var folders = account.folders, inboxFolder;
+    // (It would be nice to have a helper for this like the client side has,
+    // but we should probably factor it into a mix-in so all account types
+    // can use it.)
+    for (var iFolder = 0; iFolder < folders.length; iFolder++) {
+      if (folders[iFolder].type === 'inbox') {
+        inboxFolder = folders[iFolder];
+        break;
+      }
+    }
+
+    var storage = account.getFolderStorageForFolderId(inboxFolder.id);
+    // - Skip syncing this account if there is already a sync in progress.
+
+    // XXX for IMAP, there are conceivable edge cases where the user is in the
+    // process of synchronizing a window far back in time but would want to hear
+    // about new messages in the folder.
+    if (storage.syncInProgress) {
+      doneCallback(null);
+      return;
+    }
+
+    // - Figure out how many additional notifications we can generate
+    var outstandingInfo;
+    if (this._outstandingNotesPerAccount.hasOwnProperty(account.id)) {
+      outstandingInfo = this._outstandingNotesPerAccount[account.id];
+    }
+    else {
+      outstandingInfo = this._outstandingNotesPerAccount[account.id] = {
+        clickHandler: function(header, note, event) {
+          var idx = outstandingInfo.notes.indexOf(note);
+          if (idx === -1)
+            console.warn('bad note index!');
+          outstandingInfo.notes.splice(idx);
+          // trigger the display of the app!
+          displayHeaderInFrontend(header);
+        },
+        closeHandler: function(header, note, event) {
+          var idx = outstandingInfo.notes.indexOf(note);
+          if (idx === -1)
+            console.warn('bad note index!');
+          outstandingInfo.notes.splice(idx);
+        },
+        notes: [],
+      };
+    }
+
+    var desiredNew = MAX_MESSAGES_TO_REPORT_PER_ACCOUNT -
+                       outstandingInfo.notes.length;
+
+    // - Initiate a sync of the folder covering the desired time range.
+    this._LOG.syncAccount_begin(account.id);
+    var slice = new CronSlice(storage, desiredNew, function(newHeaders) {
+      this._LOG.syncAccount_end(account.id);
+      doneCallback(null);
+      this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
+      for (var i = 0; i < newHeaders.length; i++) {
+        var header = newHeaders[i];
+        outstandingInfo.notes.push(
+          generateNotificationForMessage(header,
+                                         outstandingInfo.clickHandler,
+                                         outstandingInfo.closeHandler));
+      }
+    }.bind(this));
+    this._activeSlices.push(slice);
+    // use forceDeepening to ensure that a synchronization happens.
+    storage.sliceOpenFromNow(slice, 3, true);
+
+  },
+
+  onAlarm: function() {
+    this._LOG.alarmFired();
+    // It would probably be better if we only added the new alarm after we
+    // complete our sync, but we could have a problem if our sync progress
+    // triggered our death, so we don't do that.
+    this._scheduleNextSync();
+
+    // Kill off any slices that still exist from the last sync.
+    for (var iSlice = 0; iSlice < this._activeSlices.length; iSlice++) {
+      this._activeSlices[iSlice].die();
+    }
+
+    var doneOrGaveUp = function doneOrGaveUp(results) {
+      // XXX add any life-cycle stuff here, like amending the schedule for the
+      // next firing based on how long it took us.  Or if we need to compute
+      // smarter sync notifications across all accounts, do it here.
+    }.bind(this);
+
+    var accounts = this._universe.accounts, accountIds = [], account, i;
+    for (i = 0; i < accounts.length; i++) {
+      account = accounts[i];
+      accountIds.push(account.id);
+    }
+    var callbacks = $allback.allbackMaker(accountIds, doneOrGaveUp);
+    for (i = 0; i < accounts.length; i++) {
+      account = accounts[i];
+      this.syncAccount(account, callbacks[account.id]);
+    }
+  },
+
+  shutdown: function() {
+    // no actual shutdown is required; we want our alarm to stick around.
+  }
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  CronSyncer: {
+    type: $log.DAEMON,
+    events: {
+      alarmFired: {},
+    },
+    TEST_ONLY_events: {
+    },
+    asyncJobs: {
+      syncAccount: { id: false },
+    },
+    errors: {
+    },
+    calls: {
+    },
+    TEST_ONLY_calls: {
+    },
+  },
+});
 
 }); // end define
 ;
@@ -19100,9 +19691,11 @@ function buildSearchQuery(options, extensions, isOrChild) {
               throw new Error('Search option argument must be a Date object'
                               + ' or a parseable date string');
           }
-          searchargs += modifier + criteria + ' ' + args[0].getDate() + '-'
-                        + MONTHS[args[0].getMonth()] + '-'
-                        + args[0].getFullYear();
+          // XXX/NB: We are currently providing UTC-quantized date values, so
+          // we don't want time-zones to skew this and screw us over.
+          searchargs += modifier + criteria + ' ' + args[0].getUTCDate() + '-'
+                        + MONTHS[args[0].getUTCMonth()] + '-'
+                        + args[0].getUTCFullYear();
         break;
         case 'KEYWORD':
         case 'UNKEYWORD':
@@ -19174,6 +19767,7 @@ function buildSearchQuery(options, extensions, isOrChild) {
     if (isOrChild)
       break;
   }
+  console.log('searchargs:', searchargs);
   return searchargs;
 }
 
@@ -19276,8 +19870,10 @@ function parseFetch(str, literalData, fetchData) {
   for (var i=0,len=result.length; i<len; i+=2) {
     if (result[i] === 'UID')
       fetchData.id = parseInt(result[i+1], 10);
-    else if (result[i] === 'INTERNALDATE')
+    else if (result[i] === 'INTERNALDATE') {
+      fetchData.rawDate = result[i+1];
       fetchData.date = parseImapDateTime(result[i+1]);
+    }
     else if (result[i] === 'FLAGS') {
       fetchData.flags = result[i+1].filter(isNotEmpty);
       // simplify comparison for downstream logic by sorting.
@@ -19816,7 +20412,11 @@ function ImapProber(credentials, connInfo, _LOG) {
 exports.ImapProber = ImapProber;
 ImapProber.prototype = {
   onLoggedIn: function ImapProber_onLoggedIn(err) {
-    if (err)
+    if (err) {
+      this.onError(err);
+      return;
+    }
+    if (!this.onresult)
       return;
 
     console.log('PROBE:IMAP happy');
@@ -19825,11 +20425,13 @@ ImapProber.prototype = {
     var conn = this._conn;
     this._conn = null;
 
-    if (this.onresult)
-      this.onresult(this.accountGood, conn);
+    this.onresult(this.accountGood, conn);
+    this.onresult = false;
   },
 
   onError: function ImapProber_onError(err) {
+    if (!this.onresult)
+      return;
     console.warn('PROBE:IMAP sad', err);
     this.accountGood = false;
     // we really want to make sure we clean up after this dude.
@@ -19840,8 +20442,7 @@ ImapProber.prototype = {
     }
     this._conn = null;
 
-    if (this.onresult)
-      this.onresult(this.accountGood, null);
+    this.onresult(this.accountGood, null);
     // we could potentially see many errors...
     this.onresult = false;
   },
@@ -23070,6 +23671,13 @@ SmtpProber.prototype = {
   /**
    * Create a new ActiveSync connection.
    *
+   * ActiveSync connections use XMLHttpRequests to communicate with the
+   * server. These XHRs are created with mozSystem: true and mozAnon: true to,
+   * respectively, help with CORS, and to ignore the authentication cache. The
+   * latter is important because 1) it prevents the HTTP auth dialog from
+   * appearing if the user's credentials are wrong and 2) it allows us to
+   * connect to the same server as multiple users.
+   *
    * @param aEmail the user's email address
    * @param aPassword the user's password
    * @param aDeviceId (optional) a string identifying this device
@@ -23261,7 +23869,7 @@ SmtpProber.prototype = {
       let w = new WBXML.Writer('1.3', 1, 'UTF-8');
       w.stag(pv.Provision)
         .etag();
-      this.doCommand(w, aCallback);
+      this.postCommand(w, aCallback);
     },
 
     /**
@@ -23289,7 +23897,7 @@ SmtpProber.prototype = {
       let conn = this;
       if (!aCallback) aCallback = nullCallback;
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('POST', 'https://' + aHost + '/autodiscover/autodiscover.xml',
                true);
       xhr.setRequestHeader('Content-Type', 'text/xml');
@@ -23395,7 +24003,7 @@ SmtpProber.prototype = {
         throw new Error('Must have server info before calling options()');
 
       let conn = this;
-      let xhr = new XMLHttpRequest({mozSystem: true});
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
       xhr.open('OPTIONS', this.baseUrl, true);
 
       xhr.onload = function() {
@@ -23438,7 +24046,16 @@ SmtpProber.prototype = {
     },
 
     /**
-     * Send a command to the ActiveSync server and listen for the response.
+     * DEPRECATED. See postCommand() below.
+     */
+    doCommand: function() {
+      console.warn('doCommand is deprecated. Use postCommand instead.');
+      this.postCommand.apply(this, arguments);
+    },
+
+    /**
+     * Send a WBXML command to the ActiveSync server and listen for the
+     * response.
      *
      * @param aCommand the WBXML representing the command or a string/tag
      *        representing the command type for empty commands
@@ -23446,78 +24063,102 @@ SmtpProber.prototype = {
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    doCommand: function(aCommand, aCallback) {
-      if (!aCallback) aCallback = nullCallback;
+    postCommand: function(aCommand, aCallback, aExtraParams, aExtraHeaders) {
+      const contentType = 'application/vnd.ms-sync.wbxml';
 
-      if (this.connected) {
-        this._doCommandReal(aCommand, aCallback);
+      if (typeof aCommand === 'string' || typeof aCommand === 'number') {
+        this.postData(aCommand, contentType, null, aCallback, aExtraParams,
+                      aExtraHeaders);
       }
       else {
-        this.connect((function(aError, aConfig) {
-          if (aError)
-            aCallback(aError);
-          else {
-            this._doCommandReal(aCommand, aCallback);
-          }
-        }).bind(this));
+        let r = new WBXML.Reader(aCommand, ASCP);
+        let commandName = r.document.next().localTagName;
+        this.postData(commandName, contentType, aCommand.buffer, aCallback,
+                      aExtraParams, aExtraHeaders);
       }
     },
 
     /**
-     * Perform the actual process of sending a command to the ActiveSync server
-     * and getting the response.
+     * Send arbitrary data to the ActiveSync server and listen for the response.
      *
-     * @param aCommand the WBXML representing the command or a string/tag
-     *        representing the command type for empty commands
+     * @param aCommand a string (or WBXML tag) representing the command type
+     * @param aContentType the content type of the post data
+     * @param aData the data to be posted
      * @param aCallback a callback to call when the server has responded; takes
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
      *        response argument is null.
+     * @param aExtraParams (optional) an object containing any extra URL
+     *        parameters that should be added to the end of the request URL
+     * @param aExtraHeaders (optional) an object containing any extra HTTP
+     *        headers to send in the request
      */
-    _doCommandReal: function(aCommand, aCallback) {
-      let commandName;
+    postData: function(aCommand, aContentType, aData, aCallback, aExtraParams,
+                       aExtraHeaders) {
+      // Make sure our command name is a string.
+      if (typeof aCommand === 'number')
+        aCommand = ASCP.__tagnames__[aCommand];
 
-      if (typeof aCommand === 'string') {
-        commandName = aCommand;
-      }
-      else if (typeof aCommand === 'number') {
-        commandName = ASCP.__tagnames__[aCommand];
-      }
-      else {
-        let r = new WBXML.Reader(aCommand, ASCP);
-        commandName = r.document.next().localTagName;
-      }
-
-      if (!this.supportsCommand(commandName)) {
+      if (!this.supportsCommand(aCommand)) {
         let error = new Error("This server doesn't support the command " +
-                              commandName);
+                              aCommand);
         console.log(error);
         aCallback(error);
         return;
       }
 
-      let xhr = new XMLHttpRequest({mozSystem: true});
-      xhr.open('POST', this.baseUrl +
-               '?Cmd='        + encodeURIComponent(commandName) +
-               '&User='       + encodeURIComponent(this._email) +
-               '&DeviceId='   + encodeURIComponent(this._deviceId) +
-               '&DeviceType=' + encodeURIComponent(this._deviceType),
-               true);
+      // Build the URL parameters.
+      let params = [
+        ['Cmd', aCommand],
+        ['User', this._email],
+        ['DeviceId', this._deviceId],
+        ['DeviceType', this._deviceType]
+      ];
+      if (aExtraParams) {
+        for (let [,param] in Iterator(params)) {
+          if (param[0] in aExtraParams)
+            throw new TypeError('reserved URL parameter found');
+        }
+        for (let kv in Iterator(aExtraParams))
+          params.push(kv);
+      }
+      let paramsStr = params.map(function(i) {
+        return encodeURIComponent(i[0]) + '=' + encodeURIComponent(i[1]);
+      }).join('&');
+
+      // Now it's time to make our request!
+      let xhr = new XMLHttpRequest({mozSystem: true, mozAnon: true});
+      xhr.open('POST', this.baseUrl + '?' + paramsStr, true);
       xhr.setRequestHeader('MS-ASProtocolVersion', this.currentVersion);
-      xhr.setRequestHeader('Content-Type', 'application/vnd.ms-sync.wbxml');
+      xhr.setRequestHeader('Content-Type', aContentType);
       xhr.setRequestHeader('Authorization', this._getAuth());
 
+      // Add extra headers if we have any.
+      if (aExtraHeaders) {
+        for (let [key, value] in Iterator(aExtraHeaders))
+          xhr.setRequestHeader(key, value);
+      }
+
       let conn = this;
+      let parentArgs = arguments;
       xhr.onload = function() {
+        // This status code is a proprietary Microsoft extension used to
+        // indicate a redirect, not to be confused with the draft-standard
+        // "Unavailable For Legal Reasons" status. More info available here:
+        // <http://msdn.microsoft.com/en-us/library/gg651019.aspx>
         if (xhr.status === 451) {
           conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
-          conn.doCommand(aCommand, aCallback);
+          conn.postData.apply(conn, parentArgs);
           return;
         }
 
         if (xhr.status !== 200) {
-          console.log('ActiveSync command ' + commandName + ' failed with ' +
+          console.log('ActiveSync command ' + aCommand + ' failed with ' +
                       'response ' + xhr.status);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
@@ -23534,7 +24175,7 @@ SmtpProber.prototype = {
       };
 
       xhr.responseType = 'arraybuffer';
-      xhr.send(aCommand instanceof WBXML.Writer ? aCommand.buffer : null);
+      xhr.send(aData);
     },
   };
 
@@ -24120,7 +24761,7 @@ MailSlice.prototype = {
    * called when the header is in the time-range of interest and a refresh,
    * cron-triggered sync, or IDLE/push tells us to do so.
    */
-  onHeaderAdded: function(header, syncDriven) {
+  onHeaderAdded: function(header, syncDriven, messageIsNew) {
     if (!this._bridgeHandle)
       return;
 
@@ -24578,6 +25219,15 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
 }
 exports.FolderStorage = FolderStorage;
 FolderStorage.prototype = {
+  /**
+   * Return true if there is another sync happening in this folder right now.
+   * This allows the `CronSyncer` to avoid starting a sync that will immediately
+   * fail because there is a sync-in-progress.  See its logic for more details.
+   */
+  get syncInProgress() {
+    return this._curSyncSlice !== null;
+  },
+
   generatePersistenceInfo: function() {
     if (!this._dirty)
       return null;
@@ -25395,6 +26045,7 @@ FolderStorage.prototype = {
     if (this._curSyncSlice) {
       console.error("Trying to open a slice and initiate a sync when there",
                     "is already an active sync slice!");
+      return;
     }
     // by definition, we must be at the top
     slice.atTop = true;
@@ -25612,10 +26263,8 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     // - Grow startTS
     // Grow the start-stamp to include the oldest continuous accuracy range
     // coverage date.
-    if (this.headerIsOldestKnown(startTS, slice.startUID)) {
-      var syncStartTS = this.getOldestFullSyncDate(startTS);
-      startTS = syncStartTS;
-    }
+    if (this.headerIsOldestKnown(startTS, slice.startUID))
+      startTS = this.getOldestFullSyncDate(startTS);
     // quantize the start date
     if (startTS)
       startTS = quantizeDate(startTS);
@@ -26187,7 +26836,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     }
 
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
-      this._curSyncSlice.onHeaderAdded(header, true);
+      this._curSyncSlice.onHeaderAdded(header, true, true);
     // - Generate notifications for (other) interested slices
     if (this._slices.length > (this._curSyncSlice ? 1 : 0)) {
       var date = header.date, uid = header.id;
@@ -26213,7 +26862,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
                   uid > slice.endUID)) {
           continue;
         }
-        slice.onHeaderAdded(header, false);
+        slice.onHeaderAdded(header, false, true);
       }
     }
 
@@ -26269,7 +26918,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
       self._dirtyHeaderBlocks[info.blockId] = block;
 
       if (partOfSync && self._curSyncSlice && !self._curSyncSlice.ignoreHeaders)
-        self._curSyncSlice.onHeaderAdded(header, false);
+        self._curSyncSlice.onHeaderAdded(header, false, false);
       if (self._slices.length > (self._curSyncSlice ? 1 : 0)) {
         for (var iSlice = 0; iSlice < self._slices.length; iSlice++) {
           var slice = self._slices[iSlice];
@@ -26320,7 +26969,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
     }
     // (no block update required)
     if (this._curSyncSlice && !this._curSyncSlice.ignoreHeaders)
-      this._curSyncSlice.onHeaderAdded(header, true);
+      this._curSyncSlice.onHeaderAdded(header, true, false);
   },
 
   deleteMessageHeaderAndBody: function(header) {
@@ -26504,6 +27153,717 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     }
   },
 }); // end LOGFAB
+
+}); // end define
+;
+/**
+ * Searchfilters provide for local searching by checking each message against
+ * one or more tests.  This is similar to Thunderbird's non-global search
+ * mechanism.  Although searching in this fashion could be posed as a
+ * decorated slice, the point of local search is fast local search, so we
+ * don't want to use real synchronized slices.  Instead, we interact directly
+ * with a `FolderStorage` to retrieve known headers in an iterative fashion.  We
+ * expose this data as a slice and therefore are capable of listening for
+ * changes from the server.  We do end up in a possible situation where we have
+ * stale local information that we display to the user, but presumably that's
+ * an okay thing.
+ *
+ * The main fancy/unusual thing we do is that all search predicates contribute
+ * to a match representation that allows us to know which predicates in an 'or'
+ * configuration actually fired and can provide us with the relevant snippets.
+ * In order to be a little bit future proof, wherever we provide a matching
+ * snippet, we actually provide an object of the following type.  (We could
+ * provide a list of the objects, but the reality is that our UI right now
+ * doesn't have the space to display more than one match per filter, so it
+ * would just complicate things and generate bloat to do more work than
+ * providing one match, especially because we provide a boolean match, not a
+ * weighted score.
+ *
+ * @typedef[FilterMatchItem @dict[
+ *   @key[text String]{
+ *     The string we think is appropriate for display purposes.  For short
+ *     things, this might be the entire strings.  For longer things like a
+ *     message subject or the message body, this will be a snippet.
+ *   }
+ *   @key[offset Number]{
+ *     If this is a snippet, the offset of the `text` within the greater whole,
+ *     which may be zero.  In the event this is not a snippet, the value will
+ *     be zero, but you can't use that to disambiguate; use the length of the
+ *     `text` for that.
+ *   }
+ *   @key[matchRuns @listof[@dict[
+ *     @key[start]{
+ *       An offset relative to the snippet provided in `text` that identifies
+ *       the index of the first JS character deemed to be matching.  If you
+ *       want to generate highlights from the raw body, you need to add this
+ *       offset to the offset of the `FilterMatchItem`.
+ *     }
+ *     @key[length]{
+ *       The length in JS characters of what we deem to be the match.  In the
+ *       even there is some horrible multi-JS-character stuff, assume we are
+ *       doing the right thing.  If we are not, patch us, not your code.
+ *     }
+ *   ]]]{
+ *     A list of the offsets within the snippet where matches occurred.  We
+ *     do this so that in the future if we support any type of stemming or the
+ *     like, the front-end doesn't find itself needing to duplicate the logic.
+ *     We provide offsets and lengths rather than pre-splitting the strings so
+ *     that a complicated UI could merge search results from searches for
+ *     different phrases without having to do a ton of reverse engineering.
+ *   }
+ *   @key[path #:optional Array]{
+ *     Identifies the piece in an aggregate where the match occurred by
+ *     providing a traversal path to get to the origin of the string.  For
+ *     example, if the display name of the 3rd recipient, the path would be
+ *     [2 'name'].  If the e-mail address matched, the path would be
+ *     [2 'address'].
+ *
+ *     This is intended to allow the match information to allow the integration
+ *     of the matched data in their context.  For example, the recipients list
+ *     in the message reader could be re-ordered so that matching addresses
+ *     show up first (especially if some are elided), and are not duplicated in
+ *     their original position in the list.
+ *   }
+ * ]
+ *
+ * We implement filters for the following:
+ * - Author
+ * - Recipients
+ * - Subject
+ * - Body, allows ignoring quoted bits
+ *
+ * XXX currently all string searching uses indexOf; we at the very least should
+ * build a regexp that is configured to ignore case.
+ **/
+
+define('mailapi/searchfilter',
+  [
+    'rdcommon/log',
+    './syncbase',
+    './date',
+    'module',
+    'exports'
+  ],
+  function(
+    $log,
+    $syncbase,
+    $date,
+    $module,
+    exports
+  ) {
+
+/**
+ * Match a single phrase against the author's display name or e-mail address.
+ * Match results are stored in the 'author' attribute of the match object as a
+ * `FilterMatchItem`.
+ *
+ * We will favor matches on the display name over the e-mail address.
+ */
+function AuthorFilter(phrase) {
+  this.phrase = phrase;
+}
+exports.AuthorFilter = AuthorFilter;
+AuthorFilter.prototype = {
+  needsBody: false,
+
+  testMessage: function(header, body, match) {
+    var author = header.author, phrase = this.phrase, idx;
+    if (author.name && (idx = author.name.indexOf(phrase)) !== -1) {
+      match.author = {
+        text: author.name,
+        offset: 0,
+        matchRuns: [{ start: idx, length: phrase.length }],
+        path: null,
+      };
+      return true;
+    }
+    if (author.address && (idx = author.address.indexOf(phrase)) !== -1) {
+      match.author = {
+        text: author.address,
+        offset: 0,
+        matchRuns: [{ start: idx, length: phrase.length }],
+        path: null,
+      };
+      return true;
+    }
+    match.author = null;
+    return false;
+  },
+};
+
+/**
+ * Checks any combination of the recipients lists.  Match results are stored
+ * as a list of `FilterMatchItem` instances in the 'recipients' attribute with
+ * 'to' matches before 'cc' matches before 'bcc' matches.
+ *
+ * We will stop trying to match after the configured number of matches.  If your
+ * UI doesn't have the room for a lot of matches, just pass 1.
+ *
+ * For a given recipient, if both the display name and e-mail address both
+ * match, we will still only report the display name.
+ */
+function RecipientFilter(phrase, stopAfterNMatches,
+                         checkTo, checkCc, checkBcc) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.checkTo = checkTo;
+  this.checkCc = checkCc;
+  this.checkBcc = checkBcc;
+}
+exports.RecipientFilter = RecipientFilter;
+RecipientFilter.prototype = {
+  needsBody: true,
+
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, stopAfter = this.stopAfter;
+    var matches = [];
+    function checkRecipList(list) {
+      var idx;
+      for (var i = 0; i < list.length; i++) {
+        var recip = list[i];
+        if (recip.name && (idx = recip.name.indexOf(phrase)) !== -1) {
+          matches.push({
+            text: recip.name,
+            offset: 0,
+            matchRuns: [{ start: idx, length: phrase.length }],
+            path: null,
+          });
+          if (matches.length < stopAfter)
+            continue;
+          return;
+        }
+        if (recip.address && (idx = recip.address.indexOf(phrase)) !== -1) {
+          matches.push({
+            text: recip.address,
+            offset: 0,
+            matchRuns: [{ start: idx, length: phrase.length }],
+            path: null,
+          });
+          if (matches.length >= stopAfter)
+            return;
+        }
+      }
+    }
+
+    if (this.checkTo && body.to)
+      checkRecipList(body.to);
+    if (this.checkCc && body.cc && matches.length < stopAfter)
+      checkRecipList(body.cc);
+    if (this.checkBcc && body.bcc && matches.length < stopAfter)
+      checkRecipList(body.bcc);
+
+    if (matches.length) {
+      match.recipients = matches;
+      return true;
+    }
+    else {
+      match.recipients = null;
+      return false;
+    }
+  },
+
+};
+
+/**
+ * Assists in generating a `FilterMatchItem` for a substring that is part of a
+ * much longer string where we expect we need to reduce things down to a
+ * snippet.
+ *
+ * Context generating is whitespace-aware and tries to avoid leaving partial
+ * words.  In the event our truncation would leave us without any context
+ * whatsoever, we will leave partial words.  This is also important for us not
+ * being rude to CJK languages (although the number used for contextBefore may
+ * be too high for CJK, we may want to have them 'cost' more.)
+ *
+ * We don't pursue any whitespace normalization here because we want our offsets
+ * to line up properly with the real data, but also because we can depend on
+ * HTML to help us out and normalize everything anyways.
+ */
+function snippetMatchHelper(str, start, length, contextBefore, contextAfter,
+                            path) {
+  if (contextBefore > start)
+    contextBefore = start;
+  var offset = str.indexOf(' ', start - contextBefore);
+  if (offset >= start)
+    offset = start - contextBefore;
+  var endIdx = str.lastIndexOf(' ', start + length + contextAfter);
+  if (endIdx <= start + length)
+    endIdx = start + length + contextAfter;
+  var snippet = str.substring(offset, endIdx);
+
+  return {
+    text: snippet,
+    offset: offset,
+    matchRuns: [{ start: start - offset, length: length }],
+    path: path
+  };
+}
+
+/**
+ * Searches the subject for a phrase.  Provides snippeting functionality in case
+ * of non-trivial subject lengths.   Multiple matches are supported, but
+ * subsequent matches will never overlap with previous strings.  (So if you
+ * search for 'bob', and the subject is 'bobobob', you will get 2 matches, not
+ * 3.)
+ *
+ * For details on snippet generation, see `snippetMatchHelper`.
+ */
+function SubjectFilter(phrase, stopAfterNMatches, contextBefore, contextAfter) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.contextBefore = contextBefore;
+  this.contextAfter = contextAfter;
+}
+exports.Subjectfilter = SubjectFilter;
+SubjectFilter.prototype = {
+  needsBody: false,
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, phrlen = phrase.length,
+          subject = header.subject, slen = subject.length,
+          stopAfter = this.stopAfter,
+          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+          matches = [];
+    var idx = 0;
+
+    while (idx < slen && matches.length < stopAfter) {
+      idx = subject.indexOf(phrase, idx);
+      if (idx === -1)
+        break;
+
+      matches.push(snippetMatchHelper(subject, idx, phrlen,
+                                      contextBefore, contextAfter, null));
+      idx += phrlen;
+    }
+
+    if (matches.length) {
+      match.subject = matches;
+      return true;
+    }
+    else {
+      match.subject = null;
+      return false;
+    }
+  },
+};
+
+// stable value from quotechew.js; full export regime not currently required.
+const CT_AUTHORED_CONTENT = 0x1;
+// HTML DOM constants
+const ELEMENT_NODE = 1, TEXT_NODE = 3;
+
+/**
+ * Searches the body of the message, it can ignore quoted stuff or not.
+ * Provides snippeting functionality.  Multiple matches are supported, but
+ * subsequent matches will never overlap with previous strings.  (So if you
+ * search for 'bob', and the subject is 'bobobob', you will get 2 matches, not
+ * 3.)
+ *
+ * For details on snippet generation, see `snippetMatchHelper`.
+ */
+function BodyFilter(phrase, matchQuotes, stopAfterNMatches,
+                    contextBefore, contextAfter) {
+  this.phrase = phrase;
+  this.stopAfter = stopAfterNMatches;
+  this.contextBefore = contextBefore;
+  this.contextAfter = contextAfter;
+  this.matchQuotes = matchQuotes;
+}
+exports.BodyFilter = BodyFilter;
+BodyFilter.prototype = {
+  needsBody: true,
+  testMessage: function(header, body, match) {
+    const phrase = this.phrase, phrlen = phrase.length,
+          stopAfter = this.stopAfter,
+          contextBefore = this.contextBefore, contextAfter = this.contextAfter,
+          matches = [],
+          matchQuotes = this.matchQuotes;
+    var idx;
+
+    for (var iBodyRep = 0; iBodyRep < body.bodyReps.length; iBodyRep += 2) {
+      var bodyType = body.bodyReps[iBodyRep],
+          bodyRep = body.bodyReps[iBodyRep + 1];
+
+      if (bodyType === 'plain') {
+        for (var iRep = 0; iRep < bodyRep.length && matches.length < stopAfter;
+             iRep += 2) {
+          var etype = bodyRep[iRep]&0xf, block = bodyRep[iRep + 1],
+              repPath = null;
+
+          // Ignore blocks that are not message-author authored unless we are
+          // told to match quotes.
+          if (!matchQuotes && etype !== CT_AUTHORED_CONTENT)
+            continue;
+
+          for (idx = 0; idx < block.length && matches.length < stopAfter;) {
+            idx = block.indexOf(phrase, idx);
+            if (idx === -1)
+              break;
+            if (repPath === null)
+              repPath = [iBodyRep, iRep];
+            matches.push(snippetMatchHelper(block, idx, phrlen,
+                                            contextBefore, contextAfter,
+                                            repPath));
+            idx += phrlen;
+          }
+        }
+      }
+      else if (bodyType === 'html') {
+        // NB: this code is derived from htmlchew.js' generateSnippet
+        // functionality.
+
+        // - convert the HMTL into a DOM tree
+        // We don't want our indexOf to run afoul of presentation logic.
+        var htmlPath = [iBodyRep, 0];
+        var htmlDoc = document.implementation.createHTMLDocument(''),
+            rootNode = htmlDoc.createElement('div');
+        rootNode.innerHTML = bodyRep;
+
+        var node = rootNode.firstChild, done = false;
+        while (!done) {
+          if (node.nodeType === ELEMENT_NODE) {
+            switch (node.tagName.toLowerCase()) {
+              // - Things that can't contain useful text.
+              // The style does not belong in the snippet!
+              case 'style':
+                break;
+
+              case 'blockquote':
+                // fall-through if matchQuotes
+                if (!matchQuotes)
+                  break;
+              default:
+                if (node.firstChild) {
+                  node = node.firstChild;
+                  htmlPath.push(0);
+                  continue;
+                }
+                break;
+            }
+          }
+          else if (node.nodeType === TEXT_NODE) {
+            // XXX the snippet generator normalizes whitespace here to avoid
+            // being overwhelmed by ridiculous whitespace.  This is not quite
+            // as much a problem for us, but it would be useful if the
+            // sanitizer layer normalized whitespace so neither of us has to
+            // worry about it.
+            var nodeText = node.data;
+
+            idx = nodeText.indexOf(phrase);
+            if (idx !== -1) {
+              matches.push(
+                snippetMatchHelper(nodeText, idx, phrlen,
+                                   contextBefore, contextAfter,
+                                   htmlPath.concat()));
+              if (matches.length >= stopAfter)
+                break;
+            }
+          }
+
+          while (!node.nextSibling) {
+            node = node.parentNode;
+            htmlPath.pop();
+            if (node === rootNode) {
+              done = true;
+              break;
+            }
+          }
+          if (!done) {
+            node = node.nextSibling;
+            htmlPath[htmlPath.length - 1]++;
+          }
+        }
+      }
+    }
+
+    if (matches.length) {
+      match.body = matches;
+      return true;
+    }
+    else {
+      match.body = null;
+      return false;
+    }
+  },
+};
+
+/**
+ * Filters messages using the 'OR' of all specified filters.  We don't need
+ * 'AND' right now, but we are not opposed to its inclusion.
+ */
+function MessageFilterer(filters) {
+  this.filters = filters;
+  this.bodiesNeeded = false;
+
+  for (var i = 0; i < filters.length; i++) {
+    var filter = filters[i];
+    if (filter.needsBody)
+      this.bodiesNeeded = true;
+  }
+console.log('sf: filterer: bodiesNeeded:', this.bodiesNeeded);
+}
+exports.MessageFilterer = MessageFilterer;
+MessageFilterer.prototype = {
+  /**
+   * Check if the message matches the filter.  If it does not, false is
+   * returned.  If it does match, a match object is returned whose attributes
+   * are defined by the filterers in use.
+   */
+  testMessage: function(header, body) {
+console.log('sf: testMessage(', header.suid, header.author.address,
+            header.subject, 'body?', !!body, ')');
+    var matched = false, matchObj = {};
+    const filters = this.filters;
+    for (var i = 0; i < filters.length; i++) {
+      var filter = filters[i];
+      if (filter.testMessage(header, body, matchObj))
+        matched = true;
+    }
+console.log('   =>', matched, JSON.stringify(matchObj));
+    if (matched)
+      return matchObj;
+    else
+      return false;
+  },
+};
+
+const CONTEXT_CHARS_BEFORE = 16;
+const CONTEXT_CHARS_AFTER = 40;
+
+/**
+ *
+ */
+function SearchSlice(bridgeHandle, storage, phrase, whatToSearch, _parentLog) {
+console.log('sf: creating SearchSlice:', phrase);
+  this._bridgeHandle = bridgeHandle;
+  bridgeHandle.__listener = this;
+  // this mechanism never allows triggering synchronization.
+  bridgeHandle.userCanGrowDownwards = false;
+
+  this._storage = storage;
+  this._LOG = LOGFAB.SearchSlice(this, _parentLog, bridgeHandle._handle);
+
+  // These correspond to the range of headers that we have searched to generate
+  // the current set of matched headers.  Our matches will always be fully
+  // contained by this range.
+  this.startTS = null;
+  this.startUID = null;
+  this.endTS = null;
+  this.endUID = null;
+
+  var filters = [];
+  if (whatToSearch.author)
+    filters.push(new AuthorFilter(phrase));
+  if (whatToSearch.recipients)
+    filters.push(new RecipientFilter(phrase, 1, true, true, true));
+  if (whatToSearch.subject)
+    filters.push(new SubjectFilter(
+                   phrase, 1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+  if (whatToSearch.body)
+    filters.push(new BodyFilter(
+                   phrase, whatToSearch.body === 'yes-quotes',
+                   1, CONTEXT_CHARS_BEFORE, CONTEXT_CHARS_AFTER));
+
+  this.filterer = new MessageFilterer(filters);
+
+  this._bound_gotOlderMessages = this._gotMessages.bind(this, 1);
+  this._bound_gotNewerMessages = this._gotMessages.bind(this, -1);
+
+  this.headers = [];
+  this.desiredHeaders = $syncbase.INITIAL_FILL_SIZE;
+  // Fetch as many headers as we want in our results; we probably will have
+  // less than a 100% hit-rate, but there isn't much savings from getting the
+  // extra headers now, so punt on those.
+  this._storage.getMessagesInImapDateRange(
+    0, $date.FUTURE(), this.desiredHeaders, this.desiredHeaders,
+    this._gotMessages.bind(this, 1));
+}
+exports.SearchSlice = SearchSlice;
+SearchSlice.prototype = {
+  set atTop(val) {
+    this._bridgeHandle.atTop = val;
+  },
+  set atBottom(val) {
+    this._bridgeHandle.atBottom = val;
+  },
+
+  _gotMessages: function(dir, headers, moreMessagesComing) {
+console.log('sf: gotMessages', headers.length);
+    // update the range of what we have seen and searched
+    if (headers.length) {
+      if (dir === -1) { // (more recent)
+        this.endTS = headers[0].date;
+        this.endUID = headers[0].id;
+      }
+      else { // (older)
+        var lastHeader = headers[headers.length - 1];
+        this.startTS = lastHeader.date;
+        this.startUID = lastHeader.id;
+        if (this.endTS === null) {
+          this.endTS = headers[0].date;
+          this.endUID = headers[0].id;
+        }
+      }
+    }
+
+    var checkHandle = function checkHandle(headers, bodies) {
+      // run a filter on these
+      var matchPairs = [];
+      for (i = 0; i < headers.length; i++) {
+        var header = headers[i],
+            body = bodies ? bodies[i] : null;
+        var matchObj = this.filterer.testMessage(header, body);
+        if (matchObj)
+          matchPairs.push({ header: header, matches: matchObj });
+      }
+
+      var atTop = this.atTop = this._storage.headerIsYoungestKnown(
+                    this.endTS, this.endUID);
+      var atBottom = this.atBottom = this._storage.headerIsOldestKnown(
+                       this.startTS, this.startUID);
+      var canGetMore = (dir === -1) ? !atTop : !atBottom;
+      if (matchPairs.length) {
+        var willHave = this.headers.length + matchPairs.length,
+            wantMore = !moreMessagesComing &&
+                       (willHave < this.desiredHeaders) &&
+                       canGetMore;
+console.log('sf: willHave', willHave, 'of', this.desiredHeaders, 'want more?', wantMore);
+        var insertAt = dir === -1 ? 0 : this.headers.length;
+        this._bridgeHandle.sendSplice(
+          insertAt, 0, matchPairs, true,
+          moreMessagesComing || wantMore);
+        this.headers.splice.apply(this.headers,
+                                  [insertAt, 0].concat(matchPairs));
+        if (wantMore)
+          this.reqGrow(dir, false);
+      }
+      else if (!moreMessagesComing) {
+        // If there aren't more messages coming, we either need to get more
+        // messages (if there are any left in the folder that we haven't seen)
+        // or signal completion.  We can use our growth function directly since
+        // there are no state invariants that will get confused.
+        if (canGetMore)
+          this.reqGrow(dir, false);
+        else
+          this._bridgeHandle.sendStatus('synced', true, false);
+      }
+      // (otherwise we need to wait for the additional messages to show before
+      //  doing anything conclusive)
+    }.bind(this);
+
+    if (this.filterer.bodiesNeeded) {
+      // To batch our updates to the UI, just get all the bodies then advance
+      // to the next stage of processing.  It would be nice
+      var bodies = [];
+      var gotBody = function(body) {
+        if (!body)
+          console.log('failed to get a body for: ',
+                      headers[bodies.length].suid,
+                      headers[bodies.length].subject);
+        bodies.push(body);
+        if (bodies.length === headers.length)
+          checkHandle(headers, bodies);
+      };
+      for (var i = 0; i < headers.length; i++) {
+        var header = headers[i];
+        this._storage.getMessageBody(header.suid, header.date, gotBody);
+      }
+    }
+    else {
+      checkHandle(headers, null);
+    }
+  },
+
+  refresh: function() {
+    // no one should actually call this.
+  },
+
+  reqNoteRanges: function(firstIndex, firstSuid, lastIndex, lastSuid) {
+    // when shrinking our range, we could try and be clever and use the values
+    // of the first thing we are updating to adjust our range, but it's safest/
+    // easiest right now to just use what we are left with.
+
+    // THIS CODE IS COPIED FROM `MailSlice`'s reqNoteRanges implementation
+
+    var i;
+    // - Fixup indices if required
+    if (firstIndex >= this.headers.length ||
+        this.headers[firstIndex].suid !== firstSuid) {
+      firstIndex = 0; // default to not splicing if it's gone
+      for (i = 0; i < this.headers.length; i++) {
+        if (this.headers[i].suid === firstSuid) {
+          firstIndex = i;
+          break;
+        }
+      }
+    }
+    if (lastIndex >= this.headers.length ||
+        this.headers[lastIndex].suid !== lastSuid) {
+      for (i = this.headers.length - 1; i >= 0; i--) {
+        if (this.headers[i].suid === lastSuid) {
+          lastIndex = i;
+          break;
+        }
+      }
+    }
+
+    // - Perform splices as required
+    // (high before low to avoid index changes)
+    if (lastIndex + 1 < this.headers.length) {
+      this.atBottom = false;
+      this.userCanGrowDownwards = false;
+      var delCount = this.headers.length - lastIndex  - 1;
+      this.desiredHeaders -= delCount;
+      if (!this._accumulating)
+        this._bridgeHandle.sendSplice(
+          lastIndex + 1, delCount, [],
+          // This is expected; more coming if there's a low-end splice
+          true, firstIndex > 0);
+      this.headers.splice(lastIndex + 1, this.headers.length - lastIndex - 1);
+      var lastHeader = this.headers[lastIndex];
+      this.startTS = lastHeader.date;
+      this.startUID = lastHeader.id;
+    }
+    if (firstIndex > 0) {
+      this.atTop = false;
+      this.desiredHeaders -= firstIndex;
+      if (!this._accumulating)
+        this._bridgeHandle.sendSplice(0, firstIndex, [], true, false);
+      this.headers.splice(0, firstIndex);
+      var firstHeader = this.headers[0];
+      this.endTS = firstHeader.date;
+      this.endUID = firstHeader.id;
+    }
+  },
+
+  reqGrow: function(dirMagnitude, userRequestsGrowth) {
+    if (dirMagnitude === -1) {
+      this._storage.getMessagesAfterMessage(this.endTS, this.endUID,
+                                            $syncbase.INITIAL_FILL_SIZE,
+                                            this._gotMessages.bind(this, -1));
+    }
+    else if (dirMagnitude === 1) {
+      this._storage.getMessagesBeforeMessage(this.startTS, this.startUID,
+                                             $syncbase.INITIAL_FILL_SIZE,
+                                             this._gotMessages.bind(this, 1));
+    }
+  },
+
+  die: function() {
+    this._bridgeHandle = null;
+    this._LOG.__die();
+  },
+};
+
+var LOGFAB = exports.LOGFAB = $log.register($module, {
+  SearchSlice: {
+    type: $log.QUERY,
+    events: {
+    },
+    TEST_ONLY_events: {
+    },
+  },
+}); // end LOGFAB
+
 
 }); // end define
 ;
@@ -27260,9 +28620,27 @@ console.log("backoff! had", serverUIDs.length, "from", curDaysDelta,
           });
       });
 
+    // - Adjust DB time range for server skew on INTERNALDATE
+    // See https://github.com/mozilla-b2g/gaia-email-libs-and-more/issues/12
+    // for more in-depth details.  The nutshell is that the server will secretly
+    // apply a timezone to the question we ask it and will not actually tell us
+    // dates lined up with UTC.  Accordingly, we don't want our DB query to
+    // be lined up with UTC but instead the time zone.
+    // XXX STOPGAP HACK for now: just assume the server is in GMT-7 since
+    // yahoo.com appears to be in GMT-7.  We handle this by adding 7 hours
+    // because the search is run using an effective GMT-7, which means that
+    // if it 11:59pm on the day, it would be 6:59am in UTC land.
+    const HACK_TZ_OFFSET = 7 * 60 * 60 * 1000;
+    var skewedStartTS = startTS + HACK_TZ_OFFSET,
+        skewedEndTS = endTS ? endTS + HACK_TZ_OFFSET : null;
+    console.log('Skewed DB lookup. Start: ',
+                skewedStartTS, new Date(skewedStartTS).toUTCString(),
+                'End: ', skewedEndTS,
+                skewedEndTS ? new Date(skewedEndTS).toUTCString() : null);
     this._LOG.syncDateRange_begin(null, null, null, startTS, endTS);
     this._reliaSearch(searchOptions, callbacks.search);
-    this._storage.getAllMessagesInImapDateRange(startTS, endTS, callbacks.db);
+    this._storage.getAllMessagesInImapDateRange(skewedStartTS, skewedEndTS,
+                                                callbacks.db);
   },
 
   searchDateRange: function(endTS, startTS, searchParams,
@@ -27318,7 +28696,7 @@ console.log("_commonSync", 'newUIDs', newUIDs.length, 'knownUIDs',
       var newFetcher = this._conn.fetch(newUIDs, INITIAL_FETCH_PARAMS);
       newFetcher.on('message', function onNewMessage(msg) {
           msg.on('end', function onNewMsgEnd() {
-console.log('  new fetched, header processing');
+console.log('  new fetched, header processing, INTERNALDATE: ', msg.rawDate);
             newChewReps.push($imapchew.chewHeaderAndBodyStructure(msg));
 console.log('   header processed');
           });
@@ -28602,6 +29980,7 @@ define('mailapi/imap/account',
     '../a64',
     '../errbackoff',
     '../mailslice',
+    '../searchfilter',
     '../util',
     './folder',
     './jobs',
@@ -28614,6 +29993,7 @@ define('mailapi/imap/account',
     $a64,
     $errbackoff,
     $mailslice,
+    $searchfilter,
     $util,
     $imapfolder,
     $imapjobs,
@@ -28924,6 +30304,13 @@ ImapAccount.prototype = {
         slice = new $mailslice.MailSlice(bridgeHandle, storage, this._LOG);
 
     storage.sliceOpenFromNow(slice);
+  },
+
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    var storage = this._folderStorages[folderId],
+        slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
+                                              whatToSearch, this._LOG);
+    // the slice is self-starting, we don't need to call anything on storage
   },
 
   shutdown: function() {
@@ -30580,7 +31967,7 @@ ActiveSyncFolderConn.prototype = {
        .etag()
      .etag();
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
         return;
@@ -30667,7 +32054,7 @@ ActiveSyncFolderConn.prototype = {
        .etag();
     }
 
-    account.conn.doCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       let added   = [];
       let changed = [];
       let deleted = [];
@@ -31263,7 +32650,7 @@ ActiveSyncJobDriver.prototype = {
       w.etag(as.Collections)
      .etag(as.Sync);
 
-    this.account.conn.doCommand(w, function(aError, aResponse) {
+    this.account.conn.postCommand(w, function(aError, aResponse) {
       if (aError)
         return;
 
@@ -31324,6 +32711,7 @@ define('mailapi/activesync/account',
     'activesync/protocol',
     '../a64',
     '../mailslice',
+    '../searchfilter',
     './folder',
     './jobs',
     '../util',
@@ -31338,6 +32726,7 @@ define('mailapi/activesync/account',
     $activesync,
     $a64,
     $mailslice,
+    $searchfilter,
     $asfolder,
     $asjobs,
     $util,
@@ -31511,6 +32900,13 @@ ActiveSyncAccount.prototype = {
     storage.sliceOpenFromNow(slice);
   },
 
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    var storage = this._folderStorages[folderId],
+        slice = new $searchfilter.SearchSlice(bridgeHandle, storage, phrase,
+                                              whatToSearch, this._LOG);
+    // the slice is self-starting, we don't need to call anything on storage
+  },
+
   syncFolderList: function asa_syncFolderList(callback) {
     let account = this;
 
@@ -31520,7 +32916,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.SyncKey, this.meta.syncKey)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let deferredAddedFolders = [];
 
@@ -31762,7 +33158,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.Type, folderType)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status, serverId;
 
@@ -31812,7 +33208,7 @@ ActiveSyncAccount.prototype = {
        .tag(fh.ServerId, folderMeta.serverId)
      .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
+    this.conn.postCommand(w, function(aError, aResponse) {
       let e = new $wbxml.EventParser();
       let status;
 
@@ -31839,24 +33235,51 @@ ActiveSyncAccount.prototype = {
     composedMessage._cacheOutput = true;
     composedMessage._composeMessage();
 
-    const cm = $ascp.ComposeMail.Tags;
-    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
-    w.stag(cm.SendMail)
-       .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
-       .tag(cm.SaveInSentItems)
-       .stag(cm.Mime)
-         .opaque(composedMessage._outputBuffer)
-       .etag()
-     .etag();
+    // ActiveSync 14.0 has a completely different API for sending email. Make
+    // sure we format things the right way.
+    if (this.conn.currentVersion.gte('14.0')) {
+      const cm = $ascp.ComposeMail.Tags;
+      let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+      w.stag(cm.SendMail)
+         .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
+         .tag(cm.SaveInSentItems)
+         .stag(cm.Mime)
+           .opaque(composedMessage._outputBuffer)
+         .etag()
+       .etag();
 
-    this.conn.doCommand(w, function(aError, aResponse) {
-      if (aResponse === null)
+      this.conn.postCommand(w, function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        if (aResponse === null) {
+          console.log('Sent message successfully!');
+          callback(null);
+        }
+        else {
+          console.error('Error sending message. XML dump follows:\n' +
+                        aResponse.dump());
+          callback('unknown');
+        }
+      });
+    }
+    else { // ActiveSync 12.x and lower
+      this.conn.postData('SendMail', 'message/rfc822',
+                         composedMessage._outputBuffer,
+                         function(aError, aResponse) {
+        if (aError) {
+          console.error(aError);
+          callback('unknown');
+          return;
+        }
+
+        console.log('Sent message successfully!');
         callback(null);
-      else {
-        console.log('Error sending message. XML dump follows:\n' +
-                    aResponse.dump());
-      }
-    });
+      }, { SaveInSent: 'T' });
+    }
   },
 
   getFolderStorageForFolderId: function asa_getFolderStorageForFolderId(
@@ -32080,6 +33503,11 @@ CompositeAccount.prototype = {
     return this._receivePiece.sliceFolderMessages(folderId, bridgeProxy);
   },
 
+  searchFolderMessages: function(folderId, bridgeHandle, phrase, whatToSearch) {
+    return this._receivePiece.searchFolderMessages(
+      folderId, bridgeHandle, phrase, whatToSearch);
+  },
+
   syncFolderList: function(callback) {
     return this._receivePiece.syncFolderList(callback);
   },
@@ -32159,20 +33587,36 @@ var autoconfigByDomain = {
   },
 };
 
+/**
+ * Recreate the array of identities for a given account.
+ *
+ * @param universe the MailUniverse
+ * @param accountId the ID for this account
+ * @param oldIdentities an array of the old identities
+ * @return the new identities
+ */
+function recreateIdentities(universe, accountId, oldIdentities) {
+  let identities = [];
+  for (let [,oldIdentity] in Iterator(oldIdentities)) {
+    identities.push({
+      id: accountId + '/' + $a64.encodeInt(universe.config.nextIdentityNum++),
+      name: oldIdentity.name,
+      address: oldIdentity.address,
+      replyTo: oldIdentity.replyTo,
+      signature: oldIdentity.signature,
+    });
+  }
+  return identities;
+}
+
 var Configurators = {};
 Configurators['imap+smtp'] = {
   tryToCreateAccount: function cfg_is_ttca(universe, userDetails, domainInfo,
                                            callback, _LOG) {
     var credentials, imapConnInfo, smtpConnInfo;
     if (domainInfo) {
-      var emailLocalPart = userDetails.emailAddress.substring(
-        0, userDetails.emailAddress.indexOf('@'));
-      var username = domainInfo.incoming.username
-        .replace('%EMAILADDRESS%', userDetails.emailAddress)
-        .replace('%EMAILLOCALPART%', emailLocalPart);
-
       credentials = {
-        username: username,
+        username: domainInfo.incoming.username,
         password: userDetails.password,
       };
       imapConnInfo = {
@@ -32221,6 +33665,48 @@ Configurators['imap+smtp'] = {
     smtpProber.onresult = callbacks.smtp;
   },
 
+  recreateAccount: function cfg_is_ra(universe, oldVersion, oldAccountInfo,
+                                      callback) {
+    var oldAccountDef = oldAccountInfo.def;
+
+    var credentials = {
+      username: oldAccountDef.credentials.username,
+      password: oldAccountDef.credentials.password,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: oldAccountDef.name,
+
+      type: 'imap+smtp',
+      receiveType: 'imap',
+      sendType: 'smtp',
+
+      syncRange: oldAccountDef.syncRange,
+
+      credentials: credentials,
+      receiveConnInfo: {
+        hostname: oldAccountDef.receiveConnInfo.hostname,
+        port: oldAccountDef.receiveConnInfo.port,
+        crypto: oldAccountDef.receiveConnInfo.crypto,
+      },
+      sendConnInfo: {
+        hostname: oldAccountDef.sendConnInfo.hostname,
+        port: oldAccountDef.sendConnInfo.port,
+        crypto: oldAccountDef.sendConnInfo.crypto,
+      },
+
+      identities: recreateIdentities(universe, accountId,
+                                     oldAccountDef.identities)
+    };
+
+    var account = this._loadAccount(universe, accountDef,
+                                    oldAccountInfo.folderInfo);
+    account.syncFolderList(function() {
+      callback(null, account);
+    });
+  },
+
   /**
    * Define an account now that we have verified the credentials are good and
    * the server meets our minimal functionality standards.  We are also
@@ -32257,13 +33743,27 @@ Configurators['imap+smtp'] = {
         },
       ]
     };
+
+    return this._loadAccount(universe, accountDef, null, imapProtoConn);
+  },
+
+  /**
+   * Save the account def and folder info for our new (or recreated) account and
+   * then load it.
+   */
+  _loadAccount: function cfg_is__loadAccount(universe, accountDef,
+                                             oldFolderInfo, imapProtoConn) {
+    // XXX: Just reload the old folders when applicable instead of syncing the
+    // folder list again, which is slow.
     var folderInfo = {
       $meta: {
         nextFolderNum: 0,
         nextMutationNum: 0,
         lastFullFolderProbeAt: 0,
-        capability: imapProtoConn.capabilities,
-        rootDelim: imapProtoConn.delim,
+        capability: (oldFolderInfo && oldFolderInfo.$meta.capability) ||
+                    imapProtoConn.capabilities,
+        rootDelim: (oldFolderInfo && oldFolderInfo.$meta.rootDelim) ||
+                   imapProtoConn.delim,
       },
       $mutations: [],
       $deferredMutations: [],
@@ -32273,8 +33773,8 @@ Configurators['imap+smtp'] = {
   },
 };
 Configurators['fake'] = {
-  tryToCreateAccount: function cfg_fake(universe, userDetails, domainInfo,
-                                        callback, _LOG) {
+  tryToCreateAccount: function cfg_fake_ttca(universe, userDetails, domainInfo,
+                                             callback, _LOG) {
     var credentials = {
       username: userDetails.emailAddress,
       password: userDetails.password,
@@ -32306,6 +33806,45 @@ Configurators['fake'] = {
       ]
     };
 
+    var account = this._loadAccount(universe, accountDef);
+    callback(null, account);
+  },
+
+  recreateAccount: function cfg_fake_ra(universe, oldVersion, oldAccountInfo,
+                                        callback) {
+    var oldAccountDef = oldAccountInfo.def;
+    var credentials = {
+      username: oldAccountDef.credentials.username,
+      password: oldAccountDef.credentials.password,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: oldAccountDef.name,
+
+      type: 'fake',
+      syncRange: oldAccountDef.syncRange,
+
+      credentials: credentials,
+      connInfo: {
+        hostname: 'magic.example.com',
+        port: 1337,
+        crypto: true,
+      },
+
+      identities: recreateIdentities(universe, accountId,
+                                     oldAccountDef.identities)
+    };
+
+    var account = this._loadAccount(universe, accountDef);
+    callback(null, account);
+  },
+
+  /**
+   * Save the account def and folder info for our new (or recreated) account and
+   * then load it.
+   */
+  _loadAccount: function cfg_fake__loadAccount(universe, accountDef) {
     var folderInfo = {
       $meta: {
         nextMutationNum: 0,
@@ -32314,50 +33853,18 @@ Configurators['fake'] = {
       $deferredMutations: [],
     };
     universe.saveAccountDef(accountDef, folderInfo);
-    var account = universe._loadAccount(accountDef, folderInfo, null);
-    callback(null, account);
+    return universe._loadAccount(accountDef, folderInfo, null);
   },
 };
 Configurators['activesync'] = {
-  tryToCreateAccount: function cfg_activesync(universe, userDetails, domainInfo,
-                                              callback, _LOG) {
+  tryToCreateAccount: function cfg_as_ttca(universe, userDetails, domainInfo,
+                                           callback, _LOG) {
     var credentials = {
       username: userDetails.emailAddress,
       password: userDetails.password,
     };
-    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
-    var accountDef = {
-      id: accountId,
-      name: userDetails.emailAddress,
 
-      type: 'activesync',
-      syncRange: '3d',
-
-      credentials: credentials,
-      connInfo: null,
-
-      identities: [
-        {
-          id: accountId + '/' +
-                $a64.encodeInt(universe.config.nextIdentityNum++),
-          name: userDetails.displayName || domainInfo.displayName,
-          address: userDetails.emailAddress,
-          replyTo: null,
-          signature: DEFAULT_SIGNATURE
-        },
-      ]
-    };
-
-    var folderInfo = {
-      $meta: {
-        nextFolderNum: 0,
-        nextMutationNum: 0,
-        syncKey: '0',
-      },
-      $mutations: [],
-      $deferredMutations: [],
-    };
-
+    var self = this;
     var conn = new $asproto.Connection(credentials.username,
                                        credentials.password);
     conn.setServer(domainInfo.incoming.server);
@@ -32378,16 +33885,86 @@ Configurators['activesync'] = {
         return;
       }
 
-      accountDef.connInfo = { server: config.selectedServer.url };
-      if (!accountDef.identities[0].name && config.user)
-        accountDef.identities[0].name = config.user.name;
-      universe.saveAccountDef(accountDef, folderInfo);
+      var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+      var accountDef = {
+        id: accountId,
+        name: userDetails.emailAddress,
 
-      var account = universe._loadAccount(accountDef, folderInfo, conn);
+        type: 'activesync',
+        syncRange: '3d',
+
+        credentials: credentials,
+        connInfo: {
+          server: config.selectedServer.url
+        },
+
+        identities: [
+          {
+            id: accountId + '/' +
+                $a64.encodeInt(universe.config.nextIdentityNum++),
+            name: userDetails.displayName || domainInfo.displayName,
+            address: userDetails.emailAddress,
+            replyTo: null,
+            signature: DEFAULT_SIGNATURE
+          },
+        ]
+      };
+
+      var account = self._loadAccount(universe, accountDef, conn);
       account.syncFolderList(function() {
         callback(null, account);
       });
     });
+  },
+
+  recreateAccount: function cfg_as_ra(universe, oldVersion, oldAccountInfo,
+                                      callback) {
+    var oldAccountDef = oldAccountInfo.def;
+    var credentials = {
+      username: oldAccountDef.credentials.username,
+      password: oldAccountDef.credentials.password,
+    };
+    var accountId = $a64.encodeInt(universe.config.nextAccountNum++);
+    var accountDef = {
+      id: accountId,
+      name: oldAccountDef.name,
+
+      type: 'activesync',
+      syncRange: oldAccountDef.syncRange,
+
+      credentials: credentials,
+      connInfo: {
+        server: oldAccountDef.connInfo.server
+      },
+
+      identities: recreateIdentities(universe, accountId,
+                                     oldAccountDef.identities)
+    };
+
+    var account = this._loadAccount(universe, accountDef, null);
+    account.syncFolderList(function() {
+      callback(null, account);
+    });
+  },
+
+  /**
+   * Save the account def and folder info for our new (or recreated) account and
+   * then load it.
+   */
+  _loadAccount: function cfg_as__loadAccount(universe, accountDef, protoConn) {
+    // XXX: Just reload the old folders when applicable instead of syncing the
+    // folder list again, which is slow.
+    var folderInfo = {
+      $meta: {
+        nextFolderNum: 0,
+        nextMutationNum: 0,
+        syncKey: '0',
+      },
+      $mutations: [],
+      $deferredMutations: [],
+    };
+    universe.saveAccountDef(accountDef, folderInfo);
+    return universe._loadAccount(accountDef, folderInfo, protoConn);
   },
 };
 
@@ -32504,19 +34081,21 @@ Autoconfigurator.prototype = {
 
         if (incoming.getAttribute('type') === 'activesync') {
           config.type = 'activesync';
-          callback(null, config);
-          return;
         }
         else if (outgoing) {
           config.type = 'imap+smtp';
           for (let [,child] in Iterator(outgoing.children))
             config.outgoing[child.tagName] = child.textContent;
-          callback(null, config);
-          return;
         }
-      }
+        else {
+          callback('unknown');
+        }
 
-      callback('unknown');
+        callback(null, config);
+      }
+      else {
+        callback('unknown');
+      }
     };
     xhr.onerror = function() { callback('unknown'); }
 
@@ -32689,16 +34268,45 @@ Autoconfigurator.prototype = {
    */
   getConfig: function getConfig(userDetails, callback) {
     console.log('Attempting to get autoconfiguration...');
-    let domain = userDetails.emailAddress.split('@')[1].toLowerCase();
 
-    function callbackWrapper(error) {
+    let [emailLocalPart, emailDomainPart] = userDetails.emailAddress.split('@');
+    let domain = emailDomainPart.toLowerCase();
+
+    const placeholderFields = {
+      incoming: ['username', 'hostname', 'server'],
+      outgoing: ['username', 'hostname'],
+    };
+
+    function fillPlaceholder(value) {
+      return value.replace('%EMAILADDRESS%', userDetails.emailAddress)
+                  .replace('%EMAILLOCALPART%', emailLocalPart)
+                  .replace('%EMAILDOMAIN%', emailDomainPart)
+                  .replace('%REALNAME%', userDetails.displayName);
+    }
+
+    function onComplete(error, config) {
       console.log(error ? 'FAILURE' : 'SUCCESS');
-      callback.apply(null, arguments);
+
+      // Fill any placeholder strings in the configuration object we retrieved.
+      if (config) {
+        for (let [serverType, fields] in Iterator(placeholderFields)) {
+          if (!config.hasOwnProperty(serverType))
+            continue;
+
+          let server = config[serverType];
+          for (let [,field] in Iterator(fields)) {
+            if (server.hasOwnProperty(field))
+              server[field] = fillPlaceholder(server[field]);
+          }
+        }
+      }
+
+      callback(error, config);
     }
 
     console.log('  Looking in GELAM');
     if (autoconfigByDomain.hasOwnProperty(domain)) {
-      callbackWrapper(null, autoconfigByDomain[domain]);
+      onComplete(null, autoconfigByDomain[domain]);
       return;
     }
 
@@ -32706,20 +34314,20 @@ Autoconfigurator.prototype = {
     console.log('  Looking in local file store');
     this._getConfigFromLocalFile(domain, function(error, config) {
       if (self._isSuccessOrFatal(error))
-        return callbackWrapper(error, config);
+        return onComplete(error, config);
 
       console.log('  Looking at domain');
       self._getConfigFromDomain(userDetails, domain, function(error, config) {
         if (self._isSuccessOrFatal(error))
-          return callbackWrapper(error, config);
+          return onComplete(error, config);
 
         console.log('  Looking in the Mozilla ISPDB');
         self._getConfigFromDB(domain, function(error, config) {
           if (self._isSuccessOrFatal(error))
-            return callbackWrapper(error, config);
+            return onComplete(error, config);
 
           console.log('  Looking up MX');
-          self._getConfigFromMX(domain, callbackWrapper);
+          self._getConfigFromMX(domain, onComplete);
         });
       });
     });
@@ -32749,6 +34357,29 @@ Autoconfigurator.prototype = {
   },
 };
 
+/**
+ * Recreate an existing account, e.g. after a database upgrade.
+ *
+ * @param universe the MailUniverse
+ * @param oldVersion the old database version, to help with migration
+ * @param accountInfo the old account info
+ * @param callback a callback to fire when we've completed recreating the
+ *        account
+ */
+function recreateAccount(universe, oldVersion, accountInfo, callback) {
+  var configurator = Configurators[accountInfo.def.type];
+  configurator.recreateAccount(universe, oldVersion, accountInfo, callback);
+}
+exports.recreateAccount = recreateAccount;
+
+function tryToManuallyCreateAccount(universe, userDetails, domainInfo, callback,
+                                    _LOG) {
+  var configurator = Configurators[domainInfo.type];
+  configurator.tryToCreateAccount(universe, userDetails, domainInfo, callback,
+                                  _LOG);
+}
+exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;
+
 }); // end define
 ;
 /**
@@ -32762,6 +34393,7 @@ define('mailapi/mailuniverse',
     './a64',
     './syncbase',
     './maildb',
+    './cronsync',
     './accountcommon',
     'module',
     'exports'
@@ -32772,6 +34404,7 @@ define('mailapi/mailuniverse',
     $a64,
     $syncbase,
     $maildb,
+    $cronsync,
     $acctcommon,
     $module,
     exports
@@ -33016,6 +34649,7 @@ function MailUniverse(callAfterBigBang) {
 
   this._LOG = null;
   this._db = new $maildb.MailDB();
+  this._cronSyncer = new $cronsync.CronSyncer(this);
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
@@ -33061,6 +34695,7 @@ function MailUniverse(callAfterBigBang) {
         nextAccountNum: 0,
         nextIdentityNum: 0,
         debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false,
+        syncCheckIntervalEnum: $syncbase.DEFAULT_CHECK_INTERVAL_ENUM,
       };
       setupLogging();
       self._LOG = LOGFAB.MailUniverse(self, null, null);
@@ -33068,30 +34703,28 @@ function MailUniverse(callAfterBigBang) {
         self._enableCircularLogging();
       self._db.saveConfig(self.config);
 
-      // - Try to re-create any accounts just using auth info.
+      // - Try to re-create any accounts using old account infos.
       if (lazyCarryover && self.online) {
         var waitingCount = 0;
-        for (i = 0; i < lazyCarryover.accountInfos.length; i++){
+        var oldVersion = lazyCarryover.oldVersion;
+        for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
           waitingCount++;
-          var accountDef = lazyCarryover.accountInfos[i].def;
-          self.tryToCreateAccount(
-            {
-              displayName: accountDef.identities[0].name,
-              emailAddress: accountDef.name,
-              password: accountDef.credentials.password
-            },
+          var accountInfo = lazyCarryover.accountInfos[i];
+          $acctcommon.recreateAccount(self, oldVersion, accountInfo,
+                                      function() {
             // We don't care how they turn out, just that they get a chance
             // to run to completion before we call our bootstrap complete.
-            function() {
-              if (--waitingCount === 0)
-                callAfterBigBang();
-            },
-            self._LOG);
-          }
-        // do not let callAfterBigBang get called.
+            if (--waitingCount === 0) {
+              self._initFromConfig();
+              callAfterBigBang();
+            }
+          });
+        }
+        // Do not let callAfterBigBang get called.
         return;
       }
     }
+    self._initFromConfig();
     callAfterBigBang();
   });
 }
@@ -33160,20 +34793,51 @@ MailUniverse.prototype = {
   // Config / Settings
 
   /**
+   * Perform initial initialization based on our configuration.
+   */
+  _initFromConfig: function() {
+    this._cronSyncer.setSyncIntervalMS(
+      $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[this.config.syncCheckIntervalEnum]);
+  },
+
+  /**
    * Return the subset of our configuration that the client can know about.
    */
   exposeConfigForClient: function() {
     // eventually, iterate over a whitelist, but for now, it's easy...
     return {
       debugLogging: this.config.debugLogging,
+      syncCheckIntervalEnum: this.config.syncCheckIntervalEnum,
     };
   },
 
   modifyConfig: function(changes) {
     for (var key in changes) {
-      this.config[key] = changes[key];
+      var val = changes[key];
+      switch (key) {
+        case 'syncCheckIntervalEnum':
+          if (!$syncbase.CHECK_INTERVALS_ENUMS_TO_MS.hasOwnProperty(val))
+            continue;
+          this._cronSyncer.setSyncIntervalMS(
+            $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[val]);
+          break;
+        case 'debugLogging':
+          break;
+        default:
+          continue;
+      }
+      this.config[key] = val;
     }
     this._db.saveConfig(this.config);
+    this.__notifyConfig();
+  },
+
+  __notifyConfig: function() {
+    var config = this.exposeConfigForClient();
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge.notifyConfig(config);
+    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -33248,16 +34912,23 @@ MailUniverse.prototype = {
       this._bridges.splice(idx, 1);
   },
 
-  tryToCreateAccount: function mu_tryToCreateAccount(userDetails, callback) {
+  tryToCreateAccount: function mu_tryToCreateAccount(userDetails, domainInfo,
+                                                     callback) {
     if (!this.online) {
       callback('offline');
       return;
     }
 
-    // XXX: store configurator on this object so we can abort the connections
-    // if necessary.
-    var configurator = new $acctcommon.Autoconfigurator(this._LOG);
-    configurator.tryToCreateAccount(this, userDetails, callback);
+    if (domainInfo) {
+      $acctcommon.tryToManuallyCreateAccount(this, userDetails, domainInfo,
+                                             callback, this._LOG);
+    }
+    else {
+      // XXX: store configurator on this object so we can abort the connections
+      // if necessary.
+      var configurator = new $acctcommon.Autoconfigurator(this._LOG);
+      configurator.tryToCreateAccount(this, userDetails, callback);
+    }
   },
 
   /**
@@ -33434,6 +35105,7 @@ MailUniverse.prototype = {
       var account = this.accounts[iAcct];
       account.shutdown();
     }
+    this._cronSyncer.shutdown();
     this._db.close();
     this._LOG.__die();
   },

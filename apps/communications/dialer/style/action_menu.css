@@ -67,6 +67,6 @@ body[role="application"] menu.actions > ul > li:last-child > a[role="button"] {
   margin: 0.5rem 0 1rem 0;
 }
 
-body[role="application"] menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
+body[role="application"] menu.actions:not([type="toolbar"]):not([data-items="1"]) button:last-child {
   margin-left: 0rem;
 }

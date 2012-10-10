@@ -10,6 +10,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -27,10 +28,13 @@
     <!-- Async. Storage -->
     <script type="application/javascript" src="/shared/js/async_storage.js"></script>
 
+    <!-- Load JSON files -->
+    <script type="application/javascript" defer src="js/utilities/config.js"></script>
+
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
-    <script type="application/javascript" defer src="js/data.js"></script>
+    <script type="application/javascript" defer src="js/carrier.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
     <script type="application/javascript" defer src="js/simcard_lock.js"></script>
@@ -38,7 +42,6 @@
     <script type="application/javascript" defer src="js/wallpaper.js"></script>
     <script type="application/javascript" defer src="js/battery.js"></script>
     <script type="application/javascript" defer src="js/storage.js"></script>
-    <script type="application/javascript" defer src="js/icc.js"></script>
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/date_time.js"></script>
     <script type="application/javascript" defer src="js/sound.js"></script>
@@ -105,15 +108,15 @@
             <span data-signal>good</span>
           </a>
         </li>
-        <li>
+        <li class="identity">
           <p data-l10n-id="identity">identity</p>
-          <input type="text" data-identity data-ignore name="identity" />
+          <input type="text" data-ignore name="identity" />
         </li>
-        <li>
+        <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-password data-ignore name="password" maxlength="63" />
-          <label for="show-pwd">
-            <input type="checkbox" data-ignore name="show-pwd" />
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-auth">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-auth" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
@@ -134,28 +137,27 @@
       <ul>
         <li>
           <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-ignore name="ssid" value="Freebox-4C7D5F" />
+          <input type="text" data-ignore name="ssid" />
         </li>
         <li>
           <a data-l10n-id="security">security
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
-              <option>WPA-PSK</option>
+              <option checked>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
           </a>
         </li>
-        <li>
+        <li class="identity">
           <p data-l10n-id="identity">identity</p>
           <input type="text" data-ignore name="identity" />
         </li>
-        <li>
+        <li class="password">
           <p data-l10n-id="password">password</p>
-          <input type="password" data-ignore name="password" maxlength="63"
-                  value="devorsori%-lusiam-reperiendo7." />
-          <label for="show-pwd">
-            <input type="checkbox" data-ignore name="show-pwd" />
+          <input type="password" data-ignore name="password" maxlength="63" />
+          <label for="pwd-joinHidden">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
             <span data-l10n-id="showPassword">show password</span>
           </label>
         </li>
@@ -208,11 +210,20 @@
     <section role="region" id="wifi-manageNetworks">
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
-        <h1 data-l10n-id="knownNetworks">
-          Known Networks
-        </h1>
+        <h1 data-l10n-id="manageNetworks"> Manage Networks </h1>
       </header>
 
+      <ul>
+        <li>
+          <a data-l10n-id="macAddress"> MAC address
+            <span data-name="deviceinfo.mac"></span>
+          </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="knownNetworks"> Known Networks </h2>
+      </header>
       <ul id="wifi-knownNetworks">
         <!--
           - filled by wifi.js — one list item per known network, e.g.:
@@ -223,8 +234,19 @@
           -->
       </ul>
 
+      <header>
+        <h2 data-l10n-id="hiddenNetworks"> Hidden Networks </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
+          </label>
+        </li>
+      </ul>
+
       <!-- action menu -->
-      <form role="dialog" hidden>
+      <form role="dialog" data-type="action" hidden>
         <menu>
           <button data-l10n-id="forgetNetwork">Forget network</button>
           <button data-l10n-id="cancel" type="reset">Cancel</button>
@@ -236,15 +258,13 @@
     <section role="region" id="wifi">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="wifi">
-          Wi-Fi
-        </h1>
+        <h1 data-l10n-id="wifi"> Wi-Fi </h1>
       </header>
 
       <ul>
         <li id="wifi-enabled">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="wifi">Wi-Fi</a>
@@ -291,24 +311,58 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
-        <li id="macAddress">
-          <small id="macAddress-desc"></small>
-          <a data-l10n-id="macAddress">MAC Address</a>
-        </li>
         <li>
           <label>
             <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
           </label>
         </li>
-        <li>
+      </ul>
+    </section>
+
+    <!-- Connectivity :: Cellular & Data :: Network Operator -->
+    <section role="region" id="operator">
+      <header>
+        <a href="#data"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="networkOperator"> Network Operator </h1>
+      </header>
+
+      <ul>
+        <li id="operator-autoSelect">
           <label>
-            <button id="joinHidden" data-l10n-id="joinHiddenNetwork">Join Hidden Networks</button>
+            <input type="checkbox" data-type="switch" />
+            <span></span>
+          </label>
+          <small></small>
+          <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
+      </header>
+      <ul id="availableOperators" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
+          Turn Automatic Selection off to view available network operators.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <!--
+          - filled by carrier.js — one list item per available network, e.g.:
+          -   <li>
+          -     <small> Connection State </small>
+          -     <a> Operator Name </a>
+          -   </li>
+          -->
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
           </label>
         </li>
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: APN Settings -->
+    <!-- Connectivity :: Cellular & Data :: APN Settings -->
     <section role="region" id="apnSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -332,7 +386,7 @@
 
       <!-- Advanced APN settings -->
       <header>
-        <h2 data-l10n-id="advancedSettings">Advanced Settings</h2>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul id="apnSettings-advanced">
         <li>
@@ -358,7 +412,7 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data :: MMS Settings -->
+    <!-- Connectivity :: Cellular & Data :: MMS Settings -->
     <section role="region" id="mmsSettings" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
@@ -385,13 +439,11 @@
       </ul>
     </section>
 
-    <!-- Connectivity :: 3G/data -->
+    <!-- Connectivity :: Cellular & Data -->
     <section role="region" id="data">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="cellularAndData">
-          Cellular &amp; Data
-        </h1>
+        <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
       </header>
 
       <ul>
@@ -400,8 +452,8 @@
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.callwaiting.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
@@ -413,15 +465,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.roaming_enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
@@ -435,6 +487,12 @@
         <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
       </header>
       <ul>
+        <li>
+          <label>
+            <button onclick="Settings.openDialog('operator');"
+              data-l10n-id="networkOperator"> Network Operator </button>
+          </label>
+        </li>
         <li>
           <label>
             <button onclick="Settings.openDialog('apnSettings');"
@@ -454,22 +512,20 @@
     <section role="region" id="bluetooth">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="bluetooth">
-          Bluetooth
-        </h1>
+        <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
       </header>
 
       <ul>
         <li id="bluetooth-status">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
         <li hidden id="device-visible">
-          <label class="switch">
-            <input type="checkbox" data-ignore checked />
+          <label>
+            <input type="checkbox" data-type="switch" data-ignore checked />
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
@@ -513,7 +569,7 @@
       </ul>
 
       <!-- action menu -->
-      <form role="dialog" id="paired-device-option" hidden>
+      <form role="dialog" data-type="action" id="paired-device-option" hidden>
         <menu>
           <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>
           <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
@@ -530,7 +586,7 @@
         <menu type="toolbar">
           <button type="submit"><span data-l10n-id="ok">OK</span></button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings">HotSpot Settings</h1>
+        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
       </header>
 
       <!-- wifi hotspot settings -->
@@ -559,9 +615,7 @@
     <section role="region" id="hotspot">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="internetSharing">
-          Internet Sharing
-        </h1>
+        <h1 data-l10n-id="internetSharing"> Internet Sharing </h1>
       </header>
 
       <header>
@@ -569,8 +623,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.wifi.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
@@ -608,8 +662,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.usb.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.usb.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="usb-tethering">USB Tethering</a>
@@ -631,7 +685,7 @@
         <menu type="toolbar">
           <button data-l10n-id="done" type="submit">Done</button>
         </menu>
-        <h1 data-l10n-id="select-tone">Select a Tone</h1>
+        <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
       <header>
@@ -682,23 +736,21 @@
     <section role="region" id="sounds">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="sound">
-          Sound
-        </h1>
+        <h1 data-l10n-id="sound"> Sound </h1>
       </header>
 
       <!-- Ring and Vibrate -->
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ring.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="ring.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="ring">Ring</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="vibration.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="vibration.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
@@ -758,9 +810,7 @@
     <section role="region" id="display" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="display">
-          Display
-        </h1>
+        <h1 data-l10n-id="display"> Display </h1>
       </header>
 
       <ul>
@@ -804,9 +854,7 @@
     <section role="region" id="notifications" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="notifications">
-          Notifications
-        </h1>
+        <h1 data-l10n-id="notifications"> Notifications </h1>
       </header>
 
       <ul>
@@ -823,9 +871,7 @@
     <section role="region" id="timezone-zones" data-leaf>
       <header>
         <a href="#timezone-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone">
-          Select Time Zone
-        </h1>
+        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
       </header>
 
       <ul id="timezone-zones-list">
@@ -837,9 +883,7 @@
     <section role="region" id="timezone-continent">
       <header>
         <a href="#time"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent">
-          Select Continent
-        </h1>
+        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
       </header>
 
       <ul id="timezone-continents">
@@ -851,15 +895,13 @@
     <section role="region" id="time">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="dateAndTime">
-          Date &amp; Time
-        </h1>
+        <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
       </header>
 
       <ul>
         <li id="time-nitz-automatic-update">
-          <label class="switch">
-            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
@@ -892,9 +934,7 @@
     <section role="region" id="languages" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="languageAndRegion">
-          Language &amp; Region
-        </h1>
+        <h1 data-l10n-id="languageAndRegion"> Language &amp; Region </h1>
       </header>
 
       <ul>
@@ -944,9 +984,7 @@
     <section role="region" id="keyboard" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="keyboard">
-          Keyboard
-        </h1>
+        <h1 data-l10n-id="keyboard"> Keyboard </h1>
       </header>
 
       <ul>
@@ -974,7 +1012,7 @@
       </ul>
 
       <header>
-        <h2>Layouts</h2>
+        <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
       </header>
       <ul>
         <li>
@@ -1079,18 +1117,10 @@
         <menu type="toolbar" data-mode="create">
           <button id="passcode-create" data-l10n-id="create">Create</button>
         </menu>
-        <h1 data-l10n-id="create-passcode" data-mode="create">
-          Create a Passcode
-        </h1>
-        <h1 data-l10n-id="current-passcode" data-mode="edit">
-          Current Passcode
-        </h1>
-        <h1 data-l10n-id="new-passcode" data-mode="new">
-          New Passcode
-        </h1>
-        <h1 data-l10n-id="enter-passcode" data-mode="confirm">
-          Enter Passcode
-        </h1>
+        <h1 data-l10n-id="create-passcode"  data-mode="create">  Create a Passcode </h1>
+        <h1 data-l10n-id="current-passcode" data-mode="edit">    Current Passcode  </h1>
+        <h1 data-l10n-id="new-passcode"     data-mode="new">     New Passcode      </h1>
+        <h1 data-l10n-id="enter-passcode"   data-mode="confirm"> Enter Passcode    </h1>
       </header>
 
       <div class="passcode-overlay">
@@ -1120,9 +1150,7 @@
     <section role="region" id="phoneLock" data-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="phoneLock">
-          Phone Lock
-        </h1>
+        <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
       </header>
 
       <ul>
@@ -1217,15 +1245,13 @@
     <section role="region" id="sim">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="simSecurity">
-          SIM Security
-        </h1>
+        <h1 data-l10n-id="simSecurity"> SIM Security </h1>
       </header>
 
       <ul>
         <li id="simpin-enabled">
-          <label class="switch">
-            <input type="checkbox"/>
+          <label>
+            <input type="checkbox"/> data-type="switch"
             <span></span>
           </label>
           <a data-l10n-id="simPin">SIM PIN</a>
@@ -1259,9 +1285,7 @@
     <section role="region" id="doNotTrack" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="doNotTrack">
-          Do Not Track
-        </h1>
+        <h1 data-l10n-id="doNotTrack"> Do Not Track </h1>
       </header>
 
       <ul>
@@ -1296,9 +1320,7 @@
     <section role="region" id="developer" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="developer">
-          Developer
-        </h1>
+        <h1 data-l10n-id="developer"> Developer </h1>
       </header>
 
       <header>
@@ -1474,7 +1496,7 @@
     <section role="region" id="licensing" data-leaf>
       <header>
         <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <h1 data-l10n-id="licensing">  Licensing </h1>
+        <h1 data-l10n-id="licensing"> Licensing </h1>
       </header>
 
       <ul>
@@ -1520,9 +1542,7 @@
     <section role="region" id="about">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceInfo">
-          Device Information
-        </h1>
+        <h1 data-l10n-id="deviceInfo"> Device Information </h1>
       </header>
       <ul>
         <li>
@@ -1612,9 +1632,7 @@
     <section role="region" id="battery" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="battery">
-          Battery
-        </h1>
+        <h1 data-l10n-id="battery"> Battery </h1>
       </header>
 
       <ul>
@@ -1630,8 +1648,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="powersave.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="powersave.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
@@ -1659,21 +1677,8 @@
     <section role="region" id="device-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceStorage">
-          Device Storage
-        </h1>
+        <h1 data-l10n-id="deviceStorage"> Device Storage </h1>
       </header>
-
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="ums.enabled"/>
-            <span></span>
-          </label>
-          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
-          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
-        </li>
-      </ul>
 
       <header>
         <h2 data-l10n-id="appStorage">Application Storage</h2>
@@ -1711,9 +1716,7 @@
     <section role="region" id="media-storage" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="mediaStorage">
-          Media Storage
-        </h1>
+        <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
 
       <ul>
@@ -1738,15 +1741,29 @@
           </a>
         </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="advanced">Advanced</h2>
+      </header>
+
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="ums.enabled"/>
+            <span></span>
+          </label>
+          <small id="ums-desc" data-l10-id="umsUnplugToDisable">Unplug USB cable to disable</small>
+          <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
+        </li>
+      </ul>
+
     </section>
 
     <!-- Device :: Accessibility -->
     <section role="region" id="accessibility" data-leaf hidden>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="accessibility">
-          Accessibility
-        </h1>
+        <h1 data-l10n-id="accessibility"> Accessibility </h1>
       </header>
 
       <ul>
@@ -1771,9 +1788,7 @@
     <section role="region" id="help" data-leaf>
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="helpAndFeedback">
-          Help
-        </h1>
+        <h1 data-l10n-id="helpAndFeedback"> Help </h1>
       </header>
 
       <ul>
@@ -1795,36 +1810,38 @@
       </ul>
     </section>
 
-    <!-- SIM Toolkit :: Application -->
-    <section role="region" id="icc-stk-app" data-leaf>
-      <header>
-        <button id="icc-stk-app-back"><span data-l10n-id="back" class="icon icon-back">Back</button>
-        <menu type="toolbar">
-          <button type="submit"><span data-l10n-id="done">Done</span></button>
-        </menu>
-        <!-- the title content is filled by icc.js -->
-        <h1 id="icc-stk-selection-header">STK Application Name</h1>
-      </header>
-      <ul id="icc-stk-selection">
-        <!-- filled by icc.js -->
-      </ul>
-    </section>
-
     <!-- SIM Toolkit -->
     <section role="region" id="icc">
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 id="icc-stk-operator-header">SIM Toolkit</h1>
+        <button id="icc-stk-app-back" class="hidden"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
+        <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>
-      <ul id="icc-stk-apps">
+      <header>
+        <h2 id="icc-stk-subheader"></h2>
+      </header>
+
+      <ul id="icc-stk-list">
         <!-- filled by icc.js -->
       </ul>
+
+      <form role="dialog" id="icc-stk-alert" class="hidden">
+        <section>
+          <h1 data-l10n-id="message">Message</h1>
+          <p id="icc-stk-alert-msg">
+            <!-- filled by icc.js -->
+          </p>
+        </section>
+        <menu>
+          <button data-l10n-id="ok" type="submit" id="icc-stk-alert-btn">Ok</button>
+        </menu>
+      </form>
     </section>
 
     <!-- Main List -->
     <section role="region" id="root">
       <header>
-        <h1 data-l10n-id="settings">Settings</h1>
+        <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
       <!-- Main :: Network & Connectivity -->
@@ -1833,15 +1850,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.radio.disabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.radio.disabled" />
             <span></span>
           </label>
           <a data-l10n-id="airplaneMode">Airplane Mode</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="geolocation.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="geolocation.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="gps">GPS</a>

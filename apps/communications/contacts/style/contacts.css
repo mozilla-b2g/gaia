@@ -122,13 +122,24 @@ section[role="region"] > header:first-child sup {
 }
 
 /* Edit contact section */
-.view-edit-contact fieldset:not(.first) {
+.view-edit-contact form  > section {
+  margin: 2rem 0 0 0;
+  padding: 0;
+  border: none;
+}
+.view-edit-contact form  > section.first {
+  margin: 0;
+}
+
+.view-edit-contact form  > section:not(.first) {
   position: relative;
   margin-right: 3rem;
 }
-.view-edit-contact fieldset div {
+
+.view-edit-contact form  > section div {
   position: relative;
 }
+
 .view-edit-contact .fillflow-row-action {
   width: 5rem;
   height: 5rem;
@@ -139,6 +150,22 @@ hr {
   background-color: #BCBCBC;
   border: 0;
   height: 1px;
+}
+
+/* Overriding Input areas BB */
+form p input + button[type="reset"].hide,
+form p textarea + button[type="reset"].hide {
+  display: block!important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+fieldset legend.action {
+  padding-right: 1rem;
+}
+
+fieldset legend.action:after {
+  right: 1rem;
 }
 
 /* Favorites handling */
@@ -246,10 +273,14 @@ hr {
   opacity: 0.85;
 }
 
-.removed dl, .removed a, .removed input {
+.removed fieldset, .removed legend, .removed input {
   background-color: transparent;
-  color: #cccccc;
+  color: #ccc
   pointer-events: none;
+}
+
+.removed legend.action:after {
+  border-top-color: #666;
 }
 
 .removed button span.icon-delete {
@@ -336,6 +367,8 @@ section.view[data-state="active"] {
   display: block;
   min-height: 0rem !important;
   text-align: center;
+  height: 5rem;
+  line-height: 5rem;
 }
 
 li [data-l10n-id="importSim"] {
@@ -436,4 +469,48 @@ label.switch input:checked + span:before {
 
 label.switch input:checked + span:after {
   transform: translateX(0);
+}
+
+/* No Contacts */
+
+#no-contacts {
+  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 11;
+  color: #000;
+  text-align: left;
+}
+
+#no-contacts .info {
+  border-top: 1px solid rgba(96, 96, 96, 0.5);
+  color: #606060;
+  font-size: 2rem;
+  font-weight: lighter;
+  margin: 15rem 4rem 0;
+}
+
+#no-contacts .info p {
+  margin-top: 1rem;
+}
+
+#no-contacts p.small {
+  font-size: 1.35rem;
+  font-weight: lighter;
+  margin: 1.5rem 10rem 0 4rem;
+}
+
+#no-contacts .arrow {
+  position: absolute;
+}
+
+#no-contacts .small.arrow {
+  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+}
+
+#no-contacts .big.arrow {
+  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
+  height: 5rem;
+  padding-top: 3.5rem;
 }

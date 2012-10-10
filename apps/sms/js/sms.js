@@ -560,7 +560,7 @@ var ThreadListUI = {
             '      " data-time="' + thread.timestamp + '">' +
                   Utils.getFormattedHour(thread.timestamp) +
             '    </div>') +
-            '    <div class="msg">"' + bodyHTML + '"</div>' +
+            '    <div class="msg">' + bodyHTML + '</div>' +
             '    <div class="unread-tag"></div>' +
             '    <div class="photo">' +
             '    <img src="">' +
@@ -1361,6 +1361,13 @@ var WaitingScreen = {
   }
 };
 
+window.addEventListener('resize', function resize() {
+   // Scroll to bottom
+    ThreadUI.scrollViewToBottom();
+});
+
+
+
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
 
@@ -1371,7 +1378,7 @@ window.addEventListener('localized', function showBody() {
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
   // XXX This lock is about https://github.com/mozilla-b2g/gaia/issues/5405
-  if (MessageManager.lockActivity) 
+  if (MessageManager.lockActivity)
     return;
   MessageManager.lockActivity = true;
   activity.postResult({ status: 'accepted' });
@@ -1409,12 +1416,17 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
       activityAction();
     });
   } else {
+    if (!document.mozHidden) {
+      // Case of calling from Notification
+      activityAction();
+      return;
+    }
     document.addEventListener('mozvisibilitychange',
       function waitVisibility() {
         document.removeEventListener('mozvisibilitychange', waitVisibility);
         activityAction();
     });
   }
-  
+
 });
 

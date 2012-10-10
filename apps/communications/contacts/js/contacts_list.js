@@ -12,6 +12,7 @@ contacts.List = (function() {
       fastScroll,
       scrollable,
       settingsView,
+      noContacts,
       orderByLastName = null;
 
   var init = function load(element, overlay) {
@@ -22,6 +23,7 @@ contacts.List = (function() {
     fastScroll = document.querySelector('.view-jumper'),
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
+    noContacts = document.querySelector('#no-contacts');
 
 
     groupsList = element;
@@ -198,6 +200,8 @@ contacts.List = (function() {
     var counter = {};
     var favorites = [];
     counter['favorites'] = 0;
+    var showNoContacs = contacts.length === 0;
+    toggleNoContactsScreen(showNoContacs);
     for (var i = 0; i < contacts.length; i++) {
       var contact = contacts[i];
 
@@ -247,6 +251,14 @@ contacts.List = (function() {
     cleanLastElements(counter);
     Contacts.hideOverlay();
     FixedHeader.refresh();
+  };
+
+  var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
+    if (show) {
+      noContacts.classList.remove('hide');
+      return;
+    }
+    noContacts.classList.add('hide');
   };
 
   var cleanLastElements = function cleanLastElements(counter) {
@@ -406,6 +418,7 @@ contacts.List = (function() {
         showGroup('favorites');
       }
     }
+    toggleNoContactsScreen(false);
     FixedHeader.refresh();
   }
 
@@ -436,7 +449,15 @@ contacts.List = (function() {
       var liElem = liElems[i];
       var familyName = liElem.querySelector('strong > b').textContent.trim();
       var givenName = liElem.querySelector('strong');
-      givenName = givenName.childNodes[0].nodeValue.trim();
+
+      if (!orderByLastName) {
+        var aux = familyName;
+        familyName = givenName;
+        givenName = aux;
+      } else {
+        givenName = givenName.childNodes[0].nodeValue.trim();
+      }
+
       var name = getStringToBeOrdered({
         familyName: [familyName],
         givenName: [givenName]
@@ -476,6 +497,10 @@ contacts.List = (function() {
         hideGroup(ol.dataset.group);
       }
     });
+    var selector = 'ol h2:not(.hide)';
+    var visibleElements = groupsList.querySelectorAll(selector);
+    var showNoContacts = visibleElements.length === 0;
+    toggleNoContactsScreen(showNoContacts);
   }
 
   var getStringToBeOrdered = function getStringToBeOrdered(contact) {

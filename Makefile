@@ -298,8 +298,11 @@ preferences: install-xulrunner-sdk
 	  then \
 	    cat custom-prefs.js >> profile/user.js; \
 	  fi
+	if [ -f build/payment-prefs.js ]; \
+		then \
+			cat build/payment-prefs.js >> profile/user.js; \
+		fi
 	@echo "Done"
-
 
 # Generate profile/permissions.sqlite
 permissions: webapp-manifests install-xulrunner-sdk
@@ -337,9 +340,16 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+ifneq ($(TESTS), '')
+	ifneq ($(APP), '')
+		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+	else
+		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+	endif
+endif
 .PHONY: test-integration
 test-integration:
+	echo $(TESTS)
 	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests
@@ -456,7 +466,7 @@ lint:
 	@# cubevid
 	@# crystalskull
 	@# towerjelly
-	@gjslint --nojsdoc -r apps -e 'sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
+	@gjslint --nojsdoc -r apps -e 'homescreen/everything.me,sms/js/ext,pdfjs/content,pdfjs/test,email/js/ext,music/js/ext,calendar/js/ext'
 	@gjslint --nojsdoc -r shared/js
 
 # Generate a text file containing the current changeset of Gaia

@@ -70,17 +70,22 @@
 
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
-
+      var number = message.sender;
       var iconURL = NotificationHelper.getIconURI(app);
 
-      var notiClick = function() {
-        // Switch to the clicked message conversation panel
-        // XXX: we somehow need to get access to the window object
-        // of the original web app to do this.
-        // window.parent.location.hash = '#num=' + message.sender;
-
-        // Asking to launch itself
-        app.launch();
+      var activityCall = function() {
+        // Go directly to the thread of the received message.  
+        try {
+          var activity = new MozActivity({
+            name: 'new',
+            data: {
+              type: 'websms/sms',
+              number: number
+            }
+          });
+        } catch (e) {
+          console.log('WebActivities unavailable? : ' + e);
+        }
       };
 
       Contacts.findByNumber(message.sender,
@@ -92,7 +97,7 @@
           sender = message.sender;
         }
 
-        NotificationHelper.send(sender, message.body, iconURL, notiClick);
+        NotificationHelper.send(sender, message.body, iconURL, activityCall);
       });
     };
   });

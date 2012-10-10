@@ -35,10 +35,15 @@
         vertical-align: middle;
         height: 28px;
         line-height: 28px;
+        -moz-transition: all .3s ease;
+        transition: all .3s ease;
     }
     
     .clear-visible #search-rapper {
         right: 60px;
+    }
+    .keyboard-visible .clear-visible #search-rapper {
+        right: 0;
     }
     .clear-visible #button-location {
         right: 62px;
@@ -60,16 +65,20 @@
     }
     #search-header fieldset {
         height: 100%;
+        background: none;
+		border-radius: none;
+		border: none;
+		line-height: 26px;
     }
     #search-q {
         -webkit-appearance: none;
         border: none;
         z-index: 10;
-        padding-left: 0;
-        padding-right: 18px;
+        padding: 2px 18px 4px 0;
         width: 100%;
-        height: auto;
-        top: -2px;
+        height: 26px;
+        top: -1px;
+        display: inline;
         background: transparent;
     }
     #search-q-bg {
@@ -120,7 +129,7 @@
         position: absolute;
         top: 9px;
         right: 0;
-        z-index: 20;
+        z-index: 30;
         width: 52px;
         height: 28px;
         line-height: 26px;
@@ -137,10 +146,28 @@
         -moz-user-select: none;
         -webkit-user-select: none;
         user-select: none;
+        overflow: hidden;
         display: none;
     }
     .clear-visible #button-clear {
         display: block;
+    }
+    .keyboard-visible .clear-visible #button-clear {
+        width: 20px;
+        height: 20px;
+        top: 14px;
+        right: 4px;
+        background-position: -38px -78px;
+        display: block;
+        font-size: 0;
+    }
+    .keyboard-visible .clear-visible #button-clear:before {
+        content: "";
+        position: absolute;
+        top: -5px;
+        right: -5px;
+        left: -5px;
+        bottom: -5px;
     }
     
     #button-location {

@@ -45,7 +45,6 @@ var Browser = {
     this.getAllElements();
 
     // Add event listeners
-    window.addEventListener('keyup', this, true);
     window.addEventListener('resize', this.handleWindowResize.bind(this));
 
     this.backButton.addEventListener('click', this.goBack.bind(this));
@@ -1101,6 +1100,7 @@ var Browser = {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
+      iframe.setAttribute('mozallowfullscreen', true);
 
       if (url) {
         iframe.setAttribute('src', url);

@@ -93,40 +93,53 @@ var StorageSettings = {
         StorageSettings.umsEnabledInfoBlock.style.display = 'none';
       }
 
-      if (state === 'shared' || state === 'unavailable') {
-        StorageSettings.enableMediaStorage(false);
+      var mediaSubtitle = document.getElementById('media-storage-desc');
+      var _ = navigator.mozL10n.get;
 
-        var _ = navigator.mozL10n.get;
-        var message = state === 'unavailable' ? _('no-storage') : '';
+      switch (state) {
+        case 'shared':
+          // Keep the media storage enabled, so that the user go inside to
+          // toggle USB Mass storage
+          StorageSettings.enableMediaStorage(true);
+          mediaSubtitle.textContent = '';
+          self.setMediaStorageInfoInvalid();
+          break;
 
-        // update the subtitle under media storage
-        var element = document.getElementById('media-storage-desc');
-        element.textContent = message;
-      } else {
-        StorageSettings.enableMediaStorage(true);
-        self.updateMediaStorageInfo();
+        case 'unavailable':
+          StorageSettings.enableMediaStorage(false);
+          mediaSubtitle.textContent = _('no-storage');
+          self.setMediaStorageInfoInvalid();
+          break;
+
+        case 'available':
+          StorageSettings.enableMediaStorage(true);
+          self.updateMediaStorageInfo();
+          break;
       }
     };
   },
 
   enableMediaStorage: function storageSettingsDisableMediaStorage(enable) {
-    var _ = navigator.mozL10n.get;
 
     var mediaStorageSection = document.getElementById('media-storage-section');
     if (enable) {
       mediaStorageSection.classList.remove('disabled');
     } else {
       mediaStorageSection.classList.add('disabled');
-
-      // clear the space info when it is disabled
-      var idList = ['music-space', 'pictures-space', 'videos-space',
-                    'media-free-space'];
-
-      idList.forEach(function clearSpace(id) {
-        var element = document.getElementById(id).firstElementChild;
-        element.textContent = _('size-not-available');
-      });
     }
+  },
+
+  setMediaStorageInfoInvalid: function setMediaStorageInfoInvalid() {
+    var _ = navigator.mozL10n.get;
+
+    // clear the space info when it is disabled
+    var idList = ['music-space', 'pictures-space', 'videos-space',
+                  'media-free-space'];
+
+    idList.forEach(function clearSpace(id) {
+      var element = document.getElementById(id).firstElementChild;
+      element.textContent = _('size-not-available');
+    });
   },
 
   updateMediaStorageInfo: function updateMediaStorageInfo(usedSize, freeSize) {

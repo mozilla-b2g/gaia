@@ -6,6 +6,8 @@ Calendar.Calc = (function() {
 
   var Calc = {
 
+    _hourDate: new Date(),
+
     FLOATING: 'floating',
 
     ALLDAY: 'allday',
@@ -37,6 +39,37 @@ Calendar.Calc = (function() {
     get today() {
       //TODO: implement cache
       return new Date();
+    },
+
+    /**
+     * Formats a numeric value for an hour.
+     * Useful to convert absolute hour into
+     * a display hour localizes for am/pm
+     */
+    formatHour: function(hour) {
+      if (hour === Calc.ALLDAY) {
+        return Calc.ALLDAY;
+      }
+
+      var format = navigator.mozL10n.get('hour-format');
+
+      format = format || '%I %p';
+
+      Calc._hourDate.setHours(hour);
+
+      var result = Calendar.App.dateFormat.localeFormat(
+        Calc._hourDate,
+        format
+      );
+
+
+      // remove leading zero
+      // XXX: rethink this?
+      if (result[0] == '0') {
+        result = result.slice(1);
+      }
+
+      return result;
     },
 
     daysInWeek: function() {
@@ -369,13 +402,21 @@ Calendar.Calc = (function() {
     },
 
     /**
+     * Returns localized day of week.
+     */
+    dayOfWeek: function(date) {
+      // XXX: we need to localize this further.
+      return date.getDay();
+    },
+
+    /**
      * Finds localized week start date of given date.
      *
      * @param {Date} date any day the week.
      * @return {Date} first date in the week of given date.
      */
     getWeekStartDate: function(date) {
-      var currentDay = date.getDay();
+      var currentDay = Calc.dayOfWeek(date);
       var startDay = date.getDate() - currentDay;
 
       return Calc.createDay(date, startDay);
@@ -456,12 +497,10 @@ Calendar.Calc = (function() {
     },
 
     /**
-     * Returns an array of weekdays
-     * based on the start date.
-     * Will always return the 7 days
-     * of that week regardless of what the start date is
-     * but they will be returned in the order
-     * of their localized getDay function.
+     * Returns an array of weekdays based on the start date.
+     * Will always return the 7 daysof that week regardless of
+     * what the start date isbut they will be returned
+     * in the order of their localized getDay function.
      *
      * @param {Date} startDate point of origin.
      * @return {Array} a list of dates in order of getDay().

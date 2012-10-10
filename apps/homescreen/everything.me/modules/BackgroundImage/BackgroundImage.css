@@ -72,15 +72,13 @@
         left: 0;
         right: 0;
         bottom: 0;
-        height: 43px;
-        padding: 0 10px 0 46px;
+        height: 42px;
+        line-height: 42px;
+        padding: 0 40px 0 10px;
         z-index: 20;
         cursor: pointer;
-        text-shadow: 0 1px 3px #000, 0 1px 1px #000;
-        background: #1a1a1a;
-        background: -moz-linear-gradient(center top, #3b3b3b 0%, #030303 100%);
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #3b3b3b), color-stop(100%, #030303));
-    }
+        background: rgba(0, 0, 0, .8);
+     }
         #bgimage-overlay .content .image-title {
             font-weight: 600;
             color: #b4dae7;
@@ -92,6 +90,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             -ms-text-overflow: ellipsis;
+            display: none;
         }
         #bgimage-overlay.nosource .content .image-title {
             margin-top: 0;
@@ -102,22 +101,19 @@
             font-weight: 600;
             color: #fff;
             font-size: 13px;
-            height: 15px;
-            line-height: 100%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             -ms-text-overflow: ellipsis;
         }
             #bgimage-overlay .content .image-source span {
-                font-weight: normal;
                 text-decoration: underline;
             }
         #bgimage-overlay .content .close {
-            background-position: -86px -218px;
+            background: transparent url('../../images/imageclose.png') 50% 50% no-repeat;
             position: absolute;
             top: 50%;
-            left: 5px;
+            right: 5px;
             z-index: 2;
             width: 32px;
             height: 32px;

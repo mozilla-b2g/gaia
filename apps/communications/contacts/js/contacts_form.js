@@ -211,6 +211,13 @@ contacts.Form = (function() {
     }
   }
 
+  var onNewFieldClicked = function onNewFieldClicked(evt) {
+    var type = evt.target.dataset['fieldType'];
+    evt.preventDefault();
+    contacts.Form.insertField(type);
+    return false;
+  }
+
   var insertField = function insertField(type, object) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
@@ -246,8 +253,20 @@ contacts.Form = (function() {
       rendered.appendChild(removeFieldIcon(rendered.id));
     }
 
+    // Add event listeners
+    var boxTitle = rendered.querySelector('legend.action');
+    if (boxTitle) {
+      boxTitle.addEventListener('mousedown', onGoToSelectTag);
+    }
+
     container.appendChild(rendered);
     counters[type]++;
+  };
+
+  var onGoToSelectTag = function onGoToSelectTag(evt) {
+    evt.preventDefault();
+    Contacts.goToSelectTag(evt);
+    return false;
   };
 
 
@@ -635,6 +654,7 @@ contacts.Form = (function() {
     'render': render,
     'insertField': insertField,
     'saveContact': saveContact,
+    'onNewFieldClicked': onNewFieldClicked,
     'pickImage': pickImage
   };
 })();

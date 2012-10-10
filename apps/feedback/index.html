@@ -19,13 +19,12 @@
     <section role="region" id="root">
       <header>
         <menu type="toolbar">
-          <button data-l10n-id="reset" onclick="reset()">Reset</button>
-          <button data-l10n-id="done" onclick="send()">Done</button>
+          <button id="done" data-l10n-id="done" onclick="send()">Submit</button>
         </menu>
         <h1 data-l10n-id="feedback">Feedback</h1>
       </header>
 
-      <form id="feedback-form" data-l10n-id="feedback-url" action="" method="post">
+      <form id="feedback-form" action="" method="post">
 
         <fieldset>
           <legend data-l10n-id="input-asset-label">Contact Info</legend>
@@ -38,8 +37,6 @@
 
         <textarea id="feedback-textarea" name="comment" data-l10n-id="input-what-happen" placeholder="Tell us what's happening"></textarea>
 
-        <input type="hidden" id="build-id" name="build_id" value=""></input>
-
         <script>
           asyncStorage.getItem('asset', function getAsset(value) {
             var asset = value;
@@ -49,9 +46,6 @@
 
             document.getElementById('asset').value = value;
           });
-
-          var buildID = navigator.buildID;
-          document.getElementById('build-id').value = buildID;
 
           function reset() {
             document.getElementById('feedback-textarea').value = '';
@@ -64,9 +58,32 @@
             }
 
             asyncStorage.setItem('asset', asset, function setAsset() {
-              document.getElementById('feedback-form').submit();
+              var formData = new FormData();
+              formData.append('asset_tag', asset);
+              formData.append('build_id', navigator.buildID);
+
+              var comment = document.getElementById('feedback-textarea');
+              formData.append('comment', comment.value);
+ 
+              var xhr = new XMLHttpRequest();
+              xhr.open('POST', 'https://b2gtestdrivers.allizom.org/comments');
+              xhr.send(formData);
+
               reset();
             });
+          }
+
+          var done = document.getElementById('done');
+          window.addEventListener('online', function() {
+            done.removeAttribute('disabled');
+          });
+
+          window.addEventListener('offline', function() {
+            done.setAttribute('disabled', 'true');
+          });
+
+          if (!navigator.onLine) {
+            done.setAttribute('disabled', 'true');
           }
         </script>
       </form>

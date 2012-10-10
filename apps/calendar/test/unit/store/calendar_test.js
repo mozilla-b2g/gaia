@@ -47,23 +47,9 @@ suite('store/calendar', function() {
   });
 
   teardown(function(done) {
-    var trans = db.transaction('calendars', 'readwrite');
-    var accounts = trans.objectStore('calendars');
-    var res = accounts.clear();
-
-    res.onerror = function() {
-      done(new Error('could not wipe accounts db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
-  });
-
-  teardown(function(done) {
     testSupport.calendar.clearStore(
       db,
-      ['accounts', 'calendars'],
+      ['accounts', 'calendars', 'events', 'busytimes'],
       done
     );
   });
@@ -181,56 +167,55 @@ suite('store/calendar', function() {
 
   suite('#remove', function() {
     var eventStore;
+
     var model;
     var events;
 
     setup(function(done) {
-      events = {};
-      model = subject._createModel({
-        accountId: 1
-      });
-
-      subject.persist(model, done);
+      // setup fixtures
       eventStore = subject.db.getStore('Event');
-    });
+      events = {};
 
-    setup(function(done) {
-      assert.ok(model._id);
-      // we will eventually remove this
-      events[1] = Factory('event', {
-        calendarId: model._id,
-        remote: { title: 'foo' }
-      });
+      // transaction for initial creation of records.
+      var trans = subject.db.transaction(
+        subject._dependentStores,
+        'readwrite'
+      );
 
-      eventStore.persist(events[1], done);
-    });
+      // setup calendars
+      model = Factory('calendar', { accountId: 1 });
+      subject.persist(model, trans);
 
-    setup(function(done) {
-      events[2] = Factory('event', {
-        calendarId: 'some-other'
-      });
+      // setup events
+      events[1] = Factory('event', { calendarId: model._id });
+      events[2] = Factory('event', { calendarId: 'some-other' });
+
+      // we will eventually remove this record.
+      eventStore.persist(events[1], trans);
 
       // this is our control to ensure
       // we are not removing extra stuff
       eventStore.persist(events[2], done);
+
+      trans.addEventListener('complete', function() {
+        done();
+      });
     });
 
-    test('removal', function(done) {
-      var id = model._id;
-      var keys = Object.keys(eventStore.cached);
-      // make sure records are still here
-      assert.equal(keys.length, 2);
-
+    setup(function(done) {
       subject.remove(model._id, function() {
-        // wait until next tick
-        setTimeout(function() {
-          done(function() {
-            assert.ok(!subject.cached[id]);
+        eventStore.count(function(err, count) {
+          assert.equal(count, 1);
+          done();
+        });
+      });
+    });
 
-            var keys = Object.keys(eventStore.cached);
-            assert.equal(keys.length, 1);
-          });
-        }, 0);
+    test('after remove', function(done) {
+      eventStore.get(events[1]._id, function(err, result) {
+        done(function() {
+          assert.ok(!result);
+        });
       });
     });
   });
