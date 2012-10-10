@@ -7,8 +7,8 @@
   /**
    * Constants. Set in config.json file
    */
-  var displayTextTimeout;
-  var DEBUG;
+  var displayTextTimeout = 10000;
+  var DEBUG = false;
 
   /**
    * Debug method
@@ -35,21 +35,7 @@
   var stkLastSelectedTest = null;
   var icc;
 
-  /**
-   * Load configuration data or use default values
-   */
-  var req = utilities.config.load('/config.json');
-  req.onload = function(configData) {
-    DEBUG = configData.iccDebugEnabled;
-    displayTextTimeout = configData.iccDisplayTextTimeout;
-    init();
-  }
-  req.onerror = function(code) {
-    window.console.error('STK: Error while loading config file:', code);
-    DEBUG = false;
-    displayTextTimeout = 10000;
-    init();
-  }
+  init();
 
   /**
    * Init STK UI
