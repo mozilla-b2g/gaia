@@ -340,9 +340,16 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+ifneq ($(TESTS), '')
+	ifneq ($(APP), '')
+		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+	else
+		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+	endif
+endif
 .PHONY: test-integration
 test-integration:
+	echo $(TESTS)
 	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests
