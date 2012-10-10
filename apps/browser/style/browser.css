@@ -178,6 +178,7 @@ input[type="image"] {
   position: relative;
   left: 0px;
   overflow: hidden;
+  transform: translateY(0px);
   transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
 }
 
