@@ -89,7 +89,8 @@ var MochaTask = (function() {
           handler = errorHandler;
 
       if (error) {
-        throw error;
+        handler(error);
+        return;
       }
 
       try {
