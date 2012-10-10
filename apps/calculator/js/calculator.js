@@ -52,10 +52,10 @@ var Calculator = {
     var currentNumber = this.stack.pop();
 
     // Check if the current thing is a number
-    if(this.isNumeric(currentNumber)) {
-      if(value == '.') {
+    if (this.isNumeric(currentNumber)) {
+      if (value == '.') {
         // Only add . to the current number if it does not already exist
-        if(currentNumber.indexOf('.') == -1)
+        if (currentNumber.indexOf('.') == -1)
           currentNumber += value;
       }
       else
@@ -64,9 +64,9 @@ var Calculator = {
       this.appendValue(currentNumber);
     }
     else {
-      if(currentNumber != undefined)
+      if (currentNumber != undefined)
         this.stack.push(currentNumber);
-      if(value == '.')
+      if (value == '.')
         value = '0.';
 
       this.appendValue(value);

@@ -115,8 +115,8 @@ var PhoneLock = {
         var key = String.fromCharCode(evt.charCode);
         if (evt.charCode === 0) {
           if (this._passcodeBuffer.length > 0) {
-            this._passcodeBuffer =
-              this._passcodeBuffer.substring(0, this._passcodeBuffer.length - 1);
+            this._passcodeBuffer = this._passcodeBuffer.substring(0,
+                this._passcodeBuffer.length - 1);
           }
         } else {
           this._passcodeBuffer += key;
