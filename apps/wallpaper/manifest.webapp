@@ -1,13 +1,14 @@
 {
   "name": "Wallpaper",
   "description": "Gaia Wallpaper Picker",
+  "type": "certified",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "settings"
-  ],
+  "permissions": {
+    "settings":{}
+  },
   "activities": {
     "pick": {
       "filters": {
@@ -23,10 +24,10 @@
       "filters": {
         "type": "image/*",
         "number": 1
-       },          
+       },
       "disposition": "inline",
       "returnValue": true,
       "href": "/share.html"
-    }   
+    }
   }
 }
