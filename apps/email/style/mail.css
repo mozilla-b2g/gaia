@@ -28,32 +28,6 @@ body {
   background-color: black;
 }
 
-button {
-  background-color: #5e5e5e;
-  border-width: 1px;
-  border-style: solid;
-  border-color: #323232;
-  color: #FFFFFF;
-  font-size: 1.6rem;
-  font-weight: bold;
-  min-height: 3.2rem;
-
-  -webkit-border-radius: 3px;
-     -moz-border-radius: 3px;
-       -o-border-radius: 3px;
-          border-radius: 3px;
-}
-
-/* Remove button dotted outline */
-button::-moz-focus-inner {
-  padding: 0;
-  border: none;
-}
-
-button[disabled=""] {
-  opacity: 0.5;
-}
-
 #cardContainer {
   width: 100%;
   height: 100%;

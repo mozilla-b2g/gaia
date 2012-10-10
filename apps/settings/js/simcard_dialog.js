@@ -40,7 +40,7 @@ var SimPinDialog = {
     // Workaround bug 791920 until we found the root cause.
     // https://bugzilla.mozilla.org/show_bug.cgi?id=791920
     // https://github.com/mozilla-b2g/gaia/issues/4500
-    inputField.addEventListener('click', function (evt) {
+    inputField.addEventListener('click', function(evt) {
       this.blur();
       this.focus();
     });
@@ -118,6 +118,15 @@ var SimPinDialog = {
     this.dialogTitle.dataset.l10nId = this.lockType + 'Title';
   },
 
+  handleError: function spl_handleLockError(evt) {
+    var retry = (evt.retryCount) ? evt.retryCount : -1;
+    this.showErrorMsg(retry, evt.lockType);
+    if (evt.lockType === 'pin')
+      this.pinInput.focus();
+    else
+      this.pukInput.focus();
+  },
+
   showErrorMsg: function spl_showErrorMsg(retry, type) {
     var _ = navigator.mozL10n.get;
 
@@ -163,7 +172,7 @@ var SimPinDialog = {
       this.errorMsg.hidden = false;
       return;
     }
-    var options = {lockType: 'puk', pin: pin, newPin: newPin };
+    var options = {lockType: 'puk', puk: puk, newPin: newPin };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -175,15 +184,6 @@ var SimPinDialog = {
       self.close();
       if (self.onsuccess)
         self.onsuccess();
-    };
-    req.onerror = function sp_unlockError() {
-      var retry = (req.result && req.result.retryCount) ?
-        parseInt(req.result.retryCount, 10) : -1;
-      self.showErrorMsg(retry, self.lockType);
-      if (self.lockType === 'pin')
-        self.pinInput.focus();
-      else
-        self.pukInput.focus();
     };
   },
 
@@ -226,12 +226,6 @@ var SimPinDialog = {
       self.close();
       if (self.onsuccess)
         self.onsuccess();
-    };
-    req.onerror = function spl_enableError() {
-      var retry = (req.result && req.result.retryCount) ?
-        parseInt(req.result.retryCount, 10) : -1;
-      self.showErrorMsg(retry, 'pin');
-      self.pinInput.focus();
     };
   },
   inputFieldControl: function spl_inputField(isPin,  isPuk, isNewPin) {
@@ -276,6 +270,7 @@ var SimPinDialog = {
 
     this.dialogDone.disabled = true;
     this.action = action;
+    this.lockType = 'pin';
     switch (action) {
       case 'unlock':
         this.handleCardState();
@@ -325,6 +320,10 @@ var SimPinDialog = {
       return;
     this.mobileConnection.addEventListener('cardstatechange',
         this.handleCardState.bind(this));
+
+    this.mobileConnection.addEventListener('icccardlockerror',
+        this.handleError.bind(this));
+
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogClose.onclick = this.skip.bind(this);
 
