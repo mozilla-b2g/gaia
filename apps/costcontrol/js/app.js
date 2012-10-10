@@ -24,22 +24,22 @@ navigator.mozApps.getSelf().onsuccess = function ccapp_getSelf(evt) {
   APP_ICON = app.installOrigin + icons[index];
 };
 
-// Retrieve CostControl service
-var CostControl = getService(function ccapp_onServiceReady(evt) {
-  // If the service is not ready, when ready it sets the CostControl object
+// Retrieve Service
+var Service = getService(function ccapp_onServiceReady(evt) {
+  // If the service is not ready, when ready it sets the Service object
   // again and setup the application.
-  CostControl = evt.detail.service;
+  Service = evt.detail.service;
   setupApp();
 });
-if (CostControl)
+if (Service)
   setupApp();
+
+var SETTINGS_VIEW = 'settings-view';
 
 // Cost Control application is in charge of offer detailed information
 // about cost control and data ussage. At the same time it allows the user
 // to configure some aspects about consumption limits and monitoring.
 function setupApp() {
-
-  var SETTINGS_VIEW = 'settings-view';
 
   // Set the left tab depending on plantype
   function _setLeftTab(plantype) {
@@ -49,7 +49,7 @@ function setupApp() {
       return [TAB_BALANCE, TAB_TELEPHONY].indexOf(tab) !== -1;
     }
 
-    var balance = (plantype === CostControl.PLAN_PREPAID);
+    var balance = (plantype === Service.PLAN_PREPAID);
     var telephony = !balance;
 
     // Enable / disable the filter
@@ -127,7 +127,7 @@ function setupApp() {
     );
 
     // Keep the left tab synchronized with the plantype
-    CostControl.settings.observe('plantype', _setLeftTab);
+    Service.settings.observe('plantype', _setLeftTab);
 
     // Update UI when localized
     window.addEventListener('localized', function ccapp_onLocalized() {
@@ -135,6 +135,20 @@ function setupApp() {
         Views[viewid].localize();
     });
 
+    // Adapt tab visibility according to available functionality
+    var status = Service.getServiceStatus();
+    if (!status.enabledFunctionalities.balance &&
+        !status.enabledFunctionalities.telephony) {
+
+      // Hide any other
+      var tabs = document.getElementById('tabs');
+      tabs.setAttribute('aria-hidden', true);
+
+      // Show the data tab in standalone mode
+      var dataUsageTab = document.getElementById('datausage-tab');
+      viewManager.changeViewTo(TAB_DATA_USAGE);
+      dataUsageTab.classList.add('standalone');
+    }
   }
 
   _init();

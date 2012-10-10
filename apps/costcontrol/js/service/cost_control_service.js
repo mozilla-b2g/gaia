@@ -14,6 +14,11 @@ setService(function cc_setupCostControlService() {
   var WAITING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
   var REQUEST_BALANCE_UPDATE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
   var REQUEST_BALANCE_MAX_DELAY = 2 * 60 * 1000; // 2 minutes
+  var REQUEST_DATA_USAGE_UPDATE_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  var REQUEST_DATA_USAGE_MAX_DELAY = 1 * 60 * 1000; // 1 minute
+
+  // Data usage limits
+  var DATA_USAGE_WARNING = 0.80; // 80%
 
   // Constants
   var PLAN_PREPAID = 'prepaid';
@@ -52,10 +57,12 @@ setService(function cc_setupCostControlService() {
   var _sms = window.navigator.mozSms;
   var _conn = window.navigator.mozMobileConnection;
   var _telephony = window.navigator.mozTelephony;
+  var _stats = window.navigator.mozNetworkStats;
 
   // CostControl application state
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_UPDATING_BALANCE = 'updatingbalance';
+  var STATE_UPDATING_DATA_USAGE = 'updatingdatausage';
   var _fte = false;
   var _missconfigured = false;
   var _state = {};
@@ -73,13 +80,38 @@ setService(function cc_setupCostControlService() {
     // Application settings
     var _cachedOptions = {
       'calltime': 0,
+      'data_limit': false,
+      'data_limit_value': null,
+      'data_limit_unit': 'GB',
       'lastbalance': null,
+      'lastdatausage': null,
       'lastreset': new Date(),
+      'lastdatareset': new Date(),
       'lowlimit': true,
       'lowlimit_threshold': false,
       'next_reset': null,
       'plantype': 'prepaid',
-      'reset_time': null,
+      'reset_time': 1,
+      'smscount': 0,
+      'tracking_period': 'never'
+    };
+
+    // XXX: keep this synchronized with the previous one
+    // or add a deep copy method.
+    var _defaults = {
+      'calltime': 0,
+      'data_limit': false,
+      'data_limit_value': null,
+      'data_limit_unit': 'GB',
+      'lastbalance': null,
+      'lastdatausage': null,
+      'lastreset': new Date(),
+      'lastdatareset': new Date(),
+      'lowlimit': true,
+      'lowlimit_threshold': false,
+      'next_reset': null,
+      'plantype': 'prepaid',
+      'reset_time': 1,
       'smscount': 0,
       'tracking_period': 'never'
     };
@@ -130,7 +162,9 @@ setService(function cc_setupCostControlService() {
                                 }
                               }
       );
-      callback(_option(key));
+      setTimeout(function() {
+        callback(_option(key));
+      });
     }
 
     // If only key is provided, the method return the current value for the
@@ -150,6 +184,18 @@ setService(function cc_setupCostControlService() {
       );
     }
 
+    // Return the default value for the setting
+    function _defaultValue(key) {
+      return _defaults[key];
+    }
+
+    // Launch event as if an option changes
+    function _touch(key) {
+      var value = _cachedOptions[key];
+      var event = _newLocalSettingsChangeEvent(key, value, value);
+      window.dispatchEvent(event);
+    }
+
     var _iccid;
 
     // Recover application settings from DB using the ICCID as key
@@ -167,7 +213,9 @@ setService(function cc_setupCostControlService() {
 
     return {
       observe: _observe,
-      option: _option
+      option: _option,
+      defaultValue: _defaultValue,
+      touch: _touch
     };
   }());
 
@@ -183,6 +231,11 @@ setService(function cc_setupCostControlService() {
   // Returns stored balance
   function _getLastBalance() {
     return _appSettings.option('lastbalance');
+  }
+
+  // Returns stored balance
+  function _getLastDataUsage() {
+    return _appSettings.option('lastdatausage');
   }
 
   // Return true if the widget has all the information required to
@@ -254,10 +307,11 @@ setService(function cc_setupCostControlService() {
     }
   }
 
-  // Attach event listeners for automatic updates:
+  // Attach event listeners for automatic updates on balance:
   //  * Periodically
   function _configureBalance() {
-    window.addEventListener('costcontrolperiodicallyupdate', _automaticCheck);
+    window.addEventListener('costcontrolperiodicallyupdate',
+      _automaticBalanceCheck);
     window.setInterval(function cc_periodicUpdateBalance() {
       _dispatchEvent('costcontrolperiodicallyupdate');
     }, REQUEST_BALANCE_UPDATE_INTERVAL);
@@ -363,10 +417,20 @@ setService(function cc_setupCostControlService() {
     _appSettings.option('next_reset', nextReset);
   }
 
-  function _resetStats() {
+  function _resetTelephony() {
     CostControl.settings.option('smscount', 0);
     CostControl.settings.option('calltime', 0);
     CostControl.settings.option('lastreset', new Date());
+  }
+
+  function _resetDataUsage() {
+    CostControl.settings.option('lastdatareset', new Date());
+    CostControl.settings.option('lastdatausage', null);
+  }
+
+  function _resetAll() {
+    _resetTelephony();
+    _resetDataUsage();
   }
 
   // Check if we met the next reset, if so, reset an recalculate
@@ -376,27 +440,33 @@ setService(function cc_setupCostControlService() {
       return;
 
     if ((new Date()).getTime() >= nextReset.getTime()) {
-      _resetStats();
+      _resetAll();
       _recalculateNextReset();
     }
   }
 
   var _resetCheckTimeout = 0;
-  // Attach listeners to ensure the proper automatic reset date
+  // Set data usage periodic updates and checking for autoreset
   function _configureDataUsage() {
+    // Automatic data usage updates
+    window.addEventListener('datausageperiodicallyupdate',
+      _automaticDataUsageCheck);
 
-    // Schedule autoreset
+    window.setInterval(function cc_periodicDataStats() {
+      _dispatchEvent('datausageperiodicallyupdate');
+    }, REQUEST_DATA_USAGE_UPDATE_INTERVAL);
 
+    _enabledFunctionalities.datausage = true;
+  }
+
+  // Schedule autoreset
+  function _configureAutoreset() {
     // Get milliseconds from now until tomorrow at 00:00
     function timeUntilTomorrow() {
       var today = new Date();
       var tomorrow = (new Date());
       tomorrow.setTime(today.getTime() + oneDay); // this is tomorrow
-      tomorrow = new Date(
-        tomorrow.getFullYear(),
-        tomorrow.getMonth(),
-        tomorrow.getDate()
-      );                                            // this is tomorrow at 00:00
+      _toMidnight(tomorrow);                        // this is tomorrow at 00:00
       return tomorrow.getTime() - today.getTime();
     }
     var oneDay = 24 * 60 * 60 * 1000;
@@ -421,8 +491,6 @@ setService(function cc_setupCostControlService() {
     _appSettings.observe('reset_time', _recalculateNextReset);
 
     debug('Next check in ' + Math.ceil(firstTimeout / 60000) + ' minutes');
-
-    _enabledFunctionalities.datausage = true;
   }
 
   // Check if the pair MCC/MNC of the SIM matches some of enabling conditions
@@ -441,6 +509,8 @@ setService(function cc_setupCostControlService() {
   function _init() {
     _loadConfiguration(function cc_afterConfiguration() {
 
+      _configureAutoreset();
+
       _configureDataUsage();
       console.info('Cost Control: data usage enabled.');
 
@@ -457,6 +527,7 @@ setService(function cc_setupCostControlService() {
       // topping up tasks
       _state[STATE_UPDATING_BALANCE] = false;
       _state[STATE_TOPPING_UP] = false;
+      _state[STATE_UPDATING_DATA_USAGE] = false;
       _smsTimeout[STATE_UPDATING_BALANCE] = 0;
       _smsTimeout[STATE_TOPPING_UP] = 0;
       _onSMSReceived[STATE_UPDATING_BALANCE] = _onBalanceSMSReceived;
@@ -536,8 +607,29 @@ setService(function cc_setupCostControlService() {
     return status;
   }
 
+  // Handle the events that triggers automatic data usage updates
+  function _automaticDataUsageCheck(evt) {
+    debug('Event listened: ' + evt.type);
+
+    switch (evt.type) {
+
+      case 'datausageperiodicallyupdate':
+
+        // Abort if it have not passed enough time since last update
+        var dataStats = _getLastDataUsage();
+        var lastUpdate = dataStats ? dataStats.timestamp : null;
+        var now = (new Date()).getTime();
+        if (lastUpdate === null ||
+            (now - lastUpdate > REQUEST_DATA_USAGE_MAX_DELAY))
+          _updateDataUsage();
+
+        break;
+    }
+
+  }
+
   // Handle the events that triggers automatic balance updates
-  function _automaticCheck(evt) {
+  function _automaticBalanceCheck(evt) {
     debug('Event listened: ' + evt.type);
 
     // Ignore if the device is in roaming
@@ -552,7 +644,7 @@ setService(function cc_setupCostControlService() {
       case 'costcontrolperiodicallyupdate':
 
         // Abort if it have not passed enough time since last update
-        var balance = _getlastbalance();
+        var balance = _getLastBalance();
         var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
@@ -680,13 +772,171 @@ setService(function cc_setupCostControlService() {
     debug('Stop waiting for ' + mode);
   }
 
+  // Set the date to 00:00:00.000
+  function _toMidnight(date) {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  }
+
+  // Request data statistics for this SIM
+  function _updateDataUsage() {
+    debug('Start updating data usage');
+
+    // Abort if other operation in progress
+    if (_state[STATE_UPDATING_DATA_USAGE]) {
+      debug('Already updating data usage, ignoring...');
+      return;
+    }
+
+    // Transform data to the model accepted by the render
+    // TODO: adaptData should take in count when SIM card was present to leave
+    // gaps during the time the SIM card was not inserted. This require an extra
+    // data structure to record these periods of no SIM.
+    function adaptData(networkStatsResult) {
+      var data = networkStatsResult.data;
+      var output = [];
+      var totalData, accum = 0;
+      // XXX: for some reason (bug??), the start date is located at the index 2
+      for (var i = 0, item; item = data[i]; i++) {
+        totalData = 0;
+        if (item.rxBytes)
+          totalData += item.rxBytes;
+        if (item.txBytes)
+          totalData += item.txBytes;
+
+        accum += totalData;
+
+        output.push({
+          value: totalData,
+          date: item.date
+        });
+      }
+      return [output, accum];
+    }
+
+    // XXX: functions requestCharData, requestForMobile, requestForWifi
+    // configure model and render model are chainded.
+
+    // Point of entry for render process
+    function requestData(start, end, today) {
+      debug('Request for wifi');
+      requestForWifi(start, end, today);
+    }
+
+    var wifiSamples = [], maxWifiData = 0;
+    // Request samples for wifi chart and chain with requestForMobile
+    function requestForWifi(start, end, today) {
+      var request = navigator.mozNetworkStats.getNetworkStats({
+        start: start,
+        end: today,
+        connectionType: 'wifi'
+      });
+      request.onsuccess = function cc_onWifiRequesSuccess() {
+        if (request.result) {
+          var result = adaptData(request.result);
+          wifiSamples = result[0];
+          maxWifiData = result[1];
+        }
+
+        debug('Wifi samples: ' + wifiSamples.length);
+        debug('Request for mobile');
+        requestForMobile(start, end, today);
+      }
+      request.onerror = request.onsuccess;
+    }
+
+    var mobileSamples = [], maxMobileData = 0;
+    // Request samples for mobile chart and ends dispatching the data and a
+    // success event
+    function requestForMobile(start, end, today) {
+      var request = navigator.mozNetworkStats.getNetworkStats({
+        start: start,
+        end: today,
+        connectionType: 'mobile'
+      });
+      request.onsuccess = function cc_onMbileRequesSuccess() {
+        _state[STATE_UPDATING_DATA_USAGE] = false;
+
+        if (request.result) {
+          var result = adaptData(request.result);
+          mobileSamples = result[0];
+          maxMobileData = result[1];
+        }
+
+        debug('Mobile samples: ' + mobileSamples.length);
+        debug('Gathering data...');
+        // Conform the lastdatausage object and dispatch success
+        var lastDataUsage = {
+          timestamp: new Date(),
+          start: start,
+          end: end,
+          today: today,
+          wifi: {
+            samples: wifiSamples,
+            total: maxWifiData
+          },
+          mobile: {
+            samples: mobileSamples,
+            total: maxMobileData
+          }
+        };
+
+        debug('Dispatch success');
+        _dispatchEvent(
+          _getEventName(STATE_UPDATING_DATA_USAGE, 'success'),
+          lastDataUsage
+        );
+
+        // TODO: For some reason, if I pass lastDataUsage object
+        // there is an error Data could not be cloned. OO!
+        debug('Storing data');
+        _appSettings.option('lastdatausage', {
+          timestamp: new Date(),
+          start: start,
+          end: end,
+          today: today,
+          wifi: {
+            total: maxWifiData
+          },
+          mobile: {
+            total: maxMobileData
+          }
+        });
+      }
+      request.onerror = request.onsuccess;
+    }
+
+    // Compute relevant dates
+    var today = new Date();
+
+    var yesterday = new Date();
+    yesterday.setTime(today.getTime() - 1000 * 60 * 60 * 24);
+
+    var tomorrow = new Date();
+    tomorrow.setTime(today.getTime() + 1000 * 60 * 60 * 24);
+
+    var lastReset = _appSettings.option('lastdatareset');
+    var start = lastReset ? new Date(lastReset) : new Date(yesterday);
+
+    var nextReset = _appSettings.option('next_reset');
+    var end = nextReset ? new Date(nextReset) : new Date(tomorrow);
+
+    _toMidnight(start);
+    _toMidnight(end);
+    _toMidnight(today);
+
+    requestData(start, end, today);
+  }
+
   // Start an update balance request. In case of error or success, the proper
   // events will be dispatched to the listeners set by setBalanceCallbacks()
   // method.
   function _updateBalance() {
     // Abort if other operation in progress
     if (_state[STATE_UPDATING_BALANCE]) {
-      debug('Already updating, ignoring...');
+      debug('Already updating balance, ignoring...');
       return;
     }
 
@@ -784,8 +1034,12 @@ setService(function cc_setupCostControlService() {
     var root;
     if (mode === STATE_UPDATING_BALANCE) {
       root = 'costcontrolbalanceupdate';
-    } else {
+    } else if (mode === STATE_TOPPING_UP) {
       root = 'costcontroltopup';
+    } else if (mode === STATE_UPDATING_DATA_USAGE) {
+      root = 'datausage';
+    } else {
+      root = 'UNKNOWN';
     }
 
     return root + suffix;
@@ -806,9 +1060,14 @@ setService(function cc_setupCostControlService() {
     _bindCallbacks(STATE_UPDATING_BALANCE, callbacks);
   }
 
-  // Register callbacks to invoke whent topping up
+  // Register callbacks to invoke when topping up
   function _setTopUpCallbacks(callbacks) {
     _bindCallbacks(STATE_TOPPING_UP, callbacks);
+  }
+
+  // Register callbacks to invoke when updating data usage
+  function _setDataUsageCallbacks(callbacks) {
+    _bindCallbacks(STATE_UPDATING_DATA_USAGE, callbacks);
   }
 
   function _setServiceStatusChangeCallback(callback) {
@@ -819,15 +1078,22 @@ setService(function cc_setupCostControlService() {
     init: _init,
     setBalanceCallbacks: _setBalanceCallbacks,
     setTopUpCallbacks: _setTopUpCallbacks,
+    setDataUsageCallbacks: _setDataUsageCallbacks,
     set onservicestatuschange(callback) {
       _setServiceStatusChangeCallback(callback);
     },
     requestBalance: _updateBalance,
+    requestDataUsage: _updateDataUsage,
     requestTopUp: _topUp,
     requestUSSDTopUp: _topUpByUSSD,
-    resetTelephonyCounters: _resetStats,
+    resetTelephony: _resetTelephony,
+    resetDataUsage: _resetDataUsage,
     getLastBalance: _getLastBalance,
+    getLastDataUsage: _getLastDataUsage,
     getServiceStatus: _getServiceStatus,
+    getDataUsageWarning: function() {
+      return DATA_USAGE_WARNING;
+    },
     getRequestBalanceMaxDelay: function cc_getRequestBalanceMaxDelay() {
       return REQUEST_BALANCE_MAX_DELAY;
     },
@@ -836,6 +1102,14 @@ setService(function cc_setupCostControlService() {
     },
     get settings() {
       return _appSettings;
+    },
+    get dataLimitInBytes() {
+      var multiplier = 1000000; // for MB
+      if (_appSettings.option('data_limit_unit') === 'GB')
+        multiplier = 1000000000; // for GB
+
+      var value = _appSettings.option('data_limit_value');
+      return (value && value !== 0) ? value * multiplier : null;
     },
 
     PLAN_PREPAID: PLAN_PREPAID,
