@@ -12,7 +12,6 @@
     "mobileconnection",
     "mozApps",
     "background",
-    "settings",
     "desktop-notification",
     "networkstats-manage"
   ],

@@ -27,170 +27,298 @@ function getWindowLeft(obj) {
 var TAB_DATA_USAGE = 'datausage-tab';
 viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
-  var _options;
+  var _model, _installedObservers = false;
   var _graphicArea, _graphicPattern;
+  var _wifiLayer, _mobileLayer;
+  var _wifiOverview, _mobileOverview;
 
-  // Attach event listeners for manual updates
-  function _init() {
-    debug('Initializing Data Usage Tab');
+  // Bind the activation of the tab to the proper filter
+  function _configureUI() {
     _graphicArea = document.getElementById('graphic-area');
     _graphicPattern = document.getElementById('graphic-pattern');
+    _wifiLayer = document.getElementById('wifi-layer');
+    _mobileLayer = document.getElementById('mobile-layer');
+    _wifiOverview = document.getElementById('wifiOverview');
+    _mobileOverview = document.getElementById('mobileOverview');
 
+    // Shows data usage tab when pressing the data usage filter
     var dataUsageTab = document.getElementById('datausage-tab-filter');
     dataUsageTab.addEventListener('click', function ccapp_onDataUsageTab() {
       viewManager.changeViewTo(TAB_DATA_USAGE);
     });
 
-    var controls = document.getElementById('limits-layer');
+    // Toggle chart visibility
+    var wifiToggle = document.getElementById('wifiCheck');
+    _wifiLayer.setAttribute('aria-hidden', !wifiToggle.checked);
+    wifiToggle.addEventListener('click', function ccapp_toggleWifiChart() {
+      _wifiLayer.setAttribute('aria-hidden', !wifiToggle.checked);
+    });
 
-    // TODO: Remove this, or refactor to not use an inner scope
-    (function() {
-      var offsetX = getWindowLeft(controls);
-      var offsetY = getWindowTop(controls);
+    var mobileToggle = document.getElementById('mobileCheck');
+    _mobileLayer.setAttribute('aria-hidden', !mobileToggle.checked);
+    mobileToggle.addEventListener('click', function ccapp_toggleMobileChart() {
+      _mobileLayer.setAttribute('aria-hidden', !mobileToggle.checked);
+    });
+  }
 
-      function checkContent(x, y, threshold) {
-        threshold = threshold || 0;
-        var context = controls.getContext('2d');
-        var data = context.getImageData(x - offsetX, y - offsetY, 1, 1).data;
-        return data[3] > threshold;
-      }
+  // Show the dialog for setting data limit (this reuses the )
+  function _showSetDataLimit() {
+    var settingsWindow = document.getElementById('settings-view').contentWindow;
+    var dialog = settingsWindow.document.getElementById('data-limit-dialog');
 
-      var element, elementX, elementY;
-      controls.addEventListener('click',
-        function ccapp_onCanvasClick(event) {
-          element = event.target;
-          if (!checkContent(event.clientX, event.clientY))
-            return;
+    // Show dialog, settings and get focus
+    settingsWindow.viewManager.changeViewTo(dialog.id);
+    settingsVManager.changeViewTo(SETTINGS_VIEW);
+    dialog.querySelector('input').focus();
 
-          if (pressing) {
-            debug('limitClicked');
-          }
-        }
-      );
-
-      var pressing, longPressTimeout;
-      controls.addEventListener('mousedown',
-        function ccapp_onCanvasMousedown(event) {
-          if (!checkContent(event.clientX, event.clientY))
-            return;
-
-          pressing = true;
-          longPressTimeout = setTimeout(function() {
-            pressing = false;
-            debug('setLimit');
-          }, 500);
-        }
-      );
-
-      controls.addEventListener('mouseup',
-        function ccapp_onCanvasMouseup(event) {
-          clearTimeout(longPressTimeout);
-        }
-      );
-
-    }());
-
-    function getFakeValues(startDate, howMany, size, gapsize) {
-      var fakeData = [];
-      var oneDay = 1000 * 60 * 60 * 24;
-      var lastValue = 0, gapmode = 0, nomoregaps = false;
-      for (var i = 0, currentDate = startDate.getTime();
-           i < howMany;
-           i++, currentDate += oneDay) {
-
-        if (!nomoregaps && i > howMany / 2) {
-          gapmode = gapsize;
-          nomoregaps = true;
-        }
-
-        var sampleIncrement = Math.floor(Math.random() * size);
-        var sampleDate = new Date();
-        sampleDate.setTime(currentDate);
-        if (gapmode) {
-          fakeData.push({
-            date: sampleDate
-          });
-          gapmode--;
-
-        } else {
-          fakeData.push({
-            value: sampleIncrement,
-            date: sampleDate
-          });
-        }
-      }
-      return fakeData;
+    // Program the buttons of close / done to close current settings
+    var doneButton = dialog.querySelector('.affirmative');
+    var closeButton = dialog.querySelector('.cancel');
+    var returnToChart = function ccapp_returnToChart() {
+      settingsVManager.closeCurrentView();
+      closeButton.removeEventListener('click', returnToChart);
+      doneButton.removeEventListener('click', returnToChart);
     }
 
-    _options = {
-      height: _graphicArea.clientHeight,
-      width: _graphicArea.clientWidth,
-      get originY() {
-        delete this.originY;
-        return (this.originY = Math.floor(this.height * 5 / 6));
-      },
-      originX: 0,
-      axis: {
-        X: {
-          lower: new Date(2012, 0, 1),
-          upper: new Date(2012, 0, 31),
-          today: new Date(2012, 0, 21),
-          get: function cc_dataToXPx(value) {
-            var projection = (value.getTime() - this.lower.getTime()) /
-                              (this.upper.getTime() - this.lower.getTime());
-            return projection * _options.width;
-          }
-        },
-        Y: {
-          lower: 0,
-          margin: 0.20,
-          maxValue: 2356000000,
-          get range() {
-            delete this.range;
-            return (this.range = this.upper - this.lower);
-          },
-          get upper() {
-            delete this.upper;
-            return (this.upper = (1 + this.margin) * this.maxValue);
-          },
-          get step() {
-            delete this.step;
-            return (this.step = this.get(this.maxValue));
-          },
-          get: function cc_dataToYPx(value) {
-            var projection = (value - this.lower) / (this.upper - this.lower);
-            return _options.originY * (1 - projection);
-          }
-        }
-      },
-      limits: {
-        value: 990000000,
-        warning: 0.80,
-        get warningValue() {
-          delete this.warningValue;
-          return (this.warningValue = this.value * this.warning);
-        }
-      },
-      data: {
-        wifi: {
-          enabled: true,
-          samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000, 5)
-        },
-        mobile: {
-          enabled: true,
-          samples: getFakeValues(new Date(2012, 0, 1), 21, 150000000 * 0.75, 5)
+    doneButton.addEventListener('click', returnToChart);
+    closeButton.addEventListener('click', returnToChart);
+  }
+
+  // Configure clickable areas of the chart
+  function _configureChartControls() {
+    var controls = document.getElementById('limits-layer');
+    var offsetX = getWindowLeft(controls);
+    var offsetY = getWindowTop(controls);
+
+    function checkContent(x, y, threshold) {
+      threshold = threshold || 0;
+      var context = controls.getContext('2d');
+      var data = context.getImageData(x - offsetX, y - offsetY, 1, 1).data;
+      return data[3] > threshold;
+    }
+
+    var element, elementX, elementY;
+    controls.addEventListener('click',
+      function ccapp_onCanvasClick(event) {
+        element = event.target;
+        if (!checkContent(event.clientX, event.clientY))
+          return;
+
+        if (pressing) {
+          var enabled = Service.settings.option('data_limit');
+          Service.settings.option('data_limit', !enabled);
         }
       }
+    );
+
+    var pressing, longPressTimeout;
+    controls.addEventListener('mousedown',
+      function ccapp_onCanvasMousedown(event) {
+        if (!checkContent(event.clientX, event.clientY))
+          return;
+
+        pressing = true;
+        longPressTimeout = setTimeout(function() {
+          pressing = false;
+          _showSetDataLimit();
+        }, 500);
+      }
+    );
+
+    controls.addEventListener('mouseup',
+      function ccapp_onCanvasMouseup(event) {
+        clearTimeout(longPressTimeout);
+      }
+    );
+  }
+
+  // Expand the model with some computed values
+  function _expandModel(base) {
+
+    // Graphic settings
+    base.originY = Math.floor(base.height * 5 / 6);
+
+    // Normalize today
+    _toMidnight(base.axis.X.today);
+    _toMidnight(base.axis.X.lower);
+    _toMidnight(base.axis.X.upper);
+
+    // X axis projection function to convert a value into a pixel value
+    var xLowerBound = base.axis.X.lower.getTime();
+    var xSize = base.axis.X.upper.getTime() - xLowerBound;
+    base.axis.X.get = function cc_dataToXPx(value) {
+      var projection = (value.getTime() - xLowerBound) / xSize;
+      return projection * base.width;
     };
 
+    // Y max value
+    base.axis.Y.maxValue = Math.max(base.limits.value,
+                                    base.data.mobile.total,
+                                    base.data.wifi.total);
 
+    // Y axis projection function and automatic values
+    base.axis.Y.range = base.axis.Y.upper - base.axis.Y.lower;
+    base.axis.Y.upper = (1 + base.axis.Y.margin) * base.axis.Y.maxValue;
+    var yLowerBound = base.axis.Y.lower;
+    var ySize = base.axis.Y.upper - yLowerBound;
+    base.axis.Y.get = function cc_dataToYPx(value) {
+      var projection = (value - yLowerBound) / ySize;
+      return base.originY * (1 - projection);
+    }
+    base.axis.Y.step = base.axis.Y.get(base.axis.Y.maxValue);
+
+    // Limits
+    base.limits.warning = Service.getDataUsageWarning();
+    base.limits.warningValue = base.limits.value * base.limits.warning;
+  }
+
+  // Set the date to 00:00:00.000
+  function _toMidnight(date) {
+    date.setHours(0);
+    date.setMinutes(0);
+    date.setSeconds(0);
+    date.setMilliseconds(0);
+  }
+
+  // Setup the model
+  function _updateCharts(evt) {
+
+    // First time setup of the model
+    if (!_model) {
+      debug('First time setup for model');
+      _model = {
+        height: _graphicArea.clientHeight,
+        width: _graphicArea.clientWidth,
+        originX: 0,
+        axis: {
+          Y: {
+            lower: 0,
+            margin: 0.20
+          }
+        },
+        limits: {
+          enabled: Service.settings.option('data_limit'),
+          value: Service.dataLimitInBytes
+        },
+        data: {
+          wifi: {
+            enabled: true
+          },
+          mobile: {
+            enabled: true
+          }
+        }
+      };
+    }
+
+    // Observers to keep the model synchronized
+    // TODO: Take a deep though about the model and think about how
+    // to set it completely async.
+    if (!_installedObservers) {
+      debug('Installing observers');
+
+      // Relevant dates
+      var today = new Date();
+      var tomorrow = new Date(today.getTime() + 1000 * 60 * 60 * 24);
+      _toMidnight(tomorrow);
+      var yesterday = new Date(today.getTime() - 1000 * 60 * 60 * 24);
+      _toMidnight(yesterday);
+
+      // Data limit, the value or the unit has change
+      Service.settings.observe('data_limit',
+        function ccapp_onDataLimitChanged(value) {
+          _model.limits.enabled = value;
+          _drawLimits(_model);
+          _drawWarningOverlay(_model);
+        }
+      );
+
+      debug('Installing observers 1');
+      // XXX: here is a trick. In settings, when unit is changed, the
+      // option data_limit_value is "touched" so it suffices to observe
+      // data_limit_value to be aware about both changes in value or unit
+      Service.settings.observe('data_limit_value',
+        function ccapp_onDataLimitValueChanged(value) {
+          _model.limits.value = Service.dataLimitInBytes;
+          _expandModel(_model);
+          _updateUI();
+        }
+      );
+
+      debug('Installing observers 2');
+      // X axis
+      Service.settings.observe('lastdatareset',
+        function ccapp_onLastResetValueChanged(value) {
+          _model.axis.X.lower = value ? new Date(value) :
+                                        new Date(yesterday);
+          _expandModel(_model);
+          _updateUI();
+        }
+      );
+
+      debug('Installing observers 3');
+      Service.settings.observe('next_reset',
+        function ccapp_onNextResetChanged(value) {
+          _model.axis.X.upper = value ? new Date(value) :
+                                        new Date(tomorrow);
+          _expandModel(_model);
+          _updateUI();
+        }
+      );
+
+      _installedObservers = true;
+      debug('Installing observers COMPLETE');
+    }
+
+    // Local update
+    if (evt) {
+      debug('Updating _model');
+      var modelData = evt.detail;
+      _model.axis.X = {
+        lower: modelData.start,
+        upper: modelData.end,
+        today: modelData.today
+      };
+      _model.data.wifi.samples = modelData.wifi.samples;
+      _model.data.wifi.total = modelData.wifi.total;
+      _model.data.mobile.samples = modelData.mobile.samples;
+      _model.data.mobile.total = modelData.mobile.total;
+
+      _expandModel(_model);
+    }
+
+    debug('Rendering');
     _updateUI();
   }
 
-  function _drawBackgroundLayer(options) {
+  function _init() {
+    var status = Service.getServiceStatus();
+    if (!status.enabledFunctionalities.datausage) {
+      debug('Data usage functionality disabled. ' +
+            'Skippin Data Usage Tab set up.');
+      return;
+    }
+
+    debug('Initializing Data Usage Tab');
+    _configureUI();
+    _configureChartControls();
+
+    Service.setDataUsageCallbacks({onsuccess: _updateCharts});
+
+    document.addEventListener('mozvisibilitychange',
+      function ccapp_visibility(evt) {
+        if (!document.mozHidden)
+          Service.requestDataUsage();
+      }
+    );
+
+    Service.requestDataUsage();
+  }
+
+  function _drawBackgroundLayer(model) {
     var canvas = document.getElementById('background-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // A linear gradient from transparent to opaque white
@@ -198,10 +326,10 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     bgGradient.addColorStop(0, 'rgba(255,255,255,0)');
     bgGradient.addColorStop(1, 'rgba(255,255,255,1)');
     ctx.fillStyle = bgGradient;
-    ctx.fillRect(0, 0, width, options.originY);
+    ctx.fillRect(0, 0, width, model.originY);
 
     // A line just after the end of the gradient
-    var lineY = options.originY - 1.5;
+    var lineY = model.originY - 1.5;
     ctx.beginPath();
     ctx.strokeStyle = '#d5d5d5';
     ctx.moveTo(0, lineY);
@@ -209,87 +337,73 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.stroke();
 
     // Lines every step
-    var step = options.axis.Y.step;
+    var step = model.axis.Y.step;
     ctx.beginPath();
     ctx.strokeStyle = 'white';
-    for (var y = options.originY - step; y > step; y -= step) {
+    for (var y = model.originY - step; y > step; y -= step) {
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);
       ctx.stroke();
     }
   }
 
-  function _pad(value) {
-    if (value === 0)
-      return '0MB';
-
-    value = value / 1000000;
-
-    if (value < 1000) {
-      var str = (10 * Math.ceil(value / 10)) + 'M';
-      switch (str.length) {
-        case 2:
-          return '00' + str;
-        case 3:
-          return '0' + str;
-        default:
-          return str;
-      }
-    }
-
-    return (value / 1000).toFixed(1) + 'G';
-  }
-
-  function _drawAxisLayer(options) {
+  function _drawAxisLayer(model) {
 
     var canvas = document.getElementById('axis-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // Start drawing Y axis
-    var step = options.axis.Y.step;
-    var dataStep = options.axis.Y.upper - options.axis.Y.maxValue;
+    var step = model.axis.Y.step;
+    var dataStep = model.axis.Y.upper - model.axis.Y.maxValue;
     var marginLeft = 4, marginBottom = 4;
     var fontsize = 12;
     ctx.font = '500 ' + fontsize + 'px Arial';
     ctx.fillStyle = '#6a6a6a';
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'start';
-    for (var y = options.originY, value = 0;
+    for (var y = model.originY, value = 0;
          y > 0; y -= step, value += dataStep) {
-      ctx.fillText(_pad(value), marginLeft, y - marginBottom);
+      ctx.fillText(padData(value).join(' '), marginLeft, y - marginBottom);
     }
 
     // Now the X axis
+    if (Service.settings.option('tracking_period') === 'never')
+      return;
+
     var marginTop = 10;
     var leftTag =
-      options.axis.X.lower.toLocaleFormat('%b %d').toUpperCase();
+      model.axis.X.lower.toLocaleFormat('%b %d').toUpperCase();
     ctx.font = '600 ' + fontsize + 'px Arial';
     ctx.textBaseline = 'top';
     ctx.textAlign = 'start';
-    ctx.fillText(leftTag, marginLeft, options.originY + marginTop);
+    ctx.fillText(leftTag, marginLeft, model.originY + marginTop);
 
     var rightTag =
-      options.axis.X.upper.toLocaleFormat('%b %d').toUpperCase();
+      model.axis.X.upper.toLocaleFormat('%b %d').toUpperCase();
     ctx.textAlign = 'end';
-    ctx.fillText(rightTag, width - marginLeft, options.originY + marginTop);
+    ctx.fillText(rightTag, width - marginLeft, model.originY + marginTop);
   }
 
-  function _drawTodayLayer(options) {
+  function _drawTodayLayer(model) {
     var canvas = document.getElementById('today-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     // Compute the X offset
-    var offsetX = options.axis.X.get(options.axis.X.today);
+    var offsetX = model.axis.X.get(model.axis.X.today) + 0.5;
 
     // Draw the vertical line
+    ctx.fillStyle = '#626262';
+    ctx.fillRect(offsetX - 0.5, 0.5, 1, model.originY);
+    ctx.fillStyle = 'white';
+    ctx.fillRect(offsetX - 1, 0.5, 1, model.originY);
+
     ctx.beginPath();
     ctx.strokeStyle = 'white';
-    ctx.moveTo(offsetX - 0.5, options.originY);
-    ctx.lineTo(offsetX - 0.5, 0.5);
+    ctx.moveTo(offsetX, 0.5);
     ctx.lineTo(offsetX + 6.5, 0.5);
     ctx.stroke();
 
@@ -304,20 +418,14 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.fillStyle = shadow;
     ctx.fillRect(
       offsetX + 0.5, 1.5,
-      shadowLength, options.originY - 3.5
+      shadowLength, model.originY - 3.5
     );
 
-    // Centered today text
+    // Configure Centered today text
     var fontsize = 12;
     var marginTop = 10;
-    var tagTop = options.axis.X.today.toLocaleFormat('%b %d').toUpperCase();
+    var tagTop = model.axis.X.today.toLocaleFormat('%b %d').toUpperCase();
     var tagBottom = _('today').toUpperCase();
-    ctx.font = '600 ' + fontsize + 'px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillStyle = 'black';
-    ctx.fillText(tagTop, offsetX, options.originY + marginTop);
-    ctx.fillText(tagBottom, offsetX, options.originY + marginTop + fontsize);
 
     // The box around the text
     var widthTop = ctx.measureText(tagTop).width;
@@ -329,7 +437,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     var topRight = {
       x: offsetX + (maxWidth / 2) + marginSide,
-      y: options.originY + (marginTop / 2)
+      y: model.originY + (marginTop / 2)
     };
     var bottomRight = {
       x: topRight.x,
@@ -344,10 +452,11 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       y: topRight.y
     };
 
-    ctx.strokeStyle = 'white';
     ctx.beginPath();
+    ctx.strokeStyle = '#626262';
+    ctx.fillStyle = 'white';
 
-    ctx.moveTo(offsetX, options.originY);
+    ctx.moveTo(offsetX, model.originY);
     ctx.lineTo(topRight.x - radiusTop, topRight.y);
     ctx.arcTo(
       topRight.x, topRight.y,
@@ -373,7 +482,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
 
     // Here a trick to simplify this:
     // it is the same as the beginnign but to the other X direction
-    ctx.moveTo(offsetX, options.originY);
+    ctx.moveTo(offsetX, model.originY);
     ctx.lineTo(topLeft.x + radiusTop, topLeft.y);
     ctx.arcTo(
       topLeft.x, topLeft.y,
@@ -381,51 +490,62 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       radiusTop
     );
 
+    ctx.fill();
     ctx.stroke();
+
+    // Render the text
+    ctx.font = '600 ' + fontsize + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle = 'black';
+    ctx.fillText(tagTop, offsetX, model.originY + marginTop);
+    ctx.fillText(tagBottom, offsetX, model.originY + marginTop + fontsize);
+
 
     // Finally, draw the two circles
     var radius = 3;
-    ctx.strokeStyle = 'white';
+    ctx.strokeStyle = '#626262';
     ctx.fillStyle = '#cbd936';
-    ctx.lineWidth = 3;
-    var todayWifi = options.data.wifi.sumToday;
+    ctx.lineWidth = 1;
+    var todayWifi = model.data.wifi.total;
     ctx.beginPath();
-    ctx.arc(offsetX, options.axis.Y.get(todayWifi), radius, 0, 2 * Math.PI);
-    ctx.stroke();
+    ctx.arc(offsetX, model.axis.Y.get(todayWifi), radius, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.stroke();
 
     ctx.fillStyle = 'rgb(157, 54, 117)';
-    ctx.lineWidth = 3;
-    var todayMobile = options.data.mobile.sumToday;
+    ctx.lineWidth = 1;
+    var todayMobile = model.data.mobile.total;
     ctx.beginPath();
-    ctx.arc(offsetX, options.axis.Y.get(todayMobile), radius, 0, 2 * Math.PI);
-    ctx.stroke();
+    ctx.arc(offsetX, model.axis.Y.get(todayMobile), radius, 0, 2 * Math.PI);
     ctx.fill();
+    ctx.stroke();
   }
 
-  function _drawLimits(options) {
+  function _drawLimits(model) {
+    var enabled = model.limits.enabled;
+    var set = model.limits.value;
+    var color = 'rgba(255, 0, 0, ' + (enabled ? '1.0' : '0.3') + ')';
+
     var canvas = document.getElementById('limits-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
     ctx.font = '600 ' + 12 + 'px Arial';
 
-    // The limit line
+    var fontsize = 12;
     var marginLeft = 4;
     var marginTop = 1;
-    var offsetY = Math.floor(options.axis.Y.get(options.limits.value));
-    ctx.beginPath();
-    ctx.strokeStyle = 'red';
-    ctx.moveTo(0, offsetY + 0.5);
-    ctx.lineTo(width, offsetY + 0.5);
-    ctx.stroke();
+    var offsetY = set ? Math.floor(model.axis.Y.get(model.limits.value)) :
+                        fontsize + 2 * marginTop;
+
 
     // The left marker
-    var fontsize = 12;
-    var tag = _pad(options.limits.value);
-    var tagWidth = ctx.measureText(tag).width;
     var semiHeight = fontsize / 2 + marginTop;
+    var tag = model.limits.value ? roundData(model.limits.value).join(' ') :
+                                   _('not-set').toUpperCase();
 
+    var tagWidth = ctx.measureText(tag).width;
     var topLeft = {
       x: 0,
       y: offsetY - semiHeight - marginTop
@@ -446,6 +566,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       x: topLeft.x,
       y: bottomRight.y
     };
+    var leftVertex = arrowVertex.x;
 
     ctx.beginPath();
     ctx.fillStyle = 'red';
@@ -494,9 +615,10 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       x: topLeft.x,
       y: bottomRight.y
     };
+    var rightVertex = arrowVertex.x;
 
     ctx.beginPath();
-    ctx.fillStyle = 'red';
+    ctx.fillStyle = color;
     ctx.moveTo(topLeft.x, topLeft.y);
     ctx.lineTo(topRight.x, topRight.y);
     ctx.lineTo(bottomRight.x, bottomRight.y);
@@ -519,137 +641,86 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     ctx.fillStyle = 'white';
     ctx.fillText(tag, width - marginLeft, offsetY + marginTop);
 
-    // Now the warning
-    offsetY = Math.floor(options.axis.Y.get(options.limits.warningValue));
-
-    // The right mark
-    tag = Math.round(options.limits.warning * 100) + '%';
-    topLeft = {
-      x: width - marginLeft - tagWidth - marginLeft,
-      y: offsetY - semiHeight - marginTop
-    };
-    arrowVertex = {
-      x: topLeft.x - marginLeft,
-      y: offsetY
-    };
-    topRight = {
-      x: width,
-      y: topLeft.y
-    };
-    bottomRight = {
-      x: topRight.x,
-      y: offsetY + semiHeight + marginTop
-    };
-    bottomLeft = {
-      x: topLeft.x,
-      y: bottomRight.y
-    };
-
+    // The limit line
     ctx.beginPath();
-    ctx.fillStyle = 'white';
-    ctx.strokeStyle = 'red';
-    ctx.shadowColor = 'transparent';
-    ctx.moveTo(topLeft.x, topLeft.y);
-    ctx.lineTo(topRight.x, topRight.y);
-    ctx.lineTo(bottomRight.x, bottomRight.y);
-    ctx.lineTo(bottomLeft.x, bottomLeft.y);
-    ctx.lineTo(arrowVertex.x, arrowVertex.y);
-    ctx.lineTo(topLeft.x, topLeft.y);
-    ctx.stroke();
-    ctx.fill();
-
-    // The text
-    ctx.textBaseline = 'middle';
-    ctx.textAlign = 'start';
-    ctx.fillStyle = 'red';
-    ctx.fillText(tag, arrowVertex.x + 2 * marginLeft, offsetY + marginTop);
-
-    // And the dashed line
-    var lineLength = 5;
-    var gapLength = 2;
-    ctx.strokeStyle = 'red';
-    ctx.beginPath();
-    for (var x = arrowVertex.x, y = offsetY + 0.5; x > 0; x -= gapLength) {
-      ctx.moveTo(x, y);
-      ctx.lineTo(x -= lineLength, y);
-    }
+    ctx.strokeStyle = color;
+    ctx.moveTo(leftVertex, offsetY + 0.5);
+    ctx.lineTo(rightVertex, offsetY + 0.5);
     ctx.stroke();
   }
 
-  function _drawWifiGraphic(options) {
+  function _drawWifiGraphic(model) {
     var canvas = document.getElementById('wifi-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     ctx.fillStyle = 'rgba(203, 217, 54, 0.7)';
-    var samples = options.data.wifi.samples;
+    var samples = model.data.wifi.samples;
     ctx.beginPath();
-    ctx.moveTo(options.originX, options.originY - 2.5);
+    ctx.moveTo(model.originX, model.originY - 2.5);
     var sum = 0; var x, y;
-    var lastX = options.originX, lastY = options.axis.Y.get(sum);
+    var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
       if (sample.value == undefined) {
-        lastX = x = options.axis.X.get(sample.date);
+        lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
         continue;
       }
 
-      x = options.axis.X.get(sample.date);
-      y = options.axis.Y.get(sum += sample.value);
+      x = model.axis.X.get(sample.date);
+      y = model.axis.Y.get(sum += sample.value);
 
       ctx.lineTo(x, y);
-      ctx.lineTo(x, options.originY - 2.5);
-      ctx.lineTo(lastX, options.originY - 2.5);
+      ctx.lineTo(x, model.originY - 2.5);
+      ctx.lineTo(lastX, model.originY - 2.5);
       ctx.lineTo(lastX, lastY);
       ctx.moveTo(x, y);
       lastX = x;
       lastY = y;
     }
     // Set max accumulation for today indicator
-    options.data.wifi.sumToday = sum;
     ctx.fill();
 
     var pattern = ctx.createPattern(_graphicPattern, 'repeat');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, width, options.originY);
+    ctx.fillRect(0, 0, width, model.originY);
   }
 
-  function _drawMobileGraphic(options) {
+  function _drawMobileGraphic(model) {
     var canvas = document.getElementById('mobile-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
     ctx.beginPath();
     ctx.fillStyle = 'rgba(147, 21, 98, 0.65)';
     ctx.strokeStyle = 'transparent';
-    var samples = options.data.mobile.samples;
+    var samples = model.data.mobile.samples;
     var sum = 0; var x, y;
-    var lastX = options.originX, lastY = options.axis.Y.get(sum);
+    var lastX = model.originX, lastY = model.axis.Y.get(sum);
     for (var i = 0, len = samples.length; i < len; i++) {
       var sample = samples[i];
       if (sample.value == undefined) {
-        lastX = x = options.axis.X.get(sample.date);
+        lastX = x = model.axis.X.get(sample.date);
         ctx.moveTo(x, y);
         continue;
       }
 
-      x = options.axis.X.get(sample.date);
-      y = options.axis.Y.get(sum += sample.value);
+      x = model.axis.X.get(sample.date);
+      y = model.axis.Y.get(sum += sample.value);
 
       ctx.lineTo(x, y);
-      ctx.lineTo(x, options.originY - 2.5);
-      ctx.lineTo(lastX, options.originY - 2.5);
+      ctx.lineTo(x, model.originY - 2.5);
+      ctx.lineTo(lastX, model.originY - 2.5);
       ctx.lineTo(lastX, lastY);
       ctx.moveTo(x, y);
       lastX = x;
       lastY = y;
     }
     // Set max accumulation for today indicator
-    options.data.mobile.sumToday = sum;
     ctx.shadowColor = 'rgba(64, 64, 64, 0.7)';
     ctx.shadowBlur = 3;
     ctx.shadowOffsetX = -1;
@@ -660,58 +731,79 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     var pattern = ctx.createPattern(_graphicPattern, 'repeat');
     ctx.globalCompositeOperation = 'source-atop';
     ctx.fillStyle = pattern;
-    ctx.fillRect(0, 0, width, options.originY);
+    ctx.fillRect(0, 0, width, model.originY);
   }
 
-  function _drawWarningOverlay(options) {
+  function _drawWarningOverlay(model) {
     var canvas = document.getElementById('warning-layer');
-    var height = canvas.height = options.height;
-    var width = canvas.width = options.width;
+    var height = canvas.height = model.height;
+    var width = canvas.width = model.width;
     var ctx = canvas.getContext('2d');
 
+    if (!model.limits.enabled || model.limits.value === null)
+      return;
+
     // No problem here
-    var mobileUsage = options.data.mobile.sumToday;
-    if (mobileUsage <= options.limits.warningValue)
+    var mobileUsage = model.data.mobile.total;
+    if (mobileUsage <= model.limits.warningValue)
       return;
 
     // Warning mode
-    if (mobileUsage <= options.limits.value) {
-      var limitValue = Math.round(options.axis.Y.get(options.limits.value));
+    if (mobileUsage <= model.limits.value) {
+      var limitValue = Math.round(model.axis.Y.get(model.limits.value));
       var warningValue =
-        Math.round(options.axis.Y.get(options.limits.warningValue));
+        Math.round(model.axis.Y.get(model.limits.warningValue));
       ctx.beginPath();
       ctx.fillStyle = 'rgba(255, 112, 0, 0.5)';
       ctx.fillRect(
-        options.originX, limitValue,
+        model.originX, limitValue,
         width, warningValue - limitValue
       );
+
+      // And the dashed line
+      var lineLength = 5;
+      var gapLength = 2;
+      ctx.strokeStyle = 'rgba(255, 112, 0, 1.0)';
+      ctx.beginPath();
+      for (var x = width, y = warningValue - 0.5; x > 0; x -= gapLength) {
+        ctx.moveTo(x, y);
+        ctx.lineTo(x -= lineLength, y);
+      }
+      ctx.stroke();
+
       return;
     }
 
     // Limit exceeded
-    var limitValue = options.axis.Y.get(options.limits.value);
+    var limitValue = model.axis.Y.get(model.limits.value);
     ctx.beginPath();
     ctx.fillStyle = 'rgba(255, 0, 0, 0.3)';
     ctx.fillRect(
-      options.originX, 0,
+      model.originX, 0,
       width, limitValue
     );
   }
 
   function _updateUI() {
-    _drawBackgroundLayer(_options);
-    _drawAxisLayer(_options);
-    _drawWifiGraphic(_options);
-    _drawMobileGraphic(_options);
-    _drawWarningOverlay(_options);
-    _drawTodayLayer(_options);
-    _drawLimits(_options);
+    // Update overview
+    _wifiOverview.textContent = padData(_model.data.wifi.total).join(' ');
+    _mobileOverview.textContent = padData(_model.data.mobile.total).join(' ');
+
+    // Render the charts
+    _drawBackgroundLayer(_model);
+    _drawAxisLayer(_model);
+    _drawWifiGraphic(_model);
+    _drawMobileGraphic(_model);
+    _drawWarningOverlay(_model);
+    _drawTodayLayer(_model);
+    _drawLimits(_model);
   }
 
   // Updates the UI to match the localization
   function _localize() {
-    _drawAxisLayer(_options);
-    _drawLimits(_options);
+    _drawAxisLayer(_model);
+    _drawTodayLayer(_model);
+    _drawLimits(_model);
   }
 
   return {

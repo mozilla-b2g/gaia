@@ -21,6 +21,7 @@
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/settings.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -37,8 +38,8 @@
   <script type="text/javascript" defer src="js/views/settings.js"></script>
 </head>
 
-<body role="application" class="window">
-  <section role="region" id="settings-view" class="view skin-organic">
+<body role="application" class="window skin-organic">
+  <section role="region" id="settings-view" class="view">
 
     <header data-theme="organic">
       <menu type="toolbar">
@@ -47,7 +48,7 @@
       <h1 data-l10n-id="settings">Settings</h1>
     </header>
     <section class="view-scroll" role="region">
-      <div class="buttons-list choose-plan">
+      <div id="plantype-settings" class="buttons-list choose-plan">
         <button class="localsetting" data-option="plantype" data-selectdialog="selectdialog-plantype">
           <span class="end launch"></span>
           <span class="tag">Prepaid</span>
@@ -97,6 +98,22 @@
         <h2 data-l10n-id="data-usage">Data Usage</h2>
       </header>
       <ul class="settings">
+        <li>
+          <label class="end switch">
+            <input class="localsetting" data-option="data_limit" type="checkbox" />
+            <span></span>
+          </label>
+          <p data-l10n-id="data-limit-alert">Data Use Alert</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false">
+              <span class="end launch"></span>
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p data-l10n-id="data-limit-value">Alert me when used</p>
+        </li>
       </ul>
 
       <header id="phone-internet-settings">
@@ -132,6 +149,34 @@
         </li>
       </ul>
     </section>
+  </section>
+
+  <!-- Data usage limits -->
+  <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
+    <header>
+      <menu type="toolbar">
+         <button id="topup-send-button" data-l10n-id="Done" class="affirmative">Done</button>
+      </menu>
+      <a class="cancel"><span id="topup-close-button" class="icon icon-close">close</span></a>
+      <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
+    </header>
+    <section class="content">
+      <div class="info">
+        <h2 data-l10n-id="data-limit-dialog-title">Enter a mobile data usage limit</h2>
+        <p data-l10n-id="data-limit-dialog-explanation">
+          Connection speeds reduces after limit. It will be used as a reference to check against actual mobile data usage.
+        </p>
+      </div>
+    </section>
+    <form class="buttons-list">
+      <button id="switch-unit-button" type="button">
+        <span class="end launch"></span>
+        <span class="tag"></span>
+      </button>
+      <label for="data-limit-input">
+        <input id="data-limit-input" type="number" autofocus></input>
+      </label>
+    </form>
   </section>
 
   <!-- Plan setup dialog -->
