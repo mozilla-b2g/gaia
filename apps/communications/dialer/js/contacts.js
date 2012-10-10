@@ -53,7 +53,7 @@ var Contacts = {
 
       var contact = request.result[matchResult.bestMatchIndex];
 
-      if (1 < request.result.length) {
+      if (request.result.length > 1) {
         var name = contact.name[0].substring(0, 9),
             numOfothers = request.result.length - 1;
         contact.name[0] = _('lineContactName', {name: name, n: numOfothers});
