@@ -1,9 +1,6 @@
 .card-message-list {
 }
-.msg-list-header, .msg-listedit-header {
-  position: absolute;
-  top: 0;
-  left: 0;
+.msg-listedit-header {
 }
 .msg-list-scrollouter {
   height: 100%;
@@ -13,7 +10,7 @@
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
-  min-height: 53.6rem;
+  min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
 }
 
 /* Have enough scroll space to have the search bit pull out. */
@@ -30,23 +27,21 @@
   min-height: 4.8rem;
   height: 4.8rem;
 }
-.msg-messages-sync-more {
-  vertical-align: 50%;
-}
-.msg-messages-syncing {
-  vertical-align: 50%;
-}
-.msg-messages-syncing-spinner {
-  width: 1.6rem;
-  height: 1.6rem;
-  background-image: url('style/images/spinner-from-statusbar.gif');
-}
 
 .msg-search-tease-bar {
-  height: 2.4rem;
+  height: 4.8rem;
   background-color: #eee;
   border-radius: 4px;
   text-align: center;
+}
+
+.msg-search-text-tease {
+  width: 90%;
+  height: calc(100% - 1rem - 2px);
+  padding: 0;
+  border: 1px solid;
+  border-radius: 3px;
+  margin: 0.5rem 0;
 }
 
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
@@ -61,11 +56,11 @@
   vertical-align: 0%;
 }
 .msg-header-item:active {
-  background-color: #ffc48c;
+  background-color: #b1f1ff;
 }
 .msg-header-unread-section {
   position: absolute;
-  left: .5rem;
+  left: 1.5rem;
   top: 50%;
   display: inline-block;
   height: .9rem;
@@ -80,12 +75,13 @@
   display: block;
   position: absolute;
   top: 0px;
-  left: 1.9rem;
+  left: 3.8rem;
   /* 100% - (unread-section) - (icons-section) - (avatar-section) */
   width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
-  line-height: 2.5rem;
+  line-height: 2.0rem;
+  padding: 1rem 0;
 }
 .msg-header-icons-section {
   display: block;
@@ -132,7 +128,7 @@
 .msg-header-subject {
   display: block;
   color: black;
-  font-weight: bold;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -297,8 +293,6 @@
 }
 
 .msg-reply-all-btn {
-  position: absolute;
-  right: 6rem;
 }
 
 .msg-refresh-btn {
@@ -341,20 +335,6 @@
   background: url("images/icons/forward.png") no-repeat scroll center transparent;
 }
 
-.msg-list-empty {
-  position: absolute;
-  top: 40%;
-  width: 80%;
-  margin : 0 10%;
-  font-size: 2rem;
-  font-weight: bolder;
-  text-align: center;
-  display: none;
-}
-.msg-list-empty.show {
-  display: block;
-}
-
 /* Message list edit mode layout control */
 .msg-messages-container label.negative {
   height: 8rem;
@@ -367,13 +347,24 @@
 }
 
 .msg-messages-container.show-edit .msg-header-unread-section {
-  left: 4.5rem;
+  left: 3.9rem;
 }
 .msg-messages-container.show-edit .msg-header-details-section {
   left: 5.9rem;
   width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
 }
 
+/* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
+.msg-messages-sync-container > p[role="status"],
+.msg-list-empty {
+  width: 80%;
+  margin : 0 10%;
+  text-align: center;
+}
+.msg-list-empty {
+  position: absolute;
+  top: 40%;
+}
 /* FILTERS BUILDING BLOCKS COPIED AND PASTED */
 
 /* ----------------------------------
