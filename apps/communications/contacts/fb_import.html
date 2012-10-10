@@ -10,13 +10,12 @@
     <!-- Buildging Blocks -->
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style/unstable/progress_activity.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
 
-    <link rel="stylesheet" href="style/shared/widgets/buttons/style.css">
-    <link rel="stylesheet" href="style/shared/menus_dialogs/core.css">
-
-    <!--link rel="stylesheet" href="style/fb/headers/style.css"-->
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/fixed_header.css">
     <link rel="stylesheet" href="style/search.css">
@@ -114,12 +113,13 @@
           </ol>
         </section> <!-- mainContent -->
 
-        <menu id="select-all-wrapper" data-items="1">
-          <button id="select-all" data-l10n-id="selectAll">
-            Select All
-          </button>
-        </menu>
-
+        <form role="dialog" class="no-overlay">
+          <menu id="select-all-wrapper" data-items="1">
+            <button id="select-all" data-l10n-id="selectAll" type="reset" class="full">
+              Select All
+            </button>
+          </menu>
+        </form>
       </section> <!-- main -->
 
       <section id='fixed-container' class='fixed-title-fb'></section>
@@ -144,7 +144,7 @@
         <hr>
         <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
         <div>
-          <img src="style/fb/throbber.gif">
+          <progress class="small"></progress>
         </div>
     </section>
 

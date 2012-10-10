@@ -43,6 +43,13 @@ form[role="search"].full p {
   padding: 0.3rem 3.2rem 0.3rem 2.5rem;
 }
 
+/* BB Confirm */
+
+form[role="dialog"].no-overlay {
+  background: none;
+}
+
+/* End BB */
 
 .view {
   position: fixed;
@@ -61,21 +68,17 @@ form[role="search"].full p {
   width: 100%;
   height: 100%;
   display: none;
+  background: #fff;
 }
 
 #curtain > div {
-  position: absolute;
-  top: 50%;
-  height: 32px;
-  margin-top: -16px;
-  left: 50%;
-  margin-left: -16px;
+  margin: 0 auto;
+  width: 32px;
 }
 
-#curtain > p.message {
-  width: 90%;
-  font-size: 2.2rem;
-  margin: 2.5rem auto 1.5rem;
+#curtain > p.message {  
+  font-size: 1.6rem;
+  margin: 5rem 3rem 2rem 3rem;
 }
 
 .friends-msg {
@@ -92,15 +95,13 @@ p#friends-msg {
 }
 
 #curtain > p.submessage {
-  width: 90%;
-  font-size: 1.5rem;
-  margin: 0 auto;
+  font-size: 1.6rem;
   font-weight: bold;
+  margin: 1.5rem 3rem 3.5rem 3rem;
 }
 
 #curtain > hr {
-  width: 90%;
-  margin: 1rem auto;
+  margin: 0 2.5rem;
 }
 
 #curtain > div > img {
