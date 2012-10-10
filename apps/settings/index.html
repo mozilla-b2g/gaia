@@ -246,7 +246,7 @@
       </ul>
 
       <!-- action menu -->
-      <form role="dialog" hidden>
+      <form role="dialog" data-type="action" hidden>
         <menu>
           <button data-l10n-id="forgetNetwork">Forget network</button>
           <button data-l10n-id="cancel" type="reset">Cancel</button>
@@ -263,8 +263,8 @@
 
       <ul>
         <li id="wifi-enabled">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="wifi">Wi-Fi</a>
@@ -328,8 +328,8 @@
 
       <ul>
         <li id="operator-autoSelect">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <small></small>
@@ -452,8 +452,8 @@
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.callwaiting.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
@@ -465,15 +465,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.roaming_enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
@@ -517,15 +517,15 @@
 
       <ul>
         <li id="bluetooth-status">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
         <li hidden id="device-visible">
-          <label class="switch">
-            <input type="checkbox" data-ignore checked />
+          <label>
+            <input type="checkbox" data-type="switch" data-ignore checked />
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
@@ -569,7 +569,7 @@
       </ul>
 
       <!-- action menu -->
-      <form role="dialog" id="paired-device-option" hidden>
+      <form role="dialog" data-type="action" id="paired-device-option" hidden>
         <menu>
           <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>
           <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
@@ -623,8 +623,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.wifi.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
@@ -662,8 +662,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.usb.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.usb.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="usb-tethering">USB Tethering</a>
@@ -742,15 +742,15 @@
       <!-- Ring and Vibrate -->
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ring.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="ring.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="ring">Ring</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="vibration.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="vibration.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
@@ -900,8 +900,8 @@
 
       <ul>
         <li id="time-nitz-automatic-update">
-          <label class="switch">
-            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
@@ -1250,8 +1250,8 @@
 
       <ul>
         <li id="simpin-enabled">
-          <label class="switch">
-            <input type="checkbox"/>
+          <label>
+            <input type="checkbox"/> data-type="switch"
             <span></span>
           </label>
           <a data-l10n-id="simPin">SIM PIN</a>
@@ -1648,8 +1648,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="powersave.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="powersave.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
@@ -1850,15 +1850,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.radio.disabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.radio.disabled" />
             <span></span>
           </label>
           <a data-l10n-id="airplaneMode">Airplane Mode</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="geolocation.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="geolocation.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="gps">GPS</a>
