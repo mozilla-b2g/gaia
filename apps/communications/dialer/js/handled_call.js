@@ -99,7 +99,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
     if (contact && contact.name) {
       node.textContent = contact.name;
-      KeypadManager.formatPhoneNumber('right');
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
       additionalInfoNode.textContent = additionalInfo ?
