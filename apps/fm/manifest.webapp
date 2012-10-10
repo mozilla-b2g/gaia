@@ -65,5 +65,6 @@
   "icons": {
     "128": "/style/icons/Fm.png",
     "60": "/style/icons/60/Fm.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }
