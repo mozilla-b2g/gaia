@@ -26,6 +26,7 @@
     "wifi-manage",
     "wifi",
     "desktop-notification",
+    "fullscreen",
     "idle",
     "network-events",
     "embed-apps"

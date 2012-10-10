@@ -393,7 +393,7 @@ window.addEventListener('localized', function showBody() {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
     window.setTimeout(function() {
-      document.location.hash = 'languages';
+      document.location.hash = document.location.hash;
     });
   }
 

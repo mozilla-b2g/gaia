@@ -7,6 +7,7 @@
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
     <script src="shared/js/l10n_date.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
@@ -184,7 +185,7 @@
       width: 100%;
       height: 100%;
 
-      background: #000 url('./resources/images/initlogo.png') bottom right no-repeat;
+      background: #000300 url('./resources/images/initlogo.png') bottom right no-repeat;
 
       z-index: 65536;
 
@@ -395,81 +396,6 @@
         </div>
       </div>
 
-      <!-- value selector -->
-      <div id="value-selector" hidden data-z-index-level="value-selector">
-        <!-- popup of options for select element -->
-        <form id="select-option-popup" role="dialog" onsubmit="return false;">
-          <section id="value-selector-container" onmousedown="return false;">
-            <h1 data-l10n-id="choose-option">Choose your option</h1>
-            <ol role="listbox">
-            </ol>
-          </section>
-          <menu id="select-options-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-          </menu>
-        </form>
-
-        <!-- Time Picker -->
-        <div id="time-picker-popup" hidden>
-          <div class="table-wrapper">
-            <div class="table-cell">
-              <div id="picker-bar" onmousedown="return false;">
-                <h3 data-l10n-id="select-time">Select time</h3>
-                <div id="picker-container">
-                  <div id="value-indicator-bottom"></div>
-                  <div id="picker-bar-background"></div>
-                  <div id="left-picker-separator"></div>
-                  <div id="value-indicator-wrapper">
-                    <div id="value-indicator-hover-time">:</div>
-                    <div id="value-indicator-hover"></div>
-                  </div>
-                  <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
-                  <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
-                  <div id="right-picker-separator"></div>
-                  <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
-                  <div id="picker-bar-gradient"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div id="time-picker-buttons">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-          </div>
-        </div>
-
-        <!-- Date Picker -->
-        <section role="dialog" id="date-picker-popup">
-          <div id="date-picker" onmousedown="return false;">
-            <h3 data-l10n-id="select-day">Select day</h3>
-            <header id="date-picker-controls">
-            <button class="previous">Previous</button>
-            <h1 id="current-month"></h1>
-            <button class="next">Next</button>
-            </header>
-
-            <ol id="date-picker-weekdays">
-              <li data-l10n-id="weekday-0-short">SUN</li>
-              <li data-l10n-id="weekday-1-short">MON</li>
-              <li data-l10n-id="weekday-2-short">TUE</li>
-              <li data-l10n-id="weekday-3-short">WED</li>
-              <li data-l10n-id="weekday-4-short">THU</li>
-              <li data-l10n-id="weekday-5-short">FRI</li>
-              <li data-l10n-id="weekday-6-short">SAT</li>
-            </ol>
-
-            <section id="date-picker-container">
-            </section>
-          </div>
-          <menu id="date-picker-buttons" data-items="2">
-            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
-          </menu>
-        </section>
-
-      </div>
-
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
@@ -549,6 +475,81 @@
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
       </div>
+
+      <!-- value selector -->
+      <div id="value-selector" hidden data-z-index-level="value-selector">
+        <!-- popup of options for select element -->
+        <form id="select-option-popup" role="dialog" onsubmit="return false;">
+          <section id="value-selector-container" onmousedown="return false;">
+            <h1 data-l10n-id="choose-option">Choose your option</h1>
+            <ol role="listbox">
+            </ol>
+          </section>
+          <menu id="select-options-buttons">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </menu>
+        </form>
+
+        <!-- Time Picker -->
+        <div id="time-picker-popup" hidden>
+          <div class="table-wrapper">
+            <div class="table-cell">
+              <div id="picker-bar" onmousedown="return false;">
+                <h3 data-l10n-id="select-time">Select time</h3>
+                <div id="picker-container">
+                  <div id="value-indicator-bottom"></div>
+                  <div id="picker-bar-background"></div>
+                  <div id="left-picker-separator"></div>
+                  <div id="value-indicator-wrapper">
+                    <div id="value-indicator-hover-time">:</div>
+                    <div id="value-indicator-hover"></div>
+                  </div>
+                  <div id="value-picker-hours" class="animation-on" onmousedown="return false;"></div>
+                  <div id="value-picker-minutes" class="animation-on" onmousedown="return false;"></div>
+                  <div id="right-picker-separator"></div>
+                  <div id="value-picker-hour24-state" class="animation-on" onmousedown="return false;"></div>
+                  <div id="picker-bar-gradient"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="time-picker-buttons">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+            <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </div>
+        </div>
+
+        <!-- Date Picker -->
+        <section role="dialog" id="date-picker-popup">
+          <div id="date-picker" onmousedown="return false;">
+            <h3 data-l10n-id="select-day">Select day</h3>
+            <header id="date-picker-controls">
+            <button class="previous">Previous</button>
+            <h1 id="current-month"></h1>
+            <button class="next">Next</button>
+            </header>
+
+            <ol id="date-picker-weekdays">
+              <li data-l10n-id="weekday-0-short">SUN</li>
+              <li data-l10n-id="weekday-1-short">MON</li>
+              <li data-l10n-id="weekday-2-short">TUE</li>
+              <li data-l10n-id="weekday-3-short">WED</li>
+              <li data-l10n-id="weekday-4-short">THU</li>
+              <li data-l10n-id="weekday-5-short">FRI</li>
+              <li data-l10n-id="weekday-6-short">SAT</li>
+            </ol>
+
+            <section id="date-picker-container">
+            </section>
+          </div>
+          <menu id="date-picker-buttons" data-items="2">
+            <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
+            <button class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onmousedown="return false;">Ok</button>
+          </menu>
+        </section>
+      </div>
+
 
       <div id="notification-toaster" data-z-index-level="notification-toaster">
         <img id="toaster-icon" />

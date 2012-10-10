@@ -152,29 +152,36 @@ var AttentionScreen = {
 
   // Invoked when we get a "home" event
   hide: function as_hide() {
-    if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
-      if (!this.mainScreen.classList.contains('active-statusbar')) {
-        // The user is hiding the attention screen to use the phone we better
-        // not turn the sreen off when the attention screen is closed.
-        this._screenInitiallyDisabled = false;
-
-        this.mainScreen.classList.add('active-statusbar');
-
-        this.dispatchEvent('status-active');
-
-        var attentionScreen = this.attentionScreen;
-        attentionScreen.addEventListener('transitionend', function trWait() {
-            attentionScreen.removeEventListener('transitionend', trWait);
-            attentionScreen.classList.add('status-mode');
-        });
-      }
+    if (this.attentionScreen.querySelectorAll('iframe').length == 0 ||
+        this.mainScreen.classList.contains('active-statusbar')) {
+      return;
     }
+
+    if (!this.dispatchEvent('beforeattentionscreenhide')) {
+      return;
+    }
+
+    // The user is hiding the attention screen to use the phone we better
+    // not turn the sreen off when the attention screen is closed.
+    this._screenInitiallyDisabled = false;
+
+    this.mainScreen.classList.add('active-statusbar');
+
+    this.dispatchEvent('status-active');
+
+    var attentionScreen = this.attentionScreen;
+    attentionScreen.addEventListener('transitionend', function trWait() {
+      attentionScreen.removeEventListener('transitionend', trWait);
+      attentionScreen.classList.add('status-mode');
+    });
+
+    this.dispatchEvent('attentionscreenhide');
   },
 
   dispatchEvent: function ls_dispatchEvent(name) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
-    window.dispatchEvent(evt);
+    return window.dispatchEvent(evt);
   },
 
   showForOrigin: function as_showForOrigin(origin) {

@@ -23,7 +23,7 @@ var ValueSelector = {
 
     window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
-        'time', 'datetime', 'datetime-local'];
+                          'time', 'datetime', 'datetime-local'];
 
       var type = evt.detail.type;
       // handle the <select> element and inputs with type of date/time

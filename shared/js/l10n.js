@@ -38,6 +38,13 @@
 
   var gDEBUG = false;
 
+  /**
+   * On desktop build where navigator.language could not be synced with the
+   * value of the 'language.current' setting make sure to use the value of the
+   * setting when the page loads.
+   */
+  var gIgnoreNavigatorLanguage = false;
+
   function consoleLog(message) {
     if (gDEBUG) {
       console.log('[l10n] ' + message);
@@ -905,9 +912,20 @@
 
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function l10nStartup() {
+    if (gIgnoreNavigatorLanguage) {
+      if ('mozSettings' in navigator && navigator.mozSettings) {
+        var req = navigator.mozSettings.createLock().get('language.current');
+        req.onsuccess = function() {
+          gReadyState = 'interactive';
+          loadLocale(req.result['language.current'], translateFragment);
+        };
+      }
+      return;
+    }
+
     gReadyState = 'interactive';
     consoleLog('loading [' + navigator.language + '] resources, ' +
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
+               (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
   });
 

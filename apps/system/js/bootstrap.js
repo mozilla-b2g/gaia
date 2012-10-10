@@ -4,24 +4,114 @@
 'use strict';
 
 function startup() {
-  function launchHomescreen() {
+  function handleInitLogo() {
+    var initlogo = document.getElementById('initlogo');
+    if (initlogo.classList.contains('hide')) {
+      return;
+    }
+
+    initlogo.classList.add('hide');
+    initlogo.addEventListener('transitionend', function delInitlogo() {
+      initlogo.removeEventListener('transitionend', delInitlogo);
+      initlogo.parentNode.removeChild(initlogo);
+    });
+  };
+
+  function launchFirstRun() {
+    // Hold on the 'home' key until a proper exit of the first run
+    // configuration.
+    var noHome = function(e) {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeattentionscreenhide', noHome, true);
+
+    // Wait for the firstrun application to show up to fade the initlogo
+    window.addEventListener('mozbrowserloadend', function onFirstRun(e) {
+      var frame = e.target;
+      if (frame.dataset.frameType != 'attention') {
+        return;
+      }
+      window.removeEventListener('mozbrowserloadend', onFirstRun);
+
+      var lockscreen = document.getElementById('lockscreen');
+
+      frame.mozRequestFullScreen();
+      window.addEventListener('mozfullscreenchange', function onfullscreen(e) {
+        window.removeEventListener('mozfullscreenchange', onfullscreen);
+
+        setTimeout(function() {
+          lockscreen.style.display = 'none';
+          handleInitLogo();
+        });
+      });
+
+      frame.addEventListener('mozbrowserclose', function onFirstRunEnd(e) {
+        window.removeEventListener('mozbrowserclose', onFirstRunEnd);
+        window.removeEventListener('beforeattentionscreenhide', noHome, true);
+        lockscreen.style.display = 'block';
+      });
+    });
+
+    // Look for someone listening the firstrun message
+    for (var manifestURL in Applications.installedApps) {
+      var app = Applications.installedApps[manifestURL];
+      var messages = app.manifest.messages;
+      if (!messages) {
+        continue;
+      }
+
+      for (var key in messages) {
+        var message = messages[key];
+        if (message['firstrun']) {
+          // Emulate a system message until there is really one.
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=793557
+          var evt = document.createEvent('CustomEvent');
+          evt.initCustomEvent('mozChromeEvent', true, false, {
+            type: 'open-app',
+            isActivity: false,
+            manifestURL: manifestURL,
+            url: manifestURL.replace('manifest.webapp', message['firstrun'])
+          });
+          window.dispatchEvent(evt);
+        }
+      }
+    }
+  }
+
+  function launchHomescreen(needFirstRun) {
     var activity = new MozActivity({
       name: 'view',
       data: { type: 'application/x-application-list' }
     });
+
+    var homescreenLaunchCallback = function() {
+      if (needFirstRun) {
+        launchFirstRun();
+      } else {
+        handleInitLogo();
+      }
+    }
+
+    activity.onsuccess = homescreenLaunchCallback;
+
     activity.onerror = function homescreenLaunchError() {
       console.error('Failed to launch home screen with activity.');
+      homescreenLaunchCallback();
     };
   }
 
-  if (Applications.ready) {
-    launchHomescreen();
-  } else {
-    window.addEventListener('applicationready', function appListReady(event) {
-      window.removeEventListener('applicationready', appListReady);
-      launchHomescreen();
-    });
-  }
+  asyncStorage.getItem('system.lastRun', function getLastRun(value) {
+    var needFirstRun = !value;
+    asyncStorage.setItem('system.lastRun', Date.now());
+
+    if (Applications.ready) {
+      launchHomescreen(needFirstRun);
+    } else {
+      window.addEventListener('applicationready', function onAppReady() {
+        launchHomescreen(needFirstRun);
+      });
+    }
+  });
 
   SourceView.init();
   Shortcuts.init();
