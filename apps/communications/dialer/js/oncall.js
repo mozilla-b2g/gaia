@@ -524,3 +524,13 @@ window.addEventListener('localized', function callSetup(evt) {
   CallScreen.syncSpeakerEnabled();
   OnCallHandler.setup();
 });
+
+// Accommodate if home button is pressed
+window.addEventListener('resize', function() {
+    if (40 < document.body.clientHeight) {
+      KeypadManager.formatPhoneNumber('right');
+    } else {
+      document.querySelector('#calls .number').removeAttribute('style');
+    }
+    console.log('resize');
+}, false);
