@@ -389,7 +389,7 @@ Evme.Shortcuts = new function() {
     
     function click(data) {
         if (_this.swiped() || !_this.enabled()) {
-            return false;
+            return;
         }
         
         Evme.EventHandler.trigger(_name, "click", data);
@@ -397,7 +397,7 @@ Evme.Shortcuts = new function() {
     
     function remove(data) {
         if (_this.swiped() || !_this.enabled()) {
-            return false;
+            return;
         }
         
         Evme.EventHandler.trigger(_name, "remove", data);
@@ -500,7 +500,7 @@ Evme.Shortcut = function() {
     }
     
     function touchmove(e) {
-        if (!touchStartPos) { return; }
+        if (!touchStartPos) return;
         
         var point = getEventPoint(e),
             distanceX = [point[0] - touchStartPos[0]];
@@ -511,7 +511,7 @@ Evme.Shortcut = function() {
     }
     
     function clicked() {
-        if (tapIgnored) { return false; }
+        if (tapIgnored) return;
 
         window.clearTimeout(timeoutDrag);
         
