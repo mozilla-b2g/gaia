@@ -1,0 +1,120 @@
+#update-manager-container {
+  position: relative;
+  height: 60px;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  border-top: 1px black solid;
+  border-bottom: 1px black solid;
+
+  display: none;
+}
+
+#update-manager-container.displayed {
+  display: block;
+}
+
+#update-manager-container > .activity {
+  display: none;
+  float: left;
+  width: 40px;
+  height: 40px;
+  margin: 10px 15px 10px 10px;
+
+  background-image: url(images/loader.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  animation: 0.9s rotate infinite linear;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#update-manager-container.downloading > .activity {
+  display: block;
+}
+
+#update-manager-container > .count,
+#update-manager-toaster > .count {
+  float: left;
+  width: 40px;
+  height: 40px;
+  margin: 10px 15px 10px 10px;
+
+  border-radius: 10px;
+
+  background-color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
+
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.8rem;
+  line-height: 40px;
+}
+
+#update-manager-toaster > .count {
+  width: 30px;
+  height: 20px;
+  margin: 10px 15px 10px 10px;
+
+  border-radius: 5px;
+
+  font-size: 1.3rem;
+  line-height: 20px;
+}
+
+#update-manager-container.downloading > .count {
+  display: none;
+}
+
+#update-manager-toaster > .message,
+#update-manager-container > .message {
+  margin: 10px;
+
+  line-height: 20px;
+  font-weight: 700;
+  font-size: 1.6rem;
+}
+
+#update-manager-container > .message > span {
+  display: block;
+
+  line-height: 20px;
+  font-weight: 300;
+  font-size: 1.2rem;
+}
+
+#update-manager-toaster > .message > span {
+  display: none;
+}
+
+#update-manager-toaster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+
+  overflow: hidden;
+
+  background-image: url('images/grey-noise-bg.png');
+  background-repeat: repeat-x;
+  -moz-box-sizing: border-box;
+  border-bottom: 1px #2c2c2c solid;
+
+  font-size: 1em;
+
+  -moz-transform: translateY(-40px);
+  -moz-transition: -moz-transform .3s ease-in-out;
+}
+
+#update-manager-toaster.displayed {
+  -moz-transform: translateY(0);
+}
