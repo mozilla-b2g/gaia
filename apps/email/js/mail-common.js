@@ -550,6 +550,10 @@ var Cards = {
    * https://wiki.mozilla.org/Gaia/Design/Patterns#Dialogues:_Popups
    */
   popupMenuForNode: function(menuTree, domNode, legalClickTargets, callback) {
+    // If node is message bubble, display the address while menu popup.
+    if (domNode.classList.contains('msg-peep-bubble')) {
+      domNode.lastElementChild.classList.remove('collapsed');
+    }
     var self = this,
         bounds = domNode.getBoundingClientRect();
 
@@ -560,6 +564,10 @@ var Cards = {
         self._popupActive = false;
         self._rootNode.removeChild(popupInfo.popupNode);
         popupInfo.maskNodeCleanup();
+        // If node is message bubble, collapse the address while menu close.
+        if (domNode.classList.contains('msg-peep-bubble')) {
+          domNode.lastElementChild.classList.add('collapsed');
+        }
         callback(result);
       }
     };
