@@ -22,7 +22,10 @@ Calendar.ns('Controllers').Sync = (function() {
 
       // used instead of bind for testing reasons.
       account.on('add', function(id, data) {
-        self._syncAccount(data);
+        self.emit('sync start');
+        self._syncAccount(data, function() {
+          self.emit('sync complete');
+        });
       });
     },
 
