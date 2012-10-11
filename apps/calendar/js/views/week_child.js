@@ -26,10 +26,10 @@ Calendar.ns('Views').WeekChild = (function() {
       return template.header.render(format);
     },
 
-    _renderEvent: function(event) {
+    _renderEvent: function(busytime, event) {
       var render = template.event.render({
         calendarId: event.calendarId,
-        eventId: event._id,
+        busytimeId: busytime._id,
         title: event.remote.title
       });
 

@@ -131,7 +131,7 @@ suite('controllers/alarm', function() {
             assert.equal(note[1], event.remote.description);
             note[3]();
             assert.ok(sentTo);
-            assert.include(sentTo, event._id);
+            assert.include(sentTo, busytime._id);
           });
         }
 
@@ -182,6 +182,10 @@ suite('controllers/alarm', function() {
           var trans = createTrans(done);
           cb(trans);
 
+          if (alarm) {
+            alarmStore.persist(alarm, trans);
+          }
+
           if (event) {
             eventStore.persist(event, trans);
           }
@@ -206,7 +210,7 @@ suite('controllers/alarm', function() {
           });
 
           alarm = Factory('alarm', {
-            trigger: new Date(2012, 0, 2),
+            startDate: new Date(2012, 0, 2),
             eventId: event._id,
             busytimeId: busytime._id
           });

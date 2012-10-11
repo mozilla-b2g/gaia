@@ -1,5 +1,7 @@
 Calendar.ns('Service').Caldav = (function() {
 
+  var debug = Calendar.debug('caldav service');
+
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
     mozSystem: true
@@ -92,7 +94,6 @@ Calendar.ns('Service').Caldav = (function() {
 
       // include only the VEVENT in the data
       query.data.setComp('VCALENDAR').comp('VEVENT');
-
       return query;
     },
 
@@ -212,6 +213,45 @@ Calendar.ns('Service').Caldav = (function() {
         exceptions: exceptions,
         icalComponent: component
       };
+
+      return result;
+    },
+
+    /**
+     * Find and parse the display alarms for an event.
+     *
+     * @param {Object} details details for specific instance.
+     */
+    _displayAlarms: function(details) {
+      var event = details.item;
+      var comp = event.component;
+      var alarms = comp.getAllSubcomponents('VALARM');
+      var result = [];
+
+      var start = details.startDate;
+      var self = this;
+
+      alarms.forEach(function(instance) {
+        var action = instance.getFirstPropertyValue('ACTION');
+        if (action) {
+          action = action.data.value[0];
+          if (action === 'DISPLAY') {
+            // lets just assume we might have multiple triggers
+            var triggers = instance.getAllProperties('TRIGGER');
+            var i = 0;
+            var len = triggers.length;
+
+            for (; i < len; i++) {
+              var time = start.clone();
+              time.addDuration(triggers[i].data.value[0]);
+
+              result.push({
+                startDate: self.formatICALTime(time)
+              });
+            }
+          }
+        }
+      });
 
       return result;
     },
@@ -383,9 +423,15 @@ Calendar.ns('Service').Caldav = (function() {
       var limit = options.limit || Infinity;
 
       var maxDate;
+      var now;
 
       if (options.maxDate)
         maxDate = this.formatInputTime(options.maxDate);
+
+      if (!('now' in options))
+        options.now = ICAL.icaltime.now();
+
+      now = options.now;
 
       // convert to rich ical event
       this.parseEvent(component, function(err, event) {
@@ -436,12 +482,26 @@ Calendar.ns('Service').Caldav = (function() {
           next = iter.next();
 
           if (!next) {
-            stream.emit('recurring end');
+            stream.emit('occurrences end');
             break;
           }
 
+
           details = event.getOccurrenceDetails(next);
           lastStart = details.startDate;
+
+
+          var inFuture = details.endDate.compare(now);
+
+          if (Calendar.DEBUG) {
+            debug('alarm time',
+                  event.summary,
+                  'will add ' + String(inFuture),
+                  'start:', details.startDate.toJSDate().toString(),
+                  'end:', details.endDate.toJSDate().toString(),
+                  'now:', now.toJSDate().toString());
+          }
+
           occurrence = {
             start: self.formatICALTime(details.startDate),
             end: self.formatICALTime(details.endDate),
@@ -449,6 +509,13 @@ Calendar.ns('Service').Caldav = (function() {
             eventId: details.item.uid,
             isException: details.item.isRecurrenceException()
           };
+          // only set alarms for those dates in the future...
+          if (inFuture >= 0) {
+            var alarms = self._displayAlarms(details);
+            if (alarms) {
+              occurrence.alarms = alarms;
+            }
+          }
 
           last = next;
           stream.emit('occurrence', occurrence);
@@ -489,30 +556,28 @@ Calendar.ns('Service').Caldav = (function() {
         var result = self._formatEvent(etag.value, url, event);
         stream.emit('event', result);
 
-        if (event.isRecurring()) {
+        var options = {
+          limit: self._defaultOccurrenceLimit,
+          maxDate: self._defaultMaxDate(),
+          now: ICAL.icaltime.now()
+        };
 
-          var options = {
-            limit: self._defaultOccurrenceLimit,
-            maxDate: self._defaultMaxDate()
-          };
+        self.expandRecurringEvent(event, options, stream,
+                                  function(err, iter) {
 
-          self.expandRecurringEvent(event, options, stream,
-                                    function(err, iter) {
+          if (err) {
+            callback(err);
+            return;
+          }
 
-            if (err) {
-              callback(err);
-              return;
-            }
-
+          if (!iter.complete) {
             stream.emit('recurring iterator', {
               id: event.uid, iterator: iter
             });
+          }
 
-            callback(null);
-          });
-        } else {
           callback(null);
-        }
+        });
       });
     },
 
@@ -522,6 +587,11 @@ Calendar.ns('Service').Caldav = (function() {
       var connection = new Caldav.Connection(
         account
       );
+
+      var cache = options.cached;
+
+      // we don't need to pass this around anywhere.
+      //delete options.cache;
 
       var request = this._requestEvents(connection, calendar, options);
       var pending = 0;
@@ -541,8 +611,20 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       function handleResponse(url, data) {
-        pending++;
-        self._handleCaldavEvent(url, data, stream, next);
+        var etag = data.getetag.value;
+
+        if (url in cache) {
+          // don't need to track this for missing events.
+          if (etag !== cache[url].syncToken) {
+            pending++;
+            self._handleCaldavEvent(url, data, stream, next);
+          }
+
+          delete cache[url];
+        } else {
+          pending++;
+          self._handleCaldavEvent(url, data, stream, next);
+        }
       }
 
       request.sax.on('DAV:/response', handleResponse);
@@ -556,6 +638,15 @@ Calendar.ns('Service').Caldav = (function() {
         );
 
         if (!pending) {
+          var missing = [];
+
+          for (var url in cache) {
+            missing.push(cache[url].id);
+          }
+
+          // send missing events
+          stream.emit('missing events', missing);
+
           // notify the requester that we have completed.
           callback(err);
         }

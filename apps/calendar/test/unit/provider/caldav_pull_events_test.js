@@ -14,6 +14,7 @@ suite('provider/caldav_pull_events', function() {
   var fixtures;
   var ical;
   var subject;
+  var controller;
   var stream;
   var db;
   var app;
@@ -32,10 +33,6 @@ suite('provider/caldav_pull_events', function() {
       options.account = account;
     }
 
-    if (!options.cached) {
-      options.cached = Object.create(null);
-    }
-
     stream = new Calendar.Responder();
 
     options.app = app;
@@ -50,15 +47,17 @@ suite('provider/caldav_pull_events', function() {
     this.timeout(10000);
     ical = new ServiceSupport.Fixtures('ical');
     ical.load('single_event');
+    ical.load('daily_event');
     ical.load('recurring_event');
     ical.onready = done;
     fixtures = {};
+
     service = new Calendar.Service.Caldav(
       new Calendar.Responder()
     );
   });
 
-  ['singleEvent', 'recurringEvent'].forEach(function(item) {
+  ['singleEvent', 'dailyEvent', 'recurringEvent'].forEach(function(item) {
     setup(function(done) {
       service.parseEvent(ical[item], function(err, event) {
         fixtures[item] = service._formatEvent('abc', '/foobar.ics', event);
@@ -80,6 +79,7 @@ suite('provider/caldav_pull_events', function() {
     this.timeout(5000);
     app = testSupport.calendar.app();
     db = app.db;
+    controller = app.timeController;
 
     db.open(function(err) {
       assert.ok(!err);
@@ -111,9 +111,13 @@ suite('provider/caldav_pull_events', function() {
   teardown(function(done) {
     testSupport.calendar.clearStore(
       db,
-      ['accounts', 'calendars', 'events', 'busytimes'],
+      ['accounts', 'calendars', 'events', 'busytimes', 'alarms'],
       done
     );
+  });
+
+  teardown(function() {
+    db.close();
   });
 
   test('initializer', function() {
@@ -228,57 +232,92 @@ suite('provider/caldav_pull_events', function() {
     var times = [];
     var event;
 
-    setup(function(done) {
-      event = serviceEvent('recurringEvent');
-      var stream = new Calendar.Responder();
+    function expand(event, limit=5) {
+      setup(function(done) {
+        times.length = 0;
+        event = serviceEvent(event);
+        var stream = new Calendar.Responder();
 
-      stream.on('occurrence', function(item) {
-        times.push(item);
+        stream.on('occurrence', function(item) {
+          times.push(item);
+        });
+
+        service.expandRecurringEvent(
+          event.icalComponent,
+          { limit: limit },
+          stream,
+          function() {
+            done();
+          }
+        );
       });
+    }
 
-      service.expandRecurringEvent(
-        event.icalComponent,
-        { limit: 5 },
-        stream,
-        function() {
-          done();
-        }
-      );
+    suite('without exceptions', function() {
+      expand('dailyEvent');
+
+      test('non-exception result', function() {
+        var time = times[1];
+        assert.isFalse(time.isException, 'is exception');
+
+        var result = subject.formatBusytime(time);
+        var modelCopy = Object.create(result);
+        modelCopy = app.store('Busytime').initRecord(modelCopy);
+
+        assert.hasProperties(
+          result,
+          modelCopy,
+          'is a model'
+        );
+
+        var eventId = result.eventId;
+        var calendarId = result.calendarId;
+
+        assert.ok(eventId, 'has event');
+        assert.ok(calendarId, 'has calendar');
+
+        assert.instanceOf(result.alarms, Array);
+
+        result.alarms.forEach(function(alarm) {
+          assert.equal(alarm.busytimeId, result._id);
+          assert.equal(alarm.eventId, eventId);
+        });
+      });
     });
 
-    test('non-exception busytime', function() {
-      var time = times[1];
-      assert.isFalse(time.isException, 'is exception');
+    suite('with exceptions', function() {
+      expand('recurringEvent');
 
-      var eventId = subject.eventIdFromRemote(time, true);
-      var result = subject.formatBusytime(time);
-      assert.equal(result.eventId, eventId);
-    });
+      test('result', function() {
+        var time = times[2];
+        assert.isTrue(time.isException, 'is exception');
 
-    test('exception busytime', function() {
-      var time = times[2];
-      assert.isTrue(time.isException, 'is exception');
+        var eventId = subject.eventIdFromRemote(
+          time
+        );
 
-      var eventId = subject.eventIdFromRemote(
-        time
-      );
+        var id = subject.busytimeIdFromRemote(
+          time
+        );
 
-      var id = subject.busytimeIdFromRemote(
-        time
-      );
+        var result = subject.formatBusytime(time);
 
-      var result = subject.formatBusytime(time);
+        assert.equal(result.calendarId, calendar._id);
 
-      assert.equal(result.calendarId, calendar._id);
+        assert.equal(
+          result._id,
+          id,
+          '_id'
+        );
 
-      assert.equal(
-        result._id,
-        id,
-        '_id'
-      );
+        assert.include(
+          result.eventId,
+          times[2].recurrenceId.utc,
+          'has utc time'
+        );
 
-      assert.include(result.eventId, times[2].recurrenceId.utc, 'has utc time');
-      assert.equal(result.eventId, eventId);
+        assert.equal(result.eventId, eventId);
+      });
     });
   });
 
@@ -287,6 +326,7 @@ suite('provider/caldav_pull_events', function() {
     var eventStore;
     var newEvent;
     var newBusytime;
+    var alarm;
 
     setup(function() {
       removed.length = 0;
@@ -299,7 +339,7 @@ suite('provider/caldav_pull_events', function() {
       newEvent = subject.formatEvent(newEvent);
 
       subject.eventQueue.push(newEvent);
-      subject.removeList.push('1');
+      subject.removeList = ['1'];
 
       newBusytime = Factory('busytime', {
         eventId: newEvent._id,
@@ -307,6 +347,14 @@ suite('provider/caldav_pull_events', function() {
       });
 
       subject.busytimeQueue.push(newBusytime);
+
+      alarm = Factory('alarm', {
+        startDate: new Date(),
+        eventId: newEvent._id,
+        busytimeId: newBusytime._id
+      });
+
+      subject.alarmQueue.push(alarm);
     });
 
     function commit(fn) {
@@ -319,12 +367,25 @@ suite('provider/caldav_pull_events', function() {
       });
     }
 
-    suite('busytimes', function() {
+    suite('busytime/alarm', function() {
       commit();
 
-      test('result', function(done) {
-        var id = newBusytime._id;
+      test('alarm', function(done) {
+        var trans = db.transaction('alarms');
+        var store = trans.objectStore('alarms');
+        var index = store.index('busytimeId');
 
+        index.get(alarm.busytimeId).onsuccess = function(e) {
+          done(function() {
+            var data = e.target.result;
+            assert.ok(data, 'has alarm');
+            assert.hasProperties(data, alarm, 'alarm matches');
+          });
+        }
+      });
+
+      test('busytimes', function(done) {
+        var id = newBusytime._id;
         var trans = db.transaction('busytimes');
         var store = trans.objectStore('busytimes');
 
@@ -342,8 +403,18 @@ suite('provider/caldav_pull_events', function() {
           });
         };
       });
+
     });
 
+    suite('without remove list', function() {
+      setup(function() {
+        subject.removeList = null;
+      });
+
+      test('result', function(done) {
+        subject.commit(done);
+      });
+    });
 
     suite('tokens', function() {
       suite('first sync', function() {
@@ -414,7 +485,6 @@ suite('provider/caldav_pull_events', function() {
       commit();
 
       test('result', function(done) {
-        eventStore._cached = Object.create(null);
         eventStore.findByIds([newEvent._id], function(err, list) {
           done(function() {
             assert.length(Object.keys(list), 1, 'saved events');
@@ -431,12 +501,12 @@ suite('provider/caldav_pull_events', function() {
     var event;
 
     setup(function(done) {
-      event = serviceEvent('recurringEvent');
+      event = serviceEvent('dailyEvent');
       addedTimes.length = 0;
 
       var store = app.store('Busytime');
 
-      store.addTime = function(given) {
+      controller.cacheBusytime = function(given) {
         addedTimes.push(given);
       };
 
@@ -466,6 +536,10 @@ suite('provider/caldav_pull_events', function() {
         copy(0)
       );
 
+      var alarms = expected.alarms;
+      delete expected.alarms;
+      assert.ok(alarms, 'has alarms');
+
       stream.emit('occurrence', times[0]);
       assert.length(subject.busytimeQueue, 1);
 
@@ -475,14 +549,28 @@ suite('provider/caldav_pull_events', function() {
         'queued'
       );
 
+      assert.ok(!subject.busytimeQueue[0].alarms, 'removes alarms');
+
+      assert.deepEqual(
+        subject.alarmQueue, alarms,
+        'moves moves to alarm queue'
+      );
+
       assert.equal(addedTimes[0]._id, expected._id, 'added times');
     });
 
   });
 
+  test('#handleMissingEvents', function() {
+    stream.emit('missing events', ['1', '2']);
+    assert.deepEqual(subject.removeList, ['1', '2']);
+  });
+
   suite('#handleEventSync', function() {
 
     test('recurring', function() {
+      // control is needed to verify we have not mutated
+      // the results by using the same object during the test.
       var control = serviceEvent('recurringEvent');
       control = subject.formatEvent(control);
       assert.length(control.remote.exceptions, 2);
@@ -517,22 +605,7 @@ suite('provider/caldav_pull_events', function() {
       existing = subject.formatEvent(existing);
       existing.remote.syncToken = 'abx1';
 
-      var cached = {};
-      cached[existing._id] = existing;
-
-      subject = createSubject({ cached: cached });
-
-      assert.deepEqual(
-        subject.cached,
-        cached,
-        'cached'
-      );
-
-      assert.deepEqual(
-        subject.removeList,
-        Object.keys(cached),
-        'remove list'
-      );
+      subject = createSubject();
 
       var newEvent = serviceEvent('singleEvent');
       newEvent.syncToken = 'bbx1';
@@ -545,54 +618,26 @@ suite('provider/caldav_pull_events', function() {
 
       stream.emit('event', newEvent);
 
-      assert.length(subject.removeList, 0, 'remove list after sync');
       assert.length(
         subject.eventQueue,
         1
       );
     });
 
-    test('same tokens', function() {
-      var existing = serviceEvent('singleEvent');
-      existing = subject.formatEvent(existing);
-
-      var cached = {};
-      cached[existing._id] = existing;
-
-      subject = createSubject({ cached: cached });
-
-      assert.deepEqual(
-        subject.cached,
-        cached,
-        'cached'
-      );
-
-      assert.deepEqual(
-        subject.removeList,
-        Object.keys(cached),
-        'remove list'
-      );
-
-      var newEvent = serviceEvent('singleEvent');
-
-      assert.equal(
-        newEvent.syncToken,
-        existing.remote.syncToken,
-        'sync tokens match'
-      );
-
-      stream.emit('event', newEvent);
-
-      assert.length(subject.removeList, 0, 'remove list after sync');
-      assert.length(
-        subject.eventQueue,
-        0
-      );
-    });
-
     test('event new', function() {
+      var calledWith;
+      controller.cacheEvent = function() {
+        calledWith = arguments;
+      };
+
       var event = serviceEvent('singleEvent');
       stream.emit('event', event);
+
+      assert.hasProperties(
+        calledWith[0].remote,
+        event.remote,
+        'caches remote event'
+      );
 
       assert.deepEqual(
         subject.eventQueue,

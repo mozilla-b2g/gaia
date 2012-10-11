@@ -14,7 +14,7 @@
 
     event: [
       '<section class="event calendar-id-{calendarId} ' +
-           'calendar-display" data-id="{eventId}">',
+           'calendar-display" data-id="{busytimeId}">',
         '<div class="container calendar-id-{calendarId} calendar-color">',
           '<h5>{title}</h5>',
           '<span class="details">',
