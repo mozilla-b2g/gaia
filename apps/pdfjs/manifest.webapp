@@ -26,8 +26,10 @@
       "href": "/content/web/viewer.html"
     }
   },
+  "fullscreen":	"true",
   "permissions": [
     "systemXHR",
-    "settings"
+    "settings",
+    "desktop-notification"
   ]
 }

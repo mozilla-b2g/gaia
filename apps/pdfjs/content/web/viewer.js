@@ -424,14 +424,26 @@ var PDFView = {
           }
         }
 
+        var loading_file_error_title = mozL10n.get('loading_error', null,
+          'An error occurred while loading the PDF.');
+        if (exception && exception.name === 'InvalidPDFException') {
+          if (exception.code === 'invalidpdfstructure') {
+            message = mozL10n.get('invalid_pdf_structure', null, 
+                'Invalid PDF structure');
+          }
+          var notification = navigator.mozNotification.createNotification(
+              loading_file_error_title, message);
+          notification.show();
+          return window.close();
+        }
+
         var loadingIndicator = document.getElementById('loading');
         loadingIndicator.textContent = mozL10n.get('loading_error_indicator',
           null, 'Error');
         var moreInfo = {
           message: message
         };
-        self.error(mozL10n.get('loading_error', null,
-          'An error occurred while loading the PDF.'), moreInfo);
+        self.error(loading_file_error_title, moreInfo);
         self.loading = false;
       },
       function getDocumentProgress(progressData) {
