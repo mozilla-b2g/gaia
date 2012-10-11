@@ -89,7 +89,7 @@ section[role="region"] > header:first-child sup {
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
-  font-family: Open Sans;
+  font-family: MozTT;
   font-weight: 600;
   font-size: 1.3rem;
   line-height: 1.3em;
@@ -97,7 +97,7 @@ section[role="region"] > header:first-child sup {
 }
 
 #contact-detail h1 {
-  font: 1.4rem/1.5em Open Sans, Sans-serif;
+  font: 1.4rem/1.5em MozTT, Sans-serif;
   font-weight: 600;
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
