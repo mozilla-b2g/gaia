@@ -167,6 +167,8 @@ profile: applications-data preferences app-makefiles test-agent-config offline e
 	  $(call run-js-command, settings); \
 	fi ;
 
+	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
+
 LANG=POSIX # Avoiding sort order differences between OSes
 
 app-makefiles:
