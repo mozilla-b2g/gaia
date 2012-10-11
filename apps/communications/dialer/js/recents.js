@@ -95,6 +95,10 @@ var Recents = {
         this.selectAllEntries.bind(this));
     }
     if (this.recentsContainer) {
+      this.recentsContainer.addEventListener('mousedown',
+        this.mouseDown.bind(this));
+      this.recentsContainer.addEventListener('mouseup',
+        this.mouseUp.bind(this));
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
     }
@@ -318,7 +322,24 @@ var Recents = {
     return entriesInGroup;
   },
 
+  mouseDown: function re_mouseDown(event) {
+    this._mouseDownX = event.screenX;
+    this._mouseDownY = event.screenY;
+  },
+
+  mouseUp: function re_mouseUp(event) {
+    if (Math.abs(this._mouseDownX - event.screenX) > 10 ||
+      Math.abs(this._mouseDownY - event.screenY) > 10) {
+      this._ignoreClickEvent = true;
+    } else {
+      this._ignoreClickEvent = false;
+    }
+  },
+
   click: function re_click(event) {
+    if (this._ignoreClickEvent) {
+      return;
+    }
     var target = event.target;
     if (!target) {
       return;
@@ -670,4 +691,3 @@ window.addEventListener('localized', function recentsSetup() {
     FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
 });
-
