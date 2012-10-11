@@ -9,8 +9,8 @@ html, body {
 }
 
 /* BB Headers */
-body[role="application"] section[role="region"] > header {
-  background: url(headers/images/ui/header.png);
+body[role="application"] section[role="region"] > header:first-child {
+  background-image: url(headers/images/ui/header.png);
 }
 
 body[role="application"] section[role="region"] > header menu[type="toolbar"] a:last-child,
@@ -27,20 +27,6 @@ body[role="application"] section[role="region"] > header > button .icon:after,
 body[role="application"] section[role="region"] > header > a .icon:after {
   background-image: url(headers/images/ui/negative.png);
   background-color: #3B5998;
-}
-
-/* BB Input areas */
-form[role="search"].full {
-  border-bottom: 0.1rem solid #C8C8C8;
-  padding-top: 0.3rem;
-}
-
-form[role="search"].full:after {
-  background: none;
-}
-
-form[role="search"].full label {
-  padding: 0.3rem 3.2rem 0.3rem 2.5rem;
 }
 
 /* BB Confirm */
@@ -61,14 +47,16 @@ form[role="dialog"].no-overlay button {
 
 /* Activity indicator */
 progress:not([value]) {
-   width: 2.9rem;
-   height: 2.9rem;
-   background: url(../images/spinner.png) no-repeat left top;
-   border: none;
-   animation: 1s moveDefault infinite steps(10);
-   display: inline-block;
-   vertical-align: middle;
- }
+  margin-top: 5rem;
+  margin-left: calc(50% - 1.45rem);
+  width: 2.9rem;
+  height: 2.9rem;
+  background: url(../images/spinner.png) no-repeat left top;
+  border: none;
+  animation: 1s moveDefault infinite steps(10);
+  display: inline-block;
+  vertical-align: middle;
+}
 
 progress:not([value])::-moz-progress-bar {
    background: none;
@@ -114,41 +102,18 @@ progress:not([value])::-moz-progress-bar {
   background: #fff;
 }
 
-#curtain > div {
-  margin: 0 auto;
-  width: 32px;
-}
-
-#curtain > p.message {  
-  font-size: 1.6rem;
-  margin: 5rem 3rem 2rem 3rem;
-}
-
 .friends-msg {
-  height: 2rem !important;
   width: 100%;
   z-index: 1;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
-  -moz-box-sizing: border-box;
+  border-bottom: 0.1rem solid #E6E6E6;
+  padding: 0.4rem 0;
 }
 
 p#friends-msg {
-  font-size: 1.5rem;
-  margin-left: 3rem;
-}
-
-#curtain > p.submessage {
-  font-size: 1.6rem;
-  font-weight: bold;
-  margin: 1.5rem 3rem 3.5rem 3rem;
-}
-
-#curtain > hr {
-  margin: 0 2.5rem;
-}
-
-#curtain > div > img {
-  margin-top: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  margin: 0 3rem;
 }
 
 body[data-state='waiting'] #curtain {
