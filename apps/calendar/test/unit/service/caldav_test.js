@@ -104,10 +104,29 @@ suite('service/caldav', function() {
   });
 
   test('#_requestEvents', function() {
+    var options = {
+      startDate: new Date(2012, 0, 1)
+    };
+
     var cal = Factory('caldav.calendar');
     var result = subject._requestEvents(
-      con, cal
+      con, cal, options
     );
+
+    assert.isTrue(result.hasProp('getetag'));
+
+    // verify that VCALENDAR & VEVENT are included
+    var data = result.data;
+    var filter = result.filter;
+
+    /// has data
+    assert.equal(data.getComp().name, 'VCALENDAR', 'data- calendar');
+    assert.include(data.toString(), 'VCALENDAR');
+
+    // filter
+    var dateString = new ICAL.icaltime();
+    dateString.fromUnixTime(options.startDate.valueOf() / 1000);
+    assert.include(filter.toString(), dateString.toString());
 
     assert.instanceOf(result, Caldav.Request.CalendarQuery);
     assert.equal(result.connection, con);
@@ -432,8 +451,14 @@ suite('service/caldav', function() {
         'two': caldavEventFactory('two')
       };
 
+      var options = {
+        startDate: new Date(2012, 0, 1)
+      };
+
       // cb fires in next turn of event loop.
-      subject.streamEvents(givenAcc, givenCal, stream, function(err, data) {
+      subject.streamEvents(givenAcc, givenCal, stream, options,
+                           function(err, data) {
+
         done(function() {
           assert.ok(!err);
           assert.ok(!data);
