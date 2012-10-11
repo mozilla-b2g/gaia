@@ -11,6 +11,7 @@
 function ComposeCard(domNode, mode, args) {
   this.domNode = domNode;
   this.composer = args.composer;
+  this.shareActivity = args.activity;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -51,7 +52,28 @@ function ComposeCard(domNode, mode, args) {
   for (var i = 0; i < containerList.length; i++) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
-  }  
+  }
+  // Add attachments
+  var attachmentsContainer =
+    domNode.getElementsByClassName('cmp-attachments-container')[0];
+  if (this.composer.attachments && this.composer.attachments.length) {
+    var attTemplate = cmpNodes['attachment-item'],
+        filenameTemplate =
+          attTemplate.getElementsByClassName('cmp-attachment-filename')[0],
+        filesizeTemplate =
+          attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
+    for (var i = 0; i < this.composer.attachments.length; i++) {
+      var attachment = body.attachments[i];
+      filenameTemplate.textContent = attachment.filename;
+      // XXX perform localized mimetype translation stuff
+      filesizeTemplate.textContent = this.formatFileSize(
+        attachment.sizeEstimateInBytes);
+      attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+    }
+  }
+  else {
+    attachmentsContainer.classList.add('collapsed');
+  }
 }
 ComposeCard.prototype = {
   postInsert: function() {
@@ -112,7 +134,7 @@ ComposeCard.prototype = {
       // TODO: We will apply email address parser for setting name properly.
       //       We set both name to null and address to text input value
       //       before parser is ready.
-      if (address.trim().length !== 0)
+      if (node.value.trim().length !== 0)
         addrList.push({ name: null, address: node.value });
       return addrList;
     }
@@ -130,8 +152,8 @@ ComposeCard.prototype = {
   createBubbleNode: function(name, address) {
     var bubble = cmpNodes['peep-bubble'].cloneNode(true);
     bubble.classList.add('msg-peep-bubble');
-    bubble.setAttribute("data-address", address);
-    bubble.setAttribute("data-name", name);
+    bubble.setAttribute('data-address', address);
+    bubble.setAttribute('data-name', name);
     bubble.querySelector('.cmp-peep-address').textContent = address;
     var nameNode = bubble.querySelector('.cmp-peep-name');
     if (!name) {
@@ -146,7 +168,7 @@ ComposeCard.prototype = {
   /**
    * insertBubble: We can set the input text node, name and address to
    *               insert a bubble before text input.
-   */ 
+   */
   insertBubble: function(node, name, address) {
     var container = node.parentNode;
     var bubble = this.createBubbleNode(name, address);
@@ -159,7 +181,7 @@ ComposeCard.prototype = {
   },
   /**
    * deleteBubble: Delete the bubble from the parent container.
-   */ 
+   */
   deleteBubble: function(node) {
     var dot = node.nextSibling;
     var container = node.parentNode;
@@ -173,7 +195,7 @@ ComposeCard.prototype = {
 
   /**
    * Handle bubble deletion while keyboard backspace keydown.
-   */ 
+   */
   onAddressKeydown: function(evt) {
     var node = evt.target;
     var container = evt.target.parentNode;
@@ -187,7 +209,7 @@ ComposeCard.prototype = {
 
   /**
    * Handle bubble creation while keyboard comma input.
-   */ 
+   */
   onAddressInput: function(evt) {
     var node = evt.target;
     var container = evt.target.parentNode;
@@ -208,7 +230,7 @@ ComposeCard.prototype = {
       this.domNode.appendChild(this.stringContainer);
     }
     this.stringContainer.style.fontSize = '1.5rem';
-    this.stringContainer.style.display = 'inline-block'; 
+    this.stringContainer.style.display = 'inline-block';
     this.stringContainer.textContent = node.value;
     node.style.width = (this.stringContainer.clientWidth + 2) + 'px';
   },
@@ -276,7 +298,17 @@ ComposeCard.prototype = {
    */
   onBack: function() {
     this.composer.saveDraftEndComposition();
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    if (this.shareActivity) {
+      // XXX: Return value under window mode will cause crash easily, disable
+      //      return and stay in email until inline mode is stable.
+
+      // this.shareActivity.postError('cancelled');
+      // this.shareActivity = null;
+
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    } else {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    }
   },
 
   onSend: function() {
@@ -286,7 +318,17 @@ ComposeCard.prototype = {
     // if you haven't added anyone...)
 
     this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
-    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    if (this.shareActivity) {
+      // XXX: Return value under window mode will cause crash easily, disable
+      //      return and stay in email until inline mode is stable.
+
+      // this.shareActivity.postResult('shared');
+      // this.shareActivity = null;
+
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    } else {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    }
   },
 
   onContactAdd: function(event) {
@@ -300,7 +342,7 @@ ComposeCard.prototype = {
           app.launch();
           if (obj.email) {
             var emt = contactBtn.parentElement.querySelector('.cmp-addr-text');
-            self.insertBubble(emt, obj.name, obj.email)
+            self.insertBubble(emt, obj.name, obj.email);
           }
         };
       };

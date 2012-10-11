@@ -29,10 +29,12 @@ endif
 GAIA_APP_INSTALL_PATH := $(GAIA_APP_INSTALL_PARENT)/webapps
 
 $(LOCAL_INSTALLED_MODULE):
-	@echo Gaia install path: $(GAIA_INSTALL_PATH)
+	@echo Gaia install path: $(GAIA_APP_INSTALL_PATH)
 	mkdir -p $(GAIA_PROFILE_INSTALL_PARENT) $(GAIA_APP_INSTALL_PARENT)
 	rm -rf $(GAIA_APP_INSTALL_PATH)
 	cd $(GAIA_PROFILE_INSTALL_PARENT) && tar xfz $(abspath $<)
+	mkdir -p $(TARGET_OUT)/b2g
+	cp $(GAIA_PATH)/profile/user.js $(TARGET_OUT)/b2g/user.js
 
 ifneq ($(GAIA_PROFILE_INSTALL_PARENT), $(GAIA_APP_INSTALL_PARENT))
 	mv $(GAIA_PROFILE_INSTALL_PARENT)/webapps $(GAIA_APP_INSTALL_PARENT)
@@ -44,5 +46,5 @@ ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
 	$(MAKE) $(GAIA_MAKE_FLAGS) profile
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) indexedDB webapps user.js permissions.sqlite
+	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) indexedDB webapps permissions.sqlite
 

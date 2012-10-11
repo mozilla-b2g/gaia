@@ -42,7 +42,7 @@ function summarizeDaysOfWeek(bitStr) {
       if (bitStr.substr(i, 1) == '1') {
         // Note: here, Monday is the first day of the week
         // whereas in JS Date(), it's Sunday -- hence the (+1) here.
-        weekdays.push(_('weekday-' + ((i + 1) % 6) + '-short'));
+        weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
       }
     }
     summary = weekdays.join(', ');
@@ -50,13 +50,18 @@ function summarizeDaysOfWeek(bitStr) {
   return summary;
 }
 
+function is12hFormat() {
+  var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+  var is12h = (localeTimeFormat.indexOf('%p') >= 0);
+  return is12h;
+}
+
 function getLocaleTime(d) {
   var f = new navigator.mozL10n.DateTimeFormat();
-  var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
-  var is12hFormat = (localeTimeFormat.indexOf('%p') >= 0);
+  var is12h = is12hFormat();
   return {
-    t: f.localeFormat(d, (is12hFormat ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
-    p: is12hFormat ? f.localeFormat(d, '%p') : ''
+    t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
+    p: is12h ? f.localeFormat(d, '%p') : ''
   };
 }
 

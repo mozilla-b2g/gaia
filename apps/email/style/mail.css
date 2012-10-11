@@ -28,32 +28,6 @@ body {
   background-color: black;
 }
 
-button {
-  background-color: #5e5e5e;
-  border-width: 1px;
-  border-style: solid;
-  border-color: #323232;
-  color: #FFFFFF;
-  font-size: 1.6rem;
-  font-weight: bold;
-  min-height: 3.2rem;
-
-  -webkit-border-radius: 3px;
-     -moz-border-radius: 3px;
-       -o-border-radius: 3px;
-          border-radius: 3px;
-}
-
-/* Remove button dotted outline */
-button::-moz-focus-inner {
-  padding: 0;
-  border: none;
-}
-
-button[disabled=""] {
-  opacity: 0.5;
-}
-
 #cardContainer {
   width: 100%;
   height: 100%;
@@ -160,6 +134,8 @@ button[disabled=""] {
 }
 .bottom-btn {
   height: 4.8rem;
+  border: none;
+  width: 6rem;
 }
 /* create a space the size of the toolbar since it is absolute...*/
 .bottom-toolbar-spacer {
@@ -194,6 +170,10 @@ button[disabled=""] {
 
 .menu-item:last-child {
   border-bottom: none;
+}
+
+.highlight {
+  background-color: #f3f3D3;
 }
 
 .icon {
@@ -239,4 +219,31 @@ button[disabled=""] {
 
 .icon-reply-all {
   background-image: url("images/icons/reply-all.png");
+}
+
+/* Toaset banner extend class */
+section[role="dialog"].banner.customized {
+  bottom: 4.8rem;
+  opacity: 1;
+  padding-left: 3.2rem;
+}
+
+section[role="dialog"].banner.fadeout {
+  -moz-transition: opacity 500ms ease;
+  opacity: 0;
+}
+
+section[role="dialog"].banner .toaster-cancel-btn {
+  height: 8rem;
+}
+
+section[role="dialog"].banner .toaster-banner-undo,
+section[role="dialog"].banner .toaster-banner-retry {
+  display: none;
+  margin-left: 1rem;
+}
+
+section[role="dialog"][title="undo"].banner .toaster-banner-undo,
+section[role="dialog"][title="retry"].banner .toaster-banner-retry {
+  display: inline;
 }

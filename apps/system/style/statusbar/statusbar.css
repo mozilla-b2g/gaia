@@ -61,27 +61,6 @@
   -moz-transform: translateY(20px);
 }
 
-#statusbar-loading {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: url('images/loading.gif') center center repeat-x;
-  display: block;
-  visibility: hidden;
-
-  -moz-transition: none;
-  opacity: 0;
-}
-
-#statusbar-loading.popup-loading, #statusbar-loading.app-loading {
-  visibility: visible;
-
-  -moz-transition: opacity 0.1s ease 0.2s;
-  opacity: 1;
-}
-
 #statusbar-label {
   padding: 0;
   color: #999;
@@ -278,6 +257,11 @@
   left: 0;
   background: url('images/icons.png') no-repeat;
   background-position: -168px -40px;
+}
+
+.sb-icon-network-activity {
+  background: url('images/network-activity.gif') no-repeat;
+  background-position: 0 0;
 }
 
 .sb-icon-headphones {

@@ -227,7 +227,6 @@ Icon.prototype = {
  */
 var Page = function(index) {
   this.icons = {};
-  this.posLeft = 0;
 };
 
 Page.prototype = {
@@ -263,42 +262,25 @@ Page.prototype = {
   /*
    * Applies a translation effect to the page
    *
-   * @param{String} scroll X
-   *
+   * @param{int} scroll X
    * @param{int} duration
    */
   moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
     var container = this.movableContainer;
     var style = container.style;
-
-    container.addEventListener('transitionend', function transitionEnd(e) {
-      e.stopPropagation();
-      container.removeEventListener('transitionend', transitionEnd);
-      style.MozTransform = 'translateX(' + scrollX + 'px)';
-      style.MozTransition = '-moz-transform .3s ease';
-    });
-
-    if (scrollX === 0) {
-      style.MozTransform = 'translateX(' + (scrollX +
-                           (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
-    } else {
-      style.MozTransform = 'translateX(' + (scrollX + 0.001) + 'px)';
-    }
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
     style.MozTransition = '-moz-transform ' + duration + 's ease';
-
-    this.posLeft = scrollX;
   },
 
   /*
    * Applies a translation to the page
    *
-   * @param{String} scroll X
+   * @param{int} scroll X
    */
   moveBy: function pg_moveBy(scrollX) {
     var style = this.movableContainer.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
     style.MozTransition = '';
-    this.posLeft = scrollX;
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -571,15 +553,7 @@ dockProto.render = function dk_render(apps, target) {
 dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
   var container = this.movableContainer;
   var style = container.style;
-
-  container.addEventListener('transitionend', function transitionEnd(e) {
-    container.removeEventListener('transitionend', transitionEnd);
-    style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition = '-moz-transform .3s ease';
-  });
-
-  style.MozTransform = 'translateX(' + (scrollX +
-                         (this.posLeft <= scrollX ? 10 : -10)) + 'px)';
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
   style.MozTransition = '-moz-transform ' + duration + 's ease';
 };
 
@@ -612,45 +586,6 @@ dockProto.getWidth = function dk_getWidth() {
 
 dockProto.getChildren = function dk_getChildren() {
   return this.olist.children;
-};
-
-var SearchPage = function createSearchPage() {
-  Page.call(this);
-  this.maxWidth = window.innerWidth;
-};
-
-extend(SearchPage, Page);
-
-var searchProto = SearchPage.prototype;
-
-searchProto.baseMoveBy = Page.prototype.moveBy;
-
-searchProto.baseMoveByWithEffect = Page.prototype.moveByWithEffect;
-
-searchProto.decorateScrollX = function spg_getDeltaX(scrollX) {
-  var maxWidth = this.maxWidth;
-  if (scrollX < 0 && scrollX > -maxWidth) {
-    if (this.posLeft > scrollX) {
-      if (scrollX > -maxWidth / 2) {
-        scrollX = 0;
-      } else {
-        scrollX += maxWidth / 2;
-      }
-    } else {
-      scrollX = -maxWidth / 4;
-    }
-  }
-
-  return scrollX;
-};
-
-searchProto.moveBy = function spg_moveBy(scrollX) {
-  this.baseMoveBy(this.decorateScrollX(scrollX));
-};
-
-searchProto.moveByWithEffect = function spg_moveByWithEffect(
-                                          scrollX, duration) {
-  this.baseMoveByWithEffect(this.decorateScrollX(scrollX), duration);
 };
 
 HTMLCollection.prototype.indexOf = Array.prototype.indexOf;

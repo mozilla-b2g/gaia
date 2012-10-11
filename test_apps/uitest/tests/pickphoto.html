@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Pick Photo test</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+    <script>
+    var go = function _go() {
+      var a = new MozActivity({ name: 'pick', data: {type: 'image/jpeg'}});
+      a.onsuccess = function(e) {
+        document.getElementById('result').textContent = e.result.filename;
+      };
+      a.onerror = function() { alert('Failure picking photo'); };
+    };
+    </script>
+  </head>
+  <body>
+    <h1>Pick Photo Test</h1>
+    <h2>Go to:</h2>
+    <button onclick="go()">Go</button></p>
+    Result is: <span id="result"></span>
+  </body>
+</html>

@@ -39,17 +39,18 @@ label:not([for]) > input:checked + span {
   background-position: center bottom;
 }
 
-/* Negative */
-label:not([for]).negative input[type="checkbox"] + span {
-  background-image: url(switches/images/check/negative.png);
+/* 'Dangerous' switches */
+
+label:not([for]).danger input[type="checkbox"] + span {
+  background-image: url(switches/images/check/danger.png);
 }
 
-label:not([for]).negative input[type="radio"] + span {
-  background-image: url(switches/images/radio/negative.png);
+label:not([for]).danger input[type="radio"] + span {
+  background-image: url(switches/images/radio/danger.png);
 }
 
 /* ----------------------------------
- * SWITCH
+ * ON/OFF SWITCHES
  * ---------------------------------- */
 label.switch {
   display: inline-block;

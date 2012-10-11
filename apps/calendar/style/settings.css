@@ -119,6 +119,13 @@ body[data-path^='/settings'] #time-views {
   display: block;
 }
 
+
+#settings .calendars > li label {
+  text-transform: none;
+  font: inherit;
+  text-transform: none;
+}
+
 #settings .calendars input[type="checkbox"] {
  display: none;
 }
@@ -134,4 +141,9 @@ body[data-path^='/settings'] #time-views {
   width: 14px;
   height: 14px;
   float: right;
+  position: static;
+  background: transparent;
+  left: inherit;
+  top: inherit;
+  margin: 0;
 }

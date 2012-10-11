@@ -31,7 +31,7 @@
  */
 'use strict';
 
-function ImageEditor(imageURL, container, edits) {
+function ImageEditor(imageURL, container, edits, ready) {
   this.imageURL = imageURL;
   this.container = container;
   this.edits = edits || {};
@@ -51,6 +51,10 @@ function ImageEditor(imageURL, container, edits) {
 
     // Display an edited preview of it
     self.edit();
+
+    // If the constructor had a ready callback argument, call it now
+    if (ready)
+      ready();
   }
 
   // The canvas that displays the preview
@@ -533,12 +537,12 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
     var centerX = dest.w / 2;
     var centerY = dest.h / 2;
 
-    var scaleX = Math.floor(dest.w / ratioWidth);
-    var scaleY = Math.floor(dest.h / ratioHeight);
+    var scaleX = dest.w / ratioWidth;
+    var scaleY = dest.h / ratioHeight;
     var scale = Math.min(scaleX, scaleY);
 
-    var width = scale * ratioWidth;
-    var height = scale * ratioHeight;
+    var width = Math.floor(scale * ratioWidth);
+    var height = Math.floor(scale * ratioHeight);
 
     region.left = centerX - width / 2;
     region.right = centerX + width / 2;
@@ -556,6 +560,54 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
   this.drawCropControls();
 };
 
+// Get the pixels of the selected crop region, and resize them if width
+// and height are specifed, and return them as a data URL.
+// This function is used by the Gallery app's pick activity handler,
+// and relies on data urls because activities can't pass blobs. When
+// blob support is added, this function can change to return a blob
+// instead.
+ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
+  // This is similar to the code in cropImage() and getFullSizeBlob
+  // but since we're doing only cropping and no pixel manipulation I
+  // don't need to create an ImageProcessor object.
+
+  // Compute the rectangle of the original image that the user selected
+  var region = this.cropRegion;
+  var dest = this.dest;
+
+  // Convert the preview crop region to fractions
+  var left = region.left / dest.w;
+  var right = region.right / dest.w;
+  var top = region.top / dest.h;
+  var bottom = region.bottom / dest.h;
+
+  // Now convert those fractions to pixels in the original image
+  // Note that the original image may have already been cropped, so we
+  // multiply by the size of the crop region, not the full size
+  left = Math.floor(left * this.source.w);
+  right = Math.ceil(right * this.source.w);
+  top = Math.floor(top * this.source.h);
+  bottom = Math.floor(bottom * this.source.h);
+
+  // If no destination size was specified, use the source size
+  if (!width || !height) {
+    width = right - left;
+    height = bottom - top;
+  }
+
+  // Create a canvas of the desired size
+  var canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  var context = canvas.getContext('2d');
+
+  // Copy that rectangle to our canvas
+  context.drawImage(this.original,
+                    left, top, right - left, bottom - top,
+                    0, 0, width, height);
+
+  return canvas.toDataURL(type);
+};
 
 //
 // Create a new ImageProcessor object for the specified canvas to do

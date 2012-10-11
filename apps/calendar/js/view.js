@@ -36,9 +36,11 @@
 
   const INVALID_CSS = /([^a-zA-Z\-\_0-9])/g;
 
+  View.ACTIVE = 'active';
+
   View.prototype = {
     seen: false,
-    activeClass: 'active',
+    activeClass: View.ACTIVE,
 
     get element() {
       return this._findElement('element');

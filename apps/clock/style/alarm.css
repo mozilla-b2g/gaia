@@ -547,12 +547,19 @@ li img {
 /* ----------- TimeSelectorView ---------- */
 #picker-bar {
   position: relative;
-  width: 85%;
   height: -moz-calc(100% - 0.2rem);
   margin-left: auto;
   margin-right: auto;
   border-bottom: solid 0.2rem;
   -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
+}
+
+#picker-bar.format12h {
+  width: 85%;
+}
+
+#picker-bar.format24h {
+  width: 60%;
 }
 
 #picker-bar-gradient {
@@ -610,10 +617,17 @@ li img {
   background-color: #00A5C5;
   color: #FFF;
   position: absolute;
-  width: 70%;
   height: 100%;
   font: 3rem/6rem 'Open Sans',sans-serif;
   text-align: center;
+}
+
+#picker-bar.format12h #value-indicator-hover-time {
+  width: 70%;
+}
+
+#picker-bar.format24h #value-indicator-hover-time {
+  width: 100%;
 }
 
 #value-indicator-hover {
@@ -625,6 +639,14 @@ li img {
   right:0;
 }
 
+#picker-bar.format12h #value-indicator-hover {
+  display: block;
+}
+
+#picker-bar.format24h #value-indicator-hover {
+  display: none;
+}
+
 div.animation-on {
   -moz-transition-duration: 0.5s;
   -moz-transition-property: top, left;
@@ -633,15 +655,29 @@ div.animation-on {
 #value-picker-hours {
   position: relative;
   -moz-user-select: none;
-  width: 35%;
   float: left;
+}
+
+#picker-bar.format12h #value-picker-hours {
+  width: 35%;
+}
+
+#picker-bar.format24h #value-picker-hours {
+  width: 50%;
 }
 
 #value-picker-minutes {
   position: relative;
   -moz-user-select: none;
-  width: 35%;
   float: left;
+}
+
+#picker-bar.format12h #value-picker-minutes {
+  width: 35%;
+}
+
+#picker-bar.format24h #value-picker-minutes {
+  width: 50%;
 }
 
 #value-picker-hour24-state {
@@ -649,6 +685,14 @@ div.animation-on {
   -moz-user-select: none;
   width: 30%;
   float: left;
+}
+
+#picker-bar.format12h #value-picker-hour24-state {
+  display: block;
+}
+
+#picker-bar.format24h #value-picker-hour24-state {
+  display: none;
 }
 
 .picker-unit {
@@ -671,17 +715,32 @@ div.animation-on {
   top: 0;
 }
 
-.left-picker-separator {
+#picker-bar.format12h #picker-bar-background {
+  display: block;
+}
+
+#picker-bar.format24h #picker-bar-background {
+  display: none;
+}
+
+#left-picker-separator {
   position: absolute;
   width: 2px;
   height: 100%;
   top: 0;
-  left: 35%;
   background: -moz-linear-gradient(center left, #EEE 50%, #AAA 50%);
   pointer-events: none;
 }
 
-.right-picker-separator {
+#picker-bar.format12h #left-picker-separator {
+  left: 35%;
+}
+
+#picker-bar.format24h #left-picker-separator {
+  left: 49.5%;
+}
+
+#right-picker-separator {
   position: absolute;
   width: 1px;
   height: 100%;
@@ -689,6 +748,14 @@ div.animation-on {
   left: 70%;
   background-color: #999;
   pointer-events: none;
+}
+
+#picker-bar.format12h #right-picker-separator {
+  display: block;
+}
+
+#picker-bar.format24h #right-picker-separator {
+  display: none;
 }
 
 /* 320x480 phones */

@@ -105,10 +105,12 @@ if (!(reporter in mocha.reporters)) {
 } else {
   mocha.setup({
     ui: 'tdd',
-    reporter: mocha.reporters[reporter]
+    reporter: mocha.reporters[reporter],
+    // change the default timeout to all tests to 6 seconds
+    timeout: 6000
   });
 
-  require('integration_helper.js')
+  require('integration_helper.js');
 
   window.xpcArgv.slice(2).forEach(function(test) {
     require(test);

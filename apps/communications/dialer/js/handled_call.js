@@ -35,6 +35,11 @@ function HandledCall(aCall, aNode) {
   this.durationNode.textContent = durationMessage + '…';
 
   this.updateDirection();
+
+  // Some calls might be already connected
+  if (this._initialState === 'connected') {
+    this.connected();
+  }
 }
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
@@ -91,12 +96,12 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   }
 
   var self = this;
-  Contacts.findByNumber(number, function lookupContact(contact) {
+  Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
     if (contact && contact.name) {
       node.textContent = contact.name;
       KeypadManager.formatPhoneNumber('right');
-      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(
-        number, contact);
+      var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
+                                                              contact);
       additionalInfoNode.textContent = additionalInfo ?
         additionalInfo : '';
       if (contact.photo && contact.photo.length > 0) {
@@ -112,10 +117,10 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
   var className;
-  if (this._initialState == 'dialing') {
-    className = (this.call.state == 'connected') ? 'ongoing-out' : 'outgoing';
-  } else {
+  if (this._initialState == 'incoming') {
     className = (this.call.state == 'connected') ? 'ongoing-in' : 'incoming';
+  } else {
+    className = (this.call.state == 'connected') ? 'ongoing-out' : 'outgoing';
   }
 
   this.directionNode.classList.add(className);
