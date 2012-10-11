@@ -178,6 +178,14 @@ input[type="image"] {
   position: relative;
   left: 0px;
   overflow: hidden;
+  /*
+   * Make sure this frame starts out with an identity transform so that
+   * when we apply the .address-hidden style, we aren't reframed.
+   *
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=795657 will fix the
+   * underlying problem.
+   */
+  transform: translateY(0px);
   transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
 }
 
