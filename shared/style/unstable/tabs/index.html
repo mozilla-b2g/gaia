@@ -33,13 +33,6 @@
       border: solid 1px #e8e8e8;
     }
   </style>
-  <script type="text/javascript">
-    document.addEventListener("DOMContentLoaded", function(){
-      var path = window.location.href;
-      console.log(path)
-      window.location.href = path + "#panel1";
-    });
-  </script>
 </head>
 <body role="application">
 
@@ -59,8 +52,7 @@
         <div role="tabpanel"></div>
       </li>
       <li id="panel4" role="tab" aria-disabled="true">
-        <!-- no href to disabled tab -->
-        <a>Disabled</a>
+        <a href="#panel4" class="icon icon-dialer">dialer</a>
         <div role="tabpanel"></div>
       </li>
     </ul>
