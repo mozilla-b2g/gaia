@@ -15,6 +15,12 @@ Calendar.ns('Provider').Caldav = (function() {
     useCredentials: true,
     canSync: true,
 
+    /**
+     * Number of dates in the past to sync.
+     * This is usually from the first sync date.
+     */
+    daysToSyncInPast: 30,
+
     canCreateEvent: true,
     canUpdateEvent: true,
     canDeleteEvent: true,
@@ -48,16 +54,24 @@ Calendar.ns('Provider').Caldav = (function() {
       this.service.request('caldav', 'findCalendars', account, callback);
     },
 
-    streamEvents: function(account, calendar) {
-      return this.service.stream(
-        'caldav', 'streamEvents', account, calendar
-      );
-    },
-
     _syncEvents: function(account, calendar, cached, callback) {
-      var stream = this.streamEvents(
+
+      // calculate the first date we want to sync
+      var startDate = calendar.firstEventSyncDate;
+      if (!startDate) {
+        startDate = Calendar.Calc.createDay(new Date());
+      }
+      startDate.setDate(startDate.getDate() - this.daysToSyncInPast);
+
+      var options = {
+        startDate: startDate
+      };
+
+      var stream = this.service.stream(
+        'caldav', 'streamEvents',
         account.toJSON(),
-        calendar.remote
+        calendar.remote,
+        options
       );
 
       var pull = new Calendar.Provider.CaldavPullEvents(stream, {

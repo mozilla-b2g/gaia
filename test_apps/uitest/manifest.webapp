@@ -8,12 +8,11 @@
   "icons": {
     "120": "/style/icons/Uitest.png"
   },
-  "permissions": [
-    "background",
-    "backgroundservice",
-    "attention",
-    "contacts",
-    "settings",
-    "desktop-notification"
-  ]
+  "permissions": {
+    "backgroundservice":{},
+    "attention":{},
+    "contacts":{},
+    "settings":{},
+    "desktop-notification":{}
+  }
 }

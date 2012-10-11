@@ -95,10 +95,6 @@
       return Calendar.App.provider(acc.providerType);
     },
 
-    accountFor: function(calendar) {
-      return this.db.getStore('Account').cached[calendar.accountId];
-    },
-
     /**
      * Finds account for calendar
      *
