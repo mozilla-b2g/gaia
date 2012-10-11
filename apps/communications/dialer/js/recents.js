@@ -17,7 +17,8 @@ var Recents = {
 
   get recentsIconClose() {
     delete this.recentsIconClose;
-    return this.recentsIconClose = document.getElementById('recents-icon-close');
+    return this.recentsIconClose =
+      document.getElementById('recents-icon-close');
   },
 
   get recentsIconDelete() {
