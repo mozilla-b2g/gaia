@@ -161,8 +161,11 @@ DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	cp build/settings.json profile/settings.json
-	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
+	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
+	then \
+	  echo "Settings DB does not exists, creating an initial one:"; \
+	  $(call run-js-command, settings); \
+	fi ;
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
