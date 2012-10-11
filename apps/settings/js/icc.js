@@ -3,97 +3,205 @@
 
 'use strict';
 
-(function(){
+(function() {
+  /**
+   * Constants. Set in config.json file
+   */
+  var displayTextTimeout;
+  var DEBUG;
+
   /**
    * Debug method
    */
-  var DEBUG = false;
   function debug(msg) {
     if (DEBUG) {
-      console.log("[DEBUG] STKUI: " + msg);
+      console.log('[DEBUG] STKUI: ' + msg);
     }
   }
 
+  /**
+   * Init
+   */
+  var iccMenuItem = document.getElementById('iccMenuItem');
+  var iccStkList = document.getElementById('icc-stk-list');
+  var iccStkHeader = document.getElementById('icc-stk-header');
+  var iccStkSubheader = document.getElementById('icc-stk-subheader');
+  var alertbox = document.getElementById('icc-stk-alert');
+  var alertbox_btn = document.getElementById('icc-stk-alert-btn');
+  var alertbox_msg = document.getElementById('icc-stk-alert-msg');
+  var iccLastCommand = null;
+  var iccLastCommandProcessed = false;
+  var stkOpenAppName = null;
+  var stkLastSelectedTest = null;
   var icc;
-  if (navigator.mozMobileConnection) {
-    icc = navigator.mozMobileConnection.icc;
-    icc.onstksessionend = function handleSTKSessionEnd(event) {
-      updateMenu();
-    };
-    navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+
+  /**
+   * Load configuration data or use default values
+   */
+  var req = utilities.config.load('/config.json');
+  req.onload = function(configData) {
+    DEBUG = configData.iccDebugEnabled;
+    displayTextTimeout = configData.iccDisplayTextTimeout;
+    init();
+  }
+  req.onerror = function(code) {
+    window.console.error('STK: Error while loading config file:', code);
+    DEBUG = false;
+    displayTextTimeout = 10000;
+    init();
   }
 
-  var iccMenuItem = document.getElementById('iccMenuItem');
-  var iccStkAppsList = document.getElementById('icc-stk-apps');
-  var iccStkSelection = document.getElementById('icc-stk-selection');
-  var iccLastCommand = null;
+  /**
+   * Init STK UI
+   */
+  function init() {
+    if (navigator.mozMobileConnection) {
+      icc = navigator.mozMobileConnection.icc;
 
+      icc.onstksessionend = function handleSTKSessionEnd(event) {
+        updateMenu();
+      };
+
+      document.getElementById('icc-stk-app-back').onclick = function goBack() {
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+        });
+      };
+
+      window.onunload = function() {
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+        }, true);
+      };
+
+      navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
+    }
+
+    /**
+     * Open STK main application
+     */
+    iccMenuItem.onclick = function onclick() {
+      updateMenu();
+    };
+  }
+
+  /**
+   * Response ICC Command
+   */
+  function responseSTKCommand(response, force) {
+    if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
+      return debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
+    }
+
+    debug('sendStkResponse to command: ' +
+      JSON.stringify(iccLastCommand) +
+      ' # response = ' + JSON.stringify(response));
+    icc.sendStkResponse(iccLastCommand, response);
+    iccLastCommand = null;
+    iccLastCommandProcessed = false;
+  }
+
+  /**
+   * Handle ICC Commands
+   */
   function handleSTKCommand(command) {
     debug('STK Proactive Command:' + JSON.stringify(command));
+    iccLastCommand = command;
     var options = command.options;
 
     switch (command.typeOfCommand) {
       case icc.STK_CMD_SET_UP_MENU:
         window.asyncStorage.setItem('stkMainAppMenu', options);
         updateMenu();
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         break;
 
       case icc.STK_CMD_SELECT_ITEM:
         updateSelection(command);
+        openSTKApplication();
+        iccLastCommandProcessed = true;
         break;
 
       case icc.STK_CMD_GET_INKEY:
       case icc.STK_CMD_GET_INPUT:
         updateInput(command);
+        iccLastCommandProcessed = true;
         break;
 
       case icc.STK_CMD_DISPLAY_TEXT:
         debug(' STK:Show message: ' + JSON.stringify(command));
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
-        alert(options.text);
+        if (options.responseNeeded) {
+          iccLastCommandProcessed = true;
+          responseSTKCommand({
+            resultCode: icc.STK_RESULT_OK
+          });
+          displayText(command, null);
+        } else {
+          displayText(command, function(userCleared) {
+            debug('Display Text, cb: ' + JSON.stringify(command));
+            iccLastCommandProcessed = true;
+            if (command.options.userClear && !userCleared) {
+              debug('No response from user (Timeout)');
+              responseSTKCommand({
+                resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+              });
+            } else {
+              debug('User closed the alert');
+              responseSTKCommand({
+                resultCode: icc.STK_RESULT_OK
+              });
+            }
+          });
+        }
         break;
 
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
         debug(' STK:Send message: ' + JSON.stringify(command));
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         // TODO: Show a spinner instead the message (UX decission).
         // Stop it on any other command
         break;
 
       case icc.STK_CMD_SET_UP_CALL:
         debug(' STK:Setup Phone Call. Number: ' + options.address);
-        var confirmed = confirm(options.confirmMessage);
-        icc.sendStkResponse(command, { hasConfirmed: confirmed,
-                                       resultCode: icc.STK_RESULT_OK });
+        var msg = '';
+        if (options.confirmMessage) {
+          msg += options.confirmMessage;
+        }
+        var confirmed = confirm(msg + ' ' + options.address);
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          hasConfirmed: confirmed,
+          resultCode: icc.STK_RESULT_OK
+        });
         break;
 
       case icc.STK_CMD_LAUNCH_BROWSER:
         debug(' STK:Setup Launch Browser. URL: ' + options.url);
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
         if (confirm(options.confirmMessage)) {
-          var options = {
-            name: 'view',
-            data: {
-              type: 'url',
-              url: options.url
-            }
-          };
-
-          try {
-            var activity = new MozActivity(options);
-          } catch (e) {
-            debug('WebActivities unavailable? : ' + e);
-          }
+          openURL(options.url);
         }
         break;
 
       default:
         debug('STK Message not managed ... response OK');
-        icc.sendStkResponse(command, { resultCode: icc.STK_RESULT_OK });
         alert('[DEBUG] TODO: ' + JSON.stringify(command));
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
     }
   }
 
@@ -102,10 +210,13 @@
    */
   function updateMenu() {
     debug('Showing STK main menu');
+    stkOpenAppName = null;
+
     window.asyncStorage.getItem('stkMainAppMenu', function(menu) {
-      while (iccStkAppsList.hasChildNodes()) {
-        iccStkAppsList.removeChild(iccStkAppsList.lastChild);
-      }
+      clearList();
+
+      document.getElementById('icc-stk-exit').classList.remove('hidden');
+      document.getElementById('icc-stk-app-back').classList.add('hidden');
 
       if (!menu) {
         var _ = window.navigator.mozL10n.get;
@@ -115,19 +226,19 @@
         p.textContent = _('stkAppsNotAvailable');
         p.className = 'description';
         li.appendChild(p);
-        iccStkAppsList.appendChild(li);
+        iccStkList.appendChild(li);
         return;
       }
 
       debug('STK Main App Menu title:', menu.title);
       debug('STK Main App Menu default item:', menu.defaultItem);
 
-      document.getElementById('iccMenuItem').textContent = menu.title;
-      document.getElementById('icc-stk-operator-header').textContent = menu.title;
-      menu.items.forEach(function (menuItem) {
+      iccMenuItem.textContent = menu.title;
+      showTitle(menu.title);
+      menu.items.forEach(function(menuItem) {
         debug('STK Main App Menu item:' + menuItem.text + ' # ' +
-              menuItem.identifer);
-        iccStkAppsList.appendChild(getDOMMenuEntry({
+              menuItem.identifier);
+        iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
           text: menuItem.text,
           onclick: onMainMenuItemClick,
@@ -139,22 +250,10 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
-    var appName = event.target.textContent;
     debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
-    document.getElementById('icc-stk-selection-header').textContent = appName;
     icc.sendStkMenuSelection(identifier, false);
-
-    document.getElementById('icc-stk-app-back').onclick = function goBack() {
-      icc.sendStkResponse(iccLastCommand,
-                          { resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER });
-      iccLastCommand = null;
-    };
-
-    openDialog('icc-stk-app', function submit() {
-      icc.sendStkResponse(iccLastCommand, { resultCode: icc.STK_RESULT_OK });
-      iccLastCommand = null;
-      updateMenu();
-    });
+    stkLastSelectedTest = event.target.textContent;
+    stkOpenAppName = stkLastSelectedTest;
   }
 
   /**
@@ -162,18 +261,21 @@
    */
   function updateSelection(command) {
     var menu = command.options;
-    iccLastCommand = command;
 
     debug('Showing STK menu');
-    while (iccStkSelection.hasChildNodes()) {
-      iccStkSelection.removeChild(iccStkSelection.lastChild);
-    }
+    clearList();
+
+    document.getElementById('icc-stk-exit').classList.add('hidden');
+    document.getElementById('icc-stk-app-back').classList.remove('hidden');
 
     debug('STK App Menu title: ' + menu.title);
     debug('STK App Menu default item: ' + menu.defaultItem);
-    menu.items.forEach(function (menuItem) {
-      debug('STK App Menu item: ' + menuItem.text + ' # ' + menuItem.identifer);
-      iccStkSelection.appendChild(getDOMMenuEntry({
+
+    showTitle(menu.title);
+    menu.items.forEach(function(menuItem) {
+      debug('STK App Menu item: ' + menuItem.text + ' # ' +
+        menuItem.identifier);
+      iccStkList.appendChild(buildMenuEntry({
         id: 'stk-menuitem-' + menuItem.identifier,
         text: menuItem.text,
         onclick: onSelectOptionClick.bind(null, command),
@@ -184,10 +286,11 @@
 
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
-    debug('sendStkResponse: ' + JSON.stringify(identifier) + ' # ' +
-          JSON.stringify(command));
-    icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
-                                  itemIdentifier: identifier});
+    responseSTKCommand({
+      resultCode: icc.STK_RESULT_OK,
+      itemIdentifier: identifier
+    });
+    stkLastSelectedTest = event.target.textContent;
   }
 
   /**
@@ -197,13 +300,11 @@
    *   'text':'Caption String','minLength':3,'maxLength':15,'isAlphabet':true}}
    */
   function updateInput(command) {
-    iccLastCommand = command;
     var options = command.options;
 
     debug('Showing STK input box');
-    while (iccStkSelection.hasChildNodes()) {
-      iccStkSelection.removeChild(iccStkSelection.lastChild);
-    }
+    clearList();
+    showTitle(stkLastSelectedTest);
 
     debug('STK Input title: ' + options.text);
 
@@ -211,6 +312,9 @@
     var p = document.createElement('p');
     p.id = 'stk-item-' + 'title';
     p.textContent = options.text;
+    if (options.minLength && options.maxLength) {
+      p.textContent += ' [' + options.minLength + '-' + options.maxLength + ']';
+    }
     li.appendChild(p);
 
     var input = document.createElement('input');
@@ -232,34 +336,88 @@
       input.type = 'hidden';
     }
     li.appendChild(input);
-    iccStkSelection.appendChild(li);
+    iccStkList.appendChild(li);
 
     li = document.createElement('li');
     var label = document.createElement('label');
     var button = document.createElement('button');
     button.id = 'stk-item-' + 'ok';
     button.textContent = 'Ok';
+    if (options.minLength) {
+      button.disabled = true;
+    }
     button.onclick = function(event) {
       var value = document.getElementById('stk-item-input').value;
-      icc.sendStkResponse(command, {resultCode: icc.STK_RESULT_OK,
-                                    input: value});
+      responseSTKCommand({
+        resultCode: icc.STK_RESULT_OK,
+        input: value
+      });
     };
+
+    input.onkeyup = function(event) {
+      button.disabled = (input.value.length < options.minLength) ||
+                        (input.value.length > options.maxLength);
+    };
+
     label.appendChild(button);
     li.appendChild(label);
-    iccStkSelection.appendChild(li);
+    iccStkList.appendChild(li);
   }
 
   /**
-   * Open STK applications
+   * Display text to the user
    */
-  iccMenuItem.onclick = function onclick() {
-    updateMenu();
-  };
+  function displayText(command, cb) {
+    var options = command.options;
+    if (!options.userClear) {
+    var timeoutId = setTimeout(function() {
+        alertbox.classList.add('hidden');
+        if (cb) {
+          cb(false);
+        }
+      },
+      displayTextTimeout);
+    }
+
+    alertbox_btn.onclick = function() {
+      clearTimeout(timeoutId);
+      alertbox.classList.add('hidden');
+      if (cb) {
+        cb(true);
+      }
+    };
+
+    alertbox_msg.textContent = options.text;
+    alertbox.classList.remove('hidden');
+  }
 
   /**
-   * DOM Auxiliar methods
+   * Auxiliar methods
    */
-  function getDOMMenuEntry(entry) {
+  function showTitle(title) {
+    // If the application is automatically opened (no come from main menu)
+    if (!stkOpenAppName) {
+      stkOpenAppName = title;
+    }
+    iccStkHeader.textContent = stkOpenAppName;
+
+    // Show section
+    if (stkOpenAppName != title) {
+      iccStkSubheader.textContent = title;
+      iccStkSubheader.parentNode.classList.remove('hiddenheader');
+    } else {
+      iccStkSubheader.textContent = '';
+      iccStkSubheader.parentNode.classList.add('hiddenheader');
+    }
+  }
+
+  function clearList() {
+    while (iccStkList.hasChildNodes()) {
+      iccStkList.removeChild(iccStkList.lastChild);
+    }
+  }
+
+  function buildMenuEntry(entry) {
     var li = document.createElement('li');
     var a = document.createElement('a');
     a.id = entry.id;
@@ -271,4 +429,16 @@
     li.appendChild(a);
     return li;
   }
+
+  /**
+   * Open settings application with ICC section opened
+   */
+  function openSTKApplication() {
+    document.location.hash = 'icc';
+    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
+      var app = evt.target.result;
+      app.launch('settings');
+    };
+  };
+
 })();

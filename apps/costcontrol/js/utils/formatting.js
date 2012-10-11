@@ -34,3 +34,38 @@ function formatBalance(balance) {
   }
   return formattedBalance;
 }
+
+// Return a fixed point data value in MG/GB
+function roundData(value) {
+  if (value < 1000000000)
+    return [(value / 1000000).toFixed(2), 'MB'];
+
+  return [(value / 1000000000).toFixed(2), 'GB'];
+}
+
+// Return a padded data value in MG/GB
+function padData(value) {
+  if (value === 0)
+    return ['0', 'MB'];
+
+  value = value / 1000000;
+
+  var unit = 'GB';
+  if (value < 1000) {
+    var floorValue = value < 10 ? Math.floor(value) :
+                                  Math.floor(10 * value) / 10;
+    unit = 'MB';
+    var str = floorValue.toFixed() + '';
+    switch (str.length + 1 + unit.length) {
+      case 2:
+        return ['00' + str, unit];
+      case 3:
+        return ['0' + str, unit];
+      default:
+        return [str, unit];
+    }
+  }
+
+  return [(value / 1000).toFixed(1), unit];
+}
+

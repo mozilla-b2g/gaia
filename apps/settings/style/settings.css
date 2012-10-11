@@ -293,3 +293,29 @@ ul li > label .range-icons.brightness {
               url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
 }
 
+/******************************************************************************
+ * SIM Toolkit
+ */
+
+section#icc .hiddenheader {
+  height: 0;
+  padding: 0;
+  background: none;
+}
+
+section#icc .hidden {
+  display: none;
+}
+
+section#icc #icc-stk-alert {
+  position: fixed;
+}
+
+/******************************************************************************
+ * Date & Time
+ */
+
+#clock-date,
+#clock-time {
+  pointer-events: none;
+}

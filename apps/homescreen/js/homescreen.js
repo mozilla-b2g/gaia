@@ -81,13 +81,18 @@ const Homescreen = (function() {
       function handleActivity(activity) {
         var data = activity.source.data;
 
-        // issue 3457: Implement a UI when saving bookmarks to the homescreen
-        switch (data.type) {
-          case 'url':
-            BookmarkEditor.init(data);
+        switch (activity.source.name) {
+          case 'save-bookmark':
+            if (data.type === 'url') {
+              BookmarkEditor.init(data);
+            }
+
             break;
-          case 'application/x-application-list':
-            onHomescreenActivity();
+          case 'view':
+            if (data.type === 'application/x-application-list') {
+              onHomescreenActivity();
+            }
+
             break;
         }
       });
