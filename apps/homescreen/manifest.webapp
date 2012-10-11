@@ -1,17 +1,17 @@
 {
   "name": "Homescreen",
   "description": "Gaia Homescreen",
+  "type": "certified",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/andreasgal/gaia"
   },
-  "permissions": [
-    "mozApps",
-    "webapps-manage",
-    "systemXHR",
-    "settings",
-    "device-storage:pictures"
-  ],
+  "permissions": {
+    "webapps-manage":{},
+    "systemXHR":{},
+    "settings":{},
+    "device-storage:pictures":{}
+  },
   "locales": {
     "ar": {
       "name": "الشاشة الرئيسية",
