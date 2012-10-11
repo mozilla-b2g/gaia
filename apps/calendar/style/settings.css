@@ -107,7 +107,7 @@ body[data-path^='/settings'] #time-views {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-#settings .sync.active {
+.sync-in-progress #settings .sync {
   display: none;
 }
 
@@ -117,6 +117,13 @@ body[data-path^='/settings'] #time-views {
   background: transparent url('/style/icons/ActionIcons_30x30_settings.png') no-repeat center;
   font-size: 0;
   display: block;
+}
+
+
+#settings .calendars > li label {
+  text-transform: none;
+  font: inherit;
+  text-transform: none;
 }
 
 #settings .calendars input[type="checkbox"] {
@@ -134,4 +141,9 @@ body[data-path^='/settings'] #time-views {
   width: 14px;
   height: 14px;
   float: right;
+  position: static;
+  background: transparent;
+  left: inherit;
+  top: inherit;
+  margin: 0;
 }

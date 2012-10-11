@@ -1,11 +1,12 @@
 {
   "name": "Keyboard",
   "description": "Gaia Keyboard",
+  "type": "certified",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "settings"
-  ]
+  "permissions": {
+    "settings":{}
+  }
 }

@@ -1,6 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
+  requireApp('calendar/shared/js/gesture_detector.js');
   requireLib('ordered_map.js');
   requireLib('timespan.js');
   requireLib('templates/day.js');
@@ -58,7 +59,7 @@ suite('views/day', function() {
 
     setup(function() {
       calledTime = null;
-      subject._activateTime = function() {
+      subject.changeDate = function() {
         calledTime = arguments;
       }
 
@@ -118,21 +119,10 @@ suite('views/day', function() {
     );
   });
 
-  test('#_createChild', function() {
-    var time = new Date();
-    var child = subject._createChild(time);
-
-    assert.equal(child.date, time);
-    assert.equal(child.app, app);
-    assert.instanceOf(
-      child, Calendar.Views.DayChild
-    );
-  });
-
   test('#render', function() {
     var calledWith;
 
-    subject._activateTime = function() {
+    subject.changeDate = function() {
       calledWith = arguments;
     }
 
@@ -148,7 +138,7 @@ suite('views/day', function() {
     test('event disabling', function() {
       var calledWith;
 
-      subject._activateTime = function() {
+      subject.changeDate = function() {
         calledWith = arguments;
       }
 

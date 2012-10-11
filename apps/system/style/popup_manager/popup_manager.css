@@ -5,24 +5,90 @@
   top: 0;
   left: 0;
   visibility: hidden;
-
-  background-color: rgba(0, 0, 0, 0.5);
-
-  -moz-transform: translateY(100%);
-  -moz-transition: -moz-transform 0.3s ease;
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.5);
 }
 
-.popup #popup-container {
-  -moz-transform: translateY(0);
+#popup-container[data-trusty="true"] {
+  width: 85%;
+  left: 7%;
+  top: 7%;
+  height: 85%;
 }
 
-#popup-container > iframe {
+#screen.popup #popup-container {
+  visibility: visible;
+}
+
+#popup-throbber {
   position: absolute;
-  top: 5%;
-  left: 5%;
-  width: 90%;
-  height: 90%;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 1;
+}
+
+#screen.popup #popup-container.disappearing {
+  pointer-events: none;
+  transition: visibility ease .6s, opacity ease .6s;
+  visibility: hidden;
+  opacity: 0;
+}
+
+#popup-throbber.loading {
+  height: 4px;
+  background-image: url('images/progress.gif');
+}
+
+.popup #popup-container > #frame-container,
+.popup #popup-container > .title-container {
+  transform: translateY(0);
+}
+
+#popup-container[data-trusty="true"] > #frame-container,
+#popup-container[data-trusty="true"] > .title-container {
+  transition: none;
+}
+
+#popup-container > .title-container {
+  transition: transform 1.1s ease;
+  transform: translateY(-100%);
+  height: 5rem;
+  width: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+}
+
+#popup-container > #frame-container {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 5rem);
 
   background-color: #fff;
+  transform: translateY(100%);
+  transition: transform 1.1s ease;
+}
+
+#popup-container[data-trusty="true"] > #frame-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+}
+
+#popup-container[data-trusty="true"] > .title-container {
+  visibility: hidden;
+}
+
+#frame-container > * {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 

@@ -32,5 +32,7 @@ var MockContactsApp = {
         {value: 'work'}
       ]
     };
+  },
+  hideOverlay: function() {
   }
 };

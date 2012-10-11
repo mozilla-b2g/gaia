@@ -26,3 +26,17 @@ form[role="dialog"] menu button {
   height: 2.8rem;
   line-height: 2.8rem;
 }
+
+#alert-view menu button {
+  width: 100%;
+}
+
+#device-info {
+  background-repeat: no-repeat;
+  background-position: left center;
+  padding-left: 2rem;
+}
+
+.bluetooth-default { 
+  background-image: url(images/settings_bluetooth.png); 
+}

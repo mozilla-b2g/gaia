@@ -27,19 +27,12 @@
 
 .card-folder-picker {
   box-shadow: inset 0 0 1rem black;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
 }
 
-.card-folder-picker .scrollregion-below-header {
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    margin: -5px 0 0;
-}
-
-.fld-folders-header {
-  background: url("images/ui/dark_header.png") repeat-x scroll left top transparent;
-  background-size: auto 5.4rem;
-  /*background: -moz-linear-gradient(to top, #ffffff 0, #a3a3a3 5px, #888888 5px, #999999 6px, #bbbbbb 6px, #cccccc 100%);
-  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%,  #cccccc), color-stop(100%, #bbbbbb));*/
+.folder-scoller-region {
+  background-color: #4F4F4F;
 }
 
 .fld-accounts-container, .fld-folders-container {
@@ -65,7 +58,6 @@
   font-size: 1.2rem;
 }
 .fld-folders-header-account-label {
-  font-size: 1.5rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -83,7 +75,7 @@
 }
 
 .fld-folder-name {
-  font-size: 2rem;
+  font-size: 1.6rem;
 }
 .fld-folder-unread {
   display: none;
@@ -111,7 +103,5 @@
 }
 
 .fld-nav-settings-btn {
-  border: none;
-  width: 6rem;
   background: url("images/icons/settings.png") no-repeat scroll center transparent;
 }

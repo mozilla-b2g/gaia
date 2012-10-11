@@ -23,6 +23,10 @@ Calendar.ns('Views').MonthsDay = (function() {
       return this._findElement('events');
     },
 
+    get allDayElement() {
+      return this.events;
+    },
+
     get header() {
       return this._findElement('header');
     },
@@ -36,18 +40,12 @@ Calendar.ns('Views').MonthsDay = (function() {
     },
 
     _updateHeader: function() {
-      var date = this.date;
-
-      var l10n = navigator.mozL10n;
-
-      var dayName = l10n.get('weekday-' + date.getDay() + '-long');
-      var monthName = l10n.get('month-' + date.getMonth() + '-long');
-
-      dayName = dayName || date.toLocaleFormat('%A');
-      monthName = monthName || date.toLocaleFormat('%B');
-
-      var header = dayName + ' ' + monthName + ' ' + date.getDate();
-      this.header.textContent = header;
+      // maybe we should localize this output ?
+      var format = this.app.dateFormat.localeFormat(
+        this.date,
+        '%A %B %Y'
+      );
+      this.header.textContent = format;
     },
 
     handleEvent: function(e) {
@@ -55,7 +53,7 @@ Calendar.ns('Views').MonthsDay = (function() {
 
       switch (e.type) {
         case 'selectedDayChange':
-          this.changeDate(e.data[0]);
+          this.changeDate(e.data[0], true);
           this._updateHeader();
           break;
       }

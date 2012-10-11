@@ -43,6 +43,48 @@ function populateTemplateNodes() {
   tngNodes = processTemplNodes('tng');
 }
 
+function batchAddClass(domNode, searchClass, classToAdd) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.add(classToAdd);
+  }
+}
+
+function batchRemoveClass(domNode, searchClass, classToRemove) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.remove(classToRemove);
+  }
+}
+
+const MATCHED_TEXT_CLASS = 'highlight';
+
+function appendMatchItemTo(matchItem, node) {
+  const text = matchItem.text;
+  var idx = 0;
+  for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
+    var run;
+    if (iRun === matchItem.matchRuns.length)
+      run = { start: text.length, length: 0 };
+    else
+      run = matchItem.matchRuns[iRun];
+
+    // generate the un-highlighted span
+    if (run.start > idx) {
+      var tnode = document.createTextNode(text.substring(idx, run.start));
+      node.appendChild(tnode);
+    }
+
+    if (!run.length)
+      continue;
+    var hspan = document.createElement('span');
+    hspan.classList.add(MATCHED_TEXT_CLASS);
+    hspan.textContent = text.substr(run.start, run.length);
+    node.appendChild(hspan);
+    idx = run.start + run.length;
+  }
+}
+
 /**
  * Add an event listener on a container that, when an event is encounted on
  * a descendant, walks up the tree to find the immediate child of the container
@@ -422,6 +464,34 @@ var Cards = {
       return this._findCardUsingImpl(query);
   },
 
+  findCardObject: function(query) {
+    return this._cardStack[this._findCard(query)];
+  },
+
+  folderSelector: function(callback) {
+    // XXX: Unified folders will require us to make sure we get the folder list
+    //      for the account the message originates from.
+    if (!this.folderPrompt) {
+      var selectorTitle = mozL10n.get('messages-folder-select');
+      this.folderPrompt = new ValueSelector(selectorTitle);
+    }
+    var self = this;
+    var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
+    var folderImpl = folderCardObj.cardImpl;
+    var folders = folderImpl.foldersSlice.items;
+    for (var i = 0; i < folders.length; i++) {
+      var folder = folders[i];
+      this.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
+        return function() {
+          self.folderPrompt.hide();
+          callback(folder);
+        }
+      }(folder));
+
+    }
+    this.folderPrompt.show();
+  },
+
   moveToCard: function(query, showMethod) {
     this._showCard(this._findCard(query), showMethod || 'animate');
   },
@@ -664,6 +734,9 @@ var Cards = {
       this._eatingEventsUntilNextCard = false;
     }
 
+    // Hide toaster while active card index changed:
+    Toaster.hide();
+
     this.activeCardIndex = cardIndex;
     if (cardInst)
       this._trayActive = cardInst.modeDef.tray;
@@ -728,6 +801,27 @@ var Cards = {
  * failed sends, and recently performed undoable mutations.
  */
 var Toaster = {
+  get body() {
+    delete this.body;
+    return this.body =
+           document.querySelector('section[role="dialog"].banner');
+  },
+  get text() {
+    delete this.text;
+    return this.text =
+           document.querySelector('section[role="dialog"].banner p');
+  },
+  /**
+   * Toaster timeout setting.
+   */
+  _timeout: 5000,
+  /**
+   * Toaster fadeout animation event handling.
+   */
+  _animationHandler: function() {
+    this.body.addEventListener('transitionend', this, false);
+    this.body.classList.add('fadeout');
+  },
   /**
    * The list of cards that want to hear about what's up with the toaster.  For
    * now this will just be the message-list, but it might also be the
@@ -748,6 +842,65 @@ var Toaster = {
    * Tell toaster listeners about a mutation we just made.
    */
   logMutation: function(undoableOp) {
+    //Close previous toaster before showing the new one.
+    if (!this.body.classList.contains('collapsed')) {
+      this.hide();
+    }
+    this.show('undo', undoableOp);
+  },
+
+  handleEvent: function(evt) {
+    switch (evt.type) {
+      case 'click' :
+        if (evt.target.classList.contains('toaster-banner-undo')) {
+          // TODO: Need to find out why undo could not work now.
+          // this.undoableOp.undo();
+          this.hide();
+        } else if (evt.target.classList.contains('toaster-banner-retry')) {
+          // TODO: Handle send retry here.
+        } else if (evt.target.classList.contains('toaster-cancel-btn')) {
+          this.hide();
+        }
+        break;
+      case 'transitionend' :
+        this.hide();
+        break;
+    }
+  },
+
+  show: function(type, operation) {
+    var text;
+    if (type == 'undo') {
+      this.undoableOp = operation;
+      // There is no need to show toaster is affected message count < 1
+      if (this.undoableOp.affectedCount < 1) {
+        return;
+      }
+      var textId = 'toaster-message-' + this.undoableOp.operation;
+      text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
+    } else if (type == 'retry') {
+      // TODO: Showing the send retry text and related operation.
+    } else {
+      // TODO: Maybe we can show pure text only toaster here.
+    }
+
+    this.body.title = type;
+    this.text.textContent = text;
+    this.body.addEventListener('click', this, false);
+    this.body.classList.remove('collapsed');
+    this.fadeTimeout = window.setTimeout(this._animationHandler.bind(this),
+                                         this._timeout);
+  },
+
+  hide: function() {
+    this.body.classList.add('collapsed');
+    this.body.classList.remove('fadeout');
+    window.clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = null;
+    this.body.removeEventListener('click', this);
+    this.body.removeEventListener('transitionend', this);
+    // Clear operations:
+    this.undoableOp = null;
   }
 };
 

@@ -15,7 +15,7 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="wifi-on.svg">
+   sodipodi:docname="data-off.svg">
   <defs
      id="defs4">
     <linearGradient
@@ -47,9 +47,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8284271"
-     inkscape:cx="-36.534164"
-     inkscape:cy="3.5179368"
+     inkscape:zoom="12.63"
+     inkscape:cx="50"
+     inkscape:cy="66.859188"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -66,7 +66,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -76,7 +76,7 @@
      id="layer1"
      transform="translate(0,-952.36218)">
     <path
-       style="fill:#555555;fill-opacity:0.66666667;stroke:none"
+       style="fill:#a0a0a0;fill-opacity:1;stroke:none"
        d="m 31.265625,972.36217 -20,20 10,0 0,40.00003 20,0 0,-40.00003 10,0 -20,-20 z m 27.46875,0 0,40.00003 -10,0 20,20 20,-20 -10,0 0,-40.00003 -20,0 z"
        id="rect3838"
        inkscape:connector-curvature="0" />

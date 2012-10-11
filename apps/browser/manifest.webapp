@@ -2,15 +2,16 @@
   "name": "Browser",
   "description": "Gaia Web Browser",
   "launch_path": "/index.html",
+  "type": "certified",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "browser",
-    "systemXHR",
-    "settings"
-  ],
+  "permissions": {
+    "browser":{},
+    "systemXHR":{},
+    "settings":{}
+  },
   "locales": {
     "ar": {
       "name": "المتصفح",

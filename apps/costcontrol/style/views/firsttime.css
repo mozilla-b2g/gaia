@@ -1,0 +1,140 @@
+/* FIRST TIME EXPERIENCE VIEW */
+#firsttime-view, #firsttime-view .view{
+  bottom: 0;
+}
+
+/* Steps state */
+#firsttime-view .step-state {
+  height: 0;
+  font: 0/0 a;
+  border-top: solid 0.1rem #b7b7b7;
+  border-bottom: solid 0.1rem #fff;
+  position: absolute;
+  top: 6.5rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+}
+
+#firsttime-view .step-state:before {
+  content: "";
+  width: calc(100% / 3);
+  height: 0.6rem;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin-top: -0.3rem;
+  background: #00a5c6;
+  transition: all 0.35s cubic-bezier(0.000, 1.000, 0.535, 1.110);
+}
+
+/* STATES */
+#firsttime-view.step-1 .step-state:before {
+  transform: translateX(0);
+}
+
+#firsttime-view.step-2 .step-state:before {
+  transform: translateX(100%);
+}
+
+#firsttime-view.step-3 .step-state:before {
+  transform: translateX(200%);
+}
+
+/* Content */
+  #firsttime-view .content {
+    padding: 2.5rem 1.5rem 0;
+    list-style: none;
+    margin: 0;
+  }
+
+/* General menu */
+#firsttime-view .step menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-top: solid 1px #a6a6a6;
+  padding: 1.5rem;
+  /* Legacy unstable BB */
+  background: transparent;
+}
+
+#firsttime-view .step menu button {
+  text-align: right;
+}
+
+#firsttime-view .step menu button.affirmative {
+  text-align: left;
+}
+
+#firsttime-view .step menu button span {
+  float: left;
+  width: 1.3rem;
+  width: 2.5rem;
+  margin: 0.7rem -1rem 0;
+  background: url(../images/app/icons/prev.png) no-repeat center center;
+}
+
+#firsttime-view .step menu button.affirmative span {
+  float: right;
+  background: url(../images/app/icons/next.png) no-repeat center center;
+}
+
+/* Choices */
+#firsttime-view .choices li {
+    margin: 0;
+    list-style: none;
+    border-bottom: 1px solid #d0d0d0;
+    position: relative;
+    color: #fff;
+    font-family: 'Open Sans', Sans-serif;
+    font-weight: lighter;
+    font-size: 1.6rem;
+    height: 5.9rem;
+    line-height: 5.9rem;
+    color: #000;
+    transition: background 0.2s ease;
+  }
+
+  #firsttime-view .choices li:active,
+  #firsttime-view .choices li:active label span {
+    background: rgba(0, 171, 204, 0.1);
+  }
+
+  #firsttime-view .choices li input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  #firsttime-view .choices li input:checked + span,
+  #firsttime-view .choices li[aria-checked="true"] span {
+    font-weight: 600;
+    padding-right: 0.5rem;
+    background: url(../images/app/icons/checked.png) content-box right center no-repeat;
+  }
+
+  #firsttime-view .choices li label {
+    text-indent: 0.5rem;
+    outline: none;
+  }
+
+  #firsttime-view .choices li label,
+  #firsttime-view .choices li label span {
+    text-decoration: none;
+    display: block;
+    color: #000;
+  }
+
+/* Settings */
+#firsttime-view .settings li {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#firsttime-view .settings li > .end {
+  right: 0;
+}

@@ -94,3 +94,21 @@
   margin: 0;
   padding: 2px;
 }
+
+/* Attachment */
+.cmp-attachments-container {
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  line-height: 4rem;
+}
+.cmp-attachment-item {
+  list-style-type: none;
+  height: 4rem;
+}
+.cmp-attachment-icon {
+}
+.cmp-attachment-filename {
+}
+.cmp-attachment-filesize {
+  color: gray;
+}

@@ -4,9 +4,18 @@
     <meta charset="utf-8">
     <meta http-equiv="pragma" content="no-cache">
     <title>USSD</title>
-    <script type="application/javascript" src="/dialer/js/ussd_ui.js"></script>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
+    <!-- Building blocks -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/bb/progress_activity/style.css">
+    <!-- Specific styles -->
     <link rel="stylesheet" type="text/css" href="/dialer/style/ussd.css">
-    <link rel="resource" type="application/l10n" href="/dialer/locale/dialer.properties">
+    <!-- Shared code -->
+    <script type="application/javascript" src="/shared/js/l10n.js"></script>
+    <!-- Specific code -->
+    <script type="application/javascript" src="/dialer/js/ussd_ui.js"></script>
     <script>
     // The following code loads a shared WebAPI shim from webapi.js
     (function webapiJSLoader() {
@@ -26,22 +35,37 @@
     })();
     </script>
   </head>
-  <body class="hidden">
-    <div id="message">
-      ...
-    </div>
-    <div id="answer" hidden>
-      <input type="text" />
-      <button data-l10n-id="send" onclick="UssdUI.reply()">send</button>
-    </div>
-    <div id="close" onclick="UssdUI.close()">
-      <div>
-      </div>
-    </div>
-    <div id="reply" onclick="UssdUI.showAnswer()">
-      <div data-l10n-id="reply">
-        Reply
-      </div>
-    </div>
+  <body role="application" class="loading">
+    <article id="message-screen" role="region">
+      <section role="region">
+        <header>
+          <button id="close"><span class="icon icon-close"> close </span></button>
+          <menu type="toolbar">
+            <button id="send" disabled> send </button>
+          </menu>
+          <h1 id="header-title">USSD</h1>
+        </header>
+      </section>
+      <section id="message-container" role="region">
+        <div id="message">
+        </div>
+      </section>
+      <form id="response" role="region">
+        <p>
+          <input id="response-text" type="tel" data-l10n-id="type-your-response" placeholder="Type your selection..." required disabled>
+          <button id="response-text-reset" type="reset" data-l10n-id="clear-all-text"> Clear-all-text </button>  
+        </p>
+      </form>
+    </article>
+    <article id="loading-overlay">
+      <section class="loading-container">
+        <header class="loading-header" data-l10n-id="sending">
+          Sending...
+        </header>
+        <div class="progress-container">
+          <progress class="small"></progress>
+        </div>
+      </section>
+    </article>
   </body>
 </html>

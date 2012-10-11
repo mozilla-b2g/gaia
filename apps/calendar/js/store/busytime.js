@@ -34,12 +34,36 @@ Calendar.ns('Store').Busytime = (function() {
 
     _store: 'busytimes',
 
+    _dependentStores: ['alarms', 'busytimes'],
+
+    _parseId: function(id) {
+      return id;
+    },
+
     _setupCache: function() {
       // reset time observers
       Calendar.TimeObserver.call(this);
 
       this._byEventId = Object.create(null);
-      this._tree = new Calendar.IntervalTree();
+    },
+
+    _createModel: function(input, id) {
+      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var model = _super.apply(this, arguments);
+
+      model.startDate = Calendar.Calc.dateFromTransport(
+        model.start
+      );
+
+      model.endDate = Calendar.Calc.dateFromTransport(
+        model.end
+      );
+
+      return model;
+    },
+
+    _removeDependents: function(id, trans) {
+      this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
     },
 
     addEvent: function(event, trans, callback) {
@@ -50,23 +74,20 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
 
       var id = event._id;
-      this.removeEvent(id, trans);
 
-      var records = this._addEventTimes(event);
+      var item = this._eventToRecord(event);
+      this.persist(item, trans);
+
+      var item = this.addTime(item, true);
 
       // to add we also must remove
       // an previous references to event...
-
-      records.forEach(function(item) {
-        this.persist(item, trans);
-      }, this);
-
       this._transactionCallback(trans, callback);
     },
 
@@ -78,32 +99,19 @@ Calendar.ns('Store').Busytime = (function() {
 
       if (typeof(trans) === 'undefined') {
         trans = this.db.transaction(
-          this._store,
+          this._dependentStores,
           'readwrite'
         );
       }
 
       this._removeEventTimes(id);
-
-      var store = trans.objectStore('busytimes');
-      var index = store.index('eventId');
-      var range = IDBKeyRange.only(id);
-      var req = index.openCursor(range);
-
-      req.onsuccess = function(e) {
-        var cursor = e.target.result;
-        if (cursor) {
-          var req = cursor.delete();
-          cursor.continue();
-        }
-      };
-
+      this.removeByIndex('eventId', id, trans);
       this._transactionCallback(trans, callback);
     },
 
     _startCompare: function(aObj, bObj) {
-      var a = aObj.start;
-      var b = bObj.start;
+      var a = aObj.start.utc;
+      var b = bObj.start.utc;
 
       return Calendar.compare(a, b);
     },
@@ -123,9 +131,17 @@ Calendar.ns('Store').Busytime = (function() {
       var trans = this.db.transaction(this._store);
       var store = trans.objectStore(this._store);
 
+      var startPoint = Calendar.Calc.dateToTransport(
+        new Date(span.start)
+      );
+
+      var endPoint = Calendar.Calc.dateToTransport(
+        new Date(span.end)
+      );
+
       // XXX: we need to implement busytime chunking
       // to make this efficient.
-      var keyRange = IDBKeyRange.lowerBound(span.start);
+      var keyRange = IDBKeyRange.lowerBound(startPoint.utc);
 
       var index = store.index('end');
       var self = this;
@@ -140,7 +156,7 @@ Calendar.ns('Store').Busytime = (function() {
         // after the end time of the span
         var idx = Calendar.binsearch.insert(
           data,
-          { start: (span.end + 1) },
+          { start: { utc: endPoint.utc + 1 } },
           self._startCompare
         );
 
@@ -149,9 +165,9 @@ Calendar.ns('Store').Busytime = (function() {
 
         // add records to the cache
         data.forEach(function(item) {
-          //XXX: Maybe we want to seperate
+          //XXX: Maybe we want to separate
           //set of events for persist vs load?
-          self._addTime(item);
+          self.addTime(item, true);
         });
 
         // fire callback
@@ -164,40 +180,23 @@ Calendar.ns('Store').Busytime = (function() {
     /**
      * Creates a record for an time/event
      *
-     * @param {Date} time position of event.
+     * TODO: remove this method entirely in favor of
+     *       provider generated busytimes for all types
+     *       of events.
+     *
      * @param {Object} event associated event.
      */
-    _eventToRecord: function(start, event) {
-      // XXX Quick hack - we need to do a recurring lookup
-      var end = event.remote.endDate;
+    _eventToRecord: function(event) {
 
-      if (!(end instanceof Date)) {
-        end = new Date(end);
-      }
-
-      if (!(start instanceof Date)) {
-        start = new Date(start);
-      }
+      var id = this.db.getStore('Event').busytimeIdFor(event);
 
       var result = {
-        startDate: start,
-        endDate: end,
+        _id: id,
+        start: event.remote.start,
+        end: event.remote.end,
         eventId: event._id,
         calendarId: event.calendarId
       };
-
-      result.start = result.startDate.valueOf();
-      result.end = result.endDate.valueOf();
-
-      // Knowing the ID ahead of time
-      // lets us flush it to the UI before
-      // it actually hits the database ( then later
-      // if its removed we can find it by id )
-      // That said I don't like this method of
-      // assigning the id. Maybe use UUID?
-      result._id = result.startDate.valueOf() + '-' +
-                   result.endDate.valueOf() + '-' +
-                   result.eventId;
 
       return result;
     },
@@ -208,9 +207,7 @@ Calendar.ns('Store').Busytime = (function() {
     _removeFromCache: function() {},
 
     _onLoadCache: function(object) {
-      this._addTime(
-        object
-      );
+      this.addTime(object);
     },
 
     /**
@@ -219,37 +216,21 @@ Calendar.ns('Store').Busytime = (function() {
      * is added newly or loaded.
      *
      * @param {Object} record busytime record.
+     * @param {Boolean} format when true formats record.
      */
-    _addTime: function(record) {
+    addTime: function(record, format) {
       if (!(record.eventId in this._byEventId)) {
         this._byEventId[record.eventId] = [];
       }
 
+      if (format) {
+        record = this._createModel(record);
+      }
+
       this._byEventId[record.eventId].push(record);
-      this._tree.add(record);
-
       this.emit('add time', record);
-    },
 
-    _addEventTimes: function(event) {
-      var i = 0;
-      var len = event.remote.occurs.length;
-      var time;
-      var record;
-      var results = [];
-
-      if (!(event._id in this._byEventId)) {
-        this._byEventId[event._id] = [];
-      }
-
-      for (; i < len; i++) {
-        time = event.remote.occurs[i];
-        record = this._eventToRecord(time, event);
-        this._addTime(record);
-        results.push(record);
-      }
-
-      return results;
+      return record;
     },
 
     _removeEventTimes: function(id) {
@@ -263,7 +244,6 @@ Calendar.ns('Store').Busytime = (function() {
         return;
 
       records.forEach(function(record) {
-        this._tree.remove(record);
         this.emit('remove time', record);
       }, this);
     }

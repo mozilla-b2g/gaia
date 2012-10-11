@@ -1,6 +1,40 @@
 (function(window) {
 
   var calendarId = 0;
+  var Calc = Calendar.Calc;
+
+  function handleTransportDate(obj) {
+
+    // handle case of incoming start date
+
+    if (obj.startDate) {
+      obj.start = Calc.dateToTransport(obj.startDate);
+    }
+
+    if (obj.endDate) {
+      obj.end = Calc.dateToTransport(obj.endDate);
+    }
+
+    // handle case of defaults
+
+    if (!obj.start) {
+      obj.start = Calc.dateToTransport(new Date());
+    }
+
+    if (!obj.end) {
+      obj.end = Calc.dateToTransport(new Date());
+    }
+
+    // handle case of given .start\end or defaults
+
+    if (obj.start) {
+      obj.startDate = Calc.dateFromTransport(obj.start);
+    }
+
+    if (obj.end) {
+      obj.endDate = Calc.dateFromTransport(obj.end);
+    }
+  }
 
   Factory.define('remote.calendar', {
     properties: {
@@ -25,7 +59,7 @@
   Factory.define('remote.event', {
     properties: {
       location: 'location',
-      recurring: false
+      isRecurring: false
       //XXX: raw data
     },
 
@@ -35,55 +69,14 @@
         id = obj.id = 'euuid/' + eventId++;
       }
 
+      handleTransportDate(obj);
+
       if (!obj.title)
         obj.title = 'title ' + id;
 
       if (!obj.description)
         obj.description = 'description ' + id;
 
-      if (!obj.startDate)
-        obj.startDate = new Date();
-
-      if (!obj.endDate)
-        obj.endDate = new Date();
-
-      if (!obj.occurs)
-        obj.occurs = [obj.startDate];
-    }
-  });
-
-  Factory.define('remote.event.recurring', {
-    extend: 'remote.event',
-
-    onbuild: function(obj) {
-      var parent = Factory.get('remote.event');
-      parent.onbuild.apply(this, arguments);
-
-      var lastEvent = obj.occurs[obj.occurs.length - 1];
-      var recurres = 3;
-
-      if (typeof(obj._recurres) !== 'undefined') {
-        recurres = obj._recurres;
-        delete obj._recurres;
-      }
-      for (var i = 0; i < recurres; i++) {
-        obj.occurs.push(
-          new Date(
-            lastEvent.getFullYear(),
-            lastEvent.getMonth(),
-            lastEvent.getDate() + 1
-          )
-        );
-
-        lastEvent = obj.occurs[
-          obj.occurs.length - 1
-        ];
-      }
-
-      obj.recurring = {
-        expandedUntil: lastEvent,
-        isExpaned: true
-      };
     }
   });
 
@@ -176,35 +169,24 @@
 
     oncreate: function(obj) {
       if (!obj._id) {
-        obj._id = obj._eventId + '-' + (++busytimeId);
+        obj._id = obj.eventId + '-' + (++busytimeId);
       }
 
-      if (obj.startDate && !obj.endDate) {
-        var endDate = new Date(obj.startDate.valueOf());
-        endDate.setHours(obj.startDate.getHours() + 2);
-        obj.endDate = endDate;
+      handleTransportDate(obj);
+
+      if (obj.endDate == obj.startDate) {
+        obj.endDate.setHours(endDate.getHours() + 2);
+        handleTransportDate(obj);
       }
-
-      if (obj.start && !obj.startDate)
-        obj.startDate = new Date(obj.start);
-
-      if (obj.end && !obj.endDate)
-        obj.endDate = new Date(obj.end);
-
-      if (!obj.start)
-        obj.start = obj.startDate.valueOf();
-
-      if (!obj.end)
-        obj.end = obj.endDate.valueOf();
-
-
     }
+
   });
 
-  Factory.define('event.recurring', {
-    extend: 'event',
-    properties: {
-      remote: Factory.get('remote.event.recurring')
+  Factory.define('alarm', {
+    oncreate: function(obj) {
+      if (obj.trigger && obj.trigger instanceof Date) {
+        obj.trigger = Calc.dateToTransport(obj.trigger);
+      }
     }
   });
 
