@@ -27,11 +27,6 @@ var MAIL_SERVICES = [
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
     domain: ''
-  },
-  {
-    name: 'Fake Account',
-    l10nId: null,
-    domain: 'example.com'
   }
 ];
 
