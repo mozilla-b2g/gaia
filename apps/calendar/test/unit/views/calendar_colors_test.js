@@ -164,6 +164,8 @@ suite('views/calendar_colors', function() {
         bgRule.style.backgroundColor,
         'should have set background color'
       );
+
+      assert.ok(bgRule.style.borderColor, 'sets border color');
     });
 
     test('first time hidden', function() {
@@ -199,7 +201,7 @@ suite('views/calendar_colors', function() {
       subject.updateRule(model);
 
       assert.notEqual(bgStyle.backgroundColor, oldColor, 'should change color');
-
+      assert.notEqual(bgStyle.borderColor, oldColor, 'should change color');
 
       model.localDisplayed = false;
       subject.updateRule(model);
