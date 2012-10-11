@@ -11,23 +11,25 @@
   -moz-flex-direction: row;
   width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
+  margin:0;
+  padding:0;
+  font-size: 14px;
   font-family: "Open Sans", Sans-serif;
 }
 
 [role="tablist"] > [role="tab"] {
-  -moz-flex: 1;
-  height: 100%;
+  -moz-box-flex:1;
+  display: -moz-box;
+  -moz-box-align: start;
+  width: 100%;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 [role="tablist"] > [role="tab"] > a {
-  position: relative;
-  float: left;
-  width: 100%;
+  -moz-box-flex:1;
+  display: block;
   color: #fff;
   font-size: 1.3rem;
   line-height: 4rem;
@@ -44,14 +46,17 @@
   font-size: 0;
 }
 
-[role="tablist"] > [role="tab"] > a.icon:after {
-  content: '';
-  width: 100%;
-  height: 100%;
+/* tab panels */
+[role="tablist"] [role="tabpanel"] {
   position: absolute;
-  background: no-repeat 50% 0;
+  top: 4rem;
   left: 0;
-  z-index: 5;
+  visibility: hidden;
+  width: 100%;
+  height: calc(100% - 4rem);
+  z-index: 10;
+  display: block;
+  overflow: auto;
 }
 
 /* XXX application-specific icons: these rules should not be part of this building block */
@@ -78,30 +83,16 @@
   color: #999;
 }
 
-/* tab panels */
-[role="tablist"] [role="tabpanel"] {
-  position: absolute;
-  top: 4rem;
-  left: 0;
-  visibility: hidden;
-  width: 100%;
-  height: calc(100% - 4rem);
-  z-index: 10;
-  display: block;
-  overflow: auto;
-}
-
 [role="tablist"] :target [role="tabpanel"] {
   z-index: 1;
   visibility: visible;
 }
 
 /* bottom position */
-[role="tablist"].bottom > [role="tab"] {
-  margin-top: calc(100% - 4rem);
+[role="tablist"].bottom  > [role="tab"] {
+  -moz-box-align: end;
 }
 
 [role="tablist"].bottom [role="tabpanel"] {
   top: 0;
 }
-
