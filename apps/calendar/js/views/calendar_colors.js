@@ -89,6 +89,7 @@ Calendar.ns('Views').CalendarColors = (function() {
         var displayStyle = map.display.style;
 
         bgStyle.backgroundColor = color;
+        bgStyle.borderColor = color;
 
         if (!calendar.localDisplayed) {
           displayStyle.setProperty('display', 'none');
@@ -111,9 +112,13 @@ Calendar.ns('Views').CalendarColors = (function() {
         };
 
         // calendar coloring
-        var bgBlock = '.' + id + '.calendar-color, ';
-        bgBlock += '.' + id + ' .calendar-color ';
-        bgBlock += '{ background-color: ' + color + '; }';
+        var bgBlock = '.' + id + '.calendar-color ';
+        bgBlock += '{';
+        // some visual elements like busy bars work better with background
+        bgBlock += '  background-color: ' + color + ';';
+        // others like the event views work better with borders
+        bgBlock += '  border-color: ' + color + ';';
+        bgBlock += '}';
 
         // insert rule save it for later so we don't
         // need to lookup the id
