@@ -26,6 +26,9 @@ fi
 trap 'rm -rf "$tmpdir"' EXIT INT TERM HUP
 
 size_cmd="printf 1" # Command used to obtain the size of a file
+total_src_size="0"  # Total size of the source files
+total_comp_size="0" # Total size of the compressed files
+processed_files="0" # Number of files having been processed
 
 ###############################################################################
 # Print the help message
@@ -211,6 +214,10 @@ recompress_file() {
     if [ $opt_verbose = yes ]; then
         printf "$1 $src_size $comp_size $ratio\n"
     fi
+
+    total_src_size=$((total_src_size + src_size))
+    total_comp_size=$((total_comp_size + comp_size))
+    processed_files=$((processed_files + 1))
 }
 
 ###############################################################################
@@ -260,3 +267,12 @@ while read -r fd; do
         printf "warning: skipping $fd, as it is neither a file nor a directory\n"
     fi
 done < "$tmpdir/paths_pipe"
+
+if [ $opt_verbose = yes ]; then
+    printf "
+Number of files processed: $processed_files
+Total size of the files prior to recompression: $total_src_size
+Total size of the files after recompression: $total_comp_size
+Compression ratio: `compression_ratio $total_src_size $total_comp_size`
+"
+fi
