@@ -25,6 +25,7 @@ fi
 
 trap 'rm -rf "$tmpdir"' EXIT INT TERM HUP
 
+size_cmd="printf 1" # Command used to obtain the size of a file
 
 ###############################################################################
 # Print the help message
@@ -137,6 +138,12 @@ check_programs() {
         printf "error: advpng not found\n"
         exit 1;
     fi
+
+    if stat --printf %s . 1>/dev/null 2>/dev/null; then
+        size_cmd="stat --printf %s"
+    elif stat -f %z . 1>/dev/null 2>/dev/null; then
+        size_cmd="stat -f %z"
+    fi
 }
 
 ###############################################################################
@@ -165,6 +172,7 @@ recompress_dir() {
 
 recompress_file() {
     local rv=0
+    local src_size=`$size_cmd "$1"`
 
     if [ $opt_backup = yes ]; then
         if [ -e "$1.bak" ] ; then
@@ -196,6 +204,30 @@ recompress_file() {
         printf "error: advpng $opt_optipng_args \"$1\" returned $rv\n"
         exit 1
     fi
+
+    local comp_size=`$size_cmd "$1"`
+    local ratio=`compression_ratio $src_size $comp_size`
+
+    if [ $opt_verbose = yes ]; then
+        printf "$1 $src_size $comp_size $ratio\n"
+    fi
+}
+
+###############################################################################
+# Prints out the compression ratio, $1 is the source file size, $2 is the
+# compressed file size
+
+compression_ratio() {
+    echo "scale=3;
+result = $2.0 / $1.0;
+if (result >= 0 && result < 1) {
+    print \"0\";
+}
+
+if (result == 0) {
+    print \".\";
+}
+print result;" | bc
 }
 
 ###############################################################################
