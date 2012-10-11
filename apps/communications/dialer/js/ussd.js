@@ -46,11 +46,8 @@ var UssdManager = {
 
   notifySuccess: function um_notifySuccess(evt) {
     var message = {
-      type: 'success'
-      // For the time being the RIL sends an Object in the
-      // DOMRequest.result with no content so we notify no result
-      // to the UI instead of:
-      // result: evt.target.result
+      type: 'success',
+      result: evt.target.result
     };
     if (this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
@@ -88,10 +85,12 @@ var UssdManager = {
     var message;
     switch (evt.type) {
       case 'ussdreceived':
-        message = {
-          type: 'ussdreceived',
-          message: evt.message
-        };
+        // Do not notify the UI if no message to show.
+        if (evt.message)
+          message = {
+            type: 'ussdreceived',
+            message: evt.message
+          };
         break;
       case 'voicechange':
         // Even without SIM card, the mozMobileConnection.voice.network object
@@ -114,10 +113,9 @@ var UssdManager = {
             break;
         }
         return;
-        break;
     }
 
-    if (this._popup && this._popup.ready) {
+    if (message && this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
     }
   }
