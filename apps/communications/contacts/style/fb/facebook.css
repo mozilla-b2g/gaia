@@ -26,10 +26,10 @@ body[role="application"] section[role="region"] > header > a {
 body[role="application"] section[role="region"] > header > button .icon:after,
 body[role="application"] section[role="region"] > header > a .icon:after {
   background-image: url(headers/images/ui/negative.png);
+  background-color: #3B5998;
 }
 
 /* BB Input areas */
-
 form[role="search"].full {
   border-bottom: 0.1rem solid #C8C8C8;
   padding-top: 0.3rem;
@@ -39,17 +39,60 @@ form[role="search"].full:after {
   background: none;
 }
 
-form[role="search"].full p {
+form[role="search"].full label {
   padding: 0.3rem 3.2rem 0.3rem 2.5rem;
 }
 
 /* BB Confirm */
-
 form[role="dialog"].no-overlay {
   background: none;
+  pointer-events: none;
+}
+
+form[role="dialog"].no-overlay button {
+  pointer-events: auto;
 }
 
 /* End BB */
+
+/* ----------------------------------
+ * PROGRESS + ACTIVITIES
+ * ---------------------------------- */
+
+/* Activity indicator */
+progress:not([value]) {
+   width: 2.9rem;
+   height: 2.9rem;
+   background: url(../images/spinner.png) no-repeat left top;
+   border: none;
+   animation: 1s moveDefault infinite steps(10);
+   display: inline-block;
+   vertical-align: middle;
+ }
+
+progress:not([value])::-moz-progress-bar {
+   background: none;
+ }
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -390px top;
+  }
+}
+
+@keyframes moveSpinner {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -300px top;
+  }
+}
 
 .view {
   position: fixed;
@@ -140,6 +183,8 @@ h2.block-title {
   text-align: left;
 
   height: -moz-calc(100% - 6.5rem);
+  padding-top: 3.7rem; /* Equal to search form height */
+  position: relative;
 }
 
 .link #main {
