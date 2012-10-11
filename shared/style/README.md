@@ -1,37 +1,8 @@
-Building Blocks
-===============
-
-Taxonomy
---------
-
-* `action_menu.css`: context menus
-* `buttons.css`: common buttons
-* `confirm.css`: dialog boxes with message + accept/dismiss buttons
-* `edit_mode.css`: edition panels with a dialog-like button toolbar
-* `headers.css`: common header bars (title + navigation buttons)
-* `input_areas.css`: common input areas (e.g. search bars)
-* `status.css`: notification toasters
-* `switches.css`: checkboxes, radio buttons, ON/OFF switches
-
-
-Specific Attributes
--------------------
-
-A `data-type` attribute is used when the `type` and `role` attributes are not specific enough. Here’s the list of its possible values.
-
-* `action`: used in `action_menu.css`, title + action selection + accept/dismiss buttons
-* `confirm`: used in `confirm.css`, message + accept/dismiss buttons
-* `edit`: used in `edit_mode.css`, edition panel with dialog-like button toolbar
-* `object`: used in `action_menu.css`, action selection + accept/dismiss buttons
-* `switch`: used in `switches.css`, turns a checkbox into an ON/OFF switch
-
-
 Class Name Usage
-----------------
+================
 
-We try to avoid arbitrary class names as much as possible, but sometimes we have to use some — here’s the list.
-
-### Common Class Names
+Common Class Names
+------------------
 
 **Icons**
 
@@ -55,14 +26,21 @@ We try to avoid arbitrary class names as much as possible, but sometimes we have
 * `.danger`: dangerous choice, e.g. delete something
 * `.recommend`: default/recommended choice, should be safe
 
+**Dialogs**
+
+* `.edit`: accept/dismiss panel with dialog-like button toolbar
+* TODO: `.action` and `.object` could be added as well (w/ prefix)
+
 **Other**
 
-* `.action`: applies to fieldset elements (explanation needed)
+* `.action`: ??? applies to fieldset elements
 * `.bottom`: bottom-positioned element, applies to search forms
 * `.compact`: compact list, applies to button lists
 * `.full`: full-width element, applies to buttons or search forms
+* `.switch`: ON/OFF switch, applies to checkboxes
 
-### Usage by Block
+Usage by Block
+--------------
 
 **action_menu.css**
 
@@ -83,6 +61,7 @@ None
 **edit_mode.css**
 
 * `.danger`
+* `.edit`
 * `.full`
 * `.icon`
 * `.recommend`
@@ -101,9 +80,9 @@ None
 
 **input_areas.css**
 
-* `.action` (explanation needed)
+* `.action`
 * `.bottom`
-* `.full`
+* `.full` (should be dropped!)
 
 **status.css**
 
@@ -112,4 +91,5 @@ None
 **switches.css**
 
 * `.danger`
+* `.switch`
 
