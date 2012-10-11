@@ -52,6 +52,9 @@ var PopupManager = {
     dataset.frameName = name;
     dataset.frameOrigin = origin;
 
+    // this seems needed, or an override to origin in close()
+    this._currentOrigin = origin;
+
     this.container.appendChild(popup);
 
     this.screen.classList.add('popup');
