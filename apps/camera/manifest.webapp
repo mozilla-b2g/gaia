@@ -1,6 +1,7 @@
 {
   "name": "Camera",
   "description": "Gaia Camera",
+  "type": "certified",
   "launch_path": "/index.html",
   "orientation": "portrait-primary",
   "fullscreen": true,
@@ -8,13 +9,12 @@
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "device-storage:pictures",
-    "device-storage:videos",
-    "content-camera",
-    "camera",
-    "geolocation"
-  ],
+  "permissions": {
+    "device-storage:pictures":{},
+    "device-storage:videos":{},
+    "camera":{},
+    "geolocation":{}
+  },
   "activities": {
     "record": {
       "filters": {

@@ -1,19 +1,19 @@
 {
   "name": "Calendar",
   "description": "Gaia Calendar",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "messages": ["alarm"],
-  "permissions": [
-    "systemXHR",
-    "settings",
-    "alarm",
-    "alarms",
-    "desktop-notification"
-  ],
+  "permissions": {
+    "systemXHR":{},
+    "settings":{},
+    "alarms":{},
+    "desktop-notification":{}
+  },
   "locales": {
     "ar": {
       "name": "Calendar",
