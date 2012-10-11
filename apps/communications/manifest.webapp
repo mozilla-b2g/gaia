@@ -1,6 +1,7 @@
 {
   "name": "Communications",
   "description": "Gaia Communications",
+  "type": "certified",
   "launch_path": "/",
   "developer": {
     "name": "The Gaia Team",
@@ -24,15 +25,15 @@
       }
     }
   },
-  "permissions": [
-    "telephony",
-    "voicemail",
-    "contacts",
-    "mobileconnection",
-    "attention",
-    "settings",
-    "desktop-notification"
-  ],
+  "permissions": {
+    "telephony":{},
+    "voicemail":{},
+    "contacts":{},
+    "mobileconnection":{},
+    "attention":{},
+    "settings":{},
+    "desktop-notification":{}
+  },
   "icons": {
     "120": "/dialer/style/icons/Dialer.png",
     "60": "/dialer/style/icons/60/Dialer.png"

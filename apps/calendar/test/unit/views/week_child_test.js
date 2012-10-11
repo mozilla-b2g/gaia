@@ -4,11 +4,10 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('templates/day.js');
   requireLib('templates/week.js');
   requireLib('views/day_based.js');
-  requireLib('views/day_child.js');
   requireLib('views/week_child.js');
 });
 
-suite('views/day_child', function() {
+suite('views/week_child', function() {
   var subject;
   var app;
   var controller;
@@ -31,7 +30,7 @@ suite('views/day_child', function() {
 
   test('initialization', function() {
     assert.equal(subject.controller, controller);
-    assert.instanceOf(subject, Calendar.Views.DayChild);
+    assert.instanceOf(subject, Calendar.Views.DayBased);
   });
 
   test('#_renderEvent', function() {
