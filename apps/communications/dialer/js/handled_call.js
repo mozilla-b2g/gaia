@@ -22,7 +22,7 @@ function HandledCall(aCall, aNode) {
   this.node = aNode;
   this.durationNode = aNode.querySelector('.duration span');
   this.directionNode = aNode.querySelector('.duration .direction');
-  this.numberNode = aNode.querySelector('.number');
+  this.numberNode = aNode.querySelector('.numberWrapper .number');
   this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
 
 
