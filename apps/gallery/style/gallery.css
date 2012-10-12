@@ -513,7 +513,7 @@ footer {
 }
 
 #edit-effect-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
   outline-offset: -3px;
 }
 
@@ -534,7 +534,7 @@ footer {
 }
 
 #edit-crop-options a.selected.radio.button {
-  outline: solid orange 2px;
+  outline: solid #00aacc 2px;
   outline-offset: -2px;
 }
 
@@ -628,7 +628,7 @@ a.filter-sepia {
 }
 
 #edit-border-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
 }
 
 #edit-border-none {
@@ -662,7 +662,7 @@ a.filter-sepia {
 
 /* If the button is selected, it has a different background */
 #edit-toolbar > .button.selected {
-  background: #267594;
+  background: #02252C;
 }
 
 #edit-exposure-button {
