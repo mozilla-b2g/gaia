@@ -306,6 +306,9 @@ suite('views/day_based', function() {
 
       assert.length(elements, 1);
 
+      var record = hour.records.get(id);
+      assert.isTrue(record);
+
       // verify its in the overlaps collection
       var overlapEl = subject.overlaps.getElement(id);
       assert.equal(overlapEl, elements[0], 'has element in overlaps');
@@ -362,6 +365,7 @@ suite('views/day_based', function() {
 
       // verify flag
       assert.ok(hour.flags, 'has flags');
+
       assert.include(
         hour.flags, subject.calendarId(busytime),
         'includes calendar id'
@@ -373,6 +377,14 @@ suite('views/day_based', function() {
       );
 
       assert.ok(el, 'has element');
+
+      var records = hour.records;
+      var record = records.get(busytime._id);
+
+      assert.equal(
+        record.element, el,
+        'allday records have element'
+      );
 
       // verify 'allday' events are _not_ in overlap container
       assert.ok(
@@ -394,7 +406,7 @@ suite('views/day_based', function() {
 
       // find element
 
-      var el = subject.events.querySelector(
+      var el = subject.element.querySelector(
         '[data-id="' + event._id + '"]'
       );
 
@@ -432,8 +444,8 @@ suite('views/day_based', function() {
     });
 
     test('remove "allday" records', function() {
-      var a = add(5);
-      var b = add(5);
+      var a = add('allday');
+      var b = add('allday');
 
       subject.remove(a.busytime);
       subject.remove(b.busytime);
