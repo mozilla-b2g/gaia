@@ -4,7 +4,7 @@ html, body {
   overflow: hidden;
   margin: 0;
   color: white;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   font-size: 10px;
   background: black;
 }
@@ -22,16 +22,16 @@ html * {
 }
 
 .font-regular {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 .font-semibold {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
   font-weight: 600;
 }
 
 .font-light {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 .contact-primary-info {

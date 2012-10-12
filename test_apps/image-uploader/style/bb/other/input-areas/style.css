@@ -9,7 +9,7 @@
   display: block;
   -moz-box-sizing: border-box;
   padding: 0 0.5rem;
-  font: 1.4rem/4rem "Open Sans", Sans-serif;
+  font: 1.4rem/4rem "MozTT", Sans-serif;
   border: solid 1px #d1d1d1;
   border-radius: 0.3rem;
   background: #fff url(images/ui/shadow.png) repeat-x left top;
@@ -52,7 +52,7 @@ body[role="application"] .fieldbox {
   border-radius: 0.3rem;
   border: 1px solid #C8C8C8;
   overflow: hidden;
-  font: 1.4rem/1em "Open Sans", Sans-serif;
+  font: 1.4rem/1em "MozTT", Sans-serif;
 }
 
 body[role="application"] .fieldbox dt {
