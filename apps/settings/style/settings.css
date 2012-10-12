@@ -180,14 +180,6 @@ body.hidden #root {
  * Wi-Fi settings
  */
 
-label[for^="pwd"] {
-  margin-top: -1rem;
-  padding-left: 3rem;
-  height: 3rem;
-  line-height: 3rem;
-  font-size: 1.5rem;
-}
-
 /* three-state items: on|off|ready */
 
 ul[data-state="off"] ~ *,
@@ -201,31 +193,31 @@ ul[data-state="ready"] li[data-state="ready"] {
   display: block;
 }
 
-/* 'show password' checkboxes */
+/**
+ * Wi-Fi authentication fields:
+ *   - hide password field on open networks
+ *   - hide identifier field on non-EAP networks
+ */
 
-label[for="show-pwd"] {
-  margin: -1rem 0 1rem 3rem;
-  height: 2rem;
-  line-height: 2rem;
-  font-size: 1.4rem;
-}
-
-/* hide identifier field on non-EAP networks */
-
-section.WPA-EAP li.identity {
-  display: block;
-}
-
-/* hide password field on open networks */
-
-section li.password {
+section li.password,
+section li.identity {
   display: none;
 }
 
 section.WEP li.password,
 section.WPA-PSK li.password,
-section.WPA-EAP li.password {
+section.WPA-EAP li.password,
+section.WPA-EAP li.identity {
   display: block;
+}
+
+/* 'show password' checkboxes */
+label[for^="pwd"] {
+  margin-top: -1rem;
+  padding-left: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  font-size: 1.5rem;
 }
 
 
