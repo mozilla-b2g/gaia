@@ -173,6 +173,8 @@ Calendar.ns('Views').DayBased = (function() {
         throw new Error('must pass a event');
       }
 
+      var eventRecord = true;
+
       if (id in this._idsToHours) {
         // existing event
         this._idsToHours[id].push(hour);
@@ -200,6 +202,17 @@ Calendar.ns('Views').DayBased = (function() {
         if (hour !== Calendar.Calc.ALLDAY) {
           this._assignPosition(busytime, el);
           this.overlaps.add(busytime, el);
+        } else {
+          /**
+           * Because we have two types of events (hourly & allday)
+           * we need to store the elements differently.
+           * The all day events we store here but the hourly
+           * events are stored in the overlap container.
+           *
+           * TODO: maybe it makes sense to have a single container
+           *       that contains both sets of elements.
+           */
+          eventRecord = { element: el };
         }
       }
 
@@ -209,7 +222,7 @@ Calendar.ns('Views').DayBased = (function() {
       hourRecord.element.classList.add(calendarId);
 
       // increment count of event per-hour (hour -> [events] counter)
-      return hourRecord.records.set(id, true);
+      return hourRecord.records.set(id, eventRecord);
     },
 
     /**
@@ -446,6 +459,12 @@ Calendar.ns('Views').DayBased = (function() {
           this.removeHour(number);
         }
 
+        var record = hour.records.get(id);
+
+        if (typeof(record) === 'object' && record.element) {
+          record.element.parentNode.removeChild(record.element);
+        }
+
         hour.records.remove(id);
       }, this);
 
@@ -453,10 +472,10 @@ Calendar.ns('Views').DayBased = (function() {
       var eventEl = this.overlaps.getElement(busytime);
       if (eventEl) {
         eventEl.parentNode.removeChild(eventEl);
+        // remove it from overlaps
+        this.overlaps.remove(busytime);
       }
 
-      // remove it from overlaps
-      this.overlaps.remove(busytime);
     },
 
     /**
