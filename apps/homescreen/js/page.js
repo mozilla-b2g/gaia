@@ -20,6 +20,8 @@ var Icon = function Icon(app) {
 };
 
 Icon.prototype = {
+  MIN_ICON_SIZE: 52,
+  MAX_ICON_SIZE: 54,
   /*
    * Renders the icon into the page
    *
@@ -103,6 +105,16 @@ Icon.prototype = {
     ctx.shadowColor = 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 2;
     ctx.shadowOffsetY = 2;
+
+    // Deal with very small or very large icons
+    if (img.width < this.MIN_ICON_SIZE || img.height < this.MIN_ICON_SIZE) {
+      img.width = this.MIN_ICON_SIZE;
+      img.height = this.MIN_ICON_SIZE;
+    }
+    if (img.width > this.MAX_ICON_SIZE || img.height > this.MAX_ICON_SIZE) {
+      img.width = this.MAX_ICON_SIZE;
+      img.height = this.MAX_ICON_SIZE;
+    }
 
     var width = Math.min(img.width, canvas.width - 4);
     var height = Math.min(img.width, canvas.height - 4);
