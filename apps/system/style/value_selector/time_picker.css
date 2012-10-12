@@ -70,7 +70,7 @@
   background-color: #00A5C5;
   position: absolute;
   height: 100%;
-  font: 3rem/6rem 'Open Sans',sans-serif;
+  font: 3rem/6rem 'MozTT',sans-serif;
   text-align: center;
 }
 
@@ -150,7 +150,7 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 3rem/8rem 'Open Sans',sans-serif;
+  font: 3rem/8rem 'MozTT',sans-serif;
   color: #FFF;
   text-align: center;
   vertical-align: middle;

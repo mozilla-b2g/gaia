@@ -4,7 +4,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   margin: 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   font-size: 10px;
   color: white;
   background: transparent;
@@ -15,16 +15,16 @@ html * {
 }
 
 .font-regular {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 .font-semibold {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
   font-weight: 600;
 }
 
 .font-light {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 #phone-number-view {
