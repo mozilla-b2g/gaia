@@ -36,7 +36,7 @@ Common Class Names
 * `.action`: ??? applies to fieldset elements
 * `.bottom`: bottom-positioned element, applies to search forms
 * `.compact`: compact list, applies to button lists
-* `.full`: full-width element, applies to buttons or search forms
+* `.full`: full-width element, applies to buttons
 * `.switch`: ON/OFF switch, applies to checkboxes
 
 Usage by Block
@@ -82,7 +82,6 @@ None
 
 * `.action`
 * `.bottom`
-* `.full` (should be dropped!)
 
 **status.css**
 
