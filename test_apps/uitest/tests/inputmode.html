@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="pragma" content="no-cache">
+    <title>Inputmode tests</title>
+    <style>
+      input { width: 150px; }
+      textarea { width: 150px; height: 30px; }
+    </style>
+    <script>
+    </script>
+  </head>
+
+  <body>
+    <p>
+      When you tap in a field labelled "latin" and "verbatim" you
+      should see a keyboard in lowercase mode. When you tap in one
+      labelled "none", "latin-prose", or "latin-name" you should see a
+      keyboard in uppercase mode. Eventually there will be other
+      differences as well (in word suggestions, for example) but for
+      now, inputmode is just controlling auto capitalization
+    </p>
+
+    none: <input type="text"><br>
+    latin: <input type="text" inputmode="latin"><br>
+    verbatim: <input type="text" inputmode="verbatim"><br>
+    latin-prose: <input type="text" inputmode="latin-prose"><br>
+    latin-name: <input type="text" inputmode="latin-name"><br>
+
+    none: <textarea></textarea><br>
+    latin: <textarea inputmode="latin"></textarea><br>
+    verbatim: <textarea inputmode="verbatim"></textarea><br>
+    latin-prose: <textarea inputmode="latin-prose"></textarea><br>
+    latin-name: <textarea inputmode="latin-name"></textarea><br>
+  </body>
+</html>
