@@ -34,6 +34,7 @@ var Settings = {
 
       switch (input.dataset.type || input.type) { // bug344618
         case 'checkbox':
+        case 'switch':
           if (input.checked == value)
             return;
           input.checked = value;
@@ -53,7 +54,6 @@ var Settings = {
           }
           break;
       }
-      // XXX: if there are more values needs to be synced.
     };
 
     // preset all inputs that have a `name' attribute
@@ -211,6 +211,7 @@ var Settings = {
     var value;
     switch (type) {
       case 'checkbox':
+      case 'switch':
         value = input.checked; // boolean
         break;
       case 'range':
