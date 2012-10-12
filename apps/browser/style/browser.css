@@ -186,7 +186,7 @@ input[type="image"] {
    * underlying problem.
    */
   transform: translateY(0px);
-  transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 
 #main-screen.address-hidden {
@@ -242,11 +242,12 @@ input[type="image"] {
 
 #toolbar-end {
   display: none;
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background-image: -moz-linear-gradient(#323639, #272b2e);
+  z-index: 51;
 }
 
 .page-screen #toolbar-start {
