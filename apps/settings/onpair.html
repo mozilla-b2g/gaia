@@ -21,7 +21,7 @@
     <script type="application/javascript" defer src="js/onpair.js"></script>
   </head>
   <body role="application">
-    <form role="dialog" id="pair-view">
+    <form role="dialog" data-type="confirm" id="pair-view">
       <section>
         <h1 id="pair-title"></h1>
         <p id="device-info" class="deviceInfo">
@@ -45,7 +45,7 @@
       </menu>
     </form>
 
-    <form role="dialog" id="alert-view" hidden>
+    <form role="dialog" data-type="confirm" id="alert-view" hidden>
       <section>
         <h1 data-l10n-id="error-pair-title">Unable to Pair Devices</h1>
         <p data-l10n-id="error-pair-pincode">

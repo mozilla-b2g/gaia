@@ -297,17 +297,17 @@ ul li > label .range-icons.brightness {
  * SIM Toolkit
  */
 
-section#icc .hiddenheader {
+#icc .hiddenheader {
   height: 0;
   padding: 0;
   background: none;
 }
 
-section#icc .hidden {
+#icc .hidden {
   display: none;
 }
 
-section#icc #icc-stk-alert {
+#icc #icc-stk-alert {
   position: fixed;
 }
 
@@ -319,3 +319,4 @@ section#icc #icc-stk-alert {
 #clock-time {
   pointer-events: none;
 }
+
