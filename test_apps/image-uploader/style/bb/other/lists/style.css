@@ -6,7 +6,7 @@ body[role="application"] ul, body[role="application"] ol {
   padding: 0;
   margin: 0;
   overflow: hidden;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
 }
 
 body[role="application"] li {
@@ -76,7 +76,7 @@ body[role="application"] li .aside time {
   vertical-align: super;
   width: 4rem;
   padding-right: 1rem;
-  font: 1.1rem/1em "Open Sans", Sans-serif;
+  font: 1.1rem/1em "MozTT", Sans-serif;
   text-transform: uppercase;
   text-align: right;
 }
@@ -101,7 +101,7 @@ body[role="application"] li .aside ~ dl {
 }
 
 body[role="application"] li dl dt {
-  font: 1.8rem/1.2em "Open Sans", Sans-serif;
+  font: 1.8rem/1.2em "MozTT", Sans-serif;
   white-space: nowrap;
   height: 2.2rem;
   overflow: hidden;
@@ -110,7 +110,7 @@ body[role="application"] li dl dt {
 
 body[role="application"] li dl dt strong {
   font-weight: 600;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
 }
 
 body[role="application"] li dl dt em {
@@ -134,7 +134,7 @@ body[role="application"] li dl dd {
 
 body[role="application"] li dl dd strong {
   font-weight: 600;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   color: #000;
 }
 

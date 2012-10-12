@@ -2,7 +2,7 @@ html, body {
   margin: 0;
   padding: 0;
   font-size: 3mozmm;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   overflow: hidden !important;
 }
 
@@ -15,7 +15,7 @@ body.hidden * {
 }
 
 textarea, input {
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   padding: 0.3em;
 }
 input {
@@ -42,7 +42,7 @@ header h1 {
   padding: 0;
   line-height: 64px;
   text-align: center;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   font-weight: bold;
   font-size: 1.3em;
   text-shadow: 0px 1px 0px #305b5e;
