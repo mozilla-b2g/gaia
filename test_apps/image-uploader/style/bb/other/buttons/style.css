@@ -23,7 +23,7 @@ body[role="application"] a[role="button"] {
   border: 1px solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #333;
@@ -154,7 +154,7 @@ body[role="application"] .buttons-list {
 }
 
 body[role="application"] .buttons-list label {
-  font: 1.4rem/1em "Open Sans", Sans-serif;
+  font: 1.4rem/1em "MozTT", Sans-serif;
   text-transform: uppercase;
   display: block;
   padding-left: 0.5rem;

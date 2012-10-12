@@ -388,13 +388,13 @@ html * {
 }
 
 #clock-time {
-  font: 100 15rem/19rem 'Open Sans', sans-serif;
+  font: 100 15rem/19rem 'MozTT', sans-serif;
   color: #26292a;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 100 5rem/5rem 'Open Sans', sans-serif;
+  font: 100 5rem/5rem 'MozTT', sans-serif;
   color: #313334;
   text-transform:lowercase;
   pointer-events: none;
@@ -415,7 +415,7 @@ html * {
   position: absolute;
   width: 100%;
   margin: auto;
-  font: normal 2.5rem 'Open Sans', sans-serif;
+  font: normal 2.5rem 'MozTT', sans-serif;
   line-height: 9.8rem;
 }
 
@@ -465,7 +465,7 @@ html * {
   background-position: left top, left top;
   background-repeat: repeat, no-repeat;
   background-size: auto auto, 100% 100%;
-  font-family: "Open Sans",Sans-serif;
+  font-family: "MozTT",Sans-serif;
   z-index: -1;
   opacity: 0;
   -moz-transition: all 600ms ease;
@@ -497,7 +497,7 @@ html * {
   vertical-align: middle;
   white-space: normal;
   color: #FFFFFF;
-  font-family: "Open Sans",Sans-serif;
+  font-family: "MozTT",Sans-serif;
 }
 .banner > p > strong {
   color: #0995B0;

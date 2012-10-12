@@ -26,7 +26,7 @@ body[role="application"] ul[role="tablist"].filter li {
   float: left;
   text-align: center;
   -moz-box-sizing: border-box;
-  font: bold 1.4rem/1em "Open Sans", Sans-serif;
+  font: bold 1.4rem/1em "MozTT", Sans-serif;
   color: #404040;
   border-bottom: solid 1px #7e7d7d;
 }
