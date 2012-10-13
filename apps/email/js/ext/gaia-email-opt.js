@@ -23620,26 +23620,21 @@ FolderStorage.prototype = {
                                               ignoreHeaders) {
       slice.setStatus('synchronizing', false, true);
       slice.waitingOnData = syncMode;
-console.log("accumulate request", accumulateMode);
       if (accumulateMode && slice.headers.length === 0) {
-console.log("ACCUMULATE MODE ON");
         slice._accumulating = true;
       }
       if (ignoreHeaders) {
-console.log("IGNORING HEADER NOTIFICATIONS");
         slice.ignoreHeaders = true;
       }
       this._curSyncSlice = slice;
     }).bind(this);
 
-console.log("accuracy ranges length:", this._accuracyRanges.length);
     // If we're offline, there's nothing to look into; use the DB.
     if (!this._account.universe.online) {
       existingDataGood = true;
     }
     else if (this._accuracyRanges.length && !forceDeepening) {
       ainfo = this._accuracyRanges[0];
-console.log("type", this.folderMeta.type, "ainfo", JSON.stringify(ainfo));
       var newestMessage = this.getYoungestMessageTimestamp();
       var refreshThresh;
       if (this.folderMeta.type === 'inbox')
@@ -23652,7 +23647,6 @@ console.log("type", this.folderMeta.type, "ainfo", JSON.stringify(ainfo));
 
       // We can do the refresh thing if we have updated more recently than
       // the cutoff threshold.
-console.log("FSC", ainfo.fullSync && ainfo.fullSync.updated, now - refreshThresh);
       if (ainfo.fullSync &&
           SINCE(ainfo.fullSync.updated, now - refreshThresh)) {
         existingDataGood = true;
@@ -23666,7 +23660,6 @@ console.log("FSC", ainfo.fullSync && ainfo.fullSync.updated, now - refreshThresh
           rangeThresh = $sync.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX;
 
         var updateThresh = now - rangeThresh;
-console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
         if (ainfo.fullSync && SINCE(ainfo.fullSync.updated, updateThresh)) {
           this.folderSyncer.syncAdjustedDateRange(pastDate, futureNow,
                                                   syncCallback);
@@ -24287,7 +24280,7 @@ console.log("RTC", ainfo.fullSync && ainfo.fullSync.updated, updateThresh);
   markSyncRange: function(startTS, endTS, modseq, updated) {
     // If our range was marked open-ended, it's really accurate through now.
     if (!endTS)
-      endTS = Date.now();
+      endTS = NOW();
     var aranges = this._accuracyRanges;
     function makeRange(start, end, modseq, updated) {
       return {
@@ -26689,8 +26682,8 @@ console.log("folder message count", folderMessageCount,
     }
     // If our slice has now gone to the dawn of time, we can decide we have
     // enough headers.
-    else if (this.folderStorage._curSyncSlice.startTS &&
-             ON_OR_BEFORE(this.folderStorage._curSyncSlice.startTS,
+    else if (this._curSyncStartTS &&
+             ON_OR_BEFORE(this._curSyncStartTS,
                           $sync.OLDEST_SYNC_DATE)) {
       this.folderStorage._curSyncSlice.desiredHeaders =
         this.folderStorage._curSyncSlice.headers.length;
@@ -27721,6 +27714,12 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
   this.folders.sort(function(a, b) {
     return a.path.localeCompare(b.path);
   });
+
+  /**
+   * Flag to allow us to avoid calling closeBox to close a folder.  This avoids
+   * expunging deleted messages.
+   */
+  this._TEST_doNotCloseFolder = false;
 }
 exports.ImapAccount = ImapAccount;
 ImapAccount.prototype = {
@@ -28173,7 +28172,7 @@ ImapAccount.prototype = {
                                     connInfo.inUseBy.label);
         connInfo.inUseBy = null;
         // (this will trigger an expunge if not read-only...)
-        if (closeFolder && !resourceProblem)
+        if (closeFolder && !resourceProblem && !this._TEST_doNotCloseFolder)
           conn.closeBox(function() {});
         return;
       }
