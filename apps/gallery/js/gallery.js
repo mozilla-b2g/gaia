@@ -1453,6 +1453,7 @@ PhotoState.prototype.resize = function() {
   // than the new screen size.
   if (fit.scale === fit.baseScale || newfit.baseScale > fit.scale) {
     this.reset();
+    this.setFramesPosition();
     return;
   }
 
