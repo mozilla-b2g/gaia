@@ -116,11 +116,17 @@ var ListMenu = {
   },
 
   show: function lm_show() {
+    if (this.visible)
+      return;
+
     this.container.classList.remove('slidedown');
     this.element.classList.add('visible');
   },
 
   hide: function lm_hide() {
+    if (!this.visible)
+      return;
+
     var self = this;
     this.container.addEventListener('transitionend',
       function onTransitionEnd() {
