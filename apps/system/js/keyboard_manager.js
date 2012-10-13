@@ -5,8 +5,9 @@ var KeyboardManager = (function() {
   var host = document.location.host;
   var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
-  var keyboardURL = document.location.protocol + '//keyboard.' + domain;
-  if (keyboardURL.substring(0, 6) == 'app://') { // B2G bug 773884
+  var keyboardHost = document.location.protocol + '//keyboard.' + domain;
+  var keyboardURL = keyboardHost;
+  if (keyboardHost.substring(0, 6) == 'app://') {
     keyboardURL += '/index.html';
   }
 
@@ -17,6 +18,9 @@ var KeyboardManager = (function() {
   };
 
   var keyboardFrame = document.getElementById('keyboard-frame');
+  keyboardFrame.setAttribute('mozbrowser', 'true');
+  keyboardFrame.setAttribute('mozapp', keyboardHost + '/manifest.webapp');
+  keyboardFrame.setAttribute('mozallowfocuscancel', 'true');
   keyboardFrame.src = keyboardURL;
 
   var keyboardOverlay = document.getElementById('keyboard-overlay');
