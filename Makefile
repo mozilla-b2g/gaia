@@ -23,7 +23,7 @@
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
-WGET_OPTS?=
+WGET_OPTS?=-c
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
