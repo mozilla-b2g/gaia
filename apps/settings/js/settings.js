@@ -320,6 +320,18 @@ var Settings = {
 
     reset(); // preset all fields before opening the dialog
     openDialog(dialogID, submit);
+  },
+
+  checkForUpdates: function settings_checkForUpdates() {
+    var settings = this.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var lock = settings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': true
+    });
   }
 };
 
