@@ -83,11 +83,11 @@ ul li > small:not(:empty) + a {
  * Boolean inputs
  */
 
-ul li button, ul li a[role=button] {
-  display: block;
-  margin: auto;
+ul li button,
+ul li a[role=button] {
   position: relative;
   top: 1rem;
+  left: 2rem;
   font-size: 1.5rem;
   line-height: 1em;
   width: calc(100% - 5rem);
@@ -95,6 +95,10 @@ ul li button, ul li a[role=button] {
 }
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li label {
+  text-transform: none;
+}
+
 ul li > label:not([for]) {
   position: absolute;
   top: 0;
@@ -104,7 +108,7 @@ ul li > label:not([for]) {
 }
 
 ul li > label:not([for]) > span,
-ul li > label:not([for]).switch > span {
+ul li > label:not([for]) > input[data-type="switch"] + span {
   left: auto;
   right: 2rem;
 }
@@ -112,11 +116,6 @@ ul li > label:not([for]).switch > span {
 ul li > label:not([for]) + a,
 ul li > label:not([for]) + small + a {
   padding-right: 6rem;
-}
-
-ul li > label.switch + a,
-ul li > label.switch + small + a {
-  padding-right: 8.4rem;
 }
 
 
@@ -311,3 +310,22 @@ dl dd {
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 
+
+/******************************************************************************
+ * Applications Permissions
+ */
+#appPermissions ul li > a {
+  padding: 0 -moz-calc(4.1rem - 30px);
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 1.8rem;
+  color: #000;
+}
+
+#appPermissions ul li img {
+  float: left;
+  margin-top: -moz-calc(3rem - 15px);
+  margin-right: 1.4rem;
+  width: 30px;
+  height: 30p;
+}

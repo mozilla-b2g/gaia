@@ -1,5 +1,5 @@
 html, body {
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -120,7 +120,7 @@ li hr {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }

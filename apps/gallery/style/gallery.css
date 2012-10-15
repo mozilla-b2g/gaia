@@ -12,7 +12,7 @@ html {
 body {
   background-color: black;
   color: #fff;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   font-size: 10px;
   margin: 0;
   padding: 0;
@@ -73,7 +73,7 @@ section {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }
@@ -594,7 +594,7 @@ footer {
 
 /* All the effects radio buttons share these styles */
 #edit-effect-options > a.radio.button {
-  width: 33.3%;
+  width: 20%;
   padding-top: 15px;
 }
 
@@ -602,16 +602,28 @@ footer {
   left:0;
 }
 #edit-effect-bw {
-  left:33.3%
+  left:20%
 }
 #edit-effect-sepia {
-  left:66.6%
+  left:40%
+}
+#edit-effect-bluesteel {
+  left:60%
+}
+#edit-effect-faded {
+  left:80%
 }
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
 a.filter-sepia {
   filter: url(../index.html#filter-sepia);
+}
+a.filter-bluesteel {
+  filter: url(../index.html#filter-bluesteel);
+}
+a.filter-faded {
+  filter: url(../index.html#filter-faded);
 }
 
 /* All the border buttons share these styles */

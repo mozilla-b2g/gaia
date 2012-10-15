@@ -132,11 +132,15 @@
 
         <div id="edit-effect-options" class="edit-options-bar hidden"> 
           <a id="edit-effect-none" class="selected radio button bgimage"
-             data-effect="none" data-l10n-id="original"></a>
+             data-effect="none"></a>
           <a id="edit-effect-bw" class="radio button filter-bw bgimage"
-             data-effect="bw" data-l10n-id="blackandwhite"></a>
+             data-effect="bw"></a>
           <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
-             data-effect="sepia" data-l10n-id="sepia"></a>
+             data-effect="sepia"></a>
+          <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage"
+             data-effect="bluesteel"></a>
+          <a id="edit-effect-faded" class="radio button filter-faded bgimage"
+             data-effect="faded"></a>
         </div>
 
         <div id="edit-border-options" class="edit-options-bar hidden"> 
@@ -180,10 +184,10 @@
     <svg id="filters" width="0" height="0">
       <filter id="filter-bw">
         <feColorMatrix type="matrix"
-                       values="0.2126 0.7152 0.0722 0 0
-                               0.2126 0.7152 0.0722 0 0
-                               0.2126 0.7152 0.0722 0 0
-                               0      0      0      1 0"/>
+                       values="0.65 0.25 0.10 0 0
+                               0.65 0.25 0.10 0 0
+                               0.65 0.25 0.10 0 0
+                               0    0    0    1 0"/>
       </filter>
       <filter id="filter-sepia">
         <feColorMatrix type="matrix"
@@ -191,6 +195,20 @@
                                0.349 0.686 0.168 0 0
                                0.272 0.534 0.131 0 0
                                0     0     0     1 0"/>
+      </filter>
+      <filter id="filter-bluesteel">
+        <feColorMatrix type="matrix"
+                       values="1    0.25 0.65 0   0
+                               0.1  1    0.65 0   0
+                               0.1  0.25 1    0.1 0
+                               0    0    0    1   0"/>
+      </filter>
+      <filter id="filter-faded">
+        <feColorMatrix type="matrix"
+                       values="1    0.2   0.2   0.03 0
+                               0.2  0.7   0.2   0.05 0
+                               0.1  0     0.8   0    0
+                               0    0     0     1    0"/>
       </filter>
     </svg>
 
