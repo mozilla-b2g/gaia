@@ -966,83 +966,102 @@ var Browser = {
     this.updateTabsCount();
   },
 
-  showContextMenu: function browser_showContextMenu(evt) {
-
-    var ctxDefaults = {
-      'A' : {
-        'open_in_tab': {
-          src: 'default',
-          label: _('open-in-new-tab'),
-          selected: this.openInNewTab.bind(this)
+  // This generates callbacks for context menu targets that have
+  // default actions attached
+  generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
+    var self = this;
+    if (item.nodeName === 'A') {
+      return {
+        label: _('open-in-new-tab'),
+        callback: function() {
+          self.openInNewTab(item.data);
         }
+      };
+    }
+    return false;
+  },
+
+  showContextMenu: function browser_showContextMenu(evt) {
+    var menuItems = [];
+    var menuData = evt.detail;
+    var dialog = document.createElement('section');
+    var menu = document.createElement('menu');
+    var list = document.createElement('ul');
+
+    // SystemTargets are default elements that have contextmenu
+    // actions associated
+    evt.detail.systemTargets.forEach(function(item) {
+      var action = this.generateSystemMenuItem(item);
+      if (action) {
+        menuItems.push(action);
       }
+    }, this);
+
+    // Content passes in a nested menu object to be displayed
+    // and expects 'contextMenuItemSelected' to be called
+    // with the id of the selected menuitem
+    var collectMenuItems = function(menu) {
+      menu.items.forEach(function(item) {
+        if (item.type === 'menuitem') {
+          menuItems.push({
+            icon: item.icon,
+            label: item.label,
+            callback: function() {
+              evt.detail.contextMenuItemSelected(item.id)
+            }
+          });
+        } else if (item.type === 'menu') {
+          collectMenuItems(item);
+        }
+      });
     };
 
-    var menuItems = ctxDefaults[evt.detail.nodeName] || {};
-
-    var collectMenuItems = function(menu) {
-      for (var i in menu.items) {
-        if (menu.items[i].type === 'menuitem') {
-          var id = menu.items[i].id;;
-          menuItems[id] = menu.items[i];
-          menuItems[id].src = 'user';
-        } else if (menu.items[i].type === 'menu') {
-          collectMenuItems(menu.items[i]);
-        }
-      }
-    }
-
-    var menuData = evt.detail;
-    var cover = document.createElement('div');
-    var menu = document.createElement('ul');
-
-    if (menuData.menu) {
-      collectMenuItems(menuData.menu);
+    if (menuData.contextmenu) {
+      collectMenuItems(menuData.contextmenu);
     }
 
     if (Object.keys(menuItems).length === 0) {
       return;
     }
 
-    for (var i in menuItems) {
-      var text = document.createTextNode(menuItems[i].label);
+    menuItems.forEach(function(menuitem) {
       var li = document.createElement('li');
-      li.setAttribute('data-menusource', menuItems[i].src);
-      li.setAttribute('data-id', i);
+      var button = this.createButton(menuitem.label, menuitem.icon);
 
-      if (menuItems[i].icon) {
-        var img = document.createElement('img');
-        img.setAttribute('src', menuItems[i].icon);
-        li.appendChild(img);
-      }
+      button.addEventListener('click', function() {
+        document.body.removeChild(dialog);
+        menuitem.callback();
+      });
 
-      li.appendChild(text);
-      menu.appendChild(li);
+      li.appendChild(button);
+      list.appendChild(li);
+    }, this);
+
+    var cancel = document.createElement('li');
+    cancel.appendChild(this.createButton('Cancel'));
+    list.appendChild(cancel);
+
+    cancel.addEventListener('click', function(e) {
+      document.body.removeChild(dialog);
+    });
+
+    menu.classList.add('actions');
+    menu.appendChild(list);
+    dialog.setAttribute('role', 'dialog');
+    dialog.appendChild(menu);
+    document.body.appendChild(dialog);
+  },
+
+  createButton: function browser_createButton(text, image) {
+    var button = document.createElement('button');
+    var textNode = document.createTextNode(text);
+    if (image) {
+      var img = document.createElement('img');
+      img.setAttribute('src', image);
+      button.appendChild(img);
     }
-
-    cover.setAttribute('id', 'cover');
-    cover.appendChild(menu);
-
-    menu.addEventListener('click', function(e) {
-      if (e.target.nodeName !== 'LI') {
-        return;
-      }
-      e.stopPropagation();
-      var id = e.target.getAttribute('data-id');
-      var src = e.target.getAttribute('data-menusource');
-      if (src === 'user') {
-        evt.detail.contextMenuItemSelected(id);
-      } else if (src === 'default') {
-        menuItems[id].selected(menuData.href);
-      }
-      document.body.removeChild(cover);
-    });
-
-    cover.addEventListener('click', function() {
-      document.body.removeChild(cover);
-    });
-
-    document.body.appendChild(cover);
+    button.appendChild(textNode);
+    return button;
   },
 
   followLink: function browser_followLink(e) {
