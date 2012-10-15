@@ -51,19 +51,21 @@ nav[role="scrollbar"] li a {
 
 /* Top action icons */
 nav[role="scrollbar"] li .icon-search,
-nav[role="scrollbar"] li .icon-favourites {
+nav[role="scrollbar"] li .icon-favorites {
   width: 1.2rem;
   height: 1.2rem;
   font: 0/0 a;
-  display: inline-block;
   vertical-align: middle;
   background: transparent no-repeat center center;
+}
+nav[role="scrollbar"] li span:not([hidden]) {
+  display: inline-block;
 }
 
 nav[role="scrollbar"] li .icon-search {
   background-image: url(scrolling/images/icons/search.png);
 }
 
-nav[role="scrollbar"] li .icon-favourites {
-  background-image: url(scrolling/images/icons/favourites.png);
+nav[role="scrollbar"] li .icon-favorites {
+  background-image: url(scrolling/images/icons/favorites.png);
 }
