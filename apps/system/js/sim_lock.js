@@ -39,13 +39,8 @@ var SimLock = {
         if (!app || !app.manifest.permissions)
           return;
 
-        var keys = Object.keys(app.manifest.permissions);
-        var permissions = keys.map(function map_perm(key) {
-          return app.manifest.permissions[key];
-        });
-
-        if (permissions.indexOf('telephony') === -1 &&
-          permissions.indexOf('sms') === -1)
+        if (!('telephony' in app.manifest.permissions ||
+            'sms' in app.manifest.permissions))
           return;
 
         this.showIfLocked();
