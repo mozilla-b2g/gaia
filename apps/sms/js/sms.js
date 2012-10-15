@@ -312,12 +312,14 @@ var ThreadListUI = {
             this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (contact && contact.length > 0) {
       if (contact.length > 1) {
-        name.innerHTML = contact[0].name + ' + ' +
-                         _('others', {n: contact.length - 1});
+        name.innerHTML = _('others', {
+          name: contact[0].name,
+          n: contact.lentgh - 1
+        });
       }else {
         var choosenContact = contact[0];
         var name =
-                this.view.querySelector('a[data-num="' + number + '"] div.name');
+              this.view.querySelector('a[data-num="' + number + '"] div.name');
         var selector = 'a[data-num="' + number + '"] div.photo img';
         var photo = this.view.querySelector(selector);
         if (name && choosenContact.name && choosenContact.name != '') {
@@ -764,8 +766,10 @@ var ThreadUI = {
        */
       if (contacts.length > 1) {
         self.title.dataset.isContact = true;
-        self.title.innerHTML = contacts[0].name + ' + ' +
-                               _('others', {n: contacts.length - 1});
+        self.title.innerHTML = _('others', {
+          name: contacts[0].name,
+          n: contact.lentgh - 1
+        });
         carrierTag.classList.add('hide');
       }else {
         Utils.getPhoneDetails(number,
