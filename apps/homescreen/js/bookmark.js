@@ -27,12 +27,12 @@ Bookmark.prototype = {
       features.origin = {
         name: features.name,
         url: encodeURIComponent(this.origin)
-      }
+      };
     }
 
     if (url && url !== this.origin && !Applications.isInstalled(url)) {
       var searchName = navigator.mozL10n.get('wrapper-search-name', {
-        topic : name,
+        topic: name,
         name: this.manifest.name
       }).replace(/\s/g, '&nbsp;');
 
@@ -40,7 +40,7 @@ Bookmark.prototype = {
       features.search = {
         name: searchName,
         url: encodeURIComponent(url)
-      }
+      };
     }
 
     // The third parameter is received in window_manager without whitespaces
