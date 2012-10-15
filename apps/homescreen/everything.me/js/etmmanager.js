@@ -6,7 +6,7 @@ var EvmeManager = (function() {
 
     function openApp(params) {
         var evmeApp = new EvmeApp({
-            url: params.url,
+            url: params.originUrl,
             name: params.title,
             icon: params.icon
         });
@@ -14,7 +14,7 @@ var EvmeManager = (function() {
         if (currentWindow) {
             currentWindow.close();
         }
-        currentWindow = evmeApp.launch(true);
+        currentWindow = evmeApp.launch(params.url, params.urlTitle);
     }
 
     function addBookmark(params) {
@@ -71,7 +71,7 @@ var EvmeManager = (function() {
         isAppInstalled: function isAppInstalled(url) {
             return Applications.isInstalled(url);
         },
-    
+
         openUrl: openUrl
     };
 }());

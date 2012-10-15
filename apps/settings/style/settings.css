@@ -8,7 +8,7 @@ html, body {
   padding: 0;
   font-size: 10px;
   overflow: hidden !important;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
 }
 
 body.hidden * {
@@ -180,14 +180,6 @@ body.hidden #root {
  * Wi-Fi settings
  */
 
-label[for^="pwd"] {
-  margin-top: -1rem;
-  padding-left: 3rem;
-  height: 3rem;
-  line-height: 3rem;
-  font-size: 1.5rem;
-}
-
 /* three-state items: on|off|ready */
 
 ul[data-state="off"] ~ *,
@@ -201,31 +193,31 @@ ul[data-state="ready"] li[data-state="ready"] {
   display: block;
 }
 
-/* 'show password' checkboxes */
+/**
+ * Wi-Fi authentication fields:
+ *   - hide password field on open networks
+ *   - hide identifier field on non-EAP networks
+ */
 
-label[for="show-pwd"] {
-  margin: -1rem 0 1rem 3rem;
-  height: 2rem;
-  line-height: 2rem;
-  font-size: 1.4rem;
-}
-
-/* hide identifier field on non-EAP networks */
-
-section.WPA-EAP li.identity {
-  display: block;
-}
-
-/* hide password field on open networks */
-
-section li.password {
+section li.password,
+section li.identity {
   display: none;
 }
 
 section.WEP li.password,
 section.WPA-PSK li.password,
-section.WPA-EAP li.password {
+section.WPA-EAP li.password,
+section.WPA-EAP li.identity {
   display: block;
+}
+
+/* 'show password' checkboxes */
+label[for^="pwd"] {
+  margin-top: -1rem;
+  padding-left: 3rem;
+  height: 3rem;
+  line-height: 3rem;
+  font-size: 1.5rem;
 }
 
 
@@ -291,5 +283,32 @@ ul li > label .range-icons.volume {
 ul li > label .range-icons.brightness {
   background: url(images/range_icons_brightness_min.png) no-repeat 0 50%,
               url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
+}
+
+/******************************************************************************
+ * SIM Toolkit
+ */
+
+#icc .hiddenheader {
+  height: 0;
+  padding: 0;
+  background: none;
+}
+
+#icc .hidden {
+  display: none;
+}
+
+#icc #icc-stk-alert {
+  position: fixed;
+}
+
+/******************************************************************************
+ * Date & Time
+ */
+
+#clock-date,
+#clock-time {
+  pointer-events: none;
 }
 

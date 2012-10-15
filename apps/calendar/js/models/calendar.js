@@ -26,6 +26,14 @@
     remote: null,
 
     /**
+     * The date at which this calendar's events
+     * where synchronized.
+     *
+     * @type {Date}
+     */
+    firstEventSyncDate: null,
+
+    /**
      * Last sync token used in previous
      * event synchronization.
      *
@@ -112,7 +120,8 @@
         accountId: this.accountId,
         localDisplayed: this.localDisplayed,
         lastEventSyncDate: this.lastEventSyncDate,
-        lastEventSyncToken: this.lastEventSyncToken
+        lastEventSyncToken: this.lastEventSyncToken,
+        firstEventSyncDate: this.firstEventSyncDate
       };
 
       if (this._id || this._id === 0) {

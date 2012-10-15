@@ -50,6 +50,7 @@
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/overlap.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/input_parser.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
@@ -382,7 +383,7 @@
     Remove Local Data
   </a>
 
-  <form role="dialog" id="remove-account-dialog">
+  <form role="dialog" data-type="confirm" id="remove-account-dialog">
     <section>
       <h1 data-l10n-id="remove-account-dialog">>Remove Account</h1>
       <p data-l10n-id="remove-account-dialog-details">

@@ -22,7 +22,6 @@
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
   <link rel="stylesheet" type="text/css" href="style/views/topup.css">
-  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
   <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
   <link rel="stylesheet" type="text/css" href="style/views/balance.css">
   <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
@@ -55,7 +54,7 @@
 
     <!-- BALANCE TAB -->
     <section role="region" id="balance-tab" class="view" data-viewport="behind">
-      <header data-theme="organic">
+      <header>
         <menu type="toolbar">
            <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
@@ -115,7 +114,7 @@
 
     <!-- TELEPHONY TAB -->
     <section role="region" id="telephony-tab" class="view" data-viewport="behind">
-       <header data-theme="organic">
+       <header>
         <menu type="toolbar">
            <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
@@ -143,7 +142,7 @@
 
     <!-- The top up input -->
     <section role="region" id="topup-view" class="view" data-viewport="bottom">
-      <header data-theme="organic">
+      <header>
         <menu type="toolbar">
            <button id="topup-send-button" data-l10n-id="send">Send</button>
         </menu>
@@ -164,36 +163,6 @@
       </section>
       <form>
         <input id="topup-code-input" type="number" autofocus></input>
-      </form>
-    </section>
-
-    <!-- Data usage limits -->
-    <section role="region" id="datalimits-view" class="view" data-viewport="bottom">
-      <header data-theme="organic">
-        <menu type="toolbar">
-           <button id="topup-send-button" data-l10n-id="send">Send</button>
-        </menu>
-        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
-        <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
-      </header>
-      <section class="content">
-        <div class="info">
-          <h2 data-l10n-id="enter-a-data-limit">Enter a mobile data usage limit</h2>
-          <p id="datalimit-explanation" data-l10n-id="datalimit-explanation">
-            Connection speeds reduces after limit.
-            <br/>
-            It will be used as a reference to check against actual mobile data usage.
-          </p>
-        </div>
-      </section>
-      <form class="buttons-list">
-        <button>
-          <span class="end launch"></span>
-          GB
-        </button>
-        <label for="topup-code-input">
-          <input id="topup-code-input" type="number" autofocus>
-        </label>
       </form>
     </section>
 
@@ -221,11 +190,11 @@
 
     <!-- DATA USAGE TAB -->
     <section id="datausage-tab" role="region" class="view" data-viewport="behind">
-      <header data-theme="organic">
+      <header>
         <menu type="toolbar">
            <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
-        <h1 data-l10n-id="settings">Data usage</h1>
+        <h1 data-l10n-id="data-usage">Data usage</h1>
       </header>
 
       <div class="view-scroll">
@@ -264,7 +233,7 @@
     <iframe id="settings-view" src="settings.html" class="view" data-viewport="bottom"></iframe>
 
     <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-    <ul role="tablist" class="filter" data-items="2" data-position="bottom">
+    <ul id="tabs" role="tablist" class="filter" data-items="2" data-position="bottom">
       <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance" href="#">Balance</a></li>
       <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony" href="#">Telephony</a></li>
       <li id="datausage-tab-filter"><a role="tab" data-l10n-id="data-usage" href="#">Data usage</a></li>

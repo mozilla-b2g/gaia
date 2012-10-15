@@ -17,7 +17,7 @@ body[role="application"] [role="dialog"]:not(.edit) {
   background-size: auto auto, 100% 100%;
   bottom: 0;
   color: #FFFFFF;
-  font-family: "Open Sans",Sans-serif;
+  font-family: "MozTT",Sans-serif;
   left: 0;
   overflow: auto;
   padding: 1.5rem 0 7rem;
@@ -41,7 +41,7 @@ body[role="application"] [role="dialog"]:not(.edit) > .inner {
 body[role="application"] [role="dialog"]:not(.edit) h3 {
   border-bottom: 0.1rem solid #686868;
   color: #FFFFFF;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
   font-weight: normal;
   line-height: 1em;
@@ -57,7 +57,7 @@ body[role="application"] [role="dialog"]:not(.edit) p:last-child {
 
 body[role="application"] [role="dialog"]:not(.edit) p {
   color: #FAFAFA;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
   font-weight: lighter;
   margin: 0;
@@ -89,7 +89,7 @@ body[role="application"] [role="dialog"]:not(.edit) menu:not([type="toolbar"]) b
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
   font-weight: 600;
   height: 3.8rem;

@@ -55,7 +55,9 @@ var NotificationHelper = {
     this._referencesArray.push(notification);
   },
   _forget: function nc_forget(notification) {
-    this._referencesArray.splice(this._referencesArray.indexOf(notification), 1);
+    this._referencesArray.splice(
+      this._referencesArray.indexOf(notification), 1
+    );
   }
 };
 

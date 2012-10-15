@@ -6,8 +6,6 @@
     "name": "dougt",
     "url": "http://www.mozilla.org"
   },
-  "permissions": [
-  ],
   "icons": {
     "128": "/style/icons/sensor.png"
   }

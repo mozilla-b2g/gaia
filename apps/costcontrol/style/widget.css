@@ -7,7 +7,7 @@
 
 html {
   font-size: 10px;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
 }
 
 body {
@@ -194,6 +194,7 @@ p.meta {
 .data .stats dt {
   font-weight: 400;
   color: rgba(255, 255, 255, 0.5);
+  text-transform: lowercase;
 }
 
 .data .stats dd {
@@ -240,11 +241,10 @@ p.meta {
 }
 
 .reached-limit .stats progress::-moz-progress-bar {
-  background: #ca435b;
-}
-
-.reached-limit .stats dd.start {
   background: #9b0808;
   border: solid 0.1rem #610707;
-  line-height: 1.4rem;
+}
+
+.reached-limit .stats progress {
+  background: #ca435b;
 }

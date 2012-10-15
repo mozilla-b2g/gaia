@@ -6,9 +6,10 @@
   <meta name="description" content="Activates/Deactivates a given item. It's also used to select an element within a list">
   <link rel="stylesheet" href="../switches.css">
   <!--
-    This <style> and <link> is only used for the example code, is no needed for the real case use
-  -->
-  <style>
+    - This <style> element is only used for the example code;
+    - it is not required for the real use case.
+    -->
+  <style type="text/css">
     html, body {
       margin: 0;
       padding: 0;
@@ -20,7 +21,7 @@
     }
     h2.bb-docs {
       font-size: 1.8rem;
-      font-family: "Open Sans", Sans-serif;
+      font-family: "MozTT", Sans-serif;
       font-weight: lighter;
       color: #666;
       margin: -1px 0 0;
@@ -31,6 +32,7 @@
   </style>
 </head>
 <body role="application">
+
   <h2 class="bb-docs">Checkbox, commonly used in edit mode</h2>
   <label>
     <input type="checkbox" checked>
@@ -42,12 +44,12 @@
     <span></span>
   </label>
 
-  <label class="negative">
+  <label class="danger">
     <input type="checkbox" checked>
     <span></span>
   </label>
 
-  <label class="negative">
+  <label class="danger">
     <input type="checkbox">
     <span></span>
   </label>
@@ -63,24 +65,24 @@
     <span></span>
   </label>
 
-  <label class="negative">
+  <label class="danger">
     <input type="radio" name="example2" checked>
     <span></span>
   </label>
 
-  <label class="negative">
+  <label class="danger">
     <input type="radio" name="example2">
     <span></span>
   </label>
 
   <h2 class="bb-docs">Switch, commonly used in settings</h2>
-  <label class="switch">
-    <input type="checkbox" checked>
+  <label>
+    <input type="checkbox" data-type="switch" checked>
     <span></span>
   </label>
 
-  <label class="switch">
-    <input type="checkbox">
+  <label>
+    <input type="checkbox" data-type="switch">
     <span></span>
   </label>
 </body>

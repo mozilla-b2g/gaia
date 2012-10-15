@@ -1,33 +1,33 @@
 {
   "name": "System",
+  "type": "certified",
   "description": "Main System",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "browser",
-    "power",
-    "mozApps",
-    "webapps-manage",
-    "mobileconnection",
-    "mozBluetooth",
-    "bluetooth",
-    "telephony",
-    "voicemail",
-    "device-storage:pictures",
-    "settings",
-    "storage",
-    "content-camera",
-    "camera",
-    "geolocation",
-    "wifi-manage",
-    "wifi",
-    "desktop-notification",
-    "idle",
-    "network-events",
-    "embed-apps"
-  ],
+  "permissions": {
+    "alarms": {},
+    "browser":{},
+    "power":{},
+    "webapps-manage":{},
+    "mobileconnection":{},
+    "mozBluetooth":{},
+    "bluetooth":{},
+    "telephony":{},
+    "voicemail":{},
+    "device-storage:pictures":{},
+    "settings":{},
+    "storage":{},
+    "camera":{},
+    "geolocation":{},
+    "wifi-manage":{},
+    "wifi":{},
+    "desktop-notification":{},
+    "idle":{},
+    "network-events":{},
+    "embed-apps":{}
+  },
   "locales": {
     "ar": {
       "name": "System",
@@ -78,5 +78,6 @@
       "description": "Main System"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "messages": ["alarm"]
 }

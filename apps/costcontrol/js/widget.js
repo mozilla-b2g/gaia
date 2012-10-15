@@ -3,17 +3,17 @@
 
 'use strict';
 
-var CostControl;
+var Service;
 window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
-  // Retrieve CostControl service once application is ready
+  // Retrieve the service once application is ready
   if (evt.data.type === 'applicationready') {
-    CostControl = getService(function ccwidget_onServiceReady(evt) {
-      // If the service is not ready, when ready it re-set the CostControl
+    Service = getService(function ccwidget_onServiceReady(evt) {
+      // If the service is not ready, when ready it re-set the Service
       // object and setup the widget.
-      CostControl = evt.detail.service;
+      Service = evt.detail.service;
       setupWidget();
     });
-    if (CostControl)
+    if (Service)
       setupWidget();
   }
 });
@@ -24,9 +24,10 @@ window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
 // a quick access to the Cost Control application.
 function setupWidget() {
 
-  var _widget;
+  var _widget, _leftPanel, _rightPanel;
   var _balanceView, _balanceCredit, _balanceCurrency, _balanceTime;
   var _telephonyView;
+  var _dataUsageView, _dataUsageLimitView;
   var _plantype;
   var _isUpdating = false;
   var _onWarning = false; // warning state is true when automatic udpates are
@@ -73,7 +74,7 @@ function setupWidget() {
     _balanceTime = document.getElementById('balance-time');
 
     // Suscribe callbacks for balance updating success and error to the service
-    CostControl.setBalanceCallbacks({
+    Service.setBalanceCallbacks({
       onsuccess: _onUpdateBalanceSuccess,
       onerror: _onUpdateBalanceError,
       onstart: _onUpdateStart,
@@ -81,7 +82,7 @@ function setupWidget() {
     });
 
     // Callback fot service state changed
-    CostControl.onservicestatuschange = function ccwidget_onStateChange(evt) {
+    Service.onservicestatuschange = function ccwidget_onStateChange(evt) {
       var status = evt.detail;
       if (status.availability && status.roaming)
         _setWarningMode(true);
@@ -95,9 +96,9 @@ function setupWidget() {
     _telephonyView = document.getElementById('telephony-view');
 
     // Update UI when some of these values change or...
-    CostControl.settings.observe('smscount', _updateTelephonyUI);
-    CostControl.settings.observe('calltime', _updateTelephonyUI);
-    CostControl.settings.observe('lastreset', _updateTelephonyUI);
+    Service.settings.observe('smscount', _updateTelephonyUI);
+    Service.settings.observe('calltime', _updateTelephonyUI);
+    Service.settings.observe('lastreset', _updateTelephonyUI);
 
     // ...when the utility tray shows.
     window.addEventListener('message', function ccwidget_utilityTray(evt) {
@@ -106,29 +107,56 @@ function setupWidget() {
     });
   }
 
+  // Specific setup for the data usage view
+  function _configureDataUsageView() {
+    _dataUsageLimitView = document.getElementById('datausage-limit-view');
+    _dataUsageView = document.getElementById('datausage-view');
+
+    // Update UI when some of these values change or...
+    Service.settings.observe('data_limit', _updateDataUsageUI);
+    Service.settings.observe('data_limit_value', _updateDataUsageUI);
+    Service.settings.observe('lastdatausage', _updateDataUsageUI);
+
+    // Hide / show limit bar where limit disabled / enabled
+    Service.settings.observe('data_limit',
+      function ccwidget_onDataLimit(enabled) {
+        _dataUsageLimitView.setAttribute('aria-hidden', !enabled + '');
+      }
+    );
+
+    // ...when the utility tray shows.
+    window.addEventListener('message', function ccwidget_utilityTray(evt) {
+      if (evt.data.type === 'utilitytrayshow')
+        _updateDataUsageUI();
+    });
+  }
+
   // Attach event listeners for manual updates
   function _configureWidget() {
 
     function onPlanTypeChange(plantype) {
       _plantype = plantype;
-      _switchView(plantype === CostControl.PLAN_PREPAID ?
+      _switchView(plantype === Service.PLAN_PREPAID ?
                   'balance' : 'telephony');
     }
 
     _widget = document.getElementById('cost-control');
+    _leftPanel = document.getElementById('left-panel');
+    _rightPanel = document.getElementById('right-panel');
 
     // Listener to open application
     _widget.addEventListener('click', _openApp);
 
     _configureBalanceView();
     _configureTelephonyView();
+    _configureDataUsageView();
 
     // Observer to see which cost control or telephony is enabled
-    CostControl.settings.observe('plantype', onPlanTypeChange);
+    Service.settings.observe('plantype', onPlanTypeChange);
 
     // Observer to detect changes on threshold limits
-    CostControl.settings.observe('lowlimit_threshold', _updateUI);
-    CostControl.settings.observe('lowlimit', _updateUI);
+    Service.settings.observe('lowlimit_threshold', _updateUI);
+    Service.settings.observe('lowlimit', _updateUI);
 
     // Update UI when localized: wrapped in a function to avoid sending an
     // incorrect first parameter.
@@ -136,13 +164,28 @@ function setupWidget() {
       _updateUI();
     });
 
+    // Full mode for data usage when only data is available
+    Service.onservicestatuschange = function ccwidget_adaptLayout(evt) {
+
+      _widget.classList.remove('full');
+      _leftPanel.setAttribute('aria-hidden', 'false');
+
+      var status = evt.detail;
+      if (!status.enabledFunctionalities.balance &&
+          !status.enabledFunctionalities.telephony) {
+
+        _widget.classList.add('full');
+        _leftPanel.setAttribute('aria-hidden', 'true');
+      }
+    };
+
     _updateUI();
   }
 
   // Return True when automatic updates are allow:
   // service ready and not roaming
   function _automaticUpdatesAllowed() {
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     return status.availability && !status.roaming;
   }
 
@@ -166,7 +209,7 @@ function setupWidget() {
 
     // I prefer this check in the VIEWS to keep the service as simple as
     // possible
-    if (_plantype !== CostControl.PLAN_PREPAID) {
+    if (_plantype !== Service.PLAN_PREPAID) {
       debug('Not in prepaid, ignoring.');
       return;
     }
@@ -184,7 +227,7 @@ function setupWidget() {
                             // the updating starts as soon as he display
                             // the utility tray.
 
-    CostControl.requestBalance();
+    Service.requestBalance();
   }
 
   // Handle the events that triggers automatic balance updates
@@ -196,11 +239,11 @@ function setupWidget() {
       // When utility tray shows
       case 'utilitytrayshow':
         // Just if it have passed enough time since last update
-        var balance = CostControl.getLastBalance();
+        var balance = Service.getLastBalance();
         var lastUpdate = balance ? balance.timestamp : null;
         var now = (new Date()).getTime();
         if (lastUpdate === null ||
-            (now - lastUpdate > CostControl.getRequestBalanceMaxDelay())) {
+            (now - lastUpdate > Service.getRequestBalanceMaxDelay())) {
 
           _requestUpdateBalance();
         }
@@ -247,10 +290,10 @@ function setupWidget() {
   // Updates the balance UI with the new balance if provided, else just update
   // the widget with the last updated balance.
   function _updateBalanceUI(balanceObject) {
-    balanceObject = balanceObject || CostControl.getLastBalance();
+    balanceObject = balanceObject || Service.getLastBalance();
 
     // Warning mode if roaming
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     _setWarningMode(status.availability && status.roaming);
 
     // Low credit and no credit states
@@ -258,10 +301,10 @@ function setupWidget() {
     _balanceView.classList.remove('low-credit');
 
     var balance = balanceObject ? balanceObject.balance : null;
-    if (CostControl.settings.option('lowlimit') && balance) {
+    if (Service.settings.option('lowlimit') && balance) {
       if (balance === 0) {
         _balanceView.classList.add('no-credit');
-      } else if (balance < CostControl.settings.option('lowlimit_threshold')) {
+      } else if (balance < Service.settings.option('lowlimit_threshold')) {
         _balanceView.classList.add('low-credit');
       }
     }
@@ -284,7 +327,7 @@ function setupWidget() {
 
     // Dates
     var formattedTime = _('never');
-    var lastReset = CostControl.settings.option('lastreset');
+    var lastReset = Service.settings.option('lastreset');
     if (lastReset !== null)
       formattedTime = (new Date(lastReset))
                       .toLocaleFormat(_('short-date-format'));
@@ -296,16 +339,89 @@ function setupWidget() {
 
     // Counters
     document.getElementById('telephony-calltime').textContent =
-      toMinutes(CostControl.settings.option('calltime'));
+      toMinutes(Service.settings.option('calltime'));
     document.getElementById('telephony-smscount').textContent =
-      CostControl.settings.option('smscount');
+      Service.settings.option('smscount');
 
+  }
+
+  // Updates the limit bar
+  function _renderLimitBar() {
+
+    // Get UI elements
+    var leftTag = _dataUsageLimitView.querySelector('dt.start');
+    var leftValue = _dataUsageLimitView.querySelector('dd.start');
+    var rightTag = _dataUsageLimitView.querySelector('dt.end');
+    var rightValue = _dataUsageLimitView.querySelector('dd.end');
+    var progress = _dataUsageLimitView.querySelector('progress');
+
+    // Get current total and limit
+    var currentLimit = Service.dataLimitInBytes;
+    var currentWarning = currentLimit * Service.getDataUsageWarning();
+
+    var currentUsage = 0;
+    var dataUsage = Service.settings.option('lastdatausage');
+    if (dataUsage)
+      currentUsage = dataUsage.mobile.total;
+
+    // Determine mode
+    _dataUsageLimitView.classList.remove('nearby-limit');
+    _dataUsageLimitView.classList.remove('reached-limit');
+
+    // Normal mode
+    if (currentUsage <= currentLimit) {
+      leftTag.textContent = _('used');
+      rightTag.textContent = _('limit');
+      leftValue.textContent = roundData(currentUsage).join(' ');
+      rightValue.textContent = roundData(currentLimit).join(' ');
+      progress.setAttribute('max', currentLimit);
+      progress.setAttribute('value', currentUsage);
+
+      // Warning mode
+      if (currentUsage > currentWarning) {
+        _dataUsageLimitView.classList.add('nearby-limit');
+      }
+
+    // Limit exceeded mode
+    } else {
+      leftTag.textContent = _('limit-passed');
+      rightTag.textContent = _('used');
+      leftValue.textContent = roundData(currentLimit).join(' ');
+      rightValue.textContent = roundData(currentUsage).join(' ');
+      progress.setAttribute('max', currentUsage);
+      progress.setAttribute('value', currentLimit);
+
+      _dataUsageLimitView.classList.add('reached-limit');
+    }
+  }
+
+  // Show current usage
+  function _showCurrentUsage() {
+    var currentUsage = 0;
+    var dataUsage = Service.settings.option('lastdatausage');
+    if (dataUsage)
+      currentUsage = dataUsage.mobile.total;
+    var formatted = roundData(currentUsage);
+
+    var valueSpan = _dataUsageView.querySelector('span:first-of-type');
+    valueSpan.textContent = formatted[0];
+    var unitSpan = _dataUsageView.querySelector('span.unit');
+    unitSpan.textContent = formatted[1];
+  }
+
+  // Updates widget's data usage UI
+  function _updateDataUsageUI() {
+    if (Service.settings.option('data_limit'))
+      _renderLimitBar();
+    else
+      _showCurrentUsage();
   }
 
   // Refresh all UIs
   function _updateUI() {
     _updateBalanceUI();
     _updateTelephonyUI();
+    _updateDataUsageUI();
   }
 
   _init();

@@ -3,7 +3,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   font-size: 10px;
   overflow: hidden;
 }
@@ -120,7 +120,7 @@ input[type="image"] {
   margin: 0;
   height: 85px;
   border-bottom: 1px solid #54575c;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
 }
@@ -156,7 +156,7 @@ input[type="image"] {
 }
 
 #tabs-list .close {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   border: 0px;
   position: absolute;
   right: 0px;
@@ -173,11 +173,19 @@ input[type="image"] {
   margin: 0;
   width: 100%;
   height: 100%;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   z-index: 50;
   position: relative;
   left: 0px;
   overflow: hidden;
+  /*
+   * Make sure this frame starts out with an identity transform so that
+   * when we apply the .address-hidden style, we aren't reframed.
+   *
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=795657 will fix the
+   * underlying problem.
+   */
+  transform: translateY(0px);
   transition: transform 0.2s ease-in-out, height 0.2s ease-in-out;
 }
 
@@ -187,7 +195,7 @@ input[type="image"] {
 }
 
 #tabs-badge {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   position: absolute;
   right: 0px;
   top: 0;
@@ -233,7 +241,6 @@ input[type="image"] {
 }
 
 #toolbar-end {
-  border-top: solid 2px #a6b3bb;
   display: none;
   position: absolute;
   bottom: 0;
@@ -312,7 +319,7 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   font-size: 18px;
   height: 34px;
   -moz-box-flex: 1;
@@ -476,7 +483,8 @@ input::-moz-focus-inner {
 #top-site-thumbnails li span {
   font-size: 12px;
   display: block;
-  width: 140px;
+  width: 134px;
+  height: 15px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -485,6 +493,7 @@ input::-moz-focus-inner {
   position: absolute;
   bottom: 0px;
   padding: 3px;
+  pointer-events: none;
 }
 
 #awesomescreen {
@@ -539,7 +548,7 @@ input::-moz-focus-inner {
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   line-height: 3.8rem;
   color: #333;
   text-align: center;
@@ -705,7 +714,7 @@ li[role="listitem"] small {
 }
 
 .awesome-screen #frames {
-  height: calc(100% - 50px);
+  bottom: 0;
 }
 
 .awesome-screen #tabs-badge {
@@ -789,39 +798,6 @@ li[role="listitem"] small {
 
 .hidden {
   display: none;
-}
-
-#cover {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 500;
-}
-
-#cover ul {
-  background: white;
-  width: 80%;
-  margin: 20px auto;
-  padding: 0;
-  list-style-type: none;
-}
-
-#cover ul li {
-  font-family: 'Open Sans', sans-serif;
-  padding: 15px;
-  border-bottom: 1px solid #CCC;
-  cursor: pointer;
-}
-
-#cover ul li:hover, #cover ul li:active {
-  background: #EEE;
-}
-
-#cover ul li img {
-  margin-right: 10px;
 }
 
 #modal-dialog-alert,
@@ -1022,7 +998,7 @@ li[role="listitem"] small {
   border: 1px solid #D1D1D1;
   border-radius: 0.3rem;
   display: block;
-  font: 1.4rem/4rem "Open Sans", Sans-serif;
+  font: 1.4rem/4rem "MozTT", Sans-serif;
   height: 4rem;
   padding: 0 0.5rem;
   width: 100%;
@@ -1036,9 +1012,11 @@ li[role="listitem"] small {
 @media (device-height: 480px) and (max-height: 450px),
        (device-height: 320px) and (max-height: 290px) {
   .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
 }
 /* For the Galaxy SII, 640x480 */
 @media (device-height: 480px) and (max-height: 450px),
        (device-height: 640px) and (max-height: 610px) {
   .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
 }

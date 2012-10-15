@@ -72,7 +72,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _lastTopUpConfirmed = true;
     _lastTopUpIncorrect = false;
 
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     if (status.availability && !status.roaming)
       _requestUpdateBalance();
   }
@@ -173,7 +173,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
         return;
 
       debug('topping up with code: ' + code);
-      CostControl.requestTopUp(code);
+      Service.requestTopUp(code);
 
       // Change the top up screen to enter waiting mode and add a timeout to
       // return in a while.
@@ -191,7 +191,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   function _configureAutomaticUpdates() {
     document.addEventListener('mozvisibilitychange',
       function ccapp_visibility(evt) {
-        var status = CostControl.getServiceStatus();
+        var status = Service.getServiceStatus();
         // In roaming, no automatic updates are allowed
         if (!document.mozHidden && status.availability && !status.roaming)
           _requestUpdateBalance();
@@ -214,7 +214,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _configureTopUpScreen();
 
     // Callbacks for update balance
-    CostControl.setBalanceCallbacks({
+    Service.setBalanceCallbacks({
       onsuccess: _onUpdateBalanceSuccess,
       onerror: _onUpdateBalanceError,
       onstart: _onUpdateStart,
@@ -222,7 +222,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     });
 
     // Callbacks for topping up
-    CostControl.setTopUpCallbacks({
+    Service.setTopUpCallbacks({
       onsuccess: _onTopUpSuccess,
       onerror: _onTopUpError,
       onstart: _onTopUpStart,
@@ -230,7 +230,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     });
 
     // Callback fot service state changed
-    CostControl.onservicestatuschange = function ccapp_onStateChange(evt) {
+    Service.onservicestatuschange = function ccapp_onStateChange(evt) {
       var status = evt.detail;
       if (status.availability && status.roaming) {
         _setWarningMode(true);
@@ -239,12 +239,12 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     };
 
     // Observer to see which cost control or telephony is enabled
-    CostControl.settings.observe('plantype', onPlanTypeChange);
-    onPlanTypeChange(CostControl.settings.option('plantype'));
+    Service.settings.observe('plantype', onPlanTypeChange);
+    onPlanTypeChange(Service.settings.option('plantype'));
 
     // Observer to detect changes on threshold limits
-    CostControl.settings.observe('lowlimit_threshold', justUpdateUI);
-    CostControl.settings.observe('lowlimit', justUpdateUI);
+    Service.settings.observe('lowlimit_threshold', justUpdateUI);
+    Service.settings.observe('lowlimit', justUpdateUI);
   }
 
   var MODE_DEFAULT = 'mode-default';
@@ -315,7 +315,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   // Using a closure, setup the countdown for the top up waiting.
   function _startTopUpCountdown() {
-    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var seconds = Math.floor(Service.getTopUpTimeout() / 1000);
     var countdownHolder = document.getElementById('top-up-countdown');
 
     _stopTopUpCountdown();
@@ -332,7 +332,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   // Stops the countdown fot the top up waiting
   function _stopTopUpCountdown() {
-    var seconds = Math.floor(CostControl.getTopUpTimeout() / 1000);
+    var seconds = Math.floor(Service.getTopUpTimeout() / 1000);
     var remainingSeconds = seconds % 60;
     var minutes = Math.floor(seconds / 60);
     var countdownHolder = document.getElementById('top-up-countdown');
@@ -397,6 +397,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   // Initializes the cost control module: basic parameters, automatic and manual
   // updates.
   function _init() {
+    var status = Service.getServiceStatus();
+    if (!status.enabledFunctionalities.balance) {
+      debug('Balance functionality disabled. Skippin Balance Tab set up.');
+      return;
+    }
     debug('Initializing Balance Tab');
     _configureUI();
     _configureAutomaticUpdates();
@@ -408,7 +413,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     // I prefer this check in the VIEWS to keep the service as simple as
     // possible
-    if (_plantype !== CostControl.PLAN_PREPAID) {
+    if (_plantype !== Service.PLAN_PREPAID) {
       debug('Not in prepaid, ignoring.');
       return;
     }
@@ -417,7 +422,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
       return;
 
     // Check for service availability and inform and abort if not present
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
       viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
@@ -426,14 +431,14 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     _setUpdatingMode(true); // this is cosmetic, as in the widget.js, this is
                             // only to produce the illusion that updating starts
                             // as soon as the button is pressed.
-    CostControl.requestBalance();
+    Service.requestBalance();
   }
 
 
   // Actually it does not request anything, just sends the user to the top up
   // screen.
   function _requestTopUp() {
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
       viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
@@ -447,12 +452,12 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
   // Check for system availability. If so, ask for USSD topup.
   function _requestUSSDTopUp() {
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     if (status.detail in NO_SERVICE_ERRORS) {
       viewManager.changeViewTo(DIALOG_SERVICE_UNAVAILABLE);
       return;
     }
-    CostControl.requestUSSDTopUp();
+    Service.requestUSSDTopUp();
   }
 
   // Enable / disable waiting mode for the UI
@@ -479,11 +484,11 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
   // Updates the UI with the new balance if provided, else just update the
   // balance screen with the last updated value.
   function _updateUI(balanceObject) {
-    balanceObject = balanceObject || CostControl.getLastBalance();
+    balanceObject = balanceObject || Service.getLastBalance();
 
 
     // Warning if roaming
-    var status = CostControl.getServiceStatus();
+    var status = Service.getServiceStatus();
     var onRoaming = status.availability && status.roaming;
     _setWarningMode(onRoaming);
     if (onRoaming)
@@ -491,9 +496,9 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
 
     // Check for low credit
     var balance = balanceObject ? balanceObject.balance : null;
-    if (CostControl.settings.option('lowlimit') &&
+    if (Service.settings.option('lowlimit') &&
         balance &&
-        balance < CostControl.settings.option('lowlimit_threshold')) {
+        balance < Service.settings.option('lowlimit_threshold')) {
 
       _balanceTab.classList.add('low-credit');
     } else {
