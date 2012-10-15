@@ -541,15 +541,22 @@ button[disabled] .icon-keypad-visibility {
 
   #calls > section .number,
   #calls[data-count="1"] > section .number {
-    width: -moz-calc(100% - 10rem);
+    width: -moz-calc(100% - 12rem);
     height: -moz-calc(100% - 2rem);
     padding: 1rem;
     margin-left: 3rem;
-    font-size: 1.1em;
     line-height: 100%;
     color: white;
     background-color: transparent;
     white-space: nowrap;
+    text-overflow: ellipsis;
+
+    /* font-size is overwriten via JS and we need
+    to be sure it doesn't happen when the call is
+    in the status bar. Workarounds would imply
+    listening resize event and JS changes, so we
+    need to add !important here */
+    font-size: 1.1em !important;
   }
 
   #calls > section .duration,
