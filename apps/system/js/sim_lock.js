@@ -39,13 +39,8 @@ var SimLock = {
         if (!app || !app.manifest.permissions)
           return;
 
-        var keys = Object.keys(app.manifest.permissions);
-        var permissions = keys.map(function map_perm(key) {
-          return app.manifest.permissions[key];
-        });
-
-        if (permissions.indexOf('telephony') === -1 &&
-          permissions.indexOf('sms') === -1)
+        if (!('telephony' in app.manifest.permissions ||
+            'sms' in app.manifest.permissions))
           return;
 
         this.showIfLocked();
@@ -68,7 +63,9 @@ var SimLock = {
         });
         activity.onsuccess = function sl_unlockSuccess() {
           // Go back to the current displayed app
-          WindowManager.setDisplayedApp(WindowManager.getDisplayedApp());
+          // XXX: this should be removed when bug 798445 is fixed
+          // and bug 799039 actually works.
+          WindowManager.launch(WindowManager.getDisplayedApp());
         };
         break;
       case 'ready':

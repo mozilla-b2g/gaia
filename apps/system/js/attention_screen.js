@@ -191,12 +191,7 @@ var AttentionScreen = {
     if (!app || !app.manifest.permissions)
       return false;
 
-    var keys = Object.keys(app.manifest.permissions);
-    var permissions = keys.map(function map_perm(key) {
-      return app.manifest.permissions[key];
-    });
-
-    return (permissions.indexOf('attention') != -1);
+    return ('attention' in app.manifest.permissions);
   }
 };
 

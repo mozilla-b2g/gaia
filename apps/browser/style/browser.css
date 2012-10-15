@@ -483,7 +483,8 @@ input::-moz-focus-inner {
 #top-site-thumbnails li span {
   font-size: 12px;
   display: block;
-  width: 140px;
+  width: 134px;
+  height: 15px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -492,6 +493,7 @@ input::-moz-focus-inner {
   position: absolute;
   bottom: 0px;
   padding: 3px;
+  pointer-events: none;
 }
 
 #awesomescreen {
