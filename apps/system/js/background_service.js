@@ -104,7 +104,7 @@ var BackgroundServiceManager = (function bsm() {
     if (!app || !app.manifest.permissions)
       return false;
 
-    return ('background' in app.manifest.permissions);
+    return ('backgroundservice' in app.manifest.permissions);
   };
 
   /* The open function is responsible of containing the iframe */
