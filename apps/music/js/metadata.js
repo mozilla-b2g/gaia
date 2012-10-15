@@ -13,6 +13,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var TRACKNUM = 'tracknum';
   var IMAGE = 'picture';
 
+  // These two properties are for playlist functionalities
+  // not originally metadata from the files
+  var RATED = 'rated';
+  var PLAYED = 'played';
+
   // Map id3v2 tag ids to metadata property names
   var ID3V2TAGS = {
     TIT2: TITLE,
@@ -57,6 +62,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     if (p2 === -1)
       p2 = blob.name.length;
     metadata[TITLE] = blob.name.substring(p1 + 1, p2);
+    // Assign 0 as a default value for rated and played metadata
+    metadata[RATED] = 0;
+    metadata[PLAYED] = 0;
   }
 
   // Read the start of the file, figure out what kind it is, and call

@@ -1,0 +1,12 @@
+{
+  "name": "Test Sensors",
+  "description": "Tests basic device sensors includes accelerometer and gyroscope",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "dougt",
+    "url": "http://www.mozilla.org"
+  },
+  "icons": {
+    "128": "/style/icons/sensor.png"
+  }
+}

@@ -1,0 +1,16 @@
+#debug-ttl {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: block;
+  height: 22px;
+  width: 58px;
+  background-color: darkgreen;
+  pointer-events: none;
+  font-size: 20px;
+  line-height: 20px;
+  text-align: right;
+  font-weight: bold;
+  overflow: hidden;
+  padding-right: 3px;
+}

@@ -7,12 +7,33 @@
   Events.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
-    _dependentStores: ['events', 'busytimes'],
+    _dependentStores: ['events', 'busytimes', 'alarms'],
+
+    /** disable caching */
+    _addToCache: function() {},
+    _removeFromCache: function() {},
+
+    _createModel: function(input, id) {
+      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var model = _super.apply(this, arguments);
+
+      model.remote.startDate = Calendar.Calc.dateFromTransport(
+        model.remote.start
+      );
+
+      model.remote.endDate = Calendar.Calc.dateFromTransport(
+        model.remote.end
+      );
+
+      return model;
+    },
 
     /**
      * Link busytime dependants see _addDependents.
      */
     _removeDependents: function(id, trans) {
+      this.removeByIndex('parentId', id, trans);
+
       var busy = this.db.getStore('Busytime');
       busy.removeEvent(id, trans);
     },
@@ -39,53 +60,48 @@
     },
 
     /**
-     * Finds associated events with a given
-     * list of records that have a eventId property.
-     * Results are returned in the same order
-     * as the given records.
+     * Shortcut finds the calendar model for given event.
      *
-     * Results are paired [associated, event].
-     * Commonly used for busytime to event lookups...
-     *
-     * @param {Array} records array of associated records.
-     * @param {Function} callback node style.
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Calendar} related calendar.
      */
-    findByAssociated: function(records, callback) {
-      records = (Array.isArray(records)) ? records : [records];
+    calendarFor: function(event) {
+      var calStore = this.db.getStore('Calendar');
+      return calStore.cached[event.calendarId];
+    },
 
-      var results = [];
-      var idTable = Object.create(null);
+    /**
+     * Shortcut finds the account model for given event.
+     *
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Account} related account.
+     */
+    accountFor: function(event) {
+      var cal = this.calendarFor(event);
+      return this.db.getStore('Calendar').accountFor(cal);
+    },
 
-      records.forEach(function(item) {
-        idTable[item.eventId] = true;
-      });
+    /**
+     * Shortcut finds provider for given event.
+     *
+     * @param {Object} event full event record from db.
+     */
+    providerFor: function(event) {
+      // XXX: maybe we need to shortcut this somehow?
+      var accStore = this.db.getStore('Account');
 
-      // create unique list of event ids...
-      var ids = Object.keys(idTable);
-      idTable = undefined;
+      var cal = this.calendarFor(event);
+      var acc = accStore.cached[cal.accountId];
 
-      this.findByIds(ids, function(err, list) {
-        if (err) {
-          callback(err);
-          return;
-        }
+      return Calendar.App.provider(acc.providerType);
+    },
 
-        var i = 0;
-        var len = records.length;
-        var record;
-        var event;
+    busytimeIdFor: function(event) {
+      var id = event.remote.start.utc + '-' +
+               event.remote.end.utc + '-' +
+               event._id;
 
-        for (; i < len; i++) {
-          record = records[i];
-          event = list[record.eventId];
-          if (event) {
-            results.push([record, event]);
-          }
-        }
-
-        callback(null, results);
-      });
-
+      return id;
     },
 
     /**
@@ -98,6 +114,7 @@
     findByIds: function(ids, callback) {
       var results = {};
       var pending = ids.length;
+      var self = this;
 
       function next() {
         if (!(--pending)) {
@@ -112,7 +129,7 @@
         var item = e.target.result;
 
         if (item) {
-          results[item._id] = item;
+          results[item._id] = self._createModel(item);
         }
 
         next();
@@ -125,17 +142,12 @@
       }
 
       ids.forEach(function(id) {
-        if (id in this.cached) {
-          results[id] = this.cached[id];
-          next();
-        } else {
-          var trans = this.db.transaction('events');
-          var store = trans.objectStore('events');
-          var req = store.get(id);
+        var trans = this.db.transaction('events');
+        var store = trans.objectStore('events');
+        var req = store.get(id);
 
-          req.onsuccess = success;
-          req.onerror = error;
-        }
+        req.onsuccess = success;
+        req.onerror = error;
       }, this);
     },
 
@@ -144,7 +156,7 @@
      * and returns results. Does not cache.
      *
      * @param {String} calendarId calendar to find.
-     * @param {Function} callback node style err, array of events.
+     * @param {Function} callback node style [err, array of events].
      */
     eventsForCalendar: function(calendarId, callback) {
       var trans = this.db.transaction('events');
@@ -169,67 +181,8 @@
      */
     _parseId: function(id) {
       return id;
-    },
-
-    /**
-     * Removes all events by their calendarId and removes
-     * them from the cache. 'remove' events are *not* emitted
-     * when removing in this manner for performance reasons.
-     * The frontend should listen to a calendar remove event
-     * as this method should really only be used in conjunction
-     * with that event.
-     *
-     * This method is automatically called downstream of a calendar
-     * removal as part of the _removeDependents step.
-     *
-     * @param {Numeric} calendarId should match index.
-     * @param {IDBTransation} [trans] optional transaction to reuse.
-     * @param {Function} [callback] optional callback to use.
-     *                   When called without a transaction chances
-     *                   are you should pass a callback.
-     */
-    removeByCalendarId: function(calendarId, trans, callback) {
-      var self = this;
-      if (typeof(trans) === 'function') {
-        callback = trans;
-        trans = undefined;
-      }
-
-      if (typeof(trans) === 'undefined') {
-        trans = this.db.transaction(
-          this._dependentStores || this._store,
-          'readwrite'
-        );
-      }
-      if (callback) {
-        trans.addEventListener('complete', function() {
-          callback(null);
-        }, false);
-
-        trans.addEventListener('error', function(event) {
-          callback(event);
-        });
-      }
-
-      var index = trans.objectStore('events').index('calendarId');
-      var req = index.openCursor(
-        IDBKeyRange.only(calendarId)
-      );
-
-      req.onsuccess = function(event) {
-        var cursor = event.target.result;
-        if (cursor) {
-          //XXX: We need to trigger a remove dependants
-          //     action here? Events are not tied
-          //     directly to anything else right now but they
-          //     may be in the future...
-          self._removeFromCache(cursor.primaryKey);
-          self._removeDependents(cursor.primaryKey, trans);
-          cursor.delete();
-          cursor.continue();
-        }
-      };
     }
+
   };
 
   Calendar.ns('Store').Event = Events;

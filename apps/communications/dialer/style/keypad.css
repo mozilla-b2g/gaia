@@ -28,7 +28,7 @@
   display: table;
   table-layout: fixed;
   border-spacing: 1.5rem 0rem;
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
   font-weight: 300;
 }
 
@@ -200,7 +200,7 @@
 
 #keypad-callbar-cancel > div {
   text-align: center;
-  font: 2rem 'Open Sans';
+  font: 2rem 'MozTT';
 }
 
 #keypad-callbar-call-action {
@@ -295,7 +295,7 @@
 .phone-number-font {
   font-size:-moz-calc(18*0.226rem);
   color: white;
-  font-family:'Open Sans';
+  font-family:'MozTT';
 }
 
 .keypad-number {

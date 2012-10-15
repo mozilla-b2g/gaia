@@ -773,7 +773,7 @@ suite('views/month_child', function() {
       var result,
           expected = subject._renderMonth();
 
-      result = subject.create(testEl);
+      result = subject.create();
 
       assert.equal(calledCachedWith[0], subject.timespan);
       assert.deepEqual(

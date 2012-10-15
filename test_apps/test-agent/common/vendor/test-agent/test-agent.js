@@ -1196,6 +1196,11 @@
   Client.prototype.start = function start() {
     var i, event, fn;
 
+    if (this.socket && this.socket.readyState < 2) {
+      // don't open a socket is one is already open.
+      return;
+    }
+
     if (this.retry && this.retries >= this.retryLimit) {
       throw new Client.RetryError(
         'Retry limit has been reach retried ' + String(this.retries) + ' times'
@@ -1442,8 +1447,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       }
 
       //this is temp
+      var logDetails = {messages: [message], stack: stack };
+
+
+      if (MochaReporter.testAgentEnvId) {
+        logDetails.testAgentEnvId = MochaReporter.testAgentEnvId;
+      }
+
       MochaReporter.send(
-        JSON.stringify(['log', {messages: [message], stack: stack}])
+        JSON.stringify(['log', logDetails])
       );
     };
 
@@ -3114,3 +3126,4 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
 }(this));
+

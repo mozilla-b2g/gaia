@@ -14,7 +14,14 @@ const SCROLL_MIN_BUFFER_SCREENS = 2;
 const SCROLL_MAX_RETENTION_SCREENS = 7;
 
 /**
- * List messages for listing, multi-editing, and maybe displaying searches.
+ * List messages for listing the contents of folders ('nonsearch' mode) and
+ * searches ('search' mode).  Multi-editing is just a state of the card.
+ *
+ * Nonsearch and search modes exist together in the same card because so much
+ * of what they do is the same.  We have the cards differ by marking nodes that
+ * are not shared with 'msg-nonsearch-only' or 'msg-search-only'.  We add the
+ * collapsed class to all of the nodes that are not applicable for a node at
+ * startup.
  *
  * == Less-than-infinite scrolling ==
  *
@@ -41,12 +48,18 @@ const SCROLL_MAX_RETENTION_SCREENS = 7;
  */
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
+  this.mode = mode;
   this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
+
+  if (mode === 'nonsearch')
+    batchAddClass(domNode, 'msg-search-only', 'collapsed');
+  else
+    batchAddClass(domNode, 'msg-nonsearch-only', 'collapsed');
 
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
-  this.messageEmptyTitle =
+  this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty')[0];
   // - message actions
   bindContainerClickAndHold(
@@ -61,7 +74,6 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-list-scrollouter')[0];
   this.scrollContainer.addEventListener('scroll', this.onScroll.bind(this),
                                         false);
-
   this.syncingNode =
     domNode.getElementsByClassName('msg-messages-syncing')[0];
   this.syncMoreNode =
@@ -76,6 +88,8 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onCompose.bind(this), false);
 
   // - toolbar: non-edit mode
+  domNode.getElementsByClassName('msg-search-btn')[0]
+    .addEventListener('click', this.onSearchButton.bind(this), false);
   domNode.getElementsByClassName('msg-edit-btn')[0]
     .addEventListener('click', this.setEditMode.bind(this, true), false);
   domNode.getElementsByClassName('msg-refresh-btn')[0]
@@ -95,22 +109,62 @@ function MessageListCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMoveMessages.bind(this, true), false);
 
+  // -- non-search mode
+  if (mode === 'nonsearch') {
+    // - search teaser bar
+    // Focusing the teaser bar's text field is the same as hitting the search
+    // button.
+    domNode.getElementsByClassName('msg-search-text-tease')[0]
+      .addEventListener('focus', this.onSearchButton.bind(this), false);
+  }
+  // -- search mode
+  else if (mode === 'search') {
+console.log('sf: search mode!');
+    domNode.getElementsByClassName('msg-search-cancel')[0]
+      .addEventListener('click', this.onCancelSearch.bind(this), false);
+
+    bindContainerHandler(
+      domNode.getElementsByClassName('filter')[0],
+      'click', this.onSearchFilterClick.bind(this));
+    this.searchInput = domNode.getElementsByClassName('msg-search-text')[0];
+    this.searchInput.addEventListener(
+      'input', this.onSearchTextChange.bind(this), false);
+  }
+
   this.editMode = false;
   this.selectedMessages = null;
 
   this.curFolder = null;
   this.messagesSlice = null;
   this._boundSliceRequestComplete = this.onSliceRequestComplete.bind(this);
-  this.showFolder(args.folder);
+  if (mode == 'nonsearch')
+    this.showFolder(args.folder);
+  else
+    this.showSearch(args.folder, args.phrase || '', args.filter || 'all');
 }
 MessageListCard.prototype = {
   postInsert: function() {
     this._hideSearchBoxByScrolling();
+
+    if (this.mode === 'search')
+      this.searchInput.focus();
+  },
+
+  onSearchButton: function() {
+    Cards.pushCard(
+      'message-list', 'search', 'animate',
+      {
+        folder: this.curFolder
+      });
   },
 
   setEditMode: function(editMode) {
     var domNode = this.domNode;
+    // XXX the manual DOM play here is now a bit overkill; we should very
+    // probably switch top having the CSS do this for us or at least invest
+    // some time in cleanup.
     var normalHeader = domNode.getElementsByClassName('msg-list-header')[0],
+        searchHeader = domNode.getElementsByClassName('msg-search-header')[0],
         editHeader = domNode.getElementsByClassName('msg-listedit-header')[0],
         normalToolbar =
           domNode.getElementsByClassName('msg-list-action-toolbar')[0],
@@ -121,6 +175,7 @@ MessageListCard.prototype = {
 
     if (editMode) {
       normalHeader.classList.add('collapsed');
+      searchHeader.classList.add('collapsed');
       normalToolbar.classList.add('collapsed');
       editHeader.classList.remove('collapsed');
       editToolbar.classList.remove('collapsed');
@@ -134,7 +189,10 @@ MessageListCard.prototype = {
       this.selectedMessagesUpdated();
     }
     else {
-      normalHeader.classList.remove('collapsed');
+      if (this.mode === 'nonsearch')
+        normalHeader.classList.remove('collapsed');
+      else
+        searchHeader.classList.remove('collapsed');
       normalToolbar.classList.remove('collapsed');
       editHeader.classList.add('collapsed');
       editToolbar.classList.add('collapsed');
@@ -201,10 +259,6 @@ MessageListCard.prototype = {
   },
 
   _hideSearchBoxByScrolling: function() {
-    // Searching is deferred for now; do nothing; the DOM nodes have been
-    // commented out.
-    return;
-
     // scroll the search bit out of the way
     var searchBar =
       this.domNode.getElementsByClassName('msg-search-tease-bar')[0];
@@ -249,6 +303,58 @@ MessageListCard.prototype = {
     return true;
   },
 
+  showSearch: function(folder, phrase, filter) {
+console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    if (this.messagesSlice) {
+      this.messagesSlice.die();
+      this.messagesSlice = null;
+      this.messagesContainer.innerHTML = '';
+    }
+    this.curFolder = folder;
+    this.curPhrase = phrase;
+    this.curFilter = filter;
+
+    if (phrase.length < 3)
+      return false;
+
+    this.messagesSlice = MailAPI.searchFolderMessages(
+      folder, phrase,
+      {
+        author: filter === 'all' || filter === 'author',
+        recipients: filter === 'all' || filter === 'recipients',
+        subject: filter === 'all' || filter === 'subject',
+        body: filter === 'all' || filter === 'body'
+      });
+    this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
+    this.messagesSlice.onchange = this.updateMatchedMessageDom.bind(this,
+                                                                    false);
+    this.messagesSlice.onstatus = this.onStatusChange.bind(this);
+    this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
+    return true;
+  },
+
+  onSearchFilterClick: function(filterNode, event) {
+    this.showSearch(this.curFolder, this.searchInput.value,
+                    filterNode.dataset.filter);
+  },
+
+  onSearchTextChange: function(event) {
+console.log('sf: typed, now:', this.searchInput.value);
+    this.showSearch(this.curFolder, this.searchInput.value, this.curFilter);
+  },
+
+  onCancelSearch: function(event) {
+    try {
+      if (this.messagesSlice)
+        this.messagesSlice.die();
+    }
+    catch (ex) {
+      console.error('problem killing slice:', ex, '\n', ex.stack);
+    }
+    this.messagesSlice = null;
+    Cards.removeCardAndSuccessors(this.domNode, 'animate');
+  },
+
   onGetMoreMessages: function() {
     this.messagesSlice.requestGrowth(1, true);
     // Provide instant feedback that they pressed the button by hiding the
@@ -276,6 +382,9 @@ MessageListCard.prototype = {
     else
       this.syncMoreNode.classList.add('collapsed');
 
+    if (this.messagesSlice.items.length === 0) {
+      this.messageEmptyContainer.classList.remove('collapsed');
+    }
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
@@ -369,17 +478,14 @@ MessageListCard.prototype = {
         this.scrollContainer.scrollTop -=
           (prevHeight - this.messagesContainer.clientHeight);
       }
+
+      // Check the message count after deletion:
+      if (this.messagesContainer.children.length === 0) {
+        this.messageEmptyContainer.classList.remove('collapsed');
+      }
     }
 
     // - added/existing
-    if (!addedItems.length) {
-      if (this.messagesContainer.children.length === 0) {
-        this.messageEmptyTitle.classList.add('show');
-      }
-      return;
-    } else {
-      this.messageEmptyTitle.classList.remove('show');
-    }
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
@@ -392,12 +498,23 @@ MessageListCard.prototype = {
     else
       prevHeight = null;
 
+    // Remove the no message text while new messages added:
+    if (addedItems.length > 0) {
+      this.messageEmptyContainer.classList.add('collapsed');
+    }
+
     addedItems.forEach(function(message) {
       var domMessage;
       domMessage = message.element = msgNodes['header-item'].cloneNode(true);
-      domMessage.message = message;
 
-      self.updateMessageDom(true, message);
+      if (self.mode === 'nonsearch') {
+        domMessage.message = message;
+        self.updateMessageDom(true, message);
+      }
+      else {
+        domMessage.message = message.header;
+        self.updateMatchedMessageDom(true, message);
+      }
 
       self.messagesContainer.insertBefore(domMessage, insertBuddy);
     });
@@ -426,6 +543,65 @@ MessageListCard.prototype = {
       // snippet
       msgNode.getElementsByClassName('msg-header-snippet')[0]
         .textContent = message.snippet;
+
+      // attachments
+      if (message.hasAttachments)
+        msgNode.getElementsByClassName('msg-header-attachments')[0]
+          .classList.add('msg-header-attachments-yes');
+    }
+
+    // unread (we use very specific classes directly on the nodes rather than
+    // child selectors for hypothetical speed)
+    var unreadNode =
+      msgNode.getElementsByClassName('msg-header-unread-section')[0];
+    if (message.isRead) {
+      unreadNode.classList.remove('msg-header-unread-section-unread');
+      dateNode.classList.remove('msg-header-date-unread');
+    }
+    else {
+      unreadNode.classList.add('msg-header-unread-section-unread');
+      dateNode.classList.add('msg-header-date-unread');
+    }
+    // star
+    var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
+    if (message.isStarred)
+      starNode.classList.add('msg-header-star-starred');
+    else
+      starNode.classList.remove('msg-header-star-starred');
+  },
+
+  updateMatchedMessageDom: function(firstTime, matchedHeader) {
+    var msgNode = matchedHeader.element,
+        matches = matchedHeader.matches,
+        message = matchedHeader.header;
+
+    // some things only need to be done once
+    var dateNode = msgNode.getElementsByClassName('msg-header-date')[0];
+    if (firstTime) {
+      // author
+      var authorNode = msgNode.getElementsByClassName('msg-header-author')[0];
+      if (matches.author)
+        appendMatchItemTo(matches.author, authorNode);
+      else
+        authorNode.textContent = message.author.name || message.author.address;
+
+      // date
+      dateNode.dataset.time = message.date.valueOf();
+      dateNode.textContent = prettyDate(message.date);
+
+      // subject
+      var subjectNode = msgNode.getElementsByClassName('msg-header-subject')[0];
+      if (matches.subject)
+        appendMatchItemTo(matches.subject[0], subjectNode);
+      else
+        subjectNode.textContent = message.subject;
+
+      // snippet
+      var snippetNode = msgNode.getElementsByClassName('msg-header-snippet')[0];
+      if (matches.body)
+       appendMatchItemTo(matches.body[0], snippetNode);
+      else
+        snippetNode.textContent = message.snippet;
 
       // attachments
       if (message.hasAttachments)
@@ -509,11 +685,20 @@ MessageListCard.prototype = {
             header.setRead(false);
             break;
           case 'msg-edit-menu-delete':
+            var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+            if (!req) {
+              return;
+            }
             op = header.deleteMessage();
             break;
           case 'msg-edit-menu-move':
-            //TODO: Add folder select panel and apply while move api ready.
-            //op = header.moveMessage(folderName);
+            // TODO: Move back-end mail api is not ready now.
+            //       Please verify this function when api landed.
+            Cards.folderSelector(function(folder) {
+              op = header.moveMessage(folder);
+              Toaster.logMutation(op);
+            });
+
             break;
 
           // Deletion, and moves, on the other hand, require a lot of manual
@@ -521,7 +706,7 @@ MessageListCard.prototype = {
         }
         if (op)
           Toaster.logMutation(op);
-      });
+      }.bind(this));
   },
 
   onRefresh: function() {
@@ -542,17 +727,26 @@ MessageListCard.prototype = {
   },
 
   onDeleteMessages: function() {
-    // TODO: Enable the batch delete when back-end api ready.
-    // var op = MailAPI.deleteMessages(this.selectedMessages);
-    // Toaster.logMutation(op);
+    // TODO: Batch delete back-end mail api is not ready for IMAP now.
+    //       Please verify this function under IMAP when api completed.
+    var req = confirm(mozL10n.get('message-multiedit-delete-confirm',
+                      { n: this.selectedMessages.length }));
+    if (!req) {
+      return;
+    }
+    var op = MailAPI.deleteMessages(this.selectedMessages);
+    Toaster.logMutation(op);
     this.setEditMode(false);
   },
 
   onMoveMessages: function() {
-    // TODO: Enable the batch move when back-end api ready.
-    // var op = MailAPI.moveMessages(this.selectedMessages, targetFolder);
-    // Toaster.logMutation(op);
-    this.setEditMode(false);
+    // TODO: Batch move back-end mail api is not ready now.
+    //       Please verify this function when api landed.
+    Cards.folderSelector(function(folder) {
+      var op = MailAPI.moveMessages(this.selectedMessages, folder);
+      Toaster.logMutation(op);
+      this.setEditMode(false);
+    }.bind(this));
   },
 
   buildEditMenuForMessage: function(header) {
@@ -588,11 +782,18 @@ MessageListCard.prototype = {
     }
   }
 };
-Cards.defineCardWithDefaultMode(
-    'message-list',
-    { tray: false },
-    MessageListCard
-);
+Cards.defineCard({
+  name: 'message-list',
+  modes: {
+    nonsearch: {
+      tray: false
+    },
+    search: {
+      tray: false
+    }
+  },
+  constructor: MessageListCard
+});
 
 const CONTENT_TYPES_TO_CLASS_NAMES = [
     null,
@@ -641,6 +842,8 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
+  domNode.getElementsByClassName('msg-forward-btn')[0]
+    .addEventListener('click', this.onForward.bind(this), false);
 
   this.envelopeNode = domNode.getElementsByClassName('msg-envelope-bar')[0];
   this.envelopeNode
@@ -690,6 +893,7 @@ MessageReaderCard.prototype = {
   },
 
   onReply: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage(null, function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
@@ -697,13 +901,26 @@ MessageReaderCard.prototype = {
   },
 
   onReplyAll: function(event) {
+    Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage('all', function() {
       Cards.pushCard('compose', 'default', 'animate',
                      { composer: composer });
     });
   },
 
+  onForward: function(event) {
+    Cards.eatEventsUntilNextCard();
+    var composer = this.header.forwardMessage('inline', function() {
+      Cards.pushCard('compose', 'default', 'animate',
+                     { composer: composer });
+    });
+  },
+
   onDelete: function() {
+    var req = confirm(mozL10n.get('message-edit-delete-confirm'));
+    if (!req) {
+      return;
+    }
     var op = this.header.deleteMessage();
     Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
@@ -732,9 +949,11 @@ MessageReaderCard.prototype = {
   },
 
   onMove: function() {
-    //TODO: Open the folder card view and pick a folder.
-    // var op = this.header.moveMessage(folder);
-    // Toaster.logMutation(op);
+    //TODO: Please verify move functionality after api landed.
+    Cards.folderSelector(function(folder) {
+      var op = this.header.moveMessage(folder);
+      Toaster.logMutation(op);
+    }.bind(this));
   },
 
   /**

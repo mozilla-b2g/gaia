@@ -50,19 +50,39 @@ suite('controllers/sync', function() {
   });
 
   test('#observe', function(done) {
-    var model;
+    var model = Factory('account');
+    var calledWith;
+    var syncStart;
+    var syncEnd;
+
+    function complete() {
+      done(function() {
+        assert.equal(calledWith[0], model);
+        assert.ok(syncStart, 'start sync');
+        assert.ok(syncEnd, 'end sync');
+      });
+    };
+
+    subject.on('sync start', function() {
+      syncStart = true;
+    });
+
+    subject.on('sync complete', function() {
+      syncEnd = true;
+    });
 
     subject.observe();
 
     subject._syncAccount = function(data) {
-      done(function() {
-        assert.equal(model, data);
-      });
+      calledWith = arguments;
+      setTimeout(complete, 0);
+      var cb = arguments[1];
+      cb();
     }
 
-    model = Factory('account');
-
-    account.persist(model);
+    account.persist(model, function() {
+      console.log(arguments[1]);
+    });
   });
 
   suite('#sync', function() {

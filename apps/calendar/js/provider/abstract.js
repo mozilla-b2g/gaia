@@ -26,6 +26,21 @@ Calendar.ns('Provider').Abstract = (function() {
     canSync: false,
 
     /**
+     * Can create events for this provider?
+     */
+    canCreateEvent: false,
+
+    /**
+     * Can edit events for this provider?
+     */
+    canUpdateEvent: false,
+
+    /**
+     * Can delete events from this provider?
+     */
+    canDeleteEvent: false,
+
+    /**
      * Attempt to get account accepts
      * a single object and callback.
      * Required options vary based on
@@ -55,44 +70,50 @@ Calendar.ns('Provider').Abstract = (function() {
     findCalendars: function() {},
 
     /**
-     * Opens an event stream expected
-     * to return a responder that
-     * will emit to "data" and "error"
-     * events.
+     * Sync remote and local events.
      *
-     * account: (same as getAccount)
-     * calendar:
-     *  - url: (String) Url/URI based on .useUrl
-     *  - syncToken: (String)
-     *  - ...: additional options based on provider
-     *
-     * Each event will be emitted in the following format:
-     *
-     * event:
-     *  recurring:
-     *    expandedUntil: (Date) date expanded until
-     *    isExpaned: (Boolean) is fully expanded?
-     *    expandedUntil (Date) last occurrence expanded
-     *
-     *  title: (String)
-     *  description: (String)
-     *  location: (String)
-     *  occurs: (Array[Date]) list of dates events occur
-     *  startDate: (Date)
-     *  endDate: (Date)
-     *  uid: (String) unique id for event
-     *  [_rawData]: (String) optional raw data.
-     *              In cases where we can do field
-     *              based updates we don't
-     *              need to store this...
-     *
-     * @param {Object} account user credentials.
-     * @param {Object} calendar calendar location and last sync state.
-     * @param {Function} callback node style (err, result).
-     * @return {Calendar.Responder} stream that will emit
-     *                              'data' events for each event.
      */
-    streamEvents: function(account, calendar, callback) {}
+    syncEvents: function(account, calendar, callback) {},
+
+    /**
+     * Update an event
+     *
+     * @param {Object} event record from event store.
+     *
+     * @param {Object} [busytime] optional busytime instance
+     *                 when a busytime is passed the edit is treated
+     *                 as an "exception" and will only edit the one recurrence
+     *                 related to the busytime. This may result in the creation
+     *                 of a new "event" related to the busytime.
+     */
+    updateEvent: function(event, busytime, callback) {},
+
+    /**
+     * Delete event
+     *
+     * @param {Object} event record from the event store.
+     * @param {Object} [busytime] optional busytime instance
+     *                 when given it will only remove this occurence/exception
+     *                 of the event rather then the entire sequence of events.
+     */
+    deleteEvent: function(event, busytime, callback) {},
+
+    /**
+     * Create an event
+     */
+    createEvent: function(event, callback) {},
+
+    /**
+     * Returns the capabilities of a single event.
+     */
+    eventCapabilities: function() {
+      return {
+        canUpdate: this.canUpdateEvent,
+        canCreate: this.canUpdateEvent,
+        canDelete: this.canUpdateEvent
+      };
+    }
+
   };
 
   return Abstract;

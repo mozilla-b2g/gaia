@@ -159,6 +159,16 @@ suite('dialer/handled_call', function() {
     test('initial state', function() {
       assert.equal(subject._initialState, 'dialing');
     });
+
+    test('support for calls already connected at init', function() {
+      mockCall = new MockCall(String(phoneNumber), 'connected');
+      subject = new HandledCall(mockCall, fakeNode);
+
+      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
+      assert.isFalse(fakeNode.hidden);
+      assert.equal(subject.directionNode.className,
+                   'direction outgoing ongoing-out');
+    });
   });
 
   suite('on connect', function() {

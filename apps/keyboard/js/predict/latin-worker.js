@@ -229,9 +229,6 @@ function MapCodesToBaseLetters(codes, length) {
 // ab -> promote words that start with 'ab'
 const PrefixMatchMultiplier = 3;
 
-// promote words when case of first character matches
-const CaseMatchMultiplier = 2;
-
 // words where accidentaly the wrong key was pressed
 // qas -> was
 // w - neighbourKeys [q,e,a,s,d]
@@ -261,18 +258,6 @@ const RankCandidate = (function() {
     //      editdistance = 2, then fact = 1.8
     var factor = 1 + ((10 - Math.min(9, cand.distance)) / 10);
     rank *= factor;
-
-    // promote candidates where starting characters match the input word.
-    // e.g. Af - Africa
-    //      af - after
-    var matchingChars = 0;
-    for (var i = 0, len = word.length; i < len; i++) {
-      if (word[i] != candWord[i])
-        break;
-      matchingChars++;
-    }
-    if (matchingChars > 0)
-      rank *= (CaseMatchMultiplier + matchingChars);
 
     // take input length into account
     // length = 1 then fact = 1.1
@@ -551,19 +536,31 @@ function Predict(word) {
 
 var PredictiveText = {
   key: function PTW_key(keyCode, keyX, keyY) {
+    if (keyCode == 32) {
+      self.postMessage({ cmd: 'sendCandidates', args: [[]] });
+      _currentWord = '';
+      return;
+    }
     if (keyCode == 8) {
       _currentWord = _currentWord.substr(0, _currentWord.length - 1);
     } else {
       _currentWord += String.fromCharCode(keyCode);
     }
     var wordList = [];
-    var spaceIndex = _currentWord.lastIndexOf(' ');
-    spaceIndex = spaceIndex > 0 ? (spaceIndex + 1) : 0;
-    if (_currentWord.substring(spaceIndex).length > 0) {
-      var candidates = Predict(_currentWord.substring(spaceIndex));
+    if (_currentWord.length > 0) {
+      var candidates = Predict(_currentWord);
+      var capitalize = (_currentWord[0] === _currentWord[0].toUpperCase());
       for (var n = 0, len = candidates.length; n < len; ++n) {
         var word = candidates[n].word;
-        wordList.push([word, word]);
+        if (capitalize) {
+          word = word[0].toUpperCase() + word.substring(1);
+        }
+
+        // For some reason ../render.js expects two copies here.
+        // It displays the first one, but actually inserts the second one.
+        // Maybe this is required for asian input methods. We use it to
+        // add a space after suggestions
+        wordList.push([word, word + ' ']);
       }
     }
     self.postMessage({ cmd: 'sendCandidates', args: [wordList] });

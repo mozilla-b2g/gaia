@@ -1,16 +1,24 @@
 {
   "name": "E-Mail",
   "description": "Gaia E-Mail",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "systemXHR",
-    "settings",
-    "tcp-socket"
-  ],
+  "messages": ["alarm"],
+  "permissions": {
+    "alarms":{},
+    "contacts":{},
+    "desktop-notification":{},
+    "device-storage:music":{},
+    "device-storage:pictures":{},
+    "device-storage:videos":{},
+    "systemXHR":{},
+    "settings":{},
+    "tcp-socket":{}
+  },
   "locales": {
     "ar": {
       "name": "E-Mail",
@@ -72,6 +80,13 @@
         "type": "mail"
       },
       "disposition": "window"
+    },
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },          
+      "disposition": "window",
+      "returnValue": true
     }
   }
 }

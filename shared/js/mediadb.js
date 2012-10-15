@@ -297,6 +297,8 @@
  *     DeviceStorage events. This permanently puts the MediaDB object into
  *     the MediaDB.CLOSED state in which it is unusable.
  *
+ * - stat(): call the DeviceStorage stat() method and pass an the stats
+ *     object to the specified callback
  */
 var MediaDB = (function() {
 
@@ -762,6 +764,19 @@ var MediaDB = (function() {
     cancelEnumeration: function(handle) {
       if (handle.state === 'enumerating')
         handle.state = 'cancelling';
+    },
+
+    // Use the device storage stat() method and pass the resulting
+    // stats object to the callback. The stats object has properties
+    // totalBytes, freeBytes and state.
+    stat: function stat(callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var statreq = this.storage.stat();
+      statreq.onsuccess = function() {
+        callback(statreq.result);
+      }
     }
   };
 
@@ -1162,20 +1177,23 @@ var MediaDB = (function() {
     }
 
     function parseMetadata(file, filename) {
+      if (!file.lastModifiedDate) {
+        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
+                     filename,
+                     'using Date.now() until #793955 is fixed');
+      }
+
       // Basic information about the file
       var fileinfo = {
         name: filename, // we can't trust file.name
         type: file.type,
         size: file.size,
-        date: file.lastModifiedDate ? file.lastModifiedDate.getTime() : null
+        date: file.lastModifiedDate ?
+          file.lastModifiedDate.getTime() :
+          Date.now()
       };
 
-      if (fileinfo.date === null) {
-        console.warn('MediaDB: parseMetadata: no lastModifiedDate for',
-                     filename);
-      }
-
-      if (fileinfo.date && fileinfo.date > details.newestFileModTime)
+      if (fileinfo.date > details.newestFileModTime)
         details.newestFileModTime = fileinfo.date;
 
       // Get metadata about the file

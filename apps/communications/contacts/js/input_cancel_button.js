@@ -56,13 +56,10 @@ var InputCancelButton = (function inputCancelButton() {
 
     var parentElement = input.parentNode;
     input.classList.add('cancel-button');
-    var cancelButton = document.createElement('span');
-    cancelButton.className = 'icon-clear';
-    cancelButton.setAttribute('role', 'button');
-    var afterInput = input.nextSibling;
-    var newElement = parentElement.insertBefore(cancelButton, afterInput);
+    var clearButton = parentElement.querySelector('[type=reset]');
+    clearButton.classList.remove('hide');
 
-    newElement.addEventListener('mousedown', function removeText() {
+    clearButton.addEventListener('mousedown', function removeText() {
       input.value = '';
       var event = new CustomEvent('cancelInput');
       document.dispatchEvent(event);
@@ -84,7 +81,7 @@ var InputCancelButton = (function inputCancelButton() {
 
     var parentElement = input.parentNode;
     input.classList.remove('cancel-button');
-    parentElement.removeChild(input.nextSibling);
+    parentElement.querySelector('[type=reset]').classList.add('hide');
   };
 
 }());
