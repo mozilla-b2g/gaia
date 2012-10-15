@@ -169,6 +169,8 @@ Gaia.webapps.forEach(function(webapp) {
     // Compute the nsIFile for this shared JS file
     let file = Gaia.sharedFolder.clone();
     file.append('js');
+
+    path = path.replace(/\?.*/g, ''); // Remove arguments if any
     path.split('/').forEach(function(segment) {
       file.append(segment);
     });
