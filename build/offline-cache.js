@@ -1,22 +1,25 @@
-let Namespace = CC("@mozilla.org/network/application-cache-namespace;1",
-                   "nsIApplicationCacheNamespace",
-                   "init");
+let Namespace = CC('@mozilla.org/network/application-cache-namespace;1',
+                   'nsIApplicationCacheNamespace',
+                   'init');
 const nsICache = Ci.nsICache;
 const nsIApplicationCache = Ci.nsIApplicationCache;
-const applicationCacheService = Cc["@mozilla.org/network/application-cache-service;1"]
+const applicationCacheService = Cc['@mozilla.org/network/application-cache-service;1']
                                 .getService(Ci.nsIApplicationCacheService);
 
+function log(str) {
+  dump(' +-+ OfflineCache: ' + str + '\n');
+}
 
 /*
  * Compile Gaia into an offline cache sqlite database.
  */
 function storeCache(applicationCache, url, file, itemType) {
   let session = Services.cache.createSession(applicationCache.clientID,
-                                           nsICache.STORE_OFFLINE, true);
+                                             nsICache.STORE_OFFLINE, true);
   session.asyncOpenCacheEntry(url, nsICache.ACCESS_WRITE, {
     onCacheEntryAvailable: function (cacheEntry, accessGranted, status) {
-      cacheEntry.setMetaDataElement("request-method", "GET");
-      cacheEntry.setMetaDataElement("response-head", "HTTP/1.1 200 OK\r\n");
+      cacheEntry.setMetaDataElement('request-method', 'GET');
+      cacheEntry.setMetaDataElement('response-head', 'HTTP/1.1 200 OK\r\n');
       // Force an update. the default expiration time is way too far in the future:
       //cacheEntry.setExpirationTime(0);
 
@@ -26,7 +29,7 @@ function storeCache(applicationCache, url, file, itemType) {
       let inputStream = Cc['@mozilla.org/network/file-input-stream;1']
                        .createInstance(Ci.nsIFileInputStream);
       inputStream.init(file, 1, -1, null);
-      let bufferedOutputStream = Cc["@mozilla.org/network/buffered-output-stream;1"]
+      let bufferedOutputStream = Cc['@mozilla.org/network/buffered-output-stream;1']
                                   .createInstance(Ci.nsIBufferedOutputStream);
       bufferedOutputStream.init(outputStream, 1024);
       bufferedOutputStream.writeFrom(inputStream, inputStream.available());
@@ -36,7 +39,7 @@ function storeCache(applicationCache, url, file, itemType) {
       inputStream.close();
 
       cacheEntry.markValid();
-      print (file.path + ' -> ' + url + ' (' + itemType + ')');
+      log (file.path + ' -> ' + url + ' (' + itemType + ')');
       applicationCache.markEntry(url, itemType);
       cacheEntry.close();
     }
@@ -69,7 +72,7 @@ function getCachedURLs(origin, appcacheFile) {
   return urls;
 }
 
-let webapps = getJSON(getFile(PROFILE_DIR, "webapps", "webapps.json"));
+let webapps = getJSON(getFile(PROFILE_DIR, 'webapps', 'webapps.json'));
 
 Gaia.externalWebapps.forEach(function (webapp) {
   // Process only webapp with a `appcache_path` field in their manifest.
@@ -87,7 +90,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
     appcacheFile.append(name);
   });
   if (!appcacheFile.exists())
-    throw new Error("Unable to find application cache manifest: " +
+    throw new Error('Unable to find application cache manifest: ' +
                     appcacheFile.path);
 
   // Retrieve generated webapp id from platform profile file build by
@@ -96,7 +99,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   let principal = Services.scriptSecurityManager.getAppCodebasePrincipal(
                     Services.io.newURI(webapp.origin, null, null),
                     appId, false);
-  Services.perms.addFromPrincipal(principal, "offline-app",
+  Services.perms.addFromPrincipal(principal, 'offline-app',
                                   Ci.nsIPermissionManager.ALLOW_ACTION);
 
   // Get the url for the manifest. At some points the root
@@ -108,7 +111,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   let applicationCache = applicationCacheService.createApplicationCache(groupID);
   applicationCache.activate();
 
-  print ("\nCompiling (" + webapp.domain + ")");
+  log ('Compiling (' + webapp.domain + ')');
 
   let urls = getCachedURLs(webapp.origin, appcacheFile);
   urls.forEach(function appendFile(url) {
@@ -139,7 +142,7 @@ Gaia.externalWebapps.forEach(function (webapp) {
   // NETWORK:
   // http://*
   // https://*
-  let array = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
+  let array = Cc['@mozilla.org/array;1'].createInstance(Ci.nsIMutableArray);
   let bypass = Ci.nsIApplicationCacheNamespace.NAMESPACE_BYPASS;
   array.appendElement(new Namespace(bypass, 'http://*/', ''), false);
   array.appendElement(new Namespace(bypass, 'https://*/', ''), false);
@@ -148,10 +151,8 @@ Gaia.externalWebapps.forEach(function (webapp) {
 
 
 // Wait for cache to be filled before quitting
-if (Gaia.engine === "xpcshell") {
-  var thread = Cc["@mozilla.org/thread-manager;1"]
-                 .getService(Ci.nsIThreadManager)
-                 .currentThread;
+if (Gaia.engine === 'xpcshell') {
+  let thread = Services.tm.currentThread;
   while (thread.hasPendingEvents()) {
     thread.processNextEvent(true);
   }
