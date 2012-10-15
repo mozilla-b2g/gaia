@@ -92,6 +92,21 @@ suite('Render contacts list', function() {
     assert.isTrue(markPosition > -1);
   }
 
+  function getSearchStringFromContact(contact) {
+    var expected = [];
+    if (contact.givenName) {
+      expected.push(contact.givenName[0]);
+    }
+    if (contact.familyName) {
+      expected.push(contact.familyName[0]);
+    }
+    if (contact.org) {
+      expected.push(contact.org[0]);
+    }
+
+    return expected.join(' ');
+  }
+
   function resetDom(document) {
     if (container) {
       document.body.removeChild(container);
@@ -506,6 +521,53 @@ suite('Render contacts list', function() {
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
+    });
+  });
+
+  suite('Contacts order', function() {
+    suiteSetup(function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+    });
+
+    suiteTeardown(function() {
+      subject.setOrderByLastName(true);
+    });
+
+    test('Order by lastname', function() {
+      var names = document.querySelectorAll('[data-search]');
+      assert.length(names, mockContacts.length);
+      for (var i = 0; i < names.length; i++) {
+        var printed = names[i];
+        var mockContact = mockContacts[i];
+        var expected = getSearchStringFromContact(mockContact);
+        assert.equal(printed.dataset['search'], expected);
+
+        // Check as well the correct highlight
+        // familyName to be in bold
+        var highlight = '<strong class="block-name">' +
+          mockContact.givenName[0] + ' <b>' +
+          mockContact.familyName[0] + '</b>';
+        assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
+      }
+    });
+    test('NOT order by lastname', function() {
+      subject.setOrderByLastName(false);
+      subject.load(mockContacts);
+
+      // First one should be the last one from the list, with the current names
+      var name = document.querySelector('[data-search]');
+      var mockContact = mockContacts[mockContacts.length - 1];
+      var expected = getSearchStringFromContact(mockContact);
+
+      assert.equal(name.dataset['search'], expected);
+
+      // Check highlight
+      // Given name to be in bold
+      var highlight = '<strong class="block-name"><b>' +
+          mockContact.givenName[0] + '</b> ' +
+          mockContact.familyName[0];
+      assert.isTrue(name.innerHTML.indexOf(highlight) == 0);
     });
   });
 });

@@ -97,10 +97,10 @@
         }
       ],
       'familyName': ['CC'],
-      'givenName': ['Pepito'],
+      'givenName': ['Antonio'],
       'jobTitle': [''],
       'name': [
-        'Pepito CC'
+        'Antonio CC'
       ],
       'org': ['Test'],
       'tel': [
