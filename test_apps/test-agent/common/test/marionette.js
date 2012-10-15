@@ -6,6 +6,16 @@
 
   support = window.testSupport;
 
+  /**
+   * Returns a filesystem apps relative to the root of gaia.
+   *
+   * @param {String} path relative path.
+   * @return {String} absolute path output.
+   */
+  support.appPath = function(path) {
+    return _IMPORT_ROOT + '/../../../../' + path;
+  };
+
   support.startMarionette = function(cb) {
     var device;
 

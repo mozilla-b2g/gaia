@@ -93,12 +93,12 @@ suite('views/months_day', function() {
     subject.date = date;
     subject._updateHeader();
 
-    var month = date.toLocaleFormat('%B');
-    var day = date.toLocaleFormat('%A');
+    var expected = date.toLocaleFormat(
+      '%A %B %Y'
+    );
 
-    assert.include(el.innerHTML, '11');
-    assert.include(el.innerHTML, month);
-    assert.include(el.innerHTML, day);
+    assert.ok(el.innerHTML, 'has contents');
+    assert.include(el.innerHTML, expected);
   });
 
   test('#header', function() {
@@ -109,8 +109,12 @@ suite('views/months_day', function() {
     var date = new Date();
     var span = Calendar.Calc.spanOfDay(date);
 
+
     subject.render();
     assert.deepEqual(subject.timespan, span);
+
+    assert.ok(subject.allDayElement, 'has all day');
+    assert.ok(subject.events, 'has events');
 
     var html = subject.header.outerHTML;
     assert.ok(html);

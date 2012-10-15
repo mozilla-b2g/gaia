@@ -1,15 +1,18 @@
 (function(window) {
 
   var template = Calendar.Templates.Calendar;
+  var _super = Calendar.View.prototype;
 
   function Settings(options) {
     Calendar.View.apply(this, arguments);
 
     this._initEvents();
+    this._hideSettings = this._hideSettings.bind(this);
+    this.syncProgressTarget = document.body;
   }
 
   Settings.prototype = {
-    __proto__: Object.create(Calendar.View.prototype),
+    __proto__: _super,
 
     /**
      * Local update is a flag
@@ -19,11 +22,18 @@
      */
     _localUpdate: false,
 
+    /**
+     * Name of the class that will be applied to the
+     * body element when sync is in progress.
+     */
+    syncClass: 'sync-in-progress',
+
     selectors: {
       element: '#settings',
       calendars: '#settings .calendars',
       calendarName: '.name',
-      syncButton: '#settings .sync'
+      syncButton: '#settings .sync',
+      timeViews: '#time-views'
     },
 
     get calendars() {
@@ -34,17 +44,60 @@
       return this._findElement('syncButton');
     },
 
+    get timeViews() {
+      return this._findElement('timeViews');
+    },
+
+    handleEvent: function(event) {
+      switch (event.type) {
+
+        // calendar updated
+        case 'update':
+          this._update.apply(this, event.data);
+          break;
+
+        // calendar added
+        case 'add':
+          this._add.apply(this, event.data);
+          break;
+
+        // calendar removed
+        case 'remove':
+          this._remove.apply(this, event.data);
+          break;
+
+        // hide sync button
+        case 'sync start':
+          this.syncProgressTarget.classList.add(this.syncClass);
+          break;
+
+        // show sync button
+        case 'sync complete':
+          this.syncProgressTarget.classList.remove(this.syncClass);
+          break;
+      }
+    },
+
     _initEvents: function() {
       var store = this.app.store('Calendar');
 
-      store.on('update', this._update.bind(this));
-      store.on('add', this._add.bind(this));
-      store.on('remove', this._remove.bind(this));
+      // calendar store events
+      store.on('update', this);
+      store.on('add', this);
+      store.on('remove', this);
 
+      // sync controller events
+      var controller = this.app.syncController;
+      controller.on('sync start', this);
+      controller.on('sync complete', this);
+
+      // dom events
       this.syncButton.addEventListener('click', this._onSyncClick.bind(this));
       this.calendars.addEventListener(
         'change', this._onCalendarDisplayToggle.bind(this)
       );
+
+      var el = document.getElementById('time-views');
     },
 
     _onCalendarDisplayToggle: function(e) {
@@ -70,15 +123,9 @@
     },
 
     _onSyncClick: function() {
-      var self = this;
-      var syncController = this.app.syncController;
-      var button = this.syncButton;
-
-      button.classList.add(this.activeClass);
-
-      syncController.sync(function() {
-        button.classList.remove(self.activeClass);
-      });
+      // trigger the sync the sync start/complete events
+      // will hide/show the button.
+      this.app.syncController.sync();
     },
 
     _update: function(id, model) {
@@ -122,6 +169,25 @@
       }
 
       list.innerHTML = html;
+    },
+
+    /**
+     * navigate away from settings.
+     * Designed for use when tapping away
+     * from the settings tray.
+     */
+    _hideSettings: function() {
+      this.app.resetState();
+    },
+
+    onactive: function() {
+      _super.onactive.apply(this, arguments);
+      this.timeViews.addEventListener('click', this._hideSettings);
+    },
+
+    oninactive: function() {
+      _super.oninactive.apply(this, arguments);
+      this.timeViews.removeEventListener('click', this._hideSettings);
     }
 
   };

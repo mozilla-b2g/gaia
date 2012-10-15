@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+    <title>Payment Demo</title>
+  </head>
+  <body>
+    <script>
+      // Mock public payment provider JWT
+      const mockJWT = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxMjM0NTY3ODkiLCJhdWQiOiJNb2NrIFBheW1lbnQgUHJvdmlkZXIiLCJ0eXAiOiJtb2NrXC9wYXltZW50c1wvaW5hcHBcL3YxIiwiZXhwIjoxMzQ1MjU5ODgyLCJpYXQiOjEzNDUyNTYyODIsInJlcXVlc3QiOnsibmFtZSI6IlBpZWNlIG9mIENha2UiLCJkZXNjcmlwdGlvbiI6IlZpcnR1YWwgY2hvY29sYXRlIGNha2UgdG8gZmlsbCB5b3VyIHZpcnR1YWwgdHVtbXkiLCJwcmljZSI6W3siY291bnRyeSI6IlVTIiwiYW1vdW50IjoiNS41MCIsImN1cnJlbmN5IjoiVVNEIn0seyJjb3VudHJ5IjoiQlIiLCJhbW91bnQiOiI4LjUwIiwiY3VycmVuY3kiOiJCUkwifV19fQ.EaXnlL7LUlmYXUTty5ZkUQ7VZeCBa_edi2YXKPnjSl4";
+
+      // Invalid typ JWT
+      const invalidJWT = "eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.IntcImF1ZFwiOiBcImNvbm5lY3QucWEtb3BlbnRlbC0wNC5oaS5pbmV0XCIsIFwiaXNzXCI6IFwiMzRYVjM3QkRSQkJGNEtaQ1M5UVVcIiwgXCJyZXF1ZXN0XCI6IHtcIm5hbWVcIjogXCJQaWNlIG9mIENha2VcIiwgXCJwcmljZVwiOiAxMC41LCBcInByaWNlVGllclwiOiAxLCBcInByb2R1Y3RkYXRhXCI6IFwidHJhbnNhY3Rpb25faWQ9MTJcIiwgXCJjdXJyZW5jeUNvZGVcIjogXCJVU0RcIiwgXCJkZXNjcmlwdGlvblwiOiBcIlZpcnR1YWwgY2hvY29sYXRlIGNha2UgdG8gZmlsbCB5b3VyIHZpcnR1YWwgdHVtbXlcIn0sIFwiZXhwXCI6IDEzNDIwMDMwNzA1MTMsIFwiaWF0XCI6IDEzNDIwMDMwNzQxMTMsIFwidHlwXCI6IFwicGF5bWVudHMvaW5hcHAvdjFcIn0i.I5rFwoBtgyTltMJ_11rHOgcto-HdFbYlIOgVOVSlJe0";
+
+      function pay(JWTs) {
+        if (!JWTs) {
+          JWTs = document.getElementById('jwt').value;
+          console.log(JWTs);
+        }
+        var request = navigator.mozPay(JWTs);
+        request.onsuccess = function onsuccess() {
+          console.log("onsuccess received");
+          document.getElementById("result").innerHTML = "Payment success";
+        };
+        request.onerror = function onerror() {
+          console.log("onerror received");
+          document.getElementById("result").innerHTML = "Payment error " + request.error.name;
+        };
+      }
+    </script>
+    <div>
+      Enter a JWT<br>
+      <textarea id="jwt">
+      </textarea>
+      <br>
+      <button type=button style="width:50px;height:50px" onclick="pay()">
+        TEST
+      </button>
+    </div>
+    <div style="margin-top:50px">
+      <br>
+      Or select a predefined test <br>
+      (PMPP = Public Mock Payment Provider)
+    </div>
+    <div>
+      <span id="result"></span>
+    </div>
+    <ul>
+      <li>
+        <button type=button style="width:100px;height:100px" onclick="pay(mockJWT)">
+          Pay PMPP
+        </button>
+      </li>
+      <li>
+        <button type=button style="width:100px;height:100px" onclick="pay([invalidJWT])">
+          Pay with invalid JWT
+        </button>
+      </li>
+      <li>
+        <button type=button style="width:100px;height:100px" onclick="pay([])">
+          Pay with no JWT
+        </button>
+      </li>
+      <li>
+        <button type=button style="width:100px;height:100px" onclick="pay([mockJWT, mockJWT])">
+          Pay with repeated PMPP JWT
+        </button>
+      </li>
+      <li>
+        <button type=button style="width:100px;height:100px" onclick="pay([invalidJWT, invalidJWT])">
+          Pay with repeated invalid JWT
+        </button>
+      </li>
+    </ul>
+  </body>
+</html>

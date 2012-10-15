@@ -8,7 +8,7 @@ html, body {
 body {
   background: #fff;
   color: #000;
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup,
@@ -32,7 +32,6 @@ ul, ol, dl, dt, dd {
 }
 
 p, li {
-  -moz-hyphens: auto;
   word-wrap: break-word;
 }
 

@@ -2,12 +2,8 @@
 'use strict';
 
 const Homescreen = (function() {
-  // Initialize the search page
-  var host = document.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  Search.init(domain);
-
   var mode = 'normal';
+  var _ = navigator.mozL10n.get;
 
   // Initialize the pagination scroller
   PaginationBar.init('.paginationScroller');
@@ -15,10 +11,11 @@ const Homescreen = (function() {
   function initUI() {
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage(GridManager.landingPageIndex);
       DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
+      GridManager.goToPage(1);
       DragDropManager.init();
+      Wallpaper.init();
 
       window.addEventListener('localized', function localize() {
         setLocale();
@@ -34,19 +31,10 @@ const Homescreen = (function() {
       GridManager.saveState();
       DockManager.saveState();
       Permissions.hide();
-    } else if (GridManager.pageHelper.getCurrentPageNumber() !==
-                 GridManager.landingPageIndex) {
-      GridManager.goToPage(GridManager.landingPageIndex);
+    } else {
+      GridManager.goToPage(1);
     }
   }
-
-  window.addEventListener('message', function onMessage(e) {
-    switch (e.data) {
-      case 'home':
-        onHomescreenActivity();
-        break;
-    }
-  });
 
   function setLocale() {
     // set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -94,19 +82,18 @@ const Homescreen = (function() {
       function handleActivity(activity) {
         var data = activity.source.data;
 
-        // issue 3457: Implement a UI when saving bookmarks to the homescreen
-        switch (data.type) {
-          case 'url':
-            HomeState.saveBookmark(data,
-              function home_okInstallBookmark() {
-                Applications.installBookmark(new Bookmark(data));
-              },
-              function home_errorInstallBookmark(code) {
-                console.error('Error saving bookmark ' + code);
-            });
+        switch (activity.source.name) {
+          case 'save-bookmark':
+            if (data.type === 'url') {
+              BookmarkEditor.init(data);
+            }
+
             break;
-          case 'application/x-application-list':
-            onHomescreenActivity();
+          case 'view':
+            if (data.type === 'application/x-application-list') {
+              onHomescreenActivity();
+            }
+
             break;
         }
       });
@@ -119,11 +106,21 @@ const Homescreen = (function() {
      * @param {String} the app origin
      */
     showAppDialog: function h_showAppDialog(origin) {
-      // FIXME: localize this message
       var app = Applications.getByOrigin(origin);
-      var title = 'Remove ' + app.manifest.name;
-      var body = 'This application will be uninstalled fully from your mobile';
-      Permissions.show(title, body,
+      var title, body, yesLabel;
+      // Show a different prompt if the user is trying to remove
+      // a bookmark shortcut instead of an app.
+      if (app.isBookmark) {
+        title = _('remove-title', { name: app.manifest.name });
+        body = '';
+        yesLabel = _('remove');
+      } else {
+        title = _('delete-title', { name: app.manifest.name });
+        body = _('delete-body', { name: app.manifest.name });
+        yesLabel = _('delete');
+      }
+
+      Permissions.show(title, body, yesLabel, _('cancel'),
                        function onAccept() { app.uninstall() },
                        function onCancel() {});
     },

@@ -103,10 +103,6 @@ contacts.Details = (function() {
     editContactButton.removeAttribute('disabled');
 
     if (isFbContact) {
-      if (!fb.isFbLinked(contactData)) {
-        editContactButton.setAttribute('disabled', 'disabled');
-      }
-
       var fbContact = new fb.Contact(contactData);
       var req = fbContact.getData();
 
@@ -247,18 +243,45 @@ contacts.Details = (function() {
 
   var renderSocial = function cd_renderSocial(contact) {
     var linked = fb.isFbLinked(contact);
-    if (!fb.isFbContact(contact) || linked) {
-      var action = linked ? _('social-unlink') : _('social-link');
-      var linked = linked ? 'false' : 'true';
+    var isFbContact = fb.isFbContact(contact);
 
-      var social = utils.templates.render(socialTemplate, {
-        i: contact.id,
-        action: action,
-        linked: linked
+    var action = linked ? _('social-unlink') : _('social-link');
+    var slinked = linked ? 'false' : 'true';
+
+    var social = utils.templates.render(socialTemplate, {
+      i: contact.id,
+      action: action,
+      linked: slinked
+    });
+
+    if (!isFbContact) {
+      var buttonsToHide = [
+        '#profile_button',
+        '#wall_button',
+        '#msg_button'
+      ];
+
+      buttonsToHide.forEach(function check(selid) {
+        var button = social.querySelector(selid);
+        if (button) {
+          button.classList.add('hide');
+        }
       });
-
-      listContainer.appendChild(social);
+    } else {
+        var socialLabel = social.querySelector('#social-label');
+        if (socialLabel)
+          socialLabel.textContent = _('facebook');
     }
+
+    if (isFbContact && !linked) {
+      var linkButton = social.querySelector('#link_button');
+      if (linkButton)
+        linkButton.classList.add('hide');
+    }
+
+    Contacts.extFb.initEventHandlers(social, contact, linked);
+
+    listContainer.appendChild(social);
   }
 
   var renderPhones = function cd_renderPhones(contact) {
@@ -275,9 +298,29 @@ contacts.Details = (function() {
         i: tel
       };
       var template = utils.templates.render(phonesTemplate, telField);
+
+      // Add event listeners to the phone template components
+      var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
+      sendSmsButton.dataset['tel'] = telField.value;
+      sendSmsButton.addEventListener('click', onSendSmsClicked);
+
+      var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
+      callOrPickButton.dataset['tel'] = telField.value;
+      callOrPickButton.addEventListener('click', onCallOrPickClicked);
+
       listContainer.appendChild(template);
     }
   };
+
+  var onSendSmsClicked = function onSendSmsClicked(evt) {
+    var tel = evt.target.dataset['tel'];
+    Contacts.sendSms(tel);
+  };
+
+  var onCallOrPickClicked = function onCallOrPickClicked(evt) {
+    var tel = evt.target.dataset['tel'];
+    Contacts.callOrPick(tel);
+  }
 
   var renderEmails = function cd_renderEmails(contact) {
     if (!contact.email) {
@@ -292,9 +335,22 @@ contacts.Details = (function() {
         i: email
       };
       var template = utils.templates.render(emailsTemplate, emailField);
+
+      // Add event listeners to the phone template components
+      var emailButton = template.querySelector('#email-or-pick-' + email);
+      emailButton.dataset['email'] = emailField.value;
+      emailButton.addEventListener('click', onEmailOrPickClick);
+
       listContainer.appendChild(template);
     }
   };
+
+  var onEmailOrPickClick = function onEmailOrPickClick(evt) {
+    evt.preventDefault();
+    var email = evt.target.dataset['email'];
+    Contacts.sendEmailOrPick(email);
+    return false;
+  }
 
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {

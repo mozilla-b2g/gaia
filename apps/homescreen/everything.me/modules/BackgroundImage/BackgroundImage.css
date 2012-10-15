@@ -1,0 +1,132 @@
+#search-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    opacity: 0;
+    background: black;
+}
+.evme-displayed #search-overlay {
+    opacity: 1;
+}
+    #search-overlay .img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        z-index: 1;
+        background-position: 50% 0;
+        background-size: cover;
+
+    }
+    #search-overlay .img {
+        -moz-transition: opacity .3s linear;
+        -webkit-transition: opacity .3s linear;
+        -ms-transition: opacity .3s linear;
+        -o-transition: opacity .3s linear;
+        transition: opacity .3s linear;
+        -webkit-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
+        -webkit-box-sizing: border-box;
+        -webkit-backface-visibility: hidden;
+    }
+    #search-overlay .img.visible {
+        opacity: 0.4;
+    }
+
+#bgimage-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    -moz-transition: opacity .5s linear;
+    -webkit-transition: opacity .5s linear;
+    -ms-transition: opacity .5s linear;
+    -o-transition: opacity .5s linear;
+    transition: opacity .5s linear;
+    z-index: 1;
+}
+#bgimage-overlay.ontop {
+    z-index: 500;
+}
+#bgimage-overlay.active {
+    opacity: 1;
+}
+    #bgimage-overlay .img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        background-position: 50% 0;
+        background-size: cover;
+    }
+    #bgimage-overlay .content {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 42px;
+        line-height: 42px;
+        padding: 0 40px 0 10px;
+        z-index: 20;
+        cursor: pointer;
+        background: rgba(0, 0, 0, .8);
+     }
+        #bgimage-overlay .content .image-title {
+            font-weight: 600;
+            color: #b4dae7;
+            font-size: 15px;
+            height: 17px;
+            margin-top: 5px;
+            line-height: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -ms-text-overflow: ellipsis;
+            display: none;
+        }
+        #bgimage-overlay.nosource .content .image-title {
+            margin-top: 0;
+            height: 43px;
+            line-height: 43px;
+        }
+        #bgimage-overlay .content .image-source {
+            font-weight: 600;
+            color: #fff;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            -ms-text-overflow: ellipsis;
+        }
+            #bgimage-overlay .content .image-source span {
+                text-decoration: underline;
+            }
+        #bgimage-overlay .content .close {
+            background: transparent url('../../images/imageclose.png') 50% 50% no-repeat;
+            position: absolute;
+            top: 50%;
+            right: 5px;
+            z-index: 2;
+            width: 32px;
+            height: 32px;
+            margin-top: -16px;
+            cursor: pointer;
+        }
+.fullscreen-bgimage #search-header {
+    display: none;
+}
+
+#evmeContainer #search-overlay .default-image.visible {
+    opacity: 0;
+}
+#evmeContainer #search-overlay.default .default-image.visible {
+    opacity: 1;
+}

@@ -1,0 +1,31 @@
+/* TELEPHONY VIEW */
+#telephony-tab .settings li time {
+  font-weight: bold;
+  color: black;
+}
+
+#telephony-tab .settings li time ,
+#telephony-tab .settings li dd {
+  float: right;
+  font-size: 1.6rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+#telephony-tab .settings li time,
+#telephony-tab .settings li dd sub {
+  text-transform: uppercase;
+  font-size: 1.4rem;
+  vertical-align: baseline;
+}
+
+#telephony-tab .settings li dt {
+  float: left;
+  color: #505859;
+}
+
+#telephony-tab .settings li dd {
+  float: none;
+  display: block;
+  overflow: hidden;
+}

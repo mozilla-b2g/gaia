@@ -77,10 +77,13 @@ suite('models/calendar', function() {
 
   test('#toJSON', function() {
     subject._id = '1';
+    var date = subject.firstEventSyncDate = new Date(2012, 0, 1);
+
     var expected = {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
       localDisplayed: subject.localDisplayed,
+      firstEventSyncDate: subject.firstEventSyncDate,
       accountId: subject.accountId,
       _id: subject._id,
       remote: subject.remote
