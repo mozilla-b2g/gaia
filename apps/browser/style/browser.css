@@ -800,39 +800,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#cover {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 500;
-}
-
-#cover ul {
-  background: white;
-  width: 80%;
-  margin: 20px auto;
-  padding: 0;
-  list-style-type: none;
-}
-
-#cover ul li {
-  font-family: 'MozTT', sans-serif;
-  padding: 15px;
-  border-bottom: 1px solid #CCC;
-  cursor: pointer;
-}
-
-#cover ul li:hover, #cover ul li:active {
-  background: #EEE;
-}
-
-#cover ul li img {
-  margin-right: 10px;
-}
-
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt {
