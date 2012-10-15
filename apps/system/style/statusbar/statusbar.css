@@ -64,14 +64,14 @@
 #statusbar-label {
   padding: 0;
   color: #999;
-  font: 14px/14px 'Open Sans', sans-serif;
+  font: 14px/14px 'MozTT', sans-serif;
   font-weight: bold;
 }
 
 #statusbar-time {
   padding: 0;
   color: #fff;
-  font: 14px/14px 'Open Sans', sans-serif;
+  font: 14px/14px 'MozTT', sans-serif;
   font-weight: 600;
 }
 
@@ -347,7 +347,7 @@
   height: 16px;
   top: 0;
   right: 0;
-  font: 14px/14px 'Open Sans', sans-serif;
+  font: 14px/14px 'MozTT', sans-serif;
   font-weight: 600;
 }
 
@@ -372,6 +372,6 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font: 8px/8px 'Open Sans', sans-serif;
+  font: 8px/8px 'MozTT', sans-serif;
   font-weight: 600;
 }

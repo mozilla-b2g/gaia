@@ -6,7 +6,7 @@
  * ---------------------------------- */
  
 body[role="application"] [role="dialog"] p {
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: lighter;
   font-size: 2.2rem;
   color: #FAFAFA;
@@ -20,7 +20,7 @@ body[role="application"] [role="dialog"] p:last-child {
 }
 
 body[role="application"] [role="dialog"] .content {
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: lighter;
   font-size: 2.2rem;
   color: #fff;
@@ -40,7 +40,7 @@ body[role="application"] [role="dialog"] .content strong {
 
 body[role="application"] [role="dialog"] .content small {
   font-size: 1.4rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: normal;
   color: #cbcbcb;
   display: block;

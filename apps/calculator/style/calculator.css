@@ -3,7 +3,7 @@ body, html {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   font-size: 20px;
   background: url("images/background.png") no-repeat 0 -20px;
 }

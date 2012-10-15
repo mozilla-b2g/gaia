@@ -68,7 +68,9 @@ var SimLock = {
         });
         activity.onsuccess = function sl_unlockSuccess() {
           // Go back to the current displayed app
-          WindowManager.setDisplayedApp(WindowManager.getDisplayedApp());
+          // XXX: this should be removed when bug 798445 is fixed
+          // and bug 799039 actually works.
+          WindowManager.launch(WindowManager.getDisplayedApp());
         };
         break;
       case 'ready':

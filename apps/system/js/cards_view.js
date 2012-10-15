@@ -93,7 +93,7 @@ var CardsView = (function() {
     runningApps = WindowManager.getRunningApps();
 
     // Switch to homescreen
-    WindowManager.setDisplayedApp(null);
+    WindowManager.launch(null);
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -537,6 +537,10 @@ var CardsView = (function() {
         SleepMenu.hide();
         showCardSwitcher();
         break;
+
+      case 'appwillopen':
+        hideCardSwitcher();
+        break;
     }
   }
 
@@ -551,3 +555,4 @@ var CardsView = (function() {
 
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
+window.addEventListener('appwillopen', CardsView);

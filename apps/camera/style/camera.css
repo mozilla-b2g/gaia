@@ -241,7 +241,7 @@ html, body {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }

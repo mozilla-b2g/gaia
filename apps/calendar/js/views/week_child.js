@@ -2,17 +2,21 @@ Calendar.ns('Views').WeekChild = (function() {
 
   var template = Calendar.Templates.Week;
   var OrderedMap = Calendar.OrderedMap;
-  var _super = Calendar.Views.DayChild.prototype;
+  var _super = Calendar.Views.DayBased.prototype;
 
   function Week(options) {
-    Calendar.Views.DayChild.apply(this, arguments);
+    Calendar.Views.DayBased.apply(this, arguments);
     this.hourEventsSelector = null;
   }
 
   Week.prototype = {
-    __proto__: Calendar.Views.DayChild.prototype,
+    __proto__: Calendar.Views.DayBased.prototype,
 
     classType: 'week-events',
+
+    template: template,
+
+    outsideAllDay: false,
 
     _renderHeader: function() {
       var format = this.app.dateFormat.localeFormat(
@@ -23,35 +27,13 @@ Calendar.ns('Views').WeekChild = (function() {
     },
 
     _renderEvent: function(event) {
-      return template.event.render({
+      var render = template.event.render({
         calendarId: event.calendarId,
         eventId: event._id,
         title: event.remote.title
       });
-    },
 
-    _insertHour: function(hour) {
-      this.hours.indexOf(hour);
-
-      var len = this.hours.items.length;
-      var idx = this.hours.insertIndexOf(hour);
-
-      var html = template.hour.render({
-        hour: String(hour)
-      });
-
-      var el = this._insertElement(
-        html,
-        this.events,
-        this.hours.items,
-        idx
-      );
-
-      return {
-        element: el,
-        records: new OrderedMap(),
-        flags: []
-      };
+      return render;
     },
 
     create: function() {
