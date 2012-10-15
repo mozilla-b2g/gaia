@@ -234,7 +234,7 @@ function init() {
       showOverlay('nocard');
     else if (why === MediaDB.UNMOUNTED)
       showOverlay('pluggedin');
-  }
+  };
 
   photodb.onready = function() {
     // Hide the nocard or pluggedin overlay if it is displayed
@@ -304,9 +304,15 @@ function imageDeleted(filename) {
     thumbnailElts[i].dataset.index = i - 1;
   }
 
+  // if remove last photo in full image view,
+  // we need to show previous image, not next image.
   // Adjust currentPhotoIndex, too, if we have to.
   if (n < currentPhotoIndex)
     currentPhotoIndex--;
+
+  if (currentPhotoIndex >= images.length)
+    currentPhotoIndex = images.length - 1;
+
   if (n < editedPhotoIndex)
     editedPhotoIndex--;
 
@@ -608,7 +614,7 @@ function cleanupPick() {
 // Remove this code when https://github.com/mozilla-b2g/gaia/issues/2916
 // is fixed and replace it with an onerror handler on the activity to
 // switch out of pickView.
-window.addEventListener('mozvisiblitychange', function() {
+window.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden && pendingPick)
     cancelPick();
 });
@@ -893,7 +899,7 @@ function shareFiles(filenames) {
         reader.onload = function() {
           urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
           getDataURLForNextFile();
-        }
+        };
       });
     }
   }
@@ -919,7 +925,7 @@ function shareURLs(urls) {
 
   a.onsuccess = function() {
     reopen();
-  }
+  };
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
@@ -1453,6 +1459,7 @@ PhotoState.prototype.resize = function() {
   // than the new screen size.
   if (fit.scale === fit.baseScale || newfit.baseScale > fit.scale) {
     this.reset();
+    this.setFramesPosition();
     return;
   }
 

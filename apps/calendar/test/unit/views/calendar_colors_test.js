@@ -29,10 +29,21 @@ suite('views/calendar_colors', function() {
     assert.instanceOf(subject._styles, CSSStyleSheet);
   });
 
-  test('#getId', function() {
-    var expected = 'calendar-id-1xx';
-    assert.equal(subject.getId(model), expected);
-    assert.equal(subject.getId('1xx'), expected);
+  suite('#getId', function() {
+    var expected = 'calendar-id-1';
+
+    test('string', function() {
+      assert.equal(subject.getId('1'), expected);
+    });
+
+    test('numeric', function() {
+      assert.equal(subject.getId(1), expected);
+    });
+
+    test('model', function() {
+      var model = Factory('calendar', { _id: 1 });
+      assert.equal(subject.getId(model), expected);
+    });
   });
 
   suite('#render', function() {
@@ -148,13 +159,13 @@ suite('views/calendar_colors', function() {
       assert.include(displayRule.selectorText, subject.getId(model._id));
       assert.include(displayRule.selectorText, 'calendar-display');
 
-      assert.equal(subject._lastRuleId, 1);
-
       // it may do the RGB conversion so its not strictly equal...
       assert.ok(
         bgRule.style.backgroundColor,
         'should have set background color'
       );
+
+      assert.ok(bgRule.style.borderColor, 'sets border color');
     });
 
     test('first time hidden', function() {
@@ -190,7 +201,7 @@ suite('views/calendar_colors', function() {
       subject.updateRule(model);
 
       assert.notEqual(bgStyle.backgroundColor, oldColor, 'should change color');
-
+      assert.notEqual(bgStyle.borderColor, oldColor, 'should change color');
 
       model.localDisplayed = false;
       subject.updateRule(model);
@@ -201,8 +212,58 @@ suite('views/calendar_colors', function() {
       subject.updateRule(model);
       assert.equal(displayStyle.display, 'inherit');
     });
+  });
 
+  test('integration', function() {
+    var keepOne = Factory('calendar', {
+      remote: { color: 'red' }
+    });
 
+    var keepTwo = Factory('calendar', {
+      remote: { color: 'black' }
+    });
+
+    subject.updateRule(keepOne);
+
+    var toggle = Factory('calendar', {
+      remote: { color: '#FAFAFA' }
+    });
+
+    function toggleN(len) {
+      for (var i = 0; i < len; i++) {
+        subject.updateRule(toggle);
+        subject.removeRule(toggle._id);
+      }
+    }
+
+    // toggle some on
+    toggleN(5);
+
+    // then add a rule
+    subject.updateRule(keepTwo);
+
+    // toggle some more
+    toggleN(5);
+
+    var rules = subject._styles.cssRules;
+    assert.equal(rules.length, 4, 'two calendars rules');
+
+    var rule;
+
+    function verify(calendar, start, end) {
+      for (var i = start; i < end; i++) {
+        assert.ok(rules.item(i).selectorText);
+        assert.include(
+          rules.item(i).selectorText,
+          subject.getId(calendar)
+        );
+      }
+    }
+
+    // verify each of the kept calendars is in the right
+    // spot with all the right events.
+    verify(keepOne, 0, 2);
+    verify(keepTwo, 2, 4);
   });
 
 });

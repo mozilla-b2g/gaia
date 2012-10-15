@@ -1,17 +1,17 @@
 {
   "name": "Clock",
   "description": "Gaia Clock",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "alarm",
-    "alarms",
-    "settings",
-    "attention"
-  ],
+  "permissions": {
+    "alarms":{},
+    "settings":{},
+    "attention":{}
+  },
   "locales": {
     "ar": {
       "name": "الساعة",

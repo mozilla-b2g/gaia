@@ -202,22 +202,23 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         var self = this;
         // we only support audio-card device to connect atm
         if (device.icon === 'audio-card') {
-          if (device.connected) {
-            this.connectOpt.style.visibility = 'hidden';
-            this.disconnectOpt.style.visibility = 'visible';
+          if (connectedAddress && device.address === connectedAddress) {
+            this.connectOpt.style.display = 'none';
+            this.disconnectOpt.style.display = 'block';
             this.disconnectOpt.onclick = function() {
               setDeviceDisconnect(device);
             };
           } else {
-            this.connectOpt.style.visibility = 'visible';
-            this.disconnectOpt.style.visibility = 'hidden';
+            this.connectOpt.style.display = 'block';
+            this.disconnectOpt.style.display = 'none';
             this.connectOpt.onclick = function() {
               setDeviceConnect(device);
+              stopDiscovery();
             };
           }
         } else {
-          this.connectOpt.style.visibility = 'hidden';
-          this.disconnectOpt.style.visibility = 'hidden';
+          this.connectOpt.style.display = 'none';
+          this.disconnectOpt.style.display = 'none';
         }
         this.unpairOpt.onclick = function() {
           setDeviceUnpair(device);
@@ -242,6 +243,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     var pairingMode = 'active';
     var pairingAddress = null;
     var connectingAddress = null;
+    var connectedAddress = null;
     var discoverTimeout = null;
 
     searchAgainBtn.onclick = function searchAgainClicked() {
@@ -279,10 +281,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         enableMsg.hidden = false;
         searchingItem.hidden = true;
         optionMenu.close();
-        if (discoverTimeout) {
-          clearTimeout(discoverTimeout);
-          discoverTimeout = null;
-        }
+        stopDiscovery();
       }
     }
 
@@ -345,14 +344,18 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         });
         for (var i = 0; i < length; i++) {
           (function(device) {
-            var aItem = newListItem(device, '');
+            var state = (device.address === connectedAddress) ?
+              _('device-status-connected') : '';
+            var aItem = newListItem(device, state);
             aItem.onclick = function() {
               optionMenu.show(device);
             };
             pairList.list.appendChild(aItem);
             pairList.index[device.address] = [device, aItem];
-            if (device.address === connectingAddress)
+            // if the device ask for connect when it paired
+            if (device.address === connectingAddress) {
               setDeviceConnect(device);
+            }
           })(paired[i]);
         }
         var text = paired[0].name;
@@ -379,12 +382,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         var req = defaultAdapter.pair(device);
         pairingMode = 'active';
         pairingAddress = device.address;
-
-        //XXX https://bugzilla.mozilla.org/show_bug.cgi?id=791182
-        //we may not hook onsuccess anymore, but listen to an event instead.
-        req.onsuccess = function bt_pairSuccess() {
-          showDevicePaired(true);
-        };
+        stopDiscovery();
         req.onerror = function bt_pairError() {
           showDevicePaired(false);
         };
@@ -409,7 +407,9 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
           var device = openList.index[pairingAddress][0];
           var item = openList.index[pairingAddress][1];
           openList.list.removeChild(item);
-          connectingAddress = pairingAddress;
+          // XXX should request connect by default, but get a problem here.
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=797713
+          //connectingAddress = pairingAddress;
         }
       } else {
         if (childWindow)
@@ -426,55 +426,48 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function setDeviceUnpair(device) {
-      if (device.connected) {
+      if (device.address === connectedAddress) {
         var ans = confirm(_('unpair-title') + '\n' + _('unpair-msg'));
         if (!ans)
           return;
+        connectedAddress = null;
       }
       // backend takes responsibility to disconnect first.
       var req = defaultAdapter.unpair(device);
       pairingAddress = device.address;
 
-      //XXX https://bugzilla.mozilla.org/show_bug.cgi?id=791182
-      //we may not hook onsuccess anymore, but listen to an event instead.
-      req.onsuccess = function bt_pairSuccess() {
-        showDevicePaired(false);
-      };
       req.onerror = function bt_pairError() {
         showDevicePaired(true);
       };
     }
 
     function setDeviceDisconnect(device) {
-      if (!device.connected)
+      if (device.address !== connectedAddress)
         return;
 
       // '0x111E' is a service id to distigush connection type.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-      var req = defaultAdapter.disconnect(device.address, 0x111E);
-      req.onsuccess = function() {
-        showDeviceConnected(connectingAddress, false);
-        connectingAddress = null;
-      };
+      var req = defaultAdapter.disconnect(0x111E);
       req.onerror = function() {
-        showDeviceConnected(connectingAddress, true);
-        connectingAddress = null;
+        showDeviceConnected(device.address, true);
       };
-      connectingAddress = device.address;
     }
 
     function setDeviceConnect(device) {
       // we only support audio-card device to connect now
-      if (!defaultAdapter || device.icon !== 'audio-card')
+      if (!defaultAdapter || device.icon !== 'audio-card') {
+        connectingAddress = null;
         return;
+      }
+
+      if (connectedAddress && device.address !== connectedAddress) {
+        // XXX need a prompt to confirm user really wants to switch to this one
+        setDeviceDisconnect(device);
+      }
 
       // '0x111E' is a service id to distigush connection type.
       // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
       var req = defaultAdapter.connect(device.address, 0x111E);
-      req.onsuccess = function() {
-        showDeviceConnected(connectingAddress, true);
-        connectingAddress = null;
-      };
       req.onerror = function() {
         showDeviceConnected(connectingAddress, false);
         connectingAddress = null;
@@ -485,6 +478,12 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     }
 
     function showDeviceConnected(deviceAddress, connected) {
+      if (connected) {
+        connectedAddress = deviceAddress;
+      } else {
+        if (connectedAddress === deviceAddress)
+          connectedAddress = null;
+      }
       var item = pairList.index[deviceAddress][1];
       item.querySelector('small').textContent = (connected) ?
         _('device-status-connected') : '';
@@ -530,7 +529,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     function stopDiscovery() {
       if (!defaultAdapter)
         return;
-
       var req = defaultAdapter.stopDiscovery();
       req.onsuccess = function bt_discoveryStopped() {
         searchAgainBtn.disabled = false;
@@ -540,6 +538,7 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         searchAgainBtn.disabled = true;
         searchingItem.hidden = false;
       };
+      clearTimeout(discoverTimeout);
       discoverTimeout = null;
     }
 
@@ -587,9 +586,6 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     lastMozSettingValue = enabled;
     updateBluetoothState(enabled);
 
-    //XXX should be removed
-    hackForTest(enabled);
-
     gDeviceList.update(enabled);
     gMyDeviceInfo.update(enabled);
 
@@ -606,25 +602,14 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
     lastMozSettingValue = req.result['bluetooth.enabled'];
     updateBluetoothState(lastMozSettingValue);
 
-    //XXX should be removed
-    hackForTest(lastMozSettingValue);
-
     gDeviceList.update(lastMozSettingValue);
     gMyDeviceInfo.update(lastMozSettingValue);
   };
 
 
-  //XXX there is no "bluetooth.onenabled" callback can be hooked.
-  //https://bugzilla.mozilla.org/show_bug.cgi?id=782586
-  function hackForTest(enabled) {
-    if (enabled) {
-      if (!bluetooth.enabled) {
-        setTimeout(initialDefaultAdapter, 5000);
-      } else {
-        initialDefaultAdapter();
-      }
-    }
-  }
+  bluetooth.onadapteradded = function bt_adapterAdded() {
+    initialDefaultAdapter();
+  };
 
 });
 

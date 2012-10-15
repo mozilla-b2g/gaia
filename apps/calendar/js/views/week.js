@@ -236,7 +236,7 @@ Calendar.ns('Views').Week = (function() {
       var list = frame.element.classList;
 
       list.add('days-' + len);
-      list.add('week');
+      list.add('weekday');
 
       return frame;
     },

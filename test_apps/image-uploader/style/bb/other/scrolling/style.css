@@ -2,7 +2,7 @@
  * SCROLLING
  * ---------------------------------- */
  body[role="application"] nav[role="scrollbar"] {
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   position: absolute;
   right: 0;
   top: 0;
@@ -25,7 +25,7 @@ body[role="application"] nav[role="scrollbar"] p {
 
 /* Original element */
 #scrollbar-state {
-  font: 200 6rem/10.5rem "Open Sans", Sans-serif;
+  font: 200 6rem/10.5rem "MozTT", Sans-serif;
   color: #fff;
   position: absolute;
   right: 100%;

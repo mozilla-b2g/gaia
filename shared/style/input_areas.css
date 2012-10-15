@@ -12,7 +12,7 @@ textarea {
   resize: none;
   -moz-box-sizing: border-box;
   padding: 0 0.8rem;
-  font: 1.4rem/4rem "Open Sans", Sans-serif;
+  font: 1.4rem/4rem "MozTT", Sans-serif;
   border: 0.1rem solid rgba(0,0,0,.2);
   border-radius: 0.3rem;
   box-shadow: none;
@@ -63,7 +63,7 @@ fieldset {
   background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
   border-radius: 0.3rem;
   border: 1px solid rgba(0,0,0,.2);
-  font: 1.4rem/1em "Open Sans", Sans-serif;
+  font: 1.4rem/1em "MozTT", Sans-serif;
   padding: 0;
   overflow: hidden;
 }
@@ -207,7 +207,7 @@ form[role="search"] button[type="submit"] {
   min-width: 6rem;
   height: 3.7rem;
   padding: 0 0.4rem;
-  font: 600 1.4rem/3.2rem "Open Sans", Sans-serif;
+  font: 600 1.4rem/3.2rem "MozTT", Sans-serif;
   color: #333;
 }
 form[role="search"].full button[type="submit"] {

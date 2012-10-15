@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -13,9 +13,18 @@ var Activities = {
       return;
 
     var detail = evt.detail;
-    if (detail.type !== 'activity-choice')
-      return;
+    switch (detail.type) {
+      case 'activity-choice':
+        this.chooseActivity(detail);
+        break;
 
+      case 'activity-done':
+        this.reopenActivityCaller(detail);
+        break;
+    }
+  },
+
+  chooseActivity: function chooseActivity(detail) {
     this._id = detail.id;
 
     var choices = detail.choices;
@@ -42,6 +51,7 @@ var Activities = {
 
     this._sendEvent(returnedChoice);
     delete this._id;
+    this._callerApp = WindowManager.getDisplayedApp();
   },
 
   cancel: function act_cancel(value) {
@@ -53,6 +63,15 @@ var Activities = {
 
     this._sendEvent(returnedChoice);
     delete this._id;
+  },
+
+  reopenActivityCaller: function reopenActivityCaller(detail) {
+    // Ask Window Manager to bring the caller to foreground.
+    // inline activity frame will be removed by this action.
+
+    // XXX: what if we have multiple web activities in-flight?
+    WindowManager.launch(this._callerApp);
+    delete this._callerApp;
   },
 
   _sendEvent: function act_sendEvent(value) {

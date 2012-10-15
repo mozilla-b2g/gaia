@@ -3,6 +3,7 @@ requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_notification_helper.js');
 requireApp('system/test/unit/mock_utility_tray.js');
+requireApp('settings/js/settings.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -279,6 +280,22 @@ suite('system/system_updater', function() {
 
     suite('apply prompt from platform event', function() {
       testApplyPrompt();
+    });
+  });
+
+  suite('check for updates', function() {
+    setup(function() {
+      lastDispatchedEvent = null;
+    });
+
+    test('dispatch force update event', function() {
+      subject.checkForUpdates(true);
+      assert.equal('force-update-check', lastDispatchedEvent.type);
+    });
+
+    test('don\'t dispatch force update event', function() {
+      subject.checkForUpdates(false);
+      assert.isNull(lastDispatchedEvent);
     });
   });
 });

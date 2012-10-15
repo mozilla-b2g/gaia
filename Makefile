@@ -160,7 +160,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -303,13 +303,6 @@ preferences: install-xulrunner-sdk
 			cat build/payment-prefs.js >> profile/user.js; \
 		fi
 	@echo "Done"
-
-# Generate profile/permissions.sqlite
-permissions: webapp-manifests install-xulrunner-sdk
-	@echo "Generating permissions.sqlite..."
-	test -d profile || mkdir -p profile
-	@$(call run-js-command, permissions)
-	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/
 applications-data: install-xulrunner-sdk
