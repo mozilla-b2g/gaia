@@ -192,13 +192,13 @@
 }
 
 #lockscreen-clock {
-  font: 5rem 'Open Sans', sans-serif;
+  font: 5rem 'MozTT', sans-serif;
   line-height: 5.4rem;
   font-weight: 300;
 }
 
 #lockscreen-date {
-  font: 1.6rem 'Open Sans', sans-serif;
+  font: 1.6rem 'MozTT', sans-serif;
 }
 
 #lockscreen-area {

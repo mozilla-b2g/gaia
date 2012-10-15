@@ -152,15 +152,33 @@ html, body {
   -moz-transform: translateY(-50px);
 }
 
-#film-strip img {
+.thumbnail {
+  position: relative;
   width: 40px;
   height: 40px;
   border: 2px solid grey;
   margin-right: 10px;
+  float: left;
 }
 
-#film-strip img:last-child {
+.thumbnail:last-child {
   border-color: orange;
+}
+
+.thumbnail.video:after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 40px;
+  width: 40px;
+  content:'';
+  background: url(images/play_overlay.png) no-repeat center center;
+}
+
+.thumbnail img {
+  pointer-events: none;
+  height: 100%;
+  width: 100%;
 }
 
 #focus-ring {
@@ -223,7 +241,7 @@ html, body {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }

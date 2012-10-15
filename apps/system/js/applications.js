@@ -13,14 +13,7 @@ var Applications = {
     var self = this;
     var apps = navigator.mozApps;
 
-    // We need to wait for the chrome shell to let us know when it's ok to
-    // launch activities. This prevents race conditions.
-    window.addEventListener('mozChromeEvent', function mozAppReady(event) {
-      if (event.detail.type != 'webapps-registry-ready')
-        return;
-
-      window.removeEventListener('mozChromeEvent', mozAppReady);
-
+    var getAllApps = function getAllApps() {
       navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
         var apps = evt.target.result;
         apps.forEach(function(app) {
@@ -29,8 +22,26 @@ var Applications = {
 
         self.ready = true;
         self.fireApplicationReadyEvent();
-      }
-    });
+      };
+    };
+
+    // We need to wait for the chrome shell to let us know when it's ok to
+    // launch activities. This prevents race conditions.
+    // The event does not fire again when we reload System app in on
+    // B2G Desktop, so we save the information into sessionStorage.
+    if (window.sessionStorage.getItem('webapps-registry-ready')) {
+      getAllApps();
+    } else {
+      window.addEventListener('mozChromeEvent', function mozAppReady(event) {
+        if (event.detail.type != 'webapps-registry-ready')
+          return;
+
+        window.sessionStorage.setItem('webapps-registry-ready', 'yes');
+        window.removeEventListener('mozChromeEvent', mozAppReady);
+
+        getAllApps();
+      });
+    }
 
     apps.mgmt.oninstall = function a_install(evt) {
       var newapp = evt.application;

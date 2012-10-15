@@ -50,6 +50,7 @@ var KeyboardManager = (function() {
     if (!keyboardFrame.classList.contains('hide')) {
       keyboardOverlay.style.height = height + 'px';
       keyboardOverlay.hidden = false;
+      dispatchEvent('keyboardchange', { height: message.keyboardHeight });
     } else {
       keyboardFrame.classList.remove('hide');
       keyboardFrame.addEventListener('transitionend', function keyboardShown() {
@@ -57,10 +58,10 @@ var KeyboardManager = (function() {
         keyboardOverlay.style.height = height + 'px';
         keyboardOverlay.hidden = false;
         keyboardFrame.classList.add('visible');
+        dispatchEvent('keyboardchange', { height: message.keyboardHeight });
       });
     }
 
-    dispatchEvent('keyboardchange', { height: message.keyboardHeight });
   });
 })();
 

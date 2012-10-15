@@ -1,4 +1,4 @@
-body[role="application"] [role="dialog"]:before {
+body[role="application"] [role="dialog"]:not(.edit):before {
   content: "";
   display: inline-block;
   height: 100%;
@@ -6,7 +6,7 @@ body[role="application"] [role="dialog"]:before {
   width: 1px;
 }
 
-body[role="application"] [role="dialog"] {
+body[role="application"] [role="dialog"]:not(.edit) {
   background-attachment: scroll, scroll;
   background-clip: border-box, border-box;
   background-color: transparent;
@@ -17,7 +17,7 @@ body[role="application"] [role="dialog"] {
   background-size: auto auto, 100% 100%;
   bottom: 0;
   color: #FFFFFF;
-  font-family: "Open Sans",Sans-serif;
+  font-family: "MozTT",Sans-serif;
   left: 0;
   overflow: auto;
   padding: 1.5rem 0 7rem;
@@ -28,7 +28,7 @@ body[role="application"] [role="dialog"] {
   z-index: 100;
 }
 
-body[role="application"] [role="dialog"] > .inner {
+body[role="application"] [role="dialog"]:not(.edit) > .inner {
   -moz-box-sizing: padding-box;
   display: inline-block;
   padding: 0 2.5rem 0 2rem;
@@ -38,10 +38,10 @@ body[role="application"] [role="dialog"] > .inner {
   text-align: left;
 }
 
-body[role="application"] [role="dialog"] h3 {
+body[role="application"] [role="dialog"]:not(.edit) h3 {
   border-bottom: 0.1rem solid #686868;
   color: #FFFFFF;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
   font-weight: normal;
   line-height: 1em;
@@ -49,16 +49,16 @@ body[role="application"] [role="dialog"] h3 {
   padding-bottom: 1rem;
 }
 
-body[role="application"] [role="dialog"] p {
+body[role="application"] [role="dialog"]:not(.edit) p {
   color: #FAFAFA;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 2.2rem;
   font-weight: lighter;
   margin: 0;
   line-height: 1.4em;
 }
 
-body[role="application"] menu:not([type="toolbar"]) {
+body[role="application"] [role="dialog"]:not(.edit) menu:not([type="toolbar"]) {
   background: url("images/ui/pattern.png") repeat scroll left top #2D2D2D;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   bottom: 0;
@@ -72,18 +72,18 @@ body[role="application"] menu:not([type="toolbar"]) {
   white-space: nowrap;
 }
 
-body[role="application"] menu[data-items="2"]:not([type="toolbar"]) button {
+body[role="application"] [role="dialog"]:not(.edit) menu[data-items="2"]:not([type="toolbar"]) button {
   width: -moz-calc((100% - 1rem) / 2);
 }
 
-body[role="application"] menu:not([type="toolbar"]) button {
+body[role="application"] [role="dialog"]:not(.edit) menu:not([type="toolbar"]) button {
   -moz-box-sizing: border-box;
   background: url("images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: 'MozTT',Sans-serif;
   font-size: 1.6rem;
   font-weight: 600;
   height: 3.8rem;
@@ -100,11 +100,11 @@ body[role="application"] menu:not([type="toolbar"]) button {
   width: 100%;
 }
 
-body[role="application"] menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
+body[role="application"] [role="dialog"]:not(.edit) menu:not([type="toolbar"]):not([data-items="1"]) button:last-child {
   margin-left: 1rem;
 }
 
-body[role="application"] menu:not([type="toolbar"]) button.negative {
+body[role="application"] [role="dialog"]:not(.edit) menu:not([type="toolbar"]) button.negative {
   background-color: #B70404;
   background-image: url("images/ui/negative.png");
   border: medium none;

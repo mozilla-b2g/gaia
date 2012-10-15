@@ -25,6 +25,7 @@ Calendar.App = (function(window) {
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
       this.serviceController = new Calendar.Controllers.Service(this);
+      this.alarmController = new Calendar.Controllers.Alarm(this);
     },
 
     /**
@@ -49,11 +50,8 @@ Calendar.App = (function(window) {
         next();
       }
 
-      /* temp views */
-      this.state('/week/', setPath, tempView('#week-view'));
-      this.state('/add/', setPath, tempView('#modify-event-view'));
-
       /* routes */
+      this.state('/week/', setPath, 'Week');
       this.state('/day/', setPath, 'Day');
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
@@ -61,19 +59,14 @@ Calendar.App = (function(window) {
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
 
+      this.state('/alarm-display/:id', 'ModifyEvent');
+
+      this.state('/add/', setPath, 'ModifyEvent');
       this.state('/event/:id', setPath, 'ModifyEvent');
 
       this.modifier('/select-preset/', setPath, 'CreateAccount');
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
-
-      // I am not sure where this logic really belongs...
-      this.modifier('/remove-account/:id', function(data) {
-        var store = self.store('Account');
-        store.remove(data.params.id, function(id) {
-          page.replace('/advanced-settings/');
-        });
-      });
 
       this.router.start();
 
@@ -102,6 +95,12 @@ Calendar.App = (function(window) {
 
       this.syncController.observe();
       this.timeController.observe();
+      this.alarmController.observe();
+
+      // turn on the auto queue this means that when
+      // alarms are added to the database we manage them
+      // transparently. Defaults to off for tests.
+      this.store('Alarm').autoQueue = true;
 
       this.timeController.move(new Date());
 

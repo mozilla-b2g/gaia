@@ -13,11 +13,16 @@
 
     selectors: {
       element: '#advanced-settings-view',
-      accountList: '#advanced-settings-view .account-list'
+      accountList: '#advanced-settings-view .account-list',
+      syncFrequency: '#setting-sync-frequency'
     },
 
     get accountList() {
       return this._findElement('accountList');
+    },
+
+    get syncFrequency() {
+      return this._findElement('syncFrequency');
     },
 
     _formatModel: function(model) {
@@ -30,9 +35,50 @@
     },
 
     _initEvents: function() {
-      var store = this.app.store('Account');
-      store.on('add', this._addAccount.bind(this));
-      store.on('remove', this._removeAccount.bind(this));
+      var account = this.app.store('Account');
+      var setting = this.app.store('Setting');
+
+      account.on('add', this._addAccount.bind(this));
+      account.on('remove', this._removeAccount.bind(this));
+
+      setting.on('syncFrequencyChange', this);
+      this.syncFrequency.addEventListener('change', this);
+    },
+
+    handleSettingDbChange: function(type, value) {
+      switch (type) {
+        case 'syncFrequencyChange':
+          this.syncFrequency.value = String(value);
+          break;
+      }
+    },
+
+    handleSettingUiChange: function(type, value) {
+      var store = this.app.store('Setting');
+      // basic conversions
+      if (value === 'null')
+        value = null;
+
+      switch (type) {
+        case 'syncFrequency':
+          if (!value === null) {
+            value = parseInt(value);
+          }
+          store.set(type, value);
+          break;
+      }
+    },
+
+    handleEvent: function(event) {
+      switch (event.type) {
+        case 'change':
+          var target = event.target;
+          this.handleSettingUiChange(target.name, target.value);
+          break;
+        case 'syncFrequencyChange':
+          this.handleSettingDbChange(event.type, event.data[0]);
+          break;
+      }
     },
 
     _addAccount: function(id, model) {

@@ -40,6 +40,21 @@ var LockScreen = {
   passCode: '0000',
 
   /*
+  * The time to request for passcode input since device is off.
+  */
+  passCodeRequestTimeout: 0,
+
+  /*
+  * Store the time that screen is off
+  */
+  _screenOffTime: 0,
+
+  /*
+  * Check the timeout of passcode lock
+  */
+  _passcodeTimeoutCheck: false,
+
+  /*
   * passcode to enable the smiley face easter egg.
   */
   smileyCode: '1337',
@@ -50,24 +65,9 @@ var LockScreen = {
   passCodeEntered: '',
 
   /*
-  * Number of passcode tries
-  */
-  passCodeError: 0,
-
-  /*
   * Timeout after incorrect attempt
   */
   kPassCodeErrorTimeout: 500,
-
-  /*
-  * Number of attempts allowed
-  */
-  kPassCodeTries: 3,
-
-  /*
-  * Cool down period after kPassCodeTries
-  */
-  kPassCodeTriesTimeout: 5 * 60 * 1000,
 
   /*
   * Airplane mode
@@ -127,11 +127,12 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe(
-      'lockscreen.wallpaper', 'balloon.png', function(value) {
-      self.updateBackground(value);
-      self.overlay.classList.remove('uninit');
-    });
+    SettingsListener.observe('wallpaper.image',
+                             'resources/images/backgrounds/default.png',
+                             function(value) {
+                               self.updateBackground(value);
+                               self.overlay.classList.remove('uninit');
+                             });
 
     SettingsListener.observe(
       'lockscreen.passcode-lock.code', '0000', function(value) {
@@ -146,6 +147,11 @@ var LockScreen = {
     SettingsListener.observe('lockscreen.unlock-sound.enabled',
       true, function(value) {
       self.setUnlockSoundEnabled(value);
+    });
+
+    SettingsListener.observe('lockscreen.passcode-lock.timeout',
+      0, function(value) {
+      self.passCodeRequestTimeout = value;
     });
   },
 
@@ -188,6 +194,17 @@ var LockScreen = {
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
+        if (!evt.detail.screenEnabled) {
+          this._screenOffTime = new Date().getTime();
+        } else {
+          var _screenOffInterval = new Date().getTime() - this._screenOffTime;
+          if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
+            this._passCodeTimeoutCheck = true;
+          } else {
+            this._passCodeTimeoutCheck = false;
+          }
+        }
+
         this.lockIfEnabled(true);
         break;
       case 'voicechange':
@@ -446,7 +463,7 @@ var LockScreen = {
         this.railRight.style.width = '0';
 
         var passcodeOrUnlock = function passcodeOrUnlock() {
-          if (!self.passCodeEnabled) {
+          if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
             self.unlock();
           } else {
             self.switchPanel('passcode');
@@ -691,7 +708,7 @@ var LockScreen = {
     var f = new navigator.mozL10n.DateTimeFormat();
     var _ = navigator.mozL10n.get;
 
-    var timeFormat = _('shortTimeFormat') || '%R';
+    var timeFormat = _('shortTimeFormat') || '%H:%M';
     var dateFormat = _('longDateFormat') || '%A %e %B';
     this.clock.textContent = f.localeFormat(d, timeFormat);
     this.date.textContent = f.localeFormat(d, dateFormat);
@@ -841,24 +858,18 @@ var LockScreen = {
       if ('vibrate' in navigator)
         navigator.vibrate([50, 50, 50]);
 
-      var timeout = this.kPassCodeErrorTimeout;
-      this.passCodeError++;
-      if (this.passCodeError >= 3)
-        timeout = this.kPassCodeTriesTimeout;
-
       var self = this;
       setTimeout(function error() {
         delete self.overlay.dataset.passcodeStatus;
         self.passCodeEntered = '';
         self.updatePassCodeUI();
-      }, timeout);
+      }, this.kPassCodeErrorTimeout);
     }
   },
 
   updateBackground: function ls_updateBackground(value) {
     var panels = document.querySelectorAll('.lockscreen-panel');
-    var url = 'url(resources/images/backgrounds/' + value + ')';
-
+    var url = 'url(' + value + ')';
     for (var i = 0; i < panels.length; i++) {
       panels[i].style.backgroundImage = url;
     }

@@ -77,6 +77,25 @@ suite('views/time_header', function() {
     );
   });
 
+  // When week starts in one month
+  // and ends in another we need
+  // 'Month1 Month2 Year' like header.
+  test('#getScale for week', function() {
+    controller.move(new Date(2012, 0, 30));
+    var firstMonth = fmt.localeFormat(
+      new Date(2012, 0, 30),
+      '%B'
+    );
+
+    var secondMonth = fmt.localeFormat(
+      new Date(2012, 1, 1),
+      '%B %Y'
+    );
+    var out = subject.getScale('week');
+    assert.include(out, firstMonth);
+    assert.include(out, secondMonth);
+  });
+
   test('#_updateTitle', function() {
     subject._updateTitle();
     assert.equal(

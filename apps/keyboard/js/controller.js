@@ -44,6 +44,7 @@ const IMEController = (function() {
   var _currentKey = null;
   var _realInputType = null;
   var _currentInputType = null;
+  var _currentInputMode = null;  // value of the inputmode attribute
   var _menuLockedArea = null;
   var _lastHeight = 0;
   var _lastKeyCode = 0;
@@ -127,6 +128,8 @@ const IMEController = (function() {
 
   // Check if current layout requires IME
   function _requireIME() {
+    if (!_baseLayoutName)
+      return false;
     return Keyboards[_baseLayoutName].type === 'ime';
   }
 
@@ -143,8 +146,17 @@ const IMEController = (function() {
     return '';
   }
 
+  var capitalizedInputModes = {
+    "": true,
+    "latin-prose": true,
+    "latin-name": true,
+    "full-latin-width": true
+  };
+
   function _requireAutoCapitalize() {
-    return (_realInputType == 'text' || _realInputType == 'textarea');
+    return (_realInputType == 'text' || _realInputType == 'textarea') &&
+      (_currentInputMode == undefined ||
+       _currentInputMode in capitalizedInputModes);
   }
 
   // Add some special keys depending on the input's type
@@ -233,8 +245,14 @@ const IMEController = (function() {
     // lets look for a layout overriding or fallback to defaults
     // There is no memory-share risk here, we will preserve the original
     // layout some lines after if needed.
-    var layout = Keyboards[_baseLayoutName][layoutName] ||
-                 Keyboards[layoutName];
+    if (!_baseLayoutName && !layoutName) {
+      // Keyboard is broken with an updated Gecko. Let's do a temporary
+      // fix in order to understand the real issue.
+      var layout = Keyboards[navigator.language.split('-')[0]];
+    } else {
+      var layout = Keyboards[_baseLayoutName][layoutName] ||
+                   Keyboards[layoutName];
+    }
 
     // look for keyspace (it behaves as the placeholder for special keys)
     var where = false;
@@ -1113,18 +1131,23 @@ const IMEController = (function() {
     uninit: _uninit,
 
     // Show IME, receives the input's type
-    showIME: function kc_showIME(type) {
+    showIME: function kc_showIME(state) {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
-      _realInputType = type;
-      _currentInputType = _mapType(type);
+      _realInputType = state.type;
+      _currentInputType = _mapType(state.type);
+      _currentInputMode = state.inputmode;
       _reset();
 
       if (_requireIME()) {
         if (_getCurrentEngine().show) {
-          _getCurrentEngine().show(type);
+          _getCurrentEngine().show(state.type);
         }
+      }
+
+      if (_requireSuggestion()) {
+        IMERender.ime.classList.add('candidate-panel');
       }
 
       _prepareLayoutParams(_layoutParams);
@@ -1136,6 +1159,7 @@ const IMEController = (function() {
     // Hide IME
     hideIME: function kc_hideIME(imminent) {
       IMERender.ime.classList.add('hide');
+      IMERender.ime.classList.remove('candidate-panel');
       IMERender.hideIME(imminent);
     },
 
@@ -1234,6 +1258,11 @@ const IMEController = (function() {
 
       if (this.suggestionEngines[engineName])
         return;
+
+      // Tell the rendering module which suggestion engine we're using.
+      // Asian suggestion engines need more vertical space than latin ones.
+      // The renderer can use the engine name as a CSS class
+      IMERender.setSuggestionEngineName(engineName);
 
       // We might get a setLanguage call as the engine is loading. Ignore it.
       // We will set the language via init anyway.

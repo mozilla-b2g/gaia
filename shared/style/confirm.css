@@ -3,8 +3,10 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-form[role="dialog"] {
-  background: url(confirm/images/ui/pattern.png) repeat left top, url(confirm/images/ui/gradient.png) no-repeat left top;
+form[role="dialog"][data-type="confirm"] {
+  background:
+    url(confirm/images/ui/pattern.png) repeat left top,
+    url(confirm/images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   /* We can't use shortand with background size because is not implemented yet:
   https://bugzilla.mozilla.org/show_bug.cgi?id=570326; */
@@ -16,14 +18,14 @@ form[role="dialog"] {
   right: 0;
   bottom: 0;
   padding: 1.5rem 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
   color: #fff;
 }
 
-form[role="dialog"]:before {
+form[role="dialog"][data-type="confirm"]:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -32,7 +34,7 @@ form[role="dialog"]:before {
   margin-left: -1px;
 }
 
-form[role="dialog"] > section {
+form[role="dialog"][data-type="confirm"] > section {
   font-weight: lighter;
   font-size: 2.2rem;
   color: #FAFAFA;
@@ -44,7 +46,7 @@ form[role="dialog"] > section {
   white-space: normal;
 }
 
-form[role="dialog"] h1 {
+form[role="dialog"][data-type="confirm"] h1 {
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;
@@ -54,7 +56,7 @@ form[role="dialog"] h1 {
 }
 
 /* Menu & buttons setup */
-form[role="dialog"] menu {
+form[role="dialog"][data-type="confirm"] menu {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -68,7 +70,7 @@ form[role="dialog"] menu {
   bottom: 0;
 }
 
-form[role="dialog"] menu button {
+form[role="dialog"][data-type="confirm"] menu button {
   width: 100%;
   height: 3.8rem;
   margin: 0 0 1rem;
@@ -84,7 +86,7 @@ form[role="dialog"] menu button {
   outline: none;
   border: none;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #fff;
@@ -94,49 +96,49 @@ form[role="dialog"] menu button {
 }
 
 /* Press */
-form[role="dialog"] menu button:active {
+form[role="dialog"][data-type="confirm"] menu button:active {
   background-image: url(confirm/images/ui/button_press.png);
   background-color: #890707;
 }
 
 /* Disabled */
-form[role="dialog"] menu button[disabled] {
+form[role="dialog"][data-type="confirm"] menu button[disabled] {
   background-image: url(confirm/images/ui/button_disabled.png);
   text-shadow: none;
 }
 
 /* Reset & submit defaults */
-form[role="dialog"] menu button[type="reset"],
-form[role="dialog"] menu button[type="submit"] {
+form[role="dialog"][data-type="confirm"] menu button[type="reset"],
+form[role="dialog"][data-type="confirm"] menu button[type="submit"] {
   text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
   color: #333;
 }
 
 /* Reset */
-form[role="dialog"] menu button[type="reset"] {
+form[role="dialog"][data-type="confirm"] menu button[type="reset"] {
   background-image: url(confirm/images/ui/button_reset.png);
   background-color: #fafafa;
   border: solid 1px #9f9f9f;
 }
 
 /* Submit */
-form[role="dialog"] menu button[type="submit"] {
+form[role="dialog"][data-type="confirm"] menu button[type="submit"] {
   background-image: url(confirm/images/ui/button_submit.png) ;
   background-color: #00caf2;
   border: 1px solid #00acce;
 }
 
 /* Pressed state, reset & submit */
-form[role="dialog"] menu button[type="reset"]:active,
-form[role="dialog"] menu button[type="submit"]:active {
+form[role="dialog"][data-type="confirm"] menu button[type="reset"]:active,
+form[role="dialog"][data-type="confirm"] menu button[type="submit"]:active {
   border: solid 1px #008aaa;
   background: #008aaa;
   color: #333;
 }
 
 /* Disabled, reset & submit) */
-form[role="dialog"] menu button[type="reset"][disabled],
-form[role="dialog"] menu button[type="submit"][disabled] {
+form[role="dialog"][data-type="confirm"] menu button[type="reset"][disabled],
+form[role="dialog"][data-type="confirm"] menu button[type="submit"][disabled] {
   background-image: url(confirm/images/ui/button_special_disabled.png);
   background-color: transparent;
   border: none;
@@ -144,43 +146,44 @@ form[role="dialog"] menu button[type="submit"][disabled] {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-form[role="dialog"] menu button:last-child {
+form[role="dialog"][data-type="confirm"] menu button:last-child {
   margin-left: 1rem;
 }
 
-form[role="dialog"] menu button,
-form[role="dialog"] menu button:first-child {
+form[role="dialog"][data-type="confirm"] menu button,
+form[role="dialog"][data-type="confirm"] menu button:first-child {
   margin: 0;
 }
 
-form[role="dialog"] menu button {
-  width: -moz-calc((100% - 1rem) / 2);
+form[role="dialog"][data-type="confirm"] menu button {
+  width: calc((100% - 1rem) / 2);
 }
 
-form[role="dialog"] menu button.full {
+form[role="dialog"][data-type="confirm"] menu button.full {
   width: 100%;
 }
 
 /* Specific component code */
-form[role="dialog"] p {
+form[role="dialog"][data-type="confirm"] p {
   overflow: hidden;
   margin: 1rem 0 0;
   padding-top: 1rem;
   border-top: 0.1rem solid #686868;
 }
 
-form[role="dialog"] p img {
+form[role="dialog"][data-type="confirm"] p img {
   float: left;
   margin-right: 2rem;
 }
 
-form[role="dialog"] p strong {
+form[role="dialog"][data-type="confirm"] p strong {
   font-weight: lighter;
 }
 
-form[role="dialog"] p small {
+form[role="dialog"][data-type="confirm"] p small {
   font-size: 1.4rem;
   font-weight: normal;
   color: #cbcbcb;
   display: block;
 }
+
