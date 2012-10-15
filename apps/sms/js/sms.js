@@ -312,9 +312,11 @@ var ThreadListUI = {
             this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (contact && contact.length > 0) {
       if (contact.length > 1) {
+        var contactName = contact[0].name;
+        var others = contact.length - 1;
         name.innerHTML = _('others', {
-          name: contact[0].name,
-          n: contact.lentgh - 1
+          name: contactName,
+          n: others
         });
       }else {
         var choosenContact = contact[0];
@@ -766,9 +768,11 @@ var ThreadUI = {
        */
       if (contacts.length > 1) {
         self.title.dataset.isContact = true;
+        var contactName = contacts[0].name;
+        var numOthers = contacts.length - 1;
         self.title.innerHTML = _('others', {
-          name: contacts[0].name,
-          n: contact.lentgh - 1
+          name: contactName,
+          n: numOthers
         });
         carrierTag.classList.add('hide');
       }else {
