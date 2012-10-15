@@ -21,6 +21,7 @@
 
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
 
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
@@ -468,6 +469,25 @@
           </menu>
         </section>
 
+      </div>
+
+      <div id="permission-screen" data-z-index-level="permission-screen">
+        <div id="permission-dialog" role="dialog">
+          <div class="inner">
+            <h2 id="permission-message"></h2>
+            <div id="permission-remember-section">
+              <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
+              <label>
+                <input data-type="switch" type="checkbox" id="permission-remember-checkbox" />
+                <span></span>
+              </label>
+            </div>
+            <menu data-items="2">
+              <button id="permission-no" data-l10n-id="deny">Don't allow</button>
+              <button id="permission-yes" class="affirmative" data-l10n-id="allow">Allow</button>
+            </menu>
+          </div>
+        </div>
       </div>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
