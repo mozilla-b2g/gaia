@@ -259,10 +259,72 @@ suite('provider/caldav', function() {
         });
       });
     });
-
   });
 
-  suite('#syncEvents - calendar syncToken skip', function() {
+  suite('#_syncEvents', function() {
+    var calledWith;
+    var account;
+    var calendar;
+    var cached = {};
+
+    setup(function() {
+      subject.service.stream = function() {
+        var args = Array.slice(arguments);
+
+        if (!args.shift() === 'caldav')
+          throw new Error('expected caldav service');
+
+        if (!args.shift() === 'streamEvents')
+          throw new Error('expected streamEvents');
+
+
+        calledWith = args;
+        var stream = new Calendar.Responder();
+        stream.request = function() {};
+        return stream;
+      };
+
+      account = Factory('account');
+      calendar = Factory('calendar');
+    });
+
+    test('with first sync date', function() {
+      calendar.firstEventSyncDate = new Date(2012, 0, 1);
+      var expectedDate = new Date(2012, 0, 1 - subject.daysToSyncInPast);
+
+      subject._syncEvents(account, calendar, cached);
+
+      var expected = [
+        account.toJSON(),
+        calendar.remote,
+        { startDate: expectedDate }
+      ];
+
+      assert.deepEqual(
+        calledWith,
+        expected
+      );
+    });
+
+    test('without first sync date', function() {
+      var now = Calendar.Calc.createDay(new Date());
+      now.setDate(now.getDate() - subject.daysToSyncInPast);
+      subject._syncEvents(account, calendar, cached);
+
+      var expected = [
+        account.toJSON(),
+        calendar.remote,
+        { startDate: now }
+      ];
+
+      assert.deepEqual(
+        calledWith,
+        expected
+      );
+    });
+  });
+
+  suite('#_syncEvents - calendar syncToken skip', function() {
     var account, calendar;
 
     setup(function() {

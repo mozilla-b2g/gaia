@@ -9,7 +9,7 @@ var Launcher = (function() {
   }
 
   function currentAppFrame() {
-    return WindowManager.getCurrentDisplayedApp().frame;
+    return WindowManager.getAppFrame(WindowManager.getDisplayedApp());
   }
 
   var _ = navigator.mozL10n.get;

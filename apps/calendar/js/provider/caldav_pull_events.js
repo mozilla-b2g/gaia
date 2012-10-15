@@ -241,6 +241,11 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
 
       calendar.lastEventSyncToken = calendar.remote.syncToken;
       calendar.lastEventSyncDate = this.syncStart;
+
+      if (!calendar.firstEventSyncDate) {
+        calendar.firstEventSyncDate = this.syncStart;
+      }
+
       calendarStore.persist(calendar, trans);
 
       trans.addEventListener('error', function(e) {

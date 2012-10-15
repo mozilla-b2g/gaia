@@ -42,7 +42,6 @@
   border-top: 1px solid #131314;
 }
 
-
 #week-view .sidebar li:last-child {
   border-bottom: none;
 }
@@ -73,16 +72,16 @@
   height: 100%;
 }
 
-#week-view .children > section.active {
-  display: block;
+#week-view .children section.active {
+  display: block !important;
 }
 
 
-#week-view .days-3 .week-events {
+#week-view .children > .weekday.days-3 > section {
   width: 33%;
 }
 
-#week-view .week-events {
+#week-view .children > .weekday > section {
   display: none;
   height: 100%;
   width: 25%;
@@ -104,14 +103,16 @@
   width: 7rem;
 }
 
-#week-view .days-3 .week-events > ol,
-#week-view .days-3 .week-events li {
+#week-view .week-events > ol {
+  width: 7rem;
+}
+
+#week-view .days-3 .week-events > ol {
   width: 9.5rem;
 }
 
-#week-view .week-events li {
+#week-view .week-events .container {
   height: 6rem;
-  width: 7rem;
   height: 100%;
   margin: 1px;
   line-height: 120%;
@@ -128,3 +129,15 @@
     rgba(0, 0, 0, 0.2) 100%
   )
 }
+
+/* overlap */
+.weekday .event[data-overlaps="1"] { padding: 3px; }
+.weekday .event[data-overlaps="2"] { padding: 6px; }
+.weekday .event[data-overlaps="3"] { padding: 9px; }
+.weekday .event[data-overlaps="4"] { padding: 12px; }
+.weekday .event[data-overlaps="5"] { padding: 15px; }
+.weekday .event[data-overlaps="6"] { padding: 18px; }
+.weekday .event[data-overlaps="7"] { padding: 21px; }
+.weekday .event[data-overlaps="8"] { padding: 24px; }
+.weekday .event[data-overlaps="9"] { padding: 27px; }
+.weekday .event[data-overlaps="10"] { padding: 30px; }

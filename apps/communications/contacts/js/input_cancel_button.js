@@ -57,7 +57,7 @@ var InputCancelButton = (function inputCancelButton() {
     var parentElement = input.parentNode;
     input.classList.add('cancel-button');
     var clearButton = parentElement.querySelector('[type=reset]');
-    clearButton.classList.remove("hide");
+    clearButton.classList.remove('hide');
 
     clearButton.addEventListener('mousedown', function removeText() {
       input.value = '';
@@ -81,7 +81,7 @@ var InputCancelButton = (function inputCancelButton() {
 
     var parentElement = input.parentNode;
     input.classList.remove('cancel-button');
-    parentElement.querySelector('[type=reset]').classList.add("hide");
+    parentElement.querySelector('[type=reset]').classList.add('hide');
   };
 
 }());

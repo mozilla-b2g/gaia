@@ -395,7 +395,7 @@ ul[role="tablist"].filter li {
   float: left;
   text-align: center;
   -moz-box-sizing: border-box;
-  font: bold 1.4rem/1em "Open Sans", Sans-serif;
+  font: bold 1.4rem/1em "MozTT", Sans-serif;
   color: #737272;
   border-bottom: solid 1px #999;
 }

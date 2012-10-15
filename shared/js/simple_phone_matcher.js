@@ -3,7 +3,7 @@
 
 'use strict';
 
-/*
+/**
  * A simple lib to match internaional phone number with local
  * and user formatted phone numbers.
  *
@@ -57,7 +57,7 @@ var SimplePhoneMatcher = {
 
     matches.forEach(function(match, matchIndex) {
       match.forEach(function(number, localIndex) {
-        var sanitizedNumber = this.sanitizedNumber(number)
+        var sanitizedNumber = this.sanitizedNumber(number);
 
         variants.forEach(function match(variant) {
           if (variant.indexOf(sanitizedNumber) !== -1 ||
@@ -202,3 +202,4 @@ var SimplePhoneMatcher = {
     return variants;
   }
 };
+

@@ -3,9 +3,9 @@
   "default_locale": "en-US",
   "description": "Gaia Test Agent",
   "launch_path": "/index.html",
-  "permissions": [
-    "power"
-  ],
+  "permissions": {
+    "power": {}
+  },
   "locales": {
     "en-US": {
       "name": "Test Agent",

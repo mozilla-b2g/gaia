@@ -1,6 +1,7 @@
 {
   "name": "PDF Viewer",
   "description": "Portable Document Format(PDF) Viewer",
+  "type": "certified",
   "developer": {
     "name": "The pdf.js Team",
     "url": "https://github.com/mozilla/pdf.js"
@@ -26,8 +27,8 @@
       "href": "/content/web/viewer.html"
     }
   },
-  "permissions": [
-    "systemXHR",
-    "settings"
-  ]
+  "permissions": {
+    "systemXHR":{},
+    "settings":{}
+  }
 }
