@@ -236,9 +236,10 @@ form[role="dialog"][data-type="edit"] menu button:first-child {
 
 form[role="dialog"][data-type="edit"] menu button {
   width: calc((100% - 1rem) / 2);
+  color: #fff;
+  border: none;
 }
 
 form[role="dialog"][data-type="edit"] menu button.full {
   width: 100%;
 }
-
