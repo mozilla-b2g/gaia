@@ -43,7 +43,7 @@ var PhoneLock = {
     this.passcodeEditButton.addEventListener('click', this);
     this.createPasscodeButton.addEventListener('click', this);
     this.changePasscodeButton.addEventListener('click', this);
-    this.passcodePanel.addEventListener('click', this);
+    this.passcodePanel.addEventListener('mousedown', this, true);
     this.fetchSettings();
   },
 
@@ -98,6 +98,12 @@ var PhoneLock = {
   },
 
   handleEvent: function pl_handleEvent(evt) {
+    // Prevent mousedown event to avoid the keypad losing focus.
+    if (evt.type == 'mousedown') {
+      evt.preventDefault();
+      return;
+    }
+
     switch (evt.target) {
       case this.passcodeEnable:
         evt.preventDefault();
@@ -163,9 +169,6 @@ var PhoneLock = {
         break;
       case this.passcodeEditButton:
         this.changeMode('edit');
-        break;
-      case this.passcodePanel:
-        this.passcodeInput.focus();
         break;
       case this.createPasscodeButton:
       case this.changePasscodeButton:
