@@ -65,24 +65,9 @@ var LockScreen = {
   passCodeEntered: '',
 
   /*
-  * Number of passcode tries
-  */
-  passCodeError: 0,
-
-  /*
   * Timeout after incorrect attempt
   */
   kPassCodeErrorTimeout: 500,
-
-  /*
-  * Number of attempts allowed
-  */
-  kPassCodeTries: 3,
-
-  /*
-  * Cool down period after kPassCodeTries
-  */
-  kPassCodeTriesTimeout: 5 * 60 * 1000,
 
   /*
   * Airplane mode
@@ -873,17 +858,12 @@ var LockScreen = {
       if ('vibrate' in navigator)
         navigator.vibrate([50, 50, 50]);
 
-      var timeout = this.kPassCodeErrorTimeout;
-      this.passCodeError++;
-      if (this.passCodeError >= 3)
-        timeout = this.kPassCodeTriesTimeout;
-
       var self = this;
       setTimeout(function error() {
         delete self.overlay.dataset.passcodeStatus;
         self.passCodeEntered = '';
         self.updatePassCodeUI();
-      }, timeout);
+      }, this.kPassCodeErrorTimeout);
     }
   },
 
