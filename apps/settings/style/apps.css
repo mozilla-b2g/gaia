@@ -1,0 +1,45 @@
+#appPermissionsDetails ul li {
+  padding: 0 0 0 10px;
+
+  font-size: 1.6rem;
+  line-height: 60px;
+}
+
+#appPermissionsDetails ul li select {
+  float: right;
+  display: block;
+  width: 25%;
+  margin: 15px 10px 0 0;
+  padding: 5px;
+
+  border: 0;
+  background: #367fa2;
+  text-align: center;
+  color: black;
+
+  font-size: 1.3rem;
+}
+
+#appPermissionsDetails ul li select[value='allow'] {
+  background: #22aa22;
+}
+
+#appPermissionsDetails ul li select[value='deny'] {
+  background: #da4e49;
+}
+
+#developer-infos {
+  font-size: 1.2em;
+  padding: 0 10px 10px 10px;
+}
+
+#uninstall-app {
+  display: block;
+  margin: auto;
+  position: relative;
+  top: 1rem;
+  font-size: 1.5rem;
+  line-height: 1em;
+  width: calc(100% - 5rem);
+  height: calc(60px - 2rem);
+}

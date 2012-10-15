@@ -4,6 +4,8 @@
 'use strict';
 
 var PermissionManager = (function() {
+  var _ = navigator.mozL10n.get;
+
   window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(e) {
     var detail = e.detail;
     switch (detail.type) {
@@ -45,7 +47,6 @@ var PermissionManager = (function() {
   };
 
   var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
-    // XXX are going to l10n the permissions name/messages?
     remember.checked = detail.remember ? true : false;
     var str = '';
     var _ = navigator.mozL10n.get;
@@ -53,12 +54,12 @@ var PermissionManager = (function() {
     if (detail.isApp) {
       // App
       str = _('permission-ask', {
-        'permission': detail.permission, 'app': detail.appName
+        'permission': _(detail.permission), 'app': detail.appName
       });
     } else {
       // Web content
       str = _('permission-ask', {
-        'permission': detail.permission, 'app': detail.origin
+        'permission': _(detail.permission), 'app': detail.origin
       });
     }
 
