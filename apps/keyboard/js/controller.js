@@ -147,10 +147,10 @@ const IMEController = (function() {
   }
 
   var capitalizedInputModes = {
-    "": true,
-    "latin-prose": true,
-    "latin-name": true,
-    "full-latin-width": true
+    '': true,
+    'latin-prose': true,
+    'latin-name': true,
+    'full-latin-width': true
   };
 
   function _requireAutoCapitalize() {
