@@ -32,7 +32,10 @@
     "mobileconnection":{},
     "attention":{},
     "settings":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "wifi-manage":{},
+    "wifi":{},
+    "time":{}
   },
   "icons": {
     "120": "/dialer/style/icons/Dialer.png",
