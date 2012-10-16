@@ -1,8 +1,8 @@
 'use strict';
 
-var contacts = window.contacts || {};
+var fbFriends = window.fbFriends || {};
 
-contacts.List = (function() {
+fbFriends.List = (function() {
   var groupsList = document.querySelector('#groups-list');
 
   function contactsLoaded() {
