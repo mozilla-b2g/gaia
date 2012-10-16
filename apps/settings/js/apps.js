@@ -7,22 +7,19 @@ var ApplicationsList = {
   _apps: [],
   _displayedApp: null,
 
-  _permissions: ['power', 'sms', 'contacts', 'telephony',
-                      'mozBluetooth', 'browser', 'mozApps',
-                      'mobileconnection', 'mozFM', 'systemXHR',
-                      'background', 'backgroundservice', 'settings',
-                      'alarm', 'camera',
-                      'fmradio', 'voicemail',
-                      'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
-                      'webapps-manage', 'permissions', 'desktop-notification',
-                      'device-storage:pictures', 'device-storage:music',
-                      'device-storage:videos', 'device-storage:apps',
-                      'alarms', 'attention', 'content-camera',
-                      'tcp-socket', 'bluetooth', 'storage', 'time',
-                      'networkstats-manager', 'idle', 'network-events',
-                      'embed-apps',
-                      // Just don't.
-                      'deprecated-hwvideo'],
+  _permissions: [
+    'power', 'sms', 'contacts', 'telephony', 'mozBluetooth', 'browser',
+    'mozApps', 'mobileconnection', 'mozFM', 'systemXHR', 'background',
+    'backgroundservice', 'settings', 'alarm', 'camera', 'fmradio', 'voicemail',
+    'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
+    'webapps-manage', 'permissions', 'desktop-notification',
+    'device-storage:pictures', 'device-storage:music', 'device-storage:videos',
+    'device-storage:apps', 'alarms', 'attention', 'content-camera',
+    'tcp-socket', 'bluetooth', 'storage', 'time', 'networkstats-manager',
+    'idle', 'network-events', 'embed-apps',
+    // Just don't.
+    'deprecated-hwvideo'
+  ],
 
   container: document.querySelector('#appPermissions > ul'),
   detailTitle: document.querySelector('#appPermissionsDetails > header > h1'),
@@ -140,8 +137,8 @@ var ApplicationsList = {
     // and any other granted permission.
     this._permissions.forEach(function appIterator(perm) {
       var value = mozPerms.get(perm, app.manifestURL, app.origin, false);
-      if ((manifest.permissions && perm in manifest.permissions)
-          || value === 'allow') {
+      if ((manifest.permissions && perm in manifest.permissions) ||
+          value === 'allow') {
         var item = document.createElement('li');
         item.textContent = _(perm);
 
@@ -227,3 +224,4 @@ window.addEventListener('localized', function init(evt) {
 
   ApplicationsList.init();
 });
+

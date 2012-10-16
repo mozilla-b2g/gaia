@@ -1007,7 +1007,7 @@ var Browser = {
             icon: item.icon,
             label: item.label,
             callback: function() {
-              evt.detail.contextMenuItemSelected(item.id)
+              evt.detail.contextMenuItemSelected(item.id);
             }
           });
         } else if (item.type === 'menu') {
