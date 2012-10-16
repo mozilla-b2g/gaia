@@ -149,6 +149,22 @@
         }
         break;
 
+      case icc.SET_UP_IDLE_MODE_TEXT:
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
+        displayNotification(command);
+        break;
+
+      case icc.STK_CMD_REFRESH:
+        iccLastCommandProcessed = true;
+        responseSTKCommand({
+          resultCode: icc.STK_RESULT_OK
+        });
+        clearNotification();
+        break;
+
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
@@ -380,6 +396,21 @@
 
     alertbox_msg.textContent = options.text;
     alertbox.classList.remove('hidden');
+  }
+
+  /**
+   * Display text on the notifications bar and Idle screen
+   */
+  function displayNotification(command) {
+    var options = command.options;
+    NotificationHelper.send("STK", options.text);
+  }
+
+  /**
+   * Remove text on the notifications bar and Idle screen
+   */
+  function clearNotification() {
+    // TO-DO
   }
 
   /**
