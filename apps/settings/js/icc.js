@@ -76,7 +76,7 @@
    */
   function responseSTKCommand(response, force) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
@@ -96,7 +96,7 @@
    */
   function handleSTKCommand(command) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     debug('STK Proactive Command:' + JSON.stringify(command));
@@ -204,7 +204,7 @@
    */
   function updateMenu() {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     debug('Showing STK main menu');
@@ -248,7 +248,7 @@
 
   function onMainMenuItemClick(event) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
@@ -263,7 +263,7 @@
    */
   function updateSelection(command) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     var menu = command.options;
@@ -292,7 +292,7 @@
 
   function onSelectOptionClick(command, event) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     var identifier = event.target.getAttribute('stk-select-option-identifier');
@@ -311,7 +311,7 @@
    */
   function updateInput(command) {
     if (icc === null) {
-      return debug("No ICC registered !");
+      return debug('No ICC registered !');
     }
 
     var options = command.options;
