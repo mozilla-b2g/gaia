@@ -70,16 +70,28 @@ Calendar.ns('Service').Caldav = (function() {
       return req;
     },
 
-    _requestEvents: function(connection, cal) {
+    _requestEvents: function(connection, cal, options) {
       var Resource = Caldav.Resources.Calendar;
       var remoteCal = new Resource(connection, cal);
       var query = remoteCal.createQuery();
 
       query.prop('getetag');
 
-      // include only the VEVENT
-      query.filters.add('VEVENT', true);
-      query.fields.select('VCALENDAR', [{'VEVENT': true}]);
+      // only return VEVENT
+      var filterEvent = query.filter.setComp('VCALENDAR').
+                                     comp('VEVENT');
+
+      if (options && options.startDate) {
+        // convert startDate to unix ical time.
+        var icalDate = new ICAL.icaltime();
+
+        // ical uses seconds not milliseconds
+        icalDate.fromUnixTime(options.startDate.valueOf() / 1000);
+        filterEvent.setTimeRange({ start: icalDate.toString() });
+      }
+
+      // include only the VEVENT in the data
+      query.data.setComp('VCALENDAR').comp('VEVENT');
 
       return query;
     },
@@ -309,6 +321,13 @@ Calendar.ns('Service').Caldav = (function() {
       }
 
       parser.oncomplete = function() {
+        if (!primaryEvent) {
+          //TODO: in the error handling pass we need to define
+          //     path to log this information so we can determine
+          //     the cause of failures.
+          callback(new Error('ical parse error'));
+          return;
+        }
         exceptions.forEach(primaryEvent.relateException, primaryEvent);
         callback(null, primaryEvent);
       }
@@ -497,14 +516,14 @@ Calendar.ns('Service').Caldav = (function() {
       });
     },
 
-    streamEvents: function(account, calendar, stream, callback) {
+    streamEvents: function(account, calendar, options, stream, callback) {
       var self = this;
       var hasCompleted = false;
       var connection = new Caldav.Connection(
         account
       );
 
-      var request = this._requestEvents(connection, calendar);
+      var request = this._requestEvents(connection, calendar, options);
       var pending = 0;
 
       function next(err) {
@@ -512,7 +531,7 @@ Calendar.ns('Service').Caldav = (function() {
           try {
             stream.emit('error', err);
           } catch (e) {
-            console.log('failed to transport err:', err.toString());
+            console.log('failed to transport err:', err.toString(), err.stack);
           }
         }
 

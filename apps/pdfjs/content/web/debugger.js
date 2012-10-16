@@ -1,5 +1,19 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 'use strict';
 
@@ -44,7 +58,7 @@ var FontInspector = (function FontInspectorClosure() {
     }
   }
   return {
-    // Poperties/functions needed by PDFBug.
+    // Properties/functions needed by PDFBug.
     id: 'FontInspector',
     name: 'Font Inspector',
     panel: null,
@@ -140,7 +154,7 @@ var StepperManager = (function StepperManagerClosure() {
   var stepperChooser = null;
   var breakPoints = {};
   return {
-    // Poperties/functions needed by PDFBug.
+    // Properties/functions needed by PDFBug.
     id: 'Stepper',
     name: 'Stepper',
     panel: null,
@@ -207,7 +221,7 @@ var StepperManager = (function StepperManagerClosure() {
 var Stepper = (function StepperClosure() {
   function Stepper(panel, pageIndex, initialBreakPoints) {
     this.panel = panel;
-    this.len;
+    this.len = 0;
     this.breakPoint = 0;
     this.nextBreakPoint = null;
     this.pageIndex = pageIndex;
@@ -236,6 +250,7 @@ var Stepper = (function StepperClosure() {
       headerRow.appendChild(c('th', 'fn'));
       headerRow.appendChild(c('th', 'args'));
 
+      var self = this;
       for (var i = 0; i < IRQueue.fnArray.length; i++) {
         var line = c('tr');
         line.className = 'line';
@@ -249,7 +264,6 @@ var Stepper = (function StepperClosure() {
         cbox.type = 'checkbox';
         cbox.className = 'points';
         cbox.checked = checked;
-        var self = this;
         cbox.onclick = (function(x) {
           return function() {
             if (this.checked)
@@ -298,7 +312,7 @@ var Stepper = (function StepperClosure() {
             callback();
             break;
         }
-      }
+      };
       dom.addEventListener('keydown', listener, false);
       self.goTo(idx);
     },
@@ -331,7 +345,7 @@ var Stats = (function Stats() {
     return false;
   }
   return {
-    // Poperties/functions needed by PDFBug.
+    // Properties/functions needed by PDFBug.
     id: 'Stats',
     name: 'Stats',
     panel: null,
@@ -429,12 +443,12 @@ var PDFBug = (function PDFBugClosure() {
 
       // Initialize all the debugging tools.
       var tools = this.tools;
+      var self = this;
       for (var i = 0; i < tools.length; ++i) {
         var tool = tools[i];
         var panel = document.createElement('div');
         var panelButton = document.createElement('button');
         panelButton.textContent = tool.name;
-        var self = this;
         panelButton.addEventListener('click', (function(selected) {
           return function(event) {
             event.preventDefault();

@@ -10,6 +10,16 @@ var SystemUpdater = {
 
   init: function su_init() {
     window.addEventListener('mozChromeEvent', this);
+    SettingsListener.observe('gaia.system.checkForUpdates', false,
+                             this.checkForUpdates.bind(this));
+  },
+
+  checkForUpdates: function su_checkForUpdates(shouldCheck) {
+    if (!shouldCheck) {
+      return;
+    }
+
+    this._dispatchEvent('force-update-check');
   },
 
   showDownloadPrompt: function su_showDownloadPrompt() {
@@ -126,12 +136,14 @@ var SystemUpdater = {
     }
   },
 
-  _dispatchEvent: function su_dispatchEvent(type, value) {
+  _dispatchEvent: function su_dispatchEvent(type, result) {
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: type,
-      result: value
-    });
+    var data = { type: type };
+    if (result) {
+      data.result = result;
+    }
+
+    event.initCustomEvent('mozContentEvent', true, true, data);
     window.dispatchEvent(event);
   }
 };

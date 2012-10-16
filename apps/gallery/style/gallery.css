@@ -12,7 +12,7 @@ html {
 body {
   background-color: black;
   color: #fff;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   font-size: 10px;
   margin: 0;
   padding: 0;
@@ -73,7 +73,7 @@ section {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }

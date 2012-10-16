@@ -3,7 +3,8 @@
  * ---------------------------------- */
 
 /* Main dialog setup */
-form[role="dialog"] {
+form[role="dialog"][data-type="action"],
+form[role="dialog"][data-type="object"] {
   background:
     url(action_menu/images/ui/pattern.png) repeat left top,
     url(action_menu/images/ui/gradient.png) no-repeat left top / 100% 100%;
@@ -15,7 +16,7 @@ form[role="dialog"] {
   right: 0;
   bottom: 0;
   padding: 0 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   /**
    * Using "font-size: 0" to avoid the unwanted visual space (about 3px) created
    * by white spaces and line breaks in the code between inline-block elements.
@@ -24,7 +25,8 @@ form[role="dialog"] {
   color: #fff;
 }
 
-form[role="dialog"]:before {
+form[role="dialog"][data-type="action"]:before,
+form[role="dialog"][data-type="object"]:before {
   content: '';
   display: inline-block;
   vertical-align: top;
@@ -33,13 +35,14 @@ form[role="dialog"]:before {
   margin-left: -1px;
 }
 
-form[role="dialog"] > header:first-child {
+form[role="dialog"][data-type="action"] > header:first-child,
+form[role="dialog"][data-type="object"] > header:first-child {
   -moz-box-sizing: padding-box;
   width: 100%;
   display: inline-block;
   vertical-align: top;
   white-space: normal;
-  font: 1.6rem/1em 'Open Sans', Sans-serif;
+  font: 1.6rem/1em 'MozTT', Sans-serif;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
@@ -48,7 +51,8 @@ form[role="dialog"] > header:first-child {
   -moz-box-sizing: border-box;
 }
 
-form[role="dialog"] > header:after {
+form[role="dialog"][data-type="action"] > header:after,
+form[role="dialog"][data-type="object"] > header:after {
   content: '';
   position: absolute;
   width: 100%;
@@ -59,7 +63,8 @@ form[role="dialog"] > header:after {
 }
 
 /* Specific component code */
-form[role="dialog"] > menu {
+form[role="dialog"][data-type="action"] > menu,
+form[role="dialog"][data-type="object"] > menu {
   margin: 0;
   padding: 0;
   width: auto;
@@ -71,7 +76,8 @@ form[role="dialog"] > menu {
   bottom: 0;
 }
 
-form[role="dialog"] > menu > button {
+form[role="dialog"][data-type="action"] > menu > button,
+form[role="dialog"][data-type="object"] > menu > button {
   width: calc(100% - 5rem);
   height: 4rem;
   -moz-box-sizing: border-box;
@@ -79,7 +85,7 @@ form[role="dialog"] > menu > button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 4rem;
   outline: none;
@@ -94,7 +100,8 @@ form[role="dialog"] > menu > button {
   border: solid 1px rgba(0, 0, 0, 0.25);
 }
 
-form[role="dialog"] > menu > button:last-child {
+form[role="dialog"][data-type="action"] > menu > button:last-child,
+form[role="dialog"][data-type="object"] > menu > button:last-child {
   text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
   color: #333;
   background-image: url(action_menu/images/ui/default.png);
@@ -106,7 +113,8 @@ form[role="dialog"] > menu > button:last-child {
   font-size: 1.6rem;
 }
 
-form[role="dialog"] > menu > button:last-child:before {
+form[role="dialog"][data-type="action"] > menu > button:last-child:before,
+form[role="dialog"][data-type="object"] > menu > button:last-child:before {
   content: '';
   position: absolute;
   width: 100%;
@@ -119,13 +127,15 @@ form[role="dialog"] > menu > button:last-child:before {
 }
 
 /* Press state */
-form[role="dialog"] > menu > button:active {
+form[role="dialog"][data-type="action"] > menu > button:active,
+form[role="dialog"][data-type="object"] > menu > button:active {
   background-color: #006f86;
   color: #333;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
-form[role="dialog"] > menu > button:last-child:active {
+form[role="dialog"][data-type="action"] > menu > button:last-child:active,
+form[role="dialog"][data-type="object"] > menu > button:last-child:active {
   border: solid 1px #008aaa;
   background: #008aaa;
   color: #333;

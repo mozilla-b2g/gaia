@@ -91,7 +91,8 @@ suite('date picker', function() {
         date.setTime(Date.now() + 100);
         var result = subject.isPast(date);
 
-        assert.isFalse(result, 'should return false when date is in the future');
+        assert.isFalse(result,
+            'should return false when date is in the future');
       });
 
     });
@@ -458,3 +459,4 @@ suite('date picker', function() {
   });
 
 });
+

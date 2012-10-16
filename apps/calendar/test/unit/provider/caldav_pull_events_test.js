@@ -288,7 +288,7 @@ suite('provider/caldav_pull_events', function() {
     var newEvent;
     var newBusytime;
 
-    setup(function(done) {
+    setup(function() {
       removed.length = 0;
       eventStore = app.store('Event');
       eventStore.remove = function(id) {
@@ -307,64 +307,122 @@ suite('provider/caldav_pull_events', function() {
       });
 
       subject.busytimeQueue.push(newBusytime);
+    });
 
-      subject.commit(function() {
-        setTimeout(function() {
-          done();
-        }, 0);
+    function commit(fn) {
+      setup(function(done) {
+        subject.commit(function() {
+          setTimeout(function() {
+            done();
+          }, 0);
+        });
+      });
+    }
+
+    suite('busytimes', function() {
+      commit();
+
+      test('result', function(done) {
+        var id = newBusytime._id;
+
+        var trans = db.transaction('busytimes');
+        var store = trans.objectStore('busytimes');
+
+        store.get(id).onsuccess = function(e) {
+          done(function() {
+            var result = e.target.result;
+            assert.ok(result);
+
+            assert.hasProperties(result, {
+              start: newBusytime.start,
+              end: newBusytime.end,
+              eventId: newBusytime.eventId,
+              calendarId: newBusytime.calendarId
+            });
+          });
+        };
       });
     });
 
-    test('busytimes', function(done) {
-      var id = newBusytime._id;
 
-      var trans = db.transaction('busytimes');
-      var store = trans.objectStore('busytimes');
+    suite('tokens', function() {
+      suite('first sync', function() {
+        var date = new Date(2012, 0, 1);
 
-      store.get(id).onsuccess = function(e) {
-        done(function() {
-          var result = e.target.result;
-          assert.ok(result);
+        setup(function() {
+          calendar.firstEventSyncDate = date;
+        });
 
-          assert.hasProperties(result, {
-            start: newBusytime.start,
-            end: newBusytime.end,
-            eventId: newBusytime.eventId,
-            calendarId: newBusytime.calendarId
+        commit();
+
+        test('result', function() {
+          var expectedToken = calendar.remote.syncToken;
+          var expectedDate = subject.syncStart;
+
+          assert.deepEqual(removed, ['1'], 'removed');
+
+          assert.deepEqual(
+            calendar.lastEventSyncToken,
+            expectedToken,
+            'sync token'
+          );
+
+          assert.deepEqual(
+            calendar.firstEventSyncDate,
+            date,
+            'calendar first event sync date'
+          );
+
+          assert.deepEqual(
+            calendar.lastEventSyncDate,
+            expectedDate,
+            'calendar sync date'
+          );
+        });
+      });
+
+      suite('without firstEventSyncDate', function() {
+        commit();
+        test('result', function() {
+          var expectedToken = calendar.remote.syncToken;
+          var expectedDate = subject.syncStart;
+
+          assert.deepEqual(removed, ['1'], 'removed');
+
+          assert.deepEqual(
+            calendar.lastEventSyncToken,
+            expectedToken,
+            'sync token'
+          );
+
+          assert.deepEqual(
+            calendar.firstEventSyncDate,
+            expectedDate,
+            'calendar first event sync date'
+          );
+
+          assert.deepEqual(
+            calendar.lastEventSyncDate,
+            expectedDate,
+            'calendar sync date'
+          );
+        });
+      });
+    });
+
+    suite('events', function() {
+      commit();
+
+      test('result', function(done) {
+        eventStore._cached = Object.create(null);
+        eventStore.findByIds([newEvent._id], function(err, list) {
+          done(function() {
+            assert.length(Object.keys(list), 1, 'saved events');
+            assert.ok(list[newEvent._id], 'saved event id');
           });
         });
-      };
-    });
-
-    test('tokens', function() {
-      var expectedToken = calendar.remote.syncToken;
-      var expectedDate = subject.syncStart;
-
-      assert.deepEqual(removed, ['1'], 'removed');
-
-      assert.deepEqual(
-        calendar.lastEventSyncToken,
-        expectedToken,
-        'sync token'
-      );
-
-      assert.deepEqual(
-        calendar.lastEventSyncDate,
-        expectedDate,
-        'calendar sync date'
-      );
-    });
-
-    test('events', function(done) {
-      eventStore._cached = Object.create(null);
-      eventStore.findByIds([newEvent._id], function(err, list) {
-        done(function() {
-          assert.length(Object.keys(list), 1, 'saved events');
-          assert.ok(list[newEvent._id], 'saved event id');
-        });
       });
     });
-
   });
 
   suite('#handleOccurrenceSync', function() {

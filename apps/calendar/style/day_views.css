@@ -5,78 +5,30 @@
   font-weight: normal;
 }
 
-.day-events section > ol li {
-  padding: 0rem 0px;
+/** hour */
+
+.day-events {
+  display: block;
 }
 
-.day-events section > ol li:last-child {
-  border-bottom: 1px solid white;
-}
-
-.day-events section > ol li,
-.day-events section {
+.day-events > .hour {
+  height: 6rem;
+  padding-left: 0.7rem;
+  position: relative;
   border-bottom: 1px solid #D0D0D0;
 }
 
-.ltr .day-events section > ol li {
-  padding-left: 6.37rem;
-}
-
-.rtl .day-events section > ol li {
-  padding-right: 6.37rem;
-}
-
-.day-events section > h4 > span {
-  height: 100%;
-  vertical-align: top;
-}
-
-.day-events section > h4 > .display-hour {
-  display: block;
-  text-transform: uppercase;
-  overflow: hidden;
-}
-
-.day-events section > ol li {
-  padding: 1.5rem;
-}
-
-.day-events section > ol h5 {
-  padding-top: 0.18rem;
-  font-size: 1.6rem;
-}
-
-.day-events section > ol .details {
-  width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  display: block;
-  padding-top: 0.6rem;
-  color: #535353;
-  font-size: 1.1rem;
-}
-
-.attendee {
-  padding-right: 0.3rem;
-}
-
-.day-events {
-  display: table;
-}
-
-.day-events > section {
+.day-events > .hour.hour-allday {
   min-height: 6rem;
-  padding-left: 0.7rem;
-  position: relative;
+  height: auto;
 }
 
-.day-events > section > ol {
-  background-color: #FEFFFE;
-  display: inline-block;
+
+.day-events .hour-allday .events {
+  height: auto;
 }
 
-.day-events > section h4 {
+.day-events > .hour h4 {
   top: 0.5rem;
   width: 6rem;
   line-height: 3rem;
@@ -84,9 +36,105 @@
   text-align: center;
 }
 
-.day-events > section > ol {
-  min-height: 6rem;
-  width: 100%
+/** events */
+
+.day-events .events {
+  -moz-user-select: none;
+  margin-left: 6rem;
+  position: relative;
+  width: calc(100% - 6rem);
+  height: 6rem;
+}
+
+.day-events .event {
+  position: relative;
+  height: 6rem;
+  top: 0;
+  z-index: 10;
+}
+
+.day-events .container {
+  /* turn off calendar color bg */
+  background: white !important;
+  border-width: 1px;
+  border-style: solid;
+  border-left-width: 6px;
+  height: 100%;
+  padding: 1rem;
+}
+
+.day-events .hour .display-hour {
+  display: block;
+  text-transform: uppercase;
+  overflow: hidden;
+  height: 100%;
+  vertical-align: top;
+}
+
+.day-events .event h5 {
+  width: calc(100% - 1rem - 6px);
+  min-height: 2rem;
+  padding-top: 0.25rem;
+  font-size: 1.6rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  position: absolute;
+}
+
+.day-events .event .details {
+  width: calc(100% - 1rem - 6px);
+  position: absolute;
+  min-height: 2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  padding-top: 0.6rem;
+  color: #535353;
+  font-size: 1.1rem;
+  top: 3rem;
+}
+
+.attendee {
+  padding-right: 0.3rem;
+}
+
+/* overlap & conflicts */
+
+.event[data-conflicts] {
+  float: left;
+}
+
+/** generic conflict stuff / overlap */
+.event[data-conflicts="1"] { width: 50%; }
+.event[data-conflicts="2"] { width: 33.3%; }
+.event[data-conflicts="3"] { width: 25%; }
+.event[data-conflicts="4"] { width: 20%; }
+.event[data-conflicts="5"] { width: 16.66%; }
+.event[data-conflicts="6"] { width: 14.285%; }
+.event[data-conflicts="7"] { width: 12.5%; }
+.event[data-conflicts="8"] { width: 11.111%; }
+.event[data-conflicts="9"] { width: 10%; }
+.event[data-conflicts="10"] { width: 9.09%; }
+
+.event[data-overlaps="1"] { padding-left: 6px; z-index: 11; }
+.event[data-overlaps="2"] { padding-left: 12px; z-index: 12; }
+.event[data-overlaps="3"] { padding-left: 18px; z-index: 13; }
+.event[data-overlaps="4"] { padding-left: 24px; z-index: 14; }
+.event[data-overlaps="5"] { padding-left: 30px; z-index: 15; }
+.event[data-overlaps="6"] { padding-left: 36px; z-index: 16; }
+.event[data-overlaps="7"] { padding-left: 42px; z-index: 17; }
+.event[data-overlaps="8"] { padding-left: 48px; z-index: 18; }
+.event[data-overlaps="9"] { padding-left: 54px; z-index: 19; }
+.event[data-overlaps="10"] { padding-left: 60px; z-index: 20; }
+
+/* months day view */
+
+#months-day-view .day-events {
+  height: -moz-calc(100% - 3rem);
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 /* day view */
@@ -108,11 +156,14 @@
 
 #day-view > section.active {
   display: block;
-  overflow-y: auto;
 }
 
-#months-day-view .day-events {
-  height: -moz-calc(100% - 3rem);
-  display: block;
-  overflow-y: auto;
+#day-view .day-events {
+  overflow-y: scroll;
+  overflow-x: hidden;
+  height: 80%;
+}
+
+#day-view .day-events.allday {
+  height: 6rem;
 }

@@ -23,6 +23,10 @@ Calendar.ns('Views').MonthsDay = (function() {
       return this._findElement('events');
     },
 
+    get allDayElement() {
+      return this.events;
+    },
+
     get header() {
       return this._findElement('header');
     },

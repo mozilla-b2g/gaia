@@ -43,7 +43,8 @@ suite('views/settings', function() {
     template = Calendar.Templates.Calendar;
 
     subject = new Calendar.Views.Settings({
-      app: app
+      app: app,
+      syncProgressTarget: div
     });
   });
 
@@ -65,6 +66,10 @@ suite('views/settings', function() {
 
   test('#syncButton', function() {
     assert.ok(subject.syncButton);
+  });
+
+  test('#syncProgressTarget', function() {
+    assert.ok(subject.syncProgressTarget);
   });
 
   suite('#_initEvents', function() {
@@ -139,6 +144,34 @@ suite('views/settings', function() {
       assert.equal(children.length, 0);
     });
 
+    suite('sync (start|complete)', function() {
+      var classList;
+
+      setup(function() {
+        classList = subject.syncProgressTarget.classList;
+        console.log(classList.toString());
+        assert.ok(
+          !classList.contains(subject.syncClass),
+          'not active initially'
+        );
+
+        app.syncController.emit('sync start');
+      });
+
+      teardown(function() {
+        classList.remove(subject.syncClass);
+      });
+
+      test('start', function() {
+        assert.ok(classList.contains(subject.syncClass), 'is active');
+      });
+
+      test('complete', function() {
+        app.syncController.emit('sync complete');
+        assert.ok(!classList.contains(subject.syncClass), 'remove active');
+      });
+    });
+
   });
 
   test('sync', function() {
@@ -151,17 +184,7 @@ suite('views/settings', function() {
     }
 
     triggerEvent(subject.syncButton, 'click');
-
-    assert.isTrue(el.classList.contains(
-      subject.activeClass
-    ));
-
     assert.ok(calledWith);
-    calledWith[0]();
-
-    assert.isFalse(el.classList.contains(
-      subject.activeClass
-    ));
   });
 
   suite('#_onCalendarDisplayToggle', function() {
