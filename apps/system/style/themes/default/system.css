@@ -105,3 +105,35 @@ div.windowSprite {
 #volume div.active:nth-child(12) {
   background-image: url('images/volume/volume_right_active.png');
 }
+
+@media (orientation: landscape) and (width: 480px) {
+  #volume div {
+    display: inline-block;
+    float: left;
+    width: 36px;
+    margin-left: 2px;
+    background-size: 36px 10px;
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOff.png');
+  }
+
+  #volume div.active {
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOn.png');
+  }
+
+  #volume div:nth-child(3) {
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOff_left.png');
+  }
+
+  #volume div.active:nth-child(3) {
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOn_left.png');
+  }
+
+  #volume div:nth-child(12) {
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOff_right.png');
+  }
+
+  #volume div.active:nth-child(12) {
+    background-image: url('images/volume/VolumeOverlay_Landscape_SegmentOn_right.png');
+  }
+
+}

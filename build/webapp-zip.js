@@ -82,6 +82,43 @@ function addToZip(zip, pathInZip, file) {
   }
 }
 
+/**
+ * Copy a "Building Block" (i.e. shared style resource)
+ *
+ * @param {nsIZipWriter} zip       zip xpcom instance.
+ * @param {String}       blockName name of the building block to copy.
+ * @param {String}       dirName   name of the shared directory to use.
+ */
+function copyBuildingBlock(zip, blockName, dirName) {
+  let dirPath = '/shared/' + dirName + '/';
+
+  // Compute the nsIFile for this shared style
+  let styleFolder = Gaia.sharedFolder.clone();
+  styleFolder.append(dirName);
+  let cssFile = styleFolder.clone();
+  if (!styleFolder.exists()) {
+    throw new Error('Using inexistent shared style: ' + blockName);
+  }
+
+  cssFile.append(blockName + '.css');
+  addToZip(zip, dirPath + blockName + '.css', cssFile);
+
+  // Copy everything but index.html and any other HTML page into the
+  // style/<block> folder.
+  let subFolder = styleFolder.clone();
+  subFolder.append(blockName);
+  ls(subFolder, true).forEach(function(file) {
+      let relativePath = file.getRelativeDescriptor(styleFolder);
+      // Ignore HTML files at style root folder
+      if (relativePath.match(/^[^\/]+\.html$/))
+        return;
+      // Do not process directory as `addToZip` will add files recursively
+      if (file.isDirectory())
+        return;
+      addToZip(zip, dirPath + relativePath, file);
+    });
+}
+
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                          .createInstance(Ci.nsILocalFile);
 webappsTargetDir.initWithPath(PROFILE_DIR);
@@ -128,10 +165,12 @@ Gaia.webapps.forEach(function(webapp) {
   let SHARED_USAGE = /shared\/([^\/]+)\/([^''\s]+)("|')/g;
 
   let used = {
-    js: [], // List of JS file path to copy
-    locales: [], // List of locale name to copy
-    styles: [] // List of style name to copy
+    js: [],              // List of JS file paths to copy
+    locales: [],         // List of locale names to copy
+    styles: [],          // List of stable style names to copy
+    unstable_styles: [], // List of unstable style names to copy
   };
+
   let files = ls(webapp.sourceDirectoryFile, true);
   files.filter(function(file) {
       // Process only files that may require a shared file
@@ -160,6 +199,11 @@ Gaia.webapps.forEach(function(webapp) {
             let styleName = path.substr(0, path.lastIndexOf('.'));
             if (used.styles.indexOf(styleName) == -1)
               used.styles.push(styleName);
+            break;
+          case 'style_unstable':
+            let unstableStyleName = path.substr(0, path.lastIndexOf('.'));
+            if (used.unstable_styles.indexOf(unstableStyleName) == -1)
+              used.unstable_styles.push(unstableStyleName);
             break;
         }
       }
@@ -200,34 +244,21 @@ Gaia.webapps.forEach(function(webapp) {
   });
 
   used.styles.forEach(function(name) {
-    // Compute the nsIFile for this shared style
-    let styleFolder = Gaia.sharedFolder.clone();
-    styleFolder.append('style');
-    let cssFile = styleFolder.clone();
-    if (!styleFolder.exists()) {
-      throw new Error('Using inexistent shared style: ' + name + ' from: ' +
-                      webapp.domain);
+    try {
+      copyBuildingBlock(zip, name, 'style');
+    } catch(e) {
+      throw new Error(e + ' from: ' + webapp.domain);
     }
+  });
 
-    cssFile.append(name + '.css');
-    addToZip(zip, '/shared/style/' + name + '.css', cssFile);
-
-    // Copy everything but index.html and any other html page at style/<block>
-    // folder
-    let subFolder = styleFolder.clone();
-    subFolder.append(name);
-    ls(subFolder, true)
-      .forEach(function(file) {
-        let relativePath = file.getRelativeDescriptor(styleFolder);
-        // Ignore html files at style root folder
-        if (relativePath.match(/^[^\/]+\.html$/))
-          return;
-        // Do not process directory as `addToZip` will add files recursively
-        if (file.isDirectory())
-          return;
-        addToZip(zip, '/shared/style/' + relativePath, file);
-      });
+  used.unstable_styles.forEach(function(name) {
+    try {
+      copyBuildingBlock(zip, name, 'style_unstable');
+    } catch(e) {
+      throw new Error(e + ' from: ' + webapp.domain);
+    }
   });
 
   zip.close();
 });
+

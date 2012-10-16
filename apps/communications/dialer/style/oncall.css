@@ -317,13 +317,20 @@ button[disabled] .icon-keypad-visibility {
   background-color: transparent;
 }
 
-#calls[data-count="1"] > section .number {
-  height: 4rem;
-  padding: 2rem 2rem 0 2rem;
+#calls[data-count="1"] > section .numberWrapper {
   background: #01c5ed;
-  font-size: 1.6em;
+  overflow: auto;
+}
+
+#calls[data-count="1"] > section .numberWrapper .number{
+  height: 4rem;
+  padding: 2rem 2rem 0 0;
+  font-size: 2.4rem;
   line-height: 4rem;
   color: black;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #calls > section .fake-number {
@@ -362,7 +369,7 @@ button[disabled] .icon-keypad-visibility {
   opacity: 0.7;
 }
 
-#calls > section .number {
+#calls > section .numberWrapper {
   font-size: 1.5em;
   white-space: nowrap;
 }
@@ -539,24 +546,22 @@ button[disabled] .icon-keypad-visibility {
     font-size: 1.8em;
   }
 
-  #calls > section .number,
-  #calls[data-count="1"] > section .number {
-    width: -moz-calc(100% - 12rem);
+  #calls > section .numberWrapper,
+  #calls[data-count="1"] > section .numberWrapper {
+    width: -moz-calc(100% - 10rem);
     height: -moz-calc(100% - 2rem);
-    padding: 1rem;
-    margin-left: 3rem;
+    background-color: transparent;
+  }
+
+  #calls > section .numberWrapper .number,
+  #calls[data-count="1"] > section .numberWrapper .number{
+    width: 100%;
+    padding: 1rem 1rem 1rem 1.5rem;
+    font-size: 2rem;
     line-height: 100%;
     color: white;
-    background-color: transparent;
     white-space: nowrap;
-    text-overflow: ellipsis;
-
-    /* font-size is overwriten via JS and we need
-    to be sure it doesn't happen when the call is
-    in the status bar. Workarounds would imply
-    listening resize event and JS changes, so we
-    need to add !important here */
-    font-size: 1.1em !important;
+    overflow: hidden;
   }
 
   #calls > section .duration,

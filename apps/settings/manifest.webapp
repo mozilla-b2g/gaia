@@ -16,6 +16,7 @@
     "device-storage:videos":{},
     "device-storage:apps":{},
     "webapps-manage":{},
+    "permissions":{},
     "settings":{},
     "wifi-manage":{},
     "wifi":{},
