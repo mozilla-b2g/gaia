@@ -107,14 +107,8 @@ Icon.prototype = {
     ctx.shadowOffsetY = 2;
 
     // Deal with very small or very large icons
-    if (img.width < this.MIN_ICON_SIZE || img.height < this.MIN_ICON_SIZE) {
-      img.width = this.MIN_ICON_SIZE;
-      img.height = this.MIN_ICON_SIZE;
-    }
-    if (img.width > this.MAX_ICON_SIZE || img.height > this.MAX_ICON_SIZE) {
-      img.width = this.MAX_ICON_SIZE;
-      img.height = this.MAX_ICON_SIZE;
-    }
+    img.width = Math.min(this.MAX_ICON_SIZE, Math.max(img.width, this.MIN_ICON_SIZE));
+    img.height = Math.min(this.MAX_ICON_SIZE, Math.max(img.height, this.MIN_ICON_SIZE));
 
     var width = Math.min(img.width, canvas.width - 4);
     var height = Math.min(img.width, canvas.height - 4);
