@@ -328,6 +328,25 @@ var Settings = {
       return;
     }
 
+    var _ = navigator.mozL10n.get;
+    var updateStatus = document.getElementById('update-status');
+
+    updateStatus.textContent = _('checking-for-update');
+    updateStatus.hidden = false;
+
+    settings.addObserver('gecko.updateStatus', function onUpdateStatus(evt) {
+      var value = evt.settingValue;
+      switch (value) {
+        case 'check-complete':
+          updateStatus.hidden = true;
+          break;
+        default:
+          updateStatus.textContent = _(value, null, value);
+          break;
+      }
+      settings.removeObserver('gecko.updateStatus', onUpdateStatus);
+    });
+
     var lock = settings.createLock();
     lock.set({
       'gaia.system.checkForUpdates': true
