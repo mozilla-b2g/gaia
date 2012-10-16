@@ -1,6 +1,25 @@
+/**
+ * Applications Permissions
+ */
+
+#appPermissions ul li > a {
+  padding: 0 calc(4.1rem - 30px);
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 1.8rem;
+  color: #000;
+}
+
+#appPermissions ul li img {
+  float: left;
+  margin-top: calc(3rem - 15px);
+  margin-right: 1.4rem;
+  width: 30px;
+  height: 30px;
+}
+
 #appPermissionsDetails ul li {
   padding: 0 0 0 10px;
-
   font-size: 1.6rem;
   line-height: 60px;
 }
@@ -11,12 +30,10 @@
   width: 25%;
   margin: 15px 10px 0 0;
   padding: 5px;
-
   border: 0;
   background: #367fa2;
   text-align: center;
   color: black;
-
   font-size: 1.3rem;
 }
 
@@ -43,3 +60,4 @@
   width: calc(100% - 5rem);
   height: calc(60px - 2rem);
 }
+
