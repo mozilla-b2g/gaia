@@ -35,45 +35,13 @@
       "name": "الكاميرا",
       "description": " Gaiaالكاميرا"
     },
-    "ca": {
-      "name": "Càmera",
-      "description": "Càmera del Gaia"
-    },
-    "de": {
-      "name": "Kamera",
-      "description": "Gaia Kamera"
-    },
-    "el": {
-      "name": "Κάμερα",
-      "description": "Κάμερα Gaia"
-    },
     "en-US": {
       "name": "Camera",
       "description": "Gaia Camera"
     },
-    "es": {
-      "name": "Cámara",
-      "description": "Cámara de Gaia"
-    },
     "fr": {
       "name": "Photo",
       "description": "Appareil photo Gaia"
-    },
-    "it": {
-      "name": "Camera",
-      "description": "Camera di Gaia"
-    },
-    "pt-BR": {
-      "name": "Câmera",
-      "description": "Câmera do Gaia"
-    },
-    "ru": {
-      "name": "Камера",
-      "description": "Камера Gaia"
-    },
-    "tr": {
-      "name": "Kamera",
-      "description": "Gaia Kamera"
     },
     "zh-TW": {
       "name": "相機",
