@@ -208,18 +208,22 @@ var CardsView = (function() {
         card.classList.add('popup');
       }
 
+      cardsList.appendChild(card);
+      // rect is the final size (considering CSS transform) of the card.
+      var rect = card.getBoundingClientRect();
+
       // And then switch it with screenshots when one will be ready
       // (instead of -moz-element backgrounds)
-      frameForScreenshot.getScreenshot().onsuccess = function(screenshot) {
-        if (screenshot.target.result) {
-          card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
-        }
+      frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
+        function gotScreenshot(screenshot) {
+          if (screenshot.target.result) {
+            card.style.backgroundImage =
+                'url(' + screenshot.target.result + ')';
+          }
 
-        if (displayedApp == origin && displayedAppCallback)
-          setTimeout(displayedAppCallback);
-      };
-
-      cardsList.appendChild(card);
+          if (displayedApp == origin && displayedAppCallback)
+            setTimeout(displayedAppCallback);
+        };
 
       // Set up event handling
       // A click elsewhere in the card switches to that task
@@ -556,3 +560,4 @@ var CardsView = (function() {
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appwillopen', CardsView);
+

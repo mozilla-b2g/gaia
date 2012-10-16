@@ -30,9 +30,6 @@
     <!-- Async. Storage -->
     <script type="application/javascript" src="/shared/js/async_storage.js"></script>
 
-    <!-- Load JSON files -->
-    <script type="application/javascript" defer src="js/utilities/config.js"></script>
-
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
@@ -1835,7 +1832,7 @@
         <!-- filled by icc.js -->
       </ul>
 
-      <form role="dialog" id="icc-stk-alert" class="hidden">
+      <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
         <section>
           <h1 data-l10n-id="message">Message</h1>
           <p id="icc-stk-alert-msg">

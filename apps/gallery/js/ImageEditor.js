@@ -777,14 +777,14 @@ ImageProcessor.bw_matrix = [
 
 ImageProcessor.bluesteel_matrix = [
   1, .25, .65, 0,
-  .1, 1, .65,  0,
+  .1, 1, .65, 0,
   .1, .25, 1, .1,
   0, 0, 0, 1
 ];
 
 ImageProcessor.faded_matrix = [
   1, .2, .2, .03,
-  .2, .7, .2, .05, 
+  .2, .7, .2, .05,
   .1, 0, .8, 0,
   0, 0, 0, 1
-]
+];

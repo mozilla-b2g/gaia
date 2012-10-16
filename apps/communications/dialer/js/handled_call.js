@@ -22,7 +22,7 @@ function HandledCall(aCall, aNode) {
   this.node = aNode;
   this.durationNode = aNode.querySelector('.duration span');
   this.directionNode = aNode.querySelector('.duration .direction');
-  this.numberNode = aNode.querySelector('.number');
+  this.numberNode = aNode.querySelector('.numberWrapper .number');
   this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
 
 
@@ -99,7 +99,6 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
   Contacts.findByNumber(number, function lookupContact(contact, matchingTel) {
     if (contact && contact.name) {
       node.textContent = contact.name;
-      KeypadManager.formatPhoneNumber('right');
       var additionalInfo = Utils.getPhoneNumberAdditionalInfo(matchingTel,
                                                               contact);
       additionalInfoNode.textContent = additionalInfo ?
