@@ -5,7 +5,7 @@
 
 (function() {
   /**
-   * Constants. Set in config.json file
+   * Constants
    */
   var displayTextTimeout = 10000;
   var DEBUG = false;
