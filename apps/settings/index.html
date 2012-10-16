@@ -12,9 +12,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
-    <!-- Common code -->
-    <script type="text/javascript" src="shared/js/notification_helper.js"></script>
-
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/icons.css"/>
@@ -27,11 +24,12 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
+
+    <!-- Shared code -->
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
-
-    <!-- Async. Storage -->
-    <script type="application/javascript" src="/shared/js/async_storage.js"></script>
+    <script type="application/javascript" src="shared/js/async_storage.js"></script>
+    <script type="application/javascript" src="shared/js/notification_helper.js"></script>
 
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
@@ -872,7 +870,7 @@
       </header>
 
       <ul id="timezone-zones-list">
-        <!-- Create the zones dynamically -->
+        <!-- the timezone list is filled dynamically by js/date_time.js -->
       </ul>
     </section>
 
@@ -884,7 +882,7 @@
       </header>
 
       <ul id="timezone-continents">
-        <!-- Create the continets dynamically -->
+        <!-- the continent list is filled dynamically by js/date_time.js -->
       </ul>
     </section>
 
@@ -1461,6 +1459,7 @@
       </header>
       <ul>
         <li>
+          <!-- these elements will be filled by dynamically js/settings.js -->
           <small id="gaia-commit-hash"></small>
           <a id="gaia-commit-date"></a>
         </li>
