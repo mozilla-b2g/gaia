@@ -122,7 +122,15 @@ const IMEManager = {
 
   init: function km_init() {
     IMEController.init();
-    IMEFeedback.init();
+
+    // Bug 801045 - Can't enter numbers
+    // IMEFeedback.init() would check settings DB, which may cause uncaught
+    // exception and the following code would not be executed
+    try {
+      IMEFeedback.init();
+    } catch (e) {
+      console.error('Exception occurred: ' + e);
+    }
 
     this.updateSettings();
     this._events.forEach((function attachEvents(type) {
