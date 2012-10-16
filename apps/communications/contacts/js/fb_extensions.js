@@ -18,6 +18,10 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     }
 
+    extFb.importFBFromUrl = function importFromUrl(path) {
+      open(path, 'import');
+    }
+
     extFb.importFB = function() {
       open('fb_import.html', 'import');
     }

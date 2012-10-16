@@ -12,7 +12,8 @@ if (!fb.utils) {
     var IMPORT_INFO_KEY = 'importInfo';
     var CACHE_FRIENDS_KEY = 'numFacebookFriends';
 
-    var REDIRECT_LOGOUT_URI = fb.oauthflow.params['redirectLogout'];
+    var REDIRECT_LOGOUT_URI = fb.oauthflow ?
+      fb.oauthflow.params['redirectLogout'] : '';
     var STORAGE_KEY = 'tokenData';
 
     Utils.getContactData = function(cid) {
