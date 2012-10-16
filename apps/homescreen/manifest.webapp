@@ -76,6 +76,13 @@
         "type": "application/x-application-list"
       },
       "href": "/index.html"
+    },
+    "ftu": {
+      "filters": {
+        "type": "application/ftu"
+      },
+      "href": "/index.html",
+      "returnValue": true
     }
   }
 }

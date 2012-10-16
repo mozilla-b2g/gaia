@@ -5,21 +5,34 @@
 
 window.addEventListener('load', function startup() {
   function launchHomescreen() {
+    LockScreen.unlock();
     var activity = new MozActivity({
-      name: 'view',
-      data: { type: 'application/x-application-list' }
+      name: 'ftu',
+      data: { type: 'application/ftu' }
     });
+    activity.onsuccess = function success() {
+      var value = this.result;
+      console.log("******** Resultado de lanzar la firstime ********");
+      console.log(JSON.stringify(value));
+      LockScreen.lock();
+    }
+    
     activity.onerror = function homescreenLaunchError() {
       console.error('Failed to launch home screen with activity.');
     };
   }
 
+ 
+
   if (Applications.ready) {
+    
     launchHomescreen();
+    
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
       launchHomescreen();
+      
     });
   }
 

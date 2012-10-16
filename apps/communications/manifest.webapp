@@ -62,6 +62,14 @@
       },
       "href": "/dialer/index.html",
       "disposition": "window"
+    },
+    "firstrun": {
+      "filters": {
+        "type": "firstrun"
+      },
+      "href": "/ftu/index.html",
+      "disposition": "inline",
+      "returnValue": true
     }
   },
   "messages": [
