@@ -5,6 +5,8 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Music</title>
     <link rel="stylesheet" href="style/music.css" type="text/css" />
+    <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -17,13 +19,13 @@
     <script type="text/javascript" defer src="js/music.js"></script>
   </head>
 
-  <body class="invisible">
-    <div id="title">
-      <button id="title-back" class="title-back-button">
-        <span id="title-back-text">&#8249;</span>
-      </button>
-      <div id="title-text" data-l10n-id="music">Music</div>
-    </div>
+  <body class="invisible" role="application">
+    <section id="title" role="region" class="skin-dark">
+      <header>
+        <button id="title-back"><span class="icon icon-back"></span></button>
+        <h1 id="title-text" data-l10n-id="music">Music</h1>
+      </header>
+    </section>
     <div id="views">
       <div id="views-tiles" class="view"></div>
       <div id="views-list" class="view"></div>
@@ -34,8 +36,8 @@
           </div>
           <div id="views-sublist-header-controls">
             <div id="views-sublist-header-name">Name</div>
-            <button id="views-sublist-controls-play" class="album-controls-button">Play All</button>
-            <button id="views-sublist-controls-shuffle" class="album-controls-button">Shuffle</button>
+            <button id="views-sublist-controls-play" class="album-controls-button"></button>
+            <button id="views-sublist-controls-shuffle" class="album-controls-button"></button>
           </div>
         </div>
         <div id="views-sublist-anchor"></div>
@@ -48,15 +50,15 @@
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
           </div>
           <div id="player-cover-buttons">
-            <button id="player-album-shuffle" class="player-cover-button" disabled>S</button>
+            <button id="player-album-repeat" class="player-cover-button" disabled></button>
             <div id="player-album-rating">
-              <button class="rating-star" data-rating="1">&#9733;</button>
-              <button class="rating-star" data-rating="2">&#9733;</button>
-              <button class="rating-star" data-rating="3">&#9733;</button>
-              <button class="rating-star" data-rating="4">&#9733;</button>
-              <button class="rating-star" data-rating="5">&#9733;</button>
+              <button class="rating-star" data-rating="1"></button>
+              <button class="rating-star" data-rating="2"></button>
+              <button class="rating-star" data-rating="3"></button>
+              <button class="rating-star" data-rating="4"></button>
+              <button class="rating-star" data-rating="5"></button>
             </div>
-            <button id="player-album-repeat" class="player-cover-button" disabled>R</button>
+            <button id="player-album-shuffle" class="player-cover-button" disabled></button>
           </div>
         </div>
         <div id="player-seek">
@@ -68,19 +70,18 @@
           <span id="player-seek-remaining">00:00</span>
         </div>
         <div id="player-controls">
-          <button id="player-controls-previous" class="player-controls-button">&#9621;&#9664;&#9664;</button>
-          <button id="player-controls-play" class="player-controls-button">&#9654;</button>
-          <button id="player-controls-next" class="player-controls-button">&#9654;&#9654;&#9615;</button>
+          <button id="player-controls-previous" class="player-controls-button"></button>
+          <button id="player-controls-play" class="player-controls-button is-pause"></button>
+          <button id="player-controls-next" class="player-controls-button"></button>
         </div>
         <audio id="player-audio" class="hidden" controls autoplay></audio>
       </div>
     </div>
     <div id="tabs">
-      <button class="tabs-button" id="tabs-mix" data-l10n-id="mix" data-option="mix">Mix</button>
-      <button class="tabs-button" id="tabs-playlists" data-l10n-id="playlists" data-option="playlist">Playlists</button>
-      <button class="tabs-button" id="tabs-artists" data-l10n-id="artists" data-option="artist">Artists</button>
-      <button class="tabs-button" id="tabs-albums" data-l10n-id="albums" data-option="album">Albums</button>
-      <button class="tabs-button" disabled id="tabs-more" data-l10n-id="more" data-option="more">More</button>
+      <button class="tabs-button" id="tabs-mix" data-option="mix"></button>
+      <button class="tabs-button" id="tabs-playlists" data-option="playlist"></button>
+      <button class="tabs-button" id="tabs-artists" data-option="artist"></button>
+      <button class="tabs-button" id="tabs-albums" data-option="album"></button>
     </div>
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
