@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Audio Tag test</title>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+    <script>
+    var play = function _play(src) {
+      var ringtonePlayer = new Audio();
+      ringtonePlayer.loop = true;
+      var selectedSound = '../style/ringtones/' + src;
+      ringtonePlayer.src = selectedSound;
+      ringtonePlayer.play();
+      window.setTimeout(function _pauseRingtone() {
+        ringtonePlayer.pause();
+      }, 20000);
+    }
+    
+    </script>
+  </head>
+  <body>
+    <h1>Audio Tag Test</h1>
+    <h2>classic.ogg</h2>
+    <button onclick="play('classic.ogg')">Play</button></p>
+    <h2>AC_prgrssv__Retro_Alarm_Clock_v02_SOFT.ogg</h2>
+    <button onclick="play('AC_prgrssv__Retro_Alarm_Clock_v02_SOFT.ogg')">Play</button></p>
+    <h2>AC_progressive_dapple10.ogg</h2>
+    <button onclick="play('AC_progressive_dapple10.ogg')">Play</button></p>
+    <h2>AC_progressive_shimmer07.ogg</h2>
+    <button onclick="play('AC_progressive_shimmer07.ogg')">Play</button></p>
+    <h2>ALARM_progressive_dapple.mp3</h2>
+    <button onclick="play('ALARM_progressive_dapple.mp3')">Play</button></p>
+    <h2>ALARM_progressive2_dapple.mp3</h2>
+    <button onclick="play('ALARM_progressive2_dapple.mp3')">Play</button></p>
+  </body>
+</html>
