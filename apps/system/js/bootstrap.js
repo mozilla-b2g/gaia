@@ -14,6 +14,14 @@ window.addEventListener('load', function startup() {
       var value = this.result;
       console.log("******** Resultado de lanzar la firstime ********");
       console.log(JSON.stringify(value));
+      (function handleInitlogo() {
+          var initlogo = document.getElementById('initlogo');
+          initlogo.classList.add('hide');
+          initlogo.addEventListener('transitionend', function delInitlogo() {
+            initlogo.removeEventListener('transitionend', delInitlogo);
+            initlogo.parentNode.removeChild(initlogo);
+          });
+        })();
       document.getElementById('screen').classList.remove('fullscreen-app');
       document.getElementById('screen').classList.remove('ftu');
       document.getElementById('lockscreen').style.display = 'block';
