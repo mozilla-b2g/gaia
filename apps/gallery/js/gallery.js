@@ -1025,6 +1025,17 @@ function doubletap(e) {
   photoState.zoom(scale, e.detail.clientX, e.detail.clientY, 200);
 }
 
+// Calls the callback when the given
+// element fired a 'transitionend' event.
+function whenTransitionEnded(elem, callback) {
+  elem.addEventListener('transitionend', function onTransitionEnd(evt) {
+    if (evt.target == elem) {
+      elem.removeEventListener('transitionend', onTransitionEnd);
+      callback();
+    }
+  });
+}
+
 // Pan the photos sideways when the user moves their finger across the screen
 photoFrames.addEventListener('pan', function(event) {
   if (transitioning)
@@ -1097,9 +1108,9 @@ photoFrames.addEventListener('swipe', function(event) {
     photoState.swipe = 0;
     photoState.setFramesPosition();
 
-    // Ignore  pan and zoom gestures while the transition happens
+    // Ignore pan and zoom gestures while the transition happens
     transitioning = true;
-    setTimeout(function() { transitioning = false; }, time);
+    whenTransitionEnded(currentPhotoFrame, function () transitioning = false);
   }
 });
 
@@ -1219,10 +1230,6 @@ function nextPhoto(time) {
   if (currentPhotoIndex === images.length - 1)
     return;
 
-  // Set a flag to ignore pan and zoom gestures during the transition.
-  transitioning = true;
-  setTimeout(function() { transitioning = false; }, time);
-
   // Set transitions for the visible photo frames and the photoFrames element
   var transition = 'transform ' + time + 'ms ease';
   currentPhotoFrame.style.transition = transition;
@@ -1262,9 +1269,12 @@ function nextPhoto(time) {
   // Update the image for the new next photo
   displayImageInFrame(currentPhotoIndex + 1, nextPhotoFrame);
 
+  // Set a flag to ignore pan and zoom gestures during the transition.
+  transitioning = true;
+
   // When the transition is done, cleanup
-  currentPhotoFrame.addEventListener('transitionend', function done(e) {
-    this.removeEventListener('transitionend', done);
+  whenTransitionEnded(currentPhotoFrame, function () {
+    transitioning = false;
 
     // Recompute and reposition the photo that just transitioned off the screen
     previousPhotoState.reset();
@@ -1276,10 +1286,6 @@ function previousPhoto(time) {
   // if already displaying the first one, do nothing.
   if (currentPhotoIndex === 0)
     return;
-
-  // Set a flag to ignore pan and zoom gestures during the transition.
-  transitioning = true;
-  setTimeout(function() { transitioning = false; }, time);
 
   // Set transitions for the visible photo frames and the photoFrames element
   var transition = 'transform ' + time + 'ms ease';
@@ -1319,9 +1325,12 @@ function previousPhoto(time) {
   // Preload the new previous photo
   displayImageInFrame(currentPhotoIndex - 1, previousPhotoFrame);
 
+  // Set a flag to ignore pan and zoom gestures during the transition.
+  transitioning = true;
+
   // When the transition is done do some cleanup
-  currentPhotoFrame.addEventListener('transitionend', function done(e) {
-    this.removeEventListener('transitionend', done);
+  whenTransitionEnded(currentPhotoFrame, function () {
+    transitioning = false;
 
     // Recompute and reposition the photo that just transitioned off the screen
     nextPhotoState.reset();
@@ -1555,11 +1564,9 @@ PhotoState.prototype.zoom = function(scale, centerX, centerY, time) {
   if (time) {
     // If a time was specfied, animate the transformation
     this.img.style.transition = 'transform ' + time + 'ms ease';
-    var self = this;
-    this.img.addEventListener('transitionend', function done(e) {
-      self.img.removeEventListener('transitionend', done);
-      self.img.style.transition = null;
-    });
+    whenTransitionEnded(this.img, function () {
+      this.img.style.transition = null;
+    }.bind(this));
   }
 
   this._reposition();
