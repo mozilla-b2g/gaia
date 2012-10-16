@@ -92,7 +92,7 @@ suite('date picker', function() {
         var result = subject.isPast(date);
 
         assert.isFalse(result,
-            'should return false when date is in the future');
+                       'should return false when date is in the future');
       });
 
     });
@@ -331,7 +331,7 @@ suite('date picker', function() {
     var calledWith;
 
     setup(function() {
-      subject.display(2012, 0);
+      subject.display(2012, 0, 1);
     });
 
     test('#next', function() {
@@ -348,9 +348,38 @@ suite('date picker', function() {
 
   });
 
+  suite('prev/next with last day of a month', function() {
+    var calledWith;
+
+    setup(function() {
+      // init as 2012/3/31
+      subject.display(2012, 2, 31);
+    });
+
+    test('#next', function() {
+      subject.next();
+
+      // should be 2012/4/30
+      assert.equal(subject.year, 2012);
+      assert.equal(subject.month, 3);
+      assert.equal(subject.date, 30);
+    });
+
+    test('#previous', function() {
+      subject.previous();
+
+      // should be 2012/2/29
+      assert.equal(subject.year, 2012);
+      assert.equal(subject.month, 1);
+      assert.equal(subject.date, 29);
+    });
+
+  });
+
   suite('#display', function() {
     var year = 2012;
     var month = 11;
+    var date = 1;
     var calledWith;
 
     setup(function() {
@@ -359,7 +388,7 @@ suite('date picker', function() {
         calledWith = arguments;
       };
 
-      subject.display(year, month);
+      subject.display(year, month, date);
     });
 
     test('initial render', function() {
@@ -371,16 +400,12 @@ suite('date picker', function() {
 
       assert.equal(subject.year, 2012);
       assert.equal(subject.month, 11);
+      assert.equal(subject.date, 1);
       assert.ok(subject.monthDisplay);
-
-      assert.equal(
-        subject.monthDisplay.outerHTML,
-        subject._renderMonth(year, month).outerHTML
-      );
     });
 
     test('second rendering', function() {
-      subject.display(2011, 2);
+      subject.display(2011, 2, 1);
 
       assert.deepEqual(
         calledWith[0],
@@ -390,12 +415,8 @@ suite('date picker', function() {
 
       assert.equal(subject.year, 2011);
       assert.equal(subject.month, 2);
-
+      assert.equal(subject.date, 1);
       assert.ok(subject.monthDisplay);
-      assert.equal(
-        subject.monthDisplay.outerHTML,
-        subject._renderMonth(2011, 2).outerHTML
-      );
     });
   });
 
@@ -423,7 +444,7 @@ suite('date picker', function() {
     }
 
     setup(function() {
-      subject.display(2012, 1);
+      subject.display(2012, 1, 1);
     });
 
     test('select', function() {
@@ -445,7 +466,7 @@ suite('date picker', function() {
 
       assert.deepEqual(
         calledWith,
-        [new Date(2012, 1, 1), null],
+        [new Date(2012, 1, 1), new Date(2012, 1, 1)],
         'calls onvaluechange'
       );
 
