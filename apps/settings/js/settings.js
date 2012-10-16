@@ -399,6 +399,9 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
   // <body> children are hidden until the UI is translated
+  if (document.location.hash == '') {
+    document.location.hash = 'root';
+  }
   if (document.body.classList.contains('hidden')) {
     // first run: show main page
     document.body.classList.remove('hidden');
