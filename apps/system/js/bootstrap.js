@@ -5,7 +5,7 @@
 
 window.addEventListener('load', function startup() {
   function launchHomescreen() {
-    LockScreen.unlock();
+    // LockScreen.unlock();
     var activity = new MozActivity({
       name: 'ftu',
       data: { type: 'application/ftu' }
@@ -14,6 +14,10 @@ window.addEventListener('load', function startup() {
       var value = this.result;
       console.log("******** Resultado de lanzar la firstime ********");
       console.log(JSON.stringify(value));
+      document.getElementById('screen').classList.remove('fullscreen-app');
+      document.getElementById('screen').classList.remove('ftu');
+      document.getElementById('lockscreen').style.display = 'block';
+      document.getElementById('statusbar').style.visibility = 'visible';
       LockScreen.lock();
     }
     
@@ -22,7 +26,10 @@ window.addEventListener('load', function startup() {
     };
   }
 
- 
+  document.getElementById('screen').classList.add('fullscreen-app');
+  document.getElementById('screen').classList.add('ftu');
+  document.getElementById('lockscreen').style.display = 'none';
+  document.getElementById('statusbar').style.visibility = 'hidden';
 
   if (Applications.ready) {
     
