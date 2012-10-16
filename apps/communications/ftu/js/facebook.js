@@ -14,11 +14,6 @@ var FacebookIntegration = {
 	init: function fb_init(){
 		this.fbImport.addEventListener('click', this);
 		document.addEventListener('fb_imported', this);
-    var self = this;
-    window.addEventListener('message', function(evt) {
-      //Avoid infinite scroll if we abort the import
-      self.fbExtensions.classList.add('hidden');
-    })
 	},
 	handleEvent: function fb_he(event) {
 		switch(event.type) {
@@ -28,7 +23,7 @@ var FacebookIntegration = {
 				break;
 
 			case 'fb_imported':
-				this.fbExtensions.classList.add('hidden');
+        this.fbExtensions.classList.add('hidden');
 				this.updateContactsNumber();
 				break;
 		}
@@ -38,8 +33,11 @@ var FacebookIntegration = {
 		fbMessage.textContent = '... checking';
 
 		var fbUpdateTotals = function fbUpdateTotals(imported, total) {
-		    var theTotal = total || 'unknow number of contacts';
-		    fbMessage.textContent = imported + ' imported of ' + theTotal;
+        if (total == null) {
+          fbMessage.textContent = 'Contacts not imported';
+        } else {
+  		    fbMessage.textContent = imported + ' imported of ' + total;
+        }
 		  };
 
 		var req = fb.utils.getNumFbContacts();
