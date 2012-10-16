@@ -310,3 +310,22 @@ dl dd {
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
 }
 
+
+/******************************************************************************
+ * Applications Permissions
+ */
+#appPermissions ul li > a {
+  padding: 0 -moz-calc(4.1rem - 30px);
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 1.8rem;
+  color: #000;
+}
+
+#appPermissions ul li img {
+  float: left;
+  margin-top: -moz-calc(3rem - 15px);
+  margin-right: 1.4rem;
+  width: 30px;
+  height: 30p;
+}
