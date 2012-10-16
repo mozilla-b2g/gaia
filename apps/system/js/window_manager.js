@@ -411,7 +411,7 @@ var WindowManager = (function() {
       return;
     }
 
-    var req = frame.getScreenshot();
+    var req = frame.getScreenshot(frame.offsetWidth, frame.offsetHeight);
 
     // This serve as a workaround of
     // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
