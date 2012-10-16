@@ -75,7 +75,7 @@
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -95,7 +95,7 @@
    * Handle ICC Commands
    */
   function handleSTKCommand(command) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -203,7 +203,7 @@
    * Navigate through all available STK applications
    */
   function updateMenu() {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -247,7 +247,7 @@
   }
 
   function onMainMenuItemClick(event) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -262,7 +262,7 @@
    * Navigate through the STK application options
    */
   function updateSelection(command) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -291,7 +291,7 @@
   }
 
   function onSelectOptionClick(command, event) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
@@ -310,7 +310,7 @@
    *   'text':'Caption String','minLength':3,'maxLength':15,'isAlphabet':true}}
    */
   function updateInput(command) {
-    if (icc == null) {
+    if (icc === null) {
       return debug("No ICC registered !");
     }
 
