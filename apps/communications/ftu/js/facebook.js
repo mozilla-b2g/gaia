@@ -14,6 +14,11 @@ var FacebookIntegration = {
 	init: function fb_init(){
 		this.fbImport.addEventListener('click', this);
 		document.addEventListener('fb_imported', this);
+    var self = this;
+    window.addEventListener('message', function(evt) {
+      //Avoid infinite scroll if we abort the import
+      self.fbExtensions.classList.add('hidden');
+    })
 	},
 	handleEvent: function fb_he(event) {
 		switch(event.type) {
@@ -26,7 +31,6 @@ var FacebookIntegration = {
 				this.fbExtensions.classList.add('hidden');
 				this.updateContactsNumber();
 				break;
-
 		}
 	},
 	updateContactsNumber: function fb_ucn() {
