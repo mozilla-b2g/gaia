@@ -24,7 +24,8 @@ ul li:active {
   color: #222;
 }
 
-ul li > a {
+ul li > a,
+ul li > span {
   display: block;
   text-decoration: none;
   outline: 0;
@@ -262,7 +263,7 @@ ul li select {
 }
 
 /* half-width select boxes */
-ul li a select {
+ul li span select {
   display: inline-block;
   position: absolute;
   top: 1.5rem;
