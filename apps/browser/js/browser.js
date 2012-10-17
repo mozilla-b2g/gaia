@@ -32,6 +32,8 @@ var Browser = {
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
   MAX_TOP_SITES: 4, // max number of top sites to display
+  MAX_THUMBNAIL_WIDTH: 140,
+  MAX_THUMBNAIL_HEIGHT: 100,
   FIRST_TAB: 'tab_0',
 
   urlButtonMode: null,
@@ -294,7 +296,8 @@ var Browser = {
         // We capture screenshots for everything when loading is
         // completed, but set background tabs inactive
         if (tab.dom.getScreenshot) {
-          tab.dom.getScreenshot().onsuccess = (function(e) {
+          tab.dom.getScreenshot(this.MAX_THUMBNAIL_WIDTH,
+            this.MAX_THUMBNAIL_HEIGHT).onsuccess = (function(e) {
             tab.screenshot = e.target.result;
             if (!isCurrentTab) {
               this.setTabVisibility(tab, false);
@@ -1007,7 +1010,7 @@ var Browser = {
             icon: item.icon,
             label: item.label,
             callback: function() {
-              evt.detail.contextMenuItemSelected(item.id)
+              evt.detail.contextMenuItemSelected(item.id);
             }
           });
         } else if (item.type === 'menu') {

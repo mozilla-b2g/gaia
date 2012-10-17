@@ -86,6 +86,11 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   z-index: 5;
 }
 
+form[role="dialog"][data-type="edit"] header menu button {
+  color: #fff;
+  border: none;
+}
+
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
   background: url(edit_mode/images/ui/separator.png) no-repeat left center;
   margin-left: -2px;
@@ -241,4 +246,3 @@ form[role="dialog"][data-type="edit"] menu button {
 form[role="dialog"][data-type="edit"] menu button.full {
   width: 100%;
 }
-
