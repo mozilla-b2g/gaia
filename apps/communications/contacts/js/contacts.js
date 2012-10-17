@@ -580,6 +580,10 @@ var Contacts = (function() {
     loading.classList.remove('show-overlay');
   };
 
+  var stopPropagation = function stopPropagation(evt) {
+    evt.preventDefault();
+  }
+
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
@@ -605,7 +609,8 @@ var Contacts = (function() {
       '#details-back': handleBack, // Details
       '#edit-contact-button': showEditContact,
       '#toggle-favorite': contacts.Details.toggleFavorite,
-      '#contact-form > button': contacts.Form.onNewFieldClicked
+      '#contact-form > button': contacts.Form.onNewFieldClicked,
+      'button[type="reset"]': stopPropagation
     });
   };
 
