@@ -5,7 +5,7 @@
         var _this = this,
             _name = "Tips",
             $el = null, $elScreen = null,
-            text = "", buttons = [], className = "", closeAfter = false, showAfter = false,
+            id = '', text = "", buttons = [], className = "", closeAfter = false, showAfter = false,
             blockScreen = false, timesToShow = Infinity, timesShown = 0, closeOnClick = false,
             timeoutAutoHide = null,
             onHide = _onHide || null, onShow = _onShow || null;
@@ -13,8 +13,8 @@
         var CSS_TRANSITION_TIME = 400;
         
         this.init = function(options, bIgnoreStorage) {
-            if (options.enabled === false) {
-                return;
+            if ('enabled' in options && enabled.enabled === false) {
+                return false;
             }
             
             id = "tip_" + options.id;
@@ -54,8 +54,8 @@
         };
         
         this.show = function() {
-            if (!$el) return;
-            if (timesShown >= timesToShow) return;
+            if (!$el) return false;
+            if (timesShown >= timesToShow) return false;
             
             if (currentTip) {
                 currentTip.hide("other-tip");

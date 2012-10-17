@@ -1,14 +1,17 @@
 Evme.DoATAPI = new function() {
     var _name = "DoATAPI", _this = this,
         requestRetry = null,
-        cached = [];
-    var deviceId = getDeviceId(),
+        cached = [],
+        
+        apiKey = '',
+        deviceId = getDeviceId(),
         NUMBER_OF_RETRIES = 3,                          // number of retries before returning error
         RETRY_TIMEOUT = {"from": 1000, "to": 3000},     // timeout before retrying a failed request
         MAX_REQUEST_TIME = 10000,                       // timeout before declaring a request as failed (if server isn't responding)
         MAX_ITEMS_IN_CACHE = 20,                        // maximum number of calls to save in the user's cache
         CACHE_EXPIRATION_IN_MINUTES = 30,
         STORAGE_KEY_CREDS = "credentials",
+        authCookieName = '',
         userLat = undefined,
         userLon = undefined,
         appVersion = undefined,
@@ -604,7 +607,7 @@ Evme.DoATAPI = new function() {
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
             requestsQueue[JSON.stringify(options)] = options;
             reInitSession(shouldInit.cause);
-            return;
+            return false;
         }
         
         // add the lat,lon to the cache key (DUH)
@@ -620,7 +623,7 @@ Evme.DoATAPI = new function() {
                 var fromCache = getFromCache(cacheKey);
                 if (fromCache) {
                     callback && callback(fromCache);
-                    return;
+                    return false;
                 }
             }
         }
@@ -924,7 +927,7 @@ Evme.Request = function() {
     };
     
     this.request = function() {
-        if (aborted) return;
+        if (aborted) return false;
         
         requestSentTime = (new Date()).getTime();
         

@@ -1,7 +1,6 @@
 Evme.Connection = new function() {
-    
     var _name = "Connection", _this = this,
-            $el = null;
+        $el = null, $parent = null;
             
     var EL_ID = "connection-message",
         CLASS_NO_CONNECTION = "connection-error",

@@ -25,17 +25,19 @@
     }
     #search-overlay .img {
         -moz-transition: opacity .3s linear;
-        -webkit-transition: opacity .3s linear;
-        -ms-transition: opacity .3s linear;
-        -o-transition: opacity .3s linear;
         transition: opacity .3s linear;
-        -webkit-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
-        -webkit-box-sizing: border-box;
-        -webkit-backface-visibility: hidden;
+        -moz-transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
     }
     #search-overlay .img.visible {
         opacity: 0.4;
     }
+    #search-overlay .img.default-image.visible {
+        opacity: 0;
+    }
+    #search-overlay.default .img.default-image.visible {
+        opacity: 1;
+    }
+
 
 #bgimage-overlay {
     position: absolute;
@@ -45,9 +47,6 @@
     bottom: 0;
     opacity: 0;
     -moz-transition: opacity .5s linear;
-    -webkit-transition: opacity .5s linear;
-    -ms-transition: opacity .5s linear;
-    -o-transition: opacity .5s linear;
     transition: opacity .5s linear;
     z-index: 1;
 }
@@ -89,7 +88,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            -ms-text-overflow: ellipsis;
             display: none;
         }
         #bgimage-overlay.nosource .content .image-title {
