@@ -10,6 +10,16 @@ var SystemUpdater = {
 
   init: function su_init() {
     window.addEventListener('mozChromeEvent', this);
+    SettingsListener.observe('gaia.system.checkForUpdates', false,
+                             this.checkForUpdates.bind(this));
+  },
+
+  checkForUpdates: function su_checkForUpdates(shouldCheck) {
+    if (!shouldCheck) {
+      return;
+    }
+
+    this._dispatchEvent('force-update-check');
   },
 
   showDownloadPrompt: function su_showDownloadPrompt() {
@@ -93,6 +103,18 @@ var SystemUpdater = {
     this._dispatchEvent('update-prompt-apply-result', 'restart');
   },
 
+  showUpdateError: function su_showUpdateError(update) {
+    var _ = navigator.mozL10n.get;
+    var message = update.statusText ||
+                  _('unknownUpdateError', { code: update.errorCode });
+
+    var title = update.state == 'failed' ? _('updateApplyError') :
+                                           _('updateDownloadError');
+
+    NotificationHelper.send(title, message,
+        'style/system_updater/images/download.png');
+  },
+
   handleEvent: function su_handleEvent(evt) {
     if (evt.type !== 'mozChromeEvent')
       return;
@@ -123,15 +145,20 @@ var SystemUpdater = {
         var progress = detail.progress / detail.total;
         this.updateProgress(progress);
         break;
+      case 'update-error':
+        this.showUpdateError(detail);
+        break;
     }
   },
 
-  _dispatchEvent: function su_dispatchEvent(type, value) {
+  _dispatchEvent: function su_dispatchEvent(type, result) {
     var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: type,
-      result: value
-    });
+    var data = { type: type };
+    if (result) {
+      data.result = result;
+    }
+
+    event.initCustomEvent('mozContentEvent', true, true, data);
     window.dispatchEvent(event);
   }
 };

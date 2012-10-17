@@ -487,7 +487,8 @@ input::-moz-focus-inner {
 #top-site-thumbnails li span {
   font-size: 12px;
   display: block;
-  width: 140px;
+  width: 134px;
+  height: 15px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -496,6 +497,7 @@ input::-moz-focus-inner {
   position: absolute;
   bottom: 0px;
   padding: 3px;
+  pointer-events: none;
 }
 
 #awesomescreen {
@@ -802,39 +804,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#cover {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 500;
-}
-
-#cover ul {
-  background: white;
-  width: 80%;
-  margin: 20px auto;
-  padding: 0;
-  list-style-type: none;
-}
-
-#cover ul li {
-  font-family: 'MozTT', sans-serif;
-  padding: 15px;
-  border-bottom: 1px solid #CCC;
-  cursor: pointer;
-}
-
-#cover ul li:hover, #cover ul li:active {
-  background: #EEE;
-}
-
-#cover ul li img {
-  margin-right: 10px;
-}
-
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt {
@@ -880,32 +849,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#settings header {
-  background-color: #475659;
-  height: 50px;
-  background-image: linear-gradient(#323639, #272B2E);
-}
-
-#settings header h1 {
-  font-size: 20px;
-  color: white;
-  margin: 0;
-  line-height: 50px;
-  padding-left: 10px;
-  width: 100%;
-  font-weight: normal;
-}
-
-#settings header menu[type="toolbar"] {
-  height: 50px;
-  display: inline;
-}
-
-#settings h3 {
-  margin: 0 30px 15px 30px;
-  padding: 0;
-}
-
 #settings ul {
   margin: 0;
   padding: 0;
@@ -914,15 +857,6 @@ li[role="listitem"] small {
 #settings li {
   margin: 10px 30px;
   list-style-type: none;
-}
-
-#settings header button {
-  color: #fff;
-  height: 50px;
-}
-
-#settings header button:active {
-  background-color: rgba(0, 0, 0, 0.7);
 }
 
 #settings li button {
@@ -943,12 +877,6 @@ li[role="listitem"] small {
 #enable-cookies input {
   position: relative;
   top: -2px;
-}
-
-#settings-done-button {
-  width: 30px;
-  background: url(images/back-icon.png) no-repeat -3px center,
-    url('images/separator-large.png') no-repeat 20px center;
 }
 
 #settings [disabled="disabled"] {

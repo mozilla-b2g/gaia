@@ -3,7 +3,8 @@ body, html {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  font-family: 'MozTT', sans-serif;
+  font-family: "MozTT Light"; 
+  font-weight: normal;
   font-size: 20px;
   background: url("images/background.png") no-repeat 0 -20px;
 }
@@ -25,8 +26,9 @@ input {
   background-position: 4px 0;
 
   color: white;
-  font-family: monospace;
-  font-size: 1.1rem;
+  font-family: "MozTT Medium"; 
+  font-weight:normal;
+  font-size: 2.82mozmm;
 
   width: 78px;
   height: 3rem;

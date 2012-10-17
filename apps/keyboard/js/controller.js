@@ -44,6 +44,7 @@ const IMEController = (function() {
   var _currentKey = null;
   var _realInputType = null;
   var _currentInputType = null;
+  var _currentInputMode = null;  // value of the inputmode attribute
   var _menuLockedArea = null;
   var _lastHeight = 0;
   var _lastKeyCode = 0;
@@ -145,8 +146,17 @@ const IMEController = (function() {
     return '';
   }
 
+  var capitalizedInputModes = {
+    '': true,
+    'latin-prose': true,
+    'latin-name': true,
+    'full-latin-width': true
+  };
+
   function _requireAutoCapitalize() {
-    return (_realInputType == 'text' || _realInputType == 'textarea');
+    return (_realInputType == 'text' || _realInputType == 'textarea') &&
+      (_currentInputMode == undefined ||
+       _currentInputMode in capitalizedInputModes);
   }
 
   // Add some special keys depending on the input's type
@@ -1121,17 +1131,18 @@ const IMEController = (function() {
     uninit: _uninit,
 
     // Show IME, receives the input's type
-    showIME: function kc_showIME(type) {
+    showIME: function kc_showIME(state) {
       delete IMERender.ime.dataset.hidden;
       IMERender.ime.classList.remove('hide');
 
-      _realInputType = type;
-      _currentInputType = _mapType(type);
+      _realInputType = state.type;
+      _currentInputType = _mapType(state.type);
+      _currentInputMode = state.inputmode;
       _reset();
 
       if (_requireIME()) {
         if (_getCurrentEngine().show) {
-          _getCurrentEngine().show(type);
+          _getCurrentEngine().show(state.type);
         }
       }
 

@@ -58,6 +58,8 @@ var ModalDialog = {
     window.addEventListener('resize', this);
     window.addEventListener('keyboardchange', this);
     window.addEventListener('keyboardhide', this);
+    window.addEventListener('home', this);
+    window.addEventListener('holdhome', this);
 
     for (var id in elements) {
       var tagName = elements[id].tagName.toLowerCase();
@@ -73,7 +75,8 @@ var ModalDialog = {
     switch (evt.type) {
       case 'mozbrowsererror':
       case 'mozbrowsershowmodalprompt':
-        if (evt.target.dataset.frameType != 'window')
+        var frameType = evt.target.dataset.frameType;
+        if (frameType != 'window' && frameType != 'inline-activity')
           return;
 
         /* fatal case (App crashing) is handled in Window Manager */
@@ -86,7 +89,8 @@ var ModalDialog = {
 
         // Show modal dialog only if
         // the frame is currently displayed.
-        if (origin == WindowManager.getDisplayedApp())
+        if (origin == WindowManager.getDisplayedApp() ||
+            frameType == 'inline-activity')
           this.show(origin);
         break;
 
@@ -110,6 +114,14 @@ var ModalDialog = {
 
       case 'appopen':
         this.show(evt.detail.origin);
+        break;
+
+      case 'home':
+      case 'holdhome':
+        // Inline activity, which origin is different from foreground app
+        if (this.isVisible() && 
+            this.currentOrigin != WindowManager.getDisplayedApp())
+          this.cancelHandler();
         break;
 
       case 'appwillclose':

@@ -28,7 +28,8 @@ var Permissions = (function() {
       pending = [];
     },
 
-    show: function permissions_show(title, msg, yeslabel, nolabel, yescallback, nocallback) {
+    show: function permissions_show(
+        title, msg, yeslabel, nolabel, yescallback, nocallback) {
       if (screen === null) {
         screen = document.createElement('div');
         screen.id = 'permission-screen';

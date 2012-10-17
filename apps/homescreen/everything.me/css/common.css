@@ -28,7 +28,6 @@
 }
 
 #evmeContainer .textinput {
-    -webkit-appearance: none;
     border: none;
     background: #fff;
     width: 100%;
@@ -37,12 +36,7 @@
     color: #000;
     padding: 0 4px;
     margin: 0 -4px;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
     border-radius: 6px;
-    -moz-box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
-    -webkit-box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
-    -o-box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
     box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 2px 0 0 rgba(255, 255, 255, .2), 0 1px 2px 0 rgba(0, 0, 0, .4) inset;
 }
 #evmeContainer .screen {
@@ -66,10 +60,6 @@
     cursor: pointer;
     border: 1px solid #8dc1d2;
     background: -moz-linear-gradient(center top, #d1e8f0 0, #89c4d8 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #d1e8f0), color-stop(1, #89c4d8));
-    -moz-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
-    -webkit-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
-    -ms-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, .4) inset;
 }
     #evmeContainer .arrow-next:before {
@@ -83,13 +73,8 @@
         border-top: 3px solid #000;
         border-right: 3px solid #000;
         -moz-transform: rotate(45deg);
-        -webkit-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
         transform: rotate(45deg);
         z-index: 55;
-        -moz-box-shadow: 1px 0 0 0 #ffffff, 0 1px 0 0 #ffffff inset;
-        -webkit-box-shadow: 1px 0 0 0 #ffffff, 0 1px 0 0 #ffffff inset;
-        -ms-box-shadow: 1px 0 0 0 #ffffff, 0 1px 0 0 #ffffff inset;
         box-shadow: 1px 0 0 0 #ffffff, 0 1px 0 0 #ffffff inset;
     }
 
@@ -106,27 +91,16 @@
     border: 1px solid #82bccf;
     background: #def;
     background: -moz-linear-gradient(center top, #cfe7ef 0, #bfdee9 50%, #b3dae7 50%, #8fc7da 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #cfe7ef), color-stop(0.5, #bfdee9), color-stop(0.5, #b3dae7), color-stop(1, #8fc7da));
-    -moz-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-    -webkit-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-    -ms-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
     box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -ms-border-radius: 4px;
     border-radius: 4px;
     cursor: pointer;
     -moz-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
-    user-select: none;
 }
 #evmeContainer .bbutton.active {
     color: #fff;
     border-color: #6fadc2;
     text-shadow: 0 -1px 0 rgba(0, 0, 0, .5);
     background: -moz-linear-gradient(center top, #07a7db 0, #038cb8 50%, #0384ad 50%, #017297 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #07a7db), color-stop(0.5, #038cb8), color-stop(0.5, #0384ad), color-stop(1, #017297));
 }
 
 #evmeContainer .pbutton {
@@ -139,19 +113,12 @@
     border-radius: 6px;
     background: #933e77;
     background: -moz-linear-gradient(center top, #a8548d 0, #8d3972 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #a8548d), color-stop(1, #8d3972));
-    -moz-box-shadow: 0 1px 1px 0 rgba(255, 255, 255, .3) inset;
-    -webkit-box-shadow: 0 1px 1px 0 rgba(255, 255, 255, .3) inset;
-    -ms-box-shadow: 0 1px 1px 0 rgba(255, 255, 255, .3) inset;
     box-shadow: 0 1px 1px 0 rgba(255, 255, 255, .3) inset;
 }
 
 /* When clicking on an app */
 .loading-app #header {
     -moz-transition: all .2s linear;
-    -webkit-transition: all .2s linear;
-    -ms-transition: all .2s linear;
-    -o-transition: all .2s linear;
     transition: all .2s linear;
     opacity: 0 !important;
 }

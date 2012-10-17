@@ -513,7 +513,7 @@ footer {
 }
 
 #edit-effect-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
   outline-offset: -3px;
 }
 
@@ -534,7 +534,7 @@ footer {
 }
 
 #edit-crop-options a.selected.radio.button {
-  outline: solid orange 2px;
+  outline: solid #00aacc 2px;
   outline-offset: -2px;
 }
 
@@ -594,7 +594,7 @@ footer {
 
 /* All the effects radio buttons share these styles */
 #edit-effect-options > a.radio.button {
-  width: 33.3%;
+  width: 20%;
   padding-top: 15px;
 }
 
@@ -602,16 +602,28 @@ footer {
   left:0;
 }
 #edit-effect-bw {
-  left:33.3%
+  left:20%
 }
 #edit-effect-sepia {
-  left:66.6%
+  left:40%
+}
+#edit-effect-bluesteel {
+  left:60%
+}
+#edit-effect-faded {
+  left:80%
 }
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
 a.filter-sepia {
   filter: url(../index.html#filter-sepia);
+}
+a.filter-bluesteel {
+  filter: url(../index.html#filter-bluesteel);
+}
+a.filter-faded {
+  filter: url(../index.html#filter-faded);
 }
 
 /* All the border buttons share these styles */
@@ -628,7 +640,7 @@ a.filter-sepia {
 }
 
 #edit-border-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
 }
 
 #edit-border-none {
@@ -662,7 +674,7 @@ a.filter-sepia {
 
 /* If the button is selected, it has a different background */
 #edit-toolbar > .button.selected {
-  background: #267594;
+  background: #02252C;
 }
 
 #edit-exposure-button {

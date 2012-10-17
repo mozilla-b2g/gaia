@@ -89,11 +89,11 @@ Evme.__config = {
     "maxHistoryEntries": "10",
     "texts": {
         "searchbar": {
-            "defaultText": "Show apps related to...",
+            "defaultText": "Everything...",
             "clear": "Back"
         },
         "helper": {
-            "defaultText": "Find things you love with the coolest apps",
+            "defaultText": "Enter any topic or search query",
             "dismiss": "Dismiss",
             "noRefine": "no refinement available",
             "titleShortcuts": "Categories:",

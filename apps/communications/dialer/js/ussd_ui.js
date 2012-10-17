@@ -104,12 +104,10 @@ var UssdUI = {
 
     switch (evt.data.type) {
       case 'success':
-        this.showMessage(evt.data.result ?
-          evt.data.result : this._('message-successfully-sent'));
+        this.showMessage(evt.data.result);
         break;
       case 'error':
-        this.showMessage(evt.data.error ?
-          evt.data.error : this._('ussd-server-error'));
+        this.showMessage(evt.data.error);
         break;
       case 'ussdreceived':
         this.showMessage(evt.data.message);

@@ -82,7 +82,7 @@
   overflow: hidden;
   border: none;
   height: auto;
-  line-height: auto;
+  line-height: normal;
 }
 
 #modal-dialog-select-one ul > li > button {
