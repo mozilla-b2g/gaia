@@ -15,7 +15,7 @@ body[role="application"] [role="dialog"] {
   bottom: 0;
   white-space: nowrap;
   padding: 1.5rem 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   color: #fff;
 }
 
@@ -37,7 +37,7 @@ body[role="application"] [role="dialog"] > div {
 }
 
 body[role="application"] [role="dialog"] h3 {
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;

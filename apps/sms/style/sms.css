@@ -33,7 +33,7 @@ html, body {
   margin: 0;
   overflow-x: hidden !important;
   overflow-y: hidden !important;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
 }
 
 /* Override Building Block [Header] styles */
@@ -329,7 +329,7 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 #thread-list-container .name {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
   font-size: calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
@@ -341,7 +341,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 
 #thread-list-container .msg {
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
   font-size: calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
@@ -615,7 +615,7 @@ a.unread .unread-mark .icon-unread-mark {
   border: 0.1rem solid rgba(0,0,0,.3);
   box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
   font-size: calc(7 * 0.226rem);
-  font-family: 'Open Sans';
+  font-family: 'MozTT';
 }
 
 #send-message-container {

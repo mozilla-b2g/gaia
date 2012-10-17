@@ -109,8 +109,12 @@ suite('views/months_day', function() {
     var date = new Date();
     var span = Calendar.Calc.spanOfDay(date);
 
+
     subject.render();
     assert.deepEqual(subject.timespan, span);
+
+    assert.ok(subject.allDayElement, 'has all day');
+    assert.ok(subject.events, 'has events');
 
     var html = subject.header.outerHTML;
     assert.ok(html);

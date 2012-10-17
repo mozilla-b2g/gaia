@@ -1,6 +1,6 @@
 /* override section[role="dialog"] h3 */
 #date-picker h3 {
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;

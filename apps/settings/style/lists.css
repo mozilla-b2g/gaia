@@ -83,11 +83,11 @@ ul li > small:not(:empty) + a {
  * Boolean inputs
  */
 
-ul li button, ul li a[role=button] {
-  display: block;
-  margin: auto;
+ul li button,
+ul li a[role=button] {
   position: relative;
   top: 1rem;
+  left: 2rem;
   font-size: 1.5rem;
   line-height: 1em;
   width: calc(100% - 5rem);
@@ -95,6 +95,10 @@ ul li button, ul li a[role=button] {
 }
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li label {
+  text-transform: none;
+}
+
 ul li > label:not([for]) {
   position: absolute;
   top: 0;

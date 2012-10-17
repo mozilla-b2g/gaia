@@ -5,7 +5,7 @@ var MockMozMobileConnection = {
   _ussd_listener_object: null,
   _ussd_message_sent: false,
   _ussd_cancelled: false,
-  sendUSSD: function mmmc_sendUSSD(message) {
+  sendMMI: function mmmc_sendMMI(message) {
     this._ussd_message_sent = true;
     var evt = {
       type: 'ussdreceived',
@@ -19,7 +19,7 @@ var MockMozMobileConnection = {
     var domRequest = {};
     return domRequest;
   },
-  cancelUSSD: function mmmc_cancelUSSD() {
+  cancelMMI: function mmmc_cancelMMI() {
     this._ussd_cancelled = true;
   },
   addEventListener: function mmmc_addEventListener(event_name, listener) {

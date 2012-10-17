@@ -12,13 +12,11 @@ Calendar.ns('Views').CalendarColors = (function() {
     document.head.appendChild(sheet);
 
     this._styles = document.styleSheets[document.styleSheets.length - 1];
-    this._lastRuleId = -1;
     this._initEvents();
   }
 
   Colors.prototype = {
-
-    prefix: 'calendar-id-',
+    __proto__: Calendar.View.prototype,
 
     _initEvents: function() {
       // handle changes in calendar
@@ -58,11 +56,13 @@ Calendar.ns('Views').CalendarColors = (function() {
      * @param {Calendar.Models.Calendar|String} item model or string.
      */
     getId: function(item) {
+      var id;
       if (item instanceof Calendar.Models.Calendar) {
-        return this.prefix + item._id;
+        id = item._id;
       } else {
-        return this.prefix + item;
+        id = item;
       }
+      return this.calendarId(String(id));
     },
 
     /**
@@ -84,10 +84,12 @@ Calendar.ns('Views').CalendarColors = (function() {
         // when found we can simply mutate
         // the properties on the rules.
         map = this._ruleMap[id];
+
         var bgStyle = map.bg.style;
         var displayStyle = map.display.style;
 
         bgStyle.backgroundColor = color;
+        bgStyle.borderColor = color;
 
         if (!calendar.localDisplayed) {
           displayStyle.setProperty('display', 'none');
@@ -98,7 +100,7 @@ Calendar.ns('Views').CalendarColors = (function() {
       } else {
 
         // increment index for rule...
-        var ruleId = ++this._lastRuleId;
+        var ruleId = this._styles.cssRules.length;
 
         // We need to store the ids of created
         // rules for deletion later on.
@@ -110,9 +112,13 @@ Calendar.ns('Views').CalendarColors = (function() {
         };
 
         // calendar coloring
-        var bgBlock = '.' + id + '.calendar-color, ';
-        bgBlock += '.' + id + ' .calendar-color ';
-        bgBlock += '{ background-color: ' + color + '; }';
+        var bgBlock = '.' + id + '.calendar-color ';
+        bgBlock += '{';
+        // some visual elements like busy bars work better with background
+        bgBlock += '  background-color: ' + color + ';';
+        // others like the event views work better with borders
+        bgBlock += '  border-color: ' + color + ';';
+        bgBlock += '}';
 
         // insert rule save it for later so we don't
         // need to lookup the id
@@ -122,7 +128,7 @@ Calendar.ns('Views').CalendarColors = (function() {
 
         // Increment the rule id so we can
         // use the incremented value for the next rule.
-        this._lastRuleId = ruleId += 1;
+        ruleId += 1;
 
         var displayBlock = '.' + id + '.calendar-display';
 
@@ -131,7 +137,6 @@ Calendar.ns('Views').CalendarColors = (function() {
         } else {
           displayBlock += '{ display: inherit; }';
         }
-
 
         this._styles.insertRule(
           displayBlock,

@@ -940,6 +940,7 @@ var PlayerView = {
     }
 
     this.playControl.innerHTML = '||';
+    this.playControl.classList.remove('is-pause');
   },
 
   pause: function pv_pause() {
@@ -947,7 +948,8 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.innerHTML = '&#9654;';
+    this.playControl.innerHTML = '';
+    this.playControl.classList.add('is-pause');
   },
 
   next: function pv_next() {
@@ -1057,6 +1059,8 @@ var PlayerView = {
         }
 
         if (target.dataset.rating) {
+          this.showInfo();
+
           var songData = this.dataSource[this.currentIndex];
           songData.metadata.rated = parseInt(target.dataset.rating);
 

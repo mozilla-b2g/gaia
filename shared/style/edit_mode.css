@@ -11,7 +11,7 @@ form[role="dialog"][data-type="edit"] {
   right: 0;
   bottom: 0;
   white-space: nowrap;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   color: #fff;
   pointer-events: none;
 }
@@ -41,7 +41,7 @@ form[role="dialog"][data-type="edit"] header:after {
 }
 
 form[role="dialog"][data-type="edit"] header h1 {
-  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
+  font: 2.2rem/4.8rem "MozTT", Sans-serif;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -57,7 +57,7 @@ form[role="dialog"][data-type="edit"] header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
+  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
   color: #fff;
   border-radius: 0;
 }
@@ -84,6 +84,11 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   text-shadow: none;
   position: relative;
   z-index: 5;
+}
+
+form[role="dialog"][data-type="edit"] header menu button {
+  color: #fff;
+  border: none;
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
@@ -166,7 +171,7 @@ form[role="dialog"][data-type="edit"] menu button {
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #333;
@@ -241,4 +246,3 @@ form[role="dialog"][data-type="edit"] menu button {
 form[role="dialog"][data-type="edit"] menu button.full {
   width: 100%;
 }
-

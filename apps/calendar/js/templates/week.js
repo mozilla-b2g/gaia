@@ -11,13 +11,16 @@
     ].join(''),
 
     event: [
-      '<li class="event calendar-id-{calendarId}' +
-           'calendar-display calendar-color" data-id="{eventId}">',
-        '{title}',
+      '<li class="event" data-id="{eventId}">',
+        '<div class="container calendar-id-{calendarId} ' +
+                    'calendar-display calendar-color">',
+          '{title}',
+        '</div>',
       '</li>'
     ].join('')
   });
 
+  Week.eventSelector = '.event';
   Calendar.ns('Templates').Week = Week;
 }(this));
 
