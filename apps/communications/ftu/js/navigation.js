@@ -84,6 +84,7 @@ var Navigation = {
 						UIManager.mainTitle.innerHTML = "Wifi";
 						UIManager.activationScreen.classList.remove("no-options");
 						UIManager.navBar.classList.remove('secondary-menu');
+						console.log("ESTOY EN WIFI");
 						WifiManager.scan(UIManager.renderNetworks);
 						break;
 					case '#date_and_time':

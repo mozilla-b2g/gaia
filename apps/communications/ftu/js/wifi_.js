@@ -1,23 +1,32 @@
 var WifiManager = {
 
 	init: function init(){
-		if ('mozWifiManager' in navigator){
-			this.api = navigator.mozWifiManager;
+
+		if ('mozWifiManager' in window.navigator){
+			this.api = window.navigator.mozWifiManager;
+			this.changeStatus();
+			
+			console.log("YA TENGO LA API");
 			this.gCurrentNetwork = this.api.connection.network;
-			WifiManager.changeStatus();
-			this.enable(true);
+			
+			// this.enable();
+			// this.api.onenabled = function onWifiEnabled() {
+		 //    console.log("Coño un cambio!");
+		 //  };
 		}
 	},
 	scan:function scan(callback){
-		if ('mozWifiManager' in navigator){
-			this.enable();
+		if ('mozWifiManager' in window.navigator){
+			// this.enable();
+			console.log("ESCANEANDO");
+
 			var req = WifiManager.api.getNetworks();
 			var self = this;
     	req.onsuccess = function onScanSuccess() {
     		self.networks = req.result;
-        callback(self.networks) ;
+				callback(self.networks) ;
     	};
-    	req.onerror = function (){
+    	req.onerror = function onScanError(){
     		console.log('Error reading networks');
     	};
 		}else{
@@ -57,27 +66,36 @@ var WifiManager = {
 	},
 	enable: function enable(firstTime){
 		// Inicializamos la WIFI para que esté disponible para despues
-		console.log("*************************************");
+		console.log("******** ENABLE!");
+		WifiManager.api.onenabled = function onWifiEnabled() {
+	    console.log("YA ESTA ACTIVADO");
+	  };
 		var settings = window.navigator.mozSettings;
-		if (!settings.createLock) {
-			console.log("****** CREATE LOCK FAIL");
-			return;
-		}
-		console.log("****** CREATE LOCK DEL TIRON");
-		var req = settings.createLock().get('wifi.enabled');
-  	req.onsuccess = function wf_getStatusSuccess() {
-  		if(!req.result['wifi.enabled']){
-  			settings.createLock().set({'wifi.enabled': true});
-  		}else{
-  			if(firstTime){
-  				settings.createLock().set({'wifi.enabled': false});
-  			}
+		settings.createLock().set({'wifi.enabled': true});
+		console.log("******** ENABLED!");
+		
+
+		// console.log("*************************************");
+		// var settings = window.navigator.mozSettings;
+		// if (!settings.createLock) {
+		// 	console.log("****** CREATE LOCK FAIL");
+		// 	return;
+		// }
+		// console.log("****** CREATE LOCK DEL TIRON");
+		// var req = settings.createLock().get('wifi.enabled');
+  // 	req.onsuccess = function wf_getStatusSuccess() {
+  // 		if(!req.result['wifi.enabled']){
+  // 			settings.createLock().set({'wifi.enabled': true});
+  // 		}else{
+  // 			if(firstTime){
+  // 				settings.createLock().set({'wifi.enabled': false});
+  // 			}
   			
-  		}
-  	};
-  	req.onerror = function() {
-  		console.log("Error changing status.");
-  	};
+  // 		}
+  // 	};
+  // 	req.onerror = function() {
+  // 		console.log("Error changing status.");
+  // 	};
 	 
 	},
 	getNetwork: function wm_gn(ssid){
@@ -103,13 +121,12 @@ var WifiManager = {
 	    	return;
 	    }
 		console.log(key +' '+ssid+' us '+user+' pass '+password);
-	    network.keyManagement = key;
+	  network.keyManagement = key;
 
-	    this.gCurrentNetwork = network;
+	  this.gCurrentNetwork = network;
 		this.api.associate(network);
 		console.log("Despues de conectar");
-	
-
+		
 	},
 	changeStatus: function cs(callback){
 		console.log("CHANGE ESTATUS");
@@ -131,13 +148,14 @@ var WifiManager = {
 		   */
 		   var self = this;
 		   WifiManager.api.onstatuschange = function(event) {
+		   	// console.log("¡¡¡¡¡¡¡¡¡¡CAMBIO DE ESTADO!!!!!!!!!!!");
 		   	console.log("Cambio a "+event.status+" de "+self.ssid);
-		   		UIManager.updateNetworkStatus(self.ssid,event.status);
-		   		if(event.status=='connected'){
-		   			self.isConnected = true;
-		   		}else{
-		   			self.isConnected = false;
-		   		}
+		   		UIManager.updateNetworkStatus(self.ssid, event.status);
+		   	// 	if(event.status=='connected'){
+		   	// 		self.isConnected = true;
+		   	// 	}else{
+		   	// 		self.isConnected = false;
+		   	// 	}
 		   };
 		   
 	},
