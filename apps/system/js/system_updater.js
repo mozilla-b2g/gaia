@@ -103,6 +103,18 @@ var SystemUpdater = {
     this._dispatchEvent('update-prompt-apply-result', 'restart');
   },
 
+  showUpdateError: function su_showUpdateError(update) {
+    var _ = navigator.mozL10n.get;
+    var message = update.statusText ||
+                  _('unknownUpdateError', { code: update.errorCode });
+
+    var title = update.state == 'failed' ? _('updateApplyError') :
+                                           _('updateDownloadError');
+
+    NotificationHelper.send(title, message,
+        'style/system_updater/images/download.png');
+  },
+
   handleEvent: function su_handleEvent(evt) {
     if (evt.type !== 'mozChromeEvent')
       return;
@@ -132,6 +144,9 @@ var SystemUpdater = {
       case 'update-progress':
         var progress = detail.progress / detail.total;
         this.updateProgress(progress);
+        break;
+      case 'update-error':
+        this.showUpdateError(detail);
         break;
     }
   },
