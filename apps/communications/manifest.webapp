@@ -43,7 +43,7 @@
     "desktop-notification":{},
     "wifi-manage":{},
     "wifi":{},
-    "time":{}
+    "time":{},
     "alarms": {},
     "systemXHR": {}
   },
