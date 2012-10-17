@@ -9,16 +9,16 @@ div[role="slider"] {
 div[role="slider"] > div {
   display: block;
   overflow: hidden;
-  padding: 1.2rem 0;
+  padding: 1.1rem 0;
   position: relative;
-  height: calc(100% -2.4rem);
+  height: calc(100% -2.2rem);
 }
 
 div[role="slider"] progress {
   width: 100%;
   background: url(seekbars/images/ui/background.png) repeat-x center center;
   border: none;
-  height: 0.8rem;
+  height: 0.6rem;
 }
 
 div[role="slider"] progress::-moz-progress-bar {
