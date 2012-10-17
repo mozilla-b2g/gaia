@@ -1093,7 +1093,7 @@ photoFrames.addEventListener('swipe', function(event) {
 
     currentPhotoFrame.style.transition =
       nextPhotoFrame.style.transition =
-      previousPhotoFrame.style.transition = 'translate ' + time + 'ms ease';
+      previousPhotoFrame.style.transition = 'transform ' + time + 'ms ease';
     photoState.swipe = 0;
     photoState.setFramesPosition();
 
