@@ -29,5 +29,8 @@
       "returnValue": true,
       "href": "/share.html"
     }
+  },
+  "icons": {
+    "64": "/style/icons/64/Wallpaper.png"
   }
 }
