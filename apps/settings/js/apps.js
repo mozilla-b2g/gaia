@@ -143,7 +143,7 @@ var ApplicationsList = {
       if ((manifest.permissions && perm in manifest.permissions)
           || value === 'allow') {
         var item = document.createElement('li');
-        var content = document.createElement('p');
+        var content = document.createElement('span');
         content.textContent = _(perm);
 
         var select = document.createElement('select');
