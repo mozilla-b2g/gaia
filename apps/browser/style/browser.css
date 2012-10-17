@@ -190,8 +190,11 @@ input[type="image"] {
 }
 
 #main-screen.address-hidden {
-  height: calc(100% + 50px);
   transform: translateY(-50px);
+}
+
+#main-screen.expanded {
+  height: calc(100% + 50px);
 }
 
 #tabs-badge {
