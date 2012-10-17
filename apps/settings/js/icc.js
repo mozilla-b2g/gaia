@@ -37,7 +37,7 @@
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
   var stkLastSelectedTest = null;
-  var icc;
+  var icc = null;
 
   init();
 
@@ -65,20 +65,24 @@
       };
 
       navigator.mozSetMessageHandler('icc-stkcommand', handleSTKCommand);
-    }
 
-    /**
-     * Open STK main application
-     */
-    iccMenuItem.onclick = function onclick() {
-      updateMenu();
-    };
+      /**
+       * Open STK main application
+       */
+      iccMenuItem.onclick = function onclick() {
+        updateMenu();
+      };
+    }
   }
 
   /**
    * Response ICC Command
    */
   function responseSTKCommand(response, force) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
       return debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
     }
@@ -95,6 +99,10 @@
    * Handle ICC Commands
    */
   function handleSTKCommand(command) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
@@ -199,6 +207,10 @@
    * Navigate through all available STK applications
    */
   function updateMenu() {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     debug('Showing STK main menu');
     stkOpenAppName = null;
 
@@ -239,6 +251,10 @@
   }
 
   function onMainMenuItemClick(event) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
     debug('sendStkMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, false);
@@ -250,6 +266,10 @@
    * Navigate through the STK application options
    */
   function updateSelection(command) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     var menu = command.options;
 
     debug('Showing STK menu');
@@ -275,6 +295,10 @@
   }
 
   function onSelectOptionClick(command, event) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     var identifier = event.target.getAttribute('stk-select-option-identifier');
     responseSTKCommand({
       resultCode: icc.STK_RESULT_OK,
@@ -290,6 +314,10 @@
    *   'text':'Caption String','minLength':3,'maxLength':15,'isAlphabet':true}}
    */
   function updateInput(command) {
+    if (icc === null) {
+      return debug('No ICC registered !');
+    }
+
     var options = command.options;
 
     debug('Showing STK input box');
@@ -432,4 +460,3 @@
   };
 
 })();
-
