@@ -25,7 +25,7 @@ var SleepMenu = {
 
   init: function sm_init() {
     this.getAllElements();
-    window.addEventListener('holdsleep', this.show.bind(this));
+    window.addEventListener('holdsleep', this);
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
@@ -137,6 +137,11 @@ var SleepMenu = {
         if (this.visible) {
           this.hide();
         }
+        break;
+
+      case 'holdsleep':
+        if (!LockScreen.locked)
+          this.show();
         break;
     }
   },
