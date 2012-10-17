@@ -1,11 +1,12 @@
 Evme.Searchbar = new function() {
     var _name = "Searchbar", _this = this,
         $el = null, $form = null, $clear = null, $defaultText = null,
-        value = "", Selection = null,
+        value = "", Selection = null, focused = false,
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
         intervalPolling = null;
         
     var DEFAULT_TEXT = "FROM CONFIG",
+        BUTTON_CLEAR = "FROM CONFIG",
         SEARCHBAR_POLLING_INTERVAL = 300,
         TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE = 500,
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = "FROM CONFIG",
@@ -66,7 +67,7 @@ Evme.Searchbar = new function() {
     };
     
     this.bindEvents = function($el, cbFocus, inputKeyDown, inputKeyUp){
-        $el.bind("touchstart", cbFocus);
+        $el.bind("focus", cbFocus);
         
         $el.bind("keydown", inputKeyDown)
            .bind("keyup", inputKeyUp);
@@ -106,13 +107,16 @@ Evme.Searchbar = new function() {
     };
 
     this.focus = function() {
+        if (focused) return;
+        
         $el[0].focus();
         cbFocus();
     };
 
     this.blur = function(e) {
-        $el[0].blur();
+        if (!focused) return;
         
+        $el[0].blur();
         cbBlur(e);
     };
     
@@ -237,7 +241,7 @@ Evme.Searchbar = new function() {
         if (Evme.Brain.Dialog.isActive()) {
             e.preventDefault();
             e.stopPropagation();
-            return false;
+            return;
         }
         
         if (e.keyCode !== RETURN_KEY_CODE && Selection.isSelected()) {
@@ -316,18 +320,26 @@ Evme.Searchbar = new function() {
     }
     
     function cbFocus(e) {
+        if (focused) return;
+        
+        focused = true;
+        
         //Do not use Evme.Utils.hideAddressBar() caus it has a delay that makes the address bar pop in a nasty way
         window.scrollTo(0,1);
         
-        Brain && Brain[_name].onfocus({
+        Evme.Brain && Evme.Brain[_name].onfocus({
             "e": e
         });
     }
     
     function cbBlur(e) {
+        if (!focused) return;
+        
+        focused = false;
+        
         Selection.cancel();
         
-        Brain && Brain[_name].onblur({
+        Evme.Brain && Evme.Brain[_name].onblur({
             "e": e
         });
     }

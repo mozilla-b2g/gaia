@@ -11,27 +11,10 @@
     text-shadow: 0 1px 0 rgba(255, 255, 255, .5);
     
     display: none;
-    
-    /*
-    -moz-transform: translateY(100%);
-    -webkit-transform: translateY(100%);
-    -ms-transform: translateY(100%);
-    transform: translateY(100%);
-    -moz-transition: all .4s ease;
-    -webkit-transition: all .4s ease;
-    -ms-transition: all .4s ease;
-    transition: all .4s ease;
-    */
 }
 
 #shortcuts-favorites.visible {
     display: block;
-    /*
-    -moz-transform: translateY(0);
-    -webkit-transform: translateY(0);
-    -ms-transform: translateY(0);
-    transform: translateY(0);
-    */
 }
     #shortcuts-favorites h2 {
         height: 44px;
@@ -41,7 +24,6 @@
         padding: 0 70px 0 12px;
         background: #c0bdc2;
         background: -moz-linear-gradient(center top, #c9c5cb 0, #b4b0b5 100%);
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #c9c5cb), color-stop(1, #b4b0b5));
     }
     #shortcuts-favorites .done {
         position: absolute;
@@ -87,9 +69,6 @@
             border-width: 0;
             width: 23px;
             height: 24px;
-            -moz-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
-            -webkit-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
-            -ms-box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
             box-shadow: 0 2px 2px 0px rgba(0, 0, 0, .5);
         }
     #shortcuts-favorites .subtitle {
