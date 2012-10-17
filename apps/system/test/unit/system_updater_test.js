@@ -300,7 +300,7 @@ suite('system/system_updater', function() {
   });
 
   suite('show update errors', function() {
-    var statusMessage = 'test 123';
+    var statusMessage = "test 123";
     var errorCode = 123;
 
     test('apply error with statusText', function() {

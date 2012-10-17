@@ -141,7 +141,8 @@ if (typeof Contacts.extFb === 'undefined') {
       extFb.startLink(contactId, linked);
     }
 
-    function doLink(uid) {
+    function doLink(fData) {
+      var uid = fData.uid;
       // We need to obtain the mozContact id for the UID
       var mozContReq = fb.utils.getMozContact(uid);
 
@@ -154,6 +155,7 @@ if (typeof Contacts.extFb === 'undefined') {
 
         var req = fbContact.linkTo({
           uid: uid,
+          photoUrl: fData.url,
           mozContact: originalFbContact
         });
 
@@ -222,8 +224,8 @@ if (typeof Contacts.extFb === 'undefined') {
         break;
 
         case 'item_selected':
-          var uid = data.data;
-          doLink(uid);
+          var fData = data.data;
+          doLink(fData);
 
           notifySettings();
         break;
