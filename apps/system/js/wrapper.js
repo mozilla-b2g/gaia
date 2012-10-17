@@ -15,14 +15,13 @@ var Launcher = (function() {
   var _ = navigator.mozL10n.get;
 
   var BUTTONBAR_TIMEOUT = 5000;
-  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 800;
+  var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
   var footer = document.querySelector('#wrapper');
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
       onLocationChange();
-      footer.classList.add('visible');
       onDisplayedApplicationChange();
     }
   });
@@ -30,7 +29,9 @@ var Launcher = (function() {
   window.addEventListener('appwillclose', function onAppClose(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.removeEventListener('mozbrowserlocationchange', onLocationChange);
-      footer.classList.remove('visible');
+      clearTimeout(buttonBarTimeout);
+      footer.classList.add('closed');
+      isButtonBarDisplayed = false;
     }
   });
 
@@ -53,12 +54,12 @@ var Launcher = (function() {
   var buttonBarTimeout;
 
   var isButtonBarDisplayed = true;
-  function toggleButtonBar() {
+  function toggleButtonBar(time) {
     clearTimeout(buttonBarTimeout);
     footer.classList.toggle('closed');
     isButtonBarDisplayed = !isButtonBarDisplayed;
     if (isButtonBarDisplayed) {
-      buttonBarTimeout = setTimeout(toggleButtonBar, BUTTONBAR_TIMEOUT);
+      buttonBarTimeout = setTimeout(toggleButtonBar, time || BUTTONBAR_TIMEOUT);
     }
   }
 
@@ -68,10 +69,10 @@ var Launcher = (function() {
   }
 
   document.getElementById('handler').
-    addEventListener('mousedown', toggleButtonBar);
+    addEventListener('mousedown', function open() { toggleButtonBar() });
 
   document.getElementById('close-button').
-    addEventListener('mousedown', toggleButtonBar);
+    addEventListener('mousedown', function close() { toggleButtonBar() });
 
   var reload = document.getElementById('reload-button');
   reload.addEventListener('click', function doReload(evt) {
@@ -113,7 +114,7 @@ var Launcher = (function() {
 
   var bookmarkButton = document.getElementById('bookmark-button');
   function onDisplayedApplicationChange() {
-    setTimeout(toggleButtonBar, BUTTONBAR_INITIAL_OPEN_TIMEOUT);
+    toggleButtonBar(BUTTONBAR_INITIAL_OPEN_TIMEOUT);
 
     var dataset = currentAppFrame().dataset;
     if (dataset.originURL || dataset.searchURL) {

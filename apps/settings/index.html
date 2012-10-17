@@ -140,14 +140,14 @@
           <input type="text" data-ignore name="ssid" />
         </li>
         <li>
-          <a data-l10n-id="security">security
+          <span data-l10n-id="security">security
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
-              <option checked>WPA-PSK</option>
+              <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
-          </a>
+          </span>
         </li>
         <li class="identity">
           <p data-l10n-id="identity">identity</p>
@@ -377,7 +377,7 @@
         <!-- APNs matching the phone's MCC/MNC are inserted here dynamically -->
         <li id="apnSettings-custom">
           <label>
-            <input type="radio" name="APN.name" value="_custom_" selected />
+            <input type="radio" name="APN.name" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
@@ -600,13 +600,13 @@
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <a data-l10n-id="wifi-security">Security
+          <span data-l10n-id="wifi-security">Security
             <select data-setting="tethering.wifi.security.type">
               <option>open</option>
               <option>WPA</option>
               <option selected>WPA2</option>
             </select>
-          </a>
+          </span>
         </li>
       </ul>
     </section>
@@ -673,7 +673,7 @@
     </section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
-    <section role="region" id="sound-selection" date-leaf>
+    <section role="region" id="sound-selection" data-leaf>
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
@@ -725,7 +725,7 @@
       </ul>
 
       <!-- Audio Preview -->
-      <audio style="display: none;" src="style/ringtones/classic.ogg" />
+      <audio style="display: none;" src="style/ringtones/classic.ogg"></audio>
     </section>
 
     <!-- Personalization :: Sound -->
@@ -762,7 +762,7 @@
           <label>
             <input type="range" name="audio.volume.master" min="0.1" value="0.5" max="1">
             <span class="range-icons volume"></span>
-          <label>
+          </label>
         </li>
         <li>
           <label>
@@ -812,7 +812,7 @@
       <ul>
         <li>
           <a data-l10n-id="wallpaper">Wallpaper</a>
-          <img id="wallpaper-preview"></img>
+          <img id="wallpaper-preview" alt="wallpaper preview"/>
         </li>
         <li>
           <p data-l10n-id="screen-timeout">Screen Timeout</p>
@@ -861,6 +861,7 @@
           </label>
           <a data-l10n-id="lockscreen-notifications">Show on Lock Screen</a>
         </li>
+      </ul>
     </section>
 
     <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
@@ -935,7 +936,7 @@
 
       <ul>
         <li>
-          <a data-l10n-id="language">Language
+          <span data-l10n-id="language">Language
             <select name="language.current">
               <option value="ar">العربية</option>
               <option value="de">Deutsch</option>
@@ -950,10 +951,10 @@
               <option value="tr">Türkçe</option>
               <option value="zh-TW">正體中文</option>
             </select>
-          </a>
+          </span>
         </li>
         <li>
-          <a data-l10n-id="region">Region
+          <span data-l10n-id="region">Region
             <select name="region.current">
               <option value="BR">Brasil</option>
               <option value="CO">Columbia</option>
@@ -965,7 +966,7 @@
               <option value="US">United States</option>
               <option value="VZ">Venezuela</option>
             </select>
-          </a>
+          </span>
         </li>
       </ul>
 
@@ -1200,37 +1201,41 @@
           <div id="messageHeader">The PIN was incorrect.</div>
           <span id="messageBody">3 tries left.</span>
         </div>
-        <!-- sim pin input field -->
+
+        <!-- SIM PIN input field -->
         <div id="pinArea">
           <div data-l10n-id="simPin">SIM PIN</div>
           <div class="input-wrapper">
-            <input type="number" name="simpin" size="8" maxlength="8" />
-            <input type="text" name="simpinVis" size="8" maxlength="8"/>
+            <input type="number" name="simpin" />
+            <input type="text" name="simpinVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- sim puk input field -->
+
+        <!-- SIM PUK input field -->
         <div id="pukArea">
           <div data-l10n-id="pukCode">PUK Code</div>
           <div class="input-wrapper">
-            <input type="number" name="simpuk" size="8" maxlength="8" />
-            <input type="text" name="simpukVis" size="8" maxlength="8"/>
+            <input type="number" name="simpuk" />
+            <input type="text" name="simpukVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- new sim pin input field -->
+
+        <!-- new SIM PIN input field -->
         <div id="newPinArea">
           <div data-l10n-id="newSimPinMsg">
             Create PIN (must contain 4 to 8 digits)
           </div>
           <div class="input-wrapper">
-            <input type="number" name="newSimpin" size="8" maxlength="8" />
+            <input type="number" name="newSimpin" />
             <input type="text" name="newSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- confirm new sim pin input field -->
+
+        <!-- confirm new SIM PIN input field -->
         <div id="confirmPinArea">
           <div>Confirm New PIN</div>
           <div class="input-wrapper">
-            <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
+            <input type="number" name="confirmNewSimpin" />
             <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
@@ -1275,42 +1280,58 @@
       </ul>
     </section>
 
-    <!-- [TODO] Security :: SIM Card Lock -->
-    <!-- Security :: App Permissions -->
+    <!-- Security :: Application Permissions :: Details -->
     <section role="region" id="appPermissionsDetails" data-leaf>
       <header>
         <a href="#appPermissions"><span class="icon icon-back">back</span></a>
-        <h1>
-        </h1>
+        <h1> </h1>
       </header>
+
       <header>
         <h2 data-l10n-id="developer">Developer</h2>
       </header>
-      <div id="developer-infos">
-        <h3></h3>
-        <a target="_blank"></a>
-      </div>
+      <ul>
+        <!-- this will be updated dynamically by js/apps.js -->
+        <li id="developer-infos">
+          <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
+          <a target="_blank" href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
+        </li>
+      </ul>
+
       <header id="permissionsListHeader">
         <h2 data-l10n-id="permissions">Permissions</h2>
       </header>
       <ul>
+        <!-- this will be replaced dynamically by js/apps.js -->
+        <li>
+          <span>settings
+            <select>
+              <option>ask</option>
+              <option>deny</option>
+              <option>allow</option>
+            </select>
+          </span>
+        </li>
       </ul>
+
       <header>
         <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
       </header>
       <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
     </section>
 
+    <!-- Security :: Application Permissions -->
     <section role="region" id="appPermissions">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="appPermissions">
-          App Permissions
+          Application Permissions
         </h1>
       </header>
       <ul>
       </ul>
     </section>
+
     <!-- Security :: Do Not Track -->
     <section role="region" id="doNotTrack" data-leaf>
       <header>
@@ -1412,7 +1433,9 @@
     <!-- Device :: Information :: More Information -->
     <section role="region" id="more-info">
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="more-info"> More Information </h1>
       </header>
 
@@ -1465,7 +1488,9 @@
     <!-- Device :: Information :: About Your Rights -->
     <section role="region" id="about-your-rights" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="about-your-rights"> About Your Rights </h1>
       </header>
 
@@ -1500,7 +1525,9 @@
     <!-- Device :: Information :: About Your Privacy -->
     <section role="region" id="about-your-privacy" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="about-your-privacy"> About Your Privacy </h1>
       </header>
 
@@ -1517,7 +1544,9 @@
     <!-- Device :: Information :: Licensing -->
     <section role="region" id="licensing" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="licensing"> Licensing </h1>
       </header>
 
@@ -1598,6 +1627,7 @@
               id="check-update-now" data-l10n-id="check-update-now">Check Now</button>
           </label>
         </li>
+        <li id="update-status" class="description" hidden></li>
       </ul>
 
       <header>
@@ -1626,14 +1656,14 @@
         </li>
         <li>
           <label for="share-performance-data" class="description">
-            <div>
+            <span>
               <input type="checkbox" id="share-performance-data" name="debug.peformancedata.shared" />
               <span data-l10n-id="share-performance-data">
                 I want to help make Firefox OS faster and easier to use by
                 sharing information about my phone’s performance.
               </span>
               <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
-            </div>
+            </span>
           </label>
         </li>
       </ul>
@@ -1694,7 +1724,7 @@
       </header>
       <ul>
         <li>
-          <meter id="apps-space-bar" min="0" max="100"></meter>
+          <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
         </li>
 
         <li>
@@ -1725,7 +1755,6 @@
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
-
       <ul>
         <li>
           <a id="music-space" data-l10n-id="music-space"> Music
@@ -1752,7 +1781,6 @@
       <header>
         <h2 data-l10n-id="advanced">Advanced</h2>
       </header>
-
       <ul>
         <li>
           <label>
@@ -1763,7 +1791,6 @@
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
-
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1820,7 +1847,9 @@
     <!-- SIM Toolkit -->
     <section role="region" id="icc">
       <header>
-        <button id="icc-stk-app-back" class="hidden"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button id="icc-stk-app-back" class="hidden">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
         <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>

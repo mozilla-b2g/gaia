@@ -8,12 +8,7 @@
     font-size: 17px;
     color: #fff;
     opacity: 0;
-    -moz-border-radius: 6px;
-    -webkit-border-radius: 6px;
     border-radius: 6px;
-    -moz-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
-    -webkit-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
-    -o-box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
     box-shadow: 0 8px 18px 2px rgba(0, 0, 0, .6);
 }
 #evmeContainer .dialog,
@@ -34,8 +29,6 @@
 #evmeContainer .dialog-blackout {
     opacity: 0;
     -moz-transition: opacity .4s linear;
-    -webkit-transition: opacity .4s linear;
-    -o-transition: opacity .4s linear;
     transition: opacity .4s linear;
 }
 #evmeContainer .dialog.visible,
@@ -82,14 +75,10 @@
             color: #1d2223;
             text-shadow: 0 1px 0 rgba(255, 255, 255, .6);
             border: 1px solid #0c3e4d;
-            -moz-border-radius: 6px;
-            -webkit-border-radius: 6px;
-            -o-border-radius: 6px;
             border-radius: 6px;
             font-family: 'Helvetica Neue', 'Helvetica', Arial, Sans-Serif;
             background: #054b62;
             background: -moz-linear-gradient(center top, #d8ecf3 0%, #bfdee9 50%, #b4dae7 50%, #88c3d7 100%);
-            background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #d8ecf3), color-stop(50%, #bfdee9), color-stop(50%, #b4dae7), color-stop(100%, #88c3d7));
         }
         #evmeContainer .dialog .button:hover,
         #evmeContainer .ptip .button:hover {
@@ -121,9 +110,6 @@
         height: 20px;
         margin-left: -10px;
         -moz-transform: rotate(45deg);
-        -webkit-transform: rotate(45deg);
-        -ms-transform: rotate(45deg);
-        -o-transform: rotate(45deg);
         transform: rotate(45deg);
     }
     
@@ -177,7 +163,6 @@
         width: 256px;
         height: 99px;
         opacity: .99;
-        -webkit-backface-visibility: hidden;
     }
     #evmeContainer #dialog_searchpage-tip .tiparrow {
         left: 42px;

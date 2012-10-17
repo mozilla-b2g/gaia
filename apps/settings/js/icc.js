@@ -151,6 +151,7 @@
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
+      case icc.STK_CMD_SEND_DTMF:
         debug(' STK:Send message: ', command);
         iccLastCommandProcessed = true;
         responseSTKCommand({

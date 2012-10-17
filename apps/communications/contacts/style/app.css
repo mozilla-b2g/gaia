@@ -729,7 +729,8 @@ button.action b + em, button.action span[role="button"] + b {
 
 .block-company {
   margin: 0px 0px 1.5rem;
-  font-size: 1.1/1.1rem;
+  font-size: 1.1rem;
+  line-height: 1.1rem;
   color: #666;
 }
 

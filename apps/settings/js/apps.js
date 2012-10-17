@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -7,28 +7,25 @@ var ApplicationsList = {
   _apps: [],
   _displayedApp: null,
 
-  _permissions: ['power', 'sms', 'contacts', 'telephony',
-                      'mozBluetooth', 'browser', 'mozApps',
-                      'mobileconnection', 'mozFM', 'systemXHR',
-                      'background', 'backgroundservice', 'settings',
-                      'alarm', 'camera',
-                      'fmradio', 'voicemail',
-                      'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
-                      'webapps-manage', 'permissions', 'desktop-notification',
-                      'device-storage:pictures', 'device-storage:music',
-                      'device-storage:videos', 'device-storage:apps',
-                      'alarms', 'attention', 'content-camera',
-                      'tcp-socket', 'bluetooth', 'storage', 'time',
-                      'networkstats-manager', 'idle', 'network-events',
-                      'embed-apps',
-                      // Just don't.
-                      'deprecated-hwvideo'],
+  _permissions: [
+    'power', 'sms', 'contacts', 'telephony', 'mozBluetooth', 'browser',
+    'mozApps', 'mobileconnection', 'mozFM', 'systemXHR', 'background',
+    'backgroundservice', 'settings', 'alarm', 'camera', 'fmradio', 'voicemail',
+    'wifi-manage', 'wifi', 'networkstats-manage', 'geolocation',
+    'webapps-manage', 'permissions', 'desktop-notification',
+    'device-storage:pictures', 'device-storage:music', 'device-storage:videos',
+    'device-storage:apps', 'alarms', 'attention', 'content-camera',
+    'tcp-socket', 'bluetooth', 'storage', 'time', 'networkstats-manager',
+    'idle', 'network-events', 'embed-apps',
+    // Just don't.
+    'deprecated-hwvideo'
+  ],
 
   container: document.querySelector('#appPermissions > ul'),
   detailTitle: document.querySelector('#appPermissionsDetails > header > h1'),
-  developerName: document.querySelector('#developer-infos > h3'),
-  developerLink: document.querySelector('#developer-infos > a'),
-  detailPermissionsList: document.querySelector('#appPermissionsDetails > ul'),
+  developerName: document.querySelector('#developer-infos > a'),
+  developerLink: document.querySelector('#developer-infos > small > a'),
+  detailPermissionsList: document.querySelector('#permissionsListHeader + ul'),
   detailPermissionsHeader: document.getElementById('permissionsListHeader'),
   uninstallButton: document.getElementById('uninstall-app'),
 
@@ -140,10 +137,11 @@ var ApplicationsList = {
     // and any other granted permission.
     this._permissions.forEach(function appIterator(perm) {
       var value = mozPerms.get(perm, app.manifestURL, app.origin, false);
-      if ((manifest.permissions && perm in manifest.permissions)
-          || value === 'allow') {
+      if ((manifest.permissions && perm in manifest.permissions) ||
+          value === 'allow') {
         var item = document.createElement('li');
-        item.textContent = _(perm);
+        var content = document.createElement('span');
+        content.textContent = _(perm);
 
         var select = document.createElement('select');
         select.dataset.perm = perm;
@@ -171,7 +169,8 @@ var ApplicationsList = {
           select.focus();
         };
 
-        item.appendChild(select);
+        content.appendChild(select);
+        item.appendChild(content);
         this.detailPermissionsList.appendChild(item);
       }
     }, this);
@@ -227,3 +226,4 @@ window.addEventListener('localized', function init(evt) {
 
   ApplicationsList.init();
 });
+
