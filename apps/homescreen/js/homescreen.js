@@ -101,7 +101,6 @@ const Homescreen = (function() {
               data: { type: 'firstrun' }
             });
             activityFR.onsuccess = function success() {
-              var value = this.result;
               onHomescreenActivity();
               activity.postResult({over: 'over'});
             }

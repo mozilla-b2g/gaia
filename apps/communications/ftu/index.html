@@ -43,17 +43,17 @@
 	</section>
 	<section id="pincode" role="region" class="skin-organic">
 		<header>
-    	<h1>Pin code</h1>
+    	<h1 data-l10n-id="pincode">Pin code</h1>
     </header>
     <section class="pin_container">
-    	<header>Type your PIN code:</header>
+    	<header data-l10n-id="type_pin">Type your PIN code:</header>
     	<section class="input-wrapper">
         <input id="sim_pin" name="simpin" type="password" size="8" maxlength="8" />
         <div id="pin_error"></div>
       </section>
     </section>
     <nav role="navigation" class="forward-only">
-			<button class="recommend fullsize" id="done">
+			<button class="recommend fullsize" id="done" data-l10n-id="done">
 				Done
 			</button>
 		</nav>
@@ -70,89 +70,47 @@
 		<article role="main">
 			<section role="region" id="languages">
 				<ul>
-					<li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="ar"/>
-              <span class="checkbox-inner"></span>
-            </label>
-            <a>العربية</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="de"/>
-              <span></span>
-            </label>
-            <a dir="ltr">Deutsch</a>
-          </li>
-         <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="el"/>
-              <span></span>
-            </label>
-            <a dir="ltr">Ελληνικά</a>
-          </li>
-          <li>
+					<li>
             <label>
               <input type="radio" name="language.current" value="en-US" checked />
               <span></span>
             </label>
-            <a dir="ltr">English (US)</a>
+            <a dir="ltr" data-l10n-id="english">English (US)</a>
           </li>
           <li>
             <label>
               <input type="radio" name="language.current" value="es"/>
               <span></span>
             </label>
-            <a dir="ltr">Español</a>
+            <a dir="ltr" data-l10n-id="spanish">Español</a>
           </li>
           <li class="disabled">
             <label>
               <input disabled="disabled" type="radio" name="language.current" value="fr"/>
               <span></span>
             </label>
-            <a dir="ltr">Français</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="nb-NO"/>
-              <span></span>
-            </label>
-            <a dir="ltr">Norsk</a>
+            <a dir="ltr" data-l10n-id="french">Français</a>
           </li>
           <li class="disabled">
             <label>
               <input disabled="disabled" type="radio" name="language.current" value="it"/>
               <span></span>
             </label>
-            <a dir="ltr">Italiano</a>
+            <a dir="ltr" data-l10n-id="italian">Italiano</a>
           </li>
           <li class="disabled">
             <label>
               <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
               <span></span>
             </label>
-            <a dir="ltr">Português (do Brasil)</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="ru"/>
-              <span></span>
-            </label>
-            <a dir="ltr">Русский</a>
-          </li>
-          <li class="disabled">
-            <label>
-              <input disabled="disabled" type="radio" name="language.current" value="tr"/>
-              <span></span>
-            </label>
-            <a dir="ltr">Türkçe</a>
+            <a dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</a>
           </li>
           <li class="disabled">
             <label>
               <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
               <span></span>
             </label>
-            <a dir="ltr">正體中文</a>
+            <a dir="ltr" data-l10n-id="traditionalChinese">正體中文</a>
           </li>
         </ul>
 			</section>
@@ -163,9 +121,9 @@
 			<section role="region" id="configure_network">
 				<section id="configure_network_params">
 					<form>
-						<input type="text" id="wifi_ssid" class="hidden" value="aa"></input>
-						<label id="label_wifi_user" for="wifi_user">User (optional):</label>
-						<input type="text" data-l10n-id="" id="wifi_user" placeholder="User (optional)"></input>
+						<input type="text" id="wifi_ssid" class="hidden" value=""></input>
+						<label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
+						<input type="text" id="wifi_user" placeholder="User (optional)"></input>
 						<label for="wifi_password" data-l10n-id="password">Password</label>
 						<input type="text" id="wifi_password" placeholder="Password" value="1234567890"></input>
 					</form>
@@ -175,7 +133,7 @@
 				<section id="time_zone_overlay" class="gmt0">
 				</section>
 				<section id="time_zone_map">
-					<h1>
+					<h1 data-l10n-id="timeZone">
 						Time zone
 					</h1>
 					<h2 id="time-zone-title">
@@ -185,7 +143,7 @@
 				<form onsubmit="return false;">
 					<ul>
 						<li>
-							<button style="float:right; width:6.5rem;">
+							<button style="float:right; width:6.5rem;" data-l10n-id="change">
 								<span class="icon-dialog"></span>
 								Change
 							</button>
@@ -215,7 +173,7 @@
 			         </select>
 						</li>
 						<li>
-							<button style="float:right; width:6.5rem;">
+							<button style="float:right; width:6.5rem;" data-l10n-id="change">
 								<span class="icon-dialog"></span>
 								Change
 							</button>
@@ -223,7 +181,7 @@
 							<input id="date-configuration" class="invisible" type="date"></input>
 						</li>
 						<li>
-							<button style="float:right; width:6.5rem;">
+							<button style="float:right; width:6.5rem;" data-l10n-id="change">
 								<span class="icon-dialog"></span>
 								Change
 							</button>
@@ -236,55 +194,55 @@
 			<section role="region" id="import_contacts">
 				<ul>
 					<li>
-						<small id="sim_import_feedback">Not imported yet</small>
+						<small id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
             <a id="sim_import" data-l10n-id="importSim">SIM card</a>
           </li>
 				</ul>
 				<header>
-					<h2>Other accounts</h2>
+					<h2 data-l10n-id="otherAccount">Other accounts</h2>
 			  </header>
 			  <ul>
 					<li class="disabled">
-						<small id="fb_import_feedback">Not imported yet</small>
+						<small id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
             <a id="fb_import" data-l10n-id="importFb">Facebook</a>
           </li>
         </ul>
 			</section>
 			<section role="region" id="about-your-rights">
-					<p data-l10n-id="about-your-rights-0">
-            Mozilla Firefox is free and open source software, built by a community
-            of thousands from all over the world. There are a few things you should
-            know:
-          </p>
-        	<p data-l10n-id="about-your-rights-1">
-            Firefox is made available to you under the terms of the Mozilla Public
-            License. This means you may use, copy and distribute Firefox to others.
-            You are also welcome to modify the source code of Firefox as you want to
-            meet your needs. The Mozilla Public License also gives you the right to
-            distribute your modified versions.
-          </p>
-        	<p data-l10n-id="about-your-rights-2">
-            You are not granted any trademark rights or licenses to the trademarks
-            of the Mozilla Foundation or any party, including without Temporary Text
-            limitation the Firefox name or logo. Additional information on
-            trademarks may be found Only here.
-          </p>
-       		<p data-l10n-id="about-your-rights-3">
-            Some features in Firefox, such as the Crash Reporter, give you the
-            option to provide feedback to Mozilla. By choosing to submit feedback,
-            you give Mozilla permission to use the feedback to improve its products,
-            to publish the feedback on its websites, and to distribute the feedback.
-          </p>
+				<p data-l10n-id="about-your-rights-0">
+          Mozilla Firefox is free and open source software, built by a community
+          of thousands from all over the world. There are a few things you should
+          know:
+        </p>
+      	<p data-l10n-id="about-your-rights-1">
+          Firefox is made available to you under the terms of the Mozilla Public
+          License. This means you may use, copy and distribute Firefox to others.
+          You are also welcome to modify the source code of Firefox as you want to
+          meet your needs. The Mozilla Public License also gives you the right to
+          distribute your modified versions.
+        </p>
+      	<p data-l10n-id="about-your-rights-2">
+          You are not granted any trademark rights or licenses to the trademarks
+          of the Mozilla Foundation or any party, including without Temporary Text
+          limitation the Firefox name or logo. Additional information on
+          trademarks may be found Only here.
+        </p>
+     		<p data-l10n-id="about-your-rights-3">
+          Some features in Firefox, such as the Crash Reporter, give you the
+          option to provide feedback to Mozilla. By choosing to submit feedback,
+          you give Mozilla permission to use the feedback to improve its products,
+          to publish the feedback on its websites, and to distribute the feedback.
+        </p>
 			</section>
 			<section role="region" id="about-your-privacy">
-				<p>About you privacy</p>
+				<p data-l10n-id="aboutYourPrivacy">About you privacy</p>
 			</section>
 			<section role="region" id="firefox_privacy">
 				<section class="logo_container">
 					<img src="css/images/firefox64.png">
 					<span class="logo_title">De todos. Para Todos.</span>
 				</section>	
-        <p>
+        <p data-l10n-id="mozillaCommunity">
 	        When you use Firefox OS, you become
 	        part of a global community helping to
 	        build a brighter future for the Web.
@@ -296,7 +254,7 @@
         <section>
         	<input type="email" data-l10n-id="ftu-privacy2-email" placeholder="Email address"></input>
         </section>  
-        <p>
+        <p data-l10n-id="learnHow">
          Learn how Mozilla handle your information in our <a data-l10n-id="ftu-privacy2-policy">privacy policy</a>.
         </p>
 			</section>
@@ -304,7 +262,7 @@
 				<section id="firefox_logo_horizontal">
 					<img src="css/images/logo_FXOS_small.png">
 				</section>
-				<p>
+				<p data-l10n-id="welcomeFirefox">
 					Welcome to Firefox OS, the free and
           open source operating system from
           Mozilla. Our mission is to promote
@@ -313,15 +271,15 @@
           your hands.
 				</p>
 				<section id="firefox_os_privacy_links">
-					<a href="#about-your-rights" data-l10n-id="ftu-privacy-about-rights"> About Your Rights </a>
-          <a href="#about-your-privacy" data-l10n-id="ftu-privacy-about-privacy"> About Your Privacy </a>
+					<a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy"> About Your Privacy </a>
 				</section>
 				<section id="form_share_statistics">
 					<label>
             <input type="checkbox" name="enable_statistic" />
             <span></span>
 	        </label>
-	        <a>
+	        <a data-l10n-id="collaborate">
 	        	I want to help make Firefox OS faster and 
 	        	easier to use by sharing information about
 	        	my phone's performance. Learn more
@@ -330,33 +288,33 @@
 			</section>
 		</article>
 		<nav role="navigation" id="nav-bar" class="forward-only">
-			<button id="back" class="button-left">
+			<button id="back" class="button-left" data-l10n-id="back">
 				back
 				<span></span>
 			</button>
-			<button class="recommend" id="forward">
+			<button class="recommend" id="forward" data-l10n-id="next">
 				next
 				<span></span>
 			</button>
-			<button class="recommend" id="join">
+			<button class="recommend" id="join" data-l10n-id="join">
 				join
 			</button>
 		</nav>
 	</section>
 	<section id="finish" role="region">
 		<section class="content">
-			<h1>
+			<h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
       </h1>
-      <h2>
+      <h2 data-l10n-id="enjoyYourPhone">
         You're ready to enjoy your new phone.
       </h2>
-      <p>
+      <p data-l10n-id="optionsAvailable">
         You can alter the language, Date / Time, Wi-Fi connection in the settings area.
       </p>
 	    </section>
     	<nav role="navigation" class="forward-only">
-			<button class="recommend fullsize" id="end">
+			<button class="recommend fullsize" id="end" data-l10n-id="letsGo">
 				Let's go!
 			</button>
 		</nav>

@@ -81,19 +81,19 @@ var Navigation = {
 						break;
 					case '#wifi':
 						UIManager.progressBar.value = 40;
-						UIManager.mainTitle.innerHTML = "Wifi";
+						UIManager.mainTitle.innerHTML = _("wifi");
 						UIManager.activationScreen.classList.remove("no-options");
 						UIManager.navBar.classList.remove('secondary-menu');
 						WifiManager.scan(UIManager.renderNetworks);
 						break;
 					case '#date_and_time':
 						UIManager.progressBar.value = 60;
-						UIManager.mainTitle.innerHTML = "Date and Time";
+						UIManager.mainTitle.innerHTML = _("dateAndTime");
 						UIManager.activationScreen.classList.add("no-options");
 						break;
 					case '#import_contacts':
 						UIManager.progressBar.value = 80;
-						UIManager.mainTitle.innerHTML = "Import contacts";
+						UIManager.mainTitle.innerHTML = _("importContacts");
 						var fbOption = document.getElementById('fb_import').parentNode;
 						if (WifiManager.isConnected) {
 							fbOption.classList.remove('disabled');
@@ -103,7 +103,7 @@ var Navigation = {
 						break;
 					case '#welcome_firefox':
 						UIManager.progressBar.value = 90;
-						UIManager.mainTitle.innerHTML = "Firefox Privacy Choices";
+						UIManager.mainTitle.innerHTML = _("firefoxPrivacyChoices");
 						break;
 					case '#about-your-rights':
 						UIManager.progressBar.value = 90;
