@@ -2,14 +2,6 @@
  * Applications Permissions
  */
 
-#appPermissions ul li > a {
-  padding: 0 calc(4.1rem - 30px);
-  height: 6rem;
-  line-height: 6rem;
-  font-size: 1.8rem;
-  color: #000;
-}
-
 #appPermissions ul li img {
   float: left;
   margin-top: calc(3rem - 15px);
@@ -18,17 +10,8 @@
   height: 30px;
 }
 
-#appPermissionsDetails ul li {
-  padding: 0 0 0 10px;
-  font-size: 1.6rem;
-  line-height: 60px;
-}
-
-#appPermissionsDetails ul li select {
-  float: right;
-  display: block;
+#permissionsListHeader + ul li select {
   width: 25%;
-  margin: 15px 10px 0 0;
   padding: 5px;
   border: 0;
   background: #367fa2;
@@ -37,17 +20,12 @@
   font-size: 1.3rem;
 }
 
-#appPermissionsDetails ul li select[value='allow'] {
+#permissionsListHeader + ul li select[value='allow'] {
   background: #22aa22;
 }
 
-#appPermissionsDetails ul li select[value='deny'] {
+#permissionsListHeader + ul li select[value='deny'] {
   background: #da4e49;
-}
-
-#developer-infos {
-  font-size: 1.2em;
-  padding: 0 10px 10px 10px;
 }
 
 #uninstall-app {
