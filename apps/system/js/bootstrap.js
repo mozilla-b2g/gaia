@@ -26,7 +26,7 @@ window.addEventListener('load', function startup() {
         document.getElementById('statusbar').style.visibility = 'visible';
         asyncStorage.setItem('system.lastRun', Date.now());
       }
-      
+
       activity.onerror = function homescreenLaunchError() {
         console.error('Failed to launch home screen with activity.');
       };
@@ -41,7 +41,7 @@ window.addEventListener('load', function startup() {
       };
     }
 
-   
+
 
     if (!value) {
       document.getElementById('screen').classList.add('fullscreen-app');
@@ -51,10 +51,12 @@ window.addEventListener('load', function startup() {
       if (Applications.ready) {
         launchFirstTime();
       } else {
-        window.addEventListener('applicationready', function appListReady(event) {
-          window.removeEventListener('applicationready', appListReady);
-          launchFirstTime();
-        });
+        window.addEventListener('applicationready',
+          function appListReady(event) {
+            window.removeEventListener('applicationready', appListReady);
+            launchFirstTime();
+          }
+        );
       }
     } else {
       (function handleInitlogo() {
@@ -68,13 +70,14 @@ window.addEventListener('load', function startup() {
       if (Applications.ready) {
         launchHomescreen();
       } else {
-        window.addEventListener('applicationready', function appListReady(event) {
-          window.removeEventListener('applicationready', appListReady);
-          launchHomescreen();
-        });
+        window.addEventListener('applicationready',
+          function appListReady(event) {
+            window.removeEventListener('applicationready', appListReady);
+            launchHomescreen();
+          }
+        );
       }
     }
-    
 
 
 

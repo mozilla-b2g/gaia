@@ -1,39 +1,39 @@
 /*
-	Steps of the First Time Usage App
+  Steps of the First Time Usage App
 */
 var steps = {
-	1:{
-		only_forward: true,
-		hash: '#languages'
-	},
-	2:{
-		only_forward: false,
-		hash: '#wifi'
-	},
-	3:{
-		only_forward: false,
-		hash: '#date_and_time'
-	},
-	4:{
-		only_forward: false,
-		hash: '#import_contacts'
-	},
-	5:{
-		only_forward: false,
-		hash: '#welcome_firefox'
-	},
-	6:{
-		only_forward: false,
-		hash: '#firefox_privacy'
-	}
+  1: {
+    only_forward: true,
+    hash: '#languages'
+  },
+  2: {
+    only_forward: false,
+    hash: '#wifi'
+  },
+  3: {
+    only_forward: false,
+    hash: '#date_and_time'
+  },
+  4: {
+    only_forward: false,
+    hash: '#import_contacts'
+  },
+  5: {
+    only_forward: false,
+    hash: '#welcome_firefox'
+  },
+  6: {
+    only_forward: false,
+    hash: '#firefox_privacy'
+  }
 };
 
 // Retrieve number of steps for navigation
 var numSteps = Object.keys(steps).length;
 
 var Navigation = {
-	currentStep:1,
-	get forward() {
+  currentStep: 1,
+  get forward() {
     delete this.view;
     return this.view = document.getElementById('forward');
   },
