@@ -29,7 +29,7 @@ var AppManager = {
 				UIManager.splashScreen.classList.remove("show");
 				UIManager.activationScreen.classList.add("show");
 				window.location.hash = "#languages";
-			},1000);
+			},10);
 			return;
 		}
 
@@ -52,7 +52,7 @@ var AppManager = {
 	    }
 		  // Remove the splash
 			UIManager.splashScreen.classList.remove("show");
-		},7000);
+		},1000);
 	}
 };
 

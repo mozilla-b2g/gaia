@@ -7,6 +7,8 @@ html, body {
 	font-size: 10px;
 	font-family: "Open Sans",sans-serif;
 	font-weight: 400;
+	-ms-user-select: none;
+	user-select: none;
 }
 
 /*
@@ -32,20 +34,30 @@ html, body {
 	top: 0;
 	left: 0;
 	overflow-x: auto;
+	
+	
 }
 
 [role=region].show {
 	visibility: visible;
-	background-color: #f3f3f3;
+	/*background-color: #f3f3f3;*/
 }
 
 [role=main]{
 	height: calc(100% - 10.4rem);
 	position: relative;
+	
 }
+
+[role=main] > [role=region] {
+	background: url(images/BG_Top.png) top left no-repeat,
+							url(images/bg_1px.png) repeat-y,
+							url(images/BG_Bottom.png) bottom left no-repeat;
+	}
 
 [role=region]:target {
 	visibility: visible;
+
 	/* TODO Include transitions from UX
 	animation: slideFromRight 1s;*/
 	
@@ -230,17 +242,17 @@ progress[value='100'] {
 */
 
 #languages {	
-	background-image: url(images/languages_bck.png);
+	background-image: url(images/BG_Language_Bubbles.png);
 	background-repeat: no-repeat;
 	/*background-size: 100% 100%;*/
 }
 
 #languages ul{
 	margin-top: 14rem;
-	height: calc(100% - 14rem);
-	overflow-y: auto;
+	
 }
 
+/*
 #languages li {
 	padding: 0 1.5rem;
 }
@@ -253,7 +265,7 @@ progress[value='100'] {
 #languages li:first-child a{
   border-top: .1rem solid #a6a6a6 !important;
 
-}
+}*/
 
 /*
 	Wifi Styles

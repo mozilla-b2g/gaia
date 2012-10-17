@@ -23,12 +23,24 @@ li:last-child {
   margin-bottom: 1rem;
 }
 
-ul li.active, 
+ul li > a:active {
+  background: none;
+}
+
 ul li:active {
   background-color: #00a5c6;
   color: #222;
 }
 
+
+
+/*
+ul li.active, 
+ul li:active {
+  background-color: #00a5c6;
+  color: #222;
+}
+*/
 ul li > a {
   
   

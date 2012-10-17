@@ -90,7 +90,6 @@ var UIManager = {
 		this.timeConfiguration.addEventListener('input', this);
 		this.dateConfiguration.addEventListener('input', this);
 		this.buttonLetsGo.addEventListener('click', function() {
-			alert("Terminé");
 			// var message = {
 	  //     action: 'first-run-end'
 	  //   };
