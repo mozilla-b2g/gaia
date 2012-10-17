@@ -96,9 +96,9 @@ var Navigation = {
 						UIManager.mainTitle.innerHTML = "Import contacts";
 						var fbOption = document.getElementById('fb_import').parentNode;
 						if (WifiManager.isConnected) {
-							fbOption.classList.remove('disabled')
+							fbOption.classList.remove('disabled');
 						} else {
-							fbOption.classList.add('disabled')
+							fbOption.classList.add('disabled');
 						}
 						break;
 					case '#welcome_firefox':

@@ -25,7 +25,7 @@ iframe#fb-extensions {
 }
 
 #fb-extensions.closingImport {
-  top:100%;
+  top: -100%;
 }
 
 

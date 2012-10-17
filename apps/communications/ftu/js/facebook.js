@@ -10,14 +10,23 @@ var FacebookIntegration = {
     delete this.fbExtensions;
     return this.fbExtensions = document.getElementById('fb-extensions');
   },
+
   get fbImport() {
     delete this.fbImport;
     return this.fbImport = document.getElementById('fb_import');
   },
+
+  get fbImportFeedback() {
+    delete this.fbImportFeedback;
+    return this.fbImportFeedback = document.getElementById(
+      'fb_import_feedback');
+  },
+
   init: function fb_init() {
     this.fbImport.addEventListener('click', this);
     document.addEventListener('fb_imported', this);
   },
+
   handleEvent: function fb_he(event) {
     switch (event.type) {
       case 'click':
@@ -25,19 +34,31 @@ var FacebookIntegration = {
         Contacts.extFb.importFBFromUrl('/contacts/fb_import.html');
         break;
       case 'fb_imported':
-        this.fbExtensions.classList.add('hidden');
+        this.closeImport();
         this.updateContactsNumber();
         break;
     }
   },
+
+  closeImport: function closeImport() {
+    var self = this;
+    this.fbExtensions.addEventListener('transitionend', function tclose() {
+      self.fbExtensions.removeEventListener('transitionend', tclose);
+      self.fbExtensions.src = null;
+    });
+
+    this.fbExtensions.className = 'closingImport';
+  },
+
   updateContactsNumber: function fb_ucn() {
-    var fbMessage = document.querySelector('#fb_import > small');
-    fbMessage.textContent = '... checking';
+    this.fbImportFeedback.textContent = '... checking';
+
+    var self = this;
     var fbUpdateTotals = function fbUpdateTotals(imported, total) {
       if (total == null) {
-        fbMessage.textContent = 'Contacts not imported';
+        self.fbImportFeedback.textContent = 'Contacts not imported';
       } else {
-        fbMessage.textContent = imported + ' imported of ' + total;
+        self.fbImportFeedback.textContent = imported + ' imported of ' + total;
       }
     };
 
