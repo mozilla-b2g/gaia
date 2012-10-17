@@ -45,7 +45,10 @@ Evme.Helper = new function() {
         _this.reset();
 
         // iscroll options
-        var iscrollOptions = {"vScroll": false};
+        var iscrollOptions = {
+            "vScroll": false,
+            "onBeforeScrollStart": function(e){ e.preventDefault(); e.stopPropagation(); }
+        };
         
         iscroll = new iScroll($el[0], iscrollOptions);
         
@@ -326,7 +329,7 @@ Evme.Helper = new function() {
     this.setTitle = function(title, type) {
         if (!title) {
             $elTitle[0].innerHTML = '<b>' + TITLE_PREFIX_EMPTY + '</b>';
-            return;
+            return false;
         }
         
         title = title.replace(/</g, "&lt;");
@@ -336,7 +339,7 @@ Evme.Helper = new function() {
         // if trying to set the title to the one already there, don't doanything
         if (currentTitle == title) {
             if ((!type && currentType) || type == currentType) {
-                return;
+                return false;
             }
         }
         
@@ -491,7 +494,7 @@ Evme.Helper = new function() {
 
     function removeElement(text) {
         if (!text) {
-            return;
+            return false;
         }
         
         var removed = false;
@@ -522,7 +525,7 @@ Evme.Helper = new function() {
         }
         
         if (!text) {
-            return;
+            return false;
         }
         
         text = text.replace(/</g, "&lt;");

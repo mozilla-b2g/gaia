@@ -1,11 +1,12 @@
 Evme.ShortcutsCustomize = new function() {
     var _name = "ShortcutsCustomize", _this = this,
-        $el = null, $title = null, $subTitle = null, $list = null, $buttonDone = null,
+        $el = null, $parent = null, $title = null, $subTitle = null, $list = null, $buttonDone = null,
         scroll = null, numSelectedStartedWith = 0, numSuggestedStartedWith = 0, clicked = null, moved = null,
         
         title = "FROM CONFIG",
         titleCustomize = "FROM CONFIG",
         subTitle = "FROM CONFIG",
+        subTitleCustomize = "FROM CONFIG",
         buttonDone = "FROM CONFIG",
         buttonDoneSaving = "FROM CONFIG";
         
@@ -99,13 +100,17 @@ Evme.ShortcutsCustomize = new function() {
     this.add = function(shortcuts) {
         var htmlShortcuts = '';
         
-        for (var query in shortcuts) {
-            var $item = $('<li>' + query.replace(/</g,  "&lt;") + '</li>');
+        for (var key in shortcuts) {
+            var shortcut = shortcuts[key],
+                query = shortcut.query,
+                checked = shortcut.checked,
+                $item = $('<li>' + query.replace(/</g,  "&lt;") + '</li>');
+                
             $item
-                .attr("class", shortcuts[query]? 'on' : 'off')
+                .attr("class", checked? 'on' : 'off')
                 .bind("click", clickFavoriteCategory)
             
-            if (shortcuts[query]) {
+            if (checked) {
                 numSelectedStartedWith++;
             } else {
                 numSuggestedStartedWith++;

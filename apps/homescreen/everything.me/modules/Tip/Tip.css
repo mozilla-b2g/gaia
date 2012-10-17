@@ -15,8 +15,6 @@
     opacity: 0;
     pointer-events: none;
     -moz-transition: opacity .4s linear;
-    -webkit-transition: opacity .4s linear;
-    -ms-transition: opacity .4s linear;
     transition: opacity .4s linear;
 }
 #evmeContainer .tip.visible {
@@ -49,20 +47,10 @@
             border: 1px solid #82bccf;
             background: #def;
             background: -moz-linear-gradient(center top, #cfe7ef 0, #bfdee9 50%, #b3dae7 50%, #8fc7da 100%);
-            background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #cfe7ef), color-stop(0.5, #bfdee9), color-stop(0.5, #b3dae7), color-stop(1, #8fc7da));
-            -moz-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-            -webkit-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-            -ms-box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
             box-shadow: 0 1px 0 0 rgba(255, 255, 255, .2) inset, 0 -1px 0 0 rgba(0, 0, 0, .05) inset;
-            -moz-border-radius: 4px;
-            -webkit-border-radius: 4px;
-            -ms-border-radius: 4px;
             border-radius: 4px;
             cursor: pointer;
             -moz-user-select: none;
-            -webkit-user-select: none;
-            -o-user-select: none;
-            user-select: none;
         }
 
 
