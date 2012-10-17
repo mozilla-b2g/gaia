@@ -8,6 +8,8 @@ if (typeof fb.importer === 'undefined') {
     var Importer = fb.importer = {};
     var UI = Importer.ui = {};
 
+    var access_token;
+
     // Friends selected to be sync to the address book
     var selectedContacts = {};
 
@@ -16,9 +18,6 @@ if (typeof fb.importer === 'undefined') {
 
     // The whole list of friends as an array
     var myFriends, myFriendsByUid;
-
-    // Partners
-    var friendsPartners;
 
     // Existing FB contacts
     var existingFbContacts = [];
@@ -29,43 +28,24 @@ if (typeof fb.importer === 'undefined') {
 
     var _ = navigator.mozL10n.get;
 
+    var syncOngoing = false;
+    var nextUpdateTime;
+    var friendsImported;
+
     // Query that retrieves the information about friends
     var FRIENDS_QUERY = [
-      'SELECT uid, name, first_name, last_name,' ,
-      'middle_name, birthday_date, email,' ,
-      'relationship_status, significant_other_id, work,' ,
-      'education, cell, other_phone, current_location' ,
+      'SELECT uid, name, first_name, last_name, pic_big, ' ,
+      'middle_name, birthday_date, email, profile_update_time, ' ,
+      ' work, education, cell, other_phone, hometown_location' ,
       ' FROM user' ,
       ' WHERE uid ',
       'IN (SELECT uid1 FROM friend WHERE uid2=me())' ,
       ' ORDER BY last_name'
     ];
 
-    var UID_FILTER_IDX = 6;
+    var UID_FILTER_IDX = 5;
 
-    // Query that retrieves information about the person in relationship with
-    var RELATIONSHIP_QUERY = [
-      'SELECT uid, name from user WHERE uid IN' ,
-      '(select significant_other_id FROM user  WHERE uid in' ,
-      '(SELECT uid1 FROM friend WHERE uid2=me()) ' ,
-      'AND significant_other_id <> "")'
-    ].join('');
-
-      // Multiquery that makes things easier to manage
-    var REL_MULTIQ = [
-      'SELECT uid, name from user WHERE uid IN' ,
-      '(SELECT significant_other_id FROM #query1' ,
-      ' WHERE significant_other_id <> "")'
-    ].join('');
-
-    // Multiquery Object
-    var multiqObj = {
-      query1: FRIENDS_QUERY.join(''),
-      query2: REL_MULTIQ
-    };
-
-    // Multiquery String
-    var multiQStr = JSON.stringify(multiqObj);
+    var friendsQueryStr = FRIENDS_QUERY.join('');
 
     var selButton = document.querySelector('#select-all');
     var contactList = document.querySelector('#groups-list');
@@ -102,6 +82,8 @@ if (typeof fb.importer === 'undefined') {
       };
 
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
+      // uncomment this to make it work on B2G-Desktop
+      // parent.postMessage(msg, '*');
     }
 
     function scrollToCb(groupContainer) {
@@ -119,11 +101,12 @@ if (typeof fb.importer === 'undefined') {
      *
      */
     function tokenReady(at) {
+      access_token = at;
       Importer.getFriends(at);
     }
 
     /**
-     *  Invoked when the existing FB contacts on the Adress Book are ready
+     *  Invoked when the existing FB contacts on the Address Book are ready
      *
      */
     function contactsReady(e) {
@@ -131,7 +114,28 @@ if (typeof fb.importer === 'undefined') {
       contactsLoaded = true;
 
       if (friendsLoaded) {
+        // A synchronization will start asynchronously
+        window.setTimeout(startSync, 0);
+
         disableExisting(existingFbContacts);
+      }
+    }
+
+    // Callback executed when a synchronization has finished successfully
+    function syncSuccess() {
+      window.console.log('Synchronization ended!!!');
+      syncOngoing = false;
+      fb.sync.scheduleNextSync();
+    }
+
+    function startSync() {
+      if (existingFbContacts.length > 0 && !syncOngoing) {
+        syncOngoing = true;
+
+        var callbacks = {
+          success: syncSuccess
+        };
+        fb.sync.startWithData(existingFbContacts, myFriendsByUid, callbacks);
       }
     }
 
@@ -143,6 +147,8 @@ if (typeof fb.importer === 'undefined') {
       friendsLoaded = true;
 
       if (contactsLoaded) {
+        window.setTimeout(startSync, 0);
+
         disableExisting(existingFbContacts);
       }
     }
@@ -172,11 +178,14 @@ if (typeof fb.importer === 'undefined') {
         delete selectableFriends[uid];
 
         var ele = document.querySelector('[data-uuid="' + uid + '"]');
+        // This check is needed as there might be existing FB Contacts that
+        // are no longer friends
+        if (ele) {
+          var input = ele.querySelector('input');
+          input.checked = true;
 
-        var input = ele.querySelector('input');
-        input.checked = true;
-
-        ele.setAttribute('aria-disabled', 'true');
+          ele.setAttribute('aria-disabled', 'true');
+        }
       });
     }
 
@@ -192,7 +201,7 @@ if (typeof fb.importer === 'undefined') {
     Importer.getFriends = function(access_token) {
       document.body.dataset.state = 'waiting';
 
-      fb.utils.runQuery(multiQStr, {
+      fb.utils.runQuery(friendsQueryStr, {
           success: fb.importer.friendsReady,
           error: fb.importer.errorHandler,
           timeout: fb.importer.timeoutHandler
@@ -212,7 +221,9 @@ if (typeof fb.importer === 'undefined') {
                                   e.target.error.name); }
     }
 
-    Importer.importFriend = function(uid, access_token) {
+    Importer.importFriend = function(uid, acc_token) {
+      access_token = acc_token;
+
       currentRequest = new fb.utils.Request();
 
       window.setTimeout(function do_importFriend() {
@@ -230,19 +241,31 @@ if (typeof fb.importer === 'undefined') {
 
     Importer.importDataReady = function(response) {
       if (typeof response.error === 'undefined') {
-        var friend = response.data[0].fql_result_set[0];
+        // Just in case this is the first contact imported
+        nextUpdateTime = Date.now();
+
+        var friend = response.data[0];
         if (friend) {
           fillData(friend);
-
-          friendsPartners =
-                      parseFriendsPartners(response.data[1].fql_result_set);
 
           var cimp = new ContactsImporter([friend]);
           cimp.start();
           cimp.onsuccess = function() {
-            currentRequest.done();
-          }
-        }
+            currentRequest.done({
+              uid: friend.uid,
+              url: friend.pic_big
+            });
+
+            // If there is no an alarm set it has to be set
+            window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
+              if (!data) {
+                fb.utils.setLastUpdate(nextUpdateTime, function() {
+                  fb.sync.scheduleNextSync();
+                });
+              }
+            });
+          } // onsuccess
+        } // if friend
         else {
           window.console.error('FB: No Friend data found');
           currentRequest.failed('No friend data found');
@@ -259,23 +282,25 @@ if (typeof fb.importer === 'undefined') {
 
       var query1 = aquery1.join('');
 
-      var queries = {query1: query1, query2: REL_MULTIQ};
-
-      return JSON.stringify(queries);
+      return query1;
     }
 
-    /**
-     *  Creates the friends partners array for fast access to information
-     *
-     */
-    function parseFriendsPartners(data) {
-      var ret = {};
-      data.forEach(function(d) {
-        ret[d.uid.toString()] = d.name;
+    function setInfraForSync(callback) {
+      // Check wether we need to set the update alarm
+      window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
+        if (!data || (existingFbContacts && existingFbContacts.length === 0) &&
+            !friendsImported) {
+          // This is the first contact imported
+          fb.utils.setLastUpdate(nextUpdateTime, function() {
+            var req = fb.sync.scheduleNextSync();
+            if (typeof callback === 'function') {
+              req.onsuccess = callback;
+            }
+          });
+        }
       });
-
-      return ret;
     }
+
 
     /**
      *  Callback invoked when friends are ready to be used
@@ -284,7 +309,11 @@ if (typeof fb.importer === 'undefined') {
      */
     Importer.friendsReady = function(response) {
       if (typeof response.error === 'undefined') {
-        var lmyFriends = response.data[0].fql_result_set;
+        // This is the timestamp for later syncing as it set at the time
+        // when data was ready
+        nextUpdateTime = Date.now();
+
+        var lmyFriends = response.data;
 
         // Now caching the number
         fb.utils.setCachedNumFriends(lmyFriends.length);
@@ -300,10 +329,7 @@ if (typeof fb.importer === 'undefined') {
           myFriends.push(f);
         });
 
-        // My friends partners
-        friendsPartners = parseFriendsPartners(response.data[1].fql_result_set);
-
-        contacts.List.load(myFriends, friendsAvailable);
+        fbFriends.List.load(myFriends, friendsAvailable);
 
         document.body.dataset.state = '';
       }
@@ -329,35 +355,8 @@ if (typeof fb.importer === 'undefined') {
     }
 
     function fillData(f) {
-      // givenName is put as name but it should be f.first_name
-      f.familyName = [f.last_name];
-      f.additionalName = [f.middle_name];
-      f.givenName = [f.first_name + ' ' + f.middle_name];
-
-      var privateType = 'personal';
-
-      if (f.email) {
-        f.email1 = f.email;
-        f.email = [{type: [privateType], value: f.email}];
-      }
-      else { f.email1 = ''; }
-
-      var nextidx = 0;
-      if (f.cell) {
-        f.tel = [{type: [privateType], value: f.cell}];
-        nextidx = 1;
-      }
-
-      if (f.other_phone) {
-        if (!f.tel) {
-          f.tel = [];
-        }
-        f.tel[nextidx] = {type: [privateType], value: f.other_phone};
-      }
-
-      f.uid = f.uid.toString();
+      fb.friend2mozContact(f);
     }
-
 
     /**
      *  This function is invoked when the user starts the process of importing
@@ -366,7 +365,13 @@ if (typeof fb.importer === 'undefined') {
     UI.importAll = function(e) {
       if (Object.keys(selectedContacts).length > 0) {
 
-        Importer.importAll(function() {
+        Importer.importAll(function on_all_imported() {
+
+          // Check whether we need to set the last update and schedule next sync
+          // Only in that case otherwise that will be done by the sync process
+          setInfraForSync(function() {
+            friendsImported = true;
+          });
 
           document.body.dataset.state = '';
           var list = [];
@@ -482,48 +487,6 @@ if (typeof fb.importer === 'undefined') {
 
 
     /**
-     *  Obtains a img DOM Element with the Contact's img
-     *
-     */
-    function getContactImg(uid, cb) {
-      var imgSrc = 'http://graph.facebook.com/' + uid + '/picture?type=large';
-
-      var xhr = new XMLHttpRequest({
-        mozSystem: true
-      });
-      xhr.open('GET', imgSrc, true);
-      xhr.responseType = 'blob';
-
-      xhr.timeout = fb.operationsTimeout;
-
-      xhr.onload = function(e) {
-        if (xhr.status === 200 || xhr.status === 0) {
-          var mblob = e.target.response;
-          cb(mblob);
-        }
-      }
-
-      xhr.ontimeout = function(e) {
-        window.console.error('FB: Timeout!!! while retrieving img for uid',
-                                                                          uid);
-
-        // This callback has been added mainly for unit testing purposes
-        if (typeof Importer.imgTimeoutHandler === 'function') {
-          Importer.imgTimeoutHandler();
-        }
-
-        cb(null);
-      }
-
-      xhr.onerror = function(e) {
-        window.console.error('FB: Error while retrieving the img', e);
-        cb(null);
-      }
-
-      xhr.send();
-    }
-
-    /**
      *   Implements a Contacts Importer which imports Contacts in chunk sizes
      *
      *
@@ -578,91 +541,6 @@ if (typeof fb.importer === 'undefined') {
         (importSlice.bind(this))();
       }
 
-      /**
-       * Auxiliary function to know where a contact works
-       *
-       */
-      function getWorksAt(fbdata) {
-        var ret = '';
-        if (fbdata.work && fbdata.work.length > 0) {
-          // It is assumed that first is the latest
-          ret = fbdata.work[0].employer.name;
-        }
-
-        return ret;
-      }
-
-
-      /**
-       *  Auxiliary function to know where a contact studied
-       *
-       */
-      function getStudiedAt(fbdata) {
-        var ret = '';
-
-        if (fbdata.education && fbdata.education.length > 0) {
-          var university = fbdata.education.filter(function(d) {
-            var e = false;
-            if (d.school.type === 'College') {
-              e = true;
-            }
-            return e;
-          });
-
-          if (university.length > 0) {
-            ret = university[0].school.name;
-          }
-          else {
-            ret = fbdata.education[0].school.name;
-          }
-        }
-
-        return ret;
-      }
-
-      /**
-       *  Calculates a friend's partner
-       *
-       */
-      function getMarriedTo(fbdata) {
-        var ret = '';
-
-        if (fbdata.significant_other_id) {
-          ret = friendsPartners[fbdata.significant_other_id];
-        }
-
-        return ret;
-      }
-
-      /**
-       *  Facebook dates are MM/DD/YYYY
-       *
-       *  Returns the birth date
-       *
-       */
-      function getBirthDate(sbday) {
-        var ret = new Date();
-
-        var imonth = sbday.indexOf('/');
-        var smonth = sbday.substring(0, imonth);
-
-        var iyear = sbday.lastIndexOf('/');
-        if (iyear === imonth) {
-          iyear = sbday.length;
-        }
-        var sday = sbday.substring(imonth + 1, iyear);
-
-        var syear = sbday.substring(iyear + 1, sbday.length);
-
-        ret.setDate(parseInt(sday));
-        ret.setMonth(parseInt(smonth) - 1, parseInt(sday));
-
-        if (syear && syear.length > 0) {
-          ret.setYear(parseInt(syear));
-        }
-
-        return ret;
-      }
 
     /**
      *  Persists a group of contacts
@@ -680,33 +558,42 @@ if (typeof fb.importer === 'undefined') {
 
         var cfdata = mcontacts[f];
 
-        getContactImg(cfdata.uid, function(photo) {
+        fb.utils.getFriendPicture(cfdata.uid, function save_friend_info(photo) {
           // When photo is ready this code will be executed
 
-          var worksAt = getWorksAt(cfdata);
-          var studiedAt = getStudiedAt(cfdata);
-          var marriedTo = getMarriedTo(cfdata);
+          var worksAt = fb.getWorksAt(cfdata);
+          var address = fb.getAddress(cfdata);
+
           var birthDate = null;
           if (cfdata.birthday_date && cfdata.birthday_date.length > 0) {
-            birthDate = getBirthDate(cfdata.birthday_date);
+            birthDate = fb.getBirthDate(cfdata.birthday_date);
           }
 
           var fbInfo = {
-                          marriedTo: marriedTo,
-                          studiedAt: studiedAt,
                           bday: birthDate,
                           org: [worksAt]
           };
 
-          // Check whether we were able to get the photo or not
-          if (photo) {
-            fbInfo.photo = [photo];
+          if (address) {
+            fbInfo.adr = [address];
           }
 
-          cfdata.fbInfo = fbInfo;
+          // Check whether we were able to get the photo or not
+          fbInfo.url = [];
 
+          if (photo) {
+            fbInfo.photo = [photo];
+            if (cfdata.pic_big) {
+              // The URL is stored for synchronization purposes
+              fb.setFriendPictureUrl(fbInfo, cfdata.pic_big);
+            }
+          }
+
+          // Facebook info is set and then contact is saved
+          cfdata.fbInfo = fbInfo;
           var fbContact = new fb.Contact();
           fbContact.setData(cfdata);
+
           var request = fbContact.save();
 
           request.onsuccess = function() {
@@ -730,7 +617,7 @@ if (typeof fb.importer === 'undefined') {
               }
             }
           };
-        });  // getContactPhoto
+        }, access_token);  // getContactPhoto
       }); //forEach
     } // persistContactGroup
   } //contactsImporter
