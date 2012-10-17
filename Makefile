@@ -289,6 +289,11 @@ install-settingsdb: settingsdb install-xulrunner-sdk
 	$(ADB) shell start b2g
 	@echo 'Rebooting b2g now. '
 
+.PHONY: push-settingsdb
+push-settingsdb: settingsdb install-xulrunner-sdk
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
+	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
+
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
@@ -573,7 +578,7 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-settingsdb install-gaia
+reset-gaia: purge push-settingsdb install-gaia
 
 # remove the memories and apps on the phone
 purge:
