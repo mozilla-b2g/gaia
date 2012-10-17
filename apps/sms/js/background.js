@@ -74,7 +74,7 @@
       var iconURL = NotificationHelper.getIconURI(app);
 
       var activityCall = function() {
-        // Go directly to the thread of the received message.  
+        // Go directly to the thread of the received message.
         try {
           var activity = new MozActivity({
             name: 'new',

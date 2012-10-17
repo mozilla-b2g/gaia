@@ -1,26 +1,28 @@
 {
   "name": "Settings",
   "description": "Gaia Settings",
+  "type": "certified",
   "launch_path": "/index.html#root",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "mobileconnection",
-    "mozBluetooth",
-    "bluetooth",
-    "device-storage:pictures",
-    "device-storage:music",
-    "device-storage:videos",
-    "device-storage:apps",
-    "webapps-manage",
-    "settings",
-    "wifi-manage",
-    "wifi",
-    "attention",
-    "time"
-  ],
+  "permissions": {
+    "mobileconnection":{},
+    "mozBluetooth":{},
+    "bluetooth":{},
+    "device-storage:pictures":{},
+    "device-storage:music":{},
+    "device-storage:videos":{},
+    "device-storage:apps":{},
+    "webapps-manage":{},
+    "permissions":{},
+    "settings":{},
+    "wifi-manage":{},
+    "wifi":{},
+    "attention":{},
+    "time":{}
+  },
   "activities": {
     "configure": {
       "filters": {
@@ -37,10 +39,10 @@
       "returnValue": true
     }
   },
-  "messages": ["bluetooth-requestconfirmation", 
-               "bluetooth-requestpasskey", 
-               "bluetooth-requestpincode", 
-               "bluetooth-authorize", 
+  "messages": ["bluetooth-requestconfirmation",
+               "bluetooth-requestpasskey",
+               "bluetooth-requestpincode",
+               "bluetooth-authorize",
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
                "bluetooth-hfp-status-changed",

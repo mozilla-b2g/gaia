@@ -18,7 +18,7 @@ form[role="dialog"][data-type="confirm"] {
   right: 0;
   bottom: 0;
   padding: 1.5rem 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -86,7 +86,7 @@ form[role="dialog"][data-type="confirm"] menu button {
   outline: none;
   border: none;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #fff;

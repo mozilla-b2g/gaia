@@ -121,7 +121,7 @@ function bug344618_polyfill() {
   if (range.type == 'range') {
     console.warn("bug344618 has landed, there's some dead code to remove.");
     return; // <input type="range"> is already supported, early way out.
-  };
+  }
 
   /**
    * The JS polyfill transforms this:

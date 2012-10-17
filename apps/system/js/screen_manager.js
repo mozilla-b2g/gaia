@@ -156,8 +156,8 @@ var ScreenManager = {
         // This is a rather naive but pretty effective heuristic
         var brightness =
           Math.max(Math.min((evt.value / 1100), this._userBrightness), 0.1);
-        this.setScreenBrightness(brightness, false);
-
+        if (Math.abs(this._targetBrightness - brightness) > 0.3)
+          this.setScreenBrightness(brightness, false);
         break;
 
       case 'sleep':

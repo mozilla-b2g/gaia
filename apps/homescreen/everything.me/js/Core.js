@@ -141,7 +141,7 @@ window.Evme = new function() {
             "logger": logger,
             "DoATAPI": Evme.DoATAPI,
             "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
-            "Brain": Brain,
+            "Brain": Evme.Brain,
             "env": data.env.server,
             "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
             "sessionObj": Evme.DoATAPI.Session.get(),

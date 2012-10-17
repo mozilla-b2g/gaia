@@ -4,16 +4,21 @@
 'use strict';
 
 var PermissionManager = (function() {
+  var _ = navigator.mozL10n.get;
+
   window.addEventListener('mozChromeEvent', function pm_chromeEventHandler(e) {
     var detail = e.detail;
     switch (detail.type) {
       case 'webapps-ask-install':
+        delete overlay.dataset.type;
         handleInstallationPrompt(detail);
         break;
       case 'permission-prompt':
+        overlay.dataset.type = detail.permission;
         handlePermissionPrompt(detail);
         break;
       case 'fullscreenoriginchange':
+        delete overlay.dataset.type;
         handleFullscreenOriginChange(detail);
         break;
     }
@@ -42,11 +47,26 @@ var PermissionManager = (function() {
   };
 
   var handlePermissionPrompt = function pm_handlePermissionPrompt(detail) {
-    // XXX are going to l10n the permissions name/messages?
-    requestPermission(detail.permission, function pm_permYesCB() {
-      dispatchResponse(detail.id, 'permission-allow');
+    remember.checked = detail.remember ? true : false;
+    var str = '';
+    var _ = navigator.mozL10n.get;
+
+    if (detail.isApp) {
+      // App
+      str = _('permission-ask', {
+        'permission': _(detail.permission), 'app': detail.appName
+      });
+    } else {
+      // Web content
+      str = _('permission-ask', {
+        'permission': _(detail.permission), 'app': detail.origin
+      });
+    }
+
+    requestPermission(str, function pm_permYesCB() {
+      dispatchResponse(detail.id, 'permission-allow', remember.checked);
     }, function pm_permNoCB() {
-      dispatchResponse(detail.id, 'permission-deny');
+      dispatchResponse(detail.id, 'permission-deny', remember.checked);
     });
   };
 
@@ -74,11 +94,14 @@ var PermissionManager = (function() {
     });
   };
 
-  var dispatchResponse = function pm_dispatchResponse(id, type) {
+  var dispatchResponse = function pm_dispatchResponse(id, type, remember) {
     var event = document.createEvent('CustomEvent');
+    remember = remember ? true : false;
+
     event.initCustomEvent('mozContentEvent', true, true, {
       id: id,
-      type: type
+      type: type,
+      remember: remember
     });
     window.dispatchEvent(event);
   };
@@ -88,13 +111,17 @@ var PermissionManager = (function() {
   var pending = [];
 
   // Div over in which the permission UI resides.
-  var overlay = null;
-  var dialog = null;
-  var message = null;
+  var overlay = document.getElementById('permission-screen');
+  var dialog = document.getElementById('permission-dialog');
+  var message = document.getElementById('permission-message');
 
   // "Yes"/"No" buttons on the permission UI.
-  var yes = null;
-  var no = null;
+  var yes = document.getElementById('permission-yes');
+  var no = document.getElementById('permission-no');
+
+  // Remember the choice checkbox
+  var remember = document.getElementById('permission-remember-checkbox');
+  var rememberSection = document.getElementById('permission-remember-section');
 
   // The ID of the next permission request. This is incremented by one
   // on every request, modulo some large number to prevent overflow problems.
@@ -171,36 +198,6 @@ var PermissionManager = (function() {
   var showPermissionPrompt = function(id, msg,
                                       yescallback, nocallback,
                                       yesText, noText) {
-    if (overlay === null) {
-      overlay = document.createElement('div');
-      overlay.id = 'permission-screen';
-      overlay.dataset.zIndexLevel = 'permission-screen';
-
-      dialog = document.createElement('div');
-      dialog.id = 'permission-dialog';
-      overlay.appendChild(dialog);
-
-      message = document.createElement('div');
-      message.id = 'permission-message';
-      dialog.appendChild(message);
-
-      yes = document.createElement('button');
-      yes.appendChild(document.createTextNode(yesText ? yesText : 'Yes'));
-      yes.id = 'permission-yes';
-      dialog.appendChild(yes);
-
-      no = document.createElement('button');
-      no.appendChild(document.createTextNode(noText ? noText : 'No'));
-      no.id = 'permission-no';
-      dialog.appendChild(no);
-
-      // Note that 'overlay' needs to be the last child in 'screen' otherwise
-      // its zIndex value won't override the zIndex value of the element
-      // before it in the DOM, i.e. the permission prompt won't appear over
-      // top of the fullscreen window!
-      document.getElementById('screen').appendChild(overlay);
-    }
-
     // Put the message in the dialog.
     // Note plain text since this may include text from
     // untrusted app manifests, for example.
@@ -239,6 +236,10 @@ var PermissionManager = (function() {
       }
     }
   };
+
+  rememberSection.addEventListener('click', function onLabelClick() {
+    remember.checked = !remember.checked;
+  });
 
 }());
 

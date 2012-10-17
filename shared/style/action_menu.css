@@ -16,7 +16,7 @@ form[role="dialog"][data-type="object"] {
   right: 0;
   bottom: 0;
   padding: 0 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   /**
    * Using "font-size: 0" to avoid the unwanted visual space (about 3px) created
    * by white spaces and line breaks in the code between inline-block elements.
@@ -42,7 +42,7 @@ form[role="dialog"][data-type="object"] > header:first-child {
   display: inline-block;
   vertical-align: top;
   white-space: normal;
-  font: 1.6rem/1em 'Open Sans', Sans-serif;
+  font: 1.6rem/1em 'MozTT', Sans-serif;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
@@ -85,7 +85,7 @@ form[role="dialog"][data-type="object"] > menu > button {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 4rem;
   outline: none;

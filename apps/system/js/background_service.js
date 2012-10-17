@@ -104,12 +104,7 @@ var BackgroundServiceManager = (function bsm() {
     if (!app || !app.manifest.permissions)
       return false;
 
-    var keys = Object.keys(app.manifest.permissions);
-    var permissions = keys.map(function map_perm(key) {
-      return app.manifest.permissions[key];
-    });
-
-    return (permissions.indexOf('background') != -1);
+    return ('backgroundservice' in app.manifest.permissions);
   };
 
   /* The open function is responsible of containing the iframe */
