@@ -96,17 +96,14 @@ const Homescreen = (function() {
 
             break;
           case 'ftu':
-            console.log("FIRSTRUN");
             var activityFR = new MozActivity({
               name: 'firstrun',
               data: { type: 'firstrun' }
             });
             activityFR.onsuccess = function success() {
               var value = this.result;
-              console.log("-------------- TERMINE LA FR -----------");
-              console.log(JSON.stringify(value));
               onHomescreenActivity();
-              activity.postResult({ejemplo: 'ejemplo'});
+              activity.postResult({over: 'over'});
             }
             activityFR.onerror = function launchFTError() {
               console.error('Failed to launch home screen with activity.');

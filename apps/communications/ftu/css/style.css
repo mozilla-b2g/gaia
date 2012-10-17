@@ -15,14 +15,6 @@ html, body {
 	Areas in our app
 */
 
-@keyframes slideFromRight {
-	0% {
-	   	transform: translateX(100%);
-	   }
-	100% {
-	    transform: translateX(0%);
-	   }
-}
 
 /* Basics */
 
@@ -34,33 +26,25 @@ html, body {
 	top: 0;
 	left: 0;
 	overflow-x: auto;
-	
-	
 }
 
 [role=region].show {
 	visibility: visible;
-	/*background-color: #f3f3f3;*/
 }
 
 [role=main]{
 	height: calc(100% - 10.4rem);
 	position: relative;
-	
 }
 
 [role=main] > [role=region] {
 	background: url(images/BG_Top.png) top left no-repeat,
 							url(images/bg_1px.png) repeat-y,
 							url(images/BG_Bottom.png) bottom left no-repeat;
-	}
+}
 
 [role=region]:target {
 	visibility: visible;
-
-	/* TODO Include transitions from UX
-	animation: slideFromRight 1s;*/
-	
 }
 
 [role=navigation] {
@@ -138,31 +122,6 @@ html, body {
 [role=navigation].back-only .recommend {
 	display:none;
 }
-
-/*
-
-[role=navigation] #forward{
-	margin-left: .5rem;
-}
-
-[role=navigation] #back{
-	margin-right: .5rem;
-}
-
-[role=navigation].forward-only #back{
-	display:none;
-}
-
-[role=navigation].forward-only #forward{
-	width: 100%;
-	margin: 0;
-}
-
-[role=navigation].forward-only .fullsize{
-	width: 100%;
-	margin: 0;
-}
-*/
 
 /* Progress bar at the top */
 progress {
@@ -251,21 +210,6 @@ progress[value='100'] {
 	margin-top: 14rem;
 	
 }
-
-/*
-#languages li {
-	padding: 0 1.5rem;
-}
-
-#languages li a{
-	padding: 0 1.5rem;
-	border-bottom: 0.1rem solid #a6a6a6;
-}
-
-#languages li:first-child a{
-  border-top: .1rem solid #a6a6a6 !important;
-
-}*/
 
 /*
 	Wifi Styles
@@ -445,9 +389,7 @@ progress[value='100'] {
 	height: 21.5rem;
 	width: 100%;
 	margin-bottom: -1.5rem;
-	
 	z-index: 1;
-	
 }
 
 
@@ -471,7 +413,6 @@ progress[value='100'] {
 }
 
 #date_and_time ul{
-	/*padding-top: 14.2rem; */
 	margin: 0;
 }
 
@@ -497,7 +438,6 @@ progress[value='100'] {
 #date_and_time h1,h2{
 	margin: 0;
 }
-
 
 /*
 	Import

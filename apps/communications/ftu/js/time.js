@@ -10,11 +10,11 @@ var TimeManager = {
 		this.mozTime.set(milliseconds);
 	},
 	get: function tm_get() {
-		// TODO Implement
+		// TODO Implement when ready in Backend
 	},
 	getTimeZone: function tm_getTZ(gmt) {
 		var gmt = parseInt(gmt);
-		switch(gmt){
+		switch (gmt) {
 			case -8:
 				return 'GMT-08:00';
 				break;

@@ -52,7 +52,7 @@ var Navigation = {
 				switch(event.target.id) {
 					case 'forward':
 						this.currentStep++;
-						if(this.currentStep>numSteps){
+						if (this.currentStep > numSteps) {
 							UIManager.activationScreen.classList.remove("show");
 							UIManager.finishScreen.classList.add("show");
 							return;
@@ -61,11 +61,11 @@ var Navigation = {
 						break;
 					case 'back':
 						var currentStep = steps[this.currentStep];
-						if(window.location.hash != currentStep.hash){
+						if (window.location.hash != currentStep.hash) {
 							UIManager.navBar.classList.remove('back-only');
 							UIManager.navBar.classList.remove('secondary-menu');
 							window.history.back();
-						}else{
+						} else {
 							this.currentStep--;
 							this.manageStep();
 						}
@@ -73,7 +73,7 @@ var Navigation = {
 				}
 				break;
 			case 'hashchange':
-				switch(window.location.hash){
+				switch (window.location.hash) {
 					case '#languages':
 						UIManager.progressBar.value = 20;
 						UIManager.mainTitle.innerHTML = _("language");
@@ -84,22 +84,18 @@ var Navigation = {
 						UIManager.mainTitle.innerHTML = "Wifi";
 						UIManager.activationScreen.classList.remove("no-options");
 						UIManager.navBar.classList.remove('secondary-menu');
-						console.log("ESTOY EN WIFI");
 						WifiManager.scan(UIManager.renderNetworks);
 						break;
 					case '#date_and_time':
 						UIManager.progressBar.value = 60;
 						UIManager.mainTitle.innerHTML = "Date and Time";
 						UIManager.activationScreen.classList.add("no-options");
-						// Actualizo fecha y hora
-						var currentDate = new Date();
 						break;
 					case '#import_contacts':
 						UIManager.progressBar.value = 80;
 						UIManager.mainTitle.innerHTML = "Import contacts";
 						var fbOption = document.getElementById('fb_import').parentNode;
-						if(WifiManager.isConnected) {
-							// Activo
+						if (WifiManager.isConnected) {
 							fbOption.classList.remove('disabled')
 						} else {
 							fbOption.classList.add('disabled')
@@ -124,9 +120,9 @@ var Navigation = {
 		}
 	},
 	manageStep: function manageStep() {
-		if(steps[this.currentStep].only_forward){
+		if (steps[this.currentStep].only_forward) {
 			UIManager.navBar.classList.add("forward-only");
-		}else{
+		} else {
 			UIManager.navBar.classList.remove("forward-only");
 		}
 		window.location.hash = steps[this.currentStep].hash;

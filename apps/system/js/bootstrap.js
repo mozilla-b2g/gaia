@@ -4,7 +4,7 @@
 'use strict';
 
 window.addEventListener('load', function startup() {
-  function launchHomescreen() {
+  function launchFirstTime() {
     // LockScreen.unlock();
     var activity = new MozActivity({
       name: 'ftu',
@@ -41,12 +41,12 @@ window.addEventListener('load', function startup() {
 
   if (Applications.ready) {
     
-    launchHomescreen();
+    launchFirstTime();
     
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
-      launchHomescreen();
+      launchFirstTime();
       
     });
   }

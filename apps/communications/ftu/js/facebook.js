@@ -1,3 +1,5 @@
+'use strict';
+
 // FB constants
 var fb = window.fb || {};
 // fb.Category: contact category
@@ -22,7 +24,6 @@ var FacebookIntegration = {
         this.fbExtensions.classList.remove('hidden');
         Contacts.extFb.importFBFromUrl('/contacts/fb_import.html');
         break;
-
       case 'fb_imported':
         this.fbExtensions.classList.add('hidden');
         this.updateContactsNumber();
@@ -32,7 +33,6 @@ var FacebookIntegration = {
   updateContactsNumber: function fb_ucn() {
     var fbMessage = document.querySelector('#fb_import > small');
     fbMessage.textContent = '... checking';
-
     var fbUpdateTotals = function fbUpdateTotals(imported, total) {
       if (total == null) {
         fbMessage.textContent = 'Contacts not imported';
@@ -42,10 +42,8 @@ var FacebookIntegration = {
     };
 
     var req = fb.utils.getNumFbContacts();
-
     req.onsuccess = function() {
       var friendsOnDevice = req.result;
-
       var callbackListener = {
         'local': function localContacts(number) {
           fbUpdateTotals(friendsOnDevice, number);
@@ -54,10 +52,8 @@ var FacebookIntegration = {
           fbUpdateTotals(friendsOnDevice, number);
         }
       };
-
       fb.utils.numFbFriendsData(callbackListener);
     }
-
     req.onerror = function() {
       console.error('Could not get number of local contacts');
     }

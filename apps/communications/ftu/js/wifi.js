@@ -5,21 +5,11 @@ var WifiManager = {
 		if ('mozWifiManager' in window.navigator){
 			this.api = window.navigator.mozWifiManager;
 			this.changeStatus();
-			
-			console.log("YA TENGO LA API");
 			this.gCurrentNetwork = this.api.connection.network;
-			
-			// this.enable();
-			// this.api.onenabled = function onWifiEnabled() {
-		 //    console.log("Coño un cambio!");
-		 //  };
 		}
 	},
 	scan:function scan(callback){
 		if ('mozWifiManager' in window.navigator){
-			// this.enable();
-			console.log("ESCANEANDO");
-
 			var req = WifiManager.api.getNetworks();
 			var self = this;
     	req.onsuccess = function onScanSuccess() {
@@ -65,38 +55,8 @@ var WifiManager = {
 		}
 	},
 	enable: function enable(firstTime){
-		// Inicializamos la WIFI para que esté disponible para despues
-		console.log("******** ENABLE!");
-		WifiManager.api.onenabled = function onWifiEnabled() {
-	    console.log("YA ESTA ACTIVADO");
-	  };
 		var settings = window.navigator.mozSettings;
 		settings.createLock().set({'wifi.enabled': true});
-		console.log("******** ENABLED!");
-		
-
-		// console.log("*************************************");
-		// var settings = window.navigator.mozSettings;
-		// if (!settings.createLock) {
-		// 	console.log("****** CREATE LOCK FAIL");
-		// 	return;
-		// }
-		// console.log("****** CREATE LOCK DEL TIRON");
-		// var req = settings.createLock().get('wifi.enabled');
-  // 	req.onsuccess = function wf_getStatusSuccess() {
-  // 		if(!req.result['wifi.enabled']){
-  // 			settings.createLock().set({'wifi.enabled': true});
-  // 		}else{
-  // 			if(firstTime){
-  // 				settings.createLock().set({'wifi.enabled': false});
-  // 			}
-  			
-  // 		}
-  // 	};
-  // 	req.onerror = function() {
-  // 		console.log("Error changing status.");
-  // 	};
-	 
 	},
 	getNetwork: function wm_gn(ssid){
 		return this.networks[ssid];
@@ -108,7 +68,6 @@ var WifiManager = {
 	    if (key == 'WEP') {
 	    	network.wep = password;
 	    } else if (key == 'WPA-PSK') {
-	    	console.log('PSK!!!!!');
 	    	network.psk = password;
 	    } else if (key == 'WPA-EAP') {
 	        network.password = password;
@@ -116,21 +75,16 @@ var WifiManager = {
 	        	network.identity = user;
 	        }
 	    } else {
-	    	//CONECTO DIRECTAMENTE Y ME SALGO
+	    	// Connect directly
 	    	this.api.associate(network);
 	    	return;
 	    }
-		console.log(key +' '+ssid+' us '+user+' pass '+password);
-	  network.keyManagement = key;
-
-	  this.gCurrentNetwork = network;
+		network.keyManagement = key;
+		this.gCurrentNetwork = network;
 		this.api.associate(network);
-		console.log("Despues de conectar");
-		
 	},
 	changeStatus: function cs(callback){
-		console.log("CHANGE ESTATUS");
-		 /**
+		/**
 		   * mozWifiManager status
 		   * see dom/wifi/nsIWifi.idl -- the 4 possible statuses are:
 		   *  - connecting:
@@ -145,18 +99,16 @@ var WifiManager = {
 		   *  - disconnected:
 		   *        fires when we were connected to a network but have been
 		   *        disconnected.
-		   */
-		   var self = this;
-		   WifiManager.api.onstatuschange = function(event) {
-		   	// console.log("¡¡¡¡¡¡¡¡¡¡CAMBIO DE ESTADO!!!!!!!!!!!");
-		   	console.log("Cambio a "+event.status+" de "+self.ssid);
-		   		UIManager.updateNetworkStatus(self.ssid, event.status);
-		   		if(event.status=='connected'){
-		   			self.isConnected = true;
-		   		}else{
-		   			self.isConnected = false;
-		   		}
-		   };
+		*/
+	  var self = this;
+	  WifiManager.api.onstatuschange = function(event) {
+	   	UIManager.updateNetworkStatus(self.ssid, event.status);
+	   		if(event.status=='connected'){
+	   			self.isConnected = true;
+	   		}else{
+	   			self.isConnected = false;
+   		}
+   	};
 		   
 	},
 
@@ -171,12 +123,12 @@ var WifiManager = {
 	      return false;
 	},
 	isUserMandatory: function ium(ssid){
-		if(this.getSecurityType(this.networks[ssid]).indexOf('EAP')!=-1)
+		if (this.getSecurityType(this.networks[ssid]).indexOf('EAP') != -1)
 			return true;	
 		return false;
 	},
 	isPasswordMandatory: function ipm(ssid) {
-		if(!this.getSecurityType(this.networks[ssid])){
+		if (!this.getSecurityType(this.networks[ssid])) {
 			return false;
 		}
 		return true;

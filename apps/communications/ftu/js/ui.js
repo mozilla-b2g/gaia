@@ -90,21 +90,14 @@ var UIManager = {
 		this.timeConfiguration.addEventListener('input', this);
 		this.dateConfiguration.addEventListener('input', this);
 		this.buttonLetsGo.addEventListener('click', function() {
-			// var message = {
-	  //     action: 'first-run-end'
-	  //   };
-			// parent.postMessage(JSON.stringify(message), '*');
-
-			if(AppManager.currentActivity) {
-				AppManager.currentActivity.postResult({termine: 'termine'});
-				// delete AppManager.currentActivity;
-				// alert("Apuntico cerrar");
+			if (AppManager.currentActivity) {
+				AppManager.currentActivity.postResult({over: 'over'});
 				window.close();
 			}
 		});
 	},
 	handleEvent: function ui_handleEvent(event) {
-		switch(event.target.id){
+		switch (event.target.id) {
 			case 'wifi-refresh':
 				WifiManager.scan(UIManager.renderNetworks);
 				break;
@@ -142,23 +135,20 @@ var UIManager = {
 		var password = document.getElementById("wifi_password").value;
 		var user = document.getElementById("wifi_user").value;
 		
-		//Necesito ssid password y/o user
-		if(password == ''){
-			// PONER ERROR EN EL FORMULARIO de PASSWORD
+		if (password == '') {
+			// TODO Check with UX if this error is needed
 			return;
 		}
 
-		if(WifiManager.isUserMandatory(ssid)){
-			if(user == ''){
-				// PONER ERROR EN EL FORMULARIO de USUARIO
+		if (WifiManager.isUserMandatory(ssid)) {
+			if (user == '') {
+				// TODO Check with UX if this error is needed
 				return;
 			}
-			// ENVIO FORMULARIO CON SSID,USER y PASSWORD
 			WifiManager.connect(ssid,password,user);
 			window.history.back();
 		
-		}else{
-			// ENVIO FORMULARIO CON SSID Y PASSWORD
+		} else {
 			WifiManager.connect(ssid,password);
 			window.history.back();
 		}
@@ -178,11 +168,8 @@ var UIManager = {
 									currentTime.getHours(),
 									currentTime.getMinutes()
 									);
-		console.log('--------------- set date -------------');
-		console.log(currentTime.toString());
-		console.log(time+' '+timeToSet.toString());
 		// Set date through API
-		// THERE IS A BUG!
+		// TODO There is a bug setting the Date in backend
 		TimeManager.set(timeToSet);
 		// Set DATE properly
 		dateLabel.innerHTML = timeToSet.toLocaleFormat('%Y-%m-%d');
@@ -202,9 +189,6 @@ var UIManager = {
 									currentTime.getDate(),
 									parseInt(time[0]),
 									parseInt(time[1]));
-		console.log('--------------- set time -------------');
-		console.log(currentTime.toString());
-		console.log(time+' '+timeToSet.toString());
 		// Set time through API
 		TimeManager.set(timeToSet);
 		// Set time properly
@@ -265,22 +249,22 @@ var UIManager = {
 			WifiManager.connect(ssid);
 			WifiManager.scan(UIManager.renderNetworks);
 		}else{
-			// Actualizo el título
+			// Update title
 			UIManager.mainTitle.innerHTML = ssid;
-			// Selecciono la red
+			// Undate network
 			var selectedNetwork = WifiManager.getNetwork(ssid);
 
 			var ssidHeader = document.getElementById("wifi_ssid");
 			var userLabel = document.getElementById("label_wifi_user");
 			var userInput = document.getElementById("wifi_user");
 
-			// Actualizo el formulario
+			// Update form
 			ssidHeader.value = ssid;
-			// Renderizo el formulario según el tipo
+			// Render form taking into account the type of network
 			UIManager.renderNetworkConfiguration(selectedNetwork,function() {
-				// Activo el menú secundario
+				// Activate secondary menu
 				UIManager.navBar.classList.add('secondary-menu');
-				// Actualizo los campos según el tipo de red
+				// Update changes in form
 				if(WifiManager.isUserMandatory(ssid)){
 					userLabel.classList.remove('hidden');
 					userInput.classList.remove('hidden');
@@ -289,7 +273,7 @@ var UIManager = {
 					userLabel.classList.add('hidden');
 					userInput.classList.add('hidden');
 				}
-				// Cambio el hash
+				// Change hash
 				window.location.hash = "#configure_network";
 			});
 		}
@@ -306,7 +290,7 @@ var UIManager = {
         for (var i = 0; i < ssids.length; i++) {
           var network = networks[ssids[i]];
 
-          // ssid
+        // ssid
 		    var ssid = document.createElement('a');
 		    ssid.textContent = network.ssid;
 		    ssid.dataset.ssid = network.ssid;
@@ -325,11 +309,8 @@ var UIManager = {
 		    li.setAttribute('id', network.ssid);
 		    li.appendChild(small);
 		    li.appendChild(ssid);
-
-
-
-
-          networksDOM.appendChild(li);
+				
+				networksDOM.appendChild(li);
       	}
 	},
 	renderNetworkConfiguration: function uim_rnc(ssid,callback) {
@@ -337,7 +318,6 @@ var UIManager = {
 			callback();
 	},
 	updateNetworkStatus: function uim_uns(ssid,status) {
-		console.log("ACTUALIZANDO "+ssid+" CON "+status);
 		document.getElementById(ssid).childNodes[0].innerHTML = status;
 	} 
 };

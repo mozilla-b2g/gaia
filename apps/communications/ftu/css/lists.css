@@ -1,3 +1,8 @@
+/*
+  TODO Use BB when ready
+*/
+
+
 /**
  * Table View
  * line height = 6rem, border included
@@ -17,8 +22,6 @@ ul li {
   min-height: 6rem;
 }
 
-
-
 li:last-child {
   margin-bottom: 1rem;
 }
@@ -32,18 +35,7 @@ ul li:active {
   color: #222;
 }
 
-
-
-/*
-ul li.active, 
-ul li:active {
-  background-color: #00a5c6;
-  color: #222;
-}
-*/
 ul li > a {
-  
-  
   display: block;
   text-decoration: none;
   outline: 0;
@@ -102,17 +94,6 @@ ul li > small:not(:empty) + a {
  * Boolean inputs
  */
 
-/*ul li button, ul li a[role=button] {
-  display: block;
-  margin: auto;
-  position: relative;
-  top: 1rem;
-  font-size: 1.5rem;
-  line-height: 1em;
-  width: calc(100% - 5rem);
-  height: calc(100% - 2rem);
-}
-*/
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
 ul li > label:not([for]) {
   position: absolute;
