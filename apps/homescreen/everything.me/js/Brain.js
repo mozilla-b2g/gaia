@@ -1,7 +1,10 @@
 Evme.Brain = new function() {
-    var _this = Brain = this,
+    var _this = this,
+        Brain = this,
         _config = {},
         logger = null,
+        $body = null,
+        $container = null,
         QUERIES_TO_NOT_CACHE = "",
         DEFAULT_NUMBER_OF_APPS_TO_LOAD = 16,
         NUMBER_OF_APPS_TO_LOAD = DEFAULT_NUMBER_OF_APPS_TO_LOAD,
@@ -84,7 +87,7 @@ Evme.Brain = new function() {
 
         this.focus = function(data) {
             Evme.Utils.setKeyboardVisibility(true);
-
+            
             if (!Evme.Screens.Search.active()) {
                 if (data && data.e && data.e.type === "touchstart"){
                     data.e.preventDefault();
@@ -115,14 +118,15 @@ Evme.Brain = new function() {
         this.blur = function(data) {
             // Gaia bug workaround because of this http://b2g.everything.me/tests/input-blur.html
             data && data.stopPropagation && data.stopPropagation();
-
+            
             if (Brain.Dialog.isActive()) {
                 return;
             }
-
+            
             window.setTimeout(_this.hideKeyboardTip, 500);
-
+            
             Evme.Utils.setKeyboardVisibility(false);
+            _this.setEmptyClass();
             Evme.Location.showButton();
             Evme.Apps.refreshScroll();
 
@@ -1010,28 +1014,35 @@ Evme.Brain = new function() {
                 isFirstShow = false;
 
                 // load user/default shortcuts from API
-                Brain.Shortcuts.loadFromAPI(function(userShortcuts) {
+                Evme.Brain.Shortcuts.loadFromAPI(function(userShortcuts) {
                     var shortcutsToFavorite = {};
-
+                    
                     for (var i=0; i<userShortcuts.length; i++) {
-                        shortcutsToFavorite[userShortcuts[i].getQuery()] = true;
+                        var q = userShortcuts[i].getQuery();
+                        shortcutsToFavorite[q.toLowerCase()] = {
+                            "query": q,
+                            "checked": true
+                        };
                     }
-
+                    
                     Evme.ShortcutsCustomize.load(shortcutsToFavorite);
-
+                    
                     // load suggested shortcuts from API
                     Evme.DoATAPI.Shortcuts.suggest({}, function(data) {
-                        var suggestedShortcuts = data.response.shortcuts;
-
-                        shortcutsToFavorite = {};
-
+                        var suggestedShortcuts = data.response.shortcuts,
+                            shortcutsToSuggest = {};
+                        
                         for (var i=0; i<suggestedShortcuts.length; i++) {
-                            if (!shortcutsToFavorite[suggestedShortcuts[i].query]) {
-                                shortcutsToFavorite[suggestedShortcuts[i].query] = false;
+                            var q = suggestedShortcuts[i].query;
+                            if (!shortcutsToFavorite[q.toLowerCase()]) {
+                                shortcutsToSuggest[q.toLowerCase()] = {
+                                    "query": q,
+                                    "checked": false
+                                };
                             }
                         }
-
-                        Evme.ShortcutsCustomize.add(shortcutsToFavorite);
+                        
+                        Evme.ShortcutsCustomize.add(shortcutsToSuggest);
                     });
                 });
             }
@@ -1112,7 +1123,7 @@ Evme.Brain = new function() {
             !options && (options = {});
 
             if (activeTip) {
-                return;
+                return null;
             }
 
             var onHelper = false;
@@ -1188,14 +1199,14 @@ Evme.Brain = new function() {
             hasMoreApps = false,
             iconsCachedFromLastRequest = [],
             autocompleteCache = {},
-            timeoutShowExactTip = null;
+            timeoutShowExactTip = null,
 
             requestSearch = null,
             requestImage = null,
             requestIcons = null,
             requestAutocomplete = null,
 
-            timeoutShowDefaultImage = null
+            timeoutShowDefaultImage = null,
             timeoutHideHelper = null,
             timeoutSearchImageWhileTyping = null,
             timeoutSearch = null,

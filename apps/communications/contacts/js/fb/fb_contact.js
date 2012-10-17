@@ -1,11 +1,6 @@
 'use strict';
 
 var fb = window.fb || {};
-fb.CATEGORY = 'facebook';
-fb.NOT_LINKED = 'not_linked';
-fb.LINKED = 'fb_linked';
-
-fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
 // Encapsulates all the logic to obtain the data for a FB contact
 fb.Contact = function(deviceContact, cid) {
@@ -14,32 +9,11 @@ fb.Contact = function(deviceContact, cid) {
   var contactid = cid;
 
   function doGetFacebookUid(data) {
-    var out = data.uid;
-    if (!out) {
-      if (fb.isFbLinked(data)) {
-        out = getLinkedTo(data);
-      }
-      else if (data.category) {
-        var idx = data.category.indexOf(fb.CATEGORY);
-        if (idx !== -1) {
-          out = data.category[idx + 2];
-        }
-      }
-    }
-    return out;
+    return fb.getFriendUid(data);
   }
 
   function getLinkedTo(c) {
-    var out;
-
-    if (c.category) {
-      var idx = c.category.indexOf(fb.LINKED);
-      if (idx !== -1) {
-        out = c.category[idx + 1];
-      }
-    }
-
-    return out;
+    return fb.getLinkedTo(c);
   }
 
   function getFacebookUid() {
@@ -151,11 +125,15 @@ fb.Contact = function(deviceContact, cid) {
     if (contactData && navigator.mozContacts) {
       window.setTimeout(function save_do() {
         var contactObj = new mozContact();
-        // Info tbe saved on mozContacts
+        // Info to be saved on mozContacts
         var contactInfo = {};
 
         // Copying names to the mozContact
         copyNames(contactData, contactInfo);
+        // URL (photo, etc) is stored also with the Device contact
+        if (contactData.fbInfo.url) {
+          contactInfo.url = contactData.fbInfo.url;
+        }
 
         doSetFacebookUid(contactInfo, contactData.uid);
 
@@ -164,22 +142,7 @@ fb.Contact = function(deviceContact, cid) {
         var mozContactsReq = navigator.mozContacts.save(contactObj);
 
         mozContactsReq.onsuccess = function(e) {
-          // now saving the FB-originated data to the "private area"
-          var data = Object.create(contactData.fbInfo);
-
-          data.tel = contactData.tel || [];
-          data.email = contactData.email || [];
-          data.uid = contactData.uid;
-
-          Object.keys(contactData.fbInfo).forEach(function(prop) {
-            data[prop] = contactData.fbInfo[prop];
-          });
-
-          // Names are also stored on indexedDB
-          // thus restoring the contact (if unlinked) will be trivial
-          copyNames(contactData, data);
-
-          var fbReq = fb.contacts.save(data);
+          var fbReq = persistToFbCache(contactData);
 
           fbReq.onsuccess = function() {
             outReq.done(fbReq.result);
@@ -204,6 +167,116 @@ fb.Contact = function(deviceContact, cid) {
      return outReq;
   }
 
+  // Persists FB Friend Data to the FB cache
+  function persistToFbCache(contactData) {
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function persist_fb_do() {
+      // now saving the FB-originated data to the "private cache area"
+      var data = Object.create(contactData.fbInfo);
+
+      data.tel = contactData.tel || [];
+      data.email = contactData.email || [];
+      data.uid = contactData.uid;
+
+      Object.keys(contactData.fbInfo).forEach(function(prop) {
+        data[prop] = contactData.fbInfo[prop];
+      });
+
+      // Names are also stored on indexedDB
+      // thus restoring the contact (if unlinked) will be trivial
+      copyNames(contactData, data);
+
+      var fbReq = fb.contacts.save(data);
+
+      fbReq.onsuccess = function() {
+        outReq.done(fbReq.result);
+      }
+      fbReq.onerror = function() {
+        window.console.error('FB: Error while saving on indexedDB');
+        outReq.failed(fbReq.error);
+      }
+    },0);
+
+    return outReq;
+  }
+
+  // Updates a FB Contact
+  this.update = function(contactData) {
+
+    // Auxiliary function to do all the work for saving to the FB cache
+    function auxDoUpdate(contactData, outReq) {
+      // If the photo was not updated it is needed to save it
+      if (!contactData.fbInfo.photo) {
+        var dataReq = fb.contacts.get(contactData.uid);
+        dataReq.onsuccess = function() {
+          contactData.fbInfo.photo = dataReq.result.photo;
+          auxCachePersist(contactData, outReq);
+        }
+        dataReq.onerror = function() {
+          window.console.error('Error while retrieving existing photo for ',
+                               contactData.uid, dataReq.error);
+          outReq.failed(dataReq.error);
+        }
+      }
+      else {
+        auxCachePersist(contactData, outReq);
+      }
+    }
+
+    // Persist the data to the FB Cache
+    function auxCachePersist(contactData, outReq) {
+      var fbReq = persistToFbCache(contactData);
+
+      fbReq.onsuccess = function() {
+        outReq.done(fbReq.result);
+      }
+      fbReq.onerror = function() {
+        window.console.error('FB: Error while saving to FB cache: ',
+                             contactData.uid, fbReq.error);
+        outReq.failed(fbReq.error);
+      }
+    }
+
+    // Code starts here
+    var outReq = new fb.utils.Request();
+
+    window.setTimeout(function update_do() {
+      // First an update to the mozContacts DB could be needed
+      var updateMozContacts = false;
+
+      if (!fb.isFbLinked(devContact)) {
+        copyNames(contactData, devContact);
+        updateMozContacts = true;
+      }
+
+      // Check whether the photo has changed
+      if (contactData.fbInfo.photo) {
+        devContact.url = contactData.fbInfo.url;
+        updateMozContacts = true;
+      }
+
+      if (updateMozContacts) {
+        var mozContactsReq = navigator.mozContacts.save(devContact);
+        mozContactsReq.onsuccess = function(e) {
+          auxDoUpdate(contactData, outReq);
+        }
+
+        mozContactsReq.onerror = function(e) {
+          window.console.error('FB: Error while saving mozContact: ',
+                               devContact.id, e.target.error);
+          outReq.failed(e.target.error);
+        }
+      }
+      else {
+        auxDoUpdate(contactData, outReq);
+      }
+
+    },0);
+
+    return outReq;
+  }
+
   function copyNames(source, destination) {
     destination.name = source.name;
     destination.givenName = source.givenName;
@@ -219,8 +292,7 @@ fb.Contact = function(deviceContact, cid) {
       out = Object.create(devContact);
 
       Object.keys(devContact).forEach(function(prop) {
-        if (devContact[prop] &&
-                              typeof devContact[prop].forEach === 'function') {
+        if (devContact[prop] && Array.isArray(devContact[prop])) {
           out[prop] = [];
           out[prop] = out[prop].concat(devContact[prop]);
         }
@@ -236,7 +308,7 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   function mergeFbData(dcontact, fbdata) {
-    var multipleFields = ['email', 'tel', 'photo', 'org'];
+    var multipleFields = ['email', 'tel', 'photo', 'org', 'adr'];
 
     multipleFields.forEach(function(field) {
       if (!dcontact[field]) {
@@ -307,14 +379,21 @@ fb.Contact = function(deviceContact, cid) {
           Object.keys(fbdata).forEach(function(key) {
             var dataElement = fbdata[key];
 
-            if (dataElement && typeof dataElement.forEach === 'function' &&
-                key !== 'photo') {
+            if (dataElement && Array.isArray(dataElement) && key !== 'photo') {
               dataElement.forEach(function(item) {
                 if (item.value && item.value.length > 0) {
-                  out2[item.value] = 'p';
+                  out2[item.value] = true;
                 }
                 else if (typeof item === 'string' && item.length > 0) {
-                  out2[item] = 'p';
+                  out2[item] = true;
+                }
+                else if (key === 'adr') {
+                  if (item.locality) {
+                    out2[item.locality] = true;
+                  }
+                  if (item.countryName) {
+                    out2[item.countryName] = true;
+                  }
                 }
               });
             }
@@ -322,7 +401,7 @@ fb.Contact = function(deviceContact, cid) {
               out2['hasPhoto'] = true;
             }
             else if (dataElement) {
-              out2[dataElement] = 'p';
+              out2[dataElement] = true;
             }
           });
 
@@ -374,10 +453,19 @@ fb.Contact = function(deviceContact, cid) {
   function doLink(contactdata, fbFriend, out) {
     if (contactdata) {
       if (fbFriend.uid) {
+        // When marking as linked is needed to store a reference to the profile
+        // picture URL
         markAsLinked(contactdata, fbFriend.uid);
+        if (fbFriend.photoUrl) {
+          fb.setFriendPictureUrl(contactdata, fbFriend.photoUrl);
+        }
+        else if (fbFriend.mozContact) {
+          contactdata.url = fbFriend.mozContact.url;
+        }
       }
       else if (fbFriend.mozContact) {
         markAsLinked(contactdata, doGetFacebookUid(fbFriend.mozContact));
+        contactdata.url = fbFriend.mozContact.url;
       }
 
       var mozContactsReq = navigator.mozContacts.save(contactdata);
@@ -454,6 +542,7 @@ fb.Contact = function(deviceContact, cid) {
 
           var data = {};
           copyNames(imported, data);
+          data.url = imported.url;
           doSetFacebookUid(data, uid);
 
           var mcontact = new mozContact();
@@ -522,15 +611,3 @@ fb.Contact = function(deviceContact, cid) {
   }
 
 }; // fb.Contact
-
-
-fb.isFbContact = function(devContact) {
-  return (devContact.category &&
-                        devContact.category.indexOf(fb.CATEGORY) !== -1);
-};
-
-
-fb.isFbLinked = function(devContact) {
-  return (devContact.category &&
-                        devContact.category.indexOf(fb.LINKED) !== -1);
-};

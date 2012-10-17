@@ -298,5 +298,52 @@ suite('system/system_updater', function() {
       assert.isNull(lastDispatchedEvent);
     });
   });
+
+  suite('show update errors', function() {
+    var statusMessage = "test 123";
+    var errorCode = 123;
+
+    test('apply error with statusText', function() {
+      subject.showUpdateError({
+        statusText: statusMessage,
+        errorCode: errorCode,
+        state: 'failed'
+      });
+
+      assert.equal(statusMessage, MockNotificationHelper.mBody);
+      assert.equal('updateApplyError', MockNotificationHelper.mTitle);
+    });
+
+    test('apply error with no statusText', function() {
+      subject.showUpdateError({
+        errorCode: errorCode,
+        state: 'failed'
+      });
+
+      assert.equal('unknownUpdateError', MockNotificationHelper.mBody);
+      assert.equal('updateApplyError', MockNotificationHelper.mTitle);
+    });
+
+    test('download error with statusText', function() {
+      subject.showUpdateError({
+        statusText: statusMessage,
+        errorCode: errorCode,
+        state: 'download-failed'
+      });
+
+      assert.equal(statusMessage, MockNotificationHelper.mBody);
+      assert.equal('updateDownloadError', MockNotificationHelper.mTitle);
+    });
+
+    test('download error with no statusText', function() {
+      subject.showUpdateError({
+        errorCode: errorCode,
+        state: 'download-failed'
+      });
+
+      assert.equal('unknownUpdateError', MockNotificationHelper.mBody);
+      assert.equal('updateDownloadError', MockNotificationHelper.mTitle);
+    });
+  });
 });
 

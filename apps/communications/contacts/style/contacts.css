@@ -275,7 +275,7 @@ fieldset legend.action:after {
 
 .removed fieldset, .removed legend, .removed input {
   background-color: transparent;
-  color: #ccc
+  color: #ccc;
   pointer-events: none;
 }
 
