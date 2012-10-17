@@ -189,6 +189,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _timezone = null;
   var _jsonUrl = 'timezones.json';
   var _jsonData = [];
+  var _isReceivedInputEventInOneSecond = false;
 
 
   // issue #5276: PERSONALIZATION SETTINGS ->
@@ -240,11 +241,29 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   });
 
   gDatePicker.addEventListener('input', function datePickerChange() {
+    //XXX: Workaround: Bug 802073 -
+    //Receive input event twice from input tag type:time and type:date
+    if (_isReceivedInputEventInOneSecond)
+      return;
+
+    _isReceivedInputEventInOneSecond = true;
     setTime('date');
+    window.setTimeout(function cleanFlag() {
+      _isReceivedInputEventInOneSecond = false;
+    }, 1000);
   });
 
   gTimePicker.addEventListener('input', function timePickerChange() {
+    //XXX: Workaround: Bug 802073 -
+    //Receive input event twice from input tag type:time and type:date
+    if (_isReceivedInputEventInOneSecond)
+      return;
+
+    _isReceivedInputEventInOneSecond = true;
     setTime('time');
+    window.setTimeout(function cleanFlag() {
+      _isReceivedInputEventInOneSecond = false;
+    }, 1000);
   });
 
   window.addEventListener('moztimechange', function moztimechange() {
