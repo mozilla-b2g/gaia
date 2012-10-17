@@ -16,8 +16,6 @@
     opacity: 0;
     pointer-events: none;
     -moz-transition: opacity .2s linear;
-    -webkit-transition: opacity .2s linear;
-    -ms-transition: opacity .2s linear;
     transition: opacity .2s linear;
 }
 
@@ -40,7 +38,6 @@
         right: 0;
         bottom: 0;
         left: 0;
-        -webkit-mask-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, rgba(0, 0, 0, 1)), color-stop(70%, rgba(0, 0, 0, 1)), color-stop(90%, rgba(0, 0, 0, 0)));
     }
     #evmeContainer #shortcuts #shortcuts-list ul {
         padding-bottom: 50px;
@@ -61,29 +58,20 @@
     }
     #evmeContainer .shortcut.dragging {
         -moz-transition: none;
-        -webkit-transition: none;
-        -ms-transition: none;
         transition: none;
         z-index: 50;
     }
         #evmeContainer .shortcut.dragging .thumb {
             -moz-transform: scale(1.7);
-            -webkit-transform: scale(1.7);
-            -ms-transform: scale(1.7);
             transform: scale(1.7);
         }
         #evmeContainer .shortcut.dragging b {
             -moz-transform: translateY(20px);
-            -webkit-transform: translateY(20px);
-            -ms-transform: translateY(20px);
             transform: translateY(20px);
-            -webkit-backface-visibility: hidden;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;
         -moz-transition: none;
-        -webkit-transition: none;
-        -ms-transition: none;
         transition: none;
     }
     #evmeContainer .shortcut.remove {
@@ -99,8 +87,6 @@
         background: rgba(66, 192, 230, .4);
         border: 1px solid #4abcd9;
         -moz-transition: none;
-        -webkit-transition: none;
-        -ms-transition: none;
         transition: none;
     }
         #evmeContainer .shortcut .remove {
@@ -122,8 +108,6 @@
         }
         #evmeContainer .shortcut.remove .thumb {
             -moz-transform: scale(1.3);
-            -webkit-transform: scale(1.3);
-            -ms-transform: scale(1.3);
             transform: scale(1.3);
         }
         #evmeContainer .shortcut.add .thumb:before {
@@ -149,7 +133,6 @@
             text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
         }
         #evmeContainer.shortcuts-customize #shortcuts #shortcuts-list {
-            -webkit-mask-image: none;
         }
         #evmeContainer.shortcuts-customize #shortcuts .shortcut.add {
             opacity: 0;
@@ -158,8 +141,6 @@
         }
         #evmeContainer.shortcuts-customize #shortcuts .apps-group span {
             -moz-transform: scale(.7) !important;
-            -webkit-transform: scale(.7) !important;
-            -ms-transform: scale(.7) !important;
             transform: scale(.7) !important;
         }
         
@@ -201,8 +182,6 @@
         left: 0;
         right: 0;
         -moz-transform: translate(0, 0) !important;
-        -webkit-transform: translate(0, 0) !important;
-        -ms-transform: translate(0, 0) !important;
         transform: translate(0, 0) !important;
     }
     
@@ -240,9 +219,6 @@
     position: relative;
     padding: 8px 44px 19px 0;
     margin-bottom: 1px;
-    -moz-box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
-    -webkit-box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
-    -ms-box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
     box-shadow: 0 -1px 0 0 rgba(0, 0, 0, .25) inset, 0 1px 0 0 rgba(255, 255, 255, .4);
 }
     #evmeContainer #page-category.one-option .category-item {
@@ -299,21 +275,14 @@
         border: 1px solid #b7b7b7;
         border-radius: 6px;
         -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        -ms-box-sizing: border-box;
-        box-sizing: border-box;
         background: #e2e2e2;
         background: -moz-linear-gradient(center top, #efefef 0, #d6d6d6 100%);
-        background: -webkit-gradient(linear, left top, left bottom, color-stop(0, #efefef), color-stop(1, #d6d6d6));
     }
     #evmeContainer #page-category .continue b.visible {
         display: block;
     }
     #evmeContainer #page-category .textinput {
         -moz-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
-        -ms-box-sizing: border-box;
-        box-sizing: border-box;
         margin: 0;
     }
     

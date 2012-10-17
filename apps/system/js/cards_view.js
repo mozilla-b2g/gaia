@@ -217,7 +217,8 @@ var CardsView = (function() {
       frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
         function gotScreenshot(screenshot) {
           if (screenshot.target.result) {
-            card.style.backgroundImage = 'url(' + screenshot.target.result + ')';
+            card.style.backgroundImage =
+                'url(' + screenshot.target.result + ')';
           }
 
           if (displayedApp == origin && displayedAppCallback)
@@ -559,3 +560,4 @@ var CardsView = (function() {
 window.addEventListener('holdhome', CardsView);
 window.addEventListener('home', CardsView);
 window.addEventListener('appwillopen', CardsView);
+
