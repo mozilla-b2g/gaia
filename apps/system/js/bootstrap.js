@@ -57,6 +57,14 @@ window.addEventListener('load', function startup() {
         });
       }
     } else {
+      (function handleInitlogo() {
+        var initlogo = document.getElementById('initlogo');
+        initlogo.classList.add('hide');
+        initlogo.addEventListener('transitionend', function delInitlogo() {
+          initlogo.removeEventListener('transitionend', delInitlogo);
+          initlogo.parentNode.removeChild(initlogo);
+        });
+      })();
       if (Applications.ready) {
         launchHomescreen();
       } else {
