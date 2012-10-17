@@ -685,7 +685,7 @@ var ThreadUI = {
   get telForm() {
     delete this.telForm;
     return this.telForm = document.getElementById('messages-tel-form');
-  }
+  },
 
   init: function thui_init() {
     this.delNumList = [];
