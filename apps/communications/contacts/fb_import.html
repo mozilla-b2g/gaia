@@ -118,8 +118,8 @@
           </ol>
         </section> <!-- mainContent -->
 
-        <form role="dialog" class="no-overlay">
-          <menu id="select-all-wrapper" data-items="1">
+        <form role="dialog" data-type="confirm" class="no-overlay">
+          <menu id="select-all-wrapper">
             <button id="select-all" data-l10n-id="selectAll" type="reset" class="full">
               Select All
             </button>
@@ -147,12 +147,13 @@
       <header>
         <h1 data-l10n-id="facebook">Facebook</h1>
       </header>
-      <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
-        <hr>
-        <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
-        <div>
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="friendsWait1">Connecting to your list of friends</h1>
+          <p data-l10n-id="friendsWait2">This may take a couple of minutes...</p>
           <progress class="small"></progress>
-        </div>
+        </section>
+      </form>
     </section>
 
   </body>
