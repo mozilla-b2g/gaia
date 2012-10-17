@@ -585,5 +585,9 @@ purge:
 	$(ADB) shell rm -r $(GAIA_INSTALL_PARENT)/webapps
 
 # clean out build products
-clean:
-	rm -rf profile xulrunner-sdk .xulrunner-url
+clean: 
+	rm -rf profile
+
+# clean out build products
+really-clean: clean
+	rm -rf xulrunner-sdk .xulrunner-url
