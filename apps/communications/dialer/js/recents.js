@@ -110,6 +110,10 @@ var Recents = {
       SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
     }
 
+    self.refresh();
+  },
+
+  refresh: function re_refresh() {
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
