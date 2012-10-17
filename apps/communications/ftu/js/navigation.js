@@ -97,6 +97,13 @@ var Navigation = {
 					case '#import_contacts':
 						UIManager.progressBar.value = 80;
 						UIManager.mainTitle.innerHTML = "Import contacts";
+						var fbOption = document.getElementById('fb_import').parentNode;
+						if(WifiManager.isConnected) {
+							// Activo
+							fbOption.classList.remove('disabled')
+						} else {
+							fbOption.classList.add('disabled')
+						}
 						break;
 					case '#welcome_firefox':
 						UIManager.progressBar.value = 90;

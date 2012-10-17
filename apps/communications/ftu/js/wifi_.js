@@ -151,11 +151,11 @@ var WifiManager = {
 		   	// console.log("¡¡¡¡¡¡¡¡¡¡CAMBIO DE ESTADO!!!!!!!!!!!");
 		   	console.log("Cambio a "+event.status+" de "+self.ssid);
 		   		UIManager.updateNetworkStatus(self.ssid, event.status);
-		   	// 	if(event.status=='connected'){
-		   	// 		self.isConnected = true;
-		   	// 	}else{
-		   	// 		self.isConnected = false;
-		   	// 	}
+		   		if(event.status=='connected'){
+		   			self.isConnected = true;
+		   		}else{
+		   			self.isConnected = false;
+		   		}
 		   };
 		   
 	},

@@ -178,8 +178,12 @@ var UIManager = {
 									currentTime.getHours(),
 									currentTime.getMinutes()
 									);
+		console.log('--------------- set date -------------');
+		console.log(currentTime.toString());
+		console.log(time+' '+timeToSet.toString());
 		// Set date through API
-		TimeManager.set(timeToSet.getTime());
+		// THERE IS A BUG!
+		TimeManager.set(timeToSet);
 		// Set DATE properly
 		dateLabel.innerHTML = timeToSet.toLocaleFormat('%Y-%m-%d');
 	},
@@ -189,6 +193,7 @@ var UIManager = {
 		var newTime = document.getElementById('time-configuration').value;
 		// Retrieve hour/minutes
 		var time = newTime.split(':');
+
 		// Current time
 		var currentTime = new Date();
 		// Create new time with previous params
@@ -197,8 +202,11 @@ var UIManager = {
 									currentTime.getDate(),
 									parseInt(time[0]),
 									parseInt(time[1]));
+		console.log('--------------- set time -------------');
+		console.log(currentTime.toString());
+		console.log(time+' '+timeToSet.toString());
 		// Set time through API
-		TimeManager.set(timeToSet.getTime());
+		TimeManager.set(timeToSet);
 		// Set time properly
 		timeLabel.innerHTML = timeToSet.toLocaleFormat('%H:%M');
 	},
