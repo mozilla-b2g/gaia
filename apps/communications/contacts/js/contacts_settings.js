@@ -211,6 +211,21 @@ contacts.Settings = (function() {
         logoutReq.onsuccess = function() {
           Contacts.hideOverlay();
           checkFbImported(false);
+          // And it is needed to clear any previously set alarm
+          window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
+            if (data) {
+              var req = navigator.mozAlarms.remove(data.id);
+              req.onsuccess = function() {
+                window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
+                window.asyncStorage.removeItem(fb.utils.LAST_UPDATE_KEY);
+                window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
+              }
+              req.onerror = function() {
+                window.console.error('Error while removing a setted alarm',
+                                     req.error);
+              }
+            }
+          });
         }
 
         logoutReq.onerror = function(e) {
@@ -275,8 +290,15 @@ contacts.Settings = (function() {
     Contacts.goBack();
   };
 
+  var refresh = function refresh() {
+    if (document.getElementById('fbTotalsResult')) {
+      fbGetTotals();
+    }
+  }
+
   return {
     'init': init,
-    'close': close
+    'close': close,
+    'refresh': refresh
   };
 })();
