@@ -1264,13 +1264,26 @@ var Browser = {
       this.showTopSiteThumbnails.bind(this));
   },
 
+  _topSiteThumbnailObjectURLs: [],
+  clearTopSiteThumbnails: function browser_clearTopSiteThumbnails() {
+    this.topSiteThumbnails.innerHTML = '';
+
+    // Revoke the object URLs so we don't leak their blobs.  (For some reason,
+    // you can't do forEach(URL.revokeObjectURL) -- that causes an exception.)
+    this._topSiteThumbnailObjectURLs.forEach(function(url) {
+      URL.revokeObjectURL(url);
+    });
+    this._topSiteThumbnailObjectURLs = [];
+  },
+
   hideStartscreen: function browser_hideStartScreen() {
     this.startscreen.classList.add('hidden');
-    this.topSiteThumbnails.innerHTML = '';
+    this.clearTopSiteThumbnails();
   },
 
   showTopSiteThumbnails: function browser_showStartscreenThumbnails(places) {
-    this.topSiteThumbnails.innerHTML = '';
+    this.clearTopSiteThumbnails();
+
     var length = places.length;
     // Display a message if Top Sites empty
     if (length == 0) {
@@ -1286,13 +1299,18 @@ var Browser = {
     if (length == 1)
       places.push({uri: '', title: ''});
 
+    var self = this;
     places.forEach(function processPlace(place) {
       var thumbnail = document.createElement('li');
       var link = document.createElement('a');
       var title = document.createElement('span');
       link.href = place.uri;
       title.textContent = place.title ? place.title : place.uri;
-      link.style.backgroundImage = 'url(' + place.screenshot + ')';
+
+      var objectURL = URL.createObjectURL(place.screenshot);
+      self._topSiteThumbnailObjectURLs.push(objectURL);
+      link.style.backgroundImage = 'url(' + objectURL + ')';
+
       thumbnail.appendChild(link);
       thumbnail.appendChild(title);
       this.topSiteThumbnails.appendChild(thumbnail);
@@ -1345,6 +1363,7 @@ var Browser = {
     this.inTransition = false;
   },
 
+  _tabScreenObjectURLs: [],
   showTabScreen: function browser_showTabScreen() {
 
     // TODO: We shouldnt hide the current tab when switching to the tab
@@ -1356,12 +1375,19 @@ var Browser = {
     var multipleTabs = Object.keys(this.tabs).length > 1;
     var ul = document.createElement('ul');
 
+    this.tabsList.innerHTML = '';
+    // Revoke our old object URLs, so we don't leak.  (It is tempting to do
+    // forEach(URL.revokeObjectURL), but that throws an exception.
+    this._tabScreenObjectURLs.forEach(function(url) {
+      URL.revokeObjectURL(url);
+    });
+    this._tabScreenObjectURLs = [];
+
     for each(var tab in this.tabs) {
       var li = this.generateTabLi(tab, multipleTabs);
       ul.appendChild(li);
     }
 
-    this.tabsList.innerHTML = '';
     this.tabsList.appendChild(ul);
     this.switchScreen(this.TABS_SCREEN);
     this.screenSwipeMngr.gestureDetector.startDetecting();
@@ -1394,7 +1420,9 @@ var Browser = {
     li.appendChild(a);
 
     if (tab.screenshot) {
-      preview.style.backgroundImage = 'url(' + tab.screenshot + ')';
+      var objectURL = URL.createObjectURL(tab.screenshot);
+      this._tabScreenObjectURLs.push(objectURL);
+      preview.style.backgroundImage = 'url(' + objectURL + ')';
     }
 
     if (tab == this.currentTab) {
