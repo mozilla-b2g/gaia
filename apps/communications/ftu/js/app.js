@@ -4,6 +4,7 @@ var _ = navigator.mozL10n.get;
 
 var AppManager = {
   init: function init() {
+    this.isLocalized = true;
     // Init Wifi Manager
     WifiManager.init();
     // Init FB Integration
@@ -39,7 +40,7 @@ var AppManager = {
           window.location.hash = '#languages';
         }
       };
-      req.onerror = function asd() {
+      req.onerror = function() {
         UIManager.activationScreen.classList.add('show');
         window.location.hash = '#languages';
       }
@@ -52,7 +53,9 @@ var AppManager = {
 window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
-  AppManager.init();
+  if(!AppManager.isLocalized){
+    AppManager.init();
+  }
 });
 
 window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
