@@ -27,7 +27,7 @@ var SimPinDialog = {
 
   lockType: 'pin',
   action: 'unlock',
-  origin: 'sim',
+  origin: null,
 
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
@@ -110,7 +110,7 @@ var SimPinDialog = {
         this.inputFieldControl(false, true, true);
         this.pukInput.focus();
         break;
-      case 'absent':
+      default:
         this.skip();
         break;
     }
@@ -121,6 +121,10 @@ var SimPinDialog = {
   handleError: function spl_handleLockError(evt) {
     var retry = (evt.retryCount) ? evt.retryCount : -1;
     this.showErrorMsg(retry, evt.lockType);
+    if (retry === -1) {
+      this.skip();
+      return;
+    }
     if (evt.lockType === 'pin')
       this.pinInput.focus();
     else
@@ -265,7 +269,9 @@ var SimPinDialog = {
 
   onsuccess: null,
   oncancel: null,
-  show: function spl_show(action, onsuccess, oncancel) {
+  // the origin parameter records the dialog caller.
+  // when the dialog is closed, we can relocate back to the caller's div.
+  show: function spl_show(action, onsuccess, oncancel, origin) {
     var _ = navigator.mozL10n.get;
 
     this.dialogDone.disabled = true;
@@ -292,18 +298,20 @@ var SimPinDialog = {
     if (oncancel && typeof oncancel === 'function')
       this.oncancel = oncancel;
 
-    this.origin = document.location.hash;
-    document.location.hash = 'simpin-dialog';
+    this.origin = origin;
+    document.location.hash = '#simpin-dialog';
 
     if (action === 'unlock' && this.lockType === 'puk')
       this.pukInput.focus();
     else
       this.pinInput.focus();
+
   },
 
   close: function spl_close() {
     this.clear();
-    document.location.hash = this.origin;
+    if (this.origin)
+      document.location.hash = this.origin;
   },
 
   skip: function spl_skip() {
@@ -318,11 +326,9 @@ var SimPinDialog = {
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
       return;
-    this.mobileConnection.addEventListener('cardstatechange',
-        this.handleCardState.bind(this));
 
     this.mobileConnection.addEventListener('icccardlockerror',
-        this.handleError.bind(this));
+      this.handleError.bind(this));
 
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogClose.onclick = this.skip.bind(this);
