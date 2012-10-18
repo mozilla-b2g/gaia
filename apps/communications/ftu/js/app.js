@@ -40,7 +40,7 @@ var AppManager = {
           window.location.hash = '#languages';
         }
       };
-      req.onerror = function() {
+      req.onerror = function () {
         UIManager.activationScreen.classList.add('show');
         window.location.hash = '#languages';
       }
@@ -55,6 +55,8 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   if (!AppManager.isLocalized) {
     AppManager.init();
+  } else {
+    UIManager.mainTitle.innerHTML = _('language');
   }
 });
 
