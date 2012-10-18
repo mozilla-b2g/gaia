@@ -1076,6 +1076,7 @@
     /**
      * Returns tag name of element.
      *
+     * @method tagName
      * @param {Function} callback node style [err, tagName].
      */
     tagName: function tagName(callback) {
@@ -1224,6 +1225,8 @@
   }
 
   Client.prototype = {
+
+    Element: Element,
 
     /**
      * Constant for chrome context.
@@ -1468,7 +1471,7 @@
 
       var cmd = { type: 'switchToFrame' };
 
-      if (id instanceof Element) {
+      if (id instanceof this.Element) {
         cmd.element = id.id;
       } else if (id) {
         cmd.value = id;
@@ -1717,16 +1720,16 @@
      *       as the timeout defaults to zero.
      *
      *
-     *    function remote () {
-     *      window.addEventListener('someevent', function() {
-     *        // special method to notify that async script is complete.
-     *        marionetteScriptFinished({ fromRemote: true })
-     *      });
-     *    }
+     *     function remote () {
+     *       window.addEventListener('someevent', function() {
+     *         // special method to notify that async script is complete.
+     *         marionetteScriptFinished({ fromRemote: true })
+     *       });
+     *     }
      *
-     *    client.executeAsyncScript(remote, function(err, value) {
-     *      // value === { fromRemote: true }
-     *    });
+     *     client.executeAsyncScript(remote, function(err, value) {
+     *       // value === { fromRemote: true }
+     *     });
      *
      *
      * @method executeAsyncScript
@@ -1797,10 +1800,10 @@
         if (result instanceof Array) {
           element = [];
           result.forEach(function(el) {
-            element.push(new Element(el, self));
-          });
+            element.push(new this.Element(el, self));
+          }, this);
         } else {
-          element = new Element(result, self);
+          element = new this.Element(result, self);
         }
         self._handleCallback(callback, err, element);
       });
@@ -1896,7 +1899,7 @@
      */
     _transformResultValue: function _transformResultValue(value) {
       if (value && typeof(value.ELEMENT) === 'string') {
-        return new Element(value.ELEMENT, this);
+        return new this.Element(value.ELEMENT, this);
       }
       return value;
     },
@@ -1915,11 +1918,11 @@
     _prepareArguments: function _prepareArguments(args) {
       if (args.map) {
         return args.map(function(item) {
-          if (item instanceof Element) {
+          if (item instanceof this.Element) {
             return {'ELEMENT': item.id };
           }
           return item;
-        });
+        }, this);
       } else {
         return args;
       }

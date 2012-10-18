@@ -1,17 +1,17 @@
-requireCommon('/test/marionette.js');
+require('/apps/system/test/integration/system_integration.js');
 
 suite('notifications', function() {
 
   var device;
+  var app;
 
-  testSupport.startMarionette(function(driver) {
-    device = driver;
+  MarionetteHelper.start(function(client) {
+    app = new SystemIntegration(client);
+    device = app.device;
   });
 
   setup(function() {
-    this.timeout(10000);
-    yield device.setScriptTimeout(5000);
-    yield device.goUrl(testSupport.gaiaUrl('system'));
+    yield app.launch();
   });
 
   test('text/description notification', function() {
@@ -38,10 +38,7 @@ suite('notifications', function() {
     }, [title, description]);
 
     yield device.setContext('content');
-
-    var container = yield device.findElement(
-      '#notifications-container'
-    );
+    var container = yield app.element('notificationsContainer');
 
     var text = yield container.getAttribute('innerHTML');
     assert.ok(text, 'container should have notifications');

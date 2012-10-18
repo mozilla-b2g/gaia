@@ -17,7 +17,7 @@ Installation is simple:
 If you anticipate modifying gaiatest, you can instead:
 
     git clone git://github.com/mozilla-b2g/gaia.git
-    cd gaia/tests/marionette
+    cd gaia/tests/python
     python setup.py develop
 
 Running Tests
@@ -53,5 +53,5 @@ Writing Tests
 Test writing for Marionette Python tests is described at
 https://developer.mozilla.org/en-US/docs/Marionette/Marionette_Python_Tests.
 Additionally, gaiatest exposes some API's for managing Gaia's lockscreen
-and application manager.  See https://github.com/mozilla-b2g/gaia/blob/master/tests/marionette/gaiatest/gaia_test.py.
+and application manager.  See https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaiatest/gaia_test.py.
 
