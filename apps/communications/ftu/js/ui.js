@@ -98,7 +98,7 @@ var UIManager = {
     this.dateConfiguration.addEventListener('input', this);
     this.buttonLetsGo.addEventListener('click', function() {
       if (AppManager.currentActivity) {
-        AppManager.currentActivity.postResult({over: 'over'});
+        AppManager.currentActivity.postResult({ status: 'first-time-over' });
         window.close();
       }
     });

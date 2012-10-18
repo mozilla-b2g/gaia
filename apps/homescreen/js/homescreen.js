@@ -102,7 +102,7 @@ const Homescreen = (function() {
             });
             activityFR.onsuccess = function success() {
               onHomescreenActivity();
-              activity.postResult({over: 'over'});
+              activity.postResult({ status: 'first-time-over' });
             }
             activityFR.onerror = function launchFTError() {
               console.error('Failed to launch home screen with activity.');
