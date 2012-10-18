@@ -30,9 +30,9 @@
        },
       "disposition": "window"
     },
-    "configure": {
+    "unlock": {
       "filters": {
-        "target": "simpin-unlock"
+        "target": "sim"
        },
       "disposition": "inline",
       "href": "unlock_simpin.html",
