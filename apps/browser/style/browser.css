@@ -571,10 +571,8 @@ a.recommend[role="button"]:active  {
   float: left;
 }
 
-#close-tab[disabled], #close-tab[disabled]:active {
-  background: #fafafa url('images/button-background.png') repeat-x left bottom;
-  color: #ccc;
-  border: none;
+#close-tab[disabled] {
+  display: none;
 }
 
 #try-reloading {
