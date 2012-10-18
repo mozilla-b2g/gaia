@@ -211,9 +211,9 @@ var Browser = {
   },
 
   handleCloseTab: function browser_handleCloseTab() {
+    if (Object.keys(this.tabs).length == 1)
+      return;
     this.hideCrashScreen();
-    if (this.currentTab.id = this.FIRST_TAB)
-      this.hideStartScreen();
     this.deleteTab(this.currentTab.id);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
