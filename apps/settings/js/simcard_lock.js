@@ -38,21 +38,44 @@ var SimPinLock = {
     if (!this.mobileConnection)
       return;
 
+    this.mobileConnection.addEventListener('cardstatechange',
+      this.updateSimCardStatus.bind(this));
+
     var self = this;
     this.simPinCheckBox.onchange = function spl_toggleSimPin() {
-      var enabled = this.checked;
-      SimPinDialog.show('enable',
-        function() {
-          self.updateSimCardStatus();
-        },
-        function() {
-          self.simPinCheckBox.checked = !enabled;
-          self.updateSimCardStatus();
-        }
-      );
+      switch (self.mobileConnection.cardState) {
+        case 'pukRequired':
+          var enabled = this.checked;
+          SimPinDialog.show('unlock',
+            function() {
+              // successful unlock puk will be in simcard lock enabled state
+              self.simPinCheckBox.checked = true;
+              self.updateSimCardStatus();
+            },
+            function() {
+              self.simPinCheckBox.checked = !enabled;
+              self.updateSimCardStatus();
+            },
+            document.location.hash
+          );
+          break;
+        default:
+          var enabled = this.checked;
+          SimPinDialog.show('enable',
+            function() {
+              self.updateSimCardStatus();
+            },
+            function() {
+              self.simPinCheckBox.checked = !enabled;
+              self.updateSimCardStatus();
+            },
+            document.location.hash
+          );
+          break;
+      }
     };
     this.changeSimPinButton.onclick = function spl_changePin() {
-      SimPinDialog.show('changePin', null, null);
+      SimPinDialog.show('changePin', null, null, document.location.hash);
     };
 
     this.updateSimCardStatus();
