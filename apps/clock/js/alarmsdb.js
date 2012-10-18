@@ -44,22 +44,20 @@ var AlarmsDB = {
       if (db.objectStoreNames.contains(storeName))
         db.deleteObjectStore(storeName);
       db.createObjectStore(storeName, {keyPath: 'id', autoIncrement: true});
-      // Add default weekday alarms.
-      for (var hour = 8; hour > 5; hour--) {
-        AlarmsDB.putAlarm({
-          label: 'Alarm',
-          hour: hour,
-          minute: 0,
-          enabled: false,
-          repeat: '1111100',
-          sound: 'ALARM_progressive_dapple.mp3',
-          snooze: 5,
-          color: 'Darkorange'
-        }, function(alarm) {
-          AlarmManager.setEnabled(alarm, alarm.enabled);
-          AlarmList.refresh();
-        });
-      }
+      // Add default weekday alarm.
+      AlarmsDB.putAlarm({
+        label: 'Alarm',
+        hour: 7,
+        minute: 0,
+        enabled: false,
+        repeat: '1111100',
+        sound: 'ALARM_progressive_dapple.mp3',
+        snooze: 5,
+        color: 'Darkorange'
+      }, function(alarm) {
+        AlarmManager.setEnabled(alarm, alarm.enabled);
+        AlarmList.refresh();
+      });
       console.log('Upgrading db done');
     };
   },
