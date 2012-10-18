@@ -53,7 +53,7 @@ var AppManager = {
 window.addEventListener('localized', function showBody() {
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
-  if(!AppManager.isLocalized){
+  if (!AppManager.isLocalized) {
     AppManager.init();
   }
 });

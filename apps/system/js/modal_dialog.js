@@ -119,7 +119,7 @@ var ModalDialog = {
       case 'home':
       case 'holdhome':
         // Inline activity, which origin is different from foreground app
-        if (this.isVisible() && 
+        if (this.isVisible() &&
             this.currentOrigin != WindowManager.getDisplayedApp())
           this.cancelHandler();
         break;
