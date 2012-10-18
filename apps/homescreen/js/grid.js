@@ -223,12 +223,19 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
+  function ensureEVME(container) {
+    if (container.id == "evmePage" && !EverythingME.loaded) {
+      EverythingME.load();
+    }
+  }
+
   function togglePagesVisibility(start, end) {
     for (var i = 0; i < pages.length; i++) {
+      var pagediv = pages[i].container;
       if (i < start || i > end) {
-        pages[i].container.style.display = 'none';
+        pagediv.style.display = 'none';
       } else {
-        pages[i].container.style.display = 'block';
+        pagediv.style.display = 'block';
       }
     }
   }
@@ -246,6 +253,10 @@ const GridManager = (function() {
       previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
       newPage.container.dispatchEvent(new CustomEvent('pageshow'));
       togglePagesVisibility(index, index);
+
+      // We load Everything.me lazily after we show its page. That way all
+      // transitions are smooth.
+      ensureEVME(newPage.container);
     }
 
     var previousPage = pages[currentPage];
