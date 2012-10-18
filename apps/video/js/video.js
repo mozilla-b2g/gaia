@@ -138,12 +138,17 @@ function deleteVideo(filename) {
 // scanned media, once this is build add/deleteVideo are used
 // to keep it up to date
 function createThumbnailList() {
+  var hasVideos = false;
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
   videodb.enumerate('date', null, 'prev', function(videodata) {
     addVideo(videodata);
+    if (!hasVideos)
+      hasVideos = true;
   });
+  if (!hasVideos) 
+    showOverlay('empty');
 }
 
 function updateDialog() {
