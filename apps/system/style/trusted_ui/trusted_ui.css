@@ -1,0 +1,58 @@
+#screen:not(.trustedui) #trustedui-container {
+  opacity: 0;
+  visibility: hidden;
+}
+
+#trustedui-container {
+  position: absolute;
+  width: 86%;
+  height: 86%;
+  top: 7%;
+  left: 7%;
+  background: rgba(0, 0, 0, 0.5);
+  transition: visibility ease 1s, opacity ease 1s;
+}
+
+#screen.trustedui #trustedui-container {
+  opacity: 1;
+  visibility: visible;
+}
+
+#trustedui-throbber {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  z-index: 1;
+}
+
+#trustedui-throbber.loading {
+  height: 4px;
+  background-image: url('images/progress.gif');
+}
+
+#trustedui-container > .title-container {
+  height: 5rem;
+  width: 100%;
+  top: 0;
+  left: 0;
+  position: absolute;
+}
+
+#trustedui-container > #trustedui-frame-container {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  width: 100%;
+  height: -moz-calc(100% - 5rem);
+
+  background-color: #fff;
+}
+
+#trustedui-frame-container > * {
+  width: 100%;
+  height: 100%;
+  border: 1px solid red;
+}
+

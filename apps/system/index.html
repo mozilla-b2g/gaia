@@ -116,6 +116,7 @@
     <script defer src="js/popup_manager.js"></script>
 
     <!-- Trusted UI -->
+    <link rel="stylesheet" type="text/css" href="style/trusted_ui/trusted_ui.css">
     <script defer src="js/trusted_ui.js"></script>
 
     <!-- Permission Manager -->
@@ -310,6 +311,18 @@
           </section>
           <div id="frame-container"></div>
         </div>
+
+        <div id="trustedui-container">
+          <section role="region" class="title-container skin-dark">
+            <header>
+              <button id="trustedui-close"><span class="icon icon-close">close</span></button>
+              <h1 id="trustedui-title"></h1>
+              <div id="trustedui-throbber"></div>
+            </header>
+          </section>
+          <div id="trustedui-frame-container"></div>
+        </div>
+
         <div id="authentication-dialog">
           <!--div id="authentication-dialog-ftp" role="dialog">
           </div-->

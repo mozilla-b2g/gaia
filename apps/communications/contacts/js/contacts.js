@@ -567,6 +567,8 @@ var Contacts = (function() {
 
   var showSettings = function showSettings() {
     navigation.go('view-settings', 'popup');
+    // The number of FB Friends has to be recalculated
+    contacts.Settings.refresh();
   }
 
   var showOverlay = function showOverlay(message) {
@@ -579,6 +581,10 @@ var Contacts = (function() {
   var hideOverlay = function hideOverlay() {
     loading.classList.remove('show-overlay');
   };
+
+  var stopPropagation = function stopPropagation(evt) {
+    evt.preventDefault();
+  }
 
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
@@ -605,7 +611,8 @@ var Contacts = (function() {
       '#details-back': handleBack, // Details
       '#edit-contact-button': showEditContact,
       '#toggle-favorite': contacts.Details.toggleFavorite,
-      '#contact-form > button': contacts.Form.onNewFieldClicked
+      '#contact-form > button': contacts.Form.onNewFieldClicked,
+      'button[type="reset"]': stopPropagation
     });
   };
 
