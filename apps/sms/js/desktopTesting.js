@@ -3,14 +3,15 @@
   Code below is for desktop testing!
 
 *********************************************************** */
-if (!navigator.mozSettings) {
-  window.addEventListener('load', function loadWithoutSettings() {
-    ThreadUI.init();
-    ThreadListUI.init();
-  });
-}
-
 if (!navigator.mozSms) {
+
+  if (!navigator.mozSettings) {
+    window.addEventListener('load', function loadWithoutSettings() {
+      ThreadUI.init();
+      ThreadListUI.init();
+    });
+  }
+
   // We made up a fake database on
   var messagesHack = [];
   (function() {
