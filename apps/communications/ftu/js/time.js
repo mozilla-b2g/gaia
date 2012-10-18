@@ -6,8 +6,8 @@ var TimeManager = {
       console.log('There is no mozTime available in window');
     }
   },
-  set: function tm_set(milliseconds) {
-    this.mozTime.set(milliseconds);
+  set: function tm_set(date) {
+    TimeManager.mozTime.set(date);
   },
   get: function tm_get() {
     // TODO Implement when ready in Backend

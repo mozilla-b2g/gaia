@@ -130,6 +130,7 @@ var UIManager = {
         this.setTime();
         break;
       case 'date-configuration':
+        console.log("CHANGING DATE");
         this.setDate();
         break;
       case 'timezone-configuration':
@@ -161,45 +162,47 @@ var UIManager = {
     }
   },
   setDate: function ui_sd() {
+    if(!!this.lock){
+      return;
+    }
     var dateLabel = document.getElementById('date-configuration-label');
-    // Retrieve values from input
-    var newTime = document.getElementById('date-configuration').value;
-    // Retrieve year/month/date
-    var time = newTime.split('-');
-    // Current time
+     // Current time
     var currentTime = new Date();
-    // Create new time with previous params
-    var timeToSet = new Date(parseInt(time[0]),
-                  (parseInt(time[1]) - 1),
-                  parseInt(time[2]),
-                  currentTime.getHours(),
-                  currentTime.getMinutes()
-                  );
-    // Set date through API
-    // TODO There is a bug setting the Date in backend
+    var pDate = document.getElementById('date-configuration').value;  // Format: 2012-09-01
+    var pTime = currentTime.toLocaleFormat('%H:%M');
+    var timeToSet = new Date(pDate + 'T' + pTime);
     TimeManager.set(timeToSet);
-    // Set DATE properly
     dateLabel.innerHTML = timeToSet.toLocaleFormat('%Y-%m-%d');
+    this.lock = true;
+    var self = this;
+    //XXX: Workaround: Bug 802073 -
+    //Receive input event twice from input tag type:time and type:date
+    setTimeout(function() {
+      self.lock = false;
+    },1000);
   },
   setTime: function ui_st() {
+    if(!!this.lock){
+      return;
+    }
     var timeLabel = document.getElementById('time-configuration-label');
-    // Retrieve values from input
-    var newTime = document.getElementById('time-configuration').value;
-    // Retrieve hour/minutes
-    var time = newTime.split(':');
-
     // Current time
     var currentTime = new Date();
-    // Create new time with previous params
-    var timeToSet = new Date(currentTime.getFullYear(),
-                  currentTime.getMonth(),
-                  currentTime.getDate(),
-                  parseInt(time[0]),
-                  parseInt(time[1]));
-    // Set time through API
+    var pTime = document.getElementById('time-configuration').value;  // Format: 2012-09-01
+    pTime = '0' + pTime;
+    var pDate = currentTime.toLocaleFormat('%Y-%m-%d');
+    var timeToSet = new Date(pDate + 'T' + pTime);
+    // Set date through API
     TimeManager.set(timeToSet);
-    // Set time properly
+    // Set DATE properly
     timeLabel.innerHTML = timeToSet.toLocaleFormat('%H:%M');
+    this.lock = true;
+    var self = this;
+    //XXX: Workaround: Bug 802073 -
+    //Receive input event twice from input tag type:time and type:date
+    setTimeout(function() {
+      self.lock = false;
+    },1000);
   },
   setTimeZone: function ui_stz() {
     var tzConfiguration = document.getElementById('timezone-configuration');
