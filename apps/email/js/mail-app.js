@@ -171,16 +171,9 @@ var queryURI = function _queryURI(uri) {
 };
 
 var activityCallback = null;
-// XXX : Workaround to fix the duplicate activity callback issue:
-var activityLock = false;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
-    if (activityLock) {
-      return;
-    } else {
-      activityLock = true;
-    }
     var activityName = activity.source.name;
     if (activityName === 'share') {
       var attachmentUrls = activity.source.data.urls,
