@@ -236,7 +236,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       // create model data
       var data = this.formData();
       for (var field in data) {
-        this.model[field] = data[field];
+        this.event[field] = data[field];
       }
 
       // can't create without a calendar id
@@ -245,8 +245,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
         return;
 
       // now that the model has a calendar id we can find the model
-      var provider = this.store.providerFor(this.model);
-      var eventCaps = provider.eventCapabilities(this.model.data);
+      var provider = this.store.providerFor(this.event);
+      var eventCaps = provider.eventCapabilities(this.event.data);
 
       // safe-guard but should not ever happen.
       if (eventCaps[capability]) {
@@ -258,10 +258,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
         // it via css during that time period
         list.add(this.PROGRESS);
 
-        var moveDate = this.model.startDate;
+        var moveDate = this.event.startDate;
         var redirect = this.returnTo();
 
-        provider[method](this.model.data, function() {
+        provider[method](this.event.data, function() {
           list.remove(self.PROGRESS);
 
           // move the position in the calendar to the added/edited day
@@ -280,13 +280,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
      */
     deleteRecord: function() {
       if (this.provider) {
-        var caps = this.provider.eventCapabilities(this.model.data);
+        var caps = this.provider.eventCapabilities(this.event.data);
         // XXX: unlike the save we don't wait for the transaction
         // to complete before moving on. Providers (should) take
         // action to remove the event from the display instantly
         // then queue a async action to actually remove the whole event.
         if (caps.canDelete) {
-          this.provider.deleteEvent(this.model.data);
+          this.provider.deleteEvent(this.event.data);
           this.app.go(this.returnTo());
         }
       }
@@ -303,9 +303,17 @@ Calendar.ns('Views').ModifyEvent = (function() {
       }
     },
 
-    useModel: function(record) {
-      this.provider = this.store.providerFor(record);
-      this.model = new Calendar.Models.Event(record);
+    /**
+     * Assigns and displays event & busytime information.
+     *
+     * @param {Object} busytime for view.
+     * @param {Object} event for view.
+     */
+    useModel: function(busytime, event) {
+      this.provider = this.store.providerFor(event);
+      this.event = new Calendar.Models.Event(event);
+
+      this.busytime = busytime;
       this._displayModel();
     },
 
@@ -314,15 +322,17 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Gracefully will handle race conditions
      * if rapidly switching between events.
      *
-     * @param {String} id event id.
+     * @param {String} id busytime id.
      */
     _loadModel: function(id) {
       var self = this;
       var token = ++this._changeToken;
-      this.store.findByIds([id], function(err, list) {
-        var keys = Object.keys(list);
-        if (id in list && token === self._changeToken) {
-          self.useModel(list[id]);
+      var time = this.app.timeController;
+
+      time.findAssociated(id, function(err, list) {
+        var records = list[0];
+        if (token === self._changeToken) {
+          self.useModel(records.busytime, records.event);
         }
       });
     },
@@ -377,7 +387,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
      * Resets any value on the current form.
      */
     _updateForm: function() {
-      var model = this.model;
+      var model = this.event;
 
       this.form.reset();
 
@@ -402,7 +412,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     _displayModel: function() {
-      var model = this.model;
+      var model = this.event;
       var calendar = this.store.calendarFor(model);
       var caps = this.provider.eventCapabilities(model.data);
 
@@ -477,7 +487,9 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this._returnTo = null;
       this._markReadonly(false);
       this.provider = null;
-      this.model = null;
+      this.event = null;
+      this.busytime = null;
+
       this.form.reset();
     },
 
@@ -486,6 +498,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
       this.reset();
     },
 
+    /**
+     * Handles the url parameters for when this view
+     * comes into focus. When no id is used will
+     * initialize the view with a new model.
+     *
+     * When the (busytime) id parameter is given the event will
+     * be found via the time controller.
+     */
     dispatch: function(data) {
       var id = data.params.id;
       var classList = this.element.classList;
@@ -501,7 +521,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
       } else {
         var controller = this.app.timeController;
         classList.add(this.CREATE);
-        this.model = this._createModel(controller.mostRecentDay);
+        this.event = this._createModel(controller.mostRecentDay);
         this._updateForm();
       }
     },

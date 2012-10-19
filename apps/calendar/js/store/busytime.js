@@ -48,6 +48,10 @@ Calendar.ns('Store').Busytime = (function() {
     },
 
     _createModel: function(input, id) {
+      return this.initRecord(input, id);
+    },
+
+    initRecord: function(input, id) {
       var _super = Calendar.Store.Abstract.prototype._createModel;
       var model = _super.apply(this, arguments);
 
@@ -66,31 +70,6 @@ Calendar.ns('Store').Busytime = (function() {
       this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
     },
 
-    addEvent: function(event, trans, callback) {
-      if (typeof(trans) === 'function') {
-        callback = trans;
-        trans = undefined;
-      }
-
-      if (typeof(trans) === 'undefined') {
-        trans = this.db.transaction(
-          this._dependentStores,
-          'readwrite'
-        );
-      }
-
-      var id = event._id;
-
-      var item = this._eventToRecord(event);
-      this.persist(item, trans);
-
-      var item = this.addTime(item, true);
-
-      // to add we also must remove
-      // an previous references to event...
-      this._transactionCallback(trans, callback);
-    },
-
     removeEvent: function(id, trans, callback) {
       if (typeof(trans) === 'function') {
         callback = trans;
@@ -104,8 +83,26 @@ Calendar.ns('Store').Busytime = (function() {
         );
       }
 
-      this._removeEventTimes(id);
-      this.removeByIndex('eventId', id, trans);
+      // build the request using the inherited method
+      var req = this.removeByIndex('eventId', id, trans);
+
+      // get the original method which handles the generic bit
+      var success = req.onsuccess;
+
+      // override the default .onsuccess to get the ids
+      // so we can emit remove events.
+      var self = this;
+      req.onsuccess = function(e) {
+        var cursor = e.target.result;
+
+        if (cursor) {
+          var id = cursor.primaryKey;
+          self.emit('remove', id);
+        }
+
+        success(e);
+      }
+
       this._transactionCallback(trans, callback);
     },
 
@@ -114,6 +111,36 @@ Calendar.ns('Store').Busytime = (function() {
       var b = bObj.start.utc;
 
       return Calendar.compare(a, b);
+    },
+
+    /**
+     * Creates a new busytime record
+     * from an event and start/end times.
+     *
+     * @param {ICAL.Event|Object} event related event.
+     * @param {Object} [start] optional start time uses event by default.
+     * @param {Object} [end] optional end time uses event by default.
+     */
+    factory: function(event, start, end) {
+      if (!start)
+        start = event.remote.start;
+
+      if (!end)
+        end = event.remote.end;
+
+      var id = this.db.getStore('Event').busytimeIdFor(
+        event,
+        start,
+        end
+      );
+
+      return {
+        _id: id,
+        start: start,
+        end: end,
+        eventId: event._id,
+        calendarId: event.calendarId
+      };
     },
 
     /**
@@ -163,90 +190,20 @@ Calendar.ns('Store').Busytime = (function() {
         // remove unrelated timespan...
         data = data.slice(0, idx);
 
-        // add records to the cache
-        data.forEach(function(item) {
-          //XXX: Maybe we want to separate
-          //set of events for persist vs load?
-          self.addTime(item, true);
-        });
-
         // fire callback
         if (callback)
-          callback(null, data);
+          callback(null, data.map(function(item) {
+            return self.initRecord(item);
+          }));
 
       };
-    },
-
-    /**
-     * Creates a record for an time/event
-     *
-     * TODO: remove this method entirely in favor of
-     *       provider generated busytimes for all types
-     *       of events.
-     *
-     * @param {Object} event associated event.
-     */
-    _eventToRecord: function(event) {
-
-      var id = this.db.getStore('Event').busytimeIdFor(event);
-
-      var result = {
-        _id: id,
-        start: event.remote.start,
-        end: event.remote.end,
-        eventId: event._id,
-        calendarId: event.calendarId
-      };
-
-      return result;
     },
 
     /* we don't use id based caching for busytimes */
 
     _addToCache: function() {},
-    _removeFromCache: function() {},
+    _removeFromCache: function() {}
 
-    _onLoadCache: function(object) {
-      this.addTime(object);
-    },
-
-    /**
-     * Adds a busytime to the cache.
-     * Emits an add time event when item
-     * is added newly or loaded.
-     *
-     * @param {Object} record busytime record.
-     * @param {Boolean} format when true formats record.
-     */
-    addTime: function(record, format) {
-      if (!(record.eventId in this._byEventId)) {
-        this._byEventId[record.eventId] = [];
-      }
-
-      if (format) {
-        record = this._createModel(record);
-      }
-
-      this._byEventId[record.eventId].push(record);
-      this.emit('add time', record);
-
-      return record;
-    },
-
-    _removeEventTimes: function(id) {
-      var records = this._byEventId[id];
-      delete this._byEventId[id];
-
-      // if its not in memory we are fine.
-      // by contract its in memory if you
-      // care about it and events will be fired.
-      if (!records)
-        return;
-
-      records.forEach(function(record) {
-        this.emit('remove time', record);
-      }, this);
-    }
   };
 
   return Busytime;

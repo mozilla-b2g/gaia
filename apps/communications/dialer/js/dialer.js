@@ -277,10 +277,6 @@ window.onresize = function(e) {
 // Keeping the call history up to date
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
-    RecentsDBManager.init(function dbReady() {
-      RecentsDBManager.get(function(recents) {
-        Recents.render(recents);
-      });
-    });
+    Recents.refresh();
   }
 });

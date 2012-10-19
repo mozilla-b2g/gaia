@@ -734,7 +734,7 @@ ICAL.helpers = {
 
     function parseDurWeek(aState) {
       return {
-        weeks: parser.expectRE(aState, /^((\d+)W)/, "Expected Weeks")[2]
+        weeks: parseInt(parser.expectRE(aState, /^((\d+)W)/, "Expected Weeks")[2], 10)
       };
     }
 
@@ -758,7 +758,7 @@ ICAL.helpers = {
       }
 
       if (data) {
-        data.days = days[2];
+        data.days = parseInt(days[2], 10);
       } else {
         data = {
           days: parseInt(days[2], 10)
@@ -5135,7 +5135,7 @@ ICAL.RecurExpansion = (function() {
    *       with ICAL.Event which handles recurrence exceptions.
    *
    * Options:
-   *  - startDate: (ICAL.icaltime) start time of event (required)
+   *  - dtstart: (ICAL.icaltime) start time of event (required)
    *  - component: (ICAL.icalcomponent) component (required unless resuming)
    *
    * Examples:
@@ -5419,6 +5419,15 @@ ICAL.RecurExpansion = (function() {
 
       this.last = this.dtstart.clone();
 
+      // to provide api consistency non-recurring
+      // events can also use the iterator though it will
+      // only return a single time.
+      if (!isRecurringComponent(component)) {
+        this.ruleDate = this.last.clone();
+        this.complete = true;
+        return;
+      }
+
       if (component.hasProperty('RRULE')) {
         var rules = component.getAllProperties('RRULE');
         var i = 0;
@@ -5533,12 +5542,12 @@ ICAL.Event = (function() {
       component = null;
     }
 
-    if (!component) {
+    if (component) {
+      this.component = component;
+    } else {
       this.component = new ICAL.icalcomponent({
         name: 'VEVENT'
       });
-    } else {
-      this.component = component;
     }
 
     this.exceptions = Object.create(null);
