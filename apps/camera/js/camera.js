@@ -502,10 +502,10 @@ var Camera = {
     if (camera == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
-      rotation = 270;
+      rotation = 0;
     } else {
       /* forwards-facing camera */
-      rotation = 90;
+      rotation = 0;
     }
 
     style.MozTransform = transform;
@@ -781,7 +781,7 @@ var Camera = {
   // The layout (icons) and the phone calculate orientation in the
   // opposite direction
   layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
-    return 270 - this._phoneOrientation;
+    return this._phoneOrientation;
   },
 
   showOverlay: function camera_showOverlay(id) {
