@@ -419,6 +419,7 @@ var LockScreen = {
 
     var distance = target.offsetLeft - this.areaHandle.offsetLeft -
       (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
+    this.overlay.classList.add('triggered');
     this.areaHandle.classList.add('triggered');
 
     var transformDistance = 'translateX(' + distance + 'px)';
@@ -664,6 +665,7 @@ var LockScreen = {
             self.railLeft.style.opacity =
             self.railRight.style.transform =
             self.railLeft.style.transform = '';
+          self.overlay.classList.remove('triggered');
           self.areaHandle.classList.remove('triggered');
           self.areaCamera.classList.remove('triggered');
           self.areaUnlock.classList.remove('triggered');
