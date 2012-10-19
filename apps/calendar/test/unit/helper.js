@@ -81,22 +81,6 @@
       return Calendar.App;
     },
 
-    checkSet: function(set, arr) {
-      var i = 0,
-          missing = [],
-          item;
-
-      for (i; i < arr.length; i++) {
-        item = arr[i];
-
-        if (!set.has(item)) {
-          missing.push(item);
-        }
-      }
-
-      return (missing.length) ? missing : true;
-    },
-
     bench: function bench(iter, cb) {
       var start = window.performance.now(),
           i = 0;
@@ -124,18 +108,6 @@
 
   /* global exports */
 
-  function createController(fn) {
-    var busytime = new Calendar.Store.Busytime();
-    var events = new Calendar.Store.Event();
-
-    var controller = new Calendar.Controller({
-      eventList: events,
-      busytime: busytime
-    });
-
-    return controller;
-  }
-
   function requireLib() {
     var args = Array.prototype.slice.call(arguments);
     args[0] = 'calendar/js/' + args[0];
@@ -156,33 +128,9 @@
 
   /* chai extensions */
 
-  assert.setHas = function(subject, values, msg) {
-    var check;
-
-    assert.ok(subject, 'must pass value');
-
-    if (typeof(msg) === 'undefined') {
-      msg = '';
-    }
-
-    if (msg) {
-      msg += ': ';
-    }
-
-    check = testSupport.calendar.checkSet(subject, values);
-
-    if (!check) {
-        msg += 'expected set to have: ' + JSON.stringify(value) +
-               ' but is missing ' + JSON.stringify(check);
-
-      throw new Error(msg);
-    }
-  }
-
   // XXX: this is a lame way to do this
   // in reality we need to fix the above upstream
   // and leverage new chai 1x methods
-
   assert.hasProperties = function chai_hasProperties(given, props, msg) {
     msg = (typeof(msg) === 'undefined') ? '' : msg + ': ';
 

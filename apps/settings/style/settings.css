@@ -239,9 +239,10 @@ label[for^="pwd"] {
  */
 
 .tone-select {
-  width: 60%;
+  width: 50%;
   position: absolute;
-  right: 0;
+  right: 1rem;
+  left: auto;
 }
 
 

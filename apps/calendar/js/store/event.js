@@ -39,18 +39,6 @@
     },
 
     /**
-     * Link dependants (busytimes) into the
-     * creation/removal process. This should
-     * keep all deps in sync as such you
-     * should _always_ use the persist/remove methods
-     * and never directly touch the db.
-     */
-    _addDependents: function(obj, trans) {
-      var busy = this.db.getStore('Busytime');
-      busy.addEvent(obj, trans);
-    },
-
-    /**
      * Generate an id for a newly created record.
      * Based off of remote id (uuid) and calendar id.
      */
@@ -96,9 +84,16 @@
       return Calendar.App.provider(acc.providerType);
     },
 
-    busytimeIdFor: function(event) {
-      var id = event.remote.start.utc + '-' +
-               event.remote.end.utc + '-' +
+    busytimeIdFor: function(event, start, end) {
+      if (!start)
+        start = event.remote.start;
+
+      if (!end)
+        end = event.remote.end;
+
+
+      var id = start.utc + '-' +
+               end.utc + '-' +
                event._id;
 
       return id;
