@@ -170,7 +170,7 @@ h2.block-title {
   width: -moz-calc(100% - 5rem - 0.8rem) !important;
   margin: 0;
   margin-left: 2.5rem;
-  padding: 0;
+  padding: 0.5rem 0 0 0 !important;
 }
 
 #groups-list > li {
