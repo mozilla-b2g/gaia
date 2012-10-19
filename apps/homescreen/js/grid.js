@@ -225,10 +225,11 @@ const GridManager = (function() {
 
   function togglePagesVisibility(start, end) {
     for (var i = 0; i < pages.length; i++) {
+      var pagediv = pages[i].container;
       if (i < start || i > end) {
-        pages[i].container.style.display = 'none';
+        pagediv.style.display = 'none';
       } else {
-        pages[i].container.style.display = 'block';
+        pagediv.style.display = 'block';
       }
     }
   }
@@ -243,8 +244,8 @@ const GridManager = (function() {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
-      newPage.container.dispatchEvent(new CustomEvent('pageshow'));
+      previousPage.container.dispatchEvent(new CustomEvent('gridpagehide'));
+      newPage.container.dispatchEvent(new CustomEvent('gridpageshow'));
       togglePagesVisibility(index, index);
     }
 
