@@ -690,10 +690,10 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Default" checked />
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
             <span></span>
           </label>
-          <a data-l10n-id="classic">Default</a>
+          <a data-l10n-id="classic">Classic</a>
         </li>
         <li>
           <label onmouseup="audioPreview(this)">
@@ -717,10 +717,10 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Sound of Message" />
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
             <span></span>
           </label>
-          <a data-l10n-id="lowBit">Sound of Message</a>
+          <a data-l10n-id="beep">Beep Beep</a>
         </li>
       </ul>
 
@@ -765,18 +765,15 @@
           </label>
         </li>
         <li>
-          <label>
+          <span data-l10n-id="call">Call
             <button id="call-tone-selection" class="tone-select">Old School</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="call">Call</a>
+          </span>
         </li>
         <li>
-          <label>
-            <button id="sms-tone-selection" class="tone-select">Beep Beep</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="message">Message</a>
+          <span data-l10n-id="message">Message
+            <button id="sms-tone-selection" class="tone-select">
+              Beep Beep</button>
+          </span>
         </li>
       </ul>
 
