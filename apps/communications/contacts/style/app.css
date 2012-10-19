@@ -138,32 +138,6 @@ form {
   margin: 0;
 }
 
-button {
-  height: auto;
-  width: auto;
-  overflow: visible;
-  display: inline-block;
-  vertical-align: middle;
-  background: none;
-  border: none;
-  outline: none;
-  font: 1.1rem/1.3rem MozTT, Sans-serif;
-  color: #666;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-button::-moz-focus-inner {
-  padding: 0;
-  border: none;
-}
-
-input, textarea, select, button {
-  margin: 0;
-  padding: 0;
-  vertical-align: middle;
-}
-
 input:focus, textarea:focus {
   outline: none;
 }
@@ -257,6 +231,62 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
  */
 section[role="region"] > header:first-child {
   background-color: #cd6623;
+}
+
+/* Rewritting from buttons.css */
+section[role="region"] > header:first-child button,
+section[role="region"] > header:first-child a[role="button"] {
+  white-space: normal;
+}
+
+/* Buttons inside list redefinition */
+li button span,
+li a[role="button"] span {
+  font-size: 0;
+}
+
+/* Extending BB list buttons (Activity ones) */
+li button.activity,
+li a[role="button"].activity {
+  background-color: #fff;
+  padding: 0;
+}
+
+li button.activity:active,
+li a[role="button"].activity:active {
+  background-color: #008AAA;
+}
+
+/* Icons at left side */
+li button.activity > span,
+li a[role="button"].activity > span {
+  float: left;
+  margin: 0.2rem 0.5rem;
+}
+
+li button.activity > span + b ,
+li a[role="button"].activity > span + b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Extending components */
+li button.activity > em ,
+li a[role="button"].activity > em{
+  color: #727272;
+  font-style: normal;
+}
+
+/* Extending icons */
+li button span.icon-fav,
+li a[role="button"] span.icon-fav {
+  background-image: url(/contacts/style/images/icon-fav-button.png);
+}
+
+/* Input areas customization*/
+form p + p {
+  margin-top: 0.5rem;
 }
 
 /* Body */
@@ -394,28 +424,19 @@ section[role="region"] > header:first-child {
 }
 
 /* ICONS */
+
 span[role="button"] {
-  display: inline-block;
-  vertical-align: middle;
-  width: 2.8rem;
-  height: 2.8rem;
+  margin-right: -1rem;
   font: 0/0 a;
   background: transparent no-repeat center center;
   background-size: 100% auto;
 }
-
 
 /* header */
 span[role="button"].icon-back {
   background-image: url(/contacts/style/gphx/bitmap/default/vw-header/back.png);
   width: 1.1rem;
   height: 2.7rem;
-}
-
-span[role="button"].icon-add {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/add.png);
-  width: 1.6rem;
-  height: 1.6rem;
 }
 
 span[role="button"].icon-edit {
@@ -425,10 +446,6 @@ span[role="button"].icon-edit {
 }
 
 span[role="button"].icon-finish {
-  background-color: rgba(0, 0, 0, 0.5);
-}
-
-span[role="button"].icon-fav {
   background-color: rgba(0, 0, 0, 0.5);
 }
 
@@ -508,6 +525,20 @@ span[role="button"].icon-address {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
 }
 
+span[role="button"].icon-link {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/link.png);
+  width: 2rem;
+  height: 1.7rem;
+  margin-top: 0.5rem;
+}
+
+span[role="button"].icon-fb-profile {
+  background-image: url(/contacts/style/gphx/bitmap/default/buttons/fb_profile.png);
+  width: 1.7rem;
+  height: 1.6rem;
+  margin-top: 0.6rem;
+}
+
 
 /* arrows */
 span[role="button"].icon-arrow {
@@ -536,52 +567,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
   border-left-color: #333;
 }
 
-/* BUTTONS */
-
-button.action {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 4rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  -moz-box-sizing: border-box;
-  font-size: 1.4rem;
-  color: #333;
-  text-align: left;
-  border-radius: 0.4rem;
-  border: solid 1px #c8c8c8;
-  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-}
-
-button.action:hover {
-  text-decoration: none;
-}
-
-button.action:active {
-  border-color: #7a7a7a;
-}
-
-button.action span[role="button"] {
-  margin-right: 0.5rem;
-  margin-left: 0.5rem;
-}
-
-button.action b, button.action em {
-  vertical-align: middle;
-  margin: 0 0.5rem;
-}
-
-button.action em {
-  color: #727272;
-  font-style: normal;
-}
-
-button.action b + em, button.action span[role="button"] + b {
-  margin-left: 0;
-}
-
 /* Block type (long text) */
 .action-block {
   height: auto;
@@ -604,28 +589,8 @@ button.action b + em, button.action span[role="button"] + b {
 }
 
 /* Add style */
-.action-add {
-  background: -moz-linear-gradient(bottom, #ccc, #fafafa);
-  border: solid 1px #bcbcbc;
-  box-shadow: none;
-  color: #333;
-  text-align: left;
-  padding-left: 1rem;
-}
 .action-add span.icon-add[role="button"] {
   background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
-}
-
-.action-add:active {
-  background: -moz-linear-gradient(bottom, #fafafa, #ccc);
-}
-
-/* Remove/delete style */
-.action-delete {
-  color: #fff;
-  background: -moz-linear-gradient(bottom, #900010, #c90010);
-  border: none;
-  padding-left: 0.8rem;
 }
 
 /* FILL FLOW: general components for helping in defining basic flows in forms; */
@@ -635,7 +600,7 @@ button.action b + em, button.action span[role="button"] + b {
 
 /* ROW: horizontal separation for elements; */
 .fillflow-row {
-  margin-bottom: 0.5rem;
+  margin: 0 0 0.5rem;
   position: relative;
 }
 
@@ -644,8 +609,16 @@ button.action b + em, button.action span[role="button"] + b {
 }
 
 .fillflow-twocols {
-  width: 14.1rem;
+  overflow: hidden;
+}
+
+.fillflow-twocols button {
+  width: calc(50% - 0.5rem);
   float: left;
+}
+
+.fillflow-twocols button:last-child {
+  float: right;
 }
 
 /* ROW ACTION */
@@ -654,6 +627,16 @@ button.action b + em, button.action span[role="button"] + b {
   left: 100%;
   top: 50%;
   margin: -1rem 0 0 0.5rem;
+  background: none;
+  border: none;
+  width: auto;
+  height: auto;
+}
+
+.fillflow-row-action span[role="button"] {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
 }
 
 /* MEDIA: specific ratio used in forms; */
@@ -688,7 +671,7 @@ button.action b + em, button.action span[role="button"] + b {
   width: 100%;
   height: 100%;
   background: #fff no-repeat center center;
-  background-size: 100% auto;
+  background-size: cover;
 }
 
 /* LISTS */
