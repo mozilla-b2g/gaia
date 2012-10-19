@@ -345,6 +345,16 @@ window.addEventListener('load', function loadSettings(evt) {
   }
 });
 
+window.addEventListener('hashchange', function handleHashChange(event) {
+  // most browsers now scroll content into view taking CSS transforms
+  // into account.  That's not what we want when moving between
+  // <section>s, because the being-moved-to section is offscreen when
+  // we navigate to its #hash.  The transitions assume the viewport is
+  // always at document 0,0.  So add a hack here to make that
+  // assumption true again.
+  window.scrollTo(0, 0);
+});
+
 // back button = close dialog || back to the root page
 // + prevent the [Return] key to validate forms
 window.addEventListener('keydown', function handleSpecialKeys(event) {

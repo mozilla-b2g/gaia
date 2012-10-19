@@ -88,16 +88,23 @@ var AttentionScreen = {
     this.attentionScreen.classList.add('displayed');
 
     // Ensuring the proper mozvisibility change on the displayed app
+    // and the attention screen app
     var displayedOrigin = WindowManager.getDisplayedApp();
-    if (displayedOrigin) {
-      var frame = WindowManager.getAppFrame(displayedOrigin);
-      if ('setVisible' in frame) {
-        frame.setVisible(false);
-      }
-    }
+    var frameOrigin = attentionFrame.dataset.frameOrigin;
+    this._setVisibility(displayedOrigin, false);
+    this._setVisibility(frameOrigin, false);
 
     this.mainScreen.classList.add('attention');
     this.dispatchEvent('attentionscreenshow');
+  },
+
+  _setVisibility: function as_setVisibility(origin, visible) {
+    if (!origin)
+      return;
+    var frame = WindowManager.getAppFrame(origin);
+    if (frame && 'setVisible' in frame) {
+      frame.setVisible(visible);
+    }
   },
 
   close: function as_close(evt) {
@@ -107,12 +114,7 @@ var AttentionScreen = {
 
     // Ensuring the proper mozvisibility changed on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
-    if (displayedOrigin) {
-      var frame = WindowManager.getAppFrame(displayedOrigin);
-      if ('setVisible' in frame) {
-        frame.setVisible(true);
-      }
-    }
+    this._setVisibility(displayedOrigin, true);
 
     this.mainScreen.classList.remove('active-statusbar');
     this.attentionScreen.classList.remove('status-mode');
