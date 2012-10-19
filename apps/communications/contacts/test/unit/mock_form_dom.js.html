@@ -162,9 +162,11 @@ var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mi
 
     MockFormDom += '        </form>';
 
-    MockFormDom += '        <button id="delete-contact" class="hide fillflow-row action action-delete">';
-    MockFormDom += '          <b data-l10n-id="deleteContact">Delete contact</b>';
-    MockFormDom += '        </button>';
+    MockFormDom += '        <footer class="tail-actions hide">'
+    MockFormDom += '          <button id="delete-contact" class="hide fillflow-row action action-delete danger">';
+    MockFormDom += '            <b data-l10n-id="deleteContact">Delete contact</b>';
+    MockFormDom += '          </button>';
+    MockFormDom += '        </footer>';
     MockFormDom += '      </div>';
     MockFormDom += '    </article>';
     MockFormDom += '  </section>';
