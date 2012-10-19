@@ -80,9 +80,7 @@ suite('controllers/sync', function() {
       cb();
     }
 
-    account.persist(model, function() {
-      console.log(arguments[1]);
-    });
+    account.persist(model);
   });
 
   suite('#sync', function() {

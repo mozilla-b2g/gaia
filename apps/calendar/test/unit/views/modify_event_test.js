@@ -9,6 +9,7 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('views/modify_event', function() {
 
   var subject;
+  var controller;
   var event;
   var app;
   var fmt;
@@ -16,6 +17,7 @@ suite('views/modify_event', function() {
   var event;
   var account;
   var calendar;
+  var busytime;
 
   var remote;
   var eventStore;
@@ -81,7 +83,6 @@ suite('views/modify_event', function() {
     ].join('');
 
     document.body.appendChild(div);
-
     app = testSupport.calendar.app();
 
     eventStore = app.store('Event');
@@ -93,6 +94,7 @@ suite('views/modify_event', function() {
     // setup model fixtures
     account = Factory('account', { _id: 'foo' });
     calendar = Factory('calendar', { _id: 'foo', accountId: 'foo' });
+
     event = Factory('event', {
       calendarId: 'foo',
       remote: {
@@ -101,11 +103,17 @@ suite('views/modify_event', function() {
       }
     });
 
+    busytime = Factory('busytime', {
+      eventId: event._id
+    });
+
     // add account & calendar to cache
     accountStore.cached.foo = account;
     calendarStore.cached.foo = calendar;
 
     remote = event.remote;
+
+    controller = app.timeController;
 
     subject = new Calendar.Views.ModifyEvent({
       app: app
@@ -140,7 +148,7 @@ suite('views/modify_event', function() {
       calledLoad = null;
       calledUpdate = null;
 
-      eventStore.findByIds = function() {
+      controller.findAssociated = function() {
         calledLoad = arguments;
       }
 
@@ -153,24 +161,24 @@ suite('views/modify_event', function() {
       var token = subject._changeToken;
 
       subject._loadModel(1);
-      assert.deepEqual(calledLoad[0], [1]);
+      assert.deepEqual(calledLoad[0], 1);
       // changes sync token
       assert.equal(
         subject._changeToken, token + 1, 'should increment token'
       );
 
       var cb = calledLoad[1];
-      cb(null, {1: event });
+      cb(null, [{ event: event }]);
 
-      assert.instanceOf(subject.model, Calendar.Models.Event);
-      assert.equal(subject.model.data, event);
+      assert.instanceOf(subject.event, Calendar.Models.Event);
+      assert.equal(subject.event.data, event);
       assert.ok(calledUpdate);
     });
 
     test('when change token is different', function() {
       var token = subject._changeToken;
       subject._loadModel(1);
-      assert.deepEqual(calledLoad[0], [1]);
+      assert.deepEqual(calledLoad[0], 1);
       // changes sync token
       assert.equal(
         subject._changeToken, token + 1, 'should increment token'
@@ -179,9 +187,9 @@ suite('views/modify_event', function() {
       subject._changeToken = 100;
 
       var cb = calledLoad[1];
-      cb(null, [{1: ''}]);
+      cb(null, [{event: ''}]);
 
-      assert.ok(!subject.model);
+      assert.ok(!subject.event);
       assert.ok(!calledUpdate, 'should not update form if token has changed');
     });
   });
@@ -224,7 +232,7 @@ suite('views/modify_event', function() {
       var key;
 
       subject.onfirstseen();
-      subject.useModel(event);
+      subject.useModel(busytime, event);
 
       if (subject.provider.canCreateEvent) {
         expected.calendarId = event.calendarId;
@@ -319,7 +327,8 @@ suite('views/modify_event', function() {
 
     subject._returnTo = 'foo';
     subject.provider = 'foobar';
-    subject.model = 'foo';
+    subject.event = 'foo';
+    subject.busytime = 'foo';
 
 
     var allday = subject.getField('allday');
@@ -331,7 +340,8 @@ suite('views/modify_event', function() {
 
     assert.isNull(subject._returnTo);
     assert.isNull(subject.provider, 'clear provider');
-    assert.isNull(subject.model, 'clear model');
+    assert.isNull(subject.event, 'clear event');
+    assert.isNull(subject.busytime, 'clears busytime');
 
     assert.isFalse(list.contains(subject.ALLDAY), 'allday');
     assert.isFalse(list.contains(subject.READONLY), 'readonly');
@@ -374,13 +384,13 @@ suite('views/modify_event', function() {
       subject.dispatch({ params: {} });
       assert.isTrue(classList.contains(subject.CREATE), 'has create class');
       assert.isFalse(classList.contains(subject.UPDATE), 'has update class');
-      assert.instanceOf(subject.model, Calendar.Models.Event);
+      assert.instanceOf(subject.event, Calendar.Models.Event);
 
       var formData = subject.formData();
 
       assert.hasProperties(formData, {
-        startDate: subject.model.startDate,
-        endDate: subject.model.endDate
+        startDate: subject.event.startDate,
+        endDate: subject.event.endDate
       });
     });
   });
@@ -388,7 +398,7 @@ suite('views/modify_event', function() {
   suite('#formData', function() {
 
     setup(function() {
-      subject.useModel(event);
+      subject.useModel(busytime, event);
       subject.onfirstseen();
     });
 
@@ -481,7 +491,7 @@ suite('views/modify_event', function() {
       };
 
       // setup the delete
-      subject.useModel(event);
+      subject.useModel(busytime, event);
 
       // must come after dispatch
       subject._returnTo = '/foo';
@@ -495,7 +505,7 @@ suite('views/modify_event', function() {
 
     test('with valid provider', function() {
       subject.deleteRecord();
-      assert.equal(calledWith[0], subject.model.data, 'delete event');
+      assert.equal(calledWith[0], subject.event.data, 'delete event');
       assert.equal(redirectTo, '/foo', 'redirect');
     });
   });
@@ -525,7 +535,7 @@ suite('views/modify_event', function() {
         }
 
         subject.onfirstseen();
-        subject.useModel(event);
+        subject.useModel(busytime, event);
 
         subject._returnTo = '/foo';
       });
@@ -538,7 +548,7 @@ suite('views/modify_event', function() {
         subject.save();
 
         var data = subject.formData();
-        assert.hasProperties(subject.model, data, 'updated model');
+        assert.hasProperties(subject.event, data, 'updated model');
         assert.isTrue(list.contains(subject.PROGRESS));
         assert.ok(calledWith);
 
@@ -550,7 +560,7 @@ suite('views/modify_event', function() {
 
         assert.deepEqual(
           app.timeController.position,
-          subject.model.startDate,
+          subject.event.startDate,
           'moves time controller'
         );
       });
@@ -585,7 +595,7 @@ suite('views/modify_event', function() {
         subject.save();
 
         var data = subject.formData();
-        assert.hasProperties(subject.model, data, 'updated model');
+        assert.hasProperties(subject.event, data, 'updated model');
         assert.isTrue(list.contains(subject.PROGRESS));
         assert.ok(calledWith);
 
@@ -597,7 +607,7 @@ suite('views/modify_event', function() {
 
         assert.deepEqual(
           app.timeController.position,
-          subject.model.startDate,
+          subject.event.startDate,
           'moves timeController'
         );
       });
@@ -744,7 +754,7 @@ suite('views/modify_event', function() {
 
       setup(function() {
         subject.onfirstseen();
-        subject.useModel(event);
+        subject.useModel(busytime, event);
         list = subject.element.classList;
         allday = subject.getField('allday');
       });
@@ -761,7 +771,7 @@ suite('views/modify_event', function() {
       });
 
       test('when start & end are same dates', function() {
-        var model = subject.model;
+        var model = subject.event;
         var date = new Date(2012, 0, 1);
         var value = InputParser.exportDate(date);
 
@@ -799,7 +809,7 @@ suite('views/modify_event', function() {
     test('delete button click', function(done) {
       var calledWith;
       var provider = eventStore.providerFor(event);
-      subject.useModel(event);
+      subject.useModel(busytime, event);
 
       provider.deleteEvent = function() {
         done();

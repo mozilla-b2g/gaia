@@ -244,6 +244,8 @@
           cursor.continue();
         }
       };
+
+      return req;
     },
 
     /**
