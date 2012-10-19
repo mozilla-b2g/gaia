@@ -46,5 +46,5 @@ ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
 	$(MAKE) $(GAIA_MAKE_FLAGS) profile
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) indexedDB webapps
+	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps
 
