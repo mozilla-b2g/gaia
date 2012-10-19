@@ -326,7 +326,7 @@ var StatusBar = {
 
       } else {
         // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
-        icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
+        icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
       }
     },
 
