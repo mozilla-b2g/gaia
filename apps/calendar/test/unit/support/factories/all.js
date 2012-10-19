@@ -184,8 +184,8 @@
 
   Factory.define('alarm', {
     oncreate: function(obj) {
-      if (obj.trigger && obj.trigger instanceof Date) {
-        obj.trigger = Calc.dateToTransport(obj.trigger);
+      if (obj.startDate && obj.startDate instanceof Date) {
+        obj.startDate = Calc.dateToTransport(obj.startDate);
       }
     }
   });
