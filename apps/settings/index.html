@@ -1111,7 +1111,7 @@
     </section>
 
     <!-- Security :: Phone Lock -->
-    <section role="region" id="phoneLock" data-enabled="false">
+    <section role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false">
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
@@ -1120,14 +1120,14 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.enabled" checked />
+            <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" />
             <span></span>
           </label>
           <a data-l10n-id="lockScreen">Lock Screen</a>
         </li>
-        <li>
+        <li class="lockscreen-enabled">
           <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
+            <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" />
             <span></span>
           </label>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
