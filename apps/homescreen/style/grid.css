@@ -87,7 +87,7 @@
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(5 * 0.226rem); /* 5pt */
+  font-size: -moz-calc(5.5 * 0.226rem); /* was 5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 
@@ -100,5 +100,6 @@
   position: relative;
   height: 1.6rem; /* 15px in otoro */
   margin: 0 auto;
-  font-weight: bold;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
 }
