@@ -223,12 +223,6 @@ const GridManager = (function() {
     window.removeEventListener('mouseup', handleEvent);
   }
 
-  function ensureEVME(container) {
-    if (container.id == "evmePage" && !EverythingME.loaded) {
-      EverythingME.load();
-    }
-  }
-
   function togglePagesVisibility(start, end) {
     for (var i = 0; i < pages.length; i++) {
       var pagediv = pages[i].container;
@@ -250,13 +244,9 @@ const GridManager = (function() {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
-      newPage.container.dispatchEvent(new CustomEvent('pageshow'));
+      previousPage.container.dispatchEvent(new CustomEvent('gridpagehide'));
+      newPage.container.dispatchEvent(new CustomEvent('gridpageshow'));
       togglePagesVisibility(index, index);
-
-      // We load Everything.me lazily after we show its page. That way all
-      // transitions are smooth.
-      ensureEVME(newPage.container);
     }
 
     var previousPage = pages[currentPage];

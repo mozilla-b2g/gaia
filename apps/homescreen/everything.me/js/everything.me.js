@@ -1,5 +1,14 @@
 var EverythingME = {
+
   loaded: false,
+
+  init: function EverythingME_init() {
+    var page = document.getElementById("evmePage");
+    page.addEventListener("gridpageshow", function onpageshow(event) {
+      window.removeEventListener("gridpageshow", onpageshow);
+      EverythingME.load();
+    });
+  },
 
   load: function EverythingME_load() {
     if (this.loaded)
@@ -57,7 +66,7 @@ var EverythingME = {
       event.target.removeEventListener("load", onScriptLoad);
       scriptLoadCount += 1;
       if (scriptLoadCount == js_files.length) {
-        EverythingME.init();
+        EverythingME.start();
       }
     }
 
@@ -78,8 +87,7 @@ var EverythingME = {
     }
   },
 
-  init: function EverythingME_init() {
-    // Initialize Evme
+  start: function EverythingME_start() {
     if (document.readyState == "complete") {
       Evme.init();
     } else {
@@ -89,3 +97,5 @@ var EverythingME = {
     }
   }
 };
+
+EverythingME.init();
