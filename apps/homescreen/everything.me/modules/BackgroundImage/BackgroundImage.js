@@ -40,7 +40,6 @@ Evme.BackgroundImage = new function() {
             if (isDefault) {
                 $el.addClass("default");
             } else {
-                $el.removeClass("default");
                 currentImage = oImage;
 
                 $currentImage = $('<div style="background-image: url(' + currentImage.image + ')" class="img"></div>');
@@ -48,6 +47,9 @@ Evme.BackgroundImage = new function() {
 
                 window.setTimeout(function(){
                     $currentImage.addClass("visible");
+                    window.setTimeout(function(){
+                        $el.removeClass("default");
+                    }, 300);
                 }, 10);
             }
 

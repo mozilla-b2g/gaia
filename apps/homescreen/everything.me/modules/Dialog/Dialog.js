@@ -5,7 +5,6 @@ Evme.Dialog = function(_id) {
     
     if (!id) {
         throw new Exception("Please provide an ID for the dialog");
-        return false;
     }
     
     this.getId = function() {

@@ -7,9 +7,6 @@
     z-index: 50;
     overflow: hidden;
 }
-#evmeContainer #evmeApps {
-    -webkit-mask-image: -webkit-gradient(linear, left bottom, left top, color-stop(0, rgba(0, 0, 0, 1)), color-stop(97%, rgba(0, 0, 0, 1)), color-stop(100%, rgba(0, 0, 0, 0)));
-}
 #evmeContainer.loading-app #evmeApps {
     pointer-events: none;
 }
@@ -56,9 +53,6 @@
     width: 100%;
     padding-bottom: 30px;
 }
-#evmeContainer.location-input-visible #evmeApps ul {
-    -webkit-transform: none !important;
-}
     #evmeContainer #evmeApps ul li,
     #evmeContainer .apps ul li {
         width: 25%;
@@ -71,15 +65,11 @@
         vertical-align: top;
         
         -moz-transition: -moz-transform .2s linear;
-        -webkit-transition: -webkit-transform .2s linear;
-        -ms-transition: -ms-transform .2s linear;
         transition: transform .2s linear;
     }
     #evmeContainer #evmeApps ul li.new,
     #evmeContainer .apps ul li.new {
         -moz-transition: none;
-        -webkit-transition: none;
-        -ms-transition: none;
         transition: none;
     }
     #evmeContainer #evmeApps ul #button-more,
@@ -125,25 +115,14 @@
             margin-left: -22px;
             background-position: 50% 50%;
             background-repeat: no-repeat;
-            -moz-background-size: contain;
-            -webkit-background-size: contain;
-            -o-background-size: contain;
             background-size: contain;
-            -moz-border-radius: 23px;
-            -webkit-border-radius: 23px;
             border-radius: 23px;
             -moz-transition: -moz-transform .2s linear;
-            -webkit-transition: -webkit-transform .2s linear;
-            -ms-transition: -ms-transform .2s linear;
-            -o-transition: -o-transform .2s linear;
             transition: transform .2s linear;
         }
         #evmeContainer #evmeApps ul li.new .thumb,
         #evmeContainer .apps ul li.new .thumb {
             -moz-transform: scale(0);
-            -webkit-transform: scale(0);
-            -ms-transform: scale(0);
-            -o-transform: scale(0);
             transform: scale(0);
         }
         #evmeContainer #evmeApps ul li .thumb:after,
@@ -175,7 +154,6 @@
             margin-top: 2px;
             overflow: hidden;
             text-overflow: ellipsis;
-            -ms-text-overflow: ellipsis;
             padding: 2px;
             color: #fff;
             font-weight: 600;
@@ -208,9 +186,6 @@
             opacity: 0;
             display: none;
             -moz-transition: opacity .2s linear;
-            -webkit-transition: opacity .2s linear;
-            -ms-transition: opacity .2s linear;
-            -o-transition: opacity .2s linear;
             transition: opacity .2s linear;
         }
     #evmeContainer #evmeApps ul li#more-apps,
@@ -228,14 +203,8 @@
         margin: 10px 0 0 0;
         z-index: 50;
         cursor: default;
-        -moz-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
-        -webkit-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
-        -o-box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
         box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .6), 0 -2px 0 0 rgba(0, 0, 0, .5);
         -moz-transition: none;
-        -webkit-transition: none;
-        -ms-transition: none;
-        -o-transition: none;
         transition: none;
     }
     #evmeContainer #evmeApps ul li#more-apps span,
@@ -276,9 +245,6 @@ body:not(.istouch) #evmeApps ul li:nth-child(5n+1) {
     overflow: visible;
     margin-top: 0 !important;
     -moz-transition: -moz-transform .2s linear;
-    -webkit-transition: -webkit-transform .2s linear;
-    -ms-transition: -ms-transform .2s linear;
-    -o-transition: -o-transform .2s linear;
     transition: transform .2s linear;
 }
 .loading-app #evmeApps ul li.inplace .doat-loading {
@@ -299,7 +265,5 @@ body:not(.istouch) #evmeApps ul li:nth-child(5n+1) {
         background-repeat: no-repeat;
         background-size: contain;
         -moz-transition: all .4s ease;
-        -webkit-transition: all .4s ease;
-        -ms-transition: all .4s ease;
         transition: all .4s ease;
     }

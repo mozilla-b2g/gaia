@@ -5,10 +5,10 @@
     "name": "lissyx",
     "url": "https://github.com/lissyx/gaia/tree/image-uploader"
   },
-  "permissions": [
-    "systemXHR",
-    "device-storage:pictures"
-  ],
+  "permissions": {
+    "systemXHR":{},
+    "device-storage:pictures":{}
+  },
   "activities": {
     "share": {
       "filters": {

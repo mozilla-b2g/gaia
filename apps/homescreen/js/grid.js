@@ -77,33 +77,48 @@ const GridManager = (function() {
         var startX = startEvent.clientX;
         var forward = deltaX > 0;
 
-        var refresh = function(e) {
-          if (deltaX >= 0) {
-            previous.MozTransform =
-              translate.replace('$', -windowWidth + deltaX);
-
-            // If we change direction make sure there isn't any part
-            // of the page on the other side that stays visible.
-            if (!forward) {
-              forward = true;
-              next.MozTransform =
-                translate.replace('$', windowWidth);
+        var refresh;
+        if (index === 0) {
+          refresh = function(e) {
+            if (deltaX <= 0) {
+              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+              current.MozTransform = translate.replace('$', deltaX);
             }
-          } else {
-            next.MozTransform =
-              translate.replace('$', windowWidth + deltaX);
-
-            // If we change direction make sure there isn't any part
-            // of the page on the other side that stays visible.
-            if (forward) {
-              forward = false;
+          };
+        } else if (index === pages.length - 1) {
+          refresh = function(e) {
+            if (deltaX >= 0) {
               previous.MozTransform =
-                translate.replace('$', -windowWidth);
+                translate.replace('$', -windowWidth + deltaX);
+              current.MozTransform = translate.replace('$', deltaX);
             }
-          }
+          };
+        } else {
+          refresh = function(e) {
+            if (deltaX >= 0) {
+              previous.MozTransform =
+                translate.replace('$', -windowWidth + deltaX);
 
-          current.MozTransform = translate.replace('$', deltaX);
-        };
+              // If we change direction make sure there isn't any part
+              // of the page on the other side that stays visible.
+              if (!forward) {
+                forward = true;
+                next.MozTransform = translate.replace('$', windowWidth);
+              }
+            } else {
+              next.MozTransform = translate.replace('$', windowWidth + deltaX);
+
+              // If we change direction make sure there isn't any part
+              // of the page on the other side that stays visible.
+              if (forward) {
+                forward = false;
+                previous.MozTransform = translate.replace('$', -windowWidth);
+              }
+            }
+
+            current.MozTransform = translate.replace('$', deltaX);
+          };
+        }
 
         // Generate a function accordingly to the current page position.
         if (Homescreen.isInEditMode() || currentPage > 2) {
@@ -210,10 +225,11 @@ const GridManager = (function() {
 
   function togglePagesVisibility(start, end) {
     for (var i = 0; i < pages.length; i++) {
+      var pagediv = pages[i].container;
       if (i < start || i > end) {
-        pages[i].container.style.display = 'none';
+        pagediv.style.display = 'none';
       } else {
-        pages[i].container.style.display = 'block';
+        pagediv.style.display = 'block';
       }
     }
   }
@@ -228,8 +244,8 @@ const GridManager = (function() {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('pagehide'));
-      newPage.container.dispatchEvent(new CustomEvent('pageshow'));
+      previousPage.container.dispatchEvent(new CustomEvent('gridpagehide'));
+      newPage.container.dispatchEvent(new CustomEvent('gridpageshow'));
       togglePagesVisibility(index, index);
     }
 

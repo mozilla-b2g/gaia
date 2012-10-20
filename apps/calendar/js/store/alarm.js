@@ -2,6 +2,10 @@ Calendar.ns('Store').Alarm = (function() {
 
   var Calc = Calendar.Calc;
 
+  var _super = Calendar.Store.Abstract.prototype;
+
+  var debug = Calendar.debug('alarm store');
+
   /**
    * The alarm store can be thought of as a big queue.
    * Over time we add and remove alarm times related to
@@ -17,7 +21,7 @@ Calendar.ns('Store').Alarm = (function() {
   }
 
   Alarm.prototype = {
-    __proto__: Calendar.Store.Abstract.prototype,
+    __proto__: _super,
 
     _store: 'alarms',
 
@@ -46,6 +50,18 @@ Calendar.ns('Store').Alarm = (function() {
       this.workQueue();
     },
 
+    _objectData: function(object) {
+      var data = _super._objectData.call(this, object);
+      if (data.startDate) {
+        // ensure the pending trigger is always in sync
+        // with the current trigger whenever we update
+        // the model.
+        data.trigger = data.startDate;
+      }
+
+      return data;
+    },
+
     /**
      * Manage the queue when alarms are added.
      */
@@ -53,7 +69,7 @@ Calendar.ns('Store').Alarm = (function() {
       if (!this.autoQueue)
         return;
 
-      // by using _processQueue even if we added
+      // by using processQueue even if we added
       // 6000 alarms during a single transaction we only
       // receive the event once as addEventListener discards
       // duplicates.
@@ -88,6 +104,7 @@ Calendar.ns('Store').Alarm = (function() {
       // we may want to store this id and use it to remove
       // the actual alarm.
       function handleAlarmSuccess(id) {
+        debug('successfully added alarm', id);
         // decrement pending and check if isComplete
         if (!(--pending) && isComplete) {
           callback();
@@ -95,14 +112,25 @@ Calendar.ns('Store').Alarm = (function() {
       }
 
       function handleAlarmError(e) {
-        console.error('CALENDAR:', 'error adding alarm', e);
+        debug('error adding alarm', e.target.error.name, e.target.error);
         // decrement pending and check if isComplete
         if (!(--pending) && isComplete) {
           callback();
         }
       }
 
+      // XXX: sad we need to use Calendar.App here...
+      var controller = Calendar.App.alarmController;
+
       function addAlarm(data) {
+        var date = Calc.dateFromTransport(data.trigger);
+
+        // if trigger is in the past we need to send
+        // the data directly to the controller not to mozAlarms.
+        if (date < new Date()) {
+          return controller.handleAlarm(data);
+        }
+
         pending++;
 
         // see: https://wiki.mozilla.org/WebAPI/AlarmAPI
@@ -113,7 +141,8 @@ Calendar.ns('Store').Alarm = (function() {
           type = 'ignoreTimezone';
         }
 
-        var date = Calc.dateFromTransport(data.trigger);
+
+        debug('mozAlarm:', date, type, data);
 
         var req = navigator.mozAlarms.add(date, type, data);
 
@@ -147,8 +176,11 @@ Calendar.ns('Store').Alarm = (function() {
             addedFutureAlarm = true;
           }
 
-          addAlarm(cursor.value);
-          cursor.delete();
+          var record = cursor.value;
+          addAlarm(record);
+          delete record.trigger;
+
+          cursor.update(record);
           cursor.continue();
         } else {
           isComplete = true;

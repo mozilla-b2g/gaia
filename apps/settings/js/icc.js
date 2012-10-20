@@ -5,17 +5,21 @@
 
 (function() {
   /**
-   * Constants. Set in config.json file
+   * Constants
    */
-  var displayTextTimeout;
-  var DEBUG;
+  var displayTextTimeout = 10000;
+  var DEBUG = false;
 
   /**
    * Debug method
    */
-  function debug(msg) {
+  function debug(msg, optObject) {
     if (DEBUG) {
-      console.log('[DEBUG] STKUI: ' + msg);
+      var output = '[DEBUG] STKUI: ' + msg;
+      if (optObject) {
+        output += JSON.stringify(optObject);
+      }
+      console.log(output);
     }
   }
 
@@ -35,21 +39,7 @@
   var stkLastSelectedTest = null;
   var icc;
 
-  /**
-   * Load configuration data or use default values
-   */
-  var req = utilities.config.load('/config.json');
-  req.onload = function(configData) {
-    DEBUG = configData.iccDebugEnabled;
-    displayTextTimeout = configData.iccDisplayTextTimeout;
-    init();
-  }
-  req.onerror = function(code) {
-    window.console.error('STK: Error while loading config file:', code);
-    DEBUG = false;
-    displayTextTimeout = 10000;
-    init();
-  }
+  init();
 
   /**
    * Init STK UI
@@ -93,9 +83,9 @@
       return debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
     }
 
-    debug('sendStkResponse to command: ' +
-      JSON.stringify(iccLastCommand) +
-      ' # response = ' + JSON.stringify(response));
+    debug('sendStkResponse to command: ', iccLastCommand);
+    debug('sendStkResponse -- # response = ', response);
+
     icc.sendStkResponse(iccLastCommand, response);
     iccLastCommand = null;
     iccLastCommandProcessed = false;
@@ -105,7 +95,7 @@
    * Handle ICC Commands
    */
   function handleSTKCommand(command) {
-    debug('STK Proactive Command:' + JSON.stringify(command));
+    debug('STK Proactive Command:', command);
     iccLastCommand = command;
     var options = command.options;
 
@@ -132,7 +122,7 @@
         break;
 
       case icc.STK_CMD_DISPLAY_TEXT:
-        debug(' STK:Show message: ' + JSON.stringify(command));
+        debug(' STK:Show message: ', command);
         if (options.responseNeeded) {
           iccLastCommandProcessed = true;
           responseSTKCommand({
@@ -141,7 +131,7 @@
           displayText(command, null);
         } else {
           displayText(command, function(userCleared) {
-            debug('Display Text, cb: ' + JSON.stringify(command));
+            debug('Display Text, cb: ', command);
             iccLastCommandProcessed = true;
             if (command.options.userClear && !userCleared) {
               debug('No response from user (Timeout)');
@@ -161,7 +151,8 @@
       case icc.STK_CMD_SEND_SMS:
       case icc.STK_CMD_SEND_SS:
       case icc.STK_CMD_SEND_USSD:
-        debug(' STK:Send message: ' + JSON.stringify(command));
+      case icc.STK_CMD_SEND_DTMF:
+        debug(' STK:Send message: ', command);
         iccLastCommandProcessed = true;
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
@@ -196,8 +187,7 @@
         break;
 
       default:
-        debug('STK Message not managed ... response OK');
-        alert('[DEBUG] TODO: ' + JSON.stringify(command));
+        debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
@@ -230,13 +220,13 @@
         return;
       }
 
-      debug('STK Main App Menu title:', menu.title);
-      debug('STK Main App Menu default item:', menu.defaultItem);
+      debug('STK Main App Menu title: ' + menu.title);
+      debug('STK Main App Menu default item: ' + menu.defaultItem);
 
       iccMenuItem.textContent = menu.title;
       showTitle(menu.title);
       menu.items.forEach(function(menuItem) {
-        debug('STK Main App Menu item:' + menuItem.text + ' # ' +
+        debug('STK Main App Menu item: ' + menuItem.text + ' # ' +
               menuItem.identifier);
         iccStkList.appendChild(buildMenuEntry({
           id: 'stk-menuitem-' + menuItem.identifier,
@@ -250,7 +240,7 @@
 
   function onMainMenuItemClick(event) {
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
-    debug('sendStkMenuSelection: ' + JSON.stringify(identifier));
+    debug('sendStkMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, false);
     stkLastSelectedTest = event.target.textContent;
     stkOpenAppName = stkLastSelectedTest;
@@ -442,3 +432,4 @@
   };
 
 })();
+

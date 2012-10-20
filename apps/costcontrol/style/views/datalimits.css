@@ -1,9 +1,9 @@
 /* TOPUP VIEW */
-#datalimits-view {
+#data-limit-dialog {
   bottom: 0;
 }
 
-#datalimits-view form {
+#data-limit-dialog form {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -11,20 +11,20 @@
   padding: 1.5rem;
 }
 
-#datalimits-view form button {
+#data-limit-dialog form button {
   float: right;
   margin: 0;
   width: 9rem;
   margin-left: 1.5rem;
 }
 
-#datalimits-view form label {
+#data-limit-dialog form label {
   overflow: hidden;
   margin: 0;
   padding: 0;
 }
 
-#datalimits-view form input {
+#data-limit-dialog form input {
   text-align: right;
   color: #333;
   font-weight: bold;
@@ -32,11 +32,11 @@
   height: 3.8rem;
 }
 
-#datalimits-view .content .info {
+#data-limit-dialog .content .info {
   text-align: center;
 }
 
-#datalimits-view .content .info h2 {
+#data-limit-dialog .content .info h2 {
   font-size: 1.8rem;
   line-height: 1em;
   font-weight: normal;
@@ -44,7 +44,7 @@
   margin-bottom: 1rem;
 }
 
-#datalimits-view .content .info p {
+#data-limit-dialog .content .info p {
   font-size: 1.4rem;
   line-height: 1.3em;
   color: #505859;

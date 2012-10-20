@@ -33,7 +33,7 @@ body[role="application"] [role="dialog"] [role="listbox"] li {
   border-bottom: 1px solid #666;
   position: relative;
   color: #fff;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: lighter;
   font-size: 2.2rem;
   height: 5.9rem;

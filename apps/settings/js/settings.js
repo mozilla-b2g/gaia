@@ -17,7 +17,11 @@ var Settings = {
         settings : null;
   },
 
+
   init: function settings_init() {
+    // register web activity handler
+    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+
     this.loadGaiaCommit();
 
     var settings = this.mozSettings;
@@ -34,6 +38,7 @@ var Settings = {
 
       switch (input.dataset.type || input.type) { // bug344618
         case 'checkbox':
+        case 'switch':
           if (input.checked == value)
             return;
           input.checked = value;
@@ -53,149 +58,99 @@ var Settings = {
           }
           break;
       }
-      // XXX: if there are more values needs to be synced.
     };
 
     // preset all inputs that have a `name' attribute
     var lock = settings.createLock();
 
-    // preset all checkboxes
-    var rule = 'input[type="checkbox"]:not([data-ignore])';
-    var checkboxes = document.querySelectorAll(rule);
-    for (var i = 0; i < checkboxes.length; i++) {
-      (function(checkbox) {
-        var key = checkbox.name;
-        if (!key)
-          return;
-
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined) {
-            checkbox.checked = !!request.result[key];
-          }
-        };
-      })(checkboxes[i]);
-    }
-
-    // preset all radio buttons
-    rule = 'input[type="radio"]:not([data-ignore])';
-    var radios = document.querySelectorAll(rule);
-    for (i = 0; i < radios.length; i++) {
-      (function(radio) {
-        var key = radio.name;
-        if (!key)
-          return;
-
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined) {
-            radio.checked = (request.result[key] === radio.value);
-          }
-        };
-      })(radios[i]);
-    }
-
-    // preset all text inputs
-    rule = 'input[type="text"]:not([data-ignore])';
-    var texts = document.querySelectorAll(rule);
-    for (i = 0; i < texts.length; i++) {
-      (function(text) {
-        var key = text.name;
-        if (!key)
-          return;
-
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined) {
-            text.value = request.result[key];
-          }
-        };
-      })(texts[i]);
-    }
-
-    // preset all range inputs
-    rule = 'input[type="range"]:not([data-ignore])';
-    var ranges = document.querySelectorAll(rule);
-    for (i = 0; i < ranges.length; i++) {
-      (function(range) {
-        var key = range.name;
-        if (!key)
-          return;
-
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined) {
-            range.value = parseFloat(request.result[key]);
-            range.refresh(); // XXX to be removed when bug344618 lands
-          }
-        };
-      })(ranges[i]);
-    }
-
-    // handle web activity
-    var handler = navigator.mozSetMessageHandler;
-    if (handler && typeof(mozSetMessageHandler) == 'function') {
-      handler('activity', function settings_handleActivity(activityRequest) {
-        var name = activityRequest.source.name;
-        switch (name) {
-          case 'configure':
-            var section = activityRequest.source.data.section || 'root';
-
-            // Validate if the section exists
-            var actualSection = document.getElementById(section);
-            if (!actualSection || actualSection.tagName !== 'SECTION') {
-              var msg = 'Trying to open an unexistent section: ' + section;
-              console.warn(msg);
-              activityRequest.postError(msg);
-              return;
-            }
-
-            // Go to that section
-            setTimeout(function settings_goToSection() {
-              document.location.hash = section;
-            });
-            break;
+    var request = lock.get('*');
+    request.onsuccess = function(e) {
+      // preset all checkboxes
+      var rule = 'input[type="checkbox"]:not([data-ignore])';
+      var checkboxes = document.querySelectorAll(rule);
+      for (var i = 0; i < checkboxes.length; i++) {
+        var key = checkboxes[i].name;
+        if (key && request.result[key] != undefined) {
+          checkboxes[i].checked = !!request.result[key];
         }
-      });
-    }
+      }
 
-    // preset all select
-    var selects = document.querySelectorAll('select');
-    for (i = 0; i < selects.length; i++) {
-      (function(select) {
-        var key = select.name;
-        if (!key)
-          return;
+      // preset all radio buttons
+      rule = 'input[type="radio"]:not([data-ignore])';
+      var radios = document.querySelectorAll(rule);
+      for (i = 0; i < radios.length; i++) {
+        var key = radios[i].name;
+        if (key && request.result[key] != undefined) {
+          radios[i].checked = (request.result[key] === radios[i].value);
+        }
+      }
 
-        var request = lock.get(key);
-        request.onsuccess = function() {
+      // preset all text inputs
+      rule = 'input[type="text"]:not([data-ignore])';
+      var texts = document.querySelectorAll(rule);
+      for (i = 0; i < texts.length; i++) {
+        var key = texts[i].name;
+        if (key && request.result[key] != undefined) {
+          texts[i].value = request.result[key];
+        }
+      }
+
+      // preset all range inputs
+      rule = 'input[type="range"]:not([data-ignore])';
+      var ranges = document.querySelectorAll(rule);
+      for (i = 0; i < ranges.length; i++) {
+        var key = ranges[i].name;
+        if (key && request.result[key] != undefined) {
+          ranges[i].value = parseFloat(request.result[key]);
+          ranges[i].refresh(); // XXX to be removed when bug344618 lands
+        }
+      }
+
+      // preset all select
+      var selects = document.querySelectorAll('select');
+      for (i = 0; i < selects.length; i++) {
+        var key = selects[i].name;
+        if (key && request.result[key] != undefined) {
           var value = request.result[key];
-          if (value != undefined) {
-            var option = 'option[value="' + value + '"]';
-            var selectOption = select.querySelector(option);
-            if (selectOption) {
-              selectOption.selected = true;
-            }
+          var option = 'option[value="' + value + '"]';
+          var selectOption = selects[i].querySelector(option);
+          if (selectOption) {
+            selectOption.selected = true;
           }
-        };
-      })(selects[i]);
-    }
+        }
+      }
 
-    // preset all span with data-name fields
-    rule = 'span[data-name]:not([data-ignore])';
-    var spanFields = document.querySelectorAll(rule);
-    for (i = 0; i < spanFields.length; i++) {
-      (function(span) {
-        var key = span.dataset.name;
-        if (!key)
+      // preset all span with data-name fields
+      rule = 'span[data-name]:not([data-ignore])';
+      var spanFields = document.querySelectorAll(rule);
+      for (i = 0; i < spanFields.length; i++) {
+        var key = spanFields[i].dataset.name;
+        if (key && request.result[key] != undefined)
+          spanFields[i].textContent = request.result[key];
+      }
+    };
+
+  },
+  webActivityHandler: function settings_handleActivity(activityRequest) {
+    var name = activityRequest.source.name;
+    switch (name) {
+      case 'configure':
+        var section = activityRequest.source.data.section || 'root';
+
+        // Validate if the section exists
+        var sectionElement = document.getElementById(section);
+        if (!sectionElement || sectionElement.tagName !== 'SECTION') {
+          var msg = 'Trying to open an unexistent section: ' + section;
+          console.warn(msg);
+          activityRequest.postError(msg);
           return;
+        }
 
-        var request = lock.get(key);
-        request.onsuccess = function() {
-          if (request.result[key] != undefined)
-            span.textContent = request.result[key];
-        };
-      })(spanFields[i]);
+        // Go to that section
+        setTimeout(function settings_goToSection() {
+          document.location.hash = section;
+        });
+        break;
     }
   },
 
@@ -211,6 +166,7 @@ var Settings = {
     var value;
     switch (type) {
       case 'checkbox':
+      case 'switch':
         value = input.checked; // boolean
         break;
       case 'range':
@@ -319,6 +275,37 @@ var Settings = {
 
     reset(); // preset all fields before opening the dialog
     openDialog(dialogID, submit);
+  },
+
+  checkForUpdates: function settings_checkForUpdates() {
+    var settings = this.mozSettings;
+    if (!settings) {
+      return;
+    }
+
+    var _ = navigator.mozL10n.get;
+    var updateStatus = document.getElementById('update-status');
+
+    updateStatus.textContent = _('checking-for-update');
+    updateStatus.hidden = false;
+
+    settings.addObserver('gecko.updateStatus', function onUpdateStatus(evt) {
+      var value = evt.settingValue;
+      switch (value) {
+        case 'check-complete':
+          updateStatus.hidden = true;
+          break;
+        default:
+          updateStatus.textContent = _(value, null, value);
+          break;
+      }
+      settings.removeObserver('gecko.updateStatus', onUpdateStatus);
+    });
+
+    var lock = settings.createLock();
+    lock.set({
+      'gaia.system.checkForUpdates': true
+    });
   }
 };
 
@@ -358,6 +345,16 @@ window.addEventListener('load', function loadSettings(evt) {
   }
 });
 
+window.addEventListener('hashchange', function handleHashChange(event) {
+  // most browsers now scroll content into view taking CSS transforms
+  // into account.  That's not what we want when moving between
+  // <section>s, because the being-moved-to section is offscreen when
+  // we navigate to its #hash.  The transitions assume the viewport is
+  // always at document 0,0.  So add a hack here to make that
+  // assumption true again.
+  window.scrollTo(0, 0);
+});
+
 // back button = close dialog || back to the root page
 // + prevent the [Return] key to validate forms
 window.addEventListener('keydown', function handleSpecialKeys(event) {
@@ -371,7 +368,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
       dialog.classList.remove('active');
       document.body.classList.remove('dialog');
     } else {
-      document.location.hash = 'root';
+      document.location.hash = '#root';
     }
   } else if (event.keyCode === event.DOM_VK_RETURN) {
     event.target.blur();
@@ -393,7 +390,7 @@ window.addEventListener('localized', function showBody() {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
     window.setTimeout(function() {
-      document.location.hash = 'languages';
+      document.location.hash = '#languages';
     });
   }
 

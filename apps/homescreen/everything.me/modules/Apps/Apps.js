@@ -9,6 +9,7 @@ Evme.Apps = new function() {
     
     var MORE_BUTTON_ID = "more-apps",
         APP_HEIGHT = "FROM CONFIG",
+        DEFAULT_SCREEN_WIDTH = "FROM CONFIG",
         SCROLL_BEFORE_CALLING_SCROLLTOP = "FROM CONFIG",
         SCROLL_BEFORE_CALLING_SCROLLBOTTOM = "FROM CONFIG",
         MAX_SCROLL_AREA = "CALCULATED",

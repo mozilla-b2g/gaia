@@ -18,24 +18,24 @@
     <link rel="stylesheet" type="text/css" href="style/settings.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/apps.css"/>
 
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini"/>
+    <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini"/>
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <script type="application/javascript" src="shared/js/l10n_date.js"></script>
 
     <!-- Async. Storage -->
     <script type="application/javascript" src="/shared/js/async_storage.js"></script>
 
-    <!-- Load JSON files -->
-    <script type="application/javascript" defer src="js/utilities/config.js"></script>
-
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
     <script type="application/javascript" defer src="js/carrier.js"></script>
     <script type="application/javascript" defer src="js/wifi.js"></script>
+    <script type="application/javascript" defer src="js/apps.js"></script>
     <script type="application/javascript" defer src="js/bluetooth.js"></script>
     <script type="application/javascript" defer src="js/simcard_lock.js"></script>
     <script type="application/javascript" defer src="js/simcard_dialog.js"></script>
@@ -140,14 +140,14 @@
           <input type="text" data-ignore name="ssid" />
         </li>
         <li>
-          <a data-l10n-id="security">security
+          <span data-l10n-id="security">security
             <select>
               <option data-l10n-id="securityNone">none</option>
               <option>WEP</option>
-              <option checked>WPA-PSK</option>
+              <option selected>WPA-PSK</option>
               <option>WPA-EAP</option>
             </select>
-          </a>
+          </span>
         </li>
         <li class="identity">
           <p data-l10n-id="identity">identity</p>
@@ -246,7 +246,7 @@
       </ul>
 
       <!-- action menu -->
-      <form role="dialog" hidden>
+      <form role="dialog" data-type="action" hidden>
         <menu>
           <button data-l10n-id="forgetNetwork">Forget network</button>
           <button data-l10n-id="cancel" type="reset">Cancel</button>
@@ -263,8 +263,8 @@
 
       <ul>
         <li id="wifi-enabled">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="wifi">Wi-Fi</a>
@@ -328,8 +328,8 @@
 
       <ul>
         <li id="operator-autoSelect">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <small></small>
@@ -377,7 +377,7 @@
         <!-- APNs matching the phone's MCC/MNC are inserted here dynamically -->
         <li id="apnSettings-custom">
           <label>
-            <input type="radio" name="APN.name" value="_custom_" selected />
+            <input type="radio" name="APN.name" value="_custom_" checked />
             <span></span>
           </label>
           <a data-l10n-id="custom">(custom settings)</a>
@@ -452,8 +452,8 @@
           <a data-l10n-id="dataNetwork">Carrier</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.callwaiting.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
@@ -465,15 +465,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataConnection">Data Connection</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.data.roaming_enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="dataRoaming">Data Roaming</a>
@@ -529,15 +529,15 @@
 
       <ul>
         <li id="bluetooth-status">
-          <label class="switch">
-            <input type="checkbox" />
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="bluetooth">Bluetooth</a>
         </li>
         <li hidden id="device-visible">
-          <label class="switch">
-            <input type="checkbox" data-ignore checked />
+          <label>
+            <input type="checkbox" data-type="switch" data-ignore checked />
             <span></span>
           </label>
           <small id="bluetooth-device-name"></small>
@@ -581,7 +581,7 @@
       </ul>
 
       <!-- action menu -->
-      <form role="dialog" id="paired-device-option" hidden>
+      <form role="dialog" data-type="action" id="paired-device-option" hidden>
         <menu>
           <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>
           <button data-l10n-id="device-option-disconnect" id="disconnect-option">Disconnect</button>
@@ -612,13 +612,13 @@
           <input type="text" data-setting="tethering.wifi.security.password" />
         </li>
         <li>
-          <a data-l10n-id="wifi-security">Security
+          <span data-l10n-id="wifi-security">Security
             <select data-setting="tethering.wifi.security.type">
               <option>open</option>
               <option>WPA</option>
               <option selected>WPA2</option>
             </select>
-          </a>
+          </span>
         </li>
       </ul>
     </section>
@@ -635,16 +635,14 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.wifi.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.wifi.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="wifi-hotspot">Wi-Fi HotSpot</a>
         </li>
-        <li>
-          <p class="description" data-l10n-id="internetSharing-wifi-desc">
-            Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
-          </p>
+        <li class="description" data-l10n-id="internetSharing-wifi-desc">
+          Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
         </li>
         <li>
           <a data-l10n-id="wifi-name">Name
@@ -674,22 +672,20 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="tethering.usb.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="tethering.usb.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="usb-tethering">USB Tethering</a>
         </li>
-        <li>
-          <p class="description" data-l10n-id="internetSharing-usb-desc">
-            Share my phone’s Internet connection with a USB-connected device.
-          </p>
+        <li class="description" data-l10n-id="internetSharing-usb-desc">
+          Share my phone’s Internet connection with a USB-connected device.
         </li>
       </ul>
     </section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
-    <section role="region" id="sound-selection" date-leaf>
+    <section role="region" id="sound-selection" data-leaf>
       <header>
         <button type="reset">
           <span data-l10n-id="back" class="icon icon-back">Back</span>
@@ -706,10 +702,10 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Default" checked />
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
             <span></span>
           </label>
-          <a data-l10n-id="classic">Default</a>
+          <a data-l10n-id="classic">Classic</a>
         </li>
         <li>
           <label onmouseup="audioPreview(this)">
@@ -733,15 +729,15 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Sound of Message" />
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
             <span></span>
           </label>
-          <a data-l10n-id="lowBit">Sound of Message</a>
+          <a data-l10n-id="beep">Beep Beep</a>
         </li>
       </ul>
 
       <!-- Audio Preview -->
-      <audio style="display: none;" src="style/ringtones/classic.ogg" />
+      <audio style="display: none;" src="style/ringtones/classic.ogg"></audio>
     </section>
 
     <!-- Personalization :: Sound -->
@@ -754,15 +750,15 @@
       <!-- Ring and Vibrate -->
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ring.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="ring.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="ring">Ring</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="vibration.enabled" checked />
+          <label>
+            <input type="checkbox" data-type="switch" name="vibration.enabled" checked />
             <span></span>
           </label>
           <a data-l10n-id="vibrate">Vibrate</a>
@@ -778,21 +774,18 @@
           <label>
             <input type="range" name="audio.volume.master" min="0.1" value="0.5" max="1">
             <span class="range-icons volume"></span>
-          <label>
+          </label>
         </li>
         <li>
-          <label>
+          <span data-l10n-id="call">Call
             <button id="call-tone-selection" class="tone-select">Old School</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="call">Call</a>
+          </span>
         </li>
         <li>
-          <label>
-            <button id="sms-tone-selection" class="tone-select">Beep Beep</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="message">Message</a>
+          <span data-l10n-id="message">Message
+            <button id="sms-tone-selection" class="tone-select">
+              Beep Beep</button>
+          </span>
         </li>
       </ul>
 
@@ -828,7 +821,7 @@
       <ul>
         <li>
           <a data-l10n-id="wallpaper">Wallpaper</a>
-          <img id="wallpaper-preview"></img>
+          <img id="wallpaper-preview" alt="wallpaper preview"/>
         </li>
         <li>
           <p data-l10n-id="screen-timeout">Screen Timeout</p>
@@ -877,6 +870,7 @@
           </label>
           <a data-l10n-id="lockscreen-notifications">Show on Lock Screen</a>
         </li>
+      </ul>
     </section>
 
     <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
@@ -912,8 +906,8 @@
 
       <ul>
         <li id="time-nitz-automatic-update">
-          <label class="switch">
-            <input type="checkbox" name="time.nitz.automatic-update.enabled"/>
+          <label>
+            <input type="checkbox" data-type="switch" name="time.nitz.automatic-update.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
@@ -951,7 +945,7 @@
 
       <ul>
         <li>
-          <a data-l10n-id="language">Language
+          <span data-l10n-id="language">Language
             <select name="language.current">
               <option value="ar">العربية</option>
               <option value="de">Deutsch</option>
@@ -966,10 +960,10 @@
               <option value="tr">Türkçe</option>
               <option value="zh-TW">正體中文</option>
             </select>
-          </a>
+          </span>
         </li>
         <li>
-          <a data-l10n-id="region">Region
+          <span data-l10n-id="region">Region
             <select name="region.current">
               <option value="BR">Brasil</option>
               <option value="CO">Columbia</option>
@@ -981,7 +975,7 @@
               <option value="US">United States</option>
               <option value="VZ">Venezuela</option>
             </select>
-          </a>
+          </span>
         </li>
       </ul>
 
@@ -1216,23 +1210,26 @@
           <div id="messageHeader">The PIN was incorrect.</div>
           <span id="messageBody">3 tries left.</span>
         </div>
-        <!-- sim pin input field -->
+
+        <!-- SIM PIN input field -->
         <div id="pinArea">
           <div data-l10n-id="simPin">SIM PIN</div>
           <div class="input-wrapper">
             <input type="number" name="simpin" size="8" maxlength="8" />
-            <input type="text" name="simpinVis" size="8" maxlength="8"/>
+            <input type="text" name="simpinVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- sim puk input field -->
+
+        <!-- SIM PUK input field -->
         <div id="pukArea">
           <div data-l10n-id="pukCode">PUK Code</div>
           <div class="input-wrapper">
             <input type="number" name="simpuk" size="8" maxlength="8" />
-            <input type="text" name="simpukVis" size="8" maxlength="8"/>
+            <input type="text" name="simpukVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- new sim pin input field -->
+
+        <!-- new SIM PIN input field -->
         <div id="newPinArea">
           <div data-l10n-id="newSimPinMsg">
             Create PIN (must contain 4 to 8 digits)
@@ -1242,7 +1239,8 @@
             <input type="text" name="newSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
-        <!-- confirm new sim pin input field -->
+
+        <!-- confirm new SIM PIN input field -->
         <div id="confirmPinArea">
           <div>Confirm New PIN</div>
           <div class="input-wrapper">
@@ -1262,8 +1260,8 @@
 
       <ul>
         <li id="simpin-enabled">
-          <label class="switch">
-            <input type="checkbox"/>
+          <label>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <a data-l10n-id="simPin">SIM PIN</a>
@@ -1291,7 +1289,57 @@
       </ul>
     </section>
 
-    <!-- [TODO] Security :: App Permissions -->
+    <!-- Security :: Application Permissions :: Details -->
+    <section role="region" id="appPermissionsDetails" data-leaf>
+      <header>
+        <a href="#appPermissions"><span class="icon icon-back">back</span></a>
+        <h1> </h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="developer">Developer</h2>
+      </header>
+      <ul>
+        <!-- this will be updated dynamically by js/apps.js -->
+        <li id="developer-infos">
+          <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
+          <a target="_blank" href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
+        </li>
+      </ul>
+
+      <header id="permissionsListHeader">
+        <h2 data-l10n-id="permissions">Permissions</h2>
+      </header>
+      <ul>
+        <!-- this will be replaced dynamically by js/apps.js -->
+        <li>
+          <span>settings
+            <select>
+              <option>ask</option>
+              <option>deny</option>
+              <option>allow</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="uninstallApp">Uninstall App</h2>
+      </header>
+      <button id="uninstall-app" data-l10n-id="uninstallApp" class="danger">Uninstall App</button>
+    </section>
+
+    <!-- Security :: Application Permissions -->
+    <section role="region" id="appPermissions">
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="appPermissions">
+          Application Permissions
+        </h1>
+      </header>
+      <ul>
+      </ul>
+    </section>
 
     <!-- Security :: Do Not Track -->
     <section role="region" id="doNotTrack" data-leaf>
@@ -1394,7 +1442,9 @@
     <!-- Device :: Information :: More Information -->
     <section role="region" id="more-info">
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="more-info"> More Information </h1>
       </header>
 
@@ -1447,42 +1497,36 @@
     <!-- Device :: Information :: About Your Rights -->
     <section role="region" id="about-your-rights" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="about-your-rights"> About Your Rights </h1>
       </header>
 
       <ul>
-        <li>
-          <p class="description" data-l10n-id="about-your-rights-0">
-            Mozilla Firefox is free and open source software, built by a community
-            of thousands from all over the world. There are a few things you should
-            know:
-          </p>
+        <li class="description" data-l10n-id="about-your-rights-0">
+          Mozilla Firefox is free and open source software, built by a community
+          of thousands from all over the world. There are a few things you
+          should know:
         </li>
-        <li>
-          <p class="description" data-l10n-id="about-your-rights-1">
-            Firefox is made available to you under the terms of the Mozilla Public
-            License. This means you may use, copy and distribute Firefox to others.
-            You are also welcome to modify the source code of Firefox as you want to
-            meet your needs. The Mozilla Public License also gives you the right to
-            distribute your modified versions.
-          </p>
+        <li class="description" data-l10n-id="about-your-rights-1">
+          Firefox is made available to you under the terms of the Mozilla Public
+          License. This means you may use, copy and distribute Firefox to
+          others.  You are also welcome to modify the source code of Firefox as
+          you want to meet your needs. The Mozilla Public License also gives you
+          the right to distribute your modified versions.
         </li>
-        <li>
-          <p class="description" data-l10n-id="about-your-rights-2">
-            You are not granted any trademark rights or licenses to the trademarks
-            of the Mozilla Foundation or any party, including without Temporary Text
-            limitation the Firefox name or logo. Additional information on
-            trademarks may be found Only here.
-          </p>
+        <li class="description" data-l10n-id="about-your-rights-2">
+          You are not granted any trademark rights or licenses to the trademarks
+          of the Mozilla Foundation or any party, including without Temporary
+          Text limitation the Firefox name or logo. Additional information on
+          trademarks may be found Only here.
         </li>
-        <li>
-          <p class="description" data-l10n-id="about-your-rights-3">
-            Some features in Firefox, such as the Crash Reporter, give you the
-            option to provide feedback to Mozilla. By choosing to submit feedback,
-            you give Mozilla permission to use the feedback to improve its products,
-            to publish the feedback on its websites, and to distribute the feedback.
-          </p>
+        <li class="description" data-l10n-id="about-your-rights-3">
+          Some features in Firefox, such as the Crash Reporter, give you the
+          option to provide feedback to Mozilla. By choosing to submit feedback,
+          you give Mozilla permission to use the feedback to improve its products,
+          to publish the feedback on its websites, and to distribute the feedback.
         </li>
       </ul>
     </section>
@@ -1490,7 +1534,9 @@
     <!-- Device :: Information :: About Your Privacy -->
     <section role="region" id="about-your-privacy" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="about-your-privacy"> About Your Privacy </h1>
       </header>
 
@@ -1507,45 +1553,37 @@
     <!-- Device :: Information :: Licensing -->
     <section role="region" id="licensing" data-leaf>
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="licensing"> Licensing </h1>
       </header>
 
       <ul>
-        <li>
-          <p class="description" data-l10n-id="licensing-1">
-            Binaries of this product have been made available to you by the Mozilla
-            Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
-          </p>
+        <li class="description" data-l10n-id="licensing-1">
+          Binaries of this product have been made available to you by the Mozilla
+          Project, under the Mozilla Public License 2.0 (MPL). Know your rights.
         </li>
-        <li>
-          <p class="description" data-l10n-id="licensing-2">
-            All of the source code to this product is available under licenses which
-            are both free and open source. Most of it is available under the Mozilla
-            Public License 2.0 (MPL).
-          </p>
+        <li class="description" data-l10n-id="licensing-2">
+          All of the source code to this product is available under licenses which
+          are both free and open source. Most of it is available under the Mozilla
+          Public License 2.0 (MPL).
         </li>
-        <li>
-          <p class="description">
-            <a href="https://www.mozilla.org/MPL/"
-              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a>
-          </p>
+        <li class="description">
+          <span><a href="https://www.mozilla.org/MPL/"
+              data-l10n-id="licensing-MPL">Mozilla Public License 2.0</a></span>
         </li>
-        <li>
-          <p class="description" data-l10n-id="licensing-3">
-            The remainder of the software which is not under the Mozilla Public
-            License 2.0 MPL is available under one of a variety of other licenses.
-            Those that require reproduction of the license text in the distribution
-            are given below. (Note: your copy of this product may not contain code
-            covered by one or more of the licenses listed here, depending on the
-            exact product and version you choose.)
-          </p>
+        <li class="description" data-l10n-id="licensing-3">
+          The remainder of the software which is not under the Mozilla Public
+          License 2.0 MPL is available under one of a variety of other licenses.
+          Those that require reproduction of the license text in the distribution
+          are given below. (Note: your copy of this product may not contain code
+          covered by one or more of the licenses listed here, depending on the
+          exact product and version you choose.)
         </li>
-        <li>
-          <p class="description">
-            <a href="http://www.apache.org/licenses/LICENSE-2.0.html"
-              data-l10n-id="licensing-Apache">Apache License 2.0</a>
-          </p>
+        <li class="description">
+          <span><a href="http://www.apache.org/licenses/LICENSE-2.0.html"
+              data-l10n-id="licensing-Apache">Apache License 2.0</a></span>
         </li>
       </ul>
     </section>
@@ -1594,21 +1632,21 @@
         </li>
         <li>
           <label>
-            <button id="check-update-now" data-l10n-id="check-update-now">Check Now</button>
+            <button onclick="Settings.checkForUpdates();"
+              id="check-update-now" data-l10n-id="check-update-now">Check Now</button>
           </label>
         </li>
+        <li id="update-status" class="description" hidden></li>
       </ul>
 
       <header>
         <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS</h2>
       </header>
       <ul>
-        <li>
-          <p class="description" data-l10n-id="firefox-os-desc">
-            Firefox OS is the free and open source operating system from Mozilla.
-            Our mission is to promote openness, innovation and opportunity by
-            keeping the power of the Web in your hands.
-          </p>
+        <li class="description" data-l10n-id="firefox-os-desc">
+          Firefox OS is the free and open source operating system from Mozilla.
+          Our mission is to promote openness, innovation and opportunity by
+          keeping the power of the Web in your hands.
         </li>
         <li>
           <label>
@@ -1627,14 +1665,14 @@
         </li>
         <li>
           <label for="share-performance-data" class="description">
-            <div>
+            <span>
               <input type="checkbox" id="share-performance-data" name="debug.peformancedata.shared" />
               <span data-l10n-id="share-performance-data">
                 I want to help make Firefox OS faster and easier to use by
                 sharing information about my phone’s performance.
               </span>
               <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
-            </div>
+            </span>
           </label>
         </li>
       </ul>
@@ -1660,8 +1698,8 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="powersave.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="powersave.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="powerSaveMode">Power Save Mode</a>
@@ -1675,12 +1713,10 @@
             <option value="0" data-l10n-id="never">Never</option>
           </select>
         </li>
-        <li>
-          <p data-l10n-id="powerSave-expl" class="description">
-            Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and GPS
-            connections to extend battery life. You can still turn these services back on
-            manually.
-          </p>
+        <li class="description" data-l10n-id="powerSave-expl">
+          Turning on Power Save Mode turns off the phone’s Data, Bluetooth, and
+          GPS connections to extend battery life. You can still turn these
+          services back on manually.
         </li>
       </ul>
     </section>
@@ -1697,7 +1733,7 @@
       </header>
       <ul>
         <li>
-          <meter id="apps-space-bar" min="0" max="100"></meter>
+          <meter id="apps-space-bar" min="0" value="0" max="100"></meter>
         </li>
 
         <li>
@@ -1715,11 +1751,9 @@
             <span></span>
           </a>
         </li>
-        <li>
-          <p class="description" data-l10n-id="media-storage-details">
-            Photos, videos, and music are stored in the SD Card.
-            See Media Storage for details.
-          </p>
+        <li class="description" data-l10n-id="media-storage-details">
+          Photos, videos, and music are stored in the SD Card.
+          See Media Storage for details.
         </li>
       </ul>
     </section>
@@ -1730,7 +1764,6 @@
         <a href="#root"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
       </header>
-
       <ul>
         <li>
           <a id="music-space" data-l10n-id="music-space"> Music
@@ -1757,7 +1790,6 @@
       <header>
         <h2 data-l10n-id="advanced">Advanced</h2>
       </header>
-
       <ul>
         <li>
           <label>
@@ -1768,7 +1800,6 @@
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
-
     </section>
 
     <!-- Device :: Accessibility -->
@@ -1825,7 +1856,9 @@
     <!-- SIM Toolkit -->
     <section role="region" id="icc">
       <header>
-        <button id="icc-stk-app-back" class="hidden"><span data-l10n-id="back" class="icon icon-back">Back</button>
+        <button id="icc-stk-app-back" class="hidden">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <a href="#root" id="icc-stk-exit"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
         <h1 id="icc-stk-header"> SIM Toolkit </h1>
       </header>
@@ -1837,7 +1870,7 @@
         <!-- filled by icc.js -->
       </ul>
 
-      <form role="dialog" id="icc-stk-alert" class="hidden">
+      <form role="dialog" data-type="confirm" id="icc-stk-alert" class="hidden">
         <section>
           <h1 data-l10n-id="message">Message</h1>
           <p id="icc-stk-alert-msg">
@@ -1862,15 +1895,15 @@
       </header>
       <ul>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="ril.radio.disabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.radio.disabled" />
             <span></span>
           </label>
           <a data-l10n-id="airplaneMode">Airplane Mode</a>
         </li>
         <li>
-          <label class="switch">
-            <input type="checkbox" name="geolocation.enabled" />
+          <label>
+            <input type="checkbox" data-type="switch" name="geolocation.enabled" />
             <span></span>
           </label>
           <a data-l10n-id="gps">GPS</a>
@@ -1947,7 +1980,7 @@
           <small id="simCardLock-desc"></small>
           <a href="#sim" data-l10n-id="simSecurity">SIM Security</a>
         </li>
-        <li hidden>
+        <li>
           <a href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
         </li>
         <li>

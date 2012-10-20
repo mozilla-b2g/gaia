@@ -53,12 +53,12 @@ var EvmeManager = (function() {
         evt.stopImmediatePropagation();
     });
 
-    page.addEventListener("pageshow", function onPageShow() {
+    page.addEventListener("gridpageshow", function onPageShow() {
         footerStyle.MozTransform = "translateY(75px)";
         Evme.setOpacityBackground(1);
     });
 
-    page.addEventListener("pagehide", function onPageHide() {
+    page.addEventListener("gridpagehide", function onPageHide() {
         footerStyle.MozTransform = "translateY(0)";
         Evme.setOpacityBackground(0);
     });
@@ -81,8 +81,3 @@ var EvmeApp = function createEvmeApp(params) {
 };
 
 extend(EvmeApp, Bookmark);
-
-// Initialize Evme
-window.addEventListener("load", function() {
-    Evme.init();
-});

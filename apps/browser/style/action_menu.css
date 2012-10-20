@@ -15,7 +15,7 @@ section[role="dialog"] {
   bottom: 0;
   white-space: nowrap;
   padding: 1.5rem 0 7rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   color: #fff;
 }
 
@@ -37,7 +37,7 @@ section[role="dialog"] > div {
 }
 
 section[role="dialog"] h3 {
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;
@@ -101,7 +101,7 @@ section[role="dialog"] menu.actions > ul > li > a[role="button"] {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   outline: none;

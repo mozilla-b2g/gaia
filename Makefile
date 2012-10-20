@@ -160,7 +160,7 @@ DB_TARGET_PATH = /data/local/indexedDB
 DB_SOURCE_PATH = profile/indexedDB/chrome
 
 # Generate profile/
-profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
+profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
 	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
 	then \
 	  echo "Settings DB does not exists, creating an initial one:"; \
@@ -304,13 +304,6 @@ preferences: install-xulrunner-sdk
 		fi
 	@echo "Done"
 
-# Generate profile/permissions.sqlite
-permissions: webapp-manifests install-xulrunner-sdk
-	@echo "Generating permissions.sqlite..."
-	test -d profile || mkdir -p profile
-	@$(call run-js-command, permissions)
-	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
-
 # Generate profile/
 applications-data: install-xulrunner-sdk
 	@echo "Generating application data..."
@@ -340,9 +333,16 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+ifneq ($(TESTS), '')
+	ifneq ($(APP), '')
+		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+	else
+		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+	endif
+endif
 .PHONY: test-integration
 test-integration:
+	echo $(TESTS)
 	@test_apps/test-agent/common/test/bin/test $(TESTS)
 
 .PHONY: tests

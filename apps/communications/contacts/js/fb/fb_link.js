@@ -295,7 +295,9 @@ if (!fb.link) {
       var req = fb.contacts.get(friendUid);
       req.onsuccess = function() {
         if (req.result) {
-          notifyParent(friendUid);
+          notifyParent({
+            uid: friendUid
+          });
         }
         else {
           var importReq = fb.importer.importFriend(friendUid, access_token);
@@ -303,7 +305,7 @@ if (!fb.link) {
 
           importReq.onsuccess = function() {
             document.body.dataset.state = 'selection';
-            notifyParent(friendUid);
+            notifyParent(importReq.result);
           }
 
           importReq.onerror = function() {
@@ -326,13 +328,16 @@ if (!fb.link) {
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
 
-    function notifyParent(uid) {
+    function notifyParent(data) {
       var msg = {
         type: 'item_selected',
-        data: uid
+        data: data
       };
 
       parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
+
+      // Uncomment this to make this work in B2G-Desktop
+      // parent.postMessage(msg, '*');
     }
 
     UI.viewAllFriends = function(event) {

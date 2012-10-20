@@ -22,9 +22,9 @@
  *    //       so there is only for control flow.
  *    picker.onmonthchange = function(date) {}
  *
- *    // display a given year/month on the calendar the month
+ *    // display a given year/month/date on the calendar the month
  *    // is zero based just like the JS date constructor.
- *    picker.display(2012, 0);
+ *    picker.display(2012, 0, 2);
  *
  *    // move to the next month.
  *    picker.next();
@@ -298,12 +298,6 @@ var DatePicker = (function() {
      */
     _value: null,
 
-    /**
-     * When true will clear the selected day
-     * after the current month changes.
-     */
-    clearSelectedDay: true,
-
     SELECTED: 'selected',
 
     /**
@@ -352,6 +346,7 @@ var DatePicker = (function() {
             // order here is important as setting value will
             // clear all the past selected dates...
             this.value = date;
+            this._position = date;
             // must come after setting selected date
             target.classList.add(SELECTED);
           }
@@ -371,6 +366,10 @@ var DatePicker = (function() {
      */
     get month() {
       return this._position.getMonth();
+    },
+
+    get date() {
+      return this._position.getDate();
     },
 
     /**
@@ -501,14 +500,14 @@ var DatePicker = (function() {
      * Moves calendar one month into the future.
      */
     next: function() {
-      this.display(this.year, this.month + 1);
+      this.display(this.year, this.month + 1, this.date);
     },
 
     /**
      * Moves calendar one month into the past.
      */
     previous: function() {
-      this.display(this.year, this.month - 1);
+      this.display(this.year, this.month - 1, this.date);
     },
 
     /**
@@ -518,10 +517,17 @@ var DatePicker = (function() {
      *
      * @param {Numeric} year year to display.
      * @param {Numeric} month month to display.
+     * @param {Numeric} date date to display.
      */
-    display: function(year, month) {
+    display: function(year, month, date) {
+
+      // reset the date to the last date if overflow
+      var lastDate = new Date(year, month + 1, 0).getDate();
+      if (lastDate < date)
+        date = lastDate;
+
       // Should come before render month
-      this._position = new Date(year, month);
+      this._position = new Date(year, month, date);
 
       var element = this._renderMonth(year, month);
 
@@ -536,8 +542,14 @@ var DatePicker = (function() {
 
       this.onmonthchange(this._position);
 
-      if (this.clearSelectedDay) {
-        this._clearSelectedDay();
+      // Set the date as selected if presented
+      this._clearSelectedDay();
+      if (date) {
+        var dayId = Calc.getDayId(this._position);
+        this.value = this._position;
+        var selector = '[data-date="' + dayId + '"]';
+        var dateElement = document.querySelector(selector);
+        dateElement.classList.add(SELECTED);
       }
     },
 

@@ -4,11 +4,10 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('templates/day.js');
   requireLib('templates/week.js');
   requireLib('views/day_based.js');
-  requireLib('views/day_child.js');
   requireLib('views/week_child.js');
 });
 
-suite('views/day_child', function() {
+suite('views/week_child', function() {
   var subject;
   var app;
   var controller;
@@ -31,20 +30,23 @@ suite('views/day_child', function() {
 
   test('initialization', function() {
     assert.equal(subject.controller, controller);
-    assert.instanceOf(subject, Calendar.Views.DayChild);
+    assert.instanceOf(subject, Calendar.Views.DayBased);
   });
 
   test('#_renderEvent', function() {
-    var data = Factory('event', {
+    var event = Factory('event', {
       remote: {
         title: 'UX'
       }
     });
 
-    var result = subject._renderEvent(data);
-    assert.ok(result);
+    var busytime = Factory('busytime');
 
+    var result = subject._renderEvent(busytime, event);
+
+    assert.ok(result);
     assert.include(result, 'UX');
+    assert.include(result, busytime._id);
   });
 
   test('#_renderHeader', function() {

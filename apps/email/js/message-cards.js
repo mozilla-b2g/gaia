@@ -59,7 +59,7 @@ function MessageListCard(domNode, mode, args) {
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
-  this.messageEmptyTitle =
+  this.messageEmptyContainer =
     domNode.getElementsByClassName('msg-list-empty')[0];
   // - message actions
   bindContainerClickAndHold(
@@ -382,6 +382,9 @@ console.log('sf: typed, now:', this.searchInput.value);
     else
       this.syncMoreNode.classList.add('collapsed');
 
+    if (this.messagesSlice.items.length === 0) {
+      this.messageEmptyContainer.classList.remove('collapsed');
+    }
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
@@ -475,17 +478,14 @@ console.log('sf: typed, now:', this.searchInput.value);
         this.scrollContainer.scrollTop -=
           (prevHeight - this.messagesContainer.clientHeight);
       }
+
+      // Check the message count after deletion:
+      if (this.messagesContainer.children.length === 0) {
+        this.messageEmptyContainer.classList.remove('collapsed');
+      }
     }
 
     // - added/existing
-    if (!addedItems.length) {
-      if (this.messagesContainer.children.length === 0) {
-        this.messageEmptyTitle.classList.add('show');
-      }
-      return;
-    } else {
-      this.messageEmptyTitle.classList.remove('show');
-    }
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
@@ -497,6 +497,11 @@ console.log('sf: typed, now:', this.searchInput.value);
       prevHeight = this.messagesContainer.clientHeight;
     else
       prevHeight = null;
+
+    // Remove the no message text while new messages added:
+    if (addedItems.length > 0) {
+      this.messageEmptyContainer.classList.add('collapsed');
+    }
 
     addedItems.forEach(function(message) {
       var domMessage;

@@ -1,21 +1,21 @@
 {
   "name": "Cost Control",
   "description": "Cost Control application to see credit and data usage statistics",
+  "type": "certified",
   "launch_path": "/index.html#left-panel",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "sms",
-    "telephony",
-    "mobileconnection",
-    "mozApps",
-    "background",
-    "settings",
-    "desktop-notification",
-    "networkstats-manage"
-  ],
+  "permissions": {
+    "sms":{},
+    "telephony":{},
+    "mobileconnection":{},
+    "backgroundservice":{},
+    "settings":{},
+    "desktop-notification":{},
+    "networkstats-manage":{}
+  },
   "activities": {
     "costcontrol/open": {
       "filters": {

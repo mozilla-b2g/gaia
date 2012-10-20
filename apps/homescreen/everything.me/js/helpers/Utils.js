@@ -1,7 +1,7 @@
 Evme.Utils = new function() {
     var _this = this, userAgent = "", connection, cssPrefix = "", iconsFormat = null,
         isKeyboardVisible = false, _title = "Everything", isNewUser,
-        _parseQuery = parseQuery();
+        _parseQuery = parseQuery(), isTouch = false;
 
     this.ICONS_FORMATS = {
         "Small": 10,
@@ -121,9 +121,9 @@ Evme.Utils = new function() {
     this.setKeyboardVisibility = function(value){
         isKeyboardVisible = value;
         if (isKeyboardVisible) {
-            $("#evmeContainer").addClass("keyboard-visible");
+            $("#" + CONTAINER_ID).addClass("keyboard-visible");
         } else {
-            $("#evmeContainer").removeClass("keyboard-visible");
+            $("#" + CONTAINER_ID).removeClass("keyboard-visible");
         }
     };
 
@@ -372,7 +372,7 @@ Evme.Utils = new function() {
             var prefix = prefixes[i],
                 propName = prefix + "Hidden";
 
-            if (d[propName] !== "undefined") {
+            if (propName in d) {
                 vendorProp = propName;
                 vendorEvent = prefix + "visibilitychange";
                 break;

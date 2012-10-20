@@ -44,7 +44,7 @@ form.search input {
 }
 
 form.search button[type="submit"] {
-  height: 3.3rem;
+  width: auto;
 }
 
 /* Search view */

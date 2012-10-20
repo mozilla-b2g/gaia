@@ -28,7 +28,8 @@ var Permissions = (function() {
       pending = [];
     },
 
-    show: function permissions_show(title, msg, yescallback, nocallback) {
+    show: function permissions_show(
+        title, msg, yeslabel, nolabel, yescallback, nocallback) {
       if (screen === null) {
         screen = document.createElement('div');
         screen.id = 'permission-screen';
@@ -46,12 +47,10 @@ var Permissions = (function() {
         dialog.appendChild(message);
 
         no = document.createElement('button');
-        no.appendChild(document.createTextNode('Cancel'));
         no.id = 'permission-no';
         dialog.appendChild(no);
 
         yes = document.createElement('button');
-        yes.appendChild(document.createTextNode('Remove'));
         yes.id = 'permission-yes';
         dialog.appendChild(yes);
 
@@ -63,6 +62,8 @@ var Permissions = (function() {
         pending.push({
           header: title,
           message: msg,
+          yeslabel: yeslabel,
+          nolabel: nolabel,
           yescallback: yescallback,
           nocallback: nocallback
         });
@@ -74,6 +75,8 @@ var Permissions = (function() {
       // untrusted app manifests, for example.
       header.textContent = title;
       message.textContent = msg;
+      yes.textContent = yeslabel;
+      no.textContent = nolabel;
 
       // Make the screen visible
       screen.classList.add('visible');
@@ -102,6 +105,8 @@ var Permissions = (function() {
           window.setTimeout(function() {
             Permissions.show(request.header,
                              request.message,
+                             request.yeslabel,
+                             request.nolabel,
                              request.yescallback,
                              request.nocallback);
           });
