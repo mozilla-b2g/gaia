@@ -1,0 +1,42 @@
+/* ----------------------------------
+* Toolbars
+* ---------------------------------- */
+
+[role="toolbar"] {
+  height: 4rem;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(0,0,0, 0.85);
+}
+
+[role="toolbar"] ul {
+  float: left;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+[role="toolbar"] ul:last-child {
+  float: right;
+}
+
+[role="toolbar"] li {
+  float: left;
+}
+
+[role="toolbar"] button {
+  width: 5.5rem;
+  height: 4rem;
+  border: none;
+  font-size: 0;
+  background: transparent no-repeat 50% 50%;
+  padding: 0;
+  border-radius: 0;
+}
+
+[role="toolbar"] button:active {
+  background-color: #008aaa;
+}
