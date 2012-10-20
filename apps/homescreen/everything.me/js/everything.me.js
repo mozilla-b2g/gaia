@@ -1,21 +1,50 @@
 var EverythingME = {
 
-  loaded: false,
+  displayed: false,
 
   init: function EverythingME_init() {
-    var page = document.getElementById("evmePage");
-    page.addEventListener("gridpageshow", function onpageshow(event) {
-      window.removeEventListener("gridpageshow", onpageshow);
-      EverythingME.load();
+    var footerStyle = document.querySelector('#footer').style;
+    footerStyle.MozTransition = '-moz-transform .3s ease';
+
+    var page = document.getElementById('evmePage');
+    page.addEventListener('gridpageshow', function onpageshow() {
+      page.removeEventListener('gridpageshow', onpageshow);
+      document.querySelector('#loading-overlay .loading-icon').
+                                                    classList.remove('frozen');
+      EverythingME.displayed = true;
+      page.addEventListener('gridpageshow', function onpageshowafterload() {
+        EverythingME.displayed = true;
+        footerStyle.MozTransform = 'translateY(75px)';
+        EvmeFacade.setOpacityBackground(1);
+      });
+
+      footerStyle.MozTransform = 'translateY(75px)';
+
+      setTimeout(function loading() {
+        EverythingME.load(function success() {
+          var loadingOverlay = document.querySelector('#loading-overlay');
+          loadingOverlay.style.opacity = 0;
+          loadingOverlay.addEventListener('transitionend', function tEnd() {
+            document.querySelector('#evmeContainer').style.opacity = 1;
+            loadingOverlay.removeEventListener('transitionend', tEnd);
+            loadingOverlay.parentNode.removeChild(loadingOverlay);
+          });
+        });
+      }, 0);
+    });
+
+    page.addEventListener('gridpagehide', function onpagehide() {
+      EverythingME.displayed = false;
+      footerStyle.MozTransform = 'translateY(0)';
+      EvmeFacade.setOpacityBackground(0);
+    });
+
+    page.addEventListener("contextmenu", function longPress(evt) {
+        evt.stopImmediatePropagation();
     });
   },
 
-  load: function EverythingME_load() {
-    if (this.loaded)
-      return;
-
-    this.loaded = true;
-
+  load: function EverythingME_load(success) {
     var js_files = ['js/etmmanager.js',
                     'js/Core.js',
                     'config/config.js',
@@ -63,10 +92,10 @@ var EverythingME = {
 
     var scriptLoadCount = 0;
     function onScriptLoad(event) {
-      event.target.removeEventListener("load", onScriptLoad);
+      event.target.removeEventListener('load', onScriptLoad);
       scriptLoadCount += 1;
       if (scriptLoadCount == js_files.length) {
-        EverythingME.start();
+        EverythingME.start(success);
       }
     }
 
@@ -75,7 +104,7 @@ var EverythingME = {
       script.type = 'text/javascript';
       script.src = 'everything.me/' + file;
       script.defer = true;
-      script.addEventListener("load", onScriptLoad);
+      script.addEventListener('load', onScriptLoad);
       head.appendChild(script);
     }
     for each (var file in css_files) {
@@ -87,15 +116,31 @@ var EverythingME = {
     }
   },
 
-  start: function EverythingME_start() {
-    if (document.readyState == "complete") {
-      Evme.init();
+  initEvme: function EverythingME_initEvme(success) {
+    Evme.init();
+    EvmeFacade = Evme;
+
+    if (this.displayed) {
+      EvmeFacade.setOpacityBackground(1);
+    }
+
+    success();
+  },
+
+  start: function EverythingME_start(success) {
+    if (document.readyState === 'complete') {
+      EverythingME.initEvme(success);
     } else {
-      window.addEventListener("load", function onload() {
-        Evme.init();
+      window.addEventListener('load', function onload() {
+        window.removeEventListener('load', onload);
+        EverythingME.initEvme(success);
       });
     }
   }
 };
+
+var EvmeFacade = {
+  setOpacityBackground: function() {}
+}
 
 EverythingME.init();
