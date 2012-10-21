@@ -294,7 +294,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var pinItem = document.getElementById('wifi-wps-pin-area');
       var pinDesc = pinItem.querySelector('p');
       var pinInput = pinItem.querySelector('input');
-      pinInput.onchange = function() {
+      pinInput.oninput = function() {
         submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
       }
 
