@@ -183,6 +183,11 @@ var ScreenManager = {
       return false;
 
     var self = this;
+
+    // Remember the current screen brightness. We will restore it when
+    // we turn the screen back on.
+    self._savedBrightness = navigator.mozPower.screenBrightness;
+
     var screenOff = function scm_screenOff() {
       self.setIdleTimeout(0);
 
@@ -221,7 +226,7 @@ var ScreenManager = {
       return false;
 
     // Set the brightness before the screen is on.
-    this.setScreenBrightness(this._userBrightness, instant);
+    this.setScreenBrightness(this._savedBrightness, instant);
 
     // Actually turn the screen on.
     var power = navigator.mozPower;
