@@ -323,6 +323,10 @@ var LockScreen = {
     }
   },
 
+  setRailWidth: function ls_setRailWidth(rail, width) {
+    rail.style.transform = 'scaleX(' + (width / rail.offsetWidth) + ')';
+  },
+
   handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
 
@@ -351,10 +355,8 @@ var LockScreen = {
     var railLeft = railMax + dx;
     var railRight = railMax - dx;
 
-    this.railLeft.style.width =
-      Math.max(0, Math.min(railMax * 2, railLeft)) + 'px';
-    this.railRight.style.width =
-      Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
+    this.setRailWidth(this.railLeft, Math.max(0, Math.min(railMax * 2, railLeft)));
+    this.setRailWidth(this.railRight, Math.max(0, Math.min(railMax * 2, railRight)));
 
     var base = this.overlay.offsetWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
@@ -422,8 +424,8 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-        this.railRight.style.width = railLength + 'px';
-        this.railLeft.style.width = '0';
+        this.setRailWidth(this.railRight, railLength);
+        this.setRailWidth(this.railLeft, 0);
 
         var panelOrFullApp = function panelOrFullApp() {
           if (self.passCodeEnabled) {
@@ -459,8 +461,8 @@ var LockScreen = {
         break;
 
       case this.areaUnlock:
-        this.railLeft.style.width = railLength + 'px';
-        this.railRight.style.width = '0';
+        this.setRailWidth(this.railLeft, railLength);
+        this.setRailWidth(this.railRight, 0);
 
         var passcodeOrUnlock = function passcodeOrUnlock() {
           if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
@@ -657,8 +659,8 @@ var LockScreen = {
             self.railRight.style.opacity =
             self.areaCamera.style.opacity =
             self.railLeft.style.opacity =
-            self.railRight.style.width =
-            self.railLeft.style.width = '';
+            self.railRight.style.transform =
+            self.railLeft.style.transform = '';
           self.areaHandle.classList.remove('triggered');
           self.areaCamera.classList.remove('triggered');
           self.areaUnlock.classList.remove('triggered');
