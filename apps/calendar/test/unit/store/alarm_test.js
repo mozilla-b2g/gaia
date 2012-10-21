@@ -10,11 +10,14 @@ suite('store/alarm', function() {
   var subject;
   var db;
   var app;
+  var controller;
+
 
   setup(function(done) {
     this.timeout(5000);
     app = testSupport.calendar.app();
     db = testSupport.calendar.db();
+    controller = app.alarmController;
     subject = db.getStore('Alarm');
 
     db.open(function(err) {
@@ -67,6 +70,29 @@ suite('store/alarm', function() {
     });
   });
 
+  suite('#_objectData', function() {
+    var alarm;
+    var time = new Date(2018, 0, 1);
+
+    setup(function(done) {
+      alarm = Factory('alarm', { _id: 'a1', startDate: time });
+      subject.persist(alarm, done);
+    });
+
+    test('get', function(done) {
+      subject.get('a1', function(err, result) {
+        done(function() {
+          assert.ok(result.startDate);
+          assert.deepEqual(
+            result.trigger,
+            result.startDate,
+            'pending trigger should be same date as trigger'
+          );
+        });
+      });
+    });
+  });
+
   suite('#_addDependents', function() {
     var worksQueue = 0;
 
@@ -103,14 +129,14 @@ suite('store/alarm', function() {
   function add(date, busytime, event, floating) {
     setup(function(done) {
       var record = Factory('alarm', {
-        trigger: date,
+        startDate: date,
         busytimeId: busytime || 'busyId',
         eventId: event || 'eventId'
       });
 
       if (floating) {
-        record.trigger.offset = 0;
-        record.trigger.tzid = Calendar.Calc.FLOATING;
+        record.startDate.offset = 0;
+        record.startDate.tzid = Calendar.Calc.FLOATING;
       }
 
       subject.persist(record, done);
@@ -133,7 +159,7 @@ suite('store/alarm', function() {
     var added = [];
     var lastId = 0;
 
-    var now = new Date(2012, 0, 1);
+    var now = new Date(2018, 0, 1);
     var realApi;
     var mockApi = {
 
@@ -182,10 +208,17 @@ suite('store/alarm', function() {
       navigator.mozAlarms = realApi;
     });
 
+    var handleAlarm;
+
     setup(function() {
+      handleAlarm = null;
       added.length = 0;
       getAllResults.length = 0;
       navigator.mozAlarms = mockApi;
+
+      controller.handleAlarm = function() {
+        handleAlarm = arguments;
+      };
     });
 
     suite('without alarm api', function() {
@@ -197,8 +230,26 @@ suite('store/alarm', function() {
       });
     });
 
+    suite('alarm in the past', function() {
+      var now = new Date();
+      now.setMilliseconds(-1);
+
+      add(now, 'busyMe');
+
+      setup(function(done) {
+        subject.workQueue(done);
+      });
+
+      test('passing alarm directly to controller', function() {
+        var alarm = handleAlarm[0];
+
+        // verify right alarm is sent
+        assert.equal(alarm.busytimeId, 'busyMe');
+      });
+    });
+
     suite('alarm in db and no alarm with 48 hours', function() {
-      add(new Date(2012, 0, 3), 3);
+      add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
         getAllResults.push(Factory('alarm', {
@@ -214,7 +265,7 @@ suite('store/alarm', function() {
     });
 
     suite('no alarm in db and no alarm within 48 hours', function() {
-      add(new Date(2012, 0, 3), 3);
+      add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
         subject.workQueue(now, done);
@@ -225,7 +276,7 @@ suite('store/alarm', function() {
 
         assert.deepEqual(
           added[0][0],
-          new Date(2012, 0, 3)
+          new Date(2018, 0, 3)
         );
       });
 
@@ -233,15 +284,15 @@ suite('store/alarm', function() {
 
     suite('initial add', function() {
       // 5 hours from now floating time
-      add(new Date(2012, 0, 1, 5), 1, 1, true);
+      add(new Date(2018, 0, 1, 5), 1, 1, true);
 
       // 23 hours from now
-      add(new Date(2012, 0, 1, 23), 2);
+      add(new Date(2018, 0, 1, 23), 2);
 
       // over 48 hours from now (yes this works)
       // this record should be skipped and left
       // in the database.
-      add(new Date(2012, 0, 3), 3);
+      add(new Date(2018, 0, 3), 3);
 
       setup(function(done) {
         subject.workQueue(now, done);
@@ -250,8 +301,12 @@ suite('store/alarm', function() {
       test('alarms', function(done) {
         getAll(function(records) {
           done(function() {
-            assert.length(records, 1);
-            assert.equal(records[0].busytimeId, 3);
+            assert.length(records, 3, 'has record');
+            var hasTrigger = records.filter(function(item) {
+              return 'trigger' in item;
+            });
+            assert.length(hasTrigger, 1);
+            assert.equal(hasTrigger[0].busytimeId, 3);
           });
         });
       });
@@ -259,7 +314,7 @@ suite('store/alarm', function() {
       test('after complete', function() {
         assert.length(added, 2);
 
-        assert.deepEqual(added[0][0], new Date(2012, 0, 1, 5));
+        assert.deepEqual(added[0][0], new Date(2018, 0, 1, 5));
         assert.equal(
           added[0][1], 'ignoreTimezone', 'floating time ignoreTimezone'
         );
@@ -268,10 +323,25 @@ suite('store/alarm', function() {
           busytimeId: 1
         });
 
-        assert.deepEqual(added[1][0], new Date(2012, 0, 1, 23), 'abs trigger');
+        assert.deepEqual(added[1][0], new Date(2018, 0, 1, 23), 'abs trigger');
         assert.equal(added[1][1], 'honorTimezone', 'abs time honorTimezone');
         assert.hasProperties(added[1][2], {
           busytimeId: 2
+        });
+      });
+
+      test('second work queue', function(done) {
+        added.length = 0;
+        subject.workQueue(function() {
+          // verify add
+          assert.equal(added[0][2].busytimeId, 3);
+
+          // verify we didn't delete the records
+          subject.count(function(err, len) {
+            done(function() {
+              assert.equal(len, 3);
+            });
+          });
         });
       });
 

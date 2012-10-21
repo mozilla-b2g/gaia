@@ -13,7 +13,6 @@
     opacity: 0;
     pointer-events: none;
     -moz-transition: opacity .3s linear;
-    -webkit-transition: opacity .3s linear;
     transition: opacity .3s linear;
 }
 #evmeContainer.shortcuts-customize-visible #connection-message {

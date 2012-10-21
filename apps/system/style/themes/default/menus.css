@@ -37,7 +37,7 @@
   overflow: hidden;
   border: none;
   height: auto;
-  line-height: auto;
+  line-height: normal;
 }
 
 [role="dialog"] menu.actions > ul > li:last-child {

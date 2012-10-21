@@ -27,11 +27,6 @@ var MAIL_SERVICES = [
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
     domain: ''
-  },
-  {
-    name: 'Fake Account',
-    l10nId: null,
-    domain: 'example.com'
   }
 ];
 
@@ -60,11 +55,14 @@ SetupPickServiceCard.prototype = {
   _populateServices: function() {
     for (var i = 0; i < MAIL_SERVICES.length; i++) {
       var serviceDef = MAIL_SERVICES[i],
-          serviceNode = supNodes['service-choice'].cloneNode(true);
+          serviceNode = supNodes['service-choice'].cloneNode(true),
+          serviceLabel =
+            serviceNode.getElementsByClassName('sup-service-choice-label')[0];
+
       if (serviceDef.l10nId)
-        serviceNode.textContent = mozL10n.get(serviceDef.l10nId);
+        serviceLabel.textContent = mozL10n.get(serviceDef.l10nId);
       else
-        serviceNode.textContent = serviceDef.name;
+        serviceLabel.textContent = serviceDef.name;
       serviceNode.serviceDef = serviceDef;
 
       this.servicesContainer.appendChild(serviceNode);

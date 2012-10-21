@@ -13,19 +13,11 @@ var Service = getService(function ccapp_onServiceReady(evt) {
 if (Service)
   setupSettings();
 
+var viewManager = new ViewManager();
+
 // Settings view is in charge of display and allow user interaction to
 // changing the application customization.
 function setupSettings() {
-
-  var DEFAULTS = {
-    'plantype': 'prepaid',
-    'tracking_period': 'never',
-    'reset_time': 1,
-    'lowlimit': true,
-    'lowlimit_threshold': 5
-  };
-
-  var _viewManager = new ViewManager();
 
   function _getEntryParent(item) {
     var current = item;
@@ -36,10 +28,26 @@ function setupSettings() {
   }
 
   function _getDefaultValue(optionKey) {
-    var defaultValue = DEFAULTS[optionKey];
-    if (typeof defaultValue === 'function')
-      defaultValue = defaultValue(Service.settings);
-    return defaultValue;
+    return Service.settings.defaultValue(optionKey);
+  }
+
+  var FORMATTERS = {
+    'id': function ccapp_formatterId(value) {
+      return value;
+    },
+
+    'dataUnit': function ccapp_formatterDataUnit(value) {
+      var unit = Service.settings.option('data_limit_unit');
+      return value + ' ' + unit;
+    }
+  };
+
+  function _getFormatter(name) {
+    var formatter = FORMATTERS[name];
+    if (!formatter)
+      return FORMATTERS.id;
+
+    return formatter;
   }
 
   var CONFIGURE_WIDGET = {
@@ -47,6 +55,7 @@ function setupSettings() {
 
       var dialog = document.getElementById(guiWidget.dataset.selectdialog);
       var optionKey = guiWidget.dataset.option;
+      var format = _getFormatter(guiWidget.dataset.formatter);
 
       // Configure dialog
       var okButton = dialog.querySelector('button.affirmative');
@@ -54,7 +63,7 @@ function setupSettings() {
         okButton.addEventListener('click', function ccapp_onDialogOk() {
           var checked = dialog.querySelector('input[type="radio"]:checked');
           Service.settings.option(optionKey, checked.value);
-          _viewManager.closeCurrentView();
+          viewManager.closeCurrentView();
         });
       }
 
@@ -64,14 +73,14 @@ function setupSettings() {
           function ccapp_onDialogCancel() {
             var currentValue = Service.settings.option(optionKey);
             Service.settings.option(optionKey, currentValue);
-            _viewManager.closeCurrentView();
+            viewManager.closeCurrentView();
           }
         );
       }
 
       // Show the dialog
       guiWidget.addEventListener('click', function ccapp_onWidgetClick() {
-        _viewManager.changeViewTo(dialog.id);
+        viewManager.changeViewTo(dialog.id);
       });
 
       // Keep the widget and the dialog synchronized
@@ -94,7 +103,7 @@ function setupSettings() {
 
           var textSpan = dialog.querySelector('input:checked + span');
           var tagSpan = guiWidget.querySelector('.tag');
-          tagSpan.textContent = textSpan.textContent;
+          tagSpan.textContent = format(textSpan.textContent);
         }
       );
 
@@ -102,7 +111,61 @@ function setupSettings() {
       window.addEventListener('localized', function ccapp_onLocalized() {
         var textSpan = dialog.querySelector('input:checked + span');
         var tagSpan = guiWidget.querySelector('.tag');
-        tagSpan.textContent = textSpan.textContent;
+        tagSpan.textContent = format(textSpan.textContent);
+      });
+
+    },
+
+    'complexinput' : function ccapp_configureComplexInput(guiWidget) {
+
+      var dialog = document.getElementById(guiWidget.dataset.inputdialog);
+      var input = dialog.querySelector('input');
+      var optionKey = guiWidget.dataset.option;
+      var format = _getFormatter(guiWidget.dataset.formatter);
+
+      // Configure dialog
+      var okButton = dialog.querySelector('button.affirmative');
+      if (okButton) {
+        okButton.addEventListener('click', function ccapp_onDialogOk() {
+          var value = input.value;
+          if (input.type === 'number')
+            value = parseFloat(value);
+          Service.settings.option(optionKey, value);
+          viewManager.closeCurrentView();
+        });
+      }
+
+      var cancelButton = dialog.querySelector('a.cancel');
+      if (cancelButton) {
+        cancelButton.addEventListener('click',
+          function ccapp_onDialogCancel() {
+            var currentValue = Service.settings.option(optionKey);
+            Service.settings.option(optionKey, currentValue);
+            viewManager.closeCurrentView();
+          }
+        );
+      }
+
+      // Keep the widget and the dialog synchronized
+      Service.settings.observe(optionKey,
+        function ccapp_onOptionChange(value) {
+
+          // Use default value if no value
+          if (value === null || typeof value === 'undefined')
+            value = _getDefaultValue(optionKey);
+
+          // Set dialog
+          input.value = value;
+
+          var tagSpan = guiWidget.querySelector('.tag');
+          tagSpan.textContent = format(input.value);
+        }
+      );
+
+      // Show the dialog
+      guiWidget.addEventListener('click', function ccapp_onWidgetClick() {
+        viewManager.changeViewTo(dialog.id);
+        input.focus();
       });
 
     },
@@ -158,6 +221,9 @@ function setupSettings() {
   function _configureGUIWidgets() {
 
     function getWidgetType(widget) {
+      if (typeof widget.dataset.inputdialog !== 'undefined')
+        return 'complexinput';
+
       if (typeof widget.dataset.selectdialog !== 'undefined')
         return 'select';
 
@@ -258,16 +324,16 @@ function setupSettings() {
   function _showResetConfirmation(callback) {
     var dialogId = 'reset-confirmation-dialog';
     var dialog = document.getElementById(dialogId);
-    _viewManager.changeViewTo(dialogId);
+    viewManager.changeViewTo(dialogId);
 
     var cancel = dialog.querySelector('button.close-dialog');
     cancel.addEventListener('click', function ccapp_cancelConfimation() {
-      _viewManager.closeCurrentView();
+      viewManager.closeCurrentView();
     });
 
     var confirm = dialog.querySelector('button.negative');
     confirm.addEventListener('click', function ccapp_onConfirm(evt) {
-      _viewManager.closeCurrentView();
+      viewManager.closeCurrentView();
       callback(evt);
     });
   }
@@ -303,7 +369,29 @@ function setupSettings() {
     Service.settings.observe('smscount', _setTelephonyView);
     document.getElementById('reset-telephony').addEventListener('click',
       function ccapp_resetTelephony() {
-        _showResetConfirmation(Service.resetTelephonyCounters);
+        _showResetConfirmation(Service.resetTelephony);
+      }
+    );
+  }
+
+  // Configures the switch button
+  function _configureDataLimitDialog() {
+    var switchUnitButton = document.getElementById('switch-unit-button');
+    var input = document.getElementById('data-limit-input');
+    var unit = Service.settings.option('data_limit_unit');
+    switchUnitButton.querySelector('span.tag').textContent = unit;
+
+    switchUnitButton.addEventListener('click',
+      function ccapp_switchUnit() {
+        var unit = Service.settings.option('data_limit_unit');
+        if (unit === 'MB')
+          unit = 'GB';
+        else
+          unit = 'MB';
+        var value = input.value ? parseFloat(input.value) : null;
+        Service.settings.option('data_limit_unit', unit);
+        Service.settings.option('data_limit_value', value);
+        switchUnitButton.querySelector('span.tag').textContent = unit;
       }
     );
   }
@@ -312,15 +400,21 @@ function setupSettings() {
     _configureGUIWidgets();
     _configureBalanceView();
     _configureTelephonyView();
+
+    // Extra setup for this component
+    _configureDataLimitDialog();
   }
 
   // Adapt the layout depending plantype
   function _changeLayout(planType) {
-    function setSectionVisibility(sectionId, visibility) {
-      var header, entries;
-      header = document.getElementById(sectionId);
-      entries = document.querySelector('#' + sectionId + ' + ul');
+    function setSectionHeaderVisibility(sectionId, visibility) {
+      var header = document.getElementById(sectionId);
       header.setAttribute('aria-hidden', !visibility + '');
+    }
+
+    function setSectionVisibility(sectionId, visibility) {
+      setSectionHeaderVisibility(sectionId, visibility);
+      var entries = document.querySelector('#' + sectionId + ' + ul');
       entries.setAttribute('aria-hidden', !visibility + '');
     }
 
@@ -332,17 +426,38 @@ function setupSettings() {
       });
     }
 
-    if (planType === Service.PLAN_PREPAID) {
+    var status = Service.getServiceStatus();
+    var plantype = document.getElementById('plantype-settings');
+
+    // Only data layout
+    if (!status.enabledFunctionalities.balance &&
+        !status.enabledFunctionalities.telephony) {
+
+      plantype.setAttribute('aria-hidden', 'true');
+      setSectionVisibility('phone-activity-settings', false);
+      setSectionVisibility('balance-settings', false);
+      setSectionVisibility('data-usage-settings', true);
+      setSectionHeaderVisibility('data-usage-settings', false);
+      setSectionVisibility('phone-internet-settings', false);
+      moveResetEntriesTo('data-usage-settings');
+
+    // Prepaid layout
+    } else if (planType === Service.PLAN_PREPAID) {
+
+      plantype.setAttribute('aria-hidden', 'false');
       setSectionVisibility('phone-activity-settings', false);
       setSectionVisibility('balance-settings', true);
       setSectionVisibility('data-usage-settings', true);
       setSectionVisibility('phone-internet-settings', false);
       moveResetEntriesTo('data-usage-settings');
 
+    // Postpaid layout
     } else if (planType === Service.PLAN_POSTPAID) {
+
+      plantype.setAttribute('aria-hidden', 'false');
       setSectionVisibility('phone-activity-settings', true);
       setSectionVisibility('balance-settings', false);
-      setSectionVisibility('data-usage-settings', false);
+      setSectionVisibility('data-usage-settings', true);
       setSectionVisibility('phone-internet-settings', true);
       moveResetEntriesTo('phone-internet-settings');
     }

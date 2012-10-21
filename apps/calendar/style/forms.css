@@ -29,7 +29,6 @@ form ol {
 /* for calendar */
 
 form ol {
-  height: 100%;
 }
 
 form li {
@@ -54,10 +53,10 @@ form li.start-time {
 }
 
 form li.notes  {
-  height: 15rem;
+  height: 10rem;
 }
 
 form li.notes textarea {
   padding: 1rem;
-  height: 80%;
+  height: 100%;
 }

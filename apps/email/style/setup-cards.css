@@ -5,7 +5,9 @@
 
 .sup-form-label {
   text-align: center;
-  margin: 2rem;
+  margin: 2rem 3rem;
+  font-weight: normal;
+  text-align: left;
 }
 .sup-form-text {
   -moz-box-sizing: border-box;
@@ -18,16 +20,19 @@
   width: calc(100% - 6rem);
 }
 .sup-form-btn {
-  margin: 1rem 6rem;
-  width: 20rem;
+  margin: 1.5rem 3rem;
+  width: calc(100% - 6rem);
 }
 
 .sup-services-container {
   text-align: center;
 }
 .sup-service-choice {
-  margin: 1rem calc((100% - 20rem) / 2);
-  width: 20rem;
+  margin: 0 1.5rem;
+  width: calc(100% - 3rem);
+  height: auto;
+  list-style-type: none;
+  border: none;
 }
 
 .sup-progress-region {
@@ -148,7 +153,6 @@ li .aside.end {
 }
 
 .settings-button {
-  float: right;
-  margin-top: 1rem;
-  margin-right: 3rem;
+  margin: 1.5rem 3rem;
+  width: calc(100% - 6rem);
 }

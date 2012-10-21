@@ -39,19 +39,19 @@ suite('templates/week', function() {
 
   test('#event', function() {
     var calId = 'calid';
-    var eventId = 'eventId';
+    var busytimeId = 'busyid';
     var title = 'foo';
 
     var result = subject.event.render({
       calendarId: calId,
-      eventId: eventId,
+      busytimeId: busytimeId,
       title: title
     });
 
     assert.ok(result, 'has html');
 
     assert.include(result, calId, 'has calendarId');
-    assert.include(result, eventId, 'has eventId');
+    assert.include(result, busytimeId, 'has busytime id');
     assert.include(result, title, 'has title');
   });
 

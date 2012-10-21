@@ -35,7 +35,6 @@ def compute_local_hashes():
     compute_local_hashes_in_dir('webapps', hashes)
     compute_local_hashes_in_dir('OfflineCache', hashes)
     compute_local_hash('user.js', hashes)
-    compute_local_hash('profile/permissions.sqlite', hashes)
     return hashes
 
 def adb_push(local, remote):
@@ -149,7 +148,6 @@ def install_gaia_slow():
     adb_push('profile/webapps', webapps_path)
     adb_push('profile/OfflineCache', offline_path)
     adb_push('profile/user.js', '/data/local')
-    adb_push('profile/permissions.sqlite', '/data/local')
 
 def install_gaia():
     global remote_path

@@ -1,6 +1,7 @@
 Evme.Location = new function() {
     var _name = "Location", _this = this,
         $elLocationName = null, $elButton = null, $elSelectorDialog = null, $locationScreen = null,
+        $elButtonManual = null,
         dialog = null, dialogActive = false, timeoutLocationRequest = null;
     var lat = "", lon = "", name = "",
         lastUserLat = "", lastUserLon = "";
@@ -29,7 +30,8 @@ Evme.Location = new function() {
         ERROR_TIP_BUTTON_OK = "FROM CONFIG",
         ERROR_CANT_LOCATE_TITLE = "FROM CONFIG",
         ERROR_CANT_LOCATE_TEXT = "FROM CONFIG",
-        ERROR_CANT_LOCATE_BUTTON = "FROM CONFIG";
+        ERROR_CANT_LOCATE_BUTTON_CANCEL = "FROM CONFIG",
+        ERROR_CANT_LOCATE_BUTTON_SETTINGS = "FROM CONFIG";
     
     this.init = function(options) {
         options || (options = {});
@@ -555,6 +557,8 @@ Evme.Location = new function() {
                 "callback": zipSearch
             });
         }
+        
+        return true;
     }
     
     function zipSearch(data) {
