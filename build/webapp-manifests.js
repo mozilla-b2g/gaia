@@ -47,34 +47,26 @@ Gaia.webapps.forEach(function (webapp) {
 });
 
 // Process external webapps from /gaia/external-app/ folder
-const EXTERNAL_APPS_DIR = 'external-apps';
-getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDirName) {
-  let webappSrcDir = getFile(GAIA_DIR, EXTERNAL_APPS_DIR, webappSrcDirName);
-  let manifest = webappSrcDir.clone();
-  manifest.append('manifest.webapp');
-
-  // Ignore directories without manifest
-  if (!manifest.exists())
-    return;
-
+Gaia.externalWebapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webappSrcDirName != BUILD_APP_NAME)
+  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
     return;
 
   // Compute webapp folder name in profile
-  let webappTargetDirName = webappSrcDirName;
+  let webappTargetDirName = webapp.sourceDirectoryName;
 
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  manifest.copyTo(webappTargetDir, 'manifest.webapp');
+  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
 
-  let origin = webappSrcDir.clone();
+  let origin = webapp.sourceDirectoryFile.clone();
   origin.append('origin');
 
-  let url = getFileContent(origin);
-  // Strip any leading/ending spaces
-  url = url.replace(/^\s+|\s+$/, '');
+  let url = webapp.origin;
+  if (!origin)
+    throw new Error('External webapp `' + webapp.domain + '` doesn\'t have an' +
+                    '`origin` file.');
 
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
@@ -82,7 +74,7 @@ getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDir
     installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   url + '/manifest.webapp',
+    manifestURL:   url + 'manifest.webapp',
     localId:       id++
   };
 });

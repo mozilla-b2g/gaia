@@ -14,7 +14,7 @@
     <link rel="shortcut icon" type="image/x-icon"
           href="https://marketplace-dev-cdn.allizom.org/media/img/mkt/logos/32.png" sizes="32x32">
 
-          <link rel="stylesheet" media="all" href="https://marketplace-dev-cdn.allizom.org/media/css/mkt/consumer-min.css?build=b02ff28" />
+          <link rel="stylesheet" media="all" href="https://marketplace-dev-cdn.allizom.org/media/css/mkt/consumer-min.css" />
     
     
                     </head>
@@ -264,13 +264,13 @@
       </section>
     </div>
 
-          <iframe id="offline-pixel" src="https://marketplace-dev.allizom.org/offline/home"></iframe>
+          <iframe id="offline-pixel" src="https://marketplace-dev.allizom.org/telefonica/offline/home"></iframe>
     
     
-              <script src="https://marketplace-dev-cdn.allizom.org//jsi18n.js?b=bcc2a16"></script>
+              <script src="https://marketplace-dev-cdn.allizom.org//jsi18n.js"></script>
                                   <script async defer src="https://login.persona.org/include.js"></script>
         <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
-            <script src="https://marketplace-dev-cdn.allizom.org/media/js/mkt/consumer-min.js?build=bcc2a16"></script>
+            <script src="https://marketplace-dev-cdn.allizom.org/media/js/mkt/consumer-min.js"></script>
     
               
       </body>
