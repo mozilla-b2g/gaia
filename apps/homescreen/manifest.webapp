@@ -17,45 +17,13 @@
       "name": "الشاشة الرئيسية",
       "description": "Gaia الشاشة الرئيسية"
     },
-    "ca": {
-      "name": "Pantalla d’inici",
-      "description": "Pantalla d’inici del Gaia"
-    },
-    "de": {
-      "name": "Startbildschirm",
-      "description": "Gaia Startbildschirm"
-    },
-    "el": {
-      "name": "Αρχική Οθόνη",
-      "description": "Αρχική Οθόνη Gaia"
-    },
     "en-US": {
       "name": "Homescreen",
       "description": "Gaia Homescreen"
     },
-    "es": {
-      "name": "Pantalla de inicio",
-      "description": "Pantalla de inicio de Gaia"
-    },
     "fr": {
       "name": "Écran d’accueil",
       "description": "Écran d’accueil Gaia"
-    },
-    "it": {
-      "name": "Schermata Iniziale",
-      "description": "Schermata iniziale di Gaia"
-    },
-    "pt-BR": {
-      "name": "Tela inicial",
-      "description": "Tela inicial do Gaia"
-    },
-    "ru": {
-      "name": "Главный экран",
-      "description": "Главный экран Gaia"
-    },
-    "tr": {
-      "name": "Ana Ekran",
-      "description": "Gaia Ana Ekran"
     },
     "zh-TW": {
       "name": "主畫面",

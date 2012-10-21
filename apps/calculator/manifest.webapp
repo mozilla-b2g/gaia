@@ -12,45 +12,13 @@
       "name": "الحاسبة",
       "description": "Gaia الحاسبة"
     },
-    "ca": {
-      "name": "Calculadora",
-      "description": "Calculadora del Gaia"
-    },
-    "de": {
-      "name": "Rechner",
-      "description": "Gaia Taschenrechner"
-    },
-    "el": {
-      "name": "Αριθμομηχανή",
-      "description": "Αριθμομηχανή Ιστού Gaia"
-    },
     "en-US": {
       "name": "Calculator",
       "description": "Gaia Calculator"
     },
-    "es": {
-      "name": "Calculadora",
-      "description": "Calculadora de Gaia"
-    },
     "fr": {
       "name": "Calculatrice",
       "description": "Calculatrice Gaia"
-    },
-    "it": {
-      "name": "Calcolatrice",
-      "description": "Calcolatrice di Gaia"
-    },
-    "pt-BR": {
-      "name": "Calculadora",
-      "description": "Calculadora do Gaia"
-    },
-    "ru": {
-      "name": "Калькулятор",
-      "description": "Калькулятор"
-    },
-    "tr": {
-      "name": "Hesap Makinesi",
-      "description": "Hesap Makinesi"
     },
     "zh-TW": {
       "name": "計算機",

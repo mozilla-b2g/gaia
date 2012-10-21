@@ -16,45 +16,13 @@
       "name": "فيديو",
       "description": "Gaia فيديو"
     },
-    "ca": {
-      "name": "Vídeo",
-      "description": "Vídeo del Gaia"
-    },
-    "de": {
-      "name": "Video",
-      "description": "Gaia Video"
-    },
-    "el": {
-      "name": "Βίντεο",
-      "description": "Βίντεο Gaia"
-    },
     "en-US": {
       "name": "Video",
       "description": "Gaia Video"
     },
-    "es": {
-      "name": "Video",
-      "description": "Video de Gaia"
-    },
     "fr": {
       "name": "Vidéo",
       "description": "Lecteur vidéo Gaia"
-    },
-    "it": {
-      "name": "Video",
-      "description": "Gaia Video"
-    },
-    "pt-BR": {
-      "name": "Vídeo",
-      "description": "Vídeo do Gaia"
-    },
-    "ru": {
-      "name": "Видео",
-      "description": "Видео Gaia"
-    },
-    "tr": {
-      "name": "Video",
-      "description": "Gaia Video"
     },
     "zh-TW": {
       "name": "影片",
