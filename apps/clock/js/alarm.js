@@ -6,6 +6,9 @@ var ClockView = {
 
   _clockMode: '', /* digital or analog */
 
+  _analogGestureDetector: null,
+  _digitalGestureDetector: null,
+
   get clockView() {
     delete this.clockView;
     return this.clockView = document.getElementById('clock-view');
@@ -63,7 +66,13 @@ var ClockView = {
     this.digitalClock.classList.remove('visible');
     this.digitalClockBackground.classList.remove('visible');
     document.addEventListener('mozvisibilitychange', this);
-    this.analogClock.addEventListener('click', this);
+
+    this._analogGestureDetector = new GestureDetector(this.analogClock);
+    this._analogGestureDetector.startDetecting();
+    this.analogClock.addEventListener('tap', this);
+
+    this._digitalGestureDetector = new GestureDetector(this.digitalClock);
+    this.digitalClock.addEventListener('tap', this);
   },
 
   updateDaydate: function cv_updateDaydate() {
@@ -140,32 +149,32 @@ var ClockView = {
         }
         break;
 
-      case 'click':
+      case 'tap':
         var input = evt.target;
-          if (!input)
-            return;
+        if (!input)
+          return;
 
         switch (input.id) {
           case 'digital-clock-display':
             window.clearTimeout(this._updateDigitalClockTimeout);
-            this.digitalClock.removeEventListener('click', this);
             this.digitalClock.classList.remove('visible');
             this.digitalClockBackground.classList.remove('visible');
             this.updateAnalogClock();
             this._clockMode = 'analog';
             this.analogClock.classList.add('visible');
-            this.analogClock.addEventListener('click', this);
+            this._analogGestureDetector.startDetecting();
+            this._digitalGestureDetector.stopDetecting();
             break;
 
           case 'analog-clock-svg':
             window.clearTimeout(this._updateAnalogClockTimeout);
-            this.analogClock.removeEventListener('click', this);
             this.analogClock.classList.remove('visible');
             this.updateDigitalClock();
             this._clockMode = 'digital';
             this.digitalClock.classList.add('visible');
             this.digitalClockBackground.classList.add('visible');
-            this.digitalClock.addEventListener('click', this);
+            this._digitalGestureDetector.startDetecting();
+            this._analogGestureDetector.stopDetecting();
             break;
         }
         break;
