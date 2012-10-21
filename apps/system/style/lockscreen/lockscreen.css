@@ -449,10 +449,12 @@
 
 #lockscreen-rail-left {
   left: 5.8rem;
+  transform-origin: 0% 0%;
 }
 
 #lockscreen-rail-right {
   right: 5.8rem;
+  transform-origin: 100% 0%;
 }
 
 /* the arrow animation for idle */
