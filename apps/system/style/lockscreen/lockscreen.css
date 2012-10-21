@@ -162,7 +162,7 @@
   border-radius: 0.4rem;
   margin-bottom: 0.5rem;
   font-family: 'MozTT', sans-serif;
-  font-weight: regular;
+  font-weight: normal;
   font-size: 2.12mozmm; /* 6pt used to be 1.2 rem */
   line-height: 1.2rem;
 
@@ -203,7 +203,7 @@
 
 #lockscreen-date {
   font-family: 'MozTT', sans-serif;
-  font-weight: regular;
+  font-weight: normal;
   font-size: 2.82mozmm; /* 8pt used to be 1.6 rem */
 }
 
