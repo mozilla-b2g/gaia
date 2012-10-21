@@ -232,7 +232,10 @@ var LockScreen = {
           touched: false,
           leftTarget: leftTarget,
           rightTarget: rightTarget,
-          initRailLength: this.railLeft.offsetWidth,
+          railLeftWidth: this.railLeft.offsetWidth,
+          railRightWidth: this.railRight.offsetWidth,
+          overlayWidth: this.overlay.offsetWidth,
+          handleWidth: this.areaHandle.offsetWidth,
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
@@ -323,8 +326,9 @@ var LockScreen = {
     }
   },
 
-  setRailWidth: function ls_setRailWidth(rail, width) {
-    rail.style.transform = 'scaleX(' + (width / rail.offsetWidth) + ')';
+  setRailWidth: function ls_setRailWidth(left, right) {
+    this.railLeft.style.transform = 'scaleX(' + (left / this.railLeftWidth) + ')';
+    this.railRight.style.transform = 'scaleX(' + (right / this.railRightWidth) + ')';
   },
 
   handleMove: function ls_handleMove(pageX, pageY) {
@@ -351,14 +355,14 @@ var LockScreen = {
     this.areaHandle.style.transform =
       'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
 
-    var railMax = touch.initRailLength;
+    var railMax = touch.railLeftWidth;
     var railLeft = railMax + dx;
     var railRight = railMax - dx;
 
-    this.setRailWidth(this.railLeft, Math.max(0, Math.min(railMax * 2, railLeft)));
-    this.setRailWidth(this.railRight, Math.max(0, Math.min(railMax * 2, railRight)));
+    this.setRailWidth(Math.max(0, Math.min(railMax * 2, railLeft)),
+                      Math.max(0, Math.min(railMax * 2, railRight)));
 
-    var base = this.overlay.offsetWidth / 4;
+    var base = this.overlayWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
 
     var leftTarget = touch.leftTarget;
@@ -376,7 +380,7 @@ var LockScreen = {
         this.railLeft.style.opacity = '';
     }
 
-    var handleWidth = this.areaHandle.offsetWidth;
+    var handleWidth = this.handleWidth;
     var triggered = false;
 
     if (railLeft < handleWidth / 2) {
@@ -424,8 +428,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-        this.setRailWidth(this.railRight, railLength);
-        this.setRailWidth(this.railLeft, 0);
+        this.setRailWidth(0, railLength);
 
         var panelOrFullApp = function panelOrFullApp() {
           if (self.passCodeEnabled) {
@@ -461,8 +464,7 @@ var LockScreen = {
         break;
 
       case this.areaUnlock:
-        this.setRailWidth(this.railLeft, railLength);
-        this.setRailWidth(this.railRight, 0);
+        this.setRailWidth(railLength, 0);
 
         var passcodeOrUnlock = function passcodeOrUnlock() {
           if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
