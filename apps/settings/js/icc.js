@@ -80,7 +80,8 @@
    */
   function responseSTKCommand(response, force) {
     if (!force && (!iccLastCommand || !iccLastCommandProcessed)) {
-      return debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
+      debug('sendStkResponse NO COMMAND TO RESPONSE. Ignoring');
+      return;
     }
 
     debug('sendStkResponse to command: ', iccLastCommand);

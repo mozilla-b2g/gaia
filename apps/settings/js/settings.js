@@ -385,6 +385,9 @@ window.addEventListener('localized', function showBody() {
   // <body> children are hidden until the UI is translated
   if (document.body.classList.contains('hidden')) {
     // first run: show main page
+    if (!document.location.hash) {
+      document.location.hash = 'root';
+    }
     document.body.classList.remove('hidden');
   } else {
     // we were in #languages and selected another locale:
