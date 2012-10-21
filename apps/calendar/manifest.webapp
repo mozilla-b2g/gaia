@@ -19,45 +19,13 @@
       "name": "Calendar",
       "description": "Gaia Calendar"
     },
-    "ca": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "de": {
-      "name": "Kalender",
-      "description": "Gaia Kalender"
-    },
-    "el": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
     "en-US": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "es": {
       "name": "Calendar",
       "description": "Gaia Calendar"
     },
     "fr": {
       "name": "Agenda",
       "description": "Agenda Gaia"
-    },
-    "it": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "pt-BR": {
-      "name": "Calendário",
-      "description": "Calendário do Gaia"
-    },
-    "ru": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "tr": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
     },
     "zh-TW": {
       "name": "Calendar",
