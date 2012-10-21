@@ -327,8 +327,9 @@ var LockScreen = {
   },
 
   setRailWidth: function ls_setRailWidth(left, right) {
-    this.railLeft.style.transform = 'scaleX(' + (left / this.railLeftWidth) + ')';
-    this.railRight.style.transform = 'scaleX(' + (right / this.railRightWidth) + ')';
+    var touch = this._touch;
+    this.railLeft.style.transform = 'scaleX(' + (left / touch.railLeftWidth) + ')';
+    this.railRight.style.transform = 'scaleX(' + (right / touch.railRightWidth) + ')';
   },
 
   handleMove: function ls_handleMove(pageX, pageY) {
@@ -362,7 +363,7 @@ var LockScreen = {
     this.setRailWidth(Math.max(0, Math.min(railMax * 2, railLeft)),
                       Math.max(0, Math.min(railMax * 2, railRight)));
 
-    var base = this.overlayWidth / 4;
+    var base = touch.overlayWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
 
     var leftTarget = touch.leftTarget;
@@ -380,7 +381,7 @@ var LockScreen = {
         this.railLeft.style.opacity = '';
     }
 
-    var handleWidth = this.handleWidth;
+    var handleWidth = touch.handleWidth;
     var triggered = false;
 
     if (railLeft < handleWidth / 2) {
