@@ -166,7 +166,7 @@ var Recents = {
       }
       if (document.body.classList.contains('recents-edit')) {
         var selectedCalls = this.recentsContainer.
-          querySelectorAll('.log-item:not(.hide).selected');
+          querySelectorAll('.log-item:not(.hide) input:checked');
         var selectedCallsLength = selectedCalls.length;
         if (selectedCallsLength == 0) {
           this.headerEditModeText.textContent = _('edit');
@@ -200,7 +200,7 @@ var Recents = {
         }
         if (document.body.classList.contains('recents-edit')) {
           var selectedCalls = this.recentsContainer.
-            querySelectorAll('.log-item:not(.hide).selected');
+            querySelectorAll('.log-item:not(.hide) input:checked');
           var selectedCallsLength = selectedCalls.length;
           if (selectedCallsLength == 0) {
             this.headerEditModeText.textContent = _('edit');
@@ -221,11 +221,11 @@ var Recents = {
   },
 
   selectAllEntries: function re_selectAllEntries() {
-    var itemSelector = '.log-item';
+    var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var count = items.length;
     for (var i = 0; i < count; i++) {
-      items[i].classList.add('selected');
+      items[i].checked=true;
     }
     var itemShown = document.querySelectorAll('.log-item:not(.hide)');
     var itemsCounter = itemShown.length;
@@ -236,11 +236,11 @@ var Recents = {
   },
 
   deselectSelectedEntries: function re_deselectSelectedEntries() {
-    var itemSelector = '.log-item.selected';
+    var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var length = items.length;
     for (var i = 0; i < length; i++) {
-      items[i].classList.remove('selected');
+      items[i].checked=false;
     }
     this.headerEditModeText.textContent = _('edit');
     this.recentsIconDelete.classList.add('disabled');
@@ -257,7 +257,8 @@ var Recents = {
         entriesInGroup, entriesInGroupLength;
     var itemsToDelete = [];
     for (var i = 0; i < selectedLength; i++) {
-      entriesInGroup = this.getEntriesInGroup(selectedEntries[i]);
+      //Selects .log-item instead the checkbox
+      entriesInGroup = this.getEntriesInGroup(selectedEntries[i].parentNode.parentNode);
       entriesInGroupLength = entriesInGroup.length;
       for (var j = 0; j < entriesInGroupLength; j++) {
         itemsToDelete.push(parseInt(entriesInGroup[j].dataset.date));
@@ -349,6 +350,7 @@ var Recents = {
     if (!target) {
       return;
     }
+
     if (!document.body.classList.contains('recents-edit')) {
       if (target.classList.contains('call-log-contact-photo')) {
         event.stopPropagation();
@@ -363,11 +365,9 @@ var Recents = {
         }
       }
     } else {
+      //Edit mode
       if (target.classList.contains('call-log-contact-photo')) {
-        target.parentNode.classList.toggle('selected');
         event.stopPropagation();
-      } else if (target.classList.contains('log-item')) {
-        target.classList.toggle('selected');
       }
       var count = this.getSelectedEntries().length;
       if (count == 0) {
@@ -419,7 +419,7 @@ var Recents = {
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
-    var itemSelector = '.log-item:not(.hide).selected';
+    var itemSelector = '.log-item:not(.hide) input:checked';
     var items = document.querySelectorAll(itemSelector);
     return items;
   },
@@ -440,8 +440,10 @@ var Recents = {
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
-      '  <section class="call-log-selection">' +
-      '  </section>' +
+      '  <label class="call-log-selection danger">' +
+      '    <input type="checkbox" />'+
+      '    <span></span>'+
+      '  </label>' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <div class="call-type-icon ' + classes + '"></div>' +

@@ -121,6 +121,7 @@
   margin: 0;
   padding: 2.5rem 2.8rem;
   -moz-box-sizing: border-box;
+  text-transform: capitalize;
   font-size: 3.2rem;
   font-weight: normal;
   line-height: 3.2rem;
@@ -155,12 +156,14 @@
 }
 
 #lockscreen-connstate {
-  background-color: #546578;
+  background-color: #396973;
   max-width: 100%;
   display: inline-block;
   border-radius: 0.4rem;
   margin-bottom: 0.5rem;
-  font-size: 1.2rem;
+  font-family: 'MozTT', sans-serif;
+  font-weight: normal;
+  font-size: 2.12mozmm; /* 6pt used to be 1.2 rem */
   line-height: 1.2rem;
 
   overflow: hidden;
@@ -192,13 +195,16 @@
 }
 
 #lockscreen-clock {
-  font: 5rem 'MozTT', sans-serif;
   line-height: 5.4rem;
+  font-family: 'MozTT', sans-serif;
   font-weight: 300;
+  font-size: 8.46mozmm; /* 24pt used to be 5 rem */
 }
 
 #lockscreen-date {
-  font: 1.6rem 'MozTT', sans-serif;
+  font-family: 'MozTT', sans-serif;
+  font-weight: normal;
+  font-size: 2.82mozmm; /* 8pt used to be 1.6 rem */
 }
 
 #lockscreen-area {
@@ -443,10 +449,12 @@
 
 #lockscreen-rail-left {
   left: 5.8rem;
+  transform-origin: 0% 0%;
 }
 
 #lockscreen-rail-right {
   right: 5.8rem;
+  transform-origin: 100% 0%;
 }
 
 /* the arrow animation for idle */
@@ -461,9 +469,8 @@
   margin: -1.1rem;
 }
 
-.touched .lockscreen-arrow,
-#screen:not(.locked) .lockscreen-arrow,
-#lockscreen:not([data-panel="main"]) .lockscreen-arrow {
+:-moz-any(.touched, .triggered, #screen:not(.locked), #lockscreen:not([data-panel="main"]))
+:-moz-any(#lockscreen-left-arrow, #lockscreen-right-arrow) {
   display: none;
   animation: none;
 }
@@ -502,9 +509,10 @@
 
   color: #fff;
   text-shadow: 0 0 3px #333;
-  font-size: 4rem;
-  font-weight: 600;
-  letter-spacing: -2px;
+  text-transform: capitalize;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 300;
+  font-size: 3.53mozmm; /* 10pt used to be 4 rem */
   line-height: 1.1em;
   text-shadow: 0 0 10px rgba(255, 255, 255, .4), 0 0 3px rgba(255, 255, 255, .3);
 }
@@ -622,7 +630,7 @@
   padding: 0 2rem;
 
   font-size: 3.2rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 5rem;
 
   color: #fff;
@@ -668,7 +676,7 @@
 
 #lockscreen-passcode-pad > a.lockscreen-passcode-pad-func {
   font-size: 1.2rem;
-  font-weight: bold;
+  font-weight: 500;
   line-height: 1.6rem;
   padding: 1rem;
   text-align: center;

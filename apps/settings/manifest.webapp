@@ -21,7 +21,8 @@
     "wifi-manage":{},
     "wifi":{},
     "attention":{},
-    "time":{}
+    "time":{},
+    "desktop-notification":{}
   },
   "activities": {
     "configure": {
@@ -52,45 +53,13 @@
       "name": "الضبط",
       "description": "Gaia الضبط"
     },
-    "ca": {
-      "name": "Configuració",
-      "description": "Configuració del Gaia"
-    },
-    "de": {
-      "name": "Einstellungen",
-      "description": "Gaia Einstellungen"
-    },
-    "el": {
-      "name": "Ρυθμίσεις",
-      "description": "Ρυθμίσεις Gaia"
-    },
     "en-US": {
       "name": "Settings",
       "description": "Gaia Settings"
     },
-    "es": {
-      "name": "Configuración",
-      "description": "Configuración de Gaia"
-    },
     "fr": {
       "name": "Paramètres",
       "description": "Paramètres Gaia"
-    },
-    "nb-NO": {
-      "name": "Innstillinger",
-      "description": "Innstillinger for Gaia"
-    },
-    "it": {
-      "name": "Impostazioni",
-      "description": "Impostazioni di Gaia"
-    },
-    "pt-BR": {
-      "name": "Preferências",
-      "description": "Preferências do Gaia"
-    },
-    "ru": {
-      "name": "Настройки",
-      "description": "Настройки Gaia"
     },
     "tr": {
       "name": "Ayarlar",

@@ -11,7 +11,7 @@
     ].join(''),
 
     event: [
-      '<li class="event" data-id="{eventId}">',
+      '<li class="event" data-id="{busytimeId}">',
         '<div class="container calendar-id-{calendarId} ' +
                     'calendar-display calendar-color">',
           '{title}',

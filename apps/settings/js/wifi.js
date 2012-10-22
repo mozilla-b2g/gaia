@@ -163,12 +163,32 @@ window.addEventListener('localized', function wifiSettings(evt) {
   if (!settings)
     return;
 
+  var gWifi = document.querySelector('#wifi');
   var gWifiCheckBox = document.querySelector('#wifi-enabled input');
   var gWifiInfoBlock = document.querySelector('#wifi-desc');
   var gWpsInfoBlock = document.querySelector('#wps-column small');
   var gWpsPbcLabelBlock = document.querySelector('#wps-column a');
 
   var gCurrentNetwork = gWifiManager.connection.network;
+
+  var gWifiSectionVisible = false;
+  function updateVisibilityStatus() {
+    var computedStyle = window.getComputedStyle(gWifi);
+    gWifiSectionVisible = (!document.mozHidden &&
+                           computedStyle.visibility != 'hidden');
+
+    if (gWifiSectionVisible && gScanPending) {
+      gNetworkList.scan();
+      gScanPending = false;
+    }
+  }
+
+  document.addEventListener('mozvisibilitychange', updateVisibilityStatus);
+  gWifi.addEventListener('transitionend', function (evt) {
+    if (evt.target == gWifi) {
+      updateVisibilityStatus();
+    }
+  });
 
   // toggle wifi on/off
   gWifiCheckBox.onchange = function toggleWifi() {
@@ -192,12 +212,17 @@ window.addEventListener('localized', function wifiSettings(evt) {
    *        disconnected.
    */
 
+  var gScanPending = false;
+  var gScanStates = new Set(['connected', 'connectingfailed', 'disconnected']);
   gWifiManager.onstatuschange = function(event) {
     updateNetworkState();
 
-    // refresh the network list when network is connected.
-    if (event.status === 'connected') {
-      gNetworkList.scan();
+    if (gScanStates.has(event.status)) {
+      if (gWifiSectionVisible) {
+        gNetworkList.scan();
+      } else {
+        gScanPending = true;
+      }
     }
   };
 
@@ -294,7 +319,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
       var pinItem = document.getElementById('wifi-wps-pin-area');
       var pinDesc = pinItem.querySelector('p');
       var pinInput = pinItem.querySelector('input');
-      pinInput.onchange = function() {
+      pinInput.oninput = function() {
         submitWpsButton.disabled = !isValidWpsPin(pinInput.value);
       }
 

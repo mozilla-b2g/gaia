@@ -1,5 +1,6 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('ext/uuid.js');
+  requireLib('timespan.js');
   requireLib('provider/abstract.js');
   requireLib('provider/local.js');
 });
@@ -8,12 +9,34 @@ suite('provider/local', function() {
 
   var subject;
   var app;
+  var db;
+  var controller;
 
-  setup(function() {
+  setup(function(done) {
     app = testSupport.calendar.app();
     subject = new Calendar.Provider.Local({
       app: app
     });
+
+    controller = app.timeController;
+
+    db = app.db;
+    db.open(function(err) {
+      assert.ok(!err);
+      done();
+    });
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      db,
+      ['accounts', 'calendars', 'events', 'busytimes'],
+      done
+    );
+  });
+
+  teardown(function() {
+    db.close();
   });
 
   test('initialization', function() {
@@ -46,81 +69,160 @@ suite('provider/local', function() {
     var events;
     var busytimes;
 
-    var persist;
-    var remove;
-    var removeBusytime;
+    var addEvent;
+    var addTime;
+    var removeTime;
 
     setup(function() {
-      persist = null;
-      remove = null;
-
       events = app.store('Event');
       busytimes = app.store('Busytime');
 
-      events.persist = function() {
-        persist = arguments;
-      }
+      var span = new Calendar.Timespan(
+        0, Infinity
+      );
 
-      events.remove = function() {
-        remove = arguments;
-      }
-
-      busytimes.removeEvent = function() {
-        removeBusytime = arguments;
-      }
+      controller.observeTime(span, function(e) {
+        switch (e.type) {
+          case 'add':
+            addTime = e.data;
+            addEvent = controller._eventsCache[addTime.eventId];
+            break;
+          case 'remove':
+            removeTime = e.data;
+            break;
+        }
+      });
     });
+
+    function find(eventId, done) {
+      var trans = db.transaction(
+        events._dependentStores,
+        'readwrite'
+      );
+
+      trans.oncomplete = function() {
+        done(busytime, event);
+      };
+
+      var event;
+      var busytime;
+
+      events.get(eventId, trans, function(err, record) {
+        event = record;
+      });
+
+
+      var index = trans.objectStore('busytimes').index('eventId');
+
+      index.get(eventId).onsuccess = function(e) {
+        busytime = e.target.result;
+      }
+    }
 
     suite('#createEvent', function() {
+      var event;
 
-      test('without remote.id', function() {
-        var event = { remote: {} };
-        var cb = function() {};
+      function verify(done) {
+        subject.createEvent(event, function() {
+          find(event._id, function(busytime, event) {
+            done(function() {
+              assert.deepEqual(event, event);
+              assert.deepEqual(busytimes.factory(event), busytime);
+              assert.hasProperties(addTime, busytime);
+            });
+          });
+        });
+      }
 
-        subject.createEvent(event, cb);
+      test('without remote.id', function(done) {
+        event = Factory('event');
+        delete event.remote.id;
+        delete event._id;
+
+        verify(done);
+
         assert.ok(event.remote.id, 'adds id');
-        assert.deepEqual(
-          persist,
-          [event, cb]
-        );
       });
 
-      test('with remote.id', function() {
-        var event = { remote: { id: 'foo' } };
-        var cb = function() {};
+      test('with remote.id', function(done) {
+        event = Factory('event');
+        delete event._id;
+        var id = event.remote.id;
+        verify(done);
 
-        subject.createEvent(event, cb);
-        assert.equal(event.remote.id, 'foo', 'does not add id');
-        assert.deepEqual(
-          persist,
-          [event, cb]
-        );
+        assert.equal(event.remote.id, id, 'id change');
+      });
+    });
+
+    suite('#updateEvent', function() {
+
+      //XXX: in the future we should skip the saving.
+      suite('update with same values', function() {
+        var event;
+        var busytime;
+
+        setup(function(done) {
+          event = Factory('event');
+          subject.createEvent(event, done);
+        });
+
+        setup(function(done) {
+          subject.updateEvent(event, busytime, function(err, busy, ev) {
+            event = ev;
+            busytime = busy;
+            done();
+          });
+        });
+
+        test('event', function(done) {
+          assert.ok(event);
+          events.count(function(err, count) {
+            done(function() {
+              assert.equal(count, 1);
+            });
+          });
+        });
+
+        test('busytime', function(done) {
+          assert.hasProperties(busytime, busytimes.factory(event));
+          busytimes.count(function(err, count) {
+            done(function() {
+              assert.equal(count, 1);
+            });
+          });
+        });
       });
 
     });
 
-    test('#updateEvent', function() {
-      var event = { _id: 'foo' };
-      var cb = function() {};
+    suite('#deleteEvent', function() {
+      var event;
 
-      subject.updateEvent(event, cb);
-      assert.equal(removeBusytime[0], event._id);
+      setup(function(done) {
+        event = Factory('event');
+        subject.createEvent(event, done);
+      });
 
-      assert.deepEqual(
-        persist,
-        [event, cb]
-      );
+      setup(function(done) {
+        subject.deleteEvent(event, done);
+      });
+
+      test('busytime count', function(done) {
+        busytimes.count(function(err, count) {
+          done(function() {
+            assert.equal(count, 0);
+          });
+        });
+      });
+
+      test('event count', function(done) {
+        events.count(function(err, count) {
+          done(function() {
+            assert.equal(count, 0);
+          });
+        });
+      });
     });
 
-    test('#deleteEvent', function() {
-      var event = { _id: 'id' };
-      var cb = function() {};
-
-      subject.deleteEvent(event, cb);
-      assert.deepEqual(
-        remove,
-        [event._id, cb]
-      );
-    });
   });
-
 });

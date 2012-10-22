@@ -4,6 +4,10 @@
 
   function Local() {
     Calendar.Provider.Abstract.apply(this, arguments);
+
+    this.events = this.app.store('Event');
+    this.busytimes = this.app.store('Busytime');
+    this.alarms = this.app.store('Alarm');
   }
 
   /**
@@ -67,7 +71,29 @@
         event.remote.id = uuid();
       }
 
-      this.app.store('Event').persist(event, callback);
+      var trans = this.events.db.transaction(
+        this.events._dependentStores,
+        'readwrite'
+      );
+
+      var self = this;
+      var controller = this.app.timeController;
+
+      trans.addEventListener('complete', function() {
+        //XXX: until we turn on event memory caching
+        //     this needs to come after the db persistence.
+        controller.cacheBusytime(
+          self.busytimes.initRecord(busytime)
+        );
+
+        callback(null, busytime, event);
+      });
+
+      this.events.persist(event, trans);
+
+      // needs to come after event persistence
+      var busytime = this.busytimes.factory(event);
+      this.busytimes.persist(busytime, trans);
     },
 
     deleteEvent: function(event, busytime, callback) {
@@ -85,10 +111,41 @@
         busytime = null;
       }
 
-      // remove associated busytimes with previous event.
-      this.app.store('Busytime').removeEvent(event._id);
+      var self = this;
+      var busytime = self.busytimes.factory(event);
+      var controller = this.app.timeController;
 
-      this.app.store('Event').persist(event, callback);
+      // delete must not be in same transaction as
+      // creation of busytime records.
+      this.busytimes.removeEvent(event._id, function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        // update after busytimes are removed.
+        var trans = self.events.db.transaction(
+          self.events._dependentStores,
+          'readwrite'
+        );
+
+        trans.addEventListener('complete', function() {
+          // must come after removeEvent above
+          // to avoid having the new record removed.
+
+          // TODO: move this outside of the persist
+          // once the event caching is turned on again.
+          controller.cacheBusytime(
+            self.busytimes.initRecord(busytime)
+          );
+
+          callback(null, busytime, event);
+        });
+
+        self.events.persist(event, trans);
+        self.busytimes.persist(busytime, trans);
+      });
+
     }
 
   };

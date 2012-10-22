@@ -198,7 +198,7 @@ var ApplicationsList = {
 
     if (confirm(_('uninstallConfirm', {app: name}))) {
       this._displayedApp.uninstall();
-      this._displayedAppp = null;
+      this._displayedApp = null;
     }
   },
 

@@ -224,7 +224,7 @@ suite('provider/caldav', function() {
     });
   });
 
-  suite('#_buildEventsFor', function() {
+  suite('#_cachedEventsFor', function() {
     var events = [];
     var calendar;
 
@@ -239,7 +239,11 @@ suite('provider/caldav', function() {
     for (; i < 2; i++) {
       setup(function(done) {
         var event = Factory('event', {
-          calendarId: calendar._id
+          calendarId: calendar._id,
+          remote: {
+            url: 'some_foo_' + i + '.ics',
+            syncToken: i
+          }
         });
 
         events.push(event);
@@ -250,15 +254,106 @@ suite('provider/caldav', function() {
     test('result', function(done) {
       var expected = Object.create(null);
       events.forEach(function(item) {
-        expected[item._id] = item;
+        expected[item.remote.url] = {
+          syncToken: item.remote.syncToken,
+          id: item._id
+        };
       });
 
-      subject._buildEventsFor(calendar, function(err, result) {
+      subject._cachedEventsFor(calendar, function(err, result) {
         done(function() {
           assert.deepEqual(result, expected);
         });
       });
     });
+  });
+
+  suite('#syncEvents', function() {
+    var account;
+    var calendar;
+    var events = [];
+
+    var calledWith;
+
+    function addEvent(cb) {
+      setup(function(done) {
+        var event = cb();
+        events.push(event);
+        eventStore.persist(event, done);
+      });
+    }
+
+    setup(function(done) {
+      calledWith = null;
+      events.length = 0;
+
+      subject._syncEvents = function() {
+        calledWith = arguments;
+        var cb = calledWith[calledWith.length - 1];
+        setTimeout(cb, 0, null);
+      }
+
+      var trans = db.transaction(
+        ['accounts', 'calendars'],
+        'readwrite'
+      );
+
+      account = Factory('account', {
+        providerType: 'Caldav'
+      });
+
+      calendar = Factory('calendar');
+
+      trans.oncomplete = function() {
+        done();
+      }
+
+      accountStore.persist(account, trans);
+      calendarStore.persist(calendar, trans);
+    });
+
+    suite('sync with cached events', function() {
+      addEvent(function() {
+        return Factory('event', {
+          calendarId: calendar._id,
+          remote: {
+            url: 'one.ics',
+            syncToken: 'one'
+          }
+        });
+      });
+
+      test('result', function(done) {
+        subject.syncEvents(account, calendar, function() {
+          done(function() {
+            assert.equal(calledWith[0], account, 'has account');
+            assert.equal(calledWith[1], calendar, 'has calendar');
+
+            // expected cached events (url -> sync token)
+            var sentCache = calledWith[2];
+            assert.ok(sentCache, 'sends cache');
+            assert.ok(sentCache[events[0].remote.url], 'sends url');
+          });
+        });
+      });
+    });
+
+    suite('sync tokens match', function() {
+      setup(function() {
+        calendar.lastEventSyncToken = 'sync';
+        calendar.remote.syncToken = 'sync';
+      });
+
+      test('result', function(done) {
+        // tokens match should not sync!
+        subject.syncEvents(account, calendar, function() {
+          assert.ok(!calledWith);
+          done();
+        });
+      });
+
+    });
+
   });
 
   suite('#_syncEvents', function() {
@@ -291,30 +386,47 @@ suite('provider/caldav', function() {
     test('with first sync date', function() {
       calendar.firstEventSyncDate = new Date(2012, 0, 1);
       var expectedDate = new Date(2012, 0, 1 - subject.daysToSyncInPast);
+      var options = {
+        startDate: expectedDate,
+        cached: cached
+      };
 
-      subject._syncEvents(account, calendar, cached);
+      var pull = subject._syncEvents(
+        account, calendar, cached
+      );
 
       var expected = [
         account.toJSON(),
         calendar.remote,
-        { startDate: expectedDate }
+        options
       ];
 
       assert.deepEqual(
         calledWith,
         expected
       );
+
+      assert.instanceOf(pull, Calendar.Provider.CaldavPullEvents);
+
+      assert.equal(pull.account, account);
+      assert.equal(pull.calendar, calendar);
     });
 
     test('without first sync date', function() {
       var now = Calendar.Calc.createDay(new Date());
       now.setDate(now.getDate() - subject.daysToSyncInPast);
+
+      var options = {
+        startDate: now,
+        cached: cached
+      };
+
       subject._syncEvents(account, calendar, cached);
 
       var expected = [
         account.toJSON(),
         calendar.remote,
-        { startDate: now }
+        options
       ];
 
       assert.deepEqual(
@@ -324,43 +436,4 @@ suite('provider/caldav', function() {
     });
   });
 
-  suite('#_syncEvents - calendar syncToken skip', function() {
-    var account, calendar;
-
-    setup(function() {
-      account = Factory('account', {
-        providerType: 'Caldav'
-      });
-
-      calendar = Factory('calendar', {
-        _id: 1,
-        lastEventSyncToken: 'synced',
-        remote: { syncToken: 'synced' }
-      });
-
-    });
-
-    setup(function(done) {
-      app.store('Account').persist(account, done);
-    });
-
-    setup(function(done) {
-      calendarStore.persist(calendar, done);
-    });
-
-    test('result', function(done) {
-      subject._syncEvents = function() {
-        done(new Error('should not sync!'));
-      }
-
-      // tokens match should not sync!
-      subject.syncEvents(account, calendar, function() {
-        done();
-      });
-    });
-  });
-
-
-
 });
-

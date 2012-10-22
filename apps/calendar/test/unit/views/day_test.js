@@ -144,6 +144,7 @@ suite('views/day', function() {
 
       // start in active state
       subject.onactive();
+      subject.currentFrame = true;
 
       // sanity check
       controller.selectedDay = new Date();
@@ -157,6 +158,7 @@ suite('views/day', function() {
       // event will not fire....
       controller.selectedDay = new Date(2012, 1, 2);
       assert.ok(!calledWith, 'should disable event listeners');
+      assert.ok(!subject.currentFrame, 'clears current frame');
     });
   });
 
@@ -174,6 +176,8 @@ suite('views/day', function() {
         Calendar.Calc.isSameDate(selDate, controller.day),
         'should not move controller'
       );
+
+      assert.deepEqual(subject.date, controller.position);
     });
 
     test('mostRecentDayType === selectedDay', function() {
@@ -188,6 +192,19 @@ suite('views/day', function() {
         selDate,
         'should move controller to selected day position'
       );
+
+      assert.deepEqual(subject.date, selDate);
+    });
+
+    test('inactive for a peroid then reactivate', function() {
+      subject.onactive();
+      controller.move(new Date(2011, 0, 1));
+
+      subject.oninactive();
+      controller.move(new Date(2012, 8, 1));
+
+      subject.onactive();
+      assert.deepEqual(subject.date, controller.position);
     });
 
   });

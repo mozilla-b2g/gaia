@@ -36,9 +36,8 @@ section[role="region"] > header:first-child sup {
 /* Contact detail main section */
 
 .view-contact-profile article.view-body {
-  overflow: scroll;
+  overflow: auto;
   position: absolute;
-  min-height: 100%;
   width: -moz-calc(100% + 1rem);
 }
 
@@ -49,7 +48,11 @@ section[role="region"] > header:first-child sup {
   background-color: #f5f5f5;
   overflow: visible;
   position: relative;
-  min-height: calc(100% - 5rem);
+  min-height: 100%;
+}
+
+#contact-detail-inner {
+  padding-bottom: 2rem;
 }
 
 .view-contact-profile .view-body-inner.up {
@@ -65,10 +68,6 @@ section[role="region"] > header:first-child sup {
   width: 100%;
   position: absolute;
   -moz-box-sizing: border-box;
-}
-
-.view-contact-profile .view-body-inner > section #toggle-favorite {
-  padding-bottom: 1rem;
 }
 
 .view-contact-profile .view-body-inner hr {
@@ -108,6 +107,15 @@ section[role="region"] > header:first-child sup {
   padding-bottom: 1rem;
 }
 
+#contact-detail li button {
+  margin: 0;
+}
+
+#contact-detail .social-actions button {
+  margin-bottom: 1rem;
+}
+
+
 #contact-detail h2 {
   text-transform: uppercase;
   font-size: 1.4rem;
@@ -121,29 +129,79 @@ section[role="region"] > header:first-child sup {
   pointer-events: none;
 }
 
+.view-jumper span[role="button"] {
+  display: inline-block;
+  margin-right: 0;
+}
+
 /* Edit contact section */
-.view-edit-contact form  > section {
-  margin: 2rem 0 0 0;
+.view-edit-contact .tail-actions {
+  padding-top: 0.7rem;
+  margin: 1rem 0 2rem;
+  border-top: solid 0.1rem #dbdbdb;
+}
+
+.view-edit-contact form li > section {
   padding: 0;
   border: none;
 }
-.view-edit-contact form  > section.first {
+.view-edit-contact form li > section.first {
   margin: 0;
 }
 
-.view-edit-contact form  > section:not(.first) {
-  position: relative;
+.view-edit-contact form li {
   margin-right: 3rem;
 }
 
-.view-edit-contact form  > section div {
+.view-edit-contact form li > section{
   position: relative;
+}
+
+.view-edit-contact form li > section div {
+  position: relative;
+}
+
+.view-edit-contact form li section + button {
+  margin-top: -0.7rem;
+  border-radius: 0 0 0.4rem 0.4rem;
+}
+
+.view-edit-contact form li section + button:after {
+  display: none;
 }
 
 .view-edit-contact .fillflow-row-action {
   width: 5rem;
   height: 5rem;
   margin: -2.5rem 0 0 0;
+}
+
+.view-edit-contact .fillflow-row-action:after {
+  display: none;
+}
+
+.view-edit-contact .fillflow-row-action:active {
+  background: none;
+}
+
+/* FB info (non-editable) */
+.view-edit-contact .facebook fieldset {
+  border-color: #255c95;
+  background: #cbd4df;
+  color: #969696;
+}
+
+.view-edit-contact .facebook fieldset legend,
+.view-edit-contact .facebook fieldset input {
+  color: #969696;
+}
+
+.view-edit-contact .facebook fieldset section {
+  border-left-color: #255c95;
+}
+
+.view-edit-contact .facebook fieldset section p {
+  border-bottom-color: #255c95;
 }
 
 hr {
