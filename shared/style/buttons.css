@@ -151,30 +151,29 @@ li a[role="button"][aria-disabled="true"]:after {
   opacity: 1;
 }
 
-li button[disabled] span,
-li a[role="button"][aria-disabled="true"] span {
-  opacity: 0.2;
-}
-
 /* Icons */
-li button span,
-li a[role="button"] span {
-  background: none no-repeat scroll center center transparent;
-  float: right;
-  height: 2.5rem;
-  margin: 0.3rem -1.5rem 0px 1rem;
-  width: 2.5rem;
-}
-
-li button span.icon-view,
-li a[role="button"] span.icon-view {
+li button.icon-view,
+li a[role="button"].icon-view {
+  background-repeat: no-repeat;
+  background-position: right 1rem top 50%;
   background-image: url(buttons/images/icons/view.png);
 }
 
-li button span.icon-dialog,
-li a[role="button"] span.icon-dialog {
+li button.icon-dialog,
+li a[role="button"].icon-dialog {
+  background-repeat: no-repeat;
+  background-position: right 0.5rem bottom 0.3rem;
   background-image: url(buttons/images/icons/dialog.png);
-  background-position: 1rem bottom;
+}
+
+li button[disabled].icon-view,
+li a[role="button"][aria-disabled="true"].icon-view {
+  background-image: url(buttons/images/icons/view-disabled.png);
+}
+
+li button[disabled].icon-dialog,
+li a[role="button"][aria-disabled="true"].icon-dialog {
+  background-image: url(buttons/images/icons/dialog-disabled.png);
 }
 
 

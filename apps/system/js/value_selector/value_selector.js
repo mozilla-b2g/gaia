@@ -185,6 +185,7 @@ var ValueSelector = {
 
   cancel: function vs_cancel() {
     this.debug('cancel invoked');
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
@@ -230,7 +231,8 @@ var ValueSelector = {
 
       window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
-
+  
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
@@ -308,14 +310,20 @@ var ValueSelector = {
       this._timePickerInitialized = true;
     }
 
-    if (!currentValue)
-      return;
+    var time;
+    if (!currentValue) {
+      var now = new Date();
+      time = {
+        hours: now.getHours(),
+        minutes: now.getMinutes()
+      };
+    } else {
+      var inputParser = ValueSelector.InputParser;
+      if (!inputParser)
+        console.error('Cannot get input parser for value selector');
 
-    var inputParser = ValueSelector.InputParser;
-    if (!inputParser)
-      console.error('Cannot get input parser for value selector');
-
-    var time = inputParser.importTime(currentValue);
+      time = inputParser.importTime(currentValue);
+    }
 
     var timePicker = TimePicker.timePicker;
     // Set the value of time picker according to the current value

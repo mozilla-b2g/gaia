@@ -85,6 +85,17 @@ var Camera = {
 
   _pendingPick: null,
 
+  // How many seconds we wait between collecting available disk space
+  DISK_SAMPLE_RATE: 1,
+  // How many disk samples we store, we dont want to just average 2 samples
+  // as they might spike
+  DISK_SAMPLE_SIZE: 10,
+  // Amount of seconds of streaming the disk can support before we
+  // stop recording
+  DISK_BUFFER: 10,
+
+  _diskSpace: [],
+
   get overlayTitle() {
     return document.getElementById('overlay-title');
   },
@@ -275,22 +286,17 @@ var Camera = {
   },
 
   toggleRecording: function camera_toggleRecording() {
-    var captureButton = this.captureButton;
-    var switchButton = this.switchButton;
     if (document.body.classList.contains('capturing')) {
-      this._cameraObj.stopRecording();
       this.stopRecording();
-      switchButton.removeAttribute('disabled');
-      document.body.classList.remove('capturing');
-      this.generateVideoThumbnail((function(thumbnail, videotype) {
-        if (!thumbnail) {
-          return;
-        }
-        this.addToFilmStrip(this._videoPath, thumbnail, videotype);
-      }).bind(this));
       return;
     }
 
+    this.startRecording();
+  },
+
+  startRecording: function camera_startRecording() {
+    var captureButton = this.captureButton;
+    var switchButton = this.switchButton;
     this._videoPath = this.createVideoFilename();
 
     var onsuccess = (function onsuccess() {
@@ -358,6 +364,7 @@ var Camera = {
   },
 
   startRecordingTimer: function camera_startRecordingTimer() {
+    this._diskSpace = [];
     this._videoStart = new Date().getTime();
     this.videoTimer.textContent = this.formatTimer(0);
     this._videoTimer =
@@ -365,12 +372,54 @@ var Camera = {
   },
 
   updateVideoTimer: function camera_updateVideoTimer() {
-    var diff = Math.round((new Date().getTime() - this._videoStart) / 1000);
-    this.videoTimer.textContent = this.formatTimer(diff);
+    var videoLength =
+      Math.round((new Date().getTime() - this._videoStart) / 1000);
+    this.videoTimer.textContent = this.formatTimer(videoLength);
+
+    if (videoLength % this.DISK_SAMPLE_RATE !== 0) {
+      return;
+    }
+
+    // Check the amount of storage we have available and stop recording
+    // before we fill the sdcard
+    this._videoStorage.stat().onsuccess = (function(e) {
+      var freeBytes = e.target.result.freeBytes;
+      this._diskSpace.push(freeBytes);
+      if (this._diskSpace.length > this.DISK_SAMPLE_SIZE) {
+        this._diskSpace.shift();
+      }
+
+      if (this._diskSpace.length < 2) {
+        return;
+      }
+
+      // Find the average amount of diskspace we are consuming per second
+      // If we are overwriting a file, freeBytes will stay constant until
+      // we start exceeding the original filesize, so we need to handle
+      // 0 bytes used
+      var diskUsed = this._diskSpace[0] - freeBytes;
+      var diskRate = diskUsed > 0 ?
+        diskUsed / (this._diskSpace.length * this.DISK_SAMPLE_RATE) : 0;
+
+      if ((freeBytes - (diskRate * this.DISK_BUFFER)) < 0) {
+        this.stopRecording();
+      }
+
+    }).bind(this);
   },
 
   stopRecording: function camera_stopRecording() {
+    this._cameraObj.stopRecording();
     window.clearInterval(this._videoTimer);
+
+    this.switchButton.removeAttribute('disabled');
+    document.body.classList.remove('capturing');
+    this.generateVideoThumbnail((function(thumbnail, videotype) {
+      if (!thumbnail) {
+        return;
+      }
+      this.addToFilmStrip(this._videoPath, thumbnail, videotype);
+    }).bind(this));
   },
 
   formatTimer: function camera_formatTimer(time) {

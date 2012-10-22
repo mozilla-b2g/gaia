@@ -40,45 +40,13 @@
       "name": "إستديو",
       "description": "Gaia إستديو"
     },
-    "ca": {
-      "name": "Galeria",
-      "description": "Galeria del Gaia"
-    },
-    "de": {
-      "name": "Galerie",
-      "description": "Gaia Galerie"
-    },
-    "el": {
-      "name": "Γκαλερί",
-      "description": "Γκαλερί Gaia"
-    },
     "en-US": {
       "name": "Gallery",
       "description": "Gaia Gallery"
     },
-    "es": {
-      "name": "Galería",
-      "description": "Galería de Gaia"
-    },
     "fr": {
       "name": "Galerie",
       "description": "Galerie Gaia"
-    },
-    "it": {
-      "name": "Galleria",
-      "description": "Galleria di Gaia"
-    },
-    "pt-BR": {
-      "name": "Galeria",
-      "description": "Galeria do Gaia"
-    },
-    "ru": {
-      "name": "Галерея",
-      "description": "Галерея Gaia"
-    },
-    "tr": {
-      "name": "Galeri",
-      "description": "Gaia Galeri"
     },
     "zh-TW": {
       "name": "相簿",
