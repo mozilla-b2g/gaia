@@ -1,7 +1,4 @@
-requireCommon('/test/marionette.js');
-require('apps/calendar/test/integration/integration_helper.js');
-require('apps/calendar/test/integration/app.js');
-
+require('/apps/calendar/test/integration/calendar_integration.js');
 /** require calc stuff to make things easier */
 require('apps/calendar/js/calendar.js');
 require('apps/calendar/js/calc.js');
@@ -77,19 +74,12 @@ suite('calendar - modify events', function() {
     yield app.close();
   });
 
-  testSupport.startMarionette(function(driver) {
-    device = driver;
-    app = new CalendarIntegration(device);
+  MarionetteHelper.start(function(driver) {
+    app = new CalendarIntegration(driver);
+    device = app.device;
   });
 
   suiteSetup(function() {
-    yield device.setScriptTimeout(5000);
-    yield helper.importScript(
-      device,
-      '/tests/marionette/gaiatest/gaia_apps.js',
-      MochaTask.nodeNext
-    );
-
     yield app.launch();
   });
 

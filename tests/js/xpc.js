@@ -5,14 +5,18 @@ window.parent = window;
 window.location.host = 'localhost';
 
 window.require = function(url, cb) {
-  if (url.indexOf('/common') === 0) {
+  if (url.lastIndexOf('apps/', 0) === 0) {
+    // required for loading of test files
     url = '../../' + url;
+  } else if (url.lastIndexOf('/common', 0) === 0) {
+    // required so we can load the unit test helper.js
+    url = '../../test_apps/test-agent' + url;
+  } else if (url.lastIndexOf('/', 0) === 0) {
+    url = '../..' + url;
   }
 
-  if (url.indexOf('apps/') === 0) {
-    url = '../../../../' + url;
-  }
   importScripts(url);
+
   if (typeof(cb) === 'function') {
     cb();
   }
@@ -25,7 +29,7 @@ Common = window.CommonResourceLoader = {
 };
 
 
-require('/common/vendor/mocha/mocha.js');
+require('/test_apps/test-agent/common/vendor/mocha/mocha.js');
 process.stdout.write = window.xpcDump;
 
 //Hack to format errors
@@ -110,8 +114,6 @@ if (!(reporter in mocha.reporters)) {
     timeout: 6000
   });
 
-  require('integration_helper.js');
-
   window.xpcArgv.slice(2).forEach(function(test) {
     require(test);
   });
@@ -122,3 +124,4 @@ if (!(reporter in mocha.reporters)) {
 
   window.xpcEventLoop.start();
 }
+
