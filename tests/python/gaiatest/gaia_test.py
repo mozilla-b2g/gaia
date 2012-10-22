@@ -49,11 +49,11 @@ class GaiaApps(object):
 
     def __init__(self, marionette):
         self.marionette = marionette
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, "gaia_apps.js"))
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
         self.marionette.import_script(js)
 
     def launch(self, name):
-        result = self.marionette.execute_async_script("launchAppWithName('%s')" % name)
+        result = self.marionette.execute_async_script("GaiaApps.launchWithName('%s')" % name)
         app = GaiaApp(frame_id=result.get('frame'),
                       src=result.get('src'),
                       name=result.get('name'),
@@ -62,7 +62,7 @@ class GaiaApps(object):
 
     def kill(self, app):
         self.marionette.switch_to_frame()
-        js = os.path.abspath(os.path.join(__file__, os.path.pardir, "gaia_apps.js"))
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
         self.marionette.import_script(js)
         self.marionette.execute_script("window.wrappedJSObject.WindowManager.kill('%s');"
                                         % app.origin)

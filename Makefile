@@ -341,8 +341,8 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-ifneq ($(TESTS), '')
-	ifneq ($(APP), '')
+ifeq ($(TESTS),)
+	ifneq ($(APP),)
 		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
 	else
 		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
@@ -350,8 +350,7 @@ ifneq ($(TESTS), '')
 endif
 .PHONY: test-integration
 test-integration:
-	echo $(TESTS)
-	@test_apps/test-agent/common/test/bin/test $(TESTS)
+	@./tests/js/bin/runner $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -370,19 +369,20 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
+	# integration tests
+	rm -f tests/vendor/marionette.js
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js tests/js/vendor/
+
+	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -Rf tools/xpcwindow
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
-
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
@@ -497,7 +497,6 @@ screenshot:
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
-
 
 # Forward port to use the RIL daemon from the device
 forward:

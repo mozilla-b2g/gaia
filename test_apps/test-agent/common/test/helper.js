@@ -70,9 +70,6 @@
     });
   });
 
-  //marionette utilities
-  window.requireCommon('test/marionette.js');
-
   //url utilities
   window.requireCommon('test/test_url_resolver.js');
 
