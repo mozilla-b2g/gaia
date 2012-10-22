@@ -12,6 +12,9 @@
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
+    <!-- Common code -->
+    <script type="text/javascript" src="shared/js/notification_helper.js"></script>
+
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
     <link rel="stylesheet" type="text/css" href="style/icons.css"/>
@@ -690,10 +693,10 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Default" checked />
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
             <span></span>
           </label>
-          <a data-l10n-id="classic">Default</a>
+          <a data-l10n-id="classic">Classic</a>
         </li>
         <li>
           <label onmouseup="audioPreview(this)">
@@ -717,10 +720,10 @@
       <ul>
         <li>
           <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Sound of Message" />
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
             <span></span>
           </label>
-          <a data-l10n-id="lowBit">Sound of Message</a>
+          <a data-l10n-id="beep">Beep Beep</a>
         </li>
       </ul>
 
@@ -765,18 +768,15 @@
           </label>
         </li>
         <li>
-          <label>
+          <span data-l10n-id="call">Call
             <button id="call-tone-selection" class="tone-select">Old School</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="call">Call</a>
+          </span>
         </li>
         <li>
-          <label>
-            <button id="sms-tone-selection" class="tone-select">Beep Beep</button>
-            <span></span>
-          </label>
-          <a data-l10n-id="message">Message</a>
+          <span data-l10n-id="message">Message
+            <button id="sms-tone-selection" class="tone-select">
+              Beep Beep</button>
+          </span>
         </li>
       </ul>
 
@@ -939,16 +939,8 @@
           <span data-l10n-id="language">Language
             <select name="language.current">
               <option value="ar">العربية</option>
-              <option value="de">Deutsch</option>
-              <option value="el">Ελληνικά</option>
               <option value="en-US">English (US)</option>
-              <option value="es">Español</option>
               <option value="fr">Français</option>
-              <option value="nb-NO">Norsk</option>
-              <option value="it">Italiano</option>
-              <option value="pt-BR">Português (do Brasil)</option>
-              <option value="ru">Русский</option>
-              <option value="tr">Türkçe</option>
               <option value="zh-TW">正體中文</option>
             </select>
           </span>
@@ -1206,7 +1198,7 @@
         <div id="pinArea">
           <div data-l10n-id="simPin">SIM PIN</div>
           <div class="input-wrapper">
-            <input type="number" name="simpin" />
+            <input type="number" name="simpin" size="8" maxlength="8" />
             <input type="text" name="simpinVis" size="8" maxlength="8" />
           </div>
         </div>
@@ -1215,7 +1207,7 @@
         <div id="pukArea">
           <div data-l10n-id="pukCode">PUK Code</div>
           <div class="input-wrapper">
-            <input type="number" name="simpuk" />
+            <input type="number" name="simpuk" size="8" maxlength="8" />
             <input type="text" name="simpukVis" size="8" maxlength="8" />
           </div>
         </div>
@@ -1226,7 +1218,7 @@
             Create PIN (must contain 4 to 8 digits)
           </div>
           <div class="input-wrapper">
-            <input type="number" name="newSimpin" />
+            <input type="number" name="newSimpin" size="8" maxlength="8" />
             <input type="text" name="newSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
@@ -1235,7 +1227,7 @@
         <div id="confirmPinArea">
           <div>Confirm New PIN</div>
           <div class="input-wrapper">
-            <input type="number" name="confirmNewSimpin" />
+            <input type="number" name="confirmNewSimpin" size="8" maxlength="8" />
             <input type="text" name="confirmNewSimpinVis" size="8" maxlength="8" />
           </div>
         </div>
@@ -1370,7 +1362,9 @@
     <!-- Device :: Information :: More Information :: Developer -->
     <section role="region" id="developer" data-leaf>
       <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <h1 data-l10n-id="developer"> Developer </h1>
       </header>
 

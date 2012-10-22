@@ -149,7 +149,6 @@ suite('views/settings', function() {
 
       setup(function() {
         classList = subject.syncProgressTarget.classList;
-        console.log(classList.toString());
         assert.ok(
           !classList.contains(subject.syncClass),
           'not active initially'

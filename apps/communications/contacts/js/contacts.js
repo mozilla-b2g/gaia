@@ -611,7 +611,7 @@ var Contacts = (function() {
       '#details-back': handleBack, // Details
       '#edit-contact-button': showEditContact,
       '#toggle-favorite': contacts.Details.toggleFavorite,
-      '#contact-form > button': contacts.Form.onNewFieldClicked,
+      '#contact-form button[data-field-type]': contacts.Form.onNewFieldClicked,
       'button[type="reset"]': stopPropagation
     });
   };

@@ -9,21 +9,21 @@ section[role="region"] > header:first-child button[aria-disabled="true"] .icon {
 }
 
 /* Overriding BB styles for edit mode */
-form.edit[role="dialog"] header .icon {
+form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
 }
 
-form.edit[role="dialog"] header,
-form.edit[role="dialog"] > menu {
+form[role="dialog"][data-type="edit"] header,
+form[role="dialog"][data-type="edit"] > menu {
   transition: transform 0.25s ease;
 }
 
-form.edit[role="dialog"],
-form.edit[role="dialog"] header {
+form[role="dialog"][data-type="edit"],
+form[role="dialog"][data-type="edit"] header {
   transform: translateY(-100%);
 }
 
-form.edit[role="dialog"] > menu {
+form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(100%);
 }
 
@@ -153,16 +153,18 @@ button::-moz-focus-inner {
   background-image: url('images/CallLog_30x30_missed_grey.png');
 }
 
+.log-item {
+  position: relative;
+  overflow: visible;
+  transition: transform 0.3s ease;
+}
+
 .log-item * {
   pointer-events: none;
 }
 
 .log-item .call-log-contact-photo {
   pointer-events: auto;
-}
-
-.recents-edit .call-log-contact-photo {
-  pointer-events: none;
 }
 
 .log-item.highlighted .icon-missed {
@@ -238,35 +240,43 @@ button::-moz-focus-inner {
   background-repeat: no-repeat;
 }
 
-.call-log-selection {
+label:not([for]).call-log-selection {
   height: 100%;
-  width: 5rem;
+  width: auto;
   display: none;
-  background-image: url('images/timeline_checkbox_off.png');
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 2.2rem 2.2rem;
   overflow: hidden;
+  position: absolute;
+  right: 0;
+  left: -5rem;
+  top: 0;
+  border-bottom: .1rem solid  #dbdbdb;
 }
 
-.log-item.selected .call-log-selection {
-  background-image: url('images/timeline_checkbox_on.png');
+label:not([for]).call-log-selection input + span {
+  left: 2.5rem;
 }
 
 /* Edit mode state */
-.recents-edit form.edit[role="dialog"],
-.recents-edit form.edit[role="dialog"] header,
-.recents-edit form.edit[role="dialog"] > menu {
+.recents-edit form[role="dialog"][data-type="edit"],
+.recents-edit form[role="dialog"][data-type="edit"] header,
+.recents-edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
 
-.recents-edit .call-log-selection {
+.recents-edit label:not([for]).call-log-selection {
   display: block;
-  float: left;
 }
 
-.recents-edit .log-item-info {
-  width: -moz-calc(100% - 15rem);
+.recents-edit .log-item {
+  transform: translateX(5rem);
+}
+
+.recents-edit .call-log-contact-photo {
+  pointer-events: none;
+}
+
+.recents-edit .log-item label {
+  pointer-events: auto;
 }
 
 /*

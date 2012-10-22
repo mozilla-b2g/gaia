@@ -8,6 +8,80 @@ html, body {
   padding: 0;
 }
 
+/* BB Headers */
+body[role="application"] section[role="region"] > header:first-child {
+  background-image: url(headers/images/ui/header.png);
+}
+
+body[role="application"] section[role="region"] > header menu[type="toolbar"] a:last-child,
+body[role="application"] section[role="region"] > header menu[type="toolbar"] button:last-child {
+  background-image: url(headers/images/ui/separator.png);
+}
+
+body[role="application"] section[role="region"] > header > button,
+body[role="application"] section[role="region"] > header > a {
+  background-image: url(headers/images/ui/separator-large.png);
+}
+
+body[role="application"] section[role="region"] > header > button .icon:after,
+body[role="application"] section[role="region"] > header > a .icon:after {
+  background-image: url(headers/images/ui/negative.png);
+  background-color: #3B5998;
+}
+
+/* BB Confirm */
+form[role="dialog"].no-overlay {
+  background: none;
+  pointer-events: none;
+}
+
+form[role="dialog"].no-overlay button {
+  pointer-events: auto;
+}
+
+/* End BB */
+
+/* ----------------------------------
+ * PROGRESS + ACTIVITIES
+ * ---------------------------------- */
+
+/* Activity indicator */
+progress:not([value]) {
+  margin-top: 5rem;
+  margin-left: calc(50% - 1.45rem);
+  width: 2.9rem;
+  height: 2.9rem;
+  background: url(../images/spinner.png) no-repeat left top;
+  border: none;
+  animation: 1s moveDefault infinite steps(10);
+  display: inline-block;
+  vertical-align: middle;
+}
+
+progress:not([value])::-moz-progress-bar {
+   background: none;
+ }
+
+@keyframes moveDefault {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -390px top;
+  }
+}
+
+@keyframes moveSpinner {
+  from {
+    background-position: 0 top;
+  }
+
+  to {
+    background-position: -300px top;
+  }
+}
+
 .view {
   position: fixed;
   left: 0;
@@ -25,50 +99,21 @@ html, body {
   width: 100%;
   height: 100%;
   display: none;
-}
-
-#curtain > div {
-  position: absolute;
-  top: 50%;
-  height: 32px;
-  margin-top: -16px;
-  left: 50%;
-  margin-left: -16px;
-}
-
-#curtain > p.message {
-  width: 90%;
-  font-size: 2.2rem;
-  margin: 2.5rem auto 1.5rem;
+  background: #fff;
 }
 
 .friends-msg {
-  height: 2rem !important;
   width: 100%;
   z-index: 1;
-  border-bottom: solid 1px rgba(0, 0, 0, 0.2);
-  -moz-box-sizing: border-box;
+  border-bottom: 0.1rem solid #E6E6E6;
+  padding: 0.4rem 0;
 }
 
 p#friends-msg {
-  font-size: 1.5rem;
-  margin-left: 3rem;
-}
-
-#curtain > p.submessage {
-  width: 90%;
-  font-size: 1.5rem;
-  margin: 0 auto;
-  font-weight: bold;
-}
-
-#curtain > hr {
-  width: 90%;
-  margin: 1rem auto;
-}
-
-#curtain > div > img {
-  margin-top: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.8rem;
+  margin: 0 3rem;
 }
 
 body[data-state='waiting'] #curtain {
@@ -103,6 +148,8 @@ h2.block-title {
   text-align: left;
 
   height: -moz-calc(100% - 6.5rem);
+  padding-top: 3.7rem; /* Equal to search form height */
+  position: relative;
 }
 
 .link #main {
@@ -111,8 +158,7 @@ h2.block-title {
 }
 
 .link #mainContent {
-  background: #f4f4f4;
-  height: -moz-calc(100% - 6.9rem);
+  padding: 0;
 }
 
 .link li img {
@@ -123,7 +169,7 @@ h2.block-title {
   width: -moz-calc(100% - 5rem - 0.8rem) !important;
   margin: 0;
   margin-left: 2.5rem;
-  padding: 0;
+  padding: 0.5rem 0 0 0 !important;
 }
 
 #groups-list > li {

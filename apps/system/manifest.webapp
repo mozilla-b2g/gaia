@@ -2,6 +2,7 @@
   "name": "System",
   "type": "certified",
   "description": "Main System",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -33,45 +34,13 @@
       "name": "System",
       "description": "Main System"
     },
-    "ca": {
-      "name": "Sistema",
-      "description": "Sistema principal"
-    },
-    "de": {
-      "name": "System",
-      "description": "Allgemeines System"
-    },
-    "el": {
-      "name": "Σύστημα",
-      "description": "Κύριο Σύστημα"
-    },
     "en-US": {
       "name": "System",
       "description": "Main System"
     },
-    "es": {
-      "name": "Sistema",
-      "description": "Sistema principal"
-    },
     "fr": {
       "name": "System",
       "description": "Main System"
-    },
-    "it": {
-      "name": "Sistema",
-      "description": "Sistema Principale"
-    },
-    "pt-BR": {
-      "name": "Sistema",
-      "description": "Sistema Principal"
-    },
-    "ru": {
-      "name": "System",
-      "description": "Main System"
-    },
-    "tr": {
-      "name": "Sistem",
-      "description": "Ana Sistem"
     },
     "zh-TW": {
       "name": "System",

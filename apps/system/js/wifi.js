@@ -14,7 +14,11 @@ var Wifi = {
   // after the conditions are met.
   kOffTime: 60 * 1000,
 
-  _offTimer: null,
+  // if Wifi is enabled but disconnected, try to scan for networks every
+  // kScanInterval ms.
+  kScanInterval: 20 * 1000,
+
+  _scanTimer: null,
 
   init: function wf_init() {
     window.addEventListener('screenchange', this);
@@ -62,6 +66,18 @@ var Wifi = {
       }
 
       self.wifiEnabled = value;
+
+      clearTimeout(self._scanTimer);
+      if (!value)
+        return;
+
+      // If wifi is enabled but disconnected.
+      // we would need to call getNetworks() continuously
+      // so we could join known wifi network
+      self._scanTimer = setInterval(function wifi_scan() {
+        if (wifiManager.connection.status == 'disconnected')
+          wifiManager.getNetworks();
+      });
     });
 
     var power = navigator.mozPower;
@@ -128,6 +144,12 @@ var Wifi = {
       if (this._alarmId) {
         navigator.mozAlarms.remove(this._alarmId);
         this._alarmId = null;
+      }
+
+      // If wifi is enabled but disconnected.
+      // we would need to call getNetworks() so we could join known wifi network
+      if (this.wifiEnabled && wifiManager.connection.status == 'disconnected') {
+        wifiManager.getNetworks();
       }
 
       // We don't need to do anything if we didn't disable wifi at first place.

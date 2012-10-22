@@ -145,7 +145,30 @@ suite('store/busytime', function() {
         });
       });
     });
+  });
 
+  suite('#factory', function() {
+    test('using defaults', function() {
+      var event = Factory('event');
+      var result = subject.factory(event);
+
+      assert.deepEqual(result.start, event.remote.start);
+      assert.deepEqual(result.end, event.remote.end);
+      assert.equal(result.eventId, event._id);
+      assert.equal(result.calendarId, event.calendarId);
+    });
+
+    test('with start/end date', function() {
+      var event = Factory('event');
+
+      var start = Calendar.Calc.dateToTransport(new Date(2012, 0, 1));
+      var end = Calendar.Calc.dateToTransport(new Date(2012, 0, 2));
+
+      var result = subject.factory(event, start, end);
+
+      assert.deepEqual(result.start, start);
+      assert.deepEqual(result.end, end);
+    });
   });
 
   suite('#loadSpan', function() {
@@ -163,8 +186,15 @@ suite('store/busytime', function() {
     function add(name, start, end) {
       setup(function(done) {
         var store = subject.db.getStore('Event');
-        var item = list[name] = event(start, end);
-        store.persist(item, done);
+        var item = list[name] = Factory('busytime', {
+          startDate: start,
+          endDate: end
+        });
+
+        delete item.startDate;
+        delete item.endDate;
+
+        subject.persist(item, done);
       });
     }
 
@@ -175,32 +205,24 @@ suite('store/busytime', function() {
     add('ends after', new Date(2012, 1, 9), new Date(2012, 1, 11));
     add('after', new Date(2012, 1, 12), new Date(2012, 1, 15));
 
-    var addEvents;
     var results;
-    var expectedEventIds;
+    var expectedIds;
 
     function expected(name) {
-      expectedEventIds.push(
+      expectedIds.push(
         list[name]._id
       );
     }
 
     setup(function(done) {
-      addEvents = [];
-
       // because we just added events
       // we need to remove them from the cache
       subject._setupCache();
 
-      // add listener for event
-      subject.on('add time', function(data) {
-        addEvents.push(data);
-      });
-
       // build the list of expected
       // busytimes to be returned by their
       // event id
-      expectedEventIds = [];
+      expectedIds = [];
 
       // order is important we expect them
       // to be sorted by start date
@@ -227,7 +249,17 @@ suite('store/busytime', function() {
       var idMap = Object.create(null);
 
       results.forEach(function(item) {
-        var id = item.eventId;
+        // verify startDate/endDate is present
+        var model = JSON.parse(JSON.stringify(item));
+        model = subject.initRecord(model);
+
+        assert.hasProperties(
+          item,
+          model,
+          'is model'
+        );
+
+        var id = item._id;
         if (!(id in idMap)) {
           idMap[id] = true;
         }
@@ -237,35 +269,28 @@ suite('store/busytime', function() {
 
       assert.deepEqual(
         actualIds,
-        expectedEventIds,
+        expectedIds,
         'load event ids'
-      );
-
-      assert.deepEqual(
-        addEvents,
-        results,
-        'should fire load event'
       );
     });
   });
 
   suite('#_createModel', function() {
-    var parentEvent;
     var start = new Date(2012, 7, 1);
     var end = new Date(2012, 7, 8);
+    var busy;
 
     setup(function(done) {
-      parentEvent = event(start, end);
-      app.store('Event').persist(parentEvent, done);
+      busy = Factory('busytime', {
+        startDate: start,
+        endDate: end
+      });
+
+      subject.persist(busy, done);
     });
 
     test('db-round trip', function(done) {
-      var record;
-      subject.once('add time', function(item) {
-        record = item;
-      });
-
-      subject.load(function() {
+      subject.get(busy._id, function(err, record) {
         done(function() {
           assert.deepEqual(record.startDate, start, 'startDate');
           assert.deepEqual(record.endDate, end, 'endDate');
@@ -274,213 +299,60 @@ suite('store/busytime', function() {
     });
   });
 
-  suite('#addEvent', function(done) {
-    var eventModel;
-    var expected;
-
-    setup(function() {
-      eventModel = event(new Date(2012, 1, 1));
-      expected = [];
-
-      expected.push(
-        record(eventModel)
-      );
-
-      subject.addEvent(eventModel, done);
-    });
-
-    test('result', function(done) {
-      var items = [];
-
-      subject._setupCache();
-      subject.on('add time', function(item) {
-        items.push(item);
-      });
-
-      subject.load(function(err, results) {
-        done(function() {
-          assert.deepEqual(items, expected);
-        });
-      });
-    });
-  });
-
   suite('#removeEvent', function() {
-    var removeModel;
-    var keepModel;
-
-    setup(function() {
-      removeModel = event(new Date(2012, 1, 1));
-      keepModel = event(new Date(2013, 1, 1));
-    });
+    var remove;
+    var keep;
+    var removeEvents = [];
 
     setup(function(done) {
-      subject.addEvent(keepModel, done);
-    });
-
-    setup(function(done) {
-      subject.addEvent(removeModel, done);
-    });
-
-    setup(function(done) {
-      subject.removeEvent(removeModel._id, done);
-    });
-
-    test('removal', function(done) {
-      // just load everything...
-      var span = new Calendar.Timespan(
-        new Date(2012, 1, 1),
-        new Date(2015, 1, 1)
+      removeEvents.length = 0;
+      var trans = subject.db.transaction(
+        'busytimes', 'readwrite'
       );
 
-      // quick sanity check to make sure
-      // we removed in memory stuff
-      subject._setupCache();
-      subject.loadSpan(span, function(err, results) {
+      remove = Factory('busytime', {
+        eventId: 'remove'
+      });
+
+      keep = Factory('busytime', {
+        eventId: 'keep'
+      });
+
+      subject.persist(remove, trans);
+      subject.persist(keep, trans);
+
+      trans.oncomplete = function() {
+        done();
+      }
+    });
+
+    setup(function(done) {
+      subject.on('remove', function(id) {
+        removeEvents.push(id);
+      });
+
+      subject.removeEvent('remove', done);
+    });
+
+    test('removed busytime', function(done) {
+      assert.deepEqual(
+        removeEvents,
+        [remove._id]
+      );
+
+      subject.get(remove._id, function(err, record) {
         done(function() {
-          assert.equal(results.length, 1);
-          var result = results[0];
-          assert.equal(result.eventId, keepModel._id);
+          assert.ok(!record);
         });
       });
     });
 
-  });
-
-  suite('memory caching ops', function() {
-    var single;
-    var recurring;
-    var events = {};
-
-    setup(function() {
-      events = { remove: [], add: [] };
-      var span = new Calendar.Timespan(
-        new Date(2010, 1, 1),
-        new Date(2015, 1, 1)
-      );
-
-      var handler = {
-        handleEvent: function(e) {
-          switch (e.type) {
-            case 'add time':
-              events.add.push(e);
-              break;
-            case 'remove time':
-              events.remove.push(e);
-              break;
-          }
-        }
-      };
-
-      subject.on('add time', handler);
-      subject.on('remove time', handler);
-
-      single = event(new Date(2012, 1, 1));
-      recurring = event(new Date(2011, 12, 3));
-
-      subject.addEvent(single);
-      subject.addEvent(recurring);
-
-      assert.ok(subject._byEventId[single._id], 'has byEventId');
-    });
-
-
-    suite('#_removeEventTimes', function() {
-
-      test('remove single', function() {
-        var item = subject._byEventId[single._id][0];
-
-        subject._removeEventTimes(single._id);
-
-        assert.equal(events.remove.length, 1);
-
-        assert.hasProperties(
-          events.remove[0].data[0],
-          record(single)
-        );
-
-        assert.ok(
-          subject._byEventId[recurring._id]
-        );
-
-        assert.ok(
-          !subject._byEventId[single._id]
-        );
-
-      });
-
-      test('remove recurring', function() {
-        var removedItems = subject._byEventId[recurring._id];
-
-        subject._removeEventTimes(recurring._id);
-        assert.equal(events.remove.length, 1);
-
-        assert.ok(
-          !subject._byEventId[recurring._id]
-        );
-
-        assert.ok(
-          subject._byEventId[single._id]
-        );
-
-      });
-
-    });
-  });
-
-  test('#_eventToRecord', function() {
-    var item = event(new Date(2012, 1, 1));
-
-    var result = subject._eventToRecord(
-      item
-    );
-
-    assert.deepEqual(
-      result.start,
-      item.remote.start
-    );
-
-    assert.deepEqual(
-      result.end,
-      item.remote.end
-    );
-
-    assert.equal(
-      result.eventId,
-      item._id
-    );
-
-    assert.equal(
-      result.calendarId,
-      item.calendarId
-    );
-  });
-
-  suite('#load', function() {
-    function add(date) {
-      setup(function(done) {
-        var item = Factory('event', {
-          remote: { startDate: date }
+    test('control - kept busytime', function(done) {
+      subject.get(keep._id, function(err, record) {
+        done(function() {
+          assert.ok(record);
         });
-
-        var store = subject.db.getStore('Event');
-        store.persist(item, done);
       });
-    }
-
-    add(new Date(2012, 1, 1));
-    add(new Date(2012, 1, 5));
-    add(new Date(2012, 1, 10));
-
-    setup(function(done) {
-      subject._setupCache();
-      subject.load(done);
     });
-
-    test('load cache', function() {
-      assert.equal(Object.keys(subject._byEventId).length, 3);
-    });
-
   });
-
 });

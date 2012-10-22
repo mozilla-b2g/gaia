@@ -16,7 +16,7 @@ var subject,
     realFb,
     mozL10n,
     mockContact,
-    deleteButton;
+    footer;
 
 suite('Render contact form', function() {
 
@@ -37,7 +37,7 @@ suite('Render contact form', function() {
     realFb = window.fb;
     window.fb = MockFb;
     document.body.innerHTML = MockFormDom;
-    deleteButton = document.getElementById('delete-contact');
+    footer = document.querySelector('footer');
     subject = contacts.Form;
     subject.init(Contacts.getTags());
   });
@@ -67,7 +67,7 @@ suite('Render contact form', function() {
         assert.isTrue(cont.indexOf(element + '-0') > -1);
         assertEmpty(element + '-0');
         assert.isTrue(cont.indexOf(element + '-1') == -1);
-        assert.isTrue(deleteButton.classList.contains('hide'));
+        assert.isTrue(footer.classList.contains('hide'));
       }
     });
 
@@ -88,7 +88,7 @@ suite('Render contact form', function() {
       var valueEmail = document.querySelector('#email_0').value;
       assert.isFalse(valueEmail === params.tel);
       assert.equal(valueEmail, '');
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
 
     test('with email params', function() {
@@ -107,7 +107,7 @@ suite('Render contact form', function() {
       var valueEmail = document.querySelector('#email_0').value;
       assert.isTrue(valueEmail === params.email);
       assert.equal(value, '');
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
 
     test('with email and tel params', function() {
@@ -127,7 +127,7 @@ suite('Render contact form', function() {
       assert.isTrue(value === params.tel);
       var valueEmail = document.querySelector('#email_0').value;
       assert.isTrue(valueEmail === params.email);
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
   });
 
@@ -145,7 +145,7 @@ suite('Render contact form', function() {
       assertPhoneData(0);
       assertEmailData(0);
 
-      assert.isFalse(deleteButton.classList.contains('hide'));
+      assert.isFalse(footer.classList.contains('hide'));
 
       // Remove Field icon on photo is present
       var thumbnail = document.querySelector('#thumbnail-action');
@@ -178,7 +178,7 @@ suite('Render contact form', function() {
         assertPhoneData(0);
         assertEmailData(0);
 
-        assert.isFalse(deleteButton.classList.contains('hide'));
+        assert.isFalse(footer.classList.contains('hide'));
 
         // Remove Field icon photo should not be present
         var thumbnail = document.querySelector('#thumbnail-action');

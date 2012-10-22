@@ -16,45 +16,13 @@
       "name": "FM Radio",
       "description": "Gaia FM Radio"
     },
-    "ca": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "de": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "el": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
     "en-US": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "es": {
       "name": "FM Radio",
       "description": "Gaia FM Radio"
     },
     "fr": {
       "name": "Radio FM",
       "description": "Radio FM Gaia"
-    },
-    "it": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "pt-BR": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "ru": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
-    },
-    "tr": {
-      "name": "FM Radio",
-      "description": "Gaia FM Radio"
     },
     "zh-TW": {
       "name": "收音机",
@@ -65,5 +33,6 @@
   "icons": {
     "128": "/style/icons/Fm.png",
     "60": "/style/icons/60/Fm.png"
-  }
+  },
+  "orientation": "portrait-primary"
 }

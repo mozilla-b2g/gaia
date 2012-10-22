@@ -62,17 +62,17 @@
 }
 
 #statusbar-label {
-  padding: 0;
-  color: #999;
-  font: 14px/14px 'MozTT', sans-serif;
-  font-weight: bold;
+  color: #919899;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
 }
 
-#statusbar-time {
-  padding: 0;
+#statusbar-time { 
   color: #fff;
-  font: 14px/14px 'MozTT', sans-serif;
-  font-weight: 600;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
 }
 
 .sb-icon {
@@ -347,8 +347,10 @@
   height: 16px;
   top: 0;
   right: 0;
-  font: 14px/14px 'MozTT', sans-serif;
-  font-weight: 600;
+  padding: 0 1px;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
 }
 
 *[dir=rtl] .sb-icon-notification::after {
@@ -372,6 +374,7 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font: 8px/8px 'MozTT', sans-serif;
-  font-weight: 600;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 1.76mozmm; /*5pt  was 8px */
 }

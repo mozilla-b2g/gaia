@@ -40,8 +40,7 @@ suite('views/month_child', function() {
     testEl = null;
   });
 
-  setup(function(done) {
-    this.timeout(20000);
+  setup(function() {
     testEl = document.createElement('div');
     testEl.id = 'test';
     document.body.appendChild(testEl);
@@ -55,20 +54,6 @@ suite('views/month_child', function() {
       date: month
     });
 
-    app.db.open(function() {
-      done();
-    });
-  });
-
-  teardown(function(done) {
-    testSupport.calendar.clearStore(
-      app.db,
-      done
-    );
-  });
-
-  teardown(function() {
-    app.db.close();
   });
 
   suite('initialization', function() {
@@ -489,24 +474,16 @@ suite('views/month_child', function() {
     var id;
     var list;
 
-    setup(function(done) {
-      var item = Factory('event', {
-        remote: {
-          startDate: createHour(1),
-          endDate: createHour(1)
-        }
-      });
-      app.store('Event').persist(item, done);
-    });
+    setup(function() {
+      controller.cacheBusytime(Factory('busytime', {
+        startDate: createHour(23),
+        endDate: createHour(23)
+      }));
 
-    setup(function(done) {
-      var item = Factory('event', {
-        remote: {
-          startDate: createHour(23),
-          endDate: createHour(23)
-        }
-      });
-      app.store('Event').persist(item, done);
+      controller.cacheBusytime(Factory('busytime', {
+        startDate: createHour(1),
+        endDate: createHour(1)
+      }));
     });
 
     setup(function() {

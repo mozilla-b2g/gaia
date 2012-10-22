@@ -1101,7 +1101,6 @@ var WindowManager = (function() {
           // the homescreen later, if necessary.
           homescreenURL = e.detail.url;
           homescreenManifestURL = manifestURL;
-          return;
         }
 
         // XXX: the correct way would be for UtilityTray to close itself

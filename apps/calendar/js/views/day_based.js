@@ -182,7 +182,7 @@ Calendar.ns('Views').DayBased = (function() {
         // new event
         this._idsToHours[id] = [hour];
 
-        var html = this._renderEvent(record);
+        var html = this._renderEvent(busytime, record);
         var eventArea = hourRecord.element;
         var records = hourRecord.records;
         var idx = records.insertIndexOf(busytime._id);
@@ -329,7 +329,7 @@ Calendar.ns('Views').DayBased = (function() {
     },
 
     /** must be overriden */
-    _renderEvent: function(event) {},
+    _renderEvent: function(busytime, event) {},
 
     _renderHour: function(hour) {
       return this.template.hour.render({

@@ -17,45 +17,13 @@
       "name": "المتصفح",
       "description": "Gaia متصفح الويب"
     },
-    "ca": {
-      "name": "Navegador",
-      "description": "Navegador del Gaia"
-    },
-    "de": {
-      "name": "Browser",
-      "description": "Gaia Webbrowser"
-    },
-    "el": {
-      "name": "Φυλλομετρητής",
-      "description": "Φυλλομετρητής Ιστού Gaia"
-    },
     "en-US": {
       "name": "Browser",
       "description": "Gaia Web Browser"
     },
-    "es": {
-      "name": "Navegador",
-      "description": "Navegador de Gaia"
-    },
     "fr": {
       "name": "Navigateur",
       "description": "Navigateur Web Gaia"
-    },
-    "it": {
-      "name": "Browser",
-      "description": "Browser Web di Gaia"
-    },
-    "pt-BR": {
-      "name": "Navegador",
-      "description": "Navegador da Web do Gaia"
-    },
-    "ru": {
-      "name": "Браузер",
-      "description": "Веб-браузер Gaia"
-    },
-    "tr": {
-      "name": "Tarayıcı",
-      "description": "Gaia Web Tarayıcısı"
     },
     "zh-TW": {
       "name": "網路瀏覽器",
