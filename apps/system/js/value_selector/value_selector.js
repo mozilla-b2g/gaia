@@ -185,6 +185,7 @@ var ValueSelector = {
 
   cancel: function vs_cancel() {
     this.debug('cancel invoked');
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
@@ -230,7 +231,8 @@ var ValueSelector = {
 
       window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
-
+  
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
