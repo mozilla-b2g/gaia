@@ -278,7 +278,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
     /**
      * Deletes current record if provider is present and has the capability.
      */
-    deleteRecord: function() {
+    deleteRecord: function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
       if (this.provider) {
         var caps = this.provider.eventCapabilities(this.event.data);
         // XXX: unlike the save we don't wait for the transaction
