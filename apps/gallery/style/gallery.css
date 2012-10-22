@@ -236,25 +236,29 @@ body.hidden *[data-l10n-id] {
 /* the indeterminate progress bar displayed while scanning */
 #progress {
   position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 4px;
   border: none;
   overflow: hidden;
 }
 
-#throbber.throb
-{
+#throbber {
+  height: 52px;
+  background-image: url(images/progress.png);
+}
+
+#throbber.throb {
   animation: .5s throb infinite steps(12);
 }
 
 @keyframes throb {
   from {
-    transform: translate(0px, 0px);
+    transform: translateY(0px);
   }
   to {
-    transform: translate(0px, -48px);
+    transform: translateY(-48px);
   }
 }
 

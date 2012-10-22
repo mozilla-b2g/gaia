@@ -7,10 +7,11 @@
 
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
-    <!-- Unstable Building blocks -->
-    <link rel="stylesheet" type="text/css" href="style/bb/edit_mode.css">
-
+    <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
@@ -61,7 +62,7 @@
         <article id="thread-list-container" class="view-body">
         </article>
         <div id="threads-fixed-container" class="fixed-title"></div>
-        <form id="threads-edit-form" role="dialog" class="edit">
+        <form id="threads-edit-form" role="dialog" data-type="edit">
           <section>
             <header>
               <button id="threads-cancel-button">
@@ -108,13 +109,13 @@
         </div>
         <article id="messages-container" class="view-body">
         </article>
-        <footer class="new-sms-form">
-          <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
-          <div id="send-message-container">
-            <button id="send-message" data-l10n-id="send">SEND</button>
-          </div>
-        </footer>
-        <form id="messages-edit-form" role="dialog" class="edit">
+        <form role="search" id="new-sms-form" class="bottom new-sms-form">
+          <button id="send-message" data-l10n-id="send" type="submit">SEND</button>
+          <p>
+            <textarea type="text" id="message-to-send" name="message-to-send" placeholder="Message" data-l10n-id="composeMessage"></textarea>
+          </p>
+        </form>
+        <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>
             <header>
               <button id="messages-cancel-button">

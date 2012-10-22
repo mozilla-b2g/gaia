@@ -53,21 +53,23 @@ section[role="region"] > header:first-child form {
 }
 
 /* Override Building Block [Edit mode] styles */
-form.edit[role="dialog"] {
-  transform: translateY(-100%);
+form[role="dialog"][data-type="edit"] header,
+form[role="dialog"][data-type="edit"] > menu {
+  transition: all 0.4s ease;
 }
 
-form.edit[role="dialog"] header,
-form.edit[role="dialog"] > menu {
-  transition: all 0.2s ease;
+form[role="dialog"][data-type="edit"] header {
+  transform: translateY(-110%);
 }
 
-form.edit[role="dialog"] header {
-  transform: translateY(-100%);
+form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(110%);
 }
 
-form.edit[role="dialog"] > menu {
-  transform: translateY(100%);
+/* BB issue */
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
+  border: none;
+  color: #fff;
 }
 
 /* Panel handling */
@@ -128,11 +130,7 @@ form.edit[role="dialog"] > menu {
 }
 
 /* Styles for Edit mode */
-.edit form[role="dialog"].edit {
-  transform: translateY(0);
-}
-
-.edit form[role="dialog"].edit > menu {
+.edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
 }
 
@@ -140,39 +138,27 @@ form.edit[role="dialog"] > menu {
   transform: translateY(3.6rem);
 }
 
-.edit form[role="dialog"].edit header {
+.edit form[role="dialog"][data-type="edit"] header {
   transform: translateY(0);
 }
 
-.edit #thread-list-container .name {
-  left: 3rem;
-  width: calc(100% - 10rem);
-}
-
-.edit #thread-list-container .time {
-  left: 6rem;
-}
-
-.edit #thread-list-container .msg {
-  left: 13rem;
-  width: calc(100% - 20rem);
-}
-
-.edit > #thread-list > #thread-list-container a {
+.edit #thread-list-container .item > a {
+  transform: translateX(3rem);
   pointer-events: none;
+}
+
+.edit #thread-list-container .item > a.unread .unread-tag {
+  opacity: 0;
 }
 
 .edit #thread-list-container .checkbox-container {
   pointer-events:auto;
   opacity: 1;
+  transform: translateX(0);
 }
 
 .edit .undo-candidate {
   display: none;
-}
-
-.edit .msg-checkbox {
-  display: table-cell;
 }
 
 .edit .message-block {
@@ -230,6 +216,7 @@ section[role="region"].new > header:first-child form {
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.4s ease;
 }
 
 #thread-list-container .item > a:active:after {
@@ -306,26 +293,8 @@ a.unread .unread-mark .icon-unread-mark {
   background: white;
   pointer-events:none;
   opacity: 0;
-}
-
-#thread-list-container .checkbox-container input {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  opacity: 0;
-}
-#thread-list-container .checkbox-container span {
-  left: 1.85rem;
-  top: 1.9rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  position: absolute;
-  pointer-events: none;
-  background-image: url('images/check-delete.png');
-}
-
-#thread-list-container .checkbox-container input:checked + span {
-  background-position: center bottom;
+  transform: translateX(-100%);
+  transition: all 0.4s ease;
 }
 
 #thread-list-container .name {
@@ -376,6 +345,7 @@ a.unread .unread-mark .icon-unread-mark {
   top: 2rem;
   left: 1rem;
   background: url(../style/images/unread.png);
+  transition: opacity 0.25s ease;
 }
 
 #thread-list-container .item > a.unread .unread-tag {
@@ -423,37 +393,57 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .message-block {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
+  display: block;
+  overflow: hidden;
+  position: relative;
   margin-bottom:1rem;
 }
 
+.message-block label.danger {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
 .message-block .bubble-container {
-  display: table-cell;
+  display: block;
   padding: 1rem 0rem;
+}
+
+/* Edit mode */
+.edit .message-block label.danger {
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+.edit .bubble-container.received {
+  transform: translateX(5.5rem);
 }
 
 .message-block .bubble-container .bubble{
   max-width: 23rem;
   word-wrap:break-word;
   display: inline-block;
+  vertical-align: middle;
   position: relative;
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
 }
 
-.message-option {
-  width: 3.5rem;
+.message-block .bubble-container .message-option {
+  display: inline-block;
   vertical-align: middle;
-  display: table-cell;
+  margin: 0 1rem 0 0;
 }
 
 .message-option:active {
   background: transparent !important;
 }
 
-.message-option .gif{
+.message-option .gif {
   width: 2.5rem;
   height: 2.5rem;
   margin: 0 auto;
@@ -468,22 +458,7 @@ a.unread .unread-mark .icon-unread-mark {
   height: 4rem;
   position: relative;
   opacity: 0;
-  margin-top: -2rem;
   pointer-events: none;
-}
-.message-option span {
-  display: block;
-  position: relative;
-  margin-top: -4rem;
-  pointer-events: none;
-  width: 2.2rem;
-  height: 2.2rem;
-  left: .5rem;
-  top: .9rem;
-  background-image: url('images/check-delete.png');
-}
-.message-option  input:checked + span {
-  background-position: center bottom;
 }
 
 .sent {
@@ -589,33 +564,28 @@ a.unread .unread-mark .icon-unread-mark {
 */
 
 .new-sms-form {
-  height: 3rem;
-  bottom: 0rem;
-  width: 100%;
-  position: absolute;
   transition: transform .2s ease-in;
 }
 
-.new-sms-form {
-  border-top: .1rem solid #C6C6C6;
-  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
-  height: 3.5rem;
+form.bottom[role="search"].new-sms-form {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #message-to-send {
-  margin-top: .5rem;
-  margin-bottom: .5rem;
-  margin-left: 1.5rem;
-  height: 2.5rem;
-  line-height: 2rem;
+  /* Fixing texteareas in BB */
+  background: url("../shared/input_areas/images/ui/shadow-search.png") repeat-x scroll left top #FFFFFF;
+  border: 0.1rem solid rgba(0, 0, 0, 0.33);
+  line-height: 1.8rem;
+  height: 3rem;
   max-height: 10rem;
-  width: calc(100% - 9.5rem);
-  -moz-box-sizing: border-box;
-  border-radius: 0.3rem;
-  border: 0.1rem solid rgba(0,0,0,.3);
-  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
-  font-size: calc(7 * 0.226rem);
-  font-family: 'MozTT';
+  width: 100%;
+}
+
+#message-to-send:-moz-placeholder {
+  padding: 0.5rem 0 0 0.5rem;
 }
 
 #send-message-container {
@@ -623,16 +593,6 @@ a.unread .unread-mark .icon-unread-mark {
   width: 6rem;
   float: right;
 }
-
-#send-message {
-  position: absolute;
-  height: 3rem;
-  width: 6rem;
-  right:0;
-  bottom:0;
-  margin-bottom: 0.5rem;
-}
-
 /*
   Contact search list
 */

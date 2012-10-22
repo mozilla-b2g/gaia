@@ -8,7 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style/grid.css"/>
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
     <link rel="stylesheet" type="text/css" href="style/dock.css"/>
-    <link rel="stylesheet" type="text/css" href="style/search.css"/>
+    <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css"/>
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
@@ -29,55 +29,7 @@
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
-
-    <script type="text/javascript" defer src="everything.me/js/etmmanager.js"></script>
-
-    <script type="text/javascript" defer src="everything.me/js/Core.js"></script>
-    <script type="text/javascript" defer src="everything.me/config/config.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/Brain.js"></script>
-
-    <link rel="Stylesheet" type="text/css" href="everything.me/css/common.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Apps/Apps.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/BackgroundImage/BackgroundImage.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Dialog/Dialog.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Location/Location.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Screens/Screens.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Shortcuts/Shortcuts.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/ShortcutsCustomize/ShortcutsCustomize.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Searchbar/Searchbar.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/SearchHistory/SearchHistory.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Helper/Helper.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Tip/Tip.css" />
-    <link rel="Stylesheet" type="text/css" href="everything.me/modules/Connection/Connection.css" />
-
-    <script type="text/javascript" defer src="everything.me/modules/Apps/Apps.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/BackgroundImage/BackgroundImage.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Dialog/Dialog.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Location/Location.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Screens/Screens.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Shortcuts/Shortcuts.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/ShortcutsCustomize/ShortcutsCustomize.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Searchbar/Searchbar.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/SearchHistory/SearchHistory.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Helper/Helper.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Tip/Tip.js"></script>
-    <script type="text/javascript" defer src="everything.me/modules/Connection/Connection.js"></script>
-
-    <script type="text/javascript" defer src="everything.me/js/helpers/Storage.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/developer/zepto.0.7.js"></script>
-
-    <script type="text/javascript" defer src="everything.me/js/developer/utils.1.3.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/plugins/Scroll.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/external/iscroll.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/external/spin.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/developer/log4js2.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/api/apiv2.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/api/DoATAPI.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/helpers/Utils.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/helpers/EventHandler.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/helpers/Idle.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/plugins/Analytics.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/plugins/APIStatsEvents.js"></script>
+    <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
   </head>
@@ -110,6 +62,16 @@
 
     <div id="icongrid" class="apps" role="main">
       <div class="page" id="evmePage">
+          <article id="loading-overlay">
+            <section class="loading-container">
+              <header class="loading-header" data-l10n-id="loadingEvme">
+                Everything.me
+              </header>
+              <p>
+                <progress class="loading-icon frozen"></progress>
+              </p>
+            </section>
+          </article>
           <div id="evmeContainer">
             <div id="search" class="active">
                 <div id="search-header">
