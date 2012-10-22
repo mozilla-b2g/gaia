@@ -1,12 +1,12 @@
 'use strict';
 
 var LanguageManager = {
-  'init': function init() {
+  init: function init() {
     document.getElementById('languages').
       addEventListener('click', this);
   },
 
-  'handleEvent': function handleEvent(evt) {
+  handleEvent: function handleEvent(evt) {
     if (evt.target.name != 'language.current') {
       return true;
     }
@@ -17,7 +17,7 @@ var LanguageManager = {
     }
     var req = settings.createLock().get('language.current');
 
-    req.onsuccess = function wf_getStatusSuccess() {
+    req.onsuccess = function() {
       settings.createLock().set({'language.current': evt.target.value});
     };
 

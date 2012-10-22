@@ -1,3 +1,5 @@
+'use strict';
+
 var UIManager = {
   get splashScreen() {
     delete this.splashScreen;
@@ -162,9 +164,10 @@ var UIManager = {
     }
   },
   setDate: function ui_sd() {
-    if(!!this.lock){
+    if (!!this.lock) {
       return;
     }
+
     var dateLabel = document.getElementById('date-configuration-label');
      // Current time
     var currentTime = new Date();
@@ -219,14 +222,13 @@ var UIManager = {
     }
     tzOverlay.classList.add('gmt' + gmt);
 
-    // TODO Include SET when it will be ready
     // TODO Include automatic set of time
     // https://bugzilla.mozilla.org/show_bug.cgi?id=796265
     tzLabel.innerHTML = TimeManager.getTimeZone(gmt);
     tzTitle.innerHTML = TimeManager.getTimeZone(gmt);
   },
   unlockSIM: function ui_us() {
-    var pinInput = document.getElementById('sim_pin');
+    var pinInput = document.getElementById('sim-pin');
     var pin = pinInput.value;
     if (pin === '')
       return;
@@ -258,35 +260,35 @@ var UIManager = {
     if (!WifiManager.isPasswordMandatory(ssid)) {
       WifiManager.connect(ssid);
       WifiManager.scan(UIManager.renderNetworks);
-    } else {
-      // Update title
-      UIManager.mainTitle.innerHTML = ssid;
-      // Undate network
-      var selectedNetwork = WifiManager.getNetwork(ssid);
+      return;
+    } 
+    // Update title
+    UIManager.mainTitle.innerHTML = ssid;
+    // Undate network
+    var selectedNetwork = WifiManager.getNetwork(ssid);
 
-      var ssidHeader = document.getElementById('wifi_ssid');
-      var userLabel = document.getElementById('label_wifi_user');
-      var userInput = document.getElementById('wifi_user');
+    var ssidHeader = document.getElementById('wifi_ssid');
+    var userLabel = document.getElementById('label_wifi_user');
+    var userInput = document.getElementById('wifi_user');
 
-      // Update form
-      ssidHeader.value = ssid;
-      // Render form taking into account the type of network
-      UIManager.renderNetworkConfiguration(selectedNetwork, function() {
-        // Activate secondary menu
-        UIManager.navBar.classList.add('secondary-menu');
-        // Update changes in form
-        if (WifiManager.isUserMandatory(ssid)) {
-          userLabel.classList.remove('hidden');
-          userInput.classList.remove('hidden');
+    // Update form
+    ssidHeader.value = ssid;
+    // Render form taking into account the type of network
+    UIManager.renderNetworkConfiguration(selectedNetwork, function() {
+      // Activate secondary menu
+      UIManager.navBar.classList.add('secondary-menu');
+      // Update changes in form
+      if (WifiManager.isUserMandatory(ssid)) {
+        userLabel.classList.remove('hidden');
+        userInput.classList.remove('hidden');
 
-        } else {
-          userLabel.classList.add('hidden');
-          userInput.classList.add('hidden');
-        }
-        // Change hash
-        window.location.hash = '#configure_network';
-      });
-    }
+      } else {
+        userLabel.classList.add('hidden');
+        userInput.classList.add('hidden');
+      }
+      // Change hash
+      window.location.hash = '#configure_network';
+    });
   },
   renderNetworks: function ui_rn(networks) {
     var networksDOM = document.getElementById('networks');

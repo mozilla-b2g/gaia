@@ -1,3 +1,5 @@
+'use strict';
+
 var TimeManager = {
   init: function tm_init() {
     if (window.navigator.mozTime) {
@@ -7,10 +9,7 @@ var TimeManager = {
     }
   },
   set: function tm_set(date) {
-    TimeManager.mozTime.set(date);
-  },
-  get: function tm_get() {
-    // TODO Implement when ready in Backend
+    this.mozTime.set(date);
   },
   getTimeZone: function tm_getTZ(gmt) {
     var gmt = parseInt(gmt);

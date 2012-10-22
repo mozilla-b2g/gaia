@@ -1,29 +1,30 @@
+'use strict';
 /*
   Steps of the First Time Usage App
 */
 var steps = {
   1: {
-    only_forward: true,
+    onlyForward: true,
     hash: '#languages'
   },
   2: {
-    only_forward: false,
+    onlyForward: false,
     hash: '#wifi'
   },
   3: {
-    only_forward: false,
+    onlyForward: false,
     hash: '#date_and_time'
   },
   4: {
-    only_forward: false,
+    onlyForward: false,
     hash: '#import_contacts'
   },
   5: {
-    only_forward: false,
+    onlyForward: false,
     hash: '#welcome_firefox'
   },
   6: {
-    only_forward: false,
+    onlyForward: false,
     hash: '#firefox_privacy'
   }
 };
@@ -34,12 +35,12 @@ var numSteps = Object.keys(steps).length;
 var Navigation = {
   currentStep: 1,
   get forward() {
-    delete this.view;
-    return this.view = document.getElementById('forward');
+    delete this.forward;
+    return this.forward = document.getElementById('forward');
   },
   get back() {
-    delete this.view;
-    return this.view = document.getElementById('back');
+    delete this.back;
+    return this.back = document.getElementById('back');
   },
   init: function n_init() {
     this.forward.addEventListener('click', this);
@@ -120,7 +121,7 @@ var Navigation = {
     }
   },
   manageStep: function manageStep() {
-    if (steps[this.currentStep].only_forward) {
+    if (steps[this.currentStep].onlyForward) {
       UIManager.navBar.classList.add('forward-only');
     } else {
       UIManager.navBar.classList.remove('forward-only');

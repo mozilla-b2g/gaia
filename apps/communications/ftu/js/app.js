@@ -5,15 +5,12 @@ var _ = navigator.mozL10n.get;
 var AppManager = {
   init: function init() {
     this.isLocalized = true;
-    // Init Wifi Manager
     WifiManager.init();
-    // Init FB Integration
     FacebookIntegration.init();
-    // Init time management
     TimeManager.init();
-    // Init UI and Navigation Bar
     UIManager.init();
     Navigation.init();
+
     // Retrieve mobile connection if available
     var conn = window.navigator.mozMobileConnection;
     if (!conn) {
@@ -23,18 +20,19 @@ var AppManager = {
         UIManager.splashScreen.classList.remove('show');
         UIManager.activationScreen.classList.add('show');
         window.location.hash = '#languages';
-      },1000);
+      }, 1000);
       return;
     }
 
     // Do we need pin code after splash screen?
     setTimeout(function() {
-      // TODO Inclide VIVO SIM Card management
+      // TODO Include VIVO SIM Card management
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=801269#c6
       var req = conn.getCardLock('pin');
       req.onsuccess = function spl_checkSuccess() {
         if (req.result.enabled) {
           UIManager.pincodeScreen.classList.add('show');
-          document.getElementById('sim_pin').focus();
+          document.getElementById('sim-pin').focus();
         } else {
           UIManager.activationScreen.classList.add('show');
           window.location.hash = '#languages';
@@ -46,7 +44,7 @@ var AppManager = {
       }
       // Remove the splash
       UIManager.splashScreen.classList.remove('show');
-    },3000);
+    }, 3000);
   }
 };
 

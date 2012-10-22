@@ -23,6 +23,7 @@ window.addEventListener('load', function startup() {
     activity.onsuccess = function success() {
       var value = this.result;
       hideLogo();
+      document.getElementById('initlogo').classList.remove('ftu');
       document.getElementById('screen').classList.remove('fullscreen-app');
       document.getElementById('screen').classList.remove('ftu');
       document.getElementById('lockscreen').style.display = 'block';
@@ -34,6 +35,7 @@ window.addEventListener('load', function startup() {
     };
   }
   function launchHomescreen() {
+    hideLogo();
     // TODO Change for launching the APP, not as an Activity
     var activity = new MozActivity({
       name: 'view',
@@ -45,6 +47,7 @@ window.addEventListener('load', function startup() {
   }
 
   if(WindowManager.isFirstRun) {
+    document.getElementById('initlogo').classList.add('ftu');
     document.getElementById('screen').classList.add('fullscreen-app');
     document.getElementById('screen').classList.add('ftu');
     document.getElementById('lockscreen').style.display = 'none';
@@ -60,7 +63,7 @@ window.addEventListener('load', function startup() {
       );
     }
   } else {
-    hideLogo();
+    // 
     if (Applications.ready) {
       launchHomescreen();
     } else {
