@@ -1,0 +1,72 @@
+/* ----------------------------------
+* Seekbars
+* ---------------------------------- */
+div[role="slider"] {
+  position: relative;
+  height: 3.5rem;
+}
+
+div[role="slider"] > div {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0;
+  position: relative;
+  height: 1.5rem;
+}
+
+div[role="slider"] progress {
+  width: 100%;
+  background: #000;
+  border: none;
+  height: 0.1rem;
+}
+
+div[role="slider"] progress::-moz-progress-bar {
+  background: #01c5ed;
+  height: 0.6rem;
+  margin-top: -0.3rem;
+}
+
+div[role="slider"] > label {
+  font-size: 1.5rem;
+  line-height: 3.5rem;
+  font-family: "Open Sans", Sans-serif;
+  color: #00aacb;
+  float: right;
+  padding: 0 0 0 1rem;
+}
+
+div[role="slider"] label:first-of-type {
+  float: left;
+  padding: 0 1rem 0 0;
+}
+
+div[role="slider"] > label.icon {
+  width: 3rem;
+  height: 3rem;
+  margin-top: 0.5rem;
+  font-size: 0;
+  background: top right no-repeat;
+}
+
+div[role="slider"] > label.icon:first-of-type {
+  background-position: top left;
+}
+
+div[role="slider"] button {
+  width: 3.2rem;
+  height: 3.2rem;
+  background: url(seekbars/images/ui/handler.png) no-repeat center center;
+  font: 0/0 a;  
+  position: absolute;
+  top: 50%;
+  left: 0;
+  margin: -1.5rem 0 0 -1.6rem;
+  border-radius: 3.2rem;
+  border: solid 1px transparent;
+  transition: border 0.15s ease;
+}
+
+div[role="slider"] button:active {
+  border: solid 0.5rem #01c5ed;
+}

@@ -92,16 +92,34 @@ ol.link-list a {
   direction:rtl;
 }
 
-
-/* temp views */
-
-#week-view {
-  height: calc(35% - 3.33rem);
+#progress-indicator {
+  position: absolute;
+  top: 10%;
+  left: 0px;
+  width: 100%;
+  height: 3px;
+  border: none;
   overflow: hidden;
+  z-index: 1000;
+  display: none;
 }
 
-/* advanced settings */
+.sync-in-progress #progress-indicator {
+  display: block
+}
 
+#throbber {
+  animation: .5s throb infinite steps(12);
+}
+
+@keyframes throb {
+  from {
+    transform: translate(0px, 0px);
+  }
+  to {
+    transform: translate(0px, -48px);
+  }
+}
 
 #advanced-settings-view .settings-list label select {
   display: block;
@@ -175,7 +193,7 @@ ol.link-list a {
 /* add event view */
 
 #modify-event-view form {
-  margin: 1rem;
+  margin: 1rem 1rem 0 1rem;
 }
 
 #modify-event-view form ol li {
@@ -233,11 +251,6 @@ ol.link-list a {
   top: 0px;
   width: 100%;
   height: 100%
-}
-
-.fullscreen-view .delete-record {
-  position: absolute;
-  bottom: 0px;
 }
 
 body[role="application"] section[role="region"] > header h1 {

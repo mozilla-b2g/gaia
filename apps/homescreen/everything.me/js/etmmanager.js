@@ -45,24 +45,6 @@ var EvmeManager = (function() {
         });
     }
 
-    var footerStyle = document.querySelector("#footer").style;
-    footerStyle.MozTransition = "-moz-transform .3s ease";
-
-    var page = document.querySelector("#evmePage");
-    page.addEventListener("contextmenu", function longPress(evt) {
-        evt.stopImmediatePropagation();
-    });
-
-    page.addEventListener("pageshow", function onPageShow() {
-        footerStyle.MozTransform = "translateY(75px)";
-        Evme.setOpacityBackground(1);
-    });
-
-    page.addEventListener("pagehide", function onPageHide() {
-        footerStyle.MozTransform = "translateY(0)";
-        Evme.setOpacityBackground(0);
-    });
-
     return {
         openApp: openApp,
 
@@ -81,8 +63,3 @@ var EvmeApp = function createEvmeApp(params) {
 };
 
 extend(EvmeApp, Bookmark);
-
-// Initialize Evme
-window.addEventListener("load", function() {
-    Evme.init();
-});

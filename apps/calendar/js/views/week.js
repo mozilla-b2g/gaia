@@ -44,6 +44,11 @@ Calendar.ns('Views').Week = (function() {
      * Calls a method on all children.
      */
     _childMethod: function(method) {
+      if (!this.children) {
+        console.trace();
+        console.error('trying to access dead object');
+      }
+
       var i = 0;
       var len = this.children.length;
 

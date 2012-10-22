@@ -164,6 +164,11 @@
     </h1>
   </header>
 
+  <div id="progress-indicator">
+    <img id="throbber" src="/style/ui/progress.png">
+  </div>
+
+
   <section id="month-view">
   </section>
 
@@ -336,12 +341,15 @@
         <textarea class="fieldbox" name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
       </li>
 
-    </ol>
-  </form>
+      <li class="delete">
+        <button data-l10n-id="event-delete" class="danger delete-record">
+          Delete Event
+        </button>
+      </li>
 
-  <button data-l10n-id="event-delete" class="danger delete-record">
-    Delete Event
-  </button>
+    </ol>
+
+  </form>
 </section>
 
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
