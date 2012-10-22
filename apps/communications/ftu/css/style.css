@@ -32,7 +32,7 @@ html, body {
 	visibility: visible;
 }
 
-[role=main]{
+[role=main] {
 	height: calc(100% - 10.4rem);
 	position: relative;
 }
@@ -65,7 +65,7 @@ html, body {
 	margin-right: .25rem;
 }
 
-[role=navigation] .recommend{
+[role=navigation] .recommend {
 	margin-left: .5rem;
 }
 
@@ -73,7 +73,7 @@ html, body {
 	position: relative;
 }
 
-[role=navigation] button:not(.recommend) span{
+[role=navigation] button:not(.recommend) span {
 	width: 1.1rem;
 	height: 100%;
 	left: 1rem;
@@ -83,7 +83,7 @@ html, body {
 	background: url(images/prev.png) no-repeat 94% 50%;
 }
 
-[role=navigation] .recommend span{
+[role=navigation] .recommend span {
 	width: 1.1rem;
 	height: 100%;
 	right: 1rem;
@@ -93,7 +93,7 @@ html, body {
 	background: url(images/next.png) no-repeat 94% 50%;
 }
 
-[role=navigation] #join{
+[role=navigation] #join {
 	display:none;
 }
 
@@ -155,7 +155,7 @@ progress[value='100'] {
 	Header conditional button
 */
 
-.no-options header menu{
+.no-options header menu {
 	display: none;
 }
 
@@ -177,7 +177,7 @@ progress[value='100'] {
 	Pin code screen
 */
 
-#pincode .pin_container{
+#pincode .pin_container {
 	height: calc(100% - 10rem);
 }
 
@@ -187,11 +187,11 @@ progress[value='100'] {
 	font-size: 1.5rem;
 }
 
-#pincode .input-wrapper{
+#pincode .input-wrapper {
 	padding: 0 1.5rem;
 }
 
-#pincode .input-wrapper input{
+#pincode .input-wrapper input {
 	text-align: center;
 	font-size: 2rem;
 }
@@ -203,10 +203,9 @@ progress[value='100'] {
 #languages {	
 	background-image: url(images/BG_Language_Bubbles.png);
 	background-repeat: no-repeat;
-	/*background-size: 100% 100%;*/
 }
 
-#languages ul{
+#languages ul {
 	margin-top: 14rem;
 	
 }
@@ -229,7 +228,7 @@ progress[value='100'] {
 	padding: 1rem 1.5rem;
 }
 
-#configure_network_params form label{
+#configure_network_params form label {
 	display: block;
 	margin: 1rem 0;
 	font-size: 1.5rem;
@@ -255,7 +254,7 @@ progress[value='100'] {
 	opacity: 1;
 }
 
-#finish h1{
+#finish h1 {
 	margin: 0;
 	color: white;
 	font-size: 4.5rem;
@@ -264,7 +263,7 @@ progress[value='100'] {
 	line-height: 4rem;
 }
 
-#finish h2{
+#finish h2 {
 	margin: 0;
 	color: white;
 	font-size: 2rem;
@@ -274,7 +273,7 @@ progress[value='100'] {
 }
 
 
-#finish p{
+#finish p {
 	margin: 0;
 	color: white;
 	font-size: 1.5rem;
@@ -295,8 +294,12 @@ progress[value='100'] {
 	Date and time
 */
 
+.change {
+	float:right; 
+	width:6.5rem;
+}
+
 #time_zone_overlay {
-	/*background-image: url('images/timezone/+0.png') ;*/
 	background-position: bottom;
 	background-repeat: no-repeat;
 	position: relative;
@@ -304,10 +307,7 @@ progress[value='100'] {
 	z-index: 10;
 	width: 100%;
 	height: 4rem;
-	
 	height: 21.5rem;
-	
-
 }
 
 #time_zone_overlay.gmt0 {
@@ -407,26 +407,26 @@ progress[value='100'] {
 	border-bottom: none;
 }
 
-#date_and_time li:active{
+#date_and_time li:active {
 	color: white;
 
 }
 
-#date_and_time ul{
+#date_and_time ul {
 	margin: 0;
 }
 
-#date_and_time button{
+#date_and_time button {
 	margin: 0;
 }
 
-#date_and_time h1{
+#date_and_time h1 {
 	font-size: 2rem;
 	padding: 0 1.5rem 0rem 1.5rem;
 	font-weight: 300;
 }
 
-#date_and_time h2{
+#date_and_time h2 {
 	font-size: 1.5rem;
 	padding: .2rem 1.5rem;
 	font-weight: 200;
@@ -435,7 +435,7 @@ progress[value='100'] {
 	white-space: nowrap;
 }
 
-#date_and_time h1,h2{
+#date_and_time h1,h2 {
 	margin: 0;
 }
 
@@ -443,7 +443,7 @@ progress[value='100'] {
 	Import
 */
 
-#import_contacts ul:first-child li:last-child{
+#import_contacts ul:first-child li:last-child {
 	margin-bottom: 0;
 }
 
@@ -479,7 +479,7 @@ progress[value='100'] {
 	margin-bottom: 3rem;
 }
 
-#welcome_firefox #firefox_os_privacy_links a{
+#welcome_firefox #firefox_os_privacy_links a {
 	float: left;
 	width: 50%;
 	margin-left: 0;
@@ -490,7 +490,7 @@ progress[value='100'] {
 	clear: both;
 }
 
-#welcome_firefox #form_share_statistics a.inline{
+#welcome_firefox #form_share_statistics a.inline {
 	margin: 0;
 	display: inline;
 }
@@ -535,7 +535,7 @@ progress[value='100'] {
 	#about-your-rights
 */
 
-#about-your-rights p ,#about-your-privacy p  {
+#about-your-rights p ,#about-your-privacy p {
 	margin: 0;
 	color: #6a6a6a;
 	font-size: 1.5rem;
