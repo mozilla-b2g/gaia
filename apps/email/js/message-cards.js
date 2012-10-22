@@ -60,7 +60,7 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-messages-container')[0];
 
   this.messageEmptyContainer =
-    domNode.getElementsByClassName('msg-list-empty')[0];
+    domNode.getElementsByClassName('msg-list-empty-container')[0];
   // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
@@ -88,9 +88,12 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onCompose.bind(this), false);
 
   // - toolbar: non-edit mode
-  domNode.getElementsByClassName('msg-search-btn')[0]
+  this.toolbar = {};
+  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
+  this.toolbar.searchBtn
     .addEventListener('click', this.onSearchButton.bind(this), false);
-  domNode.getElementsByClassName('msg-edit-btn')[0]
+  this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
+  this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
   domNode.getElementsByClassName('msg-refresh-btn')[0]
     .addEventListener('click', this.onRefresh.bind(this), false);
@@ -373,6 +376,18 @@ console.log('sf: typed, now:', this.searchInput.value);
     }
   },
 
+  showEmptyLayout: function() {
+    this.messageEmptyContainer.classList.remove('collapsed');
+    this.toolbar.editBtn.classList.add('disabled');
+    this.toolbar.searchBtn.classList.add('disabled');
+    this._hideSearchBoxByScrolling();
+  },
+  hideEmptyLayout: function() {
+    this.messageEmptyContainer.classList.add('collapsed');
+    this.toolbar.editBtn.classList.remove('disabled');
+    this.toolbar.searchBtn.classList.remove('disabled');
+  },
+
   onSliceRequestComplete: function() {
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
@@ -383,7 +398,7 @@ console.log('sf: typed, now:', this.searchInput.value);
       this.syncMoreNode.classList.add('collapsed');
 
     if (this.messagesSlice.items.length === 0) {
-      this.messageEmptyContainer.classList.remove('collapsed');
+      this.showEmptyLayout();
     }
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
@@ -481,7 +496,7 @@ console.log('sf: typed, now:', this.searchInput.value);
 
       // Check the message count after deletion:
       if (this.messagesContainer.children.length === 0) {
-        this.messageEmptyContainer.classList.remove('collapsed');
+        this.showEmptyLayout();
       }
     }
 
@@ -500,7 +515,7 @@ console.log('sf: typed, now:', this.searchInput.value);
 
     // Remove the no message text while new messages added:
     if (addedItems.length > 0) {
-      this.messageEmptyContainer.classList.add('collapsed');
+      this.hideEmptyLayout();
     }
 
     addedItems.forEach(function(message) {
