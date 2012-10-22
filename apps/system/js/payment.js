@@ -46,6 +46,7 @@ var Payment = (function Payment() {
 
         var frame = document.createElement('iframe');
         frame.setAttribute('mozbrowser', 'true');
+        frame.setAttribute('remote', true);
         frame.classList.add('screen');
         frame.src = kPaymentConfirmationScreen;
         frame.addEventListener('mozbrowserloadend', function addReqs(evt) {
