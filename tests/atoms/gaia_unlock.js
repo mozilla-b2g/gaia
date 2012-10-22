@@ -18,3 +18,4 @@ waitFor(
         return !!window.wrappedJSObject.LockScreen;
     }
 );
+
