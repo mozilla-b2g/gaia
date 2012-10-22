@@ -6,12 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="style/shared/core/css/root.css">
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+
     <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
 
-    <link rel="stylesheet" href="style/shared/widgets/buttons/style.css">
-    <link rel="stylesheet" href="style/shared/menus_dialogs/core.css">
-
-    <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/fixed_header.css">
     <link rel="stylesheet" href="style/search.css">
@@ -77,10 +79,12 @@
 
         <!-- Contacts List Section -->
         <section id='mainContent' data-state="selection">
-          <form id="search-container" class="search">
-            <label for="search-contact">
-              <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
-            </label>
+          <form id="search-container" role="search" class="search">
+            <p>
+              <label for="search-contact">
+                <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+              </label>
+            </p>
           </form>
           <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
           <section class="friends-msg">
@@ -113,23 +117,27 @@
           </ol>
         </section> <!-- mainContent -->
 
-        <menu id="select-all-wrapper" data-items="1">
-          <button id="select-all" data-l10n-id="selectAll">
-            Select All
-          </button>
-        </menu>
-
+        <form role="dialog" data-type="confirm" class="no-overlay">
+          <menu id="select-all-wrapper">
+            <button id="select-all" data-l10n-id="selectAll" type="reset" class="full">
+              Select All
+            </button>
+          </menu>
+        </form>
       </section> <!-- main -->
 
       <section id='fixed-container' class='fixed-title-fb'></section>
 
       <section id="search-view" class="view">
-        <form id="searchview-container" class="search">
-           <label for="search-contact">
-             <input data-cancelable required type="search" name="search" class="textfield"
+        <form id="searchview-container" role="search" class="search">
+           <button id='cancel-search' type="submit" data-l10n-id="cancel">Cancel</button>
+           <p>
+             <label>
+               <input data-cancelable required type="search" name="search" class="textfield"
                     placeholder="Search" id="search-contact"  data-l10n-id="search-contact">
-             <button id='cancel-search' data-l10n-id="cancel">Cancel</button>
-           </label>
+               <button type="reset">Clear</button>
+             </label>
+           </p>
          </form>
       </section>
     </section> <!-- role="region" -->
@@ -138,12 +146,16 @@
       <header>
         <h1 data-l10n-id="facebook">Facebook</h1>
       </header>
-      <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
-        <hr>
-        <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
-        <div>
-          <img src="style/fb/throbber.gif">
-        </div>
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="friendsWait1">Connecting to your list of friends</h1>
+          <p data-l10n-id="friendsWait2">This may take a couple of minutes...</p>
+          <progress class="small"></progress>
+        </section>
+        <menu>
+          <button class="full" type="reset">Cancel</button>
+        </menu>
+      </form>
     </section>
 
   </body>
