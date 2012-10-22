@@ -77,18 +77,15 @@ CalculatorIntegration.prototype = {
         self._clearButton = yield app.element('clear');
       }
 
-      // TODO: per app SyntheticGestures instances?
-      // touchSupported is flagged to false so gestures
-      // uses mouseup/down. This is a hack but works well for now.
-      yield device.executeAsyncScript(function(clear) {
-        SyntheticGestures.touchSupported = false;
-        SyntheticGestures.hold(clear, 800, 0, 0, 0, 0, 0, function() {
-          marionetteScriptFinished(true);
-        });
-      }, [self._clearButton]);
+      yield IntegrationHelper.sendAtom(
+        device,
+        '/apps/calculator/test/integration/atoms/hold',
+        true,
+        // element, length of hold
+        [self._clearButton, 800]
+      );
 
       done();
-
     }, callback);
   },
 

@@ -21,21 +21,12 @@ suite('notifications', function() {
 
     yield device.setContext('chrome');
 
-    yield device.executeAsyncScript(function(text, desc) {
-      window.addEventListener('mozChromeEvent', function(e) {
-        var detail = e.detail;
-        if (detail.type === 'desktop-notification') {
-          marionetteScriptFinished(JSON.stringify(detail));
-        }
-      });
-
-      var notify = window.navigator.mozNotification;
-      var notification = notify.createNotification(
-        text, desc
-      );
-
-      notification.show();
-    }, [title, description]);
+    yield IntegrationHelper.sendAtom(
+      device,
+      '/apps/system/test/integration/atoms/notification',
+      true,
+      [title, description]
+    );
 
     yield device.setContext('content');
     var container = yield app.element('notificationsContainer');
