@@ -38,7 +38,7 @@ var AppManager = {
           window.location.hash = '#languages';
         }
       };
-      req.onerror = function () {
+      req.onerror = function() {
         UIManager.activationScreen.classList.add('show');
         window.location.hash = '#languages';
       }

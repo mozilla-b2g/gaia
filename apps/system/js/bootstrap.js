@@ -46,7 +46,7 @@ window.addEventListener('load', function startup() {
     };
   }
 
-  if(WindowManager.isFirstRun) {
+  if (WindowManager.isFirstRun) {
     document.getElementById('initlogo').classList.add('ftu');
     document.getElementById('screen').classList.add('fullscreen-app');
     document.getElementById('screen').classList.add('ftu');
@@ -63,7 +63,6 @@ window.addEventListener('load', function startup() {
       );
     }
   } else {
-    // 
     if (Applications.ready) {
       launchHomescreen();
     } else {

@@ -132,7 +132,6 @@ var UIManager = {
         this.setTime();
         break;
       case 'date-configuration':
-        console.log("CHANGING DATE");
         this.setDate();
         break;
       case 'timezone-configuration':
@@ -171,7 +170,8 @@ var UIManager = {
     var dateLabel = document.getElementById('date-configuration-label');
      // Current time
     var currentTime = new Date();
-    var pDate = document.getElementById('date-configuration').value;  // Format: 2012-09-01
+    // Format: 2012-09-01
+    var pDate = document.getElementById('date-configuration').value;
     var pTime = currentTime.toLocaleFormat('%H:%M');
     var timeToSet = new Date(pDate + 'T' + pTime);
     TimeManager.set(timeToSet);
@@ -185,13 +185,14 @@ var UIManager = {
     },1000);
   },
   setTime: function ui_st() {
-    if(!!this.lock){
+    if (!!this.lock) {
       return;
     }
     var timeLabel = document.getElementById('time-configuration-label');
     // Current time
     var currentTime = new Date();
-    var pTime = document.getElementById('time-configuration').value;  // Format: 2012-09-01
+    // Format: 2012-09-01
+    var pTime = document.getElementById('time-configuration').value;
     pTime = '0' + pTime;
     var pDate = currentTime.toLocaleFormat('%Y-%m-%d');
     var timeToSet = new Date(pDate + 'T' + pTime);
@@ -261,7 +262,7 @@ var UIManager = {
       WifiManager.connect(ssid);
       WifiManager.scan(UIManager.renderNetworks);
       return;
-    } 
+    }
     // Update title
     UIManager.mainTitle.innerHTML = ssid;
     // Undate network
