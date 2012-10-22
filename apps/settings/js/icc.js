@@ -149,7 +149,7 @@
         }
         break;
 
-      case icc.SET_UP_IDLE_MODE_TEXT:
+      case icc.STK_CMD_SET_UP_IDLE_MODE_TEXT:
         iccLastCommandProcessed = true;
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
