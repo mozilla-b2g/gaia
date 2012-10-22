@@ -119,30 +119,16 @@
           </div>
         </div>
       </div>
-
-      <menu type="toolbar" id="toolbar-end">
-        <button type="button" value="" id="back-button" alt="Back"
-                title="" disabled="true"></button>
-        <button type="button" value="" id="forward-button" alt="Forward"
-                title="" disabled="true"></button>
-        <button type="button" value="" id="bookmark-button" alt="Bookmark"
-                title=""></button>
-      </menu>
-
-      <section id="bookmark-menu" role="dialog" class="hidden">
-        <menu class="actions">
-          <h3 data-l10n-id="bookmarks">Bookmarks</h3>
-          <ul>
-            <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
-            <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
-            <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button></li>
-            <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
-            <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
-          </ul>
-        </menu>
-      </section>
-
     </div>
+
+    <menu type="toolbar" id="toolbar-end">
+      <button type="button" value="" id="back-button" alt="Back"
+              title="" disabled="true"></button>
+      <button type="button" value="" id="forward-button" alt="Forward"
+              title="" disabled="true"></button>
+      <button type="button" value="" id="bookmark-button" alt="Bookmark"
+              title=""></button>
+    </menu>
 
     <div id="tray">
       <menu type="toolbar" id="tray-toolbar">
@@ -151,6 +137,19 @@
       </menu>
       <div id="tabs-list"></div>
     </div>
+
+    <section id="bookmark-menu" role="dialog" class="hidden">
+      <menu class="actions">
+        <h3 data-l10n-id="bookmarks">Bookmarks</h3>
+        <ul>
+          <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
+          <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
+          <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button></li>
+          <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
+          <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+        </ul>
+      </menu>
+    </section>
 
     <section id="bookmark-entry-sheet" role="region" class="hidden skin-organic">
       <header>
