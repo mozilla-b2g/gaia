@@ -284,7 +284,7 @@ contacts.List = (function() {
     // from the 'start' param
     var i = start || 0;
     var length = container.children.length;
-    while (length != i) {
+    while (length > i) {
       var current = container.children[i];
       container.removeChild(current);
       length = container.children.length;
