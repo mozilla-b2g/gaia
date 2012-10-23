@@ -11,7 +11,7 @@ const DockManager = (function() {
   var windowWidth = window.innerWidth;
   var duration = .2;
 
-  var initialOffsetLeft, cellWidth;
+  var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
   var isPanning = false, startX, currentX;
   var thresholdForTapping = 10;
 
@@ -20,6 +20,8 @@ const DockManager = (function() {
       case 'mousedown':
         evt.stopPropagation();
         initialOffsetLeft = dock.getLeft();
+        initialOffsetRight = dock.getRight();
+        numApps = dock.getNumApps();
         startX = evt.clientX;
         attachEvents();
         break;
@@ -36,13 +38,15 @@ const DockManager = (function() {
           }
         }
 
-        if (dock.getNumApps() <= maxNumAppInViewPort &&
-            (dock.getLeft() < -cellWidth ||
-             dock.getRight() > windowWidth + cellWidth)) {
+        var deltaX = evt.clientX - startX;
+        var forward = deltaX > 0;
+        if (numApps <= maxNumAppInViewPort ||
+            (initialOffsetLeft === 0 && forward) ||
+            (initialOffsetRight === windowWidth && !forward)) {
           return;
         }
 
-        dock.moveBy(initialOffsetLeft + evt.clientX - startX);
+        dock.moveBy(initialOffsetLeft + deltaX);
         break;
 
       case 'mouseup':
