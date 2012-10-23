@@ -89,7 +89,18 @@ var MochaTask = (function() {
           handler = errorHandler;
 
       if (error) {
-        handler(error);
+        try {
+          generator.throw(error);
+        } catch (e) {
+          if (!(e instanceof StopIteration)) {
+            handler(e);
+          } else {
+            clearState();
+            if (complete) {
+              complete();
+            }
+          }
+        }
         return;
       }
 
@@ -98,20 +109,17 @@ var MochaTask = (function() {
       } catch (e) {
         if (e instanceof StopIteration) {
           clearState();
-
           if (complete) {
             complete();
           }
         } else {
           clearState();
-
           if (handler) {
             handler(e);
           }
         }
       }
-    },
-
+    }
 
   };
 
