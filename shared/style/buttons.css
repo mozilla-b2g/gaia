@@ -2,6 +2,7 @@
  * Buttons
  * ---------------------------------- */
 
+a[role="button"]::-moz-focus-inner,
 button::-moz-focus-inner {
   border: none;
   outline: none;
@@ -22,10 +23,7 @@ a[role="button"] {
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
-  font-size: 1.6rem;
-  font-family: 'MozTT', Sans-serif;
-  font-weight: 600;
-  line-height: 3.8rem;
+  font: 400 1.6rem/3.8rem 'MozTT', Sans-serif;
   color: #333;
   text-align: center;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
@@ -95,41 +93,35 @@ a[role="button"][aria-disabled="true"].danger {
  * ---------------------------------- */
 
 li label {
-  font: 1.4rem/1em "MozTT", Sans-serif;
+  font: 1.6rem/1em "MozTT", Sans-serif;
   text-transform: uppercase;
   display: block;
   padding-left: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-li button::-moz-focus-inner,
-li a[role="button"]::-moz-focus-inner {
-  border: none;
-  outline: none;
-}
-
 li button,
 li a[role="button"] {
   position: relative;
-  overflow: visible;
   background: #e7e7e7;
   border-color: #b6b6b6;
-  font-size: 1.4rem;
-  line-height: 2.9rem;
   text-align: left;
+  font-weight: normal;
+  /* For hacking box-shadows we need overflow:visible; so we lose text-overflows...*/
+  white-space: normal;
+  overflow: visible;
 }
 
-li a[role="button"]:after,
-li button:after {
+/* Hacking box-shadow */
+li button:after,
+li a[role="button"]:after {
   content: "";
   position: absolute;
+  bottom: -0.3rem;
   left: 0;
   right: 0;
-  top: 100%;
-  background: url(buttons/images/ui/shadow.png) repeat-x left bottom;
   height: 0.2rem;
-  margin-top: 0.1rem;
-  pointer-events: none;
+  background: url( buttons/images/ui/shadow.png) repeat-x left bottom;
 }
 
 /* Press */
@@ -144,36 +136,43 @@ li a[role="button"][aria-disabled="true"] {
   background: #ededed;
   border-color: #d3d3d3;
   color: #a6a6a6;
+  pointer-events: none;
 }
 
+li button[disabled].icon:before,
+li a[role="button"][aria-disabled="true"].icon:before,
 li button[disabled]:after,
 li a[role="button"][aria-disabled="true"]:after {
-  opacity: 1;
+  opacity: 0.3;
 }
 
 /* Icons */
-li button.icon-view,
-li a[role="button"].icon-view {
-  background-repeat: no-repeat;
-  background-position: right 1rem top 50%;
+li button.icon,
+li a[role="button"].icon {
+  padding-right: 3rem;
+}
+
+li button.icon:before,
+li a[role="button"].icon:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  margin-top: -1.5rem;
+  background: transparent no-repeat center center / 100% auto;
+  pointer-events: none;
+}
+
+li button.icon-view:before,
+li a[role="button"].icon-view:before {
   background-image: url(buttons/images/icons/view.png);
 }
 
-li button.icon-dialog,
-li a[role="button"].icon-dialog {
-  background-repeat: no-repeat;
-  background-position: right 0.5rem bottom 0.3rem;
+li button.icon-dialog:before,
+li a[role="button"].icon-dialog:before {
   background-image: url(buttons/images/icons/dialog.png);
-}
-
-li button[disabled].icon-view,
-li a[role="button"][aria-disabled="true"].icon-view {
-  background-image: url(buttons/images/icons/view-disabled.png);
-}
-
-li button[disabled].icon-dialog,
-li a[role="button"][aria-disabled="true"].icon-dialog {
-  background-image: url(buttons/images/icons/dialog-disabled.png);
 }
 
 
@@ -199,6 +198,5 @@ ol.compact {
 
 .compact > li:last-child button,
 .compact > li:last-child a[role="button"] {
-  border-radius:0 0 0.3rem 0.3rem;
+  border-radius: 0 0 0.3rem 0.3rem;
 }
-
