@@ -221,9 +221,11 @@ var ApplicationsList = {
   }
 };
 
-window.addEventListener('localized', function init(evt) {
-  window.removeEventListener('localized', init);
+window.addEventListener('hashchange', function onHashChange(evt) {
+  if (!evt.newURL.endsWith('#appPermissions'))
+    return;
 
+  window.removeEventListener('hashchange', onHashChange);
   ApplicationsList.init();
 });
 
