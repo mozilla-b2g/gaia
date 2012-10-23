@@ -21,7 +21,8 @@
     "wifi-manage":{},
     "wifi":{},
     "attention":{},
-    "time":{}
+    "time":{},
+    "desktop-notification":{}
   },
   "activities": {
     "configure": {

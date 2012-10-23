@@ -1,0 +1,13 @@
+{
+  "name": "Geoloc",
+  "description": "Testing Geolocation",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "lissyx",
+    "url": "https://github.com/lissyx/gaia-geoloc"
+  },
+  "permissions": {
+    "geolocation":{}
+  }
+}

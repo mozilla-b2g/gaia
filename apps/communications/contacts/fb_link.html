@@ -8,12 +8,14 @@
     <title>Facebook Link</title>
 
     <link rel="stylesheet" href="style/shared/core/css/root.css">
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+
     <link rel="stylesheet" href="style/shared/widgets/lists/style.css">
 
-    <link rel="stylesheet" href="style/shared/widgets/buttons/style.css">
-    <link rel="stylesheet" href="style/shared/menus_dialogs/core.css">
-
-    <link rel="stylesheet" href="style/fb/headers/style.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
 
     <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
@@ -45,14 +47,14 @@
 
     <section role="region" id="content" class="link">
 
-      <header aria-level="1">
+      <header>
         <a href="#" id="link-close">
           <span class="icon icon-close" data-l10n-id="close">close</span>
         </a>
         <h1 data-l10n-id="fbFriends">Facebook Friends</h1>
       </header>
 
-      <header aria-level="2">
+      <header>
         <h2 data-l10n-id="linkSelection">Select one of this possible matches for</h2>
       </header>
 
@@ -70,27 +72,30 @@
           </ol>
         </section> <!-- mainContent -->
 
-      <menu data-items="1">
-        <button id="view-all" data-l10n-id="viewAll">
-          View all Facebook Friends
-        </button>
-      </menu>
+      <form role="dialog" data-type="confirm" class="no-overlay">
+        <menu>
+          <button id="view-all" data-l10n-id="viewAll" type="reset" class="full">
+            View all Facebook Friends
+          </button>
+        </menu>
+      </form>
 
     </section> <!-- main -->
 
     </section> <!-- role="region" -->
 
      <section id="curtain" role="region">
-        <header>
-          <h1 data-l10n-id="facebook">Facebook</h1>
-        </header>
-        <p class="message" data-l10n-id="friendsWait1">Hold on. We are connecting to obtain your friend list</p>
-        <hr>
-        <p class="submessage" data-l10n-id="friendsWait2">This may take a couple of minutes</p>
-        <div>
-          <img src="style/fb/throbber.gif">
-        </div>
-     </section>
+      <header>
+        <h1 data-l10n-id="facebook">Facebook</h1>
+      </header>
+      <form role="dialog" data-type="confirm">
+        <section>
+          <h1 data-l10n-id="friendsWait1">Connecting to your list of friends</h1>
+          <p data-l10n-id="friendsWait2">This may take a couple of minutes...</p>
+          <progress class="small"></progress>
+        </section>
+      </form>
+    </section>
 
   </body>
 </html>

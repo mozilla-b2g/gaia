@@ -1,9 +1,6 @@
-requireCommon('/test/marionette.js');
-require('apps/calendar/test/integration/integration_helper.js');
-require('apps/calendar/test/integration/app.js');
-
-require('apps/calendar/js/calendar.js');
-require('apps/calendar/js/calc.js');
+require('/apps/calendar/test/integration/calendar_integration.js');
+require('/apps/calendar/js/calendar.js');
+require('/apps/calendar/js/calc.js');
 
 suite('calendar - launch', function() {
 
@@ -15,20 +12,12 @@ suite('calendar - launch', function() {
     yield app.close();
   });
 
-  testSupport.startMarionette(function(driver) {
-    device = driver;
-    app = new CalendarIntegration(device);
+  MarionetteHelper.start(function(client) {
+    app = new CalendarIntegration(client);
+    device = app.device;
   });
 
   suiteSetup(function() {
-    this.timeout(15000);
-    yield device.setScriptTimeout(15000);
-    yield helper.importScript(
-      device,
-      '/tests/marionette/gaiatest/gaia_apps.js',
-      MochaTask.nodeNext
-    );
-
     yield app.launch();
   });
 
