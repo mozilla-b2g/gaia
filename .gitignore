@@ -36,3 +36,5 @@ manifest.appcache
 /tools/xpcwindow/vendor/
 
 /locales/*
+
+/outoftree_apps/
