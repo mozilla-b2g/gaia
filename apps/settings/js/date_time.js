@@ -27,16 +27,6 @@ var SetTime = (function SetTime() {
 window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _ = navigator.mozL10n.get;
 
-  function initDatePicker() { // Date Picker need to provide init value
-    var d = new Date();
-    gDatePicker.value = d.toLocaleFormat('%Y-%m-%d');
-  }
-
-  function initTimePicker() { // Time Picker need to provide init value
-    var d = new Date();
-    gTimePicker.value = d.toLocaleFormat('%H:%M');
-  }
-
   function updateDate() {
     var d = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
@@ -77,7 +67,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
         break;
 
       case 'time':
-        // Get value from time picker. %Y-%m-%d
+        // Get value from time picker.
         pDate = d.toLocaleFormat('%Y-%m-%d');
         pTime = gTimePicker.value;  // Format: 0:02, 8:05, 23:45
         break;
@@ -223,8 +213,6 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
 
   SetTime.init();
   loadTimezoneDB(initTimezoneContinents);
-  initDatePicker();
-  initTimePicker();
   updateDate();
   updateClock();
 
@@ -243,11 +231,16 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   gDatePicker.addEventListener('input', function datePickerChange() {
     //XXX: Workaround: Bug 802073 -
     //Receive input event twice from input tag type:time and type:date
-    if (_isReceivedInputEventInOneSecond)
+    if (_isReceivedInputEventInOneSecond) {
+      gDatePicker.value = '';
       return;
+    }
 
     _isReceivedInputEventInOneSecond = true;
     setTime('date');
+    // Clean up the value of picker once we get date set by the user.
+    // It will get new date according system time when pop out again.
+    gDatePicker.value = '';
     window.setTimeout(function cleanFlag() {
       _isReceivedInputEventInOneSecond = false;
     }, 1000);
@@ -256,11 +249,16 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   gTimePicker.addEventListener('input', function timePickerChange() {
     //XXX: Workaround: Bug 802073 -
     //Receive input event twice from input tag type:time and type:date
-    if (_isReceivedInputEventInOneSecond)
+    if (_isReceivedInputEventInOneSecond) {
+      gTimePicker.value = '';
       return;
+    }
 
     _isReceivedInputEventInOneSecond = true;
     setTime('time');
+    // Clean up the value of picker once we get time set by the user.
+    // It will get new time according system time when pop out again.
+    gTimePicker.value = '';
     window.setTimeout(function cleanFlag() {
       _isReceivedInputEventInOneSecond = false;
     }, 1000);
