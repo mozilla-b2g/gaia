@@ -252,7 +252,8 @@ var StatusBar = {
       var f = new navigator.mozL10n.DateTimeFormat();
       var now = new Date();
       var sec = now.getSeconds();
-      window.clearTimeout(this._clockTimer);
+      if (this._clockTimer)
+        window.clearTimeout(this._clockTimer);
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 

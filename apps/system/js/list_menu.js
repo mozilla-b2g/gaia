@@ -68,7 +68,7 @@ var ListMenu = {
 
         button.href = '#' + this.currentChild;
         button.textContent = item.label;
-      } else if (item.type == 'menuitem') {
+      } else if (item.type && item.type == 'menuitem') {
         button.dataset.value = item.id;
         button.textContent = item.label;
       } else {
