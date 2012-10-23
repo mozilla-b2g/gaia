@@ -17012,10 +17012,17 @@ ImapConnection.prototype._login = function(cb) {
     }
 
     if (this.capabilities.indexOf('AUTH=XOAUTH') !== -1 &&
-        'xoauth' in this._options)
-      this._send('AUTHENTICATE XOAUTH',
-                 ' ' + escape(this._options.xoauth), fnReturn);
-    else if (this.capabilities.indexOf('AUTH=PLAIN') !== -1) {
+        'xoauth' in this._options) {
+      this._send('AUTHENTICATE XOAUTH ' + escape(this._options.xoauth),
+                 fnReturn);
+    }
+    else if (this.capabilities.indexOf('AUTH=XOAUTH2') &&
+             'xoauth2' in this._options) {
+      this._send('AUTHENTICATE XOAUTH2 ' + escape(this._options.xoauth2),
+                 fnReturn);
+    }
+    else if (this._options.username !== undefined &&
+             this._options.password !== undefined) {
       this._send('LOGIN', ' "' + escape(this._options.username) + '" "'
                  + escape(this._options.password) + '"', fnReturn);
     } else {
