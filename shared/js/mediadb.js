@@ -746,7 +746,12 @@ var MediaDB = (function() {
 
         var cursor = cursorRequest.result;
         if (cursor) {
-          callback(cursor.value);
+          try {
+            callback(cursor.value);
+          }
+          catch (e) {
+            console.warn('MediaDB.enumerate(): callback threw', e);
+          }
           cursor.continue();
         }
         else {

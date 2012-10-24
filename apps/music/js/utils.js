@@ -64,21 +64,30 @@ function cropImage(evt) {
   }
 }
 
-// If the metadata music file includes embedded cover art, extract it
-// from the file, create a blob: url for it, and set it on the specified
-// img element.
-function createAndSetCoverURL(img, fileinfo) {
-  if (fileinfo.metadata.picture) {
+// If the metadata music file includes embedded cover art,
+// use the thumbnail cache or extract it from the file,
+// create a blob: url for it, and set it on the specified img element.
+function createAndSetCoverURL(img, fileinfo, isCached) {
+  var url;
+
+  function setImageURL() {
+    img.addEventListener('load', function revoke() {
+      URL.revokeObjectURL(url);
+      img.removeEventListener('load', revoke);
+    });
+    img.src = url;
+  }
+
+  if (isCached) {
+    url = URL.createObjectURL(fileinfo.metadata.thumbnail);
+    setImageURL();
+  } else {
     musicdb.getFile(fileinfo.name, function(file) {
       var cover = file.slice(fileinfo.metadata.picture.start,
                              fileinfo.metadata.picture.end,
                              fileinfo.metadata.picture.type);
-      var url = URL.createObjectURL(cover);
-      img.addEventListener('load', function revoke() {
-        URL.revokeObjectURL(url);
-        img.removeEventListener('load', revoke);
-      });
-      img.src = url;
+      url = URL.createObjectURL(cover);
+      setImageURL();
     });
   }
 }
