@@ -669,6 +669,21 @@ var Camera = {
       window.setTimeout(this.resume.bind(this), 2000);
   },
 
+  _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.src = url;
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      context.drawImage(img, 0, 0);
+      callback(canvas.toDataURL(type));
+      URL.revokeObjectURL(url);
+    }
+  },
+
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._manuallyFocused = false;
     this.hideFocusRing();
@@ -681,11 +696,14 @@ var Camera = {
 
     addreq.onsuccess = (function() {
       if (this._pendingPick) {
-        this._pendingPick.postResult({
-          type: 'image/jpeg',
-          filename: name
-        });
-        this.cancelActivity();
+        var type = 'image/jpeg';
+        this._dataURLFromBlob(blob, type, function(name) {
+          this._pendingPick.postResult({
+            type: type,
+            url: name
+          });
+          this.cancelActivity();
+        }.bind(this));
         return;
       }
       this.addToFilmStrip(name, blob, 'image/jpeg');
