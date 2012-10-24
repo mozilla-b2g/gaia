@@ -352,16 +352,6 @@ window.addEventListener('load', function loadSettings(evt) {
   }
 });
 
-window.addEventListener('hashchange', function handleHashChange(event) {
-  // most browsers now scroll content into view taking CSS transforms
-  // into account.  That's not what we want when moving between
-  // <section>s, because the being-moved-to section is offscreen when
-  // we navigate to its #hash.  The transitions assume the viewport is
-  // always at document 0,0.  So add a hack here to make that
-  // assumption true again.
-  window.scrollTo(0, 0);
-});
-
 // back button = close dialog || back to the root page
 // + prevent the [Return] key to validate forms
 window.addEventListener('keydown', function handleSpecialKeys(event) {
@@ -396,6 +386,7 @@ window.addEventListener('localized', function showBody() {
       document.location.hash = 'root';
     }
     document.body.classList.remove('hidden');
+    document.getElementById('root').className = 'current';
   } else {
     // we were in #languages and selected another locale:
     // reset the hash to prevent weird focus bugs when switching LTR/RTL
@@ -418,5 +409,25 @@ window.addEventListener('localized', function showBody() {
       navigator.mozL10n.language.code + '"]';
   document.getElementById('language-desc').textContent =
       document.querySelector(selector).textContent;
+});
+
+// panel navigation
+var gOldHash = '#root';
+window.addEventListener('hashchange', function showPanel() {
+  var hash = document.location.hash;
+  var oldPanel = document.querySelector(gOldHash);
+  var newPanel = document.querySelector(hash);
+  oldPanel.className = newPanel.className ? '' : 'active';
+  newPanel.className = 'active';
+  gOldHash = hash;
+
+  /**
+   * Most browsers now scroll content into view taking CSS transforms into
+   * account.  That's not what we want when moving between <section>s, because
+   * the being-moved-to section is offscreen when we navigate to its #hash.
+   * The transitions assume the viewport is always at document 0,0.  So add a
+   * hack here to make that assumption true again.
+   */
+  window.scrollTo(0, 0);
 });
 
