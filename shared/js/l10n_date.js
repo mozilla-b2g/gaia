@@ -29,7 +29,7 @@ navigator.mozL10n.DateTimeFormat = function(locales, options) {
   function localeFormat(d, format) {
     var tokens = format.match(/(%E.|%O.|%.)/g);
 
-    for (var i = 0; i < tokens.length; i++) {
+    for (var i = 0; tokens && i < tokens.length; i++) {
       var value = '';
 
       // http://pubs.opengroup.org/onlinepubs/007908799/xsh/strftime.html

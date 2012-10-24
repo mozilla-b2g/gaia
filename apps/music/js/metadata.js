@@ -12,6 +12,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var ALBUM = 'album';
   var TRACKNUM = 'tracknum';
   var IMAGE = 'picture';
+  var THUMBNAIL = 'thumbnail';
 
   // These two properties are for playlist functionalities
   // not originally metadata from the files
@@ -50,6 +51,14 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     'trkn': TRACKNUM,
     'covr': IMAGE
   };
+
+  // If we generate our own thumbnails, aim for this size
+  // Here we choice the size of main tile which is 210px * 210px
+  var THUMBNAIL_WIDTH = 210;
+  var THUMBNAIL_HEIGHT = 210;
+  // To save memory (because of gecko bugs) we want to create only one
+  // offscreen image and reuse it.
+  var offscreenImage = new Image();
 
   // Start off with empty metadata
   var metadata = {};
@@ -282,8 +291,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         id3.index = nexttag;
       }
 
-      // We've looped through all of the ID3 tags, so we're done
-      metadataCallback(metadata);
+      function parseImageCallback() {
+        // We've looped through all of the ID3 tags, so we're done
+        metadataCallback(metadata);
+      }
+
+      // If IMAGE tag exists, then we parse image and store the thumbnail
+      if (metadata[IMAGE]) {
+        parseImageMetadata(metadata, parseImageCallback);
+      } else {
+        parseImageCallback();
+      }
     }
 
     function readPic(view, size, id) {
@@ -335,6 +353,81 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       default:
         throw Error('unknown text encoding');
       }
+    }
+  }
+
+  // Load an image from a blob into an <img> tag, and then use that
+  // to get its dimensions and create a thumbnail. Store these values in
+  // the metadata object if they are not already there, and then continue
+  // to the callback function
+  function parseImageMetadata(metadata, callback, errback) {
+    if (!errback) {
+      errback = function(e) {
+        console.error('ImageMetadata ', String(e));
+      };
+    }
+
+    var imageblob = blob.slice(metadata[IMAGE].start,
+                               metadata[IMAGE].end,
+                               metadata[IMAGE].type);
+
+    var url = URL.createObjectURL(imageblob);
+    offscreenImage.src = url;
+
+    offscreenImage.onerror = function() {
+      // if the embedded image is broken
+      // we still need to continue loading the next audio file
+      errback('Album image failed to load');
+      offscreenImage.src = null;
+      callback();
+    };
+
+    offscreenImage.onload = function() {
+      URL.revokeObjectURL(url);
+
+      // Create a thumbnail image
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = THUMBNAIL_WIDTH;
+      canvas.height = THUMBNAIL_HEIGHT;
+      var scalex = canvas.width / offscreenImage.width;
+      var scaley = canvas.height / offscreenImage.height;
+
+      // Take the larger of the two scales: we crop the image to the thumbnail
+      var scale = Math.max(scalex, scaley);
+
+      // If the image was already thumbnail size, it is its own thumbnail
+      if (scale >= 1) {
+        offscreenImage.src = null;
+        //
+        // XXX
+        // Because of a gecko bug, we can't just store the image file itself
+        // we've got to create an equivalent but distinct blob.
+        // When https://bugzilla.mozilla.org/show_bug.cgi?id=794619 is fixed
+        // the line below can change to just assign file.
+        //
+        metadata[THUMBNAIL] = imageblob;
+        callback();
+        return;
+      }
+
+      // Calculate the region of the image that will be copied to the
+      // canvas to create the thumbnail
+      var w = Math.round(THUMBNAIL_WIDTH / scale);
+      var h = Math.round(THUMBNAIL_HEIGHT / scale);
+      var x = Math.round((offscreenImage.width - w) / 2);
+      var y = Math.round((offscreenImage.height - h) / 2);
+
+      // Draw that region of the image into the canvas, scaling it down
+      context.drawImage(offscreenImage, x, y, w, h,
+                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+      // We're done with the image now
+      offscreenImage.src = null;
+
+      metadata[THUMBNAIL] = canvas.mozGetAsFile(blob.name + '.thumbnail.jpeg',
+                                               'image/jpeg');
+      callback();
     }
   }
 
@@ -439,10 +532,22 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     function findMoovAtom(atom) {
       var size = atom.readUnsignedInt();
       var type = atom.readASCIIText(4);
+
+      function parseImageCallback() {
+        // We've looped through all of the ID3 tags, so we're done
+        metadataCallback(metadata);
+      }
+
       if (type === 'moov') {
         try {
           parseMoovAtom(atom, atom.index + size - 8);
-          metadataCallback(metadata);
+
+          if (metadata[IMAGE]) {
+            // If IMAGE tag exists, then we parse image and store the thumbnail
+            parseImageMetadata(metadata, parseImageCallback);
+          } else {
+            parseImageCallback();
+          }
           return;
         }
         catch (e) {

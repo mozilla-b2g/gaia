@@ -25,9 +25,11 @@ var TrustedUIManager = {
   init: function trui_init() {
     window.addEventListener('home', this);
     window.addEventListener('appopen', this);
-    this.closeButton.addEventListener('click', this);
+    window.addEventListener('appwillclose', this);
+    window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
+    this.closeButton.addEventListener('click', this);
   },
 
   open: function trui_open(name, frame, origin, chromeEventId) {
@@ -59,7 +61,7 @@ var TrustedUIManager = {
     window.dispatchEvent(event);
   },
 
-  _createDialog: function createDialog(name, frame, origin, chromeEventId) {
+  _createDialog: function trui_createDialog(name, frame, origin, chromeEventId) {
     this._dialogs[origin] = {
       name: name,
       frame: frame,
@@ -75,16 +77,19 @@ var TrustedUIManager = {
     this.screen.classList.add('trustedui');
   },
 
+  _destroyDialog: function trui_destroyDialog() {
+    var currentDialog = this._dialogs[this._lastDisplayedApp];
+    this.container.removeChild(currentDialog.frame);
+    delete this._dialogs[this._lastDisplayedApp];
+  },
+
   close: function trui_close(callback) {
     if (!this._alreadyExists(this._lastDisplayedApp))
       return;
     var self = this;
     this.popupContainer.addEventListener('transitionend', function wait(event) {
-      var currentDialog = self._dialogs[self._lastDisplayedApp];
       this.removeEventListener('transitionend', wait);
-      self.container.removeChild(currentDialog.frame);
-      delete self._dialogs[self._lastDisplayedApp];
-      self._lastDisplayedApp = null;
+      self._destroyDialog();
       WindowManager.restoreCurrentApp();
     });
 
@@ -95,7 +100,11 @@ var TrustedUIManager = {
     window.focus();
   },
 
-  setHeight: function pm_setHeight(height) {
+  hide: function trui_hide() {
+    this.screen.classList.remove('trustedui');
+  },
+
+  setHeight: function trui_setHeight(height) {
     this.overlay.style.height = height + 'px';
   },
 
@@ -103,7 +112,7 @@ var TrustedUIManager = {
     switch (evt.type) {
       case 'home':
         WindowManager.restoreCurrentApp();
-        this.screen.classList.remove('trustedui');
+        this.hide();
         break;
       case 'click':
         var dialog = this._dialogs[this._lastDisplayedApp];
@@ -124,6 +133,16 @@ var TrustedUIManager = {
                                this._lastDisplayedApp, dialog.chromeEventId);
           }.bind(this, dialog));
         }
+        break;
+      case 'appwillclose':
+        if (!this._dialogs[this._lastDisplayedApp])
+          return;
+        this.hide();
+        break;
+      case 'appterminated':
+        if (!this._dialogs[this._lastDisplayedApp])
+          return;
+        this._destroyDialog();
         break;
       case 'keyboardchange':
         this.setHeight(window.innerHeight -

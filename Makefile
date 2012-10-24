@@ -158,18 +158,9 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
-# Settings database setup
-DB_TARGET_PATH = /data/local/indexedDB
-DB_SOURCE_PATH = profile/indexedDB/chrome
-
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
-	then \
-	  echo "Settings DB does not exists, creating an initial one:"; \
-	  $(call run-js-command, settings); \
-	fi ;
-
+	cp build/settings.json profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -281,21 +272,6 @@ define run-js-command
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
-
-settingsdb: install-xulrunner-sdk
-	@echo "B2G pre-populate settings DB."
-	@$(call run-js-command, settings)
-
-.PHONY: install-settingsdb
-install-settingsdb: settingsdb install-xulrunner-sdk
-	$(ADB) start-server
-	@echo 'Stoping b2g'
-	$(ADB) shell stop b2g
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	@echo 'Starting b2g'
-	$(ADB) shell start b2g
-	@echo 'Rebooting b2g now. '
 
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
@@ -581,7 +557,7 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-settingsdb install-gaia
+reset-gaia: purge install-gaia
 
 # remove the memories and apps on the phone
 purge:
@@ -593,7 +569,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
 
 # clean out build products
-clean: 
+clean:
 	rm -rf profile
 
 # clean out build products

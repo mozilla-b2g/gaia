@@ -53,6 +53,7 @@ function getService(readyCallback) {
     serviceFrame.waitingForService = [window];
 
   window.addEventListener('serviceready', readyCallback);
+  return null;
 }
 
 // Call only from the service!
