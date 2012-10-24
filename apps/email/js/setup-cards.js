@@ -161,11 +161,11 @@ SetupAccountInfoCard.prototype = {
   },
   onInfoInput: function(event) {
     var nameValid = this.nameNode.classList.contains('collapsed') ||
-                    this.nameNode.value.length > 0;
+                    this.nameNode.checkValidity();
     var emailValid = this.emailNode.classList.contains('collapsed') ||
-                     this.emailNode.value.length > 0;
+                     this.emailNode.checkValidity();
     var passwordValid = this.passwordNode.classList.contains('collapsed') ||
-                        this.passwordNode.value.length > 0;
+                        this.passwordNode.checkValidity();
     this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
   },
   die: function() {
