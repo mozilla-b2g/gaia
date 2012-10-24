@@ -323,7 +323,7 @@
     </section>
 
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
-    <section role="region" id="operator">
+    <section role="region" id="operatorSettings">
       <header>
         <a href="#data"><span class="icon icon-back">back</span></a>
         <h1 data-l10n-id="networkOperator"> Network Operator </h1>
@@ -492,19 +492,19 @@
       <ul>
         <li>
           <label>
-            <button onclick="Settings.openDialog('operator');"
+            <button data-href="#operatorSettings"
               data-l10n-id="networkOperator"> Network Operator </button>
           </label>
         </li>
         <li>
           <label>
-            <button onclick="Settings.openDialog('apnSettings');"
+            <button data-href="#apnSettings"
               data-l10n-id="apnSettings">APN Settings</button>
           </label>
         </li>
         <li>
           <label>
-            <button onclick="Settings.openDialog('mmsSettings');"
+            <button data-href="#mmsSettings"
               data-l10n-id="mmsSettings">MMS Settings</button>
           </label>
         </li>
@@ -652,7 +652,7 @@
         </li>
         <li>
           <label>
-            <button onclick="Settings.openDialog('hotspotSettings');"
+            <button data-href="#hotspotSettings"
               data-l10n-id="hotspotSettings">HotSpot Settings</button>
           </label>
         </li>
@@ -1472,7 +1472,7 @@
       <ul>
         <li>
           <label>
-            <button onclick="openDialog('developer');"
+            <button data-href="#developer"
               data-l10n-id="developer">Developer</button>
           </label>
         </li>
@@ -1597,7 +1597,8 @@
         </li>
         <li>
           <label>
-            <button data-l10n-id="more-info" onclick="openDialog('more-info')"> More Information </button>
+            <button data-href="#more-info"
+              data-l10n-id="more-info"> More Information </button>
           </label>
         </li>
       </ul>
@@ -1617,8 +1618,8 @@
         </li>
         <li>
           <label>
-            <button onclick="Settings.checkForUpdates();"
-              id="check-update-now" data-l10n-id="check-update-now">Check Now</button>
+            <button id="check-update-now"
+              data-l10n-id="check-update-now"> Check Now </button>
           </label>
         </li>
         <li id="update-status" class="description" hidden></li>
@@ -1635,17 +1636,20 @@
         </li>
         <li>
           <label>
-            <button data-l10n-id="about-your-rights" onclick="openDialog('about-your-rights')"> About Your Rights </button>
+            <button data-href="#about-your-rights"
+              data-l10n-id="about-your-rights"> About Your Rights </button>
           </label>
         </li>
         <li>
           <label>
-            <button data-l10n-id="about-your-privacy" onclick="openDialog('about-your-privacy')"> About Your Privacy </button>
+            <button data-href="#about-your-privacy"
+              data-l10n-id="about-your-privacy"> About Your Privacy </button>
           </label>
         </li>
         <li>
           <label>
-            <button data-l10n-id="licensing" onclick="openDialog('licensing')"> Licensing </button>
+            <button data-href="#licensing"
+              data-l10n-id="licensing"> Licensing </button>
           </label>
         </li>
         <li>
@@ -1821,18 +1825,18 @@
 
       <ul>
         <li>
-          <a href="#" onclick="openURL('http://www.telefonica.com'); return false;" data-l10n-id="online-support"> Online Support:
+          <a href="#" data-href="http://www.telefonica.com/" data-l10n-id="online-support"> Online Support:
             <span class="link-text" data-l10n-id="online-support-link">www.telefonica.com</span>
           </a>
         </li>
         <li>
-          <a href="#" onclick="dialNumber('+16509030800'); return false;" data-l10n-id="call-support"> Call Support:
+          <a href="#" data-href="tel:+16509030800" data-l10n-id="call-support"> Call Support:
             <span class="tel-text" data-l10n-id="call-support-number">+1 650-903-0800</span>
           </a>
         </li>
         <li>
           <label>
-            <button data-l10n-id="user-guide" onclick="openURL('http://mozilla.org')"> User Guide </button>
+            <button data-l10n-id="user-guide"> User Guide </button>
           </label>
         </li>
       </ul>

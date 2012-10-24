@@ -184,7 +184,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   }
 
   document.addEventListener('mozvisibilitychange', updateVisibilityStatus);
-  gWifi.addEventListener('transitionend', function (evt) {
+  gWifi.addEventListener('transitionend', function(evt) {
     if (evt.target == gWifi) {
       updateVisibilityStatus();
     }
