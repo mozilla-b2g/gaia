@@ -28445,7 +28445,13 @@ ImapJobDriver.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
   // append: Add a message to a folder
-
+  //
+  // Message should look like:
+  // {
+  //    messageText: the message body,
+  //    date: the date to use as the INTERNALDATE of the message,
+  //    flags: the initial set of flags for the message
+  // }
 
   local_do_append: function(op, doneCallback) {
     doneCallback(null);
@@ -29639,7 +29645,12 @@ SmtpAccount.prototype = {
   },
 
   /**
+   * Asynchronously send an e-mail message.  Does not provide retries, offline
+   * remembering of the command, or any follow-on logic like appending the
+   * message to the sent folder.
+   *
    * @args[
+   *   @param[composedMessage]
    *   @param[callback @func[
    *     @args[
    *       @param[error @oneof[
@@ -30245,7 +30256,7 @@ MessageGenerator.prototype = {
       var data = null;
       process.immediate = true;
       composer._processBufferedOutput = function() {
-        data = this._outputBuffer;
+        data = composer._outputBuffer;
       };
       composer._composeMessage();
       process.immediate = false;
@@ -32347,7 +32358,41 @@ CompositeAccount.prototype = {
   },
 
   sendMessage: function(composedMessage, callback) {
-    return this._sendPiece.sendMessage(composedMessage, callback);
+    return this._sendPiece.sendMessage(
+      composedMessage,
+      function(err, errDetails) {
+        // We need to append the message to the sent folder if we think we sent
+        // the message okay.
+        if (!err) {
+          // have it internally accumulate the data rather than using the stream
+          // mechanism.
+          composedMessage._cacheOutput = true;
+          // reset the offsets since we are reusing the composer.
+          composedMessage._message.processingStart = 0;
+          composedMessage._message.processingPos = 0;
+          var data = null;
+          process.immediate = true;
+          composedMessage._processBufferedOutput = function() {
+            data = composedMessage._outputBuffer;
+          };
+          composedMessage._composeMessage();
+          process.immediate = false;
+
+          var message = {
+            messageText: data.trimRight(),
+            // do not specify date; let the server use its own timestamping
+            // since we want the approximate value of 'now' anyways.
+            flags: ['Seen'],
+          };
+
+          var sentFolder = this.getFirstFolderWithType('sent');
+          if (sentFolder)
+            this.universe.appendMessages(sentFolder.id,
+                                         [message]);
+        }
+        callback(err, errDetails);
+      }.bind(this));
+
   },
 
   getFolderStorageForFolderId: function(folderId) {
