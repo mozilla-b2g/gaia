@@ -1054,6 +1054,11 @@ var WindowManager = (function() {
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
       case 'open-app':
+        // If the system message goes to System app,
+        // we should not be launching that in a frame.
+        if (e.detail.url === window.location.href)
+          return;
+
         if (e.detail.isActivity && e.detail.target.disposition &&
             e.detail.target.disposition == 'inline') {
           // Inline activities behaves more like a dialog,
