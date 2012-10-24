@@ -137,10 +137,11 @@ body {
   border: none;
   width: 6rem;
 }
-/* create a space the size of the toolbar since it is absolute...*/
+/* create a space the size of the toolbar since it is absolute...
+   9.6 rem = 4.8rem (toolbar height)  + 4.8rem (search bar height) */
 .bottom-toolbar-spacer {
   display: block;
-  height: 4.8rem;
+  height: 9.6rem;
 }
 
 .popup {
