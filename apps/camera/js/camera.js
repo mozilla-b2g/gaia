@@ -53,6 +53,8 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
+  PREVIEW_PAUSE: 500,
+
   _flashModes: [],
   _currentFlashMode: 0,
 
@@ -666,7 +668,22 @@ var Camera = {
     this._filmStripTimer =
       window.setTimeout(this.hideFilmStrip.bind(this), 5000);
     this._resumeViewfinderTimer =
-      window.setTimeout(this.resume.bind(this), 2000);
+      window.setTimeout(this.resume.bind(this), this.PREVIEW_PAUSE);
+  },
+
+  _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.src = url;
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      context.drawImage(img, 0, 0);
+      callback(canvas.toDataURL(type));
+      URL.revokeObjectURL(url);
+    }
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
@@ -681,11 +698,14 @@ var Camera = {
 
     addreq.onsuccess = (function() {
       if (this._pendingPick) {
-        this._pendingPick.postResult({
-          type: 'image/jpeg',
-          filename: name
-        });
-        this.cancelActivity();
+        var type = 'image/jpeg';
+        this._dataURLFromBlob(blob, type, function(name) {
+          this._pendingPick.postResult({
+            type: type,
+            url: name
+          });
+          this.cancelActivity();
+        }.bind(this));
         return;
       }
       this.addToFilmStrip(name, blob, 'image/jpeg');

@@ -24,8 +24,6 @@
 }
 
 .msg-messages-sync-container {
-  min-height: 4.8rem;
-  height: 4.8rem;
 }
 
 .msg-search-tease-bar {
@@ -52,7 +50,7 @@
   position: relative;
   height: 8rem;
   overflow: hidden;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid lightgray;
   vertical-align: 0%;
 }
 .msg-header-item:active {
@@ -358,12 +356,20 @@
 .msg-messages-sync-container > p[role="status"],
 .msg-list-empty {
   width: 80%;
-  margin : 0 10%;
+  padding: 2rem 10%;
   text-align: center;
 }
 .msg-list-empty {
   position: absolute;
   top: 40%;
+}
+.msg-messages-sync-more {
+  margin: 3rem 0;
+  border-top: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+}
+.msg-messages-sync-more > span {
+  margin: 0 !important;
 }
 /* FILTERS BUILDING BLOCKS COPIED AND PASTED */
 

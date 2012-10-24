@@ -176,7 +176,7 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
-    formView.classList.remove('skin-dark');
+    formView.classList.remove('skin-organic');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
     }

@@ -46,6 +46,7 @@ var ScreenManager = {
    * sync with setting 'screen.brightness'
   */
   _userBrightness: 1,
+  _savedBrightness: 1,
 
   /*
    * Wait for _dimNotice milliseconds during idle-screen-off

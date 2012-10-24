@@ -203,12 +203,49 @@
         }
         break;
 
+      case icc.STK_CMD_SET_UP_EVENT_LIST:
+        debug(' STK:SetUp Event List. Events list: ' + options.eventList);
+        processSTKEvents(options.eventList);
+        iccLastCommandProcessed = true;
+        responseSTKCommand({ resultCode: icc.STK_RESULT_OK });
+        break;
+
       default:
         debug('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
         responseSTKCommand({
           resultCode: icc.STK_RESULT_OK
         });
+    }
+  }
+
+  /**
+   * Process STK Events
+   */
+  function processSTKEvents(eventList) {
+    for (var evt in eventList) {
+      debug(' STK Registering event: ' + JSON.stringify(eventList[evt]));
+      switch (eventList[evt]) {
+      case icc.STK_EVENT_TYPE_MT_CALL:
+      case icc.STK_EVENT_TYPE_CALL_CONNECTED:
+      case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
+      case icc.STK_EVENT_TYPE_LOCATION_STATUS:
+      case icc.STK_EVENT_TYPE_USER_ACTIVITY:
+      case icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
+      case icc.STK_EVENT_TYPE_CARD_READER_STATUS:
+      case icc.STK_EVENT_TYPE_LANGUAGE_SELECTION:
+      case icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
+      case icc.STK_EVENT_TYPE_DATA_AVAILABLE:
+      case icc.STK_EVENT_TYPE_CHANNEL_STATUS:
+      case icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
+      case icc.STK_EVENT_TYPE_DISPLAY_PARAMETER_CHANGED:
+      case icc.STK_EVENT_TYPE_LOCAL_CONNECTION:
+      case icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
+      case icc.STK_EVENT_TYPE_BROWSING_STATUS:
+      case icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
+        debug(' [DEBUG] STK TODO event: ' + JSON.stringify(eventList[evt]));
+        break;
+      }
     }
   }
 

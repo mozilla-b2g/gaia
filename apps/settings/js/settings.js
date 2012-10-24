@@ -22,7 +22,14 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    this.loadGaiaCommit();
+    // Load the gaia commit when the corresponding pane is shown.
+    window.addEventListener('hashchange', function onHashChange(evt) {
+      if (!evt.newURL.endsWith('#more-info'))
+        return;
+
+      window.removeEventListener('hashchange', onHashChange);
+      Settings.loadGaiaCommit();
+    });
 
     var settings = this.mozSettings;
     if (!settings)

@@ -113,3 +113,6 @@ None
 
 * `.danger`
 
+Future improves
+----------------
+* Use `[data-icon="name"]` instead of `.icon.icon-name`

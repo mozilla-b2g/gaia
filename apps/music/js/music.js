@@ -311,11 +311,11 @@ var TilesView = {
 
   setItemImage: function tv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (!fileinfo.metadata.picture)
+    if (!fileinfo.metadata.thumbnail)
       return;
 
     item.addEventListener('load', cropImage);
-    createAndSetCoverURL(item, fileinfo);
+    createAndSetCoverURL(item, fileinfo, true);
   },
 
   update: function tv_update(result) {
@@ -463,9 +463,9 @@ var ListView = {
 
   setItemImage: function lv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (fileinfo.metadata.picture) {
+    if (fileinfo.metadata.thumbnail) {
       item.addEventListener('load', cropImage);
-      createAndSetCoverURL(item, fileinfo);
+      createAndSetCoverURL(item, fileinfo, true);
     }
   },
 
@@ -558,7 +558,7 @@ var ListView = {
 
           SubListView.setAlbumDefault(index);
 
-          if (data.metadata.picture)
+          if (data.metadata.thumbnail)
             SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
@@ -676,7 +676,7 @@ var SubListView = {
 
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    createAndSetCoverURL(this.albumImage, fileinfo);
+    createAndSetCoverURL(this.albumImage, fileinfo, true);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
