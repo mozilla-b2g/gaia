@@ -19,6 +19,10 @@ html * {
   height: 100%;
 }
 
+#message-screen.responseForm #response {
+  display: block;
+}
+
 #message-container {
   width: 100%;
   height: -moz-calc(100% - 5rem - 5rem);
@@ -40,6 +44,7 @@ html * {
   width: 100%;
   height: 5rem;
   background: rgb(245, 245, 245);
+  display: none;
 }
 
 #response p {
