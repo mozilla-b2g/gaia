@@ -53,6 +53,8 @@ var Camera = {
   _previewPaused: false,
   _previewActive: false,
 
+  PREVIEW_PAUSE: 500,
+
   _flashModes: [],
   _currentFlashMode: 0,
 
@@ -666,7 +668,7 @@ var Camera = {
     this._filmStripTimer =
       window.setTimeout(this.hideFilmStrip.bind(this), 5000);
     this._resumeViewfinderTimer =
-      window.setTimeout(this.resume.bind(this), 2000);
+      window.setTimeout(this.resume.bind(this), this.PREVIEW_PAUSE);
   },
 
   _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
