@@ -149,6 +149,12 @@ var Camera = {
 
   init: function camera_init() {
 
+    // Dont let the phone go to sleep while the camera is
+    // active, user must manually close it
+    if (navigator.requestWakeLock) {
+      navigator.requestWakeLock('screen');
+    }
+
     this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
     this.initPositionUpdate();
