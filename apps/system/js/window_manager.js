@@ -54,7 +54,6 @@ var WindowManager = (function() {
   var homescreen = null;
   var homescreenURL = '';
   var homescreenManifestURL = '';
-
   // keep the reference of inline activity frame here
   var inlineActivityFrame = null;
 
@@ -607,7 +606,7 @@ var WindowManager = (function() {
     setOpenFrame(app.frame);
 
     openCallback = callback || function() {};
-    
+
     // Dispatch a appwillopen event
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillopen', true, false, { origin: origin });
@@ -773,7 +772,7 @@ var WindowManager = (function() {
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  function ensureHomescreen(app, reset) {
+  function ensureHomescreen(reset) {
     // If the url of the homescreen is not known at this point do nothing.
     if (!homescreen || !homescreenManifestURL) {
       return null;
@@ -799,7 +798,7 @@ var WindowManager = (function() {
     return runningApps[homescreen].frame;
   }
 
-  function launchHomescreen() {
+  function retrieveHomescreen(callback) {
     var lock = navigator.mozSettings.createLock();
     var setting = lock.get('homescreen.manifestURL');
     setting.onsuccess = function() {
@@ -820,7 +819,7 @@ var WindowManager = (function() {
         homescreen = app.origin;
         homescreenURL = app.origin + '/index.html#root';
 
-        ensureHomescreen(app);
+        callback(app);
       }
     }
   }
@@ -853,11 +852,9 @@ var WindowManager = (function() {
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-
     // Returns the frame reference of the home screen app.
     // Restarts the homescreen app if it was killed in the background.
     var homescreenFrame = ensureHomescreen();
-
     // Discard any existing activity
     stopInlineActivity();
 
@@ -867,13 +864,20 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: null->homescreen || homescreen->app
+    // Case 2: null --> app
+    else if (!currentApp && newApp != homescreen) {
+      homescreenFrame.setVisible(false);
+      setAppSize(newApp);
+      openWindow(newApp, function windowOpened() {
+        // TODO Implement FTU stuff if necessary
+      });
+    }
+    // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
       if (!currentApp) {
         homescreenFrame.setVisible(true);
       }
-
       setAppSize(newApp);
 
       openWindow(newApp, function windowOpened() {
@@ -887,7 +891,7 @@ var WindowManager = (function() {
           callback();
       });
     }
-    // Case 3: app->homescreen
+    // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close.  Ensure the homescreen is in the
       // foreground since it will be shown during the animation.
@@ -899,12 +903,11 @@ var WindowManager = (function() {
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
-    // Case 4: app-to-app transition
+    // Case 5: app-to-app transition
     else {
       setAppSize(newApp);
       switchWindow(currentApp, newApp, callback);
     }
-
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
     if ((newApp == homescreen) && homescreenFrame) {
@@ -1205,14 +1208,17 @@ var WindowManager = (function() {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
       case 'webapps-launch':
-        if (!isRunning(origin)) {
-          appendFrame(null, origin, e.detail.url,
-                      name, app.manifest, app.manifestURL);
+        if (origin == homescreen) {
+          // No need to append a frame if is homescreen
+          setDisplayedApp();
+        } else {
+          if (!isRunning(origin)) {
+            appendFrame(null, origin, e.detail.url,
+                        name, app.manifest, app.manifestURL);
+          }
+          setDisplayedApp(origin, null, 'window');
         }
-
-        setDisplayedApp(origin, null, 'window');
         break;
-
       // System Message Handler API is asking us to open the specific URL
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
@@ -1473,7 +1479,7 @@ var WindowManager = (function() {
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
     } else {
-      ensureHomescreen(null, true);
+      ensureHomescreen(true);
     }
   });
 
@@ -1529,6 +1535,6 @@ var WindowManager = (function() {
     },
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
-    launchHomescreen: launchHomescreen
+    retrieveHomescreen: retrieveHomescreen
   };
 }());
