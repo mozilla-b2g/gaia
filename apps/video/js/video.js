@@ -28,9 +28,6 @@ var controlFadeTimeout = null;
 var videodb;
 var currentVideo;  // The data for the current video
 
-// Video object used to create previews
-var previewPlayer = document.createElement('video');
-
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
@@ -83,9 +80,7 @@ function init() {
 function addVideo(videodata) {
   var poster;
 
-  if (!videodata ||
-      videodata.type.substring(0, 6) !== 'video/' ||
-      !previewPlayer.canPlayType(videodata.type)) {
+  if (!videodata || !videodata.metadata.isVideo) {
     return;
   }
 
@@ -169,12 +164,15 @@ function startStream() {
 
 function metaDataParser(videofile, callback) {
 
+  var previewPlayer = document.createElement('video');
+
   if (!previewPlayer.canPlayType(videofile.type)) {
-    return callback({});
+    return callback({isVideo: false});
   }
 
   var url = URL.createObjectURL(videofile);
   var metadata = {
+    isVideo: true,
     title: fileNameToVideoName(videofile.name)
   };
 
@@ -183,6 +181,12 @@ function metaDataParser(videofile, callback) {
   previewPlayer.style.height = THUMBNAIL_HEIGHT + 'px';
   previewPlayer.src = url;
   previewPlayer.onloadedmetadata = function() {
+
+    // File Object only does basic detection for content type,
+    // if videoWidth is 0 then this is likely an audio file (ogg / mp4)
+    if (!previewPlayer.videoWidth) {
+      return callback({isVideo: false});
+    }
 
     metadata.duration = previewPlayer.duration;
     metadata.width = previewPlayer.videoWidth;
@@ -293,7 +297,7 @@ function playerMousedown(event) {
 
 // Make the video fit the screen
 function setPlayerSize() {
-  if (!currentVideo.metadata) {
+  if (!currentVideo || !currentVideo.metadata) {
     return;
   }
   var xscale = window.innerWidth / currentVideo.metadata.width;
