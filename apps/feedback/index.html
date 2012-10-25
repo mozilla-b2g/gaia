@@ -9,6 +9,7 @@
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="shared/js/async_storage.js"></script>
+    <script type="text/javascript" src="js/feedback.js"></script>
 
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
@@ -19,7 +20,7 @@
     <section role="region" id="root">
       <header>
         <menu type="toolbar">
-          <button id="done" data-l10n-id="done" onclick="send()">Submit</button>
+          <button id="done" data-l10n-id="done">Submit</button>
         </menu>
         <h1 data-l10n-id="feedback">Feedback</h1>
       </header>
@@ -27,65 +28,15 @@
       <form id="feedback-form" action="" method="post">
 
         <fieldset>
-          <legend data-l10n-id="input-asset-label">Contact Info</legend>
+          <legend data-l10n-id="input-contact-label">Contact Info</legend>
           <section>
             <p>
-              <input type="text" id="asset" name="asset_tag" value="" data-l10n-id="input-asset" placeholder=""></input>
+              <input type="text" id="contact" name="contact" value="" data-l10n-id="input-contact" placeholder=""></input>
             </p>
           </section>
         </fieldset>
 
         <textarea id="feedback-textarea" name="comment" data-l10n-id="input-what-happen" placeholder="Tell us what's happening"></textarea>
-
-        <script>
-          asyncStorage.getItem('asset', function getAsset(value) {
-            var asset = value;
-            if (!asset) {
-              return;
-            }
-
-            document.getElementById('asset').value = value;
-          });
-
-          function reset() {
-            document.getElementById('feedback-textarea').value = '';
-          }
-
-          function send() {
-            var asset = document.getElementById('asset').value;
-            if (asset == '') {
-              return;
-            }
-
-            asyncStorage.setItem('asset', asset, function setAsset() {
-              var formData = new FormData();
-              formData.append('asset_tag', asset);
-              formData.append('build_id', navigator.buildID);
-
-              var comment = document.getElementById('feedback-textarea');
-              formData.append('comment', comment.value);
- 
-              var xhr = new XMLHttpRequest();
-              xhr.open('POST', 'https://b2gtestdrivers.allizom.org/comments');
-              xhr.send(formData);
-
-              reset();
-            });
-          }
-
-          var done = document.getElementById('done');
-          window.addEventListener('online', function() {
-            done.removeAttribute('disabled');
-          });
-
-          window.addEventListener('offline', function() {
-            done.setAttribute('disabled', 'true');
-          });
-
-          if (!navigator.onLine) {
-            done.setAttribute('disabled', 'true');
-          }
-        </script>
       </form>
     </section>
   </body>
