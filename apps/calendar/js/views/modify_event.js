@@ -27,9 +27,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     DEFAULT_VIEW: '/month/',
 
+    ERROR_PREFIX: 'event-error-',
+
     selectors: {
       element: '#modify-event-view',
       form: '#modify-event-view form',
+      status: '#modify-event-view section[role="status"]',
+      errors: '#modify-event-view .errors',
       saveButton: '#modify-event-view .save',
       deleteButton: '#modify-event-view .delete-record'
     },
@@ -189,6 +193,14 @@ Calendar.ns('Views').ModifyEvent = (function() {
       return this._findElement('saveButton');
     },
 
+    get status() {
+      return this._findElement('status');
+    },
+
+    get errors() {
+      return this._findElement('errors');
+    },
+
     /**
      * Gets form field by name
      */
@@ -219,6 +231,35 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
+     * Displays a list of errors
+     *
+     * @param {Array} list error list
+     *  (see Event.validaitonErrors).
+     */
+    displayErrors: function(list) {
+      var _ = navigator.mozL10n.get;
+      var errors = '';
+
+      var i = 0;
+      var len = list.length;
+
+      for (; i < len; i++) {
+        var name = list[i].name;
+        errors += _(this.ERROR_PREFIX + name) || name;
+      }
+
+      // populate error and display it.
+      this.errors.textContent = errors;
+      this.status.classList.add(this.activeClass);
+
+      var self = this;
+      this.status.addEventListener('animationend', function displayError() {
+        self.status.classList.remove(self.activeClass);
+        self.status.removeEventListener('animationend', displayError);
+      });
+    },
+
+    /**
      * Ask the provider to an event:
      *
      *  1. update the model with form data
@@ -237,6 +278,12 @@ Calendar.ns('Views').ModifyEvent = (function() {
       var data = this.formData();
       for (var field in data) {
         this.event[field] = data[field];
+      }
+
+      var errors = this.event.validationErrors();
+      if (errors) {
+        this.displayErrors(errors);
+        return;
       }
 
       // can't create without a calendar id
@@ -269,7 +316,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
           // order is important the above method triggers the building
           // of the dom elements so selectedDay must come after.
           self.app.timeController.selectedDay = moveDate;
-
           self.app.go(redirect);
         });
       }
@@ -299,7 +345,11 @@ Calendar.ns('Views').ModifyEvent = (function() {
     /**
      * Persist current model.
      */
-    save: function() {
+    save: function(event) {
+      if (event) {
+        event.preventDefault();
+      }
+
       if (this.provider) {
         this._persistEvent('updateEvent', 'canUpdate');
       } else {

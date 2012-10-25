@@ -156,10 +156,34 @@ suite('models/event', function() {
     assert.equal(subject.calendarId, 7);
   });
 
+
   test('#_id', function() {
     rawEvent._id = 'foo';
 
     assert.equal(subject._id, 'foo');
+  });
+
+  suite('#validationErrors', function() {
+    test('no errors', function() {
+      var event = new Calendar.Models.Event();
+      event.startDate = new Date(2012, 0, 1);
+      event.endDate = new Date(2012, 0, 2);
+
+      assert.ok(!event.validationErrors(), 'has no errors');
+    });
+
+    test('start date > end date', function() {
+      var event = new Calendar.Models.Event();
+      event.startDate = new Date(2020, 0, 2);
+      event.endDate = new Date(2012, 0, 1);
+
+      var errors = event.validationErrors();
+
+      assert.length(errors, 1);
+      assert.deepEqual(errors[0], {
+        name: 'start-after-end'
+      });
+    });
   });
 
   remoteSetter('syncToken');

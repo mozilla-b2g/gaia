@@ -190,53 +190,6 @@ ol.link-list a {
   display: none;
 }
 
-/* add event view */
-
-#modify-event-view form {
-  margin: 1rem 1rem 0 1rem;
-}
-
-#modify-event-view form ol li {
-  margin: 0rem;
-}
-
-#modify-event-view li.allday {
-  padding: 1rem;
-  position: relative;
-}
-
-#modify-event-view li.allday > label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
-
-#modify-event-view li.allday > label > span {
-  left: auto;
-  right: 1rem;
-}
-
-#modify-event-view.allday .start-time,
-#modify-event-view.allday .end-time {
-  visibility: hidden;
-}
-
-#modify-event-view.update .calendar-id {
-  display: none;
-}
-
-#modify-event-view.create .current-calendar {
-  display: none;
-}
-
-
-#modify-event-view.create .delete-record,
-#modify-event-view.readonly .delete-record {
-  display: none;
-}
-
 .fullscreen-view.active {
   visibility: visible;
 }

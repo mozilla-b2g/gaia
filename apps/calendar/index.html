@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
   <link rel="stylesheet" type="text/css" href="/style/week_view.css">
+  <link rel="stylesheet" type="text/css" href="/style/modify_event_view.css">
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
@@ -23,6 +24,7 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
 
   <script src="/js/mozalarm_shim.js" type="text/javascript" charset="utf-8"></script>
 
@@ -121,7 +123,6 @@
     </menu>
     <h1 data-l10n-id="settings-header">Calendars</h1>
   </header>
-
 
   <ol class="calendars">
   </ol>
@@ -276,7 +277,6 @@
 
 <section class="fullscreen-view" id="modify-event-view" role="region">
   <header>
-
     <a href="javascript: window.history.go(-1);">
        <span data-l10n-id="cancel" class="icon icon-back">
          Cancel
@@ -349,6 +349,9 @@
 
     </ol>
 
+    <section role="status">
+      <p class="errors"></p>
+    </section>
   </form>
 </section>
 
@@ -407,7 +410,6 @@
   </form>
 
 </section>
-
 
 </body>
 </html>
