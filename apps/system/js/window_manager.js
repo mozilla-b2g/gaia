@@ -92,21 +92,6 @@ var WindowManager = (function() {
     return displayedApp || null;
   }
 
-  function requireFullscreen(origin) {
-    var app = runningApps[origin];
-    if (!app)
-      return false;
-
-    if (app.manifest.entry_points) {
-      var entryPoint = app.manifest.entry_points[origin.split('/')[3]];
-      if (entryPoint)
-          return entryPoint.fullscreen;
-      return false;
-    } else {
-      return app.manifest.fullscreen;
-    }
-  }
-
   // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
   function launch(origin) {
@@ -162,7 +147,7 @@ var WindowManager = (function() {
     cssHeight += 'px';
 
     if (!screenElement.classList.contains('attention') &&
-        requireFullscreen(origin)) {
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight + 'px';
     }
 
@@ -186,7 +171,7 @@ var WindowManager = (function() {
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
     if (!screenElement.classList.contains('attention') &&
-        requireFullscreen(origin)) {
+        app.manifest.fullscreen) {
       cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
@@ -531,7 +516,7 @@ var WindowManager = (function() {
       openFrame.focus();
       openFrame = null;
     } else {
-      if (requireFullscreen(origin))
+      if (app.manifest.fullscreen)
         screenElement.classList.add('fullscreen-app');
 
       // Get the screenshot of the app and put it on the sprite
