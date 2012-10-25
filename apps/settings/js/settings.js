@@ -17,7 +17,6 @@ var Settings = {
         settings : null;
   },
 
-
   init: function settings_init() {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
@@ -284,6 +283,20 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
+  openUserGuide: function settings_openUserGuide() {
+    var settings = this.mozSettings;
+    if (!settings)
+      return;
+
+    var key = 'deviceinfo.os';
+    var req = settings.createLock().get(key);
+    req.onsuccess = function userGuide() {
+      var url = 'http://support.mozilla.org/1/firefox-os/' +
+        req.result[key] + '/gonk/' + document.documentElement.lang + '/';
+      openLink(url);
+    };
+  },
+
   checkForUpdates: function settings_checkForUpdates() {
     var settings = this.mozSettings;
     if (!settings) {
@@ -339,17 +352,6 @@ window.addEventListener('load', function loadSettings(evt) {
   req.onsuccess = function brightness_onsuccess() {
     manualBrightness.hidden = req.result[autoBrightnessSetting];
   };
-
-  // activate all external links
-  var links = document.querySelectorAll('a[href^="http"]');
-  for (var i = 0; i < links.length; i++) {
-    links[i].dataset.href = links[i].href;
-    links[i].href = '#';
-    links[i].onclick = function() {
-      openURL(this.dataset.href);
-      return false;
-    };
-  }
 });
 
 window.addEventListener('hashchange', function handleHashChange(event) {
@@ -384,8 +386,9 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
   }
 });
 
-// set the 'lang' and 'dir' attributes to <html> when the page is translated
+// startup
 window.addEventListener('localized', function showBody() {
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
@@ -418,5 +421,38 @@ window.addEventListener('localized', function showBody() {
       navigator.mozL10n.language.code + '"]';
   document.getElementById('language-desc').textContent =
       document.querySelector(selector).textContent;
+
+  // handle specific links
+  document.getElementById('check-update-now').onclick =
+    Settings.checkForUpdates.bind(Settings);
+  document.querySelector('[data-l10n-id="user-guide"]').onclick =
+    Settings.openUserGuide.bind(Settings);
+
+  // activate all other links
+  var links = document.querySelectorAll('a[href^="http"], [data-href]');
+  for (var i = 0; i < links.length; i++) {
+    var link = links[i];
+    if (!link.dataset.href) {
+      link.dataset.href = link.href;
+      link.href = '#';
+    }
+
+    if (!link.dataset.href.startsWith('#')) { // external link
+      link.onclick = function() {
+        openLink(this.dataset.href);
+        return false;
+      };
+    } else if (!link.dataset.href.endsWith('Settings')) { // generic dialog box
+      link.onclick = function() {
+        openDialog(this.dataset.href.substr(1));
+        return false;
+      };
+    } else { // Settings-specific dialog box
+      link.onclick = function() {
+        Settings.openDialog(this.dataset.href.substr(1));
+        return false;
+      };
+    }
+  }
 });
 
