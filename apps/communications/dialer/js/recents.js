@@ -64,6 +64,36 @@ var Recents = {
       getElementById('select-all-threads');
   },
 
+  get iframeContacts() {
+    delete this.iframeContacts;
+    return this.iframeContacts = document.
+      getElementById('iframe-contacts');
+  },
+
+  get addContactActionMenu() {
+    delete this.addContactActionMenu;
+    return this.addContactActionMenu = document.
+      getElementById('add-contact-action-menu');
+  },
+
+  get createNewContactMenuItem() {
+    delete this.createNewContactMenuItem;
+    return this.createNewContactMenuItem = document.
+      getElementById('create-new-contact-menuitem');
+  },
+
+  get addToExistingContactMenuItem() {
+    delete this.addToExistingContactMenuItem;
+    return this.addToExistingContactMenuItem = document.
+      getElementById('add-to-existing-contact-menuitem');
+  },
+
+  get cancelActionMenuItem() {
+    delete this.cancelActionMenuItem;
+    return this.cancelActionMenuItem = document.
+      getElementById('cancel-action-menu');
+  },
+
   init: function re_init() {
     var self = this;
     if (this.recentsFilterContainer) {
@@ -102,6 +132,22 @@ var Recents = {
         this.mouseUp.bind(this));
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
+    }
+    if (this.addContactActionMenu) {
+      this.addContactActionMenu.addEventListener('submit',
+        this.addContactSubmit.bind(this));
+    }
+    if (this.createNewContactMenuItem) {
+      this.createNewContactMenuItem.addEventListener('click',
+        this.createNewContact.bind(this));
+    }
+    if (this.addToExistingContactMenuItem) {
+      this.addToExistingContactMenuItem.addEventListener('click',
+        this.addToExistingContact.bind(this));
+    }
+    if (this.cancelActionMenuItem) {
+      this.cancelActionMenuItem.addEventListener('click',
+        this.cancelActionMenu.bind(this));
     }
 
     // Setting up the SimplePhoneMatcher
@@ -384,6 +430,32 @@ var Recents = {
     }
   },
 
+  addContactSubmit: function re_addContactSubmit(event) {
+    return false;
+  },
+
+  createNewContact: function re_createNewContact() {
+    var src = '/contacts/index.html';
+    src += '#view-contact-form?tel=' + this.newPhoneNumber;
+    var timestamp = new Date().getTime();
+    this.iframeContacts.src = src + '&timestamp=' + timestamp;
+    window.location.hash = '#contacts-view';
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
+  addToExistingContact: function re_addToExistingContact() {
+    var src = '/contacts/index.html';
+    src += '#add-parameters?tel=' + this.newPhoneNumber;
+    var timestamp = new Date().getTime();
+    this.iframeContacts.src = src + '&timestamp=' + timestamp;
+    window.location.hash = '#contacts-view';
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
+  cancelActionMenu: function re_cancelActionMenu() {
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
   viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
     var contactsIframe = document.getElementById('iframe-contacts');
     var src = '/contacts/index.html';
@@ -393,29 +465,8 @@ var Recents = {
       contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';
     } else {
-      var action = new ActionMenu(_('addNewNumber'), [
-      {
-        label: _('createNewContact'),
-        callback: function() {
-          src += '#view-contact-form?tel=' + phoneNumber;
-          var timestamp = new Date().getTime();
-          contactsIframe.src = src + '&timestamp=' + timestamp;
-          window.location.hash = '#contacts-view';
-          action.hide();
-        }
-      },
-      {
-        label: _('addToExistingContact'),
-        callback: function() {
-          src += '#add-parameters?tel=' + phoneNumber;
-          var timestamp = new Date().getTime();
-          contactsIframe.src = src + '&timestamp=' + timestamp;
-          window.location.hash = '#contacts-view';
-          action.hide();
-        }
-      }
-      ]);
-      action.show();
+      this.newPhoneNumber = phoneNumber;
+      this.addContactActionMenu.classList.add('visible');
     }
   },
 
