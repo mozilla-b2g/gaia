@@ -1,67 +1,82 @@
 'use strict';
 
 var KeyboardManager = (function() {
-  // XXX TODO: Retrieve it from Settings, allowing 3rd party keyboards
-  var host = document.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+  function getKeyboardURL() {
+    // TODO: Retrieve it from Settings, allowing 3rd party keyboards
+    var host = document.location.host;
+    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
+    var protocol = document.location.protocol;
 
-  var keyboardURL = document.location.protocol + '//keyboard.' + domain;
-  if (keyboardURL.substring(0, 6) == 'app://') { // B2G bug 773884
-    keyboardURL += '/index.html';
+    return protocol + '//keyboard.' + domain + '/';;
   }
 
-  var dispatchEvent = function km_dispatchEvent(name, data) {
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(name, true, true, data);
-    window.dispatchEvent(evt);
-  };
+  function generateKeyboard(container, keyboardURL, manifestURL) {
+    var keyboard = document.createElement('iframe');
+    keyboard.src = keyboardURL;
+    keyboard.setAttribute('mozbrowser', 'true');
+    keyboard.setAttribute('mozapp', manifestURL);
+    //keyboard.setAttribute('remote', 'true');
 
-  var keyboardFrame = document.getElementById('keyboard-frame');
-  keyboardFrame.src = keyboardURL;
+    container.appendChild(keyboard);
+    return keyboard;
+  }
 
-  var keyboardOverlay = document.getElementById('keyboard-overlay');
+  // Generate a <iframe mozbrowser> containing the keyboard.
+  var container = document.getElementById('keyboard-frame');
+  var keyboardURL = getKeyboardURL() + 'index.html';
+  var manifestURL = getKeyboardURL() + 'manifest.webapp';
+  var keyboard = generateKeyboard(container, keyboardURL, manifestURL);
 
-  // TODO Think on a way of doing this
-  // without postMessages between Keyboard and System
-  window.addEventListener('message', function receiver(evt) {
-    var message = JSON.parse(evt.data);
-    if (message.action === 'hideKeyboard') {
-      keyboardFrame.classList.add('hide');
-      keyboardFrame.classList.remove('visible');
+  // The overlay will display part of the keyboard that are above the
+  // current application.
+  var overlay = document.getElementById('keyboard-overlay');
+
+  // Listen for mozbrowserlocationchange of keyboard iframe.
+  var previousHash = '';
+
+  var urlparser = document.createElement('a');
+  keyboard.addEventListener('mozbrowserlocationchange', function(e) {
+    urlparser.href = e.detail;
+    if (previousHash == urlparser.hash)
       return;
+    previousHash = urlparser.hash;
+
+    var type = urlparser.hash.split('=');
+    switch (type[0]) {
+      case '#show':
+        var size = parseInt(type[1]);
+        var height = window.innerHeight - size;
+        overlay.hidden = false;
+
+        var updateHeight = function() {
+          container.removeEventListener('transitionend', updateHeight);
+          overlay.style.height = height + 'px';
+          container.classList.add('visible');
+
+          var detail = {
+            'detail': {
+              'height': size
+            }
+          };
+          dispatchEvent(new CustomEvent('keyboardchange', detail));
+        }
+
+        if (container.classList.contains('hide')) {
+          container.classList.remove('hide');
+          container.addEventListener('transitionend', updateHeight);
+          return;
+        }
+
+        updateHeight();
+        break;
+
+      case '#hide':
+        container.classList.add('hide');
+        container.classList.remove('visible');
+        overlay.hidden = true;
+        dispatchEvent(new CustomEvent('keyboardhide'));
+        break;
     }
-
-    if (message.action !== 'updateHeight')
-      return;
-
-    keyboardOverlay.hidden = true;
-
-    if (message.hidden) {
-      // To reset dialog height
-      dispatchEvent('keyboardhide');
-
-      keyboardFrame.classList.add('hide');
-      keyboardFrame.classList.remove('visible');
-      return;
-    }
-
-    var height = window.innerHeight - message.keyboardHeight;
-
-    if (!keyboardFrame.classList.contains('hide')) {
-      keyboardOverlay.style.height = height + 'px';
-      keyboardOverlay.hidden = false;
-      dispatchEvent('keyboardchange', { height: message.keyboardHeight });
-    } else {
-      keyboardFrame.classList.remove('hide');
-      keyboardFrame.addEventListener('transitionend', function keyboardShown() {
-        keyboardFrame.removeEventListener('transitionend', keyboardShown);
-        keyboardOverlay.style.height = height + 'px';
-        keyboardOverlay.hidden = false;
-        keyboardFrame.classList.add('visible');
-        dispatchEvent('keyboardchange', { height: message.keyboardHeight });
-      });
-    }
-
   });
 })();
 

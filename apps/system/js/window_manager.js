@@ -1295,7 +1295,8 @@ var WindowManager = (function() {
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
-  'keyboardchange', 'keyboardhide', 'attentionscreenhide'];
+                         'keyboardchange', 'keyboardhide',
+                         'attentionscreenhide'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
       if (event == 'keyboardchange') {

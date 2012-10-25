@@ -402,30 +402,16 @@ const IMEController = (function() {
 
   // Inform about a change in the displayed application via mutation observer
   // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
-  function _updateTargetWindowHeight() {
-    var height;
-    if (IMERender.ime.dataset.hidden) {
-      height = 0;
+  function _updateTargetWindowHeight(hide) {
+    if (IMERender.ime.dataset.hidden || hide) {
+      document.location.hash = 'hide';
     } else {
-      height = IMERender.ime.scrollHeight;
+      document.location.hash = 'show=' + IMERender.ime.scrollHeight;
     }
-
-    var message = {
-      action: 'updateHeight',
-      keyboardHeight: height,
-      hidden: !!IMERender.ime.dataset.hidden
-    };
-
-    parent.postMessage(JSON.stringify(message), '*');
   }
 
   function _notifyShowKeyboard(show) {
-
-    var message = {
-      action: show ? 'showKeyboard' : 'hideKeyboard'
-    };
-
-    parent.postMessage(JSON.stringify(message), '*');
+    _updateTargetWindowHeight(!show);
   }
 
   var _dimensionsObserver = new MutationObserver(function() {
