@@ -291,7 +291,7 @@ IMEngineBase.prototype = {
   /**
    * Notifies when the IM is shown
    */
-  activate: function engineBase_activate(language, suggestions, state) {
+  show: function engineBase_show(inputType) {
   }
 };
 
@@ -604,11 +604,6 @@ IMEngine.prototype = {
    *Override
    */
   click: function engine_click(keyCode) {
-    if (this._layoutPage !== LAYOUT_PAGE_DEFAULT) {
-      this._glue.sendKey(keyCode);
-      return;
-    }
-
     IMEngineBase.prototype.click.call(this, keyCode);
 
     switch (keyCode) {
@@ -649,12 +644,6 @@ IMEngine.prototype = {
         break;
     }
     this._start();
-  },
-
-  _layoutPage: LAYOUT_PAGE_DEFAULT,
-
-  setLayoutPage: function engine_setLayoutPage(page) {
-    this._layoutPage = page;
   },
 
   /**
@@ -701,10 +690,9 @@ IMEngine.prototype = {
   /**
    * Override
    */
-  activate: function engine_activate(language, suggestions, state) {
-    var inputType = state.type;
-    IMEngineBase.prototype.activate.call(this, language, suggestions, state);
-    debug('Activate. Input type: ' + inputType);
+  show: function engine_show(inputType) {
+    IMEngineBase.prototype.show.call(this, inputType);
+    debug('Show. Input type: ' + inputType);
     PinyinDecoderService.flushCache(null);
     var keyboard = this._inputTraditionalChinese ?
       'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
@@ -12022,9 +12010,9 @@ var jspinyin = new IMEngine();
 if (typeof define === 'function' && define.amd)
   define('jspinyin', [], function() { return jspinyin; });
 
-// Expose the engine to the Gaia keyboard
-if (typeof InputMethods !== 'undefined') {
-  InputMethods.jspinyin = jspinyin;
+// Expose to IMEManager if we are in Gaia homescreen
+if (typeof IMEManager !== 'undefined') {
+  IMEController.IMEngines.jspinyin = jspinyin;
 }
 
 // For unit tests
