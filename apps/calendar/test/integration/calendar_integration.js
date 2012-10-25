@@ -49,6 +49,8 @@ CalendarIntegration.prototype = {
     /** forms */
     eventForm: '#modify-event-view > form',
     eventFormFields: '#modify-event-view form [name]',
+    eventFormStatus: '#modify-event-view [role="status"]',
+    eventFormError: '#modify-event-view .errors',
 
     /** generic */
     present: '.present'

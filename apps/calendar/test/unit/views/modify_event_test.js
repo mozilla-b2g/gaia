@@ -66,7 +66,9 @@ suite('views/modify_event', function() {
       '<div id="modify-event-view">',
         '<button class="save">save</button>',
         '<button class="delete-record">delete</button>',
-        '<div class="errors"></div>',
+        '<section role="status">',
+          '<div class="errors"></div>',
+        '</section>',
         '<form>',
           '<input type="checkbox" name="allday" />',
           '<input name="title" />',
@@ -125,6 +127,14 @@ suite('views/modify_event', function() {
     assert.equal(subject._changeToken, 0);
 
     assert.ok(subject._fields, 'has fields');
+  });
+
+  test('.status', function() {
+    assert.ok(subject.status);
+  });
+
+  test('.errors', function() {
+    assert.ok(subject.errors);
   });
 
   test('.form', function() {
@@ -227,7 +237,6 @@ suite('views/modify_event', function() {
         endTime: InputParser.exportTime(remote.endDate),
         currentCalendar: calendar.name
       };
-
 
       var key;
 
@@ -510,12 +519,29 @@ suite('views/modify_event', function() {
     });
   });
 
+  test('#displayErrors', function() {
+    var errors = [{ name: 'foo' }];
+    subject.displayErrors(errors);
+
+    var list = subject.status.classList;
+    var errors = subject.errors.textContent;
+
+    assert.ok(errors);
+    assert.include(errors, 'foo');
+
+    assert.ok(list.contains(subject.activeClass));
+    triggerEvent(subject.status, 'animationend');
+    assert.ok(!list.contains(subject.activeClass));
+  });
+
   suite('#save', function() {
     var redirectTo;
     var provider;
     var list;
+    var calledWith;
 
     setup(function() {
+      calledWith = null;
       provider = eventStore.providerFor(event);
       list = subject.element.classList;
 
@@ -524,12 +550,29 @@ suite('views/modify_event', function() {
       };
     });
 
+    function haltsOnError() {
+      test('does not save when validator errors occurs', function() {
+        var event = subject.event;
+        var errors = [];
+        var displayedErrors;
+
+        subject.displayErrors = function() {
+          displayedErrors = arguments;
+        }
+
+        event.validationErrors = function() {
+          return errors;
+        };
+
+        subject.save();
+
+        assert.ok(!calledWith, 'does not save');
+        assert.deepEqual(displayedErrors[0], errors, 'shows errors');
+      });
+    }
+
     suite('update', function() {
-      var calledWith;
-
       setup(function() {
-        calledWith = null;
-
         provider.updateEvent = function() {
           calledWith = arguments;
         }
@@ -539,6 +582,8 @@ suite('views/modify_event', function() {
 
         subject._returnTo = '/foo';
       });
+
+      haltsOnError();
 
       test('with provider that can edit', function() {
         setFieldValue('calendarId', calendar._id);
@@ -567,11 +612,7 @@ suite('views/modify_event', function() {
     });
 
     suite('create', function() {
-      var calledWith;
-
       setup(function() {
-        calledWith = null;
-
         provider.createEvent = function() {
           calledWith = arguments;
         };
@@ -583,6 +624,8 @@ suite('views/modify_event', function() {
         // must come after dispatch
         subject._returnTo = '/foo';
       });
+
+      haltsOnError();
 
       test('with provider that can create', function() {
         assert.ok(!subject.provider, 'has no provider yet');
