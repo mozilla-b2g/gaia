@@ -28,7 +28,8 @@
     "idle":{},
     "network-events":{},
     "embed-apps":{},
-    "background-sensors":{}
+    "background-sensors":{},
+    "permissions":{}
   },
   "locales": {
     "ar": {
