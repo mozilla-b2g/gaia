@@ -158,18 +158,9 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
-# Settings database setup
-DB_TARGET_PATH = /data/local/indexedDB
-DB_SOURCE_PATH = profile/indexedDB/chrome
-
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
-	then \
-	  echo "Settings DB does not exists, creating an initial one:"; \
-	  $(call run-js-command, settings); \
-	fi ;
-
+	cp build/settings.json profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -282,21 +273,6 @@ define run-js-command
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
-settingsdb: install-xulrunner-sdk
-	@echo "B2G pre-populate settings DB."
-	@$(call run-js-command, settings)
-
-.PHONY: install-settingsdb
-install-settingsdb: settingsdb install-xulrunner-sdk
-	$(ADB) start-server
-	@echo 'Stoping b2g'
-	$(ADB) shell stop b2g
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite $(MSYS_FIX)${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	@echo 'Starting b2g'
-	$(ADB) shell start b2g
-	@echo 'Rebooting b2g now. '
-
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
@@ -341,8 +317,8 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-ifneq ($(TESTS), '')
-	ifneq ($(APP), '')
+ifeq ($(TESTS),)
+	ifneq ($(APP),)
 		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
 	else
 		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
@@ -350,8 +326,7 @@ ifneq ($(TESTS), '')
 endif
 .PHONY: test-integration
 test-integration:
-	echo $(TESTS)
-	@test_apps/test-agent/common/test/bin/test $(TESTS)
+	@./tests/js/bin/runner $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -370,19 +345,20 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
+	# integration tests
+	rm -f tests/vendor/marionette.js
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js tests/js/vendor/
+
+	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -Rf tools/xpcwindow
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
-
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
@@ -498,7 +474,6 @@ screenshot:
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
 
-
 # Forward port to use the RIL daemon from the device
 forward:
 	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
@@ -582,7 +557,7 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-settingsdb install-gaia
+reset-gaia: purge install-gaia
 
 # remove the memories and apps on the phone
 purge:
@@ -594,7 +569,7 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
 
 # clean out build products
-clean: 
+clean:
 	rm -rf profile
 
 # clean out build products

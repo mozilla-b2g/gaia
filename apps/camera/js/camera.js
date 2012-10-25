@@ -7,6 +7,7 @@ var Camera = {
   _cameras: null,
   _camera: 0,
   _captureMode: null,
+  _recording: false,
 
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
@@ -52,6 +53,8 @@ var Camera = {
   _pictureSize: null,
   _previewPaused: false,
   _previewActive: false,
+
+  PREVIEW_PAUSE: 500,
 
   _flashModes: [],
   _currentFlashMode: 0,
@@ -286,7 +289,7 @@ var Camera = {
   },
 
   toggleRecording: function camera_toggleRecording() {
-    if (document.body.classList.contains('capturing')) {
+    if (this._recording) {
       this.stopRecording();
       return;
     }
@@ -302,10 +305,15 @@ var Camera = {
     var onsuccess = (function onsuccess() {
       captureButton.removeAttribute('disabled');
       document.body.classList.add('capturing');
+      this._recording = true;
       this.startRecordingTimer();
+      // User closed app while recording was trying to start
+      if (document.mozHidden) {
+        this.stopRecording();
+      }
     }).bind(this);
 
-    var onerror = function onerror() {
+    var onerror = function onerror(e) {
       captureButton.removeAttribute('disabled');
       switchButton.removeAttribute('disabled');
     };
@@ -410,6 +418,7 @@ var Camera = {
 
   stopRecording: function camera_stopRecording() {
     this._cameraObj.stopRecording();
+    this._recording = false;
     window.clearInterval(this._videoTimer);
 
     this.switchButton.removeAttribute('disabled');
@@ -604,25 +613,28 @@ var Camera = {
     }
   },
 
-  start: function camera_start() {
+  startPreview: function camera_startPreview() {
     this.viewfinder.play();
     this.setSource(this._camera);
     this._previewActive = true;
     this.initPositionUpdate();
   },
 
-  stop: function camera_stop() {
-    this.pause();
+  stopPreview: function camera_stopPreview() {
+    if (this._recording) {
+      this.stopRecording();
+    }
+    this.pausePreview();
     this.viewfinder.mozSrcObject = null;
     this.cancelPositionUpdate();
   },
 
-  pause: function camera_pause() {
+  pausePreview: function camera_pausePreview() {
     this.viewfinder.pause();
     this._previewActive = false;
   },
 
-  resume: function camera_resume() {
+  resumePreview: function camera_resumePreview() {
     this._cameraObj.resumePreview();
     this._previewActive = true;
   },
@@ -666,7 +678,22 @@ var Camera = {
     this._filmStripTimer =
       window.setTimeout(this.hideFilmStrip.bind(this), 5000);
     this._resumeViewfinderTimer =
-      window.setTimeout(this.resume.bind(this), 2000);
+      window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
+  },
+
+  _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
+    var url = URL.createObjectURL(blob);
+    var img = new Image();
+    img.src = url;
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      context.drawImage(img, 0, 0);
+      callback(canvas.toDataURL(type));
+      URL.revokeObjectURL(url);
+    };
   },
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
@@ -681,11 +708,14 @@ var Camera = {
 
     addreq.onsuccess = (function() {
       if (this._pendingPick) {
-        this._pendingPick.postResult({
-          type: 'image/jpeg',
-          filename: name
-        });
-        this.cancelActivity();
+        var type = 'image/jpeg';
+        this._dataURLFromBlob(blob, type, function(name) {
+          this._pendingPick.postResult({
+            type: type,
+            url: name
+          });
+          this.cancelActivity();
+        }.bind(this));
         return;
       }
       this.addToFilmStrip(name, blob, 'image/jpeg');
@@ -772,7 +802,7 @@ var Camera = {
       // Preview may have previously been paused if storage
       // was not available
       if (!this._previewActive && !document.mozHidden) {
-        this.start();
+        this.startPreview();
       }
       this.showOverlay(null);
       return false;
@@ -790,7 +820,7 @@ var Camera = {
       break;
     }
     if (this._previewActive) {
-      this.stop();
+      this.stopPreview();
     }
     return true;
   },
@@ -903,10 +933,10 @@ window.addEventListener('DOMContentLoaded', function CameraInit() {
 
 document.addEventListener('mozvisibilitychange', function() {
   if (document.mozHidden) {
-    Camera.stop();
+    Camera.stopPreview();
     Camera.cancelActivity(true);
   } else {
-    Camera.start();
+    Camera.startPreview();
   }
 });
 

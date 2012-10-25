@@ -1,17 +1,17 @@
-requireCommon('/test/marionette.js');
+require('/apps/system/test/integration/system_integration.js');
 
 suite('notifications', function() {
 
   var device;
+  var app;
 
-  testSupport.startMarionette(function(driver) {
-    device = driver;
+  MarionetteHelper.start(function(client) {
+    app = new SystemIntegration(client);
+    device = app.device;
   });
 
   setup(function() {
-    this.timeout(10000);
-    yield device.setScriptTimeout(5000);
-    yield device.goUrl(testSupport.gaiaUrl('system'));
+    yield app.launch();
   });
 
   test('text/description notification', function() {
@@ -21,27 +21,15 @@ suite('notifications', function() {
 
     yield device.setContext('chrome');
 
-    yield device.executeAsyncScript(function(text, desc) {
-      window.addEventListener('mozChromeEvent', function(e) {
-        var detail = e.detail;
-        if (detail.type === 'desktop-notification') {
-          marionetteScriptFinished(JSON.stringify(detail));
-        }
-      });
-
-      var notify = window.navigator.mozNotification;
-      var notification = notify.createNotification(
-        text, desc
-      );
-
-      notification.show();
-    }, [title, description]);
+    yield IntegrationHelper.sendAtom(
+      device,
+      '/apps/system/test/integration/atoms/notification',
+      true,
+      [title, description]
+    );
 
     yield device.setContext('content');
-
-    var container = yield device.findElement(
-      '#notifications-container'
-    );
+    var container = yield app.element('notificationsContainer');
 
     var text = yield container.getAttribute('innerHTML');
     assert.ok(text, 'container should have notifications');

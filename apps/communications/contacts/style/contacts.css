@@ -219,7 +219,7 @@ form p textarea + button[type="reset"].hide {
 }
 
 fieldset legend.action {
-  padding-right: 1rem;
+  padding-right: 1.8rem;
 }
 
 fieldset legend.action:after {
