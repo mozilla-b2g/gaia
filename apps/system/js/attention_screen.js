@@ -190,10 +190,13 @@ var AttentionScreen = {
   },
 
   _hasAttentionPermission: function as_hasAttentionPermission(app) {
-    if (!app || !app.manifest.permissions)
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
       return false;
 
-    return ('attention' in app.manifest.permissions);
+    var value = mozPerms.get('attention', app.manifestURL, app.origin, false);
+
+    return (value === 'allow');
   }
 };
 
