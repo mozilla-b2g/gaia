@@ -659,53 +659,7 @@ MessageListCard.prototype = {
   },
 
   onHoldMessage: function(messageNode, event) {
-    var header = messageNode.message;
-    Cards.popupMenuForNode(
-      this.buildEditMenuForMessage(header), messageNode,
-      ['menu-item'],
-      function(clickedNode) {
-        if (!clickedNode)
-          return;
-
-        var op = null;
-        switch (clickedNode.classList[0]) {
-          // All of these mutations are immediately reflected, easily observed
-          // and easily undone, so we don't show them as toaster actions.
-          case 'msg-edit-menu-star':
-            header.setStarred(true);
-            break;
-          case 'msg-edit-menu-unstar':
-            header.setStarred(false);
-            break;
-          case 'msg-edit-menu-mark-read':
-            header.setRead(true);
-            break;
-          case 'msg-edit-menu-mark-unread':
-            header.setRead(false);
-            break;
-          case 'msg-edit-menu-delete':
-            var req = confirm(mozL10n.get('message-edit-delete-confirm'));
-            if (!req) {
-              return;
-            }
-            op = header.deleteMessage();
-            break;
-          case 'msg-edit-menu-move':
-            // TODO: Move back-end mail api is not ready now.
-            //       Please verify this function when api landed.
-            Cards.folderSelector(function(folder) {
-              op = header.moveMessage(folder);
-              Toaster.logMutation(op);
-            });
-
-            break;
-
-          // Deletion, and moves, on the other hand, require a lot of manual
-          // labor, so we need to expose their undo op's.
-        }
-        if (op)
-          Toaster.logMutation(op);
-      }.bind(this));
+    this.setEditMode(true);
   },
 
   onRefresh: function() {
@@ -746,23 +700,6 @@ MessageListCard.prototype = {
       Toaster.logMutation(op);
       this.setEditMode(false);
     }.bind(this));
-  },
-
-  buildEditMenuForMessage: function(header) {
-    var contents = msgNodes['edit-menu'].cloneNode(true);
-
-    // Remove the elements that are not relevant (versus collapsing because
-    // collapsing does not make :last-child work right).
-    contents.removeChild(
-      contents.getElementsByClassName(
-        header.isStarred ? 'msg-edit-menu-star' :
-                           'msg-edit-menu-unstar')[0]);
-    contents.removeChild(
-      contents.getElementsByClassName(
-        header.isRead ? 'msg-edit-menu-mark-read' :
-                        'msg-edit-menu-mark-unread')[0]);
-
-    return contents;
   },
 
   /**
@@ -837,8 +774,6 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onDelete.bind(this), false);
   domNode.getElementsByClassName('msg-star-btn')[0]
     .addEventListener('click', this.onToggleStar.bind(this), false);
-  domNode.getElementsByClassName('msg-mark-read-btn')[0]
-    .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
   domNode.getElementsByClassName('msg-forward-btn')[0]
@@ -915,16 +850,6 @@ MessageReaderCard.prototype = {
       button.classList.remove('msg-btn-active');
 
     this.header.setStarred(!this.header.isStarred);
-  },
-
-  onToggleRead: function() {
-    var button = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
-    if (this.header.isRead)
-      button.classList.add('msg-btn-active');
-    else
-      button.classList.remove('msg-btn-active');
-
-    this.header.setRead(!this.header.isRead);
   },
 
   onMove: function() {
