@@ -121,7 +121,7 @@
       ui: 'tdd',
       reporter: mocha.reporters[reporter],
       // change the default timeout to all tests to 6 seconds
-      timeout: 6000
+      timeout: 20000
     });
 
     window.xpcArgv.slice(2).forEach(function(test) {

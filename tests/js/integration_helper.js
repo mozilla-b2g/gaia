@@ -59,13 +59,15 @@ var IntegrationHelper = (function() {
       }
 
       if (!timeout)
-        timeout = 3000;
+        timeout = 10000;
 
       test(function(err, result) {
         _start = _start || Date.now();
 
         if (Date.now() - _start > timeout) {
-          callback(new Error('Timeout more then: "' + timeout + 'ms has passed.'));
+          callback(
+            new Error('Timeout more then: "' + timeout + 'ms has passed.')
+          );
           return;
         }
 
