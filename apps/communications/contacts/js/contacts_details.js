@@ -41,7 +41,7 @@ contacts.Details = (function() {
     editContactButton = dom.querySelector('#edit-contact-button');
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
-    favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+    favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
     initPullEffect(cover);
   };
