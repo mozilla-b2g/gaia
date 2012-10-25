@@ -33,31 +33,7 @@
   border-top: .1rem solid white;
 }
 
-progress.loading-icon:not([value]) {
-  width: 2.9rem;
-  height: 2.9rem;
-  background: url(images/spinner.png) no-repeat left top;
-  border: none;
-  animation: 1s moveDefault infinite steps(10);
-  display: inline-block;
-  vertical-align: middle;
-}
-
-progress.loading-icon:not([value])::-moz-progress-bar {
-  background: none;
-}
-
 progress.frozen {
   opacity: 0;
   animation-name: none;
-}
-
-@keyframes moveDefault {
-  from {
-    background-position: 0 top;
-  }
-
-  to {
-    background-position: -390px top;
-  }
 }
