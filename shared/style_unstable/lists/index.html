@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lists</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+
+  <link rel="stylesheet" href="../lists.css">
+  <link rel="stylesheet" href="../../style/headers.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", "Moz", Sans-serif;
+      font-weight: 300;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+      margin-top: 1rem;
+    }
+    h2.bb-docs:first-child {
+      margin-top: 0;
+    }
+
+    #bb-docs-toggle { vertical-align: middle; }
+
+    /* Switches used only in edit mode */
+
+    label:not([for])  {
+      display: inline-block;
+      vertical-align: middle;
+      width: 4rem;
+      height: 5rem;
+      position: relative;
+    }
+
+    label:not([for]) input {
+      margin: 0;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    label:not([for]) input + span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin: -1.1rem 0 0 0;
+      width: 2.2rem;
+      height: 2.2rem;
+      pointer-events: none;
+    }
+
+    label:not([for]).danger input[type="checkbox"] + span {
+      background: no-repeat center top;
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAABCCAYAAABTqybaAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAASySURBVHja7JhrbBRVFMd/M33IApklliJNWVqykFioNG0DWCgtuBQqY0waG19EY6JfEEUhjYpR+UIaTFD0gyF+wJgoCAlJE5iNaENh221toY+IgPhIBXmU0A7sRKS0pVw/cKfdDvvosvrJnmSSu3NnfvfMmXv+Z84qQgiimd+tzAGWA6XAo0A60AgcBZp0S1yMdq/iBPvdCsAK4COgiNjWCGzSLdEZE+x3K6nALuAVgIzlq09mVVXvdRcWt7sLCnqUlJQ7oc7OHKurY1VP3YFqs+n7XHnrTqBGt8SdEZgQAiEEhkaqoREwNERDvrenNxB4Sgih2PMRjtTeQODVhnxvyNAQhsYhQ0O1520ohsZuQ0M0+8qOD5jmzBjAMceAaS5o9pV1S/jHTvAq6Wn3gGlmjhcaBn84zPOl4eBOQ0P0BgJrEoXaR28g8LIENwshwNDwGBqipdLXdr9QO+Ytlb5fJNyjAhUAWVXV+0nObmdVVX8lxz4VWAuQ6as4kSSYTF9FsxyuVYH5AC6P50qyYJfHY2fiIypwHWC4v38yydtUOywqcAbg1uXLs5Ol9l+4kC2HP6pAPYDZFChPFtx7pL7UVgcVaALoqTvwjFSv+7X0nroD6+T4mJ0gR2WCbEgiQTbLPVwfnnmLZEpfHwyF5iYKHQyFljTke/+W4AKnCO2QIvTbgGnmJKATpS2rV16V0HfGiJCEq4aGIT2/2hcMvhhHNqf2BYMfNOR7ByV0j6Excr1T6FOAT4DXpNCfyaqq3u8uLG6dVlR0ERgOdXbOs7o6HpdCP0Pe+hawQ7dGYdFKU7ksTcVxdkI9sFm3xKm4Nc+xSK5cpBwoA4aBBuAIENQtcWXcxfTfMpX/yCbAE+AJ8AR4AjwB/r+AFUOLOvcgUCtL/2zA/jC/CfwJBIB3dUtcSwQcBBYDaXEcGwKO65YojQculF83GaMtcZRHVcb8NIEK3RJdkWJcCLTY0LsfjNFddcxnAC1+t1IYCVwPTIrlZbQFpE2y245wcDDc0/Hagh278G7cMsZzv1sJ2jGeKmOUngjUu3ELedtq6b90iSN5s8LjPghkqMD2RJuaGRVPkretFoAzb9fc0+QA21VgTSIhcC9cRPHX+wA4u/V9eg7uixTvNSqQMyYVU6H0WAdZVevugU72zGFxnZ8Ul4uL3+zl953boq2fozqTIKNMZ1pREfNrPyTFNbppUqeks+RgPQ9kZnKttZWTG9bFerA0FRgThN4GP32Njbiys5lbUzvyFMV7v2WK18vNc+dof7qSO7fji9Cg8+TJ9S8xfOMG3jc2MWnGQyz8bA+ZKx9jyLI4Uf0EgyEr3qsYUoFu59mbF/7g563voaansyzQwaznnkcMD9PxwrP89evp8bzj86psVpy5z/ndn3KttRVX9t2G/qc3X6fv2OHYUjnK+C5mgkzJnUd5+ynOf/kFp2vWx9fgsASx1S0ILIu0n6evqMRsPEzYf4DxvG3WLVEaLpt996MXDqipW2K6U9104FakeI8TOiAZ98hmG7BUxhtFib2AY94ESnRLtI0klOP6LmA68IPso9PieD8EdOiWKBlvlS4BZgKfA2dlASWsmJ6VczMjQQH+GQBN9kpajIY+kQAAAABJRU5ErkJggg==);
+    }
+
+    label:not([for]).danger input:checked + span {
+      background-position: center bottom;
+    }
+
+    .block-items li img { 
+      background: #ccc url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNS4wLjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHdpZHRoPSI1MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPGxpbmUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHgxPSIwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iNTAiLz4NCjxsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4MT0iNTAiIHkxPSIwIiB4Mj0iMC4wODIiIHkyPSI0OS45MTkiLz4NCjwvc3ZnPg0K);
+      background-size: 100% 100%;
+      opacity: 0.5;
+    }
+
+    .block-items li .icon-callout {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MDAzRTc0NDcxNTU2MTFFMjg1RkRBQkIxMEI1NkNEN0EiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MDAzRTc0NDgxNTU2MTFFMjg1RkRBQkIxMEI1NkNEN0EiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowMDNFNzQ0NTE1NTYxMUUyODVGREFCQjEwQjU2Q0Q3QSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowMDNFNzQ0NjE1NTYxMUUyODVGREFCQjEwQjU2Q0Q3QSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PncAgYwAAAHfSURBVHjarJZNKERRFMffzCATJaIUSVGU1IhsUGODlYmNj7KQSZGipCgrKWUhZaKU2PiKjYmsLJSIEhvKSqnJYiILpSYv/kfn1e10n+m9mX/9mnvu3HfPu+fcc+/zBNtCBuQHi2ASJAx3ygKd4FDt9PLvMhgDm4Z70UsegFXpoBkMs90PFozUNMIv/KcM1WBNgxewpnm4BBzZTOxT2uPApJB7kIM3NArEYPqzG0RFfwDcOVhNKa3gHHRp3mYPtIBbpT8ubPlMQLEpAjFysKNxYK3iXfTFQIONgzzwwe0NMGolOcoxl5oDzy6SvAXC6i6ifb+kGXjlcOIETxzW1QHF60mTUCf64tCYOgeWd1NsNV+KNWH4yiuqrTbloQg0sl3ASb5OxYFX2DMi4fOgKp0OPkGI40nKBce8srQ4IN2DQcWuBKegOF0OSPtgQrHrwaWbcKlJlqLk/oBWtvPBEIdP1kgZr/TViQODzykq/w62M0E76OPznyIwAHbZOdXSozqBh2+0ZOrhy8ifZJzJoY0ky4EuJ0GbM0ueqCt8/TpyQLoBNTYXkdQU2KZ7OlkOdAfaCTgDTaDwn7G1INvrsn4uQB1/hcRtxqyDWacrUPXN2zXCxZnDu+wB9HIozV8BBgCRzF4kkpLxhwAAAABJRU5ErkJggg==);
+    }
+
+    .block-items[data-type="overlay"] li .icon-callout {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBNYWNpbnRvc2giIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MEI1MkNEREIxNTcxMTFFMkI5MzNCMjIyRjQ5ODJBRjAiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MEI1MkNEREMxNTcxMTFFMkI5MzNCMjIyRjQ5ODJBRjAiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDowQjUyQ0REOTE1NzExMUUyQjkzM0IyMjJGNDk4MkFGMCIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDowQjUyQ0REQTE1NzExMUUyQjkzM0IyMjJGNDk4MkFGMCIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pks+GiMAAAFfSURBVHjaYvj//z8DEHMC8WQgZoPyycEgvSHo4jDGzP8QsJQCC/ihZkxDt8DmPypop9ACEJgAE2cEEmcYGBiMGVBBFhBPZ8AE0kC8kQE7YAZiAyR+HxAXg2x5+x8T/AFiPyyuNPhPGpBmAdpyEIgDsbhmBRDbAvFZJPHXaHx8PgCFwFMGaMxjA5+BWJHMOJiDHMmg5PUQiwWlZEbyfGzJNB+LBTYkWgDKS8lAzIzNApAvbqBZkENBnsCwAJYf/iBZcBvdNZRawAAtLpBBPrUt4EGLcFBKUqemBbDM9A0tqESpaQEIh6MF1RkglqCmBdiS7j1ygouQgjo0S0BBV4RFnRwQG5NjAa5MeAOa00FJuxqaGL7hq3AI4XC0iMcF/qBnUFLC0wxHmYUNdJFjASyfTCPSElD1y0ZuBrLBUnZh9QklxQAnNEW9wmH4TEp8gG4RKPVsgeaVw0BsCZMHCDAAYwvHNM6EVZMAAAAASUVORK5CYII=);
+    }
+
+    .block-items li[data-event="A"]:after { background-color: #e7a300; }
+
+    .block-items li[data-event="B"]:after { background-color: #954fa7; }
+
+  </style>
+</head>
+
+<body role="application">
+
+  <!--section role="region" style="position: fixed; width: 100%">
+    <header>
+      <button><span class="icon icon-menu">menu</span></button>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+        <button><span class="icon icon-add">add</span></button>
+      </menu>
+      <h1>Inbox <em>(2)</em></h1>
+    </header>
+  </section-->
+
+  <section role="region">
+  
+    <h2 class="bb-docs">Default (e.g. Call log)</h2>
+    <h3 class="block-title">Today</h3>
+    <ul class="block-items">
+      <li>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <aside>
+            <span class="icon icon-callout">Outgoing call</span>
+          </aside>
+          <img class="empty" src="images/icons/no_picture.png" alt="no picture">
+          <ul>
+            <li>
+              Margherita <strong>Gomez</strong>
+              <em>(2)</em>
+            </li>
+            <li>
+              <time datetime="17:43">5:43PM</time>
+              Mobile, Vivo
+            </li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+    
+    <h3 class="block-title">Yesterday</h3>
+    <ul class="block-items">
+      <li>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h2 class="bb-docs">Edit mode</h2>
+    <ul class="block-items" data-type="edit">
+      <li>
+        <label class="danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <label class="danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <a href="#">
+          <aside>
+            <span class="icon icon-callout">Outgoing call</span>
+          </aside>
+          <img class="empty" src="images/icons/no_picture.png" alt="no picture">
+          <ul>
+            <li>
+              Margherita <strong>Gomez</strong>
+              <em>(2)</em>
+            </li>
+            <li>
+              <time datetime="17:43">5:43PM</time>
+              Mobile, Vivo
+            </li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h2 class="bb-docs">Search results</h2>
+    <ul class="block-items">
+      <li>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li><mark>Ma</mark>rgherita <strong><mark>Go</mark>mez</strong></li>
+            <li><mark>Fa</mark>mily</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <aside>
+            <span class="icon icon-callout">Outgoing call</span>
+          </aside>
+          <img class="empty" src="images/icons/no_picture.png" alt="no picture">
+          <ul>
+            <li>
+              <mark>Ma</mark>rgherita <strong><mark>Go</mark>mez</strong>
+              <em>(2)</em>
+            </li>
+            <li>
+              <time datetime="17:43">5:43PM</time>
+              Mobile, Vivo
+            </li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section role="region">
+    <h2 class="bb-docs">With index scroll (e.g. Contacts)</h2>
+    <h3 class="block-title scrolling">M</h3>
+    <ul class="block-items" data-type="scrolling">
+      <li>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <img class="empty" src="images/icons/no_picture.png" alt="no picture"><ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h3 class="block-title scrolling">M</h3>
+    <ul class="block-items" data-type="scrolling">
+      <li aria-disabled="true">
+        <a href="#">
+          <img class="empty" src="images/icons/no_picture.png" alt="no picture"><ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h2 class="bb-docs">Index scroll - edit mode</h2>
+    <ul class="block-items" data-type="scrolling edit">
+      <li>
+        <label class="danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section role="region">
+    <h2 class="bb-docs">Overlay (e.g. Utility tray)</h2>
+    <ul class="block-items" data-type="overlay">
+      <li>
+        <a href="#">
+          <aside class="end">
+            <time datetime="17:43">5:43PM</time>
+          </aside>
+          <ul>
+            <li>Margherita <strong>Gomez</strong></li>
+            <li>Family</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <aside>
+            <span class="icon icon-callout">Outgoing call</span>
+          </aside>
+          <aside class="end">
+            <time datetime="22:43">10:43PM</time>
+          </aside>
+          <ul>
+            <li>
+              Margherita <strong>Gomez</strong>
+              <em>(2)</em>
+            </li>
+            <li>Mobile, Vivo</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section role="region">
+    <h2 class="bb-docs">Extended info (e.g. Email)</h2>
+    <ul class="block-items" data-type="extended">
+      <li>
+        <a href="#">
+          <img src="" alt="">
+          <ul>
+            <li>
+              Margherita Gomez
+              <time datetime="17:43">5:43PM</time>
+            </li>
+            <li>This is the subject of the message</li>
+            <li>Here goes the first line of the message</li>
+          </ul>
+        </a>
+      </li>
+      <li>
+        <a href="#">
+          <aside>
+            <span class="icon icon-unread">Unread item</span>
+          </aside>
+          <ul>
+            <li>
+              Margherita Gomez
+              <time datetime="17:43">5:43PM</time>
+            </li>
+            <li>This is an unread message</li>
+            <li>Here goes the first line of the message</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h2 class="bb-docs">Extended info - Edit mode</h2>
+    <ul class="block-items" data-type="extended edit">
+      <li>
+        <label class="danger">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <a href="#">
+          <img src="" alt="">
+          <aside>
+            <span class="icon icon-unread">Unread item</span>
+          </aside>
+          <ul>
+            <li>
+              Margherita Gomez
+              <time datetime="17:43">5:43PM</time>
+            </li>
+            <li>This is the subject of the message</li>
+            <li>Here goes the first line of the message</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section role="region">
+    <h2 class="bb-docs">Events</h2>
+    <h3 class="block-title event">Tomorrow</h3>
+    <ul class="block-items" data-type="event">
+      <li data-event="A">
+        <a href="#">
+          <aside>
+            <time datetime="09:00">9 <strong>AM</strong></time>
+          </aside>
+          <ul>
+            <li>Paper Due</li>
+         </ul>
+        </a>
+      </li>
+      <li data-event="B">
+        <a href="#">
+          <aside>
+              <time datetime="10:00">10 <strong>AM</strong></time>
+          </aside>
+          <ul>
+            <li>B2G team meeitng</li>
+            <li>Madrid. Sergi, Victoria, Silvia, Erik, Arnau</li>
+          </ul>
+        </a>
+      </li>
+    </ul>
+
+    <h3 class="block-title event">Today</h3>
+    <ul class="block-items" data-type="event">
+      <li data-event="A">
+        <a href="#">
+          <aside>
+            <time datetime="09:00">9 <strong>AM</strong></time>
+          </aside>
+          <ul>
+            <li>Paper Due</li>
+         </ul>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+</body>
+</html>

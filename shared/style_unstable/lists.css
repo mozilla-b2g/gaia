@@ -1,0 +1,390 @@
+/* ----------------------------------
+ * Lists: default
+ * ---------------------------------- */
+h3.block-title {
+  border-bottom: 0.1rem solid #ff4E00;
+  padding: 0 0 0.5rem 1.5rem;
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+  color: #ff4E00;
+  margin: 0 1.5rem;
+  font-family: "MozTT", "Moz", Sans-serif;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+section h3.block-title:first-of-type {
+  padding: 1.5rem 0 0.5rem 1.5rem;
+}
+
+.block-items {
+  list-style: none;
+  padding: 0 1.5rem;
+  margin: 0 0 0.5rem 0;
+  overflow: hidden;
+  font-family: "MozTT", "Moz", Sans-serif;
+  font-weight: 400;
+}
+
+.block-items strong {
+  font-weight: 500;
+}
+
+.block-items li {
+  display: inline-block;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  transition: transform 0.3s ease;
+  border: solid 1px #dbd9d9;
+  border-right: none;
+  border-left: none;
+  margin: -1px 0 0;
+  position: relative;
+}
+.block-items li:last-of-type {
+  border: none;
+}
+
+.block-items li > a:first-of-type {
+  text-decoration: none;
+  color: #000;
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+/* Pressed State */
+.block-items li > a:first-of-type:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background-color: #b1f1ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.block-items li > a:first-of-type:active:after {
+  opacity: 0.6;
+}
+
+.block-items li aside {
+  float: left;
+  display: inline;
+  position: relative;
+  width: 3rem;
+  height: 5rem;
+  padding-top: 1rem;
+  margin: 0 0.5rem 0 0;
+}
+
+.block-items li aside.end {
+  float: right;
+}
+
+.block-items li aside time {
+  font-size: 1.5rem;
+  line-height: 2.3rem;
+  text-transform: uppercase;
+  color: #000;
+}
+
+.block-items li img {
+  float: right;
+  display: inline;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+.block-items li img.empty { 
+  height: 2rem;
+  padding: 4rem 0 0 4rem;
+  width: 2rem;
+  background: transparent;
+}
+
+.block-items li ul {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0.5rem 0 0;
+}
+
+.block-items li aside:not(.end) ~ ul {
+  padding: 1rem 0.5rem 0 0;
+}
+
+.block-items li ul li {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  display: block;
+  margin: 0;
+  color: #5b5b5b;
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.block-items li ul li strong {
+  color: #000;
+}
+
+.block-items li ul li:first-of-type {
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  color: #000;
+  padding-bottom: 1px;
+}
+
+.block-items li ul li:first-of-type em {
+  font-size: 1.5rem;
+  font-style: normal;
+}
+
+.block-items ul li mark {
+  background-color: #cfd3d7;
+}
+
+.block-items li ul li time {
+  font-size: 1.5rem;
+  color: #5b5b5b;
+  margin-right: 0.3rem;
+  font-weight: 500;
+}
+
+/* Icon definitions */
+.block-items li .icon  {
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat left center;
+  font: 0/0 a;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.block-items li .icon.icon-unread  {
+  background: url(lists/images/icons/dot.png) no-repeat center;
+}
+
+/* Edit mode */
+.block-items li > a:first-of-type aside,
+.block-items li > a:first-of-type ul {
+  transition: margin 0.6s ease;
+}
+.block-items[data-type*="edit"] li > a:first-of-type aside,
+.block-items[data-type*="edit"] li > a:first-of-type ul {
+  margin-left: 3.5rem;
+  transition: margin 0.6s ease;
+}
+
+.block-items[data-type*="edit"] > li a {
+  pointer-events: none;
+}
+
+.block-items li > label:not([for]) {
+  opacity: 0;
+  transition: opacity 0.6s ease; 
+  width: 5rem;
+  height: 6rem;
+  left: 0;
+  position: absolute;
+  top: -1px;
+  z-index: 100;
+  border: solid 1px #DBD9D9;
+  border-left: none;
+  border-right: none;
+}
+
+.block-items[data-type*="edit"] > li > label:not([for]) {
+  opacity: 1;
+  transition: all 0.6s ease;
+}
+
+.block-items li > label:not([for]) > span {
+  left: 0;
+}
+
+/* Disabled */
+.block-items li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+.block-items li[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+/* Events */
+section h3.block-title.event{
+  margin: 0;
+  padding: 0 0 0.5rem 3rem;
+}
+
+section h3.block-title.event:first-of-type {
+  padding: 1.5rem 0 0.5rem 3rem;
+}
+
+.block-items[data-type*="event"] {
+  padding: 0;
+}
+
+.block-items[data-type*="event"] li:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -1px;
+  bottom: 0;
+  width: 0.4rem;
+}
+
+.block-items[data-type*="event"] li aside {
+  width: 6rem;
+  margin: 0 0.5rem 0 3rem;
+}
+
+.block-items[data-type*="event"] li aside time {
+  width: 6rem;
+}
+
+/* List with extended info */
+.block-items[data-type*="extended"] {
+  padding: 0;
+}
+
+.block-items[data-type*="extended"] li aside,
+.block-items[data-type*="extended"] li .icon {
+  width: 3rem;
+  height: 8rem;
+  padding: 0
+}
+
+.block-items[data-type*="extended"] li img {
+  height: 8rem;
+  margin-right: -3rem;
+}
+
+.block-items[data-type*="extended"] li aside {
+  margin: 0 0.5rem 0 0;
+}
+
+.block-items[data-type*="extended"] li ul {
+  padding: 0.7rem 0.5rem 0 3rem;
+}
+
+.block-items[data-type*="extended"] li aside ~ ul {
+  padding-left: 0;
+}
+
+.block-items[data-type*="extended"] li ul li {
+  color: #000;
+}
+
+.block-items[data-type*="extended"] li ul li:first-of-type time {
+  color: #008caa;
+}
+
+.block-items[data-type*="extended"] li ul li:last-of-type {
+  color: #5b5b5b;
+}
+
+.block-items[data-type*="extended"] > li > label:not([for]) {
+  height: 8rem;
+}
+
+.block-items[data-type*="extended"] li > label:not([for]) > span {
+  left: 1.2rem;
+}
+
+/* List with scrolling */
+section h3.block-title.scrolling{
+  margin: 0 1.5rem 0 3rem;
+  padding: 0 0 0.5rem 1rem;
+  font-size: 2.1rem; 
+}
+section h3.block-title.scrolling:first-of-type {
+  padding: 1.5rem 0 0.5rem 1rem;
+}
+
+.block-items[data-type*="scrolling"] {
+  padding: 0 1.5rem 0 3rem;
+}
+
+.block-items[data-type*="scrolling"] li aside {
+  margin: 0 0.5rem 0 0;
+}
+
+.block-items[data-type*="scrolling"] li ul {
+  padding: 1rem 0.5rem 0 1rem;
+}
+
+.block-items[data-type*="scrolling"] li > label:not([for]) > span {
+  left: 1rem;
+}
+
+
+
+/* Overlay */
+.block-items[data-type*="overlay"] {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0;
+}
+
+.block-items[data-type*="overlay"] li {
+  border-top: 0.1rem solid rgba(72, 72, 72, 1);
+  border-bottom: 0.1rem solid rgba(0, 0, 0, 1);
+  margin: 0;
+}
+
+.block-items[data-type*="overlay"] li aside {
+  margin: 0 0.5rem 0 1.5rem;
+}
+
+.block-items[data-type*="overlay"] li ul li {
+  color: #ccc;
+  border: none;
+  padding: 0 0 0 3rem;
+}
+
+.block-items[data-type*="overlay"] li aside:not(.end) ~ ul li {
+  padding: 0;
+}
+
+
+.block-items[data-type*="overlay"] li aside {
+  margin: 0 0.5rem 0 3rem;
+}
+
+.block-items[data-type*="overlay"] li ul li:first-of-type,
+.block-items[data-type*="overlay"] li ul li:first-of-type strong {
+  color: #fff;
+}
+
+.block-items[data-type*="overlay"] li > a:first-of-type:after {
+  background: #6ea7b3;
+}
+
+.block-items[data-type*="overlay"] li aside.end {
+  width: 6.5rem;
+  text-align: right;
+  margin: 0 3rem 0 0.5rem;
+}
+
+.block-items[data-type*="overlay"] li aside.end time {
+  padding: 0;
+  color: #01c6ed;
+  font-weight: 500;
+}
