@@ -27,7 +27,8 @@
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
-    "embed-apps":{}
+    "embed-apps":{},
+    "background-sensors":{}
   },
   "locales": {
     "ar": {
