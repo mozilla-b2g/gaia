@@ -37,6 +37,11 @@ var UssdUI = {
       document.getElementById('response-text-reset');
   },
 
+  get messageScreen() {
+    delete this.messageScreen;
+    return this.messageScreen = document.getElementById('message-screen');
+  },
+
   init: function uui_init() {
     this._ = window.navigator.mozL10n.get;
     this.updateHeader(window.name);
@@ -69,6 +74,14 @@ var UssdUI = {
     document.body.classList.add('loading');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
+  },
+
+  showResponseForm: function uui_showForm() {
+    this.messageScreen.classList.add('responseForm');
+  },
+
+  hideResponseForm: function uui_hideForm() {
+    this.messageScreen.classList.remove('responseForm');
   },
 
   resetResponse: function uui_resetResponse() {
@@ -104,12 +117,16 @@ var UssdUI = {
 
     switch (evt.data.type) {
       case 'success':
-        this.showMessage(evt.data.result);
+        this.hideResponseForm();
+        this.showMessage(evt.data.result ?
+          evt.data.result : this._('mmi-successfully-sent'));
         break;
       case 'error':
-        this.showMessage(evt.data.error);
+        this.showMessage(evt.data.error ?
+          evt.data.result : this._('mmi-error'));
         break;
       case 'ussdreceived':
+        this.showResponseForm();
         this.showMessage(evt.data.message);
         break;
       case 'voicechange':
