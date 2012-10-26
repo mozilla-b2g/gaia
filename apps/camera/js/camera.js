@@ -63,7 +63,16 @@ var Camera = {
     fileFormat: 'jpeg'
   },
 
-  _videoConfig: {
+  get _previewConfig() {
+    delete this._previewConfig;
+    return this._previewConfig = {
+      width: document.body.clientHeight,
+      height: document.body.clientWidth
+    };
+  },
+
+  _previewConfigVideo: {
+    profile: 'cif',
     rotation: 90,
     width: 352,
     height: 288
@@ -240,11 +249,10 @@ var Camera = {
       this.viewfinder.play();
     }
     if (this.captureMode === this.CAMERA) {
-      // TODO: fix this so we can just call getPreviewStream()
-      // or toggle a mode, or something
-      this.setSource(this._camera); // STOMP
+      this._cameraObj.getPreviewStream(this._previewConfig,
+                                       gotPreviewStream.bind(this));
     } else {
-      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig,
+      this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
                                                 gotPreviewStream.bind(this));
     }
   },
@@ -593,12 +601,8 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.largestPictureSize(camera.capabilities.pictureSizes);
-      var config = {
-        height: height,
-        width: width
-      };
       this.enableCameraFeatures(camera.capabilities);
-      camera.getPreviewStream(config, gotPreviewScreen.bind(this));
+      camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
   },
