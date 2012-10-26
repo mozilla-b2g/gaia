@@ -50,5 +50,7 @@
     }
   },
   "default_locale": "en-US",
-  "messages": ["alarm"]
+  "messages": [
+     { "alarm": "/index.html" }
+  ]
 }

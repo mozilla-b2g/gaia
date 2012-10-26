@@ -36,5 +36,7 @@
     "60": "/style/icons/60/Clock.png"
   },
   "orientation": "portrait-primary",
-  "messages": ["alarm"]
+  "messages": [
+     { "alarm": "/index.html" }
+  ]
 }
