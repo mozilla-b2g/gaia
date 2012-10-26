@@ -1,6 +1,7 @@
 {
   "name": "Calculator",
   "description": "Calculator",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
@@ -8,52 +9,20 @@
   },
   "locales": {
     "ar": {
-      "name": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629",
-      "description": "\u0627\u0644\u062d\u0627\u0633\u0628\u0629"
-    },
-    "ca": {
-      "name": "Calculadora",
-      "description": "Calculadora"
-    },
-    "de": {
-      "name": "Taschenrechner",
-      "description": "Taschenrechner"
-    },
-    "el": {
-      "name": "\u0391\u03c1\u03b9\u03b8\u03bc\u03bf\u03bc\u03b7\u03c7\u03b1\u03bd\u03ae",
-      "description": "\u0391\u03c1\u03b9\u03b8\u03bc\u03bf\u03bc\u03b7\u03c7\u03b1\u03bd\u03ae"
+      "name": "الحاسبة",
+      "description": "Gaia الحاسبة"
     },
     "en-US": {
       "name": "Calculator",
-      "description": "Calculator"
-    },
-    "es": {
-      "name": "Calculadora",
-      "description": "Calculadora"
+      "description": "Gaia Calculator"
     },
     "fr": {
       "name": "Calculatrice",
-      "description": "Calculatrice"
-    },
-    "it": {
-      "name": "Calcolatrice",
-      "description": "Calcolatrice"
-    },
-    "pt-BR": {
-      "name": "Calculadora",
-      "description": "Calculadora"
-    },
-    "ru": {
-      "name": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440",
-      "description": "\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440"
-    },
-    "tr": {
-      "name": "Hesap Makinesi",
-      "description": "Hesap Makinesi"
+      "description": "Calculatrice Gaia"
     },
     "zh-TW": {
-      "name": "\u8a08\u7b97\u6a5f",
-      "description": "\u8a08\u7b97\u6a5f"
+      "name": "計算機",
+      "description": "計算機"
     }
   },
   "default_locale": "en-US",

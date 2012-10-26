@@ -19,21 +19,19 @@ suite('templates/month', function() {
   }
 
   test('#busy', function() {
-    var result = renderHTML('busy', 'busy-5');
-
-    assert.ok(result);
-    assert.include(result, 'busy-5');
-  });
-
-  test('#currentMonth', function() {
-    var result = renderHTML('currentMonth', {
-      month: 'January',
-      year: '2012'
+    var result = renderHTML('busy', {
+      start: 5,
+      length: 1,
+      calendarId: 'cal1',
+      _id: 'event1'
     });
 
     assert.ok(result);
-    assert.include(result, 'January');
-    assert.include(result, '2012');
+
+    assert.include(result, 'busy-5');
+    assert.include(result, 'busy-length-1');
+    assert.include(result, 'calendar-id-cal1');
+    assert.include(result, 'busytime-event1');
   });
 
   test('#weekDaysHeader', function() {
@@ -44,20 +42,13 @@ suite('templates/month', function() {
   });
 
   test('#weekDaysHeaderDay', function() {
-    var result = renderHTML('weekDaysHeaderDay', 'foo');
+    var result = renderHTML('weekDaysHeaderDay', {
+      day: 0,
+      dayName: 'Monday'
+    });
 
     assert.ok(result);
-    assert.include(result, 'foo');
-  });
-
-  test('#month', function() {
-    var result = renderHTML(
-      'month', { id: 'myid', content: a() }
-    );
-
-    assert.ok(result);
-    assert.include(result, 'myid');
-    assert.include(result, '<a></a>');
+    assert.include(result, 'Monday');
   });
 
   test('#week', function() {

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title> Contacts </title>
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/input_areas.css" rel="stylesheet">
+    <link href="/shared/style/buttons.css" rel="stylesheet">
+
+    <link href="/contacts/style/app.css" rel="stylesheet">
+    <link href="/contacts/style/contacts.css" rel="stylesheet">
+    <link href="/contacts/style/search.css" rel="stylesheet">
+    <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
+    <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
+    <link href="/contacts/style/fixed_header.css" rel="stylesheet">
+
+    <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
+
+    <script src="/contacts/js/activities.js"></script>
+
+    <!-- Loading FB indexedDB related stuff -->
+    <script src="/contacts/js/fb/fb_data.js"></script>
+    <script src="/contacts/js/utilities/config.js"></script>
+
+    <!-- For initializing FB integration -->
+    <script src="/contacts/js/fb/fb_init.js"></script>
+
+    <link rel="resource" type="application/l10n" href="/contacts/locales/locales.ini"/>
+    <link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+    <script type="text/javascript" src="/shared/js/l10n_date.js"></script>
+    <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
+    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+
+    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_settings.js"></script>
+
+    <script defer type="text/javascript" src="/contacts/js/utilities/normalizer.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/responsive.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/event_listeners.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
+
+    <script defer type="text/javascript" src="/contacts/js/navigation.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_list.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/search.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_details.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_form.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts_shortcuts.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/contacts.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/sms_integration.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/input_cancel_button.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/fixed_header.js"></script>
+
+    <!-- Needed to deal with FB Contacts -->
+    <script defer type="text/javascript" src="/contacts/oauth2/js/parameters.js"></script>
+    <script defer src="/contacts/js/fb/fb_utils.js"></script>
+    <script defer src="/contacts/js/fb/fb_query.js"></script>
+    <script defer src="/contacts/js/fb_extensions.js"></script>
+
+    <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
+    <script defer src="/contacts/js/fb/fb_contact.js"></script>
+    <script defer src="/contacts/js/fb/fb_link.js"></script>
+    <script defer src="/contacts/js/fb/fb_messaging.js"></script>
+    <script defer type="text/javascript" src="/contacts/js/value_selector.js"></script>
+    <link rel="stylesheet" type="text/css" href="/contacts/style/value_selector.css">
+  </head>
+
+  <body role="application" class="hide app-contacts">
+
+    <div id="app" class="views" data-state="active">
+
+       <iframe id="fb-extensions"></iframe>
+
+      <!-- Contacts List Section -->
+      <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
+        <header>
+          <menu type="toolbar" role="menu">
+            <button role="menuitem" id="cancel_activty" class="hide"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+            <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
+            <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
+          </menu>
+          <h1 data-l10n-id="contacts">Contacts</h1>
+        </header>
+
+        <article class="view-body">
+          <div id="no-contacts">
+            <div class="arrow small">
+              <p class="small" data-l10n-id="create-new">Create a new contact</p>
+            </div>
+            <div class="arrow big">
+              <p class="small" data-l10n-id="import-now">Import your contacts from your SIM card or from Facebook</p>
+            </div>
+            <div class="info">
+              <p data-l10n-id="no-contacts">no contacts</p>
+              <p data-l10n-id="start-adding">start adding them now </p>
+            </div>
+          </div>
+          <div class="view-jumper">
+            <ol class="view-jumper-inner">
+              <li data-anchor="search-container" data-img="magnifier_icon_big.png"><a href="#"><span role="button" class="icon-search"></span></a></li>
+              <li data-anchor="group-favorites" data-img="star_icon_big.png"><a href="#"><span role="button" class="icon-fav-dark"></span></a></li>
+              <li data-template data-anchor="group-#anchor#" data-letter="#anchor#">
+                <a href="#">
+                  <abbr class="letter" title="Jump to #anchor#">#anchor#</abbr>
+                </a>
+              </li>
+            </ol>
+          </div>
+
+          <div id="groups-container" class="view-body-inner">
+            <form id="search-container" class="search" role="search">
+              <p>
+                <label for="search-contact">
+                  <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact" />
+                </label>
+              </p>
+            </form>
+            <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+            <ol class="block-list" id="groups-list">
+              <!-- Group template here -->
+            </ol>
+          </div>
+        </article>
+        <div id='fixed-container' class='fixed-title'></div>
+        <div id="current-jumper" class="view-jumper-current"></div>
+
+        <section id="search-view" class="view">
+        <form id="searchview-container" class="search" role="search">
+          <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
+          <p>
+            <label for="search-contact">
+              <input data-cancelable required type="search" name="search" class="textfield" placeholder="Search" id="search-contact" data-l10n-id="search-contact" />
+              <button type="reset" class="hide">Clear</button>
+            </label>
+          </p>
+        </form>
+        </section>
+      </section>
+
+      <!-- Contact Details Section -->
+      <section id='view-contact-details' role="region" data-mirror="mirror-contact-details" class="view view-contact-profile">
+        <header id='details-view-header'>
+          <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+          <menu type="toolbar" role="menu">
+            <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit" data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+          </menu>
+          <h1 id='contact-name-title'></h1>
+          <sup id='favorite-star' class='hide'></sup>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner" id="cover-img">
+            <section id="contact-detail">
+              <!-- Phone Template -->
+              <li id='phone-details-template-#i#' data-template>
+                <h2>#type#</h2>
+                <div class="item">
+                  <div class="item-media pull-right">
+                    <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
+                  </div>
+                  <div class="item-body-exp">
+                    <button class="activity icon icon-call" id="call-or-pick-#i#">
+                      <b>
+                        #value#
+                        <em>#carrier#</em>
+                      </b>
+                    </button>
+                  </div>
+                </div>
+              </li>
+
+              <li id="birthday-template-#i#" data-template>
+                <h2 data-l10n-id="birthday">Birthday</h2>
+                <p><strong>#bday#</strong></p>
+              </li>
+
+              <!-- Email Template -->
+              <li id='email-details-template-#i#' data-template>
+                <h2>#type#</h2>
+                <div class="item">
+                  <div class="item-body-exp">
+                    <button id="email-or-pick-#i#" class="activity icon icon-email">
+                      <b>#value#</b>
+                    </button>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Social Template -->
+              <li class="social-actions" id="social-template-#i#" data-template>
+                <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
+                  <div class="fillflow-twocols">
+                    <button id="msg_button" data-l10n-id="msg-send" class="activity icon icon-message">
+                      Message
+                    </button>
+                    <button id="wall_button" data-l10n-id="wall-post" class="activity icon icon-email">
+                      Wall Post
+                    </button>
+                  </div>
+
+                  <button id="profile_button" data-l10n-id="show-profile" class="fillflow-row activity icon icon-fb-profile">
+                    Show Profile
+                  </button>
+
+                  <button id="link_button" class="activity icon icon-link">
+                    #action#
+                  </button>
+              </li>
+
+              <!-- Address Template -->
+              <li id='address-details-template-#i#' data-template>
+                <h2>#type#</h2>
+                <div class="item">
+                  <div class="item-body-exp">
+                    <a href="javascript: void(0);" class="action action-block">
+                      <span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>
+                      <b>
+                      <span>#streetAddress#</span>
+                        #postalCode#
+                        #locality#
+                        #countryName#
+                      </b>
+                    </a>
+                  </div>
+                </div>
+              </li>
+
+              <!-- Comment Template -->
+              <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
+              <div id='contact-detail-inner'>
+                <h1 id='org-title'></h1>
+                <ul id='details-list'>
+                  <!-- Iterating mails, phones, addresses adn comments here -->
+                </ul>
+                <ul>
+                  <li>
+                    <button id='toggle-favorite' class="fillflow-row icon icon-fav">
+                      Add as favorite
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </section>
+          </div>
+        </article>
+      </section>
+
+
+      <!-- Edit Section -->
+      <section id='view-contact-form' role="region" data-mirror="mirror-contact-form" class="view view-bottom view-edit-contact">
+        <header>
+          <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+          <menu type="toolbar" role="menu" id='contact-form-actions'>
+            <button id="save-button" role="menuitem"></button>
+          </menu>
+          <h1 id='contact-form-title'></h1>
+        </header>
+
+        <!-- PHONE TEMPLATE -->
+        <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+            </section>
+          </fieldset>
+        </div>
+
+        <!-- EMAIL TEMPLATE -->
+        <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+            </section>
+          </fieldset>
+        </div>
+
+        <!-- ADDRESS TEMPLATE -->
+        <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
+          <fieldset class="fillflow-row">
+            <legend class="action">
+              <span data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
+            </legend>
+            <section>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+              <p class="setbox-item">
+                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                <button type="reset" class="hide">Clear</button>
+              </p>
+            </section>
+          </fieldset>
+        </div>
+
+        <!-- COMMENTS TEMPLATE -->
+        <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
+          <dl class="setbox fillflow-row">
+            <dd class="setbox-body">
+              <p class="setbox-item">
+               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+               <button type="reset" class="hide">Clear</button>
+              </p>
+            </dd>
+          </dl>
+        </div>
+
+
+        <article class="view-body">
+          <div class="view-body-inner">
+            <form id="contact-form" action="#" class="fill-flow">
+              <input name="id" id="contact-form-id" type="hidden" value="">
+              <section class="item first">
+                <a id="thumbnail-action" href="#" class="item-media fillflow-media">
+                  <p>
+                    <span role="button" class="icon-addimage"></span>
+                    <em data-l10n-id="addPhoto"> Add photo</em>
+                  </p>
+                  <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">
+                </a>
+                <div class="item-body-exp">
+                  <p class="fillflow-row">
+                    <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">
+                    <button type="reset" class="hide">Clear</button>
+                  </p>
+                  <p class="fillflow-row">
+                    <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">
+                    <button type="reset" class="hide">Clear</button>
+                  </p>
+                </div>
+                <p class="fillflow-row">
+                  <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">
+                  <button type="reset" class="hide">Clear</button>
+                </p>
+              </section>
+
+              <ul>
+                <li>
+                  <section>
+                    <div id="contacts-form-phones">
+                      <!-- Iterating over phone template here -->
+                    </div>
+                  </section>
+                  <button data-field-type="tel" id='add-new-phone' data-l10n-id="addPhone" class="fillflow-row action action-add icon icon-add">
+                    Add phone number
+                  </button>
+                </li>
+
+                <li>
+                  <section>
+                    <div id="contacts-form-emails">
+                      <!-- Iterating over email template here -->
+                    </div>
+                  </section>
+
+                  <button data-field-type="email" id='add-new-email' data-l10n-id="addEmail" class="fillflow-row action action-add icon icon-add">
+                    Add email address
+                  </button>
+                </li>
+
+                <li>
+                  <section>
+                    <div id="contacts-form-addresses">
+                      <!-- Iterating over address template here -->
+                    </div>
+                  </section>
+
+                  <button data-field-type="adr" id='add-new-address' data-l10n-id="addAddress" class="fillflow-row action action-add icon icon-add">
+                    Add new address
+                  </button>
+                </li>
+
+                <li>
+                  <section>
+                    <div id="contacts-form-notes">
+                      <!-- Iterating over comment template here -->
+                    </div>
+                  </section>
+
+                  <button data-field-type="note" id='add-new-note' data-l10n-id="addComment" class="fillflow-row action action-add icon icon-add">
+                    Add comment
+                  </button>
+                </li>
+              </ul>
+            </form>
+
+            <footer class="tail-actions hide">
+              <button id='delete-contact' class="fillflow-row action action-delete danger">
+                <b data-l10n-id="deleteContact">Delete contact</b>
+              </button>
+            </footer>
+          </div>
+        </article>
+      </section>
+
+      <!-- Tag selection -->
+      <section id="view-select-tag" role="region" data-mirror="mirror-contact-tags" class="view view-select-tag">
+        <header>
+          <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+          <menu type="toolbar" role="menu" id="contact-form-actions">
+            <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
+          </menu>
+          <h1 data-l10n-id="label">Label</h1>
+        </header>
+
+        <article class="view-body">
+          <form class="view-body-inner">
+            <ul id="tags-list" class="selection-list">
+            </ul>
+            <p>
+              <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
+              <button type="reset" class="hide">Clear</button>
+            </p>
+          </form>
+        </article>
+      </section>
+
+      <!-- Settings section -->
+      <section data-theme="organic" id="view-settings" role="region" data-mirror="mirror-settings" class="skin-organic view view-bottom">
+        <header>
+          <button id="settings-close" class="negative">
+            <span class="icon icon-close"data-l10n-id="exit">Exit</span>
+          </button>
+          <h1 data-l10n-id="settings">Settings</h1>
+        </header>
+
+        <article class="view-body">
+          <div class="view-body-inner">
+            <ul>
+              <li id="settingsOrder">
+                <label class="switch">
+                  <input type="checkbox" name="order.lastname" />
+                  <span></span>
+                </label>
+                <a data-l10n-id="contactsOrderBy">Order by last name</a>
+              </li>
+              <li id="settingsSIM">
+                <a data-l10n-id="importSim">Import from SIM</a>
+              </li>
+              <li id="settingsFb">
+                <!--
+                <label class="switch hide">
+                  <input type="checkbox" name="fb.imported" />
+                  <span></span>
+                </label>
+                -->
+                <a data-l10n-id="importFb">Import from Facebook</a>
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <article id="loading-overlay">
+        <section class="loading-container">
+          <header class="loading-header" data-l10n-id="loadingContacts">
+            Loading contacts…
+          </header>
+          <p class="loading-icon" role="status">
+            <progress></progress>
+          </p>
+        </section>
+      </article>
+    </div>
+
+    <div class="cache" id="cache">
+      <div id="mirror-contacts-list" class="view" style="background-image: -moz-element(#view-contacts-list);"></div>
+      <div id="mirror-contact-form" class="view view-bottom" style="background-image: -moz-element(#view-contact-form);"></div>
+      <div id="mirror-contact-tags" class="view view-right" style="background-image: -moz-element(#view-select-tag);"></div>
+      <div id="mirror-contact-details" class="view view-right" style="background-image: -moz-element(#view-contact-details);"></div>
+      <div id="mirror-settings" class="view view-bottom" style="background-image: -moz-element(#view-settings);"></div>
+    </div>
+
+  </body>
+</html>

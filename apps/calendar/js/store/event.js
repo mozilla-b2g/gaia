@@ -1,83 +1,185 @@
 (function(window) {
-  function Events() {
-    Calendar.Responder.call(this);
 
-    this.ids = {};
-    this.times = {};
+  function Events() {
+    Calendar.Store.Abstract.apply(this, arguments);
   }
 
-  var proto = Events.prototype = Object.create(
-    Calendar.Responder.prototype
-  );
+  Events.prototype = {
+    __proto__: Calendar.Store.Abstract.prototype,
+    _store: 'events',
+    _dependentStores: ['events', 'busytimes', 'alarms'],
 
-  /**
-   * Adds an event object by date and id.
-   *
-   * @param {String} id unique identifier for busy time.
-   * @param {Date} date time to add.
-   * @param {Object} object to store.
-   */
-  proto.add = function(date, id, object) {
-    //don't check for uniqueness
-    var dateId = Calendar.Calc.getDayId(date);
+    /** disable caching */
+    _addToCache: function() {},
+    _removeFromCache: function() {},
 
-    if (!(dateId in this.times)) {
-      this.times[dateId] = {};
+    _createModel: function(input, id) {
+      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var model = _super.apply(this, arguments);
+
+      model.remote.startDate = Calendar.Calc.dateFromTransport(
+        model.remote.start
+      );
+
+      model.remote.endDate = Calendar.Calc.dateFromTransport(
+        model.remote.end
+      );
+
+      return model;
+    },
+
+    /**
+     * Link busytime dependants see _addDependents.
+     */
+    _removeDependents: function(id, trans) {
+      this.removeByIndex('parentId', id, trans);
+
+      var busy = this.db.getStore('Busytime');
+      busy.removeEvent(id, trans);
+    },
+
+    /**
+     * Generate an id for a newly created record.
+     * Based off of remote id (uuid) and calendar id.
+     */
+    _assignId: function(obj) {
+      var id = obj.calendarId + '-' + obj.remote.id;
+      return obj._id = id;
+    },
+
+    /**
+     * Shortcut finds the calendar model for given event.
+     *
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Calendar} related calendar.
+     */
+    calendarFor: function(event) {
+      var calStore = this.db.getStore('Calendar');
+      return calStore.cached[event.calendarId];
+    },
+
+    /**
+     * Shortcut finds the account model for given event.
+     *
+     * @param {Object} event full event record from the db.
+     * @return {Calendar.Model.Account} related account.
+     */
+    accountFor: function(event) {
+      var cal = this.calendarFor(event);
+      return this.db.getStore('Calendar').accountFor(cal);
+    },
+
+    /**
+     * Shortcut finds provider for given event.
+     *
+     * @param {Object} event full event record from db.
+     */
+    providerFor: function(event) {
+      // XXX: maybe we need to shortcut this somehow?
+      var accStore = this.db.getStore('Account');
+
+      var cal = this.calendarFor(event);
+      var acc = accStore.cached[cal.accountId];
+
+      return Calendar.App.provider(acc.providerType);
+    },
+
+    busytimeIdFor: function(event, start, end) {
+      if (!start)
+        start = event.remote.start;
+
+      if (!end)
+        end = event.remote.end;
+
+
+      var id = start.utc + '-' +
+               end.utc + '-' +
+               event._id;
+
+      return id;
+    },
+
+    /**
+     * Finds a list of events by id.
+     *
+     * @param {Array} ids list of ids.
+     * @param {Function} callback node style second argument
+     *                            is an object of _id/event.
+     */
+    findByIds: function(ids, callback) {
+      var results = {};
+      var pending = ids.length;
+      var self = this;
+
+      function next() {
+        if (!(--pending)) {
+          // fatal errors should break
+          // and so we are not handling them
+          // here...
+          callback(null, results);
+        }
+      }
+
+      function success(e) {
+        var item = e.target.result;
+
+        if (item) {
+          results[item._id] = self._createModel(item);
+        }
+
+        next();
+      }
+
+      function error() {
+        // can't find it or something
+        // skip!
+        next();
+      }
+
+      ids.forEach(function(id) {
+        var trans = this.db.transaction('events');
+        var store = trans.objectStore('events');
+        var req = store.get(id);
+
+        req.onsuccess = success;
+        req.onerror = error;
+      }, this);
+    },
+
+    /**
+     * Loads all events for given calendarId
+     * and returns results. Does not cache.
+     *
+     * @param {String} calendarId calendar to find.
+     * @param {Function} callback node style [err, array of events].
+     */
+    eventsForCalendar: function(calendarId, callback) {
+      var trans = this.db.transaction('events');
+      var store = trans.objectStore('events');
+      var index = store.index('calendarId');
+      var key = IDBKeyRange.only(calendarId);
+
+      var req = index.mozGetAll(key);
+
+      req.onsuccess = function(e) {
+        callback(null, e.target.result);
+      };
+
+      req.onerror = function(e) {
+        callback(e);
+      };
+    },
+
+    /**
+     * Override default parse id which
+     * does a parseInt operation.
+     */
+    _parseId: function(id) {
+      return id;
     }
 
-    this.times[dateId][id] = true;
-    this.ids[id] = { event: object, date: date };
-
-    this.emit('add', id, this.get(id));
-  };
-
-  /**
-   * Finds busy time based on its id
-   *
-   * @param {String} id busy time id.
-   */
-  proto.get = function(id) {
-    return this.ids[id];
-  };
-
-  /**
-   * Returns an array of events for date.
-   *
-   * @param {Date} date date.
-   */
-  proto.eventsForDay = function(date) {
-    var id = Calendar.Calc.getDayId(date),
-        events = Object.keys(this.times[id] || {}),
-        self = this;
-
-    return events.map(function(id) {
-      return self.get(id);
-    });
-  };
-
-  /**
-   * Removes a specific event based
-   * on its id.
-   *
-   * @param {String} id busy time id.
-   */
-  proto.remove = function(id) {
-    var dateId, event;
-    if (id in this.ids) {
-      event = this.ids[id];
-      dateId = Calendar.Calc.getDayId(event.date);
-      delete this.times[dateId][id];
-      delete this.ids[id];
-
-      this.emit('remove', id, event);
-
-      return true;
-    }
-
-    return false;
   };
 
   Calendar.ns('Store').Event = Events;
 
 }(this));
-

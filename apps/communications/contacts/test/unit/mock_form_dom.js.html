@@ -1,0 +1,172 @@
+var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">';
+    MockFormDom += '<header>';
+    MockFormDom += '      <button class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>';
+    MockFormDom += '      <menu type="toolbar" role="menu" id="contact-form-actions">';
+    MockFormDom += '        <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>';
+    MockFormDom += '      </menu>';
+    MockFormDom += '      <h1 id="contact-form-title"></h1>';
+    MockFormDom += '    </header>';
+
+    MockFormDom += '    <!-- PHONE TEMPLATE -->';
+    MockFormDom += '    <div id="add-phone-#i#" data-template class="phone-template" data-index="#i#">';
+    MockFormDom += '      <dl class="setbox fillflow-row">';
+    MockFormDom += '        <dt class="setbox-title">';
+    MockFormDom += '          <a class="with-arrow" data-taglist="phone-type" name="tel" value="#type#" id="tel_type_#i#" data-field="type">#type#</a>';
+    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
+    MockFormDom += '        </dt>';
+    MockFormDom += '        <dd class="setbox-body">';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="tel_#i#" data-l10n-id="labelPhoneNumber">Phone number:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="carrier_#i#" data-l10n-id="labelCarrier">Carrier:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '        </dd>';
+    MockFormDom += '      </dl>';
+    MockFormDom += '    </div>';
+
+    MockFormDom += '    <!-- EMAIL TEMPLATE -->';
+    MockFormDom += '    <div id="add-email-#i#" data-template class="email-template" data-index="#i#">';
+    MockFormDom += '      <dl class="setbox fillflow-row">';
+    MockFormDom += '        <dt class="setbox-title">';
+    MockFormDom += '          <a data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</a>';
+    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
+    MockFormDom += '        </dt>';
+    MockFormDom += '        <dd class="setbox-body">';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="email_#i#" data-l10n-id="labelEmail">e-mail:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '        </dd>';
+    MockFormDom += '      </dl>';
+    MockFormDom += '    </div>';
+
+    MockFormDom += '    <!-- ADDRESS TEMPLATE -->';
+    MockFormDom += '    <div id="add-address-#i#" data-template class="address-template" data-index="#i#">';
+    MockFormDom += '      <dl class="setbox fillflow-row">';
+    MockFormDom += '        <dt class="setbox-title">';
+    MockFormDom += '          <a data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</a>';
+    MockFormDom += '          <span role="button" class="icon-arrow icon-arrow-bottom setbox-icon">Expand</span>';
+    MockFormDom += '        </dt>';
+    MockFormDom += '        <dd class="setbox-body">';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="streetAddress_#i#" data-l10n-id="labelStreet">Street:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="postalCode_#i#" data-l10n-id="labelZip">Zip Code:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="locality_#i#" data-l10n-id="labelCity">City:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="countryName_#i#" data-l10n-id="labelCountry">Country:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '        </dd>';
+    MockFormDom += '      </dl>';
+    MockFormDom += '    </div>';
+
+    MockFormDom += '    <!-- COMMENTS TEMPLATE -->';
+    MockFormDom += '    <div id="add-note-#i#" data-template class="note-template" data-index="#i#">';
+    MockFormDom += '      <dl class="setbox fillflow-row">';
+    MockFormDom += '        <dd class="setbox-body">';
+    MockFormDom += '          <p class="setbox-item">';
+    MockFormDom += '            <label class="hide" for="note_#i#" data-l10n-id="labelComment">comment:</label>';
+    MockFormDom += '            <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">';
+    MockFormDom += '          </p>';
+    MockFormDom += '        </dd>';
+    MockFormDom += '      </dl>';
+    MockFormDom += '    </div>';
+
+
+    MockFormDom += '    <article class="view-body">';
+    MockFormDom += '      <div class="view-body-inner">';
+    MockFormDom += '        <form id="contact-form" action="#" class="fill-flow">';
+    MockFormDom += '          <input name="id" id="contact-form-id" type="hidden" value="">';
+    MockFormDom += '          <fieldset class="item first">';
+    MockFormDom += '            <legend class="hide" data-l10n-id="legendTitleMain">Main information</legend>';
+    MockFormDom += '            <a id="thumbnail-action" href="#" class="item-media fillflow-media">';
+    MockFormDom += '              <p>';
+    MockFormDom += '                <span role="button" class="icon-addimage"></span>';
+    MockFormDom += '                <em data-l10n-id="addPhoto"> Add photo</em>';
+    MockFormDom += '              </p>';
+    MockFormDom += '              <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">';
+    MockFormDom += '            </a>';
+    MockFormDom += '            <div class="item-body-exp">';
+    MockFormDom += '              <p class="fillflow-row">';
+    MockFormDom += '                <label class="hide" for="givenName" data-l10n-id="labelName">Name:</label>';
+    MockFormDom += '                <input data-cancelable placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" value="#givenName#" id="givenName">';
+    MockFormDom += '              </p>';
+    MockFormDom += '              <p class="fillflow-row">';
+    MockFormDom += '                <label class="hide" for="user_lastname" data-l10n-id="labelLastName">Last name:</label>';
+    MockFormDom += '                <input data-cancelable placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" value="#familyName#" id="familyName">';
+    MockFormDom += '              </p>';
+    MockFormDom += '            </div>';
+    MockFormDom += '            <p class="fillflow-row">';
+    MockFormDom += '              <input data-cancelable placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" value="" id="org">';
+    MockFormDom += '            </p>';
+    MockFormDom += '          </fieldset>';
+
+    MockFormDom += '          <fieldset>';
+    MockFormDom += '            <legend data-l10n-id="legendPhones">Phone numbers</legend>';
+    MockFormDom += '            <div id="contacts-form-phones">';
+    MockFormDom += '              <!-- Iterating over phone template here -->';
+    MockFormDom += '            </div>';
+    MockFormDom += '          </fieldset>';
+
+    MockFormDom += '          <button id="add-new-phone" class="fillflow-row action action-add">';
+    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <b data-l10n-id="addPhone">Add phone number</b>';
+    MockFormDom += '          </button>';
+
+    MockFormDom += '          <fieldset>';
+    MockFormDom += '            <legend data-l10n-id="legendEmail">E-mail address</legend>';
+    MockFormDom += '            <div id="contacts-form-emails">';
+    MockFormDom += '              <!-- Iterating over email template here -->';
+    MockFormDom += '            </div>';
+    MockFormDom += '          </fieldset>';
+
+    MockFormDom += '          <button id="add-new-email" class="fillflow-row action action-add">';
+    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <b data-l10n-id="addEmail">Add email address</b>';
+    MockFormDom += '          </button>';
+
+    MockFormDom += '          <fieldset>';
+    MockFormDom += '            <legend data-l10n-id="legendAddress">Address</legend>';
+    MockFormDom += '            <div id="contacts-form-addresses">';
+    MockFormDom += '              <!-- Iterating over address template here -->';
+    MockFormDom += '            </div>';
+    MockFormDom += '          </fieldset>';
+
+    MockFormDom += '          <button id="add-new-address" class="fillflow-row action action-add">';
+    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <b data-l10n-id="addAddress">Add new address</b>';
+    MockFormDom += '          </button>';
+
+    MockFormDom += '          <fieldset>';
+    MockFormDom += '            <legend data-l10n-id="comments">Comments</legend>';
+    MockFormDom += '            <div id="contacts-form-notes">';
+    MockFormDom += '              <!-- Iterating over comment template here -->';
+    MockFormDom += '            </div>';
+    MockFormDom += '          </fieldset>';
+
+    MockFormDom += '          <button id="add-new-note" class="fillflow-row action action-add">';
+    MockFormDom += '            <span role="button" class="icon-add"></span>';
+    MockFormDom += '            <b data-l10n-id="addComment">Add comment</b>';
+    MockFormDom += '          </button>';
+
+    MockFormDom += '        </form>';
+
+    MockFormDom += '        <footer class="tail-actions hide">'
+    MockFormDom += '          <button id="delete-contact" class="hide fillflow-row action action-delete danger">';
+    MockFormDom += '            <b data-l10n-id="deleteContact">Delete contact</b>';
+    MockFormDom += '          </button>';
+    MockFormDom += '        </footer>';
+    MockFormDom += '      </div>';
+    MockFormDom += '    </article>';
+    MockFormDom += '  </section>';

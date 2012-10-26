@@ -10,3 +10,10 @@ SettingsListener.observe('accessibility.invert', false, function(value) {
   else
     screen.classList.remove('accessibility-invert');
 });
+
+SettingsListener.observe('accessibility.screenreader', false, function(value) {
+  var event = document.createEvent('CustomEvent');
+  event.initCustomEvent('mozContentEvent', true, true,
+                        {type: 'accessibility-screenreader', enabled: value});
+  window.dispatchEvent(event);
+});

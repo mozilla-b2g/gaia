@@ -1,6 +1,7 @@
 requireCommon('test/synthetic_gestures.js');
 
 requireApp('calendar/test/unit/helper.js', function() {
+  requireLib('models/calendar.js');
   requireLib('templates/calendar.js');
   requireLib('views/settings.js');
 });
@@ -12,13 +13,11 @@ suite('views/settings', function() {
   var store;
   var controller;
   var template;
+  var triggerEvent;
 
-
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -29,8 +28,9 @@ suite('views/settings', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="wrapper"></div>',
+      '<div id="time-views"></div>',
       '<div id="settings">',
+        '<button class="sync">sync</button>',
         '<ul class="calendars"></ul>',
       '</div>'
     ].join('');
@@ -43,7 +43,8 @@ suite('views/settings', function() {
     template = Calendar.Templates.Calendar;
 
     subject = new Calendar.Views.Settings({
-      app: app
+      app: app,
+      syncProgressTarget: div
     });
   });
 
@@ -55,8 +56,20 @@ suite('views/settings', function() {
     );
   });
 
+  test('#time-views', function() {
+    assert.ok(subject.timeViews);
+  });
+
   test('#calendars', function() {
     assert.ok(subject.calendars);
+  });
+
+  test('#syncButton', function() {
+    assert.ok(subject.syncButton);
+  });
+
+  test('#syncProgressTarget', function() {
+    assert.ok(subject.syncProgressTarget);
   });
 
   suite('#_initEvents', function() {
@@ -78,20 +91,38 @@ suite('views/settings', function() {
       children = subject.calendars.children;
     });
 
-    test('update', function() {
-      var check = children[0].querySelector(
-        '*[type="checkbox"]'
-      );
+    suite('update', function() {
 
-      models[1].name = 'foo';
-      models[1].localDisplayed = false;
+      test('when flagged as _inUpdate', function() {
+        subject._localUpdate = true;
 
-      store.emit('update', 'one', models[1]);
+        models[1].name = 'foobar';
 
-      assert.equal(children[0].textContent, 'foo');
-      assert.isFalse(
-        check.checked
-      );
+        store.emit('update', 'one', models[1]);
+
+        assert.notEqual(
+          children[0].textContent,
+          models[1].name,
+          'should not update when marked as _localUpdate'
+        );
+      });
+
+      test('when not flagged', function() {
+        var check = children[0].querySelector(
+          '*[type="checkbox"]'
+        );
+
+        models[1].name = 'foo';
+        models[1].localDisplayed = false;
+
+        store.emit('update', 'one', models[1]);
+
+        assert.equal(children[0].textContent, 'foo');
+        assert.isFalse(
+          check.checked
+        );
+      });
+
     });
 
     test('add', function() {
@@ -111,6 +142,95 @@ suite('views/settings', function() {
     test('remove', function() {
       store.emit('remove', 'one');
       assert.equal(children.length, 0);
+    });
+
+    suite('sync (start|complete)', function() {
+      var classList;
+
+      setup(function() {
+        classList = subject.syncProgressTarget.classList;
+        assert.ok(
+          !classList.contains(subject.syncClass),
+          'not active initially'
+        );
+
+        app.syncController.emit('sync start');
+      });
+
+      teardown(function() {
+        classList.remove(subject.syncClass);
+      });
+
+      test('start', function() {
+        assert.ok(classList.contains(subject.syncClass), 'is active');
+      });
+
+      test('complete', function() {
+        app.syncController.emit('sync complete');
+        assert.ok(!classList.contains(subject.syncClass), 'remove active');
+      });
+    });
+
+  });
+
+  test('sync', function() {
+    var controller = app.syncController;
+    var calledWith;
+    var el = subject.syncButton;
+
+    controller.sync = function() {
+      calledWith = arguments;
+    }
+
+    triggerEvent(subject.syncButton, 'click');
+    assert.ok(calledWith);
+  });
+
+  suite('#_onCalendarDisplayToggle', function() {
+    var model;
+    var checkbox;
+    var calledWith;
+
+    setup(function() {
+      model = Factory('calendar', {
+        localDisplayed: true,
+        _id: 'my-calendar'
+      });
+
+      store._cached = {
+        'my-calendar': model
+      };
+
+      subject.render();
+      checkbox = subject.calendars.querySelector(
+        'input[type="checkbox"]'
+      );
+    });
+
+    setup(function() {
+      store.persist = function() {
+        calledWith = arguments;
+      };
+    });
+
+    test('initial toggle', function() {
+      assert.isTrue(checkbox.checked, 'should be checked initially');
+
+      checkbox.checked = false;
+      triggerEvent(checkbox, 'change');
+
+      assert.equal(calledWith[0], model);
+      assert.equal(model.localDisplayed, !!checkbox.checked);
+
+      var cb = calledWith[1];
+      cb();
+      assert.isTrue(subject._localUpdate);
+      store.emit('persist');
+      assert.isFalse(subject._localUpdate);
+      // verify the handler was removed;
+      subject._localUpdate = true;
+      store.emit('persist');
+      assert.isTrue(subject._localUpdate);
     });
 
   });
@@ -151,6 +271,32 @@ suite('views/settings', function() {
       assert.isFalse(
         two.querySelector('*[type="checkbox"]').checked
       );
+    });
+
+  });
+
+  suite('tap to navigate away from settings', function() {
+
+    var calledWith;
+
+    setup(function() {
+      calledWith = null;
+      app.resetState = function() {
+        calledWith = arguments;
+      }
+    });
+
+    test('#onactive', function() {
+      subject.onactive();
+      triggerEvent(subject.timeViews, 'click');
+      assert.ok(calledWith, 'navigates away');
+    });
+
+    test('#oninactive', function() {
+      subject.onactive();
+      subject.oninactive();
+      triggerEvent(subject.timeViews, 'click');
+      assert.ok(!calledWith, 'navigates away');
     });
 
   });

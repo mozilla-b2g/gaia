@@ -1,0 +1,212 @@
+/* ----------- TimeSelectorView ---------- */
+#picker-bar {
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+}
+
+#picker-bar.format12h {
+  width: 85%;
+}
+
+#picker-bar.format24h {
+  width: 60%;
+}
+
+#picker-bar-gradient {
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+
+  border-top: solid 0.7rem;
+  border-bottom: solid 0.7rem;
+  border-left:  1px solid #111;
+  border-right: 1px solid #111;
+
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  -moz-box-sizing: border-box;
+}
+
+#picker-container {
+  width: 100%;
+  position: relative;
+  padding-top: 8.5rem;
+  height: 16rem;
+  overflow: hidden;
+}
+
+#value-indicator-wrapper {
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3)  rgba(0, 0, 0, 0.4)
+    rgba(0, 0, 0, 0.5);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.4)
+    rgba(0, 0, 0, 0.5);
+
+  border-top: solid 0.7rem;
+  border-bottom: solid 0.7rem;
+  position: absolute;
+  height: 6rem;
+  width: 100%;
+  pointer-events: none;
+}
+
+#value-indicator-hover-time {
+  pointer-events: none;
+  background-color: #00A5C5;
+  position: absolute;
+  height: 100%;
+  font: 3rem/6rem 'MozTT',sans-serif;
+  text-align: center;
+}
+
+#picker-bar.format12h #value-indicator-hover-time {
+  width: 66%;
+}
+
+#picker-bar.format24h #value-indicator-hover-time {
+  width: 100%;
+}
+
+#value-indicator-hover {
+  pointer-events: none;
+  background-color: #00A5C5;
+  position: absolute;
+  width: 33%;
+  height: 100%;
+  right:0;
+}
+
+#picker-bar.format12h #value-indicator-hover {
+  display: block;
+}
+
+#picker-bar.format24h #value-indicator-hover {
+  display: none;
+}
+
+div.animation-on {
+  -moz-transition-duration: 0.5s;
+  -moz-transition-property: top, left;
+}
+
+#value-picker-hours {
+  position: relative;
+  -moz-user-select: none;
+  float: left;
+  text-align: center;
+}
+
+#picker-bar.format12h #value-picker-hours {
+  width: 33%;
+}
+
+#picker-bar.format24h #value-picker-hours {
+  width: 50%;
+}
+
+#value-picker-minutes {
+  position: relative;
+  -moz-user-select: none;
+  float: left;
+}
+
+#picker-bar.format12h #value-picker-minutes {
+  width: 34%;
+}
+
+#picker-bar.format24h #value-picker-minutes {
+  width: 50%;
+}
+
+#value-picker-hour24-state {
+  position: relative;
+  -moz-user-select: none;
+  width: 33%;
+  float: left;
+}
+
+#picker-bar.format12h #value-picker-hour24-state {
+  display: block;
+}
+
+#picker-bar.format24h #value-picker-hour24-state {
+  display: none;
+}
+
+.picker-unit {
+  position: relative;
+  font: 3rem/8rem 'MozTT',sans-serif;
+  color: #FFF;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+  height: 6rem;
+  pointer-events: none;
+}
+
+#picker-bar-background {
+  background: url("../themes/default/images/ui/time_pattern.png") repeat scroll left top transparent;
+  position: absolute;
+  width: 33%;
+  height: 100%;
+  right: 0;
+  top: 0;
+}
+
+#picker-bar.format12h #picker-bar-background {
+  display: block;
+}
+
+#picker-bar.format24h #picker-bar-background {
+  display: none;
+}
+
+#left-picker-separator {
+  position: absolute;
+  width: 0.2rem;
+  height: 100%;
+  top: 0;
+  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
+  pointer-events: none;
+}
+
+#picker-bar.format12h #left-picker-separator {
+  left: 33%;
+}
+
+#picker-bar.format24h #left-picker-separator {
+  left: 49.5%;
+}
+
+#right-picker-separator {
+  position: absolute;
+  width: 0.2rem;
+  height: 100%;
+  top: 0;
+  left: 66%;
+  background: -moz-linear-gradient(center left, #555 50%, #000 50%);
+  pointer-events: none;
+}
+
+#picker-bar.format12h #right-picker-separator {
+  display: block;
+}
+
+#picker-bar.format24h #right-picker-separator {
+  display: none;
+}

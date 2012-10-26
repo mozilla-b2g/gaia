@@ -163,7 +163,7 @@ suite('calendar/template', function() {
     });
 
     suite('l10n', function() {
-      var old;
+      var realL10n;
       var lookup = {
         foo: 'FOO',
         bar: 'BAR',
@@ -171,7 +171,7 @@ suite('calendar/template', function() {
       };
 
       suiteSetup(function() {
-        var old = navigator.mozL10n;
+        realL10n = navigator.mozL10n;
         navigator.mozL10n = {
           get: function(name) {
             return lookup[name];
@@ -180,8 +180,8 @@ suite('calendar/template', function() {
       });
 
       suiteTeardown(function() {
-        if (old) {
-          navigator.mozL10n = old;
+        if (realL10n) {
+          navigator.mozL10n = realL10n;
         }
       });
 

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<!-- vim: set ts=2 sw=2 et: -->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Image Uploader</title>
+    <script type="application/javascript" src="js/ext/sha1.js"></script>
+    <script type="application/javascript" src="js/ext/oauth.js"></script>
+    <script type="application/javascript" src="js/credentials_db.js"></script>
+    <script type="application/javascript" src="js/image-uploader.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogs/core.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogs/banner/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/buttons/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/headers/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/input-areas/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/lists/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/switches/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/other/progress-activity/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/image-uploader.css" />
+  </head>
+  <body role="application">
+    <section role="region">
+      <header>
+        <h1>Image Uploader</h1>
+      </header>
+    </section>
+
+    <section role="region">
+      <div class="bb-docs">
+        <h2 class="bb-docs">Previews</h2>
+        <p id="previews"></p>
+      </div>
+    </section>
+
+    <section role="region" id="services">
+      <div class="bb-docs">
+        <h2 class="bb-docs">Services</h2>
+        <ul data-state="edit" id="services-list">
+        </ul>
+        <h2 class="bb-docs">Content for upload</h2>
+        <div class="bb-docs" id="service-content">
+        </div>
+        <div class="bb-docs">
+          <button id="share">Share</button>
+        </div>
+      </div>
+    </section>
+
+    <section role="dialog" class="banner" id="banner-status">
+      <p role="status">
+        <label id="uploaded" for="upload-progress"></label>
+        <progress value="0" max="100" id="upload-progress"></progress>
+      </p>
+    </section>
+
+  </body>
+</html>
+

@@ -34,12 +34,73 @@
     }
   }
 
+  const INVALID_CSS = /([^a-zA-Z\-\_0-9])/g;
+
+  View.ACTIVE = 'active';
+
   View.prototype = {
     seen: false,
-    activeClass: 'active',
+    activeClass: View.ACTIVE,
 
     get element() {
       return this._findElement('element');
+    },
+
+    calendarId: function(input) {
+      if (typeof(input) !== 'string') {
+        input = input.calendarId;
+      }
+
+      input = this.cssClean(input);
+      return 'calendar-id-' + input;
+    },
+
+    /**
+     * Delegate pattern event listener.
+     *
+     * @param {HTMLElement} element parent element.
+     * @param {String} type type of dom event.
+     * @param {String} selector css selector element should match
+     *                          _note_ there is no magic here this
+     *                          is determined from the root of the document.
+     * @param {Function|Object} handler event handler.
+     *                                  first argument is the raw
+     *                                  event second is the element
+     *                                  matching the pattern.
+     */
+    delegate: function(element, type, selector, handler) {
+      if (typeof(handler) === 'object') {
+        var context = handler;
+        handler = function() {
+          context.handleEvent.apply(context, arguments);
+        }
+      }
+
+      element.addEventListener(type, function(e) {
+        var target = e.target;
+        while (target !== element) {
+          if ('mozMatchesSelector' in target &&
+              target.mozMatchesSelector(selector)) {
+            return handler(e, target);
+          }
+          target = target.parentNode;
+        }
+      });
+    },
+
+    /**
+     * Clean a string for use with css.
+     * Converts illegal chars to legal ones.
+     */
+    cssClean: function(string) {
+      if (typeof(string) !== 'string')
+        return string;
+
+      //TODO: I am worried about the performance
+      //of using this all over the place =/
+      //consider sanitizing all keys to ensure
+      //they don't blow up when used as a selector?
+      return string.replace(INVALID_CSS, '-');
     },
 
     /**

@@ -426,7 +426,7 @@
       if (code < 0) {
         // This is a select function operation
         var i = code * -1;
-        dump('Removing ' + (code * -1) + ' syllables from buffer.');
+        debug('Removing ' + (code * -1) + ' syllables from buffer.');
 
         while (i--) {
           syllablesInBuffer.shift();
@@ -605,6 +605,11 @@
     /* ==== interaction functions ==== */
 
     this.click = function ime_click(code) {
+      if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
+        settings.sendKey(code);
+        return;
+      }
+
       if (code <= 0) {
         debug('Ignoring keyCode <= 0.');
         return;
@@ -613,6 +618,11 @@
       keypressQueue.push(code);
       start();
     };
+
+    var layoutPage = LAYOUT_PAGE_DEFAULT;
+    this.setLayoutPage = function ime_setLayoutPage(page) {
+      layoutPage = page;
+    }
 
     var selectedText;
     var selectedSyllables = [];
@@ -671,8 +681,10 @@
       window.webkitIDBIndex ||
       window.msIDBIndex;
 
-    if (IDBObjectStore && IDBObjectStore.prototype.mozGetAll) {
-      IDBObjectStore.prototype.getAll = IDBObjectStore.prototype.mozGetAll;
+    if (window.IDBObjectStore &&
+        window.IDBObjectStore.prototype.mozGetAll) {
+      window.IDBObjectStore.prototype.getAll =
+        window.IDBObjectStore.prototype.mozGetAll;
     }
 
     /* ==== init functions ==== */
@@ -1365,8 +1377,8 @@
   if (typeof define === 'function' && define.amd)
     define('jszhuyin', [], function() { return jszhuyin; });
 
-  // Expose to IMEManager if we are in Gaia homescreen
-  if (typeof IMEManager !== 'undefined')
-    IMEController.IMEngines.jszhuyin = jszhuyin;
+  // Expose to the Gaia keyboard
+  if (typeof InputMethods !== 'undefined')
+    InputMethods.jszhuyin = jszhuyin;
 
 })();

@@ -17,17 +17,18 @@ var BackgroundServiceManager = (function bsm() {
   var AUTO_OPEN_BG_PAGE_NAME = 'background';
 
   /* Init */
-  window.addEventListener('applicationready', function bsm_init(evt) {
-    var applications = evt.detail.applications;
-    Object.keys(applications).forEach(function bsm_each(origin) {
-      if (!applications[origin].manifest.background_page)
+  var init = function bsm_init() {
+    var applications = Applications.installedApps;
+    Object.keys(applications).forEach(function bsm_each(manifestURL) {
+      var app = applications[manifestURL];
+      if (!app.manifest.background_page)
         return;
 
       // XXX: this work as if background_page is always a path not a full URL.
-      var url = origin + applications[origin].manifest.background_page;
-      open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
+      var url = app.origin + app.manifest.background_page;
+      open(manifestURL, AUTO_OPEN_BG_PAGE_NAME, url);
     });
-  });
+  };
 
   /* mozbrowseropenwindow */
   window.addEventListener('mozbrowseropenwindow', function bsm_winopen(evt) {
@@ -39,10 +40,9 @@ var BackgroundServiceManager = (function bsm() {
     evt.stopPropagation();
 
     var manifestURL = evt.target.getAttribute('mozapp');
-    var origin = evt.target.dataset.frameOrigin;
-
     var detail = evt.detail;
-    open(origin, detail.name, detail.url, detail.frameElement);
+
+    open(manifestURL, detail.name, detail.url, detail.frameElement);
   }, true);
 
   /* mozbrowserclose */
@@ -51,7 +51,34 @@ var BackgroundServiceManager = (function bsm() {
         evt.target.dataset.frameType !== 'background')
       return;
 
-    close(evt.target.dataset.frameOrigin, evt.target.dataset.frameName);
+    var manifestURL = evt.target.getAttribute('mozapp');
+
+    close(manifestURL, evt.target.dataset.frameName);
+  }, true);
+
+  /* mozbrowsererror */
+  window.addEventListener('mozbrowsererror', function bsm_winclose(evt) {
+    if (!'frameType' in evt.target.dataset ||
+        evt.target.dataset.frameType !== 'background' ||
+        evt.detail.type !== 'fatal')
+      return;
+
+    var target = evt.target;
+    var manifestURL = target.getAttribute('mozapp');
+
+    // This bg service has just crashed, clean up the frame
+    var name = target.dataset.frameName;
+    close(manifestURL, name);
+
+    // Attempt to relaunch if we could find the info to do so
+    var app = Applications.getByManifestURL(manifestURL);
+    if (name != AUTO_OPEN_BG_PAGE_NAME || !app)
+      return;
+
+    // XXX: this work as if background_page is always a path not a full URL.
+    var url = origin + app.manifest.background_page;
+    open(manifestURL, AUTO_OPEN_BG_PAGE_NAME, url);
+
   }, true);
 
   /* OnInstall */
@@ -63,37 +90,47 @@ var BackgroundServiceManager = (function bsm() {
 
     // XXX: this work as if background_page is always a path not a full URL.
     var url = origin + app.manifest.background_page;
-    open(origin, AUTO_OPEN_BG_PAGE_NAME, url);
+    open(manifestURL, AUTO_OPEN_BG_PAGE_NAME, url);
   });
 
   /* OnUninstall */
   window.addEventListener('applicationuninstall', function bsm_oninstall(evt) {
-    var origin = evt.detail.application.origin;
-    close(origin);
+    var app = evt.detail.application;
+    close(app.manifestURL);
   });
 
   /* Check if the app has the permission to open a background page */
   var hasBackgroundPermission = function bsm_checkPermssion(app) {
-    if (!app || !app.manifest.permissions)
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
       return false;
 
-    var keys = Object.keys(app.manifest.permissions);
-    var permissions = keys.map(function map_perm(key) {
-      return app.manifest.permissions[key];
-    });
+    var value = mozPerms.get('backgroundservice', app.manifestURL,
+                             app.origin, false);
 
-    return (permissions.indexOf('background') != -1);
+    return (value === 'allow');
   };
 
   /* The open function is responsible of containing the iframe */
-  var open = function bsm_open(origin, name, url, frame) {
-    var app = Applications.getByOrigin(origin);
+  var open = function bsm_open(manifestURL, name, url, frame) {
+    var app = Applications.getByManifestURL(manifestURL);
     if (!app || !hasBackgroundPermission(app))
       return false;
 
-    if (frames[origin] && frames[origin][name]) {
-      // XXX: the window with the same name is opened but we cannot
-      // return the window reference back to mozbrowseropenwindow request
+    // These apps currently have bugs preventing them from being
+    // run out of process. All other apps will be run OOP.
+    //
+    var backgroundOutOfProcessBlackList = [
+      'Messages',
+
+      // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=783066
+      'Communications'
+    ];
+
+    if (frames[manifestURL] && frames[manifestURL][name]) {
+      console.error('Window with the same name is there but Gecko ' +
+        ' failed to use it. See bug 766873. origin: "' + origin +
+        '", name: "' + name + '".');
       return false;
     }
 
@@ -103,17 +140,27 @@ var BackgroundServiceManager = (function bsm() {
       // If we have a frame element, it's provided by mozbrowseropenwindow, and
       // it has the mozbrowser, mozapp, and src attributes set already.
       frame.setAttribute('mozbrowser', 'mozbrowser');
-      frame.setAttribute('mozapp', app.manifestURL);
+      frame.setAttribute('mozapp', manifestURL);
+      frame.setAttribute('name', name);
+
+      var appName = app.manifest.name;
+      if (backgroundOutOfProcessBlackList.indexOf(appName) === -1) {
+        // FIXME: content shouldn't control this directly
+        frame.setAttribute('remote', 'true');
+        console.info('%%%%% Launching', appName, 'bg service as remote (OOP)');
+      } else {
+        console.info('%%%%% Launching', appName, 'bg service as local');
+      }
+
       frame.src = url;
     }
     frame.className = 'backgroundWindow';
     frame.dataset.frameType = 'background';
     frame.dataset.frameName = name;
-    frame.dataset.frameOrigin = origin;
 
-    if (!frames[origin])
-      frames[origin] = {};
-    frames[origin][name] = frame;
+    if (!frames[manifestURL])
+      frames[manifestURL] = {};
+    frames[manifestURL][name] = frame;
 
     document.body.appendChild(frame);
     return true;
@@ -121,32 +168,43 @@ var BackgroundServiceManager = (function bsm() {
 
   /* The close function will remove the iframe from DOM and
     delete the reference */
-  var close = function bsm_close(origin, name) {
-    if (!frames[origin])
+  var close = function bsm_close(manifestURL, name) {
+    if (!frames[manifestURL])
       return false;
 
     if (typeof name == 'undefined') {
       // Close all windows
-      Object.keys(frames[origin]).forEach(function closeEach(name) {
-        document.body.removeChild(frames[origin][name]);
-        frames[origin][name] = null;
+      Object.keys(frames[manifestURL]).forEach(function closeEach(name) {
+        document.body.removeChild(frames[manifestURL][name]);
+        frames[manifestURL][name] = null;
       });
-      delete frames[origin];
+      delete frames[manifestURL];
       return true;
     }
 
     // Close one window
-    var frame = frames[origin][name];
+    var frame = frames[manifestURL][name];
     if (!frame)
       return false;
 
     document.body.removeChild(frame);
-    delete frames[origin][name];
+    delete frames[manifestURL][name];
 
-    if (!Object.keys(frames[origin]).length)
-      delete frames[origin];
+    if (!Object.keys(frames[manifestURL]).length)
+      delete frames[manifestURL];
     return true;
   };
+
+  /* start initialization */
+  if (Applications.ready) {
+    init();
+  } else {
+    window.addEventListener('applicationready',
+    function bsm_appListReady(event) {
+      window.removeEventListener('applicationready', bsm_appListReady);
+      init();
+    });
+  }
 
   /* Return the public APIs */
   return {

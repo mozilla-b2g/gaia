@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Switches</title>
+  <meta name="description" content="Activates/Deactivates a given item. It's also used to select an element within a list">
+  <link rel="stylesheet" href="../switches.css">
+  <!--
+    - This <style> element is only used for the example code;
+    - it is not required for the real use case.
+    -->
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+    body {
+      background: none;
+    }
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+  </style>
+</head>
+<body role="application">
+
+  <h2 class="bb-docs">Checkbox, commonly used in edit mode</h2>
+  <label>
+    <input type="checkbox" checked>
+    <span></span>
+  </label>
+
+  <label>
+    <input type="checkbox">
+    <span></span>
+  </label>
+
+  <label class="danger">
+    <input type="checkbox" checked>
+    <span></span>
+  </label>
+
+  <label class="danger">
+    <input type="checkbox">
+    <span></span>
+  </label>
+
+  <h2 class="bb-docs">Radio, commonly used in settings</h2>
+  <label>
+    <input type="radio" name="example" checked>
+    <span></span>
+  </label>
+
+  <label>
+    <input type="radio" name="example">
+    <span></span>
+  </label>
+
+  <label class="danger">
+    <input type="radio" name="example2" checked>
+    <span></span>
+  </label>
+
+  <label class="danger">
+    <input type="radio" name="example2">
+    <span></span>
+  </label>
+
+  <h2 class="bb-docs">Switch, commonly used in settings</h2>
+  <label>
+    <input type="checkbox" data-type="switch" checked>
+    <span></span>
+  </label>
+
+  <label>
+    <input type="checkbox" data-type="switch">
+    <span></span>
+  </label>
+</body>
+</html>

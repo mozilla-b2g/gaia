@@ -1,0 +1,574 @@
+/* Contact detail header */
+.contact-header {
+  margin: -1.4rem -2rem 1rem;
+}
+
+/* Fav star in header */
+section[role="region"] > header:first-child sup {
+  background: url(/contacts/style/gphx/bitmap/default/vw-header/icons/fav-star.png) no-repeat center center;
+  background-size: 100% auto;
+  width: 1.2rem;
+  height: 3.2rem;
+  vertical-align: text-top;
+  text-indent: 100%;
+  overflow: hidden;
+  position: relative;
+  float: left;
+  top: 0;
+}
+
+.contact-header img {
+  width: 100%;
+  height: 7.6rem;
+  background: transparent no-repeat center 30%;
+  background-size: 100% auto;
+}
+
+.view-contacts-list .block-list {
+  padding-right: 1rem;
+}
+
+#contact-name-title {
+  max-width: 22rem;
+  float: left;
+}
+
+/* Contact detail main section */
+
+.view-contact-profile article.view-body {
+  overflow: auto;
+  position: absolute;
+  width: -moz-calc(100% + 1rem);
+}
+
+.view-contact-profile .view-body-inner {
+  background: transparent no-repeat center -8rem;
+  background-size: 100% auto;
+  padding: 0;
+  background-color: #f5f5f5;
+  overflow: visible;
+  position: relative;
+  min-height: 100%;
+}
+
+#contact-detail-inner {
+  padding-bottom: 2rem;
+}
+
+.view-contact-profile .view-body-inner.up {
+  background-position: center -8rem;
+  -moz-transition: background-position 0.25s ease-out;
+}
+
+.view-contact-profile .view-body-inner > section {
+  padding: 0 2rem;
+  background: #f5f5f5;
+  min-height: 100%;
+  overflow: hidden;
+  width: 100%;
+  position: absolute;
+  -moz-box-sizing: border-box;
+}
+
+.view-contact-profile .view-body-inner hr {
+  margin-top: 0;
+}
+
+.view-contact-profile .view-body-inner > section h1{
+  padding-top: 1.4rem;
+}
+
+.view-contact-profile .view-body-inner > section.no-photo {
+  transform: translateY(0);
+}
+
+.view-contact-profile .view-body-inner > section.up {
+  transform: translateY(8rem);
+  -moz-transition: transform 0.5s ease-out;
+}
+
+.view-contact-profile .view-body-inner .comment-notes {
+  font-family: MozTT;
+  font-weight: 600;
+  font-size: 1.3rem;
+  line-height: 1.3em;
+  white-space: pre-wrap;
+}
+
+#contact-detail h1 {
+  font: 1.4rem/1.5em MozTT, Sans-serif;
+  font-weight: 600;
+  border-bottom: solid 1px #dbd9d9;
+  margin-bottom: 1rem;
+  word-wrap: break-word;
+}
+
+#contact-detail li .item-body-exp {
+  padding-bottom: 1rem;
+}
+
+#contact-detail li button {
+  margin: 0;
+}
+
+#contact-detail .social-actions button {
+  margin-bottom: 1rem;
+}
+
+
+#contact-detail h2 {
+  text-transform: uppercase;
+  font-size: 1.4rem;
+}
+
+.block-item > * {
+  pointer-events: none;
+}
+
+.view-jumper-inner > li > * {
+  pointer-events: none;
+}
+
+.view-jumper span[role="button"] {
+  display: inline-block;
+  margin-right: 0;
+}
+
+/* Edit contact section */
+.view-edit-contact .tail-actions {
+  padding-top: 0.7rem;
+  margin: 1rem 0 2rem;
+  border-top: solid 0.1rem #dbdbdb;
+}
+
+.view-edit-contact form li > section {
+  padding: 0;
+  border: none;
+}
+.view-edit-contact form li > section.first {
+  margin: 0;
+}
+
+.view-edit-contact form li {
+  margin-right: 3rem;
+}
+
+.view-edit-contact form li > section{
+  position: relative;
+}
+
+.view-edit-contact form li > section div {
+  position: relative;
+}
+
+.view-edit-contact form li section + button {
+  margin-top: -0.7rem;
+  border-radius: 0 0 0.4rem 0.4rem;
+}
+
+.view-edit-contact form li section + button:after {
+  display: none;
+}
+
+.view-edit-contact .fillflow-row-action {
+  width: 5rem;
+  height: 5rem;
+  margin: -2.5rem 0 0 0;
+}
+
+.view-edit-contact .fillflow-row-action:after {
+  display: none;
+}
+
+.view-edit-contact .fillflow-row-action:active {
+  background: none;
+}
+
+/* FB info (non-editable) */
+.view-edit-contact .facebook fieldset {
+  border-color: #255c95;
+  background: #cbd4df;
+  color: #969696;
+}
+
+.view-edit-contact .facebook fieldset legend,
+.view-edit-contact .facebook fieldset input {
+  color: #969696;
+}
+
+.view-edit-contact .facebook fieldset section {
+  border-left-color: #255c95;
+}
+
+.view-edit-contact .facebook fieldset section p {
+  border-bottom-color: #255c95;
+}
+
+hr {
+  background-color: #BCBCBC;
+  border: 0;
+  height: 1px;
+}
+
+/* Overriding Input areas BB */
+form p input + button[type="reset"].hide,
+form p textarea + button[type="reset"].hide {
+  display: block!important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+fieldset legend.action {
+  padding-right: 1.8rem;
+}
+
+fieldset legend.action:after {
+  right: 1rem;
+}
+
+/* Favorites handling */
+#group-favorites abbr, .fixed-title abbr {
+  background: url(gphx/bitmap/default/lists/favorites.png);
+  display: block;
+  background-size: 100% auto;
+  width: 2rem;
+  height: 2rem;
+}
+
+/* "import contacts" button and throbber */
+.importContacts {
+  font-size: 1.6rem;
+  margin-top: 5rem;
+  margin-left: 1.5rem;
+  width: calc(100% - 6rem); /* 4.5rem = view-jumper width */
+}
+
+.importContacts button {
+  height: 2rem;
+  line-height: 2rem;
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+.importContacts span, .importContacts small {
+  display: block;
+}
+
+
+/* Social network markers */
+.icon-social {
+  background-size: cover;
+  display: inline-block;
+  vertical-align: middle;
+  text-indent: 100%;
+  overflow: hidden;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-left: 1rem;
+}
+
+.icon-social.icon-fb {
+  background-image: url(images/f_logo.png) !important;
+}
+
+.icon-social.icon-tw {
+  background-image: url(images/tw_logo2.png) !important;
+}
+
+.icon-social.notorg {
+  margin-left: 0 !important;
+}
+
+#contact-detail p > strong {
+  font-size: 1.4rem;
+}
+
+/*
+  Loading screen while loading contacts
+*/
+
+.show-overlay {
+  opacity: 1!important;
+}
+
+#loading-overlay {
+  pointer-events: none;
+  z-index: 200;
+  background: rgba(0,0,0,.8);
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2rem;
+  opacity: 0;
+  -moz-box-sizing: border-box;
+  -moz-transition: opacity 0.3s ease-out;
+}
+
+.loading-container {
+  position: relative;
+  top: 50%;
+  margin-top: -6rem;
+}
+
+.loading-header {
+  text-align: left;
+  padding: 2rem 1rem 4rem 1rem;
+  -moz-box-sizing: border-box;
+  color: white;
+  font-size: -moz-calc(10 * 0.226rem);
+  font-weight: 300;
+  border-top: .1rem solid white;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* MARK AS REMOVED */
+
+.removed {
+  border-color: #c8c8c8;
+  opacity: 0.85;
+}
+
+.removed fieldset, .removed legend, .removed input {
+  background-color: transparent;
+  color: #ccc;
+  pointer-events: none;
+}
+
+.removed legend.action:after {
+  border-top-color: #666;
+}
+
+.removed button span.icon-delete {
+  background-image: url("/contacts/style/gphx/bitmap/default/forms/undo.png");
+}
+
+.with-photo {
+  padding-right: 5rem;
+  border:1px solid #C8C8C8;
+  background: none;
+}
+
+.with-photo.removed img {
+  pointer-events: none;
+}
+
+.with-photo p {
+  display: none;
+}
+
+.view-edit-contact .with-photo .fillflow-row-action {
+  margin-left: -5rem;
+}
+
+/* Contacts in comms application */
+@media screen and (max-height: 450px) and (min-height: 420px) {
+ .view-jumper li {
+  font-size: 1.05rem;
+  line-height: 1.23rem;
+ }
+}
+
+/* SETTINGS */
+
+body[role="application"] section[role="region"] > header .icon.icon-settings
+     { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
+
+section.view[data-state="active"] {
+  -moz-transition: transform 0.5s ease;
+}
+
+#view-settings ul li {
+    -moz-box-sizing: border-box;
+    border-bottom: 0.1rem solid #BBBBBB; /*#E6E6E3;*/
+    color: #000000;
+    min-height: 6rem;
+    position: relative;
+}
+
+#view-settings ul li > label:not([for]) {
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+#view-settings ul li > label + *, ul li > label + * + * {
+    display: block;
+    max-width: calc(100% - 66px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#view-settings ul li > a {
+    -moz-box-sizing: border-box;
+    color: #000000;
+    display: block;
+    font-size: 1.8rem;
+    height: 6rem;
+    line-height: 6rem;
+    outline: 0 none;
+    text-decoration: none;
+}
+
+#view-settings ul li > a ~ span {
+  display: block;
+  text-align: center;
+  line-height: 5rem;
+}
+
+.result {
+  display: block;
+  min-height: 0rem !important;
+  text-align: center;
+  height: 5rem;
+  line-height: 5rem;
+}
+
+li [data-l10n-id="importSim"] {
+  background-image: url(/contacts/style/images/import_SIM.png);
+  background-position: 14px center;
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+li [data-l10n-id="importFb"] {
+  background-image: url(/contacts/style/fb/profile_icon.png);
+  background-position: 0.9rem center; /* icons have different size */
+  background-repeat: no-repeat;
+  padding-left: 5.5rem;
+}
+
+/* ----------------------------------
+ * SWITCH
+ * ---------------------------------- */
+
+label.switch {
+    display: inline-block;
+    height: 4rem;
+    position: relative;
+    vertical-align: middle;
+    width: 6rem;
+    z-index: 1;
+}
+label:not([for]) {
+    display: inline-block;
+    height: 5rem;
+    position: relative;
+    vertical-align: middle;
+    width: 5rem;
+}
+
+label.switch {
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  z-index: 1;
+  width: 6rem;
+  height: 4rem;
+}
+
+label.switch input {
+  opacity: 0;
+}
+
+label.switch input[type="checkbox"] + span {
+  position: absolute;
+  left: 90%;
+  top: 50%;
+  margin: -1.1rem 0 0 -2.7rem;
+  width: 5.4rem;
+  height: 2.2rem;
+  pointer-events: none;
+  border: solid 1px #c2c2c2;
+  border-radius: 5.4rem;
+  overflow: hidden;
+  background: url(/contacts/style/gphx/bitmap/default/switches/images/switch/handler.png) no-repeat -0.2rem center;
+  background-size: auto calc(100% + 2px);
+  transition: background 0.18s ease;
+}
+
+label.switch span:after,
+label.switch span:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5.4rem;
+  z-index: -1;
+  transition: transform 0.2s ease;
+}
+
+label.switch span:before {
+  right: 100%;
+  background: #00c3ea url(/contacts/style/gphx/bitmap/default/switches/images/switch/icon.png) no-repeat 0.5rem center;
+  background-size: auto calc(100% - 2px);
+}
+
+label.switch span:after {
+  left: 100%;
+  background: #e6e6e6;
+  transform: translateX(-5.4rem);
+}
+
+/* state ON */
+label.switch input:checked + span {
+  border-color: #00acce;
+  background-position: 3.2rem center;
+}
+
+label.switch input:checked + span:before {
+  transform: translateX(5.4rem);
+}
+
+label.switch input:checked + span:after {
+  transform: translateX(0);
+}
+
+/* No Contacts */
+
+#no-contacts {
+  background: url(/contacts/style/images/contact_big_icon.png) no-repeat center center #FFFFFF;
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  z-index: 11;
+  color: #000;
+  text-align: left;
+}
+
+#no-contacts .info {
+  border-top: 1px solid rgba(96, 96, 96, 0.5);
+  color: #606060;
+  font-size: 2rem;
+  font-weight: lighter;
+  margin: 15rem 4rem 0;
+}
+
+#no-contacts .info p {
+  margin-top: 1rem;
+}
+
+#no-contacts p.small {
+  font-size: 1.35rem;
+  font-weight: lighter;
+  margin: 1.5rem 10rem 0 4rem;
+}
+
+#no-contacts .arrow {
+  position: absolute;
+}
+
+#no-contacts .small.arrow {
+  background: url("/contacts/style/images/arrow_small.png") no-repeat scroll 93% 0.5rem transparent;
+}
+
+#no-contacts .big.arrow {
+  background: url("/contacts/style/images/arrow_big.png") no-repeat scroll 93% 0.5rem transparent;
+  height: 5rem;
+  padding-top: 3.5rem;
+}

@@ -2,23 +2,20 @@
 'use strict';
 
 const Homescreen = (function() {
-  // Initialize the search page
-  var host = document.location.host;
-  var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-  Search.init(domain);
+  var mode = 'normal';
+  var _ = navigator.mozL10n.get;
 
   // Initialize the pagination scroller
   PaginationBar.init('.paginationScroller');
 
   function initUI() {
-    // Initialize the dock
-    DockManager.init(document.querySelector('#footer'));
-
     setLocale();
     GridManager.init('.apps', function gm_init() {
-      GridManager.goToPage(1);
+      DockManager.init(document.querySelector('#footer .dockWrapper'));
       PaginationBar.show();
+      GridManager.goToPage(1);
       DragDropManager.init();
+      Wallpaper.init();
 
       window.addEventListener('localized', function localize() {
         setLocale();
@@ -28,31 +25,16 @@ const Homescreen = (function() {
     });
   }
 
-  // XXX Currently the home button communicate only with the
-  // system application. It should be an activity that will
-  // use the system message API.
-  window.addEventListener('message', function onMessage(e) {
-    switch (e.data) {
-      case 'home':
-        if (document.body.dataset.mode === 'edit') {
-          document.body.dataset.mode = 'normal';
-          GridManager.saveState();
-          DockManager.saveState();
-          Permissions.hide();
-        } else {
-          var num = GridManager.pageHelper.getCurrentPageNumber();
-          switch (num) {
-            case 1:
-              GridManager.goToPage(0);
-              break;
-            default:
-              GridManager.goToPage(1);
-              break;
-          }
-        }
-        break;
+  function onHomescreenActivity() {
+    if (Homescreen.isInEditMode()) {
+      Homescreen.setMode('normal');
+      GridManager.saveState();
+      DockManager.saveState();
+      Permissions.hide();
+    } else {
+      GridManager.goToPage(1);
     }
-  });
+  }
 
   function setLocale() {
     // set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -68,19 +50,17 @@ const Homescreen = (function() {
     Applications.addEventListener('ready', initUI);
   }
 
-  HomeState.init(function success(onUpgradeNeeded) {
-    if (!onUpgradeNeeded) {
+  function loadBookmarks() {
+    HomeState.getBookmarks(function(bookmarks) {
+      bookmarks.forEach(function(bookmark) {
+        Applications.addBookmark(bookmark);
+      });
       start();
-      return;
-    }
+    }, start);
+  }
 
-    // First time the database is empty -> Dock by default
-    var appsInDockByDef = ['browser', 'dialer', 'music', 'gallery'];
-    var protocol = window.location.protocol;
-    appsInDockByDef = appsInDockByDef.map(function mapApp(name) {
-      return protocol + '//' + name + '.' + domain;
-    });
-    HomeState.saveShortcuts(appsInDockByDef, start, start);
+  HomeState.init(function success(onUpgradeNeeded) {
+    loadBookmarks();
   }, start);
 
   // Listening for installed apps
@@ -97,6 +77,28 @@ const Homescreen = (function() {
     }
   });
 
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('activity',
+      function handleActivity(activity) {
+        var data = activity.source.data;
+
+        switch (activity.source.name) {
+          case 'save-bookmark':
+            if (data.type === 'url') {
+              BookmarkEditor.init(data);
+            }
+
+            break;
+          case 'view':
+            if (data.type === 'application/x-application-list') {
+              onHomescreenActivity();
+            }
+
+            break;
+        }
+      });
+  }
+
   return {
     /*
      * Displays the contextual menu given an origin
@@ -104,14 +106,31 @@ const Homescreen = (function() {
      * @param {String} the app origin
      */
     showAppDialog: function h_showAppDialog(origin) {
-      // FIXME: localize this message
       var app = Applications.getByOrigin(origin);
-      var title = 'Remove ' + app.manifest.name;
-      var body = 'This application will be uninstalled fully from your mobile';
-      Permissions.show(title, body,
+      var title, body, yesLabel;
+      // Show a different prompt if the user is trying to remove
+      // a bookmark shortcut instead of an app.
+      if (app.isBookmark) {
+        title = _('remove-title', { name: app.manifest.name });
+        body = '';
+        yesLabel = _('remove');
+      } else {
+        title = _('delete-title', { name: app.manifest.name });
+        body = _('delete-body', { name: app.manifest.name });
+        yesLabel = _('delete');
+      }
+
+      Permissions.show(title, body, yesLabel, _('cancel'),
                        function onAccept() { app.uninstall() },
                        function onCancel() {});
+    },
+
+    isInEditMode: function() {
+      return mode === 'edit';
+    },
+
+    setMode: function(newMode) {
+      mode = document.body.dataset.mode = newMode;
     }
   };
 })();
-

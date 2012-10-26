@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Headers</title>
+  <meta name="description" content="Providing top-level navigation and inputs for the active view">
+  <!--
+    - This <style> and <link> is only used for the example preview,
+    - it isn't needed for the real use case.
+    -->
+  <link rel="stylesheet" href="../headers.css">
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+    body {
+      background: none;
+    }
+    section[role="region"] {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+  </style>
+</head>
+<body role="application">
+  <section role="region">
+    <header>
+      <menu type="toolbar">
+        <a href="#"><span class="icon icon-edit">edit</span></a>
+        <a href="#"><span class="icon icon-add">add</span></a>
+      </menu>
+      <h1>Messages</h1>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+      </menu>
+      <h1>Mark Alfenito</h1>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <button><span class="icon icon-menu">menu</span></button>
+      <menu type="toolbar">
+        <button><span class="icon icon-edit">edit</span></button>
+        <button><span class="icon icon-add">add</span></button>
+      </menu>
+      <h1>Inbox <em>(2)</em></h1>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <button><span class="icon icon-close">close</span></button>
+      <menu type="toolbar">
+        <button>done</button>
+      </menu>
+      <h1>Title</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <section role="region">
+    <header>
+      <button><span class="icon icon-back">back</span></button>
+      <menu type="toolbar">
+        <button><span class="icon icon-user">user</span></button>
+      </menu>
+      <form action="#">
+        <input type="text" placeholder="search" required="required">
+        <button type="reset">Remove text</button>
+      </form>
+    </header>
+  </section>
+
+  <section role="region" class="skin-dark">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <h1>Song title</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <section role="region" class="skin-dark">
+    <header>
+      <h1>Song title</h1>
+    </header>
+  </section>
+
+  <section role="region" class="skin-organic">
+    <header>
+      <a href="#"><span class="icon icon-back">back</span></a>
+      <h1>Settings</h1>
+    </header>
+    <header>
+      <h2>Subheader text</h2>
+    </header>
+  </section>
+
+  <div class="skin-organic">
+    <section role="region">
+      <header>
+        <h1>Settings</h1>
+      </header>
+      <header>
+        <h2>Subheader text</h2>
+      </header>
+    </section>
+
+    <section role="region">
+      <header>
+        <a href="#"><span class="icon icon-close">close</span></a>
+        <h1>Settings</h1>
+      </header>
+      <header>
+        <h2>Subheader text</h2>
+      </header>
+    </section>
+  </div>
+
+</body>
+</html>

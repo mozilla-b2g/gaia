@@ -12,7 +12,7 @@ var GridView = {
 
   hide: function gv_hide() {
     if (this.grid)
-      this.grid.style.display = 'none';
+      this.grid.style.visibility = 'hidden';
   },
 
   show: function gv_show() {
@@ -20,12 +20,13 @@ var GridView = {
     if (!grid) {
       grid = document.createElement('div');
       grid.id = 'debug-grid';
+      grid.dataset.zIndexLevel = 'debug-grid';
 
       this.grid = grid;
-      document.body.appendChild(grid);
+      document.getElementById('screen').appendChild(grid);
     }
 
-    grid.style.display = 'block';
+    grid.style.visibility = 'visible';
   },
 
   toggle: function gv_toggle() {

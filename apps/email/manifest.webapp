@@ -1,28 +1,26 @@
 {
   "name": "E-Mail",
   "description": "Gaia E-Mail",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "systemXHR"
-  ],
+  "messages": ["alarm"],
+  "permissions": {
+    "alarms":{},
+    "contacts":{},
+    "desktop-notification":{},
+    "device-storage:music":{},
+    "device-storage:pictures":{},
+    "device-storage:videos":{},
+    "systemXHR":{},
+    "settings":{},
+    "tcp-socket":{}
+  },
   "locales": {
     "ar": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "ca": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "de": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "el": {
       "name": "E-Mail",
       "description": "Gaia E-Mail"
     },
@@ -30,27 +28,7 @@
       "name": "E-Mail",
       "description": "Gaia E-Mail"
     },
-    "es": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
     "fr": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "it": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "pt-BR": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "ru": {
-      "name": "E-Mail",
-      "description": "Gaia E-Mail"
-    },
-    "tr": {
       "name": "E-Mail",
       "description": "Gaia E-Mail"
     },
@@ -63,5 +41,20 @@
   "icons": {
     "60": "/style/icons/60/Email.png",
     "79": "/style/icons/Email.png"
+  },
+  "activities": {
+    "new": {
+      "filters": {
+        "type": "mail"
+      },
+      "disposition": "window"
+    },
+    "share": {
+      "filters": {
+        "type": "image/*"
+       },          
+      "disposition": "window",
+      "returnValue": true
+    }
   }
 }

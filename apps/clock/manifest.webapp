@@ -1,59 +1,33 @@
 {
   "name": "Clock",
   "description": "Gaia Clock",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
+  "permissions": {
+    "alarms":{},
+    "settings":{},
+    "attention":{}
+  },
   "locales": {
     "ar": {
-      "name": "\u0627\u0644\u0633\u0627\u0639\u0629",
-      "description": "Gaia \u0627\u0644\u0633\u0627\u0639\u0629"
-    },
-    "ca": {
-      "name": "Rellotge",
-      "description": "Rellotge del Gaia"
-    },
-    "de": {
-      "name": "Uhr",
-      "description": "Gaia Uhr"
-    },
-    "el": {
-      "name": "\u03a1\u03bf\u03bb\u03cc\u03b9",
-      "description": "\u03a1\u03bf\u03bb\u03cc\u03b9 Gaia"
+      "name": "الساعة",
+      "description": "Gaia الساعة"
     },
     "en-US": {
       "name": "Clock",
       "description": "Gaia Clock"
     },
-    "es": {
-      "name": "Reloj",
-      "description": "Reloj de Gaia"
-    },
     "fr": {
       "name": "Horloge",
       "description": "Horloge Gaia"
     },
-    "it": {
-      "name": "Orologio",
-      "description": "Orologio di Gaia"
-    },
-    "pt-BR": {
-      "name": "Rel\u00f3gio",
-      "description": "Rel\u00f3gio do Gaia"
-    },
-    "ru": {
-      "name": "\u0427\u0430\u0441\u044b",
-      "description": "\u0427\u0430\u0441\u044b Gaia"
-    },
-    "tr": {
-      "name": "Saat",
-      "description": "Gaia Saat"
-    },
     "zh-TW": {
-      "name": "\u6642\u9418",
-      "description": "Gaia \u6642\u9418"
+      "name": "時鐘",
+      "description": "Gaia 時鐘"
     }
   },
   "default_locale": "en-US",

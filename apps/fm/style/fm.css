@@ -5,24 +5,23 @@ html, body {
   height: 100%;
   overflow: hidden;
   font-size: 62.5%;
+  color: #FFF;
+  font-family:'MozTT';
 }
 
 body {
-  background: url("images/app-texture.png") repeat scroll 0 0 #F4F4F4;
-}
-
-div {
-  position: relative;
+  background: url("images/app-texture.png") repeat scroll 0 0 #272D32;
 }
 
 a {
   outline: 0 none;
   text-decoration: none;
-  color: #555;
+  color: #FFF;
 }
 
 a:active {
   color: #000;
+  background-color: #00ABCD;
 }
 
 .hidden-block {
@@ -32,86 +31,130 @@ a:active {
 #container {
   height: 100%;
   width: 100%;
-  display: -moz-box;
-  -moz-box-orient: vertical;
+}
+
+#container > div {
+  position: absolute;
+  left: 0;
+  width: 100%;
 }
 
 /****** styles for frequency view *******/
-#frequency-view {
-  padding-top: 3rem;
+#frequency-bar {
+  top: 0;
   height: 10rem;
   width: 100%;
   text-align: center;
-  -moz-box-flex: 0;
+  background: -moz-linear-gradient(center top , #33373C, #43464B) repeat scroll 0 0 transparent;
+  overflow: hidden;
+}
+
+#frequency-bar > div {
+  text-align: center;
+}
+
+#frequency-bar a {
+  position: absolute;
+  z-index: 1;
+  line-height: 4rem;
+  width: 3.8rem;
+  height: 3.8rem;
+  font-size: 3rem;
+  border-radius: 50%;
+  display: inline-block;
+  margin-top: 3rem;
+  box-shadow: 0 -1px 1px #111;
+}
+
+#bookmark-button {
+  top: 0;
+  right: 2rem;
 }
 
 #frequency {
-  font-size: 7rem;
+  font-size: 6rem;
+  font-weight: lighter;
+  color: #fff;
+  padding-top: .5rem;
+  position: absolute;
+  width: 100%;
+  height: 10rem;
+  display: block;
+  top: 0;
+  left: 0;
 }
 
 #frequency::after {
   content: "MHz";
-  font-size: 2rem;
+  font-size: 1.52rem;
   padding-left: 0.3rem;
 }
 
-#audio-routing-switch {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  line-height: 4rem;
-  width: 4rem;
-  font-size: 3rem;
-  border: 2px solid #aaa;
-  border-radius: 50%;
-  background: #eee;
+#frequency[data-seek-dir="up"] {
+  background: url("images/spinner-right.png") no-repeat center 8.5rem transparent;
 }
 
-#audio-routing-switch:focus {
-  border-color: #888;
-}
 
-#audio-routing-switch[data-current-state="speaker"]::after {
-  content: "S";
-}
-
-#audio-routing-switch[data-current-state="headset"]::after {
-  content: "H";
+#frequency[data-seek-dir="down"] {
+  background: url("images/spinner-left.png") no-repeat center 8.5rem transparent;
 }
 
 #bookmark-button {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  font-size: 4rem;
+  background: url("images/toggle-fav-star-off.png") no-repeat scroll center center transparent;
 }
 
-#bookmark-button::after {
-  content: "☆";
+#bookmark-button:focus {
+  border-color: #888;
 }
 
-#bookmark-button[data-bookmarked="true"]::after {
-  content: "★";
+#bookmark-button:active,
+#bookmark-button[data-bookmarked="true"]:active {
+  background: url("images/toggle-fav-star-pressed.png") no-repeat scroll center center #00ABCD;
+}
+
+#bookmark-button[data-bookmarked="true"] {
+  background: url("images/toggle-fav-star-on.png") no-repeat scroll center center transparent;
 }
 /*****  end  *****/
 
 /**** styles for frequency dialer *****/
 #dialer-bar {
-  font-size: 1rem;
+  top: 10rem;
+  font-size: 1.3rem;
+  font-weight: lighter;
+  height: 9rem;
+  overflow: hidden;
+  background: -moz-linear-gradient(center top , #4C5055, #5C6064) repeat scroll 0 0 transparent;
+  border-top: 1px solid #3A3D41;
+  color: #FFF;
+  box-shadow: 0 3px 4px #111;
 }
 
 #dialer-container {
   padding-left: 50%;
   width: 100%;
+  height: 100%;
 }
 
-#frequency-indicator::after {
-  content: "|";
+#dialer-container > div:last-child {
+  border-bottom: 0.2rem solid #4D5055;
+  margin-left: -50%;
+  margin-top: 7.5rem;
 }
 
-div.animation-on {
-  -moz-transition-duration: 0.5s;
-  -moz-transition-property: top, left;
+#frequency-indicator {
+  border-radius: 50%/0.1rem;
+  height: 8.6rem;
+  width: 1.6rem;
+  margin: 0.6rem 0 0 -0.8rem;
+  position: absolute;
+  z-index: 1;
+  background: url(images/selector.png) no-repeat center center transparent;
+  top: 0;
+}
+
+div.animation-on > div {
+  transition: -moz-transform 0.4s ease 0s;
 }
 
 #frequency-dialer {
@@ -119,97 +162,119 @@ div.animation-on {
   display: -moz-inline-box;
   -moz-user-select: none;
   width: 100%;
+  margin-left: -0.2rem;
+  position: absolute;
+  top: 0;
 }
 
 #frequency-dialer .dialer-unit-mark-box {
   overflow: hidden;
+  height: 5.5rem;
 }
 
 #frequency-dialer .dialer-unit {
   text-align: left;
+  height: 7.5rem;
+  position: absolute;
+  width: 320px;
+}
+
+#frequency-dialer .dialer-unit-floor {
+  color: #AAA;
   float: left;
 }
 
 #frequency-dialer .dialer-mark {
-  height: 3rem;
-  width: 5rem;
   float: left;
-  font-size: 1rem;
+  width: 0.2rem;
+  height: 1rem;
+  margin: 4rem 1.3rem 0 0.1rem;
+  background-color: #6A6E71;
 }
 
-#frequency-dialer .dialer-mark::after {
-  content: "|";
-  position: absolute;
-  bottom: 0;
+#frequency-dialer .dialer-mark-middle {
+  height: 1.2rem;
+  margin-top: 3.9rem;
+  background-color: #B0B3B4;
 }
 
 #frequency-dialer .dialer-mark-long {
-  font-size: 2rem;
+  height: 2.2rem;
+  margin-top: 3.4rem;
+  background-color: #C2C3C4;
 }
 /**** end *******/
 
 /***** styles for favorites list ******/
 div#fav-list {
   overflow: auto;
-  -moz-box-flex: 1;
+  top: 19rem;
+  bottom: 9rem;
 }
 
 div#fav-list-container {
   max-height: 100%;
   position: absolute;
-  bottom: 2px;
+  bottom: 0;
   width: 100%;
 }
 
 div#fav-list-container > div {
-  font-size: 4.5rem;
-  height: 6.5rem;
-  text-align: right;
-  width: 100%;
+  font-size: 2.17rem;
+  font-weight: lighter;
+  height: 4.4rem;
+  margin: 0 2rem;
   clear: both;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  -ms-box-sizing: border-box;
-  box-sizing: border-box;
-  padding-right: -moz-calc(50% - 11rem);
+  border-top: 1px solid #3D4045;
 }
 
 div#fav-list-container > div:active {
-  background-color: lightGray;
+  background-color: #00ABCD;
 }
 
-div#fav-list-container > div::after {
-  content: "MHz";
-  font-size: 2.8rem;
-  padding-left: 1rem;
+div#fav-list-container > div:first-child {
+  border-top: none;
+}
+
+div#fav-list-container > div:last-child {
+  border-top: 1px solid #3D4045;
 }
 
 div#fav-list-container div.fav-list-remove-button {
-  height: 5rem;
-  width: 5rem;
+  height: 100%;
+  width: 4rem;
   margin-left: 2rem;
-  float: left;
+  float: right;
   cursor: pointer;
+  background: url("images/fav-star.png") no-repeat scroll center center transparent;
 }
 
-div#fav-list-container div.fav-list-remove-button::before {
-  content: "★";
-  font-size: 4rem;
-  left: -2rem;
+div#fav-list-container div.selected div.fav-list-remove-button {
+  background: url("images/fav-star-selected.png") no-repeat scroll center center transparent;
+}
+
+div#fav-list-container div.fav-list-frequency {
+  float: right;
+  padding: 0.8rem -moz-calc(50% - 0.2rem) 0 0;
+  text-align: right;
+  width: 6rem;
+}
+
+div#fav-list-container div.fav-list-frequency::after {
+  content: "MHz";
+  font-size: 1.52rem;
   position: absolute;
-  padding: 0 0 0 3rem;
-}
-
-div#fav-list-container div.fav-list-remove-button:active::before {
-  content: "☆" !important;
+  padding: 0.6rem 0 0 1rem;
 }
 /***** end *****/
 
 /***** styles for status bars *****/
 #action-bar {
-  -moz-box-flex: 0;
-  display: -moz-box;
-  -moz-box-orient: horizontal;
+  bottom: 0;
+  border-top: 0.1rem solid #3A3E46;
+  box-shadow: 0 0 2px #111;
+  height: 9rem;
+  overflow: hidden;
 }
 
 /* Styles for action bar */
@@ -218,92 +283,114 @@ div#fav-list-container div.fav-list-remove-button:active::before {
   display: none;
 }
 
-#action-bar>div {
+#action-bar > div {
   text-align: center;
-  padding: 1.5rem 0;
-  -moz-box-flex: 1;
-  background: #fff;
-  border-top: 2px solid #888;
+  padding: 1rem 0 0;
+  width: 33.333%;
+  float: left;
+}
+
+#action-bar > div:first-child {
+  text-align: right;
+}
+
+#action-bar > div:last-child {
+  text-align: left;
 }
 
 #action-bar a {
   display: inline-block;
-  width: 6rem;
-  height: 6rem;
+  border: none;
+  width: 7rem;
+  height: 7rem;
   font-size: 5rem;
-  background: #fff;
-  border: 2px solid #aaa;
   border-radius: 50%;
+  text-align: center;
+  box-shadow: 0 1px 1px #A8A8A8 inset, 0 2px 0 #1e2226;
 }
 
-#action-bar a:focus {
-  border-color: #888;
+#action-bar a:active {
+  color: #FFF;
+  background-color: #00ABCD;
+  box-shadow: 0 1px 1px #3F6978 inset, 0 2px 0 #1e2226;
 }
 
-#power-switch::after {
-  content: "▶";
-  position: relative;
-  left: 0.3rem;
-  top: -0.3rem;
-  font-size: 5rem;
+#power-switch {
+  background-image: url(images/play.png), url(images/reflection-72.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center, 0 0;
 }
 
-#power-switch[data-enabled="true"]::after {
-  content: "▪";
-  top: -0.3rem;
-  left: 0;
+#power-switch:active {
+  background-image: url(images/play.png);
 }
 
-#frequency-op-seekdown::after {
-  content: "‹";
-  position: relative;
-  top: -0.5rem;
-  left: 0rem;
+#power-switch[data-enabled="true"] {
+  background-image: url(images/stop.png), url(images/reflection-72.png);
 }
 
-#frequency-op-seekdown[data-status="seeking"]::after {
-  content: "...";
-  top: -1.7rem;
+#power-switch[data-enabled="true"]:active {
+  background-image: url(images/stop.png);
 }
 
-#frequency-op-seekup::after {
-  content: "›";
-  position: relative;
-  top: -0.5rem;
-  left: 0rem;
+a#frequency-op-seekdown {
+  width: 5rem;
+  height: 5rem;
+  margin: 1rem 0;
+  background-image: url(images/seekdown.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
 }
 
-#frequency-op-seekup[data-status="seeking"]::after {
-  content: "...";
-  top: -1.7rem;
+a#frequency-op-seekdown:active {
+  background-image: url(images/seekdown.png);
+}
+
+a#frequency-op-seekup {
+  width: 5rem;
+  height: 5rem;
+  margin: 1rem 0;
+  background-image: url(images/seekup.png), url(images/reflection-56.png);
+  background-repeat: no-repeat, no-repeat;
+  background-color: transparent;
+  background-position: center center;
+}
+
+a#frequency-op-seekup:active {
+  background-image: url(images/seekup.png);
 }
 /**** end ****/
 
 /***  styles for antenna warning box ****/
-div#antenna-warning {
+#antenna-warning {
   position: absolute;
-  height: 100%;
   width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
   z-index: 2;
-  font-size: 50px;
   color: #FFF;
-  background-color: rgba(0, 0, 0, 0.8);
+  background: url(images/popup-texture.png) repeat 0 0 transparent;
 }
 
-div#antenna-warning > div {
-  display: table;
-  height: 100%;
-  width: 100%;
+#antenna-warning > div:first-child {
+  height: 60%;
+  background: url(images/headset.png) no-repeat center center transparent;
 }
 
-div#antenna-warning > div > div {
-  text-align: center;
-  vertical-align: middle;
-  display: table-cell;
-  height: 100%;
-  width: 100%;
+#antenna-warning-header {
+  padding: 1rem 0 1rem 2.5rem;
+  font-size: 1.52rem;
+  margin-top: -2.5rem;
+}
+
+#antenna-warning-body {
+  font-size: 2.17rem;
+  padding: 0.5rem;
+  margin: 0 2rem;
+  border-top: 1px solid #D8D8D8;
 }
 /******* end *******/
 

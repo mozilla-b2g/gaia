@@ -3,21 +3,53 @@
 
 'use strict';
 
-// navigator.mozL10n
-(function(window) {
-  // see https://github.com/fabi1cazenave/webL10n
+/**
+ * This library exposes a `navigator.mozL10n' object to handle client-side
+ * application localization. See: https://github.com/fabi1cazenave/webL10n
+ */
 
+(function(window) {
   var gL10nData = {};
   var gTextData = '';
   var gTextProp = 'textContent';
   var gLanguage = '';
   var gMacros = {};
+  var gReadyState = 'loading';
+
+
+  /**
+   * Synchronously loading l10n resources significantly minimizes flickering
+   * from displaying the app with non-localized strings and then updating the
+   * strings. Although this will block all script execution on this page, we
+   * expect that the l10n resources are available locally on flash-storage.
+   *
+   * As synchronous XHR is generally considered as a bad idea, we're still
+   * loading l10n resources asynchronously -- but we keep this in a setting,
+   * just in case... and applications using this library should hide their
+   * content until the `localized' event happens.
+   */
+
+  var gAsyncResourceLoading = true; // read-only
+
+
+  /**
+   * Debug helpers
+   */
 
   var gDEBUG = false;
-  function consoleWarn(message) {
-    if (gDEBUG)
-      console.warn('[l10n] ' + message);
+
+  function consoleLog(message) {
+    if (gDEBUG) {
+      console.log('[l10n] ' + message);
+    }
   };
+
+  function consoleWarn(message) {
+    if (gDEBUG) {
+      console.warn('[l10n] ' + message);
+    }
+  };
+
 
   /**
    * DOM helpers for the so-called "HTML API".
@@ -110,7 +142,7 @@
       var reComment = /^\s*#|^\s*$/;
       var reSection = /^\s*\[(.*)\]\s*$/;
       var reImport = /^\s*@import\s+url\((.*)\)\s*$/i;
-      var reSplit = /\s*=\s*/; // TODO: support backslashes to escape EOLs
+      var reSplit = /^([^=\s]*)\s*=\s*(.+)$/; // TODO: escape EOLs with '\'
 
       // parse the *.properties file into an associative array
       function parseRawLines(rawText, extendedSyntax) {
@@ -132,8 +164,8 @@
             if (reSection.test(line)) { // section start?
               match = reSection.exec(line);
               currentLang = match[1];
-              skipLang = (currentLang != '*') &&
-                  (currentLang != lang) && (currentLang != genericLang);
+              skipLang = (currentLang !== '*') &&
+                  (currentLang !== lang) && (currentLang !== genericLang);
               continue;
             } else if (skipLang) {
               continue;
@@ -145,9 +177,10 @@
           }
 
           // key-value pair
-          var tmp = line.split(reSplit);
-          if (tmp.length > 1)
-            dictionary[tmp[0]] = evalString(tmp[1]);
+          var tmp = line.match(reSplit);
+          if (tmp && tmp.length == 3) {
+            dictionary[tmp[1]] = evalString(tmp[2]);
+          }
         }
       }
 
@@ -173,11 +206,13 @@
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           if (xhr.status == 200 || xhr.status === 0) {
-            if (onSuccess)
+            if (onSuccess) {
               onSuccess(xhr.responseText);
+            }
           } else {
-            if (onFailure)
+            if (onFailure) {
               onFailure();
+            }
           }
         }
       };
@@ -208,9 +243,10 @@
       }
 
       // trigger callback
-      if (successCallback)
+      if (successCallback) {
         successCallback();
-    }, failureCallback, true);
+      }
+    }, failureCallback, gAsyncResourceLoading);
   };
 
   // load and parse all resources for the specified locale
@@ -223,7 +259,9 @@
     var langLinks = getL10nResourceLinks();
     var langCount = langLinks.length;
     if (langCount == 0) {
+      consoleLog('no resource to load, early way out');
       fireL10nReadyEvent(lang);
+      gReadyState = 'complete';
       return;
     }
 
@@ -233,9 +271,11 @@
     onResourceLoaded = function() {
       gResourceCount++;
       if (gResourceCount >= langCount) {
-        if (callback) // execute the [optional] callback
+        if (callback) { // execute the [optional] callback
           callback();
+        }
         fireL10nReadyEvent(lang);
+        gReadyState = 'complete';
       }
     };
 
@@ -256,8 +296,10 @@
     for (var i = 0; i < langCount; i++) {
       var resource = new l10nResourceLink(langLinks[i]);
       var rv = resource.load(lang, onResourceLoaded);
-      if (rv != lang) // lang not found, used default resource instead
+      if (rv != lang) { // lang not found, used default resource instead
+        consoleWarn('"' + lang + '" resource not found');
         gLanguage = '';
+      }
     }
   }
 
@@ -693,8 +735,9 @@
       return str;
 
     // initialize _pluralRules
-    if (!gMacros._pluralRules)
+    if (!gMacros._pluralRules) {
       gMacros._pluralRules = getPluralRules(gLanguage);
+    }
     var index = '[' + gMacros._pluralRules(n) + ']';
 
     // try to find a [zero|one|two] key if it's defined
@@ -719,8 +762,11 @@
   // fetch an l10n object, warn if not found, apply `args' if possible
   function getL10nData(key, args) {
     var data = gL10nData[key];
-    if (!data)
-      consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
+    if (!data) {
+      //consoleWarn('#' + key + ' missing for [' + gLanguage + ']');
+      // XXX temporary log, to be removed after the string freeze
+      console.warn('[l10n] #' + key + ' is undefined.');
+    }
 
     /** This is where l10n expressions should be processed.
       * The plan is to support C-style expressions from the l20n project;
@@ -798,7 +844,9 @@
     // get the related l10n object
     var data = getL10nData(l10n.id, l10n.args);
     if (!data) {
-      consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
+      //consoleWarn('#' + l10n.id + ' missing for [' + gLanguage + ']');
+      // XXX temporary log, to be removed after the string freeze
+      console.warn('[l10n] #' + l10n.id + ' is undefined.');
       return;
     }
 
@@ -830,8 +878,9 @@
       delete data[gTextProp];
     }
 
-    for (var k in data)
+    for (var k in data) {
       element[k] = data[k];
+    }
   }
 
   // translate an HTML subtree
@@ -841,8 +890,9 @@
     // check all translatable children (= w/ a `data-l10n-id' attribute)
     var children = getTranslatableChildren(element);
     var elementCount = children.length;
-    for (var i = 0; i < elementCount; i++)
+    for (var i = 0; i < elementCount; i++) {
       translateElement(children[i]);
+    }
 
     // translate element itself if necessary
     translateElement(element);
@@ -854,7 +904,10 @@
    */
 
   // load the default locale on startup
-  window.addEventListener('DOMContentLoaded', function() {
+  window.addEventListener('DOMContentLoaded', function l10nStartup() {
+    gReadyState = 'interactive';
+    consoleLog('loading [' + navigator.language + '] resources, ' +
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
   });
 
@@ -891,7 +944,15 @@
           return (rtlList.indexOf(gLanguage) >= 0) ? 'rtl' : 'ltr';
         }
       };
-    }
+    },
+
+    // translate an element or document fragment
+    translate: translateFragment,
+
+    // this can be used to avoid race conditions
+    get readyState() { return gReadyState; }
   };
+
+  consoleLog('library loaded.');
 })(this);
 

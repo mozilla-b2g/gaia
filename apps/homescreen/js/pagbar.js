@@ -2,7 +2,9 @@
 'use strict';
 
 const PaginationBar = (function() {
-  var style, previousTotal;
+  var style, previousTotal, scroller;
+
+  var dir = document.documentElement.dir === 'rtl' ? -100 : 100;
 
   return {
     /*
@@ -11,9 +13,10 @@ const PaginationBar = (function() {
      * @param {String} container that holds the pagination bar
      */
     init: function pb_init(element) {
-      var scroller = (typeof element == 'object') ?
+      scroller = (typeof element == 'object') ?
           element : document.querySelector(element);
       style = scroller.style;
+      scroller.addEventListener('keypress', this);
     },
 
     /*
@@ -33,16 +36,27 @@ const PaginationBar = (function() {
      * @param {int} total number of pages
      */
     update: function pb_update(current, total) {
-
+      scroller.setAttribute('aria-valuenow', current);
+      scroller.setAttribute('aria-valuemax', total - 1);
       if (total && previousTotal !== total) {
         style.width = (100 / total) + '%';
         previousTotal = total;
       }
 
-      if (document.documentElement.dir == 'rtl') {
-        style.MozTransform = 'translateX(-' + current * 100 + '%)';
-      } else {
-        style.MozTransform = 'translateX(' + current * 100 + '%)';
+      style.MozTransform = 'translateX(' + current * dir + '%)';
+    },
+
+    handleEvent: function pb_handleEvent(evt) {
+      if (evt.type != 'keypress' || !evt.ctrlKey)
+        return;
+
+      switch (evt.keyCode) {
+        case evt.DOM_VK_RIGHT:
+          GridManager.goToNextPage();
+          break;
+        case evt.DOM_VK_LEFT:
+          GridManager.goToPreviousPage();
+          break;
       }
     }
   };

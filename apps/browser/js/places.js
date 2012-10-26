@@ -9,7 +9,7 @@ IDBTransaction.READ = IDBTransaction.READ || 'readonly';
 
 var Places = {
   DEFAULT_ICON_EXPIRATION: 86400000, // One day
-  TOP_SITE_SCREENSHOTS: 6, // Number of top sites to keep screenshots for
+  TOP_SITE_SCREENSHOTS: 4, // Number of top sites to keep screenshots for
 
   init: function places_init(callback) {
     this.db.open(callback);
@@ -17,6 +17,10 @@ var Places = {
 
   addPlace: function places_addPlace(uri, callback) {
     this.db.createPlace(uri, callback);
+  },
+
+  getPlace: function places_getPlace(uri, callback) {
+    this.db.getPlace(uri, callback);
   },
 
   addVisit: function places_addVisit(uri, callback) {
@@ -36,13 +40,22 @@ var Places = {
   },
 
   updateScreenshot: function place_updateScreenshot(uri, screenshot, callback) {
-    this.db.getPlaceUrisByFrecency(this.TOP_SITE_SCREENSHOTS,
-      (function(topSites) {
+    var maximum = this.TOP_SITE_SCREENSHOTS;
+    this.db.getPlaceUrisByFrecency(maximum + 1, (function(topSites) {
+      // Get the site that isn't quite a top site, if there is one
+      if (topSites.length > maximum)
+        var runnerUp = topSites.pop();
+
       // If uri is not one of the top sites, don't store the screenshot
       if (topSites.indexOf(uri) == -1)
         return;
 
       this.db.updatePlaceScreenshot(uri, screenshot);
+
+      // If more top sites than we need screenshots, expire old screenshot
+      if (runnerUp)
+        this.db.updatePlaceScreenshot(runnerUp, null);
+
     }).bind(this));
   },
 
@@ -69,6 +82,17 @@ var Places = {
 
   removeBookmark: function places_removeBookmark(uri, callback) {
     this.db.deleteBookmark(uri, callback);
+  },
+
+  updateBookmark: function places_updateBookmark(uri, title, callback) {
+    this.db.getBookmark(uri, (function(bookmark) {
+      if (bookmark) {
+        bookmark.title = title;
+        this.db.saveBookmark(bookmark, callback);
+      } else {
+        this.addBookmark(uri, title, callback);
+      }
+    }).bind(this));
   },
 
   setPageTitle: function places_setPageTitle(uri, title, callback) {
@@ -138,15 +162,17 @@ var Places = {
 
 Places.db = {
   _db: null,
+  firstRun: false,
   START_PAGE_URI: document.location.protocol + '//' + document.location.host +
     '/start.html',
 
   open: function db_open(callback) {
-    const DB_VERSION = 4;
+    const DB_VERSION = 5;
     const DB_NAME = 'browser';
     var request = idb.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (function onUpgradeNeeded(e) {
+      this.firstRun = true;
       console.log('Browser database upgrade needed, upgrading.');
       this._db = e.target.result;
       this._initializeDB();
@@ -154,7 +180,7 @@ Places.db = {
 
     request.onsuccess = (function onSuccess(e) {
       this._db = e.target.result;
-      callback();
+      callback(this.firstRun);
     }).bind(this);
 
     request.onerror = (function onDatabaseError(e) {
@@ -514,7 +540,8 @@ Places.db = {
     var request = objectStore.delete(uri);
 
     request.onsuccess = function onSuccess(event) {
-      callback();
+      if (callback)
+        callback();
     };
 
     request.onerror = function onError(e) {
@@ -529,7 +556,6 @@ Places.db = {
     function makeBookmarkProcessor(bookmark) {
       return function(e) {
         var place = e.target.result;
-        bookmark.title = place.title;
         bookmark.iconUri = place.iconUri;
         bookmarks.push(bookmark);
       };
@@ -537,8 +563,9 @@ Places.db = {
 
     var transaction = db.transaction(['bookmarks', 'places']);
     var bookmarksStore = transaction.objectStore('bookmarks');
+    var bookmarksIndex = bookmarksStore.index('timestamp');
     var placesStore = transaction.objectStore('places');
-    bookmarksStore.openCursor(null, IDBCursor.PREV).onsuccess =
+    bookmarksIndex.openCursor(null, IDBCursor.PREV).onsuccess =
       function onSuccess(e) {
       var cursor = e.target.result;
       if (cursor) {

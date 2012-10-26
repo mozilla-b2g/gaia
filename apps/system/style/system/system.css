@@ -16,7 +16,7 @@ body {
 
   overflow: hidden;
 
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   color: #fff;
   font-size: 12px;
 }
@@ -37,23 +37,23 @@ body {
   background: #000 !important;
 }
 
-#screen.screenoff > * {
-  visibility: hidden;
+#screen.screenoff * {
+  visibility: hidden !important;
 }
 
-#homescreen {
-  position: absolute;
-  left: 0px;
-  top: 20px;
+#system-overlay {
   width: 100%;
-  height: -moz-calc(100% - 20px);
-  border: 0px;
-  overflow: hidden;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+
+  pointer-events: none;
 }
 
-#screen.active-statusbar #homescreen {
-  top: 40px;
-  height: -moz-calc(100% - 40px);
+#system-overlay.volume {
+  visibility: visible;
 }
 
 #windows {
@@ -74,14 +74,13 @@ body {
 }
 
 #windows > iframe.appWindow {
-  position: absolute;
+  position: fixed;
   border: 0;
   margin: 0;
   padding: 0;
   overflow: auto;
   left: 0;
   top: 20px;
-  z-index: 1;
 
 /*
  * Do not specify height/width here! They should go to
@@ -102,47 +101,168 @@ body {
   top: 40px;
 }
 
-#windows > iframe.appWindow.active {
-  z-index: 9995;
+#windows > iframe.appWindow:not(.homescreen) {
   background-color: #fff;
 }
 
-#windows > iframe.appWindow:not(.active) {
+#screen.cards-view > #windows > iframe.appWindow:not(.homescreen) {
   visibility: hidden;
 }
 
-#windowSprite {
+#windows > iframe.appWindow:not(.active):not(.homescreen) {
+  visibility: hidden;
+}
+
+#windows > iframe.appWindow.inlineActivity,
+#windows > iframe.appWindow.hideBottom {
+  transform: translateY(100%);
+  transition: transform 0.5s ease, visibility 0.5s ease;
+}
+
+#windows > iframe.appWindow.restored {
+  transform: none;
+  transition: transform 0.5s ease;
+}
+
+#windows > iframe.appWindow.inlineActivity.active {
+  transform: none;
+  transition: none;
+}
+
+#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
+  top: 0;
+}
+
+#windowSprite,
+.windowSprite {
   position: absolute;
   top: 20px;
   left: 0;
   width: 100%;
   height: -moz-calc(100% - 20px);
-  z-index: 9999;
-  opacity: 0;
   background-color: #373a3d;
+  background-size: cover;
   pointer-events: none;
-  -moz-transform: scale(0.5);
-  -moz-transition: -moz-transform 0.5s ease, opacity 0.3s ease;
+
+  visibility: hidden;
 }
 
-#windowSprite.open {
-  -moz-transform: scale(1);
+.windowSprite {
+  transition: transform 0.5s ease;
+  transform: scale(0.6);
+  visibility: inherit;
+}
+
+.windowSprite.right {
+  transform: translateX(70%) scale(0.6);
+}
+
+.windowSprite.left {
+  transform: translateX(-70%) scale(0.6);
+}
+
+#screen.switch-app #windowSprite.before-close {
+  opacity: 0.99;
+}
+
+#screen.switch-app #windowSprite:not(.before-close):not(.opened) {
   opacity: 1;
 }
 
-#windowSprite.faded {
-  opacity: 0;
+#screen.active-statusbar #windowSprite {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
 }
 
-#windowSprite.close {
-  /* The transition on color is not really useful but it is used to fire
-     a transitionend event on the sprite after a certain amount of time.
-     This amount of time is when the 'transform' animation should start.
-  */
-  -moz-transition: color 0.1s ease, opacity 0.3s ease, -moz-transform 0.3s 0.1s ease;
-  -moz-transform: scale(0.5);
-  opacity: 0.3;
-  color: black;
+#screen.cards-view > div#windowSprite:not(.before-close) {
+  opacity: 1;
+}
+
+#windowSprite[data-mask="true"] > div {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+#screen.fullscreen-app > #windowSprite {
+  height: 100%;
+  top: 0;
+}
+
+#screen.attention > #windowSprite,
+#screen.fullscreen-app.attention > #windowSprite {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
+} 
+
+#windowSprite.before-inline-activity {
+  transform: translateY(-moz-calc(100% - 1px));
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opening {
+  transition: transform 0.5s ease;
+
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opened {
+  transition: opacity 0.3s ease;
+
+  transform: translateY(0);
+  opacity: 0;
+  visibility: visible;
+}
+
+#windowSprite.before-open {
+  transform: scale(0.6);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.opening {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.opened {
+  transition: opacity 0.3s ease;
+
+  transform: scale(1);
+  opacity: 0;
+  visibility: visible;
+}
+
+#windowSprite.before-close {
+  transform: scale(1);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.closing {
+  transition: opacity 0.1s ease;
+
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.closed {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(0.6);
+  opacity: 0;
+  visibility: visible;
 }
 
 .accessibility-invert {
@@ -158,47 +278,58 @@ iframe.backgroundWindow {
   visibility: hidden;
 }
 
-#keyboard-frame {
+#dialog-overlay {
   position: absolute;
-  bottom: 0;
+  top: 20px;
+  left: 0;
   width: 100%;
-  height: 100%;
-  z-index: 10001;
-  border: 0;
-  transform: translateY(0);
-  -moz-transition: -moz-transform 0.2s ease;
+  height: -moz-calc(100% - 20px);
+  visibility: hidden;
   pointer-events: none;
 }
 
-#keyboard-frame.visible {
-  z-index: 9000;
+#screen.active-statusbar #dialog-overlay {
+  top: 40px;
+  height: -moz-calc(100% - 40px);
+}
+
+#screen:-moz-full-screen-ancestor #dialog-overlay,
+#screen.fullscreen-app #dialog-overlay {
+  top: 0;
+  height: 100%;
+}
+
+#screen.authentication-dialog #dialog-overlay,
+#screen.authentication-dialog #authentication-dialog,
+#screen.modal-dialog #dialog-overlay,
+#screen.modal-dialog #modal-dialog,
+#screen.popup #popup-container,
+#screen.popup #dialog-overlay,
+#screen.trustedui #trustedui-container,
+#screen.trustedui #dialog-overlay {
+  visibility: visible;
   pointer-events: auto;
 }
 
-#keyboard-frame.hide {
+@keyframes banner-bounce {
+  from, to {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  12.5%, 87.5% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+#system-banner {
+  z-index: 0;
+  visibility: hidden;
+  opacity: 0;
   transform: translateY(100%);
 }
 
-#keyboard-overlay {
-  position: absolute;
-  top: 0px;
-  width: 100%;
-  border: 0;
-  z-index: 10002;
-  background: -moz-element(#keyboard-frame);
-  background-position: top center;
-  pointer-events: none;
-}
-
-/*
- * Keyboard is on top of these overlays, hiding the overlay
- */
-#screen.popup #keyboard-overlay,
-#screen.modal-dialog #keyboard-overlay {
-  display: none;
-}
-
-#screen.fullscreen #keyboard-overlay {
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
+#system-banner.visible {
+  animation: banner-bounce 4s;
+  visibility: visible;
 }

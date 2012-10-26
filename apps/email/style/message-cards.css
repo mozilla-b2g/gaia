@@ -1,9 +1,6 @@
 .card-message-list {
 }
-.msg-list-header, .msg-listedit-header {
-  position: absolute;
-  top: 0;
-  left: 0;
+.msg-listedit-header {
 }
 .msg-list-scrollouter {
   height: 100%;
@@ -13,24 +10,36 @@
 .msg-list-scrollinner {
   /* force the card to be tall enough so we can scroll the search bit out of the
      way by default*/
-  min-height: 536px;
+  min-height: calc(100% + 4.8rem); /* 2.4rem is the search bar */
 }
 
 /* Have enough scroll space to have the search bit pull out. */
 .msg-list-scroll-padding-top {
-  height: 56px;
+  height: 5.6rem;
 }
 /* Have enough space at the bottom for the last message to not be under the
    action bar. */
 .msg-list-scroll-padding-bottom {
-  height: 80px;
+  height: 8rem;
+}
+
+.msg-messages-sync-container {
 }
 
 .msg-search-tease-bar {
-  height: 24px;
+  height: 4.8rem;
   background-color: #eee;
   border-radius: 4px;
   text-align: center;
+}
+
+.msg-search-text-tease {
+  width: 90%;
+  height: calc(100% - 1rem - 2px);
+  padding: 0;
+  border: 1px solid;
+  border-radius: 3px;
+  margin: 0.5rem 0;
 }
 
 /* Sections horizontally chop up the item: unread, details, icons, avatar.
@@ -39,69 +48,95 @@
 .msg-header-item {
   display: block;
   position: relative;
-  height: 80px;
+  height: 8rem;
   overflow: hidden;
-  border-bottom: 1px solid gray;
+  border-bottom: 1px solid lightgray;
   vertical-align: 0%;
 }
-.msg-header-item-selected {
-  background-color: #ffc48c;
+.msg-header-item:active {
+  background-color: #b1f1ff;
 }
 .msg-header-unread-section {
   position: absolute;
-  left: 0px;
-  top: 0px;
+  left: 1.5rem;
+  top: 50%;
   display: inline-block;
-  height: 100%;
-  width: 12px;
+  height: .9rem;
+  width: .9rem;
+  margin-top: -.45rem;
+  border-radius: 50%;
 }
 .msg-header-unread-section-unread {
-  background-color: orange;
+  background-color: #52B6CC;
 }
 .msg-header-details-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 12px;
-  width: 248px;
+  left: 3.8rem;
+  /* 100% - (unread-section) - (icons-section) - (avatar-section) */
+  width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
   height: 100%;
+  font-size: 1.6rem;
+  line-height: 2.0rem;
+  padding: 1rem 0;
 }
 .msg-header-icons-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 260px;
-  width: 32px;
+  right: 2.8rem; /* The width of the avatar-section. */
+  width: 2rem;
   height: 100%;
+  padding-top: 2.5rem;
 }
 .msg-header-avatar-section {
   display: block;
   position: absolute;
   top: 0px;
-  left: 292px;
-  width: 28px;
+  right: 0rem;
+  width: 2.8rem;
   height: 100%;
 }
 
+.msg-header-author-and-date {
+  display: table;
+  table-layout: fixed;
+  width: -moz-available;
+}
 .msg-header-author {
   font-size: 110%;
   color: black;
+  display: table-cell;
+  width: -moz-available;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-date {
+  color: gray;
+  display: table-cell;
+  width: -moz-min-content;
+  white-space: nowrap;
+  margin-left: 1ch;
 }
 .msg-header-date-unread {
-  color: orange;
+  color: #1D8399;
 }
 .msg-header-subject {
   display: block;
   color: black;
-  font-weight: bold;
-  text-overflow: ellipsis;
+  font-weight: 600;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
 }
 .msg-header-snippet {
   display: block;
   color: gray;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .msg-header-star {
@@ -122,17 +157,27 @@
 
 .msg-envelope-bar {
   border-bottom: 1px solid gray;
+  font-size: 1.5rem;
 }
+
 .msg-envelope-date {
-  float: right;
+  font-size: 1rem;
+  text-align: right;
 }
 .msg-envelope-line {
   display: block;
+  margin: 0.8rem;
 }
 .msg-envelope-key {
-  font-weight: bold;
+
 }
+
+.msg-envelope-key::after {
+  content: ":";
+}
+
 .msg-envelope-from-line {
+  margin-top: 0;
 }
 .msg-envelope-to-line {
 }
@@ -143,7 +188,7 @@
 
 .msg-envelope-subject {
   font-weight: bold;
-  margin: 0;
+  margin: 0.8rem;
 }
 
 .msg-body-container {
@@ -152,15 +197,18 @@
 }
 
 .msg-attachments-container {
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  line-height: 4rem;
 }
 
 .msg-peep-bubble {
   display: inline-block;
-  background-color: #7a81c3;
-  border: 1px solid #585c8b;
-  border-radius: 6px;
-  color: white;
-  padding: 2px;
+  background: -moz-linear-gradient(top, #FFFFFF, #DDDDDD);
+  border: 1px solid #CCCCCC;
+  border-radius: 1rem;
+  margin: 1px 0;
+  padding: 2px 0.8rem;
   font-size: 80%;
 }
 .msg-peep-name {
@@ -170,12 +218,15 @@
 }
 
 .msg-attachment-item {
+  list-style-type: none;
+  height: 4rem;
 }
 .msg-attachment-icon {
 }
 .msg-attachment-filename {
 }
-.msg-attachment-filetype {
+.msg-attachment-filesize {
+  color: gray;
 }
 
 .msg-body-content {
@@ -225,4 +276,184 @@
 .msg-body-disclaimer, .msg-body-list, .msg-body-product, .msg-body-ads {
   color: gray;
   margin: 4px 0px;
+}
+
+.msg-reader-load-infobar {
+  position: absolute;
+  color: white;
+  font-size: 1.2rem;
+  left: 0;
+  bottom: 4.9rem;
+  width: 100%;
+  height: 2.2rem;
+  padding: 0.5rem;
+  background-color: rgba(16, 16, 16, 0.8);
+}
+
+.msg-reply-all-btn {
+}
+
+.msg-refresh-btn {
+  background: url("images/icons/refresh.png") no-repeat scroll center transparent;
+}
+
+.msg-search-btn {
+  background: url("images/icons/search.png") no-repeat scroll center transparent;
+  position: absolute;
+  right: 0px;
+}
+
+.msg-edit-btn {
+  background: url("images/icons/edit.png") no-repeat scroll center transparent;
+  position: absolute;
+  left: calc((100% - 6rem)/2);
+}
+
+.msg-btn-active {
+  background-color: rgb(0, 138, 170) !important;
+}
+
+.msg-star-btn {
+  background: url("images/icons/star.png") no-repeat scroll center transparent;
+}
+
+.msg-mark-read-btn {
+  background: url("images/icons/mark.png") no-repeat scroll center transparent;
+}
+
+.msg-delete-btn {
+  background: url("images/icons/delete.png") no-repeat scroll center transparent;
+}
+
+.msg-move-btn {
+  background: url("images/icons/move.png") no-repeat scroll center transparent;
+}
+
+.msg-forward-btn {
+  background: url("images/icons/forward.png") no-repeat scroll center transparent;
+}
+
+/* Message list edit mode layout control */
+.msg-messages-container label.negative {
+  height: 8rem;
+  width: 4rem;
+  display: none;
+  pointer-events: none;
+}
+.msg-messages-container.show-edit label.negative {
+  display: inline-block;
+}
+
+.msg-messages-container.show-edit .msg-header-unread-section {
+  left: 3.9rem;
+}
+.msg-messages-container.show-edit .msg-header-details-section {
+  left: 5.9rem;
+  width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
+}
+
+/* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
+.msg-messages-sync-container > p[role="status"],
+.msg-list-empty {
+  width: 80%;
+  padding: 2rem 10%;
+  text-align: center;
+}
+.msg-list-empty {
+  position: absolute;
+  top: 40%;
+}
+.msg-messages-sync-more {
+  margin: 3rem 0;
+  border-top: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;
+}
+.msg-messages-sync-more > span {
+  margin: 0 !important;
+}
+/* FILTERS BUILDING BLOCKS COPIED AND PASTED */
+
+/* ----------------------------------
+ * FILTERS
+ * ---------------------------------- */
+
+ul[role="tablist"].filter {
+  background: #c7c7c7;
+  display: inline-block;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+ul[role="tablist"].filter:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 0.2rem;
+  background: url(images/ui/shadow.png) repeat-x left bottom;
+}
+
+ul[role="tablist"].filter li {
+  float: left;
+  text-align: center;
+  -moz-box-sizing: border-box;
+  font: bold 1.4rem/1em "MozTT", Sans-serif;
+  color: #737272;
+  border-bottom: solid 1px #999;
+}
+
+ul[role="tablist"].filter li a {
+  display: block;
+  padding: 1.3rem 0.5rem;
+  text-decoration: none;
+  color: #737272;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Selected state */
+ul[role="tablist"].filter li[aria-selected="true"] {
+  background: #fff;
+  border: solid 1px #999;
+  border-top: none;
+  color: #000;
+}
+
+ul[role="tablist"].filter li[aria-selected="true"] a {
+  color: #000;
+}
+
+/* Bottom position */
+ul[role="tablist"].bottom.filter:before {
+  bottom: 100%;
+  top: auto;
+  background-image: url(images/ui/shadow-revert.png);
+}
+
+ul[role="tablist"].bottom.filter li {
+  border-bottom: none;
+  border-top: solid 1px #999;
+}
+
+
+/* Items calcs */
+ul[role="tablist"][data-items="2"].filter li {
+  width: -moz-calc(100% / 2);
+}
+
+ul[role="tablist"][data-items="3"].filter li {
+  width: -moz-calc(100% / 3);
+}
+
+ul[role="tablist"][data-items="4"].filter li {
+  width: -moz-calc(100% / 4);
+}
+
+ul[role="tablist"][data-items="5"].filter li {
+  width: -moz-calc(100% / 5);
 }

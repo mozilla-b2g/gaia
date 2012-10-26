@@ -10,13 +10,12 @@ suite('views/modify_account', function() {
 
   var subject;
   var account;
+  var triggerEvent;
   var app;
 
-  function triggerEvent(element, eventName) {
-    var event = document.createEvent('HTMLEvents');
-    event.initEvent(eventName, true, true);
-    element.dispatchEvent(event);
-  }
+  suiteSetup(function() {
+    triggerEvent = testSupport.calendar.triggerEvent;
+  });
 
   function hasClass(value) {
     return subject.element.classList.contains(value);
@@ -41,13 +40,14 @@ suite('views/modify_account', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="modify-account-view">',
-        '<button class="save-icon">save</button>',
+        '<button class="save">save</button>',
         '<div class="errors"></div>',
         '<form>',
           '<input name="user" />',
           '<input name="password" />',
           '<input name="fullUrl" />',
         '</form>',
+        '<button class="delete-confirm">',
       '</div>'
     ].join('');
 
@@ -55,10 +55,7 @@ suite('views/modify_account', function() {
 
     app = testSupport.calendar.app();
 
-    account = new Calendar.Models.Account({
-      providerType: 'Local',
-      preset: 'local'
-    });
+    account = Factory('account');
 
     subject = new Calendar.Views.ModifyAccount({
       app: app,
@@ -75,6 +72,10 @@ suite('views/modify_account', function() {
       });
     });
 
+  });
+
+  test('#deleteButton', function() {
+    assert.ok(subject.deleteButton);
   });
 
   test('#saveButton', function() {
@@ -110,7 +111,7 @@ suite('views/modify_account', function() {
       // mock out persist
       // we are not trying to
       // test db functionality here.
-      persist: function(obj, callback) {
+      verifyAndPersist: function(obj, callback) {
         calledPersist = arguments;
         setTimeout(function() {
           callback(null, obj);
@@ -119,24 +120,11 @@ suite('views/modify_account', function() {
     };
 
     setup(function() {
-      calledSetup = null;
       calledPersist = null;
-
       // mock out account store
       app.db._stores.Account = store;
-
-      // mock out setup
-      // and save arguments
-      account.setup = function() {
-        var callback = arguments[arguments.length - 1];
-        calledSetup = arguments;
-        setTimeout(function() {
-          callback(null);
-        }, 0);
-      }
     });
 
-    //XXX: Do a *a lot* more testing
     suite('success', function() {
 
       test('result', function(done) {
@@ -145,16 +133,59 @@ suite('views/modify_account', function() {
 
         subject._persistForm(function() {
           done(function() {
-            assert.ok(calledPersist);
-            assert.ok(calledSetup);
+            assert.equal(calledPersist[0], subject.model);
 
-            var model = calledPersist[0];
+            var model = subject.model;
 
             assert.equal(model.user, 'user');
             assert.equal(model.password, 'pass');
           });
         });
       });
+    });
+  });
+
+  suite('#deleteRecord', function() {
+    var calledShow;
+    var calledRemove;
+
+    setup(function() {
+
+      var store = app.store('Account');
+      // we don't really need to redirect
+      // in the test just confirm that it does
+      app.router.show = function() {
+        calledShow = arguments;
+      }
+
+      // again fake model so we do a fake remove
+      store.remove = function() {
+        calledRemove = arguments;
+      };
+    });
+
+    test('with existing model', function() {
+      // assign model to simulate
+      // a record that has been dispatched
+      var model = Factory('account');
+      model._id = 'myaccount';
+      subject.model = model;
+      subject.render();
+
+      triggerEvent(subject.deleteButton, 'click');
+
+      assert.ok(!calledShow, 'did not redirect before-removal');
+      assert.ok(calledRemove, 'called remove');
+      assert.equal(calledRemove[0], model._id, 'removes right id');
+
+      var removeCb = calledRemove[calledRemove.length - 1];
+
+      removeCb();
+
+      assert.deepEqual(
+        calledShow,
+        ['/advanced-settings/']
+      );
     });
   });
 
@@ -300,9 +331,6 @@ suite('views/modify_account', function() {
       });
 
       test('result', function() {
-        assert.isFalse(model.provider.useCredentials);
-        assert.isFalse(model.provider.useUrl);
-
         subject.dispatch({ params: { preset: 'local'} });
         assert.isTrue(calledSave);
       });
@@ -328,6 +356,13 @@ suite('views/modify_account', function() {
 
     test('existing', function() {
       var calledWith;
+      var destroyed;
+
+      subject.model = {};
+      subject.destroy = function() {
+        destroyed = true;
+      }
+
       subject._updateModel = function() {
         calledWith = arguments;
         return model;
@@ -337,6 +372,7 @@ suite('views/modify_account', function() {
         params: { id: '1' }
       });
 
+      assert.ok(destroyed, 'should destroy previous state');
       assert.equal(subject.completeUrl, '/settings/');
       assert.equal(calledWith[0], '1');
       assert.equal(subject.model, model);
@@ -390,7 +426,6 @@ suite('views/modify_account', function() {
       subject.render();
       subject.destroy();
     });
-
 
     test('save button', function() {
       var called;

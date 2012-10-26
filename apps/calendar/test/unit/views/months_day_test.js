@@ -1,14 +1,19 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  require('/shared/js/gesture_detector.js');
-  requireApp('calendar/js/templates/day.js');
-  requireApp('calendar/js/views/months_day.js');
+  requireLib('timespan.js');
+  requireLib('ordered_map.js');
+  requireLib('templates/day.js');
+  requireLib('views/day_based.js');
+  requireLib('views/day_child.js');
+  requireLib('views/months_day.js');
 });
 
 suite('views/months_day', function() {
   var subject,
       app,
       controller,
-      events;
+      events,
+      template,
+      busytimes;
 
   teardown(function() {
     var el = document.getElementById('test');
@@ -19,8 +24,10 @@ suite('views/months_day', function() {
     var div = document.createElement('div');
     div.id = 'test';
     div.innerHTML = [
-      '<div id="months-day-view"> <div class="dayHeader"></div>',
-      '<div class="eventList"></div></div>'
+      '<div id="months-day-view">',
+        '<div class="day-title"></div>',
+        '<div class="day-events"></div>',
+      '</div>'
     ].join(' ');
 
     document.body.appendChild(div);
@@ -28,112 +35,90 @@ suite('views/months_day', function() {
     app = testSupport.calendar.app();
     controller = app.timeController;
     events = app.store('Event');
-
+    busytimes = app.store('Busytime');
 
     subject = new Calendar.Views.MonthsDay({
-      app: app,
-      headerSelector: '#test .dayHeader',
-      eventsSelector: '#test .eventList'
-    });
-  });
-
-  test('initialization', function() {
-    assert.equal(subject.headerSelector, '#test .dayHeader');
-    assert.equal(subject.controller, controller);
-    assert.instanceOf(subject, Calendar.View);
-    assert.equal(subject.element, document.querySelector('#months-day-view'));
-  });
-
-  test('#_renderDay', function() {
-    var date1 = new Date(2012, 1, 1, 1);
-    var date2 = new Date(2012, 1, 1, 4);
-
-    events.add(date1, '1', {
-      name: 'UX1',
-      location: 'Paris'
+      app: app
     });
 
-    events.add(date1, '2', {
-      name: 'UX2',
-      location: 'Paris'
-    });
-
-    events.add(date2, '3', {
-      name: 'UX3',
-      location: 'Paris'
-    });
-
-    var result = subject._renderDay(new Date(2012, 1, 1));
-
-    assert.include(
-      result,
-      'UX1'
-    );
-
-    assert.include(
-      result,
-      'UX2'
-    );
-
-    assert.include(
-      result,
-      'UX3'
-    );
-
+    template = Calendar.Templates.Day;
   });
 
-  test('#_renderAttendees', function() {
-    var list = ['z', 'y'],
-        result = subject._renderAttendees(list);
-
-    assert.include(result, '>z<');
-    assert.include(result, '>y<');
+  test('initializer', function() {
+    assert.instanceOf(subject, Calendar.Views.DayChild);
   });
 
-  test('#_renderEventDetails', function() {
-    var data = {
-      name: 'UX',
-      location: 'Paris',
-      attendees: ['zoo', 'barr']
-    };
 
-    var result = subject._renderEventDetails(data);
+  suite('#handleEvent', function() {
 
-    assert.ok(result);
+    test('selectedDayChange', function() {
+      var date = new Date(2012, 1, 1);
+      var calledWith;
 
-    assert.include(result, 'UX');
-    assert.include(result, 'Paris');
-    assert.include(result, '>zoo<');
-    assert.include(result, '>barr<');
+      // start with different date...
+      subject.date = new Date(2012, 1, 27);
+
+      // initialize events
+      subject.render();
+
+      subject.changeDate = function() {
+        Calendar.Views.MonthsDay.prototype.changeDate.apply(
+          this, arguments
+        );
+
+        calledWith = arguments;
+      }
+
+      subject.controller.selectedDay = date;
+      assert.equal(
+        calledWith[0],
+        date,
+        'should change date in view when controller changes'
+      );
+
+      assert.deepEqual(
+        subject.date,
+        date
+      );
+
+      var html = subject.header.outerHTML;
+      assert.ok(html);
+      assert.include(html, date.toLocaleFormat('%A'));
+    });
   });
 
   test('#_updateHeader', function() {
     var date = new Date(2012, 4, 11);
-    var el = subject.headerElement();
+    var el = subject.header;
+    subject.date = date;
+    subject._updateHeader();
 
-    controller.setSelectedDay(date);
+    var expected = date.toLocaleFormat(
+      '%A %B %Y'
+    );
 
-    assert.include(el.innerHTML, '11');
-    assert.include(el.innerHTML, 'May');
-    assert.include(el.innerHTML, 'Friday');
+    assert.ok(el.innerHTML, 'has contents');
+    assert.include(el.innerHTML, expected);
+  });
+
+  test('#header', function() {
+    assert.ok(subject.header);
   });
 
   test('#render', function() {
-    var date, day, month,
-        currentTime,
-        el = subject.headerElement();
+    var date = new Date();
+    var span = Calendar.Calc.spanOfDay(date);
 
-    currentTime = new Date();
-
-    date = currentTime.getDate();
-    day = subject.dayNames[currentTime.getDay()];
-    month = subject.monthNames[currentTime.getMonth()];
 
     subject.render();
+    assert.deepEqual(subject.timespan, span);
 
-    assert.include(el.innerHTML, date);
-    assert.include(el.innerHTML, day);
-    assert.include(el.innerHTML, month);
+    assert.ok(subject.allDayElement, 'has all day');
+    assert.ok(subject.events, 'has events');
+
+    var html = subject.header.outerHTML;
+    assert.ok(html);
+    assert.include(html, date.toLocaleFormat('%A'));
   });
 
   test('#onfirstseen', function() {

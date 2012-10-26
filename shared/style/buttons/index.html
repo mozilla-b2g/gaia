@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Buttons</title>
+  <meta name="description" content="You can use button tag or also anchor tag with role button">
+
+  <link rel="stylesheet" href="../buttons.css">
+
+  <!--
+    - This <style> and <link> is only used for the example preview,
+    - it isn't needed for the real use case.
+    -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", Sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -0.1rem 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 0.1rem #e8e8e8;
+    }
+
+    div.bb-docs {
+      padding: 1rem;
+    }
+
+    ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    body[role="application"] > [role="region"] {
+      height: 100%;
+      position: relative;
+    }
+  </style>
+</head>
+<body role="application">
+  <h2 class="bb-docs">Normal</h2>
+  <div class="bb-docs">
+    <button>Default</button>
+    <button class="recommend">Recommend</button>
+    <button class="danger">Danger</button>
+   </div>
+
+  <h2 class="bb-docs">Disabled</h2>
+  <div class="bb-docs">
+    <button disabled>Default</button>
+    <a href="#" role="button" aria-disabled="true" class="recommend">Recommend</a>
+    <button disabled class="danger">Danger</button>
+  </div>
+
+  <h2 class="bb-docs">Button List </h2>
+  <div class="bb-docs">
+    <ul>
+      <li>
+        <label>Label</label>
+        <button>Default</button>
+      </li>
+      <li>
+        <label>Label</label>
+        <button disabled="disabled">Disabled</button>
+      </li>
+      <li>
+        <button>
+          Action 1
+        </button>
+      </li>
+      <li>
+        <button class="icon icon-view">
+          View Name
+        </button>
+      </li>
+      <li>
+        <button class="icon icon-dialog">
+          Tuesday September 18, 2012
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="bb-docs">Button list (compact mode)</h2>
+  <div class="bb-docs">
+    <ul class="compact">
+      <li><button>Action 1</button></li>
+      <li><button>Action 2</button></li>
+      <li>
+        <button>
+          <span class="end tick"></span>
+          Action 3
+        </button>
+      </li>
+      <li><button>Action 4</button></li>
+      <li><button>Action 5</button></li>
+      <li><button>Action 6</button></li>
+    </ul>
+  </div>
+</body>
+</html>
+

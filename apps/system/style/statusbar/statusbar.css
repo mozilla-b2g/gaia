@@ -1,6 +1,5 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
-#screen.fullscreen:not(.locked) > #statusbar,
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -8,8 +7,6 @@
 #statusbar {
   overflow: hidden;
   position: absolute;
-  /* Show it above fullscreen - see https://mxr.mozilla.org/mozilla-central/source/layout/style/ua.css#218 */
-  z-index: 2147483647;
 
   width: 100%;
   height: 20px;
@@ -29,46 +26,53 @@
 
 #statusbar > .sb-start {
   float: left;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
+}
+
+*[dir=rtl] #statusbar > * {
+  float: left;
 }
 
 *[dir=rtl] #statusbar > .sb-start {
   float: right;
 }
 
-#statusbar-loading {
+#statusbar > .sb-start-upper {
+  visibility: hidden;
   position: absolute;
-  top: 0;
+  top: -20px;
   left: 0;
-  width: 100%;
-  height: 1px;
-  background: url('images/loading.gif') center center repeat-x;
 
-  opacity: 0.5;
-  -moz-transition: opacity 0.3s ease 0.2s;
+  -moz-transition: visibility 0.5s ease, -moz-transform 0.5s ease;
 }
 
-#statusbar-loading[hidden] {
-  display: block;
-  opacity: 0;
-
-  -moz-transition: none;
+*[dir=rtl] #statusbar > .sb-start-upper {
+  left: auto;
+  right: 0;
 }
 
-#statusbar-time {
-  padding: 0;
+.utility-tray #statusbar > .sb-start-upper {
+  visibility: visible;
+  -moz-transform: translateY(20px);
+}
+
+.utility-tray #statusbar > .sb-start {
+  visibility: hidden;
+  -moz-transform: translateY(20px);
+}
+
+#statusbar-label {
+  color: #919899;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
+}
+
+#statusbar-time { 
   color: #fff;
-  font: 14px/14px 'Open Sans', sans-serif;
-  font-weight: 600;
-}
-
-#statusbar-conn {
-  padding: 0;
-  color: #fff;
-  font: 12px/14px 'Open Sans', sans-serif;
-}
-
-#statusbar-conn:empty {
-  display: none;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
 }
 
 .sb-icon {
@@ -153,6 +157,11 @@
   background-position: -260px -20px;
 }
 
+.sb-icon-wifi[data-level="0"][data-connecting="true"] {
+  background: url('images/wifi-connecting.gif') no-repeat;
+  background-position: 0 0;
+}
+
 .sb-icon-wifi:not([data-level]),
 .sb-icon-wifi[data-level="0"] {
   background-position: 0 -60px;
@@ -170,28 +179,41 @@
   background-position: -84px -60px;
 }
 
-.sb-icon-data[data-type="LTE"] {
+.sb-icon-data[data-type="H+"] {
   background-position: 0 -80px;
 }
 
-.sb-icon-data[data-type="4G"] {
+.sb-icon-data[data-type="H"] {
   background-position: -21px -80px;
 }
 
-.sb-icon-data[data-type="3G"] {
+.sb-icon-data[data-type="4G"] {
   background-position: -42px -80px;
 }
 
-.sb-icon-data[data-type="EDGE"] {
+.sb-icon-data[data-type="3G"] {
   background-position: -63px -80px;
 }
 
-.sb-icon-data[data-type="2G"] {
+.sb-icon-data[data-type="E"] {
   background-position: -84px -80px;
+}
+
+.sb-icon-data[data-type="2G"] {
+  background-position: -105px -80px;
+}
+
+.sb-icon-data[data-type="circle"] {
+  background-position: -126px -80px;
 }
 
 .sb-icon-flight-mode {
   background-position: 0 -40px;
+}
+
+.sb-icon-signal[data-level="-1"][data-searching="true"] {
+  background: url('images/signal-searching.gif') no-repeat;
+  background-position: 0 0;
 }
 
 .sb-icon-signal[data-level="-1"] {
@@ -235,6 +257,15 @@
   left: 0;
   background: url('images/icons.png') no-repeat;
   background-position: -168px -40px;
+}
+
+.sb-icon-network-activity {
+  background: url('images/network-activity.gif') no-repeat;
+  background-position: 0 0;
+}
+
+.sb-icon-headphones {
+  background-position: -189px -40px;
 }
 
 .sb-icon-geolocation {
@@ -299,6 +330,11 @@
   background-position: -189px -60px;
 }
 
+*[dir=rtl] .sb-icon-notification::before {
+  right: 0;
+  left: auto;
+}
+
 .sb-icon-notification[data-unread="true"]::before {
   background-position: -168px -60px;
 }
@@ -311,10 +347,16 @@
   height: 16px;
   top: 0;
   right: 0;
-  font: 14px/14px 'Open Sans', sans-serif;
-  font-weight: 600;
+  padding: 0 1px;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 2.3mozmm /* 6.5pt */
 }
 
+*[dir=rtl] .sb-icon-notification::after {
+  right: auto;
+  left: 0;
+}
 .sb-icon-notification[data-unread="true"]::after {
   color: #27b9cf;
 }
@@ -332,6 +374,7 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font: 8px/8px 'Open Sans', sans-serif;
-  font-weight: 600;
+  font-family: 'MozTT', sans-serif;
+  font-weight: 500;
+  font-size: 1.76mozmm; /*5pt  was 8px */
 }

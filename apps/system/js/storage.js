@@ -8,8 +8,9 @@ var Storage = {
   umsMode: 'ums.mode',
 
   init: function storageInit() {
-    window.addEventListener('unlocked', this);
-    window.addEventListener('locked', this);
+    this.setMode(this.automounterDisable, 'init');
+    window.addEventListener('lock', this);
+    window.addEventListener('unlock', this);
 
     SettingsListener.observe(this.umsEnabled, false, function umsChanged(val) {
       if (LockScreen.locked) {
@@ -26,27 +27,25 @@ var Storage = {
   },
 
   setMode: function storageSetMode(val, reason) {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
+    if (!window.navigator.mozSettings)
       return;
-    }
+
     //console.info('Setting', this.umsMode, 'to', val, 'due to', reason);
     var param = {};
     param[this.umsMode] = val;
-    settings.getLock().set(param);
+    SettingsListener.getSettingsLock().set(param);
   },
 
   handleEvent: function storageHandleEvent(e) {
     switch (e.type) {
-      case 'locked':
+      case 'lock':
         this.setMode(this.automounterDisableWhenUnplugged, 'screen locked');
         break;
-      case 'unlocked':
-        var settings = window.navigator.mozSettings;
-        if (!settings) {
+      case 'unlock':
+        if (!window.navigator.mozSettings)
           return;
-        }
-        var req = settings.getLock().get(this.umsEnabled);
+
+        var req = SettingsListener.getSettingsLock().get(this.umsEnabled);
         req.onsuccess = function umsEnabledFetched() {
           var mode = Storage.modeFromBool(req.result[Storage.umsEnabled]);
           Storage.setMode(mode, 'screen unlocked');

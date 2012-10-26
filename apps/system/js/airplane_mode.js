@@ -5,13 +5,22 @@
 
 var AirplaneMode = {
   init: function apm_init() {
-    var settings = window.navigator.mozSettings;
-    if (!settings)
+    if (!window.navigator.mozSettings)
       return;
 
     var mobileDataEnabled = false;
     SettingsListener.observe('ril.data.enabled', false, function(value) {
       mobileDataEnabled = value;
+    });
+
+    var bluetoothEnabled = false;
+    SettingsListener.observe('bluetooth.enabled', false, function(value) {
+      bluetoothEnabled = value;
+    });
+
+    var wifiEnabled = false;
+    SettingsListener.observe('wifi.enabled', false, function(value) {
+      wifiEnabled = value;
     });
 
     var geolocationEnabled = false;
@@ -29,8 +38,8 @@ var AirplaneMode = {
     var restoreWifi = false;
     var restoreGeolocation = false;
 
+    var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      var settingsToSet = {};
       if (value) {
         // Entering airplane mode.
 
@@ -40,50 +49,70 @@ var AirplaneMode = {
         // 'ril.radio.disabled' is true.
         if (mobileData) {
           restoreMobileData = mobileDataEnabled;
-          if (mobileDataEnabled)
-            settingsToSet['ril.data.enabled'] = false;
+          if (mobileDataEnabled) {
+            SettingsListener.getSettingsLock().set({
+              'ril.data.enabled': false
+            });
+          }
         }
 
         // Turn off Bluetooth.
         if (bluetooth) {
-          restoreBluetooth = bluetooth.enabled;
-          if (bluetooth.enabled)
-            settingsToSet['bluetooth.enabled'] = false;
+          restoreBluetooth = bluetoothEnabled;
+          if (bluetoothEnabled) {
+            SettingsListener.getSettingsLock().set({
+              'bluetooth.enabled': false
+            });
+          }
         }
 
         // Turn off Wifi.
         if (wifiManager) {
-          restoreWifi = wifiManager.enabled;
-          if (wifiManager.enabled)
-            settingsToSet['wifi.enabled'] = false;
+          restoreWifi = wifiEnabled;
+          if (wifiEnabled) {
+            SettingsListener.getSettingsLock().set({
+              'wifi.enabled': false
+            });
+          }
         }
 
         // Turn off Geolocation
         restoreGeolocation = geolocationEnabled;
-        if (geolocationEnabled)
-          settingsToSet['geolocation.enabled'] = false;
+        if (geolocationEnabled) {
+          SettingsListener.getSettingsLock().set({
+            'geolocation.enabled': false
+          });
+        }
 
       } else {
-        // Leaving airplane mode.
-
         // Don't attempt to turn on mobile data if it's already on
-        if (mobileData && !mobileDataEnabled && restoreMobileData)
-          settingsToSet['ril.data.enabled'] = true;
+        if (mobileData && !mobileDataEnabled && restoreMobileData) {
+          SettingsListener.getSettingsLock().set({
+            'ril.data.enabled': true
+          });
+        }
 
         // Don't attempt to turn on Bluetooth if it's already on
-        if (bluetooth && !bluetooth.enabled && restoreBluetooth)
-          settingsToSet['bluetooth.enabled'] = true;
+        if (bluetooth && !bluetooth.enabled && restoreBluetooth) {
+          SettingsListener.getSettingsLock().set({
+            'bluetooth.enabled': true
+          });
+        }
 
         // Don't attempt to turn on Wifi if it's already on
-        if (wifiManager && !wifiManager.enabled && restoreWifi)
-          settingsToSet['wifi.enabled'] = true;
+        if (wifiManager && !wifiManager.enabled && restoreWifi) {
+          SettingsListener.getSettingsLock().set({
+            'wifi.enabled': true
+          });
+        }
 
         // Don't attempt to turn on Geolocation if it's already on
-        if (!geolocationEnabled && restoreGeolocation)
-          settingsToSet['geolocation.enabled'] = true;
+        if (!geolocationEnabled && restoreGeolocation) {
+          SettingsListener.getSettingsLock().set({
+            'geolocation.enabled': true
+          });
+        }
       }
-
-      settings.getLock().set(settingsToSet);
     });
   }
 };

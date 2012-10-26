@@ -1,94 +1,272 @@
-(function(window) {
+Calendar.ns('Provider').Caldav = (function() {
 
-  /* Set global XHR options */
-  var Backend = window.Caldav;
-  var xhrOpts = {
-    mozSystem: true
-  };
+  var _super = Calendar.Provider.Abstract.prototype;
 
-  Backend.Xhr.prototype.globalXhrOptions = xhrOpts;
+  /**
+   * The local provider contains most of the logic
+   * of the database persistence so we reuse those bits
+   * and wrap them with the CalDAV specific logic.
+   */
+  var Local = Calendar.Provider.Local.prototype;
 
-  function Caldav(options) {
-    Calendar.Provider.Local.apply(this, arguments);
+  function CaldavProvider() {
+    Calendar.Provider.Abstract.apply(this, arguments);
+
+    this.service = this.app.serviceController;
+    this.busytimes = this.app.store('Busytime');
+    this.events = this.app.store('Event');
   }
 
-  Caldav.prototype = {
-    __proto__: Calendar.Provider.Local.prototype,
-
+  CaldavProvider.prototype = {
+    __proto__: Calendar.Provider.Abstract.prototype,
+    role: 'caldav',
     useUrl: true,
     useCredentials: true,
+    canSync: true,
 
-    _buildConnection: function(force) {
-      if (typeof(force) === 'undefined') {
-        force = false;
+    /**
+     * Number of dates in the past to sync.
+     * This is usually from the first sync date.
+     */
+    daysToSyncInPast: 30,
+
+    canCreateEvent: true,
+    canUpdateEvent: true,
+    canDeleteEvent: true,
+
+    /**
+     * Returns the capabilities of a single event.
+     */
+    eventCapabilities: function(event) {
+      if (event.remote.isRecurring) {
+        // XXX: for now recurring events cannot be edited
+        return {
+          canUpdate: false,
+          canDelete: false,
+          canCreate: false
+        };
+      } else {
+        return _super.eventCapabilities.call(this, event);
       }
-      if (force || !this._connection) {
-        this._connection = new Backend.Connection({
-          domain: this.domain,
-          user: this.user,
-          password: this.password
-        });
-      }
-      return this._connection;
     },
 
-    _homeRequest: function() {
-      var request = new Backend.Request.CalendarHome(
-        this._connection,
-        { url: this.url }
+    getAccount: function(account, callback) {
+      this.service.request(
+        'caldav',
+        'getAccount',
+        account,
+        callback
+      );
+    },
+
+    findCalendars: function(account, callback) {
+      this.service.request('caldav', 'findCalendars', account, callback);
+    },
+
+    _syncEvents: function(account, calendar, cached, callback) {
+
+      // calculate the first date we want to sync
+      var startDate = calendar.firstEventSyncDate;
+      if (!startDate) {
+        startDate = Calendar.Calc.createDay(new Date());
+      }
+      startDate.setDate(startDate.getDate() - this.daysToSyncInPast);
+
+      var options = {
+        startDate: startDate,
+        cached: cached
+      };
+
+      var stream = this.service.stream(
+        'caldav', 'streamEvents',
+        account.toJSON(),
+        calendar.remote,
+        options
       );
 
-      return request;
-    },
-
-    setupConnection: function(callback) {
-      this._buildConnection(true);
-      var req = this._homeRequest();
-
-      req.send(callback);
-    },
-
-    findCalendars: function(callback) {
-      var ResourceFinder = Backend.Request.Resources;
-      var CalendarResource = Backend.Resources.Calendar;
-      var Cal = Calendar.Provider.Calendar.Caldav;
-
-      var req = new ResourceFinder(this._connection, {
-        url: this.url
+      var pull = new Calendar.Provider.CaldavPullEvents(stream, {
+        account: account,
+        calendar: calendar
       });
 
-      req.addResource('calendar', CalendarResource);
-      req.prop(['ical', 'calendar-color']);
-      req.prop(['caldav', 'calendar-description']);
-      req.prop('displayname');
-      req.prop('resourcetype');
-      req.prop(['calserver', 'getctag']);
-
-      req.send(function(err, data) {
+      stream.request(function(err) {
         if (err) {
           callback(err);
           return;
         }
 
-        var calendars = data.calendar;
-        var results = {};
-        var key;
-        var item;
-        var resource;
-
-        for (key in calendars) {
-          if (calendars.hasOwnProperty(key)) {
-            item = calendars[key];
-            results[key] = new Cal();
-            results[key].mapRemoteCalendar(item);
+        pull.commit(function(commitErr) {
+          if (commitErr) {
+            callback(err);
+            return;
           }
-        }
-        callback(null, results);
+          callback(null);
+        });
+
       });
+
+      return pull;
+    },
+
+    /**
+     * Builds list of event urls & sync tokens.
+     *
+     * @param {Calendar.Model.Calendar} calender model instance.
+     * @param {Function} callback node style [err, results].
+     */
+    _cachedEventsFor: function(calendar, callback) {
+      var store = this.app.store('Event');
+
+      store.eventsForCalendar(calendar._id, function(err, results) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        var list = Object.create(null);
+
+        var i = 0;
+        var len = results.length;
+        var item;
+
+        for (; i < len; i++) {
+          item = results[i];
+          list[item.remote.url] = {
+            syncToken: item.remote.syncToken,
+            id: item._id
+          };
+        }
+
+        callback(null, list);
+      });
+    },
+
+    /**
+     * Sync remote and local events for a calendar.
+     */
+    syncEvents: function(account, calendar, callback) {
+      var self = this;
+
+      if (!calendar._id) {
+        throw new Error('calendar must be assigned an _id');
+      }
+
+      // Don't attempt to sync when provider cannot
+      // or we have matching tokens
+      if ((calendar.lastEventSyncToken &&
+           calendar.lastEventSyncToken === calendar.remote.syncToken)) {
+        callback(null);
+        return;
+      }
+
+      this._cachedEventsFor(calendar, function(err, results) {
+        if (err) {
+          callback(err);
+          return;
+        }
+
+        self._syncEvents(
+          account,
+          calendar,
+          results,
+          callback
+        );
+      });
+
+    },
+
+    createEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var self = this;
+      var calendar = this.events.calendarFor(event);
+      var account = this.events.accountFor(event);
+
+      this.service.request(
+        'caldav',
+        'createEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleCreate(err, remote) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          var event = {
+            _id: calendar._id + '-' + remote.id,
+            calendarId: calendar._id
+          };
+
+          event.remote = remote;
+          Local.createEvent.call(self, event, callback);
+        }
+      );
+    },
+
+    updateEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var calendar = this.events.calendarFor(event);
+      var account = this.events.accountFor(event);
+      var self = this;
+
+      this.service.request(
+        'caldav',
+        'updateEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleUpdate(err, remote) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          event.remote = remote;
+          Local.updateEvent.call(self, event, busytime, callback);
+        }
+      );
+    },
+
+    deleteEvent: function(event, busytime, callback) {
+      if (typeof(busytime) === 'function') {
+        callback = busytime;
+        busytime = null;
+      }
+
+      var store = this.app.store('Event');
+
+      var calendar = store.calendarFor(event);
+      var account = store.accountFor(event);
+      var self = this;
+
+      this.service.request(
+        'caldav',
+        'deleteEvent',
+        account,
+        calendar.remote,
+        event.remote,
+        function handleDelete(err) {
+          if (err) {
+            callback(err);
+            return;
+          }
+
+          Local.deleteEvent.call(self, event, busytime, callback);
+        }
+      );
     }
+
   };
 
-  Calendar.ns('Provider').Caldav = Caldav;
+  return CaldavProvider;
 
-}(this));
-
+}());

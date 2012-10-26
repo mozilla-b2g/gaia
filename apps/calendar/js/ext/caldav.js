@@ -1,3 +1,4 @@
+/* sax js - LICENSE: https://github.com/isaacs/sax-js/blob/master/LICENSE */
 // wrapper for non-node envs
 ;(function (sax) {
 
@@ -70,6 +71,8 @@ function SAXParser (strict, opt) {
   // mostly just for error reporting
   parser.position = parser.line = parser.column = 0
   emit(parser, "onready")
+
+  return this;
 }
 
 function checkBufferLength (parser) {
@@ -169,11 +172,14 @@ function SAXStream (strict, opt) {
           return me._parser["on"+ev] = h
         }
         me.on(ev, h)
+        return null;
       },
       enumerable: true,
       configurable: false
     })
   })
+
+  return this;
 }
 
 SAXStream.prototype = Object.create(Stream.prototype,
@@ -572,7 +578,7 @@ function write (chunk) {
     "Cannot write after close. Assign an onready handler.")
   if (chunk === null) return end(parser)
   var i = 0, c = ""
-  while (parser.c = c = chunk.charAt(i++)) {
+  while ((parser.c = c = chunk.charAt(i++))) {
     parser.position ++
     if (c === "\n") {
       parser.line ++
@@ -988,8 +994,10 @@ function write (chunk) {
   return parser
 }
 
-})(typeof exports === "undefined" ? sax = {} : exports)
+})(typeof exports === "undefined" ? this.sax = {} : exports)
+
 ;
+/* caldav.js - https://github.com/mozilla-b2g/caldav */
 (function(global, module) {
 
   /**
@@ -1012,6 +1020,16 @@ function write (chunk) {
   Exports.prototype = {
 
     /**
+     * Associate and register module.
+     *
+     * @param {String} path uri associated with module.
+     * @param {Object} object module object.
+     */
+    register: function(path, object) {
+      paths[path] = object;
+    },
+
+    /**
      * Unified require between browser/node.
      * Path is relative to this file so you
      * will want to use it like this from any depth.
@@ -1026,7 +1044,11 @@ function write (chunk) {
       if (typeof(window) === 'undefined') {
         return require(require('path').join(__dirname, path));
       } else {
-        return paths[path];
+        if (path in paths) {
+          return paths[path];
+        } else {
+          return null;
+        }
       }
     },
 
@@ -1034,7 +1056,7 @@ function write (chunk) {
      * Maps exports to a file path.
      */
     set exports(val) {
-      return paths[this.path] = val;
+      this.register(this.path, val);
     },
 
     get exports() {
@@ -1057,10 +1079,10 @@ function write (chunk) {
     return new Exports(path);
   }
 
+  Module.register = Exports.prototype.register;
   Module.require = Exports.prototype.require;
   Module.exports = Module;
   Module._paths = paths;
-
 
   /**
    * Reference self as exports
@@ -1089,145 +1111,6 @@ function write (chunk) {
   (typeof(module) === 'undefined') ?
     {} :
     module
-));
-
-(function(module, ns) {
-  // Credit: Andreas Gal - I removed the callback / xhr logic
-
-  // Iterate over all entries if x is an array, otherwise just call fn on x.
-
-  /* Pattern for an individual entry: name:value */
-  var ENTRY = /^([A-Za-z0-9-]+)((?:;[A-Za-z0-9-]+=(?:"[^"]+"|[^";:,]+)(?:,(?:"[^"]+"|[^";:,]+))*)*):(.*)$/;
-
-  /* Pattern for an individual parameter: name=value[,value] */
-  var PARAM = /;([A-Za-z0-9-]+)=((?:"[^"]+"|[^";:,]+)(?:,(?:"[^"]+"|[^";:,]+))*)/g;
-
-  /* Pattern for an individual parameter value: value | "value" */
-  var PARAM_VALUE = /,?("[^"]+"|[^";:,]+)/g;
-
-  // Parse a calendar in iCal format.
-  function ParseICal(text) {
-    // Parse the text into an object graph
-    var lines = text.replace(/\r/g, '').split('\n');
-    var tos = Object.create(null);
-    var stack = [tos];
-
-    // Parse parameters for an entry. Foramt: <param>=<pvalue>[;...]
-    function parseParams(params) {
-      var map = Object.create(null);
-      var param = PARAM.exec(params);
-      while (param) {
-        var values = [];
-        var value = PARAM_VALUE.exec(param[2]);
-        while (value) {
-          values.push(value[1].replace(/^"(.*)"$/, '$1'));
-          value = PARAM_VALUE.exec(param[2]);
-        }
-        map[param[1].toLowerCase()] = (values.length > 1 ? values : values[0]);
-        param = PARAM.exec(params);
-      }
-      return map;
-    }
-
-    // Add a property to the current object. If a property with the same name
-    // already exists, turn it into an array.
-    function add(prop, value, params) {
-      if (params)
-        value = { parameters: parseParams(params), value: value };
-      if (prop in tos) {
-        var previous = tos[prop];
-        if (previous instanceof Array) {
-          previous.push(value);
-          return;
-        }
-        value = [previous, value];
-      }
-      tos[prop] = value;
-    }
-
-    for (var n = 0; n < lines.length; ++n) {
-      var line = lines[n];
-      // check whether the line continues (next line stats with space or tab)
-      var nextLine;
-      while ((nextLine = lines[n+1]) && (nextLine[0] === ' ' || nextLine[0] === '\t')) {
-        line += nextLine.substr(1);
-        ++n;
-        continue;
-      }
-      // parse the entry, format is 'PROPERTY:VALUE'
-      var matches = ENTRY.exec(line);
-
-      if (!matches) {
-        throw new Error('invalid format');
-      }
-
-      var prop = matches[1].toLowerCase();
-      var params = matches[2];
-      var value = matches[3];
-      switch (prop) {
-      case 'begin':
-        var obj = Object.create(null);
-        add(value.toLowerCase(), obj);
-        stack.push(tos = obj);
-        break;
-      case 'end':
-        stack.pop();
-        tos = stack[stack.length - 1];
-        if (stack.length == 1) {
-          var cal = stack[0];
-          if (typeof cal.vcalendar !== 'object' || cal.vcalendar instanceof Array) {
-            throw new Error('single vcalendar object expected');
-          }
-
-          return cal.vcalendar;
-        }
-        break;
-      default:
-        add(prop, value, params);
-        break;
-      }
-    }
-    throw new Error('unexpected end of file');
-  }
-
-  function Value(v) {
-    return (typeof v !== 'object') ? v : v.value;
-  }
-
-  function Parameter(v, name) {
-    if (typeof v !== 'object')
-      return undefined;
-    return v.parameters[name];
-  }
-
-  // Parse a time specification.
-  function ParseDateTime(v) {
-    var dt = Value(v);
-    if (Parameter(v, 'VALUE') === 'DATE') {
-      // 20081202
-      return new Date(dt.substr(0, 4), dt.substr(4, 2), dt.substr(6, 2));
-    }
-    v = Value(v);
-    // 20120426T130000Z
-    var year = dt.substr(0, 4);
-    var month = dt.substr(4, 2) - 1;
-    var day = dt.substr(6, 2);
-    var hour = dt.substr(9, 2);
-    var min = dt.substr(11, 2);
-    var sec = dt.substr(13, 2);
-    if (dt[15] == 'Z') {
-      return new Date(Date.UTC(year, month, day, hour, min, sec));
-    }
-    return new Date(year, month, day, hour, min, sec);
-  }
-
-  module.exports = ParseICal;
-
-}.apply(
-  this,
-  (this.Caldav) ?
-    [Caldav('ical'), Caldav] :
-    [module, require('./caldav')]
 ));
 
 /**
@@ -1322,7 +1205,7 @@ function write (chunk) {
 
       if (typeof(callback) === 'undefined' && typeof(type) === 'object') {
         for (event in type) {
-          if (type.hasOwnProperty(event)) {
+          if (Object.hasOwnProperty.call(type, event)) {
             this.addEventListener(event, type[event]);
           }
         }
@@ -1589,9 +1472,6 @@ function write (chunk) {
       //add to stackData
       stackData.tagSpec = data.tagSpec;
 
-      // shortcut to the current tag object
-      this.currentTag = stackData;
-
       //determine if we need to switch to another
       //handler object.
       handle = this.getHandler(data.tagSpec);
@@ -1782,6 +1662,324 @@ function write (chunk) {
 @namespace
 */
 (function(module, ns) {
+  var Template = ns.require('template');
+
+  /**
+   * Builds a node of a calendar-data or filter xml element.
+   *
+   * @param {QueryBuilder} builder instance.
+   * @param {String} name component/prop name (like RRULE/VEVENT).
+   * @param {Boolean} isProp is this node a property tag?
+   */
+  function Node(builder, name, isProp) {
+    this.name = name;
+    this.builder = builder;
+    this.isProp = !!isProp;
+
+    this.comps = Object.create(null);
+    this.props = Object.create(null);
+  }
+
+  Node.prototype = {
+
+    /**
+     * Hook for adding custom node content.
+     * (for unsupported or custom filters)
+     *
+     * Usually you never want to use this.
+     *
+     * @type {Null|Array}
+     */
+    content: null,
+
+    /**
+     * Appends custom string content into node.
+     *
+     * @param {String} string content.
+     */
+    appendString: function(string) {
+      if (!this.content) {
+        this.content = [];
+      }
+
+      if (typeof(string) !== 'string') {
+        string = string.toString();
+      }
+
+      this.content.push(string);
+    },
+
+    _timeRange: null,
+
+    /**
+     * Adds a time range element to the node.
+     *
+     * Example:
+     *
+     *    var node;
+     *
+     *    // key/values not validated or converted
+     *    // but directly piped into the time-range element.
+     *    node.setTimeRange({
+     *      start: '20060104T000000Z',
+     *      end: '20060105T000000Z'
+     *    });
+     *
+     *    // when null removes element
+     *    node.setTimeRange(null);
+     *
+     * @param {Object|Null} range time range or null to remove.
+     */
+    setTimeRange: function(range) {
+      this._timeRange = range;
+    },
+
+    /**
+     * Removes a property from the output.
+     * @param {String} name prop.
+     */
+    removeProp: function(name) {
+      delete this.props[name];
+    },
+
+    /**
+     * Removes a component from the output.
+     *
+     * @param {String} name comp.
+     */
+    removeComp: function(name) {
+      delete this.comps[name];
+    },
+
+    _addNodes: function(type, nodes) {
+      // return value when is array
+      var result = this;
+
+      if (!Array.isArray(nodes)) {
+        // clear out the return value as we will
+        // now use the first node.
+        result = null;
+      }
+
+      nodes = (Array.isArray(nodes)) ? nodes : [nodes];
+
+      var idx = 0;
+      var len = nodes.length;
+      var name;
+      var node;
+
+      for (; idx < len; idx++) {
+        name = nodes[idx];
+        node = new Node(this.builder, name, type === 'props');
+        this[type][name] = node;
+      }
+
+      // when we where not given an array of nodes
+      // assume we want one specific one so set that
+      // as the return value.
+      if (!result)
+        result = node;
+
+      return result;
+    },
+
+    /**
+     * Adds one or more props.
+     * If property already exists will not add
+     * duplicates but return the existing property.
+     *
+     * @param {String|Array[String]} prop one or more properties to add.
+     * @return {Node|Self} returns a node or self when given an array.
+     */
+    prop: function(prop) {
+      return this._addNodes('props', prop);
+    },
+
+    /**
+     * Adds one or more comp.
+     * If comp already exists will not add
+     * duplicates but return the existing comp.
+     *
+     * @param {String|Array[String]} comp one or more components to add.
+     * @return {Node|Self} returns a node or self when given an array.
+     */
+    comp: function(comp) {
+      return this._addNodes('comps', comp);
+    },
+
+    xmlAttributes: function() {
+      return { name: this.name };
+    },
+
+    /**
+     * Transform tree into a string.
+     *
+     * NOTE: order is not preserved at all here.
+     *       It is highly unlikely that order is a
+     *       factor for calendar-data or filter
+     *       but this is fair warning for other uses.
+     */
+    toString: function() {
+      var content = '';
+      var key;
+      var template = this.builder.template;
+
+      if (this._timeRange) {
+        content += template.tag(
+          ['caldav', 'time-range'],
+          this._timeRange
+        );
+      }
+
+      // render out children
+      for (key in this.props) {
+        content += this.props[key].toString();
+      }
+
+      for (key in this.comps) {
+        content += this.comps[key].toString();
+      }
+
+      if (this.content) {
+        content += this.content.join('');
+      }
+
+      // determine the tag name
+      var tag;
+      if (this.isProp) {
+        tag = this.builder.propTag;
+      } else {
+        tag = this.builder.compTag;
+      }
+
+      // build the xml element and return it.
+      return template.tag(
+        tag,
+        this.xmlAttributes(),
+        content
+      );
+    }
+  };
+
+  /**
+   * Query builder can be used to build xml document fragments
+   * for calendar-data & calendar-filter.
+   * (and any other xml document with a similar structure)
+   *
+   * Options:
+   *  - template: (Caldav.Template instance)
+   *  - tag: container tag (like 'calendar-data')
+   *  - attributes: attributes for root
+   *  - compTag: name of comp[onent] tag name (like 'comp')
+   *  - propTag: name of property tag (like 'prop')
+   *
+   * @param {Object} options query builder options.
+   */
+  function QueryBuilder(options) {
+    if (!options)
+      options = {};
+
+    if (!(options.template instanceof Template)) {
+      throw new TypeError(
+        '.template must be an instance' +
+        ' of Caldav.Template given "' + options.template + '"'
+      );
+    }
+
+    for (var key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+  }
+
+  QueryBuilder.prototype = {
+    tag: ['caldav', 'calendar-data'],
+
+    compTag: ['caldav', 'comp'],
+
+    propTag: ['caldav', 'prop'],
+
+    attributes: null,
+
+    _limitRecurrenceSet: null,
+
+    /**
+     * Adds the recurrence set limit child to the query.
+     * Directly maps to the caldav 'limit-recurrence-set' element.
+     *
+     * Examples:
+     *
+     *    var builder;
+     *
+     *    // no validation or formatting is done.
+     *    builder.setRecurrenceSetLimit({
+     *      start: '20060103T000000Z',
+     *      end: '20060103T000000Z'
+     *    });
+     *
+     *    // use null to clear value
+     *    builder.setRecurrenceSetLimit(null);
+     *
+     * @param {Object|Null} limit see above.
+     */
+    setRecurrenceSetLimit: function(limit) {
+      this._limitRecurrenceSet = limit;
+    },
+
+    /**
+     * @param {String} name component name (like VCALENDAR).
+     * @return {QueryBuilder.Node} node instance.
+     */
+    setComp: function(name) {
+      return this._compRoot = new Node(this, name);
+    },
+
+    /**
+     * Returns the root node of the document fragment.
+     */
+    getComp: function() {
+      return this._compRoot;
+    },
+
+    toString: function() {
+      var content = '';
+      var comp = this.getComp();
+
+      if (this._limitRecurrenceSet) {
+        content += this.template.tag(
+          ['caldav', 'limit-recurrence-set'],
+          this._limitRecurrenceSet
+        );
+      }
+
+      if (comp) {
+        content += comp.toString();
+      }
+
+      return this.template.tag(
+        this.tag,
+        this.attributes,
+        content
+      );
+    }
+
+  };
+
+  QueryBuilder.Node = Node;
+  module.exports = QueryBuilder;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('query_builder'), Caldav] :
+    [module, require('./caldav')]
+));
+
+/**
+@namespace
+*/
+(function(module, ns) {
   var Native;
 
   if (typeof(window) === 'undefined') {
@@ -1814,7 +2012,7 @@ function write (chunk) {
     }
 
     for (key in options) {
-      if (options.hasOwnProperty(key)) {
+      if (Object.hasOwnProperty.call(options, key)) {
         this[key] = options[key];
       }
     }
@@ -1847,6 +2045,18 @@ function write (chunk) {
     },
 
     /**
+     * @param {String} user basic auth user.
+     * @param {String} password basic auth pass.
+     * @return {String} basic auth token.
+     */
+    _credentials: function(user, pass) {
+      // this code should never run in nodejs.
+      return 'Basic ' + window.btoa(
+        user + ':' + pass
+      );
+    },
+
+    /**
      * Sends request to server.
      *
      * @param {Function} callback success/failure handler.
@@ -1865,10 +2075,23 @@ function write (chunk) {
       }
 
       this.xhr = xhr;
-      xhr.open(this.method, this.url, this.async, this.user, this.password);
+
+      // This hack is in place due to some platform
+      // bug in gecko when using mozSystem xhr
+      // the credentials only seem to work as expected
+      // when constructing them manually.
+      if (!this.globalXhrOptions || !this.globalXhrOptions.mozSystem) {
+        xhr.open(this.method, this.url, this.async, this.user, this.password);
+      } else {
+        xhr.open(this.method, this.url, this.async);
+        xhr.setRequestHeader('Authorization', this._credentials(
+          this.user,
+          this.password
+        ));
+      }
 
       for (header in this.headers) {
-        if (this.headers.hasOwnProperty(header)) {
+        if (Object.hasOwnProperty.call(this.headers, header)) {
           xhr.setRequestHeader(header, this.headers[header]);
         }
       }
@@ -1914,7 +2137,7 @@ function write (chunk) {
     var key;
 
     for (key in options) {
-      if (options.hasOwnProperty(key)) {
+      if (Object.hasOwnProperty.call(options, key)) {
         this[key] = options[key];
       }
     }
@@ -1995,153 +2218,6 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
-  function CalendarData() {
-    this._hasItems = false;
-    this.struct = {};
-  }
-
-  CalendarData.prototype = {
-
-    rootName: 'calendar-data',
-    compName: 'comp',
-    propName: 'prop',
-
-    /**
-     * Appends a list of fields
-     * to a given iCalendar field set.
-     *
-     * @param {String} type iCal fieldset (VTODO, VEVENT,...).
-     */
-    select: function(type, list) {
-      if (typeof(list) === 'undefined') {
-        list = true;
-      }
-
-      var struct = this.struct;
-      this._hasItems = true;
-
-      if (!(type in struct)) {
-        struct[type] = [];
-      }
-
-      if (list instanceof Array) {
-        struct[type] = struct[type].concat(list);
-      } else {
-        struct[type] = list;
-      }
-
-      return this;
-    },
-
-    /**
-     * Accepts an object full of arrays
-     * recuse when encountering another object.
-     */
-    _renderFieldset: function(template, element) {
-      var tag;
-      var value;
-      var i;
-      var output = '';
-      var elementOutput = '';
-
-      for (tag in element) {
-        value = element[tag];
-        for (i = 0; i < value.length; i++) {
-          if (typeof(value[i]) === 'object') {
-            elementOutput += this._renderFieldset(
-              template,
-              value[i]
-            );
-          } else {
-            elementOutput += template.tag(
-              ['caldav', this.propName],
-              { name: value[i] }
-            );
-          }
-        }
-        output += template.tag(
-          ['caldav', this.compName],
-          { name: tag },
-          elementOutput || null
-        );
-        elementOutput = '';
-      }
-
-      return output;
-    },
-
-    _defaultRender: function(template) {
-      return template.tag(['caldav', this.rootName]);
-    },
-
-    /**
-     * Renders CalendarData with a template.
-     *
-     * @param {WebCals.Template} template calendar to render.
-     * @return {String} <calendardata /> xml output.
-     */
-    render: function(template) {
-      if (!this._hasItems) {
-        return this._defaultRender(template);
-      }
-
-      var struct = this.struct;
-      var output = template.tag(
-        ['caldav', this.rootName],
-        template.tag(
-          ['caldav', this.compName],
-          { name: 'VCALENDAR' },
-          this._renderFieldset(template, struct)
-        )
-      );
-
-      return output;
-    }
-  };
-
-
-  module.exports = CalendarData;
-
-}.apply(
-  this,
-  (this.Caldav) ?
-    [Caldav('templates/calendar_data'), Caldav] :
-    [module, require('../caldav')]
-));
-(function(module, ns) {
-
-  var CalendarData = ns.require('templates/calendar_data');
-
-  function CalendarFilter() {
-    CalendarData.call(this);
-  }
-
-  CalendarFilter.prototype = {
-
-    __proto__: CalendarData.prototype,
-
-    add: CalendarData.prototype.select,
-
-    _defaultRender: function(template) {
-      var inner = this._renderFieldset(template, { VCALENDAR: [{ VEVENT: true }] });
-      return template.tag(['caldav', this.rootName], inner);
-    },
-
-    compName: 'comp-filter',
-    rootName: 'filter'
-  };
-
-  module.exports = CalendarFilter;
-
-}.apply(
-  this,
-  (this.Caldav) ?
-    [Caldav('templates/calendar_filter'), Caldav] :
-    [module, require('../caldav')]
-));
-
-(function(module, ns) {
-
   var Base = {
 
     name: 'base',
@@ -2163,7 +2239,7 @@ function write (chunk) {
       child._super = this;
 
       for (key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.hasOwnProperty.call(obj, key)) {
           child[key] = obj[key];
         }
       }
@@ -2215,10 +2291,49 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  var Base = ns.require('sax/base');
+
+  var CalendarDataHandler = Base.create({
+    name: 'calendar data',
+
+    //don't add text only elements
+    //to the stack as objects
+    onopentag: null,
+    onclosetag: null,
+
+    //add the value to the parent
+    //value where key is local tag name
+    //and value is the text.
+    ontext: function(data) {
+      var handler = this.handler;
+      this.current[this.currentTag[handler.tagField]] =
+        CalendarDataHandler.parseICAL(data);
+    }
+  });
+
+  /**
+   * Default ical parser handler.
+   *
+   * XXX: Feels a little hacky but works...
+   */
+  CalendarDataHandler.parseICAL = function(input) {
+    return input;
+  };
+
+  module.exports = CalendarDataHandler;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('sax/calendar_data_handler'), Caldav] :
+    [module, require('../caldav')]
+));
+(function(module, ns) {
+
   var HTTP_STATUS = /([0-9]{3,3})/;
 
   var Base = ns.require('sax/base');
-  var ParseICal = ns.require('ical');
+  var CalendarDataHandler = ns.require('sax/calendar_data_handler');
 
   var TextHandler = Base.create({
     name: 'text',
@@ -2236,24 +2351,6 @@ function write (chunk) {
       this.current[this.currentTag[handler.tagField]] = data;
     }
   });
-
-  var CalendarDataHandler = Base.create({
-    name: 'calendar data',
-
-    //don't add text only elements
-    //to the stack as objects
-    onopentag: null,
-    onclosetag: null,
-
-    //add the value to the parent
-    //value where key is local tag name
-    //and value is the text.
-    ontext: function(data) {
-      var handler = this.handler;
-      this.current[this.currentTag[handler.tagField]] = ParseICal(data);
-    }
-  });
-
 
   var HrefHandler = Base.create({
     name: 'href',
@@ -2292,7 +2389,7 @@ function write (chunk) {
       var match = data.match(HTTP_STATUS);
 
       if (match) {
-        var handler = this.handler;
+        handler = this.handler;
         this.current[this.currentTag[handler.tagField]] = match[1];
       } else {
         this._super.ontext.call(this, data, handler);
@@ -2302,8 +2399,6 @@ function write (chunk) {
 
   var PrivilegeSet = Base.create({
     name: 'PrivilegeSet',
-
-    name: 'href',
 
     onopentag: function(data) {
       if (this.currentTag.handler === this.handler) {
@@ -2318,7 +2413,6 @@ function write (chunk) {
 
     onclosetag: function(data) {
       var current = this.currentTag;
-      var data;
 
       if (current.handler === this.handler) {
         data = this.current;
@@ -2344,7 +2438,7 @@ function write (chunk) {
       var tag = data[handler.tagField];
       var last = this.tagStack[this.tagStack.length - 1];
 
-      if (last.handler === handler) {
+      if (last.handler && last.handler === handler) {
         this.stack.push(this.current);
         this.current = this.current[tag] = [];
       } else {
@@ -2375,6 +2469,7 @@ function write (chunk) {
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
       'DAV:/owner': HrefHandler,
+      'DAV:/getetag': TextHandler,
       'DAV:/displayname': TextHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-home-set': HrefHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-timezone': TextHandler,
@@ -2397,6 +2492,7 @@ function write (chunk) {
       }
 
       handler._super.onopentag.call(this, data, handler);
+      return null;
     },
 
     oncomplete: function() {
@@ -2410,7 +2506,7 @@ function write (chunk) {
       delete this.current.prop;
 
       for (key in props) {
-        if (props.hasOwnProperty(key)) {
+        if (Object.hasOwnProperty.call(props, key)) {
           propstat[key] = {
             status: status,
             value: props[key]
@@ -2434,12 +2530,18 @@ function write (chunk) {
       }
 
       handler._super.onopentag.call(this, data, handler._super);
+      return null;
     },
 
     oncomplete: function() {
       var parent;
 
       if (this.current.href) {
+        this.emit(
+          'DAV:/response',
+          this.current.href,
+          this.current.propstat
+        );
         parent = this.stack[this.stack.length - 1];
         parent[this.current.href] = this.current.propstat;
       }
@@ -2478,7 +2580,7 @@ function write (chunk) {
     this.sax = new SAX();
 
     for (key in options) {
-      if (options.hasOwnProperty(key)) {
+      if (Object.hasOwnProperty.call(options, key)) {
         this[key] = options[key];
       }
     }
@@ -2542,6 +2644,147 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  var XHR = ns.require('xhr');
+
+  /**
+   * Creates an Http request for a single webdav resource.
+   * Thin wrapper over http/xhr each public method has the same
+   * signature with similar options:
+   *
+   *    // the intent is that after a larger calendar query
+   *    // the urls are stored and can be used to modify the
+   *    // calendar resources.
+   *    var asset = new Caldav.Request.Asset(con, 'someurl');
+   *
+   *    asset.get({ etag: 'foo'}, function(err, data) {
+   *    });
+   *
+   *    asset.put({ etag: 'foo' }, body, function(err, data) {
+   *
+   *    });
+   *
+   *    asset.delete(function() {
+   *
+   *    });
+   *
+   * @param {Caldav.Connection} connection connection details.
+   * @param {String} url assert url.
+   */
+  function Asset(connection, url) {
+    if (!connection) {
+      throw new Error('must pass connection object');
+    }
+    this.connection = connection;
+    this.url = url;
+  }
+
+  Asset.prototype = {
+
+    contentType: 'text/calendar',
+
+    _buildRequest: function(method, options) {
+      var headers = {
+        'Content-Type': this.contentType
+      };
+
+      if (options && options.contentType) {
+        headers['Content-Type'] = options.contentType;
+      }
+
+      if (options && options.etag) {
+        headers['If-None-Match'] = options.etag;
+      }
+
+      return this.connection.request({
+        url: this.url,
+        headers: headers,
+        method: method
+      });
+    },
+
+    /**
+     * Find a single calendar asset.
+     * This method should only be used to either
+     * confirm a put or delete request.
+     *
+     * Calendar query is far more suited for fetching
+     * large amounts of calendar data.
+     *
+     * Options:
+     *  - etag: used to issue a 'If-Not-Match'
+     *
+     * @param {Object} [options] calendar options.
+     * @param {Function} callback node style [err, data, xhr].
+     */
+    get: function(options, callback) {
+      if (typeof(options) === 'function') {
+        callback = options;
+        options = null;
+      }
+
+      var req = this._buildRequest('GET', options);
+
+      req.send(function(err, xhr) {
+        callback(err, xhr.responseText, xhr);
+      });
+    },
+
+    /**
+     * Adds or modifies a single calendar resource.
+     *
+     * @param {Object} [options] see get.
+     * @param {String} data post content.
+     * @param {Function} callback node style [err, data, xhr].
+     */
+    put: function(options, data, callback) {
+      if (typeof(options) === 'string') {
+        data = options;
+        options = null;
+      }
+
+      if (typeof(data) === 'function') {
+        callback = data;
+        data = null;
+      }
+
+      var req = this._buildRequest('PUT', options);
+      req.data = data;
+
+      req.send(function(err, xhr) {
+        callback(err, xhr.responseText, xhr);
+      });
+    },
+
+    /**
+     * Deletes a calendar resource
+     *
+     * @param {Object} [options] see get.
+     * @param {Function} callback node style [err, data, xhr].
+     */
+    delete: function(options, callback) {
+      if (typeof(options) === 'function') {
+        callback = options;
+        options = null;
+      }
+
+      var req = this._buildRequest('DELETE', options);
+
+      req.send(function(err, xhr) {
+        callback(err, xhr.responseText, xhr);
+      });
+    }
+  };
+
+  module.exports = Asset;
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('request/asset'), Caldav] :
+    [module, require('../caldav')]
+));
+(function(module, ns) {
+
   var Abstract = ns.require('request/abstract'),
       Template = ns.require('template'),
       DavResponse = ns.require('sax/dav_response');
@@ -2588,6 +2831,37 @@ function write (chunk) {
       this._props.push(this.template.tag(tagDesc, attr, content));
     },
 
+    /**
+     * Removes property from request.
+     * Must use same arguments as 'prop' to remove prop.
+     *
+     * @param {String|Array} tagDesc tag description.
+     * @param {Object} [attr] optional tag attrs.
+     * @param {Obj} [content] optional content.
+     */
+    removeProp: function(tagDesc, attr, content) {
+      var prop = this.template.tag(tagDesc, attr, content);
+      var idx = this._props.indexOf(prop);
+
+      if (idx !== -1) {
+        this._props.splice(idx, 1);
+        return true;
+      }
+      return false;
+    },
+
+    /**
+     * Checks if prop has been added to the request.
+     *
+     * @param {String|Array} tagDesc tag description.
+     * @param {Object} [attr] optional tag attrs.
+     * @param {Obj} [content] optional content.
+     */
+    hasProp: function(tagDesc, attr, content) {
+      var prop = this.template.tag(tagDesc, attr, content);
+      return this._props.indexOf(prop) !== -1;
+    },
+
     _createPayload: function() {
       var content = this.template.tag('prop', this._props.join(''));
       return this.template.render(content);
@@ -2618,8 +2892,7 @@ function write (chunk) {
 (function(module, ns) {
 
   var Propfind = ns.require('request/propfind');
-  var CalendarData = ns.require('templates/calendar_data');
-  var CalendarFilter = ns.require('templates/calendar_filter');
+  var Builder = ns.require('query_builder');
 
   /**
    * Creates a calendar query request.
@@ -2634,10 +2907,19 @@ function write (chunk) {
 
     this.xhr.headers['Depth'] = this.depth || 1;
     this.xhr.method = 'REPORT';
-    this.fields = new CalendarData();
-    this.filters = new CalendarFilter();
 
     this.template.rootTag = ['caldav', 'calendar-query'];
+
+    this.data = new Builder({
+      template: this.template
+    });
+
+    this.filter = new Builder({
+      template: this.template,
+      tag: ['caldav', 'filter'],
+      propTag: ['caldav', 'prop-filter'],
+      compTag: ['caldav', 'comp-filter']
+    });
   }
 
   CalendarQuery.prototype = {
@@ -2649,14 +2931,14 @@ function write (chunk) {
 
       props = this._props.join('');
 
-      if (this.fields) {
-        props += this.fields.render(this.template);
+      if (this.data) {
+        props += this.data.toString();
       }
 
       content = this.template.tag('prop', props);
 
-      if (this.filters) {
-        content += this.filters.render(this.template);
+      if (this.filter) {
+        content += this.filter.toString();
       }
 
       return this.template.render(content);
@@ -2688,7 +2970,7 @@ function write (chunk) {
     }
 
     for (key in options) {
-      if (options.hasOwnProperty(key)) {
+      if (Object.hasOwnProperty.call(options, key)) {
         this[key] = options[key];
       }
     }
@@ -2700,7 +2982,7 @@ function write (chunk) {
     var url, results = [], prop;
 
     for (url in data) {
-      if (data.hasOwnProperty(url)) {
+      if (Object.hasOwnProperty.call(data, url)) {
         if (name in data[url]) {
           prop = data[url][name];
           if (prop.status === '200') {
@@ -2736,7 +3018,8 @@ function write (chunk) {
         var principal;
 
         if (err) {
-          return callback(err);
+          callback(err);
+          return;
         }
 
         principal = findProperty('current-user-principal', data, true);
@@ -2759,7 +3042,8 @@ function write (chunk) {
 
       find.send(function(err, data) {
         if (err) {
-          return callback(err);
+          callback(err);
+          return;
         }
 
         details = {
@@ -2781,7 +3065,8 @@ function write (chunk) {
       self._findPrincipal(self.url, function(err, url) {
 
         if (!url) {
-          return callback(new Error('Cannot resolve principal url'));
+          callback(new Error('Cannot resolve principal url'));
+          return;
         }
 
         self._findCalendarHome(url, function(err, details) {
@@ -2831,9 +3116,7 @@ function write (chunk) {
 
         for (url in root) {
           collection = root[url];
-
           resources = collection.resourcetype;
-
           if (resources.value.forEach) {
 
             resources.value.forEach(function(type) {
@@ -2882,7 +3165,8 @@ function write (chunk) {
     CalendarQuery: ns.require('request/calendar_query'),
     Propfind: ns.require('request/propfind'),
     CalendarHome: ns.require('request/calendar_home'),
-    Resources: ns.require('request/resources')
+    Resources: ns.require('request/resources'),
+    Asset: ns.require('request/asset')
   };
 
 }.apply(
@@ -2894,8 +3178,9 @@ function write (chunk) {
 (function(module, ns) {
 
   module.exports = {
-    Abstract: ns.require('sax/abstract'),
-    CalendarQuery: ns.require('sax/dav_response')
+    Base: ns.require('sax/base'),
+    CalendarDataHandler: ns.require('sax/calendar_data_handler'),
+    DavResponse: ns.require('sax/dav_response')
   };
 
 }.apply(
@@ -2905,19 +3190,6 @@ function write (chunk) {
     [module, require('../caldav')]
 ));
 
-(function(module, ns) {
-
-  module.exports = {
-    CalendarData: ns.require('templates/calendar_data'),
-    CalendarFilter: ns.require('templates/calendar_filter')
-  };
-
-}.apply(
-  this,
-  (this.Caldav) ?
-    [Caldav('templates'), Caldav] :
-    [module, require('../caldav')]
-));
 /**
 @namespace
 */
@@ -2954,6 +3226,7 @@ function write (chunk) {
       'calendar-description': 'description',
 
       'getctag': 'ctag',
+      'getetag': 'etag',
       'getlastmodified': 'lastmodified',
 
       'resourcetype': {
@@ -3032,7 +3305,7 @@ function write (chunk) {
       }
 
       for (key in options) {
-        if (options.hasOwnProperty(key)) {
+        if (Object.hasOwnProperty.call(options, key)) {
           if (key in this._map) {
             descriptor = this._map[key];
             value = options[key];
@@ -3094,13 +3367,12 @@ function write (chunk) {
 
   var exports = module.exports;
 
-  exports.Ical = ns.require('ical');
   exports.Responder = ns.require('responder');
   exports.Sax = ns.require('sax');
   exports.Template = ns.require('template');
+  exports.QueryBuilder = ns.require('query_builder');
   exports.Xhr = ns.require('xhr');
   exports.Request = ns.require('request');
-  exports.Templates = ns.require('templates');
   exports.Connection = ns.require('connection');
   exports.Resources = ns.require('resources');
 

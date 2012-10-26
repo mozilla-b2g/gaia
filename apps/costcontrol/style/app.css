@@ -1,0 +1,274 @@
+/* GENERAL */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+a:focus,
+button:focus,
+a::-moz-focus-inner,
+button::-moz-focus-inner {
+  outline: none;
+  border: none;
+}
+
+html {
+  font-size: 10px;
+  font-family: 'MozTT', sans-serif;
+  color: #000;
+}
+
+body {
+  background: url(images/app/ui/pattern.png) repeat left top;
+}
+
+form {
+  padding: 1.5rem;
+  background: #49525c;
+}
+
+iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+[aria-hidden="true"] { display: none !important; }
+
+/* WINDOW & VIEWS */
+.window, .view {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.view {
+  bottom: 4.1rem;
+  z-index: 1;
+  background: url(images/app/ui/pattern.png) repeat left top;
+  -moz-transition: -moz-transform 0.3s ease;
+}
+
+.view-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: absolute;
+  bottom: 0;
+  top: 5rem;
+  left: 0;
+  right: 0;
+}
+
+.view[role="dialog"] {
+  bottom: 0;
+}
+
+/* VIEWPORTS */
+.view[data-viewport="behind"] {
+  visibility: hidden;
+}
+
+.view[data-viewport="bottom"] {
+  -moz-transform: translateY(100%);
+}
+
+.view[data-viewport="top"] {
+  -moz-transform: translateY(-100%);
+}
+
+.view[data-viewport="left"] {
+  -moz-transform: translateX(-100%);
+}
+
+.view[data-viewport="right"] {
+  -moz-transform: translateX(100%);
+}
+
+.view[data-viewport="inside"] {
+  -moz-transform: scale(0.3);
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+/* BB FILTER */
+body[role="application"] ul.filter[role="tablist"][data-position=bottom] {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+}
+
+/* BB HEADER ICONS */
+body[role="application"] section[role="region"] > header .icon.config {
+  background-image: url(images/app/icons/config.png);
+}
+
+body[role="application"] section[role="region"] > header button {
+  text-shadow: none;
+  font-weight: normal;
+}
+
+
+/* BB BUTTONS ICONS */
+body[role="application"] button span.reload {
+  background-image: url(images/app/icons/reload.png);
+}
+
+body[role="application"] button span.topup {
+  background-image: url(images/app/icons/topup.png);
+}
+
+body[role="application"] button span.topupcode {
+  background-image: url(images/app/icons/topupcode.png);
+}
+
+body[role="application"] button[disabled] span {
+  opacity: 0.3;
+}
+
+/* BB PROGRESS */
+body[role="application"] progress:not([value]) {
+  background: url(images/app/icons/loader.png) no-repeat center center;
+  width: 3rem;
+  height: 3rem;
+  animation: loader 0.8s linear infinite;
+}
+
+@keyframes loader {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* CONTENT */
+section.content {
+  padding: 2.5rem 2rem;
+}
+
+/* COUNTDOWN */
+.countdown {
+  font-size: 1.6rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #BBB;
+}
+
+#top-up-countdown {
+  color: #C7C9C6;
+}
+
+/* ERROR MESSAGES */
+section.content .error-messages[aria-hidden="true"] {
+  -moz-transform: translateY(-10rem);
+  display: block!important;
+  height: 0;
+  padding: 0;
+}
+
+section.content .error-messages {
+  color: #b20000;
+  font-size: 1.4rem;
+  line-height: 1.4em;
+  padding: 0 0.8rem 0.5rem;
+  overflow: hidden;
+  border-bottom: solid 1px #b20000;
+  -moz-transition: all 0.2s ease;
+}
+
+
+/* SETTINGS LISTS */
+.settings li {
+  border-bottom: solid 1px #e0e0dd;
+  font-size: 1.6rem;
+  line-height: 1.2em;
+  padding: 1.2rem 1.5rem 1.2rem 3rem;
+  position: relative;
+}
+
+.settings li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+.settings li:last-child {
+  border-bottom: none;
+}
+
+.settings li time,
+.settings li .meta {
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+.settings li sub {
+  vertical-align: baseline;
+  font-size: 1.2rem;
+}
+
+/* End elements */
+.settings li > .end {
+  position: absolute;
+  right: 1.5rem;
+  top: 50%;
+  height: 4.6rem;
+  margin-top: -2.3rem;
+}
+
+.settings li > .end:before {
+  content: "";
+  display: inline-block;
+  vertical-align: middle;
+  width: 1px;
+  height: 100%;
+  margin-left: -8px;
+}
+
+.settings li > .end button {
+  display: inline-block;
+  vertical-align: middle;
+  width: 8.5rem;
+  margin: 0;
+  padding-left: 0.5rem;
+}
+
+.settings li > .end button .tag {
+  margin: 0;
+  float: none;
+  height: auto;
+  width: auto;
+}
+
+.settings li .toggle.end {
+  margin-top: -2.3rem;
+}
+
+.settings li label {
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+.settings li .toggle input[type="checkbox"] {
+  pointer-events: none;
+}
+
+.settings li input[type="number"] {
+  width: 5.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  display: inline-block;
+  text-align: right;
+}
+

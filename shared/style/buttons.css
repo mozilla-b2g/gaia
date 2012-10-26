@@ -1,0 +1,202 @@
+/* ----------------------------------
+ * Buttons
+ * ---------------------------------- */
+
+a[role="button"]::-moz-focus-inner,
+button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+button,
+a[role="button"] {
+  width: 100%;
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
+  border-radius: 0.3rem;
+  font: 400 1.6rem/3.8rem 'MozTT', Sans-serif;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & recommend) */
+button:active,
+a[role="button"]:active,
+button.recommend:active,
+a.recommend[role="button"]:active  {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+/* Recommend */
+button.recommend,
+a[role="button"].recommend {
+  background-image: url(buttons/images/ui/recommend.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/* Danger */
+button.danger,
+a.danger[role="button"] {
+  background-image: url(buttons/images/ui/danger.png);
+  background-color: #b70404;
+  color: #fff;
+  text-shadow: -0.1rem -0.1rem 0 #830b0b;
+  border: none;
+}
+
+/* Danger Press */
+button.danger:active,
+a[role="button"].danger:active {
+  background-image: url(buttons/images/ui/danger-press.png);
+  background-color: #890707;
+}
+
+/* Disabled (default & recommend) */
+button[disabled],
+a[role="button"][aria-disabled="true"],
+button[disabled].recommend,
+a[role="button"][aria-disabled="true"].recommend {
+  background-image: url(buttons/images/ui/disabled.png);
+  background-color: transparent;
+  border-color: #dadada;
+  color: #bcbcbc;
+  pointer-events: none;
+}
+
+/* Danger disabled */
+button[disabled].danger,
+a[role="button"][aria-disabled="true"].danger {
+  background-image: url(buttons/images/ui/danger-disabled.png);
+  color: #fff;
+  text-shadow: none;
+  pointer-events: none;
+}
+
+
+/* ----------------------------------
+ * Buttons inside lists
+ * ---------------------------------- */
+
+li label {
+  font: 1.6rem/1em "MozTT", Sans-serif;
+  text-transform: uppercase;
+  display: block;
+  padding-left: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+li button,
+li a[role="button"] {
+  position: relative;
+  background: #e7e7e7;
+  border-color: #b6b6b6;
+  text-align: left;
+  font-weight: normal;
+  /* For hacking box-shadows we need overflow:visible; so we lose text-overflows...*/
+  white-space: normal;
+  overflow: visible;
+}
+
+/* Hacking box-shadow */
+li button:after,
+li a[role="button"]:after {
+  content: "";
+  position: absolute;
+  bottom: -0.3rem;
+  left: 0;
+  right: 0;
+  height: 0.2rem;
+  background: url( buttons/images/ui/shadow.png) repeat-x left bottom;
+}
+
+/* Press */
+li a[role="button"]:active:after,
+li button:active:after {
+  opacity: 0;
+}
+
+/* Disabled */
+li button[disabled],
+li a[role="button"][aria-disabled="true"] {
+  background: #ededed;
+  border-color: #d3d3d3;
+  color: #a6a6a6;
+  pointer-events: none;
+}
+
+li button[disabled].icon:before,
+li a[role="button"][aria-disabled="true"].icon:before,
+li button[disabled]:after,
+li a[role="button"][aria-disabled="true"]:after {
+  opacity: 0.3;
+}
+
+/* Icons */
+li button.icon,
+li a[role="button"].icon {
+  padding-right: 3rem;
+}
+
+li button.icon:before,
+li a[role="button"].icon:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  margin-top: -1.5rem;
+  background: transparent no-repeat center center / 100% auto;
+  pointer-events: none;
+}
+
+li button.icon-view:before,
+li a[role="button"].icon-view:before {
+  background-image: url(buttons/images/icons/view.png);
+}
+
+li button.icon-dialog:before,
+li a[role="button"].icon-dialog:before {
+  background-image: url(buttons/images/icons/dialog.png);
+}
+
+
+/* ----------------------------------
+ * Buttons inside lists, compact mode
+ * ---------------------------------- */
+
+ul.compact,
+ol.compact {
+  margin-bottom: 1rem;
+}
+
+.compact > li button,
+.compact > li a[role="button"] {
+  margin: -0.1rem 0;
+  border-radius: 0;
+}
+
+.compact > li:first-child button,
+.compact > li:first-child a[role="button"] {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+.compact > li:last-child button,
+.compact > li:last-child a[role="button"] {
+  border-radius: 0 0 0.3rem 0.3rem;
+}

@@ -10,8 +10,26 @@ var SleepMenu = {
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
+  elements: {},
+
+  get visible() {
+    return this.elements.overlay.classList.contains('visible');
+  },
+
+  getAllElements: function sm_getAllElements() {
+    this.elements.overlay = document.getElementById('sleep-menu');
+    this.elements.container =
+      document.querySelector('#sleep-menu-container ul');
+    this.elements.cancel = document.querySelector('#sleep-menu button');
+  },
+
   init: function sm_init() {
+    this.getAllElements();
     window.addEventListener('holdsleep', this.show.bind(this));
+    window.addEventListener('click', this, true);
+    window.addEventListener('screenchange', this, true);
+    window.addEventListener('home', this);
+    this.elements.cancel.addEventListener('click', this);
 
     var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
@@ -22,7 +40,6 @@ var SleepMenu = {
   // Generate items
   generateItems: function sm_generateItems() {
     var items = [];
-    var settings = window.navigator.mozSettings;
     var _ = navigator.mozL10n.get;
     var options = {
       airplane: {
@@ -46,12 +63,12 @@ var SleepMenu = {
       restart: {
         label: _('restart'),
         value: 'restart',
-        icon: '/style/sleep_menu/images/power-off.png'
+        icon: '/style/sleep_menu/images/restart.png'
       },
       power: {
         label: _('power'),
         value: 'power',
-        icon: '/style/sleep_menu/images/restart.png'
+        icon: '/style/sleep_menu/images/power-off.png'
       }
     };
 
@@ -74,10 +91,54 @@ var SleepMenu = {
   },
 
   show: function sm_show() {
-    var self = this;
-    ListMenu.request(this.generateItems(), function(action) {
-      self.handler(action);
-    });
+    this.elements.container.innerHTML = '';
+    this.buildMenu(this.generateItems());
+    this.elements.overlay.classList.add('visible');
+  },
+
+  buildMenu: function sm_buildMenu(items) {
+    items.forEach(function traveseItems(item) {
+      var item_li = document.createElement('li');
+      item_li.dataset.value = item.value;
+      item_li.textContent = item.label;
+      this.elements.container.appendChild(item_li);
+    }, this);
+  },
+
+  hide: function lm_hide() {
+    this.elements.overlay.classList.remove('visible');
+  },
+
+  handleEvent: function sm_handleEvent(evt) {
+    switch (evt.type) {
+      case 'screenchange':
+        if (!evt.detail.screenEnabled)
+          this.hide();
+        break;
+
+      case 'click':
+        if (!this.visible)
+          return;
+
+        if (evt.currentTarget === this.elements.cancel) {
+          this.hide();
+          return;
+        }
+
+        var action = evt.target.dataset.value;
+        if (!action) {
+          return;
+        }
+        this.hide();
+        this.handler(action);
+        break;
+
+      case 'home':
+        if (this.visible) {
+          this.hide();
+        }
+        break;
+    }
   },
 
   handler: function sm_handler(action) {
@@ -94,12 +155,13 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
 
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({
-            'ril.radio.disabled': !this.isFlightModeEnabled
-          });
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'ril.radio.disabled': !this.isFlightModeEnabled
+        });
+
         break;
 
       // About silent and silentOff
@@ -110,29 +172,41 @@ var SleepMenu = {
       //   * Turn on ringtone no matter if ring is on or off
       //   * for sms and incoming calls.
       case 'silent':
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({'phone.ring.incoming': false});
-          settings.getLock().set({'sms.ring.received': false});
-          this.isSilentModeEnabled = true;
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'ring.enabled': false
+        });
+        this.isSilentModeEnabled = true;
+
         break;
 
       case 'silentOff':
-        var settings = window.navigator.mozSettings;
-        if (settings) {
-          settings.getLock().set({'phone.ring.incoming': true});
-          settings.getLock().set({'sms.ring.received': true});
-          this.isSilentModeEnabled = false;
-        }
+        if (!window.navigator.mozSettings)
+          return;
+
+        SettingsListener.getSettingsLock().set({
+          'ring.enabled': true
+        });
+        this.isSilentModeEnabled = false;
+
         break;
 
       case 'restart':
-        navigator.mozPower.reboot();
+        var power = navigator.mozPower;
+        if (!power)
+          return;
+
+        power.reboot();
         break;
 
       case 'power':
-        navigator.mozPower.powerOff();
+        var power = navigator.mozPower;
+        if (!power)
+          return;
+
+        power.powerOff();
         break;
     }
   }

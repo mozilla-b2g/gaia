@@ -20,6 +20,8 @@ const IMERender = (function() {
 
   var layoutWidth = 10;
 
+  var inputMethodName; // used as a CSS class on the candidatePanel
+
   // Initiaze the render. It needs some business logic to determine:
   //   1- The uppercase for a key object
   //   2- When a key is a special key
@@ -30,22 +32,42 @@ const IMERender = (function() {
     this.ime = document.getElementById('keyboard');
   }
 
+  var setInputMethodName = function(name) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    if (candidatePanel) {
+      if (inputMethodName)
+        candidatePanel.classList.remove(inputMethodName);
+      candidatePanel.classList.add(name);
+    }
+    var togglebutton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+    if (togglebutton) {
+      if (inputMethodName)
+        togglebutton.classList.remove(inputMethodName);
+      togglebutton.classList.add(name);
+    }
+
+    inputMethodName = name;
+  }
+
   // Accepts three values: true / 'locked' / false
   //   Use 'locked' when caps are locked
   //   Use true when uppercase is enabled
   //   Use false when uppercase if disabled
-  var setUpperCaseLock = function kr_setUpperCaseLock(key, state) {
+  var setUpperCaseLock = function kr_setUpperCaseLock(state) {
+    var capsLockKey = document.querySelector(
+      'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
+    );
+
     if (state === 'locked') {
-      key.classList.remove('kbr-key-active');
-      key.classList.add('kbr-key-hold');
-
+      capsLockKey.classList.remove('kbr-key-active');
+      capsLockKey.classList.add('kbr-key-hold');
     } else if (state) {
-      key.classList.add('kbr-key-active');
-      key.classList.remove('kbr-key-hold');
-
+      capsLockKey.classList.add('kbr-key-active');
+      capsLockKey.classList.remove('kbr-key-hold');
     } else {
-      key.classList.remove('kbr-key-active');
-      key.classList.remove('kbr-key-hold');
+      capsLockKey.classList.remove('kbr-key-active');
+      capsLockKey.classList.remove('kbr-key-hold');
     }
   }
 
@@ -65,8 +87,18 @@ const IMERender = (function() {
     var inputType = flags.inputType || 'text';
 
     layout.upperCase = layout.upperCase || {};
+
+    var first = true;
+
     layout.keys.forEach((function buildKeyboardRow(row, nrow) {
-      content += '<div class="keyboard-row">';
+
+      var firstRow = '';
+      if (first) {
+        firstRow = ' first-row';
+        first = false;
+      }
+
+      content += '<div class="keyboard-row' + firstRow + '">';
       row.forEach((function buildKeyboardColumns(key, ncolumn) {
 
         var keyChar = key.value;
@@ -98,7 +130,8 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
-        content += buildKey(keyChar, className, keyWidth + 'px', dataset);
+        content += buildKey(keyChar, className, keyWidth + 'px',
+                            dataset, key.altNote);
 
       }));
       content += '</div>';
@@ -114,7 +147,7 @@ const IMERender = (function() {
     this.menu.addEventListener('scroll', onScroll);
 
     // Builds candidate panel
-    if (layout.needsCandidatePanel || layout.suggestionEngine) {
+    if (layout.needsCandidatePanel || flags.showCandidatePanel) {
       this.ime.insertBefore(
         candidatePanelToggleButtonCode(), this.ime.firstChild);
       this.ime.insertBefore(candidatePanelCode(), this.ime.firstChild);
@@ -126,29 +159,25 @@ const IMERender = (function() {
     resizeUI(layout);
   };
 
-  // Effecto for hide IME
-  var hideIME = function km_hideIME(imminent) {
-    if (this.ime.dataset.hidden)
-      return;
+  var showIME = function hm_showIME() {
+    delete this.ime.dataset.hidden;
+    this.ime.classList.remove('hide');
+  }
 
+  var hideIME = function km_hideIME() {
+    this.ime.classList.add('hide');
+    this.ime.classList.remove('candidate-panel');
     this.ime.dataset.hidden = 'true';
-    var ime = this.ime;
-
-    if (imminent) {
-      ime.classList.add('imminent');
-      window.setTimeout(function remoteImminent() {
-        ime.classList.remove('imminent');
-      }, 0);
-
-      ime.innerHTML = '';
-    } else {
-      ime.classList.add('hide');
-    }
   };
 
   // Highlight a key
-  var highlightKey = function kr_updateKeyHighlight(key) {
+  var highlightKey = function kr_updateKeyHighlight(key, alternativeKey) {
     key.classList.add('highlighted');
+
+    if (alternativeKey) {
+      var spanToReplace = key.querySelector('.visual-wrapper span');
+      spanToReplace.textContent = alternativeKey;
+    }
   }
 
   // Unhighlight a key
@@ -191,6 +220,7 @@ const IMERender = (function() {
   };
 
   // Show candidates
+  // Each candidate is a string or an array of two strings
   var showCandidates = function(candidates, noWindowHeightUpdate) {
 
     var ime = document.getElementById('keyboard');
@@ -201,16 +231,6 @@ const IMERender = (function() {
 
     if (candidatePanel) {
       candidatePanel.innerHTML = '';
-
-      if (!candidates.length) {
-        ime.classList.remove('candidate-panel');
-        ime.classList.remove('full-candidate-panel');
-        return;
-      }
-
-      if (!isFullView) {
-        ime.classList.add('candidate-panel');
-      }
 
       candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
@@ -223,9 +243,14 @@ const IMERender = (function() {
 
       candidates.forEach(function buildCandidateEntry(candidate) {
         var span = document.createElement('span');
-        span.dataset.data = candidate[1];
         span.dataset.selection = true;
-        span.textContent = candidate[0];
+        if (typeof candidate === 'string') {
+          span.dataset.data = span.textContent = candidate;
+        }
+        else {
+          span.dataset.data = candidate[1];
+          span.textContent = candidate[0];
+        }
         candidatePanel.appendChild(span);
       });
     }
@@ -307,8 +332,13 @@ const IMERender = (function() {
       var keyCode = keyChar.keyCode || keyChar.charCodeAt(0);
       var dataset = [{'key': 'keycode', 'value': keyCode}];
       var label = keyChar.label || keyChar;
-      var cssWidth =
-        key.offsetWidth * (0.9 + 0.5 * (label.length - original.length));
+
+      var cssWidth = key.offsetWidth;
+      if (altCharsCurrent.length != 1) {
+        cssWidth = key.offsetWidth *
+                   (0.9 + 0.5 * (label.length - original.length));
+      }
+
       if (label.length > 1)
         dataset.push({'key': 'compositekey', 'value': label});
       content += buildKey(label, '', cssWidth + 'px', dataset);
@@ -406,7 +436,7 @@ const IMERender = (function() {
           var visualKey = key.querySelector('.visual-wrapper');
 
           _keyArray.push({
-            code: key.dataset.keycode,
+            code: key.dataset.keycode | 0,
             x: visualKey.offsetLeft,
             y: visualKey.offsetTop,
             width: visualKey.clientWidth,
@@ -439,6 +469,8 @@ const IMERender = (function() {
   var candidatePanelCode = function() {
     var candidatePanel = document.createElement('div');
     candidatePanel.id = 'keyboard-candidate-panel';
+    if (inputMethodName)
+      candidatePanel.classList.add(inputMethodName);
     candidatePanel.addEventListener('scroll', onScroll);
     return candidatePanel;
   };
@@ -447,18 +479,27 @@ const IMERender = (function() {
     var toggleButton = document.createElement('span');
     toggleButton.innerHTML = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
+    if (inputMethodName)
+      toggleButton.classList.add(inputMethodName);
     toggleButton.dataset.keycode = -4;
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+
+    var altNoteHTML = '';
+    if (altNote) {
+      altNoteHTML = '<div class="alt-note">' + altNote + '</div>';
+    }
+
+
     var content = '<button class="keyboard-key ' + className + '"';
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
     content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
-               label + '</span></span></button>';
+               label + '</span>' + altNoteHTML + '</span></button>';
     return content;
   };
 
@@ -502,9 +543,11 @@ const IMERender = (function() {
   // Exposing pattern
   return {
     'init': init,
+    'setInputMethodName': setInputMethodName,
     'draw': draw,
     'ime': ime,
     'hideIME': hideIME,
+    'showIME': showIME,
     'highlightKey': highlightKey,
     'unHighlightKey': unHighlightKey,
     'showAlternativesCharMenu': showAlternativesCharMenu,

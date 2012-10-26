@@ -18,11 +18,14 @@ Calendar.App = (function(window) {
       this.db = db;
       this.router = router;
 
+      this._providers = Object.create(null);
       this._views = Object.create(null);
       this._routeViewFn = Object.create(null);
 
       this.timeController = new Calendar.Controllers.Time(this);
       this.syncController = new Calendar.Controllers.Sync(this);
+      this.serviceController = new Calendar.Controllers.Service(this);
+      this.alarmController = new Calendar.Controllers.Alarm(this);
     },
 
     /**
@@ -34,53 +37,38 @@ Calendar.App = (function(window) {
       this.router.show(url);
     },
 
-    _init: function() {
+    _routes: function() {
       var self = this;
-      /* HACKS */
-      function setPath(data, next) {
-        document.body.setAttribute('data-path', data.canonicalPath);
-        next();
-      }
-
-      // quick hack for today button
-      var today = document.querySelector('#view-selector .today');
-
-      today.addEventListener('click', function() {
-        self.view('Month').render();
-        self.timeController.setSelectedDay(new Date());
-      });
-
 
       function tempView(selector) {
         self._views[selector] = new Calendar.View(selector);
         return selector;
       }
 
-      /* temp views */
-      this.state('/day/', setPath, tempView('#day-view'));
-      this.state('/week/', setPath, tempView('#week-view'));
-      this.state('/add/', setPath, tempView('#add-event-view'));
-
+      function setPath(data, next) {
+        document.body.setAttribute('data-path', data.canonicalPath);
+        next();
+      }
 
       /* routes */
-
+      this.state('/week/', setPath, 'Week');
+      this.state('/day/', setPath, 'Day');
       this.state('/month/', setPath, 'Month', 'MonthsDay');
       this.modifier('/settings/', setPath, 'Settings', { clear: false });
       this.modifier(
         '/advanced-settings/', setPath, 'AdvancedSettings'
       );
 
+      this.state('/alarm-display/:id', 'ModifyEvent');
+
+      this.state('/add/', setPath, 'ModifyEvent');
+      this.state('/event/:id', setPath, 'ModifyEvent');
+
       this.modifier('/select-preset/', setPath, 'CreateAccount');
       this.modifier('/create-account/:preset', setPath, 'ModifyAccount');
       this.modifier('/update-account/:id', setPath, 'ModifyAccount');
 
-      // I am not sure where this logic really belongs...
-      this.modifier('/remove-account/:id', function(data) {
-        var store = self.store('Account');
-        store.remove(data.params.id, function(id) {
-          page.replace('/advanced-settings/');
-        });
-      });
+      this.router.start();
 
       var pathname = window.location.pathname;
       // default view
@@ -88,9 +76,42 @@ Calendar.App = (function(window) {
         this.go('/month/');
       }
 
+    },
+
+    _init: function() {
+      var self = this;
+      // quick hack for today button
+      var today = document.querySelector('#view-selector .today');
+
+      today.addEventListener('click', function(e) {
+        var date = new Date();
+        self.timeController.move(date);
+        self.timeController.selectedDay = date;
+
+        e.preventDefault();
+      });
+
+      this.dateFormat = navigator.mozL10n.DateTimeFormat();
+
       this.syncController.observe();
-      this.router.start();
+      this.timeController.observe();
+      this.alarmController.observe();
+
+      // turn on the auto queue this means that when
+      // alarms are added to the database we manage them
+      // transparently. Defaults to off for tests.
+      this.store('Alarm').autoQueue = true;
+
+      this.timeController.move(new Date());
+
+      var header = this.view('TimeHeader');
+      var colors = this.view('CalendarColors');
+
+      colors.render();
+      header.render();
+
       document.body.classList.remove('loading');
+      this._routes();
     },
 
     /**
@@ -103,12 +124,8 @@ Calendar.App = (function(window) {
       function next() {
         pending--;
         if (!pending) {
-          complete();
+          self._init();
         }
-      }
-
-      function complete() {
-        self._init();
       }
 
       if (!this.db) {
@@ -118,13 +135,36 @@ Calendar.App = (function(window) {
         );
       }
 
-      window.addEventListener('localized', function() {
+      // start the workers
+      this.serviceController.start(false);
+
+      // localize && pre-initialize the database
+      if (navigator.mozL10n && navigator.mozL10n.readyState == 'complete') {
+        // document is already localized
         next();
-      });
+      } else {
+        // waiting for the document to be localized (= standard case)
+        window.addEventListener('localized', function() {
+          next();
+        });
+      }
 
       this.db.load(function() {
         next();
       });
+    },
+
+    /**
+     * Initializes a provider.
+     */
+    provider: function(name) {
+      if (!(name in this._providers)) {
+        this._providers[name] = new Calendar.Provider[name]({
+          app: this
+        });
+      }
+
+      return this._providers[name];
     },
 
     /**
@@ -252,3 +292,4 @@ Calendar.App = (function(window) {
   return App;
 
 }(this));
+

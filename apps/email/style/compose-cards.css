@@ -2,22 +2,113 @@
 }
 
 .cmp-addr-label, .cmp-subject-label {
-  display: inline-block;
-  width: 60px;
-  text-align: right;
+  display: table-cell;
+  width: -moz-min-content;
+  text-align: left;
+  line-height: 2.3rem;
+  margin: 0 0.5rem;
 }
-.cmp-addr-text {
-  width: 200px;
+
+.cmp-addr-label::after, .cmp-subject-label::after {
+  content: ':';
 }
+
+.cmp-addr-container, .cmp-subject-text {
+  display: table-cell;
+  width: -moz-available;
+}
+
+.cmp-bubble-container {
+  width: calc(100% - 3.5rem);
+  float: left;
+  padding-top: 0.2rem;
+}
+
+.cmp-peep-bubble {
+  float: left;
+  margin-left: 0.3rem;
+}
+
+.cmp-peep-name, .cmp-peep-address {
+  pointer-events: none;
+}
+
+.cmp-to-text-container {
+  overflow: hidden;
+}
+
+.cmp-addr-text, .cmp-subject-text, .cmp-dot-text {
+  border: 0;
+  background: none;
+  font-size: 1.5rem;
+  margin-left: 0.5rem;
+}
+
+.cmp-addr-text, .cmp-dot-text {
+  margin-top: 2px;
+  float: left;
+  width: 0.5rem;
+}
+
+.cmp-dot-text {
+  width: 0.5rem;
+}
+
 .cmp-subject-text {
-  width: 240px;
+  text-overflow: ellipsis;
 }
 
 .cmp-envelope-bar {
-  border-bottom: 1px solid black;
+  margin: 0.3rem 0;
+}
+
+.cmp-contact-add {
+  background: url("images/add-contact.png") no-repeat scroll center transparent;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.5rem;
+  visibility: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.cmp-contact-add.show {
+  visibility: visible;
+}
+
+.cmp-envelope-line {
+  display: table;
+  table-layout: fixed;
+  width: calc(100% - 4rem);
+  border-bottom: 1px solid lightgray;
+  margin: 0 2rem;
+  padding: 0.4rem 0;
+  font-size: 1.5rem;
 }
 
 .cmp-body-text {
-  width: 100%;
-  height: 300px;
+  width: calc(100% - 6px);
+  border-style: solid;
+  border-width: 1px;
+  border-color: #aaa;
+  margin: 0;
+  padding: 2px;
+}
+
+/* Attachment */
+.cmp-attachments-container {
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  line-height: 4rem;
+}
+.cmp-attachment-item {
+  list-style-type: none;
+  height: 4rem;
+}
+.cmp-attachment-icon {
+}
+.cmp-attachment-filename {
+}
+.cmp-attachment-filesize {
+  color: gray;
 }

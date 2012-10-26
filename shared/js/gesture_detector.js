@@ -1,50 +1,55 @@
-// GestureDetector.js: generate events for one and two finger gestures
-//
-// A GestureDetector object listens for touch and mouse events on a specified
-// element and generates higher-level events that describe one and two finger
-// gestures on the element. The hope is that this will be useful for webapps
-// that need to run on mouse (or trackpad)-based desktop browsers and also
-// in touch-based mobile devices.
-//
-// Supported events:
-//
-//  tap        like a click event
-//  dbltap     like dblclick
-//  pan        one finger motion, or mousedown followed by mousemove
-//  swipe      when a finger is released following pan events
-//  holdstart  touch (or mousedown) and hold. Must set an option to get these.
-//  holdmove   motion after a holdstart event
-//  holdend    when the finger or mouse goes up after holdstart/holdmove
-//  transform  2-finger pinch and twist gestures for scaling and rotation
-//             These are touch-only; they can't be simulated with a mouse.
-//
-// Each of these events is a bubbling CustomEvent with important details
-// in the event.detail field. The event details are not yet stable
-// and are not yet documented. See the calls to emitEvent() for details.
-//
-// To use this library, create a GestureDetector object by passing an
-// element to the GestureDetector() constructor and then calling
-// startDetecting() on it. The element will be the target of all the
-// emitted gesture events. You can also pass an optional object as the
-// second constructor argument. If you're interested in
-// holdstart/holdmove/holdend events, pass {holdEvents:true} as this
-// second argument. Otherwise they will not be generated.
-//
-// Implementation note: event processing is done with a simple
-// finite-state machine. This means that in general, the various kinds
-// of gestures are mutually exclusive. You won't get pan events until
-// your finger or mouse has moved more than a minimum threshold, for
-// example, but it does, the FSM enters a new state in which it can
-// emit pan and swipe events and cannot emit hold events. Similarly,
-// if you've started a 1 finger pan/swipe gesture and accidentally
-// touch with a second finger, you'll continue to get pan events, and
-// won't suddenly start getting 2-finger transform events.
-//
-// This library never calls preventDefault() or stopPropagation on any
-// of the events it processes, so the raw touch or mouse events should
-// still be available for other code to process. It is not clear to me
-// whether this is a feature or a bug.
-//
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+'use strict';
+
+/**
+ * GestureDetector.js: generate events for one and two finger gestures.
+ *
+ * A GestureDetector object listens for touch and mouse events on a specified
+ * element and generates higher-level events that describe one and two finger
+ * gestures on the element. The hope is that this will be useful for webapps
+ * that need to run on mouse (or trackpad)-based desktop browsers and also in
+ * touch-based mobile devices.
+ *
+ * Supported events:
+ *
+ *  tap        like a click event
+ *  dbltap     like dblclick
+ *  pan        one finger motion, or mousedown followed by mousemove
+ *  swipe      when a finger is released following pan events
+ *  holdstart  touch (or mousedown) and hold. Must set an option to get these.
+ *  holdmove   motion after a holdstart event
+ *  holdend    when the finger or mouse goes up after holdstart/holdmove
+ *  transform  2-finger pinch and twist gestures for scaling and rotation
+ *             These are touch-only; they can't be simulated with a mouse.
+ *
+ * Each of these events is a bubbling CustomEvent with important details in the
+ * event.detail field. The event details are not yet stable and are not yet
+ * documented. See the calls to emitEvent() for details.
+ *
+ * To use this library, create a GestureDetector object by passing an element to
+ * the GestureDetector() constructor and then calling startDetecting() on it.
+ * The element will be the target of all the emitted gesture events. You can
+ * also pass an optional object as the second constructor argument. If you're
+ * interested in holdstart/holdmove/holdend events, pass {holdEvents:true} as
+ * this second argument. Otherwise they will not be generated.
+ *
+ * Implementation note: event processing is done with a simple finite-state
+ * machine. This means that in general, the various kinds of gestures are
+ * mutually exclusive. You won't get pan events until your finger or mouse has
+ * moved more than a minimum threshold, for example, but it does, the FSM enters
+ * a new state in which it can emit pan and swipe events and cannot emit hold
+ * events. Similarly, if you've started a 1 finger pan/swipe gesture and
+ * accidentally touch with a second finger, you'll continue to get pan events,
+ * and won't suddenly start getting 2-finger transform events.
+ *
+ * This library never calls preventDefault() or stopPropagation on any of the
+ * events it processes, so the raw touch or mouse events should still be
+ * available for other code to process. It is not clear to me whether this is a
+ * feature or a bug.
+ */
+
 var GestureDetector = (function() {
 
   //
@@ -85,8 +90,21 @@ var GestureDetector = (function() {
 
     // If this is a touch event handle each changed touch separately
     if (e.changedTouches) {
+      // XXX https://bugzilla.mozilla.org/show_bug.cgi?id=785554
+      // causes touchend events to list all touches as changed, so
+      // warn if we see that bug
+      if (e.type === 'touchend' && e.changedTouches.length > 1) {
+        console.warn('gesture_detector.js: spurious extra changed touch on ' +
+                     'touchend. See ' +
+                     'https://bugzilla.mozilla.org/show_bug.cgi?id=785554');
+      }
+
       for (var i = 0; i < e.changedTouches.length; i++) {
         handler(this, e, e.changedTouches[i]);
+        // The first changed touch might have changed the state of the
+        // FSM. We need this line to workaround the bug 785554, but it is
+        // probably the right thing to have here, even once that bug is fixed.
+        handler = this.state[e.type];
       }
     }
     else {    // Otherwise, just dispatch the event to the handler
@@ -266,6 +284,7 @@ var GestureDetector = (function() {
       d.vx = d.vy = null;
       d.startDistance = d.lastDistance = null;
       d.startDirection = d.lastDirection = null;
+      d.lastMidpoint = null;
       d.scaled = d.rotated = null;
     },
 
@@ -566,6 +585,7 @@ var GestureDetector = (function() {
 
         d.lastDistance = distance;
         d.lastDirection = direction;
+        d.lastMidpoint = midpoint;
       }
     },
 
@@ -586,6 +606,25 @@ var GestureDetector = (function() {
       }
       else
         return; // It was a touch we weren't tracking
+
+      // If we emitted any transform events, now we need to emit
+      // a transformend event to end the series.  The details of this
+      // event use the values from the last touchmove, and the
+      // relative amounts will 1 and 0, but they are included for
+      // completeness even though they are not useful.
+      if (d.scaled || d.rotated) {
+        d.emitEvent('transformend', {
+          absolute: { // transform details since gesture start
+            scale: d.lastDistance / d.startDistance,
+            rotate: touchRotation(d.startDirection, d.lastDirection)
+          },
+          relative: { // nothing has changed relative to the last touchmove
+            scale: 1,
+            rotate: 0
+          },
+          midpoint: d.lastMidpoint
+        });
+      }
 
       d.switchTo(afterTransformState);
     }
@@ -801,3 +840,4 @@ var GestureDetector = (function() {
 
   return GD;
 }());
+

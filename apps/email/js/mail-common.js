@@ -43,6 +43,48 @@ function populateTemplateNodes() {
   tngNodes = processTemplNodes('tng');
 }
 
+function batchAddClass(domNode, searchClass, classToAdd) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.add(classToAdd);
+  }
+}
+
+function batchRemoveClass(domNode, searchClass, classToRemove) {
+  var nodes = domNode.getElementsByClassName(searchClass);
+  for (var i = 0; i < nodes.length; i++) {
+    nodes[i].classList.remove(classToRemove);
+  }
+}
+
+const MATCHED_TEXT_CLASS = 'highlight';
+
+function appendMatchItemTo(matchItem, node) {
+  const text = matchItem.text;
+  var idx = 0;
+  for (var iRun = 0; iRun <= matchItem.matchRuns.length; iRun++) {
+    var run;
+    if (iRun === matchItem.matchRuns.length)
+      run = { start: text.length, length: 0 };
+    else
+      run = matchItem.matchRuns[iRun];
+
+    // generate the un-highlighted span
+    if (run.start > idx) {
+      var tnode = document.createTextNode(text.substring(idx, run.start));
+      node.appendChild(tnode);
+    }
+
+    if (!run.length)
+      continue;
+    var hspan = document.createElement('span');
+    hspan.classList.add(MATCHED_TEXT_CLASS);
+    hspan.textContent = text.substr(run.start, run.length);
+    node.appendChild(hspan);
+    idx = run.start + run.length;
+  }
+}
+
 /**
  * Add an event listener on a container that, when an event is encounted on
  * a descendant, walks up the tree to find the immediate child of the container
@@ -96,8 +138,6 @@ function bindContainerClickAndHold(containerNode, clickFunc, holdFunc) {
       return holdFunc(node, event);
     });
 }
-
-const UI_WIDTH = 320, UI_HEIGHT = 480;
 
 /**
  * Fairly simple card abstraction with support for simple horizontal animated
@@ -209,10 +249,6 @@ var Cards = {
   _init: function() {
     this._rootNode = document.body;
     this._containerNode = document.getElementById('cardContainer');
-    if (window.innerWidth > UI_WIDTH)
-      this._containerNode.style.width = UI_WIDTH + 'px';
-    if (window.innerHeight > UI_HEIGHT)
-      this._containerNode.style.height = UI_HEIGHT + 'px';
     this._cardsNode = document.getElementById('cards');
     this._templateNodes = processTemplNodes('card');
 
@@ -262,11 +298,9 @@ var Cards = {
     }
   },
 
-  _adjustCardSizes: function() {
-    var cardWidth = Math.min(UI_WIDTH, window.innerWidth),
-                    //this._containerNode.offsetWidth,
-        cardHeight = Math.min(UI_HEIGHT, window.innerHeight),
-                     //this._containerNode.offsetHeight,
+  _adjustCardSizes: function(evt) {
+    var cardWidth = this._containerNode.offsetWidth,
+        cardHeight = this._containerNode.offsetHeight,
         totalWidth = 0;
 
     for (var i = 0; i < this._cardStack.length; i++) {
@@ -282,6 +316,11 @@ var Cards = {
     }
     this._cardsNode.style.width = totalWidth + 'px';
     this._cardsNode.style.height = cardHeight + 'px';
+
+    // Reset cards' position when container resized.
+    if (evt && evt.type == 'resize') {
+      this._showCard(this.activeCardIndex, 'immediate');
+    }
   },
 
   defineCard: function(cardDef) {
@@ -425,6 +464,34 @@ var Cards = {
       return this._findCardUsingImpl(query);
   },
 
+  findCardObject: function(query) {
+    return this._cardStack[this._findCard(query)];
+  },
+
+  folderSelector: function(callback) {
+    // XXX: Unified folders will require us to make sure we get the folder list
+    //      for the account the message originates from.
+    if (!this.folderPrompt) {
+      var selectorTitle = mozL10n.get('messages-folder-select');
+      this.folderPrompt = new ValueSelector(selectorTitle);
+    }
+    var self = this;
+    var folderCardObj = Cards.findCardObject(['folder-picker', 'navigation']);
+    var folderImpl = folderCardObj.cardImpl;
+    var folders = folderImpl.foldersSlice.items;
+    for (var i = 0; i < folders.length; i++) {
+      var folder = folders[i];
+      this.folderPrompt.addToList(folder.name, folder.depth, function(folder) {
+        return function() {
+          self.folderPrompt.hide();
+          callback(folder);
+        }
+      }(folder));
+
+    }
+    this.folderPrompt.show();
+  },
+
   moveToCard: function(query, showMethod) {
     this._showCard(this._findCard(query), showMethod || 'animate');
   },
@@ -445,8 +512,8 @@ var Cards = {
    */
   _createMaskForNode: function(domNode, bounds) {
     var anchorIn = this._rootNode, cleanupDivs = [];
-    // TODO: use the sizing values from the cards container rather than our
-    // constants.
+    var uiWidth = this._containerNode.offsetWidth,
+        uiHeight = this._containerNode.offsetHeight;
 
     // inclusive pixel coverage
     function addMask(left, top, right, bottom) {
@@ -462,11 +529,11 @@ var Cards = {
     if (bounds.left > 1)
       addMask(0, bounds.top, bounds.left - 1, bounds.bottom);
     if (bounds.top > 0)
-      addMask(0, 0, UI_WIDTH - 1, bounds.top - 1);
-    if (bounds.right < UI_WIDTH - 1)
-      addMask(bounds.right + 1, bounds.top, UI_WIDTH - 1, bounds.bottom);
-    if (bounds.bottom < UI_HEIGHT - 1)
-      addMask(0, bounds.bottom + 1, UI_WIDTH - 1, UI_HEIGHT - 1);
+      addMask(0, 0, uiWidth - 1, bounds.top - 1);
+    if (bounds.right < uiWidth - 1)
+      addMask(bounds.right + 1, bounds.top, uiWidth - 1, bounds.bottom);
+    if (bounds.bottom < uiHeight - 1)
+      addMask(0, bounds.bottom + 1, uiWidth - 1, uiHeight - 1);
     return function() {
       for (var i = 0; i < cleanupDivs.length; i++) {
         anchorIn.removeChild(cleanupDivs[i]);
@@ -496,6 +563,10 @@ var Cards = {
         callback(result);
       }
     };
+
+    var uiWidth = this._containerNode.offsetWidth,
+        uiHeight = this._containerNode.offsetHeight;
+
     popupInfo.popupNode.classList.add('popup');
     this._rootNode.appendChild(popupInfo.popupNode);
     // now we need to position the popup...
@@ -507,10 +578,10 @@ var Cards = {
     const MARGIN = 4;
 
     // - Menu goes below item
-    if (nodeCenter < UI_HEIGHT / 2) {
+    if (nodeCenter < uiHeight / 2) {
       menuTop = bounds.bottom + MARGIN;
-      if (menuTop + menuHeight >= UI_HEIGHT)
-        menuTop = UI_HEIGHT - menuHeight - MARGIN;
+      if (menuTop + menuHeight >= uiHeight)
+        menuTop = uiHeight - menuHeight - MARGIN;
     }
     // - Menu goes above item
     else {
@@ -520,7 +591,7 @@ var Cards = {
         menuTop = MARGIN;
     }
 
-    menuLeft = (UI_WIDTH - menuWidth) / 2;
+    menuLeft = (uiWidth - menuWidth) / 2;
 
     popupInfo.popupNode.style.top = menuTop + 'px';
     popupInfo.popupNode.style.left = menuLeft + 'px';
@@ -621,7 +692,7 @@ var Cards = {
       if (nextCardSpec)
         nextCardIndex = this._findCard(nextCardSpec);
       else if (this._cardStack.length)
-        nextCardIndex = this._cardStack.length - 1;
+        nextCardIndex = Math.min(firstIndex - 1, this._cardStack.length - 1);
       this._showCard(nextCardIndex, showMethod);
     }
   },
@@ -662,6 +733,9 @@ var Cards = {
       // explicitly clear since there will be no animation
       this._eatingEventsUntilNextCard = false;
     }
+
+    // Hide toaster while active card index changed:
+    Toaster.hide();
 
     this.activeCardIndex = cardIndex;
     if (cardInst)
@@ -727,6 +801,27 @@ var Cards = {
  * failed sends, and recently performed undoable mutations.
  */
 var Toaster = {
+  get body() {
+    delete this.body;
+    return this.body =
+           document.querySelector('section[role="dialog"].banner');
+  },
+  get text() {
+    delete this.text;
+    return this.text =
+           document.querySelector('section[role="dialog"].banner p');
+  },
+  /**
+   * Toaster timeout setting.
+   */
+  _timeout: 5000,
+  /**
+   * Toaster fadeout animation event handling.
+   */
+  _animationHandler: function() {
+    this.body.addEventListener('transitionend', this, false);
+    this.body.classList.add('fadeout');
+  },
   /**
    * The list of cards that want to hear about what's up with the toaster.  For
    * now this will just be the message-list, but it might also be the
@@ -747,6 +842,65 @@ var Toaster = {
    * Tell toaster listeners about a mutation we just made.
    */
   logMutation: function(undoableOp) {
+    //Close previous toaster before showing the new one.
+    if (!this.body.classList.contains('collapsed')) {
+      this.hide();
+    }
+    this.show('undo', undoableOp);
+  },
+
+  handleEvent: function(evt) {
+    switch (evt.type) {
+      case 'click' :
+        if (evt.target.classList.contains('toaster-banner-undo')) {
+          // TODO: Need to find out why undo could not work now.
+          // this.undoableOp.undo();
+          this.hide();
+        } else if (evt.target.classList.contains('toaster-banner-retry')) {
+          // TODO: Handle send retry here.
+        } else if (evt.target.classList.contains('toaster-cancel-btn')) {
+          this.hide();
+        }
+        break;
+      case 'transitionend' :
+        this.hide();
+        break;
+    }
+  },
+
+  show: function(type, operation) {
+    var text;
+    if (type == 'undo') {
+      this.undoableOp = operation;
+      // There is no need to show toaster is affected message count < 1
+      if (this.undoableOp.affectedCount < 1) {
+        return;
+      }
+      var textId = 'toaster-message-' + this.undoableOp.operation;
+      text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
+    } else if (type == 'retry') {
+      // TODO: Showing the send retry text and related operation.
+    } else {
+      // TODO: Maybe we can show pure text only toaster here.
+    }
+
+    this.body.title = type;
+    this.text.textContent = text;
+    this.body.addEventListener('click', this, false);
+    this.body.classList.remove('collapsed');
+    this.fadeTimeout = window.setTimeout(this._animationHandler.bind(this),
+                                         this._timeout);
+  },
+
+  hide: function() {
+    this.body.classList.add('collapsed');
+    this.body.classList.remove('fadeout');
+    window.clearTimeout(this.fadeTimeout);
+    this.fadeTimeout = null;
+    this.body.removeEventListener('click', this);
+    this.body.removeEventListener('transitionend', this);
+    // Clear operations:
+    this.undoableOp = null;
   }
 };
 
@@ -765,6 +919,7 @@ function prettyDate(time) {
       break;
   }
 
+  var f = new navigator.mozL10n.DateTimeFormat();
   var diff = (Date.now() - time) / 1000;
   var day_diff = Math.floor(diff / 86400);
 
@@ -773,7 +928,7 @@ function prettyDate(time) {
 
   if (day_diff < 0 || diff < 0) {
     // future time
-    return (new Date(time)).toLocaleFormat('%x %R');
+    return f.localeFormat(new Date(time), _('shortDateTimeFormat'));
   }
 
   return day_diff == 0 && (
@@ -783,8 +938,8 @@ function prettyDate(time) {
     diff < 7200 && '1 Hour Ago' ||
     diff < 86400 && Math.floor(diff / 3600) + ' Hours Ago') ||
     day_diff == 1 && 'Yesterday' ||
-    day_diff < 7 && (new Date(time)).toLocaleFormat('%A') ||
-    (new Date(time)).toLocaleFormat('%x');
+    day_diff < 7 && f.localeFormat(new Date(time), '%A') ||
+    f.localeFormat(new Date(time), '%x');
 }
 
 (function() {
@@ -799,7 +954,8 @@ function prettyDate(time) {
 
   window.addEventListener('message', function visibleAppUpdatePrettyDate(evt) {
     var data = evt.data;
-    if (data.message !== 'visibilitychange')
+    if (!data || (typeof(data) !== 'object') ||
+        !('message' in data) || data.message !== 'visibilitychange')
       return;
     clearTimeout(timer);
     if (!data.hidden) {

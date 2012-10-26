@@ -1,206 +1,77 @@
-(function(window) {
-  var template = Calendar.Templates.Day;
+Calendar.ns('Views').MonthsDay = (function() {
 
-  function Day(options) {
-    Calendar.View.apply(this, arguments);
+  var Parent = Calendar.Views.DayChild;
 
-    this.controller = this.app.timeController;
-
-    this._initEvents();
+  function MonthsDay() {
+    Parent.apply(this, arguments);
   }
 
-  function getEl(selectorName, elName) {
-    var selector;
-    if (!this[elName]) {
-      selector = this[selectorName];
-      this[elName] = document.body.querySelector(selector);
-    }
-    return this[elName];
-  }
-
-  Day.prototype = {
-
-    __proto__: Calendar.View.prototype,
+  MonthsDay.prototype = {
+    __proto__: Parent.prototype,
 
     selectors: {
-      element: '#months-day-view'
+      element: '#months-day-view',
+      events: '.day-events',
+      header: '.day-title'
     },
 
-    /**
-     * Hack this should be localized.
-     */
-    dayNames: [
-      'Sunday',
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday'
-    ],
+    get element() {
+      return this._findElement('element');
+    },
 
-    /**
-     * Hack this should be localized.
-     */
-    monthNames: [
-      'January',
-      'Feburary',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ],
+    get events() {
+      return this._findElement('events');
+    },
 
-    headerSelector: '#selected-day-title',
-    eventsSelector: '#event-list',
+    get allDayElement() {
+      return this.events;
+    },
+
+    get header() {
+      return this._findElement('header');
+    },
 
     _initEvents: function() {
       var self = this;
-
-      this.controller.on('selectedDayChange', function() {
-        self._updateEvents();
-        self._updateHeader();
+      this.controller.on('selectedDayChange', this);
+      this.delegate(this.events, 'click', '[data-id]', function(e, target) {
+        Calendar.App.router.show('/event/' + target.dataset.id + '/');
       });
     },
 
-    eventsElement: function() {
-      return getEl.call(this, 'eventsSelector', '_eventsEl');
+    _updateHeader: function() {
+      // maybe we should localize this output ?
+      var format = this.app.dateFormat.localeFormat(
+        this.date,
+        '%A %B %Y'
+      );
+      this.header.textContent = format;
     },
 
-    headerElement: function() {
-      return getEl.call(this, 'headerSelector', '_headerEl');
-    },
+    handleEvent: function(e) {
+      Parent.prototype.handleEvent.apply(this, arguments);
 
-    _updateHeader: function(date) {
-      date = date || this.controller.selectedDay;
-      var header = [
-        this.dayNames[date.getDay()],
-        this.monthNames[date.getMonth()],
-        date.getDate()
-      ].join(' ');
-
-      this.headerElement().textContent = header;
-    },
-
-    _renderDay: function(date) {
-      var events = this.app.store('Event'),
-          eventItems = events.eventsForDay(date),
-          self = this,
-          eventHtml = [],
-          groupsByHour = [];
-
-      if (eventItems.length === 0) {
-        return '';
-      }
-
-      var sorted = eventItems.sort(function(a, b) {
-        var aHour = a.date.getHours(),
-            bHour = b.date.getHours();
-
-        if (aHour === bHour) {
-          return 0;
-        }
-
-        if (aHour < bHour) {
-          return -1;
-        } else {
-          return 1;
-        }
-
-      });
-
-      var lastHour,
-          batch = [];
-
-      sorted.forEach(function(item) {
-        var hour = item.date.getHours();
-
-        if (hour != lastHour) {
-          lastHour = hour;
-          if (batch.length > 0) {
-            eventHtml.push(self._renderEventsForHour(batch));
-            batch = [];
-          }
-        }
-
-        batch.push(item);
-      });
-
-      eventHtml.push(self._renderEventsForHour(batch));
-
-      return eventHtml.join('');
-    },
-
-    _formatHour: function(hour) {
-      newHour = hour;
-      if (hour > 12) {
-        var newHour = (hour - 12) || 12;
-        return String(newHour) + ' pm';
-      } else {
-        if (hour == 0) {
-          hour = 12;
-        }
-        return String(hour) + 'am';
+      switch (e.type) {
+        case 'selectedDayChange':
+          this.changeDate(e.data[0], true);
+          this._updateHeader();
+          break;
       }
     },
 
-    _renderEventsForHour: function(group) {
-      var eventHtml = [],
-          hour = group[0].date.getHours();
-
-      group.forEach(function(item) {
-        eventHtml.push(this._renderEventDetails(item.event));
-      }.bind(this));
-
-      return template.hour.render({
-        hour: hour,
-        items: eventHtml.join('')
-      });
-    },
-
-    _renderEventDetails: function(object) {
-      var name = object.name,
-          location = object.location,
-          attendees = object.attendees;
-
-      return template.event.render({
-        title: name,
-        location: location,
-        attendees: this._renderAttendees(attendees)
-      });
-    },
-
-    _renderAttendees: function(list) {
-      if (!(list instanceof Array)) {
-        list = [list];
-      }
-
-      return template.attendee.renderEach(list).join(',');
-    },
-
-    _updateEvents: function(date) {
-      date = date || this.controller.selectedDay;
-      var html = this._renderDay(date);
-
-      this.eventsElement().innerHTML = html;
-    },
+    create: function() {},
 
     render: function() {
-      var now = new Date();
-      this._updateHeader(now);
-      this._updateEvents(now);
+      this._initEvents();
+      var date = Calendar.Calc.createDay(new Date());
+      this.changeDate(date);
+      this._updateHeader();
     }
-
   };
 
-  Day.prototype.onfirstseen = Day.prototype.render;
+  MonthsDay.prototype.onfirstseen =
+    MonthsDay.prototype.render;
 
-  Calendar.ns('Views').MonthsDay = Day;
+  return MonthsDay;
 
-}(this));
+}());

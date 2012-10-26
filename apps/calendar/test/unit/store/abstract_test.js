@@ -2,6 +2,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
   requireLib('db.js');
   requireLib('store/abstract.js');
+  requireLib('models/account.js');
   requireApp('calendar/test/unit/helper.js');
 });
 
@@ -16,11 +17,6 @@ suite('store/abstract', function() {
     // set _store to accounts so we can actually
     // persist stuff.
     subject._store = 'accounts';
-
-    subject._createModel = function(object, id) {
-      object._id = id;
-      return object;
-    };
 
     db.open(function(err) {
       assert.ok(!err);
@@ -42,10 +38,48 @@ suite('store/abstract', function() {
     }
   });
 
+  teardown(function() {
+    db.close();
+  });
+
   test('initialization', function() {
     assert.equal(subject.db, db);
     assert.instanceOf(subject, Calendar.Responder);
     assert.deepEqual(subject._cached, {});
+  });
+
+  suite('#get', function() {
+
+    test('missing id', function(done) {
+      subject.get('FOO_NOT_HERE', function(err, record) {
+        done(function() {
+          assert.ok(!err);
+          assert.ok(!record);
+        });
+      });
+    });
+
+    suite('id present', function() {
+      var record;
+
+      setup(function(done) {
+        record = Factory('account', { _id: 'foo' });
+        subject.persist(record, done);
+      });
+
+      test('result', function(done) {
+        subject.get(record._id, function(err, result) {
+          done(function() {
+            assert.hasProperties(
+              record,
+              result,
+              'record matches persisted value'
+            );
+          });
+        });
+      });
+    });
+
   });
 
   suite('#persist', function() {
@@ -53,6 +87,7 @@ suite('store/abstract', function() {
     var events;
     var id;
     var object;
+    var addDepsCalled;
 
     function watchEvent(event, done) {
       subject.once(event, function() {
@@ -71,8 +106,13 @@ suite('store/abstract', function() {
     }
 
     setup(function(done) {
+      addDepsCalled = null;
       object = this.object;
       events = {};
+
+      subject._addDependents = function() {
+        addDepsCalled = arguments;
+      }
 
       if (this.persist !== false) {
         subject.persist(object, function(err, key) {
@@ -86,20 +126,6 @@ suite('store/abstract', function() {
         done();
       }
     });
-
-    function get(id, callback) {
-      var trans = subject.db.transaction(subject._store);
-      var req = trans.objectStore(subject._store).get(id);
-
-      req.onsuccess = function(data) {
-        var result = req.result;
-        callback(null, result);
-      }
-
-      req.onerror = function(err) {
-        callback(new Error('could not get object'));
-      }
-    }
 
     suite('with transaction', function() {
 
@@ -149,6 +175,7 @@ suite('store/abstract', function() {
 
     suite('update', function() {
       var id = 'uniq';
+
       suiteSetup(function() {
         this.persist = true;
         this.object = { providerType: 'local', _id: 'uniq' };
@@ -163,7 +190,7 @@ suite('store/abstract', function() {
       });
 
       test('db persistance', function(done) {
-        get(id, function(err, result) {
+        subject.get(id, function(err, result) {
           if (err) {
             done(err);
             return;
@@ -193,7 +220,9 @@ suite('store/abstract', function() {
       });
 
       test('db persistance', function(done) {
-        get(id, function(err, result) {
+        assert.equal(addDepsCalled[0], object);
+
+        subject.get(id, function(err, result) {
           if (err) {
             done(err);
             return;
@@ -207,7 +236,6 @@ suite('store/abstract', function() {
         });
       });
     });
-
   });
 
   suite('#remove', function() {
@@ -232,7 +260,7 @@ suite('store/abstract', function() {
       removeDepsCalled = false;
 
       subject._removeDependents = function() {
-        removeDepsCalled = true;
+        removeDepsCalled = arguments;
       };
 
       subject.remove(id, function() {
@@ -241,7 +269,11 @@ suite('store/abstract', function() {
 
       subject.once('remove', function() {
         removeEvent = arguments;
-        done();
+        // wait until next tick so other events
+        // have finished firing...
+        setTimeout(function() {
+          done();
+        }, 0);
       });
     });
 
@@ -251,10 +283,35 @@ suite('store/abstract', function() {
 
     test('remove', function() {
       assert.ok(callbackCalled);
-      assert.ok(removeDepsCalled);
+      assert.equal(removeDepsCalled[0], id);
+      assert.instanceOf(removeDepsCalled[1], IDBTransaction);
+
       assert.ok(!subject._cached[id], 'should remove cached account');
     });
+  });
 
+  suite('#count', function() {
+    setup(function(done) {
+      var trans = subject.db.transaction(
+        subject._store,
+        'readwrite'
+      );
+
+      trans.oncomplete = function() {
+        done();
+      }
+
+      subject.persist(Factory('account'), trans);
+      subject.persist(Factory('account'), trans);
+    });
+
+    test('result', function(done) {
+      subject.count(function(err, number) {
+        done(function() {
+          assert.equal(number, 2);
+        });
+      });
+    });
   });
 
   suite('#load', function() {

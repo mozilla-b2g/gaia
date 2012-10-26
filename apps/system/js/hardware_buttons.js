@@ -50,7 +50,7 @@
 'use strict';
 
 (function() {
-  var HOLD_INTERVAL = 1500;   // How long for press and hold Home or Sleep
+  var HOLD_INTERVAL = 750;   // How long for press and hold Home or Sleep
   var REPEAT_DELAY = 700;     // How long before volume autorepeat begins
   var REPEAT_INTERVAL = 100;  // How fast the autorepeat is.
 
@@ -284,9 +284,9 @@
       else
         this.delegateState = sleepState;
       this.timer = setTimeout(function() {
-        if (t === 'home-button-press') {
+        if (type === 'home-button-press') {
           fire('holdhome');
-        } else if (t === 'sleep-button-press') {
+        } else if (type === 'sleep-button-press') {
           fire('holdsleep');
         }
         setState(baseState, type);

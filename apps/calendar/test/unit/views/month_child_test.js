@@ -1,9 +1,10 @@
 requireCommon('test/synthetic_gestures.js');
-
 requireApp('calendar/test/unit/helper.js', function() {
   require('/shared/js/gesture_detector.js');
-  requireApp('calendar/js/templates/month.js');
-  requireApp('calendar/js/views/month_child.js');
+
+  requireLib('templates/month.js');
+  requireLib('views/month_child.js');
+  requireLib('timespan.js');
 });
 
 
@@ -50,15 +51,39 @@ suite('views/month_child', function() {
     busytimes = app.store('Busytime');
     subject = new Calendar.Views.MonthChild({
       app: app,
-      month: month
+      date: month
     });
+
   });
 
-  test('initialization', function() {
-    assert.equal(subject.controller, controller);
-    assert.equal(subject.month, month);
-    assert.equal(subject.monthId, Calendar.Calc.getMonthId(month));
-    assert.deepEqual(subject._busytimes, subject._busytimes);
+  suite('initialization', function() {
+
+    function view(month) {
+      return new Calendar.Views.MonthChild({
+        app: app,
+        date: month
+      });
+    }
+
+    test('sanity', function() {
+      assert.equal(subject.controller, controller);
+      assert.equal(subject.date, month);
+      assert.equal(subject.id, subject.date.valueOf());
+
+      assert.instanceOf(
+        subject.timespan,
+        Calendar.Timespan,
+        'should create timespan'
+      );
+
+      assert.deepEqual(subject._days, {});
+
+      assert.deepEqual(
+        subject.timespan,
+        Calendar.Calc.spanOfMonth(subject.date)
+      );
+    });
+
   });
 
   test('#_hourToBusyUnit', function() {
@@ -68,200 +93,422 @@ suite('views/month_child', function() {
     assert.equal(subject._hourToBusyUnit(24), 12);
   });
 
-  test('#_handleBatch', function() {
-    var called, data;
-
-    called = {
-      add: [],
-      remove: []
-    };
-
-    data = {
-      'a': {
-        add: [1],
-        remove: [7]
-      },
-      'b': {
-        remove: [8]
-      }
-    };
-
-    subject._appendBusyUnits = function() {
-      called.add.push(arguments);
-    };
-
-    subject._removeBusyUnits = function() {
-      called.remove.push(arguments);
-    };
-
-    subject._handleBatch(data);
-
-    assert.deepEqual(called.add, [
-      ['a', [1]]
-    ]);
-
-    assert.deepEqual(called.remove, [
-      ['a', [7]],
-      ['b', [8]]
-    ]);
-  });
-
-  suite('#_verifyBatchItem', function() {
-    var hour, id, result;
+  suite('_calculateBusytime', function() {
+    var rangedRecord;
 
     setup(function() {
-      hour = createHour(2);
-      id = Calendar.Calc.getDayId(hour);
-    });
-
-    suite('action: add', function() {
-
-      test('add new item', function() {
-        result = subject._verifyBatchItem(id, 'add', 1);
-
-        assert.ok(result);
-        assert.ok(subject._busytimes[id].has(1));
-      });
-
-      test('adding existing item', function() {
-        var set = subject._busytimes[id] = new Calendar.Set();
-        set.add(1);
-
-        assert.isFalse(subject._verifyBatchItem(id, 'add', 1));
-      });
-
-    });
-
-    suite('action: remove', function() {
-
-      test('on existing item', function() {
-        var set = subject._busytimes[id] = new Calendar.Set();
-        set.add(1);
-
-        assert.isTrue(
-          subject._verifyBatchItem(id, 'remove', 1)
-        );
-      });
-
-      test('on non-existant item', function() {
-        //for now we are not doing anything
-        //clever to resolve an add and remove
-        //in the same queue, we will simply always add before
-        //removing.
-        assert.isTrue(
-          subject._verifyBatchItem(id, 'remove', 1)
-        );
+      rangedRecord = Factory('busytime', {
+        startDate: new Date(2012, 1, 1, 12),
+        endDate: new Date(2012, 1, 3, 6)
       });
     });
+
+    function containsIds(result, record) {
+      assert.equal(
+        result.calendarId,
+        record.calendarId,
+        'should assign calendar id'
+      );
+
+      assert.equal(
+        result.eventId,
+        record.eventId,
+        'should assign event id'
+      );
+
+      assert.equal(
+        result._id,
+        record._id,
+        'should assign record id'
+      );
+    }
+
+    test('ends as other starts', function() {
+      var busytime = Factory('busytime', {
+        startDate: new Date(2012, 1, 1),
+        endDate: new Date(2012, 1, 2)
+      });
+
+      var date = new Date(2012, 1, 2);
+
+      var result = subject._calculateBusytime(
+        date,
+        busytime
+      );
+
+      assert.ok(!result, 'should not render time');
+    });
+
+    test('whole day', function() {
+      var result = subject._calculateBusytime(
+        new Date(2012, 1, 2),
+        rangedRecord
+      );
+
+      containsIds(result, rangedRecord);
+      assert.equal(result.start, 1);
+      assert.equal(result.length, 12);
+    });
+
+    test('start of range', function() {
+      var result = subject._calculateBusytime(
+        new Date(2012, 1, 1),
+        rangedRecord
+      );
+
+      containsIds(result, rangedRecord);
+      assert.equal(result.start, 6);
+      assert.equal(result.length, 12);
+    });
+
+
+    test('end of range', function() {
+      var result = subject._calculateBusytime(
+        new Date(2012, 1, 3),
+        rangedRecord
+      );
+
+      containsIds(result, rangedRecord);
+      assert.equal(result.start, 1);
+      assert.equal(result.length, 3);
+    });
+
+
+    test('in one day', function() {
+      var record = Factory('busytime', {
+        startDate: new Date(2012, 1, 1, 12),
+        endDate: new Date(2012, 1, 1, 22)
+      });
+
+      var result = subject._calculateBusytime(
+        new Date(2012, 1, 1),
+        record
+      );
+
+      containsIds(result, record);
+      assert.equal(result.start, 6);
+      assert.equal(result.length, 6);
+    });
+
   });
 
   test('#_initEvents', function() {
-    var events;
-
     subject._initEvents();
-    events = busytimes._$events;
 
-    assert.equal(
-      events['add ' + subject.monthId][0],
-      subject._onBusyAdd
-    );
+    var observers = controller._timeObservers;
+    var record = observers[observers.length - 1];
 
-    assert.equal(
-      events['remove ' + subject.monthId][0],
-      subject._onBusyRemove
-    );
+    assert.equal(record[0], subject.timespan);
+    assert.equal(record[1], subject);
   });
 
   test('#_destroyEvents', function() {
-    var events;
-
     subject._initEvents();
+    var observers = controller._timeObservers;
+    var len = observers.length;
     subject._destroyEvents();
-
-    events = busytimes._$events;
-
-    assert.equal(
-      events['add ' + subject.monthId].length,
-      0
-    );
-
-    assert.equal(
-      events['remove ' + subject.monthId].length,
-      0
-    );
+    assert.equal(observers.length, len - 1);
   });
 
-  suite('busy events', function() {
-    var calledWith, id;
+  suite('#_handleEvent', function() {
 
     setup(function() {
-      calledWith = [];
-      id = Calendar.Calc.getDayId(month);
-
-      subject.batch.action = function() {
-        calledWith.push(
-          Array.prototype.slice.call(arguments)
-        );
-      }
-
       subject._initEvents();
     });
 
-    test('#_onBusyAdd', function() {
-      busytimes.add(createHour(23), 1);
+    test('type: add', function() {
+      var added = [];
+      subject._renderBusytime = function(record) {
+        added.push(record);
+      }
 
-      assert.deepEqual(
-        calledWith,
-        [[id, 'add', 12]]
+      var record = Factory('busytime', {
+        startDate: createHour(23)
+      });
+
+      controller.fireTimeEvent(
+        'add',
+        createHour(23).valueOf(),
+        createHour(23).valueOf(),
+        record
       );
+
+      assert.deepEqual(added, [record]);
     });
 
-    test('#_onBusyRemove', function() {
-      busytimes.add(createHour(23), 1);
-      calledWith.length = 0;
-      busytimes.remove(1);
+    test('type: remove', function() {
+      var removed = [];
+      subject._removeBusytimes = function(list) {
+        removed.push(list);
+      }
 
-      assert.deepEqual(
-        calledWith,
-        [[id, 'remove', 12]]
+      var record = Factory('busytime', {
+        startDate: createHour(23)
+      });
+
+      controller.fireTimeEvent(
+        'remove',
+        createHour(23).valueOf(),
+        createHour(23).valueOf(),
+        record
       );
+
+      assert.deepEqual(removed, [[record]]);
     });
 
   });
 
-  test('#_appendBusyUnits', function() {
-    var id = Calendar.Calc.getDayId(month);
-
-    controller.currentMonth = month;
-    testEl.innerHTML = subject._renderDay(month);
-
-    assert.ok(!testEl.querySelector('.busy-1'));
-
-    subject._appendBusyUnits(id, [1, 12]);
-
-    assert.ok(testEl.querySelector('.busy-1'));
-    assert.ok(testEl.querySelector('.busy-12'));
-  });
-
-  suite('#_removeBusyUnits', function() {
-    var id;
+  suite('#_renderBusytime', function() {
+    var calls;
 
     setup(function() {
-      busytimes.add(createHour(1), 1);
-      busytimes.add(createHour(23), 2);
+      calls = [];
 
-      controller.currentMonth = month;
+      subject.controller.move(month);
+
+      subject.create(testEl);
+      subject._addBusytime = function() {
+        calls.push(Array.prototype.slice.call(arguments));
+      };
+    });
+
+    test('same day', function() {
+      var record = Factory('busytime', {
+        startDate: new Date(2012, 1, 1, 12),
+        endDate: new Date(2012, 1, 1, 23)
+      });
+
+      subject._renderBusytime(record);
+      assert.equal(calls.length, 1);
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[0][0],
+        record.startDate
+      ));
+
+      assert.equal(calls[0][1], record);
+    });
+
+    test('whole month', function() {
+      var span = subject.timespan;
+
+      var record = Factory('busytime', {
+        startDate: new Date(span.start - 60),
+        endDate: new Date(span.end + 60)
+      });
+
+      var dates = [];
+      var numberOfDays = 35;
+      var start = record.startDate;
+
+      for (var i = 1; i <= numberOfDays; i++) {
+        var day = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + i
+        );
+
+        dates.push([day, record]);
+      }
+
+      subject._renderBusytime(record);
+
+      assert.equal(calls.length, 35);
+      assert.deepEqual(calls.slice(1, 33), dates.slice(1, 33));
+
+      assert.isTrue(
+        Calendar.Calc.isSameDate(
+          calls[0][0],
+          new Date(subject.timespan.start)
+        )
+      );
+
+      assert.isTrue(
+        Calendar.Calc.isSameDate(
+          calls[34][0],
+          new Date(subject.timespan.end)
+        )
+      );
+
+    });
+
+    return;
+
+    test('trailing before the timespan', function() {
+      subject.timespan = new Calendar.Timespan(
+        new Date(2012, 2, 1),
+        new Date(2012, 2, 31)
+      );
+
+      var record = Factory('busytime', {
+        startDate: new Date(2012, 1, 27),
+        endDate: new Date(2012, 2, 3)
+      });
+
+      subject._renderBusytime(record);
+      // the 30th is a monday of the 5th week
+      // we know we need to render the rest of that
+      // week which totals 6 days (Feb 27 - March 3rd)
+      assert.equal(calls.length, 3);
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[0][0],
+        new Date(2012, 2, 1)
+      ));
+
+     assert.isTrue(Calendar.Calc.isSameDate(
+        calls[1][0],
+        new Date(2012, 2, 2)
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[2][0],
+        new Date(2012, 2, 3)
+      ));
+    });
+
+
+
+    test('trailing after the timespan', function() {
+      var end = new Date(2012, 2, 4);
+      end.setMilliseconds(-1);
+
+      subject.timespan = new Calendar.Timespan(
+        new Date(2012, 1, 1),
+        end
+      );
+
+      var record = Factory('busytime', {
+        startDate: new Date(2012, 1, 27),
+        endDate: new Date(2012, 2, 10)
+      });
+
+      subject._renderBusytime(record);
+      // the 30th is a monday of the 5th week
+      // we know we need to render the rest of that
+      // week which totals 6 days (Feb 27 - March 3rd)
+      assert.equal(calls.length, 6);
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[0][0],
+        record.startDate
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[1][0],
+        new Date(2012, 1, 28)
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[2][0],
+        new Date(2012, 1, 29)
+      ));
+
+     assert.isTrue(Calendar.Calc.isSameDate(
+        calls[3][0],
+        new Date(2012, 2, 1)
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[4][0],
+        new Date(2012, 2, 2)
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[5][0],
+        new Date(2012, 2, 3)
+      ));
+    });
+
+    test('three days', function() {
+      subject.timespan = new Calendar.Timespan(
+        new Date(2011, 12, 1),
+        new Date(2012, 4, 1)
+      );
+
+      var record = Factory('busytime', {
+        startDate: new Date(2012, 1, 1),
+        endDate: new Date(2012, 1, 3)
+      });
+
+      subject._renderBusytime(record);
+      assert.equal(calls.length, 3);
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[0][0],
+        record.startDate
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[1][0],
+        new Date(2012, 1, 2)
+      ));
+
+      assert.isTrue(Calendar.Calc.isSameDate(
+        calls[2][0],
+        record.endDate
+      ));
+    });
+
+  });
+
+  test('#_addBusytime', function() {
+    controller.move(month);
+    subject.element = testEl;
+    testEl.innerHTML = subject._renderDay(month);
+
+    assert.ok(!testEl.querySelector('.busy-12'));
+
+    subject._addBusytime(
+      createHour(23),
+      Factory('busytime', {
+        startDate: createHour(20),
+        endDate: createHour(23)
+      })
+    );
+
+    assert.ok(testEl.querySelector('.busy-10'));
+  });
+
+  suite('#_removeBusytimes', function() {
+    var id;
+    var list;
+
+    setup(function() {
+      controller.cacheBusytime(Factory('busytime', {
+        startDate: createHour(23),
+        endDate: createHour(23)
+      }));
+
+      controller.cacheBusytime(Factory('busytime', {
+        startDate: createHour(1),
+        endDate: createHour(1)
+      }));
+    });
+
+    setup(function() {
+      controller.move(month);
       testEl.innerHTML = subject._renderDay(month);
+      subject.element = testEl;
+
+      //TODO: we should probably not be using
+      //a private variable from a store here...
+      //Maybe we should expose the tree directly
+      //on busytimes and make it part of the public
+      //api?
+      list = controller._collection.items.map(function(item) {
+        subject._renderBusytime(item);
+        return item;
+      });
 
       assert.ok(testEl.querySelector('.busy-1'));
       assert.ok(testEl.querySelector('.busy-12'));
-
 
       id = Calendar.Calc.getDayId(month);
     });
 
     test('when elements exist', function() {
-      subject._removeBusyUnits(id, [12, 1]);
+      subject._removeBusytimes(list);
 
       assert.ok(
         !testEl.querySelector('.busy-12'),
@@ -272,54 +519,11 @@ suite('views/month_child', function() {
         !testEl.querySelector('.busy-1'),
         'should remove busy selector 1'
       );
-
-      assert.equal(subject._busytimes[id].size(), 0);
     });
 
     test('when elements are missing', function() {
       assert.ok(!testEl.querySelector('.busy-6'), 'should not have busy-6');
-      subject._removeBusyUnits(id, [6]);
-    });
-
-
-  });
-
-  suite('#_getBusyUnits', function() {
-    var all = range(1, 23);
-
-    test('with all units', function() {
-      var result = subject._getBusyUnits(all);
-      assert.deepEqual(result, range(1, 12), 'should reduce by half');
-    });
-
-    test('with duplicates and odd numbers', function() {
-      var result = subject._getBusyUnits([
-        1, 3, 3, 4, 4, 7, 7
-      ]);
-
-      assert.deepEqual(result, [1, 2, 4]);
-    });
-
-  });
-
-  suite('#_renderBusyUnits', function() {
-    var units = [1, 12];
-
-    test('without register', function() {
-      var result = subject._renderBusyUnits(null, units);
-
-      assert.ok(result);
-      assert.include(result, 'busy-1');
-      assert.include(result, 'busy-12');
-
-      assert.equal(Object.keys(subject._busytimes).length, 0);
-    });
-
-    test('with register', function() {
-      var result = subject._renderBusyUnits('fooz', units);
-
-      assert.equal(Object.keys(subject._busytimes).length, 1);
-      assert.setHas(subject._busytimes['fooz'], [1, 12]);
+      subject._removeBusytimes([{ _id: 'nothere' }]);
     });
 
   });
@@ -333,7 +537,7 @@ suite('views/month_child', function() {
 
     suiteSetup(function() {
       id = Calendar.Calc.getDayId(day);
-      controller.currentMonth = day;
+      controller.move(day);
     });
 
     setup(function() {
@@ -360,9 +564,15 @@ suite('views/month_child', function() {
       );
     }
 
-    test('without busy times', function() {
-      controller.currentMonth = day;
+    test('result', function() {
+      var id = Calendar.Calc.getDayId(day);
+      controller.move(day);
       result = subject._renderDay(day);
+
+      rendersObject();
+
+      var keys = Object.keys(subject._days);
+      assert.equal(keys[0], id);
 
       assert.include(
         result, '<div class="busy-indicator"></div>',
@@ -379,27 +589,6 @@ suite('views/month_child', function() {
       );
     }
 
-    test('with busy times', function() {
-      controller.currentMonth = day;
-      busytimes.add(createHour(1), '1');
-      busytimes.add(createHour(12), '2');
-      busytimes.add(createHour(23), '3');
-
-      result = subject._renderDay(day);
-      rendersObject();
-
-      assert.ok(result);
-
-      assert.include(result, 'busy-1');
-      assert.include(result, 'busy-6');
-      assert.include(result, 'busy-12');
-
-      assert.setHas(
-        subject._busytimes[id],
-        [1, 6, 12]
-      );
-    });
-
   });
 
   suite('#_renderWeek', function() {
@@ -408,7 +597,8 @@ suite('views/month_child', function() {
 
     setup(function() {
       controller.currentMonth = day;
-      result = subject._renderWeek(day);
+      controller.move(day);
+      result = subject._renderWeek(Calendar.Calc.getWeeksDays(day));
     });
 
     test('html output', function() {
@@ -425,57 +615,160 @@ suite('views/month_child', function() {
 
   test('#_renderDayHeaders', function() {
     var result = subject._renderDayHeaders();
+    var days = 7;
+    var i = 0;
+    var id;
 
-    assert.ok(subject.dayNames.length == 7);
-    subject.dayNames.forEach(function(day) {
-      assert.include(result, day, 'result should include ' + day);
-    });
+    assert.ok(result);
+
+    for (; i < days; i++) {
+      id = 'weekday-' + i + '-short';
+
+      assert.include(
+        result,
+        id,
+        'has "' + id + '"'
+      );
+    }
   });
 
   suite('#_renderMonth', function() {
-    var days = [
-      month,
-      new Date(2012, 10, 8),
-      new Date(2012, 10, 15),
-      new Date(2012, 10, 22),
-      new Date(2012, 10, 29)
-    ];
 
-    test('should compose header and five weeks', function() {
-      controller.currentMonth = days[0];
+    function rendersWeeks(month, weekStartDates) {
+      controller.move(month);
+
+      var subject = new Calendar.Views.MonthChild({
+        app: app,
+        date: month
+      });
+
       var result = subject._renderMonth();
 
-      assert.ok(result);
-
-      days.forEach(function(date) {
+      weekStartDates.forEach(function(date) {
         assert.include(
-          result, subject._renderWeek(date),
-          'should include week of ' + date.getDate()
+          result, subject._renderWeek(Calendar.Calc.getWeeksDays(date)),
+          'should include week of ' + date.toString()
         );
       });
 
+      assert.equal(subject.weeks, weekStartDates.length);
+      assert.include(
+        result, subject._renderDayHeaders(), 'should have headers'
+      );
+    }
+
+    test('should compare header and four weeks', function() {
+      var days = [
+        new Date(2009, 1, 1),
+        new Date(2009, 1, 8),
+        new Date(2009, 1, 15),
+        new Date(2009, 1, 25)
+      ];
+
+      rendersWeeks(new Date(2009, 1, 1), days);
     });
+
+    test('should compose header and five weeks', function() {
+      var days = [
+        month,
+        new Date(2012, 10, 8),
+        new Date(2012, 10, 15),
+        new Date(2012, 10, 22),
+        new Date(2012, 10, 29)
+      ];
+
+      rendersWeeks(month, days);
+    });
+
+    test('should compose header and six weeks', function() {
+      var days = [
+        new Date(2012, 11, 1),
+        new Date(2012, 11, 8),
+        new Date(2012, 11, 15),
+        new Date(2012, 11, 22),
+        new Date(2012, 11, 29),
+        new Date(2012, 12, 1)
+      ];
+
+      rendersWeeks(days[0], days);
+    });
+
   });
 
-  suite('#attach', function() {
-
+  suite('#_busyElement', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
     });
 
-    test('initial attach', function() {
+    test('trying to access outside of range', function() {
+      assert.throws(function() {
+        // throw because not rendered yet...
+        subject._dayElement(new Date());
+      });
+    });
+
+    test('access rendered day', function() {
+      subject.create();
+
+      var id = Calendar.Calc.getDayId(month);
+      var result = subject._busyElement(month);
+      var fromString = subject._busyElement(id);
+
+      assert.ok(result);
+      assert.equal(result, fromString);
+      assert.equal(subject._days[id], result);
+    });
+
+  });
+
+  suite('#create', function() {
+    var slice;
+    var calledCachedWith;
+    var calledRenderWith;
+
+    setup(function() {
+      controller.move(month);
+    });
+
+    setup(function() {
+      calledRenderWith = [];
+      slice = [
+        1, 2, 3
+      ];
+
+      controller.queryCache = function() {
+        calledCachedWith = arguments;
+        return slice;
+      };
+
+      subject._renderBusytime = function(item) {
+        calledRenderWith.push(item);
+      };
+    });
+
+    test('initial create', function() {
       var result,
           expected = subject._renderMonth();
 
-      testEl.appendChild(document.createElement('div'));
+      result = subject.create();
 
-      result = subject.attach(testEl);
+      assert.equal(calledCachedWith[0], subject.timespan);
+      assert.deepEqual(
+        calledRenderWith,
+        [1, 2, 3]
+      );
 
-      assert.equal(result.outerHTML, expected);
-      assert.ok(testEl.children[1].id);
+      assert.equal(subject.element, result);
 
-      assert.equal(testEl.children[0].tagName.toLowerCase(), 'div');
-      assert.equal(result.id, testEl.children[1].id);
+      assert.isTrue(
+        result.classList.contains('weeks-' + subject.weeks),
+        'should add week class'
+      );
+
+      assert.equal(
+        result.innerHTML, expected,
+        'should render month'
+      );
     });
 
   });
@@ -485,35 +778,39 @@ suite('views/month_child', function() {
     var list;
 
     setup(function() {
-      controller.currentMonth = month;
-      subject.attach(testEl);
+      controller.move(month);
+      subject.create(testEl);
 
       list = subject.element.classList;
     });
 
     test('#activate', function() {
       subject.activate();
-      assert.ok(!list.contains(subject.INACTIVE));
+      assert.ok(list.contains(subject.ACTIVE));
     });
 
     test('#deactivate', function() {
       subject.deactivate();
-      assert.ok(list.contains(subject.INACTIVE));
+      assert.ok(!list.contains(subject.ACTIVE));
     });
 
   });
 
   suite('#destroy', function() {
     setup(function() {
-      controller.currentMonth = month;
+      controller.move(month);
+      subject._days = true;
     });
 
-    test('when not attached', function() {
+    test('when not created', function() {
       subject.destroy();
+      assert.deepEqual(subject._days, {});
     });
 
-    test('when attached', function() {
-      subject.attach(testEl);
+    test('when created', function() {
+      var el = subject.create(testEl);
+      testEl.appendChild(el);
+
       assert.ok(subject.element);
 
       subject.destroy();
@@ -525,4 +822,3 @@ suite('views/month_child', function() {
   });
 
 });
-

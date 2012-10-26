@@ -1,0 +1,20 @@
+{
+  "name": "Test Receiver#2",
+  "description": "Dummy app to respond to Test web activities",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "activities": {
+    "test": {
+      "filters": {
+        "type": "text"
+       },
+      "disposition": "window"
+    }
+  },
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}

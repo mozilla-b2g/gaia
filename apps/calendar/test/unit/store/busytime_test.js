@@ -1,127 +1,358 @@
 requireApp('calendar/test/unit/helper.js', function() {
   requireLib('responder.js');
-  requireLib('calc.js');
+  requireLib('timespan.js');
+  requireLib('store/event.js');
   requireLib('store/busytime.js');
+  requireLib('store/alarm.js');
 });
 
 suite('store/busytime', function() {
-  var subject, events;
 
-  setup(function() {
-    subject = new Calendar.Store.Busytime();
-    events = {};
-  });
+  var app;
+  var subject;
+  var db;
+  var id = 0;
 
-  test('initialize', function() {
-    assert.instanceOf(subject, Calendar.Responder);
-    assert.isObject(subject.times);
-    assert.isObject(subject.ids);
-  });
+  function event(start, end) {
+    var remote = {};
 
-  function watchEvent(type) {
-    events[type] = [];
+    if (start)
+      remote.startDate = start;
 
-    subject.on(type, function() {
-      events[type].push(Array.prototype.slice.call(arguments));
+    if (end)
+      remote.endDate = end;
+
+    remote.id = ++id;
+
+    var out = Factory('event', {
+      remote: remote
+    });
+
+    if (!out.remote.end || !out.remote.end.utc) {
+      throw new Error('event has no end');
+    }
+
+    return out;
+  }
+
+  function eventRecuring(date) {
+    return Factory('event.recurring', {
+      remote: {
+        startDate: date,
+        _id: ++id,
+        _recurres: 1
+      }
     });
   }
 
-  suite('#add', function() {
-    var date,
-        monthId,
-        dateId;
+  function time(event) {
+    return event.remote.startDate.valueOf();
+  }
+
+  function record(event) {
+    var record = subject._eventToRecord(
+      event
+    );
+
+    return subject._createModel(record);
+  }
+
+  setup(function(done) {
+    this.timeout(5000);
+    id = 0;
+    app = testSupport.calendar.app();
+    db = app.db;
+    subject = db.getStore('Busytime');
+
+    db.open(function(err) {
+      assert.ok(!err);
+      done();
+    });
+  });
+
+  teardown(function(done) {
+    testSupport.calendar.clearStore(
+      subject.db,
+      done
+    );
+  });
+
+  teardown(function() {
+    subject.db.close();
+  });
+
+  suite('#_removeDependents', function() {
+
+    suite('alarm store deps', function() {
+      var alarmStore;
+      var busytime;
+
+      function createTrans(done) {
+        var trans = subject.db.transaction(
+          ['busytimes', 'alarms'], 'readwrite'
+        );
+
+        if (done) {
+          trans.addEventListener('complete', function() {
+            done();
+          });
+        }
+      }
+
+      // create records
+      setup(function(done) {
+        var trans = createTrans(done);
+
+        alarmStore = subject.db.getStore('Alarm');
+        busytime = Factory('busytime', { _id: 'foo' });
+
+        subject.persist(busytime, trans);
+        alarmStore.persist({ _id: 1, busytimeId: busytime._id }, trans);
+      });
+
+      test('count check', function(done) {
+        var pending = 2;
+        var alarmCount = 0;
+        var busytimeCount = 0;
+
+        function next() {
+          if (!(--pending)) {
+            done(function() {
+              assert.equal(busytimeCount, 1, 'busytime');
+              assert.equal(alarmCount, 1, 'alarm');
+            });
+          }
+        }
+
+        subject.count(function(err, value) {
+          alarmCount = value;
+          next();
+        });
+
+        alarmStore.count(function(err, value) {
+          busytimeCount = value;
+          next();
+        });
+      });
+
+      test('after delete', function(done) {
+        subject.remove(busytime._id, function() {
+          alarmStore.count(function(err, value) {
+            done(function() {
+              assert.equal(value, 0, 'removes alarm');
+            });
+          });
+        });
+      });
+    });
+  });
+
+  suite('#factory', function() {
+    test('using defaults', function() {
+      var event = Factory('event');
+      var result = subject.factory(event);
+
+      assert.deepEqual(result.start, event.remote.start);
+      assert.deepEqual(result.end, event.remote.end);
+      assert.equal(result.eventId, event._id);
+      assert.equal(result.calendarId, event.calendarId);
+    });
+
+    test('with start/end date', function() {
+      var event = Factory('event');
+
+      var start = Calendar.Calc.dateToTransport(new Date(2012, 0, 1));
+      var end = Calendar.Calc.dateToTransport(new Date(2012, 0, 2));
+
+      var result = subject.factory(event, start, end);
+
+      assert.deepEqual(result.start, start);
+      assert.deepEqual(result.end, end);
+    });
+  });
+
+  suite('#loadSpan', function() {
+    var list;
+    var span;
 
     setup(function() {
-      date = new Date(2012, 0, 1);
-      dateId = Calendar.Calc.getDayId(date);
-      monthId = Calendar.Calc.getMonthId(date);
-
-      watchEvent('add');
-      watchEvent('add ' + monthId);
-
-      subject.add(date, 'uniq1');
+      list = Object.create(null);
+      span = new Calendar.Timespan(
+        new Date(2012, 1, 5),
+        new Date(2012, 1, 10)
+      );
     });
 
-    test('storage', function() {
-      assert.deepEqual(subject.ids['uniq1'], date);
-      assert.deepEqual(subject.times[dateId], {'uniq1': true});
+    function add(name, start, end) {
+      setup(function(done) {
+        var store = subject.db.getStore('Event');
+        var item = list[name] = Factory('busytime', {
+          startDate: start,
+          endDate: end
+        });
+
+        delete item.startDate;
+        delete item.endDate;
+
+        subject.persist(item, done);
+      });
+    }
+
+    add('before long', new Date(2011, 1, 1), new Date(2011, 3, 1));
+    add('overlap', new Date(2012, 1, 1), new Date(2013, 1, 1));
+    add('starts before', new Date(2012, 1, 3), new Date(2012, 1, 6));
+    add('during', new Date(2012, 1, 5), new Date(2012, 1, 9));
+    add('ends after', new Date(2012, 1, 9), new Date(2012, 1, 11));
+    add('after', new Date(2012, 1, 12), new Date(2012, 1, 15));
+
+    var results;
+    var expectedIds;
+
+    function expected(name) {
+      expectedIds.push(
+        list[name]._id
+      );
+    }
+
+    setup(function(done) {
+      // because we just added events
+      // we need to remove them from the cache
+      subject._setupCache();
+
+      // build the list of expected
+      // busytimes to be returned by their
+      // event id
+      expectedIds = [];
+
+      // order is important we expect them
+      // to be sorted by start date
+      expected('overlap');
+      expected('starts before');
+      expected('during');
+      expected('ends after');
+
+      // load
+      subject.loadSpan(span, function(err, data) {
+        if (err) {
+          return done(err);
+        }
+        results = data;
+
+        // wait until next tick for event
+        // to fire...
+        setTimeout(done, 0, null);
+      });
     });
 
-    test('events', function() {
-      var expected = [['uniq1', subject.get('uniq1')]];
+    test('load results', function() {
+      // verify correct data is returned;
+      var idMap = Object.create(null);
 
-      assert.deepEqual(events['add'], expected, 'should fire add');
+      results.forEach(function(item) {
+        // verify startDate/endDate is present
+        var model = JSON.parse(JSON.stringify(item));
+        model = subject.initRecord(model);
+
+        assert.hasProperties(
+          item,
+          model,
+          'is model'
+        );
+
+        var id = item._id;
+        if (!(id in idMap)) {
+          idMap[id] = true;
+        }
+      });
+
+      var actualIds = Object.keys(idMap);
+
       assert.deepEqual(
-        events['add ' + monthId],
-        expected,
-       'should fire add-dateid'
+        actualIds,
+        expectedIds,
+        'load event ids'
       );
     });
   });
 
-  test('#get', function() {
-    var date = new Date();
-    subject.add(date, '1');
+  suite('#_createModel', function() {
+    var start = new Date(2012, 7, 1);
+    var end = new Date(2012, 7, 8);
+    var busy;
 
-    assert.deepEqual(subject.get('1'), date);
-  });
+    setup(function(done) {
+      busy = Factory('busytime', {
+        startDate: start,
+        endDate: end
+      });
 
-  suite('#remove', function() {
-    var date = new Date(),
-        dateId,
-        monthId,
-        expectedTimes,
-        result;
-
-    setup(function() {
-      dateId = Calendar.Calc.getDayId(date);
-      monthId = Calendar.Calc.getMonthId(date);
-
-      expectedTimes = {};
-      expectedTimes[dateId] = {};
-
-      watchEvent('remove');
-      watchEvent('remove ' + monthId);
-
-      subject.add(date, '2');
-      result = subject.remove('2');
+      subject.persist(busy, done);
     });
 
-    test('event', function() {
-      var expected = [['2', date]];
+    test('db-round trip', function(done) {
+      subject.get(busy._id, function(err, record) {
+        done(function() {
+          assert.deepEqual(record.startDate, start, 'startDate');
+          assert.deepEqual(record.endDate, end, 'endDate');
+        });
+      });
+    });
+  });
 
+  suite('#removeEvent', function() {
+    var remove;
+    var keep;
+    var removeEvents = [];
+
+    setup(function(done) {
+      removeEvents.length = 0;
+      var trans = subject.db.transaction(
+        'busytimes', 'readwrite'
+      );
+
+      remove = Factory('busytime', {
+        eventId: 'remove'
+      });
+
+      keep = Factory('busytime', {
+        eventId: 'keep'
+      });
+
+      subject.persist(remove, trans);
+      subject.persist(keep, trans);
+
+      trans.oncomplete = function() {
+        done();
+      }
+    });
+
+    setup(function(done) {
+      subject.on('remove', function(id) {
+        removeEvents.push(id);
+      });
+
+      subject.removeEvent('remove', done);
+    });
+
+    test('removed busytime', function(done) {
       assert.deepEqual(
-        events['remove'],
-        expected,
-        'should fire remove event'
+        removeEvents,
+        [remove._id]
       );
 
-      assert.deepEqual(
-        events['remove ' + monthId],
-        expected,
-        'should fire remove dateid event'
-      );
+      subject.get(remove._id, function(err, record) {
+        done(function() {
+          assert.ok(!record);
+        });
+      });
     });
 
-    test('removal', function() {
-      assert.ok(
-        !subject.get('2'),
-        'should not have object for removed element'
-      );
-      assert.deepEqual(subject.times, expectedTimes);
-      assert.deepEqual(subject.ids, {});
-      assert.isTrue(result);
+    test('control - kept busytime', function(done) {
+      subject.get(keep._id, function(err, record) {
+        done(function() {
+          assert.ok(record);
+        });
+      });
     });
-
   });
-
-  test('#getHours', function() {
-    subject.add(new Date(10, 1, 1, 1), '1');
-    subject.add(new Date(10, 1, 1, 2), '2');
-
-    var result = subject.getHours(new Date(10, 1, 1));
-
-    assert.deepEqual(result, [1, 2]);
-  });
-
 });

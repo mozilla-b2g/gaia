@@ -1,19 +1,19 @@
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Open Sans", sans-serif;
   overflow: hidden !important;
 }
 
 header {
   height: 8rem;
   text-align: left;
-  color: white;
-  border-bottom: solid 0.2rem #a3a3a3;
-  font: 1.3rem 'Open Sans', sans-serif;
+  border-bottom: solid 0.3rem;
+  -moz-border-bottom-colors: #e9e9e9 #cdcdcd #a3a3a3;
+  font: normal 1.3rem/4.5rem 'MozTT',sans-serif;
   line-height: 4.5rem;
-  padding-left: 5rem;
-  background: url("images/edit_header.png") repeat-x scroll left top transparent;
+  padding-left: 4rem;
+  background: url(images/edit_header.png) repeat scroll left top transparent;
+  background-size: 100% 100%;
 }
 
 /* ------------- Button ------------- */
@@ -28,7 +28,7 @@ a.button, span.button {
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  font: bold 2rem 'Open Sans', sans-serif;
+  font: bold 2rem 'MozTT', sans-serif;
   line-height: 2.2rem;
   -moz-border-top-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
   -moz-border-right-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
@@ -37,26 +37,37 @@ a.button, span.button {
 }
 
 a.button.left.close {
-  background: url("images/separator_close.png") no-repeat scroll 2.5rem center transparent;
+  background: url(images/separator_close.png) no-repeat scroll 2rem center transparent;
+  background-size: auto 100%;
   border: none;
   cursor: pointer;
+  top: 0;
   left: 0;
   overflow: visible;
   position: absolute;
   width: 6rem;
-  height: 4.5rem;
+  height: 5rem;
+}
+
+.background-close {
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.13);
+  width: 2.54rem;
+  height: 8rem;
+  top: 0;
+  left: 0;
 }
 
 .icon-close {
   display: inline-block;
-  background: url("images/edit_close.png") no-repeat;
-  background-position: left 0.3rem;
+  background: url(images/edit_close.png) no-repeat;
+  background-position: left 1rem;
   background-repeat: no-repeat;
   background-size: 60% 60%;
   display: inline-block;
   width: 4rem;
   height: 4rem;
-  margin-left: -4.6rem;
+  margin-left: -5rem;
   overflow: visible;
   overflow: visible;
 }
@@ -79,32 +90,65 @@ a.button.right.plus {
   background-image: url(images/add_alarm.png);
   background-size: 100%;
   background-repeat: no-repeat;
-  border: none;  
+  border: none;
 }
 
 a.button.right.done-button {
-  background: url("images/separator_done.png") no-repeat scroll left center transparent;
+  background: url(images/separator_done.png) no-repeat scroll left center transparent;
   border: none;
   background-size: auto 100%;
   cursor: pointer;
-  height: 3rem;
+  height: 5rem;
+  top: 0;
+  right: 0;
   overflow: visible;
   position: absolute;
   color: white;
   font-weight: normal;
-  line-height: 2.8rem;
+  line-height: 5.2rem;
 }
 
 a.abstract-menu {
   display: block;
   height:      auto; /* 5.4rem; -moz-calc(100% - 4rem); */
   line-height: normal; /* 5.4rem; -moz-calc(100% - 4rem); */
-  width: -moz-calc(100% - 8.5rem);
+  width: -moz-calc(100% - 12rem);
   text-decoration: none;
-  text-align: right;
+  text-align: left;
+  padding-left: 12rem;
   outline: 0;
-  color: #555;
-  font: 2.4rem/3rem 'Open Sans',sans-serif;
+  color: black;
+  font: 2.4rem/2.9rem 'MozTT',sans-serif;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+select.abstract-menu {
+  opacity: 0;
+  position: absolute;
+}
+
+#alarm-delete {
+  color: #F2F2F2;
+  font: 2.4rem/2.4rem 'MozTT',sans-serif;
+  text-align: center;
+  text-decoration: none;
+  width: 100%;
+}
+
+#alarm-delete-button {
+  background: -moz-linear-gradient(bottom, #900010, #c90010);
+  border: none;
+  width: 90%;
+  height: 5.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-shadow: -1px -1px 0 #830B0B;
+  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
+}
+
+#alarm-delete-button:active {
+  background: #890707;
 }
 
 .view label.text {
@@ -120,26 +164,29 @@ a.abstract-menu {
   top: 0;
   left: 0;
   border: 0;
-  width: -moz-calc(100% + 0.8rem); /* scrollbar bug */
+  width: 100%;
   height: 100%;
+  /* XXX: The below overflow property is being ignored by B2G Phone
+    https://bugzilla.mozilla.org/show_bug.cgi?id=777672
+    It is a workaround to set overflow-y: scroll.
+    It should be refined to overflow: hidden when the bug fixed.
+  */
+  overflow-y: scroll;
 }
 
 /* View - Slide Horizontal Transition */
 .view {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0.5s;
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: translateX(100%);
-  width: 0;
 }
 
 #alarm-view {
   -moz-transform: translateX(-100%);
 }
 
-#alarm-view:target,
-.view:target {
-  -moz-transition: -moz-transform 0.5s ease, width 0s linear 0s;
+#alarm-view:target, .view:target {
+  -moz-transition: -moz-transform 0.5s ease;
   -moz-transform: none;
-  width: 100%;
 }
 
 body.hidden #alarm-view {
@@ -150,11 +197,10 @@ body.hidden #alarm-view {
 #alarm-view.active {
   -moz-transform: none;
   -moz-transition: none;
-  width: 100%;
 }
 
 #alarm {
-  background-color: #305B5E;
+  background-color: #efefeb;
 }
 
 #repeat {
@@ -174,19 +220,45 @@ body.hidden #alarm-view {
 }
 
 li.singleline {
-  height: 7.5rem;
+  height: 6.4rem;
+  border-top: none;
+  border-bottom: 0.1rem solid #cbcbcc;
+  padding-left: 5%;
+  padding-right: 5%;
+  width: 90%;
 }
 
 li.multiline {
-  height: 8.5rem;
+  height: 35.5rem;
+  border-top: none;
+  border-bottom: 0.1rem solid #cbcbcc;
+}
+
+li.multiline:active {
+  background-color: white;
+  text-shadow: none;
+  color: #555;
+}
+
+li.picker {
+  height: 35rem;
+  padding-top: 0.5rem;
+  border-top: none;
+  border-bottom: none;
+}
+
+li.picker:active {
+  background-color: transparent;
+  text-shadow: none;
 }
 
 .view-alarm-lbl {
-  color: black;
-  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
-  top: 2.5rem;
+  color: #7d7d7d;
+  font: 2.4rem/2.4rem 'MozTT',sans-serif;
+  top: 2.2rem;
   height: auto;
-  width: 14rem;
+  width: 100%;
+  pointer-events: none;
 }
 
 /* Table View */
@@ -217,10 +289,10 @@ ul li:active {
 
 ul li > a {
   display: block;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  height:      6rem; /* -moz-calc(100% - 4rem); */
-  line-height: 6rem; /* -moz-calc(100% - 4rem); */
+  padding-top: 1.6rem;
+  padding-bottom: 1.6rem;
+  height:      6.8rem; /* -moz-calc(100% - 4rem); */
+  line-height: 6.8rem; /* -moz-calc(100% - 4rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -235,17 +307,8 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   width: -moz-calc(100% - 13rem);
 }
 
-#alarm-del {
-  color: red;
-  font: 2.4rem/2.4rem 'Open Sans',sans-serif;
-  height: 100%;
-  left: 2rem;
-  width: 100%;
-}
-
 ul li > span {
   position: absolute;
-  left: 2rem;
 }
 
 ul li > small {
@@ -259,7 +322,7 @@ ul li > small {
 .alarmList-time {
   float: left;
   width: 41%;
-  padding-top: 1.4rem;
+  padding-top: 1.2rem;
   text-align: left;
 }
 
@@ -267,6 +330,7 @@ ul li > small {
   float: left;
   width: 50%;
   text-align: left;
+  margin-left: -0.3rem;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -297,11 +361,11 @@ ul li > small {
 }
 
 .view label > input[type=radio] + span {
-  background: url(images/radio-off.png) no-repeat scroll center center;
+  background: url(images/radio_off.png) no-repeat scroll center center;
 }
 
 .view label > input[type=radio]:checked + span {
-  background: url(images/radio-on.png) no-repeat scroll center center;
+  background: url(images/radio_on.png) no-repeat scroll center center;
 }
 
 /* ----------- Alarm Set Repeat Button ------------- */
@@ -322,25 +386,6 @@ ul li > small {
     -moz-linear-gradient(#ffffff, #eaeae4);
 }
 
-/* ----------- Edit Alarm Set Enabled Button ------------- */
-.view label > input[type=checkbox] + span.editSetEnabledBtn {
-  width: 4.6rem;
-  height: 4.6rem;
-  border: 0.4rem solid;
-  border-radius: 1.3rem;
-  top: -moz-calc(50% - 2.2rem);
-  -moz-border-top-colors: #696969 #4D4D4D #4D4D4D #696969;
-  -moz-border-right-colors: #696969 #4D4D4D #4D4D4D #696969;
-  -moz-border-bottom-colors: #696969 #4D4D4D #4D4D4D #696969;
-  -moz-border-left-colors: #696969 #4D4D4D #4D4D4D #696969;
-  background: -moz-linear-gradient(#eaeae4, #ffffff);
-}
-
-.view label > input[type=checkbox]:checked + span.editSetEnabledBtn {
-  background: url(images/checked.png) no-repeat scroll center center,
-    -moz-linear-gradient(#ffffff, #eaeae4);
-}
-
 /* ----------- Alarm Set Enabled Button ------------- */
 .view label > input[type=checkbox] + span.setEnabledBtn {
   width: 13rem;
@@ -348,20 +393,36 @@ ul li > small {
   margin: 0rem;
   right: 0rem;
   top: calc(50% - 2.2rem);
-  background: url(images/setEnabledBtn_off.png) no-repeat scroll center center;
+  background: url(images/set_enabled_btn_off.png) no-repeat scroll center center;
   background-size: 100% 100%;
+}
+
+.view label > input[type=checkbox] + span.setEnabledBtn:after {
+  font: 2.15rem/4.4rem 'MozTT',sans-serif;
+  color: #7a7a7a;
+  position: absolute;
+  left: 6rem;
+  content: attr(data-unchecked);
 }
 
 .view label > input[type=checkbox]:checked + span.setEnabledBtn {
-  background: url(images/setEnabledBtn_on.png) no-repeat scroll center center;
+  background: url(images/set_enabled_btn_on.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
-/* ----------- Inputs ------------- */
 
+.view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
+  font: 2.25rem/4.4rem 'MozTT',sans-serif;
+  color: #0088a3;
+  position: absolute;
+  left: 3.3rem;
+  content: attr(data-checked);
+}
+
+/* ----------- Inputs ------------- */
 select, input, textarea {
   clear: both;
   background:none;
-  border:0.2rem solid orange;
+  border:0.2rem solid white;
   border-radius: 0.5rem;
   font-size: 1em;
 }
@@ -376,10 +437,10 @@ select.right {
 
 input.right {
   width: -moz-calc(100% - 20rem);
-  margin:1rem 0.8rem 0.3rem 18rem;
+  margin: 0.6rem 0.8rem 0.3rem 12rem;
   height: 5rem;
-  font: 2.4rem/3rem 'Open Sans',sans-serif;
-  color: #660000;
+  font: 2.4rem/3rem 'MozTT',sans-serif;
+  color: black;
 }
 /* ----------- Input Error ---------- */
 input ~ * {
@@ -398,9 +459,14 @@ input ~ *:empty {
 }
 
 .tableView {
-  height: -moz-calc(100% - 6.2rem);
+  height: -moz-calc(100% - 8rem - 0.3rem);
   background-color: #ffffff;
+  padding-left: 5%;
+  padding-right: 5%;
+  position: absolute;
+  width: 90%;
 }
+
 #alarms.tableView {
   width: 90%;
   height: auto;
@@ -410,6 +476,15 @@ input ~ *:empty {
   padding-left: 5%;
   padding-right: 5%;
   background-color: transparent;
+  background-image: none;
+}
+
+#edit-alarm.tableView {
+  background: url(images/edit_background.png) repeat scroll center center;
+  background-size: 100% 100%;
+  width: 100%;
+  padding-left: 0;
+  padding-right: 0;
 }
 
 li img {
@@ -429,34 +504,32 @@ li img {
 
 .alarmList-time span.time {
   height: auto;
-  font: 3.6rem 'Open Sans', sans-serif;
-  line-height: 3.6rem;
+  font: 4rem/4rem 'MozTT', sans-serif;
   color: black;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 1.6rem 'Open Sans', sans-serif;
-  line-height: 1.6rem;
+  font: 2.2rem/2.2rem 'MozTT', sans-serif;
   color: #25292a;
-  margin-left: -0.3rem;
+  margin-left: -0.4rem;
   text-transform:lowercase;
 }
 
 .alarmList-detail .label {
   height: auto;
-  font: bold 2rem/2rem 'Open Sans', sans-serif;
+  font: 2.4rem/2.4rem 'MozTT', sans-serif;
   color: black;
   text-overflow: ellipsis;
-  padding-top: 6%;
+  padding-top: 0.5rem;
 }
 
 .alarmList-detail .repeat {
   height: auto;
-  font: 1.8rem/1.8rem 'Open Sans', sans-serif;
+  font: 2.4rem/2.4rem 'MozTT', sans-serif;
   color: #646768;
   text-overflow: ellipsis;
-  padding-top: 0.8rem;
+  padding-top: 0.7rem;
 }
 
 .alarmList-detail .hiddenSummary {
@@ -471,6 +544,220 @@ li img {
   height: auto;
 }
 
+/* ----------- TimeSelectorView ---------- */
+#picker-bar {
+  position: relative;
+  height: -moz-calc(100% - 0.2rem);
+  margin-left: auto;
+  margin-right: auto;
+  border-bottom: solid 0.2rem;
+  -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
+}
+
+#picker-bar.format12h {
+  width: 85%;
+}
+
+#picker-bar.format24h {
+  width: 60%;
+}
+
+#picker-bar-gradient {
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.4)  rgba(0, 0, 0, 0.25)  rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
+
+  border-top: solid 1rem;
+  border-bottom: solid 1rem;
+  border-left:  1px solid #CCC;
+  border-right: 1px solid #CCC;
+
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  -moz-box-sizing: border-box;
+}
+
+#picker-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding-top: 13.25rem;
+}
+
+#value-indicator-wrapper {
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.35);
+
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.05) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.15)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.35);
+
+  border-top: solid 0.7rem;
+  border-bottom: solid 0.7rem;
+  position: absolute;
+  height: 7.2rem;
+  width: 100%;
+  pointer-events: none;
+}
+
+#value-indicator-hover-time {
+  pointer-events: none;
+  background-color: #00A5C5;
+  color: #FFF;
+  position: absolute;
+  height: 100%;
+  font: 3rem/6rem 'MozTT',sans-serif;
+  text-align: center;
+}
+
+#picker-bar.format12h #value-indicator-hover-time {
+  width: 70%;
+}
+
+#picker-bar.format24h #value-indicator-hover-time {
+  width: 100%;
+}
+
+#value-indicator-hover {
+  pointer-events: none;
+  background-color: #00A5C5;
+  position: absolute;
+  width: 34%;
+  height: 100%;
+  right:0;
+}
+
+#picker-bar.format12h #value-indicator-hover {
+  display: block;
+}
+
+#picker-bar.format24h #value-indicator-hover {
+  display: none;
+}
+
+div.animation-on {
+  -moz-transition-duration: 0.5s;
+  -moz-transition-property: top, left;
+}
+
+#value-picker-hours {
+  position: relative;
+  -moz-user-select: none;
+  float: left;
+}
+
+#picker-bar.format12h #value-picker-hours {
+  width: 35%;
+}
+
+#picker-bar.format24h #value-picker-hours {
+  width: 50%;
+}
+
+#value-picker-minutes {
+  position: relative;
+  -moz-user-select: none;
+  float: left;
+}
+
+#picker-bar.format12h #value-picker-minutes {
+  width: 35%;
+}
+
+#picker-bar.format24h #value-picker-minutes {
+  width: 50%;
+}
+
+#value-picker-hour24-state {
+  position: relative;
+  -moz-user-select: none;
+  width: 30%;
+  float: left;
+}
+
+#picker-bar.format12h #value-picker-hour24-state {
+  display: block;
+}
+
+#picker-bar.format24h #value-picker-hour24-state {
+  display: none;
+}
+
+.picker-unit {
+  position: relative;
+  font: 3.4rem/8.5rem 'MozTT',sans-serif;
+  color: black;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+  height: 8.5rem;
+  pointer-events: none;
+}
+
+#picker-bar-background {
+  background: url("images/time_pattern.png") repeat scroll left top transparent;
+  position: absolute;
+  width: 30%;
+  height: 100%;
+  right: 0;
+  top: 0;
+}
+
+#picker-bar.format12h #picker-bar-background {
+  display: block;
+}
+
+#picker-bar.format24h #picker-bar-background {
+  display: none;
+}
+
+#left-picker-separator {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  top: 0;
+  background: -moz-linear-gradient(center left, #EEE 50%, #AAA 50%);
+  pointer-events: none;
+}
+
+#picker-bar.format12h #left-picker-separator {
+  left: 35%;
+}
+
+#picker-bar.format24h #left-picker-separator {
+  left: 49.5%;
+}
+
+#right-picker-separator {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  top: 0;
+  left: 70%;
+  background-color: #999;
+  pointer-events: none;
+}
+
+#picker-bar.format12h #right-picker-separator {
+  display: block;
+}
+
+#picker-bar.format24h #right-picker-separator {
+  display: none;
+}
+
 /* 320x480 phones */
 @media screen and (width: 320px) {
   html {
@@ -482,5 +769,21 @@ li img {
 @media screen and (width: 480px) {
   html {
     font-size: 10px;
+  }
+  .alarmList-detail {
+    margin-left: 0.5rem; 
+  }
+  .alarmList-time span.time {
+    font: 3.6rem/3.6rem 'MozTT', sans-serif;
+  }
+  .alarmList-time span.hour24-state {
+    font: 1.6rem/1.6rem 'MozTT', sans-serif;
+    margin-left: -0.3rem;
+  }
+  .alarmList-detail .label {
+    font: 2rem/2rem 'MozTT', sans-serif;
+  }
+  .alarmList-detail .repeat {
+    font: 1.8rem/1.8rem 'MozTT', sans-serif;
   }
 }

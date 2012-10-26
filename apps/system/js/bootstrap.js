@@ -1,10 +1,28 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
-function startup() {
-  PinLock.init();
+window.addEventListener('load', function startup() {
+  function launchHomescreen() {
+    var activity = new MozActivity({
+      name: 'view',
+      data: { type: 'application/x-application-list' }
+    });
+    activity.onerror = function homescreenLaunchError() {
+      console.error('Failed to launch home screen with activity.');
+    };
+  }
+
+  if (Applications.ready) {
+    launchHomescreen();
+  } else {
+    window.addEventListener('applicationready', function appListReady(event) {
+      window.removeEventListener('applicationready', appListReady);
+      launchHomescreen();
+    });
+  }
+
   SourceView.init();
   Shortcuts.init();
 
@@ -18,36 +36,14 @@ function startup() {
   // It appears to workaround the Nexus S bug where we're not
   // getting orientation data.  See:
   // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
+  // It seems it needs to be in both window_manager.js and bootstrap.js.
   function dumbListener2(event) {}
   window.addEventListener('devicemotion', dumbListener2);
 
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-}
-
-// XXX: homescreen should be an app launched and managed by window manager,
-// instead of living in it's own frame.
-(function homescreenLauncher() {
-  if (document.location.protocol === 'file:') {
-    var paths = document.location.pathname.split('/');
-    paths.pop();
-    paths.pop();
-    var src = 'file://' + paths.join('/') + '/homescreen/index.html';
-  } else {
-    var host = document.location.host;
-    var domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
-    var src = document.location.protocol + '//homescreen.' + domain;
-    // To fix the 'no index.html added anymore' bug 773884
-    // This isn't very pretty but beats reading all the apps to find
-    // if the launch_path is different. Not much worse than having
-    // '//homescreen' as a literal here
-    if (document.location.protocol === 'app:') {
-      src += '/index.html';
-    }
-  }
-  document.getElementById('homescreen').src = src;
-}());
+});
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */
@@ -73,12 +69,10 @@ window.addEventListener('localized', function onlocalized() {
 
 // Define the default background to use for all homescreens
 SettingsListener.observe(
-  'homescreen.wallpaper', 'default.png', function setWallpaper(value) {
-  var url = 'url(resources/images/backgrounds/' + value + ')';
-  document.getElementById('screen').style.backgroundImage = url;
-});
-
-window.addEventListener('applicationinstall', function hideForegroundApp(evt) {
-  WindowManager.setDisplayedApp(null);
-});
-
+  'wallpaper.image',
+  'resources/images/backgrounds/default.png',
+  function setWallpaper(value) {
+    document.getElementById('screen').style.backgroundImage =
+      'url(' + value + ')';
+  }
+);

@@ -1,0 +1,70 @@
+/* ----------------------------------
+* TOOLBARS
+* ---------------------------------- */
+body[role="application"] [role="toolbar"] {
+  height: 4rem;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background: url(images/ui/background.png) repeat left top;
+}
+
+body[role="application"] [role="toolbar"] ul {
+  float: left;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+body[role="application"] [role="toolbar"] ul.end {
+  float: right;
+}
+
+body[role="application"] [role="toolbar"] li {
+  float: left;
+}
+
+body[role="application"] [role="toolbar"] li button {
+  width: 5.5rem;
+  height: 4rem;
+  border: none;
+  font: 0/0 a;
+  background: transparent no-repeat center center;
+  padding: 0;
+  border-radius: 0;
+}
+
+body[role="application"] [role="toolbar"] li button:active {
+  background-color: #008aaa;
+}
+
+/* Base icons */
+body[role="application"] [role="toolbar"] li button.update {
+  background-image: url(images/icons/update.png);
+}
+
+body[role="application"] [role="toolbar"] li button.mark {
+  background-image: url(images/icons/mark.png);
+}
+
+body[role="application"] [role="toolbar"] li button.share {
+  background-image: url(images/icons/share.png);
+}
+
+body[role="application"] [role="toolbar"] li button.send {
+  background-image: url(images/icons/send.png);
+}
+
+body[role="application"] [role="toolbar"] li button.search {
+  background-image: url(images/icons/search.png);
+}
+
+body[role="application"] [role="toolbar"] li button.move {
+  background-image: url(images/icons/move.png);
+}
+
+body[role="application"] [role="toolbar"] li button.delete {
+  background-image: url(images/icons/delete.png);
+}

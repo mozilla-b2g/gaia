@@ -1,97 +1,211 @@
-(function(window) {
+Calendar.ns('Store').Busytime = (function() {
+
+  var binsearch = Calendar.binsearch.find;
+  var bsearchForInsert = Calendar.binsearch.insert;
 
   function Busytime() {
     Calendar.Store.Abstract.apply(this, arguments);
 
-    this.ids = Object.create(null);
-    this.times = Object.create(null);
+    /*
+    this._times = [
+      time,
+      time,
+      time
+    ]
+    */
+
+    /*
+    this._eventTimes = {
+      eventId: [200, 100]
+    }
+    */
+
+    /*
+    this._timeRecords = {
+      //time: [result, result]
+      20122: [result]
+    }
+    */
+    this._setupCache();
   }
 
-  var proto = Busytime.prototype = Object.create(
-    Calendar.Store.Abstract.prototype
-  );
+  Busytime.prototype = {
+    __proto__: Calendar.Store.Abstract.prototype,
 
-  /**
-   * Adds a date into busy times.
-   *
-   * @param {Date} date time to add.
-   * @param {String} id unique identifier for busy time.
-   */
-  proto.add = function(date, id) {
-    //don't check for uniqueness
-    var dateId = Calendar.Calc.getDayId(date),
-        monthId = Calendar.Calc.getMonthId(date);
+    _store: 'busytimes',
 
-    if (!(dateId in this.times)) {
-      this.times[dateId] = {};
-    }
+    _dependentStores: ['alarms', 'busytimes'],
 
-    this.times[dateId][id] = true;
-    this.ids[id] = date;
+    _parseId: function(id) {
+      return id;
+    },
 
-    this.emit('add', id, date);
-    this.emit('add ' + monthId, id, date);
-  };
+    _setupCache: function() {
+      // reset time observers
+      Calendar.TimeObserver.call(this);
 
-  /**
-   * Finds busy time based on its id
-   *
-   * @param {String} id busy time id.
-   */
-  proto.get = function(id) {
-    return this.ids[id];
-  };
+      this._byEventId = Object.create(null);
+    },
 
-  /**
-   * Returns an array of hours
-   * that user is busy during
-   * that specific day.
-   *
-   * @param {Date} date date.
-   */
-  proto.getHours = function(date) {
-    var dateId = Calendar.Calc.getDayId(date),
-        key,
-        times,
-        hours = [];
+    _createModel: function(input, id) {
+      return this.initRecord(input, id);
+    },
 
-    if (dateId in this.times) {
-      times = this.times[dateId];
-      for (key in times) {
-        if (times.hasOwnProperty(key)) {
-          hours.push(this.ids[key].getHours());
-        }
+    initRecord: function(input, id) {
+      var _super = Calendar.Store.Abstract.prototype._createModel;
+      var model = _super.apply(this, arguments);
+
+      model.startDate = Calendar.Calc.dateFromTransport(
+        model.start
+      );
+
+      model.endDate = Calendar.Calc.dateFromTransport(
+        model.end
+      );
+
+      return model;
+    },
+
+    _removeDependents: function(id, trans) {
+      this.db.getStore('Alarm').removeByIndex('busytimeId', id, trans);
+    },
+
+    removeEvent: function(id, trans, callback) {
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = undefined;
       }
-    }
 
-    return hours;
+      if (typeof(trans) === 'undefined') {
+        trans = this.db.transaction(
+          this._dependentStores,
+          'readwrite'
+        );
+      }
+
+      // build the request using the inherited method
+      var req = this.removeByIndex('eventId', id, trans);
+
+      // get the original method which handles the generic bit
+      var success = req.onsuccess;
+
+      // override the default .onsuccess to get the ids
+      // so we can emit remove events.
+      var self = this;
+      req.onsuccess = function(e) {
+        var cursor = e.target.result;
+
+        if (cursor) {
+          var id = cursor.primaryKey;
+          self.emit('remove', id);
+        }
+
+        success(e);
+      }
+
+      this._transactionCallback(trans, callback);
+    },
+
+    _startCompare: function(aObj, bObj) {
+      var a = aObj.start.utc;
+      var b = bObj.start.utc;
+
+      return Calendar.compare(a, b);
+    },
+
+    /**
+     * Creates a new busytime record
+     * from an event and start/end times.
+     *
+     * @param {ICAL.Event|Object} event related event.
+     * @param {Object} [start] optional start time uses event by default.
+     * @param {Object} [end] optional end time uses event by default.
+     */
+    factory: function(event, start, end) {
+      if (!start)
+        start = event.remote.start;
+
+      if (!end)
+        end = event.remote.end;
+
+      var id = this.db.getStore('Event').busytimeIdFor(
+        event,
+        start,
+        end
+      );
+
+      return {
+        _id: id,
+        start: start,
+        end: end,
+        eventId: event._id,
+        calendarId: event.calendarId
+      };
+    },
+
+    /**
+     * Loads all busytimes in given timespan.
+     *
+     * @param {Calendar.Timespan} span timespan.
+     * @param {Function} callback node style callback
+     *                            where first argument is
+     *                            an error (or null)
+     *                            and the second argument
+     *                            is a list of all loaded
+     *                            busytimes in the timespan.
+     */
+    loadSpan: function(span, callback) {
+      var trans = this.db.transaction(this._store);
+      var store = trans.objectStore(this._store);
+
+      var startPoint = Calendar.Calc.dateToTransport(
+        new Date(span.start)
+      );
+
+      var endPoint = Calendar.Calc.dateToTransport(
+        new Date(span.end)
+      );
+
+      // XXX: we need to implement busytime chunking
+      // to make this efficient.
+      var keyRange = IDBKeyRange.lowerBound(startPoint.utc);
+
+      var index = store.index('end');
+      var self = this;
+
+      index.mozGetAll(keyRange).onsuccess = function(e) {
+        var data = e.target.result;
+
+        // sort data
+        data = data.sort(self._startCompare);
+
+        // attempt to find a start time that occurs
+        // after the end time of the span
+        var idx = Calendar.binsearch.insert(
+          data,
+          { start: { utc: endPoint.utc + 1 } },
+          self._startCompare
+        );
+
+        // remove unrelated timespan...
+        data = data.slice(0, idx);
+
+        // fire callback
+        if (callback)
+          callback(null, data.map(function(item) {
+            return self.initRecord(item);
+          }));
+
+      };
+    },
+
+    /* we don't use id based caching for busytimes */
+
+    _addToCache: function() {},
+    _removeFromCache: function() {}
+
   };
 
-  /**
-   * Removes a specific busy time based
-   * on its id.
-   *
-   * @param {String} id busy time id.
-   */
-  proto.remove = function(id) {
-    var dateId, monthId, date;
-    if (id in this.ids) {
-      date = this.ids[id];
-      dateId = Calendar.Calc.getDayId(date);
-      monthId = Calendar.Calc.getMonthId(date);
-
-      delete this.times[dateId][id];
-      delete this.ids[id];
-
-      this.emit('remove', id, date);
-      this.emit('remove ' + monthId, id, date);
-
-      return true;
-    }
-
-    return false;
-  };
-
-  Calendar.ns('Store').Busytime = Busytime;
+  return Busytime;
 
 }(this));

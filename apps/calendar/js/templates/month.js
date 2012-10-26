@@ -1,16 +1,17 @@
 (function(window) {
 
   var Month = Calendar.Template.create({
-    busy: '<span class="{value}">&nbsp;</span>',
-
-    currentMonth: [
-      '<span class="month">{month}</span>',
-      ' ',
-      '<span class="year">{year}</span>'
-    ].join(''),
+    busy: '<span class="' +
+              'busytime-{_id} ' +
+              'busy-length-{length} ' +
+              'busy-{start} ' +
+              'calendar-id-{calendarId} calendar-color calendar-display' +
+            '">' +
+            '&nbsp;' +
+          '</span>',
 
     weekDaysHeader: [
-      '<header id="month-days" role="row">',
+      '<header id="month-days">',
         '<ol role="row">',
           '{value|s}',
         '</ol>',
@@ -18,15 +19,9 @@
     ].join(''),
 
     weekDaysHeaderDay: [
-      '<li role="column">',
-        '{value}',
+      '<li data-l10n-id="weekday-{day}-short">',
+        '{dayName}',
       '</li>'
-    ].join(''),
-
-    month: [
-      '<section id="{id}" class="month">',
-        '{content|s}',
-      '</section>'
     ].join(''),
 
     week: [

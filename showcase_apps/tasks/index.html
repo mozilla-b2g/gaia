@@ -6,7 +6,8 @@
     <title>Tasks</title>
     <link rel="stylesheet" type="text/css" media="screen" href="style/ui.css"/>
     <link rel="stylesheet" type="text/css" media="screen" href="style/tasks.css"/>
-    <link rel="resource" type="application/l10n" href="locale/l10n.ini"/>
+    <link rel="resource" type="application/l10n" href="locales/locales.ini"/>
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" src="js/db.js"></script>
     <script type="text/javascript" src="js/tasks.js"></script>
   </head>
@@ -38,7 +39,7 @@
           <span class="view-task-lbl" data-l10n-id="description">Description</span>
           <textarea name="task.desc"></textarea>
         </li>
-        <li>
+        <li class="done">
           <span class="view-task-lbl" data-l10n-id="done">Done</span>
           <label>
             <input type="checkbox" name="task.done"/>

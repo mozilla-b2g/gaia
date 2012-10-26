@@ -55,52 +55,61 @@
   };
 
   Template.prototype = {
-    DEFAULT_KEY: 'value',
-    QUOTE: /"/g,
-    NEWLINES: /\n/g,
-
-    _compiled: null,
 
     compile: function(str) {
-      var i = 0, fnStr, fn,
-          fnInst = '';
-
-      str = str.replace(this.QUOTE, '\\"');
-      str = str.replace(this.NEWLINES, '\\n');
-
-
-      fn = 'var h = Calendar.Template.handlers;';
-
-      fn += 'if (typeof(a) === "undefined") {';
-        fn += 'a = {};';
-      fn += '} else if(typeof(a) !== "object") {';
-        fn += 'a = {"' + this.DEFAULT_KEY + '": a };';
-      fn += '}';
-
-      function handleReplace(match, name, type, wrap, value) {
-        if (type === '') {
-          type = 'h';
-        }
-
-        if (type === 's') {
-          return '" + String((a["' + name + '"] || "")) + "';
-        } else {
-          if (value) {
-            return '" + h["' + type + '"]' +
-                    '(a["' + name + '"] || "", "' + (value || '') + '") + "';
-          } else {
-            return '" + h["' + type + '"](a["' + name + '"] || "") + "';
-          }
-        }
-      }
-
-      fnStr = str.replace(FORMAT_REGEX, handleReplace);
-
-      fnStr = fn + 'return "' + fnStr + '";';
-
-      return new Function('a', fnStr);
+      // Split the template string with template placeholders
+      // the resulting array is a mix of plain text string
+      // and placeholder pieces.
+      var chunks = str.split(FORMAT_REGEX);
+      return this.processTemplate.bind(this, chunks);
     },
 
+    processTemplate: function processTemplate(chunks, a) {
+      if (typeof(a) === 'undefined') {
+        a = {};
+      } else if (typeof(a) !== 'object') {
+        a = { 'value': a };
+      }
+      var processPlaceholder = this.processPlaceholder.bind(null,
+                                            Calendar.Template.handlers,
+                                            a);
+      var str = [];
+      for (var i = 0; i < chunks.length; i++) {
+        // Append plain text piece of string
+        str.push(chunks[i]);
+        // Thanks to `str.split(FORMAT_REGEX)`, `chunks`
+        // contains non-placeholder piece of the template
+        // followed by the Regexp matching placeholders.
+        // FORMAT_REGEX has 4 internal matches.
+        // So the next 4 items are FORMAT_REGEX matches.
+        if (i < chunks.length-4) {
+          var matches = chunks.slice(i+1, i+5);
+          var placeholder = processPlaceholder.apply(null,
+                                                     matches);
+          // Append processed placeholder
+          str.push(placeholder);
+          i += 4;
+        }
+      }
+      return str.join('');
+    },
+
+    processPlaceholder: function processPlaceholder(handlers, a, name, type,
+                                                    wrap, value) {
+      if (!type) {
+        type = 'h';
+      }
+
+      if (type === 's') {
+        return String((a[name] || ""));
+      } else {
+        if (value) {
+          return handlers[type](a[name] || "", value || '');
+        } else {
+          return handlers[type](a[name] || "");
+        }
+      }
+    },
 
     /**
      * Renders template with given slots.

@@ -2,7 +2,6 @@
   "name": "TowerJelly",
   "description": "Tower Jelly",
   "launch_path": "/index.html",
-  "hackNetworkBound": "true",
   "developer": {
     "name": "The Original Author",
     "url": "https://github.com/mozilla-b2g/gaia"

@@ -5,42 +5,55 @@
 
 // Based on Resig's pretty date
 var _ = navigator.mozL10n.get;
+var dtf = new navigator.mozL10n.DateTimeFormat();
 
 var Utils = {
-  updateHeaders: function ut_updateHeaders() {
+  updateTimeHeaders: function ut_updateTimeHeaders() {
+    var elementsToUpdate =
+        document.querySelectorAll('h2[data-time-update]');
+    if (elementsToUpdate.length > 0) {
+      for (var i = 0; i < elementsToUpdate.length; i++) {
+        var ts = elementsToUpdate[i].dataset.time;
+        var tmpHeaderDate;
+        if (elementsToUpdate[i].dataset.isThread) { // only date
+          tmpHeaderDate = Utils.getHeaderDate(ts);
+        } else {
+          elementsToUpdate[i].dataset.hourOnly ?
+            tmpHeaderDate = Utils.getFormattedHour(ts) : // only time
+            tmpHeaderDate = Utils.getHeaderDate(ts) + ' ' +
+                            Utils.getFormattedHour(ts); // date + time
+        }
+        var currentHeader = elementsToUpdate[i].innerHTML;
+        if (tmpHeaderDate != currentHeader) {
+          elementsToUpdate[i].innerHTML = tmpHeaderDate;
+        }
+      }
+    } else {
+      clearInterval(Utils.updateTimer);
+      Utils.updating = false;
+    }
+  },
+  updateTimeHeaderScheduler: function ut_updateTimeHeaderScheduler() {
     if (!Utils.updating) {
       Utils.updating = true;
+      Utils.updateTimeHeaders();
       Utils.updateTimer = setInterval(function() {
-        var elementsToUpdate =
-        document.querySelectorAll('h2[data-time-update]');
-        if (elementsToUpdate.length > 0) {
-          for (var i = 0; i < elementsToUpdate.length; i++) {
-            var ts = elementsToUpdate[i].getAttribute('data-time');
-            var tmpHeaderDate = Utils.getHeaderDate(ts);
-            var currentHeader = elementsToUpdate[i].innerHTML;
-            if (tmpHeaderDate != currentHeader) {
-              elementsToUpdate[i].innerHTML = tmpHeaderDate;
-            }
-          }
-        } else {
-          clearInterval(Utils.updateTimer);
-          Utils.updating = false;
-        }
-      },60000);
+        Utils.updateTimeHeaders();
+      },5000);
     }
   },
   escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
     var stringHTML = str;
-    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
-    stringHTML = stringHTML.replace(/\s/g, '&nbsp;');
     stringHTML = stringHTML.replace(/\</g, '&#60;');
-    
+    stringHTML = stringHTML.replace(/(\r\n|\n|\r)/gm, '<br/>');
+    stringHTML = stringHTML.replace(/\s\s/g, ' &nbsp;');
+
     if (escapeQuotes)
       return stringHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
     return stringHTML;
   },
 
-  getHourMinute: function ut_getHourMinute(time) {
+  getFormattedHour: function ut_getFormattedHour(time) {
     switch (time.constructor) {
       case String:
         time = parseInt(time);
@@ -50,7 +63,7 @@ var Utils = {
         break;
     }
 
-    return (new Date(time)).toLocaleFormat('%R %p');
+    return dtf.localeFormat(new Date(time), _('shortTimeFormat'));
   },
   getDayDate: function re_getDayDate(timestamp) {
     var date = new Date(timestamp);
@@ -67,23 +80,22 @@ var Utils = {
         time = time.getTime();
         break;
     }
-
     var today = Utils.getDayDate((new Date()).getTime());
     var otherDay = Utils.getDayDate(time);
     var dayDiff = (today - otherDay) / 86400000;
 
     if (isNaN(dayDiff))
-      return '(incorrect date)';
+      return _('incorrectDate');
 
     if (dayDiff < 0) {
       // future time
-      return (new Date(time)).toLocaleFormat('%x %R');
+      return dtf.localeFormat(new Date(time), _('shortDateTimeFormat'));
     }
 
     return dayDiff == 0 && _('today') ||
       dayDiff == 1 && _('yesterday') ||
-      dayDiff < 4 && (new Date(time)).toLocaleFormat('%A') ||
-      (new Date(time)).toLocaleFormat('%x');
+      dayDiff < 4 && dtf.localeFormat(new Date(time), '%A') ||
+      dtf.localeFormat(new Date(time), '%x');
   },
   getFontSize: function ut_getFontSize() {
     if (!this.rootFontSize) {
@@ -91,24 +103,57 @@ var Utils = {
       this.rootFontSize = parseInt(htmlCss.getPropertyValue('font-size'));
     }
     return this.rootFontSize;
+  },
+
+  getPhoneDetails: function ut_getPhoneDetails(number, contact, callback) {
+    var details = {};
+
+    if (contact) { // we have a contact
+      //TODO what if there are more contacts?
+      var name = contact.name,
+          phone = contact.tel[0],
+          carrierToShow = phone.carrier;
+
+      // Check which of the contacts phone number are we using
+      for (var i = 0; i < contact.tel.length; i++) {
+        if (PhoneNumberManager.getOptionalNumbers(
+                          contact.tel[i].value).indexOf(number) != -1) {
+          phone = contact.tel[i];
+          carrierToShow = phone.carrier;
+          break;
+
+        }
+      }
+
+      // Add data values for contact activity interaction
+      details.isContact = true;
+
+      // Add photo
+      if (contact.photo && contact.photo[0]) {
+        details.photoURL = URL.createObjectURL(contact.photo[0]);
+      }
+
+      // Carrier logic
+      if (name && name != '') { // contact with name
+        // Check if other phones with same type and carrier
+        for (var i = 0; i < contact.tel.length; i++) {
+          if (contact.tel[i].value !== phone.value &&
+              contact.tel[i].type == phone.type &&
+              contact.tel[i].carrier == phone.carrier) {
+            carrierToShow = phone.value;
+          }
+        }
+        details.title = name;
+        details.carrier = phone.type + ' | ' +
+                          (carrierToShow || phone.value);
+      } else { // no name of contact
+        details.title = number;
+        details.carrier = phone.type + ' | ' + (phone.carrier || '');
+      }
+
+    } else { // we don't have a contact
+      details.title = number;
+    }
+    callback(details);
   }
 };
-
-// (function() {
-//   var updateHeadersDate = function updateHeadersDate() {
-//     var labels = document.querySelectorAll('div.groupHeader');
-//     var i = labels.length;
-//     while (i--) {
-//       labels[i].textContent = giveHeaderDate(labels[i].dataset.time);
-//     }
-//   };
-//   var timer = setInterval(updateHeadersDate, 60 * 1000);
-
-//   document.addEventListener('mozvisibilitychange', function visibility(e) {
-//     clearTimeout(timer);
-//     if (!document.mozHidden) {
-//       updateHeadersDate();
-//       timer = setInterval(updateHeadersDate, 60 * 1000);
-//     }
-//   });
-// })();

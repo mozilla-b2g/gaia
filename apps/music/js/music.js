@@ -4,64 +4,183 @@
  * This is Music Application of Gaia
  */
 
-// Here we use the MediaDB.js which gallery is using
-// to index our music contents with metadata parsed.
-// So the behaviors of musicdb are the same as the MediaDB in gallery
-var musicdb = new MediaDB('music', metadataParser, {
-  indexes: ['metadata.album', 'metadata.artist', 'metadata.title'],
-  // mp3 mediaType: 'audio/mpeg'
-  // ogg mediaType: 'video/ogg'
-  // empty mediaType: no mp3 mediaType on B2G device
-  // desktop build does not has this issue
-  mimeTypes: ['audio/mpeg', 'video/ogg', '']
+// unknown strings for localization
+var unknownAlbum;
+var unknownArtist;
+var unknownTitle;
+var shuffleAllTitle;
+var highestRatedTitle;
+var recentlyAddedTitle;
+var mostPlayedTitle;
+var leastPlayedTitle;
+
+// The MediaDB object that manages the filesystem and the database of metadata
+// See init()
+var musicdb;
+
+var scanning = false;
+var scanningFoundChanges = false;
+
+// We get a localized event when the application is launched and when
+// the user switches languages.
+window.addEventListener('localized', function onlocalized() {
+  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+
+  // Get prepared for the unknown strings, these will be used later
+  unknownAlbum = navigator.mozL10n.get('unknownAlbum');
+  unknownArtist = navigator.mozL10n.get('unknownArtist');
+  unknownTitle = navigator.mozL10n.get('unknownTitle');
+  shuffleAllTitle = navigator.mozL10n.get('playlists-shuffle-all');
+  highestRatedTitle = navigator.mozL10n.get('playlists-highest-rated');
+  recentlyAddedTitle = navigator.mozL10n.get('playlists-recently-added');
+  mostPlayedTitle = navigator.mozL10n.get('playlists-most-played');
+  leastPlayedTitle = navigator.mozL10n.get('playlists-least-played');
+
+  // <body> children are hidden until the UI is translated
+  document.body.classList.remove('invisible');
+
+  // The first time we get this event we start running the application.
+  // But don't re-initialize if the user switches languages while we're running.
+  if (!musicdb)
+    init();
 });
-musicdb.onready = function() {
-  buildUI();  // List files we already know about
-  musicdb.scan();  // Go look for more.
 
-  // Since DeviceStorage doesn't send notifications yet, we're going
-  // to rescan the files every time our app becomes visible again.
-  // Eventually DeviceStorage will do notifications and MediaDB will
-  // report them so we don't need to do this.
-  document.addEventListener('mozvisibilitychange', function visibilityChange() {
-    if (!document.mozHidden) {
-      musicdb.scan();
-    }
+function init() {
+  // Here we use the mediadb.js which gallery is using (in shared/js/)
+  // to index our music contents with metadata parsed.
+  // So the behaviors of musicdb are the same as the MediaDB in gallery
+  musicdb = new MediaDB('music', parseAudioMetadata, {
+    indexes: ['metadata.album', 'metadata.artist', 'metadata.title',
+              'metadata.rated', 'metadata.played', 'date']
   });
-};
-musicdb.onchange = function(type, files) {
-  rebuildUI();
-};
 
-function buildUI() {
-  // Enumerate existing song entries in the database
-  // List the all, and sort them in ascending order by artist.
-  var option = 'artist';
+  // This is called when DeviceStorage becomes unavailable because the
+  // sd card is removed or because it is mounted for USB mass storage
+  // This may be called before onready if it is unavailable to begin with
+  musicdb.onunavailable = function(event) {
+    var why = event.detail;
+    if (why === MediaDB.NOCARD)
+      showOverlay('nocard');
+    else if (why === MediaDB.UNMOUNTED)
+      showOverlay('pluggedin');
+  }
 
-  musicdb.enumerate('metadata.' + option, null, 'nextunique',
-    ListView.update.bind(ListView, option));
+  musicdb.onready = function() {
+    // Hide the nocard or pluggedin overlay if it is displayed
+    if (currentOverlay === 'nocard' || currentOverlay === 'pluggedin')
+      showOverlay(null);
+
+    showCurrentView();  // Display song covers we know about
+  };
+
+  // When musicdb scans, let the user know
+  musicdb.onscanstart = function() {
+    scanning = true;
+    scanningFoundChanges = false;
+    showScanProgress();
+  };
+
+  // And hide the throbber when scanning is done
+  musicdb.onscanend = function() {
+    scanning = false;
+    hideScanProgress();
+
+    // if the scan found any changes, update the UI now
+    if (scanningFoundChanges) {
+      scanningFoundChanges = false;
+      showCurrentView();
+    }
+  };
+
+  // When MediaDB finds new or deleted files, it sends created and deleted
+  // events. During scanning we may get lots of them. Bluetooth file transfer
+  // can also result in created events. The way the app is currently
+  // structured, all we can do is rebuild the entire UI with the updated
+  // list of files. We don't want to do this while scanning, though because
+  // it we may end up rebuilding it over and over. So we defer the rebuild
+  // until the scan ends
+  musicdb.oncreated = musicdb.ondeleted = function(event) {
+    if (scanning)
+      scanningFoundChanges = true;
+    else
+      showCurrentView();
+  };
+}
+
+// show and hide scanning progress
+function showScanProgress() {
+  document.getElementById('progress').classList.remove('hidden');
+  document.getElementById('throbber').classList.add('throb');
+}
+
+function hideScanProgress() {
+  document.getElementById('progress').classList.add('hidden');
+  document.getElementById('throbber').classList.remove('throb');
 }
 
 //
-// XXX
-// This is kind of a hack. Our onchange handler is dumb and just
-// tears down and rebuilds the UI on every change. But rebuilding
-// does an async enumerate, and sometimes we get two changes in
-// a row, so these flags prevent two enumerations from happening in parallel.
-// Ideally, we'd just handle the changes individually.
+// Overlay messages
 //
-var buildingUI = false;
-var needsRebuild = false;
-function rebuildUI() {
-  if (buildingUI) {
-    needsRebuild = true;
+var currentOverlay;  // The id of the current overlay or null if none.
+
+//
+// If id is null then hide the overlay. Otherwise, look up the localized
+// text for the specified id and display the overlay with that text.
+// Supported ids include:
+//
+//   nocard: no sdcard is installed in the phone
+//   pluggedin: the sdcard is being used by USB mass storage
+//   empty: no songs found
+//
+// Localization is done using the specified id with "-title" and "-text"
+// suffixes.
+//
+function showOverlay(id) {
+  currentOverlay = id;
+
+  var title = navigator.mozL10n.get(id + '-title');
+  var text = navigator.mozL10n.get(id + '-text');
+
+  if (id === null) {
+    document.getElementById('overlay').classList.add('hidden');
     return;
   }
 
-  buildingUI = true;
-  ListView.clean();
-  // This is asynchronous, but will set buildingUI to false when done
-  buildUI();
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-text').textContent = text;
+  document.getElementById('overlay').classList.remove('hidden');
+}
+
+// We need three handles here to cancel enumerations
+// for tilesView, listView and sublistView
+var tilesHandle = null;
+var listHandle = null;
+var sublistHandle = null;
+
+function showCurrentView() {
+  TilesView.clean();
+  // Enumerate existing song entries in the database
+  // List the all, and sort them in descending order by date.
+  var option = 'date';
+
+  tilesHandle = musicdb.enumerate(option, null, 'prev',
+                                  TilesView.update.bind(TilesView));
+  switch (TabBar.option) {
+    case 'playlist':
+      // TODO update the predefined playlists
+      break;
+    case 'artist':
+    case 'album':
+      changeMode(MODE_LIST);
+      ListView.clean();
+
+      listHandle =
+        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
+                          ListView.update.bind(ListView, TabBar.option));
+      break;
+  }
 
 }
 
@@ -70,9 +189,17 @@ var MODE_TILES = 1;
 var MODE_LIST = 2;
 var MODE_SUBLIST = 3;
 var MODE_PLAYER = 4;
-var currentMode;
+var currentMode, fromMode;
 
 function changeMode(mode) {
+  if (mode === currentMode)
+    return;
+
+  if (fromMode >= mode) {
+    fromMode = mode - 1;
+  } else {
+    fromMode = currentMode;
+  }
   currentMode = mode;
 
   document.body.classList.remove('tiles-mode');
@@ -95,6 +222,11 @@ function changeMode(mode) {
       break;
   }
 }
+
+// We have two types of the playing sources
+// These are for player to know which source type is playing
+var TYPE_MIX = 'mix';
+var TYPE_LIST = 'list';
 
 // Title Bar
 var TitleBar = {
@@ -125,11 +257,7 @@ var TitleBar = {
 
         switch (target.id) {
           case 'title-back':
-            if (currentMode === MODE_SUBLIST) {
-              changeMode(MODE_LIST);
-            } else if (currentMode === MODE_PLAYER) {
-              changeMode(MODE_SUBLIST);
-            }
+            changeMode(fromMode);
 
             break;
           case 'title-text':
@@ -153,8 +281,119 @@ var TilesView = {
     return this._view = document.getElementById('views-tiles');
   },
 
+  get dataSource() {
+    return this._dataSource;
+  },
+
+  set dataSource(source) {
+    this._dataSource = source;
+  },
+
   init: function tv_init() {
+    this.dataSource = [];
+    this.index = 0;
+
     this.view.addEventListener('click', this);
+  },
+
+  clean: function tv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (tilesHandle)
+      musicdb.cancelEnumeration(tilesHandle);
+
+    this.dataSource = [];
+    this.index = 0;
+    this.view.innerHTML = '';
+    this.view.scrollTop = 0;
+
+    showScanProgress();
+  },
+
+  setItemImage: function tv_setItemImage(item, fileinfo) {
+    // Set source to image and crop it to be fitted when it's onloded
+    if (!fileinfo.metadata.thumbnail)
+      return;
+
+    item.addEventListener('load', cropImage);
+    createAndSetCoverURL(item, fileinfo, true);
+  },
+
+  update: function tv_update(result) {
+    // if no songs in dataSource
+    // disable the TabBar to prevent users switch to other page
+    TabBar.setDisabled(!this.dataSource.length);
+
+    if (result === null) {
+      // The enumeration is complete, so hide the animated progress bar
+      hideScanProgress();
+
+      // If we don't know about any songs, display the 'empty' overlay.
+      // If we do know about songs and the 'empty overlay is being displayed
+      // then hide it.
+      if (this.dataSource.length > 0) {
+        if (currentOverlay === 'empty')
+          showOverlay(null);
+      }
+      else {
+        showOverlay('empty');
+      }
+
+      return;
+    }
+
+    this.dataSource.push(result);
+
+    var tile = document.createElement('div');
+
+    var container = document.createElement('div');
+    container.className = 'tile-container';
+
+    var titleBar = document.createElement('div');
+    titleBar.className = 'tile-title-bar';
+    var artistName = document.createElement('div');
+    artistName.className = 'tile-title-artist';
+    var albumName = document.createElement('div');
+    albumName.className = 'tile-title-album';
+    artistName.textContent = result.metadata.artist || unknownArtist;
+    albumName.textContent = result.metadata.album || unknownAlbum;
+    titleBar.appendChild(artistName);
+
+    var img = document.createElement('img');
+    img.className = 'tile-image';
+
+    this.setItemImage(img, result);
+
+    // There are 6 tiles in one group
+    // and the first tile is the main-tile
+    // so we mod 6 to find out who is the main-tile
+    if (this.index % 6 === 0) {
+      tile.classList.add('main-tile');
+      artistName.classList.add('main-tile-title');
+      titleBar.appendChild(albumName);
+    } else {
+      tile.classList.add('sub-tile');
+      artistName.classList.add('sub-tile-title');
+    }
+
+    // Since 6 tiles are in one group
+    // the even group will be floated to left
+    // the odd group will be floated to right
+    if (Math.floor(this.index / 6) % 2 === 0) {
+      tile.classList.add('float-left');
+    } else {
+      tile.classList.add('float-right');
+    }
+
+    tile.classList.add('default-album-' + this.index % 10);
+
+    container.dataset.index = this.index;
+
+    container.appendChild(img);
+    container.appendChild(titleBar);
+    tile.appendChild(container);
+    this.view.appendChild(tile);
+
+    this.index++;
   },
 
   handleEvent: function tv_handleEvent(evt) {
@@ -164,12 +403,25 @@ var TilesView = {
         if (!target)
           return;
 
-        changeMode(MODE_LIST);
+        if (target.dataset.index) {
+          var handler = tv_playSong.bind(this);
+
+          target.addEventListener('transitionend', handler);
+        }
 
         break;
 
       default:
         return;
+    }
+
+    function tv_playSong() {
+      PlayerView.setSourceType(TYPE_MIX);
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.play(target);
+
+      changeMode(MODE_PLAYER);
+      target.removeEventListener('transitionend', handler);
     }
   }
 };
@@ -197,26 +449,31 @@ var ListView = {
   },
 
   clean: function lv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (listHandle)
+      musicdb.cancelEnumeration(listHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.view.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
-  setItemImage: function lv_setItemImage(item, image) {
+  setItemImage: function lv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
+    if (fileinfo.metadata.thumbnail) {
       item.addEventListener('load', cropImage);
-      item.src = createBase64URL(image);
+      createAndSetCoverURL(item, fileinfo, true);
     }
   },
 
   update: function lv_update(option, result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
-
-    if (this.dataSource.length === 0)
-      document.getElementById('nosongs').style.display = 'none';
+    }
 
     this.dataSource.push(result);
 
@@ -229,17 +486,14 @@ var ListView = {
 
     var parent = document.createElement('div');
     parent.className = 'list-image-parent';
-    var div = document.createElement('div');
-    div.className = 'list-default-image';
-    div.innerHTML = '&#9834;';
+    parent.classList.add('default-album-' + this.index % 10);
     var img = document.createElement('img');
     img.className = 'list-image';
 
-    parent.appendChild(div);
-    parent.appendChild(img);
+    if (result.metadata.picture)
+      parent.appendChild(img);
 
-    var image = result.metadata.picture;
-    this.setItemImage(img, image);
+    this.setItemImage(img, result);
 
     switch (option) {
       case 'album':
@@ -273,7 +527,7 @@ var ListView = {
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
-        a.dataset.option = 'title';
+        a.dataset.option = result.option;
 
         break;
       default:
@@ -301,10 +555,11 @@ var ListView = {
 
           var index = target.dataset.index;
           var data = this.dataSource[index];
-          var image = data.metadata.picture;
 
-          if (image)
-            SubListView.setAlbumSrc(createBase64URL(image));
+          SubListView.setAlbumDefault(index);
+
+          if (data.metadata.thumbnail)
+            SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
             SubListView.setAlbumName(data.metadata.artist);
@@ -314,11 +569,18 @@ var ListView = {
             SubListView.setAlbumName(data.metadata.title);
           }
 
+          var targetOption =
+            (option === 'date') ? option : 'metadata.' + option;
           var keyRange = (target.dataset.keyRange != 'all') ?
             IDBKeyRange.only(target.dataset.keyRange) : null;
+          var direction =
+           (data.metadata.title === mostPlayedTitle ||
+            data.metadata.title === recentlyAddedTitle ||
+            data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
 
-          musicdb.enumerate('metadata.' + option, keyRange, 'next',
-            SubListView.update.bind(SubListView));
+          sublistHandle =
+            musicdb.enumerate(targetOption, keyRange, direction,
+                              SubListView.update.bind(SubListView));
 
           changeMode(MODE_SUBLIST);
         }
@@ -354,28 +616,73 @@ var SubListView = {
   init: function slv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.backgroundIndex = 0;
 
+    this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
     this.albumName = document.getElementById('views-sublist-header-name');
+    this.playAllButton = document.getElementById('views-sublist-controls-play');
+    this.shuffleButton =
+      document.getElementById('views-sublist-controls-shuffle');
 
     this.view.addEventListener('click', this);
   },
 
   clean: function slv_clean() {
+    // Cancel a pending enumeration before start a new one
+    if (sublistHandle)
+      musicdb.cancelEnumeration(sublistHandle);
+
     this.dataSource = [];
     this.index = 0;
     this.albumImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
+
+    showScanProgress();
   },
 
-  setAlbumSrc: function slv_setAlbumSrc(url) {
+  shuffle: function slv_shuffle() {
+    var list = this.dataSource;
+    shuffle(list);
+    this.dataSource = [];
+    this.index = 0;
+    this.anchor.innerHTML = '';
+    for (var i = 0; i < list.length; i++)
+      this.update(list[i]);
+
+    // shuffle the elements of array a in place
+    // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    function shuffle(a) {
+      for (var i = a.length - 1; i >= 1; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        if (j < i) {
+          var tmp = a[j];
+          a[j] = a[i];
+          a[i] = tmp;
+        }
+      }
+    }
+
+  },
+
+  setAlbumDefault: function slv_setAlbumDefault(index) {
+    var realIndex = index % 10;
+
+    this.albumDefault.classList.remove('default-album-' + this.backgroundIndex);
+    this.albumDefault.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
+  },
+
+  setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    this.albumImage.src = url;
+    createAndSetCoverURL(this.albumImage, fileinfo, true);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
     function slv_showImage(evt) {
+      // Don't register multiple copies
+      evt.target.removeEventListener('load', slv_showImage);
       cropImage(evt);
       this.albumImage.classList.add('fadeIn');
     };
@@ -386,8 +693,10 @@ var SubListView = {
   },
 
   update: function slv_update(result) {
-    if (result === null)
+    if (result === null) {
+      hideScanProgress();
       return;
+    }
 
     this.dataSource.push(result);
 
@@ -397,8 +706,8 @@ var SubListView = {
     var a = document.createElement('a');
     a.href = '#';
 
-    var songTitle = (result.metadata.title) ? result.metadata.title :
-      navigator.mozL10n.get('unknownTitle');
+    var songTitle = (result.metadata.title) ?
+      result.metadata.title : unknownTitle;
 
     a.dataset.index = this.index;
 
@@ -418,12 +727,22 @@ var SubListView = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        if (!target)
-          return;
 
-        if (target.dataset.index) {
+        if (target === this.shuffleButton) {
+          this.shuffle();
+          break;
+        }
+
+        if (target === this.playAllButton) {
+          // Clicking the play all button is the same as clicking
+          // on the first item in the list.
+          target = this.view.querySelector('li > a[data-index="0"]');
+        }
+
+        if (target && target.dataset.index) {
+          PlayerView.setSourceType(TYPE_LIST);
           PlayerView.dataSource = this.dataSource;
-          PlayerView.play(target);
+          PlayerView.play(target, this.backgroundIndex);
 
           changeMode(MODE_PLAYER);
         }
@@ -469,9 +788,10 @@ var PlayerView = {
     this.album = document.getElementById('player-cover-album');
 
     this.timeoutID;
-    this.caption = document.getElementById('player-cover-caption');
+    this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
-    this.coverControl = document.getElementById('player-cover-buttons');
+
+    this.ratings = document.getElementById('player-album-rating').children;
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
     this.seekElapsed = document.getElementById('player-seek-elapsed');
@@ -480,9 +800,9 @@ var PlayerView = {
     this.playControl = document.getElementById('player-controls-play');
 
     this.isPlaying = false;
-    this.playingFormat = '';
     this.dataSource = [];
     this.currentIndex = 0;
+    this.backgroundIndex = 0;
 
     this.view.addEventListener('click', this);
 
@@ -492,6 +812,14 @@ var PlayerView = {
 
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
+
+    // A timer we use to work around
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+    this.endedTimer = null;
+  },
+
+  setSourceType: function pv_setSourceType(type) {
+    this.sourceType = type;
   },
 
   // This function is for the animation on the album art (cover).
@@ -501,69 +829,100 @@ var PlayerView = {
   // however, if a user taps before 5 seconds ends,
   // then the timeout will be cleared to keep the info on screen.
   showInfo: function pv_showInfo() {
-    this.caption.classList.remove('resetSilde');
-    this.caption.classList.add('slideDown');
-
-    this.coverControl.classList.remove('resetSilde');
-    this.coverControl.classList.add('slideUp');
+    this.cover.classList.add('slideOut');
 
     if (this.timeoutID)
       window.clearTimeout(this.timeoutID);
 
     this.timeoutID = window.setTimeout(
       function pv_hideInfo() {
-        this.caption.classList.remove('slideDown');
-        this.caption.classList.add('resetSilde');
-
-        this.coverControl.classList.remove('slideUp');
-        this.coverControl.classList.add('resetSilde');
+        this.cover.classList.remove('slideOut');
       }.bind(this),
       5000
     );
   },
 
-  setCoverImage: function pv_setCoverImage(image) {
+  setCoverBackground: function pv_setCoverBackground(index) {
+    var realIndex = index % 10;
+
+    this.cover.classList.remove('default-album-' + this.backgroundIndex);
+    this.cover.classList.add('default-album-' + realIndex);
+    this.backgroundIndex = realIndex;
+  },
+
+  setCoverImage: function pv_setCoverImage(fileinfo) {
     // Reset the image to be ready for fade-in
     this.coverImage.src = '';
     this.coverImage.classList.remove('fadeIn');
 
     // Set source to image and crop it to be fitted when it's onloded
-    if (image) {
-      this.coverImage.src = createBase64URL(image);
-      this.coverImage.addEventListener('load', pv_showImage.bind(this));
+    if (fileinfo.metadata.picture) {
+      createAndSetCoverURL(this.coverImage, fileinfo);
+      this.coverImage.addEventListener('load', pv_showImage);
     }
 
     function pv_showImage(evt) {
+      evt.target.removeEventListener('load', pv_showImage);
       cropImage(evt);
-      this.coverImage.classList.add('fadeIn');
+      evt.target.classList.add('fadeIn');
     };
   },
 
-  play: function pv_play(target) {
+  setRatings: function pv_setRatings(rated) {
+    for (var i = 0; i < 5; i++) {
+      var rating = this.ratings[i];
+
+      if (i < rated) {
+        rating.classList.add('star-on');
+      } else {
+        rating.classList.remove('star-on');
+      }
+    }
+  },
+
+  play: function pv_play(target, backgroundIndex) {
     this.isPlaying = true;
+
+    if (this.endedTimer) {
+      clearTimeout(this.endedTimer);
+      this.endedTimer = null;
+    }
 
     this.showInfo();
 
     if (target) {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
-      var image = songData.metadata.picture;
 
       TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : navigator.mozL10n.get('unknownTitle'));
+        songData.metadata.title : unknownTitle);
       this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : navigator.mozL10n.get('unknownArtist');
+        songData.metadata.artist : unknownArtist;
       this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : navigator.mozL10n.get('unknownAlbum');
+        songData.metadata.album : unknownAlbum;
       this.currentIndex = targetIndex;
 
-      this.setCoverImage(image);
+      // backgroundIndex is from the index of sublistView
+      // for playerView to show same default album art (same index)
+      if (backgroundIndex || backgroundIndex === 0) {
+        this.setCoverBackground(backgroundIndex);
+      }
 
-      musicdb.getFile(this.dataSource[targetIndex].name, function(file) {
-        // On B2G devices, file.type of mp3 format is missing
-        // use file extension instead of file.type
-        this.playingFormat = file.name.slice(-4);
+      // We only update the default album art when source type is MIX
+      if (this.sourceType === TYPE_MIX) {
+        this.setCoverBackground(targetIndex);
+      }
 
+      this.setCoverImage(songData);
+
+      // set ratings of the current song
+      this.setRatings(songData.metadata.rated);
+
+      // update the metadata of the current song
+      songData.metadata.played++;
+      musicdb.updateMetadata(songData.name, songData.metadata);
+
+      musicdb.getFile(songData.name, function(file) {
         // An object URL must be released by calling URL.revokeObjectURL()
         // when we no longer need them
         var url = URL.createObjectURL(file);
@@ -581,6 +940,7 @@ var PlayerView = {
     }
 
     this.playControl.innerHTML = '||';
+    this.playControl.classList.remove('is-pause');
   },
 
   pause: function pv_pause() {
@@ -588,11 +948,13 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.innerHTML = '&#9654;';
+    this.playControl.innerHTML = '';
+    this.playControl.classList.add('is-pause');
   },
 
   next: function pv_next() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex >= this.dataSource.length - 1)
       return;
@@ -603,7 +965,8 @@ var PlayerView = {
   },
 
   previous: function pv_previous() {
-    var songElements = SubListView.anchor.children;
+    var songElements = (this.sourceType === TYPE_MIX) ?
+      TilesView.view.children : SubListView.anchor.children;
 
     if (this.currentIndex <= 0)
       return;
@@ -662,7 +1025,7 @@ var PlayerView = {
     switch (evt.type) {
       case 'click':
         switch (target.id) {
-          case 'player-cover-default-image':
+          case 'player-cover':
           case 'player-cover-image':
             this.showInfo();
 
@@ -695,6 +1058,16 @@ var PlayerView = {
             break;
         }
 
+        if (target.dataset.rating) {
+          this.showInfo();
+
+          var songData = this.dataSource[this.currentIndex];
+          songData.metadata.rated = parseInt(target.dataset.rating);
+
+          musicdb.updateMetadata(songData.name, songData.metadata,
+            this.setRatings.bind(this, parseInt(target.dataset.rating)));
+        }
+
         break;
       case 'mousemove':
         // target is the seek bar, and evt.layerX is the moved position
@@ -703,9 +1076,27 @@ var PlayerView = {
         break;
       case 'timeupdate':
         this.updateSeekBar();
+
+        // Since we don't always get reliable 'ended' events, see if
+        // we've reached the end this way.
+        // See: https://bugzilla.mozilla.org/show_bug.cgi?id=783512
+        // If we're within 1 second of the end of the song, register
+        // a timeout to skip to the next song one second after the song ends
+        if (this.audio.currentTime >= this.audio.duration - 1 &&
+            this.endedTimer == null) {
+          var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
+          this.endedTimer = setTimeout(function() {
+                                         this.endedTimer = null;
+                                         this.next();
+                                       }.bind(this),
+                                       timeToNext * 1000);
+        }
         break;
       case 'ended':
-        this.next();
+        // Because of the workaround above, we have to ignore real ended
+        // events if we already have a timer set to emulate them
+        if (!this.endedTimer)
+          this.next();
         break;
 
       default:
@@ -722,14 +1113,22 @@ var TabBar = {
   },
 
   init: function tab_init() {
+    this.option = '';
     this.view.addEventListener('click', this);
   },
 
+  setDisabled: function tab_setDisabled(option) {
+    this.disabled = option;
+  },
+
   handleEvent: function tab_handleEvent(evt) {
+    if (this.disabled)
+      return;
+
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        var option = target.dataset.option;
+        this.option = target.dataset.option;
         if (!target)
           return;
 
@@ -742,21 +1141,31 @@ var TabBar = {
             changeMode(MODE_LIST);
             ListView.clean();
 
-            var data = {
-              metadata: {
-                title: 'All Songs'
-              }
-            };
+            // this array is for automated playlists
+            var playlistArray = [
+              {metadata: {title: shuffleAllTitle}, option: 'title'},
+              {metadata: {title: highestRatedTitle}, option: 'rated'},
+              {metadata: {title: recentlyAddedTitle}, option: 'date'},
+              {metadata: {title: mostPlayedTitle}, option: 'played'},
+              {metadata: {title: leastPlayedTitle}, option: 'played'},
+              // update ListView with null result to hide the scan progress
+              null
+            ];
 
-            ListView.update(option, data);
+            playlistArray.forEach(function(playlist) {
+              ListView.update(this.option, playlist);
+            }.bind(this));
+
             break;
           case 'tabs-artists':
           case 'tabs-albums':
             changeMode(MODE_LIST);
             ListView.clean();
 
-            musicdb.enumerate('metadata.' + option, null, 'nextunique',
-              ListView.update.bind(ListView, option));
+            listHandle =
+              musicdb.enumerate('metadata.' + this.option, null,
+                                'nextunique',
+                                ListView.update.bind(ListView, this.option));
 
             break;
           case 'tabs-more':
@@ -798,19 +1207,10 @@ window.addEventListener('DOMContentLoaded', function() {
           evt.preventDefault();
           break;
         case MODE_PLAYER:
-          changeMode(MODE_LIST);
+          changeMode(MODE_SUBLIST);
           evt.preventDefault();
           break;
       }
     }
   });
-});
-
-window.addEventListener('localized', function showBody() {
-  // Set the 'lang' and 'dir' attributes to <html> when the page is translated
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('invisible');
 });

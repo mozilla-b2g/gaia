@@ -12,13 +12,16 @@ var Icon = function Icon(app) {
     origin: origin,
     name: Applications.getName(origin),
     icon: Applications.getIcon(origin),
-    isHidden: Applications.getManifest(origin).hidden
+    isHidden: Applications.getManifest(origin).hidden,
+    isCore: Applications.isCore(app)
   };
 
   this.type = 'ApplicationIcon';
 };
 
 Icon.prototype = {
+  MIN_ICON_SIZE: 52,
+  MAX_ICON_SIZE: 54,
   /*
    * Renders the icon into the page
    *
@@ -28,9 +31,9 @@ Icon.prototype = {
    */
   render: function icon_render(target, page) {
     /*
-     * <li class="icon" dataset-origin="zzz">
+     * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
      *   <div>
-     *     <img src="the icon image path"></img>
+     *     <img role="presentation" src="the icon image path"></img>
      *     <span class="label">label</span>
      *   </div>
      *   <span class="options"></span>
@@ -39,22 +42,38 @@ Icon.prototype = {
     var container = this.container = document.createElement('li');
     container.className = 'icon';
     if (this.descriptor.isHidden) {
-      container.dataset.hidden = true;
+      container.dataset.visible = false;
     }
 
     container.dataset.origin = this.descriptor.origin;
+    container.setAttribute('role', 'button');
+    container.setAttribute('aria-label', this.descriptor.name);
 
     // Icon container
     var icon = this.icon = document.createElement('div');
 
     // Image
-    var img = document.createElement('img');
-    img.src = this.descriptor.icon;
-    icon.appendChild(img);
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('role', 'presentation');
+    canvas.width = 68;
+    canvas.height = 68;
 
-    img.onerror = function imgError() {
-      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
+    icon.appendChild(canvas);
+
+    var img = this.img = new Image();
+    img.src = this.descriptor.icon;
+
+    var self = this;
+    img.onload = function icon_loadSuccess() {
+      self.generateShadow(canvas, img);
     }
+
+    img.onerror = function icon_loadError() {
+      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
+      img.onload = function icon_errorIconLoadSucess() {
+        self.generateShadow(canvas, img);
+      }
+    };
 
     // Label
 
@@ -70,7 +89,7 @@ Icon.prototype = {
 
     container.appendChild(icon);
 
-    if (!Applications.isCore(this.descriptor.origin)) {
+    if (!this.descriptor.isCore) {
       // Menu button to delete the app
       var options = document.createElement('span');
       options.className = 'options';
@@ -81,10 +100,34 @@ Icon.prototype = {
     target.appendChild(container);
   },
 
+  generateShadow: function(canvas, img) {
+    var ctx = canvas.getContext('2d');
+    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = 2;
+    ctx.shadowOffsetY = 2;
+
+    // Deal with very small or very large icons
+    img.width =
+        Math.min(this.MAX_ICON_SIZE, Math.max(img.width, this.MIN_ICON_SIZE));
+    img.height =
+        Math.min(this.MAX_ICON_SIZE, Math.max(img.height, this.MIN_ICON_SIZE));
+
+    var width = Math.min(img.width, canvas.width - 4);
+    var height = Math.min(img.width, canvas.height - 4);
+    ctx.drawImage(img,
+                  (canvas.width - width) / 2,
+                  (canvas.height - height) / 2,
+                  width, height);
+    ctx.fill();
+  },
+
   show: function icon_show() {
     var container = this.container;
-    delete container.dataset.hidden;
     container.dataset.visible = true;
+    container.addEventListener('animationend', function animationEnd(e) {
+      container.removeEventListener('animationend', animationEnd);
+      delete container.dataset.visible;
+    });
   },
 
   /*
@@ -110,6 +153,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
 
     draggableElem.appendChild(this.icon.cloneNode());
+    this.generateShadow(draggableElem.querySelector('canvas'), this.img);
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -177,6 +221,10 @@ Icon.prototype = {
     return this.container.getBoundingClientRect().top;
   },
 
+  getLeft: function icon_getLeft() {
+    return this.container.getBoundingClientRect().left;
+  },
+
   getOrigin: function icon_getOrigin() {
     return this.descriptor.origin;
   }
@@ -199,7 +247,7 @@ Page.prototype = {
    * @param{Object} target DOM element container
    */
   render: function pg_render(apps, target) {
-    this.container = target;
+    this.container = this.movableContainer = target;
     var len = apps.length;
 
     this.olist = document.createElement('ol');
@@ -220,15 +268,27 @@ Page.prototype = {
   },
 
   /*
+   * Applies a translation effect to the page
+   *
+   * @param{int} scroll X
+   * @param{int} duration
+   */
+  moveByWithEffect: function pg_moveByWithEffect(scrollX, duration) {
+    var container = this.movableContainer;
+    var style = container.style;
+    style.MozTransform = 'translateX(' + scrollX + 'px)';
+    style.MozTransition = '-moz-transform ' + duration + 's ease';
+  },
+
+  /*
    * Applies a translation to the page
    *
-   * @param{String} the app origin
+   * @param{int} scroll X
    */
-  moveBy: function pg_moveBy(scrollX, duration) {
-    var style = this.container.style;
+  moveBy: function pg_moveBy(scrollX) {
+    var style = this.movableContainer.style;
     style.MozTransform = 'translateX(' + scrollX + 'px)';
-    style.MozTransition =
-      duration ? ('-moz-transform ' + duration + 's ease') : '';
+    style.MozTransition = '';
   },
 
   applyInstallingEffect: function pg_applyInstallingEffect(origin) {
@@ -253,22 +313,6 @@ Page.prototype = {
     }
   },
 
-  jumpNode: function pg_jumpNode(node, animation, originNode,
-                                 targetNode, upward) {
-    var self = this;
-    node.style.MozAnimationName = animation;
-    node.addEventListener('animationend', function animationEnd(e) {
-      node.removeEventListener('animationend', animationEnd);
-      node.style.MozAnimationName = '';
-
-      if (node === targetNode) {
-        self.olist.insertBefore(originNode, upward ? targetNode :
-                                                     targetNode.nextSibling);
-        self.setReady(true);
-      }
-    });
-  },
-
   /*
    * Changes position between two icons
    *
@@ -288,36 +332,46 @@ Page.prototype = {
     var targetIcon = icons[target];
 
     if (originIcon && targetIcon) {
-      var originNode = originIcon.container;
-      var targetNode = targetIcon.container;
-      var children = this.olist.children;
-      var indexOf = Array.prototype.indexOf;
-      var oIndex = indexOf.call(children, originNode);
-      var tIndex = indexOf.call(children, targetNode);
-
-      this.animate(oIndex, tIndex, children, originNode, targetNode);
+      this.animate(this.olist.children, originIcon.container,
+                   targetIcon.container);
     } else {
       this.setReady(true);
     }
   },
 
-  animate: function pg_anim(oIndex, tIndex, children, originNode, targetNode) {
-    if (oIndex < tIndex) {
-      for (var i = oIndex + 1; i <= tIndex; i++) {
-        var animation = 'jumpPrevCell';
-        if (i % 4 === 0) {
-          animation = 'jumpPrevRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, false);
-      }
+  animate: function pg_anim(children, originNode, targetNode) {
+    var beforeNode = targetNode;
+    var initialIndex = children.indexOf(originNode);
+    var endIndex = children.indexOf(targetNode);
+    var upward = initialIndex < endIndex;
+    if (upward) {
+      beforeNode = targetNode.nextSibling;
+      initialIndex++;
     } else {
-      for (var i = oIndex - 1; i >= tIndex; i--) {
-        var animation = 'jumpNextCell';
-        if (i % 4 === 3) {
-          animation = 'jumpNextRow';
-        }
-        this.jumpNode(children[i], animation, originNode, targetNode, true);
+      initialIndex = initialIndex + endIndex;
+      endIndex = initialIndex - endIndex;
+      initialIndex = initialIndex - endIndex;
+      endIndex--;
+    }
+
+    var self = this;
+    var lastNode = children[endIndex];
+    this.setAnimation(children, initialIndex, endIndex, upward);
+    lastNode.addEventListener('animationend', function animationEnd(e) {
+      for (var i = initialIndex; i <= endIndex; i++) {
+        children[i].style.MozAnimationName = '';
       }
+      self.olist.insertBefore(originNode, beforeNode);
+      lastNode.removeEventListener('animationend', animationEnd);
+      self.setReady(true);
+    });
+  },
+
+  setAnimation: function pg_setAnimation(children, init, end, upward) {
+    for (var i = init; i <= end; i++) {
+      children[i].style.MozAnimationName = upward ?
+        (i % 4 === 0 ? 'jumpPrevRow' : 'jumpPrevCell') :
+        (i % 4 === 3 ? 'jumpNextRow' : 'jumpNextCell');
     }
   },
 
@@ -327,7 +381,7 @@ Page.prototype = {
    * @param{Object} DOM element
    */
   tap: function pg_tap(elem) {
-    if (document.body.dataset.mode === 'edit') {
+    if (Homescreen.isInEditMode()) {
       if (elem.className === 'options') {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
@@ -394,6 +448,17 @@ Page.prototype = {
   },
 
   /*
+   * Returns the first icon of the page
+   */
+  getFirstIcon: function pg_getFirstIcon() {
+    var firstIcon = this.olist.firstChild;
+    if (firstIcon) {
+      firstIcon = this.icons[firstIcon.dataset.origin];
+    }
+    return firstIcon;
+  },
+
+  /*
    * Appends an icon to the end of the page
    *
    * @param{Object} moz app or icon object
@@ -423,8 +488,10 @@ Page.prototype = {
       // This is a moz app
       icon = this.icons[Applications.getOrigin(app)];
     }
-    this.olist.removeChild(icon.container);
-    delete this.icons[icon.descriptor.origin];
+    if (icon && this.icons[icon.getOrigin()]) {
+      this.olist.removeChild(icon.container);
+      delete this.icons[icon.descriptor.origin];
+    }
   },
 
   /*
@@ -457,27 +524,14 @@ Page.prototype = {
    */
   getAppsList: function pg_getAppsList() {
     var nodes = this.olist.children;
-    return Array.prototype.map.call(nodes, function extractOrigin(node) {
-      return node.dataset.origin;
-    });
-  },
 
-  /*
-   * Movement feedback
-  */
-  bounce: function pg_bounce(direction) {
-    var container = this.container;
-    var dataset = this.container.dataset;
-    container.addEventListener('animationend', function animationEnd(e) {
-      container.removeEventListener('animationend', animationEnd);
-      dataset.bouncing = '';
+    var icons = this.icons;
+    return Array.prototype.map.call(nodes, function marshall(node) {
+      return {
+        origin: node.dataset.origin,
+        icon: icons[node.dataset.origin].descriptor.icon
+      };
     });
-
-    if (direction > 0) {
-      dataset.bouncing = 'right';
-    } else {
-      dataset.bouncing = 'left';
-    }
   }
 };
 
@@ -495,15 +549,51 @@ var Dock = function createDock() {
 
 extend(Dock, Page);
 
-Dock.prototype.animate = function dk_anim(oIndex, tIndex, children,
-                                          originNode, targetNode) {
-  if (oIndex < tIndex) {
-    for (var i = oIndex + 1; i <= tIndex; i++) {
-      this.jumpNode(children[i], 'jumpPrevCell', originNode, targetNode, false);
-    }
-  } else {
-    for (var i = oIndex - 1; i >= tIndex; i--) {
-      this.jumpNode(children[i], 'jumpNextCell', originNode, targetNode, true);
-    }
+var dockProto = Dock.prototype;
+
+dockProto.baseRender = Page.prototype.render;
+
+dockProto.render = function dk_render(apps, target) {
+  this.baseRender(apps, target);
+  this.movableContainer = this.olist;
+};
+
+dockProto.moveByWithEffect = function dk_moveByWithEffect(scrollX, duration) {
+  var container = this.movableContainer;
+  var style = container.style;
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+};
+
+dockProto.moveByWithDuration = function dk_moveByWithDuration(scrollX,
+                                                              duration) {
+  var style = this.movableContainer.style;
+  style.MozTransform = 'translateX(' + scrollX + 'px)';
+  style.MozTransition = '-moz-transform ' + duration + 's ease';
+};
+
+
+dockProto.setAnimation = function dk_setAnimation(children, init, end, upward) {
+  var animation = upward ? 'jumpPrevCell' : 'jumpNextCell';
+  for (var i = init; i <= end; i++) {
+    children[i].style.MozAnimationName = animation;
   }
 };
+
+dockProto.getLeft = function dk_getLeft() {
+  return this.olist.getBoundingClientRect().left;
+};
+
+dockProto.getRight = function dk_getRight() {
+  return this.getLeft() + this.getWidth();
+};
+
+dockProto.getWidth = function dk_getWidth() {
+  return this.olist.clientWidth;
+};
+
+dockProto.getChildren = function dk_getChildren() {
+  return this.olist.children;
+};
+
+HTMLCollection.prototype.indexOf = Array.prototype.indexOf;

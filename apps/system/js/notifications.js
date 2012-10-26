@@ -48,9 +48,20 @@ var NotificationScreen = {
   _toasterTimeout: null,
   _toasterGD: null,
 
+  lockscreenPreview: true,
+
   get container() {
     delete this.container;
-    return this.container = document.getElementById('notifications-container');
+
+    var id = 'desktop-notifications-container';
+    return this.container = document.getElementById(id);
+  },
+
+  get lockScreenContainer() {
+    delete this.lockScreenContainer;
+
+    var id = 'notifications-lockscreen-container';
+    return this.lockScreenContainer = document.getElementById(id);
   },
 
   get toaster() {
@@ -71,6 +82,11 @@ var NotificationScreen = {
     return this.toasterDetail = document.getElementById('toaster-detail');
   },
 
+  get clearAllButton() {
+    delete this.clearAllButton;
+    return this.clearAllButton = document.getElementById('notification-clear');
+  },
+
   init: function ns_init() {
     window.addEventListener('mozChromeEvent', this);
 
@@ -80,7 +96,10 @@ var NotificationScreen = {
       this.toaster.addEventListener(evt, this);
     }, this);
 
+    this.clearAllButton.addEventListener('click', this.clearAll.bind(this));
+
     window.addEventListener('utilitytrayshow', this);
+    window.addEventListener('unlock', this.clearLockScreen.bind(this));
   },
 
   handleEvent: function ns_handleEvent(evt) {
@@ -134,11 +153,7 @@ var NotificationScreen = {
       return;
     }
 
-    var offset = detail.direction === 'right' ?
-      this._containerWidth : -this._containerWidth;
-
-    this._notification.style.MozTransition = '-moz-transform 0.3s linear';
-    this._notification.style.MozTransform = 'translateX(' + offset + 'px)';
+    this._notification.classList.add('disappearing');
 
     var notification = this._notification;
     this._notification = null;
@@ -148,7 +163,7 @@ var NotificationScreen = {
     notification.addEventListener('transitionend', function trListener() {
       notification.removeEventListener('transitionend', trListener);
 
-      self.removeNotification(notification.dataset.notificationID);
+      self.closeNotification(notification);
 
       if (notification != toaster)
         return;
@@ -177,7 +192,7 @@ var NotificationScreen = {
     });
     window.dispatchEvent(event);
 
-    this.removeNotification(notificationNode.dataset.notificationID);
+    this.removeNotification(notificationNode.dataset.notificationID, false);
 
     if (notificationNode == this.toaster) {
       this.toaster.classList.remove('displayed');
@@ -216,46 +231,73 @@ var NotificationScreen = {
     this.container.appendChild(notificationNode);
     new GestureDetector(notificationNode).startDetecting();
 
-    // Notification toast
-    this.toaster.dataset.notificationID = detail.id;
-
-    this.toaster.classList.add('displayed');
-    this._toasterGD.startDetecting();
-
-    if (this._toasterTimeout)
-      clearTimeout(this._toasterTimeout);
-
-    this._toasterTimeout = setTimeout((function() {
-      this.toaster.classList.remove('displayed');
-      this._toasterTimeout = null;
-      this._toasterGD.stopDetecting();
-    }).bind(this), this.TOASTER_TIMEOUT);
+    // We turn the screen on if needed in order to let
+    // the user see the notification toaster
+    if (!ScreenManager.screenEnabled) {
+      ScreenManager.turnScreenOn();
+    }
 
     this.updateStatusBarIcon(true);
+
+    // Notification toaster
+    if (this.lockscreenPreview || !LockScreen.locked) {
+      this.toaster.dataset.notificationID = detail.id;
+
+      this.toaster.classList.add('displayed');
+      this._toasterGD.startDetecting();
+
+      if (this._toasterTimeout)
+        clearTimeout(this._toasterTimeout);
+
+      this._toasterTimeout = setTimeout((function() {
+        this.toaster.classList.remove('displayed');
+        this._toasterTimeout = null;
+        this._toasterGD.stopDetecting();
+      }).bind(this), this.TOASTER_TIMEOUT);
+    }
+
+    // Adding it to the lockscreen if locked and the privacy setting
+    // does not prevent it.
+    if (LockScreen.locked && this.lockscreenPreview) {
+      var lockScreenNode = notificationNode.cloneNode(true);
+      this.lockScreenContainer.insertBefore(lockScreenNode,
+                               this.lockScreenContainer.firstElementChild);
+    }
+
     return notificationNode;
+  },
+
+  closeNotification: function ns_closeNotification(notificationNode) {
+    var notificationID = notificationNode.dataset.notificationID;
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationID
+    });
+    window.dispatchEvent(event);
+
+    this.removeNotification(notificationNode.dataset.notificationID);
   },
 
   removeNotification: function ns_removeNotification(notificationID) {
     var notifSelector = '[data-notification-i-d="' + notificationID + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
-    // Animating the next notification up
-    var nextNotification = notificationNode.nextSibling;
-    if (nextNotification) {
-      nextNotification.style.MozTransition = '-moz-transform 0.2s linear';
-      nextNotification.style.MozTransform = 'translateY(-80px)';
 
-      var self = this;
-      nextNotification.addEventListener('transitionend', function trWait() {
-        nextNotification.removeEventListener('transitionend', trWait);
-        nextNotification.style.MozTransition = '';
-        nextNotification.style.MozTransform = '';
+    notificationNode.parentNode.removeChild(notificationNode);
+    this.updateStatusBarIcon();
+  },
 
-        notificationNode.parentNode.removeChild(notificationNode);
-        self.updateStatusBarIcon();
-      });
-    } else {
-      notificationNode.parentNode.removeChild(notificationNode);
-      this.updateStatusBarIcon();
+  clearAll: function ns_clearAll() {
+    while (this.container.firstElementChild) {
+      this.closeNotification(this.container.firstElementChild);
+    }
+  },
+
+  clearLockScreen: function ns_clearLockScreen() {
+    while (this.lockScreenContainer.firstElementChild) {
+      var element = this.lockScreenContainer.firstElementChild;
+      this.lockScreenContainer.removeChild(element);
     }
   },
 
@@ -268,3 +310,9 @@ var NotificationScreen = {
 };
 
 NotificationScreen.init();
+
+SettingsListener.observe(
+    'lockscreen.notifications-preview.enabled', true, function(value) {
+
+  NotificationScreen.lockscreenPreview = value;
+});

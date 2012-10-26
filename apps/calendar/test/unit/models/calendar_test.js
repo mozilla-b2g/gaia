@@ -1,46 +1,43 @@
 requireApp('calendar/test/unit/helper.js', function() {
-  requireLib('provider/calendar/abstract.js');
   requireLib('models/calendar.js');
 });
 
 suite('models/calendar', function() {
 
   var subject;
-  var provider;
-  var CalendarProvider;
+  var remoteCalendar;
   var CalendarModel;
 
   suiteSetup(function() {
-    CalendarProvider = Calendar.Provider.Calendar.Abstract;
     CalendarModel = Calendar.Models.Calendar;
   });
 
   setup(function() {
-    provider = new CalendarProvider({
+    remoteCalendar = {
       id: 'one',
       syncToken: 'xxx'
-    });
+    };
 
     subject = new Calendar.Models.Calendar({
       name: 'foo',
-      provider: provider
+      remote: remoteCalendar
     });
   });
 
   suite('initialization', function() {
 
-    test('when given a provider', function() {
+    test('when given a remote', function() {
       var date = new Date();
 
       subject = new CalendarModel({
-        provider: provider,
+        remote: remoteCalendar,
         lastEventSyncToken: '0',
         lastEventSyncDate: date
       });
 
       assert.deepEqual(
         subject.remote,
-        provider.toJSON()
+        remoteCalendar
       );
 
       assert.equal(subject.lastEventSyncDate, date);
@@ -48,16 +45,16 @@ suite('models/calendar', function() {
 
     test('when given remote', function() {
       subject = new CalendarModel({
-        remote: provider.toJSON()
+        remote: remoteCalendar
       });
 
-      assert.deepEqual(subject.remote, provider.toJSON());
+      assert.deepEqual(subject.remote, remoteCalendar);
     });
   });
 
   test('#updateRemote', function() {
-    provider.id = 'foo';
-    subject.updateRemote(provider);
+    remoteCalendar.id = 'foo';
+    subject.updateRemote(remoteCalendar);
     assert.equal(subject.remote.id, 'foo');
   });
 
@@ -79,11 +76,16 @@ suite('models/calendar', function() {
   });
 
   test('#toJSON', function() {
+    subject._id = '1';
+    var date = subject.firstEventSyncDate = new Date(2012, 0, 1);
+
     var expected = {
       lastEventSyncToken: subject.lastEventSyncToken,
       lastEventSyncDate: subject.lastEventSyncDate,
       localDisplayed: subject.localDisplayed,
+      firstEventSyncDate: subject.firstEventSyncDate,
       accountId: subject.accountId,
+      _id: subject._id,
       remote: subject.remote
     };
 
@@ -95,9 +97,18 @@ suite('models/calendar', function() {
     assert.equal(subject.name, 'foo');
   });
 
-  test('#color', function() {
-    subject.remote.color = '#ccc';
-    assert.equal(subject.color, '#ccc');
+  suite('#color', function() {
+
+    test('basic getter', function() {
+      subject.remote.color = '#ccc';
+      assert.equal(subject.color, '#ccc');
+    });
+
+    test('filter hex value', function() {
+      subject.remote.color = '#7BD148FF';
+      assert.equal(subject.color, '#7BD148');
+    });
+
   });
 
   test('#description', function() {

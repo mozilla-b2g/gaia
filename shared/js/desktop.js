@@ -3,6 +3,11 @@
 
 'use strict';
 
+/**
+ * This library should help debuggin Gaia on a desktop browser, where APIs like
+ * mozTelephony or mozApps are not supported.
+ */
+
 // navigator.mozTelephony
 (function(window) {
   var navigator = window.navigator;
@@ -10,7 +15,13 @@
     return;
 
   var TelephonyCalls = [];
-
+  if (RecentsDBManager) {
+    RecentsDBManager.init(function() {
+      RecentsDBManager.prepopulateDB(function() {
+        RecentsDBManager.close();
+      });
+    });
+  }
   navigator.mozTelephony = {
     dial: function(number) {
       var TelephonyCall = {

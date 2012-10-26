@@ -6,6 +6,9 @@
     <title>Browser</title>
     <link rel="stylesheet" href="style/browser.css" type="text/css">
     <link rel="stylesheet" href="style/modal_dialog.css" type="text/css">
+    <link rel="stylesheet" href="style/action_menu.css" type="text/css">
+    <link rel="stylesheet" href="shared/style/headers.css">
+    <link rel="stylesheet" href="style/authentication_dialog.css" type="text/css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -13,21 +16,36 @@
     <script type="application/javascript" defer src="shared/js/gesture_detector.js"></script>
   </head>
 
-  <body>
+  <body class="page-screen" role="application">
 
     <div id="main-screen">
 
       <menu type="toolbar" id="toolbar-start">
         <form id="url-bar" novalidate>
           <input type="image" id="ssl-indicator" value="" />
-          <input type="url" id="url-input" placeholder="Enter Address"
-                 data-l10n-id="enter-address" />
+          <input type="text" id="url-input" placeholder="Enter Search or Address"
+                 data-l10n-id="enter-search-or-address" />
           <input type="image" id="url-button" value="" />
         </form>
+        <span id="tabs-badge"></span>
+        <button id="awesomescreen-cancel-button"></button>
+        <div id="throbber"></div>
       </menu>
 
       <div id="frames">
-        <img id="tab-cover" />
+
+        <div id="startscreen" class="hidden">
+          <h1 data-l10n-id="firefox">Firefox</h1>
+          <h2 data-l10n-id="top-sites">Top Sites</h2>
+          <div id="start-screen-top-sites">
+            <ul id="top-site-thumbnails">
+            </ul>
+            <p id="no-top-sites" class="hidden" data-l10n-id="start-browsing">
+            Enter a search term or web address to start browsing.
+            </p>
+          </div>
+        </div>
+
         <div id="awesomescreen">
           <nav data-role="tabs" id="tab-headers">
             <ul role="tablist">
@@ -53,6 +71,18 @@
           </section>
         </div>
 
+        <div id="crashscreen">
+          <h3 data-l10n-id="this-is-embarrassing">Well, this is embarrassing.</h3>
+          <img src="style/images/crashed-tab-icon.png" />
+          <p data-l10n-id="not-responding">We tried to display this webpage but it's not responding.</p>
+          <menu type="toolbar">
+            <button data-l10n-id="close-tab" id="close-tab">Close Tab</button>
+            <button data-l10n-id="reload-tab" id="try-reloading">
+            Try Reloading
+            </button>
+          </menu>
+        </div>
+
         <div id="screen">
           <div id="modal-dialog">
             <div id="modal-dialog-table">
@@ -61,15 +91,15 @@
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-alert-message"></span>
                   </div>
-                  <button id="modal-dialog-alert-ok" data-i10n-id="ok">OK</button>
+                  <button id="modal-dialog-alert-ok" data-l10n-id="ok">OK</button>
                 </div>
 
                 <div id="modal-dialog-confirm">
                   <div class="modal-dialog-message-container">
                     <span id="modal-dialog-confirm-message"></span>
                   </div>
-                  <button id="modal-dialog-confirm-ok" data-i10n-id="ok">OK</button>
-                  <button id="modal-dialog-confirm-cancel" data-i10n-id="cancel">
+                  <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">
                     Cancel
                   </button>
                 </div>
@@ -79,8 +109,8 @@
                     <span id="modal-dialog-prompt-message"></span>
                     <input id="modal-dialog-prompt-input" />
                   </div>
-                  <button id="modal-dialog-prompt-ok" data-i10n-id="ok">OK</button>
-                  <button id="modal-dialog-prompt-cancel" data-i10n-id="cancel">
+                  <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
+                  <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
                     Cancel
                   </button>
                 </div>
@@ -88,53 +118,108 @@
             </div>
           </div>
         </div>
-
       </div>
-
-      <menu type="toolbar" id="toolbar-end">
-        <button type="button" value="" id="back-button" alt="Back"
-                title="" disabled="true"></button>
-        <button type="button" value="" id="forward-button" alt="Forward"
-                title="" disabled="true"></button>
-        <button type="button" value="" id="bookmark-button" alt="Bookmark"
-                title=""></button>
-      </menu>
-
     </div>
+
+    <menu type="toolbar" id="toolbar-end">
+      <button type="button" value="" id="back-button" alt="Back"
+              title="" disabled="true"></button>
+      <button type="button" value="" id="forward-button" alt="Forward"
+              title="" disabled="true"></button>
+      <button type="button" value="" id="bookmark-button" alt="Bookmark"
+              title=""></button>
+    </menu>
 
     <div id="tray">
       <menu type="toolbar" id="tray-toolbar">
+        <button type="button" id="new-tab-button"></button>
         <button type="button" id="settings-button"></button>
       </menu>
       <div id="tabs-list"></div>
     </div>
-    <div id="throbber"></div>
-    <div id="tabs-badge"></div>
 
-    <div id="settings">
-      <header id="settings-header">
+    <section id="bookmark-menu" role="dialog" class="hidden">
+      <menu class="actions">
+        <h3 data-l10n-id="bookmarks">Bookmarks</h3>
+        <ul>
+          <li><button id="bookmark-menu-add" data-l10n-id="bookmark">Bookmark</button></li>
+          <li><button id="bookmark-menu-remove" data-l10n-id="unbookmark">Unbookmark</button></li>
+          <li><button id="bookmark-menu-edit" data-l10n-id="edit-bookmark">Edit Bookmark</button></li>
+          <li><button id="bookmark-menu-add-home" data-l10n-id="add-to-home-screen">Add to Home Screen</button></li>
+          <li><button id="bookmark-menu-cancel" data-l10n-id="cancel">Cancel</button></li>
+        </ul>
+      </menu>
+    </section>
+
+    <section id="bookmark-entry-sheet" role="region" class="hidden skin-organic">
+      <header>
+        <button id="bookmark-entry-sheet-cancel">
+          <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+        </button>
         <menu type="toolbar">
-          <button id="settings-done-button" data-i10n-id="done">Done</button>
+          <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
         </menu>
-        <h1 data-i10n-id="firefox-settings">Firefox Settings</h1>
+        <h1 data-l10n-id="edit-bookmark">Edit Bookmark</h1>
+      </header>
+      <label data-l10n-id="page-title">
+        Page Title <input type="text" id="bookmark-title"></input>
+      </label>
+      <label data-l10n-id="address">
+        Address <input type="url" id="bookmark-url"></input>
+      </label>
+      <input type="hidden" id="bookmark-previous-url"></input>
+    </section>
+
+    <section id="http-authentication-dialog" role="region" class="hidden skin-organic">
+      <header>
+        <button id="http-authentication-cancel">
+          <span class="icon icon-close">close</span>
+        </button>
+        <menu type="toolbar">
+          <button id="http-authentication-ok" data-l10n-id="login">Login</button>
+        </menu>
+        <h1 l10n-id="login-to-a-website">Login to a website</h1>
+      </header>
+      <span id="http-authentication-message"></span>
+      <label data-l10n-id="username">Username
+        <input type="text" id="http-authentication-username" />
+      </label>
+      <label data-l10n-id="password">Password
+        <input id="http-authentication-password" type="password" />
+      </label>
+    </section>
+
+    <section role="region" id="settings" class="skin-organic">
+      <header id="settings-header">
+        <button id="settings-done-button"><span class="icon icon-back"></span></button>
+        <h1 data-l10n-id="firefox-settings">Firefox Settings</h1>
       </header>
       <ul>
         <li>
-          <button id="about-firefox-button" data-i10n-id="about-firefox">About Firefox</button>
+          <button id="about-firefox-button"
+                  data-l10n-id="about-firefox">About Firefox</button>
         </li>
       </ul>
-      <h3 data-i10n-id="privacy-and-security">Privacy & Security</h3>
+      <header>
+        <h2 data-l10n-id="privacy-and-security">Privacy & Security</h2>
+      </header>
       <ul>
         <li>
-          <button id="clear-history-button" data-i10n-id="clear-history">Clear History</button>
+          <button id="clear-history-button"
+                  data-l10n-id="clear-history">Clear History</button>
         </li>
-      </ul>
-    </div>
+        <li>
+          <button id="clear-private-data-button"
+                  data-l10n-id="clear-private-data">Clear Private Data</button>
+        </li>
 
-    <script src="js/GestureDetector.js"></script>
+      </ul>
+    </section>
+
     <script src="js/places.js"></script>
     <script src="js/date_helper.js"></script>
     <script src="js/modal_dialog.js"></script>
+    <script src="js/authentication_dialog.js"></script>
     <script src="js/browser.js"></script>
 
   </body>

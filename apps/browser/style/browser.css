@@ -3,11 +3,12 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #575E66;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
+  font-size: 10px;
+  overflow: hidden;
 }
 
 body {
-  overflow: hidden;
   position: relative;
 }
 
@@ -25,10 +26,7 @@ input[type="image"] {
 }
 
 .tabs-screen #tabs-badge {
-  background-image: url('./images/add.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: transparent;
+  display: none;
 }
 
 .awesome-screen #awesomescreen {
@@ -40,10 +38,24 @@ input[type="image"] {
 }
 
 .awesome-screen #tabs-badge {
+  display: none;
+}
+
+#awesomescreen-cancel-button {
   background-image: url('./images/close.png');
   background-position: center;
   background-repeat: no-repeat;
   background-color: transparent;
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 50px;
+  height: 50px;
+}
+
+.awesome-screen #awesomescreen-cancel-button {
+  display: block;
 }
 
 .settings-screen #settings {
@@ -55,6 +67,7 @@ input[type="image"] {
 }
 
 #tray {
+  font-size: 16px;
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
   left: 50px;
@@ -98,37 +111,44 @@ input[type="image"] {
 
 #tabs-list li a {
   display: block;
-  height: 100%;
+  height: 65px;
   -moz-user-select: none;
+  padding: 10px;
 }
 
 #tabs-list li {
   margin: 0;
-  height: 70px;
+  height: 85px;
   border-bottom: 1px solid #54575c;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   overflow: hidden;
   position: relative;
-  padding-left: 5px;
 }
 
 #tabs-list li a.active {
   background-image: -moz-linear-gradient(#ff9400, #e66100);
 }
 
-#tabs-list img {
+#tabs-list .preview {
   display: block;
   width: 90px;
-  height: 60px;
-  background: grey;
+  height: 65px;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
   float:left;
   border-radius: 5px;
-  margin: 5px 10px 5px 5px;
   pointer-events: none;
+  margin-right: 10px;
 }
 
 #tabs-list span {
   pointer-events: none;
+  display: block;
+  height: 65px;
+  top: 0px;
+  margin: 0 50px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #tabs-list .close:hover, #tabs-list .close:active {
@@ -136,7 +156,7 @@ input[type="image"] {
 }
 
 #tabs-list .close {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   border: 0px;
   position: absolute;
   right: 0px;
@@ -150,26 +170,40 @@ input[type="image"] {
 }
 
 #main-screen {
-  -moz-transition: 0.2s ease-in-out;
   margin: 0;
-  display: -moz-box;
-  -moz-box-orient: vertical;
   width: 100%;
   height: 100%;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   z-index: 50;
   position: relative;
   left: 0px;
+  overflow: hidden;
+  /*
+   * Make sure this frame starts out with an identity transform so that
+   * when we apply the .address-hidden style, we aren't reframed.
+   *
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=795657 will fix the
+   * underlying problem.
+   */
+  transform: translateY(0px);
+  transition: transform 0.2s ease-in-out;
+}
+
+#main-screen.address-hidden {
+  transform: translateY(-50px);
+}
+
+#main-screen.expanded {
+  height: calc(100% + 50px);
 }
 
 #tabs-badge {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   position: absolute;
   right: 0px;
   top: 0;
   font-size: 22px;
   color: white;
-  z-index: 100;
   display: block;
   width: 44px;
   height: 50px;
@@ -178,23 +212,30 @@ input[type="image"] {
   cursor: pointer;
   -moz-user-select: none;
 }
+
 #tabs-badge:active, #tabs-badge:hover {
   color: #AAA;
 }
 
+#more-tabs {
+  font-size: 1.2em;
+}
+
 #toolbar-start {
-  display: -moz-box;
-  -moz-box-orient: horizontal;
   height: 50px;
   background-color: #f9f9fb;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 #throbber {
   position: absolute;
-  top: 50px;
+  bottom: 0;
   width: 100%;
   height: 3px;
-  z-index: 200;
+  z-index: 99;
 }
 
 #throbber.loading {
@@ -203,22 +244,31 @@ input[type="image"] {
 }
 
 #toolbar-end {
-  border-top: solid 2px #a6b3bb;
   display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-image: -moz-linear-gradient(#323639, #272b2e);
+  z-index: 51;
 }
 
 .page-screen #toolbar-start {
   background-image: url('./images/tabs-badge-background.png');
   background-repeat: no-repeat;
   background-position: right;
-  padding-right: 74px;
+  padding-right: 65px;
 }
 
 .tabs-screen #toolbar-start {
   background-image: url('./images/drawer-collapse.png'), url('./images/tabs-badge-background.png');
   background-repeat: no-repeat, no-repeat;
   background-position: top right, right;
-  padding-right: 74px;
+  padding-right: 65px;
+}
+
+.tabs-screen #frames {
+  bottom: 0;
 }
 
 .page-screen #toolbar-end {
@@ -226,7 +276,6 @@ input[type="image"] {
 }
 
 #url-bar {
-  -moz-box-flex: 1;
   display: -moz-box;
   -moz-box-orient: horizontal;
   padding: 0;
@@ -239,6 +288,7 @@ input[type="image"] {
   padding: 0 0 0 10px;
   background-color: #fff;
   font-weight: 600;
+  width: calc(100% - 15px);
 }
 
 #url-button {
@@ -246,12 +296,14 @@ input[type="image"] {
   display: block;
   height: 32px;
   width: 32px;
+  float: right;
+  background-repeat: no-repeat;
 }
 
 #ssl-indicator {
   display: block;
   width: 24px;
-  height: 24px;
+  height: 34px;
   margin-right: 5px;
   text-indent: -1000em;
   background-repeat: no-repeat;
@@ -271,14 +323,16 @@ input[type="image"] {
 }
 
 #url-input {
-  font-family: 'Open Sans';
+  font-family: 'MozTT', sans-serif;
   font-size: 18px;
   height: 34px;
-  margin: 0;
   -moz-box-flex: 1;
+  margin: 0;
   border: none;
   background-color: transparent;
+  background: none;
   text-overflow: ellipsis;
+  width: -moz-calc(100% - 32px);
 }
 
 #url-input:invalid {
@@ -287,8 +341,6 @@ input[type="image"] {
 
 menu[type="toolbar"] {
   height: 45px;
-  background-color: #fff;
-  background-image: -moz-linear-gradient(#323639, #272b2e);
   margin: 0;
   padding: 0;
 }
@@ -342,9 +394,10 @@ input::-moz-focus-inner {
 }
 
 #frames {
-  -moz-box-flex: 1;
   width: 100%;
-  position: relative;
+  position: absolute;
+  top: 50px;
+  bottom: 45px;
   background: white;
 }
 
@@ -360,15 +413,187 @@ input::-moz-focus-inner {
   z-index: 100;
 }
 
-#awesomescreen {
+#awesomescreen, #crashscreen, #startscreen {
+  font-size: 16px;
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 60;
   background-color: #fff;
   display: none;
+}
+
+#startscreen {
+  display: block;
+  z-index: 58;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  background-image: url('images/start-page-logo.png'), -moz-linear-gradient(#f8f8fa, #cadce6);
+  background-repeat: no-repeat, no-repeat;
+  background-position: top right;
+  overflow: hidden;
+  color: #3e4041;
+}
+
+#startscreen h1 {
+  font-size: 24px;
+  margin: 10px 15px;
+}
+
+#startscreen h2 {
+  font-size: 14px;
+  margin: 0 0 15px 15px;
+}
+
+#startscreen.hidden {
+  display: none;
+}
+
+#start-screen-top-sites {
+  width: 290px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+#top-site-thumbnails {
+  margin: 0;
+  padding: 0;
+}
+
+#top-site-thumbnails li {
+  list-style-type: none;
+  text-align: center;
+  float: left;
+  position: relative;
+  border-bottom: 2px solid #CCC;
+  margin-bottom: 20px;
+}
+
+#top-site-thumbnails li:nth-child(2n) {
+  margin-left: 10px;
+}
+
+#top-site-thumbnails li a {
+  display: block;
+  width: 140px;
+  height: 100px;
+  background-color: rgba(255, 255, 255, 0.3);
+  background-size: cover;
+}
+
+#top-site-thumbnails li span {
+  font-size: 12px;
+  display: block;
+  width: 134px;
+  height: 15px;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background-color: rgba(255, 255, 255, 0.8);
+  position: absolute;
+  bottom: 0px;
+  padding: 3px;
+  pointer-events: none;
+}
+
+#awesomescreen {
+  z-index: 60;
+}
+
+#crashscreen {
+  background-color: #4f4f4f;
+  background-image: url('images/crashed-tab-background.png');
+  color: #fff;
+  z-index: 59;
+  text-align: center;
+}
+
+#crashscreen h3, #crashscreen p {
+  padding: 0 1.5rem;
+}
+
+#crashscreen h3 {
+  font-size: 2rem;
+  font-weight: normal;
+}
+
+#crashscreen img {
+  display: block;
+  margin: 0 auto;
+}
+
+#crashscreen p {
+  font-size: 1.6rem;
+}
+
+#crashscreen menu[type="toolbar"] {
+  background-color: #3e3e3e;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 70px;
+}
+
+#crashscreen button {
+  height: 3.8rem;
+  margin: 1.7rem 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url('images/button-background.png') repeat-x left bottom;
+  border: 0.1rem solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-family: 'MozTT', Sans-serif;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+  width: 14rem;
+}
+
+#crashscreen button:active,
+a[role="button"]:active,
+button.recommend:active,
+a.recommend[role="button"]:active  {
+  border-color: #008aaa;
+  background: #008aaa;
+  color: #333;
+}
+
+#close-tab {
+  float: left;
+}
+
+#close-tab[disabled] {
+  display: none;
+}
+
+#try-reloading {
+  float: right;
+}
+
+#awesomescreen {
+  z-index: 60;
+}
+
+#screen {
+  z-index: 61;
+}
+
+#sad-face {
+  font-size: 72px;
+  line-height: 150px;
 }
 
 nav[data-role="tabs"] {
@@ -489,8 +714,15 @@ li[role="listitem"] small {
 
 .awesome-screen #toolbar-start {
   background-color: #ccd6df;
-  margin-right: 50px;
+  padding-right: 50px;
   background-image: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.awesome-screen #frames {
+  bottom: 0;
 }
 
 .awesome-screen #tabs-badge {
@@ -576,39 +808,6 @@ li[role="listitem"] small {
   display: none;
 }
 
-#cover {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 500;
-}
-
-#cover ul {
-  background: white;
-  width: 80%;
-  margin: 20px auto;
-  padding: 0;
-  list-style-type: none;
-}
-
-#cover ul li {
-  font-family: 'Open Sans', sans-serif;
-  padding: 15px;
-  border-bottom: 1px solid #CCC;
-  cursor: pointer;
-}
-
-#cover ul li:hover, #cover ul li:active {
-  background: #EEE;
-}
-
-#cover ul li img {
-  margin-right: 10px;
-}
-
 #modal-dialog-alert,
 #modal-dialog-confirm,
 #modal-dialog-prompt {
@@ -616,14 +815,17 @@ li[role="listitem"] small {
   margin: 0 auto !important;
 }
 
-#modal-dialog-tablecell {
+#modal-dialog {
   background: rgba(0, 0, 0, 0.5);
 }
 
 #tray-toolbar {
   background: none;
   height: 50px;
-  padding-right: 44px;
+}
+
+#tray-toolbar button {
+  width: 60px;
 }
 
 #settings-button {
@@ -632,45 +834,23 @@ li[role="listitem"] small {
   height: 50px;
 }
 
+#new-tab-button {
+  background-image: url('images/add.png'), url('images/header-divider.png');
+  background-position: center, left;
+  float: right;
+  height: 50px;
+}
+
 #settings {
+  font-size: 16px;
   position: absolute;
   left: 0px;
   top: 0;
-  background-color: #F3F4F8;
+  background-color: #eeefea;
   width: 100%;
   height: 100%;
   z-index: 150;
   display: none;
-}
-
-#settings header {
-  background-color: black;
-  height: 50px;
-  background-image: linear-gradient(#323639, #272B2E);
-}
-
-#settings header h1 {
-  font-size: 20px;
-  color: white;
-  margin: 0;
-  line-height: 50px;
-  padding-left: 10px;
-  width: 100%;
-  font-weight: normal;
-}
-
-#settings header menu[type="toolbar"] {
-  height: 50px;
-  display: inline;
-  float: right;
-}
-
-#settings h3 {
-  font-size: 0.9em;
-  margin: 0 10px;
-  color: #FF5F19;
-  border-bottom: solid 1px #FF5F19;
-  padding: 0;
 }
 
 #settings ul {
@@ -679,22 +859,116 @@ li[role="listitem"] small {
 }
 
 #settings li {
-  margin: 10px;
+  margin: 10px 30px;
   list-style-type: none;
 }
 
-#settings header button {
-  color: #fff;
-  height: 50px;
-  float: right;
-}
-
-#settings header button:active {
-  background-color: rgba(0, 0, 0, 0.7);
-}
-
 #settings li button {
-  padding: 10px;
+  display: block;
+  color: #333;
+  width: 100%;
+  line-height: 40px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: 1px solid #999;
+  background-image: -moz-linear-gradient(#FAFAFA, #CCC);
+}
+
+#settings li#enable-cookies {
+  margin-bottom: 20px;
+}
+
+#enable-cookies input {
+  position: relative;
+  top: -2px;
+}
+
+#settings [disabled="disabled"] {
+  opacity: 0.7;
+}
+
+/** Bookmark Menu **/
+#bookmark-menu {
+  position: absolute;
+  z-index: 61;
+}
+
+#bookmark-menu li.hidden {
+  display: none;
+}
+
+#bookmark-menu.hidden {
+  display: none;
+}
+
+/* Edit bookmark entry sheet */
+
+#bookmark-entry-sheet {
+  z-index: 101;
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #EEEEEE;
+}
+
+#bookmark-entry-sheet.hidden {
+  display: none;
+}
+
+/*
+ * HTTP Authentication Dialog
+ */
+#http-authentication-dialog {
+  z-index: 102;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #EEEEEE;
+}
+
+#http-authentication-dialog.hidden {
+  display: none;
+}
+
+#http-authentication-message {
+  display: block;
+  font-size: 1.5rem;
+  margin: 1rem 2rem;
+}
+
+#http-authentication-message.error {
+  color: #950d0d;
+}
+
+/* The following can be removed once we have a building block
+ * for entry sheets.
+ */
+ #bookmark-entry-sheet label,
+ #http-authentication-dialog label {
+  display: block;
+  position: relative;
+  margin: 1rem 2rem;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+ }
+
+ #bookmark-entry-sheet input[type="text"],
+ #bookmark-entry-sheet input[type="url"],
+ #http-authentication-dialog input[type="text"],
+ #http-authentication-dialog input[type="password"] {
+  -moz-box-sizing: border-box;
+  border: 1px solid #D1D1D1;
+  border-radius: 0.3rem;
+  display: block;
+  font: 1.4rem/4rem "MozTT", Sans-serif;
+  height: 4rem;
+  padding: 0 0.5rem;
+  width: 100%;
 }
 
 /* This is a dirty hack to hide the bottom toolbar while
@@ -705,9 +979,11 @@ li[role="listitem"] small {
 @media (device-height: 480px) and (max-height: 450px),
        (device-height: 320px) and (max-height: 290px) {
   .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
 }
 /* For the Galaxy SII, 640x480 */
 @media (device-height: 480px) and (max-height: 450px),
        (device-height: 640px) and (max-height: 610px) {
   .page-screen #toolbar-end { display: none; }
+  .page-screen #frames { bottom: 0; }
 }

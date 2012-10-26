@@ -1,5 +1,18 @@
+/*
+Currently media queries with min/max resolution are not working
+in Firefox until fixing:
+https://bugzilla.mozilla.org/show_bug.cgi?id=779527
+That's why in SII or Nexus SMS App is not rendered properly.
+*/
 
-@media screen and (min-resolution: 200dpi) {
+@media screen and (min-resolution: 230dpi) {
+
+  html {
+    font-size: 14.7px;
+  }
+}
+
+@media screen and (max-resolution: 220dpi) {
 
   html {
     font-size: 13.5px;
@@ -20,15 +33,53 @@ html, body {
   margin: 0;
   overflow-x: hidden !important;
   overflow-y: hidden !important;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
 }
 
+/* Override Building Block [Header] styles */
+section[role="region"] > header:first-child .icon.icon-clear {
+  background-image: url(images/icons/clear.png);
+  right: calc(-50% + 7rem);
+  width: 2rem;
+  margin: 0;
+  padding: 0 2rem;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+section[role="region"] > header:first-child form {
+  display: none;
+}
+
+/* Override Building Block [Edit mode] styles */
+form[role="dialog"][data-type="edit"] header,
+form[role="dialog"][data-type="edit"] > menu {
+  transition: all 0.4s ease;
+}
+
+form[role="dialog"][data-type="edit"] header {
+  transform: translateY(-110%);
+}
+
+form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(110%);
+}
+
+/* BB issue */
+form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
+  border: none;
+  color: #fff;
+}
+
+/* Panel handling */
 .wrapper {
   width: 200%;
   height: 100%;
   position: relative;
   left: 0;
   top: 0;
+  overflow: hidden;
 }
 
 .panel {
@@ -53,71 +104,83 @@ html, body {
 }
 
 /*
-  Snapshot for increasing performance in slide transition
-*/
-
-#thread-list-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 50%;
-  height: 100%;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-list) no-repeat;
-}
-
-#thread-messages-snapshot {
-  z-index: 0;
-  pointer-events: none;
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 50% !important;
-  height: 100% ;
-  -moz-transition: -moz-transform .4s ease;
-  background:-moz-element(#thread-messages) no-repeat;
-}
-
-/*
+  Snapshot for increasing performance in slide transition &
   Smooth lateral slide
 */
 
+#snapshot {
+  top: -100%;
+  width: 200%;
+  height: 100%;
+  -moz-transition: -moz-transform .4s ease;
+  background:-moz-element(#main-wrapper) no-repeat;
+}
+
 .snapshot #snapshot {
-   top: -100%;
-   z-index: 100;
-}
-
-.mirror-swipe #thread-list-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-.mirror-swipe #thread-messages-snapshot {
-  -moz-transform: translateX(-100%);
-}
-
-/* Styles for Edit mode */
-
-.edit .options {
-  -moz-transform: translateY(-6.5rem);
-}
-
-.edit .new-sms-form {
-  -moz-transform: translateY(3.6rem);
-}
-
-.edit .header-wrapper{
+  display: block;
+  z-index: 100;
   -moz-transform: translateX(-50%);
 }
 
-.new h1 {
+.snapshot-back #snapshot {
+  display: block;
+  left: -100%;
+  z-index: 100;
+  -moz-transform: translateX(50%);
+}
+
+/* Styles for Edit mode */
+.edit form[role="dialog"][data-type="edit"] > menu {
+  transform: translateY(0);
+}
+
+.edit .new-sms-form {
+  transform: translateY(3.6rem);
+}
+
+.edit form[role="dialog"][data-type="edit"] header {
+  transform: translateY(0);
+}
+
+.edit #thread-list-container .item > a {
+  transform: translateX(3rem);
+  pointer-events: none;
+}
+
+.edit #thread-list-container .item > a.unread .unread-tag {
+  opacity: 0;
+}
+
+.edit #thread-list-container .checkbox-container {
+  pointer-events:auto;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.edit .undo-candidate {
   display: none;
 }
 
-.new .tel {
+.edit .message-block {
+  border-top: .1rem solid #DBDBDB;
+  margin-bottom: 0;
+}
+
+/*
+  Styles for new message
+*/
+section[role="region"].new > header:first-child h1 {
+  display: none;
+}
+
+section[role="region"].new > header:first-child form {
   display: block;
 }
+
+.new .carrier-wrapper {
+  display: none;
+}
+
 .new #icon-edit {
   display: none;
 }
@@ -126,28 +189,6 @@ html, body {
   display: block;
 }
 
-.edit > #thread-list > #thread-list-container a {
-  pointer-events: none;
-}
-
-.edit #thread-list-container .checkbox-container {
-  pointer-events:auto;
-  opacity: 1;
-}
-
-.edit .undo-candidate {
-  display: none;
-}
-
-.edit .msg-checkbox {
-  display: table-cell;
-}
-
-.edit .message-block {
-  padding: 1rem 0;
-  border-top: .1rem solid #DBDBDB;
-  margin-bottom: 0;
-}
 
 /*
   Thread list styles
@@ -157,6 +198,7 @@ html, body {
   text-align: left;
   position: relative;
   overflow: hidden;
+  border-bottom: 0.1rem solid #e7e7e7;
 }
 
 #thread-list-container .item:last-child {
@@ -170,24 +212,22 @@ html, body {
   outline: none;
   height: 6rem;
   position: relative;
-  padding: 1rem 1.6rem 1rem 3rem;
-  border-top: 0.1rem solid hsla(207,22%,92%,1);
+  padding: 1rem 0rem 1rem 3rem;
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
+  transition: all 0.4s ease;
 }
 
-#thread-list-container .item > a:active {
-  background: -moz-linear-gradient(top, #FF9500 0, #E66000 100%);
-}
-
-#thread-list-container .item > a:active > .name {
-  color: white;
-}
-
-#thread-list-container .item > a:active > .msg {
-  color: #ffbc8c;
-  text-shadow: none;
+#thread-list-container .item > a:active:after {
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #b1f1ff;
+  opacity: .6;
 }
 
 #thread-list-container .item > a.hide {
@@ -196,10 +236,6 @@ html, body {
 
 #thread-list-container .item > a > * {
   pointer-events: none;
-}
-
-#thread-list-container .item > a:first-child {
-  border-top-color: transparent;
 }
 
 #thread-list-container .item > a .unread-mark {
@@ -226,7 +262,7 @@ a.unread .unread-mark .icon-unread-mark {
 
 #thread-list-container .item > a > span {
   position: absolute;
-  top: -moz-calc(50% - 3.4rem);
+  top: calc(50% - 3.4rem);
   left: 4rem;
   display: block;
   width: 6.4rem;
@@ -250,62 +286,46 @@ a.unread .unread-mark .icon-unread-mark {
 #thread-list-container .checkbox-container {
   position: absolute;
   top: 0;
-  right: 0;
-  width: 5.9rem;
+  left: 0;
+  width: 5.5rem;
   height: 100%;
   overflow: hidden;
   background: white;
   pointer-events:none;
   opacity: 0;
-}
-
-#thread-list-container .checkbox-container input {
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  opacity: 0;
-}
-#thread-list-container .checkbox-container span {
-  left: 1.85rem;
-  top: 1.9rem;
-  width: 2.2rem;
-  height: 2.2rem;
-  position: absolute;
-  pointer-events: none;
-  background-image: url('images/check-delete.png');
-}
-
-#thread-list-container .checkbox-container input:checked + span {
-  background-position: center bottom;
+  transform: translateX(-100%);
+  transition: all 0.4s ease;
 }
 
 #thread-list-container .name {
-  font-family: 'Open Sans';
-  font-size: -moz-calc(8 * 0.226rem);
+  font-family: 'MozTT';
+  font-size: calc(8 * 0.226rem);
   color: #000000;
   overflow: hidden;
+  white-space: nowrap;
   text-overflow: ellipsis;
-  width: -moz-calc(100% - 7rem);
+  width: calc(100% - 7rem);
+  position: relative;
 }
 
+
 #thread-list-container .msg {
-  font-family: 'Open Sans';
-  font-size: -moz-calc(6 * 0.226rem);
+  font-family: 'MozTT';
+  font-size: calc(6 * 0.226rem);
   color: #5B5B5B;
   text-shadow: 0 0.1rem 0 #ddd;
-  width: -moz-calc(100% - 20rem);
+  width: calc(100% - 17rem);
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: '..."';
+  text-overflow: ellipsis;
   position: absolute;
   top: 3rem;
   left: 10rem;
 }
 
 #thread-list-container .time {
-  font-family: 'Open Sans';
   font-weight: 600;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   font-weight: 600;
   color: #5B5B5B;
   position: absolute;
@@ -325,6 +345,7 @@ a.unread .unread-mark .icon-unread-mark {
   top: 2rem;
   left: 1rem;
   background: url(../style/images/unread.png);
+  transition: opacity 0.25s ease;
 }
 
 #thread-list-container .item > a.unread .unread-tag {
@@ -333,13 +354,13 @@ a.unread .unread-mark .icon-unread-mark {
 
 #thread-list-container h2 {
   text-align: left;
-  border-bottom: solid 1px #ff4e00;
+  border-bottom: solid 0.1rem #ff4e00;
   padding-left: 3rem;
   padding-top: 1rem;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: #ff4e00;
   text-transform: uppercase;
-  font-family: 'Open Sans';
+  z-index: 3;
 }
 
 
@@ -351,15 +372,20 @@ a.unread .unread-mark .icon-unread-mark {
   text-align: left;
   padding-left: 3rem;
   padding-top: 1rem;
-  padding-bottom: .5rem;
-  font-size: -moz-calc(6 * 0.226rem);
+  font-size: calc(6 * 0.226rem);
   color: #666666;
   text-transform: uppercase;
-  font-family: 'Open Sans';
 }
 
 #messages-container {
   text-align: left;
+  padding-top: 2rem;
+  -moz-box-sizing: border-box;
+  background: #f4f4f4;
+}
+
+.new #messages-container {
+  padding-top: 0;
 }
 
 #messages-container > div:last-child {
@@ -367,32 +393,57 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .message-block {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
+  display: block;
+  overflow: hidden;
+  position: relative;
   margin-bottom:1rem;
 }
 
+.message-block label.danger {
+  position: absolute;
+  right: 100%;
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
 .message-block .bubble-container {
-  display: table-cell;
+  display: block;
+  padding: 1rem 0rem;
+}
+
+/* Edit mode */
+.edit .message-block label.danger {
+  transform: translateX(100%);
+  opacity: 1;
+}
+
+.edit .bubble-container.received {
+  transform: translateX(5.5rem);
 }
 
 .message-block .bubble-container .bubble{
   max-width: 23rem;
   word-wrap:break-word;
   display: inline-block;
+  vertical-align: middle;
   position: relative;
   padding: 1rem 1.5rem;
   -moz-box-sizing: border-box;
 }
 
-.message-option {
-  width: 3.5rem;
+.message-block .bubble-container .message-option {
+  display: inline-block;
   vertical-align: middle;
-  display: table-cell;
+  margin: 0 1rem 0 0;
 }
 
-.message-option .gif{
+.message-option:active {
+  background: transparent !important;
+}
+
+.message-option .gif {
   width: 2.5rem;
   height: 2.5rem;
   margin: 0 auto;
@@ -407,22 +458,7 @@ a.unread .unread-mark .icon-unread-mark {
   height: 4rem;
   position: relative;
   opacity: 0;
-  margin-top: -2rem;
-
-}
-.message-option span {
-  display: block;
-  position: relative;
-  margin-top: -4rem;
   pointer-events: none;
-  width: 2.2rem;
-  height: 2.2rem;
-  left: .5rem;
-  top: .9rem;
-  background-image: url('images/check-delete.png');
-}
-.message-option  input:checked + span {
-  background-position: center bottom;
 }
 
 .sent {
@@ -432,8 +468,7 @@ a.unread .unread-mark .icon-unread-mark {
 .sent .bubble{
   margin-right: 1.4rem;
   background: white;
-  border: .1rem solid #969FA0;
-  box-shadow: 0 0.1rem 0.1rem #4F595B;
+  border: .2rem solid #969FA0;
   border-radius: .5rem;
   text-align: left;
 }
@@ -452,8 +487,7 @@ a.unread .unread-mark .icon-unread-mark {
 .received .bubble{
   margin-left: 1.4rem;
   background: #FBEAE0;
-  border: .1rem solid #FF4E00;
-  box-shadow: 0 0.1rem 0.1rem #F1AF84;
+  border: .2rem solid #FF4E00;
   border-radius: .5rem;
   text-align: left;
 }
@@ -469,6 +503,20 @@ a.unread .unread-mark .icon-unread-mark {
   top: 1rem;
 }
 
+.selected .received .bubble {
+  border-color: #B90000;
+}
+.selected .received .bubble:after {
+  background-image: url('images/selected-incoming_9x10.png');
+}
+
+.selected .sent .bubble {
+  border-color: #B90000;
+}
+.selected .sent .bubble:after {
+  background-image: url('images/selected-outgoing_9x10.png');
+}
+
 /*
   Edit mode bar
 */
@@ -480,7 +528,7 @@ a.unread .unread-mark .icon-unread-mark {
   bottom: -6.5rem;
   width: 100%;
   position: absolute;
-  -moz-transition: -moz-transform .15s ease-in;
+  transition: transform .2s ease-in;
 }
 
 .option {
@@ -501,9 +549,8 @@ a.unread .unread-mark .icon-unread-mark {
   height: 100%;
   width: 100%;
   -moz-box-sizing: border-box;
-  font-family: 'Open Sans';
   font-weight: 600;
-  font-size: -moz-calc(7 * 0.226rem);
+  font-size: calc(7 * 0.226rem);
   color: white;
 }
 
@@ -517,33 +564,28 @@ a.unread .unread-mark .icon-unread-mark {
 */
 
 .new-sms-form {
-  height: 3rem;
-  bottom: 0rem;
-  width: 100%;
-  position: absolute;
-  -moz-transition: -moz-transform .2s ease-in;
+  transition: transform .2s ease-in;
 }
 
-.new-sms-form {
-  border-top: .1rem solid #C6C6C6;
-  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
-  height: 3.5rem;
+form.bottom[role="search"].new-sms-form {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 #message-to-send {
-  margin-top: .5rem;
-  margin-bottom: .5rem;
-  margin-left: 1.5rem;
-  height: 2.5rem;
-  line-height: 2rem;
+  /* Fixing texteareas in BB */
+  background: url("../shared/input_areas/images/ui/shadow-search.png") repeat-x scroll left top #FFFFFF;
+  border: 0.1rem solid rgba(0, 0, 0, 0.33);
+  line-height: 1.8rem;
+  height: 3rem;
   max-height: 10rem;
-  width: -moz-calc(100% - 9.5rem);
-  -moz-box-sizing: border-box;
-  border-radius: 0.3rem;
-  border: 1px solid rgba(0,0,0,.3);
-  box-shadow: 0 0.2rem 0.1rem rgba(0, 0, 0, 0.2) inset;
-  font-size: -moz-calc(7 * 0.226rem);
-  font-family: 'Open Sans';
+  width: 100%;
+}
+
+#message-to-send:-moz-placeholder {
+  padding: 0.5rem 0 0 0.5rem;
 }
 
 #send-message-container {
@@ -551,14 +593,87 @@ a.unread .unread-mark .icon-unread-mark {
   width: 6rem;
   float: right;
 }
+/*
+  Contact search list
+*/
 
-#send-message {
+#messages-container .item {
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+  height: 6rem;
+  padding: 1rem 3rem 0;
+}
+
+#messages-container .item:last-child {
+  margin-bottom: 7rem;
+}
+
+#messages-container .item > a {
+  -moz-box-sizing: border-box;
+  display: block;
+  text-decoration: none;
+  outline: none;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: padding 0.3s ease-out;
+  border-bottom: 0.1rem solid hsla(207,22%,92%,1);
+}
+
+#messages-container .item > a > .name {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: calc(100% - 6rem);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#messages-container .item > a > .type {
+  color: gray;
+  font-size: 1.6rem;
+  line-height: 2rem;
+  white-space: pre;
+}
+
+#messages-container .item > a > .photo {
   position: absolute;
-  height: 3rem;
-  width: 6rem;
-  right:0;
-  bottom:0;
-  margin-bottom: 0.5rem;
+  top: 0;
+  right: 0;
+  width: 5.9rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+#messages-container .item > a > .photo img {
+  width: 100%;
+}
+
+#messages-container .item:active {
+  background: #b1f1ff;
+  opacity: .6;
+}
+
+#messages-container .item > a:active > .name {
+  opacity: .6;
+}
+
+#messages-container .item > a:active > .number {
+  opacity: .6;
+}
+
+#messages-container .item > a > * {
+  pointer-events: none;
+}
+
+#messages-container .noResults {
+  color: black;
+  font-size: 2rem;
+  line-height: 3rem;
+  width: -moz-calc(100% - 6rem);
+  overflow: hidden;
 }
 
 /*
@@ -580,7 +695,7 @@ a.unread .unread-mark .icon-unread-mark {
   padding: 2rem;
   -moz-box-sizing: border-box;
   opacity: 0;
-  -moz-transition: opacity 0.3s ease-out;
+  transition: opacity 0.3s ease-out;
 }
 
 .loading-container {
@@ -594,7 +709,7 @@ a.unread .unread-mark .icon-unread-mark {
   padding: 2rem 1rem 4rem 1rem;
   -moz-box-sizing: border-box;
   color: white;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: calc(10 * 0.226rem);
   font-weight: 300;
   border-top: .1rem solid white;
   overflow: hidden;
@@ -602,8 +717,8 @@ a.unread .unread-mark .icon-unread-mark {
 }
 
 .loading-icon img{
-  width: 28px;
-  height: 28px;  
+  width: 2.8rem;
+  height: 2.8rem;
   margin: 0 auto;
 }
 
@@ -626,9 +741,30 @@ a.unread .unread-mark .icon-unread-mark {
   top: 50%;
   border-top: .1rem solid rgba(96,96,96,.5);
   padding: 2rem 0.5rem;
-  width: 270px;
-  margin: -80px auto;
+  width: 27rem;
+  margin: -8rem auto;
   color: #606060;
   font-weight: 300;
-  font-size: -moz-calc(10 * 0.226rem);
+  font-size: calc(10 * 0.226rem);
+}
+
+/*
+  Fixed headers
+*/
+.fixed-title {
+  position: absolute;
+  top: 5rem;
+  width: 100%;
+  padding-top: 1rem;
+  padding-left: 3rem;
+  border-bottom: solid 0.1rem #ff4e00;
+  background-repeat: no-repeat;
+  background-color: #FFFFFF;
+  transform: translateY(-100%);
+  pointer-events: none;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: -moz-calc(6 * 0.226rem);
+  color: #FF4E00;
+  z-index: 4;
 }

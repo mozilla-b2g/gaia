@@ -36,7 +36,6 @@ var UtilityTray = {
       case 'home':
         if (this.shown) {
           this.hide();
-          evt.stopImmediatePropagation();
         }
         break;
 
