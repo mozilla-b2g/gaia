@@ -333,3 +333,7 @@ iframe.backgroundWindow {
   animation: banner-bounce 4s;
   visibility: visible;
 }
+
+#screen iframe.communication-frame {
+  visibility: hidden;
+}
