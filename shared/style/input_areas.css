@@ -52,6 +52,11 @@ form p textarea + button[type="reset"] {
   pointer-events: none;
 }
 
+form p input:valid:focus,
+form p textarea:valid:focus {
+  padding-right: 3rem;
+}
+
 form p input:valid + button[type="reset"],
 form p textarea:valid + button[type="reset"] {
   opacity: 1;
@@ -183,7 +188,6 @@ form[role="search"].full p {
 form[role="search"] p input {
   height: 3rem;
   width: 100%;
-  padding-right: 3rem;
   border: 0.1rem solid rgba(0,0,0,.33);
   background: #fff url(input_areas/images/ui/shadow-search.png) repeat-x left top;
 }
