@@ -59,6 +59,9 @@ const IMERender = (function() {
       'button[data-keycode="' + KeyboardEvent.DOM_VK_CAPS_LOCK + '"]'
     );
 
+    if (!capsLockKey)
+      return;
+
     if (state === 'locked') {
       capsLockKey.classList.remove('kbr-key-active');
       capsLockKey.classList.add('kbr-key-hold');
