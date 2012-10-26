@@ -1626,6 +1626,12 @@ PhotoState.prototype.pan = function(dx, dy) {
     }
   }
 
+  // Don't swipe past the end of the last photo or past the start of the first
+  if ((currentPhotoIndex === 0 && this.swipe > 0) ||
+      (currentPhotoIndex === images.length - 1 && this.swipe < 0)) {
+    this.swipe = 0;
+  }
+
   this._reposition();
 };
 
