@@ -547,21 +547,6 @@ suite('views/modify_event', function() {
     });
   });
 
-  test('#displayErrors', function() {
-    var errors = [{ name: 'foo' }];
-    subject.displayErrors(errors);
-
-    var list = subject.status.classList;
-    var errors = subject.errors.textContent;
-
-    assert.ok(errors);
-    assert.include(errors, 'foo');
-
-    assert.ok(list.contains(subject.activeClass));
-    triggerEvent(subject.status, 'animationend');
-    assert.ok(!list.contains(subject.activeClass));
-  });
-
   suite('#save', function() {
     var redirectTo;
     var provider;
@@ -584,7 +569,7 @@ suite('views/modify_event', function() {
         var errors = [];
         var displayedErrors;
 
-        subject.displayErrors = function() {
+        subject.showErrors = function() {
           displayedErrors = arguments;
         };
 

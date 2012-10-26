@@ -134,11 +134,20 @@ suite('provider/caldav', function() {
 
         subject.getAccount(input, function cb(cbError, cbResult) {
           done(function() {
-            assert.deepEqual(calledWith, [
-              'caldav', 'getAccount', input, cb
-            ]);
             assert.equal(cbResult, result);
             assert.equal(cbError, error);
+          });
+        });
+      });
+
+      test('error handling', function(done) {
+        error = new Error();
+        error.constructorName = 'CaldavHttpError';
+        error.code = 404;
+        var errorMsg = 'no-url';
+        subject.getAccount(input, function cb(cbError, cbResult) {
+          done(function() {
+            assert.equal(cbError, errorMsg);
           });
         });
       });
@@ -147,6 +156,7 @@ suite('provider/caldav', function() {
     suite('#findCalendars', function() {
       test('success', function(done) {
         result = [{ id: 'wow' }];
+        error = null;
 
         subject.findCalendars(input, function cb(cbError, cbResult) {
           done(function() {
