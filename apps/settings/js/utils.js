@@ -206,7 +206,6 @@ function bug344618_polyfill() {
     slider.onmousedown = onClick;
     thumb.onmousedown = onDragStart;
     label.onmousemove = onDragMove;
-    label.onmouseout = onDragStop;
     label.onmouseup = onDragStop;
 
     // expose the 'refresh' method on <input>
