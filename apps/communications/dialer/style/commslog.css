@@ -47,6 +47,7 @@ ol, ul {
 
 .recents-filter-container {
   background: white;
+  overflow: hidden;
 }
 
 .recents-filter-entry {
@@ -79,6 +80,7 @@ button::-moz-focus-inner {
   height: -moz-calc(100% - 8rem);
   -moz-transition: height .15s ease-in;
   position: absolute;
+  overflow: hidden;
   width: 100%;
 }
 
