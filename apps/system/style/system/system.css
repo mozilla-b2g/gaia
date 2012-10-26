@@ -364,6 +364,14 @@ iframe.backgroundWindow {
   visibility: visible;
 }
 
+#system-banner button {
+  width: auto;
+}
+
+#system-banner[data-button="false"] button {
+  visibility: hidden;
+}
+
 #screen iframe.communication-frame {
   visibility: hidden;
 }

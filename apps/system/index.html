@@ -315,7 +315,7 @@
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Crash reporter -->
-        <form id="crash-dialog" role="dialog" data-type="confirm" onsubmit="return false;">
+        <form id="crash-dialog" role="dialog" data-type="confirm">
           <section>
             <h1 id="crash-dialog-title"></h1>
             <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
@@ -654,8 +654,9 @@
       </div>
 
       <section id="system-banner" role="dialog" class="banner"
-          data-z-index-level="system-notification-banner">
+          data-z-index-level="system-notification-banner" data-button="false">
         <p></p>
+        <button></button>
       </section>
 
       <div id="system-overlay" data-z-index-level="system-overlay">
