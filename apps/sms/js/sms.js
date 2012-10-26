@@ -68,6 +68,9 @@ var MessageManager = {
           case '#new':
             var messageInput = document.getElementById('message-to-send');
             var receiverInput = document.getElementById('receiver-input');
+            //Keep the  visible button the :last-child
+            var contactButton = document.getElementById('icon-contact');
+            contactButton.parentNode.appendChild(contactButton);
             document.getElementById('messages-container').innerHTML = '';
             messageInput.innerHTML = '';
             receiverInput.value = '';
@@ -77,6 +80,9 @@ var MessageManager = {
             });
             break;
           case '#thread-list':
+              //Keep the  visible button the :last-child
+              var editButton = document.getElementById('icon-edit');
+              editButton.parentNode.appendChild(editButton);
             if (mainWrapper.classList.contains('edit')) {
               this.getMessages(ThreadListUI.renderThreads);
               mainWrapper.classList.remove('edit');
