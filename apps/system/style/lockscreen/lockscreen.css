@@ -469,7 +469,7 @@
   margin: -1.1rem;
 }
 
-:-moz-any(.touched, .triggered, #screen:not(.locked), #lockscreen:not([data-panel="main"]))
+:-moz-any(.touched, .triggered, #screen:not(.locked), #screen.attention, #lockscreen:not([data-panel="main"]))
 :-moz-any(#lockscreen-left-arrow, #lockscreen-right-arrow) {
   display: none;
   animation: none;
