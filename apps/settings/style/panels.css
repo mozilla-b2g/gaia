@@ -1,0 +1,178 @@
+/**
+ * Setting panels: full-size blocks, identified by a 'region' role
+ */
+
+[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  overflow-y: scroll;
+  background: url(images/document_bg.png);
+}
+
+/**
+ * Headers don't scroll with the rest of the page, except for #root
+ * -- this is only enabled when <body> has the '.fixed-headers' class.
+ */
+
+.fixed-headers [role="region"]:not(#root) > header:first-child {
+  position: fixed;
+  width: 100%;
+}
+
+.fixed-headers [role="region"]:not(#root) > header:first-child + * {
+  margin-top: 5rem;
+}
+
+/******************************************************************************
+ * Panel transitions :: 'target'
+ *
+ * This relise purely on the `:target' pseudo-selector;
+ * it looks super nice on a desktop but sketchy on an Otoro :-(
+ *
+ * The main trick is that <section role="dialog"> elements must be
+ * reverse-ordered in the HTML document (see ~ selector): the main panel comes
+ * last, and 'child' panels (menu-wise) shoudl be inserted before their parents.
+ */
+
+.transition-target [role="region"] {
+  visibility: hidden;
+  transform: translateX(100%);
+  transition: visibility 0s ease 0.3s, transform 0.3s ease;
+}
+
+.transition-target [role="region"]:target,
+.transition-target #root:target {
+  visibility: visible;
+  transform: none;
+  transition: visibility 0s ease, transform 0.3s ease;
+}
+
+.transition-target [role="region"]:target ~ [role="region"],
+.transition-target #root {
+  transform: translateX(-100%);
+}
+
+/* Right-to-Left layout */
+
+[dir="rtl"] .transition-target [role="region"] {
+  transform: translateX(-100%);
+}
+
+[dir="rtl"] .transition-target #root {
+  transform: translateX(+100%);
+}
+
+[dir="rtl"] .transition-target #root:target,
+[dir="rtl"] .transition-target [role="region"]:target {
+  transform: none;
+}
+
+
+/******************************************************************************
+ * Panel transitions :: 'leaf'
+ *
+ * Slight improvement on 'target': rely on `data-leaf' attributes to identify
+ * tree leaves, in order not to move them when it's not necessary.
+ * TODO: Right-to-Left layout.
+ */
+
+.transition-leaf [role="region"] {
+  visibility: hidden;
+  transform: translateX(100%);
+  transition: visibility 0s ease 0.3s, transform 0.3s ease;
+}
+
+.transition-leaf [role="region"]:target {
+  visibility: visible;
+  transform: translateX(0);
+  transition: visibility 0s ease, transform .5s ease;
+}
+
+.transition-leaf [role="region"]:target ~ [role="region"]:not([data-leaf]) {
+  transform: translateX(-100%);
+}
+
+.transition-leaf.hidden #root {
+  transform: none;
+  transition: none;
+}
+
+
+/******************************************************************************
+ * Panel transitions :: 'nested'
+ *
+ * Slight improvement on 'leaf', requires sections to be nested
+ * -- e.g. all 'wifi-*' panels must be in a common <section> element.
+ * TODO: Right-to-Left layout.
+ */
+
+.transition-nested [role="region"] {
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
+}
+
+.transition-nested [role="region"]:target {
+  transform: translateX(0);
+}
+
+.transition-nested [role="region"]:target ~ [role="region"]:not([data-leaf]),
+.transition-nested #root:not(:target) {
+  transform: translateX(-100%);
+}
+
+
+/******************************************************************************
+ * Panel transitions :: 'js-active'
+ *
+ * This relies on JS (onhashchange) to assign an `.active' class to the current
+ * panel and its "parents" (menu-wise, not DOM-wise).
+ *
+ * This doesn't require any specific HTML structure nor `data-leaf' attributes.
+ */
+
+.transition-js-active [role="region"] {
+  transition: transform 0.3s ease;
+  transform: translateX(100%);
+}
+
+.transition-js-active [role="region"].active {
+  transform: translateX(-100%);
+}
+
+.transition-js-active [role="region"]:target {
+  transform: none;
+}
+
+/* Right-To-Left layout */
+
+[dir="rtl"] .transition-target [role="region"] {
+  transform: translateX(-100%);
+}
+
+[dir="rtl"] .transition-js-active [role="region"].active {
+  transform: translateX(100%);
+}
+
+[dir="rtl"] .transition-js-active [role="region"]:target {
+  transform: none;
+}
+
+
+/******************************************************************************
+ * Panel transitions :: 'none'
+ *
+ * Fast is nice. RTL-ready.
+ */
+
+.transition-none [role="region"] {
+  display: none;
+}
+
+.transition-none [role="region"]:target {
+  display: block;
+}
+
