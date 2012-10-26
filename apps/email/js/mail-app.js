@@ -183,7 +183,8 @@ if ('mozSetMessageHandler' in window.navigator) {
     }
     var activityName = activity.source.name;
     if (activityName === 'share') {
-      var attachments = activity.source.data.urls;
+      var attachmentUrls = activity.source.data.urls,
+          attachmentNames = activity.source.data.filenames;
     } else if (activityName === 'new') {
       var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
       if (!to)
@@ -225,6 +226,29 @@ if ('mozSetMessageHandler' in window.navigator) {
             composer.cc = cc;
           if (bcc)
             composer.bcc = bcc;
+          if (attachmentUrls) {
+            for (var iUrl = 0; iUrl < attachmentUrls.length; iUrl++) {
+              // our data URIs look like:
+              // data:image/png;base64,CONTENT
+              // 012345        012345678
+              var url = attachmentUrls[iUrl],
+                  filename = attachmentNames[iUrl],
+                  idxSemicolon = url.indexOf(';'),
+                  mimeType = url.substring(5, idxSemicolon),
+                  imageString = url.substring(idxSemicolon + 8),
+                  imageData = window.atob(imageString),
+                  imageArr = new Uint8Array(imageData.length);
+              for (var i = 0; i < imageData.length; i++) {
+                imageArr[i] = imageData.charCodeAt(i);
+              }
+              var blob = new Blob([imageArr],
+                                  { type: mimeType });
+              composer.addAttachment({
+                name: filename,
+                blob: blob
+              });
+            }
+          }
           // TODO: We may need to add attachments here:
           // if (attachments)
           //   composer.attachments = attachments;

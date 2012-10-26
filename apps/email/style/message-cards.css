@@ -221,12 +221,35 @@
   list-style-type: none;
   height: 4rem;
 }
+.msg-attachment-item[state="downloadable"]  > .msg-attachment-download {
+  display: inline-block;
+}
+.msg-attachment-item[state="downloading"]  > .msg-attachment-downloading {
+  display: inline-block;
+}
+.msg-attachment-item[state="downloaded"]  > .msg-attachment-view {
+  display: inline-block;
+}
 .msg-attachment-icon {
 }
 .msg-attachment-filename {
 }
 .msg-attachment-filesize {
   color: gray;
+}
+.msg-attachment-download {
+  display: none;
+  width: 3.5rem;
+  margin-left: 2rem;
+}
+.msg-attachment-downloading {
+  display: none;
+  margin-left: 2rem;
+}
+.msg-attachment-view {
+  display: none;
+  width: 3.5rem;
+  margin-left: 2rem;
 }
 
 .msg-body-content {
