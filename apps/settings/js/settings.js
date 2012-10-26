@@ -21,15 +21,6 @@ var Settings = {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
-    // Load the gaia commit when the corresponding pane is shown.
-    window.addEventListener('hashchange', function onHashChange(evt) {
-      if (!evt.newURL.endsWith('#more-info'))
-        return;
-
-      window.removeEventListener('hashchange', onHashChange);
-      Settings.loadGaiaCommit();
-    });
-
     var settings = this.mozSettings;
     if (!settings)
       return;
@@ -185,12 +176,17 @@ var Settings = {
         value = input.value; // text
         break;
     }
+
     var cset = {}; cset[key] = value;
     settings.createLock().set(cset);
   },
 
   loadGaiaCommit: function settings_loadGaiaCommit() {
-    var GAIA_COMMIT = 'gaia-commit.txt';
+    var GAIA_COMMIT = 'resources/gaia_commit.txt';
+    var dispDate = document.getElementById('gaia-commit-date');
+    var dispHash = document.getElementById('gaia-commit-hash');
+    if (dispHash.textContent)
+      return; // `gaia-commit.txt' has already been loaded
 
     function dateToUTC(d) {
       var arr = [];
@@ -208,14 +204,12 @@ var Settings = {
       if (req.readyState === 4) {
         if (req.status === 0 || req.status === 200) {
           var data = req.responseText.split('\n');
-          var dispDate = document.getElementById('gaia-commit-date');
-          var disp = document.getElementById('gaia-commit-hash');
           // XXX it would be great to pop a link to the github page
           // showing the commit but there doesn't seem to be any way
           // to tell the browser to do it.
           var d = new Date(parseInt(data[1] + '000', 10));
           dispDate.textContent = dateToUTC(d);
-          disp.textContent = data[0];
+          dispHash.textContent = data[0];
         } else {
           console.error('Failed to fetch gaia commit: ', req.statusText);
         }
@@ -354,13 +348,26 @@ window.addEventListener('load', function loadSettings(evt) {
   };
 });
 
+// panel-specific code
 window.addEventListener('hashchange', function handleHashChange(event) {
-  // most browsers now scroll content into view taking CSS transforms
-  // into account.  That's not what we want when moving between
-  // <section>s, because the being-moved-to section is offscreen when
-  // we navigate to its #hash.  The transitions assume the viewport is
-  // always at document 0,0.  So add a hack here to make that
-  // assumption true again.
+  switch (document.location.hash) {
+    case '#more-info':
+      Settings.loadGaiaCommit();
+      break;
+    case '#apnSettings':
+      Carrier.fillAPNList();
+      break;
+    // TODO: case 'timezone-continent':
+  }
+
+  /**
+   * Most browsers now scroll content into view taking CSS transforms into
+   * account.  That's not what we want when moving between <section>s, because
+   * the being-moved-to section is offscreen when we navigate to its #hash.
+   * The transitions assume the viewport is always at document 0,0.  So add a
+   * hack here to make that assumption true again.
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+   */
   window.scrollTo(0, 0);
 });
 
