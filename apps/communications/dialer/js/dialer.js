@@ -5,7 +5,7 @@ var CallHandler = (function callHandler() {
   var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
-  var callScreenDisplayed = false;
+  var callScreenWindow = null;
   var currentActivity = null;
 
   /* === Settings === */
@@ -58,6 +58,20 @@ var CallHandler = (function callHandler() {
   window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
   window.navigator.mozSetMessageHandler('icc-dialing', newCall);
 
+  /* === Bluetooth Support === */
+  function btCommandHandler(message) {
+    if (!callScreenWindow)
+      return;
+
+    var command = message['bluetooth-dialer-command'];
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+
+    callScreenWindow.postMessage(command, origin);
+  }
+  window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+                                         btCommandHandler);
+
   /* === Calls === */
   function call(number) {
     var settings = window.navigator.mozSettings, req;
@@ -107,7 +121,7 @@ var CallHandler = (function callHandler() {
           call.ondisconnected = cb;
           call.onerror = handleError;
 
-          if (!callScreenDisplayed)
+          if (!callScreenWindow)
             openCallScreen();
         }
       }
@@ -172,22 +186,20 @@ var CallHandler = (function callHandler() {
 
   /* === Attention Screen === */
   function openCallScreen() {
-    if (callScreenDisplayed)
+    if (callScreenWindow)
       return;
-
-    callScreenDisplayed = true;
 
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
-    window.open(urlBase + '#' + screenState,
+    callScreenWindow = window.open(urlBase + '#' + screenState,
                 'call_screen', 'attention');
   }
 
   // We use a simple postMessage protocol to know when the call screen is closed
   function handleMessage(evt) {
     if (evt.data == 'closing') {
-      callScreenDisplayed = false;
+      callScreenWindow = null;
     }
   }
   window.addEventListener('message', handleMessage);
