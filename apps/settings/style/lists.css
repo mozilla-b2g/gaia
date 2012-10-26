@@ -247,7 +247,7 @@ ul li > label.bug344618_polyfill div span:last-child {
 }
 
 ul li > label.bug344618_polyfill div span:last-child:active {
-  border: solid 0.4rem #01C5ED;
+  border: solid 0.4rem #01c5ed;
 }
 
 

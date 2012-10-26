@@ -177,7 +177,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
   var _timezone = null;
-  var _jsonUrl = 'timezones.json';
+  var _jsonUrl = 'resources/timezones.json';
   var _jsonData = [];
   var _isReceivedInputEventInOneSecond = false;
 

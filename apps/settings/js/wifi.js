@@ -171,12 +171,14 @@ window.addEventListener('localized', function wifiSettings(evt) {
 
   var gCurrentNetwork = gWifiManager.connection.network;
 
+  // auto-scan networks when the Wi-Fi panel gets visible
+  var gScanPending = false;
   var gWifiSectionVisible = false;
+
   function updateVisibilityStatus() {
     var computedStyle = window.getComputedStyle(gWifi);
     gWifiSectionVisible = (!document.mozHidden &&
                            computedStyle.visibility != 'hidden');
-
     if (gWifiSectionVisible && gScanPending) {
       gNetworkList.scan();
       gScanPending = false;
@@ -184,7 +186,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
   }
 
   document.addEventListener('mozvisibilitychange', updateVisibilityStatus);
-  gWifi.addEventListener('transitionend', function (evt) {
+  gWifi.addEventListener('transitionend', function(evt) {
     if (evt.target == gWifi) {
       updateVisibilityStatus();
     }
@@ -212,7 +214,6 @@ window.addEventListener('localized', function wifiSettings(evt) {
    *        disconnected.
    */
 
-  var gScanPending = false;
   var gScanStates = new Set(['connected', 'connectingfailed', 'disconnected']);
   gWifiManager.onstatuschange = function(event) {
     updateNetworkState();

@@ -10,6 +10,7 @@ var Swiper = {
     this.areaHangup.addEventListener('mousedown', this);
     this.areaPickup.addEventListener('mousedown', this);
 
+    this.overlay.addEventListener('transitionend', this);
   },
 
   handleEvent: function ls_handleEvent(evt) {
@@ -26,7 +27,10 @@ var Swiper = {
           touched: false,
           leftTarget: leftTarget,
           rightTarget: rightTarget,
-          initRailLength: this.railLeft.offsetWidth,
+          railLeftWidth: this.railLeft.offsetWidth,
+          railRightWidth: this.railRight.offsetWidth,
+          overlayWidth: this.overlay.offsetWidth,
+          handleWidth: this.areaHandle.offsetWidth,
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
@@ -89,6 +93,12 @@ var Swiper = {
     }
   },
 
+  setRailWidth: function ls_setRailWidth(left, right) {
+    var touch = this._touch;
+    this.railLeft.style.transform = 'scaleX(' + (left / touch.railLeftWidth) + ')';
+    this.railRight.style.transform = 'scaleX(' + (right / touch.railRightWidth) + ')';
+  },
+
   handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
 
@@ -114,17 +124,16 @@ var Swiper = {
     this.areaHandle.style.MozTransform =
       'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
 
-    var railMax = touch.initRailLength;
+    var railMax = touch.railLeftWidth;
     var railLeft = railMax + dx;
     var railRight = railMax - dx;
 
-    this.railLeft.style.width =
-      Math.max(0, Math.min(railMax * 2, railLeft)) + 'px';
-    this.railRight.style.width =
-      Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
+    this.setRailWidth(Math.max(0, Math.min(railMax * 2, railLeft)),
+                      Math.max(0, Math.min(railMax * 2, railRight)));
 
-    var base = this.overlay.offsetWidth / 4;
+    var base = touch.overlayWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
+
     if (dx > 0) {
       touch.rightTarget.style.opacity =
         this.railRight.style.opacity = '';
@@ -137,7 +146,7 @@ var Swiper = {
         this.railLeft.style.opacity = '';
     }
 
-    var handleWidth = this.areaHandle.offsetWidth;
+    var handleWidth = touch.handleWidth;
 
     if (railLeft < handleWidth / 2) {
       touch.leftTarget.classList.add('triggered');
@@ -185,14 +194,12 @@ var Swiper = {
 
     switch (target) {
       case this.areaHangup:
-        this.railRight.style.width = railLength + 'px';
-        this.railLeft.style.width = '0';
+        this.setRailWidth(0, railLength);
         OnCallHandler.end();
         break;
 
       case this.areaPickup:
-        this.railLeft.style.width = railLength + 'px';
-        this.railRight.style.width = '0';
+        this.setRailWidth(railLength, 0);
         OnCallHandler.answer();
         break;
     }
