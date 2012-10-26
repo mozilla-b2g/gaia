@@ -146,7 +146,7 @@ var WindowManager = (function() {
   // phone orientation is changed). And also when an app is launched
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
-  function setAppSize(origin) {
+  function setAppSize(origin, changeActivityFrame) {
     var app = runningApps[origin];
     if (!app)
       return;
@@ -167,10 +167,12 @@ var WindowManager = (function() {
     }
 
     frame.style.width = cssWidth;
-
     frame.style.height = cssHeight;
 
-    setInlineActivityFrameSize();
+    // We will call setInlineActivityFrameSize()
+    // if changeActivityFrame is not explicitly set to false.
+    if (changeActivityFrame !== false)
+      setInlineActivityFrameSize();
   }
 
   // App's height is relevant to keyboard height
@@ -1110,8 +1112,12 @@ var WindowManager = (function() {
         }
 
         // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
+        if (!e.detail.isActivity) {
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          setAppSize(origin, false);
           return;
+        }
 
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
