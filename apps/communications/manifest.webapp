@@ -67,8 +67,9 @@
     }
   },
   "messages": [
-     { "telephony-incoming": "/dialer/index.html" },
-     { "icc-dialing": "/dialer/index.html" },
+     { "telephony-incoming": "/dialer/index.html#keyboard-view" },
+     { "icc-dialing": "/dialer/index.html#keyboard-view" },
+     { "bluetooth-dialer-command": "/dialer/index.html#keyboard-view" },
      { "alarm": "/facebook/fb_sync.html" }
   ]
 }
