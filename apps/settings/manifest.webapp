@@ -22,7 +22,8 @@
     "wifi":{},
     "attention":{},
     "time":{},
-    "desktop-notification":{}
+    "desktop-notification":{},
+    "power":{}
   },
   "activities": {
     "configure": {

@@ -17,19 +17,9 @@ var Settings = {
         settings : null;
   },
 
-
   init: function settings_init() {
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
-
-    // Load the gaia commit when the corresponding pane is shown.
-    window.addEventListener('hashchange', function onHashChange(evt) {
-      if (!evt.newURL.endsWith('#more-info'))
-        return;
-
-      window.removeEventListener('hashchange', onHashChange);
-      Settings.loadGaiaCommit();
-    });
 
     var settings = this.mozSettings;
     if (!settings)
@@ -186,12 +176,17 @@ var Settings = {
         value = input.value; // text
         break;
     }
+
     var cset = {}; cset[key] = value;
     settings.createLock().set(cset);
   },
 
   loadGaiaCommit: function settings_loadGaiaCommit() {
-    var GAIA_COMMIT = 'gaia-commit.txt';
+    var GAIA_COMMIT = 'resources/gaia_commit.txt';
+    var dispDate = document.getElementById('gaia-commit-date');
+    var dispHash = document.getElementById('gaia-commit-hash');
+    if (dispHash.textContent)
+      return; // `gaia-commit.txt' has already been loaded
 
     function dateToUTC(d) {
       var arr = [];
@@ -209,14 +204,12 @@ var Settings = {
       if (req.readyState === 4) {
         if (req.status === 0 || req.status === 200) {
           var data = req.responseText.split('\n');
-          var dispDate = document.getElementById('gaia-commit-date');
-          var disp = document.getElementById('gaia-commit-hash');
           // XXX it would be great to pop a link to the github page
           // showing the commit but there doesn't seem to be any way
           // to tell the browser to do it.
           var d = new Date(parseInt(data[1] + '000', 10));
           dispDate.textContent = dateToUTC(d);
-          disp.textContent = data[0];
+          dispHash.textContent = data[0];
         } else {
           console.error('Failed to fetch gaia commit: ', req.statusText);
         }
@@ -284,6 +277,20 @@ var Settings = {
     openDialog(dialogID, submit);
   },
 
+  openUserGuide: function settings_openUserGuide() {
+    var settings = this.mozSettings;
+    if (!settings)
+      return;
+
+    var key = 'deviceinfo.os';
+    var req = settings.createLock().get(key);
+    req.onsuccess = function userGuide() {
+      var url = 'http://support.mozilla.org/1/firefox-os/' +
+        req.result[key] + '/gonk/' + document.documentElement.lang + '/';
+      openLink(url);
+    };
+  },
+
   checkForUpdates: function settings_checkForUpdates() {
     var settings = this.mozSettings;
     if (!settings) {
@@ -339,26 +346,28 @@ window.addEventListener('load', function loadSettings(evt) {
   req.onsuccess = function brightness_onsuccess() {
     manualBrightness.hidden = req.result[autoBrightnessSetting];
   };
-
-  // activate all external links
-  var links = document.querySelectorAll('a[href^="http"]');
-  for (var i = 0; i < links.length; i++) {
-    links[i].dataset.href = links[i].href;
-    links[i].href = '#';
-    links[i].onclick = function() {
-      openURL(this.dataset.href);
-      return false;
-    };
-  }
 });
 
+// panel-specific code
 window.addEventListener('hashchange', function handleHashChange(event) {
-  // most browsers now scroll content into view taking CSS transforms
-  // into account.  That's not what we want when moving between
-  // <section>s, because the being-moved-to section is offscreen when
-  // we navigate to its #hash.  The transitions assume the viewport is
-  // always at document 0,0.  So add a hack here to make that
-  // assumption true again.
+  switch (document.location.hash) {
+    case '#more-info':
+      Settings.loadGaiaCommit();
+      break;
+    case '#apnSettings':
+      Carrier.fillAPNList();
+      break;
+    // TODO: case 'timezone-continent':
+  }
+
+  /**
+   * Most browsers now scroll content into view taking CSS transforms into
+   * account.  That's not what we want when moving between <section>s, because
+   * the being-moved-to section is offscreen when we navigate to its #hash.
+   * The transitions assume the viewport is always at document 0,0.  So add a
+   * hack here to make that assumption true again.
+   * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+   */
   window.scrollTo(0, 0);
 });
 
@@ -384,8 +393,9 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
   }
 });
 
-// set the 'lang' and 'dir' attributes to <html> when the page is translated
+// startup
 window.addEventListener('localized', function showBody() {
+  // set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
@@ -418,5 +428,38 @@ window.addEventListener('localized', function showBody() {
       navigator.mozL10n.language.code + '"]';
   document.getElementById('language-desc').textContent =
       document.querySelector(selector).textContent;
+
+  // handle specific links
+  document.getElementById('check-update-now').onclick =
+    Settings.checkForUpdates.bind(Settings);
+  document.querySelector('[data-l10n-id="user-guide"]').onclick =
+    Settings.openUserGuide.bind(Settings);
+
+  // activate all other links
+  var links = document.querySelectorAll('a[href^="http"], [data-href]');
+  for (var i = 0; i < links.length; i++) {
+    var link = links[i];
+    if (!link.dataset.href) {
+      link.dataset.href = link.href;
+      link.href = '#';
+    }
+
+    if (!link.dataset.href.startsWith('#')) { // external link
+      link.onclick = function() {
+        openLink(this.dataset.href);
+        return false;
+      };
+    } else if (!link.dataset.href.endsWith('Settings')) { // generic dialog box
+      link.onclick = function() {
+        openDialog(this.dataset.href.substr(1));
+        return false;
+      };
+    } else { // Settings-specific dialog box
+      link.onclick = function() {
+        Settings.openDialog(this.dataset.href.substr(1));
+        return false;
+      };
+    }
+  }
 });
 

@@ -173,9 +173,16 @@ var AppIntegration = (function() {
 
     /**
      * Launches application and switches focus to its frame.
+     *
+     * @param {Boolean} [waitForBody=true] when true will wait until body is displayed.
+     * @param {Function} [callback] for inheritance purposes.
      */
-    launch: function(callback) {
+    launch: function(waitForBody, callback) {
       var self = this;
+
+      if (typeof(waitForBody) === 'undefined') {
+        waitForBody = true;
+      }
 
       this.task(function(app, next, done) {
         var device = app.device;
@@ -205,6 +212,9 @@ var AppIntegration = (function() {
         self.src = result.src;
         self.name = result.name;
         self.frame = result.frame;
+
+        var body = yield device.findElement('body');
+        yield app.waitUntilElement(body, 'displayed');
 
         done(null, self);
 
@@ -267,7 +277,7 @@ var AppIntegration = (function() {
      * Wait until element condition is met.
      */
     waitUntilElement: function(element, method, callback) {
-      this.waitFor(element[method].bind(element), 3000, callback);
+      this.waitFor(element[method].bind(element), 15000, callback);
     },
 
     /**

@@ -415,6 +415,20 @@ var OnCallHandler = (function onCallHandler() {
     window.close();
   }
 
+  /* === Bluetooth Headset support ===*/
+  function handleBTCommand(evt) {
+    var message = evt.data;
+    switch (message) {
+      case 'CHUP':
+        end();
+        break;
+      case 'ATA':
+        (handledCalls.length > 1) ? holdAndAnswer() : answer();
+        break;
+    }
+  }
+  window.addEventListener('message', handleBTCommand);
+
   /* === User Actions === */
   function answer() {
     // We should always have only 1 call here

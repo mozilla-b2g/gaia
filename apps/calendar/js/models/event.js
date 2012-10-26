@@ -147,6 +147,39 @@ Calendar.ns('Models').Event = (function() {
 
     set location(value) {
       return this.remote.location = value;
+    },
+
+    /**
+     * Validates the contents of the model.
+     *
+     * Output example:
+     *
+     *   [
+     *     {
+     *       name: 'invalidDate',
+     *       properties: ['startDate', 'endDate']
+     *     }
+     *     //...
+     *   ]
+     *
+     * @return {Array|False} see above.
+     */
+    validationErrors: function() {
+      var end = this.endDate.valueOf();
+      var start = this.startDate.valueOf();
+      var errors = [];
+
+      if (start > end) {
+        errors.push({
+          name: 'start-after-end'
+        });
+      }
+
+      if (errors.length) {
+        return errors;
+      }
+
+      return false;
     }
 
   };

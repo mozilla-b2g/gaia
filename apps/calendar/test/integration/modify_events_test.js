@@ -129,7 +129,6 @@ suite('calendar - modify events', function() {
   });
 
   test('add/delete event', function() {
-
     // setup and show event
     var now = yield app.remoteDate();
     var start = new Date(now.valueOf());
@@ -184,6 +183,105 @@ suite('calendar - modify events', function() {
       assert.ok(error);
       assert.instanceOf(error, Marionette.Error.NoSuchElement);
     }
+  });
+
+  test('edit event (update time)', function() {
+    yield subject.add();
+    var start = yield app.remoteDate();
+    var end = new Date(start.valueOf());
+    end.setHours(end.getHours() + 1);
+
+    var values = Factory('form.modifyEvent', {
+      title: 'new event',
+      start: start,
+      end: end
+    });
+
+    yield subject.update(values);
+    yield subject.save();
+
+    var monthView = yield app.element('monthView');
+    yield app.waitUntilElement(monthView, 'displayed');
+
+    var element = yield app.monthsDayView.eventByTitle(
+      values.title
+    );
+
+    yield element.click();
+    yield subject.waitUntilVisible();
+
+    start.setDate(start.getDate() + 1);
+    end.setDate(end.getDate() + 1);
+
+    var updateValues = Factory('form.modifyEvent', {
+      end: end,
+      start: start
+    });
+
+    yield subject.update(updateValues);
+    yield subject.save();
+    yield app.waitUntilElement(monthView, 'displayed');
+
+    // find the element again its going to be different
+    // this time around because we moved it.
+    element = yield app.monthsDayView.eventByTitle(
+      values.title
+    );
+
+    yield element.click();
+    yield subject.waitUntilVisible();
+
+    var expected = updateValues;
+    expected.title = values.title;
+
+    assert.hasProperties(
+      (yield subject.values()),
+      expected,
+      'updates element'
+    );
+
+    yield subject.remove();
+  });
+
+  test('attempt to add event where start > end', function() {
+    yield subject.add();
+    var now = yield app.remoteDate();
+
+    var start = new Date(now.valueOf());
+    start.setDate(start.getDate() + 1);
+    var end = new Date(now.valueOf());
+
+    var status = yield app.element('eventFormStatus');
+    var error = yield app.element('eventFormError');
+
+    assert.isFalse((yield status.displayed()), 'status is hidden');
+
+    var values = Factory('form.modifyEvent', {
+      title: 'fail plz',
+      start: start,
+      end: end
+    });
+
+    yield subject.update(values);
+    yield subject.save();
+
+    assert.isTrue((yield subject.displayed()), 'still shows add event');
+    assert.isTrue((yield status.displayed()), 'shows status');
+
+    var text = yield error.text();
+    assert.ok(text, 'has error text');
+    assert.include(text, 'start date');
+
+    // verify that status is hidden again...
+    yield app.waitFor(function(callback) {
+      status.displayed(function(err, value) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, !value);
+      });
+    }, 10000);
   });
 
 });

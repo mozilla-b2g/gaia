@@ -50,9 +50,9 @@ CalculatorIntegration.prototype = {
     'clear': '[data-type="command"][value="C"]'
   },
 
-  launch: function(callback) {
+  launch: function(waitForBody, callback) {
     var self = this;
-    AppIntegration.prototype.launch.call(this, function() {
+    AppIntegration.prototype.launch.call(this, waitForBody, function() {
       self.task(function(app, next, done) {
         yield IntegrationHelper.importScript(
           app.device,
