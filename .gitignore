@@ -7,7 +7,7 @@
 manifest.appcache
 
 /apps/system/camera
-/apps/settings/gaia-commit.txt
+/apps/settings/resources/gaia_commit.txt
 /apps/homescreen/js/init.json
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json
