@@ -331,11 +331,11 @@ function initKeyboard() {
   });
 
   navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
-    vibrationEnabled = e.setingValue;
+    vibrationEnabled = e.settingValue;
   });
 
   navigator.mozSettings.addObserver('keyboard.clicksound', function(e) {
-    clickEnabled = e.setingValue;
+    clickEnabled = e.settingValue;
     if (clickEnabled)
       clicker = new Audio(CLICK_SOUND);
     else
@@ -343,11 +343,18 @@ function initKeyboard() {
   });
 
   for (var group in keyboardGroups) {
+
     var settingName = 'keyboard.layouts.' + group;
-    navigator.mozSettings.addObserver(settingName, function(e) {
-      enabledKeyboardGroups[settingName] = e.settingValue;
-      handleNewKeyboards();
-    });
+
+    var createLayoutCallback = function createLayoutCallback(name) {
+      return function layoutCallback(e) {
+        enabledKeyboardGroups[name] = e.settingValue;
+        handleNewKeyboards();
+      }
+    }
+
+    navigator.mozSettings.addObserver(settingName,
+                                      createLayoutCallback(settingName));
   }
 
   // Initialize the rendering module
