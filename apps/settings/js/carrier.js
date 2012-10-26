@@ -291,8 +291,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
         return;
 
       var item = apnItems[0];
-      console.log('auto-configuration: ' + JSON.stringify(apn));
-
       var lock = settings.createLock();
       lock.set({ 'ril.data.apn': item.apn || '' });
       lock.set({ 'ril.data.user': item.user || '' });
