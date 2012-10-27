@@ -3,11 +3,12 @@ var sep = "<br />************<br />";
 
 function success(position) {
   var debug = document.getElementById('geoloc-debug').checked;
+  var s = document.querySelector('#log');
+
   if (!debug) {
-    return;
+    s.innerHTML = "";
   }
 
-  var s = document.querySelector('#log');
   s.innerHTML = sep + s.innerHTML;
   for (var i in position.coords) {
     var e = position.coords[i];
