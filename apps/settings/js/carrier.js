@@ -274,7 +274,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // get the initial setting value
     var req = settings.createLock().get(dataRoamingSetting);
     req.onsuccess = function roaming_getStatusSuccess() {
-      displayDataRoamingMessage(req.result[dataRoamingSetting]);
+      if (req.result)
+        displayDataRoamingMessage(req.result[dataRoamingSetting]);
     };
   } else {
     document.getElementById('dataRoaming-expl').hidden = true;
