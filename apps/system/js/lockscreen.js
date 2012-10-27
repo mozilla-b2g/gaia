@@ -52,7 +52,7 @@ var LockScreen = {
   /*
   * Check the timeout of passcode lock
   */
-  _passcodeTimeoutCheck: false,
+  _passCodeTimeoutCheck: false,
 
   /*
   * passcode to enable the smiley face easter egg.
