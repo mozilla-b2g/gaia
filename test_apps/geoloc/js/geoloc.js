@@ -41,7 +41,7 @@ function stopGeoloc() {
     error("Stopping watchPosition");
     navigator.geolocation.clearWatch(watchId);
     disable('btnStop');
-    disable('btnClear');
+    enable('btnClear');
     enable('btnStart');
   }
 }
