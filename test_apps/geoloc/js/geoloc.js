@@ -2,6 +2,11 @@ var watchId = undefined;
 var sep = "<br />************<br />";
 
 function success(position) {
+  var debug = document.getElementById('geoloc-debug').checked;
+  if (!debug) {
+    return;
+  }
+
   var s = document.querySelector('#log');
   s.innerHTML = sep + s.innerHTML;
   for (var i in position.coords) {
