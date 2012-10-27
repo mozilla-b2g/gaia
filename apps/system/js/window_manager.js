@@ -92,6 +92,21 @@ var WindowManager = (function() {
     return displayedApp || null;
   }
 
+  function requireFullscreen(origin) {
+    var app = runningApps[origin];
+    if (!app)
+      return false;
+
+    if (app.manifest.entry_points) {
+      var entryPoint = app.manifest.entry_points[origin.split('/')[3]];
+      if (entryPoint)
+          return entryPoint.fullscreen;
+      return false;
+    } else {
+      return app.manifest.fullscreen;
+    }
+  }
+
   // Make the specified app the displayed app.
   // Public function.  Pass null to make the homescreen visible
   function launch(origin) {
@@ -131,7 +146,7 @@ var WindowManager = (function() {
   // phone orientation is changed). And also when an app is launched
   // and each time an app is brought to the front, since the
   // orientation could have changed since it was last displayed
-  function setAppSize(origin) {
+  function setAppSize(origin, changeActivityFrame) {
     var app = runningApps[origin];
     if (!app)
       return;
@@ -147,15 +162,17 @@ var WindowManager = (function() {
     cssHeight += 'px';
 
     if (!screenElement.classList.contains('attention') &&
-        app.manifest.fullscreen) {
+        requireFullscreen(origin)) {
       cssHeight = window.innerHeight + 'px';
     }
 
     frame.style.width = cssWidth;
-
     frame.style.height = cssHeight;
 
-    setInlineActivityFrameSize();
+    // We will call setInlineActivityFrameSize()
+    // if changeActivityFrame is not explicitly set to false.
+    if (changeActivityFrame !== false)
+      setInlineActivityFrameSize();
   }
 
   // App's height is relevant to keyboard height
@@ -171,7 +188,7 @@ var WindowManager = (function() {
       window.innerHeight - StatusBar.height - keyboardHeight + 'px';
 
     if (!screenElement.classList.contains('attention') &&
-        app.manifest.fullscreen) {
+        requireFullscreen(displayedApp)) {
       cssHeight = window.innerHeight - keyboardHeight + 'px';
     }
 
@@ -516,7 +533,7 @@ var WindowManager = (function() {
       openFrame.focus();
       openFrame = null;
     } else {
-      if (app.manifest.fullscreen)
+      if (requireFullscreen(origin))
         screenElement.classList.add('fullscreen-app');
 
       // Get the screenshot of the app and put it on the sprite
@@ -1095,8 +1112,12 @@ var WindowManager = (function() {
         }
 
         // We will only bring web activity handling apps to the foreground
-        if (!e.detail.isActivity)
+        if (!e.detail.isActivity) {
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          setAppSize(origin, false);
           return;
+        }
 
         // If nothing is opened yet, consider the first application opened
         // as the homescreen.
@@ -1295,7 +1316,8 @@ var WindowManager = (function() {
   // When a resize event occurs, resize the running app, if there is one
   // When the status bar is active it doubles in height so we need a resize
   var appResizeEvents = ['resize', 'status-active', 'status-inactive',
-  'keyboardchange', 'keyboardhide', 'attentionscreenhide'];
+                         'keyboardchange', 'keyboardhide',
+                         'attentionscreenhide'];
   appResizeEvents.forEach(function eventIterator(event) {
     window.addEventListener(event, function on(evt) {
       if (event == 'keyboardchange') {

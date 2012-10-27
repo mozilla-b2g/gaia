@@ -883,17 +883,21 @@ $('thumbnails-share-button').onclick = function() {
  * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
-  var urls = [];
+  var urls = [], justnames = [];
   getDataURLForNextFile();
 
   function getDataURLForNextFile() {
     if (urls.length === filenames.length) {
-      shareURLs(urls);
+      shareURLs(urls, justnames);
     }
     else {
       var i = urls.length;
       var filename = filenames[i];
       photodb.getFile(filename, function(file) {
+        // filename is identical to file.name, both of which may contain path
+        // information.  We want to let the recipient know the name of the
+        // file, but not the path components.
+        justnames.push(filename.substring(filename.lastIndexOf('/') + 1));
         var reader = new FileReader();
         reader.readAsBinaryString(file);
         reader.onload = function() {
@@ -907,13 +911,14 @@ function shareFiles(filenames) {
 
 // This is called by shareFile once the filenames have
 // been converted to data URLs
-function shareURLs(urls) {
+function shareURLs(urls, filenames) {
   var a = new MozActivity({
     name: 'share',
     data: {
       type: 'image/*',
       number: urls.length,
-      urls: urls
+      urls: urls,
+      filenames: filenames
     }
   });
 
@@ -1619,6 +1624,12 @@ PhotoState.prototype.pan = function(dx, dy) {
         this.swipe = 0;
       }
     }
+  }
+
+  // Don't swipe past the end of the last photo or past the start of the first
+  if ((currentPhotoIndex === 0 && this.swipe > 0) ||
+      (currentPhotoIndex === images.length - 1 && this.swipe < 0)) {
+    this.swipe = 0;
   }
 
   this._reposition();

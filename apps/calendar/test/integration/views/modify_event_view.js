@@ -11,6 +11,19 @@ ModifyEventView.prototype = {
   __proto__: CalendarView.prototype,
 
   /**
+   * Waits until the element is visible again.
+   */
+  waitUntilVisible: function(callback) {
+    this.app.task(function(app, next, done) {
+      var device = app.device;
+      var el = yield this._findElement('_element', 'modifyEventView', next);
+      var displayed = yield app.waitUntilElement(el, 'displayed');
+      done(null, displayed);
+    }, callback, this);
+
+  },
+
+  /**
    * Checks if the view is visible.
    */
   displayed: function(callback) {

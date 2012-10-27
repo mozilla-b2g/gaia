@@ -8,7 +8,18 @@ window.addEventListener('localized', function SettingsFactoryReset(evt) {
   var _ = navigator.mozL10n.get;
 
   function factoryReset() {
-    //console.warn('+++ factory reset+++');
+    var power = navigator.mozPower;
+    if (!power) {
+      console.error('Cannot get mozPower');
+      return;
+    }
+
+    if (!power.factoryReset) {
+      console.error('Cannot invoke mozPower.factoryReset()');
+      return;
+    }
+
+    power.factoryReset();
   }
 
   var resetButton = document.getElementById('reset-phone');

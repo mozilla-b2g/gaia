@@ -28,35 +28,10 @@ form ol {
 
 /* for calendar */
 
-form ol {
-}
-
 form li {
   padding: 0.25rem;
 }
 
 form li {
   margin: 1rem 2rem;
-}
-
-li.end-date,
-li.start-date {
-  width: 60%;
-  float: left;
-}
-
-form li.end-time,
-form li.start-time {
-  text-align: center;
-  width: calc(40% - 1px);
-  float: left
-}
-
-form li.notes  {
-  height: 10rem;
-}
-
-form li.notes textarea {
-  padding: 1rem;
-  height: 100%;
 }

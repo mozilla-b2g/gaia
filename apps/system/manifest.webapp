@@ -27,7 +27,9 @@
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
-    "embed-apps":{}
+    "embed-apps":{},
+    "background-sensors":{},
+    "permissions":{}
   },
   "locales": {
     "ar": {
@@ -48,5 +50,7 @@
     }
   },
   "default_locale": "en-US",
-  "messages": ["alarm"]
+  "messages": [
+     { "alarm": "/index.html" }
+  ]
 }

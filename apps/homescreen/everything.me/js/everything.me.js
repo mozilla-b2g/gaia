@@ -7,12 +7,12 @@ var EverythingME = {
     footerStyle.MozTransition = '-moz-transform .3s ease';
 
     var page = document.getElementById('evmePage');
-    page.addEventListener('gridpageshow', function onpageshow() {
-      page.removeEventListener('gridpageshow', onpageshow);
+    page.addEventListener('gridpageshowend', function onpageshow() {
+      page.removeEventListener('gridpageshowend', onpageshow);
       document.querySelector('#loading-overlay .loading-icon').
                                                     classList.remove('frozen');
       EverythingME.displayed = true;
-      page.addEventListener('gridpageshow', function onpageshowafterload() {
+      page.addEventListener('gridpageshowend', function onpageshowafterload() {
         EverythingME.displayed = true;
         footerStyle.MozTransform = 'translateY(75px)';
         EvmeFacade.setOpacityBackground(1);
@@ -33,7 +33,7 @@ var EverythingME = {
       }, 0);
     });
 
-    page.addEventListener('gridpagehide', function onpagehide() {
+    page.addEventListener('gridpagehideend', function onpagehide() {
       EverythingME.displayed = false;
       footerStyle.MozTransform = 'translateY(0)';
       EvmeFacade.setOpacityBackground(0);

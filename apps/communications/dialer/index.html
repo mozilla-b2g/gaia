@@ -7,9 +7,7 @@
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/commslog.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/custom_dialog.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/fixed_header.css">
-    <link rel="stylesheet" type="text/css" href="/dialer/style/action_menu.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/dialer/locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
@@ -17,10 +15,10 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
     <!-- Shared code -->
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
-    <script defer type="application/javascript" src="/shared/js/custom_dialog.js"></script>
     <script defer type="application/javascript" src="/shared/js/settings_listener.js"></script>
     <script type="text/javascript" src="/shared/js/async_storage.js"></script>
     <!-- Specific code -->
@@ -30,7 +28,6 @@
     <script defer type="application/javascript" src="/dialer/js/contacts.js"></script>
     <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
     <script defer type="application/javascript" src="/dialer/js/dialer.js"></script>
-    <script defer type="application/javascript" src="/dialer/js/action_menu.js"></script>
     <script defer type="application/javascript" src="/dialer/js/recents_db.js"></script>
     <script defer type="application/javascript" src="/dialer/js/recents.js"></script>
     <script defer type="application/javascript" src="/dialer/js/proximity.js"></script>
@@ -183,7 +180,7 @@
             </menu>
             <h1 data-l10n-id="callLog">Call log</h1>
           </header>
-          <nav id="recents-filter-container">
+          <nav id="recents-filter-container" class="recents-filter-container">
             <ul>
               <li class="recents-filter-entry">
                 <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
@@ -205,6 +202,7 @@
         </section>
       </section>
     </article>
+
     <nav id="main-toolbar" class="toolbar grid center">
       <a id="option-recents" href="#recents-view" class="grid-cell grid-v-align toolbar-option ">
         <div class="icon icon-recents"></div>
@@ -234,6 +232,16 @@
         <button id="select-all-threads" class="edit-button danger" data-l10n-id="selectAll">Delete selected</button>
       </menu>
     </form>
+
+    <form id="add-contact-action-menu" role="dialog" data-type="action">
+      <header data-l10n-id="addNewNumber"> Add New Number </header>
+      <menu>
+        <button id="create-new-contact-menuitem" data-l10n-id="createNewContact"> Create New Contact </button>
+        <button id="add-to-existing-contact-menuitem" data-l10n-id="addToExistingContact"> Add to Existing Contact </button>
+        <button id="cancel-action-menu" data-l10n-id="cancel">  Cancel  </button>
+      </menu>
+    </form>
+
   </body>
 </html>
 

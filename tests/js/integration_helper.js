@@ -59,13 +59,15 @@ var IntegrationHelper = (function() {
       }
 
       if (!timeout)
-        timeout = 3000;
+        timeout = 10000;
 
       test(function(err, result) {
         _start = _start || Date.now();
 
         if (Date.now() - _start > timeout) {
-          callback(new Error('Timeout'));
+          callback(
+            new Error('Timeout more then: "' + timeout + 'ms has passed.')
+          );
           return;
         }
 
@@ -78,7 +80,7 @@ var IntegrationHelper = (function() {
           callback(null, result);
         } else {
           setTimeout(function() {
-            IntegrationHelper.waitFor(test, callback, timeout, _start);
+            IntegrationHelper.waitFor(test, timeout, callback, _start);
           }, 100);
         }
       });

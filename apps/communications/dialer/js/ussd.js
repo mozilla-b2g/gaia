@@ -8,6 +8,13 @@ var UssdManager = {
   _origin: null,
   _operator: null,
   _pendingNotification: null,
+  // In same cases, the RIL doesn't provide the expected order of events
+  // while sending an MMI that triggers an interactive USSD request (specially
+  // while roaming), which should be DOMRequest.onsuccess (or .onerror) +
+  // ussdreceived. If the first event received is the ussdreceived one, we take
+  // the DOMRequest.onsuccess received subsequenty as a closure of the USSD
+  // session.
+  _pendingRequest: null,
 
   init: function um_init() {
     this._ = window.navigator.mozL10n.get;
@@ -27,7 +34,7 @@ var UssdManager = {
 
   send: function um_send(message) {
     if (this._conn) {
-      var request = this._conn.sendMMI(message);
+      var request = this._pendingRequest = this._conn.sendMMI(message);
       request.onsuccess = this.notifySuccess.bind(this);
       request.onerror = this.notifyError.bind(this);
       if (!this._popup) {
@@ -45,10 +52,17 @@ var UssdManager = {
   },
 
   notifySuccess: function um_notifySuccess(evt) {
+    var result = evt.target.result;
+    if (this._pendingRequest == null &&
+        (!result || !result.length)) {
+      result = this._('mmi-session-expired');
+    }
+
     var message = {
       type: 'success',
-      result: evt.target.result
+      result: result
     };
+
     if (this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
     } else {
@@ -85,6 +99,7 @@ var UssdManager = {
     var message;
     switch (evt.type) {
       case 'ussdreceived':
+        this._pendingRequest = null;
         // Do not notify the UI if no message to show.
         if (evt.message)
           message = {

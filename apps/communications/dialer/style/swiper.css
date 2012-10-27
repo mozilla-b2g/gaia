@@ -61,6 +61,7 @@
 /* swiper-rail-left */
 #swiper-rail-left {
   left: 7.8rem;
+  transform-origin: 0% 0%;
 }
 .swiper-rail {
   background-color: rgba(255, 255, 255, 0.8);
@@ -76,6 +77,7 @@
 /* swiper-rail-right */
 #swiper-rail-right {
   right: 7.8rem;
+  transform-origin: 100% 0%;
 }
 
 /* swiper-area-handle */

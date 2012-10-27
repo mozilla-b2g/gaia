@@ -244,8 +244,8 @@ const GridManager = (function() {
         callback();
       }
 
-      previousPage.container.dispatchEvent(new CustomEvent('gridpagehide'));
-      newPage.container.dispatchEvent(new CustomEvent('gridpageshow'));
+      previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
+      newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
       togglePagesVisibility(index, index);
     }
 
@@ -279,6 +279,8 @@ const GridManager = (function() {
     // still considered display: none;
     newPage.container.getBoundingClientRect();
 
+    previousPage.container.dispatchEvent(new CustomEvent('gridpagehidestart'));
+    newPage.container.dispatchEvent(new CustomEvent('gridpageshowstart'));
     previousPage.moveByWithEffect(-forward * windowWidth,
                                   kPageTransitionDuration);
     newPage.moveByWithEffect(0, kPageTransitionDuration);

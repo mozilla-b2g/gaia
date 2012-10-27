@@ -249,7 +249,7 @@ li a[role="button"] span {
 li button.activity,
 li a[role="button"].activity {
   background-color: #fff;
-  padding: 0;
+  padding: 0 1rem 0 0;
 }
 
 li button.activity:active,
@@ -258,30 +258,42 @@ li a[role="button"].activity:active {
 }
 
 /* Icons at left side */
-li button.activity > span,
-li a[role="button"].activity > span {
-  float: left;
-  margin: 0.2rem 0.5rem;
+li button.activity.icon,
+li a[role="button"].activity.icon {
+  padding-left: 3rem;
 }
 
-li button.activity > span + b ,
-li a[role="button"].activity > span + b {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
+li button.activity.icon,
+li a[role="button"].activity.icon {
+  text-indent: 1rem;
+}
+
+li button.activity:before,
+li a[role="button"].activity:before {
+  right: auto;
+  left: 0.5rem;
 }
 
 /* Extending components */
-li button.activity > em ,
-li a[role="button"].activity > em{
+li button.activity > b em ,
+li a[role="button"].activity > b em{
   color: #727272;
   font-style: normal;
 }
 
-/* Extending icons */
-li button span.icon-fav,
-li a[role="button"] span.icon-fav {
-  background-image: url(/contacts/style/images/icon-fav-button.png);
+/* Long strings (email) */
+li button.activity > b ,
+li a[role="button"].activity > b{
+  font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;;
+  display: block;
+  position: absolute;
+  left: 3rem;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 /* Input areas customization*/
@@ -426,29 +438,15 @@ form p + p {
 /* ICONS */
 
 span[role="button"] {
-  margin-right: -1rem;
   font: 0/0 a;
   background: transparent no-repeat center center;
   background-size: 100% auto;
-}
-
-/* header */
-span[role="button"].icon-back {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/back.png);
-  width: 1.1rem;
-  height: 2.7rem;
-}
-
-span[role="button"].icon-edit {
-  background-image: url(/contacts/style/gphx/bitmap/default/vw-header/edit.png);
-  width: 1.9rem;
-  height: 2rem;
+  display: inline-block;
 }
 
 span[role="button"].icon-finish {
   background-color: rgba(0, 0, 0, 0.5);
 }
-
 
 /* jumper */
 span[role="button"].icon-fav-dark {
@@ -509,15 +507,18 @@ span[role="button"].icon-addimage {
   height: 2.8rem;
 }
 
-span[role="button"].icon-call {
+li button.icon-call:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/call.png);
 }
 
-span[role="button"].icon-message {
+li button.icon-message:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/sms.png);
 }
 
-span[role="button"].icon-email {
+li button.send-sms {
+  width: 0;
+}
+li button.icon-email:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/mail.png);
 }
 
@@ -525,18 +526,21 @@ span[role="button"].icon-address {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/location.png);
 }
 
-span[role="button"].icon-link {
+li button.icon-link:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/link.png);
-  width: 2rem;
-  height: 1.7rem;
-  margin-top: 0.5rem;
 }
 
-span[role="button"].icon-fb-profile {
+/* Extending icons */
+li button.icon-fav:before {
+  background-image: url(/contacts/style/images/icon-fav-button.png);
+}
+
+li button.icon-fb-profile:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/fb_profile.png);
-  width: 1.7rem;
-  height: 1.6rem;
-  margin-top: 0.6rem;
+}
+
+li button.icon-add:before {
+  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
 }
 
 
@@ -586,11 +590,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* Add style */
-.action-add span.icon-add[role="button"] {
-  background: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png) no-repeat center center;
 }
 
 /* FILL FLOW: general components for helping in defining basic flows in forms; */
