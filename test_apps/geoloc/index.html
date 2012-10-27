@@ -4,15 +4,18 @@
     <meta charset="utf-8" />
     <meta http-equiv="pragma" content="no-cache" />
     <title>Geolocation Debug</title>
-    <link rel="stylesheet" type="text/css" href="style/geoloc.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" />
+    <link rel="stylesheet" type="text/css" href="style/geoloc.css" />
     <script type="application/javascript" src="js/geoloc.js"></script>
 
     <!-- localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <script src="shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
+    <script src="shared/js/l10n_date.js" type="text/javascript" charset="utf-8"></script>
   </head>
   <body role="application">
     <section role="region">
@@ -33,6 +36,18 @@
 	&nbsp;
 	<span data-l10n-id="geoloc-debug">Enable debug</span>
 	<br />
+	<fieldset>
+	  <legend data-l10n-id="gps-fixes">Fixes</legend>
+	  <section>
+	    <input type="text" disabled="disabled" id="nbr-gps-fixes" placeholder="Number" />
+	  </section>
+	</fieldset>
+	<fieldset>
+	  <legend data-l10n-id="last-fix">Last</legend>
+	  <section>
+	    <input type="text" disabled="disabled" id="date-last-fix" placeholder="Now" />
+	  </section>
+	</fieldset>
         <span id="log"></span>
       </div>
     </section>

@@ -5,3 +5,7 @@ html, body {
 }
 
 body { background: none; }
+
+fieldset legend {
+  text-transform: none;
+}
