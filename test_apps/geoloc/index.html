@@ -27,9 +27,11 @@
         <button onclick="stopGeoloc();" id="btnStop" data-l10n-id="geoloc-stop">Stop</button>
         <button onclick="clearGeoloc();" id="btnClear" data-l10n-id="geoloc-clear">Clear</button>
 	<label>
-	  <input type="checkbox" id="geoloc-debug" checked="checked" />
-	  <span data-l10n-id="geoloc-debug">Enable debug</span>
+	  <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
+	  <span></span>
 	</label>
+	&nbsp;
+	<span data-l10n-id="geoloc-debug">Enable debug</span>
 	<br />
         <span id="log"></span>
       </div>
