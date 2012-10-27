@@ -8,18 +8,22 @@
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
     <script type="application/javascript" src="js/geoloc.js"></script>
+
+    <!-- localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <script src="shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
   </head>
   <body role="application">
     <section role="region">
       <header>
-        <h1>Geolocation test</h1>
+        <h1 data-l10n-id="geolocation-tracker">Geolocation tracker</h1>
       </header>
     </section>
     <section role="region">
       <div class="bb-docs">
-        <button onclick="startGeoloc();" id="btnStart">Start</button>
-        <button onclick="stopGeoloc();" id="btnStop">Stop</button>
-        <button onclick="clearGeoloc();" id="btnClear">Clear</button>
+        <button onclick="startGeoloc();" id="btnStart" data-l10n-id="geoloc-start">Start</button>
+        <button onclick="stopGeoloc();" id="btnStop" data-l10n-id="geoloc-stop">Stop</button>
+        <button onclick="clearGeoloc();" id="btnClear" data-l10n-id="geoloc-clear">Clear</button>
 	<br />
         <span id="log"></span>
       </div>
