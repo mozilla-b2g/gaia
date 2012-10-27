@@ -231,7 +231,7 @@ var ValueSelector = {
 
       window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
-  
+
     window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
@@ -263,9 +263,13 @@ var ValueSelector = {
 
       var checked = options[i].selected ? ' aria-checked="true"' : '';
 
+      // This for attribute is created only to avoid applying
+      // a general rule in building block
+      var forAttribute = ' for="gaia-option-' + options[i].optionIndex + '"';
+
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
-                     '<label> <span>' +
+                     '<label' + forAttribute + '> <span>' +
                      escapeHTML(options[i].text) +
                      '</span></label>' +
                     '</li>';
