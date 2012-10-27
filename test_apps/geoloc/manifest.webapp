@@ -9,7 +9,7 @@
   },
   "permissions": {
     "geolocation":{},
-    "device-storage":{}
+    "device-storage:":{}
   },
   "locales": {
     "en-US": {

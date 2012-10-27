@@ -29,13 +29,22 @@
         <button onclick="startGeoloc();" id="btnStart" data-l10n-id="geoloc-start">Start</button>
         <button onclick="stopGeoloc();" id="btnStop" data-l10n-id="geoloc-stop">Stop</button>
         <button onclick="clearGeoloc();" id="btnClear" data-l10n-id="geoloc-clear">Clear</button>
-	<label>
-	  <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
-	  <span></span>
-	</label>
-	&nbsp;
-	<span data-l10n-id="geoloc-debug">Enable debug</span>
-	<br />
+	<ul>
+	  <li>
+	    <label>
+	      <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
+	      <span></span>
+	    </label>
+	    <span data-l10n-id="geoloc-debug">Show debug traces</span>
+	  </li>
+	  <li>
+	    <label>
+	      <input type="checkbox" id="geoloc-keep" checked="checked" data-type="switch" />
+	      <span></span>
+	    </label>
+	    <span data-l10n-id="geoloc-keep">Keep locations</span>
+	  </li>
+	</ul>
 	<fieldset>
 	  <legend data-l10n-id="gps-fixes">Fixes</legend>
 	  <section>
@@ -48,6 +57,8 @@
 	    <input type="text" disabled="disabled" data-l10n-id="date-last-fix" id="date-last-fix" placeholder="None" />
 	  </section>
 	</fieldset>
+	<br />
+        <button onclick="saveGeoloc();" id="btnSave" data-l10n-id="geoloc-save">Save as a file</button>
         <span id="log"></span>
       </div>
     </section>

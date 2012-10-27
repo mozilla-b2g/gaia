@@ -1,8 +1,11 @@
+var running = false;
 var watchId = undefined;
 var sep = "<br />************<br />";
 
 var dtf = undefined;
 var _ = undefined;
+
+var locations = undefined;
 
 function success(position) {
   var debug = document.getElementById('geoloc-debug').checked;
@@ -10,6 +13,10 @@ function success(position) {
 
   if (!debug) {
     s.innerHTML = "";
+  }
+
+  if (keep()) {
+    locations.push(position);
   }
 
   s.innerHTML = sep + s.innerHTML;
@@ -39,12 +46,15 @@ function error(msg) {
 function startGeoloc() {
   error("Starting watchPosition");
   if (navigator.geolocation) {
+    locations = new Array();
     watchId = navigator.geolocation.watchPosition(success, error);
     document.getElementById('nbr-gps-fixes').value = "0";
     document.getElementById('date-last-fix').value = "";
     enable('btnStop');
     enable('btnClear');
     disable('btnStart');
+    disable('btnSave');
+    running = true;
   } else {
     error('not supported');
   }
@@ -57,12 +67,35 @@ function stopGeoloc() {
     disable('btnStop');
     enable('btnClear');
     enable('btnStart');
+    if (keep()) {
+      enable('btnSave');
+    }
+    running = false;
   }
 }
 
 function clearGeoloc() {
   var s = document.querySelector('#log');
   s.innerHTML = "";
+}
+
+function saveGeoloc() {
+  var date = dtf.localeFormat(new Date(), "%Y%m%d%H%M%S");
+  var storage = navigator.getDeviceStorage('sdcard');
+  var res = "";
+  for (var ei in locations) {
+    var e = locations[ei];
+    res += "Got a location: " + e.coords.latitude + "," + e.coords.longitude + " -- " + e.coords.accuracy + "\n";
+  }
+  var blob = new Blob([res], {type: 'application/gpx+xml'});
+  var fname = "geoloc-" + date + ".gpx";
+  var save = storage.addNamed(blob, fname);
+  save.onsuccess = function() {
+    console.log("Successfully saved " + fname);
+  };
+  save.onerror = function() {
+    console.error("Error while saving to " + fname + ": " + this.error.name);
+  };
 }
 
 function enable(id) {
@@ -79,9 +112,30 @@ function disable(id) {
   }
 }
 
+function keep() {
+  var e = document.getElementById('geoloc-keep');
+  if (e) {
+    return e.checked;
+  }
+  return false;
+}
+
 window.addEventListener('DOMContentLoaded', function() {
   dtf = new navigator.mozL10n.DateTimeFormat();
   _ = navigator.mozL10n.get;
   disable('btnStop');
   disable('btnClear');
+  disable('btnSave');
+  var keep = document.getElementById('geoloc-keep');
+  keep.addEventListener('change', function(ev) {
+    if (running) {
+      return;
+    }
+
+    if (ev.target.checked) {
+      enable('btnSave');
+    } else {
+      disable('btnSave');
+    }
+  });
 });

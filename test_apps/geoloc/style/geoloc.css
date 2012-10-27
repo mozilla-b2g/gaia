@@ -6,6 +6,7 @@ html, body {
 
 body { background: none; }
 
-fieldset legend {
-  text-transform: none;
+li {
+  list-style: none;
+  margin-left: -2em;
 }
