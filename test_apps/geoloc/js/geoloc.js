@@ -79,16 +79,81 @@ function clearGeoloc() {
   s.innerHTML = "";
 }
 
-function saveGeoloc() {
-  var date = dtf.localeFormat(new Date(), "%Y%m%d%H%M%S");
-  var storage = navigator.getDeviceStorage('sdcard');
-  var res = "";
+function locationsToGPX() {
+  var xmldoc = document.implementation.createDocument("", "", null);
+  var doc = xmldoc.createElementNS('http://www.topografix.com/GPX/1/1', 'gpx');
+  doc.setAttribute('creator', 'FirefoxOS geotracker');
+  doc.setAttribute('version', '1.1');
+  xmldoc.appendChild(doc);
+
+  var time = xmldoc.createElement('time');
+  var ts = xmldoc.createTextNode(dtf.localeFormat(new Date(), '%Y-%m-%dT%H:%M:%S%z'));
+  time.appendChild(ts);
+  doc.appendChild(time);
+
+  var createSimpleNode = function(name, value) {
+    var e = xmldoc.createElement(name);
+    e.appendChild(xmldoc.createTextNode(value));
+    return e;
+  };
+
   for (var ei in locations) {
     var e = locations[ei];
-    res += "Got a location: " + e.coords.latitude + "," + e.coords.longitude + " -- " + e.coords.accuracy + "\n";
+    var x = xmldoc.createElement('wpt');
+    x.setAttribute('lat', e.coords.latitude);
+    x.setAttribute('lon', e.coords.longitude);
+
+    var ele = createSimpleNode('ele', e.coords.altitude);
+    x.appendChild(ele);
+
+    var time = createSimpleNode('time', dtf.localeFormat(new Date(e.timestamp), '%Y-%m-%dT%H:%M:%S%z'));
+    x.appendChild(time);
+
+    var ext = xmldoc.createElement('extensions');
+    x.appendChild(ext);
+    var accuracy = createSimpleNode('accuracy', e.coords.accuracy);
+    ext.appendChild(accuracy);
+
+    var altitudeAccuracy = createSimpleNode('altitudeAccuracy', e.coords.altitudeAccuracy);
+    ext.appendChild(altitudeAccuracy);
+
+    if (!isNaN(e.coords.speed)) {
+      var speed = createSimpleNode('speed', e.coords.speed);
+      ext.appendChild(speed);
+    }
+
+    if (!isNaN(e.coords.heading)) {
+      var heading = createSimpleNode('heading', e.coords.heading);
+      ext.appendChild(heading);
+    }
+
+    doc.appendChild(x);
   }
-  var blob = new Blob([res], {type: 'application/gpx+xml'});
-  var fname = "geoloc-" + date + ".gpx";
+
+  return xmldoc;
+}
+
+function locationsToFile(format) {
+  var xmldoc = undefined;
+  if (format == "gpx") {
+    xmldoc = locationsToGPX();
+  }
+
+  var oSerializer = new XMLSerializer();
+  return oSerializer.serializeToString(xmldoc);
+}
+
+function saveGeoloc() {
+  var date = dtf.localeFormat(new Date(), "%Y%m%d%H%M%S");
+  var file = locationsToFile("gpx");
+  var blob = new Blob([file], {type: 'application/gpx+xml'});
+  var fname = "geoloc/geoloc-" + date + ".gpx";
+  var storage = navigator.getDeviceStorage('sdcard');
+  if (!storage) {
+    console.log("No storage available!");
+    console.log(file);
+    return;
+  }
   var save = storage.addNamed(blob, fname);
   save.onsuccess = function() {
     console.log("Successfully saved " + fname);
