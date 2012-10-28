@@ -1491,8 +1491,14 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
         break;
       default:
         if (currentLocation.indexOf('#num=') != -1) {
-          MessageManager.activityTarget = number;
-          window.location.hash = '#thread-list';
+          // Don't switch back to thread list if we're
+          // already displaying the requested number.
+          if (currentLocation == '#num=' + number) {
+            delete MessageManager.lockActivity;
+          } else {
+            MessageManager.activityTarget = number;
+            window.location.hash = '#thread-list';
+          }
         } else {
           window.location.hash = '#num=' + number;
           delete MessageManager.lockActivity;
