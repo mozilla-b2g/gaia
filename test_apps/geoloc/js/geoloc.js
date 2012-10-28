@@ -157,10 +157,10 @@ function saveGeoloc() {
   }
   var save = storage.addNamed(blob, fname);
   save.onsuccess = function() {
-    console.log("Successfully saved " + fname);
+    alert("Successfully saved " + fname);
   };
   save.onerror = function() {
-    console.error("Error while saving to " + fname + ": " + this.error.name);
+    alert("Error while saving to " + fname + ": " + this.error.name);
   };
 }
 
