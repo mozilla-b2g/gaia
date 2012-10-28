@@ -140,7 +140,8 @@ function locationsToFile(format) {
   }
 
   var oSerializer = new XMLSerializer();
-  return oSerializer.serializeToString(xmldoc);
+  return '<?xml version="1.0" ?>'
+         + oSerializer.serializeToString(xmldoc);
 }
 
 function saveGeoloc() {
