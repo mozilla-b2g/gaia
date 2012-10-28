@@ -84,6 +84,19 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    runningApps = WindowManager.getRunningApps();
+
+    // See if there are other apps besides the homescreen.
+    var origins = Object.keys(runningApps);
+    var otherThanHomeScreen = origins.some(function (origin) {
+      var frame = runningApps[origin].frame;
+      return !frame.classList.contains('homescreen');
+    });
+
+    // Don't show if there are no other running apps.
+    if (!otherThanHomeScreen)
+      return;
+
     // events to handle
     window.addEventListener('lock', CardsView);
     window.addEventListener('attentionscreenshow', CardsView);
@@ -94,7 +107,6 @@ var CardsView = (function() {
     // Apps info from WindowManager
     displayedApp = WindowManager.getDisplayedApp();
     currentDisplayed = 0;
-    runningApps = WindowManager.getRunningApps();
 
     // Switch to homescreen
     WindowManager.launch(null);
