@@ -235,6 +235,7 @@ const GridManager = (function() {
   }
 
   function goToPage(index, callback) {
+    document.location.hash = (index == 1 ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
 

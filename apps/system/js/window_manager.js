@@ -672,7 +672,12 @@ var WindowManager = (function() {
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  function ensureHomescreen() {
+  function ensureHomescreen(app, reset) {
+    // If the url of the homescreen is not known at this point do nothing.
+    if (!homescreen || !homescreenManifestURL) {
+      return null;
+    }
+
     if (!isRunning(homescreen)) {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
@@ -680,8 +685,33 @@ var WindowManager = (function() {
       setAppSize(homescreen);
       openWindow(homescreen, null);
       addWrapperListener();
+
+    } else if (reset) {
+      runningApps[homescreen].frame.src = homescreenURL;
+    }
+
+    // Make sure the homescreen is considered as the current displayed
+    // app if there is none.
+    if (!displayedApp) {
+      displayedApp = homescreen;
     }
     return runningApps[homescreen].frame;
+  }
+
+  function launchHomescreen() {
+    var lock = navigator.mozSettings.createLock();
+    var setting = lock.get('homescreen.manifestURL');
+    setting.onsuccess = function() {
+      var app =
+        Applications.getByManifestURL(this.result['homescreen.manifestURL']);
+      if (app) {
+        homescreenManifestURL = app.manifestURL;
+        homescreen = app.origin;
+        homescreenURL = app.origin + '/index.html#root';
+
+        ensureHomescreen(app);
+      }
+    }
   }
 
   // Hide current app
@@ -725,8 +755,10 @@ var WindowManager = (function() {
     // Case 2: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-      if (!currentApp)
+      if (!currentApp) {
         homescreenFrame.setVisible(true);
+      }
+
       setAppSize(newApp);
 
       openWindow(newApp, function windowOpened() {
@@ -1119,17 +1151,6 @@ var WindowManager = (function() {
           return;
         }
 
-        // If nothing is opened yet, consider the first application opened
-        // as the homescreen.
-        if (!homescreen) {
-          homescreen = origin;
-          addWrapperListener();
-          // Save the entry manifest URL and launch URL so that we can restart
-          // the homescreen later, if necessary.
-          homescreenURL = e.detail.url;
-          homescreenManifestURL = manifestURL;
-        }
-
         // XXX: the correct way would be for UtilityTray to close itself
         // when there is a appwillopen/appopen event.
         UtilityTray.hide();
@@ -1346,12 +1367,7 @@ var WindowManager = (function() {
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
     } else {
-      new MozActivity({
-        name: 'view',
-        data: {
-          type: 'application/x-application-list'
-        }
-      });
+      ensureHomescreen(null, true);
     }
   });
 
@@ -1406,6 +1422,7 @@ var WindowManager = (function() {
       return runningApps[displayedApp];
     },
     hideCurrentApp: hideCurrentApp,
-    restoreCurrentApp: restoreCurrentApp
+    restoreCurrentApp: restoreCurrentApp,
+    launchHomescreen: launchHomescreen
   };
 }());
