@@ -33,6 +33,7 @@ html, body {
   padding: 1rem;
   -moz-box-flex: 1;
   white-space: pre-line;
+  word-wrap: break-word;
   overflow: auto;
 }
 
