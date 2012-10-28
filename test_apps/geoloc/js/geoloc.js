@@ -40,6 +40,17 @@ function success(position) {
 
 function error(msg) {
   var s = document.querySelector('#log');
+  if (typeof msg == "object") {
+    if (msg.code == 1) {
+      msg = "Permission denied";
+    }
+    if (msg.code == 2) {
+      msg = "Position unavailable";
+    }
+    if (msg.code == 3) {
+      msg = "Timed out";
+    }
+  }
   s.innerHTML = sep + msg + sep + s.innerHTML;
 }
 
@@ -47,7 +58,12 @@ function startGeoloc() {
   error("Starting watchPosition");
   if (navigator.geolocation) {
     locations = new Array();
-    watchId = navigator.geolocation.watchPosition(success, error);
+    var options = {
+      enableHighAccuracy: document.getElementById('geoloc-highaccuracy').checked ? true : false,
+      timeout: parseInt(document.getElementById('geoloc-timeout').value),
+      maximumAge: parseInt(document.getElementById('geoloc-maxage').value)
+    };
+    watchId = navigator.geolocation.watchPosition(success, error, options);
     document.getElementById('nbr-gps-fixes').value = "0";
     document.getElementById('date-last-fix').value = "";
     enable('btnStop');

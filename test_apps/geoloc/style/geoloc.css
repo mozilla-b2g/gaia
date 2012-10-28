@@ -11,4 +11,17 @@ body {
 li {
   list-style: none;
   margin-left: -2em;
+  text-align: right;
+}
+
+li span {
+  text-align: left;
+}
+
+fieldset legend {
+  text-transform: none;
+}
+
+span.desc {
+  padding: 1em;
 }

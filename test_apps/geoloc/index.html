@@ -38,20 +38,40 @@
         <h1 data-l10n-id="geoloc-parameters" id="h1-parameters" data-hide="parameters" class="bb-docs">Parameters</h1>
       </header>
       <div class="bb-docs" id="parameters">
+        <fieldset>
+          <legend data-l10n-id="geoloc-timeout">Timeout</legend>
+          <section>
+            <input type="number" id="geoloc-timeout" value="0" />
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend data-l10n-id="geoloc-maxage">Max. age</legend>
+          <section>
+            <input type="number" id="geoloc-maxage" value="0" />
+          </section>
+        </fieldset>
+        <span class="desc" data-l10n-id="geoloc-msecs">Timeout and Max. age are specified in miliseconds.</span>
         <ul>
           <li>
+            <span data-l10n-id="geoloc-highaccuracy">High accuracy</span>
+            <label>
+              <input type="checkbox" id="geoloc-highaccuracy" checked="checked" data-type="switch" />
+              <span></span>
+            </label>
+          </li>
+          <li>
+            <span data-l10n-id="geoloc-debug">Show debug traces</span>
             <label>
               <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
               <span></span>
             </label>
-            <span data-l10n-id="geoloc-debug">Show debug traces</span>
           </li>
           <li>
+            <span data-l10n-id="geoloc-keep">Keep locations</span>
             <label>
               <input type="checkbox" id="geoloc-keep" checked="checked" data-type="switch" />
               <span></span>
             </label>
-            <span data-l10n-id="geoloc-keep">Keep locations</span>
           </li>
         </ul>
       </div>
