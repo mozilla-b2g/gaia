@@ -4,7 +4,9 @@ html, body {
   background-color: #fff;
 }
 
-body { background: none; }
+body {
+  background: none;
+}
 
 li {
   list-style: none;

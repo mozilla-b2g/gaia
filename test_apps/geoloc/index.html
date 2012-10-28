@@ -23,42 +23,65 @@
         <h1 data-l10n-id="geolocation-tracker">Geolocation tracker</h1>
       </header>
     </section>
-    <br />
+
     <section role="region">
       <div class="bb-docs">
         <button onclick="startGeoloc();" id="btnStart" data-l10n-id="geoloc-start">Start</button>
         <button onclick="stopGeoloc();" id="btnStop" data-l10n-id="geoloc-stop">Stop</button>
         <button onclick="clearGeoloc();" id="btnClear" data-l10n-id="geoloc-clear">Clear</button>
-	<ul>
-	  <li>
-	    <label>
-	      <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
-	      <span></span>
-	    </label>
-	    <span data-l10n-id="geoloc-debug">Show debug traces</span>
-	  </li>
-	  <li>
-	    <label>
-	      <input type="checkbox" id="geoloc-keep" checked="checked" data-type="switch" />
-	      <span></span>
-	    </label>
-	    <span data-l10n-id="geoloc-keep">Keep locations</span>
-	  </li>
-	</ul>
-	<fieldset>
-	  <legend data-l10n-id="gps-fixes">Fixes</legend>
-	  <section>
-	    <input type="text" disabled="disabled" id="nbr-gps-fixes" placeholder="0" />
-	  </section>
-	</fieldset>
-	<fieldset>
-	  <legend data-l10n-id="last-fix">Last</legend>
-	  <section>
-	    <input type="text" disabled="disabled" data-l10n-id="date-last-fix" id="date-last-fix" placeholder="None" />
-	  </section>
-	</fieldset>
-	<br />
         <button onclick="saveGeoloc();" id="btnSave" data-l10n-id="geoloc-save">Save as a file</button>
+      </div>
+    </section>
+
+    <section role="region">
+      <header>
+        <h1 data-l10n-id="geoloc-parameters" id="h1-parameters" data-hide="parameters" class="bb-docs">Parameters</h1>
+      </header>
+      <div class="bb-docs" id="parameters">
+        <ul>
+          <li>
+            <label>
+              <input type="checkbox" id="geoloc-debug" checked="checked" data-type="switch" />
+              <span></span>
+            </label>
+            <span data-l10n-id="geoloc-debug">Show debug traces</span>
+          </li>
+          <li>
+            <label>
+              <input type="checkbox" id="geoloc-keep" checked="checked" data-type="switch" />
+              <span></span>
+            </label>
+            <span data-l10n-id="geoloc-keep">Keep locations</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section role="region">
+      <header>
+        <h1 data-l10n-id="geoloc-status" id="h1-status" data-hide="status">Status</h1>
+      </header>
+      <div class="bb-docs" id="status">
+        <fieldset>
+          <legend data-l10n-id="gps-fixes">Fixes</legend>
+          <section>
+            <input type="text" disabled="disabled" id="nbr-gps-fixes" placeholder="0" />
+          </section>
+        </fieldset>
+        <fieldset>
+          <legend data-l10n-id="last-fix">Last</legend>
+          <section>
+            <input type="text" disabled="disabled" data-l10n-id="date-last-fix" id="date-last-fix" placeholder="None" />
+          </section>
+        </fieldset>
+      </div>
+    </section>
+
+    <section role="region">
+      <header>
+        <h1 data-l10n-id="geoloc-debug-log" id="h1-debuglog" data-hide="debuglog">Debug log</h1>
+      </header>
+      <div class="bb-docs" id="debuglog">
         <span id="log"></span>
       </div>
     </section>

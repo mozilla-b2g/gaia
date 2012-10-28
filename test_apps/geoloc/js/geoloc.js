@@ -54,6 +54,10 @@ function startGeoloc() {
     enable('btnClear');
     disable('btnStart');
     disable('btnSave');
+    show('status');
+    if (document.getElementById('geoloc-debug').checked) {
+      show('debuglog');
+    }
     running = true;
   } else {
     error('not supported');
@@ -178,6 +182,20 @@ function disable(id) {
   }
 }
 
+function show(id) {
+  var e = document.getElementById(id);
+  if (e) {
+    e.style.display = "block";
+  }
+}
+
+function hide(id) {
+  var e = document.getElementById(id);
+  if (e) {
+    e.style.display = "none";
+  }
+}
+
 function keep() {
   var e = document.getElementById('geoloc-keep');
   if (e) {
@@ -192,6 +210,9 @@ window.addEventListener('DOMContentLoaded', function() {
   disable('btnStop');
   disable('btnClear');
   disable('btnSave');
+  hide('parameters');
+  hide('status');
+  hide('debuglog');
   var keep = document.getElementById('geoloc-keep');
   keep.addEventListener('change', function(ev) {
     if (running) {
@@ -204,4 +225,31 @@ window.addEventListener('DOMContentLoaded', function() {
       disable('btnSave');
     }
   });
+
+  document.getElementById('geoloc-debug').addEventListener('change', function(ev) {
+    if (ev.target.checked) {
+      show('debuglog');
+    } else {
+      hide('debuglog');
+    }
+  });
+
+  var showHideDiv = function(ev, tgt) {
+    var clicktarget = document.getElementById(tgt);
+    clicktarget.addEventListener(ev, function(ev) {
+      var target = ev.target.dataset['hide'];
+      var el = document.getElementById(target);
+      if (el) {
+        if (el.style.display == "" || el.style.display == "block") {
+          hide(target);
+        } else {
+          show(target);
+        }
+      }
+    });
+  };
+
+  showHideDiv('click', 'h1-parameters');
+  showHideDiv('click', 'h1-status');
+  showHideDiv('click', 'h1-debuglog');
 });
