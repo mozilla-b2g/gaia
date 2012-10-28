@@ -25,20 +25,16 @@ const Homescreen = (function() {
     });
   }
 
-  window.addEventListener('hashchange', function() {
-    if (document.location.hash != '#root')
-      return;
-
+  function onHomescreenActivity() {
     if (Homescreen.isInEditMode()) {
       Homescreen.setMode('normal');
       GridManager.saveState();
       DockManager.saveState();
       Permissions.hide();
-      GridManager.goToPage(GridManager.pageHelper.getCurrentPageNumber());
     } else {
       GridManager.goToPage(1);
     }
-  });
+  }
 
   function setLocale() {
     // set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -81,14 +77,23 @@ const Homescreen = (function() {
     }
   });
 
-  if (navigator.mozSetMessageHandler) {
-    navigator.mozSetMessageHandler('activity', function onActivity(activity) {
+  if (window.navigator.mozSetMessageHandler) {
+    window.navigator.mozSetMessageHandler('activity',
+      function handleActivity(activity) {
         var data = activity.source.data;
+
         switch (activity.source.name) {
           case 'save-bookmark':
             if (data.type === 'url') {
               BookmarkEditor.init(data);
             }
+
+            break;
+          case 'view':
+            if (data.type === 'application/x-application-list') {
+              onHomescreenActivity();
+            }
+
             break;
         }
       });
