@@ -250,6 +250,28 @@ var Carrier = (function newCarrier(window, document, undefined) {
     document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
 
+    var icc = gMobileConnection.iccInfo;
+    if (icc) {;
+      var net_mnc = data.mnc;
+      var sim_mnc = icc.mnc;
+
+      if (net_mnc < 100) {
+        net_mnc = ("0" + net_mnc).slice (-2);
+      } else {
+        net_mnc = ("00" + net_mnc).slice (-3);
+      }
+
+      if (sim_mnc < 100) {
+        sim_mnc = ("0" + sim_mnc).slice (-2);
+      } else {
+        sim_mnc = ("00" + sim_mnc).slice (-3);
+      }
+
+      document.getElementById('msisdn-desc').textContent = icc.msisdn;
+      document.getElementById('netid-desc').textContent = ("00" + data.mcc).slice (-3) + net_mnc;
+      document.getElementById('simid-desc').textContent = ("00" + icc.mcc).slice (-3) + sim_mnc;
+    }
+
     // force data connection to restart if changes are validated
     apnSettings.querySelector('button[type=submit]').onclick =
         restartDataConnection;
