@@ -323,7 +323,8 @@ var Camera = {
         rotation: 90,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
-      this._cameraObj.startRecording(config, this._videoStorage, this._videoPath,
+      this._cameraObj.startRecording(config,
+                                     this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
     }).bind(this);
 
@@ -668,27 +669,12 @@ var Camera = {
       window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
   },
 
-  _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
-    var url = URL.createObjectURL(blob);
-    var img = new Image();
-    img.src = url;
-    img.onload = function() {
-      var canvas = document.createElement('canvas');
-      var context = canvas.getContext('2d');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      context.drawImage(img, 0, 0);
-      callback(canvas.toDataURL(type));
-      URL.revokeObjectURL(url);
-    };
-  },
-
   createDCFFilename: function camera_createDCFFilename(type, ext, callback) {
     var self = this;
     var dcf = this._dcfConfig;
     var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
-    var path =  'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
-    var storage = (type === 'video') ? this._videoStorage : this._pictureStorage;
+    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
+    var storage = type === 'video' ? this._videoStorage : this._pictureStorage;
 
     // A file with this name may have been written by the user or
     // our indexeddb sequence tracker was cleared, check we wont overwrite
@@ -727,14 +713,20 @@ var Camera = {
       var addreq = this._pictureStorage.addNamed(blob, name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
-          var type = 'image/jpeg';
-          this._dataURLFromBlob(blob, type, function(name) {
+          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=806503
+          // We ought to just be able to pass this blob to the activity.
+          // But there seems to be a bug with blob lifetimes and activities.
+          // So we'll get a new blob back out of device storage to ensure
+          // that we've got a file-backed blob instead of a memory-backed blob.
+          var getreq = this._pictureStorage.get(name);
+          getreq.onsuccess = (function() {
             this._pendingPick.postResult({
-              type: type,
-              url: name
+              type: 'image/jpeg',
+              blob: getreq.result
             });
             this.cancelActivity();
-          }.bind(this));
+          }).bind(this);
+
           return;
         }
         this.addToFilmStrip(name, blob, 'image/jpeg');

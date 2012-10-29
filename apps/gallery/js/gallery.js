@@ -574,17 +574,14 @@ function cropPickedImage(fileinfo) {
 }
 
 function finishPick() {
-  var url;
-  if (pickWidth)
-    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
-  else
-    url = cropEditor.getCroppedRegionDataURL(pickType);
-
-  pendingPick.postResult({
-    type: 'image/jpeg',
-    url: url
-  });
-  cleanupPick();
+  cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                  function(blob) {
+                                    pendingPick.postResult({
+                                      type: pickType,
+                                      blob: blob
+                                    });
+                                    cleanupPick();
+                                  });
 }
 
 function cancelPick() {

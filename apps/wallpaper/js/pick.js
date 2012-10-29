@@ -27,12 +27,14 @@ window.onload = function() {
     canvas.height = pickActivity.source.data.height;
     context.drawImage(e.target, 0, 0);
 
-    pickActivity.postResult({
-      type: pickActivity.source.data.type,
-      url: canvas.toDataURL(pickActivity.source.data.type)
-    });
+    canvas.toBlob(function(blob) {
+      pickActivity.postResult({
+        type: pickActivity.source.data.type,
+        blob: blob
+      });
 
-    endPick();
+      endPick();
+    }, pickActivity.source.data.type);
   }
 
   function cancelPick() {
