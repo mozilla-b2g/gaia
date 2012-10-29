@@ -47,6 +47,7 @@ ol, ul {
 
 .recents-filter-container {
   background: white;
+  overflow: hidden;
 }
 
 .recents-filter-entry {
@@ -79,6 +80,7 @@ button::-moz-focus-inner {
   height: -moz-calc(100% - 8rem);
   -moz-transition: height .15s ease-in;
   position: absolute;
+  overflow: hidden;
   width: 100%;
 }
 
@@ -303,4 +305,16 @@ label:not([for]).call-log-selection input + span {
   color: #606060;
   font-weight: 300;
   font-size: -moz-calc(10 * 0.226rem);
+}
+
+/*
+  Add contact action menu
+ */
+
+#add-contact-action-menu {
+  display: none;
+}
+
+#add-contact-action-menu.visible {
+  display: inline;
 }

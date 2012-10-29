@@ -184,10 +184,15 @@
 #keypad-callbar-cancel {
   display: table-cell;
   width: 9rem;
-  background: -moz-linear-gradient(top, #242b36 0%, #19191a 100%);
+  background: url("images/btn_generic.png") repeat-x;
+  background-size: auto 100%;
   border: .1rem solid #242B36;
   border-radius: .2rem;
   vertical-align: middle;
+}
+
+#keypad-callbar-add-contact:active {
+  background: #333333;
 }
 
 #keypad-callbar-cancel {
@@ -206,15 +211,15 @@
 #keypad-callbar-call-action {
   display: table-cell;
   width: 100%;
-  background: #84c82c;
+  background: url("images/btn_pick_up.png") repeat-x;
+  background-size: auto 100%;
   border: 0;
   border-radius: .2rem;
-  background: -moz-linear-gradient(top, rgb(132, 200, 44) 0%, rgb(95, 155, 10) 100%);
   vertical-align: middle;
 }
 
 #keypad-callbar-call-action:active {
-  background: -moz-linear-gradient(top, rgba(132, 200, 44, 0.7) 0%, rgba(95, 155, 10, 0.7) 100%);
+  background: #4B780A;
 }
 
 .icon-add-contact {
@@ -261,9 +266,14 @@
 }
 
 #keypad-hidebar-hang-up-action {
-  background: -moz-linear-gradient(top, #ff0000 0%, #ce0000 100%);
+  background: url("images/btn_hang_up.png") repeat-x;
+  background-size: auto 100%;
   opacity: 1.0;
   margin: 1rem .5rem 1.5rem 1.5rem;
+}
+
+#keypad-hidebar-hang-up-action:active {
+  background: #820000;
 }
 
 #keypad-hidebar-hang-up-action > div {
@@ -277,9 +287,14 @@
 }
 
 #keypad-hidebar-hide-keypad-action {
-  background: -moz-linear-gradient(top, #6A6A6A 0%, #3E3E3E 100%);
+  background: url("images/btn_generic.png") repeat-x;
+  background-size: auto 100%;
   opacity: 1.0;
   margin: 1rem 1.5rem 1.5rem .5rem;
+}
+
+#keypad-hidebar-hide-keypad-action:active {
+  background: #333333;
 }
 
 #keypad-hidebar-hide-keypad-action > div {

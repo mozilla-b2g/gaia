@@ -46,6 +46,7 @@ var CardsView = (function() {
   // List of sorted apps
   var userSortedApps = [];
   var HVGA = document.documentElement.clientWidth < 480;
+  var cardsViewShown = false;
 
   // init events
   var gd = new GestureDetector(cardsView);
@@ -84,6 +85,9 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    if (cardSwitcherIsShown())
+      return;
+
     // events to handle
     window.addEventListener('lock', CardsView);
     window.addEventListener('attentionscreenshow', CardsView);
@@ -98,6 +102,7 @@ var CardsView = (function() {
 
     // Switch to homescreen
     WindowManager.launch(null);
+    cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -254,6 +259,7 @@ var CardsView = (function() {
 
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    cardsViewShown = false;
 
     // And remove all the cards from the document after the transition
     cardsView.addEventListener('transitionend', function removeCards() {
@@ -274,7 +280,7 @@ var CardsView = (function() {
   }
 
   function cardSwitcherIsShown() {
-    return cardsView.classList.contains('active');
+    return cardsViewShown;
   }
 
   //scrolling cards

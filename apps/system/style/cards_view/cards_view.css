@@ -5,15 +5,16 @@
   left: 0;
   width: 100%;
   height: 100%;
-  transition: background-color 0.5s ease, visibility 0.5s ease;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+  opacity: 0;
   -moz-user-select: none;
   overflow: scroll;
-  background-color: rgba(0, 0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.8);
 }
 
 #cards-view.active {
-  background-color: rgba(0, 0, 0, 0.8);
   visibility: inherit;
+  opacity: 1;
 }
 
 #cards-view ul {
@@ -38,14 +39,6 @@
   background-position: center center;
   background-repeat: no-repeat;
   transform: scale(0.6);
-
-  /* Note: this has no effect to entry transition but exiting */
-  transition: opacity 0.7s ease;
-  opacity: 0;
-}
-
-#screen.cards-view > #cards-view .card {
-  opacity: 1;
 }
 
 #cards-view .card[data-edit='true'] {

@@ -105,13 +105,40 @@ body {
   background-color: #fff;
 }
 
-#screen.cards-view > #windows > iframe.appWindow:not(.homescreen) {
+#windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
   visibility: hidden;
 }
 
-#windows > iframe.appWindow:not(.active):not(.homescreen) {
-  visibility: hidden;
+#windows > iframe.appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
+  opacity: 0;
+  transform: scale(0.6);
 }
+
+#windows > iframe.appWindow.opening {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+#screen.cards-view > #windows > iframe.appWindow.opening,
+#screen.cards-view > #windows > iframe.appWindow.closing {
+  transition: transform 0.5s ease;
+  opacity: 1;
+}
+
+#windows > iframe.appWindow.closing {
+  transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
+}
+
+/* Workaround OOP window issue
+ * https://bugzilla.mozilla.org/show_bug.cgi?id=792351 */
+#windows > iframe.appWindow.opening {
+  top: 0 !important;
+  transform: translateY(20px) scale(1);
+}
+#windows > iframe.appWindow.closing {
+  top: 0 !important;
+  transform: translateY(20px) scale(0.6);
+}
+/* /Workaround */
 
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
@@ -178,7 +205,8 @@ body {
   opacity: 1;
 }
 
-#windowSprite[data-mask="true"] > div {
+/* a dark mask on top of cached screenshot */
+#windowSprite > div {
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
@@ -332,4 +360,8 @@ iframe.backgroundWindow {
 #system-banner.visible {
   animation: banner-bounce 4s;
   visibility: visible;
+}
+
+#screen iframe.communication-frame {
+  visibility: hidden;
 }

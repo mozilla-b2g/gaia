@@ -8,10 +8,14 @@
     <link rel="stylesheet" type="text/css" href="style/grid.css"/>
     <link rel="stylesheet" type="text/css" href="style/dragdrop.css"/>
     <link rel="stylesheet" type="text/css" href="style/dock.css"/>
+    <link rel="stylesheet" type="text/css" href="style/landing.css"/>
     <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css"/>
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/l10n_date.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
 
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -25,6 +29,7 @@
     <script type="text/javascript" defer src="js/page.js"></script>
     <script type="text/javascript" defer src="js/pagbar.js"></script>
     <script type="text/javascript" defer src="js/dock.js"></script>
+    <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
     <script type="text/javascript" defer src="js/homescreen.js"></script>
@@ -32,6 +37,7 @@
     <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+    <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
   </head>
 
   <body data-mode="normal">
@@ -67,8 +73,8 @@
               <header class="loading-header" data-l10n-id="loadingEvme">
                 Everything.me
               </header>
-              <p>
-                <progress class="loading-icon frozen"></progress>
+              <p role="status">
+                <progress class="loading-icon frozen small"></progress>
               </p>
             </section>
           </article>
@@ -160,7 +166,12 @@
             </div>
           </div>
       </div>
-      <div id="landingPage" data-current-page="true"></div>
+      <div id="landing-page" data-current-page="true">
+        <div id="landing-time">
+          <p id="landing-clock"></p>
+          <p id="landing-date"></p>
+        </div>
+      </div>
     </div>
 
     <footer id="footer">
