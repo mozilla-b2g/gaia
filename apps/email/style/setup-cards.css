@@ -86,8 +86,9 @@
 .tng-account-item-label {
   margin: 0;
 }
-.tng-account-add {
-  font-style: italic;
+.tng-account-add, .tng-account-delete {
+  width: auto;
+  margin: 0.8rem 0;
 }
 
 li {
@@ -98,6 +99,7 @@ li {
   border-right: none;
   border-left: none;
   margin: -1px 0 0;
+  list-style-type: none;
 }
 
 li a:active {
@@ -135,6 +137,10 @@ li .aside.end {
   right: 0.5rem;
   top: 0;
   line-height: 5.5rem;
+}
+
+li.align-center {
+  text-align: center;
 }
 
 .mail-select {
