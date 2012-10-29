@@ -7,13 +7,13 @@ var ActivityHandler = (function Handler() {
   var handleActivity = function handleActivity(activity) {
     this._currentActivity = activity;
 
-    if (!activity.source.data.urls ||
-      activity.source.data.urls.length == 0) {
+    if (!activity.source.data.blobs ||
+      activity.source.data.blobs.length == 0) {
       this.postCancel();
       return;
     }
 
-    this._image = activity.source.data.urls[0];
+    this._image = activity.source.data.blobs[0];
     var event = new CustomEvent('onImageReceived', {
       detail: {
         data: this._image
