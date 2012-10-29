@@ -10,10 +10,6 @@ html, body {
   color: black;
 }
 
-html * {
-  overflow: hidden;
-}
-
 #message-screen {
   width: 100%;
   height: 100%;
@@ -37,6 +33,7 @@ html * {
   padding: 1rem;
   -moz-box-flex: 1;
   white-space: pre-line;
+  word-wrap: break-word;
   overflow: auto;
 }
 

@@ -36,11 +36,15 @@
   z-index: 65536;
 }
 
-/* Promote window-sprite to this level as the entry and exiting transition
+/* Promote window-sprite and appWindow to this level as the entry and exiting transition
   of the cards view. */
 #screen.cards-view > [data-z-index-level="window-sprite"]:not(.before-open),
-#screen > [data-z-index-level="cards-view"] {
+#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.opening,
+#screen.cards-view > [data-z-index-level="app"] > iframe.appWindow.closing {
   z-index: 65536;
+}
+#screen.cards-view > [data-z-index-level="cards-view"] {
+  z-index: 65535;
 }
 
 #screen > [data-z-index-level="keyboard-overlay"] {
@@ -117,6 +121,11 @@
 }
 
 /* Level 8 */
+#screen.switch-app [data-z-index-level="app"] > iframe.appWindow.opening,
+#screen.switch-app [data-z-index-level="app"] > iframe.appWindow.closing,
+#screen.switch-app [data-z-index-level="app"] > iframe.appWindow:not(.homescreen).active {
+  z-index: 6;
+}
 #screen > [data-z-index-level="window-sprite"] {
   z-index: 5;
 }
@@ -142,7 +151,9 @@
   z-index: 5;
 }
 
-#screen > [data-z-index-level="app"] > iframe.appWindow.active {
+#screen > [data-z-index-level="app"] > iframe.appWindow.active,
+#screen > [data-z-index-level="app"] > iframe.appWindow.opening,
+#screen > [data-z-index-level="app"] > iframe.appWindow.closing {
   z-index: 4;
 }
 

@@ -254,7 +254,7 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
-    if (show) {
+    if (show && !ActivityHandler.currentlyHandling) {
       noContacts.classList.remove('hide');
       return;
     }
