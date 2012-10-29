@@ -779,7 +779,7 @@ var WindowManager = (function() {
     frame.classList.remove('hideBottom');
     frame.classList.add('restored');
     frame.addEventListener('transitionend', function removeRestored() {
-      frame.removeEventListener('transitionend', execCallback);
+      frame.removeEventListener('transitionend', removeRestored);
       frame.classList.remove('restored');
     });
   }
