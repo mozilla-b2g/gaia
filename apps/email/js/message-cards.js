@@ -902,9 +902,9 @@ MessageReaderCard.prototype = {
     if (!req) {
       return;
     }
-    var op = this.header.deleteMessage();
-    Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    var op = this.header.deleteMessage();
+    Toaster.logMutation(op, true);
   },
 
   onToggleStar: function() {
@@ -914,8 +914,7 @@ MessageReaderCard.prototype = {
     else
       button.classList.remove('msg-btn-active');
 
-    var op = this.header.setStarred(!this.header.isStarred);
-    Toaster.logMutation(op);
+    this.header.setStarred(!this.header.isStarred);
   },
 
   onToggleRead: function() {
@@ -925,15 +924,15 @@ MessageReaderCard.prototype = {
     else
       button.classList.remove('msg-btn-active');
 
-    var op = this.header.setRead(!this.header.isRead);
-    Toaster.logMutation(op);
+    this.header.setRead(!this.header.isRead);
   },
 
   onMove: function() {
     //TODO: Please verify move functionality after api landed.
     Cards.folderSelector(function(folder) {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
       var op = this.header.moveMessage(folder);
-      Toaster.logMutation(op);
+      Toaster.logMutation(op, true);
     }.bind(this));
   },
 
