@@ -328,7 +328,7 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
+    this.composer.finishCompositionSendMessage();
     if (this.shareActivity) {
       // XXX: Return value under window mode will cause crash easily, disable
       //      return and stay in email until inline mode is stable.
