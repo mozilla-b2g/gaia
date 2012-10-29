@@ -905,6 +905,19 @@ var Toaster = {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
+// Attachment Formatting Helpers
+
+/**
+ * Display a human-readable file size.  Currently we always display things in
+ * kilobytes because we are targeting a mobile device and we want bigger sizes
+ * (like megabytes) to be obviously large numbers.
+ */
+function prettyFileSize(sizeInBytes) {
+  var kilos = Math.ceil(sizeInBytes / 1024);
+  return mozL10n.get('attachment-size-kib', { kilobytes: kilos });
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Pretty date logic; copied from the SMS app.
 // Based on Resig's pretty date
 

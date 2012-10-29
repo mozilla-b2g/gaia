@@ -112,3 +112,6 @@
 .cmp-attachment-filesize {
   color: gray;
 }
+.cmp-attachment-remove {
+  width: 3.5rem;
+}

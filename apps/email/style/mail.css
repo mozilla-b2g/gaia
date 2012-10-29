@@ -202,6 +202,10 @@ body {
   background-image: url("images/icons/close.png");
 }
 
+.icon-download {
+  background-image: url("images/icons/download.png");
+}
+
 .icon-edit {
   background-image: url("images/icons/edit.png");
 }
