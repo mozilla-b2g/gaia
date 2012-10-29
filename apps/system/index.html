@@ -37,6 +37,7 @@
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
     <script defer src="js/hardware_buttons.js"></script>
+    <script defer src="js/system_banner.js"></script>
 
     <!-- Battery Manager -->
     <link rel="stylesheet" type="text/css" href="style/battery_manager/battery_manager.css">
@@ -149,9 +150,10 @@
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
 
-    <!-- System Updater -->
-    <script defer src="js/system_updater.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/system_updater/system_updater.css">
+    <!-- Update Manager -->
+    <script defer src="js/updatable.js"></script>
+    <script defer src="js/update_manager.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -262,12 +264,14 @@
         </div>
 
         <div id="notifications-container">
-          <!-- system updater -->
-          <div id="system-update-status" class="notification">
-            <div class="system-update-progress" data-l10n-id="updateProgress">System update...</div>
-            <div class="system-update-applying" data-l10n-id="applying">Applying...</div>
-            <div class="icon"></div>
-            <progress value="0" max="1"></progress>
+          <!-- Update Manager -->
+          <div id="update-manager-container">
+            <div class="count">
+            </div>
+            <div class="activity">
+            </div>
+            <div class="message">
+            </div>
           </div>
           <div id="desktop-notifications-container">
           </div>
@@ -587,6 +591,13 @@
 
       <div id="attention-screen" data-z-index-level="attention-screen">
         <div id="attention-bar"></div>
+      </div>
+
+      <div id="update-manager-toaster" data-z-index-level="notification-toaster">
+        <div class="count">
+        </div>
+        <div class="message">
+        </div>
       </div>
 
       <div id="notification-toaster" data-z-index-level="notification-toaster">
