@@ -445,7 +445,8 @@ onLocalized(function wifiSettings() {
 
           // signal is between 0 and 100, level should be between 0 and 4
           var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-          listItem.className = 'wifi-signal' + level;
+          listItem.classList.add('wifi-network');
+          listItem.classList.add('wifi-signal' + level);
 
           // put connected network on top of list
           if (isConnected(network)) {

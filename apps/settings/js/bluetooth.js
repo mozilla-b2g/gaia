@@ -268,7 +268,8 @@ onLocalized(function bluetoothSettings() {
       deviceDesc.textContent = desc;
 
       var li = document.createElement('li');
-      li.className = device.icon;
+      li.classList.add('bluetooth-device');
+      li.classList.add('bluetooth-type-' + device.icon);
       li.appendChild(deviceDesc); // should append this first
       li.appendChild(deviceName);
 
