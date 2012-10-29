@@ -9,8 +9,8 @@
   "permissions": {
     "webapps-manage":{},
     "systemXHR":{},
-    "settings":{},
-    "device-storage:pictures":{}
+    "settings":{ "access": "readonly" },
+    "device-storage:pictures":{ "access": "readonly" }
   },
   "locales": {
     "ar": {

@@ -10,7 +10,7 @@
   "permissions": {
     "browser":{},
     "systemXHR":{},
-    "settings":{}
+    "settings":{ "access": "readonly" }
   },
   "locales": {
     "ar": {

@@ -11,8 +11,8 @@
   "permissions": {
     "backgroundservice":{},
     "attention":{},
-    "contacts":{},
-    "settings":{},
+    "contacts":{ "access": "readwrite" },
+    "settings":{ "access": "readwrite" },
     "desktop-notification":{}
   }
 }
