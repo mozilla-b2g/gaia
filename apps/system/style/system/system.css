@@ -327,6 +327,10 @@ iframe.backgroundWindow {
   height: 100%;
 }
 
+#screen:not(.crash-dialog) #crash-dialog {
+  visibility: hidden;
+}
+
 #screen.authentication-dialog #dialog-overlay,
 #screen.authentication-dialog #authentication-dialog,
 #screen.crash-dialog #dialog-overlay,
