@@ -45,14 +45,14 @@ var LockScreen = {
   passCodeRequestTimeout: 0,
 
   /*
-  * Store the time that screen is off
+  * Store the first time the screen went off since unlocking.
   */
   _screenOffTime: 0,
 
   /*
   * Check the timeout of passcode lock
   */
-  _passcodeTimeoutCheck: false,
+  _passCodeTimeoutCheck: false,
 
   /*
   * passcode to enable the smiley face easter egg.
@@ -195,7 +195,11 @@ var LockScreen = {
         // we would need to lock the screen again
         // when it's being turned back on
         if (!evt.detail.screenEnabled) {
-          this._screenOffTime = new Date().getTime();
+          // Don't update the time after we're already locked otherwise turning
+          // the screen off again will bypass the passcode before the timeout.
+          if (!this.locked) {
+            this._screenOffTime = new Date().getTime();
+          }
         } else {
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
