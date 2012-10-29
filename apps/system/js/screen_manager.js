@@ -94,8 +94,9 @@ var ScreenManager = {
     // When idled, trigger the idle-screen-off process
     this.idleObserver.onidle = function scm_onidle() {
       self._idled = true;
-      if (!self._screenWakeLocked)
+      if (!self._screenWakeLocked && self.isIdleSinceLastScreenOn()) {
         self.turnScreenOff(self._instantIdleOff);
+      }
     };
 
     // When active, cancel the idle-screen-off process & off-transition
@@ -234,6 +235,7 @@ var ScreenManager = {
     if (power)
       power.screenEnabled = true;
 
+    this._lastScreenOnTimestamp = Date.now();
     this.screenEnabled = true;
     this.screen.classList.remove('screenoff');
 
@@ -350,6 +352,16 @@ var ScreenManager = {
     this._instantIdleOff = instant;
     this.idleObserver.time = time;
     navigator.addIdleObserver(this.idleObserver);
+  },
+
+  // When the screen is turned on after a long pause the idle timer of
+  // the device is not reset to 0. As a side effect the handler fire as
+  // soon the screen is turned back on. In order to avoid such unwanted
+  // behavior a manual check is performed against the last time the screen
+  // has been turned on.
+  isIdleSinceLastScreenOn: function scm_isIdleSinceLastScreenOn() {
+    return Date.now() - this._lastScreenOnTimestamp >=
+      (this.idleObserver.time * 1000);
   },
 
   fireScreenChangeEvent: function scm_fireScreenChangeEvent() {
