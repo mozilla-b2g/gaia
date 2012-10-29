@@ -10,6 +10,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
+requireApp('communications/contacts/test/unit/mock_activities.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -32,6 +33,10 @@ if (!this.mozL10n) {
   this.mozL10n = null;
 }
 
+if (!this.ActivityHandler) {
+  this.ActivityHandler = null;
+}
+
 suite('Render contacts list', function() {
   var subject,
       container,
@@ -45,6 +50,8 @@ suite('Render contacts list', function() {
       utils,
       mockContacts,
       mozL10n,
+      mockActivities,
+      realActivities,
       groupA,
       groupB,
       groupC,
@@ -175,6 +182,8 @@ suite('Render contacts list', function() {
     window.Contacts.extFb = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
+    realActivities = window.ActivityHandler;
+    window.ActivityHandler = MockActivities;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     subject = contacts.List;
@@ -189,6 +198,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
+    window.ActivityHandler = realActivities;
   });
 
   suite('Render list', function() {
@@ -448,6 +458,15 @@ suite('Render contacts list', function() {
       assert.isFalse(noContacts.classList.contains('hide'));
       assertNoGroup(groupFav, containerFav);
       assertTotal(0, 0);
+    });
+
+    test('checking no contacts when coming fron activity', function() {
+      MockActivities.currentlyHandling = true;
+      subject.load([]);
+      assert.isTrue(noContacts.classList.contains('hide'));
+      assertNoGroup(groupFav, containerFav);
+      assertTotal(0, 0);
+      MockActivities.currentlyHandling = false;
     });
   });  // suite ends
 
