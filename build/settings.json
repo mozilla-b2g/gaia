@@ -19,7 +19,7 @@
  "devtools.debugger.log": false,
  "devtools.debugger.remote-enabled": false,
  "devtools.debugger.remote-port": 6000,
- "gaia.system.checkForUpdates":, true,
+ "gaia.system.checkForUpdates": true,
  "geolocation.enabled": true,
  "dialer.ringtone": "classic.ogg",
  "keyboard.layouts.english": true,
