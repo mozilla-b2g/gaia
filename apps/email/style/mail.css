@@ -136,6 +136,7 @@ body {
   height: 4.8rem;
   border: none;
   width: 6rem;
+  margin: 0 calc((100% - 25rem) / 8);
 }
 /* create a space the size of the toolbar since it is absolute...
    9.6 rem = 4.8rem (toolbar height)  + 4.8rem (search bar height) */
