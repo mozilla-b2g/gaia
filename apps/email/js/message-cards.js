@@ -854,10 +854,6 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reader-load-infobar')[0]
     .addEventListener('click', this.onLoadBarClick.bind(this), false);
 
-  bindContainerHandler(
-    domNode.getElementsByClassName('msg-attachments-container')[0],
-    'click', this.onAttachmentClick.bind(this));
-
   // - mark message read (if it is not already)
   if (!this.header.isRead)
     this.header.setRead(true);
@@ -871,20 +867,6 @@ MessageReaderCard.prototype = {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
     this.buildBodyDom(this.domNode);
-  },
-
-  formatFileSize: function(size) {
-    // XXX: localize this!
-    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
-    var unitSize = size;
-    var unitIndex = 0;
-
-    while ((unitSize >= 999.5) && (unitIndex < units.length)) {
-      unitSize /= 1024;
-      unitIndex++;
-    }
-    return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
-           ' ' + units[unitIndex];
   },
 
   onBack: function(event) {
@@ -1043,7 +1025,36 @@ MessageReaderCard.prototype = {
     }
   },
 
-  onAttachmentClick: function(event) {
+  onDownloadAttachmentClick: function(node, attachment) {
+    node.setAttribute('state', 'downloading');
+    attachment.download(function downloaded() {
+      node.setAttribute('state', 'downloaded');
+    });
+  },
+
+  onViewAttachmentClick: function(node, attachment) {
+    console.log('trying to open', attachment._file, 'type:',
+                attachment.mimetype);
+    if (!attachment._file)
+      return;
+    try {
+      var activity = new MozActivity({
+        name: 'open',
+        data: {
+          type: attachment.mimetype,
+          filename: attachment._file[1]
+        }
+      });
+      activity.onerror = function() {
+        console.warn('Problem with "open" activity', activity.error.name);
+      };
+      activity.onsuccess = function() {
+        console.log('"open" activity allegedly succeeded');
+      };
+    }
+    catch (ex) {
+      console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+    }
   },
 
   onHyperlinkClick: function() {
@@ -1152,6 +1163,14 @@ MessageReaderCard.prototype = {
     }
 
     // -- Attachments (footer)
+    // An attachment can be in 1 of 3 possible states for UI purposes:
+    // - Not downloadable: We can't download this message because we wouldn't
+    //   be able to do anything with it if we downloaded it.  Anything that's
+    //   not a supported image type falls in this category.
+    // - Downloadable, not downloaded: The user can trigger download of the
+    //   attachment to DeviceStorage.
+    // - Downloadable, downloaded: The attachment is already fully downloaded
+    //   to DeviceStorage and we can trigger its display.
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
@@ -1161,12 +1180,28 @@ MessageReaderCard.prototype = {
           filesizeTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
       for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
-        var attachment = body.attachments[iAttach];
+        var attachment = body.attachments[iAttach], state;
+        if (attachment.isDownloaded)
+          state = 'downloaded';
+        else if (/^image\//.test(attachment.mimetype))
+          state = 'downloadable';
+        else
+          state = 'nodownload';
+        attTemplate.setAttribute('state', state);
         filenameTemplate.textContent = attachment.filename;
-        // XXX perform localized mimetype translation stuff
-        filesizeTemplate.textContent = this.formatFileSize(
+        filesizeTemplate.textContent = prettyFileSize(
           attachment.sizeEstimateInBytes);
-        attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+
+        var attachmentNode = attTemplate.cloneNode(true);
+        attachmentsContainer.appendChild(attachmentNode);
+        attachmentNode.getElementsByClassName('msg-attachment-download')[0]
+          .addEventListener('click',
+                            this.onDownloadAttachmentClick.bind(
+                              this, attachmentNode, attachment));
+        attachmentNode.getElementsByClassName('msg-attachment-view')[0]
+          .addEventListener('click',
+                            this.onViewAttachmentClick.bind(
+                              this, attachmentNode, attachment));
       }
     }
     else {

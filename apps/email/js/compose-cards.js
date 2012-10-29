@@ -53,6 +53,7 @@ function ComposeCard(domNode, mode, args) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+
   // Add attachments
   var attachmentsContainer =
     domNode.getElementsByClassName('cmp-attachments-container')[0];
@@ -63,12 +64,16 @@ function ComposeCard(domNode, mode, args) {
         filesizeTemplate =
           attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
     for (var i = 0; i < this.composer.attachments.length; i++) {
-      var attachment = body.attachments[i];
-      filenameTemplate.textContent = attachment.filename;
-      // XXX perform localized mimetype translation stuff
-      filesizeTemplate.textContent = this.formatFileSize(
-        attachment.sizeEstimateInBytes);
-      attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+      var attachment = this.composer.attachments[i];
+      filenameTemplate.textContent = attachment.name;
+      filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
+      var attachmentNode = attTemplate.cloneNode(true);
+      attachmentsContainer.appendChild(attachmentNode);
+
+      attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
+        .addEventListener('click',
+                          this.onClickRemoveAttachment.bind(
+                            this, attachmentNode, attachment));
     }
   }
   else {
@@ -81,6 +86,7 @@ ComposeCard.prototype = {
     // hence this happens in postInsert.
     this._loadStateFromComposer();
   },
+
   _loadStateFromComposer: function() {
     var self = this;
     function expandAddresses(node, addresses) {
@@ -291,6 +297,11 @@ ComposeCard.prototype = {
     if (addBtn == evt.explicitOriginalTarget)
       return;
     addBtn.classList.remove('show');
+  },
+
+  onClickRemoveAttachment: function(node, attachment) {
+    node.parentNode.removeChild(node);
+    this.composer.removeAttachment(attachment);
   },
 
   /**
