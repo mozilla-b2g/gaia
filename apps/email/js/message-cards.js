@@ -119,7 +119,6 @@ function MessageListCard(domNode, mode, args) {
   }
   // -- search mode
   else if (mode === 'search') {
-console.log('sf: search mode!');
     domNode.getElementsByClassName('msg-search-cancel')[0]
       .addEventListener('click', this.onCancelSearch.bind(this), false);
 
@@ -304,7 +303,7 @@ MessageListCard.prototype = {
   },
 
   showSearch: function(folder, phrase, filter) {
-console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    console.log('sf: showSearch. phrase:', phrase, phrase.length);
     if (this.messagesSlice) {
       this.messagesSlice.die();
       this.messagesSlice = null;
@@ -314,7 +313,7 @@ console.log('sf: showSearch. phrase:', phrase, phrase.length);
     this.curPhrase = phrase;
     this.curFilter = filter;
 
-    if (phrase.length < 3)
+    if (phrase.length < 1)
       return false;
 
     this.messagesSlice = MailAPI.searchFolderMessages(
@@ -339,7 +338,7 @@ console.log('sf: showSearch. phrase:', phrase, phrase.length);
   },
 
   onSearchTextChange: function(event) {
-console.log('sf: typed, now:', this.searchInput.value);
+    console.log('sf: typed, now:', this.searchInput.value);
     this.showSearch(this.curFolder, this.searchInput.value, this.curFilter);
   },
 
