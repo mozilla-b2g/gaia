@@ -239,6 +239,10 @@ section[role="status"].fadeout {
   opacity: 0;
 }
 
+section[role="status"][title="undo"] p {
+  max-width: 65% !important;
+}
+
 section[role="status"] .toaster-cancel-btn {
   height: 8rem;
 }
