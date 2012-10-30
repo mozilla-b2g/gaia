@@ -9,6 +9,11 @@ var StopWatch = {
     return this.actionButton = document.getElementById(id);
   },
 
+  get resetButton() {
+    delete this.resetButton;
+    return this.actionButton = document.getElementById('reset-button');
+  },
+
   get tickerView() {
     delete this.tickerView;
     return this.tickerView = document.getElementById('stopwatch-ticker-view');
@@ -64,3 +69,11 @@ var StopWatch = {
       this.chronoView.innerHTML = newValue;
   }
 };
+
+window.addEventListener('load', function onLoad() {
+  window.removeEventListener('load', onLoad);
+
+  StopWatch.actionButton.onclick = StopWatch.start.bind(StopWatch);
+  StopWatch.resetButton.onclick = StopWatch.reset.bind(StopWatch);
+});
+

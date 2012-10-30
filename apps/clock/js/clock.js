@@ -1,6 +1,7 @@
 'use strict';
 
-function choiceChanged(target) {
+function onTabClick(event) {
+  var target = event.target;
   var choice = target.dataset.choice;
   if (!choice)
     return;
@@ -30,5 +31,11 @@ window.addEventListener('localized', function showBody() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
   // <body> children are hidden until the UI is translated
   document.body.classList.remove('hidden');
+});
+
+window.addEventListener('load', function onLoad() {
+  window.removeEventListener('load', onLoad);
+
+  document.getElementById('tabs').onclick = onTabClick;
 });
 
