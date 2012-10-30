@@ -128,9 +128,15 @@ MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
 DOWNLOAD_CMD = /usr/bin/curl -O
 else
+ifneq (,$(findstring MINGW32_,$(SYS)))
+MD5SUM = md5sum -b
+SED_INPLACE_NO_SUFFIX = sed
+DOWNLOAD_CMD = wget $(WGET_OPTS)
+else
 MD5SUM = md5sum -b
 SED_INPLACE_NO_SUFFIX = sed -i
 DOWNLOAD_CMD = wget $(WGET_OPTS)
+endif
 endif
 
 # Test agent setup
