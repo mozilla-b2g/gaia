@@ -332,7 +332,7 @@ contacts.List = (function() {
       return;
     }
 
-    var sortBy = orderByLastName ? 'givenName' : 'familiyName';
+    var sortBy = orderByLastName ? 'familyName' : 'givenName';
     var options = {
       sortBy: sortBy,
       sortOrder: 'ascending'

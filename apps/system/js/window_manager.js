@@ -61,8 +61,6 @@ var WindowManager = (function() {
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
-  var banner = document.getElementById('system-banner');
-  var bannerContainer = banner.firstElementChild;
   var wrapperFooter = document.querySelector('#wrapper');
 
   //
@@ -591,6 +589,11 @@ var WindowManager = (function() {
     setOpenFrame(app.frame);
 
     openCallback = callback || function() {};
+    
+    // Dispatch a appwillopen event
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillopen', true, false, { origin: origin });
+    app.frame.dispatchEvent(evt);
 
     if (origin === homescreen) {
       openCallback();
@@ -602,11 +605,6 @@ var WindowManager = (function() {
     } else {
       if (requireFullscreen(origin))
         screenElement.classList.add('fullscreen-app');
-
-      // Dispatch a appwillopen event
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, false, { origin: displayedApp });
-      app.frame.dispatchEvent(evt);
 
       if (!('unpainted' in openFrame.dataset)) {
         // The frame is painted. Let's animate itself instead of using sprite
@@ -781,7 +779,7 @@ var WindowManager = (function() {
     frame.classList.remove('hideBottom');
     frame.classList.add('restored');
     frame.addEventListener('transitionend', function removeRestored() {
-      frame.removeEventListener('transitionend', execCallback);
+      frame.removeEventListener('transitionend', removeRestored);
       frame.classList.remove('restored');
     });
   }
@@ -1254,14 +1252,9 @@ var WindowManager = (function() {
   function showCrashBanner(manifestURL) {
     var app = Applications.getByManifestURL(manifestURL);
     var _ = navigator.mozL10n.get;
-    banner.addEventListener('animationend', function animationend() {
-      banner.removeEventListener('animationend', animationend);
-      banner.classList.remove('visible');
-    });
-    banner.classList.add('visible');
 
-    bannerContainer.textContent = _('foreground-app-crash-notification',
-      { name: app.manifest.name });
+    SystemBanner.show(_('foreground-app-crash-notification',
+      { name: app.manifest.name }));
   }
 
   // Deal with crashed apps

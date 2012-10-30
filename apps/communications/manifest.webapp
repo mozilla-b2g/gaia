@@ -62,7 +62,7 @@
       "filters": {
         "type": "webtelephony/number"
       },
-      "href": "/dialer/index.html",
+      "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"
     }
   },

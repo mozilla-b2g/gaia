@@ -11,7 +11,7 @@
 function ComposeCard(domNode, mode, args) {
   this.domNode = domNode;
   this.composer = args.composer;
-  this.shareActivity = args.activity;
+  this.activity = args.activity;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -53,6 +53,7 @@ function ComposeCard(domNode, mode, args) {
     containerList[i].addEventListener('click',
       this.onContainerClick.bind(this));
   }
+
   // Add attachments
   var attachmentsContainer =
     domNode.getElementsByClassName('cmp-attachments-container')[0];
@@ -63,12 +64,16 @@ function ComposeCard(domNode, mode, args) {
         filesizeTemplate =
           attTemplate.getElementsByClassName('cmp-attachment-filesize')[0];
     for (var i = 0; i < this.composer.attachments.length; i++) {
-      var attachment = body.attachments[i];
-      filenameTemplate.textContent = attachment.filename;
-      // XXX perform localized mimetype translation stuff
-      filesizeTemplate.textContent = this.formatFileSize(
-        attachment.sizeEstimateInBytes);
-      attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+      var attachment = this.composer.attachments[i];
+      filenameTemplate.textContent = attachment.name;
+      filesizeTemplate.textContent = prettyFileSize(attachment.blob.size);
+      var attachmentNode = attTemplate.cloneNode(true);
+      attachmentsContainer.appendChild(attachmentNode);
+
+      attachmentNode.getElementsByClassName('cmp-attachment-remove')[0]
+        .addEventListener('click',
+                          this.onClickRemoveAttachment.bind(
+                            this, attachmentNode, attachment));
     }
   }
   else {
@@ -81,6 +86,7 @@ ComposeCard.prototype = {
     // hence this happens in postInsert.
     this._loadStateFromComposer();
   },
+
   _loadStateFromComposer: function() {
     var self = this;
     function expandAddresses(node, addresses) {
@@ -293,22 +299,63 @@ ComposeCard.prototype = {
     addBtn.classList.remove('show');
   },
 
+  onClickRemoveAttachment: function(node, attachment) {
+    node.parentNode.removeChild(node);
+    this.composer.removeAttachment(attachment);
+  },
+
   /**
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
-    this.composer.saveDraftEndComposition();
-    if (this.shareActivity) {
-      // XXX: Return value under window mode will cause crash easily, disable
-      //      return and stay in email until inline mode is stable.
+    // Since we will discard all the content while exit, there is no need to
+    // save draft for now.
+    //this.composer.saveDraftEndComposition();
+    var discardHandler = function() {
+      if (this.activity) {
+        // We need more testing here to make sure the behavior that back
+        // to originated activity works perfectly without any crash or
+        // unable to switch back.
 
-      // this.shareActivity.postError('cancelled');
-      // this.shareActivity = null;
+        this.activity.postError('cancelled');
+        this.activity = null;
 
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    } else {
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+        Cards.removeCardAndSuccessors(this.domNode, 'animate');
+      } else {
+        Cards.removeCardAndSuccessors(this.domNode, 'animate');
+      }
+    }.bind(this);
+    var self = this;
+    var checkAddressEmpty = function() {
+      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
+      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
+          !self.bccNode.value)
+        return true;
+      else
+        return false;
+    };
+    if (!this.subjectNode.value && !this.textBodyNode.value &&
+        checkAddressEmpty()) {
+      discardHandler();
+      return;
     }
+    CustomDialog.show(
+      null,
+      mozL10n.get('compose-discard-message'),
+      {
+        title: mozL10n.get('message-multiedit-cancel'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      },
+      {
+        title: mozL10n.get('compose-discard-confirm'),
+        callback: function() {
+          discardHandler();
+          CustomDialog.hide();
+        }
+      }
+    );
   },
 
   onSend: function() {
@@ -317,13 +364,17 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage(Toaster.trackSendMessage());
-    if (this.shareActivity) {
-      // XXX: Return value under window mode will cause crash easily, disable
-      //      return and stay in email until inline mode is stable.
+    this.composer.finishCompositionSendMessage();
+    if (this.activity) {
+      // We need more testing here to make sure the behavior that back
+      // to originated activity works perfectly without any crash or
+      // unable to switch back.
 
-      // this.shareActivity.postResult('shared');
-      // this.shareActivity = null;
+      // Define activity postResult return value here:
+      if (this.activity.source.name == 'share') {
+        this.activity.postResult('shared');
+      }
+      this.activity = null;
 
       Cards.removeCardAndSuccessors(this.domNode, 'animate');
     } else {

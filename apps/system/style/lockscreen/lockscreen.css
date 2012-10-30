@@ -40,6 +40,13 @@
   visibility: visible;
 }
 
+/* When switching lock-camera off,
+ * transition time should be delayed to prevent homescreen appears.
+ * (Let lockscreen appears first)                                   */
+#screen:not(.lockscreen-camera) > #lockscreen-camera {
+  transition-delay: 0.3s;
+}
+
 #lockscreen-camera {
   position: absolute;
   top: 0;
