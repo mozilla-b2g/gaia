@@ -1,6 +1,6 @@
 return (function(ms) {
 
-  var date = new Date(ms);
+  var date = new Date();
 
   return {
     year: date.getFullYear(),
