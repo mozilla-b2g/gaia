@@ -1252,12 +1252,9 @@ var WindowManager = (function() {
     deleteAppScreenshotFromDatabase(e.detail.application.origin);
   });
 
-  function showCrashBanner(manifestURL) {
+  function handleAppCrash(manifestURL) {
     var app = Applications.getByManifestURL(manifestURL);
-    var _ = navigator.mozL10n.get;
-
-    SystemBanner.show(_('foreground-app-crash-notification',
-      { name: app.manifest.name }));
+    CrashReporter.setAppName(app.manifest.name);
   }
 
   // Deal with crashed apps
@@ -1270,7 +1267,7 @@ var WindowManager = (function() {
 
     if (e.target.dataset.frameType == 'inline-activity') {
       stopInlineActivity();
-      showCrashBanner(manifestURL);
+      handleAppCrash(manifestURL);
       return;
     }
 
@@ -1287,7 +1284,7 @@ var WindowManager = (function() {
     // If the crashing app is currently displayed, we will present
     // the user with a banner notification.
     if (displayedApp == origin)
-      showCrashBanner(manifestURL);
+      handleAppCrash(manifestURL);
 
     // If the crashing app is the home screen app and it is the displaying app
     // we will need to relaunch it right away.
