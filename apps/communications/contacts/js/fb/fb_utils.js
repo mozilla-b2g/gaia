@@ -13,7 +13,8 @@ if (!fb.utils) {
     var LAST_UPDATED_KEY = Utils.LAST_UPDATED_KEY = 'lastUpdatedTime';
     Utils.ALARM_ID_KEY = 'nextAlarmId';
 
-    var REDIRECT_LOGOUT_URI = fb.oauthflow.params['redirectLogout'];
+    var REDIRECT_LOGOUT_URI = fb.oauthflow ?
+      fb.oauthflow.params['redirectLogout'] : '';
     var STORAGE_KEY = 'tokenData';
 
       // For controlling data synchronization

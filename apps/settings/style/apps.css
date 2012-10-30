@@ -2,12 +2,26 @@
  * Application Permissions
  */
 
+#appPermissions ul li > a {
+  padding: 0 calc(4.1rem - 30px);
+  height: 6rem;
+  line-height: 6rem;
+  font-size: 1.8rem;
+  color: #000;
+}
+
 #appPermissions ul li img {
   float: left;
   margin-top: calc(3rem - 15px);
   margin-right: 1.4rem;
   width: 30px;
   height: 30px;
+}
+
+#appPermissionsDetails ul li {
+  padding: 0 0 0 10px;
+  font-size: 1.6rem;
+  line-height: 60px;
 }
 
 #permissionsListHeader + ul li select {

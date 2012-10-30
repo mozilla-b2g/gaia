@@ -95,6 +95,19 @@ const Homescreen = (function() {
             }
 
             break;
+          case 'ftu':
+            var activityFR = new MozActivity({
+              name: 'firstrun',
+              data: { type: 'firstrun' }
+            });
+            activityFR.onsuccess = function success() {
+              onHomescreenActivity();
+              activity.postResult({ status: 'first-time-over' });
+            }
+            activityFR.onerror = function launchFTError() {
+              console.error('Failed to launch home screen with activity.');
+            };
+            break;
         }
       });
   }

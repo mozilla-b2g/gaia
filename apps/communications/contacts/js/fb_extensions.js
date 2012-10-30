@@ -18,6 +18,10 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     }
 
+    extFb.importFBFromUrl = function importFromUrl(path) {
+      open(path, 'import');
+    }
+
     extFb.importFB = function() {
       open('fb_import.html', 'import');
     }
@@ -211,7 +215,8 @@ if (typeof Contacts.extFb === 'undefined') {
       switch (data.type) {
         case 'window_close':
           close(data.from);
-          if (data.from === 'import') {
+          if (data.from === 'import' &&
+            window.hasOwnProperty('contacts')) {
             contacts.List.load();
           }
 

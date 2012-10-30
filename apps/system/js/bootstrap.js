@@ -4,7 +4,39 @@
 'use strict';
 
 window.addEventListener('load', function startup() {
+
+  function hideLogo() {
+    var initlogo = document.getElementById('initlogo');
+    initlogo.classList.add('hide');
+    initlogo.addEventListener('transitionend', function delInitlogo() {
+      initlogo.removeEventListener('transitionend', delInitlogo);
+      initlogo.parentNode.removeChild(initlogo);
+    });
+  }
+
+  function launchFirstTime() {
+    // TODO Change for launching the APP, not as an Activity
+    var activity = new MozActivity({
+      name: 'ftu',
+      data: { type: 'application/ftu' }
+    });
+    activity.onsuccess = function success() {
+      var value = this.result;
+      hideLogo();
+      document.getElementById('initlogo').classList.remove('ftu');
+      document.getElementById('screen').classList.remove('fullscreen-app');
+      document.getElementById('screen').classList.remove('ftu');
+      document.getElementById('lockscreen').style.display = 'block';
+      document.getElementById('statusbar').style.visibility = 'visible';
+    }
+
+    activity.onerror = function homescreenLaunchError() {
+      console.error('Failed to launch home screen with activity.');
+    };
+  }
   function launchHomescreen() {
+    hideLogo();
+    // TODO Change for launching the APP, not as an Activity
     var activity = new MozActivity({
       name: 'view',
       data: { type: 'application/x-application-list' }
@@ -14,14 +46,36 @@ window.addEventListener('load', function startup() {
     };
   }
 
-  if (Applications.ready) {
-    launchHomescreen();
+  if (WindowManager.isFirstRun) {
+    document.getElementById('initlogo').classList.add('ftu');
+    document.getElementById('screen').classList.add('fullscreen-app');
+    document.getElementById('screen').classList.add('ftu');
+    document.getElementById('lockscreen').style.display = 'none';
+    document.getElementById('statusbar').style.visibility = 'hidden';
+    if (Applications.ready) {
+      launchFirstTime();
+    } else {
+      window.addEventListener('applicationready',
+        function appListReady(event) {
+          window.removeEventListener('applicationready', appListReady);
+          launchFirstTime();
+        }
+      );
+    }
   } else {
-    window.addEventListener('applicationready', function appListReady(event) {
-      window.removeEventListener('applicationready', appListReady);
+    if (Applications.ready) {
       launchHomescreen();
-    });
+    } else {
+      window.addEventListener('applicationready',
+        function appListReady(event) {
+          window.removeEventListener('applicationready', appListReady);
+          launchHomescreen();
+        }
+      );
+    }
   }
+
+
 
   SourceView.init();
   Shortcuts.init();

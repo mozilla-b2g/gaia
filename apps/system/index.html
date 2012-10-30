@@ -11,6 +11,7 @@
     <script defer src="shared/js/settings_listener.js"></script>
     <script defer src="shared/js/custom_dialog.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
+    <script defer src="shared/js/async_storage.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -71,6 +72,9 @@
     <link rel="stylesheet" type="text/css" href="style/utility_tray/utility_tray.css">
     <script defer src="js/utility_tray.js"></script>
 
+    <!-- First time usage -->
+    <link rel="stylesheet" type="text/css" href="style/first_time.css">
+    
     <!-- Attention Screen -->
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
     <script defer src="js/attention_screen.js"></script>
@@ -220,6 +224,9 @@
       right: 0;
     }
 
+    #screen.ftu > #initlogo[data-z-index-level="initlogo"] {
+      z-index: 2;
+    }
     </style>
   </head>
 

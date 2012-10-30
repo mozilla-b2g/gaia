@@ -1463,6 +1463,7 @@ var WindowManager = (function() {
 
   // Return the object that holds the public API
   return {
+    isFirstRun: true,
     launch: launch,
     kill: kill,
     reload: reload,

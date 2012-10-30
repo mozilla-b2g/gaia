@@ -1,0 +1,6 @@
+
+#screen.ftu > #windows > iframe.appWindow.active:not(.homescreen) {
+  top: 0;
+  height: 100% !important;
+}
+

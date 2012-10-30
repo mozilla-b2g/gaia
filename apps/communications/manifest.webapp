@@ -23,6 +23,14 @@
         "120": "/style/icons/Contacts.png",
         "60": "/style/icons/60/Contacts.png"
       }
+    },
+    "ftu": {
+      "launch_path": "/ftu/index.html",
+      "name": "FTU",
+      "icons": {
+        "120": "/style/icons/Contacts.png",
+        "60": "/style/icons/60/Contacts.png"
+      }
     }
   },
   "permissions": {
@@ -33,6 +41,9 @@
     "attention":{},
     "settings":{},
     "desktop-notification":{},
+    "wifi-manage":{},
+    "wifi":{},
+    "time":{},
     "alarms": {},
     "systemXHR": {}
   },
@@ -64,6 +75,14 @@
       },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"
+    },
+    "firstrun": {
+      "filters": {
+        "type": "firstrun"
+      },
+      "href": "/ftu/index.html",
+      "disposition": "window",
+      "returnValue": true
     }
   },
   "messages": [
