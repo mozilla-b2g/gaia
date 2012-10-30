@@ -33,6 +33,9 @@ var firstScanEnded = false;
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
 
+// Enumerating the readyState for html5 video api
+var HAVE_NOTHING = 0;
+
 var urlToStream; // From an activity call
 var appStarted = false;
 
@@ -305,15 +308,12 @@ function playerMousedown(event) {
 }
 
 // Make the video fit the screen
-function setPlayerSize() {
-  if (!currentVideo || !currentVideo.metadata) {
-    return;
-  }
-  var xscale = window.innerWidth / currentVideo.metadata.width;
-  var yscale = window.innerHeight / currentVideo.metadata.height;
+function setPlayerSize(videoWidth, videoHeight) {
+  var xscale = window.innerWidth / videoWidth;
+  var yscale = window.innerHeight / videoHeight;
   var scale = Math.min(xscale, yscale);
-  var width = currentVideo.metadata.width * scale;
-  var height = currentVideo.metadata.height * scale;
+  var width = videoWidth * scale;
+  var height = videoHeight * scale;
   var left = (window.innerWidth - width) / 2;
   var top = (window.innerHeight - height) / 2;
   dom.player.style.width = width + 'px';
@@ -340,9 +340,6 @@ function showPlayer(data, autoPlay) {
   currentVideo = data;
 
   // switch to the video player view
-  dom.videoFrame.classList.remove('hidden');
-  dom.play.classList.remove('paused');
-  playerShowing = true;
   updateDialog();
   dom.player.preload = 'metadata';
 
@@ -370,7 +367,11 @@ function showPlayer(data, autoPlay) {
 
     dom.durationText.textContent = formatDuration(dom.player.duration);
     timeUpdated();
-    setPlayerSize();
+
+    dom.videoFrame.classList.remove('hidden');
+    dom.play.classList.remove('paused');
+    playerShowing = true;
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
 
     if (currentVideo.remote) {
       dom.videoTitle.textContent = currentVideo.title || '';
@@ -638,9 +639,14 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
 
 // show|hide controls over the player
 dom.videoControls.addEventListener('mousedown', playerMousedown);
+
 // Rescale when window size changes. This should get called when
 // orientation changes and when we go into fullscreen
-window.addEventListener('resize', setPlayerSize);
+window.addEventListener('resize', function() {
+  if (dom.player.readyState !== HAVE_NOTHING) {
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
+  }
+});
 
 dom.player.addEventListener('timeupdate', timeUpdated);
 dom.player.addEventListener('ended', playerEnded);
