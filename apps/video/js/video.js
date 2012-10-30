@@ -54,20 +54,28 @@ function init() {
     storageState = false;
     updateDialog();
     createThumbnailList();
+    // check if list is empty
+    showEmptyOverlayIfNoVideo();
   };
 
   videodb.onscanstart = function() {
+    hideOverlay('empty');
     dom.throbber.classList.add('throb');
   };
   videodb.onscanend = function() {
     dom.throbber.classList.remove('throb');
+    // check if list is empty
+    showEmptyOverlayIfNoVideo();
   };
 
   videodb.oncreated = function(event) {
+    hideOverlay('empty');
     event.detail.forEach(addVideo);
   };
   videodb.ondeleted = function(event) {
     event.detail.forEach(deleteVideo);
+    // check if any videos left
+    showEmptyOverlayIfNoVideo();
   };
 
   if (urlToStream) {
@@ -123,6 +131,7 @@ function addVideo(videodata) {
   });
 
   dom.thumbnails.appendChild(thumbnail);
+  hideOverlay('empty');
 }
 
 function deleteVideo(filename) {
@@ -136,14 +145,25 @@ function createThumbnailList() {
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
+  videodb.enumerate('date', null, 'prev', addVideo);
+}
+
+function showEmptyOverlayIfNoVideo() {
+  var hasVideo = false;
   videodb.enumerate('date', null, 'prev', function(videodata) {
-    addVideo(videodata);
+    if (!hasVideo) {
+      hasVideo = true;
+    }
   });
+  // XXX won't work if enumerate is non blocking
+  if (!hasVideo) {
+    showOverlay('empty');
+  }
 }
 
 function updateDialog() {
   if (!storageState || playerShowing) {
-    showOverlay(null);
+    hideOverlay();
     return;
   }
   if (storageState === MediaDB.NOCARD) {
@@ -258,6 +278,17 @@ function showOverlay(id) {
   dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
   dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
   dom.overlay.classList.remove('hidden');
+}
+
+/**
+ * hide specific or any overlay
+ */
+function hideOverlay(id) {
+  if (!!id && currentOverlay !== id) {
+    // current overlay (if any) is not the desired one
+    return;
+  }
+  return showOverlay(null);
 }
 
 function setControlsVisibility(visible) {
