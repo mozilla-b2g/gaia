@@ -11,7 +11,7 @@
 function ComposeCard(domNode, mode, args) {
   this.domNode = domNode;
   this.composer = args.composer;
-  this.shareActivity = args.activity;
+  this.activity = args.activity;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -308,18 +308,54 @@ ComposeCard.prototype = {
    * Save the draft if there's anything to it, close the card.
    */
   onBack: function() {
-    this.composer.saveDraftEndComposition();
-    if (this.shareActivity) {
-      // XXX: Return value under window mode will cause crash easily, disable
-      //      return and stay in email until inline mode is stable.
+    // Since we will discard all the content while exit, there is no need to
+    // save draft for now.
+    //this.composer.saveDraftEndComposition();
+    var discardHandler = function() {
+      if (this.activity) {
+        // We need more testing here to make sure the behavior that back
+        // to originated activity works perfectly without any crash or
+        // unable to switch back.
 
-      // this.shareActivity.postError('cancelled');
-      // this.shareActivity = null;
+        this.activity.postError('cancelled');
+        this.activity = null;
 
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    } else {
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
+        Cards.removeCardAndSuccessors(this.domNode, 'animate');
+      } else {
+        Cards.removeCardAndSuccessors(this.domNode, 'animate');
+      }
+    }.bind(this);
+    var self = this;
+    var checkAddressEmpty = function() {
+      var bubbles = self.domNode.querySelectorAll('.cmp-peep-bubble');
+      if (bubbles.length == 0 && !self.toNode.value && !self.ccNode.value &&
+          !self.bccNode.value)
+        return true;
+      else
+        return false;
+    };
+    if (!this.subjectNode.value && !this.textBodyNode.value &&
+        checkAddressEmpty()) {
+      discardHandler();
+      return;
     }
+    CustomDialog.show(
+      null,
+      mozL10n.get('compose-discard-message'),
+      {
+        title: mozL10n.get('message-multiedit-cancel'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      },
+      {
+        title: mozL10n.get('compose-discard-confirm'),
+        callback: function() {
+          discardHandler();
+          CustomDialog.hide();
+        }
+      }
+    );
   },
 
   onSend: function() {
@@ -329,12 +365,16 @@ ComposeCard.prototype = {
     // if you haven't added anyone...)
 
     this.composer.finishCompositionSendMessage();
-    if (this.shareActivity) {
-      // XXX: Return value under window mode will cause crash easily, disable
-      //      return and stay in email until inline mode is stable.
+    if (this.activity) {
+      // We need more testing here to make sure the behavior that back
+      // to originated activity works perfectly without any crash or
+      // unable to switch back.
 
-      // this.shareActivity.postResult('shared');
-      // this.shareActivity = null;
+      // Define activity postResult return value here:
+      if (this.activity.source.name == 'share') {
+        this.activity.postResult('shared');
+      }
+      this.activity = null;
 
       Cards.removeCardAndSuccessors(this.domNode, 'animate');
     } else {
