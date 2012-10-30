@@ -882,8 +882,9 @@ var Toaster = {
       var undoBtn = this.body.querySelector('.toaster-banner-undo');
       text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
       // https://bugzilla.mozilla.org/show_bug.cgi?id=804916
-      // Remove undo email move UI for V1.
-      if (this.undoableOp.operation == 'move') {
+      // Remove undo email move/delete UI for V1.
+      if (this.undoableOp.operation == 'move' ||
+          this.undoableOp.operation == 'delete') {
         undoBtn.classList.add('collapsed');
       } else {
         undoBtn.classList.remove('collapsed');
