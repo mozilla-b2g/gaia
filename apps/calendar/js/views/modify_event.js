@@ -193,14 +193,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
       return this._findElement('saveButton');
     },
 
-    get status() {
-      return this._findElement('status');
-    },
-
-    get errors() {
-      return this._findElement('errors');
-    },
-
     /**
      * Gets form field by name
      */
@@ -248,15 +240,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
         errors += _(this.ERROR_PREFIX + name) || name;
       }
 
-      // populate error and display it.
-      this.errors.textContent = errors;
-      this.status.classList.add(this.activeClass);
-
-      var self = this;
-      this.status.addEventListener('animationend', function displayError() {
-        self.status.classList.remove(self.activeClass);
-        self.status.removeEventListener('animationend', displayError);
-      });
+      this.showErrors(errors);
     },
 
     /**
