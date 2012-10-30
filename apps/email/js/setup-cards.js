@@ -491,9 +491,6 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 
   this.accountsContainer =
     domNode.getElementsByClassName('tng-accounts-container')[0];
-  bindContainerClickAndHold(this.accountsContainer,
-                            this.onClickAccount.bind(this),
-                            this.onHoldAccount.bind(this));
 
   domNode.getElementsByClassName('tng-account-add')[0]
     .addEventListener('click', this.onClickAddAccount.bind(this), false);
@@ -550,34 +547,6 @@ SettingsMainCard.prototype = {
     console.log('sync interval changed to', event.target.value);
     MailAPI.modifyConfig({
       syncCheckIntervalEnum: event.target.value });
-  },
-
-  onClickAccount: function(accountNode, event) {
-    // XXX we would show account settings if we had any...
-  },
-
-  onHoldAccount: function(accountNode, event) {
-    Cards.popupMenuForNode(
-      tngNodes['account-menu'].cloneNode(true), accountNode,
-      ['menu-item'],
-      function(clickedNode) {
-        if (!clickedNode)
-          return;
-
-        switch (clickedNode.classList[0]) {
-          case 'tng-account-menu-delete':
-            // Delete the account and re-do the startup process again in order
-            // to avoid having to deal with either of the following annoying
-            // complexities specially:
-            // - The user deleted the last account!
-            // - The user delete the account that was being displayed
-            accountNode.account.deleteAccount();
-            Cards.removeCardAndSuccessors(null, 'none');
-            App.showMessageViewOrSetup();
-            break;
-        }
-      });
-
   },
 
   onClickAddAccount: function() {
@@ -643,6 +612,9 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
 
+  domNode.getElementsByClassName('tng-account-delete')[0]
+    .addEventListener('click', this.onDelete.bind(this), false);
+
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
@@ -703,6 +675,12 @@ SettingsAccountCard.prototype = {
     if (curAccount.id === this.account.id) {
       Cards.findCardObject(['message-list', 'nonsearch']).cardImpl.onRefresh();
     }
+  },
+
+  onDelete: function() {
+    this.account.deleteAccount();
+    Cards.removeCardAndSuccessors(null, 'none');
+    App.showMessageViewOrSetup();
   },
 
   die: function() {

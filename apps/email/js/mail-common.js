@@ -736,6 +736,12 @@ var Cards = {
 
     // Hide toaster while active card index changed:
     Toaster.hide();
+    // Popup toaster that pended for previous card view.
+    var pendingToaster = Toaster.pendingStack.slice(-1)[0];
+    if (pendingToaster && showMethod == 'immediate') {
+      pendingToaster();
+      Toaster.pendingStack.pop();
+    }
 
     this.activeCardIndex = cardIndex;
     if (cardInst)
@@ -804,12 +810,12 @@ var Toaster = {
   get body() {
     delete this.body;
     return this.body =
-           document.querySelector('section[role="dialog"].banner');
+           document.querySelector('section[role="status"]');
   },
   get text() {
     delete this.text;
     return this.text =
-           document.querySelector('section[role="dialog"].banner p');
+           document.querySelector('section[role="status"] p');
   },
   /**
    * Toaster timeout setting.
@@ -830,23 +836,21 @@ var Toaster = {
    */
   _listeners: [],
 
-  /**
-   * Tell toaster listeners about our sending message, and return a callback
-   * to appropriately report the error or what not when the send conclusively
-   * fails or succeeds.
-   */
-  trackSendMessage: function() {
-  },
+  pendingStack: [],
 
   /**
    * Tell toaster listeners about a mutation we just made.
    */
-  logMutation: function(undoableOp) {
+  logMutation: function(undoableOp, pending) {
     //Close previous toaster before showing the new one.
     if (!this.body.classList.contains('collapsed')) {
       this.hide();
     }
-    this.show('undo', undoableOp);
+    if (pending) {
+      this.pendingStack.push(this.show.bind(this, 'undo', undoableOp));
+    } else {
+      this.show('undo', undoableOp);
+    }
   },
 
   handleEvent: function(evt) {
@@ -856,8 +860,6 @@ var Toaster = {
           // TODO: Need to find out why undo could not work now.
           // this.undoableOp.undo();
           this.hide();
-        } else if (evt.target.classList.contains('toaster-banner-retry')) {
-          // TODO: Handle send retry here.
         } else if (evt.target.classList.contains('toaster-cancel-btn')) {
           this.hide();
         }
@@ -873,15 +875,21 @@ var Toaster = {
     if (type == 'undo') {
       this.undoableOp = operation;
       // There is no need to show toaster is affected message count < 1
-      if (this.undoableOp.affectedCount < 1) {
+      if (!this.undoableOp || this.undoableOp.affectedCount < 1) {
         return;
       }
       var textId = 'toaster-message-' + this.undoableOp.operation;
+      var undoBtn = this.body.querySelector('.toaster-banner-undo');
       text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
-    } else if (type == 'retry') {
-      // TODO: Showing the send retry text and related operation.
-    } else {
-      // TODO: Maybe we can show pure text only toaster here.
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=804916
+      // Remove undo email move UI for V1.
+      if (this.undoableOp.operation == 'move') {
+        undoBtn.classList.add('collapsed');
+      } else {
+        undoBtn.classList.remove('collapsed');
+      }
+    } else if (type == 'text') {
+      text = operation;
     }
 
     this.body.title = type;
@@ -903,6 +911,19 @@ var Toaster = {
     this.undoableOp = null;
   }
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// Attachment Formatting Helpers
+
+/**
+ * Display a human-readable file size.  Currently we always display things in
+ * kilobytes because we are targeting a mobile device and we want bigger sizes
+ * (like megabytes) to be obviously large numbers.
+ */
+function prettyFileSize(sizeInBytes) {
+  var kilos = Math.ceil(sizeInBytes / 1024);
+  return mozL10n.get('attachment-size-kib', { kilobytes: kilos });
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Pretty date logic; copied from the SMS app.
