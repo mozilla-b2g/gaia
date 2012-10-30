@@ -67,13 +67,8 @@
   width: 2rem;
   height: 2rem;
   padding: 0.5rem;
-  visibility: hidden;
   display: inline-block;
   vertical-align: middle;
-}
-
-.cmp-contact-add.show {
-  visibility: visible;
 }
 
 .cmp-envelope-line {

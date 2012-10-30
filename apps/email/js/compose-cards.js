@@ -29,11 +29,6 @@ function ComposeCard(domNode, mode, args) {
                                      this.onTextBodyDelta.bind(this));
   this.htmlBodyContainer = domNode.getElementsByClassName('cmp-body-html')[0];
   this.htmlIframeNode = null;
-  var inputList = domNode.getElementsByClassName('cmp-addr-text');
-  for (var i = 0; i < inputList.length; i++) {
-    inputList[i].addEventListener('focus', this.onAddrInputFocus.bind(this));
-    inputList[i].addEventListener('blur', this.onAddrInputBlur.bind(this));
-  }
 
   // Add input event listener for handling the bubble creation/deletion.
   this.toNode.addEventListener('keydown', this.onAddressKeydown.bind(this));
@@ -44,7 +39,7 @@ function ComposeCard(domNode, mode, args) {
   this.bccNode.addEventListener('input', this.onAddressInput.bind(this));
   // Add Contact-add buttons event listener
   var addBtns = domNode.getElementsByClassName('cmp-contact-add');
-  for (var i = 0; i < inputList.length; i++) {
+  for (var i = 0; i < addBtns.length; i++) {
     addBtns[i].addEventListener('click', this.onContactAdd.bind(this));
   }
   // Add input focus:
@@ -280,23 +275,6 @@ ComposeCard.prototype = {
     var neededRows = newlines + 1;
     if (this.textBodyNode.rows !== neededRows)
       this.textBodyNode.rows = neededRows;
-  },
-
-  /**
-   * Set the contact add button show/hide while input field focus/blur.
-   */
-  onAddrInputFocus: function(evt) {
-    var addBtn = evt.target.parentElement.parentElement
-                 .querySelector('.cmp-contact-add');
-    addBtn.classList.add('show');
-  },
-
-  onAddrInputBlur: function(evt) {
-    var addBtn = evt.target.parentElement.parentElement
-                 .querySelector('.cmp-contact-add');
-    if (addBtn == evt.explicitOriginalTarget)
-      return;
-    addBtn.classList.remove('show');
   },
 
   onClickRemoveAttachment: function(node, attachment) {
