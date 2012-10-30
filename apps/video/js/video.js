@@ -27,6 +27,8 @@ var controlFadeTimeout = null;
 
 var videodb;
 var currentVideo;  // The data for the current video
+var videoCount = 0;
+var firstScanEnded = false;
 
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
@@ -61,6 +63,10 @@ function init() {
   };
   videodb.onscanend = function() {
     dom.throbber.classList.remove('throb');
+    if (!firstScanEnded) {
+      firstScanEnded = true;
+      updateDialog();
+    }
   };
 
   videodb.oncreated = function(event) {
@@ -83,6 +89,8 @@ function addVideo(videodata) {
   if (!videodata || !videodata.metadata.isVideo) {
     return;
   }
+
+  videoCount += 1;
 
   if (videodata.metadata.poster) {
     poster = document.createElement('img');
@@ -126,6 +134,7 @@ function addVideo(videodata) {
 }
 
 function deleteVideo(filename) {
+  videoCount -= 1;
   dom.thumbnails.removeChild(getThumbnailDom(filename));
 }
 
@@ -136,13 +145,11 @@ function createThumbnailList() {
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
-  videodb.enumerate('date', null, 'prev', function(videodata) {
-    addVideo(videodata);
-  });
+  videodb.enumerate('date', null, 'prev', addVideo);
 }
 
 function updateDialog() {
-  if (!storageState || playerShowing) {
+  if (videoCount !== 0 && (!storageState || playerShowing)) {
     showOverlay(null);
     return;
   }
@@ -150,6 +157,8 @@ function updateDialog() {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
     showOverlay('pluggedin');
+  } else if (firstScanEnded && videoCount === 0) {
+    showOverlay('empty');
   }
 }
 
