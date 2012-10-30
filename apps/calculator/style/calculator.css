@@ -3,7 +3,7 @@ body, html {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  font-family: MozTT; 
+  font-family: MozTT, sans-serif; 
   font-weight: normal;
   font-size: 10px;
   background: url("images/background.png") no-repeat 0 -20px;
@@ -26,9 +26,9 @@ input {
   background-position: 4px 0;
 
   color: white;
-  font-family: MozTT; 
+  font-family: MozTT, sans-serif; 
   font-weight: 500;
-  font-size: 1.83rem;
+  font-size: 2.06rem;
 
   width: 80px;
   height: 6rem;
@@ -89,7 +89,7 @@ input:not(.small) {
   right: 16px;
 
   line-height: 142px;
-  font-family: MozTT; 
+  font-family: MozTT, sans-serif; 
   font-weight: 300;
   font-size: 8.25rem;
 }
