@@ -1,0 +1,20 @@
+#crash-dialog section {
+  vertical-align: center;
+}
+
+#crash-dialog h1 {
+  border-bottom: none;
+}
+
+#crash-dialog p {
+  overflow: visible;
+}
+
+#crash-dialog p:not(:first-of-type) {
+  border-top: none;
+}
+
+#crash-dialog  a {
+  text-decoration: underline;
+  margin-top: 2rem;
+}
