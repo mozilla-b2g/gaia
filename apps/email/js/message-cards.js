@@ -1042,6 +1042,8 @@ MessageReaderCard.prototype = {
     dateNode.dataset.time = header.date.valueOf();
     dateNode.textContent = prettyDate(header.date);
 
+    domNode.getElementsByClassName('msg-reader-header-label')[0]
+      .textContent = header.subject;
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
 

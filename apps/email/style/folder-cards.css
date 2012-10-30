@@ -16,7 +16,8 @@
   text-overflow: ellipsis;
 }
 .fld-account-selected {
-  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.5), rgba(50, 50, 50, 0.6));
+  background-color: rgba(0, 0, 0, 0.5);
+  font-weight: bold;
 }
 .fld-account-name {
   font-size: 2rem;
@@ -32,11 +33,15 @@
 }
 
 .folder-scoller-region {
-  background-color: #4F4F4F;
+  background-color: white;
+  background: url(images/pattern.png) repeat left top #3a4446;
+  background-size: auto auto, 100% 100%;
+  overflow: hidden;
 }
 
 .fld-accounts-container, .fld-folders-container {
   -moz-transition: transform .2s ease-in;
+  overflow-y: auto;
 }
 
 .fld-folders-container {
@@ -45,13 +50,13 @@
 
 .fld-accounts-container {
   position: absolute;
-  height: 100%;
   width: 100%;
   -moz-transform: translateX(-100%);
 }
 
 .fld-accounts-container.show, .fld-folders-container.show{
   -moz-transform: translateX(0px);
+  height: calc(100% - 4.8rem);
 }
 
 .fld-accounts-btn {
@@ -67,13 +72,17 @@
   border-bottom: none;
 }
 .fld-folder-item.fld-folder-selected {
-  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.5), rgba(50, 50, 50, 0.6));
+  background-color: rgba(0, 0, 0, 0.5);
+  font-weight: bold;
 }
 .fld-folder-unselectable {
   color: #444;
   background-color: #eee;
 }
-
+.fld-account-item:active, .fld-folder-item:active, .fld-folder-list-header:active {
+  border-color: #008aaa;
+  background: #008aaa;
+}
 .fld-folder-name {
   font-size: 1.6rem;
 }
