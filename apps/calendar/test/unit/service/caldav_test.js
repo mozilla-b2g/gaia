@@ -599,6 +599,7 @@ suite('service/caldav', function() {
         tzid: 'floating'
       };
 
+      // This test assumes local TZ
       var expectedDate = new Date(2012, 0, 1, 0);
 
       var result = subject.formatInputTime(input);
@@ -615,7 +616,8 @@ suite('service/caldav', function() {
         tzid: 'Los Angeles/America'
       };
 
-      var expectedDate = new Date(2012, 0, 1, 0);
+      // This test assumes PST TZ
+      var expectedDate = new Date("Sun, 01 Jan 2012 00:00:00 PST");
 
       var result = subject.formatInputTime(input);
       assert.deepEqual(new Date(result.toJSDate()), expectedDate);
