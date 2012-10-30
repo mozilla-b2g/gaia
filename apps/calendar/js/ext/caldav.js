@@ -2032,9 +2032,6 @@ function write (chunk) {
     data: null,
 
     _seralize: function _seralize() {
-      //DEBUG
-      console.log('odpowiedzzz', this.data);
-      
       return this.data;
     },
 
@@ -2468,7 +2465,6 @@ function write (chunk) {
       'DAV:/resourcetype': ArrayHandler,
       'DAV:/current-user-privilege-set': PrivilegeSet,
       'DAV:/principal-URL': HrefHandler,
-      //'DAV:/unauthenticated': TextHandler,
       'DAV:/current-user-principal': HrefHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
@@ -2985,15 +2981,13 @@ function write (chunk) {
   function findProperty(name, data, single) {
     var url, results = [], prop;
 
-    console.log('whujdatat', name, data);
-    
     for (url in data) {
       if (Object.hasOwnProperty.call(data, url)) {
         if (name in data[url]) {
           prop = data[url][name];
-          //if (prop.status === '200') {
+          if (prop.status === '200') {
             results.push(data[url][name].value);
-          //}
+          }
         }
       }
     }
@@ -3018,14 +3012,11 @@ function write (chunk) {
       });
 
       find.prop('current-user-principal');
-      find.prop('principal-URL');   
-      //find.prop('unauthenticated');
+      find.prop('principal-URL');
 
       find.send(function(err, data) {
         var principal;
 
-        //console.log('propertyz', findProperty('unauthenticated', data, true));
-        
         if (err) {
           callback(err);
           return;
