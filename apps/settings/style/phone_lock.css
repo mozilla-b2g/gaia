@@ -39,18 +39,9 @@
   display: none;
 }
 
-#passcode-panel[data-mode="create"] [data-mode*="create"] {
-  display: inherit;
-}
-
-#passcode-panel[data-mode="confirm"] [data-mode*="confirm"] {
-  display: inherit;
-}
-
-#passcode-panel[data-mode="edit"] [data-mode*="edit"] {
-  display: inherit;
-}
-
+#passcode-panel[data-mode="create"] [data-mode*="create"],
+#passcode-panel[data-mode="confirm"] [data-mode*="confirm"],
+#passcode-panel[data-mode="edit"] [data-mode*="edit"],
 #passcode-panel[data-mode="new"] [data-mode*="new"] {
   display: inherit;
 }
@@ -88,7 +79,7 @@
   -moz-box-sizing: border-box;
   display: block;
   float: left;
-  width: -moz-calc(25% - 1rem);
+  width: calc(25% - 1rem);
   margin: 1.5rem 0.5rem;
   height: 4rem;
   text-align: center;
@@ -102,7 +93,6 @@ span.passcode-digit[data-dot]::before {
   content: '';
   display: block;
   position: absolute;
-
   width: 1.5rem;
   height: 1.5rem;
   background-color: #3e3b39;
@@ -112,3 +102,4 @@ span.passcode-digit[data-dot]::before {
   margin-left: -0.75rem;
   margin-top: -0.75rem;
 }
+

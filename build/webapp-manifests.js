@@ -18,6 +18,24 @@ if (!webappsTargetDir.exists())
 let manifests = {};
 let id = 1;
 
+function copyRec(source, target) {
+  let results = [];
+  let files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      let subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
@@ -77,6 +95,21 @@ Gaia.externalWebapps.forEach(function (webapp) {
     manifestURL:   url + 'manifest.webapp',
     localId:       id++
   };
+
+  let srcCacheFolder = webapp.sourceDirectoryFile.clone();
+  srcCacheFolder.append("cache");
+  if (srcCacheFolder.exists()) {
+    let cacheManifest = srcCacheFolder.clone();
+    cacheManifest.append("manifest.appcache");
+    if (!cacheManifest.exists())
+      throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
+                      'directory without `manifest.appcache` file.');
+
+    // Copy recursively the whole cache folder to webapp folder
+    let targetCacheFolder = webappTargetDir.clone();
+    targetCacheFolder.append("cache");
+    copyRec(srcCacheFolder, targetCacheFolder);
+  }
 });
 
 // Write webapps global manifest

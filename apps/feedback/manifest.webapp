@@ -10,6 +10,10 @@
       "description": "Gaia Feedback"
     }
   },
+  "permissions": {
+    "device-storage:apps":{},
+    "webapps-manage":{}
+  },
   "icons": {
     "60": "/style/icons/60/Feedback.png"
   },

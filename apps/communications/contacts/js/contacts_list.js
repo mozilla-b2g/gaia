@@ -254,7 +254,7 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
-    if (show) {
+    if (show && !ActivityHandler.currentlyHandling) {
       noContacts.classList.remove('hide');
       return;
     }
@@ -332,7 +332,7 @@ contacts.List = (function() {
       return;
     }
 
-    var sortBy = orderByLastName ? 'givenName' : 'familiyName';
+    var sortBy = orderByLastName ? 'familyName' : 'givenName';
     var options = {
       sortBy: sortBy,
       sortOrder: 'ascending'

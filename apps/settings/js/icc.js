@@ -199,7 +199,7 @@
           resultCode: icc.STK_RESULT_OK
         });
         if (confirm(options.confirmMessage)) {
-          openURL(options.url);
+          openLink(options.url);
         }
         break;
 
@@ -440,7 +440,7 @@
    */
   function displayNotification(command) {
     var options = command.options;
-    NotificationHelper.send("STK", options.text);
+    NotificationHelper.send('STK', options.text);
   }
 
   /**

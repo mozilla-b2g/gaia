@@ -63,7 +63,16 @@ var Camera = {
     fileFormat: 'jpeg'
   },
 
-  _videoConfig: {
+  get _previewConfig() {
+    delete this._previewConfig;
+    return this._previewConfig = {
+      width: document.body.clientHeight,
+      height: document.body.clientWidth
+    };
+  },
+
+  _previewConfigVideo: {
+    profile: 'cif',
     rotation: 90,
     width: 352,
     height: 288
@@ -88,16 +97,11 @@ var Camera = {
 
   _pendingPick: null,
 
-  // How many seconds we wait between collecting available disk space
-  DISK_SAMPLE_RATE: 1,
-  // How many disk samples we store, we dont want to just average 2 samples
-  // as they might spike
-  DISK_SAMPLE_SIZE: 10,
-  // Amount of seconds of streaming the disk can support before we
-  // stop recording
-  DISK_BUFFER: 10,
+  // The minimum available disk space to start recording a video.
+  RECORD_SPACE_MIN: 1024 * 1024 * 2,
 
-  _diskSpace: [],
+  // Number of bytes left on disk to let us stop recording.
+  RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -149,6 +153,12 @@ var Camera = {
 
   init: function camera_init() {
 
+    // Dont let the phone go to sleep while the camera is
+    // active, user must manually close it
+    if (navigator.requestWakeLock) {
+      navigator.requestWakeLock('screen');
+    }
+
     this._storageState = this.STORAGE_INIT;
     this.setCaptureMode(this.CAMERA);
     this.initPositionUpdate();
@@ -161,6 +171,7 @@ var Camera = {
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
     window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
+    this.overlay.addEventListener('click', this.showOverlay.bind(this, null));
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
@@ -234,11 +245,10 @@ var Camera = {
       this.viewfinder.play();
     }
     if (this.captureMode === this.CAMERA) {
-      // TODO: fix this so we can just call getPreviewStream()
-      // or toggle a mode, or something
-      this.setSource(this._camera); // STOMP
+      this._cameraObj.getPreviewStream(this._previewConfig,
+                                       gotPreviewStream.bind(this));
     } else {
-      this._cameraObj.getPreviewStreamVideoMode(this._videoConfig,
+      this._cameraObj.getPreviewStreamVideoMode(this._previewConfigVideo,
                                                 gotPreviewStream.bind(this));
     }
   },
@@ -302,6 +312,7 @@ var Camera = {
     var switchButton = this.switchButton;
     this._videoPath = this.createVideoFilename();
 
+    var onerror = function() handleError('error-recording');
     var onsuccess = (function onsuccess() {
       captureButton.removeAttribute('disabled');
       document.body.classList.add('capturing');
@@ -313,15 +324,40 @@ var Camera = {
       }
     }).bind(this);
 
-    var onerror = function onerror(e) {
+    var handleError = (function handleError(id) {
       captureButton.removeAttribute('disabled');
       switchButton.removeAttribute('disabled');
-    };
+      this.showOverlay(id);
+    }).bind(this);
 
     switchButton.setAttribute('disabled', 'disabled');
     captureButton.setAttribute('disabled', 'disabled');
-    this._cameraObj.startRecording(this._videoStorage, this._videoPath,
-                                   onsuccess, onerror);
+
+    // Determine the number of bytes available on disk.
+    var stat = this._videoStorage.stat();
+    stat.onerror = onerror;
+    stat.onsuccess = (function() {
+      var freeBytes = stat.result.freeBytes;
+
+      // Determine the size of the file we might be overwriting.
+      var get = this._videoStorage.get(this._videoPath);
+      get.onerror = function() startRecording(freeBytes);
+      get.onsuccess = function() startRecording(freeBytes - get.result.size);
+    }).bind(this);
+
+    var startRecording = (function startRecording(freeBytes) {
+      if (freeBytes < this.RECORD_SPACE_MIN) {
+        handleError('nospace');
+        return;
+      }
+
+      var config = {
+        rotation: 90,
+        maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
+      };
+      this._cameraObj.startRecording(config, this._videoStorage, this._videoPath,
+                                     onsuccess, onerror);
+    }).bind(this);
   },
 
   addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type) {
@@ -372,7 +408,6 @@ var Camera = {
   },
 
   startRecordingTimer: function camera_startRecordingTimer() {
-    this._diskSpace = [];
     this._videoStart = new Date().getTime();
     this.videoTimer.textContent = this.formatTimer(0);
     this._videoTimer =
@@ -383,37 +418,6 @@ var Camera = {
     var videoLength =
       Math.round((new Date().getTime() - this._videoStart) / 1000);
     this.videoTimer.textContent = this.formatTimer(videoLength);
-
-    if (videoLength % this.DISK_SAMPLE_RATE !== 0) {
-      return;
-    }
-
-    // Check the amount of storage we have available and stop recording
-    // before we fill the sdcard
-    this._videoStorage.stat().onsuccess = (function(e) {
-      var freeBytes = e.target.result.freeBytes;
-      this._diskSpace.push(freeBytes);
-      if (this._diskSpace.length > this.DISK_SAMPLE_SIZE) {
-        this._diskSpace.shift();
-      }
-
-      if (this._diskSpace.length < 2) {
-        return;
-      }
-
-      // Find the average amount of diskspace we are consuming per second
-      // If we are overwriting a file, freeBytes will stay constant until
-      // we start exceeding the original filesize, so we need to handle
-      // 0 bytes used
-      var diskUsed = this._diskSpace[0] - freeBytes;
-      var diskRate = diskUsed > 0 ?
-        diskUsed / (this._diskSpace.length * this.DISK_SAMPLE_RATE) : 0;
-
-      if ((freeBytes - (diskRate * this.DISK_BUFFER)) < 0) {
-        this.stopRecording();
-      }
-
-    }).bind(this);
   },
 
   stopRecording: function camera_stopRecording() {
@@ -587,12 +591,8 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.largestPictureSize(camera.capabilities.pictureSizes);
-      var config = {
-        height: height,
-        width: width
-      };
       this.enableCameraFeatures(camera.capabilities);
-      camera.getPreviewStream(config, gotPreviewScreen.bind(this));
+      camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
   },

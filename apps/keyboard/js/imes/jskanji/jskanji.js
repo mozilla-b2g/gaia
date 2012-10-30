@@ -299,6 +299,7 @@
 
     var _keyboardMode = IMEMode.FULL_HIRAGANA;
 
+    var _layoutPage = LAYOUT_PAGE_DEFAULT;
 
     // ** The following functions are compulsory functions in IME
     // and explicitly called in `keyboard.js` **
@@ -317,10 +318,18 @@
     };
 
     this.click = function ime_click(keyCode) {
+      if (_layoutPage !== LAYOUT_PAGE_DEFAULT) {
+        _glue.sendKey(keyCode);
+        return;
+      }
       //debug('click ' + keyCode);
       // push keyCode to working queue
       qPush(keyCode);
       qNext();
+    };
+
+    this.setLayoutPage = function ime_setLayoutPage(page) {
+      _layoutPage = page;
     };
 
     this.select = function ime_select(kanji, kana) {
@@ -360,8 +369,9 @@
       }
     };
 
-    this.show = function ime_show(inputType) {
-      debug('Show. Input type: ' + inputType);
+    this.activate = function ime_activate(language, suggestions, state) {
+      var inputType = state.type;
+      debug('Activate. Input type: ' + inputType);
       var layout = IMELayouts.JP;
       if (inputType === '' || inputType === 'text' ||
           inputType === 'textarea') {
@@ -1141,9 +1151,9 @@
     define('jskanji', [], function() { return jskanji; });
   }
 
-  // Expose to IMEManager if we are in Gaia homescreen
-  if (typeof IMEManager !== 'undefined') {
-    IMEController.IMEngines.jskanji = jskanji;
+  // Expose the engine to the Gaia keyboard
+  if (typeof InputMethods !== 'undefined') {
+    InputMethods.jskanji = jskanji;
   }
 
   /* copy from jszhuyin */

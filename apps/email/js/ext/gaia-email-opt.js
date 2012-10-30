@@ -1133,9 +1133,9 @@ MailBody.prototype = {
 
   /**
    * Trigger the download of any inline images sent as part of the message.
-   * Once the images have been downloaded
+   * Once the images have been downloaded, invoke the provided callback.
    */
-  downloadEmbeddedImages: function(callback) {
+  downloadEmbeddedImages: function(callWhenDone, callOnProgress) {
     var relPartIndices = [];
     for (var i = 0; i < this._relatedParts.length; i++) {
       var relatedPart = this._relatedParts[i];
@@ -1144,10 +1144,12 @@ MailBody.prototype = {
       relPartIndices.push(i);
     }
     if (!relPartIndices.length) {
-      callback();
+      if (callWhenDone)
+        callWhenDone();
       return;
     }
-    this._api._downloadAttachments(this, relPartIndices, [], callback);
+    this._api._downloadAttachments(this, relPartIndices, [],
+                                   callWhenDone, callOnProgress);
   },
 
   /**
@@ -1262,6 +1264,12 @@ MailAttachment.prototype = {
 
   get isDownloaded() {
     return !!this._file;
+  },
+
+  download: function(callWhenDone, callOnProgress) {
+    this._body._api._downloadAttachments(
+      this._body, [], [this._body.attachments.indexOf(this)],
+      callWhenDone, callOnProgress);
   },
 };
 
@@ -1473,6 +1481,14 @@ BridgedViewSlice.prototype = {
   },
 
   die: function() {
+    // Null out all listeners except for the ondead listener.  This avoids
+    // the callbacks from having to filter out messages from dead slices.
+    this.onadd = null;
+    this.onchange = null;
+    this.onsplice = null;
+    this.onremove = null;
+    this.onstatus = null;
+    this.oncomplete = null;
     this._api.__bridgeSend({
         type: 'killSlice',
         handle: this._handle
@@ -1555,9 +1571,7 @@ function MessageComposition(api, handle) {
 
   this._references = null;
   this._customHeaders = null;
-  // XXX attachments aren't implemented yet, of course.  They will be added
-  // via helper method.
-  this._attachments = null;
+  this.attachments = null;
 }
 MessageComposition.prototype = {
   toString: function() {
@@ -1581,6 +1595,24 @@ MessageComposition.prototype = {
   },
 
   /**
+   * @args[
+   *   @param[attachmentDef @dict[
+   *     @key[fileName String]
+   *     @key[blob Blob]
+   *   ]]
+   * ]
+   */
+  addAttachment: function(attachmentDef) {
+    this.attachments.push(attachmentDef);
+  },
+
+  removeAttachment: function(attachmentDef) {
+    var idx = this.attachments.indexOf(attachmentDef);
+    if (idx !== -1)
+      this.attachments.splice(idx, 1);
+  },
+
+  /**
    * Populate our state to send over the wire to the back-end.
    */
   _buildWireRep: function() {
@@ -1593,7 +1625,7 @@ MessageComposition.prototype = {
       body: this.body,
       referencesStr: this._references,
       customHeaders: this._customHeaders,
-      attachments: this._attachments,
+      attachments: this.attachments,
     };
   },
 
@@ -1914,6 +1946,7 @@ MailAPI.prototype = {
     delete this._slices[msg.handle];
     if (slice.ondead)
       slice.ondead(slice);
+    slice.ondead = null;
   },
 
   _getBodyForMessage: function(header, callback) {
@@ -1944,14 +1977,15 @@ MailAPI.prototype = {
   },
 
   _downloadAttachments: function(body, relPartIndices, attachmentIndices,
-                                 callback) {
+                                 callWhenDone, callOnProgress) {
     var handle = this._nextHandle++;
     this._pendingRequests[handle] = {
       type: 'downloadAttachments',
       body: body,
       relParts: relPartIndices.length > 0,
       attachments: attachmentIndices.length > 0,
-      callback: callback,
+      callback: callWhenDone,
+      progress: callOnProgress
     };
     this.__bridgeSend({
       type: 'downloadAttachments',
@@ -1972,11 +2006,11 @@ MailAPI.prototype = {
     delete this._pendingRequests[msg.handle];
 
     // What will have changed are the attachment lists, so update them.
-    if (msg.body) {
+    if (msg.bodyInfo) {
       if (req.relParts)
-        req.body._relatedParts = msg.body.relatedParts;
+        req.body._relatedParts = msg.bodyInfo.relatedParts;
       if (req.attachments) {
-        var wireAtts = msg.body.attachments;
+        var wireAtts = msg.bodyInfo.attachments;
         for (var i = 0; i < wireAtts.length; i++) {
           var wireAtt = wireAtts[i], bodyAtt = req.body.attachments[i];
           bodyAtt.sizeEstimateInBytes = wireAtt.sizeEstimate;
@@ -2504,7 +2538,7 @@ MailAPI.prototype = {
     req.composer.cc = msg.cc;
     req.composer.bcc = msg.bcc;
     req.composer._references = msg.referencesStr;
-    // XXX attachments
+    req.composer.attachments = msg.attachments;
 
     if (req.callback) {
       var callback = req.callback;
@@ -12257,6 +12291,7 @@ console.log('done proc modifyConfig');
               cc: rCc,
               bcc: rBcc,
               referencesStr: referencesStr,
+              attachments: [],
             });
           }
           else {
@@ -12278,6 +12313,7 @@ console.log('done proc modifyConfig');
               // they came from, but with an extra header so that it was
               // possible to detect it was a forward.
               references: null,
+              attachments: [],
             });
           }
         });
@@ -12294,6 +12330,7 @@ console.log('done proc modifyConfig');
       cc: [],
       bcc: [],
       references: null,
+      attachments: [],
     });
   },
 
@@ -12351,18 +12388,46 @@ console.log('done proc modifyConfig');
     if (wireRep.references)
       composer.addHeader('References', wireRep.references);
 
+
     if (msg.command === 'send') {
-      var self = this;
-      account.sendMessage(composer, function(err, badAddresses) {
-        self.__sendMessage({
-          type: 'sent',
-          handle: msg.handle,
-          err: err,
-          badAddresses: badAddresses,
-          messageId: messageId,
-          sentDate: sentDate.valueOf(),
+      var self = this, asyncPending = 0;
+
+      if (wireRep.attachments) {
+        wireRep.attachments.forEach(function(attachmentDef) {
+          var reader = new FileReader();
+          reader.onload = function onloaded() {
+            composer.addAttachment({
+              filename: attachmentDef.name,
+              contentType: attachmentDef.blob.type,
+              contents: new Uint8Array(reader.result),
+            });
+            if (--asyncPending === 0)
+              initiateSend();
+          };
+          try {
+            reader.readAsArrayBuffer(attachmentDef.blob);
+            asyncPending++;
+          }
+          catch (ex) {
+            console.error('Problem attaching attachment:', ex, '\n', ex.stack);
+          }
         });
-      });
+      }
+
+      var initiateSend = function() {
+        account.sendMessage(composer, function(err, badAddresses) {
+          self.__sendMessage({
+            type: 'sent',
+            handle: msg.handle,
+            err: err,
+            badAddresses: badAddresses,
+            messageId: messageId,
+            sentDate: sentDate.valueOf(),
+          });
+        });
+      };
+      if (asyncPending === 0)
+        initiateSend();
     }
     else { // (msg.command === draft)
       // XXX save drafts!
@@ -18126,6 +18191,7 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
     conn.search([['UID', Math.max(1, highUid - 49) + ':' + highUid]],
                 gotSearch.bind(null, highUid - 50));
   }
+  var viableUids = null;
   function gotSearch(nextHighUid, err, uids) {
     if (!uids.length) {
       if (nextHighUid < 0) {
@@ -18134,7 +18200,8 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
       }
       searchRange(nextHighUid);
     }
-    useUid(uids[uids.length - 1]);
+    viableUids = uids;
+    useUid(viableUids.pop());
   }
   function useUid(uid) {
     var fetcher = conn.fetch(
@@ -18164,6 +18231,13 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
                 return;
               }
             }
+            // If we are here, the message somehow did not have a Received
+            // header.  Try again with another known UID or fail out if we
+            // have run out of UIDs.
+            if (viableUids.length)
+              useUid(viableUids.pop());
+            else // fail to the default.
+              callback(null, DEFAULT_TZ_OFFSET);
           });
       });
     fetcher.on('error', function onFetchErr(err) {
@@ -25257,6 +25331,31 @@ define('mailapi/searchfilter',
   ) {
 
 /**
+ * This internal function checks if a string or a regexp matches an input
+ * and if it does, it returns a 'return value' as RegExp.exec does.  Note that
+ * the 'index' of the returned value will be relative to the provided
+ * `fromIndex` as if the string had been sliced using fromIndex.
+ */
+function matchRegexpOrString(phrase, input, fromIndex) {
+  if (!input) {
+    return null;
+  }
+
+  if (phrase instanceof RegExp) {
+    return phrase.exec(fromIndex ? input.slice(fromIndex) : input);
+  }
+
+  var idx = input.indexOf(phrase, fromIndex);
+  if (idx == -1) {
+    return null;
+  }
+
+  var ret = [ phrase ];
+  ret.index = idx - fromIndex;
+  return ret;
+}
+
+/**
  * Match a single phrase against the author's display name or e-mail address.
  * Match results are stored in the 'author' attribute of the match object as a
  * `FilterMatchItem`.
@@ -25271,21 +25370,21 @@ AuthorFilter.prototype = {
   needsBody: false,
 
   testMessage: function(header, body, match) {
-    var author = header.author, phrase = this.phrase, idx;
-    if (author.name && (idx = author.name.indexOf(phrase)) !== -1) {
+    var author = header.author, phrase = this.phrase, ret;
+    if ((ret = matchRegexpOrString(phrase, author.name, 0))) {
       match.author = {
         text: author.name,
         offset: 0,
-        matchRuns: [{ start: idx, length: phrase.length }],
+        matchRuns: [{ start: ret.index, length: ret[0].length }],
         path: null,
       };
       return true;
     }
-    if (author.address && (idx = author.address.indexOf(phrase)) !== -1) {
+    if ((ret = matchRegexpOrString(phrase, author.address, 0))) {
       match.author = {
         text: author.address,
         offset: 0,
-        matchRuns: [{ start: idx, length: phrase.length }],
+        matchRuns: [{ start: ret.index, length: ret[0].length }],
         path: null,
       };
       return true;
@@ -25322,25 +25421,25 @@ RecipientFilter.prototype = {
     const phrase = this.phrase, stopAfter = this.stopAfter;
     var matches = [];
     function checkRecipList(list) {
-      var idx;
+      var ret;
       for (var i = 0; i < list.length; i++) {
         var recip = list[i];
-        if (recip.name && (idx = recip.name.indexOf(phrase)) !== -1) {
+        if ((ret = matchRegexpOrString(phrase, recip.name, 0))) {
           matches.push({
             text: recip.name,
             offset: 0,
-            matchRuns: [{ start: idx, length: phrase.length }],
+            matchRuns: [{ start: ret.index, length: ret[0].length }],
             path: null,
           });
           if (matches.length < stopAfter)
             continue;
           return;
         }
-        if (recip.address && (idx = recip.address.indexOf(phrase)) !== -1) {
+        if ((ret = matchRegexpOrString(phrase, recip.address, 0))) {
           matches.push({
             text: recip.address,
             offset: 0,
-            matchRuns: [{ start: idx, length: phrase.length }],
+            matchRuns: [{ start: ret.index, length: ret[0].length }],
             path: null,
           });
           if (matches.length >= stopAfter)
@@ -25388,6 +25487,8 @@ function snippetMatchHelper(str, start, length, contextBefore, contextAfter,
   if (contextBefore > start)
     contextBefore = start;
   var offset = str.indexOf(' ', start - contextBefore);
+  if (offset === -1)
+    offset = 0;
   if (offset >= start)
     offset = start - contextBefore;
   var endIdx = str.lastIndexOf(' ', start + length + contextAfter);
@@ -25418,11 +25519,11 @@ function SubjectFilter(phrase, stopAfterNMatches, contextBefore, contextAfter) {
   this.contextBefore = contextBefore;
   this.contextAfter = contextAfter;
 }
-exports.Subjectfilter = SubjectFilter;
+exports.SubjectFilter = SubjectFilter;
 SubjectFilter.prototype = {
   needsBody: false,
   testMessage: function(header, body, match) {
-    const phrase = this.phrase, phrlen = phrase.length,
+    const phrase = this.phrase,
           subject = header.subject, slen = subject.length,
           stopAfter = this.stopAfter,
           contextBefore = this.contextBefore, contextAfter = this.contextAfter,
@@ -25430,13 +25531,13 @@ SubjectFilter.prototype = {
     var idx = 0;
 
     while (idx < slen && matches.length < stopAfter) {
-      idx = subject.indexOf(phrase, idx);
-      if (idx === -1)
+      var ret = matchRegexpOrString(phrase, subject, idx);
+      if (!ret)
         break;
 
-      matches.push(snippetMatchHelper(subject, idx, phrlen,
+      matches.push(snippetMatchHelper(subject, idx + ret.index, ret[0].length,
                                       contextBefore, contextAfter, null));
-      idx += phrlen;
+      idx += ret.index + ret[0].length;
     }
 
     if (matches.length) {
@@ -25476,7 +25577,7 @@ exports.BodyFilter = BodyFilter;
 BodyFilter.prototype = {
   needsBody: true,
   testMessage: function(header, body, match) {
-    const phrase = this.phrase, phrlen = phrase.length,
+    const phrase = this.phrase,
           stopAfter = this.stopAfter,
           contextBefore = this.contextBefore, contextAfter = this.contextAfter,
           matches = [],
@@ -25499,15 +25600,15 @@ BodyFilter.prototype = {
             continue;
 
           for (idx = 0; idx < block.length && matches.length < stopAfter;) {
-            idx = block.indexOf(phrase, idx);
-            if (idx === -1)
+            var ret = matchRegexpOrString(phrase, block, idx);
+            if (!ret)
               break;
             if (repPath === null)
               repPath = [iBodyRep, iRep];
-            matches.push(snippetMatchHelper(block, idx, phrlen,
+            matches.push(snippetMatchHelper(block, ret.index, ret[0].length,
                                             contextBefore, contextAfter,
                                             repPath));
-            idx += phrlen;
+            idx += ret.index + ret[0].length;
           }
         }
       }
@@ -25552,10 +25653,10 @@ BodyFilter.prototype = {
             // worry about it.
             var nodeText = node.data;
 
-            idx = nodeText.indexOf(phrase);
-            if (idx !== -1) {
+            var ret = matchRegexpOrString(phrase, nodeText, 0);
+            if (ret) {
               matches.push(
-                snippetMatchHelper(nodeText, idx, phrlen,
+                snippetMatchHelper(nodeText, ret.index, ret[0].length,
                                    contextBefore, contextAfter,
                                    htmlPath.concat()));
               if (matches.length >= stopAfter)
@@ -25603,7 +25704,6 @@ function MessageFilterer(filters) {
     if (filter.needsBody)
       this.bodiesNeeded = true;
   }
-console.log('sf: filterer: bodiesNeeded:', this.bodiesNeeded);
 }
 exports.MessageFilterer = MessageFilterer;
 MessageFilterer.prototype = {
@@ -25613,8 +25713,8 @@ MessageFilterer.prototype = {
    * are defined by the filterers in use.
    */
   testMessage: function(header, body) {
-console.log('sf: testMessage(', header.suid, header.author.address,
-            header.subject, 'body?', !!body, ')');
+    //console.log('sf: testMessage(', header.suid, header.author.address,
+    //            header.subject, 'body?', !!body, ')');
     var matched = false, matchObj = {};
     const filters = this.filters;
     for (var i = 0; i < filters.length; i++) {
@@ -25622,7 +25722,7 @@ console.log('sf: testMessage(', header.suid, header.author.address,
       if (filter.testMessage(header, body, matchObj))
         matched = true;
     }
-console.log('   =>', matched, JSON.stringify(matchObj));
+    //console.log('   =>', matched, JSON.stringify(matchObj));
     if (matched)
       return matchObj;
     else
@@ -25653,6 +25753,12 @@ console.log('sf: creating SearchSlice:', phrase);
   this.startUID = null;
   this.endTS = null;
   this.endUID = null;
+
+  if (!(phrase instanceof RegExp)) {
+    phrase = new RegExp(phrase.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g,
+                                       '\\$&'),
+                        'i');
+  }
 
   var filters = [];
   if (whatToSearch.author)
@@ -26933,7 +27039,7 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
     }
   },
 
-  downloadMessageAttachments: function(uid, partInfos, callback) {
+  downloadMessageAttachments: function(uid, partInfos, callback, progress) {
     var conn = this._conn;
     var mparser = new $mailparser.MailParser();
 
@@ -27522,6 +27628,136 @@ exports.local_undo_delete = function(op, doneCallback) {
   this.local_undo_move(op, doneCallback, trashFolder.id);
 };
 
+exports.do_download = function(op, callback) {
+  var self = this;
+  var idxLastSlash = op.messageSuid.lastIndexOf('/'),
+      folderId = op.messageSuid.substring(0, idxLastSlash);
+
+  var folderConn, folderStorage;
+  // Once we have the connection, get the current state of the body rep.
+  var gotConn = function gotConn(_folderConn, _folderStorage) {
+    folderConn = _folderConn;
+    folderStorage = _folderStorage;
+
+    folderStorage.getMessageHeader(op.messageSuid, op.messageDate, gotHeader);
+  };
+  var deadConn = function deadConn() {
+    callback('aborted-retry');
+  };
+  // Now that we have the body, we can know the part numbers and eliminate /
+  // filter out any redundant download requests.  Issue all the fetches at
+  // once.
+  var partsToDownload = [], storePartsTo = [], header, bodyInfo, uid;
+  var gotHeader = function gotHeader(_headerInfo) {
+    header = _headerInfo;
+    uid = header.srvid;
+    folderStorage.getMessageBody(op.messageSuid, op.messageDate, gotBody);
+  };
+  var gotBody = function gotBody(_bodyInfo) {
+    bodyInfo = _bodyInfo;
+    var i, partInfo;
+    for (i = 0; i < op.relPartIndices.length; i++) {
+      partInfo = bodyInfo.relatedParts[op.relPartIndices[i]];
+      if (partInfo.file)
+        continue;
+      partsToDownload.push(partInfo);
+      storePartsTo.push('idb');
+    }
+    for (i = 0; i < op.attachmentIndices.length; i++) {
+      partInfo = bodyInfo.attachments[op.attachmentIndices[i]];
+      if (partInfo.file)
+        continue;
+      partsToDownload.push(partInfo);
+      // right now all attachments go in pictures
+      storePartsTo.push('pictures');
+    }
+
+    folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
+  };
+  var pendingStorageWrites = 0, downloadErr = null;
+  /**
+   * Save an attachment to device storage, making the filename unique if we
+   * encounter a collision.
+   */
+  function saveToStorage(blob, storage, filename, partInfo, isRetry) {
+    pendingStorageWrites++;
+    var dstorage = navigator.getDeviceStorage(storage);
+    var req = dstorage.addNamed(blob, filename);
+    req.onerror = function() {
+      console.warn('failed to save attachment to', storage, filename,
+                   'type:', blob.type);
+      pendingStorageWrites--;
+      // if we failed to unique the file after appending junk, just give up
+      if (isRetry) {
+        if (pendingStorageWrites === 0)
+          done();
+        return;
+      }
+      // retry by appending a super huge timestamp to the file before its
+      // extension.
+      var idxLastPeriod = filename.lastIndexOf('.');
+      if (idxLastPeriod === -1)
+        idxLastPeriod = filename.length;
+      filename = filename.substring(0, idxLastPeriod) + '-' + Date.now() +
+                   filename.substring(idxLastPeriod);
+      saveToStorage(blob, storage, filename, partInfo, true);
+    };
+    req.onsuccess = function() {
+      console.log('saved attachment to', storage, filename, 'type:', blob.type);
+      partInfo.file = [storage, filename];
+      if (--pendingStorageWrites === 0)
+        done();
+    };
+  }
+  var gotParts = function gotParts(err, bodyBuffers) {
+    if (bodyBuffers.length !== partsToDownload.length) {
+      callback(err, null, false);
+      return;
+    }
+    downloadErr = err;
+    for (var i = 0; i < partsToDownload.length; i++) {
+      // Because we should be under a mutex, this part should still be the
+      // live representation and we can mutate it.
+      var partInfo = partsToDownload[i],
+          buffer = bodyBuffers[i],
+          storeTo = storePartsTo[i];
+
+      partInfo.sizeEstimate = buffer.length;
+      var blob = new Blob([buffer], { type: partInfo.type });
+      if (storeTo === 'idb')
+        partInfo.file = blob;
+      else
+        saveToStorage(blob, storeTo, partInfo.name, partInfo);
+    }
+    if (!pendingStorageWrites)
+      done();
+  };
+  function done() {
+    folderStorage.updateMessageBody(op.messageSuid, op.messageDate, bodyInfo);
+    callback(downloadErr, bodyInfo, true);
+  };
+
+  self._accessFolderForMutation(folderId, true, gotConn, deadConn,
+                                'download');
+};
+
+exports.local_do_download = function(op, callback) {
+  // Downloads are inherently online operations.
+  callback(null);
+};
+
+exports.check_download = function(op, callback) {
+  // If we had download the file and persisted it successfully, this job would
+  // be marked done because of the atomicity guarantee on our commits.
+  callback(null, 'coherent-notyet');
+};
+exports.local_undo_download = function(op, callback) {
+  callback(null);
+};
+exports.undo_download = function(op, callback) {
+  callback(null);
+};
+
 exports.postJobCleanup = function(passed) {
   if (passed) {
     var deltaMap, fullMap;
@@ -27968,91 +28204,15 @@ ImapJobDriver.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   // download: Download one or more attachments from a single message
 
-  local_do_download: function(op, callback) {
-    // Downloads are inherently online operations.
-    callback(null);
-  },
+  local_do_download: $jobmixins.local_do_download,
 
-  do_download: function(op, callback) {
-    var self = this;
-    var idxLastSlash = op.messageSuid.lastIndexOf('/'),
-        folderId = op.messageSuid.substring(0, idxLastSlash);
+  do_download: $jobmixins.do_download,
 
-    var folderConn, folderStorage;
-    // Once we have the connection, get the current state of the body rep.
-    var gotConn = function gotConn(_folderConn, _folderStorage) {
-      folderConn = _folderConn;
-      folderStorage = _folderStorage;
+  check_download: $jobmixins.check_download,
 
-      folderStorage.getMessageHeader(op.messageSuid, op.messageDate, gotHeader);
-    };
-    var deadConn = function deadConn() {
-      callback('aborted-retry');
-    };
-    // Now that we have the body, we can know the part numbers and eliminate /
-    // filter out any redundant download requests.  Issue all the fetches at
-    // once.
-    var partsToDownload = [], header, bodyInfo, uid;
-    var gotHeader = function gotHeader(_headerInfo) {
-      header = _headerInfo;
-      uid = header.srvid;
-      folderStorage.getMessageBody(op.messageSuid, op.messageDate, gotBody);
-    };
-    var gotBody = function gotBody(_bodyInfo) {
-      bodyInfo = _bodyInfo;
-      var i, partInfo;
-      for (i = 0; i < op.relPartIndices.length; i++) {
-        partInfo = bodyInfo.relatedParts[op.relPartIndices[i]];
-        if (partInfo.file)
-          continue;
-        partsToDownload.push(partInfo);
-      }
-      for (i = 0; i < op.attachmentIndices.length; i++) {
-        partInfo = bodyInfo.attachments[op.attachmentIndices[i]];
-        if (partInfo.file)
-          continue;
-        partsToDownload.push(partInfo);
-      }
+  local_undo_download: $jobmixins.local_undo_download,
 
-      folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
-    };
-    var gotParts = function gotParts(err, bodyBuffers) {
-      if (bodyBuffers.length !== partsToDownload.length) {
-        callback(err, null, false);
-        return;
-      }
-      for (var i = 0; i < partsToDownload.length; i++) {
-        // Because we should be under a mutex, this part should still be the
-        // live representation and we can mutate it.
-        var partInfo = partsToDownload[i],
-            buffer = bodyBuffers[i];
-
-        partInfo.sizeEstimate = buffer.length;
-        partInfo.file = new Blob([buffer],
-                                 { contentType: partInfo.type });
-      }
-      folderStorage.updateMessageBody(op.messageSuid, op.messageDate, bodyInfo);
-      callback(err, bodyInfo, true);
-    };
-
-    self._accessFolderForMutation(folderId, true, gotConn, deadConn,
-                                  'download');
-  },
-
-  check_download: function(op, callback) {
-    // If we had download the file and persisted it successfully, this job would
-    // be marked done because of the atomicity guarantee on our commits.
-    callback(null, UNCHECKED_COHERENT_NOTYET);
-  },
-
-  local_undo_download: function(op, callback) {
-    callback(null);
-  },
-
-  undo_download: function(op, callback) {
-    callback(null);
-  },
-
+  undo_download: $jobmixins.undo_download,
 
   //////////////////////////////////////////////////////////////////////////////
   // modtags: Modify tags on messages
@@ -29650,7 +29810,14 @@ SmtpAccount.prototype = {
    * message to the sent folder.
    *
    * @args[
-   *   @param[composedMessage]
+   *   @param[composedMessage MailComposer]{
+   *     A mailcomposer instance that has already generated its message payload
+   *     to its _outputBuffer field.  We previously used streaming generation,
+   *     but have abandoned this for now for IMAP Sent folder saving purposes.
+   *     Namely, our IMAP implementation doesn't support taking a stream for
+   *     APPEND right now, and there's no benefit to doing double the work and
+   *     generating extra garbage.
+   *   }
    *   @param[callback @func[
    *     @args[
    *       @param[error @oneof[
@@ -29710,8 +29877,8 @@ SmtpAccount.prototype = {
         if (bailed)
           return;
         sendingMessage = true;
-        composedMessage.streamMessage();
-        composedMessage.pipe(conn);
+        conn.write(composedMessage._outputBuffer);
+        conn.end();
       });
     // And close the connection and be done once it has been sent
     conn.on('ready', function() {
@@ -32091,7 +32258,12 @@ ActiveSyncAccount.prototype = {
   sendMessage: function asa_sendMessage(composedMessage, callback) {
     // XXX: This is very hacky and gross. Fix it to use pipes later.
     composedMessage._cacheOutput = true;
+    process.immediate = true;
+    composedMessage._processBufferedOutput = function() {
+      // we are stopping the DKIM logic from firing.
+    };
     composedMessage._composeMessage();
+    process.immediate = false;
 
     // ActiveSync 14.0 has a completely different API for sending email. Make
     // sure we format things the right way.
@@ -32358,28 +32530,23 @@ CompositeAccount.prototype = {
   },
 
   sendMessage: function(composedMessage, callback) {
+    // Render the message to its output buffer.
+    composedMessage._cacheOutput = true;
+    process.immediate = true;
+    composedMessage._processBufferedOutput = function() {
+      // we are stopping the DKIM logic from firing.
+    };
+    composedMessage._composeMessage();
+    process.immediate = false;
+
     return this._sendPiece.sendMessage(
       composedMessage,
       function(err, errDetails) {
         // We need to append the message to the sent folder if we think we sent
         // the message okay.
         if (!err) {
-          // have it internally accumulate the data rather than using the stream
-          // mechanism.
-          composedMessage._cacheOutput = true;
-          // reset the offsets since we are reusing the composer.
-          composedMessage._message.processingStart = 0;
-          composedMessage._message.processingPos = 0;
-          var data = null;
-          process.immediate = true;
-          composedMessage._processBufferedOutput = function() {
-            data = composedMessage._outputBuffer;
-          };
-          composedMessage._composeMessage();
-          process.immediate = false;
-
           var message = {
-            messageText: data.trimRight(),
+            messageText: composedMessage._outputBuffer,
             // do not specify date; let the server use its own timestamping
             // since we want the approximate value of 'now' anyways.
             flags: ['Seen'],
@@ -33146,12 +33313,23 @@ Autoconfigurator.prototype = {
       // XXX: We need to normalize the domain here to get the base domain, but
       // that's complicated because people like putting dots in TLDs. For now,
       // let's just pretend no one would do such a horrible thing.
-      mxDomain = mxDomain.split('.').slice(-2).join('.');
+      mxDomain = mxDomain.split('.').slice(-2).join('.').toLowerCase();
+      console.log('  Found MX for', mxDomain);
 
       if (domain === mxDomain)
         return callback('unknown');
 
-      self._getConfigFromDB(mxDomain, callback);
+      // If we found a different domain after MX lookup, we should look in our
+      // local file store (mostly to support Google Apps domains) and, if that
+      // doesn't work, the Mozilla ISPDB.
+      console.log('  Looking in local file store');
+      self._getConfigFromLocalFile(mxDomain, function(error, config) {
+        if (!error)
+          return callback(error, config);
+
+        console.log('  Looking in the Mozilla ISPDB');
+        self._getConfigFromDB(mxDomain, callback);
+      });
     });
   },
 
@@ -33167,7 +33345,7 @@ Autoconfigurator.prototype = {
   getConfig: function getConfig(userDetails, callback) {
     let [emailLocalPart, emailDomainPart] = userDetails.emailAddress.split('@');
     let domain = emailDomainPart.toLowerCase();
-    console.log('Attempting to get autoconfiguration for:'. domain);
+    console.log('Attempting to get autoconfiguration for', domain);
 
     const placeholderFields = {
       incoming: ['username', 'hostname', 'server'],

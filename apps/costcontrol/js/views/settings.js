@@ -58,7 +58,7 @@ function setupSettings() {
       var format = _getFormatter(guiWidget.dataset.formatter);
 
       // Configure dialog
-      var okButton = dialog.querySelector('button.affirmative');
+      var okButton = dialog.querySelector('button.recommend');
       if (okButton) {
         okButton.addEventListener('click', function ccapp_onDialogOk() {
           var checked = dialog.querySelector('input[type="radio"]:checked');
@@ -124,7 +124,7 @@ function setupSettings() {
       var format = _getFormatter(guiWidget.dataset.formatter);
 
       // Configure dialog
-      var okButton = dialog.querySelector('button.affirmative');
+      var okButton = dialog.querySelector('button.recommend');
       if (okButton) {
         okButton.addEventListener('click', function ccapp_onDialogOk() {
           var value = input.value;
@@ -331,7 +331,7 @@ function setupSettings() {
       viewManager.closeCurrentView();
     });
 
-    var confirm = dialog.querySelector('button.negative');
+    var confirm = dialog.querySelector('button.danger');
     confirm.addEventListener('click', function ccapp_onConfirm(evt) {
       viewManager.closeCurrentView();
       callback(evt);

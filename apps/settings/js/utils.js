@@ -4,28 +4,21 @@
 'use strict';
 
 /**
- * Open a URL with a web activity
+ * Open a link with a web activity
  */
 
-function openURL(url) {
-  var a = new MozActivity({
-    name: 'view',
-    data: { type: 'url', url: url }
-  });
-}
-
-/**
- * Dial a number with a web activity
- */
-
-function dialNumber(number) {
-  var a = new MozActivity({
-    name: 'dial',
-    data: {
-      type: 'webtelephony/number',
-      number: number
-    }
-  });
+function openLink(url) {
+  if (url.startsWith('tel:')) { // dial a phone number
+    new MozActivity({
+      name: 'dial',
+      data: { type: 'webtelephony/number', number: url.substr(4) }
+    });
+  } else if (!url.startsWith('#')) { // browse a URL
+    new MozActivity({
+      name: 'view',
+      data: { type: 'url', url: url }
+    });
+  }
 }
 
 /**
@@ -69,7 +62,7 @@ function audioPreview(element) {
   var source = audio.src;
   var playing = !audio.paused;
 
-  audio.src = 'style/ringtones/' + element.querySelector('input').value;
+  audio.src = 'resources/ringtones/' + element.querySelector('input').value;
   if (source == audio.src && playing) {
     audio.stop();
   } else {
@@ -213,7 +206,6 @@ function bug344618_polyfill() {
     slider.onmousedown = onClick;
     thumb.onmousedown = onDragStart;
     label.onmousemove = onDragMove;
-    label.onmouseout = onDragStop;
     label.onmouseup = onDragStop;
 
     // expose the 'refresh' method on <input>

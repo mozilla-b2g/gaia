@@ -452,10 +452,10 @@ lint:
 #     default target.
 stamp-commit-hash:
 	(if [ -d ./.git ]; then \
-	  git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt; \
+	  git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
-	  echo 'Unknown Git commit; build date shown here.' > apps/settings/gaia-commit.txt; \
-	  date +%s >> apps/settings/gaia-commit.txt; \
+	  echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
+	  date +%s >> apps/settings/resources/gaia_commit.txt; \
 	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.

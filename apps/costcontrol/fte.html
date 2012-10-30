@@ -6,7 +6,6 @@
   <title>Cost Control</title>
 
   <!-- Building blocks Temporal -->
-  <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
@@ -17,6 +16,7 @@
 
   <!-- Building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
   <!-- App and Views -->
@@ -56,9 +56,9 @@
     <!-- XXX: The order of sections is important (tabs should be place above
     the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
 
-    <!-- BALANCE TAB -->
+   <!-- BALANCE TAB -->
     <section role="region" id="balance-tab" class="view" data-viewport="behind">
-      <header data-theme="organic">
+      <header>
         <menu type="toolbar">
            <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
@@ -86,36 +86,42 @@
 
         <!-- Show balance zone -->
         <div id="cost-control-info-area" class="overview">
-          <div class="start">
+          <ul class="buttons-list end">
+            <li>
+              <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
+                Update
+              </button>
+            </li>
+          </ul>
+          <div class="info">
             <div id="cost-control-icon" class="icons">
                 <span class="warning"></span>
                 <progress></progress>
             </div>
-
-            <time id="balance-tab-time"></time>
-          </div>
-          <div class="end">
             <p><span id="balance-tab-currency"></span>&nbsp;<span id="balance-tab-credit"></span></p>
+            <time id="balance-tab-time"></time>
           </div>
         </div>
 
         <!-- Update and top up buttons -->
-        <div class="buttons-list">
-          <button id="balance-tab-update-button" data-l10n-id="update-button">
-            <span class="end reload"></span>
-            Update balance
+        <ul class="buttons-list">
+          <li>
+            <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
+              Top-Up and pay
+            </button>
+          </li>
+          <li>
+          <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button">
+            Top-Up with code
           </button>
-          <button id="balance-tab-topup-button" data-l10n-id="topup-button">
-            <span class="end topup"></span>
-            Top Up
-          </button>
-        </div>
+          </li>
+        </ul>
       </section>
     </section>
 
     <!-- TELEPHONY TAB -->
     <section role="region" id="telephony-tab" class="view" data-viewport="behind">
-       <header data-theme="organic">
+       <header>
         <menu type="toolbar">
            <button class="settings-button"><span class="icon config">configuration</span></button>
         </menu>
@@ -143,7 +149,7 @@
 
     <!-- The top up input -->
     <section role="region" id="topup-view" class="view" data-viewport="bottom">
-      <header data-theme="organic">
+      <header>
         <menu type="toolbar">
            <button id="topup-send-button" data-l10n-id="send">Send</button>
         </menu>
@@ -186,11 +192,14 @@
           </p>
         </div>
       </section>
-      <form class="buttons-list">
-        <button>
-          <span class="end launch"></span>
-          GB
-        </button>
+      <form>
+        <ul class="buttons-list">
+          <li>
+            <button class="icon icon-dialog">
+              GB
+            </button>
+          </li>
+        </ul>
         <label for="topup-code-input">
           <input id="topup-code-input" type="number" autofocus>
         </label>
@@ -204,7 +213,7 @@
         <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="affirmative close-dialog">Ok</button>
+        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
       </menu>
     </section>
 
@@ -215,7 +224,7 @@
         <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="affirmative close-dialog">Ok</button>
+        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
       </menu>
     </section>
 
@@ -269,8 +278,7 @@
       </header>
 
       <div class="buttons-list choose-plan">
-        <button id="settings-view-plantype-setup">
-          <span class="end launch"></span>
+        <button id="settings-view-plantype-setup" class="icon icon-dialog">
           <span class="tag">Prepaid</span>
         </button>
       </div>
@@ -312,8 +320,7 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button>
-              <span class="end launch"></span>
+            <button class="icon icon-dialog">
               Monthly
             </button>
           </div>
@@ -327,8 +334,7 @@
       <ul class="settings">
         <li>
           <div class="end buttons-list">
-            <button id="settings-view-tracking-period-setup">
-              <span class="end launch"></span>
+            <button id="settings-view-tracking-period-setup" class="icon icon-dialog">
               <span class="tag"></span>
             </button>
           </div>
@@ -336,8 +342,7 @@
         </li>
         <li id="setting-item-reset-time-setup">
         <div class="end buttons-list">
-          <button id="settings-view-reset-time-setup">
-            <span class="end launch"></span>
+          <button id="settings-view-reset-time-setup" class="icon icon-dialog">
             <span class="tag"></span>
           </button>
         </div>
@@ -367,7 +372,7 @@
         </ul>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="affirmative close-settings-dialog">Ok</button>
+        <button data-l10n-id="ok" class="recommend close-settings-dialog">Ok</button>
       </menu>
     </section>
 
@@ -398,7 +403,7 @@
       </div>
       <menu data-items="2">
         <button id="tracking-period-cancel" data-l10n-id="cancel" class="close-settings-dialog">Cancel</button>
-        <button id="tracking-period-ok" data-l10n-id="set" class="affirmative close-settings-dialog">Set</button>
+        <button id="tracking-period-ok" data-l10n-id="set" class="recommend close-settings-dialog">Set</button>
       </menu>
     </section>
 
@@ -453,7 +458,7 @@
       </div>
       <menu data-items="2">
         <button id="reset-weekday-period-cancel" data-l10n-id="cancel" class="close-settings-dialog">Cancel</button>
-        <button id="reset-weekday-period-ok" data-l10n-id="set-day" class="affirmative close-settings-dialog">Set day</button>
+        <button id="reset-weekday-period-ok" data-l10n-id="set-day" class="recommend close-settings-dialog">Set day</button>
       </menu>
     </section>
 
@@ -701,7 +706,7 @@
       </div>
       <menu data-items="2">
         <button id="reset-monthday-period-cancel" class="close-settings-dialog" data-l10n-id="cancel">Cancel</button>
-        <button id="reset-monthday-period-ok" class="affirmative close-settings-dialog" data-l10n-id="set-date">Set date</button>
+        <button id="reset-monthday-period-ok" class="recommend close-settings-dialog" data-l10n-id="set-date">Set date</button>
       </menu>
     </section>
 
@@ -733,7 +738,7 @@
           </li>
         </ul>
         <menu>
-          <button class="affirmative">
+          <button class="recommend">
             <span></span>
             Next
           </button>
@@ -747,8 +752,8 @@
         </header>
        <ul class="content settings">
         <li>
-          <label class="end switch">
-            <input type="checkbox" checked="checked">
+          <label class="end">
+            <input type="checkbox" checked="checked" data-type="switch">
             <span></span>
           </label>
           <p>Low Balance alert</p>
@@ -766,7 +771,7 @@
             <span></span>
             Back
           </button>
-          <button class="affirmative">
+          <button class="recommend">
             <span></span>
             Next
           </button>
@@ -781,8 +786,7 @@
        <ul class="content settings">
         <li>
           <div class="end buttons-list">
-            <button>
-              <span class="end launch"></span>
+            <button class="icon icon-dialog">
               Monthly
             </button>
           </div>
@@ -790,16 +794,15 @@
         </li>
         <li>
           <div class="end buttons-list">
-            <button>
-              <span class="end launch"></span>
+            <button class="icon icon-dialog">
               27th
             </button>
           </div>
           <p>Starting on</p>
         </li>
         <li>
-          <label class="end switch">
-            <input type="checkbox">
+          <label class="end">
+            <input type="checkbox" data-type="switch">
             <span></span>
           </label>
           <p>Data use alert</p>
@@ -810,7 +813,7 @@
             <span></span>
             Back
           </button>
-          <button class="affirmative">
+          <button class="recommend">
             <span></span>
             Let's go!
           </button>

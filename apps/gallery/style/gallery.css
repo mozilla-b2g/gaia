@@ -239,18 +239,18 @@ body.hidden *[data-l10n-id] {
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
+  height: 3px;
   border: none;
   overflow: hidden;
 }
 
 #throbber {
-  height: 52px;
+  height: 24px;
   background-image: url(images/progress.png);
 }
 
 #throbber.throb {
-  animation: .5s throb infinite steps(12);
+  animation: 1s throb infinite steps(7);
 }
 
 @keyframes throb {
@@ -258,7 +258,7 @@ body.hidden *[data-l10n-id] {
     transform: translateY(0px);
   }
   to {
-    transform: translateY(-48px);
+    transform: translateY(-21px);
   }
 }
 

@@ -195,6 +195,7 @@ var OnCallHandler = (function onCallHandler() {
   });
 
   var screenLock;
+  var cpuLock;
 
   /* === Setup === */
   function setup() {
@@ -202,7 +203,7 @@ var OnCallHandler = (function onCallHandler() {
     toggleScreen();
 
     ProximityHandler.enable();
-    screenLock = navigator.requestWakeLock('screen');
+    cpuLock = navigator.requestWakeLock('cpu');
 
     if (telephony) {
       // Somehow the muted property appears to true after initialization.
@@ -324,6 +325,8 @@ var OnCallHandler = (function onCallHandler() {
       ringing = true;
     }
 
+    screenLock = navigator.requestWakeLock('screen');
+
     call.addEventListener('statechange', function callStateChange() {
       call.removeEventListener('statechange', callStateChange);
 
@@ -331,6 +334,11 @@ var OnCallHandler = (function onCallHandler() {
       ringing = false;
 
       window.clearInterval(vibrateInterval);
+
+      if (screenLock) {
+        screenLock.unlock();
+        screenLock = null;
+      }
 
       // The call wasn't picked up
       if (call.state == 'disconnected') {
@@ -394,9 +402,9 @@ var OnCallHandler = (function onCallHandler() {
       return;
 
     ProximityHandler.disable();
-    if (screenLock) {
-      screenLock.unlock();
-      screenLock = null;
+    if (cpuLock) {
+      cpuLock.unlock();
+      cpuLock = null;
     }
 
     closing = true;
@@ -414,6 +422,20 @@ var OnCallHandler = (function onCallHandler() {
     window.opener.postMessage('closing', origin);
     window.close();
   }
+
+  /* === Bluetooth Headset support ===*/
+  function handleBTCommand(evt) {
+    var message = evt.data;
+    switch (message) {
+      case 'CHUP':
+        end();
+        break;
+      case 'ATA':
+        (handledCalls.length > 1) ? holdAndAnswer() : answer();
+        break;
+    }
+  }
+  window.addEventListener('message', handleBTCommand);
 
   /* === User Actions === */
   function answer() {

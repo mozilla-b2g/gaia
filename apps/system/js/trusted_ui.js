@@ -111,6 +111,9 @@ var TrustedUIManager = {
   handleEvent: function trui_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
+        if (!this.screen.classList.contains('trustedui'))
+          return;
+
         WindowManager.restoreCurrentApp();
         this.hide();
         break;
