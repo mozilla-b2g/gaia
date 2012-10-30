@@ -350,15 +350,13 @@ var WindowManager = (function() {
     if (prop !== 'transform')
       return;
 
-    if (frame === openFrame) {
+    if (frame.classList.contains('opening')) {
       windowOpening(frame);
       windowOpened(frame);
       setTimeout(openCallback);
 
       setOpenFrame(null);
-    }
-
-    if (frame === closeFrame) {
+    } else if (frame.classList.contains('closing')) {
       windowClosing(frame);
       windowClosed(frame);
       setTimeout(closeCallback);
@@ -609,6 +607,8 @@ var WindowManager = (function() {
       if (!('unpainted' in openFrame.dataset)) {
         // The frame is painted. Let's animate itself instead of using sprite
         openFrame.classList.add('opening');
+        // Ensure that we are not opening/closing the frame at the same time
+        openFrame.classList.remove('closing');
 
         return;
       }
@@ -653,6 +653,9 @@ var WindowManager = (function() {
       // The frame is painted. Let's animate itself instead of using sprite
       closeFrame.classList.add('closing');
       closeFrame.classList.remove('active');
+
+      // Ensure that we are not opening/closing the frame at the same time
+      closeFrame.classList.remove('opening');
 
       return;
     }
