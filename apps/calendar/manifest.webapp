@@ -12,7 +12,7 @@
   ],
   "permissions": {
     "systemXHR":{},
-    "settings":{},
+    "settings":{ "access": "readonly" },
     "alarms":{},
     "desktop-notification":{}
   },
