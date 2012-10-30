@@ -7,6 +7,9 @@
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
 
+    <!-- Shared styles -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -138,14 +141,13 @@
     </div>
 
     <!-- Alarm -->
-    <div id="alarm" class="view" data-title="Alarm">
+    <section id="alarm" class="view skin-organic" role="region" data-title="Alarm">
       <header>
-        <a href="#alarm-view" class="left button close">
-          <div class="background-close"></div>
-          <div class="icon-close"></div>
-        </a>
-        <h1 id="alarm-title" class="label"></h1>
-        <a id="alarm-done" href="#alarm-view" class="right button done-button" data-l10n-id="done">Done</a>
+        <a href="#alarm-view"><span class="icon icon-back">back</span></a>
+        <menu type="toolbar">
+          <a id="alarm-done" href="#alarm-view" data-l10n-id="done">Done</a>
+        </menu>
+        <h1 id="alarm-title"></h1>
       </header>
       <ul id="edit-alarm" class="tableView">
         <li class="picker">
@@ -216,7 +218,7 @@
           <a id="alarm-delete" href="#alarm-view" data-l10n-id="delete">Delete</a>
         </li>
       </ul>
-    </div>
+    </section>
   </body>
 </html>
 

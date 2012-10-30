@@ -7,10 +7,6 @@ html, body {
   background: url(images/home_texture.png) repeat scroll 2% 50% #666666;
 }
 
-html * {
-  overflow: hidden;
-}
-
 @media all and (min-resolution: 200dpi) {
   html, body {
     font-size: 2mozmm;
@@ -22,42 +18,42 @@ html * {
   position: absolute;
   width: 100%;
   bottom: 0;
-  padding: 2rem 0rem 1.5rem 0rem;
+  padding: 1.25rem 0rem 0.94rem 0rem;
   -moz-transition: bottom 0.3s ease;
   /* === Disable Tab Controller in V1 === */
   display: none;
 }
 
 #tabs {
-  width: -moz-calc(100% - 3.8rem);
-  padding: 0.9rem 0.9rem 0.7rem 0.9rem;
+  width: -moz-calc(100% - 2.37rem);
+  padding: 0.56rem 0.56rem 0.44rem 0.56rem;
   margin: auto;
   background-color: rgba(0,0,0,.3);
-  border-radius: 0.5rem;
+  border-radius: 0.31rem;
 }
 
 #tabs fieldset {
   list-style: none;
-  width: -moz-calc(100% - 0.2rem);
-  height: 6.6rem;
+  width: -moz-calc(100% - 0.13rem);
+  height: 4.12rem;
   padding: 0;
   margin: 0;
   display: -moz-box;
   -moz-box-orient: horizontal;
-  border: 0.1rem solid #333333;
-  border-radius: 0.3rem;
-  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 1rem, hsl(0,0%,37%) 100%);
+  border: 0.06rem solid #333333;
+  border-radius: 0.19rem;
+  background:-moz-linear-gradient(top, hsl(0,0%,65%) 0, hsl(0,0%,56%) 0.63rem, hsl(0,0%,37%) 100%);
 }
 
 #tabs label {
   float: left;
   display: block;
-  width: -moz-calc(100% / 3 - 0.2rem);
+  width: -moz-calc(100% / 3 - 0.13rem);
   height: 100%;
   padding: 0;
   margin: 0;
-  border-right: 0.1rem solid rgb(29,29,29);
-  border-left: 0.1rem solid rgb(123,123,123);
+  border-right: 0.06rem solid rgb(29,29,29);
+  border-left: 0.06rem solid rgb(123,123,123);
   background-position: 50% 50%;
   background-repeat: no-repeat;
 }
@@ -67,36 +63,36 @@ html * {
 
 #tabs label:first-child {
   border-left-color: transparent;
-  border-radius: 0.3rem 0 0 0.3rem;
+  border-radius: 0.19rem 0 0 0.19rem;
 }
 #tabs label:last-child {
   border-right-color: transparent;
-  border-radius: 0 0.3rem 0.3rem 0;
+  border-radius: 0 0.19rem 0.19rem 0;
 }
 
 #alarm-label {
   background-image: url(images/alarm.png);
 }
 #alarm-label[data-active] {
-  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
+  background: url(images/alarm.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.06rem, hsl(0,0%,56%) 100%);
 }
 
 #stopwatch-label {
   background-image: url(images/stopwatch.png);
 }
 #stopwatch-label[data-active] {
-  background: url(images/stopwatch.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
+  background: url(images/stopwatch.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.06rem, hsl(0,0%,56%) 100%);
 }
 
 #timer-label {
   background-image: url(images/timer.png);
 }
 #timer-label[data-active] {
-  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.1rem, hsl(0,0%,56%) 100%);
+  background: url(images/timer.png) no-repeat 50% 50%, -moz-linear-gradient(top, hsl(0,0%,44%) 0, hsl(0,0%,37%) 0.06rem, hsl(0,0%,56%) 100%);
 }
 
 #views {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -109,26 +105,26 @@ html * {
 }
 
 .chrono-view-container {
-  width: -moz-calc(100% - 3.8rem);
-  height: -moz-calc(100% - 2rem - 3mozmm - 9.4rem);
-  margin: 2rem auto;
-  padding: 0.9rem;
-  border-radius: 0.5rem;
+  width: -moz-calc(100% - 2.37rem);
+  height: -moz-calc(100% - 1.25rem - 3mozmm - 5.88rem);
+  margin: 1.25rem auto;
+  padding: 0.56rem;
+  border-radius: 0.31rem;
   background:rgba(0,0,0,0.3);
 }
 
 .chrono-view-container > div:first-child {
   position: relative;
   display: block;
-  height: -moz-calc(100% - 2rem);
+  height: -moz-calc(100% - 1.25rem);
   margin: auto;
   border: medium none;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.8rem rgba(0, 0, 0, 0.3) inset;
+  border-radius: 0.31rem;
+  box-shadow: 0 0 0.50rem rgba(0, 0, 0, 0.3) inset;
   text-align: center;
   font-size: 0.4em;
   text-overflow: ellipsis;
-  text-shadow:0 0 0.3rem rgba(0,0,0,.5);
+  text-shadow:0 0 0.19rem rgba(0,0,0,.5);
   white-space: nowrap;
 }
 
@@ -145,11 +141,11 @@ html * {
 }
 
 .ticker-view {
-  height: 1rem;
-  margin-top: 1rem;
+  height: 0.63rem;
+  margin-top: 0.63rem;
   background: #A7DD11;
-  border-radius: 0.5rem;
-  box-shadow: 0 0 0.3rem 0.3rem rgba(167, 221, 17, 0.3);
+  border-radius: 0.31rem;
+  box-shadow: 0 0 0.19rem 0.19rem rgba(167, 221, 17, 0.3);
   visibility: hidden;
 }
 
@@ -180,34 +176,34 @@ html * {
 
 .button-container {
   position: absolute;
-  left: 1rem;
-  width: -moz-calc(100% - 3.8rem);
-  padding: 0.9rem;
+  left: 0.63rem;
+  width: -moz-calc(100% - 2.37rem);
+  padding: 0.56rem;
   background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 0.5rem;
+  border-radius: 0.31rem;
   text-align: center;
 }
 
 .button-container > div > span {
   display: block;
-  width: -moz-calc(100% - 0.2rem);
+  width: -moz-calc(100% - 0.13rem);
   height: 1.5mozmm;
-  border-radius: 0.3rem;
-  background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 0.1rem, #545454 100%) repeat scroll 0 0 transparent;
+  border-radius: 0.19rem;
+  background: -moz-linear-gradient(center top , #A5A5A5 0pt, #878787 0.06rem, #545454 100%) repeat scroll 0 0 transparent;
   line-height: 15mozmm;
   font-size: 0.2em;
   font-weight: bold;
-  text-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 0.19rem rgba(0, 0, 0, 0.5);
 }
 
 .button-container:active > div > span {
-  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 0.1rem, #545454 100%) repeat scroll 0 0 transparent;
+  background: -moz-linear-gradient(center bottom , #A5A5A5 0pt, #878787 0.06rem, #545454 100%) repeat scroll 0 0 transparent;
 }
 
 /* === Stop watch === */
 
 #reset-button {
-  bottom: -moz-calc(15mozmm + 3.8rem);
+  bottom: -moz-calc(15mozmm + 2.37rem);
 }
 
 #stopwatch-action-button {
@@ -215,10 +211,10 @@ html * {
 }
 
 #stopwatch-action-button > div > span {
-  background: -moz-linear-gradient(top, rgb(177,214,0) 1rem, rgb(143,195,0) 2rem, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 0.63rem, rgb(143,195,0) 1.25rem, rgb(82,107,23) 100%);
 }
 #stopwatch-action-button > div > span:last-child {
-  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 1rem, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 0.63rem, hsl(353,100%,22%) 100%);
 }
 
 #stopwatch-action-button:active span:first-child {
@@ -253,10 +249,10 @@ html * {
 }
 
 #timer-action-button > div > span {
-  background: -moz-linear-gradient(top, rgb(177,214,0) 0.1rem, rgb(143,195,0) 0.2rem, rgb(82,107,23) 100%);
+  background: -moz-linear-gradient(top, rgb(177,214,0) 0.06rem, rgb(143,195,0) 0.13rem, rgb(82,107,23) 100%);
 }
 #timer-action-button > div > span:last-child {
-  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 0.1rem, hsl(353,100%,22%) 100%);
+  background: -moz-linear-gradient(top, hsl(355,93%,42%) 0, hsl(356,94%,37%) 0.06rem, hsl(353,100%,22%) 100%);
 }
 
 #timer-action-button:active span:first-child {
@@ -297,7 +293,7 @@ html * {
   text-align: center;
   font-size: 2em;
   font-weight: bold;
-  text-shadow: 0 0 0.3rem rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 0.19rem rgba(0, 0, 0, 0.5);
 }
 
 #duration-field:invalid {
@@ -307,12 +303,12 @@ html * {
 
 #clock-view {
   width: 100%;
-  height: -moz-calc(100% - 0.2rem);
+  height: -moz-calc(100% - 0.13rem);
   color: black;
   background-image: url(images/clock_background.png);
   background-size: cover;
   background-position: center;
-  border-bottom: 0.2rem solid #ACACAC;
+  border-bottom: 0.13rem solid #ACACAC;
   text-align: center;
 }
 
@@ -360,6 +356,7 @@ html * {
 
 #digital-clock-background {
   height: 100%;
+  overflow: hidden;
   background-image: none;
   display: none;
 }
@@ -368,12 +365,12 @@ html * {
   height: 48%;
   background-size: 100% 100%;
   background-image: url(images/digital_clock_bg.png);
-  box-shadow: 0 0.4rem 0.6rem -0.6rem black;
+  box-shadow: 0 0.25rem 0.37rem -0.37rem black;
   display: block;
 }
 
 #digital-clock {
-  margin-top: 10.4rem;
+  margin-top: 6.50rem;
   display: none;
 }
 
@@ -388,13 +385,13 @@ html * {
 }
 
 #clock-time {
-  font: 100 15rem/19rem 'MozTT', sans-serif;
+  font: 100 9.38rem/11.88rem 'MozTT', sans-serif;
   color: #26292a;
   pointer-events: none;
 }
 
 #clock-hour24-state {
-  font: 100 5rem/5rem 'MozTT', sans-serif;
+  font: 100 3.13rem/3.13rem 'MozTT', sans-serif;
   color: #313334;
   text-transform:lowercase;
   pointer-events: none;
@@ -405,24 +402,24 @@ html * {
   content: "";
   background-image: url("images/alarm_indicator.png");
   background-size: 100% auto;
-  width: 5.5rem;
-  height: 5.5rem;
-  margin-top: 2.6rem;
-  margin-left: -4rem;
+  width: 3.44rem;
+  height: 3.44rem;
+  margin-top: 1.63rem;
+  margin-left: -2.50rem;
 }
 
 #clock-day-date {
   position: absolute;
   width: 100%;
   margin: auto;
-  font: normal 2.5rem 'MozTT', sans-serif;
-  line-height: 9.8rem;
+  font: normal 1.56rem 'MozTT', sans-serif;
+  line-height: 6.13rem;
 }
 
 #analog-clock-container {
   width: 100%;
-  height: -moz-calc(100% - 9.8rem);
-  margin: 9.8rem auto auto;
+  height: -moz-calc(100% - 5.8rem);
+  margin: 5.8rem auto auto;
   position: absolute;
 }
 /* These CSS styles all apply to the SVG clock elements */
@@ -435,16 +432,16 @@ html * {
   pointer-events: none;
 }
 #secondhand { /* narrow blue second hand */
-  stroke-width: 0.08rem; 
+  stroke-width: 0.05rem; 
   stroke: #00abcd;
 }
 #minutehandCentralPoint { /* dark-gray central point*/
-  stroke-width: 0.005rem; 
+  stroke-width: 0rem; 
   stroke: #4f5b5f; 
   fill: #4f5b5f;
 }
 #secondhandCentralPoint { /* blue central point */
-  stroke-width: 0.005rem; 
+  stroke-width: 0rem; 
   stroke: #00abcd; 
   fill: #00abcd;
 }
@@ -453,7 +450,7 @@ html * {
   position: absolute;
   background: orange;
   width: 100%;
-  height: 13rem;
+  height: 8.13rem;
   bottom: 0;
   vertical-align: middle;
   text-align: center;
@@ -491,8 +488,8 @@ html * {
 }
 .banner > p {
   display: inline-block;
-  font-size: 2.5rem;
-  line-height: 3.75rem;
+  font-size: 1.56rem;
+  line-height: 2.34rem;
   max-width: 75%;
   vertical-align: middle;
   white-space: normal;
@@ -513,7 +510,7 @@ body.hidden *[data-l10n-id] {
 /* 320x480 phones */
 @media screen and (width: 320px) {
   html {
-    font-size: 6px;
+    font-size: 10px;
   }
   #analog-clock-svg-body.alarm1 {
     transform: matrix(1,0,0,1,0,0);
