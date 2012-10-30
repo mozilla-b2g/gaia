@@ -222,7 +222,8 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    mimeTypes: ['image/jpeg', 'image/png']
+    mimeTypes: ['image/jpeg', 'image/png'],
+    version: 2
   });
 
   // This is called when DeviceStorage becomes unavailable because the
