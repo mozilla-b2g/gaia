@@ -15,6 +15,22 @@
   var gMacros = {};
   var gReadyState = 'loading';
 
+
+  /**
+   * Synchronously loading l10n resources significantly minimizes flickering
+   * from displaying the app with non-localized strings and then updating the
+   * strings. Although this will block all script execution on this page, we
+   * expect that the l10n resources are available locally on flash-storage.
+   *
+   * As synchronous XHR is generally considered as a bad idea, we're still
+   * loading l10n resources asynchronously -- but we keep this in a setting,
+   * just in case... and applications using this library should hide their
+   * content until the `localized' event happens.
+   */
+
+  var gAsyncResourceLoading = true; // read-only
+
+
   /**
    * Debug helpers
    */
@@ -180,9 +196,9 @@
     }
 
     // load the specified resource file
-    function loadResource(url, onSuccess, onFailure) {
+    function loadResource(url, onSuccess, onFailure, asynchronous) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
+      xhr.open('GET', url, asynchronous);
       if (xhr.overrideMimeType) {
         xhr.overrideMimeType('text/plain; charset=utf-8');
       }
@@ -227,7 +243,7 @@
       if (successCallback) {
         successCallback();
       }
-    }, failureCallback);
+    }, failureCallback, gAsyncResourceLoading);
   };
 
   // load and parse all resources for the specified locale
@@ -886,7 +902,8 @@
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function l10nStartup() {
     gReadyState = 'interactive';
-    consoleLog('loading [' + navigator.language + '] resources');
+    consoleLog('loading [' + navigator.language + '] resources, ' +
+        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
     loadLocale(navigator.language, translateFragment);
   });
 
