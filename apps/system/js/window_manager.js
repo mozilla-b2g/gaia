@@ -589,6 +589,11 @@ var WindowManager = (function() {
     setOpenFrame(app.frame);
 
     openCallback = callback || function() {};
+    
+    // Dispatch a appwillopen event
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillopen', true, false, { origin: origin });
+    app.frame.dispatchEvent(evt);
 
     if (origin === homescreen) {
       openCallback();
@@ -600,11 +605,6 @@ var WindowManager = (function() {
     } else {
       if (requireFullscreen(origin))
         screenElement.classList.add('fullscreen-app');
-
-      // Dispatch a appwillopen event
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, false, { origin: displayedApp });
-      app.frame.dispatchEvent(evt);
 
       if (!('unpainted' in openFrame.dataset)) {
         // The frame is painted. Let's animate itself instead of using sprite
