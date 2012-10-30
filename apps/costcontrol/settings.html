@@ -6,7 +6,6 @@
   <title>Cost Control Settings</title>
 
   <!-- Building blocks Temporal -->
-  <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
@@ -16,6 +15,7 @@
 
   <!-- Building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
   <!-- App and Views -->
@@ -48,12 +48,13 @@
       <h1 data-l10n-id="settings">Settings</h1>
     </header>
     <section class="view-scroll" role="region">
-      <div id="plantype-settings" class="buttons-list choose-plan">
-        <button class="localsetting" data-option="plantype" data-selectdialog="selectdialog-plantype">
-          <span class="end launch"></span>
+      <ul id="plantype-settings" class="buttons-list choose-plan">
+       <li>
+        <button class="localsetting icon icon-dialog" data-option="plantype" data-selectdialog="selectdialog-plantype">
           <span class="tag">Prepaid</span>
         </button>
-      </div>
+       </li>
+      </ul>
 
       <header id="phone-activity-settings">
         <h2 data-l10n-id="phone-activity">Phone Activity</h2>
@@ -79,8 +80,8 @@
             <time id="settings-time"></time>
         </li>
         <li>
-          <label class="end switch">
-            <input class="localsetting" data-option="lowlimit" type="checkbox" />
+          <label class="end">
+            <input class="localsetting" data-option="lowlimit" type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <p data-l10n-id="low-balance-alert">Low Balance alert</p>
@@ -99,16 +100,15 @@
       </header>
       <ul class="settings">
         <li>
-          <label class="end switch">
-            <input class="localsetting" data-option="data_limit" type="checkbox" />
+          <label class="end">
+            <input class="localsetting" data-option="data_limit" type="checkbox" data-type="switch" />
             <span></span>
           </label>
           <p data-l10n-id="data-limit-alert">Data Use Alert</p>
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="localsetting" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false">
-              <span class="end launch"></span>
+            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false">
               <span class="tag"></span>
             </button>
           </div>
@@ -122,8 +122,7 @@
       <ul class="settings">
         <li class="reset-entry">
           <div class="end buttons-list">
-            <button class="localsetting" data-option="tracking_period" data-selectdialog="selectdialog-tracking-period">
-              <span class="end launch"></span>
+            <button class="localsetting icon icon-dialog" data-option="tracking_period" data-selectdialog="selectdialog-tracking-period">
               <span class="tag"></span>
             </button>
           </div>
@@ -131,8 +130,7 @@
         </li>
         <li class="reset-entry">
           <div class="end buttons-list">
-            <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-hide-on="tracking_period!=weekly" data-disable-on="tracking_period!=weekly">
-              <span class="end launch"></span>
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-hide-on="tracking_period!=weekly" data-disable-on="tracking_period!=weekly">
               <span class="tag"></span>
             </button>
           </div>
@@ -140,8 +138,7 @@
         </li>
         <li class="reset-entry">
           <div class="end buttons-list">
-            <button class="localsetting" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-hide-on="tracking_period!=monthly" data-disable-on="tracking_period!=monthly">
-              <span class="end launch"></span>
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-hide-on="tracking_period!=monthly" data-disable-on="tracking_period!=monthly">
               <span class="tag"></span>
             </button>
           </div>
@@ -155,7 +152,7 @@
   <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
     <header>
       <menu type="toolbar">
-         <button id="topup-send-button" data-l10n-id="Done" class="affirmative">Done</button>
+         <button id="topup-send-button" data-l10n-id="Done" class="recommend">Done</button>
       </menu>
       <a class="cancel"><span id="topup-close-button" class="icon icon-close">close</span></a>
       <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
@@ -168,11 +165,14 @@
         </p>
       </div>
     </section>
-    <form class="buttons-list">
-      <button id="switch-unit-button" type="button">
-        <span class="end launch"></span>
-        <span class="tag"></span>
-      </button>
+    <form>
+      <ul class="buttons-list">
+        <li>
+          <button id="switch-unit-button" type="button" class="icon icon-dialog">
+            <span class="tag"></span>
+          </button>
+        </li>
+      </ul>
       <label for="data-limit-input">
         <input id="data-limit-input" type="number" autofocus></input>
       </label>
@@ -199,7 +199,7 @@
       </ul>
     </div>
     <menu data-items="1">
-      <button data-l10n-id="ok" class="affirmative">Ok</button>
+      <button data-l10n-id="ok" class="recommend">Ok</button>
     </menu>
   </section>
 
@@ -230,7 +230,7 @@
     </div>
     <menu data-items="2">
       <button data-l10n-id="cancel" class="cancel">Cancel</button>
-      <button data-l10n-id="set" class="affirmative">Set</button>
+      <button data-l10n-id="set" class="recommend">Set</button>
     </menu>
   </section>
 
@@ -285,7 +285,7 @@
     </div>
     <menu data-items="2">
       <button data-l10n-id="cancel" class="cancel">Cancel</button>
-      <button data-l10n-id="set-day" class="affirmative">Set day</button>
+      <button data-l10n-id="set-day" class="recommend">Set day</button>
     </menu>
   </section>
 
@@ -484,7 +484,7 @@
     </div>
     <menu data-items="2">
       <button class="cancel" data-l10n-id="cancel">Cancel</button>
-      <button class="affirmative" data-l10n-id="set-date">Set date</button>
+      <button class="recommend" data-l10n-id="set-date">Set date</button>
     </menu>
   </section>
 
@@ -496,7 +496,7 @@
     </div>
     <menu data-items="2">
       <button data-l10n-id="cancel" class="close-dialog">Cancel</button>
-      <button data-l10n-id="yes" class="negative">Yes</button>
+      <button data-l10n-id="yes" class="danger">Yes</button>
     </menu>
   </section>
 
