@@ -475,16 +475,18 @@ var Camera = {
   },
 
   orientChange: function camera_orientChange(e) {
+    // Orientation is 0 starting at 'natural portrait' increasing
+    // going clockwise
     var orientation = (e.beta > 45) ? 180 :
       (e.beta < -45) ? 0 :
-      (e.gamma < -45) ? 270 :
-      (e.gamma > 45) ? 90 : 0;
+      (e.gamma < -45) ? 90 :
+      (e.gamma > 45) ? 270 : 0;
 
     if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
       // PLEASE DO SOMETHING KITTENS ARE DYING
       // Setting MozRotate to 90 or 270 causes element to disappear
-      rule.style.MozTransform = 'rotate(' + (orientation + 1) + 'deg)';
+      rule.style.MozTransform = 'rotate(' + -(orientation + 1) + 'deg)';
       this._phoneOrientation = orientation;
     }
   },
@@ -847,20 +849,13 @@ var Camera = {
   },
 
   takePicture: function camera_takePicture() {
-    this._config.rotation =
-      this.layoutToPhoneOrientation(this._phoneOrientation);
+    this._config.rotation = this._phoneOrientation;
     if (this._position) {
       this._config.position = this._position;
     }
     this._shutterSound.play();
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
-  },
-
-  // The layout (icons) and the phone calculate orientation in the
-  // opposite direction
-  layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
-    return this._phoneOrientation;
   },
 
   showOverlay: function camera_showOverlay(id) {
