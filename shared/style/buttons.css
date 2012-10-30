@@ -92,14 +92,6 @@ a[role="button"][aria-disabled="true"].danger {
  * Buttons inside lists
  * ---------------------------------- */
 
-li label {
-  font: 1.6rem/1em "MozTT", Sans-serif;
-  text-transform: uppercase;
-  display: block;
-  padding-left: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
 li button,
 li a[role="button"] {
   position: relative;
