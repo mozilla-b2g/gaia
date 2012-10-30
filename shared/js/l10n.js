@@ -10,27 +10,10 @@
 
 (function(window) {
   var gL10nData = {};
-  var gTextData = '';
   var gTextProp = 'textContent';
   var gLanguage = '';
   var gMacros = {};
   var gReadyState = 'loading';
-
-
-  /**
-   * Synchronously loading l10n resources significantly minimizes flickering
-   * from displaying the app with non-localized strings and then updating the
-   * strings. Although this will block all script execution on this page, we
-   * expect that the l10n resources are available locally on flash-storage.
-   *
-   * As synchronous XHR is generally considered as a bad idea, we're still
-   * loading l10n resources asynchronously -- but we keep this in a setting,
-   * just in case... and applications using this library should hide their
-   * content until the `localized' event happens.
-   */
-
-  var gAsyncResourceLoading = true; // read-only
-
 
   /**
    * Debug helpers
@@ -95,7 +78,7 @@
    * l10n resource parser:
    *  - reads (async XHR) the l10n resource matching `lang';
    *  - imports linked resources (synchronously) when specified;
-   *  - parses the text data (fills `gL10nData' and `gTextData');
+   *  - parses the text data (fills `gL10nData');
    *  - triggers success/failure callbacks when done.
    *
    * @param {string} href
@@ -111,7 +94,7 @@
    *    triggered when the an error has occured.
    *
    * @return {void}
-   *    uses the following global variables: gL10nData, gTextData, gTextProp.
+   *    uses the following global variables: gL10nData, gTextProp.
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
@@ -197,9 +180,9 @@
     }
 
     // load the specified resource file
-    function loadResource(url, onSuccess, onFailure, asynchronous) {
+    function loadResource(url, onSuccess, onFailure) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, asynchronous);
+      xhr.open('GET', url, true);
       if (xhr.overrideMimeType) {
         xhr.overrideMimeType('text/plain; charset=utf-8');
       }
@@ -221,8 +204,6 @@
 
     // load and parse l10n data (warning: global variables are used here)
     loadResource(href, function(response) {
-      gTextData += response; // mostly for debug
-
       // parse *.properties text data into an l10n dictionary
       var data = parseProperties(response);
 
@@ -246,7 +227,7 @@
       if (successCallback) {
         successCallback();
       }
-    }, failureCallback, gAsyncResourceLoading);
+    }, failureCallback);
   };
 
   // load and parse all resources for the specified locale
@@ -306,7 +287,6 @@
   // clear all l10n data
   function clear() {
     gL10nData = {};
-    gTextData = '';
     gLanguage = '';
     // TODO: clear all non predefined macros.
     // There's no such macro /yet/ but we're planning to have some...
@@ -906,8 +886,7 @@
   // load the default locale on startup
   window.addEventListener('DOMContentLoaded', function l10nStartup() {
     gReadyState = 'interactive';
-    consoleLog('loading [' + navigator.language + '] resources, ' +
-        (gAsyncResourceLoading ? 'asynchronously.' : 'synchronously.'));
+    consoleLog('loading [' + navigator.language + '] resources');
     loadLocale(navigator.language, translateFragment);
   });
 
