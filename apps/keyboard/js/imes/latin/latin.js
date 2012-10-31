@@ -361,22 +361,19 @@
         inputText = inputText.substring(0, cursor) +
           inputText.substring(selection);
         selection = 0;
-      }
-      else if (cursor > 0) {
+      } else if (cursor > 0) {
         cursor--;
         inputText = inputText.substring(0, cursor) +
           inputText.substring(cursor + 1);
       }
-    }
-    else {
+    } else {
       if (selection) {
         inputText =
           inputText.substring(0, cursor) +
           String.fromCharCode(keycode) +
           inputText.substring(selection);
         selection = 0;
-      }
-      else {
+      } else {
         inputText =
           inputText.substring(0, cursor) +
           String.fromCharCode(keycode) +
@@ -389,8 +386,10 @@
   function updateCapitalization() {
     // If either the input mode or the input type is one that doesn't
     // want capitalization, then don't alter the state of the keyboard.
-    if (!capitalizing)
+    if (!capitalizing) {
+      keyboard.resetUpperCase();
       return;
+    }
 
     // Set the keyboard to uppercase or lowercase depending
     // on the text around the cursor:
