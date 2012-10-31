@@ -264,6 +264,11 @@ var NavbarManager = {
 };
 
 window.addEventListener('localized', function startup(evt) {
+  //required hash to initialize correct tab
+  if (window.location.hash != '#keyboard-view') {
+    window.location.hash = '#keyboard-view';
+  }
+  
   window.removeEventListener('localized', startup);
   KeypadManager.init();
   NavbarManager.init();
