@@ -37,6 +37,8 @@ var AirplaneMode = {
     var restoreBluetooth = false;
     var restoreWifi = false;
     var restoreGeolocation = false;
+    // Note that we don't restore Wifi tethering when leaving airplane mode
+    // because Wifi tethering can't be switched on before data connection is established.
 
     var self = this;
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
@@ -74,9 +76,14 @@ var AirplaneMode = {
               'wifi.enabled': false
             });
           }
+
+          // Turn off Wifi tethering.
+          SettingsListener.getSettingsLock().set({
+            'tethering.wifi.enabled': false
+          });
         }
 
-        // Turn off Geolocation
+        // Turn off Geolocation.
         restoreGeolocation = geolocationEnabled;
         if (geolocationEnabled) {
           SettingsListener.getSettingsLock().set({
