@@ -754,7 +754,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'ALARM_progressive_dapple.ogg',
+      sound: 'classic_buzz.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
