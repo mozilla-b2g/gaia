@@ -4,14 +4,14 @@
 'use strict';
 
 /**
- * gDeviceList is defined here because the child window created for pairing
- * requests needs to access its method via window.opener
+ * gDeviceList here because child window created for pair request
+ * needs to access its method via window.opener
  */
 
 var gDeviceList = null;
 
-// handle Bluetooth settings
-onLocalized(function bluetoothSettings() {
+// handle BlueTooth settings
+window.addEventListener('localized', function bluetoothSettings(evt) {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -621,5 +621,6 @@ onLocalized(function bluetoothSettings() {
   bluetooth.onadapteradded = function bt_adapterAdded() {
     initialDefaultAdapter();
   };
+
 });
 

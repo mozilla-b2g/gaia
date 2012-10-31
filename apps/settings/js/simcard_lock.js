@@ -83,5 +83,7 @@ var SimPinLock = {
 
 };
 
-onLocalized(SimPinLock.init.bind(SimPinLock));
+window.addEventListener('localized', function spl_ready() {
+  SimPinLock.init();
+});
 

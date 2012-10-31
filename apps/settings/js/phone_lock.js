@@ -4,13 +4,11 @@
 'use strict';
 
 var PhoneLock = {
-  /**
-   * create  : when the user turns on passcode settings
-   * edit    : when the user presses edit passcode button
-   * confirm : when the user turns off passcode settings
-   * new     : when the user is editing passcode
-   *                and has entered old passcode successfully
-   */
+  // create:  When the user turns on passcode settings
+  // edit:    When the user presses edit passcode button
+  // confirm: When the user turns off passcode settings
+  // new:     When the user is editing passcode and enterer old
+  //          passcode successfully
   MODE: 'create',
 
   settings: {
@@ -32,7 +30,7 @@ var PhoneLock = {
     this.passcodeDigits = document.querySelectorAll('.passcode-digit');
     this.passcodeEnable = document.getElementById('passcode-enable');
     this.passcodeEditButton = document.getElementById('passcode-edit');
-    this.passcodePanel = document.getElementById('phoneLock-passcode');
+    this.passcodePanel = document.getElementById('passcode-panel');
     this.phonelockPanel = document.getElementById('phoneLock');
     this.createPasscodeButton = document.getElementById('passcode-create');
     this.changePasscodeButton = document.getElementById('passcode-change');
@@ -94,7 +92,7 @@ var PhoneLock = {
     this.hideErrorMessage();
     this.MODE = mode;
     this.passcodePanel.dataset.mode = mode;
-    document.location.hash = 'phoneLock-passcode'; // show dialog box
+    document.location.hash = 'passcode-panel'; // show dialog box
     this.passcodeInput.focus();
     this.updatePassCodeUI();
   },

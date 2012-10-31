@@ -47,9 +47,12 @@ var AppStorage = (function AppStorage() {
     detachEvents: detachEvents,
     getSpaceInfo: getSpaceInfo
   };
+
 })();
 
-onLocalized(function SettingsAppStorage() {
+
+window.addEventListener('localized', function SettingsAppStorage(evt) {
+
   function updateInfo(usedSize, freeSize) {
     var _ = navigator.mozL10n.get;
 

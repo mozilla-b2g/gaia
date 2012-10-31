@@ -6,20 +6,20 @@
   display: block;
 }
 
-#phoneLock-passcode div.passcode-error {
+#passcode-panel div.passcode-error {
   display: none;
   color: red;
   font-size: 1.6rem;
   padding-left: 2rem;
 }
 
-#phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
-#phoneLock-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
+#passcode-panel[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#passcode-panel[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
   display: block;
 }
 
-#phoneLock-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
-#phoneLock-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
+#passcode-panel[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
+#passcode-panel[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
   display: block;
 }
 
@@ -27,7 +27,7 @@
   position: relative;
 }
 
-#phoneLock-passcode .passcode-container > span {
+#passcode-panel .passcode-container > span {
   width: 100%;
   color: rgb(0, 0, 0);
   -moz-box-sizing: border-box;
@@ -35,14 +35,14 @@
   padding: 0px 2rem;
 }
 
-#phoneLock-passcode [data-mode] {
+#passcode-panel [data-mode] {
   display: none;
 }
 
-#phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
-#phoneLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
-#phoneLock-passcode[data-mode="edit"]    [data-mode*="edit"],
-#phoneLock-passcode[data-mode="new"]     [data-mode*="new"] {
+#passcode-panel[data-mode="create"] [data-mode*="create"],
+#passcode-panel[data-mode="confirm"] [data-mode*="confirm"],
+#passcode-panel[data-mode="edit"] [data-mode*="edit"],
+#passcode-panel[data-mode="new"] [data-mode*="new"] {
   display: inherit;
 }
 
@@ -50,7 +50,7 @@
   display: none;
 }
 
-#phoneLock-passcode[data-status="success"] #passcode-confirm {
+#passcode-panel[data-status="success"] #passcode-confirm {
   display: inherit;
 }
 

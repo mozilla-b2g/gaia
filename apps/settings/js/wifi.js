@@ -156,7 +156,7 @@ var gWifiManager = (function(window) {
 })(this);
 
 // handle Wi-Fi settings
-onLocalized(function wifiSettings() {
+window.addEventListener('localized', function wifiSettings(evt) {
   var _ = navigator.mozL10n.get;
 
   var settings = window.navigator.mozSettings;

@@ -13,6 +13,7 @@
  */
 
 var StorageSettings = {
+
   init: function storageSettingsInit() {
     this.umsEnabledCheckBox = document.querySelector('[name="ums.enabled"]');
     if (!this.umsEnabledCheckBox) {
@@ -184,6 +185,7 @@ var StorageSettings = {
 };
 
 var DeviceStorageHelper = (function DeviceStorageHelper() {
+
     function getStat(type, callback) {
       var deviceStorage = navigator.getDeviceStorage(type);
 
@@ -206,5 +208,5 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
     };
 })();
 
-onLocalized(StorageSettings.init.bind(StorageSettings));
+StorageSettings.init();
 
