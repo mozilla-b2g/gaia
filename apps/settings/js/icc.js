@@ -499,6 +499,5 @@
       app.launch('settings');
     };
   };
-
 })();
 

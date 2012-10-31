@@ -130,7 +130,5 @@ var PairView = {
   }
 };
 
-window.addEventListener('localized', function bluetoothSettings(evt) {
-  PairView.init();
-});
+onLocalized(PairView.init.bind(PairView));
 

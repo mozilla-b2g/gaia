@@ -220,3 +220,17 @@ function bug344618_polyfill() {
   }
 }
 
+/**
+ * Fire a callback when as soon as all l10n resources are ready and the UI has
+ * been translated.
+ * Note: this could be exposed as `navigator.mozL10n.onload'...
+ */
+
+function onLocalized(callback) {
+  if (navigator.mozL10n.readyState == 'complete') {
+    callback();
+  } else {
+    window.addEventListener('localized', callback);
+  }
+}
+
