@@ -83,15 +83,15 @@ const Homescreen = (function() {
 
   if (navigator.mozSetMessageHandler) {
     navigator.mozSetMessageHandler('activity', function onActivity(activity) {
-        var data = activity.source.data;
-        switch (activity.source.name) {
-          case 'save-bookmark':
-            if (data.type === 'url') {
-              BookmarkEditor.init(data);
-            }
-            break;
-        }
-      });
+      var data = activity.source.data;
+      switch (activity.source.name) {
+        case 'save-bookmark':
+          if (data.type === 'url') {
+            BookmarkEditor.init(data);
+          }
+          break;
+      }
+    });
   }
 
   return {
