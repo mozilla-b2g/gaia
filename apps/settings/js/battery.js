@@ -4,7 +4,6 @@
 'use strict';
 
 var Battery = (function Battery() {
-
   var _battery = null;
   var _callback = null;
   var _debug = false;
@@ -52,11 +51,9 @@ var Battery = (function Battery() {
     attachListeners: attachListeners,
     detachListeners: detachListeners
   };
-
 })();
 
-window.addEventListener('localized', function SettingsBattery(evt) {
-
+onLocalized(function SettingsBattery() {
   function updateInfo(battery) {
     var _ = navigator.mozL10n.get;
 
