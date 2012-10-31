@@ -132,10 +132,6 @@ contacts.List = (function() {
     });
     body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
-    var small = document.createElement('small');
-    small.className = 'block-company';
-    small.textContent = contact.org;
-    body.appendChild(small);
 
     // Label the contact concerning social networks
     if (contact.category) {
@@ -150,6 +146,11 @@ contacts.List = (function() {
         });
       }
     }
+
+    var small = document.createElement('small');
+    small.className = 'block-company';
+    small.textContent = contact.org;
+    body.appendChild(small);
 
     link.appendChild(body);
     contactContainer.appendChild(link);

@@ -101,6 +101,9 @@ section[role="region"] > header:first-child sup {
   border-bottom: solid 1px #dbd9d9;
   margin-bottom: 1rem;
   word-wrap: break-word;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 #contact-detail li .item-body-exp {
@@ -264,7 +267,7 @@ fieldset legend.action:after {
   overflow: hidden;
   width: 1.5rem;
   height: 1.5rem;
-  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
 .icon-social.icon-fb {
