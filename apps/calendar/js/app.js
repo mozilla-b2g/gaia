@@ -293,3 +293,9 @@ Calendar.App = (function(window) {
 
 }(this));
 
+window.addEventListener('load', function onLoad() {
+  window.removeEventListener('load', onLoad);
+
+  Calendar.App.init();
+});
+
