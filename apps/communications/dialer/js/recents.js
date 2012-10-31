@@ -261,8 +261,8 @@ var Recents = {
         this._missedViewGroupingPending = false;
       }
     }
-    this.allFilter.classList.toggle('selected');
-    this.missedFilter.classList.toggle('selected');
+    this.allFilter.parentNode.classList.toggle('selected');
+    this.missedFilter.parentNode.classList.toggle('selected');
 
   },
 
@@ -579,14 +579,14 @@ var Recents = {
         self.missedFilter.classList.remove('selected');
         event.target = self.missedFilter;
         self.filter(event);
-        self.missedFilter.classList.add('selected');
-        self.allFilter.classList.remove('selected');
+        self.missedFilter.parentNode.classList.add('selected');
+        self.allFilter.parentNode.classList.remove('selected');
       } else {
         self.allFilter.classList.remove('selected');
         event.target = self.allFilter;
         self.filter(event);
-        self.missedFilter.classList.remove('selected');
-        self.allFilter.classList.add('selected');
+        self.missedFilter.parentNode.classList.remove('selected');
+        self.allFilter.parentNode.classList.add('selected');
       }
     });
   },

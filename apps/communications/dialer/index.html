@@ -50,17 +50,10 @@
               <h1 data-l10n-id="callLog">Call log</h1>
             </header>
             <nav id="recents-filter-container" class="recents-filter-container">
-              <ul>
-                <li class="recents-filter-entry">
-                  <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
-                    All
-                  </button>
-                </li>
-                <li class="recents-filter-entry">
-                  <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
-                    Missed
-                  </button>
-                </li>
+
+              <ul role="tablist" data-type="filter" data-items="2">
+                <li role="tab"><a id="allFilter" data-action="all" data-l10n-id="all">All</a></li>
+                <li role="tab"><a id="missedFilter" data-action="missed" data-l10n-id="missed">Missed</a></li>
               </ul>
             </nav>
             <div class="view-body">
