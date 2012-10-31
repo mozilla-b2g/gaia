@@ -101,10 +101,11 @@ var UssdManager = {
       case 'ussdreceived':
         this._pendingRequest = null;
         // Do not notify the UI if no message to show.
-        if (evt.message)
+        if (evt.message != null || evt.sessionEnded)
           message = {
             type: 'ussdreceived',
-            message: evt.message
+            message: evt.message,
+            sessionEnded: evt.sessionEnded
           };
         break;
       case 'voicechange':
