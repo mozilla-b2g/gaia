@@ -8,10 +8,10 @@ html, body {
 }
 
 .ring-display {
-  padding: 1.2rem 1.2rem 1rem;
-  width: -moz-calc(100% - 2.4rem);
-  height: -moz-calc(100% - 2.2rem);
-  position: absolute;
+  padding: 0.75rem 0.75rem 0.63rem;
+  width: -moz-calc(100% - 1.50rem);
+  height: -moz-calc(100% - 1.38rem);
+  position: fixed;
 }
 
 #ring-icon {
@@ -36,33 +36,33 @@ html, body {
 #ring-clock-display {
   width: 86%;
   margin-top: 44%;
-  border-bottom: 0.2rem solid rgba(122, 122, 122, 0.65);
+  border-bottom: 0.13rem solid rgba(122, 122, 122, 0.65);
   margin-left: auto;
   margin-right: auto;
 }
 
 #ring-clock-time {
-  font: lighter 5rem 'MozTT', sans-serif;
-  line-height: 9rem;
+  font: lighter 3.13rem 'MozTT', sans-serif;
+  line-height: 5.63rem;
   width: 100%;
 }
 
 #ring-clock-hour24-state {
-  font: lighter 5rem 'MozTT', sans-serif;
-  line-height: 8rem;
-  padding-left: 1.5rem;
+  font: lighter 3.13rem 'MozTT', sans-serif;
+  line-height: 5rem;
+  padding-left: 0.94rem;
 }
 
 #ring-alarm-label {
-  font: lighter 4rem 'MozTT',sans-serif;
-  line-height: 10rem;
+  font: lighter 2.50rem 'MozTT',sans-serif;
+  line-height: 6.25rem;
   white-space: nowrap; 
   text-overflow: ellipsis;
 }
 
 #footer-button-container {
   width: 100%;
-  height: 11.5rem;
+  height: 7.19rem;
   left: 0;
   bottom: 0;
   background: url(images/attention_button_container.png);
@@ -73,19 +73,19 @@ html, body {
 
 #ring-button-close {
   float: left;
-  width: -moz-calc((100% - 6.5rem) / 2 );
+  width: -moz-calc((100% - 4.06rem) / 2 );
   -moz-box-sizing: border-box;
   background: url("images/ring_button_snooze.png") repeat-x scroll left bottom #FAFAFA;
   border: 1px solid #9F9F9F;
-  border-radius: 0.4rem 0.4rem 0.4rem 0.4rem;
+  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
-  font: 600 2.6rem/6.5rem 'MozTT', sans-serif;
-  height: 6.6rem;
-  margin: 2.4rem 0 0 2.5rem;
+  font: 600 1.63rem/4.06rem 'MozTT', sans-serif;
+  height: 4.12rem;
+  margin: 1.50rem 0 0 1.56rem;
   outline: medium none;
   overflow: hidden;
-  padding: 0 1.5rem;
+  padding: 0 0.94rem;
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
@@ -102,20 +102,20 @@ html, body {
 
 #ring-button-snooze {
   float: left;
-  width: -moz-calc((100% - 6.5rem) / 2 );
+  width: -moz-calc((100% - 4.06rem) / 2 );
   -moz-box-sizing: border-box;
   background: url("images/ring_button_close.png") repeat-x scroll left bottom #FAFAFA;
   background-color: #00CAF2;
   border: 1px solid #00ACCE;
-  border-radius: 0.4rem 0.4rem 0.4rem 0.4rem;
+  border-radius: 0.25rem 0.25rem 0.25rem 0.25rem;
   color: #333333;
   display: inline-block;
-  font: 600 2.6rem/6.5rem 'MozTT', sans-serif;
-  height: 6.6rem;
-  margin: 2.4rem 2.5rem 0 1.5rem;
+  font: 600 1.63rem/4.06rem 'MozTT', sans-serif;
+  height: 4.12rem;
+  margin: 1.50rem 1.56rem 0 0.94rem;
   outline: medium none;
   overflow: hidden;
-  padding: 0 1.5rem;
+  padding: 0 0.94rem;
   text-align: center;
   text-decoration: none;
   text-overflow: ellipsis;
@@ -134,7 +134,7 @@ html, body {
 @media (orientation: portrait) and (width: 320px),
        (orientation: landscape) and (width: 480px) {
   html {
-    font-size: 6px;
+    font-size: 10px;
   }
 }
 
@@ -142,7 +142,7 @@ html, body {
 @media (orientation: portrait) and (width: 480px),
        (orientation: landscape) and (width: 800px) {
   html {
-    font-size: 10px;
+    font-size: 14px;
   }
 }
 
@@ -171,7 +171,7 @@ html, body {
   }
   
   #ring-clock-time {
-    font: bolder 2.2rem/2.2rem 'MozTT', sans-serif;
+    font: bolder 1.38rem/1.38rem 'MozTT', sans-serif;
   }
   
   #ring-clock-hour24-state {
@@ -182,7 +182,7 @@ html, body {
     position: absolute;
     top: 6px;
     left: 40px;
-    font: bolder 2.2rem/2.2rem 'MozTT',sans-serif;
+    font: bolder 1.38rem/1.38rem 'MozTT',sans-serif;
     color: #00aac8;
   }
   

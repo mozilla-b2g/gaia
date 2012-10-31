@@ -125,6 +125,7 @@ section[role="region"] > header:first-child button {
   font: 600 1.4rem/1.1em "MozTT", Sans-serif;
   color: #fff;
   border-radius: 0;
+  text-decoration: none;
 }
 
 
