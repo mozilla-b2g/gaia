@@ -28,10 +28,10 @@
   "permissions": {
     "telephony":{},
     "voicemail":{},
-    "contacts":{},
+    "contacts":{ "access": "readwrite" },
     "mobileconnection":{},
     "attention":{},
-    "settings":{},
+    "settings":{ "access": "readonly" },
     "desktop-notification":{},
     "alarms": {},
     "systemXHR": {}

@@ -648,7 +648,6 @@ var AlarmEditView = {
     this.snoozeMenu.addEventListener('click', this);
     this.snoozeSelect.addEventListener('change', this);
     this.deleteButton.addEventListener('click', this);
-    this.initTimePicker();
   },
 
   initTimePicker: function aev_initTimePicker() {
@@ -762,6 +761,9 @@ var AlarmEditView = {
   },
 
   load: function aev_load(alarm) {
+    if (this.timePicker.hour == null)
+      this.initTimePicker();
+
     if (!alarm) {
       this.alarmTitle.textContent = _('newAlarm');
       alarm = this.getDefaultAlarm();

@@ -21,6 +21,7 @@
     <link rel="stylesheet" type="text/css" href="style/system/keyboard.css">
 
     <!-- Include shared building blocks -->
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
 
@@ -177,6 +178,10 @@
     <!-- Operator Variant Mechanism -->
     <script defer src="js/operator_variant/operator_variant.js"></script>
 
+    <!-- Crash Reporter -->
+    <link rel="stylesheet" type="text/css" href="style/crash_reporter/crash_reporter.css">
+    <script defer src="js/crash_reporter.js"></script>
+
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
@@ -309,6 +314,22 @@
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
+        <!-- Crash reporter -->
+        <form id="crash-dialog" role="dialog" data-type="confirm">
+          <section>
+            <h1 id="crash-dialog-title"></h1>
+            <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
+            <p><a id="crash-info-link" data-l10n-id="crash-info-link">What's in a crash report?</a></p>
+            <p>
+              <input id="always-send" type="checkbox" checked="true"/>
+              <label for="always-send" data-l10n-id="crash-always-report">Always send Mozilla a report when a crash occurs.</label>
+            <p>
+          </section>
+          <menu>
+            <button id="dont-send-report" disabled="true" data-l10n-id="crash-dont-send">Don't Send</button>
+            <button id="send-report" data-l10n-id="crash-send">Send Report</button>
+          </menu>
+        </form>
         <div id="popup-container">
           <section role="region" class="title-container skin-dark">
             <header>
@@ -633,8 +654,9 @@
       </div>
 
       <section id="system-banner" role="dialog" class="banner"
-          data-z-index-level="system-notification-banner">
+          data-z-index-level="system-notification-banner" data-button="false">
         <p></p>
+        <button></button>
       </section>
 
       <div id="system-overlay" data-z-index-level="system-overlay">

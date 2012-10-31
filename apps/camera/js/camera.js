@@ -80,9 +80,13 @@ var Camera = {
 
   _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
 
-  DCF_KEY: 'dcf_key',
-  DCF_POSTFIX: 'MZFFO',
-  _dcf_seq: null,
+  _dcfConfig: {
+    key: 'dcf_key',
+    seq: {file: 1, dir: 100},
+    postFix: 'MZLLA',
+    video: {prefix: 'VID_'},
+    image: {prefix: 'IMG_'}
+  },
 
   THUMB_WIDTH: 40,
   THUBM_HEIGHT: 40,
@@ -195,13 +199,9 @@ var Camera = {
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
 
-    asyncStorage.getItem(this.DCF_KEY, (function(value) {
-      if (!value) {
-        // TODO: Scan the filesystem, currently blocked by
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=798304
-        this._dcf_seq = {file: 1, dir: 1};
-      } else {
-        this._dcf_seq = value;
+    asyncStorage.getItem(this._dcfConfig.key, (function(value) {
+      if (value) {
+        this._dcfConfig.seq = value;
       }
 
       this.setToggleCameraStyle();
@@ -279,25 +279,6 @@ var Camera = {
     this._cameraObj.flashMode = flashModeName;
   },
 
-  createVideoFilename: function camera_createVideoFilename() {
-    // TODO: Currently a bug specifying directories
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=798304
-    //
-    // var path =  this.padLeft(this._dcf_seq.dir, 3) +
-    //   this.DCF_POSTFIX + '/' +
-    //   'VID_' + this.padLeft(this._dcf_seq.file, 4) + '.3gp';
-    var path = 'VID_' + this.padLeft(this._dcf_seq.file, 4) + '.3gp';
-
-    if (this._dcf_seq.file < 9999) {
-      this._dcf_seq.file += 1;
-    } else {
-      this._dcf_seq.file = 0;
-      this._dcf_seq.dir += 1;
-    }
-    asyncStorage.setItem(this.DCF_KEY, this._dcf_seq);
-    return path;
-  },
-
   toggleRecording: function camera_toggleRecording() {
     if (this._recording) {
       this.stopRecording();
@@ -310,7 +291,6 @@ var Camera = {
   startRecording: function camera_startRecording() {
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
-    this._videoPath = this.createVideoFilename();
 
     var onerror = function() handleError('error-recording');
     var onsuccess = (function onsuccess() {
@@ -333,18 +313,6 @@ var Camera = {
     switchButton.setAttribute('disabled', 'disabled');
     captureButton.setAttribute('disabled', 'disabled');
 
-    // Determine the number of bytes available on disk.
-    var stat = this._videoStorage.stat();
-    stat.onerror = onerror;
-    stat.onsuccess = (function() {
-      var freeBytes = stat.result.freeBytes;
-
-      // Determine the size of the file we might be overwriting.
-      var get = this._videoStorage.get(this._videoPath);
-      get.onerror = function() startRecording(freeBytes);
-      get.onsuccess = function() startRecording(freeBytes - get.result.size);
-    }).bind(this);
-
     var startRecording = (function startRecording(freeBytes) {
       if (freeBytes < this.RECORD_SPACE_MIN) {
         handleError('nospace');
@@ -358,6 +326,23 @@ var Camera = {
       this._cameraObj.startRecording(config, this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
     }).bind(this);
+
+    this.createDCFFilename('video', '3gp', (function(filename) {
+      this._videoPath = filename;
+      // The CameraControl API will not automatically create directories
+      // for the new file if they do not exist, so write a stub file
+      // via the deviceStorage API which will, then start recording
+      // over it
+      var stub = new Blob([''], {'type': 'video\/3gpp'});
+      var req = this._videoStorage.addNamed(stub, filename);
+      req.onerror = onerror;
+      req.onsuccess = (function fileCreated() {
+        // Determine the number of bytes available on disk.
+        var stat = this._videoStorage.stat();
+        stat.onerror = onerror;
+        stat.onsuccess = function() startRecording(stat.result.freeBytes);
+      }).bind(this);
+    }).bind(this));
   },
 
   addToFilmStrip: function camera_addToFilmStrip(name, thumbnail, type) {
@@ -475,16 +460,18 @@ var Camera = {
   },
 
   orientChange: function camera_orientChange(e) {
+    // Orientation is 0 starting at 'natural portrait' increasing
+    // going clockwise
     var orientation = (e.beta > 45) ? 180 :
       (e.beta < -45) ? 0 :
-      (e.gamma < -45) ? 270 :
-      (e.gamma > 45) ? 90 : 0;
+      (e.gamma < -45) ? 90 :
+      (e.gamma > 45) ? 270 : 0;
 
     if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
       // PLEASE DO SOMETHING KITTENS ARE DYING
       // Setting MozRotate to 90 or 270 causes element to disappear
-      rule.style.MozTransform = 'rotate(' + (orientation + 1) + 'deg)';
+      rule.style.MozTransform = 'rotate(' + -(orientation + 1) + 'deg)';
       this._phoneOrientation = orientation;
     }
   },
@@ -696,35 +683,68 @@ var Camera = {
     };
   },
 
+  createDCFFilename: function camera_createDCFFilename(type, ext, callback) {
+    var self = this;
+    var dcf = this._dcfConfig;
+    var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
+    var path =  'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
+    var storage = (type === 'video') ? this._videoStorage : this._pictureStorage;
+
+    // A file with this name may have been written by the user or
+    // our indexeddb sequence tracker was cleared, check we wont overwrite
+    // anything
+    var req = storage.get(path);
+
+    // A file existed, we bump the directory then try to generate a
+    // new filename
+    req.onsuccess = function() {
+      dcf.seq.file = 1;
+      dcf.seq.dir += 1;
+      asyncStorage.setItem(dcf.key, dcf.seq, function() {
+        self.createDCFFilename(type, ext, callback);
+      });
+    };
+
+    // No file existed, we are good to go
+    req.onerror = function() {
+      if (dcf.seq.file < 9999) {
+        dcf.seq.file += 1;
+      } else {
+        dcf.seq.file = 1;
+        dcf.seq.dir += 1;
+      }
+      asyncStorage.setItem(dcf.key, dcf.seq, function() {
+        callback(path);
+      });
+    };
+  },
+
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._manuallyFocused = false;
     this.hideFocusRing();
     this.restartPreview();
+    this.createDCFFilename('image', 'jpg', (function(name) {
+      var addreq = this._pictureStorage.addNamed(blob, name);
+      addreq.onsuccess = (function() {
+        if (this._pendingPick) {
+          var type = 'image/jpeg';
+          this._dataURLFromBlob(blob, type, function(name) {
+            this._pendingPick.postResult({
+              type: type,
+              url: name
+            });
+            this.cancelActivity();
+          }.bind(this));
+          return;
+        }
+        this.addToFilmStrip(name, blob, 'image/jpeg');
+        this.checkStorageSpace();
+      }).bind(this);
 
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var rightnow = new Date();
-    var name = 'DCIM/img_' + f.localeFormat(rightnow, '%Y%m%d-%H%M%S') + '.jpg';
-    var addreq = this._pictureStorage.addNamed(blob, name);
-
-    addreq.onsuccess = (function() {
-      if (this._pendingPick) {
-        var type = 'image/jpeg';
-        this._dataURLFromBlob(blob, type, function(name) {
-          this._pendingPick.postResult({
-            type: type,
-            url: name
-          });
-          this.cancelActivity();
-        }.bind(this));
-        return;
-      }
-      this.addToFilmStrip(name, blob, 'image/jpeg');
-      this.checkStorageSpace();
-    }).bind(this);
-
-    addreq.onerror = (function() {
-      this.showOverlay('error-saving');
-    }).bind(this);
+      addreq.onerror = (function() {
+        this.showOverlay('error-saving');
+      }).bind(this);
+    }).bind(this));
   },
 
   hideFocusRing: function camera_hideFocusRing() {
@@ -847,20 +867,13 @@ var Camera = {
   },
 
   takePicture: function camera_takePicture() {
-    this._config.rotation =
-      this.layoutToPhoneOrientation(this._phoneOrientation);
+    this._config.rotation = this._phoneOrientation;
     if (this._position) {
       this._config.position = this._position;
     }
     this._shutterSound.play();
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
-  },
-
-  // The layout (icons) and the phone calculate orientation in the
-  // opposite direction
-  layoutToPhoneOrientation: function camera_layoutToPhoneOrientation() {
-    return this._phoneOrientation;
   },
 
   showOverlay: function camera_showOverlay(id) {

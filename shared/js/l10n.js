@@ -10,7 +10,6 @@
 
 (function(window) {
   var gL10nData = {};
-  var gTextData = '';
   var gTextProp = 'textContent';
   var gLanguage = '';
   var gMacros = {};
@@ -95,7 +94,7 @@
    * l10n resource parser:
    *  - reads (async XHR) the l10n resource matching `lang';
    *  - imports linked resources (synchronously) when specified;
-   *  - parses the text data (fills `gL10nData' and `gTextData');
+   *  - parses the text data (fills `gL10nData');
    *  - triggers success/failure callbacks when done.
    *
    * @param {string} href
@@ -111,7 +110,7 @@
    *    triggered when the an error has occured.
    *
    * @return {void}
-   *    uses the following global variables: gL10nData, gTextData, gTextProp.
+   *    uses the following global variables: gL10nData, gTextProp.
    */
 
   function parseResource(href, lang, successCallback, failureCallback) {
@@ -221,8 +220,6 @@
 
     // load and parse l10n data (warning: global variables are used here)
     loadResource(href, function(response) {
-      gTextData += response; // mostly for debug
-
       // parse *.properties text data into an l10n dictionary
       var data = parseProperties(response);
 
@@ -306,7 +303,6 @@
   // clear all l10n data
   function clear() {
     gL10nData = {};
-    gTextData = '';
     gLanguage = '';
     // TODO: clear all non predefined macros.
     // There's no such macro /yet/ but we're planning to have some...

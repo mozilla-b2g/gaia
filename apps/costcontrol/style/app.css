@@ -113,21 +113,22 @@ body[role="application"] section[role="region"] > header button {
 
 
 /* BB BUTTONS ICONS */
-body[role="application"] button span.reload {
+.buttons-list {
+  list-style: none;
+}
+
+li button.icon-reload:before {
   background-image: url(images/app/icons/reload.png);
 }
 
-body[role="application"] button span.topup {
+li button.icon-topup:before {
   background-image: url(images/app/icons/topup.png);
 }
 
-body[role="application"] button span.topupcode {
+li button.icon-topupcode:before  {
   background-image: url(images/app/icons/topupcode.png);
 }
 
-body[role="application"] button[disabled] span {
-  opacity: 0.3;
-}
 
 /* BB PROGRESS */
 body[role="application"] progress:not([value]) {
