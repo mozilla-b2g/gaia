@@ -11,6 +11,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
     this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
+    this.cancel = this.cancel.bind(this);
     this._toggleAllDay = this._toggleAllDay.bind(this);
 
     this._initEvents();
@@ -35,7 +36,8 @@ Calendar.ns('Views').ModifyEvent = (function() {
       status: '#modify-event-view section[role="status"]',
       errors: '#modify-event-view .errors',
       saveButton: '#modify-event-view .save',
-      deleteButton: '#modify-event-view .delete-record'
+      deleteButton: '#modify-event-view .delete-record',
+      cancelButton: '#modify-event-view .cancel'
     },
 
     _initEvents: function() {
@@ -47,6 +49,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this.saveButton.addEventListener('click', this.save);
       this.deleteButton.addEventListener('click', this.deleteRecord);
+      this.cancelButton.addEventListener('click', this.cancel);
       this.form.addEventListener('submit', this.save);
 
       var allday = this.getField('allday');
@@ -185,12 +188,16 @@ Calendar.ns('Views').ModifyEvent = (function() {
       return this._findElement('form');
     },
 
+    get saveButton() {
+      return this._findElement('saveButton');
+    },
+
     get deleteButton() {
       return this._findElement('deleteButton');
     },
 
-    get saveButton() {
-      return this._findElement('saveButton');
+    get cancelButton() {
+      return this._findElement('cancelButton');
     },
 
     get status() {
@@ -355,6 +362,13 @@ Calendar.ns('Views').ModifyEvent = (function() {
       } else {
         this._persistEvent('createEvent', 'canCreate');
       }
+    },
+
+    /**
+     * Dismiss modification and go back to previous screen.
+     */
+    cancel: function() {
+      window.back();
     },
 
     /**
