@@ -1,5 +1,11 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
+body, html {
+  font-family: MozTT, sans-serif; 
+  font-weight: 500;
+  font-size: 10px;
+}
+
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -21,7 +27,7 @@
 #statusbar > * {
   pointer-events: none;
   float: right;
-  margin: 0 2.5px;
+  margin: 0 2px;
 }
 
 #statusbar > .sb-start {
@@ -63,16 +69,16 @@
 
 #statusbar-label {
   color: #919899;
-  font-family: 'MozTT', sans-serif;
-  font-weight: 500;
-  font-size: 2.3mozmm /* 6.5pt */
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 1px;
 }
 
 #statusbar-time { 
   color: #fff;
-  font-family: 'MozTT', sans-serif;
-  font-weight: 500;
-  font-size: 2.3mozmm /* 6.5pt */
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 2px;
 }
 
 .sb-icon {
@@ -348,9 +354,7 @@
   top: 0;
   right: 0;
   padding: 0 1px;
-  font-family: 'MozTT', sans-serif;
-  font-weight: 500;
-  font-size: 2.3mozmm /* 6.5pt */
+  font-size: 1.49rem; /* 6.5pt */  
 }
 
 *[dir=rtl] .sb-icon-notification::after {
@@ -374,7 +378,5 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font-family: 'MozTT', sans-serif;
-  font-weight: 500;
-  font-size: 1.76mozmm; /*5pt  was 8px */
+  font-size: 1.15rem; /*5pt  was 8px */
 }
