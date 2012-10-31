@@ -2,6 +2,7 @@
 }
 
 .cmp-addr-label, .cmp-subject-label {
+  color: #888888;
   display: table-cell;
   width: -moz-min-content;
   text-align: left;
@@ -67,19 +68,15 @@
   width: 2rem;
   height: 2rem;
   padding: 0.5rem;
-  visibility: hidden;
   display: inline-block;
   vertical-align: middle;
-}
-
-.cmp-contact-add.show {
-  visibility: visible;
 }
 
 .cmp-envelope-line {
   display: table;
   table-layout: fixed;
   width: calc(100% - 4rem);
+  border-top: 1px solid transparent;
   border-bottom: 1px solid lightgray;
   margin: 0 2rem;
   padding: 0.4rem 0;
@@ -87,12 +84,18 @@
 }
 
 .cmp-body-text {
-  width: calc(100% - 6px);
-  border-style: solid;
-  border-width: 1px;
-  border-color: #aaa;
-  margin: 0;
-  padding: 2px;
+  -moz-box-sizing: border-box;
+  width: calc(100% - 4rem);
+  min-height: 10rem;
+  margin: 1.5rem 2rem;
+  display: block;
+  overflow: hidden;
+  padding: 0rem;
+  font: 1.4rem/2rem "MozTT", Sans-serif;
+  font-weight: normal;
+  border: none;
+  box-shadow: none;
+  background: #fff;
 }
 
 /* Attachment */

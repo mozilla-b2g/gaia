@@ -6,7 +6,6 @@
   <title>Cost Control</title>
 
   <!-- Building blocks Temporal -->
-  <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/input-areas/style.css">
   <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css">
@@ -17,6 +16,7 @@
 
   <!-- Building blocks -->
   <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
   <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
 
   <!-- App and Views -->
@@ -82,12 +82,13 @@
 
         <!-- Show balance zone -->
         <div id="cost-control-info-area" class="overview">
-          <div class="buttons-list end">
-            <button id="balance-tab-update-button" data-l10n-id="update-button">
-              <span class="end reload"></span>
-              Update
-            </button>
-          </div>
+          <ul class="buttons-list end">
+            <li>
+              <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
+                Update
+              </button>
+            </li>
+          </ul>
           <div class="info">
             <div id="cost-control-icon" class="icons">
                 <span class="warning"></span>
@@ -99,16 +100,18 @@
         </div>
 
         <!-- Update and top up buttons -->
-        <div class="buttons-list">
-          <button id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
-            <span class="end topup"></span>
-            Top-Up and pay
-          </button>
-          <button id="balance-tab-topup-button" data-l10n-id="topup-button">
-            <span class="end topupcode"></span>
-            Top-Up with code
-          </button>
-        </div>
+        <ul class="buttons-list">
+          <li>
+            <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
+              Top-Up and pay
+            </button>
+          </li>
+          <li>
+            <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button">
+              Top-Up with code
+            </button>
+          </li>
+        </ul>
       </section>
     </section>
 
@@ -173,7 +176,7 @@
         <p data-l10n-id="application-error-message">Contact your company representative.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="affirmative close-dialog">Ok</button>
+        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
       </menu>
     </section>
 
@@ -184,7 +187,7 @@
         <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
       </div>
       <menu data-items="1">
-        <button data-l10n-id="ok" class="affirmative close-dialog">Ok</button>
+        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
       </menu>
     </section>
 

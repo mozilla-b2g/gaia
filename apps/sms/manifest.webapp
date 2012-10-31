@@ -9,10 +9,10 @@
   },
   "permissions": {
     "sms":{},
-    "contacts":{},
+    "contacts":{ "access": "readonly" },
     "backgroundservice":{},
     "mobileconnection":{},
-    "settings":{},
+    "settings":{ "access": "readonly" },
     "desktop-notification":{}
   },
   "locales": {

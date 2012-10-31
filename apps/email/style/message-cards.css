@@ -75,7 +75,7 @@
   top: 0px;
   left: 3.8rem;
   /* 100% - (unread-section) - (icons-section) - (avatar-section) */
-  width: -moz-calc(100% - 1.9rem - 2rem - 2.8rem);
+  width: -moz-calc(100% - 4rem - 2rem - 2.8rem);
   height: 100%;
   font-size: 1.6rem;
   line-height: 2.0rem;
@@ -327,7 +327,7 @@
 }
 
 .msg-edit-btn {
-  background: url("images/icons/edit.png") no-repeat scroll center transparent;
+  background: url("images/icons/edit-mode.png") no-repeat scroll center transparent;
   position: absolute;
   left: calc((100% - 6rem)/2);
 }

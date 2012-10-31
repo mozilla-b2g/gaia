@@ -7,7 +7,7 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{}
+    "settings":{ "access": "readonly" }
   },
   "activities": {
     "pick": {

@@ -327,8 +327,14 @@ iframe.backgroundWindow {
   height: 100%;
 }
 
+#screen:not(.crash-dialog) #crash-dialog {
+  visibility: hidden;
+}
+
 #screen.authentication-dialog #dialog-overlay,
 #screen.authentication-dialog #authentication-dialog,
+#screen.crash-dialog #dialog-overlay,
+#screen.crash-dialog #crash-dialog
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
@@ -360,6 +366,14 @@ iframe.backgroundWindow {
 #system-banner.visible {
   animation: banner-bounce 4s;
   visibility: visible;
+}
+
+#system-banner button {
+  width: auto;
+}
+
+#system-banner[data-button="false"] button {
+  visibility: hidden;
 }
 
 #screen iframe.communication-frame {

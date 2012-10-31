@@ -334,26 +334,6 @@ var AppIntegration = (function() {
       }, callback);
     },
 
-    remoteDate: function(date, callback) {
-      callback = (callback || this.defaultCallback);
-
-      this.remoteDateObject(date, function(err, result) {
-        if (err) {
-          callback(err);
-          return;
-        }
-
-        callback(null, new Date(
-          result.year,
-          result.month,
-          result.date,
-          result.hours,
-          result.minutes,
-          result.seconds
-        ));
-      });
-    },
-
     /**
      * Given a date object returns an object with
      * date information relative to the remote runtime.
@@ -364,23 +344,26 @@ var AppIntegration = (function() {
      *
      * @param {Date} date date object local to test runtime.
      */
-    remoteDateObject: function(date, callback) {
-      if (typeof(date) === 'undefined') {
-        date = new Date();
-      }
-
+    remoteDate: function(callback) {
       this.task(function(app, next, done) {
-        var result = yield IntegrationHelper.sendAtom(
+
+        var remote = yield IntegrationHelper.sendAtom(
           app.device,
           '/tests/atoms/remote_date',
           false,
-          [date.valueOf()],
           next
         );
 
-        done(null, result);
+        done(null, new Date(
+          remote.year,
+          remote.month,
+          remote.date,
+          remote.hours,
+          remote.minutes,
+          remote.seconds
+        ));
 
-      }, callback);
+      }, callback, this);
     },
 
     /**
