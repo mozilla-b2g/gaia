@@ -68,7 +68,7 @@ html, body {
   height: 100%;
 }
 #gallery-button span {
-  background-image: url(images/grid.png);
+  background-image: url(images/IconAction_Camera_GridView_30x30.png);
 }
 
 #gallery-button[disabled=disabled] {
@@ -121,19 +121,19 @@ html, body {
 
 /* Swap the camera and video icons depending on mode */
 .video #switch-button span {
-  background-image: url(images/camera.png);
+  background-image: url(images/IconAction_Camera_30x30.png);
 }
 
 .camera #switch-button span {
-  background-image: url(images/video.png);
+  background-image: url(images/IconAction_VideoRecorder_30x30.png);
 }
 
 .camera #capture-button span {
-  background-image: url(images/camera.png);
+  background-image: url(images/IconAction_Camera_30x30.png);
 }
 
 .video #capture-button span {
-  background-image: url(images/video.png);
+  background-image: url(images/IconAction_VideoRecorder_30x30.png);
 }
 
 #film-strip {
