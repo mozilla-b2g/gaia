@@ -2579,7 +2579,9 @@ MailAPI.prototype = {
       unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
       return;
     }
-    delete this._pendingRequests[msg.handle];
+    // Only delete the request if the send succeeded.
+    if (!msg.err)
+      delete this._pendingRequests[msg.handle];
     if (req.callback) {
       req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
@@ -21827,6 +21829,9 @@ SmtpProber.prototype = {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
+      // Set the response type to "text" so that we don't try to parse an empty
+      // body as XML.
+      xhr.responseType = 'text';
       xhr.send();
     },
 
@@ -31912,6 +31917,7 @@ ActiveSyncAccount.prototype = {
   },
 
   shutdown: function asa_shutdown() {
+    this._LOG.__die();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
@@ -32590,7 +32596,7 @@ function accountTypeToClass(type) {
 exports.accountTypeToClass = accountTypeToClass;
 
 // Simple hard-coded autoconfiguration by domain...
-var autoconfigByDomain = {
+var autoconfigByDomain = exports._autoconfigByDomain = {
   'localhost': {
     type: 'imap+smtp',
     incoming: {
@@ -32619,6 +32625,15 @@ var autoconfigByDomain = {
       port: 465,
       socketType: 'SSL',
       username: '%EMAILLOCALPART%',
+    },
+  },
+  'aslocalhost': {
+    type: 'activesync',
+    displayName: 'Test',
+    incoming: {
+      // This string may be clobbered with the correct port number when
+      // running as a unit test.
+      server: 'http://localhost:8080',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
