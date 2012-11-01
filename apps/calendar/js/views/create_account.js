@@ -4,6 +4,7 @@
 
   function CreateAccount(options) {
     Calendar.View.apply(this, arguments);
+    this.cancel = this.cancel.bind(this);
     this._initEvents();
   }
 
@@ -14,11 +15,16 @@
 
     selectors: {
       element: '#create-account-view',
-      accounts: '#create-account-presets'
+      accounts: '#create-account-presets',
+      cancelButton: '#create-account-view .cancel'
     },
 
     get accounts() {
       return this._findElement('accounts');
+    },
+
+    get cancelButton() {
+      return this._findElement('cancelButton');
     },
 
     _initEvents: function() {
@@ -33,6 +39,8 @@
 
       store.on('remove', render);
       store.on('add', render);
+
+      this.cancelButton.addEventListener('click', this.cancel);
     },
 
     render: function() {
@@ -54,6 +62,10 @@
         output = template.provider.render({ name: preset });
         this.accounts.insertAdjacentHTML('beforeend', output);
       }, this);
+    },
+
+    cancel: function() {
+      window.back();
     }
   };
 

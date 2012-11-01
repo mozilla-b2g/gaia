@@ -904,6 +904,11 @@ function onScroll(evt) {
 function onMouseDown(evt) {
   var keyCode;
 
+  // Prevent loosing focus to the currently focused app
+  // Otherwise, right after mousedown event, the app will receive a focus event.
+  IMERender.ime.setCapture(false);
+  evt.preventDefault();
+
   isPressing = true;
   currentKey = evt.target;
   if (!isNormalKey(currentKey))

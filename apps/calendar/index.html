@@ -111,7 +111,7 @@
   <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
-<body role="application" class="loading" onload="Calendar.App.init();">
+<body role="application" class="loading">
 
 <nav class="skin-organic" id="settings" role="region">
 
@@ -216,9 +216,9 @@
 
 <section class="fullscreen-view skin-organic" id="create-account-view" role="region">
   <header>
-    <a data-l10n-id="cancel" href="javascript: window.history.go(-1);">
-      <span class="icon icon-back">Cancel</span>
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
 
     <h1 data-l10n-id="add-account">
       Add an account
@@ -277,16 +277,14 @@
 
 <section class="fullscreen-view" id="modify-event-view" role="region">
   <header>
-    <a href="javascript: window.history.go(-1);">
-       <span data-l10n-id="cancel" class="icon icon-back">
-         Cancel
-       </span
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
 
     <menu type="toolbar">
-      <a class="save" href="#">
+      <button class="save">
         <span data-l10n-id="save">Save</span>
-      </a>
+      </button>
     </menu>
 
     <h1 data-l10n-id="add-event-header">
@@ -357,9 +355,9 @@
 
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
   <header>
-    <a href="javascript: window.history.go(-1);">
-      <span data-l10n-id="back" class="icon icon-back">Back</span>
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
+    </button>
 
     <menu type="toolbar">
       <button class="save">
@@ -404,7 +402,7 @@
       </p>
     </section>
     <menu>
-      <button type="reset" onclick="window.back()" data-l10n-id="cancel">Cancel</button>
+      <button type="reset" class="delete-cancel" data-l10n-id="cancel">Cancel</button>
       <button type="submit" class="delete-confirm" data-l10n-id="confirm">Confirm</button>
     </menu>
   </form>
