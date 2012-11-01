@@ -454,7 +454,6 @@ IMEngine.prototype = {
           this._historyText = '';
 
           this._updateCandidateList(this._next.bind(this));
-          return;
         }
         // pass the key to IMEManager for default action
         debug('Default action.');
