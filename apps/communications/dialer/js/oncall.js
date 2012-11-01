@@ -168,8 +168,8 @@ var OnCallHandler = (function onCallHandler() {
     activePhoneSound = !!value;
   });
 
-  var selectedPhoneSound = 'style/ringtones/classic.ogg';
-  SettingsListener.observe('dialer.ringtone', 'classic.ogg', function(value) {
+  var selectedPhoneSound = 'style/ringtones/ringer_classic_courier.ogg';
+  SettingsListener.observe('dialer.ringtone', 'ringer_classic_courier.ogg', function(value) {
     selectedPhoneSound = 'style/ringtones/' + value;
     ringtonePlayer.pause();
     ringtonePlayer.src = selectedPhoneSound;
