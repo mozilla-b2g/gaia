@@ -1,0 +1,33 @@
+{
+  "name": "Send To Bluetooth Device",
+  "type": "certified",
+  "description": "Gaia Bluetooth Transfer",
+  "launch_path": "/transfer.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Bluetooth Transfer",
+      "description": "Gaia Bluetooth Transfer"
+    }
+  },
+  "orientation": "portrait-primary",
+  "activities": {
+    "share": {
+      "filters": {
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/transfer.html"
+    }   
+  },
+  "permissions": {
+    "settings":{},
+    "bluetooth":{},
+    "mozBluetooth":{},
+    "device-storage:pictures":{},
+    "device-storage:music":{}
+  }
+}

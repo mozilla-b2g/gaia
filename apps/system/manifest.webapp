@@ -51,6 +51,10 @@
   },
   "default_locale": "en-US",
   "messages": [
-     { "alarm": "/index.html" }
+     { "alarm": "/index.html" },
+     { "bluetooth-opp-transfer-complete": "/index.html" },
+     { "bluetooth-opp-update-progress": "/index.html" },
+     { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
+     { "bluetooth-opp-transfer-start": "/index.html" }
   ]
 }
