@@ -22,7 +22,7 @@ div[role="list"] h3 {
   text-transform: uppercase;
 }
 
-div[role="list"] h3:first-child {
+div[role="list"] h3:first-of-type {
   padding: 1.5rem 0 0.5rem 1.5rem;
 }
 
@@ -34,34 +34,33 @@ div[role="list"] ul {
 }
 
 div[role="list"] li {
+  display: inline-block;
   width: 100%;
   -moz-box-sizing: border-box;
   transition: transform 0.3s ease;
   border-bottom: solid 0.1rem #dbd9d9;
   margin: 0;
   position: relative;
-  display: inline-block;
 }
 
 div[role="list"] li mark {
   background-color: #cfd3d7;
 }
 
-div[role="list"] li:last-child {
+div[role="list"] li:last-of-type {
   border: none;
 }
 
-div[role="list"] li a {
+div[role="list"] li > a {
   text-decoration: none;
   color: #000;
-  display: block;
-  overflow: hidden;
+  display: inline-block;
+  width: 100%;
   position: relative;
-  height: 6rem;
 }
 
 /* Pressed State */
-div[role="list"] li a:after {
+div[role="list"] li > a:after {
   content: "";
   transition: opacity 0.2s ease;
   background-color: #b1f1ff;
@@ -75,67 +74,58 @@ div[role="list"] li a:after {
   opacity: 0;
 }
 
-div[role="list"] li a:active:after {
+div[role="list"] li > a:active:after {
   opacity: 0.6;
 }
 
-div[role="list"] .pack-begin {
+div[role="list"] li aside {
   float: left;
+  display: inline;
+  position: relative;
+  width: 3rem;
+  height: 5rem;
+  padding-top: 1rem;
   margin: 0 0.5rem 0 0;
 }
 
-div[role="list"] .pack-begin.pack-icon {
-  width: 3rem;
-  height: 6rem;
-  background: transparent no-repeat left center;
-  font: 0/0 a;
-  display: block;
-  overflow: hidden;
-}
-
-div[role="list"] .pack-begin.pack-icon-unread {
-  background: url(lists/images/icons/dot.png) no-repeat center;
-}
-
-div[role="list"] .pack-end {
+div[role="list"] li aside.b2g-end {
   float: right;
-}
-
-div[role="list"] .pack-end img {
-  display: block;
-  overflow: hidden;
+  margin: 0;
+  padding: 0;
   width: 6rem;
   height: 6rem;
-  background: transparent center center;
-  background-size: 100% auto;
 }
 
-div[role="list"] .pack-end img {
-  display: block;
-  overflow: hidden;
-  width: 6rem;
-  height: 6rem;
-  background: transparent center center;
-  background-size: 100% auto;
-}
-
-div[role="list"] .pack-end img.pack-no-picture {
-  height: 2rem;
-  padding: 4rem 0 0 4rem;
-  width: 2rem;
-  background: transparent;
-}
-
-div[role="list"] li time {
+div[role="list"] li aside time {
   font-size: 1.5rem;
   line-height: 2.3rem;
   text-transform: uppercase;
   color: #000;
 }
 
+div[role="list"] li aside img {
+  display: block;
+  overflow: hidden;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+div[role="list"] li aside img.b2g-no-picture { 
+  height: 2rem;
+  padding: 4rem 0 0 4rem;
+  width: 2rem;
+  background: transparent;
+}
+
 div[role="list"] li article {
   display: block;
   overflow: hidden;
+  padding: 1rem 0.5rem 0 0;
+}
+
+div[role="list"] li aside:not(.b2g-end) ~ article {
   padding: 1rem 0.5rem 0 0;
 }
 
@@ -151,21 +141,16 @@ div[role="list"] li p {
   line-height: 2rem;
 }
 
-div[role="list"] li p:first-child {
+div[role="list"] li p:first-of-type {
   font-size: 1.8rem;
   line-height: 2.2rem;
   color: #000;
   padding-bottom: 0.1rem;
 }
 
-div[role="list"] li p:first-child em {
+div[role="list"] li p:first-of-type em {
   font-size: 1.5rem;
   font-style: normal;
-}
-
-div[role="list"] li p:only-child {
-  line-height: 4rem;
-  padding: 0;
 }
 
 div[role="list"] li p strong {
@@ -179,17 +164,37 @@ div[role="list"] li p time {
   font-weight: 500;
 }
 
+/* Icon definitions */
+div[role="list"] li .b2g-icon {
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat left center;
+  font: 0/0 a;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+div[role="list"] li .b2g-icon.b2g-icon-unread {
+  background: url(lists/images/icons/dot.png) no-repeat center;
+}
+
 /* Edit mode */
-div[role="list"].pack-edit-mode li a:not(.pack-end) > * {
+div[role="list"] li > a:first-of-type > * {
+  transition: margin 0.6s ease;
+}
+
+div[role="list"].b2g-edit-mode li > a:first-of-type > * {
   margin-left: 3.5rem;
   transition: margin 0.6s ease;
 }
 
-div[role="list"].pack-edit-mode a {
+div[role="list"].b2g-edit-mode li > a {
   pointer-events: none;
 }
 
-div[role="list"] li label:not([for]) {
+div[role="list"] li > label:not([for]) {
   width: 5rem;
   height: 6rem;
   position: absolute;
@@ -198,24 +203,13 @@ div[role="list"] li label:not([for]) {
   border: none;
 }
 
-div[role="list"] li label:not([for]).pack-end {
-  right: 0;
-}
-
-/* uncomment the following code to allow edit-mode animation */
-/*
-div[role="list"] li a:not(.pack-end) > * {
-  transition: margin 0.6s ease;
-}
-
-div[role="list"] li label:not([for]) {
+div[role="list"] li > label:not([for]) {
   opacity: 0;
   left: -5rem;
   transition: all 0.6s ease; 
 }
-*/
 
-div[role="list"].pack-edit-mode li label:not([for]) {
+div[role="list"].b2g-edit-mode li > label:not([for]) {
   opacity: 1;
   left: -1.5rem;
   transition: all 0.6s ease;
@@ -235,4 +229,30 @@ div[role="list"] li[aria-disabled="true"]:after {
 
 div[role="list"] li[aria-disabled="true"] {
   pointer-events: none;
+}
+
+/* ----------------------------------
+ * Lists: Index scroll
+ * ---------------------------------- */
+
+div[role="list"] h3 {
+  margin: 0 1.5rem 0 3rem;
+  padding: 0 0 0.5rem 1rem;
+  font-size: 2.1rem; 
+}
+
+div[role="list"] h3:first-of-type {
+  padding: 1.5rem 0 0.5rem 1rem;
+}
+
+div[role="list"] ul {
+  padding: 0 1.5rem 0 3rem;
+}
+
+div[role="list"] li article {
+  padding: 1rem 0.5rem 0 1rem;
+}
+
+div[role="list"] li > label:not([for]) {
+  margin-left: 1rem;
 }

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lists</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+
+  <link rel="stylesheet" href="../lists_events.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.b2g-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", "Moz", Sans-serif;
+      font-weight: 300;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    div[role="list"] li[data-event="A"]:after { background-color: #e7a300; }
+
+    div[role="list"] li[data-event="B"]:after { background-color: #954fa7; }
+
+  </style>
+</head>
+
+<body role="application">
+
+  <section role="region" data-type="event">
+    <h2 class="b2g-docs">Events</h2>
+    <div role="list">
+      <h3>Tomorrow</h3>
+      <ul>
+        <li data-event="A">
+          <a href="#">
+            <aside>
+              <time datetime="09:00">9 <strong>AM</strong></time>
+            </aside>
+            <article>
+              <p>Paper Due</p>
+           </article>
+          </a>
+        </li>
+
+        <li data-event="B">
+          <a href="#">
+            <aside>
+                <time datetime="10:00">10 <strong>AM</strong></time>
+            </aside>
+            <article>
+              <p>B2G team meeitng</p>
+              <p>Madrid. Sergi, Victoria, Silvia, Erik, Arnau</p>
+            </article>
+          </a>
+        </li>
+      </ul>
+
+      <h3>Today</h3>
+      <ul>
+        <li data-event="A">
+          <a href="#">
+            <aside>
+              <time datetime="09:00">9 <strong>AM</strong></time>
+            </aside>
+            <article>
+              <p>Paper Due</p>
+           </article>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</body>
+</html>
