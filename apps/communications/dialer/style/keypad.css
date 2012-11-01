@@ -226,7 +226,7 @@
   margin: auto;
   width: 4rem;
   height: 4rem;
-  background-image: url("images/ActionIcon_40x40_addcontact.png");
+  background-image: url("images/IconAction_Phone_Add_Contacts_40x40.png ");
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -236,7 +236,7 @@
   margin: auto;
   width: 4rem;
   height: 4rem;
-  background-image: url("images/ActionIcon_40x40_pickup.png");
+  background-image: url("images/IconAction_Phone_PickUp_40x40.png");
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -278,7 +278,7 @@
 
 #keypad-hidebar-hang-up-action > div {
   margin: 0 auto;
-  background-image: url('images/ActionIcon_40x40_hangup.png');
+  background-image: url('images/IconAction_Phone_HangUp_40x40.png');
   background-repeat: no-repeat;
   background-size: 4rem 4rem;
   background-position: center;
@@ -299,7 +299,7 @@
 
 #keypad-hidebar-hide-keypad-action > div {
   margin: -moz-calc((4rem - 3rem)/2) auto;
-  background-image: url('images/ActionIcons_30x30_dismiss_keyboard.png');
+  background-image: url('images/IconAction_DismissKeyboard_30x30.png');
   background-repeat: no-repeat;
   background-size: 3rem 3rem;
   background-position: center;
