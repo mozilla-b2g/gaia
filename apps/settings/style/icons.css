@@ -86,6 +86,7 @@
 #bluetooth .devices li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+  padding-right: 3rem;
 }
 
 /* device icons */
