@@ -778,7 +778,7 @@ var WindowManager = (function() {
 
   function launchHomescreen() {
     var lock = navigator.mozSettings.createLock();
-    var setting = lock.get('homescreen.manifestURllL');
+    var setting = lock.get('homescreen.manifestURL');
     setting.onsuccess = function() {
       var app =
         Applications.getByManifestURL(this.result['homescreen.manifestURL']);
