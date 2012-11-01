@@ -30,10 +30,6 @@
   margin-left: 0.3rem;
 }
 
-.cmp-peep-name, .cmp-peep-address {
-  pointer-events: none;
-}
-
 .cmp-to-text-container {
   overflow: hidden;
 }
