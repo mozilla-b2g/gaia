@@ -291,7 +291,7 @@ suite('provider/caldav', function() {
         calledWith = arguments;
         var cb = calledWith[calledWith.length - 1];
         setTimeout(cb, 0, null);
-      }
+      };
 
       var trans = db.transaction(
         ['accounts', 'calendars'],
@@ -306,7 +306,7 @@ suite('provider/caldav', function() {
 
       trans.oncomplete = function() {
         done();
-      }
+      };
 
       accountStore.persist(account, trans);
       calendarStore.persist(calendar, trans);
