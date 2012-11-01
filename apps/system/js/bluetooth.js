@@ -62,8 +62,7 @@ var Bluetooth = {
     var bluetooth = window.navigator.mozBluetooth;
     var self = this;
 
-    if (!bluetooth || this.defaultAdapter ||
-        !('getDefaultAdapter' in bluetooth))
+    if (!bluetooth || !('getDefaultAdapter' in bluetooth))
       return;
 
     var req = bluetooth.getDefaultAdapter();
@@ -151,6 +150,12 @@ var Bluetooth = {
         {deviceConnected: this.connected});
       window.dispatchEvent(evt);
     }
+  },
+
+  // This function is called by external (BluetoothTransfer) for re-use adapter
+  getAdapter: function bt_getAdapter() {
+    var adapter = (this.defaultAdapter) ? this.defaultAdapter : null;
+    return adapter;
   }
 };
 

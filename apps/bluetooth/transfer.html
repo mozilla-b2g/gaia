@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Bluetooth</title>
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <script type="application/javascript" src="shared/js/l10n.js"></script>
+    <!-- Common style -->
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <!-- Specific style -->
+    <link rel="stylesheet" type="text/css" href="style/transfer.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/value_selector.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css" />
+    <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css" />
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/transfer.js"></script>
+  </head>
+
+  <body role="application">
+    <section role="dialog" id="enable-bluetooth-view" hidden>
+      <div>
+        <h3 data-l10n-id="confirmation">Confirmation</h3>
+        <div class="content">
+          <img id="icon" src="style/images/settings_bluetooth.png"/>
+          <strong data-l10n-id="bluetooth">Bluetooth</strong>
+          <small data-l10n-id="bluetooth-status-description">Bluetooth is disabled</small>
+        </div>
+        <p data-l10n-id="turn-bluetooth-on">Do you want to turn Bluetooth on?</p>
+      </div>
+      <menu data-items="2">
+        <button type="reset" id="enable-bluetooth-button-cancel" data-l10n-id="cancel" onsubmit="return false;">Cancel</button>
+        <button class="affirmative" type="submit" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on" onsubmit="return false;">Turn On</button>
+      </menu>
+    </section>
+    <section role="dialog" id="alert-view" hidden>
+      <div>
+        <h3 data-l10n-id="error-transfer-title">Bluetooth file transfer failed</h3>
+        <p data-l10n-id="error-transfer-settings">
+          Bluetooth file transfer failed. Check that the Bluetooth settings is correct.
+        </p>
+      </div>
+      <menu data-items="1">
+        <button class="negative" id="alert-button-ok" data-l10n-id="ok">OK</button>
+      </menu>
+    </section>
+    <!-- Overwrite Value Selector -->
+    <div id="value-selector" hidden>
+      <form id="select-option-popup" role="dialog" onsubmit="return false;">
+        <section id="value-selector-container">
+          <h1 data-l10n-id="choose-option">Choose your option</h1>
+          <ol role="listbox">
+            <!-- Create Paired Devices Dyanmically -->
+          </ol>
+        </section>
+        <menu id="select-options-buttons">
+          <button id="device-select-button-cancel" class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel" onsubmit="return false;">Cancel</button>
+          <button id="device-select-button-ok" class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok" onsubmit="return false;">Ok</button>
+        </menu>
+      </form>
+    </div>
+  </body>
+</html>

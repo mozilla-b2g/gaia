@@ -1,0 +1,166 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  background-color: #26272c;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  font-family: 'Open Sans', sans-serif;
+  color: #fff;
+  font-size: 12px;
+}
+
+#value-selector {
+  width: 100%;
+  height: -moz-calc(100% - 20px);
+  top: 20px;
+  left: 0;
+  position: absolute;
+}
+
+#screen.active-statusbar #value-selector {
+  height: -moz-calc(100% - 40px);
+  top: 40px;
+}
+
+#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen.fullscreen-app #value-selector {
+  height: 100%;
+  top: 0;
+}
+
+#select-options-buttons,
+#time-picker-buttons {
+  /* from building blocks, core.css - menu:not([type="toolbar"]*/
+  white-space: nowrap;
+  margin: 0;
+  padding: 0;
+  border-top: solid 1px rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(../themes/default/images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  text-align: center;
+  font-size: 0; /* to get rid of the spacing between 2 buttons */
+}
+
+#value-selector button:first-child {
+    margin-right: 0rem;
+}
+
+#select-options-buttons button,
+#time-picker-buttons button{
+  /* from building block - other/buttons/style.css*/
+  width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
+
+  height: 3.8rem;
+  margin: 1.5rem;
+  padding: 0 1.5rem;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(../themes/default/images/ui/default.png) repeat-x left bottom;
+  border: 1px solid #9f9f9f;
+  border-radius: 0.3rem;
+  font-size: 1.6rem;
+  font-family: 'Open Sans', Sans-serif;
+  font-weight: 600;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Affirmative */
+#value-selector button.affirmative {
+  background-image: url(../themes/default/images/ui/affirmative.png);
+  background-color: #00caf2;
+  border-color: #00acce;
+}
+
+/*active class used to complement the "return false" in onmousedown effect */
+#value-selector button.active,
+button.affirmative.active {
+    border-color: #008aaa;
+    background: #008aaa;
+    color: #333;
+}
+
+#value-selector-container li > label {
+    pointer-events: none;
+}
+
+#value-selector-container li.active label span {
+    background: none repeat scroll 0 0 #00ABCC;
+    color: #FFFFFF !important;
+}
+
+#time-picker-popup {
+  top: 0px;
+  padding: 0 0 7rem;  /*remove the top padding*/
+
+  /* from building blocks, core.css - [role=dialog]*/
+  background: url(../themes/default/images/ui/pattern.png) repeat left top, url(../themes/default/images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  white-space: nowrap;
+  padding: 0 0 7rem;  /*remove the top padding*/
+  font-family: "Open Sans", Sans-serif;
+  color: #fff;
+}
+
+#time-picker-popup h3 {
+    font-family: 'Open Sans', Sans-serif;
+    font-weight: normal;
+    font-size: 1.6rem;
+    line-height: 1em;
+    color: #fff;
+    border-bottom: 0.1rem solid #686868;
+    margin: 0 0 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.table-wrapper {
+  display: table;
+  width:  100%;
+  height: 100%;
+}
+
+.table-cell {
+  display: table-cell;
+  vertical-align: middle;
+  width:  100%;
+  height: 100%;
+}
+
+/* 320x480 phones */
+@media screen and (width: 320px) {
+  html {
+    font-size: 10px;
+  }
+}
+
+/* 480x800 phones */
+@media screen and (min-width: 480px) {
+  html {
+    font-size: 13.3px;
+  }
+}
