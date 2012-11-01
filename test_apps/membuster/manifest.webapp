@@ -1,0 +1,59 @@
+{
+  "name": "Membuster",
+  "description": "Busts your memory",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "ar": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "de": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "el": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "en-US": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "es": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "fr": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "it": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "pt-BR": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "ru": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "tr": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    },
+    "zh-TW": {
+      "name": "Membuster",
+      "description": "Busts your memory"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.png"
+  }
+}
