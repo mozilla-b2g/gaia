@@ -56,7 +56,7 @@ var totalGfxMB = 0;
 function allocCanvas() {
   var c = document.createElement("canvas");
   // We want to allocate 1MB of gfx mem.  Canvases are double buffered
-  // and default to RGBA.  So we create one with 256K pixels.
+  // and default to RGBA.  So we create one with 128K pixels.
   var w = 128, h = 1024;
   c.width = w;
   c.height = h;
