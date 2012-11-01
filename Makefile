@@ -129,7 +129,14 @@ SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
 DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
+# MozillaBuild has an old sed that doesn't support -i (bug 373784), so we use
+# Perl, specifying a backup file extension because Perl inplace edit without
+# backup on Windows fails <http://cygwin.com/ml/cygwin/2001-07/msg01800.html>.
+ifneq (,$(findstring MINGW32_,$(SYS)))
+SED_INPLACE_NO_SUFFIX = perl -p -i.bak
+else
 SED_INPLACE_NO_SUFFIX = sed -i
+endif
 DOWNLOAD_CMD = wget $(WGET_OPTS)
 endif
 
@@ -160,7 +167,8 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	sed -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' build/settings.json > profile/settings.json
+	cp build/settings.json profile/settings.json
+	$(SED_INPLACE_NO_SUFFIX) -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
