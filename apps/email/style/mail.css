@@ -188,19 +188,19 @@ body {
 }
 
 .icon-menu {
-  background-image: url("images/icons/menu.png");
+  background-image: url("images/icons/IconAction_Menu_30x30.png");
 }
 
 .icon-add {
-  background-image: url("images/icons/add.png");
+  background-image: url("images/icons/IconAction_Contacts_30x30.png");
 }
 
 .icon-back {
-  background-image: url("images/icons/back.png");
+  background-image: url("images/icons/IconAction_Back_30x30.png");
 }
 
 .icon-close {
-  background-image: url("images/icons/close.png");
+  background-image: url("images/icons/IconAction_Cancel_30x30.png");
 }
 
 .icon-download {
@@ -208,23 +208,23 @@ body {
 }
 
 .icon-edit {
-  background-image: url("images/icons/edit.png");
+  background-image: url("images/icons/IconAction_E-Mail_EditList_30x30.png");
 }
 
 .icon-send {
-  background-image: url("images/icons/send.png");
+  background-image: url("images/icons/IconAction_E-Mail_Send_30x30.png");
 }
 
 .icon-account {
-  background-image: url("images/icons/user.png");
+  background-image: url("images/icons/IconAction_ContactDetail_30x30.png");
 }
 
 .icon-reply {
-  background-image: url("images/icons/reply.png");
+  background-image: url("images/icons/IconAction_E-Mail_Reply_30x30.png");
 }
 
 .icon-reply-all {
-  background-image: url("images/icons/reply-all.png");
+  background-image: url("images/icons/IconAction_E-Mail_ReplyAll_30x30.png");
 }
 
 /* Toaset banner extend class */

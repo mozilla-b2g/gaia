@@ -317,17 +317,17 @@
 }
 
 .msg-refresh-btn {
-  background: url("images/icons/refresh.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_Sync_30x30.png") no-repeat scroll center transparent;
 }
 
 .msg-search-btn {
-  background: url("images/icons/search.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_Search_30x30.png") no-repeat scroll center transparent;
   position: absolute;
   right: 0px;
 }
 
 .msg-edit-btn {
-  background: url("images/icons/edit.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_E-Mail_EditList_30x30.png") no-repeat scroll center transparent;
   position: absolute;
   left: calc((100% - 6rem)/2);
 }
@@ -341,19 +341,19 @@
 }
 
 .msg-mark-read-btn {
-  background: url("images/icons/mark.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_E-Mail_MarkRead_30x30.png") no-repeat scroll center transparent;
 }
 
 .msg-delete-btn {
-  background: url("images/icons/delete.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_Delete_30x30.png") no-repeat scroll center transparent;
 }
 
 .msg-move-btn {
-  background: url("images/icons/move.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_Move_30x30.png") no-repeat scroll center transparent;
 }
 
 .msg-forward-btn {
-  background: url("images/icons/forward.png") no-repeat scroll center transparent;
+  background: url("images/icons/IconAction_E-Mail_Forward_30x30.png") no-repeat scroll center transparent;
 }
 
 /* Message list edit mode layout control */
