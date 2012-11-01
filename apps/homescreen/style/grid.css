@@ -87,7 +87,7 @@
 
 /* text label */
 .apps ol > li > div > span > span {
-  font-size: -moz-calc(5.5 * 0.226rem); /* was 5pt */
+  font-size: -moz-calc(5.75 * 0.226rem); /* was 5pt */
   text-shadow: 1px 1px 3px rgba(0,0,0,0.6);
 }
 

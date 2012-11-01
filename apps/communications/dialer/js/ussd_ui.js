@@ -123,10 +123,17 @@ var UssdUI = {
         break;
       case 'error':
         this.showMessage(evt.data.error ?
-          evt.data.result : this._('mmi-error'));
+          evt.data.error : this._('mmi-error'));
         break;
       case 'ussdreceived':
-        this.showResponseForm();
+        if (evt.data.sessionEnded) {
+          this.hideResponseForm();
+          if (evt.data.message == null) {
+            evt.data.message = this._('mmi-session-expired');
+          }
+        } else {
+          this.showResponseForm();
+        }
         this.showMessage(evt.data.message);
         break;
       case 'voicechange':

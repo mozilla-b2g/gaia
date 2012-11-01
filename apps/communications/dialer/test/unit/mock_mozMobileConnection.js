@@ -1,37 +1,67 @@
 'use strict';
 
+requireApp('communications/dialer/js/ussd.js');
+
+const SUCCESS_MMI_NO_MSG = 'sucess_mmi_no_msg';
+const FAILED_MMI_NO_MSG = 'failed_mmi_no_msg';
+const SUCCESS_MMI_MSG = 'success_mmi_msg';
+const FAILED_MMI_MSG = 'failed_mmi_msg';
+const USSD_MSG = 'ussd_msg';
+
 var MockMozMobileConnection = {
-  _ussd_listener_function: null,
-  _ussd_listener_object: null,
-  _ussd_message_sent: false,
-  _ussd_cancelled: false,
+  addEventListener: function mmmc_addEventListener(event_name, listener) {
+  },
+
   sendMMI: function mmmc_sendMMI(message) {
-    this._ussd_message_sent = true;
     var evt = {
-      type: 'ussdreceived',
-      message: message + '- Received'
+      target: {
+        result: null,
+        error: {
+          name: null
+        }
+      }
     };
-    if (this._ussd_listener_object) {
-      this._ussd_listener_object.handleEvent(evt);
-    } else if (this._ussd_listener_function) {
-      this._ussd_listener_function(evt);
+
+    switch (message) {
+      case SUCCESS_MMI_NO_MSG:
+        evt.target.result = null;
+        UssdManager.notifySuccess(evt);
+        break;
+      case SUCCESS_MMI_MSG:
+        evt.target.result = SUCCESS_MMI_MSG;
+        UssdManager.notifySuccess(evt);
+        break;
+      case FAILED_MMI_NO_MSG:
+        evt.target.error.name = null;
+        UssdManager.notifyError(evt);
+        break;
+      case FAILED_MMI_MSG:
+        evt.target.error.name = FAILED_MMI_MSG;
+        UssdManager.notifyError(evt);
+        break;
     }
+
     var domRequest = {};
     return domRequest;
   },
+
   cancelMMI: function mmmc_cancelMMI() {
-    this._ussd_cancelled = true;
+    UssdManager.notifySuccess({
+      target: {
+        result: null
+      }
+    });
   },
-  addEventListener: function mmmc_addEventListener(event_name, listener) {
-    if (event_name === 'ussdreceived') {
-      if (typeof listener === 'object')
-        this._ussd_listener_object = listener;
-      else if (typeof listener === 'function')
-        this._ussd_listener_function = listener;
-    }
+
+  triggerUssdReceived: function mmmc_triggerUssdReceived(message,
+                                                         sessionEnded) {
+    UssdManager.handleEvent({
+      type: 'ussdreceived',
+      message: message,
+      sessionEnded: sessionEnded
+    });
   },
+
   teardown: function mmmc_teardown() {
-    this._ussd_message_sent = false;
-    this._ussd_cancelled = false;
   }
 };

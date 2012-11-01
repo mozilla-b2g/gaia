@@ -45,7 +45,7 @@ var ApplicationsList = {
     navigator.mozApps.mgmt.getAll().onsuccess = function mozAppGotAll(evt) {
       var apps = evt.target.result;
       apps.forEach(function(app) {
-        if (!self._isManageable(app))
+        if (!app.removable)
           return;
 
         self._apps.push(app);
@@ -85,7 +85,7 @@ var ApplicationsList = {
 
   oninstall: function al_oninstall(evt) {
     var app = evt.application;
-    if (!this._isManageable(app))
+    if (!app.removable)
       return;
 
     this._apps.push(app);
@@ -106,7 +106,7 @@ var ApplicationsList = {
       return false;
     });
 
-    if (!app || !this._isManageable(app))
+    if (!app || !app.removable)
       return;
 
     window.location.hash = '#appPermissions';
@@ -200,10 +200,6 @@ var ApplicationsList = {
       this._displayedApp.uninstall();
       this._displayedApp = null;
     }
-  },
-
-  _isManageable: function al_isManageable(app) {
-    return (app.removable && app.manifest.launch_path !== undefined);
   },
 
   _changePermission: function al_removePermission(app, perm, value) {
