@@ -1,0 +1,65 @@
+#bluetooth-transfer-status {
+  position: relative;
+  border-top-color: black;
+
+/*  display: none;*/
+}
+
+#bluetooth-transfer-status.displayed {
+  display: block;
+}
+
+#bluetooth-transfer-status.applying .bluetooth-transfer-progress {
+/*  display: none;*/
+}
+
+#bluetooth-transfer-status .bluetooth-transfer-progress {
+  display: block;
+}
+
+#bluetooth-transfer-status progress {
+  position: absolute;
+  top: 35px;
+  left: 60px;
+  width: -moz-calc(100% - 105px);
+  height: 10px;
+  padding: 0;
+
+  border: 0;
+  border-radius: 10px;
+}
+
+#bluetooth-transfer-status.applying progress {
+/*  display: none;*/
+}
+
+#bluetooth-transfer-status progress::-moz-progress-bar {
+  border-radius: 10px;
+  background-color: #52b6cc;
+}
+
+#bluetooth-transfer-status .icon {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+
+  background-image: url('images/transfer.png');
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+#bluetooth-transfer-status.applying .icon {
+  background-image: url('images/spinner.png');
+
+  animation: spin 1.75s infinite linear;
+  transform-origin : center center;
+}
+
+@-moz-keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

@@ -14,6 +14,11 @@ var metadataParser = (function() {
   // If we generate our own thumbnails, aim for this size
   var THUMBNAIL_WIDTH = 120;
   var THUMBNAIL_HEIGHT = 120;
+
+  // If we're using a thumbnail from the image's EXIF data, don't use
+  // it if its compressed size is larger than this.
+  var MAX_EXIF_THUMBNAIL_SIZE = 16 * 1024;
+
   // To save memory (because of gecko bugs) we want to create only one
   // offscreen image and reuse it.
   var offscreenImage = new Image();
@@ -65,8 +70,18 @@ var metadataParser = (function() {
       parseJPEGMetadata(file, function(data) {
         // If we got dimensions and thumbnail, we're done
         // Otherwise, keep going to get more metadata
-        if (data.width && data.height && data.thumbnail)
+        if (data.width && data.height && data.thumbnail) {
+          // If the embedded thumbnail is unexpectedly large,
+          // ignore it and proceed as we would for images
+          // that do not have an embedded thumbnail
+          // XXX: see https://bugzilla.mozilla.org/show_bug.cgi?id=806055
+          if (data.thumbnail.size > MAX_EXIF_THUMBNAIL_SIZE) {
+            parseImageMetadata(file, {}, callback, errback);
+            return;
+          }
+          // We have our metadata and are done
           callback(data);
+        }
         else
           parseImageMetadata(file, data, callback, errback);
       }, function(errmsg) {
@@ -157,13 +172,18 @@ var metadataParser = (function() {
       context.drawImage(offscreenImage, x, y, w, h,
                         0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
-      // We're done with the image now
-      offscreenImage.src = null;
+      canvas.toBlob(function(blob) {
+        // We're done with the image now
+        offscreenImage.src = null;
 
-      // Now extract the thumbnail from the canvas as a jpeg file
-      metadata.thumbnail = canvas.mozGetAsFile(file.name + '.thumbnail.jpeg',
-                                               'image/jpeg');
-      callback(metadata);
+        // This setTimeout is here in the hopes that it gives gecko a bit
+        // of time to release the memory that holds the decoded image before
+        // we start creating the next thumbnail.
+        setTimeout(function() {
+          metadata.thumbnail = blob;
+          callback(metadata);
+        });
+      }, 'image/jpeg');
     };
   }
 

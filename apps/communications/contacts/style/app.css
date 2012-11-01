@@ -87,7 +87,7 @@ small {
 a {
   text-decoration: none;
   outline: none;
-  color: #ff4e00;
+  color: #333;
 }
 
 a:hover {
@@ -412,6 +412,8 @@ form p + p {
 .item-body-exp {
   display: block;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* PULLS: Float an element to the desired position; */
@@ -707,6 +709,8 @@ span[role="button"].icon-arrow.icon-arrow-right {
   display: block;
   margin: 1.5rem 0 0;
   font-weight: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .block-company {

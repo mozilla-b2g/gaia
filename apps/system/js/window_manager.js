@@ -204,6 +204,23 @@ var WindowManager = (function() {
     frame.style.height = appFrame.style.height;
   }
 
+  function setFrameBackgroundBlob(frame, blob)
+  {
+    URL.revokeObjectURL(frame.dataset.bgObjectURL);
+    delete frame.dataset.bgObjectURL;
+
+    var objectURL = URL.createObjectURL(blob);
+    frame.dataset.bgObjectURL = objectURL;
+    frame.style.background = '#fff url(' + objectURL + ')';
+  }
+
+  function clearFrameBackground(frame)
+  {
+    URL.revokeObjectURL(frame.dataset.bgObjectURL);
+    delete frame.dataset.bgObjectURL;
+    frame.style.background = '';
+  }
+
   var openFrame = null;
   var closeFrame = null;
   var openCallback = null;
@@ -215,6 +232,13 @@ var WindowManager = (function() {
       return;
     }
 
+    // I think calling revokeObjectURL here probably isn't necessary, but
+    // better to aggressively revoke these object URLs than to leak one!  We
+    // always clear dataset.bgObjectURL when we revoke an object URL, so we
+    // can't double-revoke a URL (which would only be a problem if we reused
+    // object URLs, which we don't).
+    URL.revokeObjectURL(openFrame.dataset.bgObjectURL);
+
     openFrame.classList.remove('opening');
     openFrame.classList.remove('closing');
     openFrame = frame;
@@ -225,6 +249,9 @@ var WindowManager = (function() {
       closeFrame = frame;
       return;
     }
+
+    // As in setOpenFrame, this revokeObjectURL call is probably unnecessary.
+    URL.revokeObjectURL(closeFrame.dataset.bgObjectURL);
 
     closeFrame.classList.remove('opening');
     closeFrame.classList.remove('closing');
@@ -260,15 +287,10 @@ var WindowManager = (function() {
               openFrame.removeEventListener(
                 'mozbrowserfirstpaint', continueSpriteTransition);
 
-              // Run getAppScreenshotFromFrame() to ensure all CSS backgrounds
-              // of the apps are loaded.
-              getAppScreenshotFromFrame(openFrame,
-                function screenshotTaken() {
-                  sprite.className = 'opened';
-                  if ('wrapper' in openFrame.dataset) {
-                    wrapperFooter.classList.add('visible');
-                  }
-                });
+              sprite.className = 'opened';
+              if ('wrapper' in openFrame.dataset) {
+                wrapperFooter.classList.add('visible');
+              }
             });
 
           return;
@@ -283,7 +305,7 @@ var WindowManager = (function() {
 
         setTimeout(openCallback);
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setOpenFrame(null);
 
@@ -304,7 +326,7 @@ var WindowManager = (function() {
         windowClosed(closeFrame);
         setTimeout(closeCallback);
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setCloseFrame(null);
 
@@ -336,7 +358,7 @@ var WindowManager = (function() {
         openFrame.setVisible(true);
         openFrame.focus();
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setOpenFrame(null);
 
@@ -503,10 +525,8 @@ var WindowManager = (function() {
 
     var req = frame.getScreenshot(frame.offsetWidth, frame.offsetHeight);
 
-    // This serve as a workaround of
+    // This serves as a workaround for
     // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
-    // We also use this timeout to make sure transition
-    // won't stuck for too long.
     var isTimeout = false;
     var timer = setTimeout(function getScreenshotTimeout() {
       console.warn('Window Manager: getScreenshot timeout.');
@@ -622,7 +642,7 @@ var WindowManager = (function() {
           return;
         }
 
-        sprite.style.background = '#fff url(' + screenshot + ')';
+        setFrameBackgroundBlob(sprite, screenshot);
         // Make sure Gecko paint the sprite first
         afterPaint(function() {
           // Start the transition
@@ -670,7 +690,7 @@ var WindowManager = (function() {
         return;
       }
 
-      sprite.style.background = '#fff url(' + screenshot + ')';
+      setFrameBackgroundBlob(sprite, screenshot);
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
         // Start the transition
@@ -708,7 +728,7 @@ var WindowManager = (function() {
           openingAppSprite.dataset.mask = false;
         } else {
           openingAppSprite.dataset.mask = isCached;
-          openingAppSprite.style.background = '#fff url(' + screenshot + ')';
+          setFrameBackgroundBlob(openingAppSprite, screenshot);
         }
       }
     );
@@ -721,7 +741,7 @@ var WindowManager = (function() {
           closingAppSprite.dataset.mask = false;
         } else {
           closingAppSprite.dataset.mask = isCached;
-          closingAppSprite.style.background = '#fff url(' + screenshot + ')';
+          setFrameBackgroundBlob(closingAppSprite, screenshot);
         }
 
         // Start the animation
@@ -736,6 +756,9 @@ var WindowManager = (function() {
               openingAppSprite.removeEventListener('transitionend', switched);
               screenElement.removeChild(closingAppSprite);
               screenElement.removeChild(openingAppSprite);
+
+              URL.revokeObjectURL(openingAppSprite.dataset.bgObjectURL);
+              URL.revokeObjectURL(closingAppSprite.dataset.bgObjectURL);
 
               // Show the new app
               openWindow(newOrigin, function opened() {
@@ -778,7 +801,7 @@ var WindowManager = (function() {
 
   function launchHomescreen() {
     var lock = navigator.mozSettings.createLock();
-    var setting = lock.get('homescreen.manifestURllL');
+    var setting = lock.get('homescreen.manifestURL');
     setting.onsuccess = function() {
       var app =
         Applications.getByManifestURL(this.result['homescreen.manifestURL']);
@@ -1065,8 +1088,9 @@ var WindowManager = (function() {
         return;
       }
 
-      sprite.style.background = '#fff url(' + screenshot + ')';
-      // Make sure Gecko paint the sprite first
+      setFrameBackgroundBlob(sprite, screenshot);
+
+      // Make sure Gecko paints the sprite first
       afterPaint(function() {
         // Start the transition
         sprite.className = 'inline-activity-opening';
@@ -1081,15 +1105,16 @@ var WindowManager = (function() {
     if (frame)
       windows.removeChild(frame);
 
-    if (openFrame == frame) {
-      sprite.style.background = '';
+    if (openFrame == frame || closeFrame == frame) {
+      clearFrameBackground(sprite);
       sprite.className = '';
+    }
+
+    if (openFrame == frame) {
       setOpenFrame(null);
       setTimeout(openCallback);
     }
     if (closeFrame == frame) {
-      sprite.style.background = '';
-      sprite.className = '';
       setCloseFrame(null);
       setTimeout(closeCallback);
     }

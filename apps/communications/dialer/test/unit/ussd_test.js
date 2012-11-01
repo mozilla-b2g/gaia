@@ -29,58 +29,140 @@ suite('dialer/ussd', function() {
       UssdManager._popup.teardown();
   });
 
-  suite('ussd message sending', function() {
-
+  suite('Successfully send ussd message with result', function() {
     setup(function() {
-      UssdManager.send('This is a message.');
+      UssdManager.send(SUCCESS_MMI_MSG);
     });
 
-    test('ussd message sent', function() {
-      assert.isTrue(UssdManager._conn._ussd_message_sent);
+    test('Check request result', function() {
+      assert.equal(UssdManager._popup._messageReceived, SUCCESS_MMI_MSG);
     });
 
-    test('ussd response by server', function() {
-      assert.equal(UssdManager._popup._messageReceived,
-        'This is a message.- Received');
+    test('Check sessionEnded null', function() {
+      assert.isNull(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Successfully send ussd message no result', function() {
+    setup(function() {
+      UssdManager.send(SUCCESS_MMI_NO_MSG);
+    });
+
+    test('Check empty request result', function() {
+      assert.isNull(UssdManager._popup._messageReceived);
+    });
+
+    test('Check sessionEnded null', function() {
+      assert.isNull(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Error sending ussd message with result', function() {
+    setup(function() {
+      UssdManager.send(FAILED_MMI_MSG);
+    });
+
+    test('Check request result', function() {
+      assert.equal(UssdManager._popup._messageReceived, FAILED_MMI_MSG);
+    });
+
+    test('Check sessionEnded null', function() {
+      assert.isNull(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Error sending ussd message no result', function() {
+    setup(function() {
+      UssdManager.send(FAILED_MMI_NO_MSG);
+    });
+
+    test('Check empty request result', function() {
+      assert.isNull(UssdManager._popup._messageReceived);
+    });
+
+    test('Check sessionEnded null', function() {
+      assert.isNull(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Ussd received with message and session active', function() {
+    setup(function() {
+      UssdManager._conn.triggerUssdReceived(USSD_MSG, false);
+    });
+
+    test('Check request result', function() {
+      assert.equal(UssdManager._popup._messageReceived, USSD_MSG);
+    });
+
+    test('Check sessionEnded false', function() {
+      assert.isFalse(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Ussd received with message and session ended', function() {
+    setup(function() {
+      UssdManager._conn.triggerUssdReceived(USSD_MSG, true);
+    });
+
+    test('Check message', function() {
+      assert.equal(UssdManager._popup._messageReceived, USSD_MSG);
+    });
+
+    test('Check sessionEnded true', function() {
+      assert.isTrue(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Ussd received with no message and session active', function() {
+    setup(function() {
+      UssdManager._popup._messageReceived = null;
+      UssdManager._popup._sessionEnded = null;
+      UssdManager._conn.triggerUssdReceived(null, false);
+    });
+
+    test('Check no message received', function() {
+      assert.isNull(UssdManager._popup._messageReceived);
+      assert.isNull(UssdManager._popup._sessionEnded);
     });
 
   });
 
-  suite('ussd message reply via UI', function() {
-
+  suite('Ussd received with no message and session ended', function() {
     setup(function() {
-      UssdManager._popup.reply('This is a second message.');
+      UssdManager._conn.triggerUssdReceived(null, true);
     });
 
-    test('ussd reply message sent', function() {
-      assert.isTrue(UssdManager._conn._ussd_message_sent);
+    test('Check no message', function() {
+      assert.isNull(UssdManager._popup._messageReceived);
     });
 
-    test('ussd response to reply message by server', function() {
-      assert.equal(UssdManager._popup._messageReceived,
-        'This is a second message.- Received');
+    test('Check sessionEnded true', function() {
+      assert.isTrue(UssdManager._popup._sessionEnded);
     });
-
   });
 
-  suite('ussd cancelling via UI', function() {
-
+  suite('Ussd message reply via UI', function() {
     setup(function() {
-      // UssdManager._popup reset to MockUssdUI since
-      // this suite's setup sets it to null via closeWindow().
-      // Otherwise, the second test setup would fail.
-      UssdManager._popup = MockUssdUI;
+      UssdManager._popup.reply(SUCCESS_MMI_MSG);
+    });
+
+    test('Check request result', function() {
+      assert.equal(UssdManager._popup._messageReceived, SUCCESS_MMI_MSG);
+    });
+
+    test('Check sessionEnded null', function() {
+      assert.isNull(UssdManager._popup._sessionEnded);
+    });
+  });
+
+  suite('Cancel ussd via UI', function() {
+    setup(function() {
       UssdManager._popup.closeWindow();
     });
 
-    test('ussd cancelled', function() {
-      assert.isTrue(UssdManager._conn._ussd_cancelled);
-    });
-
-    test('ussd UI closed', function() {
+    test('Check ussd UI closed', function() {
       assert.isNull(UssdManager._popup);
     });
 
   });
-
 });

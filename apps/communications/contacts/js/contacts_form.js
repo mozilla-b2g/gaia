@@ -138,9 +138,8 @@ contacts.Form = (function() {
       nodeClass.add(FB_CLASS);
     }
 
-    var photo = null;
     if (contact.photo && contact.photo.length > 0) {
-      photo = contact.photo[0];
+      currentPhoto = contact.photo[0];
       // If the photo comes from FB it cannot be removed
       var button = addRemoveIconToPhoto();
       if (nonEditableValues['hasPhoto']) {
@@ -148,7 +147,7 @@ contacts.Form = (function() {
         button.classList.add('hide');
       }
     }
-    Contacts.updatePhoto(photo, thumb);
+    Contacts.updatePhoto(currentPhoto, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
@@ -524,6 +523,10 @@ contacts.Form = (function() {
   var resetForm = function resetForm() {
     currentPhoto = null;
     thumbAction.querySelector('p').classList.remove('hide');
+    var removeIcon = thumbAction.querySelector('button');
+    if (removeIcon) {
+      thumbAction.removeChild(removeIcon);
+    }
     saveButton.removeAttribute('disabled');
     resetRemoved();
     currentContactId.value = '';

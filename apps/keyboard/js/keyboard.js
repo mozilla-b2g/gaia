@@ -904,6 +904,11 @@ function onScroll(evt) {
 function onMouseDown(evt) {
   var keyCode;
 
+  // Prevent loosing focus to the currently focused app
+  // Otherwise, right after mousedown event, the app will receive a focus event.
+  IMERender.ime.setCapture(false);
+  evt.preventDefault();
+
   isPressing = true;
   currentKey = evt.target;
   if (!isNormalKey(currentKey))
@@ -920,14 +925,8 @@ function onMouseDown(evt) {
 
     // redirect mouse over event so that the first key in menu
     // would be highlighted
-    if (isShowingAlternativesMenu &&
-        menuLockedArea &&
-        evt.pageY >= menuLockedArea.top &&
-        evt.pageY <= menuLockedArea.bottom &&
-        evt.pageX >= menuLockedArea.left &&
-        evt.pageX <= menuLockedArea.right) {
+    if (inMenuLockedArea(evt))
       redirectMouseOver(evt);
-    }
 
   }), ACCENT_CHAR_MENU_TIMEOUT);
 
@@ -952,6 +951,16 @@ function onMouseDown(evt) {
   }
 }
 
+
+function inMenuLockedArea(evt) {
+  return (isShowingAlternativesMenu &&
+          menuLockedArea &&
+          evt.pageY >= menuLockedArea.top &&
+          evt.pageY <= menuLockedArea.bottom &&
+          evt.pageX >= menuLockedArea.left &&
+          evt.pageX <= menuLockedArea.right);
+}
+
 // [LOCKED_AREA] TODO:
 // This is an agnostic way to improve the usability of the alternatives.
 // It consists into compute an area where the user movement is redirected
@@ -959,13 +968,7 @@ function onMouseDown(evt) {
 // with better performance.
 function onMouseMove(evt) {
   // Control locked zone for menu
-  if (isShowingAlternativesMenu &&
-      menuLockedArea &&
-      evt.pageY >= menuLockedArea.top &&
-      evt.pageY <= menuLockedArea.bottom &&
-      evt.pageX >= menuLockedArea.left &&
-      evt.pageX <= menuLockedArea.right) {
-
+  if (inMenuLockedArea(evt)) {
     clearTimeout(hideMenuTimeout);
     redirectMouseOver(evt);
   }
@@ -1003,10 +1006,10 @@ function onMouseOver(evt) {
   clearTimeout(menuTimeout);
 
   // Control hide of alternatives menu
-  if (target.parentNode === IMERender.menu) {
+  if (target.parentNode === IMERender.menu || inMenuLockedArea(evt)) {
     clearTimeout(hideMenuTimeout);
   } else {
-    hideAlternatives(true);
+    hideAlternatives(false);
   }
 
   // Control showing alternatives menu
@@ -1060,7 +1063,7 @@ function onMouseUp(evt) {
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
-  hideAlternatives(true);
+  hideAlternatives(false);
 
   var target = currentKey;
   var keyCode = parseInt(target.dataset.keycode);
@@ -1452,7 +1455,7 @@ function getSettings(settings, callback) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
                  '\nUsing default values');
-    for (p in settings)
+    for (var p in settings)
       results[p] = settings[p];
     callback(results);
   }

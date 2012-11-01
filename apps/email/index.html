@@ -650,10 +650,6 @@
                   2 WeekS</option>
                 <option value="1m" data-l10n-id="settings-synchronize-one-month">
                   1 MontH</option>
-                <option value="3m" data-l10n-id="settings-synchronize-three-months">
-                  3 MonthS</option>
-                <option value="6m" data-l10n-id="settings-synchronize-six-months">
-                  6 MonthS</option>
                 <option value="all" data-l10n-id="settings-synchronize-all">
                   AlL MessageS</option>
               </select>
@@ -817,8 +813,9 @@
         </button>
       </li>
 
+      <!-- Hide for V1: Hide open contact app option in context menu -->
       <ul class="msg-contact-menu menu">
-        <li class="msg-contact-menu-view menu-item"
+        <li class="msg-contact-menu-view menu-item collapsed"
             data-l10n-id="message-contact-menu-view">View contacT</li>
         <li class="msg-contact-menu-reply menu-item"
             data-l10n-id="message-contact-menu-reply">ReplY</li>
@@ -845,8 +842,7 @@
     <div id="templ-sup">
       <!-- <button class="sup-service-choice"></button> -->
       <li class="sup-service-choice">
-        <button>
-          <span class="icon-view"></span>
+        <button class="icon icon-view">
           <a class="sup-service-choice-label"></a>
         </button>
       </li>
