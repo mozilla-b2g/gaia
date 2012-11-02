@@ -1158,6 +1158,7 @@ var Browser = {
       iframe = document.createElement('iframe');
       iframe.mozbrowser = true;
       iframe.setAttribute('mozallowfullscreen', true);
+      iframe.classList.add('browser-tab');
 
       if (url) {
         iframe.setAttribute('src', url);
