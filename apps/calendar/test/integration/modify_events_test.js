@@ -112,10 +112,11 @@ suite('calendar - modify events', function() {
     now = Calendar.Calc.createDay(now);
 
     // increment to tomorrow
-    now.setDate(now.getDate() + 1);
+    now.setDate(now.getDate() + 3);
 
     // tap the next day in the month view
     var dayEl = yield app.monthView.dateElement(now);
+    yield app.waitUntilElement(dayEl, 'displayed');
     yield dayEl.click();
 
     yield subject.add();
