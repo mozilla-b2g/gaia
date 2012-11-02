@@ -45,10 +45,10 @@ var twitter = (function() {
 
     // Add event listener to catch images through activity
     document.addEventListener('onImageReceived', function(e) {
-
       var img = document.createElement('img');
-      img.src = e.detail.data;
-      imgToShare = dataURItoBlob(img.src);
+      imgToShare = e.detail.data;
+      img.src = URL.createObjectURL(imgToShare);
+      img.onload = function() { URL.revokeObjectURL(img.src); };
 
       var imgContainer = document.querySelector('#img_container');
       imgContainer.innerHTML = '';
@@ -325,24 +325,6 @@ var twitter = (function() {
 
     xhr.send(data);
   };
-
-  function dataURItoBlob(dataURI) {
-    // convert base64 to raw binary data held in a string
-    // doesn't handle URLEncoded DataURIs
-    var byteString = atob(dataURI.split(',')[1]);
-
-    // separate out the mime component
-    var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0];
-
-    // write the bytes of the string to an ArrayBuffer
-    var ab = new ArrayBuffer(byteString.length);
-    var ia = new Uint8Array(ab);
-    for (var i = 0; i < byteString.length; i++) {
-        ia[i] = byteString.charCodeAt(i);
-    }
-
-    return new Blob([ab], {'type': mimeString});
-  }
 
   var linkDomElements = function() {
     // # Setup input

@@ -313,3 +313,11 @@ ul li > label .range-icons.brightness {
   pointer-events: none;
 }
 
+/******************************************************************************
+ * Improve Firefox OS
+ */
+
+#improve-firefox-os .link-text {
+  white-space: nowrap;
+}
+

@@ -92,7 +92,7 @@ suite('service/caldav', function() {
 
       subject[event] = function() {
         calledWith = arguments;
-      }
+      };
 
       service.emit(event, 1, 2, 3, 4);
 
@@ -617,7 +617,7 @@ suite('service/caldav', function() {
       };
 
       // This test assumes PST TZ
-      var expectedDate = new Date("Sun, 01 Jan 2012 00:00:00 PST");
+      var expectedDate = new Date('Sun, 01 Jan 2012 00:00:00 PST');
 
       var result = subject.formatInputTime(input);
       assert.deepEqual(new Date(result.toJSDate()), expectedDate);
@@ -863,7 +863,7 @@ suite('service/caldav', function() {
         assetReq[method] = cb;
 
         return assetReq;
-      }
+      };
     }
 
     function mockXhr() {

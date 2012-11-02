@@ -40,3 +40,10 @@ html, body {
   width: 50%;
   height: 100%;
 }
+
+#cancel {
+  position: absolute;
+  left: 0;
+  width: 50%;
+  height: 100%;
+}
