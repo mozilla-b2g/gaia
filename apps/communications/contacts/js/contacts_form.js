@@ -32,6 +32,10 @@ contacts.Form = (function() {
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
 
+  // The size we want our contact photos to be
+  var PHOTO_WIDTH = 320;
+  var PHOTO_HEIGHT = 320;
+
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
@@ -612,47 +616,53 @@ contacts.Form = (function() {
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        width: 320, // The desired width of the image
-        height: 320 // The desired height of the image
+        width: PHOTO_WIDTH, // The desired width of the image
+        height: PHOTO_HEIGHT // The desired height of the image
       }
     });
 
-    var reopenApp = function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
-        var ep = window == top ? 'contacts' : 'dialer';
-        app.launch(ep);
-      };
-    };
-
     activity.onsuccess = function success() {
-      reopenApp();
       addRemoveIconToPhoto();
-      var dataurl = this.result.url;  // A data URL for a 320x320 JPEG image
-      dataURLToBlob(dataurl, function(blob) {
-        Contacts.updatePhoto(blob, thumb);
-        currentPhoto = blob;
-      });
 
-      function dataURLToBlob(dataurl, callback) {
-        var img = new Image();
-        img.src = dataurl;
-        img.onload = function() {
-          var canvas = document.createElement('canvas');
-          var context = canvas.getContext('2d');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          context.drawImage(img, 0, 0);
-          callback(canvas.mozGetAsFile('contact_' + new Date().getTime(),
-                                       'image/jpeg'));
-        }
-      }
-    }
-
-    activity.onerror = function error() {
-      reopenApp();
+      // XXX
+      // this.result.blob is valid now, but it won't stay valid
+      // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)
+      // And it might not be the size we want, anyway, so we make
+      // our own copy that is at the right size.
+      resizeBlob(this.result.blob, PHOTO_WIDTH, PHOTO_HEIGHT,
+                 function(resized) {
+                   Contacts.updatePhoto(resized, thumb);
+                   currentPhoto = resized;
+                 });
     }
   };
+
+  function resizeBlob(blob, target_width, target_height, callback) {
+    var img = document.createElement('img');
+    var url = URL.createObjectURL(blob);
+    img.src = url;
+    img.onload = function() {
+      var image_width = img.width;
+      var image_height = img.height;
+      var scalex = image_width / target_width;
+      var scaley = image_height / target_height;
+      var scale = Math.min(scalex, scaley);
+
+      var w = target_width * scale;
+      var h = target_height * scale;
+      var x = (image_width - w) / 2;
+      var y = (image_height - h) / 2;
+
+      var canvas = document.createElement('canvas');
+      canvas.width = target_width;
+      canvas.height = target_height;
+      var context = canvas.getContext('2d');
+
+      context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(callback, 'image/jpeg');
+    };
+  }
 
   return {
     'init': init,
