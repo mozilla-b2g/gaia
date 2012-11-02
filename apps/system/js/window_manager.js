@@ -203,18 +203,24 @@ var WindowManager = (function() {
     frame.style.height = appFrame.style.height;
   }
 
-  function setFrameBackgroundBlob(frame, blob)
-  {
+  function setFrameBackgroundBlob(frame, blob, transparent) {
     URL.revokeObjectURL(frame.dataset.bgObjectURL);
     delete frame.dataset.bgObjectURL;
 
     var objectURL = URL.createObjectURL(blob);
     frame.dataset.bgObjectURL = objectURL;
-    frame.style.background = '#fff url(' + objectURL + ')';
+    var backgroundCSS =
+      '-moz-linear-gradient(top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.5) 100%),' +
+      'url(' + objectURL + '),' +
+      ((transparent) ? 'transparent' : '#fff');
+
+    frame.style.background = backgroundCSS;
   }
 
-  function clearFrameBackground(frame)
-  {
+  function clearFrameBackground(frame) {
+    if (!('bgObjectURL' in frame.dataset))
+      return;
+
     URL.revokeObjectURL(frame.dataset.bgObjectURL);
     delete frame.dataset.bgObjectURL;
     frame.style.background = '';
@@ -257,128 +263,33 @@ var WindowManager = (function() {
     closeFrame = frame;
   }
 
-  // Create a window sprite element to perform windows open/close
-  // animations.
-  var sprite = document.createElement('div');
-  sprite.id = 'windowSprite';
-  sprite.dataset.zIndexLevel = 'window-sprite';
-  screenElement.appendChild(sprite);
-  sprite.appendChild(document.createElement('div'));
-
-  // This event handler is triggered when the transition ends.
-  // We're going to do two transitions, so it gets called twice.
-  sprite.addEventListener('transitionend', function spriteTransition(e) {
-    var prop = e.propertyName;
-    switch (sprite.className) {
-      case 'opening':
-        // transitionend will be called twice since we touched two properties.
-        // Only responsive to the property that takes the longest to transit
-        if (prop !== 'transform')
-          return;
-
-        windowOpening(openFrame);
-
-        // If frame is still unpainted to this point, we will have to pause
-        // the transition and wait for the mozbrowserfirstpaint event.
-        if ('unpainted' in openFrame.dataset) {
-          openFrame.addEventListener(
-            'mozbrowserfirstpaint', function continueSpriteTransition() {
-              openFrame.removeEventListener(
-                'mozbrowserfirstpaint', continueSpriteTransition);
-
-              sprite.className = 'opened';
-              if ('wrapper' in openFrame.dataset) {
-                wrapperFooter.classList.add('visible');
-              }
-            });
-
-          return;
-        }
-
-        sprite.className = 'opened';
-        break;
-
-      case 'opened':
-
-        windowOpened(openFrame);
-
-        setTimeout(openCallback);
-
-        clearFrameBackground(sprite);
-        sprite.className = '';
-        setOpenFrame(null);
-
-        break;
-
-      case 'closing':
-
-        windowClosing(closeFrame);
-        sprite.className = 'closed';
-        break;
-
-      case 'closed':
-        // transitionend will be called twice since we touched two properties.
-        // Only responsive to the property that takes the longest to transit
-        if (prop !== 'transform')
-          return;
-
-        windowClosed(closeFrame);
-        setTimeout(closeCallback);
-
-        clearFrameBackground(sprite);
-        sprite.className = '';
-        setCloseFrame(null);
-
-        break;
-
-      case 'inline-activity-opening':
-        openFrame.classList.add('active');
-        screenElement.classList.add('inline-activity');
-
-        // If frame is still unpainted to this point, we will have to pause
-        // the transition and wait for the mozbrowserfirstpaint event.
-        if ('unpainted' in openFrame.dataset) {
-          openFrame.addEventListener(
-            'mozbrowserfirstpaint', function continueSpriteTransition() {
-              openFrame.removeEventListener(
-                'mozbrowserfirstpaint', continueSpriteTransition);
-
-              sprite.className = 'inline-activity-opened';
-            });
-
-          return;
-        }
-
-        sprite.className = 'inline-activity-opened';
-
-        break;
-
-      case 'inline-activity-opened':
-        openFrame.setVisible(true);
-        openFrame.focus();
-
-        clearFrameBackground(sprite);
-        sprite.className = '';
-        setOpenFrame(null);
-
-        break;
-    }
-  });
-
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
     var prop = evt.propertyName;
     var frame = evt.target;
     if (prop !== 'transform')
       return;
 
-    if (frame.classList.contains('opening')) {
-      windowOpening(frame);
+    var classList = frame.classList;
+
+    if (classList.contains('inlineActivity')) {
+      if (classList.contains('active')) {
+        openFrame.setVisible(true);
+        openFrame.focus();
+
+        setOpenFrame(null);
+      } else {
+        windows.removeChild(frame);
+      }
+
+      return;
+    }
+
+    if (classList.contains('opening')) {
       windowOpened(frame);
       setTimeout(openCallback);
 
       setOpenFrame(null);
-    } else if (frame.classList.contains('closing')) {
-      windowClosing(frame);
+    } else if (classList.contains('closing')) {
       windowClosed(frame);
       setTimeout(closeCallback);
 
@@ -388,18 +299,14 @@ var WindowManager = (function() {
 
   // Executes when the opening transition scale the app
   // to full size.
-  function windowOpening(frame) {
+  function windowOpened(frame) {
     frame.classList.add('active');
     windows.classList.add('active');
 
     if ('wrapper' in frame.dataset) {
       wrapperFooter.classList.add('visible');
     }
-  }
 
-  // Executes when the screenshot fades and the app is really visible, or
-  // right after the opening transition if there is no screenshot.
-  function windowOpened(frame) {
     // Take the focus away from the currently displayed app
     var app = runningApps[displayedApp];
     if (app && app.frame)
@@ -415,8 +322,8 @@ var WindowManager = (function() {
     frame.dispatchEvent(evt);
   }
 
-  // Executes right before app or app screenshot closing transition begin
-  function windowClosing(frame) {
+  // Executes when app closing transition finishes.
+  function windowClosed(frame) {
     frame.classList.remove('active');
     windows.classList.remove('active');
 
@@ -427,9 +334,67 @@ var WindowManager = (function() {
     }
   }
 
-  // Executes when app or app screenshot transition finishes.
-  function windowClosed(frame) {
-    // Nothing here yet.
+  // The following things needs to happen when firstpaint happens.
+  // We centralize all that here but not all of them applies.
+  windows.addEventListener('mozbrowserfirstpaint', function firstpaint(evt) {
+    var frame = evt.target;
+
+    // remove the unpainted flag
+    delete frame.dataset.unpainted;
+
+    setTimeout(function firstpainted() {
+      // Save the screenshot
+      // Remove the background only until we actually got the screenshot,
+      // because the getScreenshot() call will be pushed back by
+      // painting/loading in the child process; when we got the screenshot,
+      // that means the app is mostly loaded.
+      // (as opposed to plain white firstpaint)
+      saveAppScreenshot(frame, function screenshotTaken() {
+        // Remove the default background
+        frame.classList.remove('default-background');
+
+        // Remove the screenshot from frame
+        clearFrameBackground(frame);
+      });
+    });
+  });
+
+  // setFrameBackground() will attach the screenshot background to
+  // the given frame.
+  // The callback could be sync or async (depend on whether we need
+  // the screenshot from database or not)
+  function setFrameBackground(frame, callback, transparent) {
+    // If the frame is painted, or there is already background image present
+    // start the transition right away.
+    if (!('unpainted' in frame.dataset) ||
+        ('bgObjectURL' in frame.dataset)) {
+      callback();
+      return;
+    }
+
+    // Get the screenshot from the database
+    getAppScreenshotFromDatabase(frame.src, function(screenshot) {
+      // If firstpaint is faster than database, we will not transition
+      // with screenshot.
+      if (!('unpainted' in frame.dataset)) {
+        callback();
+        return;
+      }
+
+      if (!screenshot) {
+        // put a default background
+        openFrame.classList.add('default-background');
+        callback();
+        return;
+      }
+
+      // set the screenshot as the background of the frame itself.
+      // we are safe to do so since there is nothing on it yet.
+      setFrameBackgroundBlob(openFrame, screenshot, transparent);
+
+      // start the transition
+      callback();
+    });
   }
 
   // On-disk database for window manager.
@@ -593,13 +558,6 @@ var WindowManager = (function() {
     });
   }
 
-  function afterPaint(callback) {
-    window.addEventListener('MozAfterPaint', function afterPainted() {
-      window.removeEventListener('MozAfterPaint', afterPainted);
-      setTimeout(callback);
-    });
-  }
-
   // Perform an "open" animation for the app's iframe
   function openWindow(origin, callback) {
     var app = runningApps[origin];
@@ -613,42 +571,34 @@ var WindowManager = (function() {
     app.frame.dispatchEvent(evt);
 
     if (origin === homescreen) {
+      // We cannot apply background screenshot to home screen app since
+      // the screenshot is encoded in JPEG and the alpha channel is
+      // not perserved. See
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=801676#c33
+      // If that resolves,
+      //   setFrameBackground(openFrame, gotBackground, true);
+      // will simply work here.
+
       openCallback();
       windows.classList.add('active');
       openFrame.classList.add('homescreen');
       openFrame.setVisible(true);
       openFrame.focus();
       setOpenFrame(null);
-    } else {
-      if (requireFullscreen(origin))
-        screenElement.classList.add('fullscreen-app');
 
-      if (!('unpainted' in openFrame.dataset)) {
-        // The frame is painted. Let's animate itself instead of using sprite
-        openFrame.classList.add('opening');
-        // Ensure that we are not opening/closing the frame at the same time
-        openFrame.classList.remove('closing');
-
-        return;
-      }
-
-      // Get the screenshot of the app and put it on the sprite
-      // before starting the transition
-      sprite.className = 'before-open';
-      getAppScreenshotFromDatabase(openFrame.src, function(screenshot) {
-        if (!screenshot) {
-          sprite.className = 'opening';
-          return;
-        }
-
-        setFrameBackgroundBlob(sprite, screenshot);
-        // Make sure Gecko paint the sprite first
-        afterPaint(function() {
-          // Start the transition
-          sprite.className = 'opening';
-        });
-      });
+      return;
     }
+
+    if (requireFullscreen(origin))
+      screenElement.classList.add('fullscreen-app');
+
+    // Ensure that we are not opening/closing the frame at the same time
+    openFrame.classList.remove('closing');
+
+    setFrameBackground(openFrame, function gotBackground() {
+      // Start the transition when this async/sync callback is called.
+      openFrame.classList.add('opening');
+    });
   }
 
   // Perform a "close" animation for the app's iframe
@@ -668,34 +618,12 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    if (!('unpainted' in closeFrame.dataset)) {
-      // The frame is painted. Let's animate itself instead of using sprite
-      closeFrame.classList.add('closing');
-      closeFrame.classList.remove('active');
+    // Ensure that we are not opening/closing the frame at the same time
+    closeFrame.classList.remove('opening');
 
-      // Ensure that we are not opening/closing the frame at the same time
-      closeFrame.classList.remove('opening');
-
-      return;
-    }
-
-    // Get the screenshot of the app and put it on the sprite
-    // before starting the transition
-    sprite.className = 'before-close';
-    getAppScreenshotFromDatabase(closeFrame.src, function(screenshot) {
-
-      if (!screenshot) {
-        sprite.className = 'closing';
-        return;
-      }
-
-      setFrameBackgroundBlob(sprite, screenshot);
-      // Make sure Gecko paint the sprite first
-      afterPaint(function() {
-        // Start the transition
-        sprite.className = 'closing';
-      });
-    });
+    // Start the transition
+    closeFrame.classList.add('closing');
+    closeFrame.classList.remove('active');
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
@@ -707,7 +635,7 @@ var WindowManager = (function() {
       el.className = 'windowSprite';
       el.dataset.zIndexLevel = 'window-sprite';
       el.appendChild(document.createElement('div'));
-      screenElement.insertBefore(el, sprite);
+      screenElement.insertBefore(el, windows);
       return el;
     }
 
@@ -966,6 +894,9 @@ var WindowManager = (function() {
     frame.className = 'appWindow';
     frame.dataset.frameOrigin = origin;
 
+    // frames are began unpainted.
+    frame.dataset.unpainted = true;
+
     // Note that we don't set the frame size here.  That will happen
     // when we display the app in setDisplayedApp()
 
@@ -1017,21 +948,6 @@ var WindowManager = (function() {
     frame.id = 'appframe' + nextAppId++;
     frame.dataset.frameType = 'window';
 
-    // frames are began unpainted. This dataset value will pause the
-    // opening sprite transition so users will not see whitish screen.
-    frame.dataset.unpainted = true;
-    frame.addEventListener('mozbrowserfirstpaint', function painted() {
-      frame.removeEventListener('mozbrowserfirstpaint', painted);
-      delete frame.dataset.unpainted;
-
-      // Save the screenshot when we got mozbrowserfirstpaint event,
-      // regardless of the sprite transition state.
-      // setTimeout() here ensures that we get the screenshot with content.
-      setTimeout(function() {
-        saveAppScreenshot(frame);
-      });
-    });
-
     // Add the iframe to the document
     windows.appendChild(frame);
 
@@ -1052,21 +968,6 @@ var WindowManager = (function() {
     frame.classList.add('inlineActivity');
     frame.dataset.frameType = 'inline-activity';
 
-    // frames are began unpainted. This dataset value will pause the
-    // opening sprite transition so users will not see whitish screen.
-    frame.dataset.unpainted = true;
-    frame.addEventListener('mozbrowserfirstpaint', function painted() {
-      frame.removeEventListener('mozbrowserfirstpaint', painted);
-      delete frame.dataset.unpainted;
-
-      // Save the screenshot when we got mozbrowserfirstpaint event,
-      // regardless of the sprite transition state.
-      // setTimeout() here ensures that we get the screenshot with content.
-      setTimeout(function() {
-        saveAppScreenshot(inlineActivityFrame);
-      });
-    });
-
     // Discard any existing activity
     stopInlineActivity();
 
@@ -1082,22 +983,9 @@ var WindowManager = (function() {
     // Open the frame, first, store the reference
     openFrame = frame;
 
-    // Get the screenshot of the app and put it on the sprite
-    // before starting the transition
-    sprite.className = 'before-inline-activity';
-    getAppScreenshotFromDatabase(inlineActivityFrame.src, function(screenshot) {
-      if (!screenshot) {
-        sprite.className = 'inline-activity-opening';
-        return;
-      }
-
-      setFrameBackgroundBlob(sprite, screenshot);
-
-      // Make sure Gecko paints the sprite first
-      afterPaint(function() {
-        // Start the transition
-        sprite.className = 'inline-activity-opening';
-      });
+    setFrameBackground(openFrame, function gotBackground() {
+      // Start the transition when this async/sync callback is called.
+      openFrame.classList.add('active');
     });
   }
 
@@ -1105,12 +993,9 @@ var WindowManager = (function() {
     var app = runningApps[origin];
     var frame = app.frame;
 
-    if (frame)
+    if (frame) {
       windows.removeChild(frame);
-
-    if (openFrame == frame || closeFrame == frame) {
-      clearFrameBackground(sprite);
-      sprite.className = '';
+      clearFrameBackground(frame);
     }
 
     if (openFrame == frame) {
@@ -1134,9 +1019,11 @@ var WindowManager = (function() {
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
 
-    // If frame is transitioning we should cancel the transition.
+    clearFrameBackground(frame);
+
+    // If frame is transitioning we should remove the reference
     if (openFrame == frame)
-      sprite.className = '';
+      setOpenFrame(null);
 
     // If frame is never set visible, we can remove the frame directly
     // without closing transition
@@ -1158,12 +1045,6 @@ var WindowManager = (function() {
     // Remove the active class and start the closing transition
     frame.classList.remove('active');
     screenElement.classList.remove('inline-activity');
-
-    // When closing transition ends, remove the frame
-    frame.addEventListener('transitionend', function frameTransitionend() {
-      frame.removeEventListener('transitionend', frameTransitionend);
-      windows.removeChild(frame);
-    });
   }
 
   // There are two types of mozChromeEvent we need to handle
