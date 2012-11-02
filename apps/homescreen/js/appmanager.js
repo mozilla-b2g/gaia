@@ -45,8 +45,7 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest ||
-          (isCore(app) && manifest.launch_path === undefined)) {
+      if (!manifest) {
         return;
       }
 
@@ -275,7 +274,8 @@ var Applications = (function() {
     // a data: url.
     var PREFERRED_ICON_SIZE = 64;
     var icon = icons[getPreferredSize(icons, PREFERRED_ICON_SIZE)];
-    if ((icon.indexOf('data:') !== 0) &&
+    if (icon &&
+        (icon.indexOf('data:') !== 0) &&
         (icon.indexOf('http://') !== 0) &&
         (icon.indexOf('https://') !== 0)) {
       icon = origin + icon;

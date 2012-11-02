@@ -8,8 +8,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "device-storage:pictures":{},
-    "settings":{}
+    "device-storage:pictures":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" }
   },
   "activities": {
     "browse": {
@@ -28,7 +28,7 @@
     },
     "open": {
       "filters": {
-        "type": "image/jpeg"
+        "type": ["image/jpeg", "image/png"]
        },
       "disposition": "inline",
       "returnValue": true,

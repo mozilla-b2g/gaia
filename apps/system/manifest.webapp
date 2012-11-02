@@ -17,8 +17,8 @@
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
-    "device-storage:pictures":{},
-    "settings":{},
+    "device-storage:pictures":{ "access": "readcreate" },
+    "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},
     "geolocation":{},
@@ -51,6 +51,10 @@
   },
   "default_locale": "en-US",
   "messages": [
-     { "alarm": "/index.html" }
+     { "alarm": "/index.html" },
+     { "bluetooth-opp-transfer-complete": "/index.html" },
+     { "bluetooth-opp-update-progress": "/index.html" },
+     { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
+     { "bluetooth-opp-transfer-start": "/index.html" }
   ]
 }

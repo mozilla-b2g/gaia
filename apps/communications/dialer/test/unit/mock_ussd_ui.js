@@ -4,10 +4,23 @@ var MockUssdUI = {
 
   ready: true,
   _messageReceived: null,
+  _sessionEnded: null,
 
   postMessage: function muui_postMessage(message) {
-    if (message.type === 'ussdreceived')
-      this._messageReceived = message.message;
+    switch (message.type) {
+      case 'ussdreceived':
+        this._messageReceived = message.message;
+        this._sessionEnded = message.sessionEnded;
+        break;
+      case 'success':
+        this._messageReceived = message.result;
+        this._sessionEnded = null;
+        break;
+      case 'error':
+        this._messageReceived = message.error;
+        this._sessionEnded = null;
+        break;
+    }
   },
 
   reply: function muui_reply(message) {

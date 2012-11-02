@@ -10,8 +10,8 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "device-storage:pictures":{},
-    "device-storage:videos":{},
+    "device-storage:pictures":{ "access": "createonly" },
+    "device-storage:videos":{ "access": "createonly" },
     "camera":{},
     "geolocation":{}
   },

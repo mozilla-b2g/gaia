@@ -41,6 +41,8 @@ suite('views/modify_account', function() {
     div.innerHTML = [
       '<div id="modify-account-view">',
         '<button class="save">save</button>',
+        '<button class="cancel">cancel</button>',
+        '<button class="delete-cancel">cancel</button>',
         '<div class="errors"></div>',
         '<form>',
           '<input name="user" />',

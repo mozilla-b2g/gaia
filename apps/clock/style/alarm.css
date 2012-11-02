@@ -4,32 +4,20 @@ html, body {
   overflow: hidden !important;
 }
 
-header {
-  height: 8rem;
-  text-align: left;
-  border-bottom: solid 0.3rem;
-  -moz-border-bottom-colors: #e9e9e9 #cdcdcd #a3a3a3;
-  font: normal 1.3rem/4.5rem 'MozTT',sans-serif;
-  line-height: 4.5rem;
-  padding-left: 4rem;
-  background: url(images/edit_header.png) repeat scroll left top transparent;
-  background-size: 100% 100%;
-}
-
 /* ------------- Button ------------- */
 a.button, span.button {
-  margin: 0.4rem;
-  padding: 1.2rem 1.2rem 1rem 1.2rem;
-  border: 0.4rem solid;
-  border-radius: 1rem;
+  margin: 0.25rem;
+  padding: 0.75rem 0.75rem 0.63rem 0.75rem;
+  border: 0.25rem solid;
+  border-radius: 0.63rem;
   background: transparent;
   color: #000000;
   display: inline-block;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
-  font: bold 2rem 'MozTT', sans-serif;
-  line-height: 2.2rem;
+  font: bold 1.25rem 'MozTT', sans-serif;
+  line-height: 1.38rem;
   -moz-border-top-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
   -moz-border-right-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
   -moz-border-left-colors: #6F6F6F #4D4D4D #4D4D4D #6F6F6F;
@@ -37,7 +25,7 @@ a.button, span.button {
 }
 
 a.button.left.close {
-  background: url(images/separator_close.png) no-repeat scroll 2rem center transparent;
+  background: url(images/separator_close.png) no-repeat scroll 1.25rem center transparent;
   background-size: auto 100%;
   border: none;
   cursor: pointer;
@@ -45,15 +33,15 @@ a.button.left.close {
   left: 0;
   overflow: visible;
   position: absolute;
-  width: 6rem;
-  height: 5rem;
+  width: 3.75rem;
+  height: 3.13rem;
 }
 
 .background-close {
   position: fixed;
   background-color: rgba(0, 0, 0, 0.13);
-  width: 2.54rem;
-  height: 8rem;
+  width: 1.59rem;
+  height: 5rem;
   top: 0;
   left: 0;
 }
@@ -61,32 +49,32 @@ a.button.left.close {
 .icon-close {
   display: inline-block;
   background: url(images/edit_close.png) no-repeat;
-  background-position: left 1rem;
+  background-position: left 0.63rem;
   background-repeat: no-repeat;
   background-size: 60% 60%;
   display: inline-block;
-  width: 4rem;
-  height: 4rem;
-  margin-left: -5rem;
+  width: 2.50rem;
+  height: 2.50rem;
+  margin-left: -3.13rem;
   overflow: visible;
   overflow: visible;
 }
 
 a.button.left {
   position: absolute;
-  top: 0.6rem;
-  left: 0.1rem;
+  top: 0.37rem;
+  left: 0.06rem;
 }
 
 a.button.right {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.63rem;
+  right: 0.63rem;
 }
 
 a.button.right.plus {
-  width: 4.4rem;
-  height: 4.4rem;
+  width: 2.75rem;
+  height: 2.75rem;
   background-image: url(images/add_alarm.png);
   background-size: 100%;
   background-repeat: no-repeat;
@@ -98,29 +86,29 @@ a.button.right.done-button {
   border: none;
   background-size: auto 100%;
   cursor: pointer;
-  height: 5rem;
+  height: 3.13rem;
   top: 0;
   right: 0;
   overflow: visible;
   position: absolute;
   color: white;
   font-weight: normal;
-  line-height: 5.2rem;
+  line-height: 3.25rem;
 }
 
 a.abstract-menu {
   display: block;
-  height:      auto; /* 5.4rem; -moz-calc(100% - 4rem); */
-  line-height: normal; /* 5.4rem; -moz-calc(100% - 4rem); */
-  width: -moz-calc(100% - 12rem);
+  height:      auto; /* 3.38rem; -moz-calc(100% - 2.50rem); */
+  line-height: normal; /* 3.38rem; -moz-calc(100% - 2.50rem); */
+  width: -moz-calc(100% - 7.50rem);
   text-decoration: none;
   text-align: left;
-  padding-left: 12rem;
+  padding-left: 7.50rem;
   outline: 0;
   color: black;
-  font: 2.4rem/2.9rem 'MozTT',sans-serif;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
+  font: 1.50rem/1.81rem 'MozTT',sans-serif;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
 }
 
 select.abstract-menu {
@@ -130,7 +118,7 @@ select.abstract-menu {
 
 #alarm-delete {
   color: #F2F2F2;
-  font: 2.4rem/2.4rem 'MozTT',sans-serif;
+  font: 1.50rem/1.50rem 'MozTT',sans-serif;
   text-align: center;
   text-decoration: none;
   width: 100%;
@@ -139,12 +127,11 @@ select.abstract-menu {
 #alarm-delete-button {
   background: -moz-linear-gradient(bottom, #900010, #c90010);
   border: none;
-  width: 90%;
-  height: 5.5rem;
-  margin-left: auto;
-  margin-right: auto;
+  height: 3.44rem;
+  overflow: hidden;
+  margin: 1.5rem 1.5rem 1rem;
   text-shadow: -1px -1px 0 #830B0B;
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
+  border-radius: 0.19rem 0.19rem 0.19rem 0.19rem;
 }
 
 #alarm-delete-button:active {
@@ -153,25 +140,20 @@ select.abstract-menu {
 
 .view label.text {
   text-align: right;
-  padding: 2rem 0;
-  text-indent: 2rem;
+  padding: 1.25rem 0;
+  text-indent: 1.25rem;
   direction: rtl;
 }
 
 /* View */
 .view {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   border: 0;
   width: 100%;
   height: 100%;
-  /* XXX: The below overflow property is being ignored by B2G Phone
-    https://bugzilla.mozilla.org/show_bug.cgi?id=777672
-    It is a workaround to set overflow-y: scroll.
-    It should be refined to overflow: hidden when the bug fixed.
-  */
-  overflow-y: scroll;
+  overflow: hidden;
 }
 
 /* View - Slide Horizontal Transition */
@@ -220,18 +202,19 @@ body.hidden #alarm-view {
 }
 
 li.singleline {
-  height: 6.4rem;
+  height: 4rem;
   border-top: none;
-  border-bottom: 0.1rem solid #cbcbcc;
+  border-bottom: 0.06rem solid #cbcbcc;
   padding-left: 5%;
   padding-right: 5%;
-  width: 90%;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
 }
 
 li.multiline {
-  height: 35.5rem;
+  height: 22.19rem;
   border-top: none;
-  border-bottom: 0.1rem solid #cbcbcc;
+  border-bottom: 0.06rem solid #cbcbcc;
 }
 
 li.multiline:active {
@@ -241,8 +224,8 @@ li.multiline:active {
 }
 
 li.picker {
-  height: 35rem;
-  padding-top: 0.5rem;
+  height: 21.88rem;
+  padding-top: 0.31rem;
   border-top: none;
   border-bottom: none;
 }
@@ -254,10 +237,9 @@ li.picker:active {
 
 .view-alarm-lbl {
   color: #7d7d7d;
-  font: 2.4rem/2.4rem 'MozTT',sans-serif;
-  top: 2.2rem;
+  font: 1.50rem/1.50rem 'MozTT',sans-serif;
+  top: 1.38rem;
   height: auto;
-  width: 100%;
   pointer-events: none;
 }
 
@@ -269,30 +251,29 @@ li.picker:active {
 ul {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: auto;
   list-style: none;
 }
 
-ul li { /* 9.6rem, including a 0.2rem border */
+ul li { /* 6rem, including a 0.13rem border */
   position: relative;
-  height: 10rem;
-  border-top: 0.1rem solid #cbcbcc;
+  height: 6.25rem;
+  border-top: 0.06rem solid #cbcbcc;
   color: #555;
 }
 
 ul li:active {
   background-color: rgba(0, 0, 0, .07);
-  text-shadow: #999 0 -0.1rem 0;
+  text-shadow: #999 0 -0.06rem 0;
   color: #222;
 }
 
 ul li > a {
   display: block;
-  padding-top: 1.6rem;
-  padding-bottom: 1.6rem;
-  height:      6.8rem; /* -moz-calc(100% - 4rem); */
-  line-height: 6.8rem; /* -moz-calc(100% - 4rem); */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  height:      4.25rem; /* -moz-calc(100% - 2.50rem); */
+  line-height: 4.25rem; /* -moz-calc(100% - 2.50rem); */
   text-decoration: none;
   outline: 0;
   color: #555;
@@ -304,7 +285,7 @@ ul li > a, ul li > span, ul li > small { /* text ellipsis */
   text-overflow: ellipsis;
   white-space: nowrap;
   position: absolute;
-  width: -moz-calc(100% - 13rem);
+  width: -moz-calc(100% - 8.13rem);
 }
 
 ul li > span {
@@ -313,7 +294,7 @@ ul li > span {
 
 ul li > small {
   position: absolute;
-  left: 2rem;
+  left: 1.25rem;
   top: 50%;
   font-size: 0.9em;
   color: #888;
@@ -322,7 +303,7 @@ ul li > small {
 .alarmList-time {
   float: left;
   width: 41%;
-  padding-top: 1.2rem;
+  padding-top: 0.75rem;
   text-align: left;
 }
 
@@ -330,7 +311,7 @@ ul li > small {
   float: left;
   width: 50%;
   text-align: left;
-  margin-left: -0.3rem;
+  margin-left: -0.19rem;
 }
 
 /* fake input boxes for checkboxes & radio buttons */
@@ -343,7 +324,7 @@ ul li > small {
 }
 
 .view label.alarmList {
-  width: -moz-calc(13rem);
+  width: -moz-calc(8.13rem);
 }
 
 .view label > input {
@@ -352,11 +333,11 @@ ul li > small {
 
 .view label > span {
   position: absolute;
-  top: -moz-calc(50% - 1.7rem);
-  right: 1.4rem;
+  top: -moz-calc(50% - 1.06rem);
+  right: 0.87rem;
   display: block;
-  width: 6.4rem;
-  height: 6.4rem;
+  width: 4rem;
+  height: 4rem;
   border: none;
 }
 
@@ -370,10 +351,10 @@ ul li > small {
 
 /* ----------- Alarm Set Repeat Button ------------- */
 .view label > input[type=checkbox] + span.setRepeat {
-  width: 4.6rem;
-  height: 4.6rem;
-  border: 0.4rem solid;
-  border-radius: 1.3rem;
+  width: 2.87rem;
+  height: 2.87rem;
+  border: 0.25rem solid;
+  border-radius: 0.81rem;
   -moz-border-top-colors: #696969 #4D4D4D #4D4D4D #696969;
   -moz-border-right-colors: #696969 #4D4D4D #4D4D4D #696969;
   -moz-border-bottom-colors: #696969 #4D4D4D #4D4D4D #696969;
@@ -388,20 +369,20 @@ ul li > small {
 
 /* ----------- Alarm Set Enabled Button ------------- */
 .view label > input[type=checkbox] + span.setEnabledBtn {
-  width: 13rem;
-  height: 4.4rem;
+  width: 8.13rem;
+  height: 2.75rem;
   margin: 0rem;
   right: 0rem;
-  top: calc(50% - 2.2rem);
+  top: calc(50% - 1.38rem);
   background: url(images/set_enabled_btn_off.png) no-repeat scroll center center;
   background-size: 100% 100%;
 }
 
 .view label > input[type=checkbox] + span.setEnabledBtn:after {
-  font: 2.15rem/4.4rem 'MozTT',sans-serif;
+  font: 1.4rem/2.9rem 'MozTT',sans-serif;
   color: #7a7a7a;
   position: absolute;
-  left: 6rem;
+  left: 3.75rem;
   content: attr(data-unchecked);
 }
 
@@ -411,10 +392,10 @@ ul li > small {
 }
 
 .view label > input[type=checkbox]:checked + span.setEnabledBtn:after {
-  font: 2.25rem/4.4rem 'MozTT',sans-serif;
+  font: 1.4rem/2.9rem 'MozTT',sans-serif;
   color: #0088a3;
   position: absolute;
-  left: 3.3rem;
+  left: 2.06rem;
   content: attr(data-checked);
 }
 
@@ -422,8 +403,8 @@ ul li > small {
 select, input, textarea {
   clear: both;
   background:none;
-  border:0.2rem solid white;
-  border-radius: 0.5rem;
+  border:0.13rem solid white;
+  border-radius: 0.31rem;
   font-size: 1em;
 }
 
@@ -432,20 +413,20 @@ select:focus, input:focus, textarea:focus {
 }
 
 select.right {
-  width: 7rem;
+  width: 4.38rem;
 }
 
 input.right {
-  width: -moz-calc(100% - 20rem);
-  margin: 0.6rem 0.8rem 0.3rem 12rem;
-  height: 5rem;
-  font: 2.4rem/3rem 'MozTT',sans-serif;
+  width: -moz-calc(100% - 12.50rem);
+  margin: 0.37rem 0.50rem 0.19rem 7.50rem;
+  height: 3.13rem;
+  font: 1.50rem/1.88rem 'MozTT',sans-serif;
   color: black;
 }
 /* ----------- Input Error ---------- */
 input ~ * {
   color:#E00;
-  margin: -1rem 0rem 0rem 2rem;
+  margin: -0.63rem 0rem 0rem 1.25rem;
 }
 
 input ~ *:empty {
@@ -455,11 +436,11 @@ input ~ *:empty {
 /* ----------- TableView ---------- */
 .tableView p {
   padding: 0;
-  margin-right: 2.8rem;
+  margin-right: 1.75rem;
 }
 
 .tableView {
-  height: -moz-calc(100% - 8rem - 0.3rem);
+  height: -moz-calc(100% - 5rem - 0.19rem);
   background-color: #ffffff;
   padding-left: 5%;
   padding-right: 5%;
@@ -490,7 +471,7 @@ input ~ *:empty {
 li img {
   position: absolute;
   vertical-align: middle;
-  margin-right:1rem;
+  margin-right:0.63rem;
 }
 
 .description {
@@ -504,32 +485,32 @@ li img {
 
 .alarmList-time span.time {
   height: auto;
-  font: 4rem/4rem 'MozTT', sans-serif;
+  font: 2.50rem/2.50rem 'MozTT', sans-serif;
   color: black;
 }
 
 .alarmList-time span.hour24-state {
   height: auto;
-  font: 2.2rem/2.2rem 'MozTT', sans-serif;
+  font: 1.38rem/1.38rem 'MozTT', sans-serif;
   color: #25292a;
-  margin-left: -0.4rem;
+  margin-left: -0.25rem;
   text-transform:lowercase;
 }
 
 .alarmList-detail .label {
   height: auto;
-  font: 2.4rem/2.4rem 'MozTT', sans-serif;
+  font: 1.50rem/1.50rem 'MozTT', sans-serif;
   color: black;
   text-overflow: ellipsis;
-  padding-top: 0.5rem;
+  padding-top: 0.31rem;
 }
 
 .alarmList-detail .repeat {
   height: auto;
-  font: 2.4rem/2.4rem 'MozTT', sans-serif;
+  font: 1.50rem/1.50rem 'MozTT', sans-serif;
   color: #646768;
   text-overflow: ellipsis;
-  padding-top: 0.7rem;
+  padding-top: 0.44rem;
 }
 
 .alarmList-detail .hiddenSummary {
@@ -537,7 +518,7 @@ li img {
 }
 
 .alarmList-detail .paddingTop {
-  padding-top: 1.9rem;
+  padding-top: 1.19rem;
 }
 
 .lebal {
@@ -547,10 +528,11 @@ li img {
 /* ----------- TimeSelectorView ---------- */
 #picker-bar {
   position: relative;
-  height: -moz-calc(100% - 0.2rem);
+  overflow: hidden;
+  height: -moz-calc(100% - 0.13rem);
   margin-left: auto;
   margin-right: auto;
-  border-bottom: solid 0.2rem;
+  border-bottom: solid 0.13rem;
   -moz-border-bottom-colors: #CBCBCC #FFFFFF; 
 }
 
@@ -573,8 +555,8 @@ li img {
     rgba(0, 0, 0, 0.12) rgba(0, 0, 0, 0.07)  rgba(0, 0, 0, 0.05)
     rgba(0, 0, 0, 0.04) rgba(0, 0, 0, 0.03)  rgba(0, 0, 0, 0.02);
 
-  border-top: solid 1rem;
-  border-bottom: solid 1rem;
+  border-top: solid 0.63rem;
+  border-bottom: solid 0.63rem;
   border-left:  1px solid #CCC;
   border-right: 1px solid #CCC;
 
@@ -590,7 +572,7 @@ li img {
   width: 100%;
   height: 100%;
   position: relative;
-  padding-top: 13.25rem;
+  padding-top: 8.28rem;
 }
 
 #value-indicator-wrapper {
@@ -604,10 +586,10 @@ li img {
     rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.25) rgba(0, 0, 0, 0.3)
     rgba(0, 0, 0, 0.35);
 
-  border-top: solid 0.7rem;
-  border-bottom: solid 0.7rem;
+  border-top: solid 0.44rem;
+  border-bottom: solid 0.44rem;
   position: absolute;
-  height: 7.2rem;
+  height: 4.50rem;
   width: 100%;
   pointer-events: none;
 }
@@ -618,7 +600,7 @@ li img {
   color: #FFF;
   position: absolute;
   height: 100%;
-  font: 3rem/6rem 'MozTT',sans-serif;
+  font: 1.88rem/3.75rem 'MozTT',sans-serif;
   text-align: center;
 }
 
@@ -697,12 +679,12 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 3.4rem/8.5rem 'MozTT',sans-serif;
+  font: 2.13rem/5.3rem 'MozTT',sans-serif;
   color: black;
   text-align: center;
   vertical-align: middle;
   width: 100%;
-  height: 8.5rem;
+  height: 5.3rem;
   pointer-events: none;
 }
 
@@ -761,7 +743,7 @@ div.animation-on {
 /* 320x480 phones */
 @media screen and (width: 320px) {
   html {
-    font-size: 6px;
+    font-size: 10px;
   }
 }
 
@@ -771,19 +753,19 @@ div.animation-on {
     font-size: 10px;
   }
   .alarmList-detail {
-    margin-left: 0.5rem; 
+    margin-left: 0.31rem; 
   }
   .alarmList-time span.time {
-    font: 3.6rem/3.6rem 'MozTT', sans-serif;
+    font: 2.25rem/2.25rem 'MozTT', sans-serif;
   }
   .alarmList-time span.hour24-state {
-    font: 1.6rem/1.6rem 'MozTT', sans-serif;
-    margin-left: -0.3rem;
+    font: 1rem/1rem 'MozTT', sans-serif;
+    margin-left: -0.19rem;
   }
   .alarmList-detail .label {
-    font: 2rem/2rem 'MozTT', sans-serif;
+    font: 1.25rem/1.25rem 'MozTT', sans-serif;
   }
   .alarmList-detail .repeat {
-    font: 1.8rem/1.8rem 'MozTT', sans-serif;
+    font: 1.13rem/1.13rem 'MozTT', sans-serif;
   }
 }

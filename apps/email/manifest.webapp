@@ -12,13 +12,13 @@
   ],
   "permissions": {
     "alarms":{},
-    "contacts":{},
+    "contacts":{ "access": "readcreate" },
     "desktop-notification":{},
-    "device-storage:music":{},
-    "device-storage:pictures":{},
-    "device-storage:videos":{},
+    "device-storage:music":{ "access": "readcreate" },
+    "device-storage:pictures":{ "access": "readcreate" },
+    "device-storage:videos":{ "access": "readcreate" },
     "systemXHR":{},
-    "settings":{},
+    "settings":{ "access": "readonly" },
     "tcp-socket":{}
   },
   "locales": {

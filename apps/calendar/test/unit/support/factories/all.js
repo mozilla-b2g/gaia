@@ -190,4 +190,10 @@
     }
   });
 
+  Factory.define('icalComponent', {
+    properties: {
+      data: { icalData: true }
+    }
+  });
+
 }(this));

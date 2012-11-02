@@ -77,8 +77,9 @@ var PermissionManager = (function() {
       return;
     }
 
-    var name = app.manifest.name;
-    var locales = app.manifest.locales;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
+    var name = manifest.name;
+    var locales = manifest.locales;
     var lang = navigator.language;
     if (locales && locales[lang] && locales[lang].name)
       name = locales[lang].name;

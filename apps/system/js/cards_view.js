@@ -46,10 +46,15 @@ var CardsView = (function() {
   // List of sorted apps
   var userSortedApps = [];
   var HVGA = document.documentElement.clientWidth < 480;
+  var cardsViewShown = false;
 
   // init events
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
+
+  // A list of all the URLs we've created via URL.createObjectURL which we
+  // haven't yet revoked.
+  var screenshotObjectURLs = [];
 
   /*
    * Returns an icon URI
@@ -84,6 +89,9 @@ var CardsView = (function() {
   // not an issue here given that the user has to hold the HOME button down
   // for one second before the switcher will appear.
   function showCardSwitcher() {
+    if (cardSwitcherIsShown())
+      return;
+
     // events to handle
     window.addEventListener('lock', CardsView);
     window.addEventListener('attentionscreenshow', CardsView);
@@ -98,6 +106,7 @@ var CardsView = (function() {
 
     // Switch to homescreen
     WindowManager.launch(null);
+    cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
     // display most recetly active apps on the far left
@@ -221,8 +230,9 @@ var CardsView = (function() {
       frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
         function gotScreenshot(screenshot) {
           if (screenshot.target.result) {
-            card.style.backgroundImage =
-                'url(' + screenshot.target.result + ')';
+            var objectURL = URL.createObjectURL(screenshot.target.result);
+            screenshotObjectURLs.push(objectURL);
+            card.style.backgroundImage = 'url(' + objectURL + ')';
           }
 
           if (displayedApp == origin && displayedAppCallback)
@@ -254,6 +264,13 @@ var CardsView = (function() {
 
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
+    cardsViewShown = false;
+
+    // Release our screenshot blobs.
+    screenshotObjectURLs.forEach(function(url) {
+      URL.revokeObjectURL(url);
+    });
+    screenshotObjectURLs = [];
 
     // And remove all the cards from the document after the transition
     cardsView.addEventListener('transitionend', function removeCards() {
@@ -274,7 +291,7 @@ var CardsView = (function() {
   }
 
   function cardSwitcherIsShown() {
-    return cardsView.classList.contains('active');
+    return cardsViewShown;
   }
 
   //scrolling cards

@@ -64,19 +64,19 @@
   text-align: right;
 }
 
-#firsttime-view .step menu button.affirmative {
+#firsttime-view .step menu button.recommend {
   text-align: left;
 }
 
 #firsttime-view .step menu button span {
   float: left;
   width: 1.3rem;
-  width: 2.5rem;
+  height: 2.5rem;
   margin: 0.7rem -1rem 0;
   background: url(../images/app/icons/prev.png) no-repeat center center;
 }
 
-#firsttime-view .step menu button.affirmative span {
+#firsttime-view .step menu button.recommend span {
   float: right;
   background: url(../images/app/icons/next.png) no-repeat center center;
 }

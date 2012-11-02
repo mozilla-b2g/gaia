@@ -222,7 +222,8 @@ window.addEventListener('localized', function showBody() {
 
 function init() {
   photodb = new MediaDB('pictures', metadataParser, {
-    mimeTypes: ['image/jpeg', 'image/png']
+    mimeTypes: ['image/jpeg', 'image/png'],
+    version: 2
   });
 
   // This is called when DeviceStorage becomes unavailable because the
@@ -417,6 +418,13 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
+// Make the thumbnail for image n visible
+function scrollToShowThumbnail(n) {
+  var selector = 'li[data-index="' + n + '"]';
+  var thumbnail = thumbnails.querySelector(selector);
+  if (thumbnail)
+    thumbnail.scrollIntoView();
+}
 
 function setView(view) {
   if (currentView === view)
@@ -444,6 +452,7 @@ function setView(view) {
   switch (view) {
   case thumbnailListView:
     thumbnailListView.appendChild(thumbnails);
+    scrollToShowThumbnail(currentPhotoIndex);
     break;
   case thumbnailSelectView:
     thumbnailSelectView.appendChild(thumbnails);
@@ -573,17 +582,14 @@ function cropPickedImage(fileinfo) {
 }
 
 function finishPick() {
-  var url;
-  if (pickWidth)
-    url = cropEditor.getCroppedRegionDataURL(pickType, pickWidth, pickHeight);
-  else
-    url = cropEditor.getCroppedRegionDataURL(pickType);
-
-  pendingPick.postResult({
-    type: 'image/jpeg',
-    url: url
-  });
-  cleanupPick();
+  cropEditor.getCroppedRegionBlob(pickType, pickWidth, pickHeight,
+                                  function(blob) {
+                                    pendingPick.postResult({
+                                      type: pickType,
+                                      blob: blob
+                                    });
+                                    cleanupPick();
+                                  });
 }
 
 function cancelPick() {
@@ -883,54 +889,41 @@ $('thumbnails-share-button').onclick = function() {
  * Image data is passed as data: URLs because we can't pass blobs
  */
 function shareFiles(filenames) {
-  var urls = [], justnames = [];
-  getDataURLForNextFile();
+  var blobs = [], basenames = [];
+  getBlobForNextFile();
 
-  function getDataURLForNextFile() {
-    if (urls.length === filenames.length) {
-      shareURLs(urls, justnames);
+  function getBlobForNextFile() {
+    if (blobs.length === filenames.length) {
+      shareBlobs(blobs, basenames);
     }
     else {
-      var i = urls.length;
+      var i = blobs.length;
       var filename = filenames[i];
       photodb.getFile(filename, function(file) {
+        blobs.push(file);
         // filename is identical to file.name, both of which may contain path
         // information.  We want to let the recipient know the name of the
         // file, but not the path components.
-        justnames.push(filename.substring(filename.lastIndexOf('/') + 1));
-        var reader = new FileReader();
-        reader.readAsBinaryString(file);
-        reader.onload = function() {
-          urls[i] = 'data:' + file.type + ';base64,' + btoa(reader.result);
-          getDataURLForNextFile();
-        };
+        basenames.push(filename.substring(filename.lastIndexOf('/') + 1));
+        getBlobForNextFile();
       });
     }
   }
 }
 
-// This is called by shareFile once the filenames have
-// been converted to data URLs
-function shareURLs(urls, filenames) {
+// This is called by shareFiles() once the filenames have
+// been converted to blobs
+function shareBlobs(blobs, filenames) {
   var a = new MozActivity({
     name: 'share',
     data: {
       type: 'image/*',
-      number: urls.length,
-      urls: urls,
+      number: blobs.length,
+      blobs: blobs,
       filenames: filenames
     }
   });
 
-  function reopen() {
-    navigator.mozApps.getSelf().onsuccess = function(e) {
-      e.target.result.launch();
-    };
-  }
-
-  a.onsuccess = function() {
-    reopen();
-  };
   a.onerror = function(e) {
     if (a.error.name === 'NO_PROVIDER') {
       var msg = navigator.mozL10n.get('share-noprovider');
@@ -939,7 +932,6 @@ function shareURLs(urls, filenames) {
     else {
       console.warn('share activity error:', a.error.name);
     }
-    reopen();
   };
 }
 
@@ -1924,8 +1916,10 @@ function exitEditMode(saved) {
   // XXX: this isn't really right. Ideally the new photo should show up
   // right next to the old one and we should go back to photoView to view
   // the edited photo.
-  if (saved)
+  if (saved) {
+    currentPhotoIndex = 0; // because the saved image will be newest
     setView(thumbnailListView);
+  }
   else
     setView(photoView);
 }

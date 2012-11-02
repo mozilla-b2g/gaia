@@ -4,14 +4,6 @@
 'use strict';
 
 var Wallpaper = {
-  // XXX: We should not need to reopen ourself.
-  reopenSelf: function wallpaper_reopenSelf() {
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch();
-    };
-  },
-
   getAllElements: function wallpaper_getAllElements() {
     this.preview = document.getElementById('wallpaper-preview');
   },
@@ -52,16 +44,23 @@ var Wallpaper = {
         });
 
         a.onsuccess = function onPickSuccess() {
-          if (!a.result.url)
+          if (!a.result.blob)
             return;
+
+          var reader = new FileReader();
+          reader.readAsDataURL(a.result.blob);
+          reader.onload = function() {
+            self.preview.src = reader.result;
+            navigator.mozSettings.createLock().set({
+              'wallpaper.image': reader.result
+            });
+          }
 
           self.preview.src = a.result.url;
           settings.createLock().set({'wallpaper.image': a.result.url});
-          self.reopenSelf();
         };
         a.onerror = function onPickError() {
           console.warn('pick failed!');
-          self.reopenSelf();
         };
       });
   }

@@ -140,13 +140,13 @@ var currentOverlay;  // The id of the current overlay or null if none.
 function showOverlay(id) {
   currentOverlay = id;
 
-  var title = navigator.mozL10n.get(id + '-title');
-  var text = navigator.mozL10n.get(id + '-text');
-
   if (id === null) {
     document.getElementById('overlay').classList.add('hidden');
     return;
   }
+
+  var title = navigator.mozL10n.get(id + '-title');
+  var text = navigator.mozL10n.get(id + '-text');
 
   document.getElementById('overlay-title').textContent = title;
   document.getElementById('overlay-text').textContent = text;
@@ -162,10 +162,10 @@ var sublistHandle = null;
 function showCurrentView() {
   TilesView.clean();
   // Enumerate existing song entries in the database
-  // List the all, and sort them in descending order by date.
-  var option = 'date';
+  // List the all, and sort them in ascending order by album.
+  var option = 'metadata.album';
 
-  tilesHandle = musicdb.enumerate(option, null, 'prev',
+  tilesHandle = musicdb.enumerate(option, null, 'nextunique',
                                   TilesView.update.bind(TilesView));
   switch (TabBar.option) {
     case 'playlist':
@@ -261,7 +261,10 @@ var TitleBar = {
 
             break;
           case 'title-text':
-            changeMode(MODE_PLAYER);
+            // We cannot to switch to player mode
+            // when there is no song in the source of player
+            if (PlayerView.audio.src)
+              changeMode(MODE_PLAYER);
 
             break;
         }
@@ -755,6 +758,14 @@ var SubListView = {
   }
 };
 
+// Repeat option for player
+var REPEAT_OFF = 0;
+var REPEAT_LIST = 1;
+var REPEAT_SONG = 2;
+
+// Key for store options of repeat and shuffle
+var SETTINGS_OPTION_KEY = 'settings_option_key';
+
 // View of Player
 var PlayerView = {
   get view() {
@@ -791,6 +802,9 @@ var PlayerView = {
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
 
+    this.repeatButton = document.getElementById('player-album-repeat');
+    this.shuffleButton = document.getElementById('player-album-shuffle');
+
     this.ratings = document.getElementById('player-album-rating').children;
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
@@ -803,6 +817,8 @@ var PlayerView = {
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
+
+    asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
 
@@ -866,6 +882,38 @@ var PlayerView = {
       cropImage(evt);
       evt.target.classList.add('fadeIn');
     };
+  },
+
+  setOptions: function pv_setOptions(settings) {
+    var repeatOption = (settings && settings.repeat) ?
+      settings.repeat : REPEAT_OFF;
+    var shuffleOption = (settings && settings.shuffle) ?
+      settings.shuffle : false;
+
+    this.setRepeat(repeatOption);
+    this.setShuffle(shuffleOption);
+  },
+
+  setRepeat: function pv_setRepeat(value) {
+    var repeatClasses = ['repeat-off', 'repeat-list', 'repeat-song'];
+
+    // Remove all repeat classes before applying a new one
+    repeatClasses.forEach(function pv_resetRepeat(targetClass) {
+      this.repeatButton.classList.remove(targetClass);
+    }.bind(this));
+
+    this.repeatOption = value;
+    this.repeatButton.classList.add(repeatClasses[this.repeatOption]);
+  },
+
+  setShuffle: function pv_setShuffle(value) {
+    this.shuffleOption = value;
+
+    if (this.shuffleOption) {
+      this.shuffleButton.classList.add('shuffle-on');
+    } else {
+      this.shuffleButton.classList.remove('shuffle-on');
+    }
   },
 
   setRatings: function pv_setRatings(rated) {
@@ -939,7 +987,6 @@ var PlayerView = {
       this.audio.play();
     }
 
-    this.playControl.innerHTML = '||';
     this.playControl.classList.remove('is-pause');
   },
 
@@ -948,18 +995,31 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.innerHTML = '';
     this.playControl.classList.add('is-pause');
   },
 
-  next: function pv_next() {
+  next: function pv_next(isAutomatic) {
     var songElements = (this.sourceType === TYPE_MIX) ?
       TilesView.view.children : SubListView.anchor.children;
 
-    if (this.currentIndex >= this.dataSource.length - 1)
+    // We only repeat a song automatically. (when the song is ended)
+    // If users click skip forward, player will go on to next one
+    if (this.repeatOption === REPEAT_SONG && isAutomatic) {
+      this.play(songElements[this.currentIndex].firstElementChild);
       return;
+    }
 
-    this.currentIndex++;
+    // If it's a last song and repeat list is OFF, ignore it.
+    // but if repeat list is ON, player will restart from the first song
+    if (this.currentIndex >= this.dataSource.length - 1) {
+      if (this.repeatOption === REPEAT_LIST) {
+        this.currentIndex = 0;
+      } else {
+        return;
+      }
+    } else {
+      this.currentIndex++;
+    }
 
     this.play(songElements[this.currentIndex].firstElementChild);
   },
@@ -968,10 +1028,22 @@ var PlayerView = {
     var songElements = (this.sourceType === TYPE_MIX) ?
       TilesView.view.children : SubListView.anchor.children;
 
-    if (this.currentIndex <= 0)
+    // If a song starts more than 3 (seconds),
+    // when users click skip backward, it will restart the current song
+    // otherwise just skip to the previous song
+    if (this.audio.currentTime > 3) {
+      this.play(songElements[this.currentIndex].firstElementChild);
       return;
+    }
 
-    this.currentIndex--;
+    // If it's a first song and repeat list is ON, go to the last one
+    // or just restart from the beginning when repeat list is OFF
+    if (this.currentIndex <= 0) {
+      this.currentIndex = (this.repeatOption === REPEAT_LIST) ?
+        this.dataSource.length - 1 : 0;
+    } else {
+      this.currentIndex--;
+    }
 
     this.play(songElements[this.currentIndex].firstElementChild);
   },
@@ -1056,6 +1128,34 @@ var PlayerView = {
             this.next();
 
             break;
+
+          case 'player-album-repeat':
+            this.showInfo();
+
+            var newValue = ++this.repeatOption % 3;
+            // Store the option when it's triggered by users
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+              repeat: newValue,
+              shuffle: this.shuffleOption
+            });
+
+            this.setRepeat(newValue);
+
+            break;
+
+          case 'player-album-shuffle':
+            this.showInfo();
+
+            var newValue = !this.shuffleOption;
+            // Store the option when it's triggered by users
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+              repeat: this.repeatOption,
+              shuffle: newValue
+            });
+
+            this.setShuffle(newValue);
+
+            break;
         }
 
         if (target.dataset.rating) {
@@ -1087,7 +1187,7 @@ var PlayerView = {
           var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
           this.endedTimer = setTimeout(function() {
                                          this.endedTimer = null;
-                                         this.next();
+                                         this.next(true);
                                        }.bind(this),
                                        timeToNext * 1000);
         }
@@ -1096,7 +1196,7 @@ var PlayerView = {
         // Because of the workaround above, we have to ignore real ended
         // events if we already have a timer set to emulate them
         if (!this.endedTimer)
-          this.next();
+          this.next(true);
         break;
 
       default:
@@ -1128,9 +1228,16 @@ var TabBar = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        this.option = target.dataset.option;
+
         if (!target)
           return;
+
+        // if users click same option, ignore it
+        if (this.option === target.dataset.option) {
+          return;
+        } else {
+          this.option = target.dataset.option;
+        }
 
         switch (target.id) {
           case 'tabs-mix':

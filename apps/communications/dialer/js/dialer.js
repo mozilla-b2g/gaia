@@ -55,15 +55,27 @@ var CallHandler = (function callHandler() {
   function newCall() {
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
-  window.navigator.mozSetMessageHandler('icc-dialing', newCall);
+  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
+    var command = message['bluetooth-dialer-command'];
+
+    if (command === 'BLDN') {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.getLast(function(lastRecent) {
+          if (lastRecent.number) {
+            CallHandler.call(lastRecent.number);
+          }
+        });
+      });
+      return;
+    }
+
+    // Other commands needs to be handled from the call screen
     if (!callScreenWindow)
       return;
 
-    var command = message['bluetooth-dialer-command'];
     var origin = document.location.protocol + '//' +
       document.location.host;
 

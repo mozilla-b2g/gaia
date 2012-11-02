@@ -101,8 +101,14 @@
  *    alterKeyboard(layout): allows the IM to modify the keyboard layout
  *      by specifying a new layout name. Only used by asian ims currently.
  *
- *    setUpperCase(): allows the IM to switch between uppercase and lowercase
- *      layout on the keyboard. Used by the latin IM.
+ *    setUpperCase(upperCase, upperCaseLocked): allows the IM to switch between
+ *    uppercase and lowercase layout on the keyboard. Used by the latin IM.
+ *      upperCase: to enable the upper case or not.
+ *      upperCaseLocked: to change the caps lock state.
+ *
+ *    resetUpperCase(): allows the IM to reset the upperCase to lowerCase
+ *    without knowing the internal states like caps lock and current layout
+ *    page while keeping setUpperCase simple as it is.
  */
 
 'use strict';
@@ -331,11 +337,11 @@ function initKeyboard() {
   });
 
   navigator.mozSettings.addObserver('keyboard.vibration', function(e) {
-    vibrationEnabled = e.setingValue;
+    vibrationEnabled = e.settingValue;
   });
 
   navigator.mozSettings.addObserver('keyboard.clicksound', function(e) {
-    clickEnabled = e.setingValue;
+    clickEnabled = e.settingValue;
     if (clickEnabled)
       clicker = new Audio(CLICK_SOUND);
     else
@@ -343,11 +349,18 @@ function initKeyboard() {
   });
 
   for (var group in keyboardGroups) {
+
     var settingName = 'keyboard.layouts.' + group;
-    navigator.mozSettings.addObserver(settingName, function(e) {
-      enabledKeyboardGroups[settingName] = e.settingValue;
-      handleNewKeyboards();
-    });
+
+    var createLayoutCallback = function createLayoutCallback(name) {
+      return function layoutCallback(e) {
+        enabledKeyboardGroups[name] = e.settingValue;
+        handleNewKeyboards();
+      }
+    }
+
+    navigator.mozSettings.addObserver(settingName,
+                                      createLayoutCallback(settingName));
   }
 
   // Initialize the rendering module
@@ -686,6 +699,8 @@ function renderKeyboard(keyboardName) {
     showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
   });
 
+  IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
   // If needed, empty the candidate panel
   if (inputMethod.empty)
     inputMethod.empty();
@@ -694,8 +709,18 @@ function renderKeyboard(keyboardName) {
   updateLayoutParams();
 }
 
-function setUpperCase(value) {
-  isUpperCase = value;
+function setUpperCase(upperCase, upperCaseLocked) {
+
+  upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
+                     isUpperCaseLocked : upperCaseLocked;
+
+  // Do nothing if the states are not changed
+  if (isUpperCase == upperCase &&
+      isUpperCaseLocked == upperCaseLocked)
+    return;
+
+  isUpperCaseLocked = upperCaseLocked;
+  isUpperCase = upperCase;
 
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
@@ -709,12 +734,21 @@ function setUpperCase(value) {
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 }
 
+function resetUpperCase() {
+  if (isUpperCase &&
+      !isUpperCaseLocked &&
+      layoutPage === LAYOUT_PAGE_DEFAULT) {
+    setUpperCase(false);
+  }
+}
+
 function setLayoutPage(newpage) {
   if (newpage === layoutPage)
     return;
 
   // When layout mode changes we have to re-render the keyboard
   layoutPage = newpage;
+
   renderKeyboard(keyboardName);
 
   if (inputMethod.setLayoutPage)
@@ -897,6 +931,11 @@ function onScroll(evt) {
 function onMouseDown(evt) {
   var keyCode;
 
+  // Prevent loosing focus to the currently focused app
+  // Otherwise, right after mousedown event, the app will receive a focus event.
+  IMERender.ime.setCapture(false);
+  evt.preventDefault();
+
   isPressing = true;
   currentKey = evt.target;
   if (!isNormalKey(currentKey))
@@ -913,14 +952,8 @@ function onMouseDown(evt) {
 
     // redirect mouse over event so that the first key in menu
     // would be highlighted
-    if (isShowingAlternativesMenu &&
-        menuLockedArea &&
-        evt.pageY >= menuLockedArea.top &&
-        evt.pageY <= menuLockedArea.bottom &&
-        evt.pageX >= menuLockedArea.left &&
-        evt.pageX <= menuLockedArea.right) {
+    if (inMenuLockedArea(evt))
       redirectMouseOver(evt);
-    }
 
   }), ACCENT_CHAR_MENU_TIMEOUT);
 
@@ -945,6 +978,16 @@ function onMouseDown(evt) {
   }
 }
 
+
+function inMenuLockedArea(evt) {
+  return (isShowingAlternativesMenu &&
+          menuLockedArea &&
+          evt.pageY >= menuLockedArea.top &&
+          evt.pageY <= menuLockedArea.bottom &&
+          evt.pageX >= menuLockedArea.left &&
+          evt.pageX <= menuLockedArea.right);
+}
+
 // [LOCKED_AREA] TODO:
 // This is an agnostic way to improve the usability of the alternatives.
 // It consists into compute an area where the user movement is redirected
@@ -952,13 +995,7 @@ function onMouseDown(evt) {
 // with better performance.
 function onMouseMove(evt) {
   // Control locked zone for menu
-  if (isShowingAlternativesMenu &&
-      menuLockedArea &&
-      evt.pageY >= menuLockedArea.top &&
-      evt.pageY <= menuLockedArea.bottom &&
-      evt.pageX >= menuLockedArea.left &&
-      evt.pageX <= menuLockedArea.right) {
-
+  if (inMenuLockedArea(evt)) {
     clearTimeout(hideMenuTimeout);
     redirectMouseOver(evt);
   }
@@ -996,10 +1033,10 @@ function onMouseOver(evt) {
   clearTimeout(menuTimeout);
 
   // Control hide of alternatives menu
-  if (target.parentNode === IMERender.menu) {
+  if (target.parentNode === IMERender.menu || inMenuLockedArea(evt)) {
     clearTimeout(hideMenuTimeout);
   } else {
-    hideAlternatives(true);
+    hideAlternatives(false);
   }
 
   // Control showing alternatives menu
@@ -1053,7 +1090,7 @@ function onMouseUp(evt) {
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
 
-  hideAlternatives(true);
+  hideAlternatives(false);
 
   var target = currentKey;
   var keyCode = parseInt(target.dataset.keycode);
@@ -1178,8 +1215,7 @@ function onMouseUp(evt) {
     if (isWaitingForSecondTap) {
       isWaitingForSecondTap = false;
 
-      isUpperCaseLocked = true;
-      setUpperCase(true);
+      setUpperCase(true, true);
 
       // Normal behavior: set timeout for second tap and toggle caps
     } else {
@@ -1193,8 +1229,7 @@ function onMouseUp(evt) {
       );
 
       // Toggle caps
-      isUpperCaseLocked = false;
-      setUpperCase(!isUpperCase);
+      setUpperCase(!isUpperCase, false);
     }
     break;
 
@@ -1362,7 +1397,8 @@ function loadIMEngine(name) {
     alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
       renderKeyboard(keyboard);
     },
-    setUpperCase: setUpperCase
+    setUpperCase: setUpperCase,
+    resetUpperCase: resetUpperCase
   };
 
   script.addEventListener('load', function IMEngineLoaded() {
@@ -1445,7 +1481,7 @@ function getSettings(settings, callback) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
                  '\nUsing default values');
-    for (p in settings)
+    for (var p in settings)
       results[p] = settings[p];
     callback(results);
   }

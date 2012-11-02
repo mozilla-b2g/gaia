@@ -1,6 +1,7 @@
 {
   "name": "Homescreen",
   "description": "Gaia Homescreen",
+  "launch_path": "/index.html#root",
   "type": "certified",
   "developer": {
     "name": "The Gaia Team",
@@ -9,8 +10,8 @@
   "permissions": {
     "webapps-manage":{},
     "systemXHR":{},
-    "settings":{},
-    "device-storage:pictures":{}
+    "settings":{ "access": "readonly" },
+    "device-storage:pictures":{ "access": "readonly" }
   },
   "locales": {
     "ar": {
@@ -36,14 +37,7 @@
     "save-bookmark": {
       "filters": {
         "type": "url"
-      },
-      "href": "/index.html"
-    },
-    "view": {
-      "filters": {
-        "type": "application/x-application-list"
-      },
-      "href": "/index.html"
+      }
     }
   }
 }

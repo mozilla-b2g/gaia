@@ -12,7 +12,10 @@
     var go = function _go() {
       var a = new MozActivity({ name: 'pick', data: {type: 'image/jpeg'}});
       a.onsuccess = function(e) {
-        document.getElementById('result').textContent = e.result.filename;
+        var url = URL.createObjectURL(a.result.blob);
+        var img = document.getElementById('result');
+        img.src = url;
+        img.onload = function() { URL.revokeObjectURL(url); };
       };
       a.onerror = function() { alert('Failure picking photo'); };
     };
@@ -22,6 +25,6 @@
     <h1>Pick Photo Test</h1>
     <h2>Go to:</h2>
     <button onclick="go()">Go</button></p>
-    Result is: <span id="result"></span>
+    Result is: <img id="result"></img>
   </body>
 </html>

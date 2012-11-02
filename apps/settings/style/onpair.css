@@ -1,28 +1,39 @@
-form[role="dialog"] h1 {
+#pair-view h1, #alert-view h1 {
+  font-size: 1.8rem;
+}
+
+#pair-view div, #alert-view div {
+  font-size: 1.6rem;
+}
+
+#pair-view #pair-description {
   font-size: 1.3rem;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
-form[role="dialog"] p {
-  font-size: 50%;
+#pair-view #device-info #label-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-form[role="dialog"] p small {
-  font-size: 1.0rem;
+#pair-view .pair-method {
+  text-align: center;
+  font-size: 1.8rem;
 }
 
-form[role="dialog"] p strong {
-  font-size: 1.6rem;
+#pair-view .pair-method input {
+  font-size: 1.8rem;
 }
 
-form[role="dialog"] p input {
-  font-size: 1.6rem;
+#pair-view menu, #alert-view menu {
+  padding: 0.7rem;
+  bottom: 0px;
 }
 
-form[role="dialog"] menu {
-  padding: 1rem;
-}
-
-form[role="dialog"] menu button {
+#pair-view menu button, #alert-view menu button {
   height: 2.8rem;
   line-height: 2.8rem;
 }
@@ -33,10 +44,10 @@ form[role="dialog"] menu button {
 
 #device-info {
   background-repeat: no-repeat;
-  background-position: left center;
-  padding-left: 2rem;
+  background-position: left 0rem top 50%;
+  padding-left: 3rem;
 }
 
 .bluetooth-default { 
-  background-image: url(images/settings_bluetooth.png); 
+  background-image: url(images/settings/bluetooth.png);
 }

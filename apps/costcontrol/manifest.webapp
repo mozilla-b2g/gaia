@@ -12,7 +12,7 @@
     "telephony":{},
     "mobileconnection":{},
     "backgroundservice":{},
-    "settings":{},
+    "settings":{ "access": "readonly" },
     "desktop-notification":{},
     "networkstats-manage":{}
   },

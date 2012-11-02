@@ -171,19 +171,13 @@ var queryURI = function _queryURI(uri) {
 };
 
 var activityCallback = null;
-// XXX : Workaround to fix the duplicate activity callback issue:
-var activityLock = false;
 if ('mozSetMessageHandler' in window.navigator) {
   window.navigator.mozSetMessageHandler('activity',
                                         function actHandle(activity) {
-    if (activityLock) {
-      return;
-    } else {
-      activityLock = true;
-    }
     var activityName = activity.source.name;
     if (activityName === 'share') {
-      var attachments = activity.source.data.urls;
+      var attachmentBlobs = activity.source.data.blobs,
+          attachmentNames = activity.source.data.filenames;
     } else if (activityName === 'new') {
       var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
       if (!to)
@@ -225,9 +219,14 @@ if ('mozSetMessageHandler' in window.navigator) {
             composer.cc = cc;
           if (bcc)
             composer.bcc = bcc;
-          // TODO: We may need to add attachments here:
-          // if (attachments)
-          //   composer.attachments = attachments;
+          if (attachmentBlobs) {
+            for (var iBlob = 0; iBlob < attachmentBlobs.length; iBlob++) {
+              composer.addAttachment({
+                name: attachmentNames[iBlob],
+                blob: attachmentBlobs[iBlob]
+              });
+            }
+          }
           Cards.pushCard('compose',
             'default', 'immediate', { composer: composer,
             activity: (activityName == 'share' ? activity : null) });
