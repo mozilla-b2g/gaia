@@ -1659,18 +1659,6 @@
               data-l10n-id="licensing"> Licensing </button>
           </label>
         </li>
-        <li>
-          <label for="share-performance-data" class="description">
-            <span>
-              <input type="checkbox" id="share-performance-data" name="debug.peformancedata.shared" />
-              <span data-l10n-id="share-performance-data">
-                I want to help make Firefox OS faster and easier to use by
-                sharing information about my phone’s performance.
-              </span>
-              <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
-            </span>
-          </label>
-        </li>
       </ul>
     </section>
 
@@ -1819,6 +1807,72 @@
             <span></span>
           </label>
           <a data-l10n-id="screenReader">Screen Reader</a>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Device :: Improve Firefox OS -->
+    <section role="region" id="improve-firefox-os" data-leaf>
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="improveFirefoxOS">Improve Firefox OS</h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="performanceData">Performance Data</h2>
+      </header>
+      <ul>
+        <li>
+          <label for="" class="description">
+            <span data-l10n-id="performanceDataInfo">
+              Make Firefox OS faster and easier to use by sharing
+              information over Wi-Fi about your phone’s performance.
+            </span>
+            <a href="https://www.mozilla.org/" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.peformancedata.shared" />
+            <span></span>
+          </label>
+          <a data-l10n-id="sharePerformanceData">Submit performance data</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="crashReports">Crash Reports</h2>
+      </header>
+      <ul>
+        <li>
+          <label for="" class="description">
+            <span data-l10n-id="crashReportInfo">
+              Sending Mozilla a report when a crash occurs helps us fix the problem
+              for everyone. Reports are sent over Wi-Fi only.
+            </span>
+            <a href="https://www.mozilla.org/" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="always"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="alwaysSendReport">Always send a report</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="never" />
+            <span></span>
+          </label>
+          <a data-l10n-id="neverSendReport">Never send a report</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="ask" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="askToSendReport">Ask me when a crash occurs</a>
         </li>
       </ul>
     </section>
@@ -2007,6 +2061,9 @@
         </li>
         <li hidden>
           <a href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+        </li>
+        <li>
+          <a href="#improve-firefox-os" data-l10n-id="improveFirefoxOS">Improve Firefox OS</a>
         </li>
         <li>
           <a href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
