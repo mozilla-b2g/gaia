@@ -561,12 +561,12 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 };
 
 // Get the pixels of the selected crop region, and resize them if width
-// and height are specifed, and return them as a data URL.
-// This function is used by the Gallery app's pick activity handler,
-// and relies on data urls because activities can't pass blobs. When
-// blob support is added, this function can change to return a blob
-// instead.
-ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
+// and height are specifed, encode them as an image file of the specified
+// type and pass that file as a blob to the specified callback
+ImageEditor.prototype.getCroppedRegionBlob = function(type,
+                                                      width, height,
+                                                      callback)
+{
   // This is similar to the code in cropImage() and getFullSizeBlob
   // but since we're doing only cropping and no pixel manipulation I
   // don't need to create an ImageProcessor object.
@@ -606,7 +606,7 @@ ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
                     left, top, right - left, bottom - top,
                     0, 0, width, height);
 
-  return canvas.toDataURL(type);
+  canvas.toBlob(callback, type);
 };
 
 //
