@@ -463,17 +463,18 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       this.getField('location').value = model.location;
 
+      var dateSrc = model;
+      if (model.remote.isRecurring && this.busytime) {
+          dateSrc = this.busytime;
+      }
       this.getField('startDate').value =
-        InputParser.exportDate(model.startDate);
-
+        InputParser.exportDate(dateSrc.startDate);
       this.getField('endDate').value =
-        InputParser.exportDate(model.endDate);
-
+        InputParser.exportDate(dateSrc.endDate);
       this.getField('startTime').value =
-        InputParser.exportTime(model.startDate);
-
+        InputParser.exportTime(dateSrc.startDate);
       this.getField('endTime').value =
-          InputParser.exportTime(model.endDate);
+        InputParser.exportTime(dateSrc.endDate);
 
       this.getField('description').textContent =
         model.description;
