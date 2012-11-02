@@ -8,6 +8,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/test/unit/mock_statusbar.js');
 
 
 // We're going to swap those with mock objects
@@ -27,6 +28,9 @@ if (!this.SystemBanner) {
 if (!this.SettingsListener) {
   this.SettingsListener = null;
 }
+if (!this.StatusBar) {
+  this.StatusBar = null;
+}
 
 suite('system/UpdateManager', function() {
   var realUpdatableApp;
@@ -35,6 +39,7 @@ suite('system/UpdateManager', function() {
   var realUtilityTray;
   var realSystemBanner;
   var realSettingsListener;
+  var realStatusBar;
   var realDispatchEvent;
 
   var apps;
@@ -63,6 +68,9 @@ suite('system/UpdateManager', function() {
     realSettingsListener = window.SettingsListener;
     window.SettingsListener = MockSettingsListener;
 
+    realStatusBar = window.StatusBar;
+    window.StatusBar = MockStatusBar;
+
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key, params) {
@@ -85,6 +93,7 @@ suite('system/UpdateManager', function() {
     window.UtilityTray = realUtilityTray;
     window.SystemBanner = realSystemBanner;
     window.SettingsListener = realSettingsListener;
+    window.StatusBar = realStatusBar;
 
     navigator.mozL10n = realL10n;
     UpdateManager._dispatchEvent = realDispatchEvent;
@@ -144,6 +153,7 @@ suite('system/UpdateManager', function() {
     MockUtilityTray.mTearDown();
     MockSystemBanner.mTearDown();
     MockSettingsListener.mTearDown();
+    MockStatusBar.mTearDown();
 
     fakeNode.parentNode.removeChild(fakeNode);
     fakeToaster.parentNode.removeChild(fakeToaster);
@@ -240,7 +250,7 @@ suite('system/UpdateManager', function() {
 
       test('should call uninit on the updatable', function() {
         var lastIndex = UpdateManager.updatesQueue.length - 1;
-        var updatableApp = UpdateManager.updatesQueue[lastIndex]
+        var updatableApp = UpdateManager.updatesQueue[lastIndex];
         MockAppsMgmt.mTriggerOnuninstall();
         assert.isTrue(updatableApp.mUninitCalled);
       });
@@ -392,14 +402,41 @@ suite('system/UpdateManager', function() {
             }, tinyTimeout * 2);
           });
         });
+
+        test('should show a new statusbar notification', function(done) {
+          MockStatusBar.notificationsCount = 2;
+          assert.equal('2', MockStatusBar.notificationsCount);
+          setTimeout(function() {
+            assert.equal('3', MockStatusBar.notificationsCount);
+            assert.equal(true, MockStatusBar.mNotificationUnread);
+            done();
+          }, tinyTimeout * 2);
+        });
       });
 
-      test('should hide the container', function() {
-        UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
-        UpdateManager.container.classList.add('displayed');
-        UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
-        var css = UpdateManager.container.className;
-        assert.equal(-1, css.indexOf('displayed'));
+      suite('no more updates', function() {
+        setup(function() {
+          MockStatusBar.notificationsCount = 1;
+          UpdateManager.container.classList.add('displayed');
+          UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
+          UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
+        });
+
+        test('should hide the container', function() {
+          var css = UpdateManager.container.className;
+          assert.equal(-1, css.indexOf('displayed'));
+        });
+
+        test('should hide the statusbar notification', function() {
+          assert.equal(0, MockStatusBar.notificationsCount);
+        });
+
+        test('should not put the status bar count to -1', function() {
+          MockStatusBar.notificationsCount = 0;
+          UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
+          UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
+          assert.equal(0, MockStatusBar.notificationsCount);
+        });
       });
     });
 
