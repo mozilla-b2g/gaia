@@ -55,8 +55,7 @@ var CallHandler = (function callHandler() {
   function newCall() {
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
-  window.navigator.mozSetMessageHandler('icc-dialing', newCall);
+  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
 
   /* === Bluetooth Support === */
   function btCommandHandler(message) {
