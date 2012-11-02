@@ -418,6 +418,13 @@ function binarysearch(array, element, comparator, from, to) {
     return binarysearch(array, element, comparator, mid + 1, to);
 }
 
+// Make the thumbnail for image n visible
+function scrollToShowThumbnail(n) {
+  var selector = 'li[data-index="' + n + '"]';
+  var thumbnail = thumbnails.querySelector(selector);
+  if (thumbnail)
+    thumbnail.scrollIntoView();
+}
 
 function setView(view) {
   if (currentView === view)
@@ -445,6 +452,7 @@ function setView(view) {
   switch (view) {
   case thumbnailListView:
     thumbnailListView.appendChild(thumbnails);
+    scrollToShowThumbnail(currentPhotoIndex);
     break;
   case thumbnailSelectView:
     thumbnailSelectView.appendChild(thumbnails);
@@ -1908,8 +1916,10 @@ function exitEditMode(saved) {
   // XXX: this isn't really right. Ideally the new photo should show up
   // right next to the old one and we should go back to photoView to view
   // the edited photo.
-  if (saved)
+  if (saved) {
+    currentPhotoIndex = 0; // because the saved image will be newest
     setView(thumbnailListView);
+  }
   else
     setView(photoView);
 }
