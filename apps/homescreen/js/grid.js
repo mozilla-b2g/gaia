@@ -340,11 +340,19 @@ const GridManager = (function() {
             }
           }
           HomeState.saveShortcuts(init.dock);
+
+          for (var i = apps.length - 1; i >= 0; i--) {
+            if (init.hidden.indexOf(apps[i]['origin']) != -1) {
+              apps.splice(i, 1);
+            }
+          }
+          HomeState.saveHiddens(init.hidden);
+
         } catch (e) {
           dump('Failed parsing homescreen configuration file: ' + e + '\n');
         }
 
-       var max = pageHelper.getMaxPerPage();
+        var max = pageHelper.getMaxPerPage();
         var list = [];
         for (var i = 0; i < apps.length; i++) {
           list.push(apps[i]);
@@ -406,12 +414,22 @@ const GridManager = (function() {
             }
           }
 
-          for (var origin in installedApps) {
-            GridManager.install(installedApps[origin]);
-          }
+          HomeState.getHiddens(function(hidden) {
+            var len = hidden.length;
+            for (var i = 0; i < len; i++) {
+              var origin = hidden[i].origin || hidden[i];
+              if (origin in installedApps) {
+                delete installedApps[origin];
+              }
+            }
 
-          updatePaginationBar();
-          finish();
+            for (var origin in installedApps) {
+              GridManager.install(installedApps[origin]);
+            }
+
+            updatePaginationBar();
+            finish();
+          });
         });
       },
       function onerror() {
