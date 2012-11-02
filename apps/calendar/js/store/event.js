@@ -7,7 +7,7 @@
   Events.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
-    _dependentStores: ['events', 'busytimes', 'alarms'],
+    _dependentStores: ['events', 'busytimes', 'alarms', 'icalComponents'],
 
     /** disable caching */
     _addToCache: function() {},
@@ -36,6 +36,9 @@
 
       var busy = this.db.getStore('Busytime');
       busy.removeEvent(id, trans);
+
+      var component = this.db.getStore('IcalComponent');
+      component.remove(id, trans);
     },
 
     /**

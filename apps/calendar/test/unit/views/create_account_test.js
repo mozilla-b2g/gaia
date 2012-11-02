@@ -20,6 +20,7 @@ suite('views/create_account', function() {
     div.id = 'test';
     div.innerHTML = [
       '<div id="create-account-view">',
+        '<button class="cancel">cancel</button>',
         '<ul id="create-account-presets"></ul>',
       '</div>'
     ].join('');

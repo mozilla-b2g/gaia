@@ -10,24 +10,22 @@ suite('db', function() {
   var subject;
   var name;
 
-  setup(function(done) {
+  suiteSetup(function(done) {
     this.timeout(10000);
-    subject = testSupport.calendar.db();
-    subject.open(function() {
-      subject.close();
-      done();
-    });
-  });
-
-  setup(function(done) {
-    this.timeout(10000);
-    name = subject.name;
-
-    subject.deleteDatabase(function(err, success) {
+    var db = testSupport.calendar.db();
+    db.deleteDatabase(function(err, success) {
       assert.ok(!err, 'should not have an error when deleting db');
       assert.ok(success, 'should be able to delete the db');
       done();
     });
+  });
+
+  suiteTeardown(function() {
+    subject.close();
+  });
+
+  setup(function() {
+    subject = testSupport.calendar.db();
   });
 
   test('#getStore', function() {
@@ -40,8 +38,8 @@ suite('db', function() {
 
   test('initialization', function() {
     // create test db
-    assert.equal(subject.name, name);
-    assert.ok(subject.version);
+    assert.ok(subject.name);
+    assert.include(subject.name, 'test');
     assert.ok(subject.store);
 
     assert.instanceOf(subject, Calendar.Responder);
@@ -71,6 +69,10 @@ suite('db', function() {
       });
     });
 
+    teardown(function() {
+      subject.close();
+    });
+
     test('result', function(done) {
       var trans = subject.transaction(['events'], 'readonly');
 
@@ -83,10 +85,6 @@ suite('db', function() {
       trans.abort();
     });
 
-  });
-
-  teardown(function() {
-    subject.close();
   });
 
   test('#load', function(done) {
@@ -127,13 +125,17 @@ suite('db', function() {
         assert.ok(loaded.account, 'should load account');
         assert.ok(loaded.calendar, 'should load calendar');
         assert.ok(loaded.setting), 'should load settings';
+        subject.close();
       });
     });
   });
 
   suite('#open', function() {
     suite('on version change', function() {
-      // db should be destroyed at this point
+
+      setup(function(done) {
+        subject.deleteDatabase(done);
+      });
 
       suite('#setupDefaults', function() {
         var accountStore;
@@ -149,6 +151,10 @@ suite('db', function() {
               }, 0);
             });
           });
+        });
+
+        teardown(function() {
+          subject.close();
         });
 
         test('default account', function() {
@@ -202,21 +208,26 @@ suite('db', function() {
                 );
               }
             });
+            subject.close();
           }
         });
 
         subject.open(function() {
-          assert.ok(subject.connection);
-          assert.ok(subject.isOpen);
+          assert.ok(subject.connection, 'has connection');
+          assert.ok(subject.isOpen, 'is open');
+          assert.ok(subject.version, 'has version');
           assert.equal(subject.oldVersion, 0, 'upgraded from 0');
           assert.isTrue(subject.hasUpgraded, 'has upgraded');
-          assert.equal(subject.connection.name, name);
+          assert.equal(subject.connection.name, subject.name);
           finishedOpen = true;
         });
       });
     });
 
     suite('after version change', function() {
+      teardown(function() {
+        subject.close();
+      });
 
       setup(function(done) {
         // make sure db is open
@@ -239,5 +250,112 @@ suite('db', function() {
 
   });
 
+  suite('#_upgradeMoveICALComponents', function() {
+    var icalEvents = [];
+    var normalEvents = [];
 
+    function stageData(done) {
+      var trans = subject.transaction('events', 'readwrite');
+      var eventStore = trans.objectStore('events');
+
+
+      trans.oncomplete = function() {
+        done();
+      }
+
+      // stage some data to verify we don't
+      // mutate records without icalComponent.
+      for (var i = 0; i < 5; i++) {
+        var normalEvent = Factory('event', { _id: i });
+        eventStore.add(normalEvent);
+        normalEvents.push(normalEvent);
+      }
+
+      // stage the icalComponent events
+      for (var i = 10; i < 20; i++) {
+        var icalEvent = Factory('event', {
+          _id: i,
+          remote: {
+            icalComponent: { nth: i }
+          }
+        });
+
+        eventStore.add(icalEvent);
+        icalEvents.push(icalEvent);
+      }
+    }
+
+    var hit = 0;
+
+    // first setup is to ensure no database exists
+    // and set its version to # 9
+    setup(function(done) {
+      this.timeout(12000);
+
+      icalEvents.length = 0;
+      normalEvents.length = 0;
+
+      subject.deleteDatabase(function(err) {
+        if (err) {
+          done(err);
+          return;
+        }
+        subject.open(9, function() {
+          stageData(function() {
+            subject.close();
+            subject.open(10, done);
+          });
+        });
+      });
+    });
+
+    test('verify icalComponent was moved to new store', function(done) {
+      var trans = subject.transaction(
+        ['events', 'icalComponents']
+      );
+
+      trans.oncomplete = function() {
+        done(function() {
+          // verify all the events icalComponets are moved over;
+          icalEvents.forEach(function(item) {
+            assert.ok(
+              componentsById[item._id],
+              'component exists # ' + item._id
+            );
+
+            assert.deepEqual(
+              componentsById[item._id].data,
+              item.remote.icalComponent
+            );
+
+            assert.ok(
+              !eventsById[item._id].remote.icalComponent,
+              'removes component'
+            );
+          });
+        });
+      }
+
+      var eventsStore = trans.objectStore('events');
+      var componentsStore = trans.objectStore('icalComponents');
+
+      var eventsById = {};
+      var componentsById = {};
+
+      function map(field, data, target) {
+        for (var i in data) {
+          target[data[i][field]] = data[i];
+        }
+      }
+
+      eventsStore.mozGetAll().onsuccess = function(e) {
+        map('_id', e.target.result, eventsById);
+      };
+
+      componentsStore.mozGetAll().onsuccess = function(e) {
+        map('eventId', e.target.result, componentsById);
+      }
+
+    });
+  });
 });
