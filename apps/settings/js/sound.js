@@ -28,12 +28,12 @@ var SoundSettings = {
     var lock = window.navigator.mozSettings.createLock();
     var req = lock.get(this.callSettings.key);
     req.onsuccess = function ss_getDialerTone() {
-      self.callSettings.value = req.result['dialer.ringtone'] || 'ringer_classic_courier.ogg';
+      self.callSettings.value = req.result['dialer.ringtone'] || 'classic.ogg';
       self.updateButton(self.callSettings);
     };
     var req2 = lock.get(this.smsSettings.key);
     req2.onsuccess = function ss_getSmsTone() {
-      self.smsSettings.value = req2.result['sms.ringtone'] || 'notifier_exclamation.ogg';
+      self.smsSettings.value = req2.result['sms.ringtone'] || 'sms.wav';
       self.updateButton(self.smsSettings);
     };
   },
