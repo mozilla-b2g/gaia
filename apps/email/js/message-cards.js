@@ -961,23 +961,45 @@ MessageReaderCard.prototype = {
                 attachment.mimetype);
     if (!attachment._file)
       return;
+
     try {
-      var activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: attachment.mimetype,
-          filename: attachment._file[1]
-        }
-      });
-      activity.onerror = function() {
-        console.warn('Problem with "open" activity', activity.error.name);
+      // Get the file contents as a blob, so we can open the blob
+      var storageType = attachment._file[0];
+      var filename = attachment._file[1];
+      var storage = navigator.getDeviceStorage(storageType);
+      var getreq = storage.get(filename);
+
+      getreq.onerror = function() {
+        console.warn('Could not open attachment file: ', filename,
+                     getreq.error.name);
       };
-      activity.onsuccess = function() {
-        console.log('"open" activity allegedly succeeded');
+
+      getreq.onsuccess = function() {
+        try {
+          // Now that we have the file, use an activity to open it
+          var file = getreq.result;
+          var activity = new MozActivity({
+            name: 'open',
+            data: {
+              type: attachment.mimetype,
+              blob: file
+            }
+          });
+          activity.onerror = function() {
+            console.warn('Problem with "open" activity', activity.error.name);
+          };
+          activity.onsuccess = function() {
+            console.log('"open" activity allegedly succeeded');
+          };
+        }
+        catch (ex) {
+          console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+        }
       };
     }
     catch (ex) {
-      console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+      console.warn('Exception getting attachment from device storage:',
+                   attachment._file, '\n', ex, '\n', ex.stack);
     }
   },
 
