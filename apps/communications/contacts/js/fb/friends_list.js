@@ -5,17 +5,6 @@ var fbFriends = window.fbFriends || {};
 fbFriends.List = (function() {
   var groupsList = document.querySelector('#groups-list');
 
-  function contactsLoaded() {
-     var figures = document.querySelectorAll('#groups-list img');
-      for (var i = 0; i < figures.length; i++) {
-        var figure = figures[i];
-        var src = figure.dataset.src;
-        if (src && src !== 'null') {
-          figure.src = src;
-        }
-      }
-  }
-
   var load = function load(contacts, cb) {
     // Hash containing each group
     var groups = {};
@@ -58,14 +47,11 @@ fbFriends.List = (function() {
 
     groupsList.removeChild(groupsList.children[0]); // Deleting template
     FixedHeader.init('#mainContent', '#fixed-container', 'h2.block-title');
+    ImageLoader.init('#mainContent', ".block-item:not([data-uuid='#uid#'])");
 
     if (typeof cb === 'function') {
       window.setTimeout(function() { cb(); }, 0);
     }
-
-    // Finally images are loaded
-    contactsLoaded();
-
   };
 
 

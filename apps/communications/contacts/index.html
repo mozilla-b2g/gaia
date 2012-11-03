@@ -15,6 +15,7 @@
     <link href="/contacts/style/custom_dialog.css" rel="stylesheet">
     <link href="/contacts/style/input_cancel_button.css" rel="stylesheet">
     <link href="/contacts/style/fixed_header.css" rel="stylesheet">
+    <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
 
     <link href="/contacts/style/fb_extensions.css" rel="stylesheet">
 
@@ -70,10 +71,12 @@
 
   <body role="application" class="hide app-contacts">
 
+    <!-- iframes for FB integration -->
+    <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
+    <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
+    <iframe id="fb-extensions"></iframe>
+
     <div id="app" class="views" data-state="active">
-
-       <iframe id="fb-extensions"></iframe>
-
       <!-- Contacts List Section -->
       <section id='view-contacts-list' role="region" data-mirror="mirror-contacts-list" data-state="active" class="view view-noscroll view-contacts-list">
         <header>
