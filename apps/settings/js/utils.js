@@ -72,6 +72,7 @@ function audioPreview(element) {
 
 /**
  * Helper class for formatting file size strings
+ * required by *_storage.js
  */
 
 var FileSizeFormatter = (function FileSizeFormatter(fixed) {
@@ -100,6 +101,7 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
 
 /**
  * Helper class for getting available/used storage
+ * required by *_storage.js
  */
 
 var DeviceStorageHelper = (function DeviceStorageHelper() {

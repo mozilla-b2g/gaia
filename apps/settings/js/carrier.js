@@ -3,41 +3,6 @@
 
 'use strict';
 
-// create a fake mozMobileConnection if required (e.g. desktop browser)
-var gMobileConnection = (function newMobileConnection(window) {
-  var navigator = window.navigator;
-  if (('mozMobileConnection' in navigator) &&
-      navigator.mozMobileConnection &&
-      navigator.mozMobileConnection.data) {
-    return navigator.mozMobileConnection;
-  }
-
-  var initialized = false;
-  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
-  var fakeNetwork = { shortName: 'Fake Orange F', mcc: 208, mnc: 1 };
-
-  function fakeEventListener(type, callback, bubble) {
-    if (initialized)
-      return;
-
-    // simulates a connection to a data network;
-    setTimeout(function fakeCallback() {
-      initialized = true;
-      callback();
-    }, 5000);
-  }
-
-  //var automaticNetworkSelection = true;
-
-  return {
-    addEventListener: fakeEventListener,
-    iccInfo: fakeICCInfo,
-    get data() {
-      return initialized ? { network: fakeNetwork } : null;
-    }
-  };
-})(this);
-
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = 'resources/apns_conf.xml';
@@ -250,7 +215,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // display data carrier name
     var name = data ? (data.shortName || data.longName) : '';
-    document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
   }
 

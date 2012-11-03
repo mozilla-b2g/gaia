@@ -450,18 +450,15 @@ window.addEventListener('load', function loadSettings() {
         document.querySelector('[data-l10n-id="user-guide"]').onclick =
           Settings.openUserGuide.bind(Settings);
         break;
-      case 'battery':
-        Battery.update();
-        break;
-      case 'deviceStorage':
-        AppStorage.update();
-        break;
-      case 'mediaStorage':
+      case 'mediaStorage':        // full media storage status + panel startup
         MediaStorage.initUI();
         break;
-      // TODO: 'bluetooth'
-      // TODO: 'carrier'
-      // TODO: 'wifi'
+      case 'deviceStorage':       // full device storage status
+        AppStorage.update();
+        break;
+      case 'battery':             // full battery status
+        Battery.update();
+        break;
     }
   }
 
