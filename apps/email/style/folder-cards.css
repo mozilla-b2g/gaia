@@ -22,6 +22,12 @@
 .fld-account-name {
   font-size: 2rem;
 }
+.fld-account-problem {
+  color: red;
+  font-size: 200%;
+  font-weight: bold;
+  padding-left: 2rem;
+}
 .fld-account-unread {
   display: none;
 }
@@ -113,4 +119,19 @@
 
 .fld-nav-settings-btn {
   background: url("images/icons/settings.png") no-repeat scroll center transparent;
+}
+
+.fld-nav-last-synced {
+  display: inline-block;
+  position: absolute;
+  right: 2rem;
+}
+
+.fld-nav-account-problem {
+  display: inline-block;
+  color: red;
+  font-weight: bold;
+  font-size: 200%;
+  position: absolute;
+  right: 0;
 }

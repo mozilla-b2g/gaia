@@ -4,7 +4,7 @@
   display: none !important;
 }
 .hidden {
-  display: hidden !important;
+  visibility: hidden !important;
 }
 
 html {
@@ -209,7 +209,8 @@ section[role="status"].fadeout {
   opacity: 0;
 }
 
-section[role="status"][title="undo"] p {
+section[role="status"][title="undo"] p,
+section[role="status"][title="retry"] p {
   max-width: 65% !important;
 }
 
@@ -217,12 +218,14 @@ section[role="status"] .toaster-cancel-btn {
   height: 8rem;
 }
 
-section[role="status"] .toaster-banner-undo {
+section[role="status"] .toaster-banner-undo,
+section[role="status"] .toaster-banner-retry {
   display: none;
   margin: 1rem;
   width: auto;
 }
 
-section[role="status"][title="undo"] .toaster-banner-undo {
+section[role="status"][title="undo"] .toaster-banner-undo,
+section[role="status"][title="retry"] .toaster-banner-retry {
   display: inline;
 }

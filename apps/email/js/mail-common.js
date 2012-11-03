@@ -817,6 +817,20 @@ var Toaster = {
     return this.text =
            document.querySelector('section[role="status"] p');
   },
+  get undoBtn() {
+    delete this.undoBtn;
+    return this.undoBtn =
+           document.querySelector('.toaster-banner-undo');
+  },
+  get retryBtn() {
+    delete this.retryBtn;
+    return this.retryBtn =
+           document.querySelector('.toaster-banner-retry');
+  },
+
+  undoableOp: null,
+  retryCallback: null,
+
   /**
    * Toaster timeout setting.
    */
@@ -840,12 +854,18 @@ var Toaster = {
 
   /**
    * Tell toaster listeners about a mutation we just made.
+   *
+   * @args[
+   *   @param[undoableOp]
+   *   @param[pending #:optional Boolean]{
+   *     If true, indicates that we should wait to display this banner until we
+   *     transition to the next card.  This is appropriate for things like
+   *     deleting the message that is displayed on the current card (and which
+   *     will be imminently closed).
+   *   }
+   * ]
    */
   logMutation: function(undoableOp, pending) {
-    //Close previous toaster before showing the new one.
-    if (!this.body.classList.contains('collapsed')) {
-      this.hide();
-    }
     if (pending) {
       this.pendingStack.push(this.show.bind(this, 'undo', undoableOp));
     } else {
@@ -853,14 +873,26 @@ var Toaster = {
     }
   },
 
+  /**
+   * Something failed that it makes sense to let the user explicitly trigger
+   * a retry of!  For example, failure to synchronize.
+   */
+  logRetryable: function(retryStringId, retryCallback) {
+    this.show('retry', retryStringId, retryCallback);
+  },
+
   handleEvent: function(evt) {
     switch (evt.type) {
       case 'click' :
-        if (evt.target.classList.contains('toaster-banner-undo')) {
-          // TODO: Need to find out why undo could not work now.
-          // this.undoableOp.undo();
+        var classList = evt.target.classList;
+        if (classList.contains('toaster-banner-undo')) {
+          this.undoableOp.undo();
           this.hide();
-        } else if (evt.target.classList.contains('toaster-cancel-btn')) {
+        } else if (classList.contains('toaster-banner-retry')) {
+          if (this.retryCallback)
+            this.retryCallback();
+          this.hide();
+        } else if (classList.contains('toaster-cancel-btn')) {
           this.hide();
         }
         break;
@@ -870,28 +902,43 @@ var Toaster = {
     }
   },
 
-  show: function(type, operation) {
-    var text;
-    if (type == 'undo') {
+  show: function(type, operation, callback) {
+    // Close previous toaster before showing the new one.
+    if (!this.body.classList.contains('collapsed')) {
+      this.hide();
+    }
+
+    var text, textId, showUndo = false;
+    var undoBtn = this.body.querySelector('.toaster-banner-undo');
+    if (type === 'undo') {
       this.undoableOp = operation;
-      // There is no need to show toaster is affected message count < 1
+      // There is no need to show toaster if affected message count < 1
       if (!this.undoableOp || this.undoableOp.affectedCount < 1) {
         return;
       }
-      var textId = 'toaster-message-' + this.undoableOp.operation;
-      var undoBtn = this.body.querySelector('.toaster-banner-undo');
+      textId = 'toaster-message-' + this.undoableOp.operation;
       text = mozL10n.get(textId, { n: this.undoableOp.affectedCount });
       // https://bugzilla.mozilla.org/show_bug.cgi?id=804916
       // Remove undo email move/delete UI for V1.
-      if (this.undoableOp.operation == 'move' ||
-          this.undoableOp.operation == 'delete') {
-        undoBtn.classList.add('collapsed');
-      } else {
-        undoBtn.classList.remove('collapsed');
-      }
-    } else if (type == 'text') {
+      showUndo = (this.undoableOp.operation !== 'move' &&
+                  this.undoableOp.operation !== 'delete');
+    } else if (type === 'retry') {
+      textId = 'toaster-retryable-' + operation;
+      text = mozL10n.get(textId);
+      this.retryCallback = callback;
+    // XXX I assume this is for debug purposes?
+    } else if (type === 'text') {
       text = operation;
     }
+
+    if (type === 'undo' && showUndo)
+      this.undoBtn.classList.remove('collapsed');
+    else
+      this.undoBtn.classList.add('collapsed');
+    if (type === 'retry')
+      this.retryBtn.classList.remove('collapsed');
+    else
+      this.retryBtn.classList.add('collapsed');
 
     this.body.title = type;
     this.text.textContent = text;
@@ -908,8 +955,10 @@ var Toaster = {
     this.fadeTimeout = null;
     this.body.removeEventListener('click', this);
     this.body.removeEventListener('transitionend', this);
+
     // Clear operations:
     this.undoableOp = null;
+    this.retryCallback = null;
   }
 };
 
