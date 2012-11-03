@@ -41,6 +41,7 @@ var gMobileConnection = (function newMobileConnection(window) {
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = 'resources/apns_conf.xml';
+  var gAPNPanel = document.getElementById('carrier-apnSettings');
 
   /**
    * gCompatibleAPN holds all compatible APNs matching the current iccInfo
@@ -203,7 +204,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
     }
 
     // set current APN to 'custom' on user modification
-    document.getElementById('apnSettings').onchange = function onChange(event) {
+    gAPNPanel.onchange = function onChange(event) {
       gUserChosenAPN = true;
       if (event.target.type == 'text') {
         var lastInput = lastItem.querySelector('input');
@@ -251,10 +252,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
     var name = data ? (data.shortName || data.longName) : '';
     document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
-
-    // force data connection to restart if changes are validated
-    apnSettings.querySelector('button[type=submit]').onclick =
-        restartDataConnection;
   }
 
   // 'Data Roaming' message
@@ -276,7 +273,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
     // get the initial setting value
     var req = settings.createLock().get(dataRoamingSetting);
     req.onsuccess = function roaming_getStatusSuccess() {
-      displayDataRoamingMessage(req.result[dataRoamingSetting]);
+      var enabled = req.result && req.result[dataRoamingSetting];
+      displayDataRoamingMessage(enabled);
     };
   } else {
     document.getElementById('dataRoaming-expl').hidden = true;
@@ -433,20 +431,24 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
   // public API
   return {
+    // display matching APNs
+    fillAPNList: function carrier_fillAPNList() {
+      queryAPN(updateAPNList);
+      // force data connection to restart if changes are validated
+      gAPNPanel.querySelector('button[type=submit]').onclick =
+          restartDataConnection;
+    },
+
     // startup
     init: function carrier_init() {
       gMobileConnection.addEventListener('datachange', updateConnection);
       updateConnection();
       updateSelectionMode();
-    },
-
-    // display matching APNs
-    fillAPNList: function carrier_fillAPNList() {
-      queryAPN(updateAPNList);
+      this.fillAPNList(); // XXX this should be done later -- not during init()
     }
   };
 })(this, document);
 
 // startup
-window.addEventListener('localized', Carrier.init);
+onLocalized(Carrier.init.bind(Carrier));
 

@@ -156,7 +156,7 @@ var gWifiManager = (function(window) {
 })(this);
 
 // handle Wi-Fi settings
-window.addEventListener('localized', function wifiSettings(evt) {
+onLocalized(function wifiSettings() {
   var _ = navigator.mozL10n.get;
 
   var settings = window.navigator.mozSettings;
@@ -707,13 +707,14 @@ window.addEventListener('localized', function wifiSettings(evt) {
         case 'wifi-auth':
           // network info -- #wifi-status and #wifi-auth
           var keys = network.capabilities;
+          var security = (keys && keys.length) ? keys.join(', ') : '';
           var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
           dialog.querySelector('[data-ssid]').textContent = network.ssid;
           dialog.querySelector('[data-signal]').textContent =
               _('signalLevel' + sl);
           dialog.querySelector('[data-security]').textContent =
-              (keys && keys.length) ? keys.join(', ') : _('securityNone');
-          dialog.className = key;
+              security || _('securityNone');
+          dialog.dataset.security = security;
           break;
 
         case 'wifi-joinHidden':
@@ -721,7 +722,7 @@ window.addEventListener('localized', function wifiSettings(evt) {
           var onSecurityChange = function() {
             key = security.selectedIndex ? security.value : '';
             network.capabilities = [key];
-            dialog.className = key;
+            dialog.dataset.security = key;
             checkPassword();
           }
           security.onchange = onSecurityChange;
