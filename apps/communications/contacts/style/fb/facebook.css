@@ -41,47 +41,6 @@ form[role="dialog"].no-overlay button {
 
 /* End BB */
 
-/* ----------------------------------
- * PROGRESS + ACTIVITIES
- * ---------------------------------- */
-
-/* Activity indicator */
-progress:not([value]) {
-  margin-top: 5rem;
-  margin-left: calc(50% - 1.45rem);
-  width: 2.9rem;
-  height: 2.9rem;
-  background: url(../images/spinner.png) no-repeat left top;
-  border: none;
-  animation: 1s moveDefault infinite steps(10);
-  display: inline-block;
-  vertical-align: middle;
-}
-
-progress:not([value])::-moz-progress-bar {
-   background: none;
- }
-
-@keyframes moveDefault {
-  from {
-    background-position: 0 top;
-  }
-
-  to {
-    background-position: -390px top;
-  }
-}
-
-@keyframes moveSpinner {
-  from {
-    background-position: 0 top;
-  }
-
-  to {
-    background-position: -300px top;
-  }
-}
-
 .view {
   position: fixed;
   left: 0;
@@ -99,7 +58,6 @@ progress:not([value])::-moz-progress-bar {
   width: 100%;
   height: 100%;
   display: none;
-  background: #fff;
 }
 
 .friends-msg {
@@ -114,14 +72,6 @@ p#friends-msg {
   font-weight: 600;
   line-height: 1.8rem;
   margin: 0 3rem;
-}
-
-body[data-state='waiting'] #curtain {
-  display: block;
-}
-
-body[data-state='waiting'] #content {
-  display: none;
 }
 
 h2.block-title {
@@ -159,6 +109,10 @@ h2.block-title {
 
 .link #mainContent {
   padding: 0;
+}
+
+link li {
+  margin-top: 0;
 }
 
 .link li img {
@@ -264,4 +218,15 @@ li[data-uuid]{
 
 li[data-uuid]:last-child {
   border-bottom: none !important;
+}
+
+#statusMsg {
+  -moz-transition: -moz-transform .5s ease;
+  -moz-transform: translateY(8rem);
+  pointer-events: none;
+}
+
+#statusMsg.visible {
+  -moz-transform: translateY(0);
+  z-index: 1001;
 }

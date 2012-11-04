@@ -35,7 +35,7 @@ if (typeof fb.oauthflow === 'undefined') {
     OAuthFlow.init = function() {
       var hash = document.location.hash.substring(1);
 
-      if (hash.indexOf('access_token') !== -1 || hash.indexOf('state') !== -1) {
+      if (hash.indexOf('access_token') !== -1) {
         var elements = hash.split('&');
 
         var parameters = {};
@@ -46,7 +46,7 @@ if (typeof fb.oauthflow === 'undefined') {
           parameters[values[0]] = values[1];
         });
 
-        window.opener.postMessage(JSON.stringify(parameters),
+        window.opener.postMessage(parameters,
                                   fb.oauthflow.params[CONTACTS_APP_ORIGIN]);
 
         // Finally the window is closed
@@ -89,8 +89,8 @@ if (typeof fb.oauthflow === 'undefined') {
       var queryParams = ['client_id=' + params[APP_ID],
                           'redirect_uri=' + redirect_uri,
                           'response_type=token',
-                          window.location.hash.substring(1),
-                          'scope=' + scopeParam
+                          'scope=' + scopeParam,
+                          'state=' + state
       ]; // Query params
 
     var query = queryParams.join('&');
