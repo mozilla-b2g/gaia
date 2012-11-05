@@ -87,7 +87,8 @@
   margin: 0;
 }
 .tng-account-add, .tng-account-delete {
-  width: auto;
+  text-align: center;
+  width: calc(100% - 6rem);
   margin: 0.8rem 0;
 }
 
