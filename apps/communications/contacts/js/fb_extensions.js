@@ -8,36 +8,50 @@ if (typeof Contacts.extFb === 'undefined') {
     var contactId;
 
     var extensionFrame = document.querySelector('#fb-extensions');
+    var oauthFrame = document.querySelector('#fb-oauth');
+    var currentURI, access_token;
 
     extFb.startLink = function(cid, linked) {
       contactId = cid;
       if (!linked) {
-        open('fb_link.html' + '?contactId=' + contactId);
+        load('fb_link.html' + '?contactId=' + contactId, 'proposal');
       } else {
         doUnlink(contactId);
       }
     }
 
-    extFb.importFB = function() {
-      open('fb_import.html', 'import');
+    extFb.importFB = function(evt) {
+      load('fb_import.html?contacts=1', 'friends');
     }
 
-    function open(uri, target) {
-      extensionFrame.addEventListener('transitionend', function topen() {
-        extensionFrame.removeEventListener('transitionend', topen);
-        extensionFrame.src = uri;
-      });
-      extensionFrame.className = (target === 'import') ?
-                                  'openingImport' : 'opening';
+    function open() {
+      extensionFrame.className = 'opening';
     }
 
-    function close(target) {
+    function load(uri, from) {
+      extensionFrame.dataset.animFrom = 'left';
+      window.addEventListener('message', messageHandler);
+      oauthFrame.contentWindow.postMessage({
+        type: 'start',
+        data: {
+          from: from
+        }
+      }, fb.CONTACTS_APP_ORIGIN);
+      currentURI = uri;
+    }
+
+    function unload() {
+      window.removeEventListener('message', messageHandler);
+      extensionFrame.src = null;
+    }
+
+    function close() {
+      window.removeEventListener('message', messageHandler);
       extensionFrame.addEventListener('transitionend', function tclose() {
         extensionFrame.removeEventListener('transitionend', tclose);
         extensionFrame.src = null;
       });
-      extensionFrame.className = (target === 'import') ?
-                                  'closingImport' : 'closing';
+      extensionFrame.className = 'closing';
     }
 
     function openURL(url) {
@@ -162,7 +176,7 @@ if (typeof Contacts.extFb === 'undefined') {
           if (originalFbContact) {
             contacts.List.remove(originalFbContact.id);
           }
-          Contacts.navigation.home();
+          Contacts.showContactDetail(contactId);
         }
 
         req.onerror = function() {
@@ -205,12 +219,29 @@ if (typeof Contacts.extFb === 'undefined') {
 
     // This function can also be executed when other messages arrive
     // That's why we cannot call notifySettings outside the switch block
-    window.addEventListener('message', function(e) {
+    function messageHandler(e) {
       var data = e.data;
 
       switch (data.type) {
+        case 'ready':
+          open();
+        break;
+
+        case 'authenticating':
+          extensionFrame.dataset.animFrom = 'bottom';
+        break;
+
+        case 'authenticated':
+          extensionFrame.src = currentURI;
+          access_token = data.data;
+        break;
+
+        case 'abort':
+          unload();
+        break;
+
         case 'window_close':
-          close(data.from);
+          close();
           if (data.from === 'import') {
             contacts.List.load();
           }
@@ -224,9 +255,15 @@ if (typeof Contacts.extFb === 'undefined') {
 
           notifySettings();
         break;
-      }
 
-    });
+        case 'messaging_ready':
+          extensionFrame.contentWindow.postMessage({
+            type: 'token',
+            data: access_token
+          }, fb.CONTACTS_APP_ORIGIN);
+        break;
+      }
+    }
 
   })(document);
 }

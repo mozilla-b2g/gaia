@@ -1,0 +1,49 @@
+#curtain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+form[role="dialog"][data-type="confirm"] > section {
+  display: none;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="wait"] #wait {
+  display: inline-block;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="wait"] #cancel {
+  width: 100%;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="wait"] #retry {
+  display: none;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="progress"] #progress {
+  display: inline-block;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="progress"] menu,
+form[role="dialog"][data-type="confirm"][data-state="message"] menu {
+  display: none;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="message"] #message {
+  display: inline-block;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="error"] #error {
+  display: inline-block;
+}
+
+form[role="dialog"][data-type="confirm"][data-state="timeout"] #timeout {
+  display: inline-block;
+}
+
+p[role="status"] {
+  text-align: center;
+}

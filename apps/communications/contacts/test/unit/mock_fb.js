@@ -171,3 +171,15 @@ MockFb.isFbLinked = function(contact) {
 MockFb.isEnabled = function() {
   return this.isEnabled;
 };
+
+MockFb.getWorksAt = function(fbData) {
+  return 'Telef—nica';
+};
+
+MockFb.getAddress = function(fbData) {
+  var out = {};
+  out.type = ['home'];
+  out.locality = 'Palencia';
+  out.region = 'Castilla y Le—n';
+  out.countryName = 'Espa–a';
+};

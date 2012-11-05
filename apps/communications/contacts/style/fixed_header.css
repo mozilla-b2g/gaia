@@ -29,7 +29,3 @@
   text-align: left;
   pointer-events: none;
 }
-
-body[data-state='waiting'] .fixed-title-fb {
-  visibility: hidden;
-}

@@ -635,7 +635,8 @@ var Contacts = (function() {
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
     'showOverlay': showOverlay,
-    'hideOverlay': hideOverlay
+    'hideOverlay': hideOverlay,
+    'showContactDetail': contactListClickHandler
   };
 })();
 

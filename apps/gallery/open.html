@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Gallery</title>
+    <link rel="stylesheet" href="style/open.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <!-- Shared code -->
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="shared/js/gesture_detector.js"></script>
+    <!-- Specific code -->
+    <script type="text/javascript" defer src="js/PhotoState.js"></script>
+    <script type="text/javascript" defer src="js/open.js"></script>
+  </head>
+
+  <body class="hidden" role="application">
+    <section id="open-view" role="region" class="skin-organic">
+      <header id="open-top">
+        <button id="open-back-button"><span class="icon icon-back"></span></button>
+      </header>
+      <div id="open-frame"><img id="open-image"></div>
+      <!-- we only show this when invoked by the camera -->
+      <footer id="open-toolbar" style="display:none">
+        <a id="open-camera-button" class="button"></a>
+        <a id="open-delete-button" class="button"></a>
+      </footer>
+    </section>
+  </body>
+</html>
+
