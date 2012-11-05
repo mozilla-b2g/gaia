@@ -185,7 +185,7 @@ var Recents = {
 
   filter: function re_filter(event) {
     // do nothing if selected tab is same that current
-    if (event.target.classList.contains('selected')) {
+    if (event.target.parentNode.classList.contains('selected')) {
       return;
     }
     var action = event.target.dataset.action;
@@ -577,13 +577,13 @@ var Recents = {
       self._missedViewGroupingPending = true;
       if (self.missedFilter.classList.contains('selected')) {
         self.missedFilter.classList.remove('selected');
-        event.target = self.missedFilter;
+        event.target = self.missedFilter.children[0];
         self.filter(event);
         self.missedFilter.classList.add('selected');
         self.allFilter.classList.remove('selected');
       } else {
         self.allFilter.classList.remove('selected');
-        event.target = self.allFilter;
+        event.target = self.allFilter.children[0];
         self.filter(event);
         self.missedFilter.classList.remove('selected');
         self.allFilter.classList.add('selected');

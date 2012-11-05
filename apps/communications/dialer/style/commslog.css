@@ -45,29 +45,16 @@ ol, ul {
   list-style: none;
 }
 
-.recents-filter-container {
-  background: white;
-  overflow: hidden;
+/* Copying Filters BB styles for selected filter, but using .selected instead of :target */
+ul[role="tablist"][data-type="filter"] > [role="tab"].selected {
+  background: #fff;
+  border: solid 1px #999;
+  border-top: none;
+  color: #000;
 }
 
-.recents-filter-entry {
-  float: left;
-  width: 50%;
-}
-
-.recents-filter-entry > button {
-  height: 3rem;
-  width: 100%;
-  font-size: -moz-calc(6*0.226rem);
-  opacity: 0.8;
-}
-
-button.selected {
-  opacity: 1.0;
-}
-
-button::-moz-focus-inner {
-  border: 0px;
+ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
+  color: #000;
 }
 
 .hide {
@@ -77,7 +64,7 @@ button::-moz-focus-inner {
 .view-body {
   background : white;
   color: black;
-  height: -moz-calc(100% - 8rem);
+  height: -moz-calc(100% - 9.5rem);
   -moz-transition: height .15s ease-in;
   position: absolute;
   overflow: hidden;
@@ -87,6 +74,15 @@ button::-moz-focus-inner {
 .view-body-inner {
   height: 100%;
   overflow: auto;
+}
+
+.view-body-inner ol {
+  overflow: hidden;
+}
+
+.view-body .fixed-title {
+  margin-left: 1.5rem;
+  height: 3.5rem;
 }
 
 .view-body h2 {
@@ -153,6 +149,10 @@ button::-moz-focus-inner {
   width: 3rem;
   height: 3rem;
   background-image: url('images/CallLog_30x30_missed_grey.png');
+}
+
+.call-type-icon {
+  margin: 0 auto;
 }
 
 .log-item {
