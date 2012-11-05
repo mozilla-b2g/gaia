@@ -5,7 +5,8 @@
 
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
- * the `dom.mozSettings.enabled' preference to false.
+ * the `dom.mozSettings.enabled' preference to false in order to avoid an
+ * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
 var Settings = {
