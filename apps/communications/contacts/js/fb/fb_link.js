@@ -430,7 +430,8 @@ if (!fb.link) {
         }
         else {
           state = 'linking';
-          var importReq = fb.importer.importFriend(friendUidToLink, access_token);
+          var importReq = fb.importer.importFriend(friendUidToLink,
+                                                   access_token);
 
           importReq.onsuccess = function() {
             Curtain.hide(function() {
