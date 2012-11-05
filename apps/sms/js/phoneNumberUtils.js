@@ -22,12 +22,16 @@ var PhoneNumberManager = {
   init: function pnm_init() {
     // TODO: Here we use Brazil for default mcc. We may need to record the mcc
     //       and apply it if we could not get connection data in the future.
+
+    // Incluir el async storage
+    
     var presetMCC = 'ES';
     var conn = window.navigator.mozMobileConnection;
     if (!!conn) {
       if (conn.cardState == 'ready') {
         var currentMCC = conn.voice.network.mcc;
         if (currentMCC != 0) {
+          // Retrieve the last one
           this.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
         } else {
           this.region = presetMCC;

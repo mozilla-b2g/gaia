@@ -9,13 +9,12 @@ var MessageManager = {
     PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
+      // Init first time
       MessageManager.getMessages(ThreadListUI.renderThreads);
     });
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
-    // Init first time
-    this.getMessages(ThreadListUI.renderThreads);
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -493,6 +492,7 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
+    console.log('---- !!!!! ----'+(new Date()).getTime());
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
       document.getElementById('threads-fixed-container').
@@ -549,6 +549,7 @@ var ThreadListUI = {
       Utils.updateTimeHeaderScheduler();
 
     } else {
+      console.log("ASDASDASDASD");
       document.getElementById('threads-fixed-container').classList.add('hide');
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
