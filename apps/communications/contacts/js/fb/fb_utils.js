@@ -14,7 +14,7 @@ if (!fb.utils) {
     Utils.ALARM_ID_KEY = 'nextAlarmId';
 
     var REDIRECT_LOGOUT_URI = fb.oauthflow.params['redirectLogout'];
-    var STORAGE_KEY = 'tokenData';
+    var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
 
       // For controlling data synchronization
     Utils.setLastUpdate = function(value, cb) {
@@ -322,33 +322,33 @@ if (!fb.utils) {
 
     } // logout
 
-     /**
-       *   Request auxiliary object to support asynchronous calls
-       *
-       */
-       Utils.Request = function() {
-        this.done = function(result) {
-          this.result = result;
-          if (typeof this.onsuccess === 'function') {
-            var ev = {};
-            ev.target = this;
-            window.setTimeout(function() {
-              this.onsuccess(ev);
-            }.bind(this), 0);
-          }
-        }
-
-        this.failed = function(error) {
-          this.error = error;
-          if (typeof this.onerror === 'function') {
-            var ev = {};
-            ev.target = this;
-            window.setTimeout(function() {
-              this.onerror(ev);
-            }.bind(this), 0);
-          }
+    /**
+     *   Request auxiliary object to support asynchronous calls
+     *
+     */
+    Utils.Request = function() {
+      this.done = function(result) {
+        this.result = result;
+        if (typeof this.onsuccess === 'function') {
+          var ev = {};
+          ev.target = this;
+          window.setTimeout(function() {
+            this.onsuccess(ev);
+          }.bind(this), 0);
         }
       }
+
+      this.failed = function(error) {
+        this.error = error;
+        if (typeof this.onerror === 'function') {
+          var ev = {};
+          ev.target = this;
+          window.setTimeout(function() {
+            this.onerror(ev);
+          }.bind(this), 0);
+        }
+      }
+    }
 
     // FbContactsCleaner Object
     function FbContactsCleaner(contacts) {

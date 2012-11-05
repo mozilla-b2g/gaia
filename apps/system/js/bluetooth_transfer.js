@@ -159,18 +159,18 @@ var BluetoothTransfer = {
 
       case 'progress':
         var address = evt.address;
-        var processed = evt.processed;
-        var filelength = evt.filelength;
+        var processedLength = evt.processedLength;
+        var fileLength = evt.fileLength;
         var progress = 0;
-        if (filelength == 0) {
+        if (fileLength == 0) {
           //XXX: May need to handle unknow progress
-        } else if (processed > filelength) {
+        } else if (processedLength > fileLength) {
           // According Bluetooth spec.,
-          // the processed is a referenced value only.
-          // XXX: If processed is bigger than file length,
+          // the processed length is a referenced value only.
+          // XXX: If processed length is bigger than file length,
           //      show an unknown progress
         } else {
-          progress = processed / filelength;
+          progress = processedLength / fileLength;
         }
         this.updateProgress(progress, evt);
         break;

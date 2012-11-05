@@ -1,5 +1,7 @@
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/facebook/test/unit/mock_curtain.js');
+requireApp('communications/contacts/js/fb/fb_query.js');
 requireApp('communications/contacts/js/fb/fb_import.js');
 
 // We're going to swap those with mock objects
@@ -19,6 +21,7 @@ suite('Facebook Import', function() {
 
     realFb = window.fb;
     window.fb = MockFb;
+    window.fb.utils = realFb.utils;
 
     MockFriend = {
       uid: '220439',

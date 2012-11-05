@@ -185,8 +185,10 @@
   requireLib('store/busytime.js');
   requireLib('store/calendar.js');
   requireLib('store/event.js');
+  requireLib('store/ical_component.js');
   requireLib('store/setting.js');
   requireLib('store/alarm.js');
+  requireLib('event_mutations.js');
   requireLib('view.js');
   requireLib('router.js');
   requireLib('controllers/alarm.js');

@@ -62,6 +62,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
     stream.on('recurring end', this);
     stream.on('missing events', this);
 
+    this.icalQueue = [];
     this.eventQueue = [];
     this.busytimeQueue = [];
     this.alarmQueue = [];
@@ -200,6 +201,15 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
 
       this.eventQueue.push(event);
 
+      var component = event.remote.icalComponent;
+      delete event.remote.icalComponent;
+
+
+      this.icalQueue.push({
+        data: event.remote.icalComponent,
+        eventId: event._id
+      });
+
       if (exceptions) {
         for (var i = 0; i < exceptions.length; i++) {
           this.handleEventSync(this.formatEvent(exceptions[i]));
@@ -228,6 +238,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
 
     commit: function(callback) {
       var eventStore = this.app.store('Event');
+      var icalComponentStore = this.app.store('IcalComponent');
       var calendarStore = this.app.store('Calendar');
       var busytimeStore = this.app.store('Busytime');
       var alarmStore = this.app.store('Alarm');
@@ -236,7 +247,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       var account = this.account;
 
       var trans = calendarStore.db.transaction(
-        ['calendars', 'events', 'busytimes', 'alarms'],
+        ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
         'readwrite'
       );
 
@@ -245,6 +256,11 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       this.eventQueue.forEach(function(event) {
         debug('add event', event);
         eventStore.persist(event, trans);
+      });
+
+      this.icalQueue.forEach(function(ical) {
+        debug('add component', ical);
+        icalComponentStore.persist(ical, trans);
       });
 
       this.busytimeQueue.forEach(function(busy) {

@@ -45,8 +45,7 @@ var Applications = (function() {
     var apps = e.target.result;
     apps.forEach(function parseApp(app) {
       var manifest = app.manifest;
-      if (!manifest ||
-          (isCore(app) && manifest.launch_path === undefined)) {
+      if (!manifest) {
         return;
       }
 

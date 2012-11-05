@@ -12,6 +12,7 @@
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
     <script type="text/javascript" defer src="shared/js/mediadb.js"></script>
+    <script type="text/javascript" src="/shared/js/async_storage.js"></script>
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/blobview.js"></script>
     <script type="text/javascript" defer src="js/metadata.js"></script>
@@ -50,7 +51,7 @@
             <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
           </div>
           <div id="player-cover-buttons">
-            <button id="player-album-repeat" class="player-cover-button" disabled></button>
+            <button id="player-album-repeat" class="player-cover-button"></button>
             <div id="player-album-rating">
               <button class="rating-star" data-rating="1"></button>
               <button class="rating-star" data-rating="2"></button>
@@ -58,7 +59,7 @@
               <button class="rating-star" data-rating="4"></button>
               <button class="rating-star" data-rating="5"></button>
             </div>
-            <button id="player-album-shuffle" class="player-cover-button" disabled></button>
+            <button id="player-album-shuffle" class="player-cover-button"></button>
           </div>
         </div>
         <div id="player-seek">

@@ -1,6 +1,6 @@
 (function(window) {
   var idb = window.indexedDB;
-  const VERSION = 9;
+  const VERSION = 10;
 
   var store = {
     events: 'events',
@@ -8,7 +8,8 @@
     calendars: 'calendars',
     busytimes: 'busytimes',
     settings: 'settings',
-    alarms: 'alarms'
+    alarms: 'alarms',
+    icalComponents: 'icalComponents'
   };
 
   Object.freeze(store);
@@ -18,6 +19,8 @@
     this._stores = Object.create(null);
 
     Calendar.Responder.call(this);
+
+    this._upgradeOperations = [];
   }
 
   Db.prototype = {
@@ -110,20 +113,48 @@
     /**
      * Opens connection to database.
      *
-     * @param {Function} callback first argument is error, second
+     * @param {Numeric} [version] version of database to open.
+     *                            default to current version.
+     *                            Should _only_ be used in testing.
+     *
+     * @param {Function} [callback] first argument is error, second
      *                            is result of operation or null
      *                            in the error case.
      */
-    open: function(callback) {
-      var req = idb.open(this.name, this.version);
+    open: function(version, callback) {
+      if (typeof(version) === 'function') {
+        callback = version;
+        version = VERSION;
+      }
+
+      var req = idb.open(this.name, version);
+      this.version = version;
+
       var self = this;
 
       req.onsuccess = function(event) {
         self.isOpen = true;
         self.connection = req.result;
 
-        callback(null, self);
-        self.emit('open', self);
+        // if we have pending upgrade operations
+        if (self._upgradeOperations.length) {
+          var pending = self._upgradeOperations.length;
+
+          function next() {
+            if (!(--pending)) {
+              callback(null, self);
+              self.emit('open', self);
+            }
+          }
+
+          var operation;
+          while ((operation = self._upgradeOperations.shift())) {
+            operation.call(self, next);
+          }
+        } else {
+          callback(null, self);
+          self.emit('open', self);
+        }
       };
 
       req.onblocked = function(error) {
@@ -166,8 +197,7 @@
       this.oldVersion = curVersion;
       this.upgradedVersion = newVersion;
 
-      for (; curVersion <= newVersion; curVersion++) {
-
+      for (; curVersion < newVersion; curVersion++) {
         // if version is < 7 then it was from pre-production
         // db and we can safely discard its information.
         if (curVersion < 6) {
@@ -244,12 +274,19 @@
             'busytimeId',
             { unique: false, multiEntry: false }
           );
+        } else if (curVersion === 9) {
+          var icalComponents = db.createObjectStore(
+            store.icalComponents, { keyPath: 'eventId', autoIncrement: false }
+          );
+
+          // only upgrade the events when this is an existing
+          // database. When the value is 0 that indicates this
+          // is the very first time the user is booting up calendar.
+          if (this.oldVersion !== 0) {
+            this._upgradeOperations.push(this._upgradeMoveICALComponents);
+          }
         }
       }
-    },
-
-    get version() {
-      return VERSION;
     },
 
     get store() {
@@ -336,8 +373,46 @@
       req.onerror = function(event) {
         callback(event, null);
       }
-    }
+    },
 
+    /** private db upgrade methods **/
+    _upgradeMoveICALComponents: function(callback) {
+      var trans = this.transaction(
+        [store.events, store.icalComponents],
+        'readwrite'
+      );
+
+      trans.onerror = function() {
+        console.error('Error while upgrading ical components');
+        callback();
+      }
+
+      trans.oncomplete = function() {
+        callback();
+      }
+
+      var eventStore = trans.objectStore(store.events);
+      var componentStore = trans.objectStore(store.icalComponents);
+
+      var req = eventStore.openCursor();
+
+      req.onsuccess = function upgradeCursor(e) {
+        var cursor = e.target.result;
+        if (cursor) {
+          var value = cursor.value;
+
+          if (value && value.remote.icalComponent && !value.parentId) {
+            var component = value.remote.icalComponent;
+            delete value.remote.icalComponent;
+
+            componentStore.add({ eventId: value._id, data: component });
+            cursor.update(value);
+          }
+
+          cursor.continue();
+        }
+      }
+    }
   };
 
   Calendar.Db = Db;

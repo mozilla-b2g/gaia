@@ -323,7 +323,8 @@ var Camera = {
         rotation: 90,
         maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
       };
-      this._cameraObj.startRecording(config, this._videoStorage, this._videoPath,
+      this._cameraObj.startRecording(config,
+                                     this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
     }).bind(this);
 
@@ -498,38 +499,45 @@ var Camera = {
     }
 
     // Launch the gallery with an open activity to view this specific photo
+    var camera = this;
     var filename = e.target.getAttribute('data-filename');
     var filetype = e.target.getAttribute('data-filetype');
     var storage = this._pictureStorage;
+    var getreq = storage.get(filename);
 
-    var a = new MozActivity({
-      name: 'open',
-      data: {
-        type: filetype,
-        filename: filename
-      }
-    });
-
-    // XXX: this seems like it should not be necessary
-    function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        evt.target.result.launch();
-      };
-    }
-
-    a.onerror = function(e) {
-      reopen();
-      console.warn('open activity error:', a.error.name);
+    getreq.onerror = function() {
+      console.warn('failed to get file:', filename, getreq.error.name);
     };
-    a.onsuccess = function(e) {
-      reopen();
 
-      if (a.result.delete) {
-        storage.delete(filename).onerror = function(e) {
-          console.error('Failed to delete', filename,
-                        'from DeviceStorage:', e.target.error);
-        };
-      }
+    getreq.onsuccess = function() {
+      var file = getreq.result;
+      var a = new MozActivity({
+        name: 'open',
+        data: {
+          type: filetype,
+          blob: file,
+          show_delete_button: true
+        }
+      });
+
+      // We don't seem to get a mozvisiblitychange event when the
+      // inline open activity opens up, so we explicitly stop the
+      // and restart the preview stream
+      camera.stopPreview();
+
+      a.onerror = function(e) {
+        console.warn('open activity error:', a.error.name);
+        camera.startPreview();
+      };
+      a.onsuccess = function(e) {
+        camera.startPreview();
+        if (a.result.delete) {
+          storage.delete(filename).onerror = function(e) {
+            console.warn('Failed to delete', filename,
+                         'from DeviceStorage:', e.target.error);
+          };
+        }
+      };
     };
   },
 
@@ -638,10 +646,10 @@ var Camera = {
       var preview = document.createElement('img');
       wrapper.classList.add('thumbnail');
       wrapper.classList.add(/image/.test(image.type) ? 'image' : 'video');
-      wrapper.setAttribute('data-type', image.type);
+      wrapper.setAttribute('data-filetype', image.type);
       wrapper.setAttribute('data-filename', image.name);
+      wrapper.onclick = this.filmStripPressed.bind(this);
       preview.src = window.URL.createObjectURL(image.blob);
-      preview.onclick = this.filmStripPressed.bind(this);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
       };
@@ -668,27 +676,12 @@ var Camera = {
       window.setTimeout(this.resumePreview.bind(this), this.PREVIEW_PAUSE);
   },
 
-  _dataURLFromBlob: function camera_dataURLFromBlob(blob, type, callback) {
-    var url = URL.createObjectURL(blob);
-    var img = new Image();
-    img.src = url;
-    img.onload = function() {
-      var canvas = document.createElement('canvas');
-      var context = canvas.getContext('2d');
-      canvas.width = img.naturalWidth;
-      canvas.height = img.naturalHeight;
-      context.drawImage(img, 0, 0);
-      callback(canvas.toDataURL(type));
-      URL.revokeObjectURL(url);
-    };
-  },
-
   createDCFFilename: function camera_createDCFFilename(type, ext, callback) {
     var self = this;
     var dcf = this._dcfConfig;
     var filename = dcf[type].prefix + this.padLeft(dcf.seq.file, 4) + '.' + ext;
-    var path =  'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
-    var storage = (type === 'video') ? this._videoStorage : this._pictureStorage;
+    var path = 'DCIM/' + dcf.seq.dir + dcf.postFix + '/' + filename;
+    var storage = type === 'video' ? this._videoStorage : this._pictureStorage;
 
     // A file with this name may have been written by the user or
     // our indexeddb sequence tracker was cleared, check we wont overwrite
@@ -727,14 +720,20 @@ var Camera = {
       var addreq = this._pictureStorage.addNamed(blob, name);
       addreq.onsuccess = (function() {
         if (this._pendingPick) {
-          var type = 'image/jpeg';
-          this._dataURLFromBlob(blob, type, function(name) {
+          // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=806503
+          // We ought to just be able to pass this blob to the activity.
+          // But there seems to be a bug with blob lifetimes and activities.
+          // So we'll get a new blob back out of device storage to ensure
+          // that we've got a file-backed blob instead of a memory-backed blob.
+          var getreq = this._pictureStorage.get(name);
+          getreq.onsuccess = (function() {
             this._pendingPick.postResult({
-              type: type,
-              url: name
+              type: 'image/jpeg',
+              blob: getreq.result
             });
             this.cancelActivity();
-          }.bind(this));
+          }).bind(this);
+
           return;
         }
         this.addToFilmStrip(name, blob, 'image/jpeg');
