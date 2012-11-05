@@ -145,7 +145,7 @@ var MediaStorage = {
     });
   },
 
-  updateStorageInfo: function mediaStorage_updateStorageInfo(usedSize, freeSize) {
+  updateStorageInfo: function mediaStorage_updateStorageInfo() {
     var _ = navigator.mozL10n.get;
 
     function formatSize(element, size, l10nId) {
@@ -160,7 +160,7 @@ var MediaStorage = {
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-      element.textContent = _(l10nId + sizeInfo.unit, {size: sizeInfo.size});
+      element.textContent = _(l10nId + sizeInfo.unit, { size: sizeInfo.size });
     }
 
     // Update the storage details

@@ -77,7 +77,7 @@ onLocalized(function SettingsAppStorage() {
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-      element.textContent = _(l10nId + sizeInfo.unit, {size: sizeInfo.size});
+      element.textContent = _(l10nId + sizeInfo.unit, { size: sizeInfo.size });
     }
 
     // Update the subtitle of device storage
