@@ -10,7 +10,6 @@
 }
 
 #keyboard-view {
-  width: 100%;
   height: 100%;
 }
 
@@ -22,7 +21,7 @@
 
 #phone-number-view-container {
   width: 100%;
-  height: -moz-calc(100% - 34.5rem);
+  height: -moz-calc(100% - 35rem);
   background: #242B36;
   text-align: center;
   display: table;
@@ -50,6 +49,10 @@
   text-align: center;
   width: 4rem;
   visibility: hidden;
+}
+
+article:not(:target) #keypad-delete {
+  display: none;
 }
 
 #keypad-delete > div {
