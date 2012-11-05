@@ -342,22 +342,41 @@ ComposeCard.prototype = {
     // XXX well-formedness-check (ideally just handle by not letting you send
     // if you haven't added anyone...)
 
-    this.composer.finishCompositionSendMessage();
-    if (this.activity) {
-      // We need more testing here to make sure the behavior that back
-      // to originated activity works perfectly without any crash or
-      // unable to switch back.
+    var activity = this.activity;
+    var domNode = this.domNode;
+    var sendingTemplate = cmpNodes['sending-container'];
+    domNode.appendChild(sendingTemplate);
 
-      // Define activity postResult return value here:
-      if (this.activity.source.name == 'share') {
-        this.activity.postResult('shared');
+    this.composer.finishCompositionSendMessage(
+      function callback(error , badAddress, sentDate) {
+        var activityHandler = function() {
+          if (activity) {
+            // Define activity postResult return value here:
+            if (activity.source.name == 'share') {
+              activity.postResult('shared');
+            }
+            activity = null;
+          }
+        }
+
+        domNode.removeChild(sendingTemplate);
+        if (error) {
+          CustomDialog.show(
+            null,
+            mozL10n.get('compose-send-message-failed'),
+            {
+              title: mozL10n.get('dialog-button-ok'),
+              callback: function() {
+                CustomDialog.hide();
+              }
+            }
+          );
+          return;
+        }
+        activityHandler();
+        Cards.removeCardAndSuccessors(domNode, 'animate');
       }
-      this.activity = null;
-
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    } else {
-      Cards.removeCardAndSuccessors(this.domNode, 'animate');
-    }
+    );
   },
 
   onContactAdd: function(event) {
