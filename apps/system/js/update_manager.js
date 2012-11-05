@@ -15,7 +15,7 @@ var UpdateManager = {
   _mgmt: null,
   _downloading: false,
   _errorTimeout: null,
-  NOTIFICATION_BUFFERING_TIMEOUT: 60 * 1000,
+  NOTIFICATION_BUFFERING_TIMEOUT: 30 * 1000,
   TOASTER_TIMEOUT: 1200,
 
   container: null,
@@ -187,6 +187,7 @@ var UpdateManager = {
     }
 
     this.updatesQueue.push(updatable);
+
     if (this.updatesQueue.length === 1) {
       var self = this;
       setTimeout(function waitForMore() {
@@ -197,6 +198,10 @@ var UpdateManager = {
           setTimeout(function waitToHide() {
             self.toaster.classList.remove('displayed');
           }, self.TOASTER_TIMEOUT);
+
+          var initialCount = StatusBar.notificationsCount;
+          StatusBar.updateNotification(initialCount + 1);
+          StatusBar.updateNotificationUnread(true);
         }
       }, this.NOTIFICATION_BUFFERING_TIMEOUT);
     }
@@ -212,6 +217,11 @@ var UpdateManager = {
     this.updatesQueue.splice(removeIndex, 1);
     if (this.updatesQueue.length === 0) {
       this.container.classList.remove('displayed');
+
+      var initialCount = StatusBar.notificationsCount;
+      if (initialCount >= 1) {
+        StatusBar.updateNotification(initialCount - 1);
+      }
     }
 
     this.render();
