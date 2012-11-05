@@ -496,10 +496,18 @@ window.addEventListener('load', function loadSettings() {
 
   // startup
   window.addEventListener('hashchange', showPanel);
-  if (document.location.hash) {
-    showPanel();
-  } else {
-    document.location.hash = 'root';
+  switch (window.location.hash) {
+    case '':
+      document.location.hash = 'root';
+      break;
+    case '#root':
+      document.getElementById('root').className = 'current';
+      showPanel();
+      break;
+    default:
+      document.getElementById('root').className = 'previous';
+      showPanel();
+      break;
   }
 });
 

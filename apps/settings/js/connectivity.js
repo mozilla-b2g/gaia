@@ -13,9 +13,8 @@ var gMobileConnection = (function newMobileConnection(window) {
   var navigator = window.navigator;
   if (('mozMobileConnection' in navigator) &&
       navigator.mozMobileConnection &&
-      navigator.mozMobileConnection.data) {
+      navigator.mozMobileConnection.data)
     return navigator.mozMobileConnection;
-  }
 
   var initialized = false;
   var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
@@ -46,14 +45,8 @@ var gMobileConnection = (function newMobileConnection(window) {
 // create a fake mozWifiManager if required (e.g. desktop browser)
 var gWifiManager = (function(window) {
   var navigator = window.navigator;
-
-  try {
-    if ('mozWifiManager' in navigator)
-      return navigator.mozWifiManager;
-  } catch (e) {
-    //Bug 739234 - state[0] is undefined when initializing DOMWifiManager
-    dump(e);
-  }
+  if ('mozWifiManager' in navigator)
+    return navigator.mozWifiManager;
 
   /**
    * fake network list, where each network object looks like:
