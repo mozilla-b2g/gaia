@@ -40,7 +40,7 @@ div[role="list"] li {
   border-bottom: solid 0.1rem #dbd9d9;
   margin: 0;
   position: relative;
-  display: inline-block;
+  display: block;
 }
 
 div[role="list"] li mark {
