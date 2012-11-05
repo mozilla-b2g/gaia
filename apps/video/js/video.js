@@ -27,9 +27,14 @@ var controlFadeTimeout = null;
 
 var videodb;
 var currentVideo;  // The data for the current video
+var videoCount = 0;
+var firstScanEnded = false;
 
 var THUMBNAIL_WIDTH = 160;  // Just a guess at a size for now
 var THUMBNAIL_HEIGHT = 160;
+
+// Enumerating the readyState for html5 video api
+var HAVE_NOTHING = 0;
 
 var urlToStream; // From an activity call
 var appStarted = false;
@@ -61,6 +66,10 @@ function init() {
   };
   videodb.onscanend = function() {
     dom.throbber.classList.remove('throb');
+    if (!firstScanEnded) {
+      firstScanEnded = true;
+      updateDialog();
+    }
   };
 
   videodb.oncreated = function(event) {
@@ -83,6 +92,8 @@ function addVideo(videodata) {
   if (!videodata || !videodata.metadata.isVideo) {
     return;
   }
+
+  videoCount += 1;
 
   if (videodata.metadata.poster) {
     poster = document.createElement('img');
@@ -126,6 +137,7 @@ function addVideo(videodata) {
 }
 
 function deleteVideo(filename) {
+  videoCount -= 1;
   dom.thumbnails.removeChild(getThumbnailDom(filename));
 }
 
@@ -136,13 +148,11 @@ function createThumbnailList() {
   if (dom.thumbnails.firstChild !== null) {
     dom.thumbnails.textContent = '';
   }
-  videodb.enumerate('date', null, 'prev', function(videodata) {
-    addVideo(videodata);
-  });
+  videodb.enumerate('date', null, 'prev', addVideo);
 }
 
 function updateDialog() {
-  if (!storageState || playerShowing) {
+  if (videoCount !== 0 && (!storageState || playerShowing)) {
     showOverlay(null);
     return;
   }
@@ -150,6 +160,8 @@ function updateDialog() {
     showOverlay('nocard');
   } else if (storageState === MediaDB.UNMOUNTED) {
     showOverlay('pluggedin');
+  } else if (firstScanEnded && videoCount === 0) {
+    showOverlay('empty');
   }
 }
 
@@ -296,15 +308,12 @@ function playerMousedown(event) {
 }
 
 // Make the video fit the screen
-function setPlayerSize() {
-  if (!currentVideo || !currentVideo.metadata) {
-    return;
-  }
-  var xscale = window.innerWidth / currentVideo.metadata.width;
-  var yscale = window.innerHeight / currentVideo.metadata.height;
+function setPlayerSize(videoWidth, videoHeight) {
+  var xscale = window.innerWidth / videoWidth;
+  var yscale = window.innerHeight / videoHeight;
   var scale = Math.min(xscale, yscale);
-  var width = currentVideo.metadata.width * scale;
-  var height = currentVideo.metadata.height * scale;
+  var width = videoWidth * scale;
+  var height = videoHeight * scale;
   var left = (window.innerWidth - width) / 2;
   var top = (window.innerHeight - height) / 2;
   dom.player.style.width = width + 'px';
@@ -331,9 +340,6 @@ function showPlayer(data, autoPlay) {
   currentVideo = data;
 
   // switch to the video player view
-  dom.videoFrame.classList.remove('hidden');
-  dom.play.classList.remove('paused');
-  playerShowing = true;
   updateDialog();
   dom.player.preload = 'metadata';
 
@@ -361,7 +367,11 @@ function showPlayer(data, autoPlay) {
 
     dom.durationText.textContent = formatDuration(dom.player.duration);
     timeUpdated();
-    setPlayerSize();
+
+    dom.videoFrame.classList.remove('hidden');
+    dom.play.classList.remove('paused');
+    playerShowing = true;
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
 
     if (currentVideo.remote) {
       dom.videoTitle.textContent = currentVideo.title || '';
@@ -629,9 +639,14 @@ document.addEventListener('mozvisibilitychange', function visibilityChange() {
 
 // show|hide controls over the player
 dom.videoControls.addEventListener('mousedown', playerMousedown);
+
 // Rescale when window size changes. This should get called when
 // orientation changes and when we go into fullscreen
-window.addEventListener('resize', setPlayerSize);
+window.addEventListener('resize', function() {
+  if (dom.player.readyState !== HAVE_NOTHING) {
+    setPlayerSize(dom.player.videoWidth, dom.player.videoHeight);
+  }
+});
 
 dom.player.addEventListener('timeupdate', timeUpdated);
 dom.player.addEventListener('ended', playerEnded);

@@ -178,53 +178,8 @@ body {
   background-color: #f3f3D3;
 }
 
-.icon {
-  width: 3rem;
-  height: 3rem;
-  background: transparent no-repeat center center;
-  background-size: 100% auto;
-  display: inline-block;
-  margin: -0.8rem;
-}
-
-.icon-menu {
-  background-image: url("images/icons/menu.png");
-}
-
-.icon-add {
-  background-image: url("images/icons/add.png");
-}
-
-.icon-back {
-  background-image: url("images/icons/back.png");
-}
-
-.icon-close {
-  background-image: url("images/icons/close.png");
-}
-
 .icon-download {
   background-image: url("images/icons/download.png");
-}
-
-.icon-edit {
-  background-image: url("images/icons/edit.png");
-}
-
-.icon-send {
-  background-image: url("images/icons/send.png");
-}
-
-.icon-account {
-  background-image: url("images/icons/user.png");
-}
-
-.icon-reply {
-  background-image: url("images/icons/reply.png");
-}
-
-.icon-reply-all {
-  background-image: url("images/icons/reply-all.png");
 }
 
 /* Toaset banner extend class */
@@ -237,6 +192,10 @@ section[role="status"].customized {
 section[role="status"].fadeout {
   -moz-transition: opacity 500ms ease;
   opacity: 0;
+}
+
+section[role="status"][title="undo"] p {
+  max-width: 65% !important;
 }
 
 section[role="status"] .toaster-cancel-btn {

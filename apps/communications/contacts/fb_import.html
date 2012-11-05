@@ -5,9 +5,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
+    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+
+    <script type="text/javascript" src="/shared/js/async_storage.js"></script>
+    <script type="text/javascript" src="oauth2/js/flow.js"></script>
+    <script type="text/javascript" src="js/fb/fb_oauth.js"></script>
+    <script type="text/javascript" src="oauth2/js/parameters.js"></script>
+    <script type="text/javascript" src="/facebook/js/curtain.js"></script>
+    <script type="text/javascript" src="js/fb/fb_import_init.js"></script>
+
+    <script defer type="text/javascript" src="js/fb/fb_utils.js"></script>
+    <script defer type="text/javascript" src="js/fb/fb_query.js"></script>
+
+    <script defer type="text/javascript" src="js/utilities/templates.js"></script>
+    <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
+    <script  defer type="text/javascript" src="/facebook/js/fb_image_loader.js"></script>
+    <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
+    <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
+
+    <script defer type="text/javascript" src="js/search.js"></script>
+    <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
+
+    <script defer type="text/javascript" src="js/fb/fb_data.js"></script>
+    <script defer type="text/javascript" src="js/fb/fb_contact_utils.js"></script>
+    <script defer type="text/javascript" src="js/fb/fb_contact.js"></script>
+
+    <script defer type="text/javascript" src="js/fixed_header.js"></script>
+    <script defer type="text/javascript" src="js/fb/fb_import.js"></script>
+
+    <script defer type="text/javascript" src="/facebook/js/fb_sync.js"></script>
+
     <link rel="stylesheet" href="style/shared/core/css/root.css">
 
     <!-- Building Blocks -->
+    <link href="/shared/style/status.css" rel="stylesheet">
     <link href="/shared/style/headers.css" rel="stylesheet">
     <link href="/shared/style/input_areas.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
@@ -18,39 +50,9 @@
     <link rel="stylesheet" href="style/fixed_header.css">
     <link rel="stylesheet" href="style/search.css">
 
-    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
-    <script type="text/javascript" src="/shared/js/l10n.js"></script>
-
-    <script defer type="text/javascript" src="js/utilities/normalizer.js"></script>
-    <script defer type="text/javascript" src="js/utilities/templates.js"></script>
-    <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
-
-    <script defer type="text/javascript" src="oauth2/js/flow.js"></script>
-    <script defer type="text/javascript" src="oauth2/js/parameters.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_utils.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_query.js"></script>
-
-    <script defer type="text/javascript" src="js/fb/friends_list.js"></script>
-    <script defer type="text/javascript" src="js/contacts_shortcuts.js"></script>
-
-    <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_oauth.js"></script>
-    <script defer type="text/javascript" src="js/search.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_import.js"></script>
-
-    <script defer type="text/javascript" src="js/fb/fb_data.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_contact_utils.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_contact.js"></script>
-
-    <!-- starts up the functionality -->
-    <script defer type="text/javascript" src="js/fixed_header.js"></script>
-    <script defer type="text/javascript" src="js/fb/fb_import_init.js"></script>
-
-    <script defer type="text/javascript" src="/facebook/js/fb_sync.js"></script>
   </head>
 
   <body role="application">
-
     <section role="region" id="content" class="facebook">
 
       <header>
@@ -104,7 +106,8 @@
                     <span></span>
                   </div>
 
-                  <img data-src="https://graph.facebook.com/#uid#/picture?type=square">
+                  <img data-src="https://graph.facebook.com/#uid#/picture?type=square"
+                       src="/dialer/style/images/Generic_image.png">
 
                     <dl>
                       <dt><strong>#givenName#</strong> #familyName#</dt>
@@ -130,7 +133,7 @@
 
       <section id="search-view" class="view">
         <form id="searchview-container" role="search" class="search">
-           <button id='cancel-search' type="submit" data-l10n-id="cancel">Cancel</button>
+           <button id='done-search' type="submit" data-l10n-id="done-search">Done</button>
            <p>
              <label>
                <input data-cancelable required type="search" name="search" class="textfield"
@@ -142,21 +145,8 @@
       </section>
     </section> <!-- role="region" -->
 
-    <section id="curtain" role="region">
-      <header>
-        <h1 data-l10n-id="facebook">Facebook</h1>
-      </header>
-      <form role="dialog" data-type="confirm">
-        <section>
-          <h1 data-l10n-id="friendsWait1">Connecting to your list of friends</h1>
-          <p data-l10n-id="friendsWait2">This may take a couple of minutes...</p>
-          <progress class="small"></progress>
-        </section>
-        <menu>
-          <button class="full" type="reset">Cancel</button>
-        </menu>
-      </form>
+    <section id="statusMsg" role="status">
+      <p></p>
     </section>
-
   </body>
 </html>

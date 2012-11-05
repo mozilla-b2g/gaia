@@ -154,6 +154,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
         rilData('apn').value = item.apn || '';
         rilData('user').value = item.user || '';
         rilData('passwd').value = item.password || '';
+        rilData('httpProxyHost').value = item.proxy || '';
+        rilData('httpProxyPort').value = item.port || '';
       };
 
       // include the radio button element in a list item
@@ -295,7 +297,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       lock.set({ 'ril.data.apn': item.apn || '' });
       lock.set({ 'ril.data.user': item.user || '' });
       lock.set({ 'ril.data.passwd': item.password || '' });
-      lock.set({ 'ril.data.httpProxyHost': item.host || '' });
+      lock.set({ 'ril.data.httpProxyHost': item.proxy || '' });
       lock.set({ 'ril.data.httpProxyPort': item.port || '' });
       restartDataConnection(true);
 

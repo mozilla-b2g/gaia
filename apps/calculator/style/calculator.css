@@ -3,9 +3,9 @@ body, html {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  font-family: "MozTT Light"; 
+  font-family: MozTT, sans-serif; 
   font-weight: normal;
-  font-size: 20px;
+  font-size: 10px;
   background: url("images/background.png") no-repeat 0 -20px;
 }
 
@@ -26,17 +26,17 @@ input {
   background-position: 4px 0;
 
   color: white;
-  font-family: "MozTT Medium"; 
-  font-weight:normal;
-  font-size: 2.82mozmm;
+  font-family: MozTT, sans-serif; 
+  font-weight: 500;
+  font-size: 2.06rem;
 
-  width: 78px;
-  height: 3rem;
-  line-height: 3rem;
+  width: 80px;
+  height: 6rem;
+  line-height: 6rem;
 
   /* For an easier touch target, buttons are not exactly centered and
      are bigger at the bottom */
-  padding-bottom: 0.5rem;
+  padding-bottom: 1rem;
 
   /* text nodes in the source code affect the layout */
   margin-right: -5px;
@@ -89,7 +89,9 @@ input:not(.small) {
   right: 16px;
 
   line-height: 142px;
-  font-size: 3rem;
+  font-family: MozTT, sans-serif; 
+  font-weight: 300;
+  font-size: 8.25rem;
 }
 
 #display.error {

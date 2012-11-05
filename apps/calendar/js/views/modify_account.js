@@ -5,6 +5,7 @@
 
     this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
+    this.cancel = this.cancel.bind(this);
   }
 
   ModifyAccount.prototype = {
@@ -18,12 +19,23 @@
       deleteButton: '#modify-account-view .delete-confirm',
       status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors',
+      cancelDeleteButton: '#modify-account-view .delete-cancel',
+      backButton: '#modify-account-view .cancel',
+      errors: '#modify-account-view .errors'
     },
 
     progressClass: 'in-progress',
 
     get deleteButton() {
       return this._findElement('deleteButton');
+    },
+
+    get cancelDeleteButton() {
+      return this._findElement('cancelDeleteButton');
+    },
+
+    get backButton() {
+      return this._findElement('backButton');
     },
 
     get saveButton() {
@@ -98,6 +110,10 @@
       });
     },
 
+    cancel: function() {
+      window.back();
+    },
+
     save: function() {
       var list = this.element.classList;
       var self = this;
@@ -165,10 +181,13 @@
       var list = this.element.classList;
 
       this.saveButton.addEventListener('click', this.save);
+      this.backButton.addEventListener('click', this.cancel);
 
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
+        this.cancelDeleteButton.addEventListener('click',
+                                                 this.cancel);
       } else {
         this.type = 'create';
       }
@@ -194,6 +213,10 @@
 
       this.saveButton.removeEventListener('click', this.save);
       this.deleteButton.removeEventListener('click', this.deleteRecord);
+      this.cancelDeleteButton.removeEventListener('click',
+                                                  this.cancel);
+      this.backButton.removeEventListener('click',
+                                                this.cancel);
     },
 
     dispatch: function(data) {

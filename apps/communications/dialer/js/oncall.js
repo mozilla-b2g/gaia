@@ -431,7 +431,13 @@ var OnCallHandler = (function onCallHandler() {
         end();
         break;
       case 'ATA':
-        (handledCalls.length > 1) ? holdAndAnswer() : answer();
+        answer();
+        break;
+      case 'CHUP+ATA':
+        endAndAnswer();
+        break;
+      case 'CHLD+ATA':
+        holdAndAnswer();
         break;
     }
   }

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    <title>Facebook</title>
+
+    <link rel="stylesheet" href="/contacts/style/shared/core/css/root.css">
+
+    <!-- Building Blocks -->
+    <link href="/shared/style/headers.css" rel="stylesheet">
+    <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/shared/style_unstable/progress_activity.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="style/curtain.css">
+
+    <link rel="resource" type="application/l10n" href="/contacts/locales/fb/locales.ini">
+    <script type="text/javascript" src="/shared/js/l10n.js"></script>
+  </head>
+
+  <body role="application">
+    <section id="curtain" role="region">
+      <header>
+        <h1 data-l10n-id="facebook">Facebook</h1>
+      </header>
+      <form role="dialog" data-type="confirm">
+
+        <!-- Progress activity card -->
+        <section id="progress">
+          <h1 id="progressMsg" data-l10n-id="progress1">Please wait</h1>
+          <p data-l10n-id="progress2">This may take a couple of minutes</p>
+          <p role="status">
+            <span id="progressLabel"></span>
+            <progress id="progressElement" value="0" max="100"></progress>
+          </p>
+        </section>
+
+        <!-- Message card -->
+        <section id="message">
+          <h1 id="messageMsg"></h1>
+          <p data-l10n-id="message2">This may take a couple of minutes</p>
+          <p role="status">
+            <progress class="small"></progress>
+          </p>
+        </section>
+
+        <!-- Waiting card -->
+        <section id="wait">
+          <h1 id="waitMsg" data-l10n-id="wait1">Please wait</h1>
+          <p data-l10n-id="wait2">This may take a couple of minutes</p>
+          <p role="status">
+            <progress class="small"></progress>
+          </p>
+        </section>
+
+        <!-- Error card -->
+        <section id="error">
+          <h1 id="errorMsg" data-l10n-id="error1">Error</h1>
+          <p data-l10n-id="error2">Do you want to retry?</p>
+        </section>
+
+        <!-- Timeout card -->
+        <section id="timeout">
+          <h1 id="timeoutMsg" data-l10n-id="timeout1">Exceeded timeout</h1>
+          <p data-l10n-id="timeout2">Do you want to retry?</p>
+        </section>
+
+        <menu>
+          <button data-l10n-id="curtainCancel" type="reset" id="cancel">Cancel</button>
+          <button data-l10n-id="curtainRetry" type="submit" id="retry">Retry</button>
+        </menu>
+      </form>
+
+    </section>
+  </body>
+</html>

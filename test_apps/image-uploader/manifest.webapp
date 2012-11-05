@@ -8,7 +8,7 @@
   },
   "permissions": {
     "systemXHR":{},
-    "device-storage:pictures":{}
+    "device-storage:pictures":{ "access": "readonly" }
   },
   "activities": {
     "share": {

@@ -74,7 +74,7 @@ body {
   height: 3px;
   border: none;
   overflow: hidden;
-  z-index: 11;
+  z-index: 31;
 }
 
 #throbber {
@@ -157,12 +157,7 @@ body.player-mode #views {
   float: left;
 }
 
-#views-tiles {
-  height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
+#views-tiles,
 #views-list,
 #views-sublist {
   height: 100%;
@@ -248,17 +243,18 @@ body.player-mode #views {
 }
 
 #views-sublist-controls-play {
-  background-image: url('./images/controls_play.png');
+  background-image: url("./images/IconAction_Media_Play_30x30.png");
 }
 
 #views-sublist-controls-shuffle {
-  background-image: url('./images/controls_shuffle.png');
+  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
 }
 
 .album-controls-button {
   border: none;
   border-radius: 0px;
   background: transparent;
+  transition: background 200ms ease;
 }
 
 .album-controls-button:hover {
@@ -534,9 +530,9 @@ body.player-mode #views {
 
 #player-album-shuffle, 
 #player-album-repeat {
-  top: 15%;
+  top: 10%;
   width: calc(25% - 20px);
-  height: 70%;
+  height: 80%;
   padding: 0px;
   border-radius: 35px;
   margin: 0 10px;
@@ -546,11 +542,23 @@ body.player-mode #views {
 }
 
 #player-album-shuffle {
-  background-image: url('./images/controls_shuffle.png');
+  background-image: url("./images/IconAction_Media_ShuffleOff_30x30.png");
 }
 
-#player-album-repeat {
-  background-image: url('./images/controls_repeat.png');
+#player-album-shuffle.shuffle-on {
+  background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
+}
+
+#player-album-repeat.repeat-off {
+  background-image: url("./images/IconAction_Media_RepeatOff_30x30.png");
+}
+
+#player-album-repeat.repeat-list {
+  background-image: url("./images/IconAction_Media_RepeatList_30x30.png");
+}
+
+#player-album-repeat.repeat-song {
+  background-image: url("./images/IconAction_Media_RepeatSong_30x30.png");
 }
 
 #player-album-rating {
@@ -661,15 +669,19 @@ button::-moz-focus-inner {
 }
 
 #player-controls-previous {
-  background-image: url('./images/controls_backward.png');
+  background-image: url("./images/IconAction_Media_SkipBackwards_30x30.png");
+}
+
+#player-controls-play {
+  background-image: url("./images/IconAction_Media_Pause_30x30.png");
 }
 
 #player-controls-play.is-pause {
-  background-image: url('./images/controls_play.png');
+  background-image: url("./images/IconAction_Media_Play_30x30.png");
 }
 
 #player-controls-next {
-  background-image: url('./images/controls_forward.png');
+  background-image: url("./images/IconAction_Media_SkipForward_30x30.png");
 }
 
 .player-controls-button {
@@ -677,6 +689,7 @@ button::-moz-focus-inner {
   border: none;
   border-radius: 0px;
   background: transparent;
+  transition: background 200ms ease;
 }
 .player-controls-button:hover {
   background: transparent;
@@ -710,25 +723,26 @@ button::-moz-focus-inner {
 }
 
 #tabs-mix {
-  background-image: url('./images/tabs_mix.png');
+  background-image: url("./images/IconAction_Camera_GridView_30x30.png");
 }
 
 #tabs-playlists {
-  background-image: url('./images/tabs_playlists.png');
+  background-image: url("./images/IconAction_Media_PlayList_30x30.png");
 }
 
 #tabs-artists {
-  background-image: url('./images/tabs_artists.png');
+  background-image: url("./images/IconAction_Media_ArtistFilter_30x30.png");
 }
 
 #tabs-albums {
-  background-image: url('./images/tabs_albums.png');
+  background-image: url("./images/IconAction_Media_AlbumFilter_30x30.png");
 }
 
 .tabs-button {
   border: none;
   border-radius: 0px;
   background: transparent;
+  transition: background 200ms ease;
 }
 .tabs-button:hover {
   background: transparent;
@@ -744,6 +758,7 @@ button::-moz-focus-inner {
   border: none;
   border-radius: 0px;
   background: transparent;
+  transition: background 200ms ease;
 }
 .player-cover-button:hover {
   background: transparent;

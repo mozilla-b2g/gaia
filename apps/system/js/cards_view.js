@@ -52,6 +52,10 @@ var CardsView = (function() {
   var gd = new GestureDetector(cardsView);
   gd.startDetecting();
 
+  // A list of all the URLs we've created via URL.createObjectURL which we
+  // haven't yet revoked.
+  var screenshotObjectURLs = [];
+
   /*
    * Returns an icon URI
    *
@@ -226,8 +230,9 @@ var CardsView = (function() {
       frameForScreenshot.getScreenshot(rect.width, rect.height).onsuccess =
         function gotScreenshot(screenshot) {
           if (screenshot.target.result) {
-            card.style.backgroundImage =
-                'url(' + screenshot.target.result + ')';
+            var objectURL = URL.createObjectURL(screenshot.target.result);
+            screenshotObjectURLs.push(objectURL);
+            card.style.backgroundImage = 'url(' + objectURL + ')';
           }
 
           if (displayedApp == origin && displayedAppCallback)
@@ -260,6 +265,12 @@ var CardsView = (function() {
     // Make the cardsView overlay inactive
     cardsView.classList.remove('active');
     cardsViewShown = false;
+
+    // Release our screenshot blobs.
+    screenshotObjectURLs.forEach(function(url) {
+      URL.revokeObjectURL(url);
+    });
+    screenshotObjectURLs = [];
 
     // And remove all the cards from the document after the transition
     cardsView.addEventListener('transitionend', function removeCards() {

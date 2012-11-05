@@ -41,11 +41,7 @@ var Feedback = {
       window.alert(navigator.mozL10n.get('no-internet'));
     }
 
-
     var contact = document.getElementById('contact').value;
-    if (contact == '') {
-      return;
-    }
 
     asyncStorage.setItem('contact', contact, (function setContact() {
       var formData = new FormData();
@@ -56,6 +52,9 @@ var Feedback = {
 
       if (this.dogfoodid)
         formData.append('asset_tag', this.dogfoodid);
+
+      if (contact)
+        formData.append('contact', contact);
 
       var xhr = new XMLHttpRequest();
       xhr.open('POST', 'https://b2gtestdrivers.allizom.org/comments');

@@ -96,3 +96,9 @@ var Timer = {
   }
 };
 
+window.addEventListener('load', function onLoad() {
+  window.removeEventListener('load', onLoad);
+
+  Timer.actionButton.onclick = Timer.start.bind(Timer);
+});
+

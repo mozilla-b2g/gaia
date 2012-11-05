@@ -1,4 +1,4 @@
-iframe#fb-extensions {
+#fb-extensions {
   position: absolute;
   top: 100%;
   left: 0;
@@ -8,8 +8,8 @@ iframe#fb-extensions {
   border: 0;
   margin: 0;
   padding: 0;
-  -moz-transition: all .6s ease;
-  background-color: #26272c;
+  -moz-transition: -moz-transform .6s ease;
+  background: #f4f4f4;
 }
 
 #fb-extensions.opening {
@@ -20,14 +20,18 @@ iframe#fb-extensions {
   -moz-transform: translateY(0);
 }
 
-#fb-extensions.openingImport {
-  top:0;
+#fb-extensions[data-anim-from = 'left'] {
+  top: 0;
+  left: 100%;
 }
 
-#fb-extensions.closingImport {
-  top:100%;
+#fb-extensions[data-anim-from = 'left'].opening {
+  -moz-transform: translateX(-100%);
 }
 
+#fb-extensions[data-anim-from = 'left'].closing {
+  -moz-transform: translateX(0);
+}
 
 .facebook.removed dl,
 p.facebook.removed input {

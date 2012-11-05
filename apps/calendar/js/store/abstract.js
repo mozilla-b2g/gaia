@@ -85,14 +85,12 @@
       var model;
 
       var putReq;
-      var reqType;
+      var reqType = this._detectPersistType(object);
 
       // determine type of event
-      if (object._id) {
-        reqType = 'update';
+      if (reqType === 'update') {
         putReq = store.put(data);
       } else {
-        reqType = 'add';
         this._assignId(data);
         putReq = store.add(data);
       }
@@ -175,6 +173,10 @@
 
     _addDependents: function() {},
     _removeDependents: function(trans) {},
+
+    _detectPersistType: function(object) {
+      return ('_id' in object) ? 'update' : 'add';
+    },
 
     _parseId: function(id) {
       return parseInt(id);

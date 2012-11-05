@@ -1644,7 +1644,6 @@ function write (chunk) {
       } else {
         output += ' />';
       }
-
       return output;
     }
 
@@ -2099,6 +2098,7 @@ function write (chunk) {
       xhr.onreadystatechange = function onReadyStateChange() {
         var data;
         if (xhr.readyState === 4) {
+          console.log('log', xhr.responseText);
           data = xhr.responseText;
           this.waiting = false;
           callback(null, xhr);
@@ -2356,6 +2356,7 @@ function write (chunk) {
     name: 'href',
 
     onopentag: function() {
+      console.log('hrefhandler', this.handler);
       if (this.currentTag.handler === this.handler) {
         this.stack.push(this.current);
         this.current = null;
@@ -2466,6 +2467,7 @@ function write (chunk) {
       'DAV:/current-user-privilege-set': PrivilegeSet,
       'DAV:/principal-URL': HrefHandler,
       'DAV:/current-user-principal': HrefHandler,
+      'DAV:/unauthenticated': TextHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
       'DAV:/owner': HrefHandler,
@@ -2829,6 +2831,7 @@ function write (chunk) {
      */
     prop: function(tagDesc, attr, content) {
       this._props.push(this.template.tag(tagDesc, attr, content));
+      console.log('qwe', this._props[this._props.length-1]);
     },
 
     /**
@@ -2982,6 +2985,7 @@ function write (chunk) {
     var url, results = [], prop;
 
     for (url in data) {
+      console.log('urlll', url, data[url]);
       if (Object.hasOwnProperty.call(data, url)) {
         if (name in data[url]) {
           prop = data[url][name];
@@ -3013,7 +3017,8 @@ function write (chunk) {
 
       find.prop('current-user-principal');
       find.prop('principal-URL');
-
+      find.prop('unauthenticated');
+      
       find.send(function(err, data) {
         var principal;
 
@@ -3022,6 +3027,8 @@ function write (chunk) {
           return;
         }
 
+        console.log('aaaaa', findProperty('unauthenticated', data, true));
+        
         principal = findProperty('current-user-principal', data, true);
 
         if (!principal) {

@@ -2579,7 +2579,9 @@ MailAPI.prototype = {
       unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
       return;
     }
-    delete this._pendingRequests[msg.handle];
+    // Only delete the request if the send succeeded.
+    if (!msg.err)
+      delete this._pendingRequests[msg.handle];
     if (req.callback) {
       req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
@@ -21827,6 +21829,9 @@ SmtpProber.prototype = {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
+      // Set the response type to "text" so that we don't try to parse an empty
+      // body as XML.
+      xhr.responseType = 'text';
       xhr.send();
     },
 
@@ -30773,15 +30778,14 @@ const DESIRED_SNIPPET_LENGTH = 100;
 const FILTER_TYPE = $ascp.AirSync.Enums.FilterType;
 
 // Map our built-in sync range values to their corresponding ActiveSync
-// FilterType values.
+// FilterType values. We exclude 3 and 6 months, since they aren't valid for
+// email.
 const SYNC_RANGE_TO_FILTER_TYPE = {
    '1d': FILTER_TYPE.OneDayBack,
    '3d': FILTER_TYPE.ThreeDaysBack,
    '1w': FILTER_TYPE.OneWeekBack,
    '2w': FILTER_TYPE.TwoWeeksBack,
    '1m': FILTER_TYPE.OneMonthBack,
-   '3m': FILTER_TYPE.ThreeMonthsBack,
-   '6m': FILTER_TYPE.SixMonthsBack,
   'all': FILTER_TYPE.NoFilter,
 };
 
@@ -31913,6 +31917,7 @@ ActiveSyncAccount.prototype = {
   },
 
   shutdown: function asa_shutdown() {
+    this._LOG.__die();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
@@ -32591,7 +32596,7 @@ function accountTypeToClass(type) {
 exports.accountTypeToClass = accountTypeToClass;
 
 // Simple hard-coded autoconfiguration by domain...
-var autoconfigByDomain = {
+var autoconfigByDomain = exports._autoconfigByDomain = {
   'localhost': {
     type: 'imap+smtp',
     incoming: {
@@ -32620,6 +32625,15 @@ var autoconfigByDomain = {
       port: 465,
       socketType: 'SSL',
       username: '%EMAILLOCALPART%',
+    },
+  },
+  'aslocalhost': {
+    type: 'activesync',
+    displayName: 'Test',
+    incoming: {
+      // This string may be clobbered with the correct port number when
+      // running as a unit test.
+      server: 'http://localhost:8080',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being

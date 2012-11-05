@@ -3,14 +3,6 @@
 const Wallpaper = (function() {
   var overlay = document.getElementById('icongrid');
 
-  // XXX: need automation app switch to activity caller itself
-  var reopenSelf = function reopenSelf() {
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch();
-    };
-  };
-
   function onHomescreenContextmenu() {
     var a = new MozActivity({
       name: 'pick',
@@ -21,16 +13,19 @@ const Wallpaper = (function() {
       }
     });
     a.onsuccess = function onWallpaperSuccess() {
-      if (!a.result.url)
+      if (!a.result.blob)
         return;
 
-      var settings = navigator.mozSettings;
-      settings.createLock().set({'wallpaper.image': a.result.url});
-      reopenSelf();
+      var reader = new FileReader();
+      reader.readAsDataURL(a.result.blob);
+      reader.onload = function() {
+        navigator.mozSettings.createLock().set({
+          'wallpaper.image': reader.result
+        });
+      }
     };
     a.onerror = function onWallpaperError() {
       console.warn('pick failed!');
-      reopenSelf();
     };
   }
 
