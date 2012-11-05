@@ -60,6 +60,13 @@ function init() {
   // sd card is removed or because it is mounted for USB mass storage
   // This may be called before onready if it is unavailable to begin with
   musicdb.onunavailable = function(event) {
+    if(PlayerView.isPlaying) {
+      PlayerView.pause();
+      PlayerView.audio.src = null;
+      if(currentMode === MODE_PLAYER) {
+        changeMode(fromMode);
+      }
+    }
     var why = event.detail;
     if (why === MediaDB.NOCARD)
       showOverlay('nocard');
