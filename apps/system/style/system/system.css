@@ -123,8 +123,31 @@ body {
 }
 
 #screen.cards-view > #windows > iframe.appWindow.opening,
-#screen.cards-view > #windows > iframe.appWindow.closing {
+#screen.cards-view > #windows > iframe.appWindow.closing,
+#screen.switch-app > #windows > iframe.appWindow.opening,
+#screen.switch-app > #windows > iframe.appWindow.closing {
   transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-card {
+  transform: translateX(70%) scale(0.6);
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-switching {
+  transform: scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.closing-card {
+  transform: translateX(-70%) scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
   opacity: 1;
 }
 
@@ -148,31 +171,8 @@ body {
   transform: none;
 }
 
-#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
+#screen > #windows > iframe.appWindow.fullscreen-app {
   top: 0;
-}
-
-.windowSprite {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 20px);
-  background-color: #373a3d;
-  background-size: cover;
-  pointer-events: none;
-
-  transition: transform 0.5s ease;
-  transform: scale(0.6);
-  visibility: inherit;
-}
-
-.windowSprite.right {
-  transform: translateX(70%) scale(0.6);
-}
-
-.windowSprite.left {
-  transform: translateX(-70%) scale(0.6);
 }
 
 .accessibility-invert {

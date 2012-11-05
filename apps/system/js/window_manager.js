@@ -232,35 +232,32 @@ var WindowManager = (function() {
   var closeCallback = null;
 
   function setOpenFrame(frame) {
-    if (openFrame === null) {
-      openFrame = frame;
-      return;
+    if (openFrame) {
+      removeFrameClasses(openFrame);
     }
 
-    // I think calling revokeObjectURL here probably isn't necessary, but
-    // better to aggressively revoke these object URLs than to leak one!  We
-    // always clear dataset.bgObjectURL when we revoke an object URL, so we
-    // can't double-revoke a URL (which would only be a problem if we reused
-    // object URLs, which we don't).
-    URL.revokeObjectURL(openFrame.dataset.bgObjectURL);
-
-    openFrame.classList.remove('opening');
-    openFrame.classList.remove('closing');
     openFrame = frame;
   }
 
   function setCloseFrame(frame) {
-    if (closeFrame === null) {
-      closeFrame = frame;
-      return;
+    if (closeFrame) {
+      removeFrameClasses(closeFrame);
     }
 
-    // As in setOpenFrame, this revokeObjectURL call is probably unnecessary.
-    URL.revokeObjectURL(closeFrame.dataset.bgObjectURL);
-
-    closeFrame.classList.remove('opening');
-    closeFrame.classList.remove('closing');
     closeFrame = frame;
+  }
+
+  // Remove these visible className from frame so we will not ended
+  // up having a frozen frame in the middle of the transition
+  function removeFrameClasses(frame) {
+    var classNames = ['opening', 'closing', 'opening-switching',
+      'opening-card', 'closing-card'];
+
+    var classList = frame.classList;
+
+    classNames.forEach(function removeClass(className) {
+      classList.remove(className);
+    });
   }
 
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
@@ -279,6 +276,42 @@ var WindowManager = (function() {
         setOpenFrame(null);
       } else {
         windows.removeChild(frame);
+      }
+
+      return;
+    }
+
+    if (screenElement.classList.contains('switch-app')) {
+      if (classList.contains('closing')) {
+        classList.remove('closing');
+        classList.add('closing-card');
+
+        openFrame.classList.remove('opening-card');
+        openFrame.classList.add('opening-switching');
+      } else if (classList.contains('closing-card')) {
+        windowClosed(frame);
+        setTimeout(closeCallback);
+
+      } else if (classList.contains('opening-switching')) {
+        // If the opening app need to be full screen, switch to full screen
+        if (classList.contains('fullscreen-app')) {
+          screenElement.classList.add('fullscreen-app');
+        }
+
+        classList.remove('opening-switching');
+
+        // XXX: without this setTimeout() there will be no opening transition.
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=780692#c111
+        setTimeout(function continueTransition() {
+          classList.add('opening');
+        });
+      } else if (classList.contains('opening')) {
+        windowOpened(frame);
+        setTimeout(openCallback);
+
+        setCloseFrame(null);
+        setOpenFrame(null);
+        screenElement.classList.remove('switch-app');
       }
 
       return;
@@ -592,12 +625,13 @@ var WindowManager = (function() {
     if (requireFullscreen(origin))
       screenElement.classList.add('fullscreen-app');
 
-    // Ensure that we are not opening/closing the frame at the same time
-    openFrame.classList.remove('closing');
-
     setFrameBackground(openFrame, function gotBackground() {
       // Start the transition when this async/sync callback is called.
-      openFrame.classList.add('opening');
+      if (!screenElement.classList.contains('switch-app')) {
+        openFrame.classList.add('opening');
+      } else {
+        openFrame.classList.add('opening-card');
+      }
     });
   }
 
@@ -618,84 +652,21 @@ var WindowManager = (function() {
     closeFrame.blur();
     closeFrame.setVisible(false);
 
-    // Ensure that we are not opening/closing the frame at the same time
-    closeFrame.classList.remove('opening');
-
     // Start the transition
     closeFrame.classList.add('closing');
     closeFrame.classList.remove('active');
   }
 
   // Perform a "switching" animation for the closing frame and the opening frame
-  function switchWindow(origin, newOrigin, callback) {
+  function switchWindow(origin, callback) {
+    // This will trigger different transition to both openWindow()
+    // and closeWindow() transition.
     screenElement.classList.add('switch-app');
 
-    function createSprite() {
-      var el = document.createElement('div');
-      el.className = 'windowSprite';
-      el.dataset.zIndexLevel = 'window-sprite';
-      el.appendChild(document.createElement('div'));
-      screenElement.insertBefore(el, windows);
-      return el;
-    }
-
-    // First, create two cards for switching animation
-    var closingAppSprite = createSprite();
-    var openingAppSprite = createSprite();
-
-    openingAppSprite.classList.add('right');
-
-    var closingAppFrame = runningApps[origin].frame;
-    var openingAppFrame = runningApps[newOrigin].frame;
-
-    // Fill the opening app sprite with screenshot.
-    getAppScreenshot(openingAppFrame,
-      function gotScreenshot(screenshot, isCached) {
-        if (!screenshot) {
-          openingAppSprite.dataset.mask = false;
-        } else {
-          openingAppSprite.dataset.mask = isCached;
-          setFrameBackgroundBlob(openingAppSprite, screenshot);
-        }
-      }
-    );
-
-    // Fill the closing app sprite with screenshot.
-    // when the closing one got filled we start the animation
-    getAppScreenshot(closingAppFrame,
-      function gotScreenshot(screenshot, isCached) {
-        if (!screenshot) {
-          closingAppSprite.dataset.mask = false;
-        } else {
-          closingAppSprite.dataset.mask = isCached;
-          setFrameBackgroundBlob(closingAppSprite, screenshot);
-        }
-
-        // Start the animation
-        closeWindow(origin, function windowClosed() {
-          // Start the switching animation
-          closingAppSprite.classList.add('left');
-          openingAppSprite.classList.remove('right');
-
-          // Wait for the switching animation to finish
-          openingAppSprite.addEventListener('transitionend',
-            function switched() {
-              openingAppSprite.removeEventListener('transitionend', switched);
-              screenElement.removeChild(closingAppSprite);
-              screenElement.removeChild(openingAppSprite);
-
-              URL.revokeObjectURL(openingAppSprite.dataset.bgObjectURL);
-              URL.revokeObjectURL(closingAppSprite.dataset.bgObjectURL);
-
-              // Show the new app
-              openWindow(newOrigin, function opened() {
-                screenElement.classList.remove('switch-app');
-                if (callback)
-                  callback();
-              });
-            });
-        });
-      });
+    // Ask closeWindow() to start closing the displayedApp
+    closeWindow(displayedApp, callback);
+    // Ask openWindow() to show a card on the right waiting to be opened
+    openWindow(origin);
   }
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
@@ -786,6 +757,13 @@ var WindowManager = (function() {
     // Discard any existing activity
     stopInlineActivity();
 
+    // Before starting a new transition, let's make sure current transitions
+    // are stopped and the state classes are cleaned up.
+    setOpenFrame(null);
+    setCloseFrame(null);
+    screenElement.classList.remove('switch-app');
+    screenElement.classList.remove('fullscreen-app');
+
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
       // Just run the callback right away
@@ -834,7 +812,7 @@ var WindowManager = (function() {
     // Case 5: app-to-app transition
     else {
       setAppSize(newApp);
-      switchWindow(currentApp, newApp, callback);
+      switchWindow(newApp, callback);
     }
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
@@ -959,6 +937,10 @@ var WindowManager = (function() {
       launchTime: 0
     };
 
+    if (requireFullscreen(origin)) {
+      frame.classList.add('fullscreen-app');
+    }
+
     numRunningApps++;
   }
 
@@ -1018,8 +1000,6 @@ var WindowManager = (function() {
     // Remore the inlineActivityFrame reference
     var frame = inlineActivityFrame;
     inlineActivityFrame = null;
-
-    clearFrameBackground(frame);
 
     // If frame is transitioning we should remove the reference
     if (openFrame == frame)
