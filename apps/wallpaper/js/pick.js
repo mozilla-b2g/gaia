@@ -29,9 +29,9 @@ window.onload = function() {
 
     canvas.toBlob(function(blob) {
       pickActivity.postResult({
-        type: pickActivity.source.data.type,
+        type: 'image/png',
         blob: blob
-      });
+      }, 'image/png');
 
       endPick();
     }, pickActivity.source.data.type);
