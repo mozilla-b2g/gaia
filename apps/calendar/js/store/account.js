@@ -39,7 +39,8 @@
      * related to it must be removed.
      */
     _dependentStores: [
-      'accounts', 'calendars', 'events', 'busytimes', 'alarms'
+      'accounts', 'calendars', 'events',
+      'busytimes', 'alarms', 'icalComponents'
     ],
 
     _removeDependents: function(id, trans) {

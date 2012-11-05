@@ -3,7 +3,7 @@ fb.oauthflow = window.fb.oauthflow || {};
 
 fb.oauthflow.params = {
   redirectURI:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2/flow.html',
+    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2/flow2.html',
   loginPage:
     'https://m.facebook.com/dialog/oauth/?',
   applicationId:

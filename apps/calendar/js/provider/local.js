@@ -59,6 +59,9 @@
       cb(null);
     },
 
+    /**
+     * @return {Calendar.EventMutations.Create} mutation object.
+     */
     createEvent: function(event, callback) {
       // most providers come with their own built in
       // id system when creating a local event we need to generate
@@ -71,29 +74,19 @@
         event.remote.id = uuid();
       }
 
-      var trans = this.events.db.transaction(
-        this.events._dependentStores,
-        'readwrite'
-      );
-
-      var self = this;
-      var controller = this.app.timeController;
-
-      trans.addEventListener('complete', function() {
-        //XXX: until we turn on event memory caching
-        //     this needs to come after the db persistence.
-        controller.cacheBusytime(
-          self.busytimes.initRecord(busytime)
-        );
-
-        callback(null, busytime, event);
+      var create = new Calendar.EventMutations.create({
+        event: event
       });
 
-      this.events.persist(event, trans);
+      create.commit(function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, create.busytime, create.event);
+      });
 
-      // needs to come after event persistence
-      var busytime = this.busytimes.factory(event);
-      this.busytimes.persist(busytime, trans);
+      return create;
     },
 
     deleteEvent: function(event, busytime, callback) {
@@ -105,47 +98,28 @@
       this.app.store('Event').remove(event._id, callback);
     },
 
+    /**
+     * @return {Calendar.EventMutations.Update} mutation object.
+     */
     updateEvent: function(event, busytime, callback) {
       if (typeof(busytime) === 'function') {
         callback = busytime;
         busytime = null;
       }
 
-      var self = this;
-      var busytime = self.busytimes.factory(event);
-      var controller = this.app.timeController;
+      var update = Calendar.EventMutations.update({
+        event: event
+      });
 
-      // delete must not be in same transaction as
-      // creation of busytime records.
-      this.busytimes.removeEvent(event._id, function(err) {
+      update.commit(function(err) {
         if (err) {
           callback(err);
           return;
         }
-
-        // update after busytimes are removed.
-        var trans = self.events.db.transaction(
-          self.events._dependentStores,
-          'readwrite'
-        );
-
-        trans.addEventListener('complete', function() {
-          // must come after removeEvent above
-          // to avoid having the new record removed.
-
-          // TODO: move this outside of the persist
-          // once the event caching is turned on again.
-          controller.cacheBusytime(
-            self.busytimes.initRecord(busytime)
-          );
-
-          callback(null, busytime, event);
-        });
-
-        self.events.persist(event, trans);
-        self.busytimes.persist(busytime, trans);
+        callback(null, update.busytime, update.event);
       });
 
+      return update;
     }
 
   };

@@ -54,7 +54,13 @@ suite('dialer/recents_db', function() {
             'Number of entries added ' + numAdditions);
         });
       });
+    });
 
+    test('#getLast', function(done) {
+      subject.getLast(function(lastEntry) {
+        assert.equal('22222', lastEntry.number);
+        done();
+      });
     });
 
     test('#delete_single', function(done) {
