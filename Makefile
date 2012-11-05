@@ -125,18 +125,9 @@ endif
 
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
-SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
 DOWNLOAD_CMD = /usr/bin/curl -O
 else
 MD5SUM = md5sum -b
-# MozillaBuild has an old sed that doesn't support -i (bug 373784), so we use
-# Perl, specifying a backup file extension because Perl inplace edit without
-# backup on Windows fails <http://cygwin.com/ml/cygwin/2001-07/msg01800.html>.
-ifneq (,$(findstring MINGW32_,$(SYS)))
-SED_INPLACE_NO_SUFFIX = perl -p -i.bak
-else
-SED_INPLACE_NO_SUFFIX = sed -i
-endif
 DOWNLOAD_CMD = wget $(WGET_OPTS)
 endif
 
@@ -167,8 +158,7 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	cp build/settings.json profile/settings.json
-	$(SED_INPLACE_NO_SUFFIX) -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' profile/settings.json
+	sed -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' build/settings.json > profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -487,28 +477,6 @@ forward:
 	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
-
-
-# update the manifest.appcache files to match what's actually there
-update-offline-manifests:
-	for d in `find -L ${GAIA_APP_SRCDIRS} -mindepth 1 -maxdepth 1 -type d` ;\
-	do \
-		rm -rf $$d/manifest.appcache ;\
-		if [ -f $$d/manifest.webapp ] ;\
-		then \
-			echo \\t$$d ;  \
-			( cd $$d ; \
-			echo "CACHE MANIFEST" > manifest.appcache ;\
-			cat `find * -type f | sort -nfs` | $(MD5SUM) | cut -f 1 -d ' ' | sed 's/^/\#\ Version\ /' >> manifest.appcache ;\
-			find * -type f | grep -v tools | sort >> manifest.appcache ;\
-			$(SED_INPLACE_NO_SUFFIX) -e 's|manifest.appcache||g' manifest.appcache ;\
-			echo "http://$(GAIA_DOMAIN)$(GAIA_PORT)/webapi.js" >> manifest.appcache ;\
-			echo "NETWORK:" >> manifest.appcache ;\
-			echo "http://*" >> manifest.appcache ;\
-			echo "https://*" >> manifest.appcache ;\
-			) ;\
-		fi \
-	done
 
 
 # If your gaia/ directory is a sub-directory of the B2G directory, then
