@@ -328,7 +328,7 @@ const GridManager = (function() {
         try {
           var init = JSON.parse(xhr.responseText);
           init.grid.forEach(function(page) {
-            pageHelper.push(page);
+            pageHelper.addPage(page);
 
             for (var i = apps.length - 1; i >= 0; i--) {
               if (page.indexOf(apps[i]['origin']) != -1) {
@@ -359,13 +359,13 @@ const GridManager = (function() {
         for (var i = 0; i < apps.length; i++) {
           list.push(apps[i]);
           if (list.length === MAX_ICONS_PER_PAGE) {
-            pageHelper.push(list);
+            pageHelper.addPage(list);
             list = [];
           }
         }
 
         if (list.length > 0) {
-          pageHelper.push(list);
+          pageHelper.addPage(list);
         }
 
         // Renders pagination bar
@@ -389,7 +389,7 @@ const GridManager = (function() {
         for (var app in apps) {
           Applications.cacheIcon(apps[app].origin, apps[app].icon);
         }
-        pageHelper.push(apps.map(function(app) { return app.origin; }));
+        pageHelper.addPage(apps.map(function(app) { return app.origin; }));
       },
       function onsuccess(results) {
         if (results === 0) {
@@ -516,7 +516,7 @@ const GridManager = (function() {
 
       var propagateIco = page.popIcon();
       if (index === pages.length - 1) {
-        pageHelper.push([propagateIco]); // new page
+        pageHelper.addPage([propagateIco]); // new page
       } else {
         pages[index + 1].prependIcon(propagateIco); // next page
       }
@@ -532,7 +532,7 @@ const GridManager = (function() {
      *
      * @param {Array} initial list of apps or icons
      */
-    push: function(apps, appsFromMarket) {
+    addPage: function(apps, appsFromMarket) {
       var index = pages.length;
       var page = new Page(index);
       pages.push(page);
@@ -664,7 +664,7 @@ const GridManager = (function() {
       if (index < pages.length) {
         pages[index].append(app);
       } else {
-        pageHelper.push([app], true);
+        pageHelper.addPage([app], true);
       }
 
       if (animation) {
