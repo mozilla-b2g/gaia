@@ -697,6 +697,10 @@ var LockScreen = {
     var overlay = this.overlay;
     var self = this;
     panel = panel || 'main';
+
+    if (overlay.dataset.panel === panel)
+      return;
+
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
