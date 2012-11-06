@@ -11,6 +11,7 @@ requireApp('communications/contacts/test/unit/mock_extfb.js');
 var subject,
     container,
     realL10n,
+    realOnLine,
     dom,
     contact,
     contactDetails,
@@ -35,11 +36,23 @@ var subject,
     realContacts,
     realFb,
     mozL10n,
-    mockContact;
+    mockContact,
+    fbButtons,
+    linkButtons;
 
 suite('Render contact', function() {
 
+  var isOnLine = true;
+  function navigatorOnLine() {
+    return isOnLine;
+  }
+
+  function setNavigatorOnLine(value) {
+    isOnLine = value;
+  }
+
   suiteSetup(function() {
+    realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
       get: function get(key) {
@@ -51,6 +64,13 @@ suite('Render contact', function() {
         }
       }
     };
+
+    Object.defineProperty(navigator, 'onLine', {
+      configurable: true,
+      get: navigatorOnLine,
+      set: setNavigatorOnLine
+    });
+
     realContacts = window.Contacts;
     window.Contacts = MockContactsApp;
     realFb = window.fb;
@@ -76,18 +96,32 @@ suite('Render contact', function() {
     cover = dom.querySelector('#cover-img');
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite').children[0];
+
+    fbButtons = [
+      '#profile_button',
+      '#msg_button',
+      '#wall_button'
+    ];
+
+    linkButtons = [
+      '#link_button'
+    ];
   });
 
   suiteTeardown(function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
+    if (realOnLine) {
+      Object.defineProperty(navigator, 'onLine', realOnLine);
+    }
   });
 
   setup(function() {
     mockContact = new MockContactAllFields();
     subject.setContact(mockContact);
     TAG_OPTIONS = Contacts.getTags();
+    window.set;
   });
 
   teardown(function() {
@@ -154,20 +188,34 @@ suite('Render contact', function() {
   });
 
   suite('Render social', function() {
-    test('!isFbContact', function() {
+    function assertFbButtons(buttons, mode, state) {
+      buttons.forEach(function(buttonid) {
+        var selector = buttonid;
+        if (state) {
+          selector += '[' + state + ']';
+        }
+        if (mode === 'present') {
+          assert.isNotNull(container.querySelector(selector));
+        }
+        else {
+          assert.isNull(container.querySelector(selector));
+        }
+      });
+    }
+
+    test('It is not a Facebook Contact', function() {
+      window.fb.setIsFbContact(false);
       subject.render(null, TAG_OPTIONS);
       assert.include(container.innerHTML, 'social-template');
-      var toCheck = 'id="wall_button"';
-      assert.include(container.innerHTML, toCheck);
-      assert.equal(-1, container.innerHTML.indexOf('data-id="1"'));
-
+      assert.isFalse(container.querySelector('#link_button').
+                    classList.contains('hide'));
       assert.isTrue(container.
                        querySelector('#profile_button').
                        classList.contains('hide')
       );
     });
 
-    test('Fb Contact', function() {
+    test('It is a Facebook Contact', function() {
       window.fb.setIsFbContact(true);
 
       // The edit mode should be disabled
@@ -192,16 +240,55 @@ suite('Render contact', function() {
       window.fb.setIsFbContact(false);
     });
 
-    test('fb is not enabled', function() {
+    test('Facebook is not enabled', function() {
       window.fb.setIsEnabled(false);
+
       subject.render(null, TAG_OPTIONS);
       var incSocial = container.innerHTML.indexOf('social-template');
       assert.isTrue(incSocial === -1);
-      var search = 'Contacts.extFb.startLink(" 1","true")';
-      var incSstart = container.innerHTML.indexOf(search);
-      assert.isTrue(incSstart === -1);
+
+      assertFbButtons(linkButtons, 'absent');
+
+      window.fb.setIsEnabled(true);
     });
 
+    test('FB Contact. Device is offline', function() {
+      navigator.onLine = false;
+      window.fb.setIsFbContact(true);
+
+      subject.render(null, TAG_OPTIONS);
+
+      assertFbButtons(fbButtons, 'present', 'disabled');
+    });
+
+    test('FB Contact. Device is online', function() {
+      navigator.onLine = true;
+      window.fb.setIsFbContact(true);
+
+      subject.render(null, TAG_OPTIONS);
+
+      assertFbButtons(fbButtons, 'present');
+      assertFbButtons(fbButtons, 'absent', 'disabled');
+    });
+
+    test('Not FB Contact. Device is offline', function() {
+      navigator.onLine = false;
+      window.fb.setIsFbContact(false);
+
+      subject.render(null, TAG_OPTIONS);
+
+      assertFbButtons(linkButtons, 'present', 'disabled');
+    });
+
+    test('Not FB Contact. Device is online', function() {
+      navigator.onLine = true;
+      window.fb.setIsFbContact(false);
+
+      subject.render(null, TAG_OPTIONS);
+
+      assertFbButtons(linkButtons, 'present');
+      assertFbButtons(linkButtons, 'absent', 'disabled');
+    });
   });
 
   suite('Render phones', function() {
