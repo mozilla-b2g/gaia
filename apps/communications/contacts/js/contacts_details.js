@@ -17,13 +17,21 @@ contacts.Details = (function() {
       socialTemplate,
       notesTemplate,
       isFbContact,
+      isFbLinked,
       editContactButton,
       cover,
       favoriteMessage,
       detailsInner,
       TAG_OPTIONS,
       dom,
+      currentSocial,
       _;
+
+  var socialButtonIds = [
+    '#profile_button',
+    '#wall_button',
+    '#msg_button'
+  ];
 
   var init = function cd_init(currentDom) {
     _ = navigator.mozL10n.get;
@@ -43,6 +51,7 @@ contacts.Details = (function() {
     detailsInner = dom.querySelector('#contact-detail-inner');
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
+
     initPullEffect(cover);
   };
 
@@ -98,6 +107,7 @@ contacts.Details = (function() {
 
     TAG_OPTIONS = tags || TAG_OPTIONS;
     isFbContact = fb.isFbContact(contactData);
+    isFbLinked = fb.isFbLinked(contactData);
 
     // Initially enabled and only disabled if necessary
     editContactButton.removeAttribute('disabled');
@@ -242,8 +252,7 @@ contacts.Details = (function() {
   };
 
   var renderSocial = function cd_renderSocial(contact) {
-    var linked = fb.isFbLinked(contact);
-    var isFbContact = fb.isFbContact(contact);
+    var linked = isFbLinked;
 
     var action = linked ? _('social-unlink') : _('social-link');
     var slinked = linked ? 'false' : 'true';
@@ -253,35 +262,66 @@ contacts.Details = (function() {
       action: action,
       linked: slinked
     });
+    currentSocial = social;
+    var linkButton = social.querySelector('#link_button');
 
     if (!isFbContact) {
-      var buttonsToHide = [
-        '#profile_button',
-        '#wall_button',
-        '#msg_button'
-      ];
-
-      buttonsToHide.forEach(function check(selid) {
-        var button = social.querySelector(selid);
+      socialButtonIds.forEach(function check(id) {
+        var button = social.querySelector(id);
         if (button) {
           button.classList.add('hide');
         }
       });
+      // Checking whether link should be enabled or not
+      doDisableButton(linkButton);
     } else {
         var socialLabel = social.querySelector('#social-label');
         if (socialLabel)
           socialLabel.textContent = _('facebook');
+          // Check whether the social buttons that require to be online
+          // should be there
+        disableButtons(social, socialButtonIds);
     }
 
+    // If it is a FB Contact but not linked unlink must be hidden
     if (isFbContact && !linked) {
-      var linkButton = social.querySelector('#link_button');
-      if (linkButton)
-        linkButton.classList.add('hide');
+      linkButton.classList.add('hide');
     }
 
     Contacts.extFb.initEventHandlers(social, contact, linked);
 
     listContainer.appendChild(social);
+  }
+
+  var checkOnline = function(social) {
+    var socialTemplate = social || currentSocial;
+
+    if (socialTemplate) {
+      if (isFbContact) {
+         disableButtons(socialTemplate, socialButtonIds);
+      }
+      else {
+        disableButtons(socialTemplate, ['#link_button']);
+      }
+    }
+  }
+
+  function disableButtons(tree, buttonIds) {
+    buttonIds.forEach(function enable(id) {
+      var button = tree.querySelector(id);
+      if (button) {
+        doDisableButton(button);
+      }
+    });
+  }
+
+  function doDisableButton(buttonElement) {
+    if (navigator.onLine === true) {
+      buttonElement.removeAttribute('disabled');
+    }
+    else {
+      buttonElement.setAttribute('disabled', 'disabled');
+    }
   }
 
   var renderPhones = function cd_renderPhones(contact) {
@@ -419,6 +459,7 @@ contacts.Details = (function() {
     'init': init,
     'setContact': setContact,
     'toggleFavorite': toggleFavorite,
-    'render': render
+    'render': render,
+    'onLineChanged': checkOnline
   };
 })();
