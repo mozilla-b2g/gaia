@@ -783,8 +783,6 @@ var ThreadUI = {
 
     bottomToolbar.style.height = bottomToolbarHeight;
     ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
-    //we should do this with transform, but is buggy right now
-
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
   },
