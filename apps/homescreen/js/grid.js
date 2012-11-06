@@ -465,6 +465,60 @@ const GridManager = (function() {
     }
   };
 
+
+  /*
+   * Look up Icon objects using a descriptor containing 'manifestURL'
+   * (optionally 'entry_point') or 'bookmarkURL'.
+   */
+
+  // Map 'bookmarkURL' -> Icon object.
+  var bookmarkIcons = Object.create(null);
+  // Map 'manifestURL' + 'entry_point' to Icon object.
+  var appIcons = Object.create(null);
+
+  function rememberIcon(icon) {
+    var descriptor = icon.descriptor;
+    if (descriptor.bookmarkURL) {
+      bookmarkIcons[descriptor.bookmarkURL] = icon;
+      return;
+    }
+    var iconsForApp = appIcons[descriptor.manifestURL];
+    if (!iconsForApp)
+      iconsForApp = appIcons[descriptor.manifestURL] = Object.create(null);
+
+    iconsForApp[descriptor.entry_point || ""] = icon;
+  }
+
+  function forgetIcon(icon) {
+    var descriptor = icon.descriptor;
+    if (descriptor.bookmarkURL) {
+      delete bookmarkIcons[descriptor.bookmarkURL];
+      return;
+    }
+    var iconsForApp = appIcons[descriptor.manifestURL];
+    if (!iconsForApp)
+      return;
+
+    delete iconsForApp[descriptor.entry_point || ""];
+  }
+
+  function getIcon(descriptor) {
+    if (descriptor.bookmarkURL)
+      return bookmarkIcons[descriptor.bookmarkURL];
+
+    var iconsForApp = appIcons[descriptor.manifestURL];
+    return iconsForApp && iconsForApp[descriptor.entry_point || ""];
+  }
+
+  function getIconsForApp(app) {
+    return appIcons[descriptor.manifestURL];
+  }
+
+  function getIconForBookmark(bookmarkURL) {
+    return bookmarkIcons[bookmarkURL];
+  }
+
+
   return {
     /*
      * Initializes the grid manager
@@ -563,6 +617,8 @@ const GridManager = (function() {
     saveState: function gm_saveState() {
       pageHelper.saveAll();
     },
+
+    getIcon: getIcon,
 
     goToPage: goToPage,
 
