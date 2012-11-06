@@ -148,9 +148,28 @@
      * Displays a list of errors
      *
      * @param {Array} list error list
-     *  (see Event.validaitonErrors).
+     *  (see Event.validaitonErrors) or Error object
      */
-    showErrors: function(errors) {
+    showErrors: function(list) {
+      var _ = navigator.mozL10n.get;
+      var errors = '';
+      
+      // We can pass Error objects or 
+      // Array of {name: foo} objects
+      if (!Array.isArray(list)) {
+        if (list.message) {
+          list = [{name: list.message}];
+        }
+      }
+      
+      var i = 0;
+      var len = list.length;
+
+      for (; i < len; i++) {
+        var name = list[i].name;
+        errors += _('error-' + name) || name;
+      }
+      
       // populate error and display it.
       this.errors.textContent = errors;
       this.status.classList.add(this.activeClass);

@@ -1,5 +1,5 @@
 Calendar.ns('Provider').Caldav = (function() {
-
+  
   var _super = Calendar.Provider.Abstract.prototype;
 
   /**

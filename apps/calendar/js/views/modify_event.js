@@ -230,27 +230,6 @@ Calendar.ns('Views').ModifyEvent = (function() {
     },
 
     /**
-     * Displays a list of errors
-     *
-     * @param {Array} list error list
-     *  (see Event.validaitonErrors).
-     */
-    displayErrors: function(list) {
-      var _ = navigator.mozL10n.get;
-      var errors = '';
-
-      var i = 0;
-      var len = list.length;
-
-      for (; i < len; i++) {
-        var name = list[i].name;
-        errors += _(this.ERROR_PREFIX + name) || name;
-      }
-
-      this.showErrors(errors);
-    },
-
-    /**
      * Ask the provider to an event:
      *
      *  1. update the model with form data
@@ -273,7 +252,7 @@ Calendar.ns('Views').ModifyEvent = (function() {
 
       var errors = this.event.validationErrors();
       if (errors) {
-        this.displayErrors(errors);
+        this.showErrors(errors);
         return;
       }
 

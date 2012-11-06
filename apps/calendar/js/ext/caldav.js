@@ -2098,7 +2098,8 @@ function write (chunk) {
       xhr.onreadystatechange = function onReadyStateChange() {
         var data;
         if (xhr.readyState === 4) {
-          console.log('log', xhr.responseText);
+          console.log('LOG_response_headers', xhr.status);
+          console.log('LOG_response', xhr.responseText);
           data = xhr.responseText;
           this.waiting = false;
           callback(null, xhr);
@@ -2356,7 +2357,7 @@ function write (chunk) {
     name: 'href',
 
     onopentag: function() {
-      console.log('hrefhandler', this.handler);
+      console.log('LOG_hrefhandler', this.handler);
       if (this.currentTag.handler === this.handler) {
         this.stack.push(this.current);
         this.current = null;
@@ -2465,9 +2466,8 @@ function write (chunk) {
       'DAV:/status': HttpStatusHandler,
       'DAV:/resourcetype': ArrayHandler,
       'DAV:/current-user-privilege-set': PrivilegeSet,
-      'DAV:/principal-URL': HrefHandler,
-      'DAV:/current-user-principal': HrefHandler,
-      'DAV:/unauthenticated': TextHandler,
+      //'DAV:/principal-URL': TextHandler,
+      //'DAV:/current-user-principal': TextHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
       'DAV:/owner': HrefHandler,
@@ -2630,12 +2630,31 @@ function write (chunk) {
           self._processResult(req, callback);
         } else {
           // fail
-          callback(new Error('http error code: ' + xhr.status));
+          callback(new CaldavHttpError(xhr.status));
         }
       });
     }
   };
 
+  // HTTP ERROR
+  // XXX:move it from here
+  function CaldavHttpError(code) {
+      switch(code) {
+        case 401:
+          this.message = 'unauthenticated';
+          break;
+        case 500:
+          this.message = 'internal-server-error';
+          break;
+        default:
+          this.message = code;
+      }
+      
+  }
+  CaldavHttpError.prototype = new Error();
+  CaldavHttpError.prototype.constructor = CaldavHttpError;
+
+  
   module.exports = Abstract;
 
 }.apply(
@@ -2831,7 +2850,7 @@ function write (chunk) {
      */
     prop: function(tagDesc, attr, content) {
       this._props.push(this.template.tag(tagDesc, attr, content));
-      console.log('qwe', this._props[this._props.length-1]);
+      console.log('LOG_prop', this._props[this._props.length-1]);
     },
 
     /**
@@ -2985,7 +3004,7 @@ function write (chunk) {
     var url, results = [], prop;
 
     for (url in data) {
-      console.log('urlll', url, data[url]);
+      console.log('LOG_findProperty', url, data[url]);
       if (Object.hasOwnProperty.call(data, url)) {
         if (name in data[url]) {
           prop = data[url][name];
@@ -3017,7 +3036,6 @@ function write (chunk) {
 
       find.prop('current-user-principal');
       find.prop('principal-URL');
-      find.prop('unauthenticated');
       
       find.send(function(err, data) {
         var principal;
@@ -3027,15 +3045,24 @@ function write (chunk) {
           return;
         }
 
-        console.log('aaaaa', findProperty('unauthenticated', data, true));
-        
         principal = findProperty('current-user-principal', data, true);
-
+        console.log('LOG_proncipal_1', principal);
+        
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
+        console.log('LOG_proncipal_2', principal);
         }
+        
+        if (typeof principal.unauthenticated === 'object') {
 
-        callback(null, principal);
+          callback(new Error('unauthenticated'));
+          
+        } else if (principal.href){
+          callback(null, principal.href);
+        } else {
+          callback(new Error('no-url'));
+        }
+        
       });
     },
 
@@ -3071,8 +3098,8 @@ function write (chunk) {
       var self = this;
       self._findPrincipal(self.url, function(err, url) {
 
-        if (!url) {
-          callback(new Error('Cannot resolve principal url'));
+        if (err && !url) {
+          callback(err);
           return;
         }
 
