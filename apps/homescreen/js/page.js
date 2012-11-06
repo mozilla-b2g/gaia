@@ -206,13 +206,23 @@ Icon.prototype = {
     img = img || this.img;
     var url = window.URL.createObjectURL(this.descriptor.renderedIcon);
     img.src = url;
+    var self = this;
     img.onload = img.onerror = function cleanup() {
       img.style.visibility = "visible";
       window.URL.revokeObjectURL(url);
+      if (self.needsShow)
+        self.show();
     };
   },
 
   show: function icon_show() {
+    // Wait for the icon image to load until we start the animation.
+    if (!this.img.naturalWidth) {
+      this.needsShow = true;
+      return;
+    }
+
+    this.needsShow = false;
     var container = this.container;
     container.dataset.visible = true;
     container.addEventListener('animationend', function animationEnd(e) {
