@@ -1,11 +1,18 @@
-/* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
+/* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
 
 'use strict';
 
 var TrustedUIManager = {
 
-  _dialogs: {},
+  get currentStack () {
+    if (!this._dialogStacks[this._lastDisplayedApp]) {
+      this._dialogStacks[this._lastDisplayedApp] = [];
+    }
+    return this._dialogStacks[this._lastDisplayedApp];
+  },
+
+  _dialogStacks: {},
   _lastDisplayedApp: null,
 
   overlay: document.getElementById('dialog-overlay'),
@@ -32,20 +39,53 @@ var TrustedUIManager = {
     this.closeButton.addEventListener('click', this);
   },
 
-  open: function trui_open(name, frame, origin, chromeEventId) {
-    if (this._alreadyExists(this._lastDisplayedApp)) {
-      // If already exists a Dialog, swap them
-      this.container.removeChild(this._dialogs[this._lastDisplayedApp].frame);
-      this._createDialog(name, frame, this._lastDisplayedApp, chromeEventId);
+  open: function trui_open(name, frame, chromeEventId) {
+    if (this.currentStack.length > 0) {
+      this._makeDialogHidden(this._getTopDialog());
+      this._pushNewDialog(name, frame, chromeEventId);
     } else {
+      // first time, spin back to home screen first
       WindowManager.hideCurrentApp(function openTrustedUI() {
-        this._createDialog(name, frame, this._lastDisplayedApp, chromeEventId);
+        this._pushNewDialog(name, frame, chromeEventId);
       }.bind(this));
     }
   },
 
-  _alreadyExists: function alreadyExists(origin) {
-    return this._dialogs[origin];
+  close: function trui_close(callback) {
+    // XXX this assumes that close() will only be called from the
+    // topmost element in the frame stack.  woooog.
+    var stackSize = this.currentStack.length;
+
+    if (callback)
+      callback();
+
+    if (stackSize === 0) {
+      // nothing to close.  what are you doing?
+      return;
+    }
+
+    else if (stackSize === 1) {
+      // only one dialog, so transition back to main app
+      var self = this;
+      this.popupContainer.addEventListener('transitionend', function wait(event) {
+        this.removeEventListener('transitionend', wait);
+        self._closeTopDialog();
+        WindowManager.restoreCurrentApp();
+      });
+
+      // The css transition caused by the removal of the trustedui
+      // class by the hide() method will trigger a 'transitionend'
+      // event ultimately to be fired.
+      this.hide();
+
+      window.focus();
+    }
+
+    else {
+      // there are two or more dialogs, so remove the top one
+      // (which reveals the one beneath it)
+      this._closeTopDialog();
+    }
   },
 
   _dispatchCloseEvent: function dispatchCloseEvent(eventId) {
@@ -61,47 +101,64 @@ var TrustedUIManager = {
     window.dispatchEvent(event);
   },
 
-  _createDialog: function trui_createDialog(name, frame, origin, chromeEventId) {
-    this._dialogs[origin] = {
+  _getTopDialog: function trui_getTopDialog() {
+    // get the topmost dialog for the _lastDisplayedApp or null
+    return this.currentStack[this.currentStack.length-1];
+  },
+
+  _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId) {
+    // add some data attributes to the frame
+    var dataset = frame.dataset;
+    dataset.frameType = 'popup';
+    dataset.frameName = frame.name;
+    dataset.frameOrigin = this._lastDisplayedApp;
+
+    // make a shiny new dialog object
+    var dialog = {
       name: name,
       frame: frame,
       chromeEventId: chromeEventId
     };
-    this.dialogTitle.textContent = origin;
-    var popup = frame;
-    var dataset = popup.dataset;
-    dataset.frameType = 'popup';
-    dataset.frameName = name;
-    dataset.frameOrigin = origin;
-    this.container.appendChild(popup);
-    this.screen.classList.add('trustedui');
+
+    // push and show
+    this.currentStack.push(dialog);
+    this._makeDialogVisible(dialog);
   },
 
-  _destroyDialog: function trui_destroyDialog() {
-    var currentDialog = this._dialogs[this._lastDisplayedApp];
-    this.container.removeChild(currentDialog.frame);
-    delete this._dialogs[this._lastDisplayedApp];
+  _makeDialogVisible: function trui_makeDialogVisible(dialog) {
+    this.dialogTitle.textContent = dialog.name;
+    this.container.appendChild(dialog.frame);
+    // make sure the trusty ui is visible
+    this.show();
   },
 
-  close: function trui_close(callback) {
-    if (!this._alreadyExists(this._lastDisplayedApp))
+  _makeDialogHidden: function trui_makeDialogHidden(dialog) {
+    this.container.removeChild(dialog.frame);
+  },
+
+  _closeTopDialog: function trui_closeTopDialog() {
+    if (this.currentStack.length === 0)
       return;
-    var self = this;
-    this.popupContainer.addEventListener('transitionend', function wait(event) {
-      this.removeEventListener('transitionend', wait);
-      self._destroyDialog();
-      WindowManager.restoreCurrentApp();
-    });
 
-    self.screen.classList.remove('trustedui');
-    if (callback)
-      callback();
+    var dialog = this.currentStack.pop();
+    this.container.removeChild(dialog.frame);
+    this._dispatchCloseEvent(dialog.chromeEventId);
 
-    window.focus();
+    if (this.currentStack.length > 0) {
+      this._makeDialogVisible(this._getTopDialog());
+    }
   },
 
   hide: function trui_hide() {
     this.screen.classList.remove('trustedui');
+  },
+
+  show: function trui_show() {
+    this.screen.classList.add('trustedui');
+  },
+
+  isVisible: function trui_show() {
+    this.screen.classList.contains('trustedui');
   },
 
   setHeight: function trui_setHeight(height) {
@@ -111,40 +168,44 @@ var TrustedUIManager = {
   handleEvent: function trui_handleEvent(evt) {
     switch (evt.type) {
       case 'home':
-        if (!this.screen.classList.contains('trustedui'))
+        if (!this.isVisible())
           return;
 
         WindowManager.restoreCurrentApp();
         this.hide();
         break;
       case 'click':
-        var dialog = this._dialogs[this._lastDisplayedApp];
-        if (!dialog)
+        // Close-button clicked
+        if (this.currentStack.length === 0)
           return;
-        this.close();
-        // Notify user closed the trustedUI
-        this._dispatchCloseEvent(dialog.chromeEventId);
+
+        // If the user closed a trusty UI dialog, they probably meant
+        // to close every dialog.
+        for (var i = 0, toClose = this.currentStack.length; i < toClose; i++) {
+          this.close();
+        }
         break;
       case 'appopen':
         this._lastDisplayedApp = evt.detail.origin;
-        if (this._alreadyExists(this._lastDisplayedApp)) {
+        if (this.currentStack.length > 0) {
           // Reopening an app with trustedUI
-          var dialog = this._dialogs[this._lastDisplayedApp];
           this.container.innerHTML = '';
           WindowManager.hideCurrentApp(function openTrustedUI() {
-            this._createDialog(dialog.name, dialog.frame,
-                               this._lastDisplayedApp, dialog.chromeEventId);
-          }.bind(this, dialog));
+            this._makeDialogVisible(this._getTopDialog());
+          }.bind(this));
         }
         break;
       case 'appwillclose':
-        if (!this._dialogs[this._lastDisplayedApp])
+        if (this.currentStack.length === 0)
           return;
         this.hide();
         break;
       case 'appterminated':
-        if (!this._dialogs[this._lastDisplayedApp])
+        if (this.currentStack.length === 0)
           return;
+        // cleanup
+        var dialog = this.currentStack.pop();
+        this.container.removeChild(dialog.frame);
         this._destroyDialog();
         break;
       case 'keyboardchange':
@@ -160,4 +221,3 @@ var TrustedUIManager = {
 };
 
 TrustedUIManager.init();
-
