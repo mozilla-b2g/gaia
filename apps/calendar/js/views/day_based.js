@@ -338,6 +338,16 @@ Calendar.ns('Views').DayBased = (function() {
       });
     },
 
+    _scrollToFirstEvent: function() {
+      for (item in this.hours.items) {
+        var hour = this.hours.get(item);
+        if (hour && hour.flags.length > 0) {
+          hour.element.scrollIntoView();
+          break;
+        }
+      }
+    },
+
     /** public **/
 
     handleEvent: function(e) {
@@ -531,6 +541,7 @@ Calendar.ns('Views').DayBased = (function() {
       }
 
       this.changeDate(this.date);
+      this._scrollToFirstEvent();
 
       return el;
     },
