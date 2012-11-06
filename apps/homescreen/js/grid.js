@@ -660,6 +660,14 @@ const GridManager = (function() {
    * Create or update a single icon for an Application (or Bookmark) object.
    */
   function createOrUpdateIconForApp(app, withAnimation, entryPoint) {
+    // Make sure we update the icon/label when the app is updated.
+    if (!app.isBookmark) {
+      app.ondownloadapplied = function ondownloadapplied(event) {
+        var withAnimation = false;
+        createOrUpdateIconForApp(app, withAnimation, entryPoint);
+      };
+    }
+
     var manifest = app.manifest;
     var iconsAndNameHolder = manifest;
     if (entryPoint)
