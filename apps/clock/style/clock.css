@@ -305,7 +305,7 @@ html, body {
   width: 100%;
   height: -moz-calc(100% - 0.13rem);
   color: black;
-  background-image: url(images/clock_background.png);
+  background-image: url(images/clock_background_small.png);
   background-size: cover;
   background-position: center;
   border-bottom: 0.13rem solid #ACACAC;
@@ -339,19 +339,19 @@ html, body {
 }
 
 #analog-clock-background-cache1 {
-  background-image: url(images/analog_clock_background1.png);
+  background-image: url(images/analog_clock_background1_small.png);
 }
 
 #analog-clock-background-cache2 {
-  background-image: url(images/analog_clock_background2.png);
+  background-image: url(images/analog_clock_background2_small.png);
 }
 
 #analog-clock-background-cache3 {
-  background-image: url(images/analog_clock_background3.png);
+  background-image: url(images/analog_clock_background3_small.png);
 }
 
 #analog-clock-background-cache4 {
-  background-image: url(images/analog_clock_background4.png);
+  background-image: url(images/analog_clock_background4_small.png);
 }
 
 #digital-clock-background {
@@ -414,6 +414,7 @@ html, body {
   margin: auto;
   font: normal 1.56rem 'MozTT', sans-serif;
   line-height: 6.13rem;
+  top: 0;
 }
 
 #analog-clock-container {
@@ -524,6 +525,21 @@ body.hidden *[data-l10n-id] {
   #analog-clock-svg-body.alarm4 {
     transform: matrix(0.46,0,0,0.46,0,-25.5);
   }
+  #analog-clock-background-cache1 {
+    background-image: url(images/analog_clock_background1_small.png);
+  }
+  #analog-clock-background-cache2 {
+    background-image: url(images/analog_clock_background2_small.png);
+  }
+  #analog-clock-background-cache3 {
+    background-image: url(images/analog_clock_background3_small.png);
+  }
+  #analog-clock-background-cache4 {
+    background-image: url(images/analog_clock_background4_small.png);
+  }
+  #clock-view {
+    background-image: url(images/clock_background_small.png);
+  }
 }
 
 /* 480x800 phones */
@@ -542,5 +558,20 @@ body.hidden *[data-l10n-id] {
   }
   #analog-clock-svg-body.alarm4 {
     transform: matrix(0.52,0,0,0.52,0,-21.5);
+  }
+  #analog-clock-background-cache1 {
+    background-image: url(images/analog_clock_background1_big.png);
+  }
+  #analog-clock-background-cache2 {
+    background-image: url(images/analog_clock_background2_big.png);
+  }
+  #analog-clock-background-cache3 {
+    background-image: url(images/analog_clock_background3_big.png);
+  }
+  #analog-clock-background-cache4 {
+    background-image: url(images/analog_clock_background4_big.png);
+  }
+  #clock-view {
+    background-image: url(images/clock_background_big.png);
   }
 }

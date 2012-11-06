@@ -30,8 +30,7 @@
     <div id="views">
       <div id="alarm-view" class="active view">
         <div id="clock-view">
-          <div id="clock-day-date"></div>
-          <a id="alarm-new" href="#alarm" class="right button plus"></a>  
+  
           <div id="analog-clock">
             <div id="analog-clock-background-cache1" class="analog-clock-background-cache"></div>
             <div id="analog-clock-background-cache2" class="analog-clock-background-cache"></div>
@@ -75,6 +74,8 @@
               </div>
             </div>
           </div>
+          <div id="clock-day-date"></div>
+          <a id="alarm-new" href="#alarm" class="right button plus"></a>
           <ul id="alarms" class="tableView"></ul>
         </div>
         <div id="banner-countdown" class="banner">
@@ -191,14 +192,14 @@
         <li class="singleline">
           <span class="view-alarm-lbl" data-l10n-id="sound">Sound</span>
           <select id="sound-select" class="abstract-menu">
-            <option value="classic_buzz.ogg">Classic Buzz</option>
-            <option value="classic_pulse.ogg">Classic Pulse</option>
-            <option value="classic_pulse_progressive.ogg">Classic Progressive</option>
-            <option value="alarm_gem_echoes.ogg">Gem Echoes</option>
-            <option value="alarm_into_the_void.ogg">Into the Void</option>
-            <option value="alarm_ringing_strings.ogg">Ringing Strings</option>
-            <option value="alarm_shimmering_waves.ogg">Shimmering Waves</option>
-            <option value="alarm_smooth_strings.ogg">Smooth Strings</option>
+            <option value="classic_buzz.ogg" data-l10n-id="classic_buzz">Classic Buzz</option>
+            <option value="classic_pulse.ogg" data-l10n-id="classic_pulse">Classic Pulse</option>
+            <option value="classic_pulse_progressive.ogg" data-l10n-id="classic_pulse_progressive">Classic Progressive</option>
+            <option value="alarm_gem_echoes.ogg" data-l10n-id="alarm_gem_echoes">Gem Echoes</option>
+            <option value="alarm_into_the_void.ogg" data-l10n-id="alarm_into_the_void">Into the Void</option>
+            <option value="alarm_ringing_strings.ogg" data-l10n-id="alarm_ringing_strings">Ringing Strings</option>
+            <option value="alarm_shimmering_waves.ogg" data-l10n-id="alarm_shimmering_waves">Shimmering Waves</option>
+            <option value="alarm_smooth_strings.ogg" data-l10n-id="alarm_smooth_strings">Smooth Strings</option>
           </select>
           <a id="sound-menu" class="abstract-menu">Classic</a>
           <p></p>
