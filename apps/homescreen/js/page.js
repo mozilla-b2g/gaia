@@ -73,6 +73,7 @@ Icon.prototype = {
     img.setAttribute('role', 'presentation');
     img.width = 68;
     img.height = 68;
+    img.style.visibility = "hidden";
     icon.appendChild(img);
     if (descriptor.renderedIcon) {
       this.displayRenderedIcon();
@@ -206,6 +207,7 @@ Icon.prototype = {
     var url = window.URL.createObjectURL(this.descriptor.renderedIcon);
     img.src = url;
     img.onload = img.onerror = function cleanup() {
+      img.style.visibility = "visible";
       window.URL.revokeObjectURL(url);
     };
   },
