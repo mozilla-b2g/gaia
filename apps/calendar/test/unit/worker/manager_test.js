@@ -9,168 +9,92 @@ requireApp('calendar/test/unit/helper.js', function() {
 suite('worker/manager', function() {
   var subject;
 
-  function MockWorker(url) {
+  function MockWorker(handler) {
+    return function(url) {
+      this.url = url;
+      this.onerror = this.onmessage = this.terminate = Math.min;
+      this.sent = [];
 
-    this.url = url;
-    this.events = {};
-    this.sent = [];
+      this.addEventListener = function(type, func) {
+        if (type == 'error') this.onerror = func;
+        else if (type == 'message') this.onmessage = func;
+      };
 
-    this.addEventListener = function() {
-      var args = Array.prototype.slice.call(arguments);
-      var event = args.shift();
+      this.respond = function(message) {
+        this.onmessage({data: message});
+      };
 
-      if (!(event in this.events)) {
-        this.events[event] = [];
-      }
-
-      this.events[event].push(args);
-    }
-
-    this.postMessage = function() {
-      this.sent.push(
-        Array.prototype.slice.call(arguments)
-      );
-    }
+      var self = this;
+      this.postMessage = function(msg) {
+        setTimeout(function(){handler.call(self, msg);}, 10);
+      };
+    };
   }
 
   setup(function() {
     subject = new Calendar.Worker.Manager();
-    subject.Worker = MockWorker;
+    subject.Worker = MockWorker(Math.min);
   });
 
   teardown(function() {
-    var workers = subject.workers;
-    var keys = Object.keys(workers);
-
-    keys.forEach(function(key) {
-      var worker = workers[key];
-      if (worker instanceof Worker) {
-        worker.terminate();
-      }
-    });
-  });
-
-  test('initializer', function() {
-    assert.deepEqual(subject.roles, {});
-    assert.equal(subject._lastId, 0);
-    assert.deepEqual(subject.workers, {});
-  });
-
-  test('#_getId', function() {
-    assert.equal(subject._getId(), 0);
-    assert.equal(subject._getId(), 1);
   });
 
   suite('#add', function() {
 
     test('single role', function() {
-      var id = subject._lastWorkerId;
       subject.add('test', 'foo.js');
 
-      var result = subject.workers[id];
-
-      assert.instanceOf(result, MockWorker);
+      var result = subject._ensureActiveWorker('test').instance;
+      assert.instanceOf(result, subject.Worker);
       assert.ok(result.url);
       assert.include(result.url, 'foo.js');
-
-      assert.ok(result.onmessage);
-      assert.ok(result.onerror);
-      assert.deepEqual(subject.roles.test, [id]);
-
-      assert.equal(subject._lastWorkerId, id + 1);
     });
 
     test('multi role', function() {
-      var id = subject._lastId;
       subject.add(['one', 'two'], 'bar.js');
 
-      assert.deepEqual(subject.roles, {
-        one: [id],
-        two: [id]
+      var resultOne = subject._ensureActiveWorker('one');
+      var resultTwo = subject._ensureActiveWorker('two');
+
+      assert.ok(resultOne);
+      assert.equal(resultOne, resultTwo);
+
+      assert.throws(function() {
+        subject._ensureActiveWorker('three');
       });
-    });
-
-    test('onmessage', function() {
-      var calledWith;
-      subject._workerReady = function() {
-        calledWith = arguments;
-      }
-
-      subject.add('test', 'foo.js');
-      var worker = subject.workers[0];
-      worker.onmessage({ data: ['ready'] });
-
-      assert.equal(calledWith[0], worker);
-      assert.equal(calledWith[1], 0);
-    });
-
-  });
-
-  suite('#_findWorker', function() {
-
-    test('single worker', function() {
-      var list = subject.roles['test'] = [];
-      var worker = 'worker';
-      list.push(worker);
-
-      assert.equal(
-        subject._findWorker('test'),
-        worker
-      );
-
-      assert.equal(
-        subject._findWorker('test'),
-        subject._findWorker('test')
-      );
-    });
-
-    test('multiple workers', function() {
-      var list = subject.roles['test'] = [1, 2, 3];
-      var checkList = [1, 2, 3];
-
-      for (var i = 0; i < 30; i++) {
-        if (checkList.length === 0) {
-          break;
-        }
-
-        var result = subject._findWorker('test');
-        var idx = checkList.indexOf(result);
-
-        if (idx !== -1) {
-          checkList.splice(idx, 1);
-        }
-      }
-
-      if (checkList.length) {
-        assert.ok(
-          false,
-          'failed to find indexes: [' +
-            checkList.join(', ') + ']'
-        );
-      }
     });
 
   });
 
   suite('worker acceptance', function() {
-    // this fail when the entire suite is run.
-    test('TODO: fix acceptance tests', function() {});
-    return;
+    function mockHandler(message) {
+      assert.equal(message[0], '_dispatch');
+      var data = message[1], self = this;
+      assert.equal(typeof data.id, 'number');
 
-    var obj = { magic: true };
-    var events;
-
-    function addEvent(type) {
-      if (!(type in events)) {
-        events[type] = [];
+      if (data.payload[0] == 'explode') {
+        self.onerror(new Error('BOOM'));
+      } else if (data.payload[0] == 'stream') {
+        self.respond([data.id + ' stream', 'data', 'data one']);
+        setTimeout(function() {
+          self.respond([data.id + ' stream', 'data', 'data two']);
+          setTimeout(function() {
+            self.respond([data.id + ' end', 'stream finito']);
+          }, 20);
+        }, 20);
+      } else if (data.payload[0] == 'stream/explode') {
+        self.respond([data.id + ' stream', 'data', 'data one']);
+        setTimeout(function() {
+          self.onerror(new Error('BOOM'));
+        }, 20);
+      } else {
+        self.respond([data.id + ' end', 'response']);
       }
-
-      events[type].push(Array.prototype.slice.call(arguments, 1));
     }
+    var obj = {prop: "value"};
 
     setup(function() {
-      events = {};
-      subject.Worker = Worker;
+      subject.Worker = MockWorker(mockHandler);
       subject.add(
         'test', '/test/unit/fixtures/relay_worker.js'
       );
@@ -178,59 +102,59 @@ suite('worker/manager', function() {
 
     test('#request', function(done) {
       this.timeout(12000);
-      subject.request('test', 'relay', obj, function(data) {
+      subject.request('test', 'foobar', obj, function(data) {
         done(function() {
-          assert.deepEqual(obj, data);
+          assert.deepEqual(data, 'response');
         });
       });
     });
 
     test('#request /w error object', function(done) {
       this.timeout(12000);
-      subject.request('test', 'error', function(err) {
+      subject.request('test', 'explode', function(err) {
         done(function() {
-          assert.equal(err.message, 'message');
-          assert.ok(err.stack);
           assert.instanceOf(err, Error);
+          assert.equal(err.message, 'BOOM');
         });
       });
     });
 
     test('#stream', function(done) {
       this.timeout(12000);
-      var stream = subject.stream('test', 'stream', obj);
+      var stream = subject.stream('test', 'stream');
+      var dataReceived = [], errorReceived = null;
 
-      stream.on('data', addEvent.bind(this, 'data'));
-      stream.on('error', addEvent.bind(this, 'error'));
+      stream.on('data', function(data) { dataReceived.push(data); });
+      stream.on('error', function(error) { errorReceived = error; });
 
       stream.request(function(data) {
         done(function() {
-          assert.deepEqual(
-            events.data,
-            [[1], [2]],
-            'should relay data event'
-          );
-
-          assert.deepEqual(
-            events.error,
-            [['err']],
-            'should relay error event'
-          );
-
-          assert.deepEqual(
-            data, [obj],
-            'should send data over final callback'
-          );
-
-          // should clear all events...
-          assert.deepEqual(subject._$events['0 stream'], []);
-          assert.deepEqual(subject._$events['0 end'], []);
+          assert.deepEqual(dataReceived, ['data one', 'data two']);
+          assert.equal(data, 'stream finito');
+          assert.equal(errorReceived, null);
         });
       });
 
       // can only request stream once
       assert.throws(function() {
         stream.request();
+      });
+    });
+
+    test('#stream error', function(done) {
+      this.timeout(12000);
+      var stream = subject.stream('test', 'stream/explode');
+      var dataReceived = [], errorReceived = null;
+
+      stream.on('data', function(data) { dataReceived.push(data); });
+      stream.on('error', function(error) { errorReceived = error; });
+
+      stream.request(function(error) {
+        done(function() {
+          assert.deepEqual(dataReceived, ['data one']);
+          assert.instanceOf(error, Error);
+          assert.instanceOf(errorReceived, Error);
+        });
       });
     });
   });
