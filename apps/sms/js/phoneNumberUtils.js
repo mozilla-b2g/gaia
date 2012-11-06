@@ -6,16 +6,13 @@
  * Methods in the PhoneNumberManager:
  * init - Setup mobile country code (mcc).
  *
- * getInternationalNum - Ruturn the phone number with international format.
- *   If the second parameter is true, it will return original input number
- *   while input number in invalid format, otherwise return null.
+ * getNormalizedInternationalNumber - Ruturn the phone number with 
+ * international format. If is invalid, returns number without formatting.
  *
- * getNationalNum - Ruturn the phone number with national format.
- *   If the second parameter is true, it will return original input number
- *   while input number in invalid format, otherwise return null.
+ * getNormalizedNumber - Ruturn the phone number with national format.
+ *   If is invalid, returns number without formatting.
  *
- * isValidNumber - We set a number string and it will check if the phone number
- *   is valid or not.
+ * getOptionalNumbers - Retrieve the set of possibilites given an number
  *
 */
 var PhoneNumberManager = {
