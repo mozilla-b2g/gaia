@@ -9,16 +9,11 @@
   font-weight: normal;
   text-align: left;
 }
-.sup-form-text {
-  -moz-box-sizing: border-box;
-  border: 1px solid #D1D1D1;
-  border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  display: block;
-  height: 4rem;
-  padding: 0 0.5rem;
+input.sup-form-text {
   margin: 1rem 3rem 1rem 3rem;
   width: calc(100% - 6rem);
 }
+
 .sup-form-btn {
   margin: 1.5rem 3rem;
   width: calc(100% - 6rem);
