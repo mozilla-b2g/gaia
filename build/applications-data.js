@@ -1,57 +1,20 @@
 'use strict';
 
-// Homescreen
-let init = getFile(GAIA_DIR, 'apps', 'homescreen', 'js', 'init.json');
+// Initial Homescreen icon descriptors.
+// TODO: we could automatically generate this by reading the
+// information from the manifest files.
+let init = getFile(GAIA_DIR, 'build', 'homescreen-init.json');
+let targetDir = getFile(GAIA_DIR, 'apps', 'homescreen', 'js');
+init.copyTo(targetDir, 'init.json');
 
-function makeURL(name, ep) {
-  var url = GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
-  url += ep? ('/' + ep) : '';
-  return url;
-}
-
-let content = {
-  grid: [
-    [ // page 1
-      makeURL('camera'),
-      makeURL('gallery'),
-      makeURL('fm'),
-      makeURL('settings'),
-      'https://marketplace.mozilla.org/telefonica/',
-      'http://demo.maps.public.devbln.europe.nokia.com/repository/ffos_buildme_k_b/'
-    ],
-    [ // page 2
-      makeURL('calendar'),
-      makeURL('clock'),
-      makeURL('costcontrol'),
-      makeURL('email'),
-      makeURL('music'),
-      makeURL('video'),
-      makeURL('calculator'),
-      'https://marketplace-dev.allizom.org/telefonica/'
-    ]
-  ],
-  dock: [
-    makeURL('communications', 'dialer'),
-    makeURL('sms'),
-    makeURL('communications', 'contacts'),
-    makeURL('browser'),
-    makeURL('feedback')
-  ],
-  hidden: [
-    makeURL('homescreen'),
-    makeURL('keyboard'),
-    makeURL('wallpaper'),
-    makeURL('system'),
-    makeURL('pdfjs')
-  ]
-}
-
-writeContent(init, JSON.stringify(content));
+init = getFile(GAIA_DIR, 'build', 'homescreen-hiddenapps.js');
+targetDir = getFile(GAIA_DIR, 'apps', 'homescreen', 'js');
+init.copyTo(targetDir, 'hiddenapps.js');
 
 // Cost Control
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
 
-content = { 
+let content = {
   enableon: { 724: [6, 10, 11, 23] }, // { MCC: [ MNC1, MNC2, ...] }
   credit: { currency : 'R$' },
   balance: { 
