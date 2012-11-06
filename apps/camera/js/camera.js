@@ -587,6 +587,9 @@ var Camera = {
       this._pictureSize =
         this.largestPictureSize(camera.capabilities.pictureSizes);
       this.enableCameraFeatures(camera.capabilities);
+      camera.onShutter = (function() {
+        this._shutterSound.play();
+      }).bind(this);
       camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
@@ -870,7 +873,6 @@ var Camera = {
     if (this._position) {
       this._config.position = this._position;
     }
-    this._shutterSound.play();
     this._cameraObj
       .takePicture(this._config, this.takePictureSuccess.bind(this));
   },
