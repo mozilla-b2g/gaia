@@ -1,4 +1,3 @@
-
 'use strict';
 
 /*
@@ -53,7 +52,7 @@ Icon.prototype = {
     var icon = this.icon = document.createElement('div');
 
     // Image
-    var canvas = document.createElement('canvas');
+    var canvas = this.canvas = document.createElement('canvas');
     canvas.setAttribute('role', 'presentation');
     canvas.width = 68;
     canvas.height = 68;
@@ -65,13 +64,13 @@ Icon.prototype = {
 
     var self = this;
     img.onload = function icon_loadSuccess() {
-      self.generateShadow(canvas, img);
+      self.renderImage();
     }
 
     img.onerror = function icon_loadError() {
       img.src = '//' + window.location.host + '/resources/images/Unknown.png';
       img.onload = function icon_errorIconLoadSucess() {
-        self.generateShadow(canvas, img);
+        self.renderImage();
       }
     };
 
@@ -100,7 +99,9 @@ Icon.prototype = {
     target.appendChild(container);
   },
 
-  generateShadow: function(canvas, img) {
+  renderImage: function icon_renderImage(canvas) {
+    canvas = canvas || this.canvas;
+    var img = this.img;
     var ctx = canvas.getContext('2d');
     ctx.shadowColor = 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 2;
@@ -153,7 +154,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
 
     draggableElem.appendChild(this.icon.cloneNode());
-    this.generateShadow(draggableElem.querySelector('canvas'), this.img);
+    this.renderImage(draggableElem.querySelector('canvas'));
 
     var container = this.container;
     container.dataset.dragging = 'true';
