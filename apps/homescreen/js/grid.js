@@ -757,12 +757,24 @@ const GridManager = (function() {
      */
     init: function gm_init(gridSelector, dockSelector, callback) {
       initUI(gridSelector);
-      HomeState.init(function onState(state) {
-        initState(dockSelector, state);
+
+      // Initialize the grid from the state saved in IndexedDB.
+      HomeState.init(function eachPage(pageState) {
+        // First 'page' is the dock.
+        if (pageState.index == 0) {
+          var dockContainer = document.querySelector(dockSelector);
+          var dock = new Dock(dockContainer, convertDescriptorsToIcons(pageState));
+          DockManager.init(dockContainer, dock);
+          return;
+        }
+        pageHelper.addPage(convertDescriptorsToIcons(pageState));
+      }, function onState() {
         initApps();
         callback();
       }, function onError(error) {
-        initState(dockSelector, []);
+        var dockContainer = document.querySelector(dockSelector);
+        var dock = new Dock(dockContainer, []);
+        DockManager.init(dockContainer, dock);
         initApps();
         callback();
       });

@@ -9,7 +9,7 @@ const HomeState = (function() {
   var database = null;
   var initQueue = [];
 
-  function loadInitialState(success, error) {
+  function loadInitialState(iterator, success, error) {
     var xhr = new XMLHttpRequest();
     xhr.overrideMimeType('application/json');
     xhr.open('GET', 'js/init.json', true);
@@ -36,7 +36,8 @@ const HomeState = (function() {
         grid[i] = {index: i, icons: grid[i]};
       }
       HomeState.saveGrid(grid, function onSaveGrid() {
-        success(grid);
+        grid.forEach(iterator);
+        success();
       }, error);
     };
   }
@@ -116,13 +117,13 @@ const HomeState = (function() {
      * Initialize the database and return the homescreen state to the
      * success callback.
      */
-    init: function st_init(success, error) {
+    init: function st_init(iterator, success, error) {
       openDB(function (emptyDB) {
         if (emptyDB) {
-          loadInitialState(success, error);
+          loadInitialState(iterator, success, error);
           return;
         }
-        HomeState.getGrid(success, error);
+        HomeState.getGrid(iterator, success, error);
       }, error);
     },
 
@@ -146,7 +147,7 @@ const HomeState = (function() {
       });
     },
 
-    getGrid: function st_getGrid(success, error) {
+    getGrid: function st_getGrid(iterator, success, error) {
       if (!database) {
         if (error) {
           error('Database is not available');
@@ -154,12 +155,16 @@ const HomeState = (function() {
         return;
       }
 
-      var result = null;
       newTxn(GRID_STORE_NAME, 'readonly', function(txn, store) {
-        store.mozGetAll().onsuccess = function onsuccess(event) {
-          result = event.target.result;
+        store.openCursor().onsuccess = function onsuccess(event) {
+          var cursor = event.target.result;
+          if (!cursor)
+            return;
+
+          iterator(cursor.value);
+          cursor.continue();
         };
-      }, function() { success(result); }, error);
+      }, function() { success(); }, error);
     }
   };
 })();
