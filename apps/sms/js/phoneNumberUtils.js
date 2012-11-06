@@ -22,6 +22,7 @@ var PhoneNumberManager = {
   init: function pnm_init() {
     // XXX Hack: If is the first time that we are launching SMS and there is any
     // problem with 'mozMobileConnection' we apply this as default
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=809057
     var presetMCC = 'ES';
     // Method for retrieving the mcc
     var self = this;
