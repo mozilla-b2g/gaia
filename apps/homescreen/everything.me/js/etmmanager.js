@@ -6,7 +6,7 @@ var EvmeManager = (function() {
 
     function openApp(params) {
         var evmeApp = new EvmeApp({
-            url: params.originUrl,
+            bookmarkURL: params.originUrl,
             name: params.title,
             icon: params.icon
         });
@@ -63,3 +63,34 @@ var EvmeApp = function createEvmeApp(params) {
 };
 
 extend(EvmeApp, Bookmark);
+
+EvmeApp.prototype.launch = function evmeapp_launch(url, name) {
+    var features = {
+      name: this.manifest.name.replace(/\s/g, '&nbsp;'),
+      icon: this.manifest.icons['60']
+    };
+
+    if (!GridManager.getIconForBookmark(this.origin)) {
+      features.origin = {
+        name: features.name,
+        url: encodeURIComponent(this.origin)
+      };
+    }
+
+    if (url && url !== this.origin && !GridManager.getIconForBookmark(url)) {
+      var searchName = navigator.mozL10n.get('wrapper-search-name', {
+        topic: name,
+        name: this.manifest.name
+      }).replace(/\s/g, '&nbsp;');
+
+      features.name = searchName;
+      features.search = {
+        name: searchName,
+        url: encodeURIComponent(url)
+      };
+    }
+
+    // The third parameter is received in window_manager without whitespaces
+    // so we decice replace them for &nbsp;
+    return window.open(url || this.origin, '_blank', JSON.stringify(features));
+};

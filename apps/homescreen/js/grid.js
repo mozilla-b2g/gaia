@@ -852,6 +852,10 @@ const GridManager = (function() {
 
     getIcon: getIcon,
 
+    getIconsForApp: getIconsForApp,
+
+    getIconForBookmark: getIconForBookmark,
+
     goToPage: goToPage,
 
     goToPreviousPage: goToPreviousPage,
