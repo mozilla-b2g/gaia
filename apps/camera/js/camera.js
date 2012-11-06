@@ -107,6 +107,9 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
+  // Maximum image resolution for still photos taken with camera
+  MAX_IMAGE_RES: 1920000,
+
   get overlayTitle() {
     return document.getElementById('overlay-title');
   },
@@ -585,7 +588,7 @@ var Camera = {
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
-        this.largestPictureSize(camera.capabilities.pictureSizes);
+        this.pickPictureSize(camera.capabilities.pictureSizes);
       this.enableCameraFeatures(camera.capabilities);
       camera.onShutter = (function() {
         this._shutterSound.play();
@@ -870,6 +873,7 @@ var Camera = {
 
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
+    this._config.pictureSize = this._pictureSize;
     if (this._position) {
       this._config.position = this._position;
     }
@@ -890,14 +894,18 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  largestPictureSize: function camera_largestPictureSize(pictureSizes) {
-    return pictureSizes.reduce(function(acc, size) {
-      if (size.width + size.height > acc.width + acc.height) {
-        return size;
-      } else {
-        return acc;
-      }
-    });
+  pickPictureSize: function camera_pickPictureSize(pictureSizes) {
+    var maxRes = this.MAX_IMAGE_RES;
+    var size = pictureSizes.reduce(function(acc, size) {
+      var mp = size.width * size.height;
+      return (mp > acc.width * acc.height && mp <= maxRes) ? size : acc;
+    }, {width: 0, height: 0});
+
+    if (size.width === 0 && size.height === 0) {
+      return pictureSizes[0];
+    } else {
+      return size;
+    }
   },
 
   initPositionUpdate: function camera_initPositionUpdate() {
