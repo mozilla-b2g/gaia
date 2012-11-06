@@ -219,6 +219,10 @@ Icon.prototype = {
    * Translates the label of the icon
    */
   translate: function icon_translate() {
+    var descriptor = this.descriptor;
+    if (descriptor.bookmarkURL)
+      return;
+
     var app = this.app;
     if (!app)
       return;
@@ -227,7 +231,6 @@ Icon.prototype = {
     if (!manifest)
       return;
 
-    var descriptor = this.descriptor;
     var iconsAndNameHolder = manifest;
     var entryPoint = descriptor.entry_point;
     if (entryPoint)

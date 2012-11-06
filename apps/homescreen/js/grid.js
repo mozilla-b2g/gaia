@@ -673,7 +673,7 @@ const GridManager = (function() {
       name: iconsAndNameHolder.name,
       icon: bestMatchingIcon(app, iconsAndNameHolder)
     };
-    if (haveLocale) {
+    if (haveLocale && !app.isBookmark) {
       var locales = iconsAndNameHolder.locales;
       if (locales) {
         var locale = locales[document.documentElement.lang];
