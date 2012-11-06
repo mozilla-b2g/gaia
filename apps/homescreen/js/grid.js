@@ -15,6 +15,7 @@ const GridManager = (function() {
   var kPageTransitionDuration = .3;
   var landingOverlay = document.querySelector('#landing-overlay');
 
+  var numberOfSpecialPages = 0;
   var pages = [];
   var currentPage = 1;
 
@@ -476,7 +477,7 @@ const GridManager = (function() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
     var pagesCount = pages.length;
-    for (var i = 2; i < pagesCount; i++) {
+    for (var i = numberOfSpecialPages; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
       }
@@ -488,7 +489,7 @@ const GridManager = (function() {
   function removeEmptyPages() {
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the landing page
-      if (index <= 1) {
+      if (index < numberOfSpecialPages) {
         return;
       }
 
@@ -574,7 +575,7 @@ const GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(2));
+      HomeState.saveGrid(pages.slice(numberOfSpecialPages));
     },
 
     /*
@@ -622,6 +623,12 @@ const GridManager = (function() {
      */
     init: function gm_init(selector, finish) {
       container = document.querySelector(selector);
+
+      // Create stub Page objects for the special pages that are
+      // not backed by the app database. Note that this creates an
+      // offset between these indexes here and the ones in the DB.
+      // See also pageHelper.saveAll().
+      numberOfSpecialPages = container.children.length;
       for (var i = 0; i < container.children.length; i++) {
         var page = new Page(i);
         page.render([], container.children[i]);
