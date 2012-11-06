@@ -310,141 +310,6 @@ const GridManager = (function() {
   }
 
   /*
-   * Renders the homescreen from moz applications
-   */
-  function renderFromMozApps(finish) {
-    var apps = Applications.getAll();
-
-    var xhr = new XMLHttpRequest();
-    xhr.overrideMimeType('application/json');
-    xhr.open('GET', 'js/init.json', true);
-    xhr.send(null);
-
-    xhr.onreadystatechange = function renderFromMozApps_init(evt) {
-      if (xhr.readyState != 4)
-        return;
-
-      if (xhr.status == 0 || xhr.status == 200) {
-        try {
-          var init = JSON.parse(xhr.responseText);
-          init.grid.forEach(function(page) {
-            pageHelper.addPage(page);
-
-            for (var i = apps.length - 1; i >= 0; i--) {
-              if (page.indexOf(apps[i]['origin']) != -1) {
-                apps.splice(i, 1);
-              }
-            }
-          });
-
-          for (var i = apps.length - 1; i >= 0; i--) {
-            if (init.dock.indexOf(apps[i]['origin']) != -1) {
-              apps.splice(i, 1);
-            }
-          }
-          HomeState.saveShortcuts(init.dock);
-
-          for (var i = apps.length - 1; i >= 0; i--) {
-            if (init.hidden.indexOf(apps[i]['origin']) != -1) {
-              apps.splice(i, 1);
-            }
-          }
-          HomeState.saveHiddens(init.hidden);
-
-        } catch (e) {
-          dump('Failed parsing homescreen configuration file: ' + e + '\n');
-        }
-
-        var list = [];
-        for (var i = 0; i < apps.length; i++) {
-          list.push(apps[i]);
-          if (list.length === MAX_ICONS_PER_PAGE) {
-            pageHelper.addPage(list);
-            list = [];
-          }
-        }
-
-        if (list.length > 0) {
-          pageHelper.addPage(list);
-        }
-
-        // Renders pagination bar
-        finish();
-
-        // Saving initial state
-        pageHelper.saveAll();
-      }
-    }
-  }
-
-  /*
-   * Renders the homescreen from the database
-   */
-  function renderFromDB(finish) {
-    var appsInDB = [];
-    HomeState.getAppsByPage(
-      function iterate(apps) {
-        appsInDB = appsInDB.concat(apps);
-
-        for (var app in apps) {
-          Applications.cacheIcon(apps[app].origin, apps[app].icon);
-        }
-        pageHelper.addPage(apps.map(function(app) { return app.origin; }));
-      },
-      function onsuccess(results) {
-        if (results === 0) {
-          renderFromMozApps(finish);
-          return;
-        }
-
-        var installedApps = Applications.getInstalledApplications();
-        var len = appsInDB.length;
-        for (var i = 0; i < len; i++) {
-          var origin = appsInDB[i].origin;
-          if (origin in installedApps) {
-            delete installedApps[origin];
-          }
-        }
-
-        DockManager.getShortcuts(function getShortcuts(shortcuts) {
-          var len = shortcuts.length;
-          for (var i = 0; i < len; i++) {
-            var origin = shortcuts[i].origin || shortcuts[i];
-            if (origin in installedApps) {
-              Applications.cacheIcon(origin, shortcuts[i].icon);
-              delete installedApps[origin];
-            }
-          }
-
-          HomeState.getHiddens(function(hidden) {
-
-            if (hidden) {
-              var len = hidden.length;
-              for (var i = 0; i < len; i++) {
-                var origin = hidden[i].origin || hidden[i];
-                if (origin in installedApps) {
-                  delete installedApps[origin];
-                }
-              }
-            }
-
-            for (var origin in installedApps) {
-              GridManager.install(installedApps[origin]);
-            }
-
-            updatePaginationBar();
-            finish();
-          });
-        });
-      },
-      function onerror() {
-        // Error recovering info about apps
-        renderFromMozApps(finish);
-      }
-    );
-  }
-
-  /*
    * UI Localization
    *
    */
@@ -560,20 +425,16 @@ const GridManager = (function() {
     },
 
     /*
-     * Saves the page state on the database
-     */
-    save: function(index) {
-      HomeState.saveGrid({
-        id: index,
-        apps: pages[index].getAppsList()
-      });
-    },
-
-    /*
      * Saves all pages state on the database
      */
     saveAll: function() {
-      HomeState.saveGrid(pages.slice(numberOfSpecialPages));
+      var state = pages.slice(numberOfSpecialPages);
+      state.unshift(DockManager.page);
+      for (var i = 0; i < state.length; i++) {
+        var page = state[i];
+        state[i] = page.getAppsList();
+      }
+      HomeState.saveGrid(state);
     },
 
     getNext: function() {
