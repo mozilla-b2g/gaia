@@ -777,7 +777,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'ALARM_progressive_dapple.ogg',
+      sound: 'classic_buzz.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -853,7 +853,7 @@ var AlarmEditView = {
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
     // XXX: Refresh and paser the name of sound file for sound menu.
     var sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
-    this.soundMenu.innerHTML = sound.slice(0, sound.lastIndexOf('.'));
+    this.soundMenu.innerHTML = _(sound.slice(0, sound.lastIndexOf('.')));
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {
