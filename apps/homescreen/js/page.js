@@ -316,20 +316,18 @@ Page.prototype = {
   /*
    * Changes position between two icons
    *
-   * @param{String} origin icon
+   * @param {Icon} originIcon
+   *               The origin icon that's being dragged.
    *
-   * @param{String} target icon
+   * @param {Icon} targetIcon
+   *               The target icon that is replaced by the origin icon.
    */
-  drop: function pg_drop(origin, target) {
-    if (origin === target) {
+  drop: function pg_drop(originIcon, targetIcon) {
+    if (originIcon === targetIcon) {
       return;
     }
 
     this.setReady(false);
-
-    var icons = this.icons;
-    var originIcon = icons[origin];
-    var targetIcon = icons[target];
 
     if (originIcon && targetIcon) {
       this.animate(this.olist.children, originIcon.container,

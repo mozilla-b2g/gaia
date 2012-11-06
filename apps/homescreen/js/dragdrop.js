@@ -18,7 +18,8 @@ const DragDropManager = (function() {
    */
   var disabledCheckingLimitsTimeout = null;
 
-  var draggableIcon, draggableIconOrigin, previousOverlapIcon,
+  var draggableIcon,
+      previousOverlapIcon,
       overlapingTimeout;
 
   var pageHelper = GridManager.pageHelper;
@@ -99,7 +100,7 @@ const DragDropManager = (function() {
       } else if (curPageObj.getNumIcons() > 1) {
         // New page if there are two or more icons
         curPageObj.remove(draggableIcon);
-        pageHelper.push([draggableIcon]);
+        pageHelper.addPage([draggableIcon]);
         setDisabledCheckingLimits(true);
         transitioning = true;
         GridManager.goToNextPage(onNavigationEnd);
@@ -149,8 +150,7 @@ const DragDropManager = (function() {
    * {Object} This is the DOMElement which was tapped and hold
    */
   function onStart(elem) {
-    draggableIconOrigin = elem.dataset.origin;
-    draggableIcon = getPage().getIcon(draggableIconOrigin);
+    draggableIcon = getPage().getIcon(elem.dataset.origin);
     draggableIcon.onDragStart(startEvent.x, startEvent.y);
     if (overlapingDock) {
       draggableIcon.addClassToDragElement('overDock');
@@ -183,18 +183,18 @@ const DragDropManager = (function() {
   function drop(overlapElem, page) {
     var classList = overlapElem.classList;
     if (classList.contains('icon') || classList.contains('options')) {
-      var overlapElemOrigin = overlapElem.dataset.origin;
-      page.drop(draggableIconOrigin, overlapElemOrigin);
+      var overlapIcon = page.icons[overlapElem.dataset.origin];
+      page.drop(draggableIcon, overlapIcon);
     } else if (classList.contains('dockWrapper')) {
       var firstIcon = page.getFirstIcon();
       if (currentEvent.x < firstIcon.getLeft()) {
         if (draggableIcon !== firstIcon) {
-          page.drop(draggableIconOrigin, firstIcon.getOrigin());
+          page.drop(draggableIcon, firstIcon);
         }
       } else {
         var lastIcon = page.getLastIcon();
         if (draggableIcon !== lastIcon) {
-          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+          page.drop(draggableIcon, lastIcon);
         }
       }
     }
@@ -230,7 +230,7 @@ const DragDropManager = (function() {
       if (classList.contains('page')) {
         var lastIcon = page.getLastIcon();
         if (currentEvent.y > lastIcon.getTop() && draggableIcon !== lastIcon) {
-          page.drop(draggableIconOrigin, lastIcon.getOrigin());
+          page.drop(draggableIcon, lastIcon);
         }
       } else {
         overlapingTimeout = setTimeout(drop, 500, overlapElem, page);
