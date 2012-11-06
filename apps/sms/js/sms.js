@@ -711,11 +711,6 @@ var ThreadUI = {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
-    // TODO: Please replace the pending icon with exclamation mark.
-    this.sendIcons = {
-      sending: 'style/images/spinningwheel_small_animation.gif',
-      pending: 'style/images/icons/clear.png'
-    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
@@ -909,11 +904,10 @@ var ThreadUI = {
                                      ' <span></span>' +
                                    '</label>';
 
-      // Add 'gif' delivery icon if necessary
+      // Add delivery icon/progress if necessary
       deliveryIcon = '<span class="message-option icon-delivery">' +
-                        '<img src="' + (!message.error ?
-                          ThreadUI.sendIcons.sending :
-                          ThreadUI.sendIcons.pending) + '" class="gif">' +
+                        (message.error ? '<img src="style/images/icons/exclamation.png" class="gif">' :
+                          '<progress class="small"></progress>') +
                       '</span>';
       } else {
       //Add edit options
