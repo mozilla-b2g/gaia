@@ -70,6 +70,49 @@ var GaiaApps = {
   },
 
   /**
+   * Returns the number of running apps.
+   */
+  numRunningApps: function() {
+    let count = 0;
+    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    for (let origin in runningApps) {
+      count++;
+    }
+    return count;
+  },
+
+  /**
+   * Kills all running apps, except the homescreen.
+   */
+  killAll: function() {
+    let originsToClose = [];
+    let that = this;
+    window.addEventListener('appterminated', function gt_onAppTerminated(evt) {
+      let index = originsToClose.indexOf(evt.detail.origin);
+      if (index > -1) {
+        originsToClose.splice(index, 1);
+      }
+      if (!originsToClose.length) {
+        window.removeEventListener('appterminated', gt_onAppTerminated);
+        // Even after the 'appterminated' event has been fired for an app,
+        // it can still exist in the apps list, so wait until 1 or fewer
+        // apps are running (since we don't close the homescreen app).
+        waitFor(
+          function() { marionetteScriptFinished(true); },
+          function() { return that.numRunningApps() <= 1; }
+        );
+      }
+    });
+    let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
+    for (let origin in runningApps) {
+      if (origin.indexOf('homescreen') == -1) {
+        originsToClose.push(origin);
+        window.wrappedJSObject.WindowManager.kill(origin);
+      }
+    }
+  },
+
+  /**
    * Launches app with the specified name (e.g., 'Calculator'); returns the
    * app frame's id if successful, false if the app can't be found, or times
    * out if the app frame can't be found after launching the app.
