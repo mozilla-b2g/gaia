@@ -338,6 +338,11 @@ body {
   transition: transform 5s ease, visibility 5s ease;
 }
 
+#windows > iframe.appWindow.back {
+  transition: transform 0.5s ease, visibility 0.5s ease;
+  transform: scale(0.86);
+}
+
 #windows > iframe.appWindow.restored {
   transform: none;
   transition: transform 0.5s ease;
@@ -349,6 +354,85 @@ body {
 
 #screen > #windows > iframe.appWindow.fullscreen-app {
   top: 0;
+}
+
+#screen.attention > #windowSprite,
+#screen.fullscreen-app.attention > #windowSprite {
+  height: calc(100% - 40px);
+  top: 40px;
+}
+
+#windowSprite.before-inline-activity {
+  transform: translateY(calc(100% - 1px));
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opening {
+  transition: transform 0.5s ease;
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.inline-activity-opened {
+  transition: opacity 0.3s ease;
+
+  transform: translateY(0);
+  opacity: 0;
+  visibility: visible;
+}
+
+#windowSprite.before-open {
+  transform: scale(0.6);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.opening {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+#screen.trustedui #windowSprite.opening {
+  opacity: 0;
+}
+
+#windowSprite.opened {
+  transition: opacity 0.3s ease;
+
+  transform: scale(1);
+  opacity: 0;
+  visibility: visible;
+}
+
+#windowSprite.before-close {
+  transform: scale(1);
+  /* 0.01 opacity is needed to make sure Gecko paints and fire
+     MozAfterPaint event for us. */
+  opacity: 0.01;
+  visibility: visible;
+}
+
+#windowSprite.closing {
+  transition: opacity 0.1s ease;
+
+  transform: scale(1);
+  opacity: 1;
+  visibility: visible;
+}
+
+#windowSprite.closed {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+
+  transform: scale(0.6);
+  opacity: 0;
+  visibility: visible;
 }
 
 .accessibility-invert {
@@ -369,14 +453,14 @@ iframe.backgroundWindow {
   top: 20px;
   left: 0;
   width: 100%;
-  height: -moz-calc(100% - 20px);
+  height: calc(100% - 20px);
   visibility: hidden;
   pointer-events: none;
 }
 
 #screen.active-statusbar #dialog-overlay {
   top: 40px;
-  height: -moz-calc(100% - 40px);
+  height: calc(100% - 40px);
 }
 
 #screen:-moz-full-screen-ancestor #dialog-overlay,
