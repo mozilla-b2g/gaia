@@ -447,26 +447,25 @@ const GridManager = (function() {
    *
    */
   var dirCtrl = {};
-  function getDirCtrl() {
+  function setDirCtrl() {
     function goesLeft(x) { return (x > 0); }
     function goesRight(x) { return (x < 0); }
     function limitLeft(x) { return (x < limits.left); }
     function limitRight(x) { return (x > limits.right); }
     var rtl = (document.documentElement.dir == 'rtl');
-    return {
-      offsetPrev: rtl ? -1 : 1,
-      offsetNext: rtl ? 1 : -1,
-      limitPrev: rtl ? limitRight : limitLeft,
-      limitNext: rtl ? limitLeft : limitRight,
-      translatePrev: rtl ? 'translateX(100%)' : 'translateX(-100%)',
-      translateNext: rtl ? 'translateX(-100%)' : 'translateX(100%)',
-      goesForward: rtl ? goesLeft : goesRight
-    };
+
+    dirCtrl.offsetPrev = rtl ? -1 : 1;
+    dirCtrl.offsetNext = rtl ? 1 : -1;
+    dirCtrl.limitPrev = rtl ? limitRight : limitLeft;
+    dirCtrl.limitNext = rtl ? limitLeft : limitRight;
+    dirCtrl.translatePrev = rtl ? 'translateX(100%)' : 'translateX(-100%)';
+    dirCtrl.translateNext = rtl ? 'translateX(-100%)' : 'translateX(100%)';
+    dirCtrl.goesForward = rtl ? goesLeft : goesRight;
   }
 
   function localize() {
     // switch RTL-sensitive methods accordingly
-    dirCtrl = getDirCtrl();
+    setDirCtrl();
 
     pages.forEach(function translate(page) {
       page.translate();
@@ -639,7 +638,7 @@ const GridManager = (function() {
       limits.left = container.offsetWidth * 0.05;
       limits.right = container.offsetWidth * 0.95;
 
-      dirCtrl = getDirCtrl();
+      setDirCtrl();
       renderFromDB(finish);
     },
 
