@@ -616,6 +616,11 @@ var Contacts = (function() {
     });
   };
 
+  var onLineChanged = function() {
+    contacts.Settings.onLineChanged();
+    contacts.Details.onLineChanged();
+  };
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -635,15 +640,21 @@ var Contacts = (function() {
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
     'showOverlay': showOverlay,
-    'hideOverlay': hideOverlay
+    'hideOverlay': hideOverlay,
+    'showContactDetail': contactListClickHandler,
+    'onLineChanged': onLineChanged
   };
 })();
 
 window.addEventListener('localized', function initContacts(evt) {
+
   fb.init(function contacts_init() {
     Contacts.onLocalized();
 
     contacts.Settings.init();
+
+    window.addEventListener('online', Contacts.onLineChanged);
+    window.addEventListener('offline', Contacts.onLineChanged);
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
@@ -659,6 +670,5 @@ window.addEventListener('localized', function initContacts(evt) {
       }
       Contacts.checkCancelableActivity();
     });
-  });
-
-});
+  }); // fb.init
+}); // addEventListener

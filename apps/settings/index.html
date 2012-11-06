@@ -695,21 +695,21 @@
       </header>
       <ul>
         <li>
-          <label onmouseup="audioPreview(this)">
+          <label>
             <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
             <span></span>
           </label>
           <a data-l10n-id="classic">Classic</a>
         </li>
         <li>
-          <label onmouseup="audioPreview(this)">
+          <label>
             <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
             <span></span>
           </label>
           <a data-l10n-id="oldSchool">Old School</a>
         </li>
         <li>
-          <label onmouseup="audioPreview(this)">
+          <label>
             <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
             <span></span>
           </label>
@@ -722,7 +722,7 @@
       </header>
       <ul>
         <li>
-          <label onmouseup="audioPreview(this)">
+          <label>
             <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
             <span></span>
           </label>
@@ -1134,7 +1134,7 @@
     </section>
 
     <!-- Security :: Phone Lock -->
-    <section role="region" hidden id="phoneLock" data-enabled="false">
+    <section role="region" hidden id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
@@ -1144,14 +1144,14 @@
       <ul>
         <li>
           <label>
-            <input type="checkbox" name="lockscreen.enabled" checked />
+            <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" />
             <span></span>
           </label>
           <a data-l10n-id="lockScreen">Lock Screen</a>
         </li>
-        <li>
+        <li class="lockscreen-enabled">
           <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
+            <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" />
             <span></span>
           </label>
           <a data-l10n-id="passcode-lock">Passcode Lock</a>
@@ -1441,6 +1441,13 @@
             <span></span>
           </label>
           <a data-l10n-id="remote-debugging">Remote Debugging</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="wifi.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
         </li>
       </ul>
 

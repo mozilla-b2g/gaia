@@ -1,0 +1,42 @@
+#app-install-dialog {
+  display: none;
+  position: absolute;
+  top: 20px;
+  left: 0;
+  width: 100%;
+  bottom: 0;
+  pointer-events: none;
+}
+
+#app-install-dialog.visible {
+  display: inline-block;
+  pointer-events: auto;
+}
+
+#app-install-dialog section {
+  height: auto;
+}
+
+#app-install-dialog h1 {
+  border-bottom: none;
+  background: none;
+}
+
+#app-install-dialog table {
+  border-top: 0.1rem solid #686868;
+  margin: 1rem 0 0;
+  overflow: hidden;
+  padding-top: 1rem;
+  font-size: 1.4rem;
+  width: 100%;
+}
+
+#app-install-dialog table th {
+  text-align: left;
+  margin-right: 0.5rem;
+}
+
+#app-install-dialog table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

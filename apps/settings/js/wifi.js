@@ -233,6 +233,14 @@ onLocalized(function wifiSettings() {
     return li;
   }
 
+  // create an explanatory list item
+  function newExplanationItem(message) {
+    var li = document.createElement('li');
+    li.className = 'explanation';
+    li.textContent = _(message);
+    return li;
+  }
+
   // available network list
   var gNetworkList = (function networkList(list) {
     var scanning = false;
@@ -277,34 +285,41 @@ onLocalized(function wifiSettings() {
       var req = gWifiManager.getNetworks();
 
       req.onsuccess = function onScanSuccess() {
-        clear(false);
-
-        // sort networks by signal strength
         var networks = req.result;
         var ssids = Object.getOwnPropertyNames(networks);
-        ssids.sort(function(a, b) {
-          return networks[b].relSignalStrength - networks[a].relSignalStrength;
-        });
+        clear(false);
 
-        // add detected networks
-        for (var i = 0; i < ssids.length; i++) {
-          var network = networks[ssids[i]];
-          var listItem = newListItem(network, toggleNetwork);
+        // display network list
+        if (ssids.length) {
+          // sort networks by signal strength
+          ssids.sort(function(a, b) {
+            return networks[b].relSignalStrength -
+                networks[a].relSignalStrength;
+          });
 
-          // signal is between 0 and 100, level should be between 0 and 4
-          var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-          listItem.className = 'wifi-signal' + level;
+          // add detected networks
+          for (var i = 0; i < ssids.length; i++) {
+            var network = networks[ssids[i]];
+            var listItem = newListItem(network, toggleNetwork);
 
-          // put connected network on top of list
-          if (isConnected(network)) {
-            listItem.classList.add('active');
-            listItem.querySelector('small').textContent =
-                _('shortStatus-connected');
-            list.insertBefore(listItem, infoItem.nextSibling);
-          } else {
-            list.insertBefore(listItem, scanItem);
+            // signal is between 0 and 100, level should be between 0 and 4
+            var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+            listItem.className = 'wifi-signal' + level;
+
+            // put connected network on top of list
+            if (isConnected(network)) {
+              listItem.classList.add('active');
+              listItem.querySelector('small').textContent =
+                  _('shortStatus-connected');
+              list.insertBefore(listItem, infoItem.nextSibling);
+            } else {
+              list.insertBefore(listItem, scanItem);
+            }
+            index[network.ssid] = listItem; // add to index
           }
-          index[network.ssid] = listItem; // add to index
+        } else {
+          // display a "no networks found" message if necessary
+          list.insertBefore(newExplanationItem('noNetworksFound'), scanItem);
         }
 
         // display the "Search Again" button
@@ -381,16 +396,19 @@ onLocalized(function wifiSettings() {
       var req = gWifiManager.getKnownNetworks();
 
       req.onsuccess = function onSuccess() {
-        clear();
-
-        // sort networks alphabetically
         var networks = req.result;
         var ssids = Object.getOwnPropertyNames(networks);
-        ssids.sort();
+        clear();
 
-        // display known networks
-        for (var i = 0; i < ssids.length; i++) {
-          list.appendChild(newListItem(networks[ssids[i]], forgetNetwork));
+        // display network list
+        if (ssids.length) {
+          ssids.sort();
+          for (var i = 0; i < ssids.length; i++) {
+            list.appendChild(newListItem(networks[ssids[i]], forgetNetwork));
+          }
+        } else {
+          // display a "no known networks" message if necessary
+          list.appendChild(newExplanationItem('noKnownNetworks'));
         }
       };
 

@@ -7,7 +7,7 @@ const HomeState = (function() {
   const DOCK_STORE_NAME = 'Dock';
   const HIDDEN_STORE_NAME = 'Hiddens';
   const BOOKMARKS_STORE_NAME = 'Bookmarks';
-  const VERSION = 3;
+  const VERSION = 4;
 
   var database = null;
 
@@ -40,22 +40,32 @@ const HomeState = (function() {
 
       request.onupgradeneeded = function(event) {
         var db = event.target.result;
-        var gridStore = db.createObjectStore(GRID_STORE_NAME,
-                                             { keyPath: 'id' });
-        gridStore.createIndex('byPage', 'id', { unique: true });
 
-        var dockStore = db.createObjectStore(DOCK_STORE_NAME,
-                                             { keyPath: 'id' });
-        dockStore.createIndex('byId', 'id', { unique: true });
+        if (!db.objectStoreNames.contains(GRID_STORE_NAME)) {
+            var gridStore = db.createObjectStore(GRID_STORE_NAME,
+                                                 { keyPath: 'id' });
+            gridStore.createIndex('byPage', 'id', { unique: true });
+        }
 
-        var hiddenStore = db.createObjectStore(HIDDEN_STORE_NAME,
-                                                { keyPath: 'id' });
-        hiddenStore.createIndex('byId', 'id', { unique: true });
+        if (!db.objectStoreNames.contains(DOCK_STORE_NAME)) {
+            var dockStore = db.createObjectStore(DOCK_STORE_NAME,
+                                                 { keyPath: 'id' });
+            dockStore.createIndex('byId', 'id', { unique: true });
+        }
 
-        var bookmarksStore = db.createObjectStore(BOOKMARKS_STORE_NAME,
-                                                  { keyPath: 'origin' });
-        bookmarksStore.createIndex('byOrigin', 'origin', { unique: true });
+        if (!db.objectStoreNames.contains(HIDDEN_STORE_NAME)) {
+            var hiddenStore = db.createObjectStore(HIDDEN_STORE_NAME,
+                                                    { keyPath: 'id' });
+            hiddenStore.createIndex('byId', 'id', { unique: true });
+        }
 
+        if (!db.objectStoreNames.contains(BOOKMARKS_STORE_NAME)) {
+            var bookmarksStore =
+                db.createObjectStore(BOOKMARKS_STORE_NAME,
+                                     { keyPath: 'origin' });
+            bookmarksStore.createIndex('byOrigin', 'origin',
+                                       { unique: true });
+        }
 
         onUpgradeNeeded = true;
       };

@@ -67,6 +67,17 @@ class GaiaApps(object):
         self.marionette.execute_script("window.wrappedJSObject.WindowManager.kill('%s');"
                                         % app.origin)
 
+    def killAll(self):
+        self.marionette.switch_to_frame()
+        js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_apps.js"))
+        self.marionette.import_script(js)
+        self.marionette.execute_async_script("GaiaApps.killAll()")
+
+    def runningApps(self):
+        apps = self.marionette.execute_script("""
+return window.wrappedJSObject.WindowManager.getRunningApps();
+            """)
+        return apps
 
 class GaiaTestCase(MarionetteTestCase):
 
