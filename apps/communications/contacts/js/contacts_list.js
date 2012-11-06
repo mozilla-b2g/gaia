@@ -107,6 +107,7 @@ contacts.List = (function() {
     var contactContainer = document.createElement('li');
     contactContainer.className = 'block-item';
     contactContainer.dataset.uuid = contact.id;
+    contactContainer.dataset.updated = contact.updated.getTime();
     var link = document.createElement('a');
     link.href = '#';
     link.className = 'item';
@@ -211,6 +212,7 @@ contacts.List = (function() {
         contact = fbContact.merge(fbContacts[fbContact.uid]);
       }
 
+      contact.updated = contacts[i].updated;
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
       var listContainer = document.getElementById('contacts-list-' + group);
@@ -228,7 +230,8 @@ contacts.List = (function() {
         var searchable = itemBody.dataset['search'];
         var newItemBody = newContact.querySelector('[data-search]');
         var newSearchable = newItemBody.dataset['search'];
-        var hasChanged = searchable != newSearchable;
+        var hasChanged = searchable != newSearchable ||
+                  contact.updated.getTime() > alreadyRendered.dataset.updated;
         if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
           resetGroup(listContainer, counter[group]);
           listContainer.appendChild(newContact);
