@@ -1,9 +1,9 @@
-
-
 'use strict';
 
 const GridManager = (function() {
   var MAX_ICONS_PER_PAGE = 4 * 4;
+  var PREFERRED_ICON_SIZE = 64;
+  var SAVE_STATE_TIMEOUT = 100;
 
   var container;
 
@@ -15,11 +15,15 @@ const GridManager = (function() {
 
   var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration = .3;
-  var landingOverlay = document.querySelector('#landing-overlay');
+  var landingOverlay;
 
   var numberOfSpecialPages = 0;
   var pages = [];
   var currentPage = 1;
+
+  var saveStateTimeout = null;
+
+  var appMgr = navigator.mozApps.mgmt;
 
   // Limits for changing pages during dragging
   var limits = {
@@ -165,7 +169,7 @@ const GridManager = (function() {
         break;
 
       case 'contextmenu':
-        if (currentPage > 1 && 'origin' in evt.target.dataset) {
+        if (currentPage > 1 && 'isIcon' in evt.target.dataset) {
           evt.stopImmediatePropagation();
           Homescreen.setMode('edit');
           DragDropManager.start(evt, {
@@ -330,13 +334,22 @@ const GridManager = (function() {
     dirCtrl.goesForward = rtl ? goesLeft : goesRight;
   }
 
+  var haveLocale = false;
+
   function localize() {
     // switch RTL-sensitive methods accordingly
     setDirCtrl();
 
-    pages.forEach(function translate(page) {
-      page.translate();
-    });
+    for each (var iconsForApp in appIcons) {
+      for each (var icon in iconsForApp) {
+        icon.translate();
+      }
+    }
+    for each (var icon in bookmarkIcons) {
+      icon.translate();
+    }
+
+    haveLocale = true;
   }
 
   function getFirstPageWithEmptySpace() {
@@ -395,19 +408,16 @@ const GridManager = (function() {
     /*
      * Adds a new page to the grid layout
      *
-     * @param {Array} initial list of apps or icons
+     * @param {Array} icons
+     *                List of Icon objects.
      */
-    addPage: function(apps, appsFromMarket) {
-      var index = pages.length;
-      var page = new Page(index);
+    addPage: function(icons) {
+      var pageElement = document.createElement('div');
+      var page = new Page(pageElement, icons);
       pages.push(page);
 
-      var pageElement = document.createElement('div');
       pageElement.className = 'page';
       container.appendChild(pageElement);
-
-      page.render(apps, pageElement);
-
       updatePaginationBar();
     },
 
@@ -432,7 +442,7 @@ const GridManager = (function() {
       state.unshift(DockManager.page);
       for (var i = 0; i < state.length; i++) {
         var page = state[i];
-        state[i] = page.getAppsList();
+        state[i] = {index: i, icons: page.getIconDescriptors()};
       }
       HomeState.saveGrid(state);
     },
@@ -519,35 +529,243 @@ const GridManager = (function() {
   }
 
 
+  /*
+   * Initialize the UI.
+   */
+  function initUI(selector) {
+    landingOverlay = document.querySelector('#landing-overlay');
+
+    container = document.querySelector(selector);
+    container.addEventListener('contextmenu', handleEvent);
+    container.addEventListener('mousedown', handleEvent, true);
+
+    limits.left = container.offsetWidth * 0.05;
+    limits.right = container.offsetWidth * 0.95;
+
+    setDirCtrl();
+
+    // Create stub Page objects for the special pages that are
+    // not backed by the app database. Note that this creates an
+    // offset between these indexes here and the ones in the DB.
+    // See also pageHelper.saveAll().
+    numberOfSpecialPages = container.children.length;
+    for (var i = 0; i < container.children.length; i++) {
+      var pageElement = container.children[i];
+      var page = new Page(pageElement, null);
+      pages.push(page);
+    }
+  }
+
+  /*
+   * Initialize the grid from the state saved in IndexedDB.
+   */
+  function initState(dockSelector, state) {
+    // First 'page' is the dock.
+    var dockContainer = document.querySelector(dockSelector);
+    var dockState = state.shift();
+    var dock = new Dock(dockContainer, convertDescriptorsToIcons(dockState));
+    DockManager.init(dockContainer, dock);
+
+    state.forEach(function eachState(pageState) {
+      pageHelper.addPage(convertDescriptorsToIcons(pageState));
+    });
+  }
+
+  /*
+   * Initialize the mozApps event handlers and synchronize our grid
+   * state with the applications known to the system.
+   */
+  function initApps(apps) {
+    appMgr.oninstall = function oninstall(event) {
+     GridManager.install(event.application);
+    };
+    appMgr.onuninstall = function onuninstall(event) {
+      GridManager.uninstall(event.application);
+    };
+
+    appMgr.getAll().onsuccess = function onsuccess(event) {
+      // Create a copy of all icons we know about so we can find out which icons
+      // should be removed.
+      var iconsByManifestURL = Object.create(null);
+      for (var manifestURL in appIcons) {
+        iconsByManifestURL[manifestURL] = appIcons[manifestURL];
+      }
+
+      var apps = event.target.result;
+      apps.forEach(function eachApp(app) {
+        delete iconsByManifestURL[app.manifestURL];
+        processApp(app);
+      });
+
+      for (var manifestURL in iconsByManifestURL) {
+        var iconsForApp = iconsByManifestURL[manifestURL];
+        for (var entryPoint in iconsForApp) {
+          var icon = iconsForApp[entryPoint];
+          icon.remove();
+          GridManager.markDirtyState();
+        }
+      }
+    };
+  }
+
+  /*
+   * Create Icon objects from the descriptors we save in IndexedDB.
+   */
+  function convertDescriptorsToIcons(pageState) {
+    var icons = pageState.icons;
+    for (var i = 0; i < icons.length; i++) {
+      var descriptor = icons[i];
+      // navigator.mozApps backed app will objects will be handled
+      // asynchronously and therefore at a later time.
+      var app = null;
+      if (descriptor.bookmarkURL)
+        app = new Bookmark(descriptor);
+
+      var icon = icons[i] = new Icon(descriptor, app);
+      rememberIcon(icon);
+    }
+    return icons;
+  }
+
+  /*
+   * Process an Application object as retrieved from the
+   * navigator.mozApps.mgmt API (or a Bookmark object) and create
+   * corresponding icon(s) for it (an app can have multiple entry
+   * points, each one is represented as an icon.)
+   */
+  function processApp(app, withAnimation, callback) {
+    // Ignore system apps.
+    if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
+      return;
+
+    var manifest = app.manifest;
+    if (!manifest)
+      return;
+
+    var entryPoints = manifest.entry_points;
+    if (!entryPoints) {
+      createOrUpdateIconForApp(app, withAnimation);
+      return;
+    }
+
+    for (var entryPoint in entryPoints) {
+      if (!entryPoints[entryPoint].icons)
+        continue;
+
+      createOrUpdateIconForApp(app, withAnimation, entryPoint);
+    }
+  }
+
+  /*
+   * Create or update a single icon for an Application (or Bookmark) object.
+   */
+  function createOrUpdateIconForApp(app, withAnimation, entryPoint) {
+    var manifest = app.manifest;
+    var iconsAndNameHolder = manifest;
+    if (entryPoint)
+      iconsAndNameHolder = manifest.entry_points[entryPoint];
+
+    var descriptor = {
+      bookmarkURL: app.bookmarkURL,
+      manifestURL: app.manifestURL,
+      entry_point: entryPoint,
+      removable: app.removable,
+      name: iconsAndNameHolder.name,
+      icon: bestMatchingIcon(app, iconsAndNameHolder)
+    };
+    if (haveLocale) {
+      var locales = iconsAndNameHolder.locales;
+      if (locales) {
+        var locale = locales[document.documentElement.lang];
+        if (locale && locale.name)
+          descriptor.localizedName = locale.name;
+      }
+    }
+
+    // If there's an existing icon for this bookmark/app/entry point already, let
+    // it update itself.
+    var existingIcon = getIcon(descriptor);
+    if (existingIcon) {
+      existingIcon.update(descriptor, app);
+      return;
+    }
+
+    if (withAnimation)
+      descriptor.hidden = true;
+
+    var icon = new Icon(descriptor, app);
+    rememberIcon(icon);
+
+    var index = getFirstPageWithEmptySpace();
+    if (index < pages.length) {
+      var needsRender = true;
+      pages[index].appendIcon(icon, needsRender);
+    } else {
+      pageHelper.addPage([icon], true);
+    }
+
+    GridManager.markDirtyState();
+
+    if (withAnimation) {
+      goToPage(index, function install_goToPage() {
+        icon.show();
+      });
+    }
+  }
+
+  function bestMatchingIcon(app, manifest) {
+    var icons = manifest.icons;
+    if (!icons)
+      return Icon.prototype.DEFAULT_ICON_URL;
+
+    var preferredSize = Number.MAX_VALUE;
+    var max = 0;
+
+    for (var size in icons) {
+      size = parseInt(size, 10);
+      if (size > max)
+        max = size;
+
+      if (size >= PREFERRED_ICON_SIZE && size < preferredSize)
+        preferredSize = size;
+    }
+    // If there is an icon matching the preferred size, we return the result,
+    // if there isn't, we will return the maximum available size.
+    if (preferredSize === Number.MAX_VALUE)
+      preferredSize = max;
+
+    var url = icons[preferredSize];
+
+    // If the icon path is not an absolute URL, prepend the app's origin.
+    if (url.indexOf('data:') == 0 ||
+        url.indexOf('app://') == 0 ||
+        url.indexOf('http://') == 0 ||
+        url.indexOf('https://') == 0)
+      return url;
+
+    return app.origin + url;
+  }
+
+
   return {
     /*
      * Initializes the grid manager
      *
-     * @param {String} selector of the container for applications
+     * @param {String} selector
+     *                 Specifies the HTML container element for the pages.
      *
      */
-    init: function gm_init(selector, finish) {
-      container = document.querySelector(selector);
-
-      // Create stub Page objects for the special pages that are
-      // not backed by the app database. Note that this creates an
-      // offset between these indexes here and the ones in the DB.
-      // See also pageHelper.saveAll().
-      numberOfSpecialPages = container.children.length;
-      for (var i = 0; i < container.children.length; i++) {
-        var page = new Page(i);
-        page.render([], container.children[i]);
-        pages.push(page);
-      }
-
-      container.addEventListener('contextmenu', handleEvent);
-      container.addEventListener('mousedown', handleEvent, true);
-
-      limits.left = container.offsetWidth * 0.05;
-      limits.right = container.offsetWidth * 0.95;
-
-      setDirCtrl();
-      renderFromDB(finish);
+    init: function gm_init(gridSelector, dockSelector, callback) {
+      initUI(gridSelector);
+      HomeState.init(function onState(state) {
+        initState(dockSelector, state);
+        initApps();
+        callback();
+      }, function onError(error) {
+        initState(dockSelector, []);
+        initApps();
+        callback();
+      });
     },
 
     onDragStart: function gm_onDragSart() {
@@ -567,55 +785,57 @@ const GridManager = (function() {
      * Adds a new application to the layout when the user installed it
      * from market
      *
-     * {Object} moz app
+     * @param {Application} app
+     *                      The application (or bookmark) object
      */
-    install: function gm_install(app, animation) {
-      var index = getFirstPageWithEmptySpace();
-      var origin = Applications.getOrigin(app);
-      if (animation) {
-        Applications.getManifest(origin).hidden = true;
-      }
-
-      if (index < pages.length) {
-        pages[index].append(app);
-      } else {
-        pageHelper.addPage([app], true);
-      }
-
-      if (animation) {
-        goToPage(index, function install_goToPage() {
-          pageHelper.getCurrent().applyInstallingEffect(origin);
-        });
-      }
-
-      pageHelper.saveAll();
+    install: function gm_install(app) {
+      var withAnimation = true;
+      processApp(app, withAnimation);
     },
 
     /*
      * Removes an application from the layout
      *
-     * {Object} moz app
+     * @param {Application} app
+     *                      The application object that's to be uninstalled.
      */
     uninstall: function gm_uninstall(app) {
-      var index = 0;
-      var total = pages.length;
-      var origin = Applications.getOrigin(app).toString();
+      var updateDock = false;
+      var dock = DockManager.page;
 
-      while (index < total) {
-        var page = pages[index];
-        if (page.getIcon(origin)) {
-          page.remove(app);
-          break;
+      if (app.isBookmark) {
+        var icon = bookmarkIcons[app.bookmarkURL];
+        updateDock = dock.containsIcon(icon);
+        icon.remove();
+        delete bookmarkIcons[app.bookmarkURL];
+      } else {
+        var iconsForApp = appIcons[app.manifestURL];
+        if (!iconsForApp)
+          return;
+
+        for (var entryPoint in iconsForApp) {
+          var icon = iconsForApp[entryPoint];
+          updateDock = updateDock || dock.containsIcon(icon);
+          icon.remove();
         }
-        index++;
+        delete appIcons[app.manifestURL];
       }
 
+      if (updateDock)
+        DockManager.afterRemovingApp();
+
       removeEmptyPages();
-      pageHelper.saveAll();
+      this.markDirtyState();
     },
 
-    saveState: function gm_saveState() {
-      pageHelper.saveAll();
+    markDirtyState: function gm_markDirtyState() {
+      if (saveStateTimeout != null) {
+        window.clearTimeout(saveStateTimeout);
+      }
+      saveStateTimeout = window.setTimeout(function saveStateTrigger() {
+        saveStateTimeout = null;
+        pageHelper.saveAll();
+      }, SAVE_STATE_TIMEOUT);
     },
 
     getIcon: getIcon,

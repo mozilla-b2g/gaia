@@ -2,10 +2,10 @@
 'use strict';
 
 var Bookmark = function Bookmark(params) {
-  this.origin = params.url;
-
   this.removable = true;
+
   this.isBookmark = true;
+  this.url = params.bookmarkURL;
 
   this.manifest = {
     name: params.name,
@@ -49,20 +49,7 @@ Bookmark.prototype = {
   },
 
   uninstall: function bookmark_uninstall() {
-    var self = this;
-    HomeState.deleteBookmark(this.origin,
-      function() {
-        if (DockManager.contains(self)) {
-          DockManager.uninstall(self);
-        } else {
-          GridManager.uninstall(self);
-        }
-        Applications.deleteBookmark(self);
-      },
-      function(er) {
-        console.error('Error deleting bookmark ' + er);
-      }
-    );
+    GridManager.uninstall(this);
   }
 };
 
@@ -90,16 +77,9 @@ var BookmarkEditor = {
 
   save: function bookmarkEditor_save() {
     this.data.name = this.bookmarkTitle.value;
-    this.data.url = this.bookmarkUrl.value;
-    var data = this.data;
-    HomeState.saveBookmark(data,
-      function home_okInstallBookmark() {
-        Applications.installBookmark(new Bookmark(data));
-      },
-      function home_errorInstallBookmark(code) {
-        console.error('Error saving bookmark ' + code);
-      }
-    );
+    this.data.bookmarkURL = this.bookmarkUrl.value;
+    var app = new Bookmark(this.data);
+    GridManager.install(app);
     this.close();
   }
 };
