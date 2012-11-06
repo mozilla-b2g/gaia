@@ -107,7 +107,8 @@ contacts.List = (function() {
     var contactContainer = document.createElement('li');
     contactContainer.className = 'block-item';
     contactContainer.dataset.uuid = contact.id;
-    contactContainer.dataset.updated = contact.updated.getTime();
+    var timestampDate = contact.updated || contact.published || new Date();
+    contactContainer.dataset.updated = timestampDate.getTime();
     var link = document.createElement('a');
     link.href = '#';
     link.className = 'item';
@@ -212,7 +213,8 @@ contacts.List = (function() {
         contact = fbContact.merge(fbContacts[fbContact.uid]);
       }
 
-      contact.updated = contacts[i].updated;
+      contact.updated = contacts[i].updated || contacts[i].published ||
+                                                                    new Date();
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
       var listContainer = document.getElementById('contacts-list-' + group);
