@@ -23,6 +23,10 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     }
 
+    extFb.importFBFromUrl = function importFromUrl(path) {
+      load(path, 'friends');
+    }
+
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
