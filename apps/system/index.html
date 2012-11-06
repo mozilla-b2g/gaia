@@ -25,6 +25,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
 
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
@@ -126,6 +127,10 @@
     <!-- Permission Manager -->
     <link rel="stylesheet" type="text/css" href="style/permission_manager/permission_manager.css">
     <script defer src="js/permission_manager.js"></script>
+
+    <!-- App Install -->
+    <link rel="stylesheet" type="text/css" href="style/app_install_manager/app_install_manager.css">
+    <script defer src="js/app_install_manager.js"></script>
 
     <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
@@ -540,6 +545,29 @@
           </div>
         </div>
       </div>
+
+      <form id="app-install-dialog" data-type="confirm" role="dialog" data-z-index-level="app-install-dialog">
+        <section>
+          <h1 id="app-install-message"></h1>
+          <table>
+            <tr>
+              <th data-l10n-id="size">Size</th>
+              <td id="app-install-size"></td>
+            </tr>
+            <tr>
+              <th data-l10n-id="author">Author</th>
+              <td>
+                <span id="app-install-author-name"></span>
+                <br /><span id="app-install-author-url"></span>
+              </td>
+            </tr>
+          </table>
+          <menu>
+            <button id="app-install-cancel-button" type="reset" data-l10n-id="cancel">Cancel</button>
+            <button id="app-install-install-button" type="submit" data-l10n-id="install">Install</button>
+          </menu>
+        </section>
+      </form>
 
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
