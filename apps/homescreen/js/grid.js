@@ -3,6 +3,8 @@
 'use strict';
 
 const GridManager = (function() {
+  var MAX_ICONS_PER_PAGE = 4 * 4;
+
   var container;
 
   var windowWidth = window.innerWidth;
@@ -353,11 +355,10 @@ const GridManager = (function() {
           dump('Failed parsing homescreen configuration file: ' + e + '\n');
         }
 
-        var max = pageHelper.getMaxPerPage();
         var list = [];
         for (var i = 0; i < apps.length; i++) {
           list.push(apps[i]);
-          if (list.length === max) {
+          if (list.length === MAX_ICONS_PER_PAGE) {
             pageHelper.push(list);
             list = [];
           }
@@ -474,16 +475,12 @@ const GridManager = (function() {
   }
 
   function getFirstPageWithEmptySpace() {
-    var maxPerPage = pageHelper.getMaxPerPage();
-
-    var pagesCount = pages.length;
-    for (var i = numberOfSpecialPages; i < pagesCount; i++) {
-      if (pages[i].getNumApps() < maxPerPage) {
+    for (var i = numberOfSpecialPages; i < pages.length; i++) {
+      if (pages[i].getNumApps() < MAX_ICONS_PER_PAGE) {
         return i;
       }
     }
-
-    return pagesCount;
+    return pages.length;
   }
 
   function removeEmptyPages() {
@@ -506,8 +503,6 @@ const GridManager = (function() {
    * pages with a number of apps greater that the maximum
    */
   function ensurePagesOverflow() {
-    var max = pageHelper.getMaxPerPage();
-
     pages.forEach(function checkIsOverflow(page, index) {
       // ignore the landing page
       if (index <= 1) {
@@ -515,7 +510,7 @@ const GridManager = (function() {
       }
 
       // if the page is not full
-      if (page.getNumApps() <= max) {
+      if (page.getNumApps() <= MAX_ICONS_PER_PAGE) {
         return;
       }
 
@@ -529,6 +524,9 @@ const GridManager = (function() {
   }
 
   var pageHelper = {
+
+    maxIconsPerPage: MAX_ICONS_PER_PAGE,
+
     /*
      * Adds a new page to the grid layout
      *
@@ -576,14 +574,6 @@ const GridManager = (function() {
      */
     saveAll: function() {
       HomeState.saveGrid(pages.slice(numberOfSpecialPages));
-    },
-
-    /*
-     * Returns the total number of apps for each page. It could be
-     * more clever. Currently there're sixteen apps for page
-     */
-    getMaxPerPage: function() {
-      return 4 * 4;
     },
 
     getNext: function() {

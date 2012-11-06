@@ -77,7 +77,7 @@ const DragDropManager = (function() {
       overlapingDock = false;
       DockManager.page.remove(draggableIcon);
       var curPageObj = pageHelper.getCurrent();
-      if (curPageObj.getNumApps() < pageHelper.getMaxPerPage()) {
+      if (curPageObj.getNumApps() < pageHelper.maxIconsPerPage) {
         curPageObj.append(draggableIcon);
       } else {
         curPageObj.insertBeforeLastIcon(draggableIcon);
@@ -113,7 +113,7 @@ const DragDropManager = (function() {
       var curPageObj = pageHelper.getCurrent();
       curPageObj.remove(draggableIcon);
       var prevPageObj = pageHelper.getPrevious();
-      if (prevPageObj.getNumApps() === pageHelper.getMaxPerPage()) {
+      if (prevPageObj.getNumApps() === pageHelper.maxIconsPerPage) {
         prevPageObj.insertBeforeLastIcon(draggableIcon);
       } else {
         prevPageObj.append(draggableIcon);
