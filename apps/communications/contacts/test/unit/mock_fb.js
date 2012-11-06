@@ -103,6 +103,7 @@ MockFb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = deviceContact;
         this.result.org[0] = 'FB';
+        this.result.adr[0] = MockFb.getAddress();
 
         callback.call(this);
       },
@@ -134,9 +135,13 @@ MockFb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = [];
         this.result[0] = deviceContact;
+        this.result[0].adr[0] = MockFb.getAddress();
         this.result[1] = {
-          '+346578888888': 'p',
-          'test@test.com': 'p'
+          '+346578888888': true,
+          'test@test.com': true,
+          'Palencia': true,
+          'Castilla y Le—n': true,
+          'Espa–a': true
         };
 
         callback.call(this);
@@ -182,4 +187,6 @@ MockFb.getAddress = function(fbData) {
   out.locality = 'Palencia';
   out.region = 'Castilla y Le—n';
   out.countryName = 'Espa–a';
+
+  return out;
 };
