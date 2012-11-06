@@ -503,9 +503,9 @@ Page.prototype = {
   },
 
   /*
-   * Returns the number of apps
+   * Returns the number of icons
    */
-  getNumApps: function pg_getNumApps() {
+  getNumIcons: function pg_getNumIcons() {
     return this.olist.children.length;
   },
 

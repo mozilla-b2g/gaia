@@ -476,7 +476,7 @@ const GridManager = (function() {
 
   function getFirstPageWithEmptySpace() {
     for (var i = numberOfSpecialPages; i < pages.length; i++) {
-      if (pages[i].getNumApps() < MAX_ICONS_PER_PAGE) {
+      if (pages[i].getNumIcons() < MAX_ICONS_PER_PAGE) {
         return i;
       }
     }
@@ -490,7 +490,7 @@ const GridManager = (function() {
         return;
       }
 
-      if (page.getNumApps() === 0) {
+      if (page.getNumIcons() === 0) {
         pageHelper.remove(index);
       }
     });
@@ -510,7 +510,7 @@ const GridManager = (function() {
       }
 
       // if the page is not full
-      if (page.getNumApps() <= MAX_ICONS_PER_PAGE) {
+      if (page.getNumIcons() <= MAX_ICONS_PER_PAGE) {
         return;
       }
 

@@ -77,7 +77,7 @@ const DragDropManager = (function() {
       overlapingDock = false;
       DockManager.page.remove(draggableIcon);
       var curPageObj = pageHelper.getCurrent();
-      if (curPageObj.getNumApps() < pageHelper.maxIconsPerPage) {
+      if (curPageObj.getNumIcons() < pageHelper.maxIconsPerPage) {
         curPageObj.append(draggableIcon);
       } else {
         curPageObj.insertBeforeLastIcon(draggableIcon);
@@ -96,7 +96,7 @@ const DragDropManager = (function() {
         setDisabledCheckingLimits(true);
         transitioning = true;
         GridManager.goToNextPage(onNavigationEnd);
-      } else if (curPageObj.getNumApps() > 1) {
+      } else if (curPageObj.getNumIcons() > 1) {
         // New page if there are two or more icons
         curPageObj.remove(draggableIcon);
         pageHelper.push([draggableIcon]);
@@ -113,7 +113,7 @@ const DragDropManager = (function() {
       var curPageObj = pageHelper.getCurrent();
       curPageObj.remove(draggableIcon);
       var prevPageObj = pageHelper.getPrevious();
-      if (prevPageObj.getNumApps() === pageHelper.maxIconsPerPage) {
+      if (prevPageObj.getNumIcons() === pageHelper.maxIconsPerPage) {
         prevPageObj.insertBeforeLastIcon(draggableIcon);
       } else {
         prevPageObj.append(draggableIcon);

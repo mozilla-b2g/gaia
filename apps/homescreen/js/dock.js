@@ -5,8 +5,8 @@ const DockManager = (function() {
 
   var container, dock;
 
-  var maxNumAppInDock = 7, maxNumAppInViewPort, numAppsBeforeDrag,
-      maxOffsetLeft;
+  var MAX_NUM_ICONS = 7;
+  var maxNumAppInViewPort, numAppsBeforeDrag, maxOffsetLeft;
 
   var windowWidth = window.innerWidth;
   var duration = .2;
@@ -21,7 +21,7 @@ const DockManager = (function() {
         evt.stopPropagation();
         initialOffsetLeft = dock.getLeft();
         initialOffsetRight = dock.getRight();
-        numApps = dock.getNumApps();
+        numApps = dock.getNumIcons();
         startX = evt.clientX;
         attachEvents();
         break;
@@ -109,7 +109,7 @@ const DockManager = (function() {
   }
 
   function onTouchEnd(scrollX) {
-    if (dock.getNumApps() <= maxNumAppInViewPort ||
+    if (dock.getNumIcons() <= maxNumAppInViewPort ||
           dock.getLeft() === 0 || dock.getRight() === windowWidth) {
       // No animation
       delete document.body.dataset.transitioning;
@@ -180,11 +180,11 @@ const DockManager = (function() {
       initialize(elem);
       this.getShortcuts(function dm_getShortcuts(apps) {
         render(apps);
-        var numApps = dock.getNumApps();
-        cellWidth = dock.getWidth() / numApps;
+        var numIcons = dock.getNumIcons();
+        cellWidth = dock.getWidth() / numIcons;
         maxNumAppInViewPort = Math.floor(windowWidth / cellWidth);
-        maxOffsetLeft = windowWidth - numApps * cellWidth;
-        if (numApps <= maxNumAppInViewPort) {
+        maxOffsetLeft = windowWidth - numIcons * cellWidth;
+        if (numIcons <= maxNumAppInViewPort) {
           dock.moveBy(maxOffsetLeft / 2);
         }
       });
@@ -204,7 +204,7 @@ const DockManager = (function() {
     },
 
     onDragStop: function dm_onDragStop() {
-      var numApps = dock.getNumApps();
+      var numApps = dock.getNumIcons();
       maxOffsetLeft = windowWidth - numApps * cellWidth;
       if (numApps === numAppsBeforeDrag ||
           numApps > maxNumAppInViewPort &&
@@ -219,7 +219,7 @@ const DockManager = (function() {
 
     onDragStart: function dm_onDragStart() {
       releaseEvents();
-      numAppsBeforeDrag = dock.getNumApps();
+      numAppsBeforeDrag = dock.getNumIcons();
     },
 
     /*
@@ -246,8 +246,8 @@ const DockManager = (function() {
       dock.remove(app);
       this.saveState();
 
-      maxOffsetLeft = windowWidth - dock.getNumApps() * cellWidth;
-      var numApps = dock.getNumApps();
+      maxOffsetLeft = windowWidth - dock.getNumIcons() * cellWidth;
+      var numApps = dock.getNumIcons();
       if (numApps > maxNumAppInViewPort && dock.getRight() >= windowWidth) {
         return;
       }
@@ -256,7 +256,7 @@ const DockManager = (function() {
     },
 
     isFull: function dm_isFull() {
-      return dock.getNumApps() === maxNumAppInDock;
+      return dock.getNumIcons() === MAX_NUM_ICONS;
     },
 
     localize: localize,
