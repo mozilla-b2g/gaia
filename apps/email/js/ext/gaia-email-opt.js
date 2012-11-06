@@ -2579,7 +2579,9 @@ MailAPI.prototype = {
       unexpectedBridgeDataError('Bad handle for sent:', msg.handle);
       return;
     }
-    delete this._pendingRequests[msg.handle];
+    // Only delete the request if the send succeeded.
+    if (!msg.err)
+      delete this._pendingRequests[msg.handle];
     if (req.callback) {
       req.callback.call(null, msg.err, msg.badAddresses, msg.sentDate);
       req.callback = null;
@@ -13123,6 +13125,14 @@ exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_NON_INBOX = 7 * $date.DAY_MILLIS;
 exports.USE_KNOWN_DATE_RANGE_TIME_THRESH_INBOX = 6 * $date.HOUR_MILLIS;
 
 ////////////////////////////////////////////////////////////////////////////////
+// General Sync Constants
+
+/**
+ * How frequently do we want to automatically synchronize our folder list?
+ * Currently, we think that once a day is sufficient.  This is a lower bound,
+ * we may sync less frequently than this.
+ */
+exports.SYNC_FOLDER_LIST_EVERY_MS = $date.DAY_MILLIS;
 
 /**
  * How many messages should we send to the UI in the first go?
@@ -13298,10 +13308,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 12 because IMAP is changing to issue its own suid's and store the
- * server suid separately.
+ * Bumping to 13 because we now track when we last did a folder sync.
  */
-const CUR_VERSION = 12;
+const CUR_VERSION = exports.CUR_VERSION = 13;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -13399,8 +13408,26 @@ const TBL_BODY_BLOCKS = 'bodyBlocks';
  * a blob for non-binary data that exceeds 64k by a fair margin, and less
  * compressible binary data that is at least 64k.
  *
+ * @args[
+ *   @param[testOptions #:optional @dict[
+ *     @key[dbVersion #:optional Number]{
+ *       Override the database version to treat as the database version to use.
+ *       This is intended to let us do simple database migration testing by
+ *       creating the database with an old version number, then re-open it
+ *       with the current version and seeing a migration happen.  To test
+ *       more authentic migrations when things get more complex, we will
+ *       probably want to persist JSON blobs to disk of actual older versions
+ *       and then pass that in to populate the database.
+ *     }
+ *     @key[nukeDb #:optional Boolean]{
+ *       Compel ourselves to nuke the previous database state and start from
+ *       scratch.  This only has an effect when IndexedDB has fired an
+ *       onupgradeneeded event.
+ *     }
+ *   ]]
+ * ]
  */
-function MailDB() {
+function MailDB(testOptions) {
   this._db = null;
   this._onDB = [];
 
@@ -13439,7 +13466,10 @@ function MailDB() {
                   explainedSource);
   };
 
-  var openRequest = IndexedDB.open('b2g-email', CUR_VERSION), self = this;
+  var dbVersion = CUR_VERSION;
+  if (testOptions && testOptions.dbVersion)
+    dbVersion = testOptions.dbVersion;
+  var openRequest = IndexedDB.open('b2g-email', dbVersion), self = this;
   openRequest.onsuccess = function(event) {
     self._db = openRequest.result;
     for (var i = 0; i < self._onDB.length; i++) {
@@ -13450,8 +13480,13 @@ function MailDB() {
   openRequest.onupgradeneeded = function(event) {
     var db = openRequest.result;
 
-    // friendly, lazy upgrade:
-    if (event.oldVersion >= FRIENDLY_LAZY_DB_UPGRADE_VERSION) {
+    // - reset to clean slate
+    if ((event.oldVersion < FRIENDLY_LAZY_DB_UPGRADE_VERSION) ||
+        (testOptions && testOptions.nukeDb)) {
+      self._nukeDB(db);
+    }
+    // - friendly, lazy upgrade
+    else {
       var trans = openRequest.transaction;
       // Load the current config, save it off so getConfig can use it, then nuke
       // like usual.  This is obviously a potentially data-lossy approach to
@@ -13466,10 +13501,6 @@ function MailDB() {
           };
         self._nukeDB(db);
       }, trans);
-    }
-    // - reset to clean slate
-    else {
-      self._nukeDB(db);
     }
   };
   openRequest.onerror = this._fatalError;
@@ -21827,6 +21858,9 @@ SmtpProber.prototype = {
         aCallback(new Error('Error getting OPTIONS URL'));
       };
 
+      // Set the response type to "text" so that we don't try to parse an empty
+      // body as XML.
+      xhr.responseType = 'text';
       xhr.send();
     },
 
@@ -22038,15 +22072,22 @@ exports.runOp = function runOp(op, mode, callback) {
   }
 
   this._LOG.runOp_begin(mode, op.type, null, op);
-  this._jobDriver[methodName](op, function(error, resultIfAny,
-                                           accountSaveSuggested) {
-    self._jobDriver.postJobCleanup(!error);
-    self._LOG.runOp_end(mode, op.type, error, op);
-    // defer the callback to the next tick to avoid deep recursion
-    window.setZeroTimeout(function() {
-      callback(error, resultIfAny, accountSaveSuggested);
+  // _LOG supports wrapping calls, but we want to be able to strip out all
+  // logging, and that wouldn't work.
+  try {
+    this._jobDriver[methodName](op, function(error, resultIfAny,
+                                             accountSaveSuggested) {
+      self._jobDriver.postJobCleanup(!error);
+      self._LOG.runOp_end(mode, op.type, error, op);
+      // defer the callback to the next tick to avoid deep recursion
+      window.setZeroTimeout(function() {
+        callback(error, resultIfAny, accountSaveSuggested);
+      });
     });
-  });
+  }
+  catch (ex) {
+    this._LOG.opError(mode, op.type, ex);
+  }
 };
 
 
@@ -22450,6 +22491,14 @@ function MailSlice(bridgeHandle, storage, _parentLog) {
    * in this.headers.
    */
   this._accumulating = false;
+  /**
+   * If true, don't add any headers.  This is used by ActiveSync during its
+   * synchronization step to wait until all headers have been retrieved and
+   * then the slice is populated from the database.  After this initial sync,
+   * ignoreHeaders is set to false so that updates and (hopefully small
+   * numbers of) additions/removals can be observed.
+   */
+  this.ignoreHeaders = false;
 
   /**
    * @listof[HeaderInfo]
@@ -23151,6 +23200,27 @@ FolderStorage.prototype = {
    */
   get syncInProgress() {
     return this._curSyncSlice !== null;
+  },
+
+  get hasActiveSlices() {
+    return this._slices.length > 0;
+  },
+
+  /**
+   * Reset all active slices.
+   */
+  resetAndRefreshActiveSlices: function() {
+    if (!this._slices.length)
+      return;
+    // This will splice out slices as we go, so work from the back to avoid
+    // processing any slice more than once.  (Shuffling of processed slices
+    // will occur, but we don't care.)
+    for (var i = this._slices.length - 1; i >= 0; i--) {
+      var slice = this._slices[i];
+      slice._resetHeadersBecauseOfRefreshExplosion();
+      slice.desiredHeaders = $sync.INITIAL_FILL_SIZE;
+      this._resetAndResyncSlice(slice, false);
+    }
   },
 
   generatePersistenceInfo: function() {
@@ -24023,8 +24093,10 @@ FolderStorage.prototype = {
       this._curSyncSlice = slice;
     }).bind(this);
 
-    // If we're offline, there's nothing to look into; use the DB.
-    if (!this._account.universe.online) {
+    // If we're offline or the folder can't be synchronized right now, then
+    // there's nothing to look into; use the DB.
+    if (!this._account.universe.online ||
+        !this.folderSyncer.syncable) {
       existingDataGood = true;
     }
     else if (this._accuracyRanges.length && !forceDeepening) {
@@ -24070,7 +24142,9 @@ FolderStorage.prototype = {
       this.getMessagesInImapDateRange(
         0, FUTURE(), $sync.INITIAL_FILL_SIZE, $sync.INITIAL_FILL_SIZE,
         // trigger a refresh if we are online
-        this.onFetchDBHeaders.bind(this, slice, this._account.universe.online)
+        this.onFetchDBHeaders.bind(
+          this, slice,
+          this._account.universe.online && this.folderSyncer.syncable)
       );
       return;
     }
@@ -24223,13 +24297,12 @@ FolderStorage.prototype = {
       // instead we need to retract all known messages and instead convert
       // this into a synchronization.
       if (bisectInfo) {
-        if (bisectInfo === 'aborted') {
-          self._slices.splice(self._slices.indexOf(slice), 1);
-          self.sliceOpenFromNow(slice, null, true);
-        }
-        else {
+        // (The first time through bisectInfo is an object; we return 'abort'
+        // and then get called again with 'aborted'...)
+        if (bisectInfo === 'aborted')
+          self._resetAndResyncSlice(slice, true);
+        else
           slice._resetHeadersBecauseOfRefreshExplosion();
-        }
         return 'abort';
       }
 
@@ -24240,6 +24313,11 @@ FolderStorage.prototype = {
       slice.setStatus('synced', true, false);
       return undefined;
     });
+  },
+
+  _resetAndResyncSlice: function(slice, forceDeepening) {
+    this._slices.splice(this._slices.indexOf(slice), 1);
+    this.sliceOpenFromNow(slice, null, forceDeepening);
   },
 
   dyingSlice: function ifs_dyingSlice(slice) {
@@ -24255,8 +24333,6 @@ FolderStorage.prototype = {
    */
   onFetchDBHeaders: function(slice, triggerRefresh,
                              headers, moreMessagesComing) {
-    slice.atBottom = this.headerIsOldestKnown(slice.endTS, slice.endUID);
-
     var triggerNow = false;
     if (!moreMessagesComing && triggerRefresh) {
       moreMessagesComing = true;
@@ -24264,7 +24340,9 @@ FolderStorage.prototype = {
     }
 
     if (headers.length) {
-      slice.batchAppendHeaders(headers, -1, moreMessagesComing);
+      // Claim there are more headers coming since we will trigger setStatus
+      // right below and we want that to be the only edge transition.
+      slice.batchAppendHeaders(headers, -1, true);
     }
 
     if (!moreMessagesComing) {
@@ -27148,6 +27226,12 @@ function ImapFolderSyncer(account, folderStorage, _parentLog) {
 }
 exports.ImapFolderSyncer = ImapFolderSyncer;
 ImapFolderSyncer.prototype = {
+  /**
+   * Although we do have some errbackoff stuff we do, we can always try to
+   * synchronize.  The errbackoff is just a question of when we will retry.
+   */
+  syncable: true,
+
   syncDateRange: function(startTS, endTS, syncCallback) {
     syncCallback('sync', false);
     this._startSync(startTS, endTS);
@@ -28693,6 +28777,49 @@ ImapJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
+  // syncFolderList
+  //
+  // Synchronize our folder list.  This should always be an idempotent operation
+  // that makes no sense to undo/redo/etc.
+
+  local_do_syncFolderList: function(op, doneCallback) {
+    doneCallback(null);
+  },
+
+  do_syncFolderList: function(op, doneCallback) {
+    var account = this.account, reported = false;
+    this._acquireConnWithoutFolder(
+      'syncFolderList',
+      function gotConn(conn) {
+        account._syncFolderList(conn, function(err) {
+            if (!err)
+              account.meta.lastFolderSyncAt = Date.now();
+            // request an account save
+            if (!reported)
+              doneCallback(err ? 'aborted-retry' : null, null, !err);
+            reported = true;
+          });
+      },
+      function deadConn() {
+        if (!reported)
+          doneCallback('aborted-retry');
+        reported = true;
+      });
+  },
+
+  check_syncFolderList: function(op, doneCallback) {
+    doneCallback('idempotent');
+  },
+
+  local_undo_syncFolderList: function(op, doneCallback) {
+    doneCallback('moot');
+  },
+
+  undo_syncFolderList: function(op, doneCallback) {
+    doneCallback('moot');
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
   // createFolder: Create a folder
 
   local_do_createFolder: function(op, doneCallback) {
@@ -28973,9 +29100,8 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
    *   @param[nextMutationNum Number]{
    *     The next mutation id to be allocated.
    *   }
-   *   @param[lastFullFolderProbeAt DateMS]{
-   *     When was the last time we went through our list of folders and got the
-   *     unread count in each folder.
+   *   @param[lastFolderSyncAt DateMS]{
+   *     When was the last time we ran `syncFolderList`?
    *   }
    *   @param[capability @listof[String]]{
    *     The post-login capabilities from the server.
@@ -29028,6 +29154,14 @@ function ImapAccount(universe, compositeAccount, accountId, credentials,
    * expunging deleted messages.
    */
   this._TEST_doNotCloseFolder = false;
+
+  // Ensure we have an inbox.  This is a folder that must exist with a standard
+  // name, so we can create it without talking to the server.
+  var inboxFolder = this.getFirstFolderWithType('inbox');
+  if (!inboxFolder) {
+    // XXX localized inbox string (bug 805834)
+    this._learnAboutFolder('INBOX', 'INBOX', 'inbox', '/', 0);
+  }
 }
 exports.ImapAccount = ImapAccount;
 ImapAccount.prototype = {
@@ -29494,11 +29628,13 @@ ImapAccount.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   // Folder synchronization
 
-  syncFolderList: function(callback) {
-    var self = this;
-    this.__folderDemandsConnection(null, 'syncFolderList', function(conn) {
-      conn.getBoxes(self._syncFolderComputeDeltas.bind(self, conn, callback));
-    });
+  /**
+   * Helper in conjunction with `_syncFolderComputeDeltas` for use by the
+   * syncFolderList operation/job.  The op is on the hook for the connection's
+   * lifecycle.
+   */
+  _syncFolderList: function(conn, callback) {
+    conn.getBoxes(this._syncFolderComputeDeltas.bind(this, conn, callback));
   },
   _determineFolderType: function(box, path) {
     var type = null;
@@ -29593,9 +29729,7 @@ ImapAccount.prototype = {
   _syncFolderComputeDeltas: function(conn, callback, err, boxesRoot) {
     var self = this;
     if (err) {
-      // XXX need to deal with transient failure states
-      this.__folderDoneWithConnection(conn, false, false);
-      callback();
+      callback(err);
       return;
     }
 
@@ -29614,6 +29748,12 @@ ImapAccount.prototype = {
 
         // - already known folder
         if (folderPubsByPath.hasOwnProperty(path)) {
+          // Make sure the delimiter is up-to-date (for INBOX we initially make
+          // a guess which we must update here.)
+          var meta = folderPubsByPath[path];
+          if (meta.delim !== box.delim)
+            meta.delim = box.delim;
+
           // mark it with true to show that we've seen it.
           folderPubsByPath = true;
         }
@@ -29642,10 +29782,7 @@ ImapAccount.prototype = {
       this._forgetFolder(folderPub.id);
     }
 
-    this.__folderDoneWithConnection(conn, false, false);
-    // be sure to save our state now that we are up-to-date on this.
-    this.saveAccountState();
-    callback();
+    callback(null);
   },
 
   /**
@@ -29730,6 +29867,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       unknownDeadConnection: {},
       connectionError: {},
       folderAlreadyHasConn: { folderId: false },
+      opError: { mode: false, type: false, ex: $log.EXCEPTION },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
@@ -30846,6 +30984,7 @@ ActiveSyncFolderConn.prototype = {
     account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
+        callback('unknown');
         return;
       }
 
@@ -30856,10 +30995,15 @@ ActiveSyncFolderConn.prototype = {
       });
       e.run(aResponse);
 
-      if (folderConn.syncKey === '0')
+      if (folderConn.syncKey === '0') {
+        // XXX we should re-sync the entire folder list from scratch and compute
+        // the deltas.
         console.error('Unable to get sync key for folder');
-      else
+        callback('unknown');
+      }
+      else {
         callback();
+      }
     });
   },
 
@@ -31340,6 +31484,13 @@ function ActiveSyncFolderSyncer(account, folderStorage, _parentLog) {
 }
 exports.ActiveSyncFolderSyncer = ActiveSyncFolderSyncer;
 ActiveSyncFolderSyncer.prototype = {
+  /**
+   * Can we synchronize?  Not if we don't have a server id!
+   */
+  get syncable() {
+    return this.folderConn.serverId !== null;
+  },
+
   syncDateRange: function(startTS, endTS, syncCallback) {
     syncCallback('sync', false, true);
     this.folderConn.syncDateRange(startTS, endTS, $date.NOW(),
@@ -31709,6 +31860,63 @@ ActiveSyncJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
+  // syncFolderList
+  //
+  // Synchronize our folder list.  This should always be an idempotent operation
+  // that makes no sense to undo/redo/etc.
+
+  local_do_syncFolderList: function(op, doneCallback) {
+    doneCallback(null);
+  },
+
+  do_syncFolderList: function(op, doneCallback) {
+    var account = this.account, self = this;
+    // establish a connection if we are not already connected
+    if (!account.conn.connected) {
+      account.conn.connect(function(err, config) {
+        if (err) {
+          doneCallback('aborted-retry');
+          return;
+        }
+        self.do_syncFolderList(op, doneCallback);
+      });
+      return;
+    }
+
+    // The inbox needs to be resynchronized if there was no server id and we
+    // have active slices displaying the contents of the folder.  (No server id
+    // means the sync will not happen.)
+    var inboxFolder = this.account.getFirstFolderWithType('inbox'),
+        inboxStorage, inboxNeedsResync = false;
+    if (inboxFolder && inboxFolder.serverId === null) {
+      inboxStorage = this.account.getFolderStorageForFolderId(inboxFolder.id);
+      inboxNeedsResync = inboxStorage.hasActiveSlices;
+    }
+
+    account.syncFolderList(function(err) {
+      if (!err)
+        account.meta.lastFolderSyncAt = Date.now();
+      // save if it worked
+      doneCallback(err ? 'aborted-retry' : null, null, !err);
+
+      if (inboxNeedsResync)
+        inboxStorage.resetAndRefreshActiveSlices();
+    });
+  },
+
+  check_syncFolderList: function(op, doneCallback) {
+    doneCallback('idempotent');
+  },
+
+  local_undo_syncFolderList: function(op, doneCallback) {
+    doneCallback('moot');
+  },
+
+  undo_syncFolderList: function(op, doneCallback) {
+    doneCallback('moot');
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
 };
 
 }); // end define
@@ -31829,9 +32037,15 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
                           this,
                           this._folderInfos.$mutationState);
 
-  // TODO: this is a really hacky way of syncing folders after the first time.
-  if (this.meta.syncKey != '0')
-    setTimeout(this.syncFolderList.bind(this), 1000);
+  // Ensure we have an inbox.  The server id cannot be magically known, so we
+  // create it with a null id.  When we actually sync the folder list, the
+  // server id will be updated.
+  var inboxFolder = this.getFirstFolderWithType('inbox');
+  if (!inboxFolder) {
+    // XXX localized Inbox string (bug 805834)
+    this._addedFolder(null, '0', 'Inbox',
+                      $ascp.FolderHierarchy.Enums.Type.DefaultInbox);
+  }
 }
 exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
@@ -31912,6 +32126,7 @@ ActiveSyncAccount.prototype = {
   },
 
   shutdown: function asa_shutdown() {
+    this._LOG.__die();
   },
 
   sliceFolderMessages: function asa_sliceFolderMessages(folderId,
@@ -31939,6 +32154,10 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
+      if (aError) {
+        callback(aError);
+        return;
+      }
       let e = new $wbxml.EventParser();
       let deferredAddedFolders = [];
 
@@ -31980,9 +32199,8 @@ ActiveSyncAccount.prototype = {
       }
 
       console.log('Synced folder list');
-      account.saveAccountState(null, null, 'folderList');
       if (callback)
-        callback();
+        callback(null);
     });
   },
 
@@ -32016,6 +32234,8 @@ ActiveSyncAccount.prototype = {
     if (!(typeNum in this._folderTypes))
       return true; // Not a folder type we care about.
 
+    const folderType = $ascp.FolderHierarchy.Enums.Type;
+
     let path = displayName;
     let depth = 0;
     if (parentId !== '0') {
@@ -32025,6 +32245,23 @@ ActiveSyncAccount.prototype = {
       let parent = this._folderInfos[parentFolderId];
       path = parent.$meta.path + '/' + path;
       depth = parent.$meta.depth + 1;
+    }
+
+    // Handle sentinel Inbox.
+    if (typeNum === folderType.DefaultInbox) {
+      let existingInboxMeta = this.getFirstFolderWithType('inbox');
+      if (existingInboxMeta) {
+        // update everything about the folder meta
+        existingInboxMeta.serverId = serverId;
+        existingInboxMeta.name = displayName;
+        existingInboxMeta.path = path;
+        existingInboxMeta.depth = depth;
+        // Its folder connection needs to know the updated server id since it
+        // copied it out.
+        let folderStorage = this._folderStorages[existingInboxMeta.id];
+        folderStorage.folderSyncer.folderConn.serverId = serverId;
+        return existingInboxMeta;
+      }
     }
 
     let folderId = this.id + '/' + $a64.encodeInt(this.meta.nextFolderNum++);
@@ -32101,6 +32338,7 @@ ActiveSyncAccount.prototype = {
    *   complete, taking the new folder storage
    */
   _recreateFolder: function asa__recreateFolder(folderId, callback) {
+    this._LOG.recreateFolder(folderId);
     let folderInfo = this._folderInfos[folderId];
     folderInfo.accuracy = [];
     folderInfo.headerBlocks = [];
@@ -32338,11 +32576,15 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     events: {
       createFolder: {},
       deleteFolder: {},
+      recreateFolder: { id: false },
     },
     asyncJobs: {
       runOp: { mode: true, type: true, error: false, op: false },
       saveAccountState: { reason: false },
     },
+    errors: {
+      opError: { mode: false, type: false, ex: $log.EXCEPTION },
+    }
   },
 });
 
@@ -32590,7 +32832,7 @@ function accountTypeToClass(type) {
 exports.accountTypeToClass = accountTypeToClass;
 
 // Simple hard-coded autoconfiguration by domain...
-var autoconfigByDomain = {
+var autoconfigByDomain = exports._autoconfigByDomain = {
   'localhost': {
     type: 'imap+smtp',
     incoming: {
@@ -32619,6 +32861,15 @@ var autoconfigByDomain = {
       port: 465,
       socketType: 'SSL',
       username: '%EMAILLOCALPART%',
+    },
+  },
+  'aslocalhost': {
+    type: 'activesync',
+    displayName: 'Test',
+    incoming: {
+      // This string may be clobbered with the correct port number when
+      // running as a unit test.
+      server: 'http://localhost:8080',
     },
   },
   // Mapping for a nonexistent domain for testing a bad domain without it being
@@ -32693,12 +32944,7 @@ Configurators['imap+smtp'] = {
             userDetails, credentials,
             imapConnInfo, smtpConnInfo, results.imap[1],
             results.imap[2]);
-          account.syncFolderList(function() {
-            account.ensureEssentialFolders(function() {
-              callback(null, account);
-            });
-          });
-
+          callback(null, account);
         }
         // -- either/both bad
         else {
@@ -32760,9 +33006,7 @@ Configurators['imap+smtp'] = {
 
     var account = this._loadAccount(universe, accountDef,
                                     oldAccountInfo.folderInfo);
-    account.syncFolderList(function() {
-      callback(null, account);
-    });
+    callback(null, account);
   },
 
   /**
@@ -32818,7 +33062,7 @@ Configurators['imap+smtp'] = {
       $meta: {
         nextFolderNum: 0,
         nextMutationNum: 0,
-        lastFullFolderProbeAt: 0,
+        lastFolderSyncAt: 0,
         capability: (oldFolderInfo && oldFolderInfo.$meta.capability) ||
                     imapProtoConn.capabilities,
         rootDelim: (oldFolderInfo && oldFolderInfo.$meta.rootDelim) ||
@@ -32907,6 +33151,7 @@ Configurators['fake'] = {
     var folderInfo = {
       $meta: {
         nextMutationNum: 0,
+        lastFolderSyncAt: 0,
       },
       $mutations: [],
       $mutationState: {},
@@ -32970,9 +33215,7 @@ Configurators['activesync'] = {
       };
 
       var account = self._loadAccount(universe, accountDef, conn);
-      account.syncFolderList(function() {
-        callback(null, account);
-      });
+      callback(null, account);
     });
   },
 
@@ -33001,9 +33244,7 @@ Configurators['activesync'] = {
     };
 
     var account = this._loadAccount(universe, accountDef, null);
-    account.syncFolderList(function() {
-      callback(null, account);
-    });
+    callback(null, account);
   },
 
   /**
@@ -33017,6 +33258,7 @@ Configurators['activesync'] = {
       $meta: {
         nextFolderNum: 0,
         nextMutationNum: 0,
+        lastFolderSyncAt: 0,
         syncKey: '0',
       },
       $mutations: [],
@@ -33724,7 +33966,7 @@ const MAX_LOG_BACKLOG = 30;
  *   }
  * ]]
  */
-function MailUniverse(callAfterBigBang) {
+function MailUniverse(callAfterBigBang, testOptions) {
   /** @listof[Account] */
   this.accounts = [];
   this._accountsById = {};
@@ -33736,7 +33978,7 @@ function MailUniverse(callAfterBigBang) {
   /**
    * @dictof[
    *   @key[AccountID]
-   *   @key[@dict[
+   *   @value[@dict[
    *     @key[active Boolean]{
    *       Is there an active operation right now?
    *     }
@@ -33791,7 +34033,7 @@ function MailUniverse(callAfterBigBang) {
   this._logBacklog = null;
 
   this._LOG = null;
-  this._db = new $maildb.MailDB();
+  this._db = new $maildb.MailDB(testOptions);
   this._cronSyncer = new $cronsync.CronSyncer(this);
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
@@ -33847,7 +34089,8 @@ function MailUniverse(callAfterBigBang) {
       self._db.saveConfig(self.config);
 
       // - Try to re-create any accounts using old account infos.
-      if (lazyCarryover && self.online) {
+      if (lazyCarryover) {
+        self._LOG.configMigrating(lazyCarryover);
         var waitingCount = 0;
         var oldVersion = lazyCarryover.oldVersion;
         for (i = 0; i < lazyCarryover.accountInfos.length; i++) {
@@ -33865,6 +34108,9 @@ function MailUniverse(callAfterBigBang) {
         }
         // Do not let callAfterBigBang get called.
         return;
+      }
+      else {
+        self._LOG.configCreated(self.config);
       }
     }
     self._initFromConfig();
@@ -34178,6 +34424,23 @@ MailUniverse.prototype = {
     }
 
     this.__notifyAddedAccount(account);
+
+    // - issue a (non-persisted) syncFolderList if needed
+    var timeSinceLastFolderSync = Date.now() - account.meta.lastFolderSyncAt;
+    if (timeSinceLastFolderSync >= $syncbase.SYNC_FOLDER_LIST_EVERY_MS) {
+      this._queueAccountOp(
+        account,
+        {
+          type: 'syncFolderList',
+          // no need to track this in the mutations list
+          longtermId: 'internal',
+          lifecycle: 'do',
+          localStatus: 'done',
+          serverStatus: null,
+          tryCount: 0,
+          humanOp: 'syncFolderList'
+        });
+    }
 
     // - check for mutations that still need to be processed
     // This will take care of deferred mutations too because they are still
@@ -34977,6 +35240,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
   MailUniverse: {
     type: $log.ACCOUNT,
     events: {
+      configCreated: {},
+      configMigrating: {},
       configLoaded: {},
       createAccount: { type: true, id: false },
       opDeferred: { type: true, id: false },
@@ -34985,6 +35250,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       opMooted: { type: true, id: false },
     },
     TEST_ONLY_events: {
+      configCreated: { config: false },
+      configMigrating: { lazyCarryover: false },
       configLoaded: { config: false, accounts: false },
       createAccount: { name: false },
     },

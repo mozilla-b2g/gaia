@@ -52,7 +52,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open('IdentityFlow', frame, kIdentityScreen, this.chromeEventId);
+            TrustedUIManager.open('IdentityFlow', frame, this.chromeEventId);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);

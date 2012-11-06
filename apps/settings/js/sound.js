@@ -36,6 +36,12 @@ var SoundSettings = {
       self.smsSettings.value = req2.result['sms.ringtone'] || 'sms.wav';
       self.updateButton(self.smsSettings);
     };
+    // Listen to touch on tones
+    var labels = this.dialog.querySelectorAll('label');
+    for (var i = 0; i < labels.length; i++) {
+      var label = labels[i];
+      label.onmouseup = audioPreview.bind(null, label);
+    }
   },
 
   showDialog: function ss_showDialog(target) {

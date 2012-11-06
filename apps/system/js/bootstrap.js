@@ -4,12 +4,17 @@
 'use strict';
 
 window.addEventListener('load', function startup() {
+  function firstAppManager(homescreenApp) {
+    // TODO Include algorith for handling which app is the first running app
+    // By now will be homescreen until merging #5883
+    homescreenApp.launch();
+  }
   if (Applications.ready) {
-    WindowManager.launchHomescreen();
+    WindowManager.retrieveHomescreen(firstAppManager);
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
-      WindowManager.launchHomescreen();
+      WindowManager.retrieveHomescreen(firstAppManager);
     });
   }
 
