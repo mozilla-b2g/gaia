@@ -2,7 +2,7 @@
  * This Phone Number Manager required:
  * 1) PhoneNumberJS by Andreas Gal https://github.com/andreasgal/PhoneNumber.js
  * 2) mcc(Mobile Country Codes) - iso3166 country code table
- * 
+ *
  * Methods in the PhoneNumberManager:
  * init - Setup mobile country code (mcc).
  *
@@ -20,29 +20,34 @@
 */
 var PhoneNumberManager = {
   init: function pnm_init() {
-    // TODO: Here we use Brazil for default mcc. We may need to record the mcc
-    //       and apply it if we could not get connection data in the future.
-
-    // Incluir el async storage
-    
+    // XXX Hack: If is the first time that we are launching SMS and there is any
+    // problem with 'mozMobileConnection' we apply this as default
     var presetMCC = 'ES';
+    // Method for retrieving the mcc
+    var self = this;
+    function getLastMcc() {
+      asyncStorage.getItem('mcc', function(mcc) {
+        if (mcc) {
+          self.region = mcc;
+          return;
+        }
+        self.region = presetMCC;
+      });
+    }
+    // Update the MCC properly, retrieving for network
     var conn = window.navigator.mozMobileConnection;
     if (!!conn) {
-      if (conn.cardState == 'ready') {
+      if (conn.voice.connected) {
         var currentMCC = conn.voice.network.mcc;
-        if (currentMCC != 0) {
-          // Retrieve the last one
-          this.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
-        } else {
-          this.region = presetMCC;
-        }
+        // Update value of latest mcc retrieved
+        asyncStorage.setItem('mcc', currentMCC);
+        // Retrieve region
+        this.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
       } else {
-        this.region = presetMCC;
+        getLastMcc();
       }
-      
     } else {
-      
-      this.region = presetMCC;
+      getLastMcc();
     }
   },
   getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {

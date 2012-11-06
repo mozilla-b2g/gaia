@@ -492,7 +492,6 @@ var ThreadListUI = {
   },
 
   renderThreads: function thlui_renderThreads(messages, callback) {
-    console.log('---- !!!!! ----'+(new Date()).getTime());
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
       document.getElementById('threads-fixed-container').
@@ -549,7 +548,6 @@ var ThreadListUI = {
       Utils.updateTimeHeaderScheduler();
 
     } else {
-      console.log("ASDASDASDASD");
       document.getElementById('threads-fixed-container').classList.add('hide');
       var noResultHTML = '<div id="no-result-container">' +
             ' <div id="no-result-message">' +
@@ -778,12 +776,14 @@ var ThreadUI = {
 
     // Add 0.7 rem that are equal to the message box vertical padding
     var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
-    var sendButtonTranslate = (input.offsetHeight - deviationHeight) / Utils.getFontSize() + 'rem';
+    var sendButtonTranslate = (input.offsetHeight - deviationHeight) /
+      Utils.getFontSize() + 'rem';
     var bottomToolbar =
         document.querySelector('#new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
-    ThreadUI.sendButton.style.marginTop = sendButtonTranslate; //we should do this with transform, but is buggy right now
+    ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
+    //we should do this with transform, but is buggy right now
 
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
@@ -913,9 +913,10 @@ var ThreadUI = {
 
       // Add 'gif' delivery icon if necessary
       deliveryIcon = '<span class="message-option icon-delivery">' +
-                                '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
-                                  ThreadUI.sendIcons.pending) + '" class="gif">' +
-                              '</span>';
+                        '<img src="' + (!message.error ?
+                          ThreadUI.sendIcons.sending :
+                          ThreadUI.sendIcons.pending) + '" class="gif">' +
+                      '</span>';
       } else {
       //Add edit options
       htmlStructure += '<label class="danger message-option msg-checkbox">' +
@@ -926,9 +927,9 @@ var ThreadUI = {
     }
 
     htmlStructure += '<span class="bubble-container ' + className + '">' +
-                                   '<div class="bubble">' + bodyHTML + '</div>' +
-                                    deliveryIcon +
-                                 '</span>';
+                       '<div class="bubble">' + bodyHTML + '</div>' +
+                        deliveryIcon +
+                     '</span>';
 
 
     // Add structure to DOM element
