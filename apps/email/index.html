@@ -27,29 +27,7 @@
   <script type="text/javascript" src="shared/js/gesture_detector.js"></script>
   <script defer type="text/javascript" src="/shared/js/custom_dialog.js"></script>
   <!-- Specific code -->
-  <script type="text/javascript">
-    // when running in B2G, send output to the console, ANSI-style
-    if ('mozTCPSocket' in window.navigator) {
-      function consoleHelper() {
-        var msg = arguments[0] + ":";
-        for (var i = 1; i < arguments.length; i++) {
-          msg += " " + arguments[i];
-        }
-        msg += "\x1b[0m\n";
-        dump(msg);
-      }
-      window.console = {
-        log:   consoleHelper.bind(null, '\x1b[32mLOG'),
-        error: consoleHelper.bind(null, '\x1b[31mERR'),
-        info:  consoleHelper.bind(null, '\x1b[36mINF'),
-        warn:  consoleHelper.bind(null, '\x1b[33mWAR')
-      };
-    }
-    window.onerror = function errHandler(msg, url, line) {
-      console.error("onerror reporting:", msg, "@", url, ":", line);
-      return false;
-    };
-  </script>
+  <script type="text/javascript" src="js/console-hook.js"></script>
   <script type="text/javascript" src="js/mail-common.js"></script>
   <script type="text/javascript" src="js/iframe-shims.js"></script>
   <script type="text/javascript" src="js/message-cards.js"></script>
@@ -356,7 +334,7 @@
       </div>
 
       <!-- === Setup === -->
-      <!-- From hyperlink, ask the user if they want to setup now or bail. -->
+      <!-- From hyperlink, ask the user if they want to set up now or bail. -->
       <div class="card-setup-needed card">
       </div>
       <!-- Pick your service provider from popular options to save yourself
@@ -375,7 +353,7 @@
         </section>
         <h2 class="sup-pick-service-label sup-form-label"
             data-l10n-id="setup-pick-service">
-          To SenD and ReceivE email, you will need to setup an account.
+          To SenD and ReceivE email, you will need to set up an account.
         </h2>
         <div class="sup-services-container">
         </div>
@@ -419,7 +397,7 @@
         </section>
         <div class="sup-progress-region">
           <span class="sup-progress-label" data-l10n-id="setup-progress-wait">
-            PleasE WaiT WhilE I SetuP YouR AccounT
+            PleasE WaiT WhilE I SeT UP YouR AccounT
           </span>
           <span class="sup-progress-spinner"></span>
         </div>
@@ -427,7 +405,7 @@
           <span class="sup-error-message"></span>
           <button class="sup-manual-config-btn sup-form-btn recommend"
                   data-l10n-id="setup-manual-config">
-            ManuallY SetuP AccounT
+            ManuallY SeT UP AccounT
           </button>
         </div>
       </div>
@@ -837,6 +815,13 @@
         <span class="cmp-attachment-filesize"></span>
         <button class="cmp-attachment-remove">X</span>
       </li>
+      <div class="cmp-sending-container">
+        <p role="status" class="cmp-messages-sending">
+          <progress></progress>
+          <span class="cmp-sending-text" data-l10n-id="compose-sending-message">Sending messagE
+          </span>
+        </p>        
+      </div>
     </div>
     <!-- Widget nodes for the setup cards; styles use the sup prefix -->
     <div id="templ-sup">
