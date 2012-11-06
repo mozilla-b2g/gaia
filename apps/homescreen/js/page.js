@@ -69,14 +69,16 @@ Icon.prototype = {
     var icon = this.icon = document.createElement('div');
 
     // Image
-    var canvas = this.canvas = document.createElement('canvas');
-    canvas.setAttribute('role', 'presentation');
-    canvas.width = 68;
-    canvas.height = 68;
-    icon.appendChild(canvas);
-
-    this.img = new Image();
-    this.fetchImageData();
+    var img = this.img = new Image();
+    img.setAttribute('role', 'presentation');
+    img.width = 68;
+    img.height = 68;
+    icon.appendChild(img);
+    if (descriptor.renderedIcon) {
+      this.displayRenderedIcon();
+    } else {
+      this.fetchImageData();
+    }
 
     // Label
 
@@ -105,19 +107,19 @@ Icon.prototype = {
   fetchImageData: function icon_fetchImageData() {
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
-    if (!icon)
+    if (!icon) {
+      self.loadImageData();
       return;
+    }
 
     // If we already have locally cached data, load the image right away.
-    if (descriptor.cachedIcon ||
-        icon.indexOf('data:') == 0 ||
-        icon.indexOf('app://') == 0) {
+    if (icon.indexOf('data:') == 0) {
        this.loadImageData();
        return;
     }
 
     var self = this;
-    var xhr = new XMLHttpRequest({mozSystem: true});
+    var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
     xhr.open('GET', icon, true);
     xhr.responseType = 'blob';
     xhr.send(null);
@@ -130,13 +132,7 @@ Icon.prototype = {
         self.loadImageData();
         return;
       }
-      var fileReader = new FileReader();
-      fileReader.onload = function fileReader_load(event) {
-        descriptor.cachedIcon = event.target.result;
-        GridManager.markDirtyState();
-        self.loadImageData();
-      };
-      fileReader.readAsDataURL(xhr.response);
+      self.loadImageData(xhr.response);
     };
 
     xhr.onerror = function saveIcon_onerror() {
@@ -144,26 +140,38 @@ Icon.prototype = {
     };
   },
 
-  loadImageData: function icon_loadImageData() {
+  loadImageData: function icon_loadImageData(blob) {
     var self = this;
-    var img = this.img;
-    img.src = this.descriptor.cachedIcon || this.descriptor.icon;
+    var img = new Image();
+    if (blob) {
+      var url = window.URL.createObjectURL(blob);
+      img.src = url;
+    } else {
+      img.src = this.descriptor.icon;
+    }
 
     img.onload = function icon_loadSuccess() {
-      self.renderImage();
+      if (blob)
+        window.URL.revokeObjectURL(img.src);
+
+      self.renderImage(img);
     };
 
     img.onerror = function icon_loadError() {
+      if (blob)
+        window.URL.revokeObjectURL(img.src);
+
       img.src = self.DEFAULT_ICON_URL;
       img.onload = function icon_errorIconLoadSucess() {
-        self.renderImage();
+        self.renderImage(img);
       };
     };
   },
 
-  renderImage: function icon_renderImage(canvas) {
-    canvas = canvas || this.canvas;
-    var img = this.img;
+  renderImage: function icon_renderImage(img) {
+    var canvas = document.createElement('canvas');
+    canvas.width = 68;
+    canvas.height = 68;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -184,6 +192,22 @@ Icon.prototype = {
                   (canvas.height - height) / 2,
                   width, height);
     ctx.fill();
+
+    var self = this;
+    canvas.toBlob(function canvasAsBlob(blob) {
+      self.descriptor.renderedIcon = blob;
+      GridManager.markDirtyState();
+      self.displayRenderedIcon();
+    });
+  },
+
+  displayRenderedIcon: function icon_displayRenderedIcon(img) {
+    img = img || this.img;
+    var url = window.URL.createObjectURL(this.descriptor.renderedIcon);
+    img.src = url;
+    img.onload = img.onerror = function cleanup() {
+      window.URL.revokeObjectURL(url);
+    };
   },
 
   show: function icon_show() {
@@ -197,17 +221,17 @@ Icon.prototype = {
 
   update: function icon_update(descriptor, app) {
     this.app = app;
-
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
-    if (descriptor.icon != oldDescriptor.icon) {
+
+    if (descriptor.icon == oldDescriptor.icon) {
+      this.descriptor.renderedIcon = oldDescriptor.renderedIcon;
+    } else {
       this.fetchImageData();
-      GridManager.markDirtyState();
     }
     if (descriptor.name != oldDescriptor.name ||
         descriptor.localizedName != oldDescriptor.localizedName) {
       this.translate();
-      GridManager.markDirtyState();
     }
   },
 
@@ -267,7 +291,7 @@ Icon.prototype = {
     draggableElem.className = 'draggable';
 
     draggableElem.appendChild(this.icon.cloneNode());
-    this.renderImage(draggableElem.querySelector('canvas'));
+    this.displayRenderedIcon(draggableElem.querySelector('img'));
 
     var container = this.container;
     container.dataset.dragging = 'true';
