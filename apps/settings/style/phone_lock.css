@@ -14,6 +14,14 @@
   display: block;
 }
 
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
 #phoneLock-passcode div.passcode-error {
   display: none;
   color: red;
