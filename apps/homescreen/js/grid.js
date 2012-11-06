@@ -202,7 +202,7 @@ const GridManager = (function() {
     var page = currentPage;
     if (Math.abs(deltaX) > thresholdForPanning) {
       var forward = dirCtrl.goesForward(deltaX);
-      if (forward && currentPage < pageHelper.total() - 1) {
+      if (forward && currentPage < pages.length - 1) {
         page = page + 1;
       } else if (!forward &&
                   (page === 1 || page >= 3 ||
@@ -475,7 +475,7 @@ const GridManager = (function() {
   function getFirstPageWithEmptySpace() {
     var maxPerPage = pageHelper.getMaxPerPage();
 
-    var pagesCount = pageHelper.total();
+    var pagesCount = pages.length;
     for (var i = 2; i < pagesCount; i++) {
       if (pages[i].getNumApps() < maxPerPage) {
         return i;
@@ -519,7 +519,7 @@ const GridManager = (function() {
       }
 
       var propagateIco = page.popIcon();
-      if (index === pageHelper.total() - 1) {
+      if (index === pages.length - 1) {
         pageHelper.push([propagateIco]); // new page
       } else {
         pages[index + 1].prependIcon(propagateIco); // next page
@@ -534,7 +534,7 @@ const GridManager = (function() {
      * @param {Array} initial list of apps or icons
      */
     push: function(apps, appsFromMarket) {
-      var index = this.total();
+      var index = pages.length;
       var page = new Page(index);
       pages.push(page);
 
@@ -558,13 +558,6 @@ const GridManager = (function() {
       pages[index].destroy(); // Destroy page
       pages.splice(index, 1); // Removes page from the list
       updatePaginationBar();
-    },
-
-    /*
-     * Returns the total number of pages
-     */
-    total: function() {
-      return pages.length;
     },
 
     /*
@@ -605,15 +598,18 @@ const GridManager = (function() {
     },
 
     getLast: function() {
-      return pages[this.total() - 1];
+      return pages[pages.length - 1];
     },
 
     getCurrentPageNumber: function() {
       return currentPage;
     },
 
+    /*
+     * Returns the total number of pages
+     */
     getTotalPagesNumber: function() {
-      return pageHelper.total();
+      return pages.length;
     }
   };
 
@@ -668,7 +664,7 @@ const GridManager = (function() {
         Applications.getManifest(origin).hidden = true;
       }
 
-      if (index < pageHelper.total()) {
+      if (index < pages.length) {
         pages[index].append(app);
       } else {
         pageHelper.push([app], true);
@@ -690,7 +686,7 @@ const GridManager = (function() {
      */
     uninstall: function gm_uninstall(app) {
       var index = 0;
-      var total = pageHelper.total();
+      var total = pages.length;
       var origin = Applications.getOrigin(app).toString();
 
       while (index < total) {
