@@ -719,12 +719,8 @@ const GridManager = (function() {
 
     localize: localize,
 
-    get dirCtrl() {
-      return dirCtrl;
-    },
+    dirCtrl: dirCtrl,
 
-    get pageHelper() {
-      return pageHelper;
-    }
+    pageHelper: pageHelper
   };
 })();
