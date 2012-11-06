@@ -108,6 +108,7 @@
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="permission-screen"],
+#screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="app"] > iframe.appWindow.inlineActivity {
   z-index: 1024;
 }
