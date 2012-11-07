@@ -7,149 +7,60 @@ html, body {
   margin: 0;
   padding: 0;
   font-size: 10px;
-  overflow: hidden !important;
   font-family: "MozTT", sans-serif;
+  overflow: hidden;
 }
 
-body.hidden * {
-  display: none;
-}
 
-/* Setting panels: full-size blocks, identified by a 'region' role */
-[role=region] {
+/******************************************************************************
+ * Setting panels: full-size <section role="region"> blocks
+ */
+
+/* Setting panels: full-size <section role="region"> blocks */
+section[role="region"] {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   border: 0;
-  overflow-y: scroll;
   background: url(images/document_bg.png);
+  overflow-x: hidden;
+  overflow-y: scroll;
 }
 
-
-/******************************************************************************
+/**
  * Panel targets -- transitions
- *
- * this looks super nice on a desktop but not on an Otoro :-(
- *
- *  [role="region"] {
- *    visibility: hidden;
- *    transform: translateX(100%);
- *    transition: visibility 0s ease 0.3s, transform 0.3s ease;
- *  }
- *
- *  [role="region"]:target, #root:target {
- *    visibility: visible;
- *    transform: none;
- *    transition: visibility 0s ease, transform 0.3s ease;
- *  }
- *
- *  [role="region"]:target ~ [role="region"], #root {
- *    transform: translateX(-100%);
- *  }
- *
- * So we rely on `data-leaf' attributes to identify tree leafs,
- * in order not to move them when it's not necessary.
+ * the `.previous' and '.current' classes are set by settings.js
  */
 
-[role="region"] {
-  visibility: hidden;
-  transform: translateX(100%);
-  transition: visibility 0s ease .5s, transform .5s ease;
+section[role="region"] {
+  transform: translateX(+100%);
+  transition: transform .4s ease;
 }
 
-[role="region"]:target {
-  visibility: visible;
-  transform: translateX(0);
-  transition: visibility 0s ease, transform .5s ease;
-}
-
-[role="region"]:target ~ [role="region"]:not([data-leaf]) {
+section[role="region"].previous {
   transform: translateX(-100%);
 }
 
-body.hidden #root {
-  transform: none;
-  transition: none;
+section[role="region"].current {
+  transform: translateX(0);
+  /*overflow-y: scroll; [> https://bugzilla.mozilla.org/show_bug.cgi?id=797411 <]*/
 }
 
+/**
+ * Headers should not scroll with the rest of the page, except for #root.
+ * As this fails with Firefox-desktop (gecko 18+), it's disabled atm.
 
-/******************************************************************************
- * Headers don't scroll with the rest of the page, except for #root
- */
-
-[role="region"]:not(#root) > header:first-child {
+section[role="region"]:not(#root) > header:first-child {
   position: fixed;
   width: 100%;
 }
 
-[role="region"]:not(#root) > header:first-child + * {
+section[role="region"]:not(#root) > header:first-child + * {
   margin-top: 5rem;
 }
-
-
-/******************************************************************************
- * Right-to-Left layout
  */
-
-/* transitions */
-
-[dir=rtl] [role="region"] {
-  transform: translateX(-100%);
-}
-
-[dir=rtl] #root {
-  transform: translateX(+100%);
-}
-
-[dir=rtl] #root:target,
-[dir=rtl] [role=region]:target {
-  transform: none;
-}
-
-/* setting lists */
-
-[dir=rtl] ul li > a {
-  padding-left: inherit;
-  padding-right: 3rem;
-}
-
-[dir=rtl] ul li > small {
-  left: auto;
-  right: 3rem;
-}
-
-[dir=rtl] [role=region] label > span {
-  left: 1rem;
-  right: auto;
-}
-
-/* root list and icons */
-
-[dir=rtl] #root li [data-l10n-id] {
-  background-position: right 1.4rem top 50%;
-}
-
-[dir=rtl] #root ul li > a {
-  padding-left: inherit;
-  padding-right: 5.5rem;
-}
-
-[dir=rtl] #root ul li > small {
-  left: auto;
-  right: 5.5rem;
-}
-
-/* bidi (e.g. language list) */
-
-[dir=ltr] a[dir=rtl] {
-  text-align: left;
-}
-
-[dir=rtl] a[dir=ltr] {
-  text-align: right;
-}
 
 
 /******************************************************************************
@@ -187,8 +98,8 @@ ul[data-state] li[data-state] {
   display: none;
 }
 
-ul[data-state="on"] li[data-state="on"],
-ul[data-state="off"] li[data-state="off"],
+ul[data-state="on"]    li[data-state="on"],
+ul[data-state="off"]   li[data-state="off"],
 ul[data-state="ready"] li[data-state="ready"] {
   display: block;
 }
@@ -204,10 +115,9 @@ section li.identity {
   display: none;
 }
 
-section.WEP li.password,
-section.WPA-PSK li.password,
-section.WPA-EAP li.password,
-section.WPA-EAP li.identity {
+section[data-security*="WEP"] li.password,
+section[data-security*="WPA"] li.password,
+section[data-security*="EAP"] li.identity {
   display: block;
 }
 
@@ -277,14 +187,17 @@ ul li > label .range-icons {
 }
 
 ul li > label .range-icons.volume {
-  background: url(images/range_icons_volume_min.png) no-repeat 0 50%,
-              url(images/range_icons_volume_max.png) no-repeat 100% 50%;
+  background:
+    url(images/range_icons_volume_min.png) no-repeat 0 50%,
+    url(images/range_icons_volume_max.png) no-repeat 100% 50%;
 }
 
 ul li > label .range-icons.brightness {
-  background: url(images/range_icons_brightness_min.png) no-repeat 0 50%,
-              url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
+  background:
+    url(images/range_icons_brightness_min.png) no-repeat 0 50%,
+    url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
 }
+
 
 /******************************************************************************
  * SIM Toolkit
@@ -304,6 +217,7 @@ ul li > label .range-icons.brightness {
   position: fixed;
 }
 
+
 /******************************************************************************
  * Date & Time
  */
@@ -313,11 +227,35 @@ ul li > label .range-icons.brightness {
   pointer-events: none;
 }
 
+
 /******************************************************************************
  * Improve Firefox OS
  */
 
 #improve-firefox-os .link-text {
   white-space: nowrap;
+}
+
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] section[role="region"] {
+  transform: translateX(-100%);
+}
+
+html[dir="rtl"] section[role="region"].previous  {
+  transform: translateX(+100%);
+}
+
+html[dir="rtl"] section[role="region"].current {
+  transform: translateX(0);
+}
+
+/* 'show password' checkboxes */
+html[dir="rtl"] label[for^="pwd"] {
+  padding-left: inherit;
+  padding-right: 3rem;
 }
 

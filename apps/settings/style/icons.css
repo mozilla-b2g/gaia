@@ -123,11 +123,49 @@
  * Privacy icons
  */
 
-#about-your-privacy li {
+#about-yourPrivacy li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
 }
 
 .privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
 .privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+/* #root icons */
+
+html[dir="rtl"] #root li a[data-l10n-id] {
+  background-position: right 1.4rem top 50%;
+}
+
+html[dir="rtl"] #root ul a {
+  padding-left: inherit;
+  padding-right: 5.5rem;
+}
+
+html[dir="rtl"] #root li small {
+  left: auto;
+  right: 5.5rem;
+}
+
+/* other icons */
+
+html[dir="rtl"] #wifi-availableNetworks li,
+html[dir="rtl"] #bluetooth .devices li,
+html[dir="rtl"] #about-yourPrivacy li {
+  background-position: left 3rem top 50%;
+}
+
+html[dir="rtl"] #wifi-availableNetworks a.wifi-secure {
+  background-position: left center;
+}
+
+html[dir="rtl"] #bluetooth .devices li {
+  padding-left: 3rem;
+  padding-right: inherit;
+}
 
