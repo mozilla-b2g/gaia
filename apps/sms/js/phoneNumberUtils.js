@@ -54,7 +54,8 @@ var PhoneNumberManager = {
   getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      return result.nationalFormat;
+      /// XXX HACK for getting smoke test working until having in Gecko
+      return result.nationalFormat.replace(/\s/g, '');
     } catch (e) {
       return numInput;
     }
@@ -62,7 +63,8 @@ var PhoneNumberManager = {
   getNormalizedInternationalNumber: function pnm_getNormalizedNumber(numInput) {
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      return result.internationalFormat;
+      /// XXX HACK for getting smoke test working until having in Gecko
+      return result.internationalFormat.replace(/\s/g, '');
     } catch (e) {
       return numInput;
     }
@@ -70,8 +72,9 @@ var PhoneNumberManager = {
   getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      var nationalNum = result.nationalFormat;
-      var internationalNum = result.internationalFormat;
+      /// XXX HACK for getting smoke test working until having in Gecko
+      var nationalNum = result.nationalFormat.replace(/\s/g, '');
+      var internationalNum = result.internationalFormat.replace(/\s/g, '');
       var internationalNumFormatted = internationalNum.replace('+', '00');
       return [nationalNum, internationalNum, internationalNumFormatted];
     } catch (e) {
