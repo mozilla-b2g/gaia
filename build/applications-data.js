@@ -41,6 +41,7 @@ let content = {
     makeURL('homescreen'),
     makeURL('keyboard'),
     makeURL('wallpaper'),
+    makeURL('bluetooth'),
     makeURL('system'),
     makeURL('pdfjs')
   ]
