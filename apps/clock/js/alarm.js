@@ -354,7 +354,7 @@ var AlarmList = {
       var time = getLocaleTime(d);
       content += '<li>' +
                  '  <label class="alarmList">' +
-                 '    <input id="input-enable" data-id="' + alarm.id +
+                 '    <input id="input-enable" data-type="switch" data-id="' + alarm.id +
                         '" type="checkbox"' + isChecked + '>' +
                  '    <span class="setEnabledBtn"' +
                         ' data-checked="' + _('on') +

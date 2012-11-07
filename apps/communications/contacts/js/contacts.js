@@ -382,7 +382,7 @@ var Contacts = (function() {
     customTag.onclick = function(event) {
       if (selectedTag) {
         // Remove any mark if we had selected other option
-        selectedTag.removeAttribute("class");
+        selectedTag.removeAttribute('class');
       }
       selectedTag = null;
     }
@@ -401,10 +401,10 @@ var Contacts = (function() {
     var index = link.dataset.index;
 
     if (selectedTag) {
-      selectedTag.removeAttribute("class");
+      selectedTag.removeAttribute('class');
     }
 
-    link.className = "icon icon-selected";
+    link.className = 'icon icon-selected';
     selectedTag = link;
   };
 

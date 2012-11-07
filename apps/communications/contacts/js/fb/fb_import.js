@@ -115,7 +115,6 @@ if (typeof fb.importer === 'undefined') {
       }
     }
 
-
     /**
      *  Invoked when the existing FB contacts on the Address Book are ready
      *
@@ -136,7 +135,13 @@ if (typeof fb.importer === 'undefined') {
     function syncSuccess() {
       window.console.log('Synchronization ended!!!');
       syncOngoing = false;
+
       fb.sync.scheduleNextSync();
+      var msg = {
+        type: 'sync_finished',
+        data: ''
+      };
+      parent.postMessage(msg, fb.CONTACTS_APP_ORIGIN);
     }
 
     function startSync() {
