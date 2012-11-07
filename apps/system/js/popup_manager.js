@@ -131,7 +131,7 @@ var PopupManager = {
         // itself and fire an activity to be opened into a new browser window.
         if (detail.name === '_blank') {
           new MozActivity({ name: 'view',
-                          data: { type: 'url', url: detail.url }});
+                          data: { type: 'text/html', url: detail.url }});
           return;
         }
 

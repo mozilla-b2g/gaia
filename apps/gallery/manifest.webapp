@@ -14,7 +14,7 @@
   "activities": {
     "browse": {
       "filters": {
-        "type": "photos"
+        "type": ["image/jpeg", "image/png"]
        },
       "disposition": "window"
     },

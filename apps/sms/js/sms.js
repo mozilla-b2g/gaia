@@ -259,16 +259,6 @@ var MessageManager = {
         MessageManager.markMessageRead(list[i], value);
       }
     }
-  },
-
-  reopenSelf: function reopenSelf(number) {
-    navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-      var app = evt.target.result;
-      app.launch();
-      if (number) {
-        window.location.hash = '#num=' + number;
-      }
-    }
   }
 };
 
@@ -1375,17 +1365,14 @@ var ThreadUI = {
       var activity = new MozActivity({
         name: 'pick',
         data: {
-          type: 'webcontacts/contact'
+          type: 'webcontacts/number'
         }
       });
       activity.onsuccess = function success() {
-        var number = this.result.number;
-        MessageManager.reopenSelf(number);
+        if (activity.result.number) {
+          window.location.hash = '#num=' + activity.result.number;
+        }
       }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
@@ -1393,7 +1380,7 @@ var ThreadUI = {
 
   activateContact: function thui_activateContact() {
     var options = {};
-    // Call to 'new' or 'view' depending on existence of contact
+    // Call to 'add-contact' or 'view' depending on existence of contact
     if (this.title.dataset.isContact == 'true') {
       //TODO modify this when 'view' activity is available on contacts
       // options = {
@@ -1404,24 +1391,15 @@ var ThreadUI = {
       // };
     } else {
       options = {
-        name: 'new',
+        name: 'add-contact',
         data: {
-          type: 'webcontacts/contact',
-          params: {
-            'tel': this.title.dataset.phoneNumber
-          }
+          tel: this.title.dataset.phoneNumber
         }
       };
     }
 
     try {
       var activity = new MozActivity(options);
-      activity.onsuccess = function success() {
-        MessageManager.reopenSelf();
-      }
-      activity.onerror = function error() {
-        MessageManager.reopenSelf();
-      }
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }

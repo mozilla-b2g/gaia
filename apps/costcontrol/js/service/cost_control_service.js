@@ -989,7 +989,6 @@ setService(function cc_setupCostControlService() {
     var dialing = new MozActivity({
       name: 'dial',
       data: {
-        type: 'webtelephony/number',
         number: _config.TOP_UP_USSD_DESTINATION
       }
     });

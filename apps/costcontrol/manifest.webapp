@@ -17,14 +17,10 @@
     "networkstats-manage":{}
   },
   "activities": {
-    "costcontrol/open": {
-      "filters": {
-       },
+    "private-costcontrol-open": {
       "disposition": "window"
     },
-    "costcontrol/topup": {
-      "filters": {
-       },
+    "private-costcontrol-topup": {
       "disposition": "window"
     }
   },

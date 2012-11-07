@@ -60,7 +60,6 @@ var QuickSettings = {
               var activity = new MozActivity({
                 name: 'configure',
                 data: {
-                  target: 'device',
                   section: 'wifi'
                 }
               });

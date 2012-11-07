@@ -56,7 +56,7 @@ var SimLock = {
       case 'pukRequired':
       case 'pinRequired':
         var activity = new MozActivity({
-          name: 'unlock',
+          name: 'private-unlock',
           data: {
             target: 'sim'
           }

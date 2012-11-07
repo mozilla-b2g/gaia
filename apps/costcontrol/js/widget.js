@@ -63,7 +63,7 @@ function setupWidget() {
 
   // Open the cost control & data usage application
   function _openApp() {
-    var activity = new MozActivity({ name: 'costcontrol/open' });
+    var activity = new MozActivity({ name: 'private-costcontrol-open' });
   }
 
   // Specific setup for the balance view

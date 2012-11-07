@@ -142,7 +142,7 @@ HostingProvider.prototype.OAuth1BuildDialogNotif = function(url) {
     new MozActivity(
       {
         name: 'view',
-        data: {type: 'url', url: url}
+        data: {type: 'text/html', url: url}
       }
     );
     } catch (e) {
@@ -553,9 +553,9 @@ var ImageUploader = {
       var visibility = document.createElement('ul');
       visibility.dataset.state = 'edit';
       var visibles = [
-        {name: 'Public', id: 'public', desc: 'Will be marked as public', default: true},
-        {name: 'Friend', id: 'friend', desc: 'Will be marked as friend', default: false},
-        {name: 'Family', id: 'family', desc: 'Will be marked as family', default: false},
+        {name: 'Public', id: 'public', desc: 'Will be marked as public', 'default': true},
+        {name: 'Friend', id: 'friend', desc: 'Will be marked as friend', 'default': false},
+        {name: 'Family', id: 'family', desc: 'Will be marked as family', 'default': false},
       ];
 
       for (var id in visibles) {
@@ -837,7 +837,7 @@ var ImageUploader = {
     new MozActivity({
       name: 'view',
       data: {
-        type: 'url',
+        type: 'text/html',
         url: url
       }
     });

@@ -44,24 +44,18 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["webcontacts/contact","webcontacts/email"]
+        "type": ["webcontacts/number","webcontacts/email"]
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
-    "new": {
-      "filters": {
-        "type": "webcontacts/contact"
-      },
+    "add-contact": {
       "disposition": "window",
       "href": "/contacts/index.html?new",
       "returnValue": true
     },
     "dial": {
-      "filters": {
-        "type": "webtelephony/number"
-      },
       "href": "/dialer/index.html#keyboard-view",
       "disposition": "window"
     }

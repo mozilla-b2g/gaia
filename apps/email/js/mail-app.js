@@ -178,8 +178,8 @@ if ('mozSetMessageHandler' in window.navigator) {
     if (activityName === 'share') {
       var attachmentBlobs = activity.source.data.blobs,
           attachmentNames = activity.source.data.filenames;
-    } else if (activityName === 'new') {
-      var [to, subject, body, cc, bcc] = queryURI(activity.source.data.URI);
+    } else if (activityName === 'compose-mail') {
+      var [to, subject, body, cc, bcc] = queryURI(activity.source.data.url);
       if (!to)
         return;
     }

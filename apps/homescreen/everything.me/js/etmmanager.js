@@ -1,5 +1,4 @@
-
-"use strict";
+'use strict';
 
 var EvmeManager = (function() {
     var currentWindow = null;
@@ -22,7 +21,7 @@ var EvmeManager = (function() {
           url: params.originUrl,
           name: params.title,
           icon: params.icon
-        }
+        };
 
         function success() {
            Applications.installBookmark(new Bookmark(data));
@@ -37,9 +36,9 @@ var EvmeManager = (function() {
 
     function openUrl(url) {
         new MozActivity({
-           name: "view",
+           name: 'view',
             data: {
-                type: "url",
+                type: 'text/html',
                 url: url
             }
         });

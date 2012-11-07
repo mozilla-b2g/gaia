@@ -41,10 +41,7 @@
   },
   "orientation": "portrait-primary",
   "activities": {
-    "new": {
-      "filters": {
-        "type": "websms/sms"
-       },
+    "compose-sms": {
       "disposition": "window"
     }
   }

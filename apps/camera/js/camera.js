@@ -453,11 +453,12 @@ var Camera = {
   },
 
   galleryBtnPressed: function camera_galleryBtnPressed() {
+    console.log("Gallery button pressed; starting browse activity");
     // Launch the gallery with an activity
     var a = new MozActivity({
       name: 'browse',
       data: {
-        type: 'photos'
+        type: 'image/jpeg'
       }
     });
   },
@@ -949,6 +950,8 @@ function actHandle(activity) {
     if (Camera._started) {
       Camera.initActivity();
     }
+  } else if (name === 'capture') {
+    // XXX: use the activity type property to set the capture mode.
   }
 }
 

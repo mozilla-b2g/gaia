@@ -261,25 +261,11 @@ var KeypadManager = {
 
     try {
       var activity = new MozActivity({
-        name: 'new',
+        name: 'add-contact',
         data: {
-          type: 'webcontacts/contact',
-          params: {
-            'tel': number
-          }
+          'tel': number
         }
       });
-
-      var reopenApp = function reopenApp() {
-        navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-          var app = evt.target.result;
-          app.launch();
-        };
-      }
-
-      activity.onsuccess = reopenApp;
-      activity.onerror = reopenApp;
-
     } catch (e) {
       console.log('WebActivities unavailable? : ' + e);
     }
