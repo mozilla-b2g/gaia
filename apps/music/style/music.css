@@ -214,7 +214,7 @@ body.player-mode #views {
 
 #views-sublist-header-name {
   position:relative;
-  font-size: 2rem;
+  font-size: 1.83rem;
   padding: 0 1rem;
   width: calc(100% - 2rem);
   height: 4rem;
@@ -234,7 +234,7 @@ body.player-mode #views {
 #views-sublist-controls-shuffle {
   position:relative;
   float: left;
-  font-size: 2rem;
+  font-size: 1.83rem;
   padding: 0 1rem;
   width: 50%;
   height: 4rem;
@@ -323,16 +323,16 @@ body.player-mode #views {
 
 .tile-title-artist {
   color: rgba(255, 255, 255, 1);
-  font-size: 1.35rem;
+  font-size: 1.38rem;
 }
 
 .tile-title-album {
   color: rgba(255, 255, 255, 0.65);
-  font-size: 1.35rem;
+  font-size: 1.38rem;
 }
 
 .main-tile-title {
-  font-size: 1.8rem;
+  font-size: 1.83rem;
 }
 
 .sub-tile-title {
@@ -507,14 +507,14 @@ body.player-mode #views {
   width: 100%;
   height: auto;
   text-align: left;
-  font-size: 1.8rem;
+  font-size: 1.83rem;
 }
 
 #player-cover-album {
   width: 100%;
   height: auto;
   text-align: left;
-  font-size: 1.5rem;
+  font-size: 1.61rem;
 }
 
 #player-cover-buttons {
@@ -609,10 +609,10 @@ button::-moz-focus-inner {
 #player-seek-remaining {  
   top: 36%;
   width: 20%;
-  font-size: 1.5rem;
+  font-size: 1.38rem;
+  font-weight: 500;
+  color: #a1afb2;
   text-align: center;
-  opacity: 0.75;
-  text-shadow: black 1px 1px;
 }
 
 #player-seek-bar {
@@ -665,7 +665,6 @@ button::-moz-focus-inner {
 
 #player-controls-play {
   width: 40%;
-  font-size: 3rem;
 }
 
 #player-controls-previous {
@@ -705,7 +704,7 @@ button::-moz-focus-inner {
   height: 4rem;
   z-index: 20;
   transition: opacity 800ms ease;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 #tabs-mix,
@@ -717,7 +716,7 @@ button::-moz-focus-inner {
   width: 25%;
   height: 100%;
   padding: 0px;
-  font-size: 1.5rem;
+  font-size: 1.61rem;
   background-position: center center;
   background-repeat: no-repeat;
 }
@@ -848,21 +847,21 @@ li.list-song-item a:active {
 .list-main-title {
   top: 10%;
   width: calc(84% - 7rem);
-  font-size: 2rem;
+  font-size: 1.83rem;
   color: white;
 }
 
 .list-sub-title {
   top: 50%;
   width: calc(84% - 7rem);
-  font-size: 1.6rem;
-  color: gray;
+  font-size: 1.61rem;
+  color: #8a9699;
 }
 
 .list-single-title {
   top: 28%;
   width: calc(84% - 7rem);
-  font-size: 2rem;
+  font-size: 1.83rem;
   color: white;
 }
 
@@ -871,7 +870,7 @@ li.list-song-item a:active {
   width: calc(89% - 0.5rem);
   padding-left: 11%;
   padding-right: 0.5rem;
-  font-size: 2rem;
+  font-size: 1.83rem;
   color: white;
 }
 
@@ -882,7 +881,7 @@ li.list-song-item a:active {
   height: 6rem;
   width: 6rem;
   overflow: hidden;
-  background-color: gray;
+  background-color: #8a9699;
   box-shadow: 0 0 1px black;
 }
 
