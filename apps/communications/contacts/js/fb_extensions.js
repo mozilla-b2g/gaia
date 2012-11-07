@@ -16,7 +16,7 @@ if (typeof Contacts.extFb === 'undefined') {
       if (!linked) {
         load('fb_link.html' + '?contactId=' + contactId, 'proposal');
       } else {
-        doUnlink(contactId);
+        unlink(contactId);
       }
     }
 
@@ -188,6 +188,26 @@ if (typeof Contacts.extFb === 'undefined') {
          window.console.error('FB: Error while linking contacts',
                               mozContReq.error);
       }
+    }
+
+    function unlink(cid) {
+      var msg = _('social-unlink-confirm-title');
+      var yesObject = {
+        title: _('social-unlink-confirm-accept'),
+        callback: function onAccept() {
+          CustomDialog.hide();
+          doUnlink(cid);
+        }
+      };
+
+      var noObject = {
+        title: _('cancel'),
+        callback: function onCancel() {
+          CustomDialog.hide();
+        }
+      };
+
+      CustomDialog.show(null, msg, noObject, yesObject);
     }
 
     function doUnlink(cid) {
