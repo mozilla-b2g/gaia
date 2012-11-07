@@ -74,6 +74,7 @@ suite('system/Updatable', function() {
     MockUpdateManager.mTeardown();
     MockAppsMgmt.mTeardown();
     MockCustomDialog.mTearDown();
+    MockWindowManager.mTearDown();
 
     subject._dispatchEvent = realDispatchEvent;
   });
@@ -179,6 +180,11 @@ suite('system/Updatable', function() {
 
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
+          });
+
+          test('should kill the app before applying the update', function() {
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal('https://testapp.gaiamobile.org', MockWindowManager.mLastKilledOrigin);
           });
         });
       });

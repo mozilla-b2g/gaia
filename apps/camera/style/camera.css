@@ -79,6 +79,10 @@ html, body {
   opacity: 0.5;
 }
 
+#switch-button[disabled=disabled] {
+  opacity: 0.5;
+}
+
 #capture-button {
   background-color: #03a2b4;
   border-radius: 100px;
@@ -86,10 +90,6 @@ html, body {
   height: 100px;
   width: 33%;
   top: -28px;
-}
-
-#capture-button[disabled=disabled] {
-  opacity: 0.5;
 }
 
 #video-timer {
@@ -113,10 +113,6 @@ html, body {
 
 .video.capturing #capture-button span {
   background-image: url(images/stop.png);
-}
-
-#switch-button[disabled=disabled] {
-  opacity: 0.5;
 }
 
 /* Swap the camera and video icons depending on mode */
