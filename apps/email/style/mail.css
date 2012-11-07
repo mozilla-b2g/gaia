@@ -184,7 +184,12 @@ body {
 }
 
 .icon-download {
-  background-image: url("images/icons/download.png");
+  background: url("images/icons/download.png") no-repeat scroll center transparent;
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 /* Toaset banner extend class */
