@@ -69,8 +69,6 @@
   const QUESTION = 63;
   const EXCLAMATION = 33;
   const COMMA = 44;
-  const SEMICOLON = 59;
-  const COLON = 58;
 
   const WS = /^\s+$/;                    // all whitespace characters
   const UC = /^[A-ZÀ-ÖØ-Þ]+$/;           // all uppercase latin characters
@@ -336,8 +334,6 @@
     case QUESTION:
     case EXCLAMATION:
     case COMMA:
-    case COLON:
-    case SEMICOLON:
       lastKeyWasSpace = 0;
       if (cursor >= 2 &&
           isWhiteSpace(inputText[cursor - 1]) &&
