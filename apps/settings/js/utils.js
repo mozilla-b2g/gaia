@@ -71,15 +71,14 @@ function audioPreview(element) {
 }
 
 /**
- * Helper class providing some functions for formatting file size strings
+ * Helper class for formatting file size strings
+ * required by *_storage.js
  */
 
 var FileSizeFormatter = (function FileSizeFormatter(fixed) {
-  // in: size in Bytes
-  function getReadableFileSize(size, digits) {
-    if (digits === undefined) {
-      digits = 0;
-    }
+  function getReadableFileSize(size, digits) { // in: size in Bytes
+    if (size === undefined)
+      return {};
 
     var units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
     var i = 0;
@@ -88,7 +87,7 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
       ++i;
     }
 
-    var sizeString = size.toFixed(digits);
+    var sizeString = size.toFixed(digits || 0);
     var sizeDecimal = parseFloat(sizeString);
 
     return {
@@ -97,9 +96,31 @@ var FileSizeFormatter = (function FileSizeFormatter(fixed) {
     };
   }
 
-  return {
-    getReadableFileSize: getReadableFileSize
-  };
+  return { getReadableFileSize: getReadableFileSize };
+})();
+
+/**
+ * Helper class for getting available/used storage
+ * required by *_storage.js
+ */
+
+var DeviceStorageHelper = (function DeviceStorageHelper() {
+  function getStat(type, callback) {
+    var deviceStorage = navigator.getDeviceStorage(type);
+
+    if (!deviceStorage) {
+      console.error('Cannot get DeviceStorage for: ' + type);
+      return;
+    }
+
+    var request = deviceStorage.stat();
+    request.onsuccess = function(e) {
+      var totalSize = e.target.result.totalBytes;
+      callback(e.target.result.totalBytes, e.target.result.freeBytes);
+    };
+  }
+
+  return { getStat: getStat };
 })();
 
 /**
@@ -217,6 +238,20 @@ function bug344618_polyfill() {
   var ranges = document.querySelectorAll('label > input[type="range"]');
   for (var i = 0; i < ranges.length; i++) {
     polyfill(ranges[i]);
+  }
+}
+
+/**
+ * Fire a callback when as soon as all l10n resources are ready and the UI has
+ * been translated.
+ * Note: this could be exposed as `navigator.mozL10n.onload'...
+ */
+
+function onLocalized(callback) {
+  if (navigator.mozL10n.readyState == 'complete') {
+    callback();
+  } else {
+    window.addEventListener('localized', callback);
   }
 }
 

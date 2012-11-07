@@ -48,7 +48,7 @@ section[role="region"] > header:first-child form {
   margin-left: 2.5rem;
 }
 
-section[role="region"] > header:first-child input[type=text] {
+section[role="region"] > header:first-child input[type="text"] {
   width: 100%;
   height: 3rem;
   -moz-box-sizing: border-box;
@@ -76,7 +76,7 @@ section[role="region"] > header:first-child form button[type="reset"] {
   background: url(headers/images/icons/clear.png) no-repeat center center;
 }
 
-section[role="region"] > header:first-child input[type=text]:valid + button[type="reset"] {
+section[role="region"] > header:first-child input[type="text"]:valid + button[type="reset"] {
   display: block;
 }
 
@@ -337,3 +337,35 @@ section[role="region"].skin-organic > header,
   background: #7f7f7f url(headers/images/ui/organic/subheader.png) repeat-x left bottom;
   color: #fff;
 }
+
+/* ----------------------------------
+ * HEADERS: right-to-left tweaks
+ * ---------------------------------- */
+
+html[dir="rtl"] section[role="region"] > header:first-child h1 {
+  text-align: right;
+  margin: 0 3rem 0 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child button,
+html[dir="rtl"] section[role="region"] > header:first-child a {
+  left: inherit;
+  right: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
+html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
+  margin-left: 0;
+  margin-right: -2rem;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
+html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
+  left: inherit;
+  right: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
+  background-image: url(headers/images/icons/back-rtl.png);
+}
+
