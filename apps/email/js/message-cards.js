@@ -913,12 +913,9 @@ MessageReaderCard.prototype = {
               //TODO: Provide correct params for contact activiy handler.
               var email = target.querySelector('.msg-peep-address').textContent;
               var activity = new MozActivity({
-                name: 'new',
+                name: 'add-contact',
                 data: {
-                  type: 'webcontacts/contact',
-                  params: {
-                    'email': email
-                  }
+                  email: email
                 }
               });
             } catch (e) {

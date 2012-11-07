@@ -45,10 +45,7 @@
     "79": "/style/icons/Email.png"
   },
   "activities": {
-    "new": {
-      "filters": {
-        "type": "mail"
-      },
+    "compose-mail": {
       "disposition": "window"
     },
     "share": {

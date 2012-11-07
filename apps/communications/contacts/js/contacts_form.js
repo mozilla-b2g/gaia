@@ -190,7 +190,7 @@ contacts.Form = (function() {
 
     params = params || {};
 
-    givenName.value = params.giveName || '';
+    givenName.value = params.givenName || '';
     familyName.value = params.lastName || '';
     company.value = params.company || '';
 

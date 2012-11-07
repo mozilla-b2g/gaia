@@ -115,11 +115,11 @@ function setupApp() {
       function settings_handleActivity(activityRequest) {
         var name = activityRequest.source.name;
         switch (name) {
-          case 'costcontrol/open':
+          case 'private-costcontrol-open':
             viewManager.closeCurrentView();
             break;
 
-          case 'costcontrol/topup':
+          case 'private-costcontrol-topup':
             Views[TAB_BALANCE].showTopUp();
             break;
         }

@@ -38,7 +38,7 @@
   "activities": {
     "view": {
       "filters": {
-        "type": "url"
+        "type": "text/html"
       }
     }
   }

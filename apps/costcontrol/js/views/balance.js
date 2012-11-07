@@ -104,7 +104,7 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
           APP_ICON
         );
         notification.onclick = function ccapp_onNotificationClick() {
-          var activity = new MozActivity({ name: 'costcontrol/topup' });
+          var activity = new MozActivity({ name: 'private-costcontrol-topup' });
         };
         notification.show();
         break;

@@ -25,16 +25,16 @@ var ActivityHandler = {
 
   handle: function ah_handle(activity) {
     switch (activity.source.name) {
-      case 'new':
+      case 'add-contact':
         if (this._launchedAsInlineActivity)
           return;
 
         this._currentActivity = activity;
         document.location.hash = 'view-contact-form';
-        if (this._currentActivity.source.data.params) {
+        if (this._currentActivity.source.data) {
           var param, params = [];
-          for (var i in this._currentActivity.source.data.params) {
-            param = this._currentActivity.source.data.params[i];
+          for (var i in this._currentActivity.source.data) {
+            param = this._currentActivity.source.data[i];
             params.push(i + '=' + param);
           }
           document.location.hash += '?' + params.join('&');

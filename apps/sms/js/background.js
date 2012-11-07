@@ -77,9 +77,8 @@
         // Go directly to the thread of the received message.
         try {
           var activity = new MozActivity({
-            name: 'new',
+            name: 'compose-sms',
             data: {
-              type: 'websms/sms',
               number: number
             }
           });

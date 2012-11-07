@@ -16,9 +16,9 @@
     "geolocation":{}
   },
   "activities": {
-    "record": {
+    "capture": {
       "filters": {
-        "type": "photos"
+        "type": ["image/jpeg", "video/*"]
        },
       "disposition": "window"
     },

@@ -714,9 +714,9 @@ $('crop-done-button').onclick = function() {
 $('photos-camera-button').onclick =
   $('thumbnails-camera-button').onclick = function() {
     var a = new MozActivity({
-      name: 'record',
+      name: 'capture',
       data: {
-        type: 'photos'
+        type: 'image/jpeg'
       }
     });
   };

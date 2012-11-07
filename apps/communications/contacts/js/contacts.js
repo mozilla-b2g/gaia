@@ -200,7 +200,7 @@ var Contacts = (function() {
     var type, dataSet, noDataStr, selectDataStr;
     // Add the new pick type here:
     switch (ActivityHandler.activityDataType) {
-      case 'webcontacts/contact':
+      case 'webcontacts/number':
         type = 'number';
         dataSet = currentContact.tel;
         noDataStr = _('no_phones');
@@ -435,21 +435,9 @@ var Contacts = (function() {
         var activity = new MozActivity({
           name: 'dial',
           data: {
-            type: 'webtelephony/number',
             number: number
           }
         });
-
-        var reopenApp = function reopenApp() {
-          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-            var app = evt.target.result;
-            app.launch('contacts');
-          };
-        }
-
-        activity.onerror = function error() {
-          reopenApp();
-        }
       } catch (e) {
         console.log('WebActivities unavailable? : ' + e);
       }
@@ -480,10 +468,9 @@ var Contacts = (function() {
         // We don't check the email format, lets the email
         // app do that
         var activity = new MozActivity({
-          name: 'new',
+          name: 'compose-mail',
           data: {
-            type: 'mail',
-            URI: 'mailto:' + address
+            url: 'mailto:' + address
           }
         });
       } catch (e) {

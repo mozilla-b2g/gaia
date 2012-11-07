@@ -1646,7 +1646,7 @@ var Browser = {
     // Activities can send multiple names, right now we only handle
     // one so we only filter on types
     switch (activity.source.data.type) {
-      case 'url':
+      case 'text/html':
         var url = this.getUrlFromInput(activity.source.data.url);
         this.selectTab(this.createTab(url));
         if (this.currentScreen !== this.PAGE_SCREEN) {

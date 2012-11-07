@@ -4,9 +4,8 @@ var SmsIntegration = {
   sendSms: function si_sendSms(number) {
     try {
       var activity = new MozActivity({
-        name: 'new',
+        name: 'compose-sms',
         data: {
-          type: 'websms/sms',
           number: number
         }
       });

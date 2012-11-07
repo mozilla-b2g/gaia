@@ -27,12 +27,9 @@
   },
   "activities": {
     "configure": {
-      "filters": {
-        "target": "device"
-       },
       "disposition": "window"
     },
-    "unlock": {
+    "private-unlock": {
       "filters": {
         "target": "sim"
        },
