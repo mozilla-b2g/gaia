@@ -328,11 +328,11 @@ suite('contacts - launch', function() {
     yield addressType.click();
     yield app.waitUntilElement(tagsView, 'displayed');
 
-    var workType = yield tagsView.findElement('#tags-list li:last-child a');
+    var workType = yield tagsView.findElement('#tags-list li:last-child button');
     yield workType.click();
     // assert icon
-    var icon = yield workType.findElement('span');
-    yield app.waitUntilElement(icon, 'displayed');
+    var classButton = yield workType.getAttribute('class');
+    assert.equal(classButton, 'icon icon-selected');
 
     var tagDone = yield app.element('tagDone');
     yield tagDone.click();
