@@ -598,6 +598,11 @@ contacts.Form = (function() {
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
+      // Workaround until 809452 is fixed.
+      // What we are avoiding with this condition is removing / restoring
+      // a field when the event is simulated by a ENTER Keyboard click
+      if ((event.clientX === 0) && (event.clientY === 0))
+        return false;
       event.preventDefault();
       var elem = document.getElementById(selector);
       elem.classList.toggle(REMOVED_CLASS);
