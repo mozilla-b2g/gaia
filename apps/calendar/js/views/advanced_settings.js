@@ -34,6 +34,11 @@
       };
     },
 
+    _displayAccount: function(account) {
+      var provider = this.app.provider(account.providerType);
+      return provider.hasAccountSettings;
+    },
+
     _initEvents: function() {
       var account = this.app.store('Account');
       var setting = this.app.store('Setting');
@@ -82,6 +87,9 @@
     },
 
     _addAccount: function(id, model) {
+      if (!this._displayAccount(model))
+        return;
+
       var item = template.account.render(
         this._formatModel(model)
       );
@@ -107,7 +115,7 @@
       var result = '';
 
       for (key in items) {
-        if (key in items) {
+        if (this._displayAccount(items[key])) {
           result += template.account.render(
             this._formatModel(items[key])
           );
