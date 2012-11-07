@@ -1066,7 +1066,7 @@ MessageReaderCard.prototype = {
             peepTemplate.getElementsByClassName('msg-peep-address')[0];
       for (var i = 0; i < peeps.length; i++) {
         var peep = peeps[i];
-        nameTemplate.textContent = peep.name || '';
+        nameTemplate.textContent = peep.name || peep.address;
         addressTemplate.textContent = peep.address;
         lineNode.appendChild(peepTemplate.cloneNode(true));
       }

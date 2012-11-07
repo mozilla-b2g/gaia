@@ -34,6 +34,13 @@
   pointer-events: none;
 }
 
+.cmp-peep-address:before {
+  content: "(";
+}
+.cmp-peep-address:after {
+  content: ")";
+}
+
 .cmp-to-text-container {
   overflow: hidden;
 }

@@ -224,7 +224,12 @@
 .msg-peep-address {
   font-style: italic;
 }
-
+.msg-peep-address:before {
+  content: "(";
+}
+.msg-peep-address:after {
+  content: ")";
+}
 .msg-attachment-item {
   list-style-type: none;
   height: 4rem;
