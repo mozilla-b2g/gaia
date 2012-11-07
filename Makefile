@@ -160,7 +160,8 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output profile/settings.json
+	cp build/settings.json profile/settings.json
+	$(SED_INPLACE_NO_SUFFIX) -e 's|-homescreenURL-|$(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp|g' profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
