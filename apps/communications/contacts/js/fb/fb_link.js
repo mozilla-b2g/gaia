@@ -48,6 +48,7 @@ if (!fb.link) {
 
     var friendsList;
     var viewButton = document.querySelector('#view-all');
+    var mainSection = document.querySelector('#main');
 
     var currentRecommendation = null;
     var allFriends = null;
@@ -158,6 +159,11 @@ if (!fb.link) {
       doGetRemoteProposal(acc_tk, cdata, buildQueryNames(contact));
     }
 
+    function getRemoteProposalAll(acc_tk) {
+      numQueries++;
+      doGetRemoteProposal(acc_tk, null, ALL_QUERY.join(''));
+    }
+
     // Performs all the work to obtain the remote proposal
     function doGetRemoteProposal(acc_tk, contactData, query) {
 
@@ -195,7 +201,6 @@ if (!fb.link) {
         }, fb.CONTACTS_APP_ORIGIN);
       }
     }
-
 
     // Invoked when timeout or error and the user cancels all
     function closeCb() {
@@ -239,10 +244,11 @@ if (!fb.link) {
         return;
       }
 
-      if (response.data.length === 0 && numQueries <= 1) {
+      if (response.data.length === 0 && numQueries === 1) {
         getRemoteProposalByNames(access_token, cdata);
-      }
-      else {
+      } else if (response.data.length === 0 && numQueries === 2) {
+        getRemoteProposalAll(access_token);
+      } else {
         var data = response.data;
         currentRecommendation = data;
 
@@ -252,8 +258,12 @@ if (!fb.link) {
           }
         });
 
-        viewButton.textContent = _('viewAll');
-        viewButton.onclick = UI.viewAllFriends;
+        if (numQueries === 3) {
+          mainSection.classList.add('no-proposal');
+        } else {
+          viewButton.textContent = _('viewAll');
+          viewButton.onclick = UI.viewAllFriends;
+        }
 
         utils.templates.append('#friends-list', data);
         ImageLoader.reload();

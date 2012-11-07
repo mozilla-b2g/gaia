@@ -107,6 +107,9 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
+  // Maximum image resolution for still photos taken with camera
+  MAX_IMAGE_RES: 1920000,
+
   get overlayTitle() {
     return document.getElementById('overlay-title');
   },
@@ -175,7 +178,6 @@ var Camera = {
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
     window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
-    this.overlay.addEventListener('click', this.showOverlay.bind(this, null));
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
@@ -585,14 +587,22 @@ var Camera = {
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
-        this.largestPictureSize(camera.capabilities.pictureSizes);
+        this.pickPictureSize(camera.capabilities.pictureSizes);
       this.enableCameraFeatures(camera.capabilities);
       camera.onShutter = (function() {
         this._shutterSound.play();
       }).bind(this);
+      camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
     }
     navigator.mozCameras.getCamera(options, gotCamera.bind(this));
+  },
+
+  recordingStateChanged: function(msg) {
+    if (msg === 'FileSizeLimitReached') {
+      this.stopRecording();
+      alert(navigator.mozL10n.get('size-limit-reached'));
+    }
   },
 
   enableCameraFeatures: function camera_enableCameraFeatures(capabilities) {
@@ -743,9 +753,9 @@ var Camera = {
         this.checkStorageSpace();
       }).bind(this);
 
-      addreq.onerror = (function() {
-        this.showOverlay('error-saving');
-      }).bind(this);
+      addreq.onerror = function() {
+        alert(navigator.mozL10n.get('error-saving-text'));
+      };
     }).bind(this));
   },
 
@@ -754,7 +764,7 @@ var Camera = {
   },
 
   checkStorageSpace: function camera_checkStorageSpace() {
-    if (this.showDialog()) {
+    if (this.updateOverlay()) {
       return;
     }
     var MAX_IMAGE_SIZE = this._pictureSize.width * this._pictureSize.height *
@@ -765,7 +775,7 @@ var Camera = {
       // If we have not yet checked the state of the storage, do so
       if (this._storageState === this.STORAGE_INIT) {
         this.updateStorageState(stats.state);
-        this.showDialog();
+        this.updateOverlay();
       }
 
       if (this._storageState !== this.STORAGE_AVAILABLE) {
@@ -774,7 +784,7 @@ var Camera = {
       if (stats.freeBytes < MAX_IMAGE_SIZE) {
         this._storageState = this.STORAGE_CAPACITY;
       }
-      this.showDialog();
+      this.updateOverlay();
 
     }).bind(this);
   },
@@ -815,7 +825,7 @@ var Camera = {
     }
   },
 
-  showDialog: function camera_showDialog() {
+  updateOverlay: function camera_updateOverlay() {
     if (this._storageState === this.STORAGE_INIT) {
       return false;
     }
@@ -870,6 +880,7 @@ var Camera = {
 
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
+    this._config.pictureSize = this._pictureSize;
     if (this._position) {
       this._config.position = this._position;
     }
@@ -890,14 +901,18 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  largestPictureSize: function camera_largestPictureSize(pictureSizes) {
-    return pictureSizes.reduce(function(acc, size) {
-      if (size.width + size.height > acc.width + acc.height) {
-        return size;
-      } else {
-        return acc;
-      }
-    });
+  pickPictureSize: function camera_pickPictureSize(pictureSizes) {
+    var maxRes = this.MAX_IMAGE_RES;
+    var size = pictureSizes.reduce(function(acc, size) {
+      var mp = size.width * size.height;
+      return (mp > acc.width * acc.height && mp <= maxRes) ? size : acc;
+    }, {width: 0, height: 0});
+
+    if (size.width === 0 && size.height === 0) {
+      return pictureSizes[0];
+    } else {
+      return size;
+    }
   },
 
   initPositionUpdate: function camera_initPositionUpdate() {

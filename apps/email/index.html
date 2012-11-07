@@ -205,9 +205,11 @@
           <button class="msg-mark-read-btn bottom-btn"></button>
           <button class="msg-move-btn bottom-btn"></button>
         </div>
-        <p role="status" class="msg-list-empty collapsed">
-          <span data-l10n-id="messages-folder-empty">No messagE</span>
-        </p>
+        <div class="msg-list-empty-container collapsed">
+          <div class="msg-list-empty-message">
+            <p data-l10n-id="messages-folder-empty">No messagE</p>
+          </div>
+        </div>
       </div>
 
       <!-- Message Reader -->
@@ -778,7 +780,7 @@
       </div>
 
       <li class="msg-attachment-item">
-        <span class="msg-attachment-icon">&amp;</span>
+        <span class="msg-attachment-icon"></span>
         <span class="msg-attachment-filename"></span>
         <span class="msg-attachment-filesize"></span>
         <button class="msg-attachment-download">
@@ -810,7 +812,7 @@
             data-l10n-id="message-edit-menu-delete">DeletE</li>
       </ul>
       <li class="cmp-attachment-item">
-        <span class="cmp-attachment-icon">&amp;</span>
+        <span class="cmp-attachment-icon"></span>
         <span class="cmp-attachment-filename"></span>
         <span class="cmp-attachment-filesize"></span>
         <button class="cmp-attachment-remove">X</span>

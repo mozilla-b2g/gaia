@@ -131,12 +131,29 @@
   height: 4rem;
 }
 .cmp-attachment-icon {
+  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  margin-top: -3.5rem;
+  vertical-align: middle;
 }
 .cmp-attachment-filename {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 12.5rem);
 }
 .cmp-attachment-filesize {
   color: gray;
+  display: inline-block;
+  margin-top: -3.5rem;
+  max-width: 4.5rem;
+  vertical-align: middle;
 }
 .cmp-attachment-remove {
   width: 3.5rem;
+  margin-bottom: 0;
+  position: absolute;
+  right: 1rem;
 }

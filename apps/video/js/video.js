@@ -583,9 +583,11 @@ function formatDuration(duration) {
 }
 
 function actHandle(activity) {
+  var data = activity.source.data;
+  var title = 'extras' in data ? (data.extras.title || '') : '';
   urlToStream = {
-    url: activity.source.data.url,
-    title: activity.source.data.title || ''
+    url: data.url,
+    title: title
   };
   if (appStarted) {
     startStream();
