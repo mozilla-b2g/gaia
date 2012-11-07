@@ -218,6 +218,18 @@ var Camera = {
     }).bind(this));
   },
 
+  enableButtons: function camera_enableButtons() {
+    this.switchButton.removeAttribute('disabled');
+    this.captureButton.removeAttribute('disabled');
+  },
+
+  disableButtons: function camera_disableButtons() {
+    this.switchButton.setAttribute('disabled', 'disabled');
+    this.captureButton.setAttribute('disabled', 'disabled');
+  },
+
+  // When inside an activity the user cannot switch between
+  // the gallery or video recording.
   initActivity: function camera_initActivity() {
     this.galleryButton.setAttribute('disabled', 'disabled');
     this.switchButton.setAttribute('disabled', 'disabled');
@@ -241,11 +253,13 @@ var Camera = {
     }
 
     var newMode = (this.captureMode === this.CAMERA) ? this.VIDEO : this.CAMERA;
+    this.disableButtons();
     this.setCaptureMode(newMode);
 
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
+      this.enableButtons();
     }
     if (this.captureMode === this.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
@@ -297,8 +311,8 @@ var Camera = {
 
     var onerror = function() handleError('error-recording');
     var onsuccess = (function onsuccess() {
-      captureButton.removeAttribute('disabled');
       document.body.classList.add('capturing');
+      captureButton.removeAttribute('disabled');
       this._recording = true;
       this.startRecordingTimer();
       // User closed app while recording was trying to start
@@ -308,13 +322,11 @@ var Camera = {
     }).bind(this);
 
     var handleError = (function handleError(id) {
-      captureButton.removeAttribute('disabled');
-      switchButton.removeAttribute('disabled');
+      this.enableButtons();
       this.showOverlay(id);
     }).bind(this);
 
-    switchButton.setAttribute('disabled', 'disabled');
-    captureButton.setAttribute('disabled', 'disabled');
+    this.disableButtons();
 
     var startRecording = (function startRecording(freeBytes) {
       if (freeBytes < this.RECORD_SPACE_MIN) {
@@ -413,8 +425,7 @@ var Camera = {
     this._cameraObj.stopRecording();
     this._recording = false;
     window.clearInterval(this._videoTimer);
-
-    this.switchButton.removeAttribute('disabled');
+    this.enableButtons();
     document.body.classList.remove('capturing');
     this.generateVideoThumbnail((function(thumbnail, videotype) {
       if (!thumbnail) {
@@ -576,6 +587,7 @@ var Camera = {
     var options = {camera: this._cameras[this._camera]};
 
     function gotPreviewScreen(stream) {
+      this.enableButtons();
       this._previewActive = true;
       viewfinder.mozSrcObject = stream;
       viewfinder.play();
@@ -625,19 +637,17 @@ var Camera = {
     if (this._recording) {
       this.stopRecording();
     }
-    this.pausePreview();
-    this.viewfinder.mozSrcObject = null;
-    this.cancelPositionUpdate();
-  },
-
-  pausePreview: function camera_pausePreview() {
+    this.disableButtons();
     this.viewfinder.pause();
     this._previewActive = false;
+    this.viewfinder.mozSrcObject = null;
+    this.cancelPositionUpdate();
   },
 
   resumePreview: function camera_resumePreview() {
     this._cameraObj.resumePreview();
     this._previewActive = true;
+    this.enableButtons();
   },
 
   showFilmStrip: function camera_showFilmStrip() {
@@ -675,7 +685,6 @@ var Camera = {
   },
 
   restartPreview: function camera_restartPreview() {
-    this.captureButton.removeAttribute('disabled');
     this._filmStripTimer =
       window.setTimeout(this.hideFilmStrip.bind(this), 5000);
     this._resumeViewfinderTimer =
@@ -851,7 +860,7 @@ var Camera = {
   },
 
   prepareTakePicture: function camera_takePicture() {
-    this.captureButton.setAttribute('disabled', 'disabled');
+    this.disableButtons();
     this.focusRing.setAttribute('data-state', 'focusing');
     if (this._autoFocusSupported && !this._manuallyFocused) {
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
@@ -862,8 +871,8 @@ var Camera = {
 
   autoFocusDone: function camera_autoFocusDone(success) {
     if (!success) {
+      this.enableButtons();
       this.focusRing.setAttribute('data-state', 'fail');
-      this.captureButton.removeAttribute('disabled');
       window.setTimeout(this.hideFocusRing.bind(this), 1000);
       return;
     }
