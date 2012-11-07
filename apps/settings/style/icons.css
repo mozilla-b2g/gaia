@@ -58,6 +58,7 @@
 #wifi-availableNetworks li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
+  padding-right: 3rem;
 }
 
 #wifi-availableNetworks li.wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
