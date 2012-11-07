@@ -697,10 +697,13 @@ var LockScreen = {
     var overlay = this.overlay;
     var self = this;
     panel = panel || 'main';
+
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          self.dispatchEvent('lockpanelchange');
+          if (overlay.dataset.panel !== panel)
+            self.dispatchEvent('lockpanelchange');
+
           overlay.dataset.panel = panel;
         });
     });

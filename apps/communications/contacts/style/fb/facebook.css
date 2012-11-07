@@ -102,6 +102,14 @@ h2.block-title {
   position: relative;
 }
 
+#main.no-proposal #mainContent {
+  height: 100%;
+}
+
+#main.no-proposal > form[role="dialog"] {
+  display: none;
+}
+
 .link #main {
   top: 9rem;
   height: -moz-calc(100% - 9rem);

@@ -19,6 +19,12 @@ textarea {
   background: #fff url(input_areas/images/ui/shadow.png) repeat-x left top;
 }
 
+/* fix for required inputs with wrong or empty value e.g. [type=email] */
+input:invalid {
+  border: 0.1rem solid #820000;
+  color: #b90000;
+}
+
 input:not([type="radio"]):-moz-placeholder,
 input:not([type="checkbox"]):-moz-placeholder,
 input:not([type="hidden"]):-moz-placeholder,

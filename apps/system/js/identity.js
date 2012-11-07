@@ -37,6 +37,7 @@ var Identity = (function() {
           }
           var frame = document.createElement('iframe');
           frame.setAttribute('mozbrowser', 'true');
+          frame.setAttribute('remote', true);
           frame.classList.add('screen');
           frame.src = e.detail.showUI ? kIdentityScreen : kIdentityFrame;
           frame.addEventListener('mozbrowserloadstart', function loadStart(evt) {
@@ -52,7 +53,7 @@ var Identity = (function() {
 
           if (e.detail.showUI) {
             // The identity flow is shown within the trusted UI.
-            TrustedUIManager.open('IdentityFlow', frame, kIdentityScreen, this.chromeEventId);
+            TrustedUIManager.open('IdentityFlow', frame, this.chromeEventId);
           } else {
             var container = document.getElementById('screen');
             container.appendChild(frame);

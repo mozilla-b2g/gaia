@@ -236,16 +236,20 @@ contacts.Form = (function() {
 
     var default_type = tags[0].value || '';
     var currField = {};
+    var infoFromFB = false;
     for (var j = 0; j < fields.length; j++) {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
-      currField[currentElem] = defObj || def;
+      var value = currField[currentElem] = defObj || def;
+      if (!infoFromFB && value && nonEditableValues[value]) {
+        infoFromFB = true;
+      }
     }
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
 
-    if (currField.value && nonEditableValues[currField.value]) {
+    if (infoFromFB) {
       var nodeClass = rendered.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
@@ -594,6 +598,11 @@ contacts.Form = (function() {
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
+      // Workaround until 809452 is fixed.
+      // What we are avoiding with this condition is removing / restoring
+      // a field when the event is simulated by a ENTER Keyboard click
+      if ((event.clientX === 0) && (event.clientY === 0))
+        return false;
       event.preventDefault();
       var elem = document.getElementById(selector);
       elem.classList.toggle(REMOVED_CLASS);

@@ -85,7 +85,7 @@ ul li > small:not(:empty) + a {
  */
 
 ul li button,
-ul li a[role=button] {
+ul li a[role="button"] {
   position: relative;
   top: 1rem;
   left: 2rem;
@@ -114,8 +114,7 @@ ul li > label:not([for]) > input[data-type="switch"] + span {
   right: 2rem;
 }
 
-ul li > label:not([for]) + a,
-ul li > label:not([for]) + small + a {
+ul li > label:not([for]) ~ a {
   padding-right: 6rem;
 }
 
@@ -136,8 +135,8 @@ ul li p + label:not([for]) {
   height: calc(100% - 2.5rem);
 }
 
-ul li p + input[type=text],
-ul li p + input[type=password] {
+ul li p + input[type="text"],
+ul li p + input[type="password"] {
   display: block;
   width: calc(100% - 6rem);
   font-size: 1.8rem;
@@ -166,7 +165,7 @@ ul li > label input[type="time"] {
  * Range inputs
  */
 
-ul li > label input[type=range] {
+ul li > label input[type="range"] {
   width: 80%;
   width: calc(100% - 6rem);
   margin-left: 3rem;
@@ -309,5 +308,59 @@ dl dd {
   margin: 0;
   padding: 1rem 3rem;
   border-bottom: 0.1rem solid #e6e6e3; /* same as "ul li" */
+}
+
+
+/******************************************************************************
+ * Right-to-Left layout
+ */
+
+/* definition lists */
+html[dir="rtl"] dl dt {
+  padding-left: inherit;
+  padding-right: 3rem;
+}
+
+/* half-width select boxes */
+html[dir="rtl"] ul li span select {
+  left: 3rem;
+  right: inherit;
+}
+
+/* full-width select boxes */
+html[dir="rtl"] ul li p + select {
+  margin: -1rem 12rem 1rem 3rem;
+}
+
+/* boolean inputs */
+
+html[dir="rtl"] ul li button,
+html[dir="rtl"] ul li a[role="button"] {
+  left: inherit;
+  right: 2rem;
+}
+
+html[dir="rtl"] ul li > label:not([for]) > span,
+html[dir="rtl"] ul li > label:not([for]) > input[data-type="switch"] + span {
+  left: 4rem; /* XXX we use "right: 2rem" for LTR layouts... */
+  right: inherit;
+}
+
+html[dir="rtl"] ul li > label:not([for]) ~ a {
+  padding-left: 6rem;
+  padding-right: 3rem;
+}
+
+/* description + value on the same line */
+html[dir="rtl"] ul li > a span {
+  left: 2rem;
+  right: inherit;
+}
+
+/* main list items */
+html[dir="rtl"] ul li > a,
+html[dir="rtl"] ul li > span {
+  padding-left: inherit;
+  padding-right: 3rem;
 }
 

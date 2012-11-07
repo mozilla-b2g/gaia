@@ -1,25 +1,41 @@
-#phoneLock[data-enabled="false"] li.passcode-enabled {
+#phoneLock li.lockscreen-enabled {
   display: none;
 }
 
-#phoneLock[data-enabled="true"] li.passcode-enabled {
+#phoneLock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
   display: block;
 }
 
-#passcode-panel div.passcode-error {
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#phoneLock-passcode div.passcode-error {
   display: none;
   color: red;
   font-size: 1.6rem;
   padding-left: 2rem;
 }
 
-#passcode-panel[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
-#passcode-panel[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
+#phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
   display: block;
 }
 
-#passcode-panel[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
-#passcode-panel[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
+#phoneLock-passcode[data-passcode-status="error"][data-mode="new"] div.passcode-error[data-type="mismatch"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="create"] div.passcode-error[data-type="mismatch"] {
   display: block;
 }
 
@@ -27,7 +43,7 @@
   position: relative;
 }
 
-#passcode-panel .passcode-container > span {
+#phoneLock-passcode .passcode-container > span {
   width: 100%;
   color: rgb(0, 0, 0);
   -moz-box-sizing: border-box;
@@ -35,14 +51,14 @@
   padding: 0px 2rem;
 }
 
-#passcode-panel [data-mode] {
+#phoneLock-passcode [data-mode] {
   display: none;
 }
 
-#passcode-panel[data-mode="create"] [data-mode*="create"],
-#passcode-panel[data-mode="confirm"] [data-mode*="confirm"],
-#passcode-panel[data-mode="edit"] [data-mode*="edit"],
-#passcode-panel[data-mode="new"] [data-mode*="new"] {
+#phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
+#phoneLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
+#phoneLock-passcode[data-mode="edit"]    [data-mode*="edit"],
+#phoneLock-passcode[data-mode="new"]     [data-mode*="new"] {
   display: inherit;
 }
 
@@ -50,7 +66,7 @@
   display: none;
 }
 
-#passcode-panel[data-status="success"] #passcode-confirm {
+#phoneLock-passcode[data-status="success"] #passcode-confirm {
   display: inherit;
 }
 

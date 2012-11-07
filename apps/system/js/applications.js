@@ -18,6 +18,7 @@ var Applications = {
         var apps = evt.target.result;
         apps.forEach(function(app) {
           self.installedApps[app.manifestURL] = app;
+          // TODO Followup for retrieving homescreen & comms app
         });
 
         self.ready = true;

@@ -415,11 +415,14 @@ const GridManager = (function() {
           }
 
           HomeState.getHiddens(function(hidden) {
-            var len = hidden.length;
-            for (var i = 0; i < len; i++) {
-              var origin = hidden[i].origin || hidden[i];
-              if (origin in installedApps) {
-                delete installedApps[origin];
+
+            if (hidden) {
+              var len = hidden.length;
+              for (var i = 0; i < len; i++) {
+                var origin = hidden[i].origin || hidden[i];
+                if (origin in installedApps) {
+                  delete installedApps[origin];
+                }
               }
             }
 
