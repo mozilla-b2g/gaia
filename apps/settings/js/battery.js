@@ -4,7 +4,6 @@
 'use strict';
 
 var Battery = (function Battery() {
-
   var _battery = null;
   var _callback = null;
   var _debug = false;
@@ -16,14 +15,14 @@ var Battery = (function Battery() {
     console.log('+++Battery+++: ' + msg);
   }
 
-  function handleEvent(evt) {
-    debug('level ' + _battery.level);
-    debug('charging ' + _battery.charging);
-    debug('discharge ' + _battery.dischargingTime);
-    debug('charge ' + _battery.chargingTime);
-
-    if (_callback)
-      _callback(_battery);
+  function init(callback) {
+    _battery = window.navigator.battery;
+    _callback = callback;
+    if (!_battery) {
+      console.error('Could not get window.navigator.battery');
+      return;
+    }
+    attachListeners();
   }
 
   function attachListeners() {
@@ -36,58 +35,60 @@ var Battery = (function Battery() {
     _battery.removeEventListener('levelchange', handleEvent);
   }
 
-  function _init(callback) {
-    _battery = window.navigator.battery;
-    if (!_battery) {
-      console.error('Could not get window.navigator.battery');
-      return;
-    }
+  function handleEvent(evt) {
+    debug('level ' + _battery.level);
+    debug('charging ' + _battery.charging);
+    debug('discharge ' + _battery.dischargingTime);
+    debug('charge ' + _battery.chargingTime);
 
-    _callback = callback;
-    attachListeners();
+    if (_callback)
+      _callback(_battery);
+  }
+
+  function getBatteryInfo() {
+    if (_callback)
+      _callback(_battery);
   }
 
   return {
-    init: _init,
+    init: init,
     attachListeners: attachListeners,
-    detachListeners: detachListeners
+    detachListeners: detachListeners,
+    update: getBatteryInfo
   };
-
 })();
 
-window.addEventListener('localized', function SettingsBattery(evt) {
-
+onLocalized(function SettingsBattery() {
   function updateInfo(battery) {
     var _ = navigator.mozL10n.get;
 
     // display the current battery level
     var level = Math.min(100, Math.round(battery.level * 100));
     var state = 'unplugged';
+    if (battery.charging) {
+      state = (level == 100) ? 'charged' : 'charging';
+    }
+    var text = _('batteryLevel-percent-' + state, { level: level });
 
-    if (battery.charging && level == 100) {
-      state = 'charged';
-    } else if (battery.charging) {
-      state = 'charging';
+    var batteryLevel = document.querySelector('#battery-level *');
+    if (batteryLevel) {
+      batteryLevel.textContent = text;
     }
 
-    var text = _('batteryLevel-percent-' + state,
-                 { level: level });
-
-    var element = document.getElementById('battery-level').firstElementChild;
-    element.textContent = text;
-
-    element = document.getElementById('battery-desc');
-    element.textContent = text;
+    var batteryDesc = document.getElementById('battery-desc');
+    if (batteryDesc) {
+      batteryDesc.textContent = text;
+    }
   }
 
   var battery = window.navigator.battery;
   Battery.init(updateInfo);
-  updateInfo(battery);
+  Battery.update();
 
   document.addEventListener('mozvisibilitychange', function visibilityChange() {
     if (!document.mozHidden) {
       Battery.attachListeners();
-      updateInfo(battery);
+      Battery.update();
     } else {
       Battery.detachListeners();
     }

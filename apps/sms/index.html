@@ -10,6 +10,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css">
 
     <!-- App styles -->
     <link rel="stylesheet" type="text/css" href="style/root.css">
@@ -131,19 +133,19 @@
             </button>
           </menu>
         </form>
-      </section>
+      </section>  
     </article>
     <article id="snapshot" class="wrapper">
     </article>
     <article id="loading">
-      <section class="loading-container">
-        <header class="loading-header" data-l10n-id="deleting-messages">
-          Deleting messages...
-        </header>
-        <article class="loading-icon">
-          <img src="style/images/spinner.gif">
-        </article>
-      </section>
+      <form role="dialog" data-type="confirm" class="loading-container">
+        <section>
+          <p class="loading-header" data-l10n-id="deleting-messages">Deleting messages...</p>
+          <div role="status">
+            <progress class="small"></progress>
+          </div>
+        </section>
+      </form>
     </article>
   </body>
 </html>

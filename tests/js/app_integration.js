@@ -408,14 +408,33 @@ var AppIntegration = (function() {
           var tagName = yield element.tagName(next);
           var type = yield element.getAttribute('type', next);
           var name = yield element.getAttribute('name', next);
+          var atts = name.match(/\[(.*?)\]/g);
           var value = yield element.getAttribute('value', next);
-
-          values[name] = value;
+          if (!atts) {
+            values[name] = value;
+          } else {
+            var name = name.substring(0, name.indexOf('['));
+            values[name] = values[name] || {};
+            values[name] = this._nameToHash(values[name], atts, value);
+          }
         }
-
-
         done(null, values);
       }, callback);
+    },
+
+    _nameToHash: function(result, atts, value) {
+      var pointer = result;
+      for (var i = 0; i < atts.length; i++) {
+        var name = atts[i].substring(1, atts[i].length - 1);
+        if (i == atts.length - 1) {
+          pointer[name] = value;
+          break;
+        }
+        if (!pointer[name])
+          pointer[name] = {};
+        pointer = pointer[name];
+      }
+      return result;
     },
 
     /**
@@ -437,26 +456,87 @@ var AppIntegration = (function() {
      *                        (where key is the name attr).
      * @param {Function} [callback] optional uses default callback of driver.
      */
+
     updateForm: function(formElement, values, callback) {
       var self = this;
-
+      var values = this._resolveNames(values);
       this.task(function(app, next, done) {
         for (var field in values) {
-
-          // the use of 'next' here is required because
-          // we are using the externally found formElement.
           var el = yield formElement.findElement(
             '[name="' + field + '"]',
             'css selector',
             next
           );
-
           yield el.clear(next);
           yield el.sendKeys([values[field]], next);
         }
 
         done();
-      }, callback);
+      }.bind(this), callback);
+    },
+
+    /**
+     * Private method that flatten a object
+     * Arrays will be named as attr[i]
+     * Nested objects will be named as attr[attr2]
+     *
+     *
+     *     var values = {
+     *       email: [
+     *        {type: 'personal', email: 'test@test.com'},
+     *        {type: 'personal', email: 'test2@test.com'},
+     *       ],
+     *       name: 'Test'
+     *     };
+     *
+     *     Will return
+     *     {
+     *       email[0][type]: 'personal',
+     *       email[0][email]: 'test@test.com',
+     *       email[1][type]: 'personal',
+     *       email[1][email]: 'test2@test.com',
+     *       name: 'Test'
+     *     };
+     *
+     *
+     * @param {Object} values object of key/value pairs
+     *                        (where key is the name attr).
+     */
+
+    _resolveNames: function(values) {
+      var flatten = function(obj) {
+        var toReturn = {};
+        for (var i in obj) {
+          if ((typeof obj[i]) == 'object') {
+            var flatObject = flatten(obj[i]);
+            for (var x in flatObject) {
+              toReturn['[' + i + ']' + x] = flatObject[x];
+            }
+          } else {
+            toReturn['[' + i + ']'] = obj[i];
+          }
+        }
+        return toReturn;
+      };
+
+      var toUpdate = {};
+
+      for (var field in values) {
+        // the use of 'next' here is required because
+        // we are using the externally found formElement.
+        var currentValue = values[field];
+        if (typeof currentValue === 'string') {
+          toUpdate[field] = currentValue;
+        } else {
+          var flattenValue = flatten(currentValue);
+          for (var elem in flattenValue) {
+            var fieldName = field + elem;
+            var value = flattenValue[elem];
+            toUpdate[fieldName] = value;
+          }
+        }
+      }
+      return toUpdate;
     }
 
   };
