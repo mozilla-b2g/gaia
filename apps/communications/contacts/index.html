@@ -158,7 +158,7 @@
           <div class="view-body-inner" id="cover-img">
             <section id="contact-detail">
               <!-- Phone Template -->
-              <li id='phone-details-template-#i#' data-template>
+              <li data-phone id='phone-details-template-#i#' data-template>
                 <h2>#type#</h2>
                 <div class="item">
                   <div class="item-media pull-right">
@@ -181,7 +181,7 @@
               </li>
 
               <!-- Email Template -->
-              <li id='email-details-template-#i#' data-template>
+              <li data-mail id='email-details-template-#i#' data-template>
                 <h2>#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
@@ -193,7 +193,7 @@
               </li>
 
               <!-- Social Template -->
-              <li class="social-actions" id="social-template-#i#" data-template>
+              <li data-social class="social-actions" id="social-template-#i#" data-template>
                 <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
                   <div class="fillflow-twocols">
                     <button id="msg_button" data-l10n-id="msg-send" class="activity icon icon-message">
@@ -214,7 +214,7 @@
               </li>
 
               <!-- Address Template -->
-              <li id='address-details-template-#i#' data-template>
+              <li data-address id='address-details-template-#i#' data-template>
                 <h2>#type#</h2>
                 <div class="item">
                   <div class="item-body-exp">
@@ -232,7 +232,7 @@
               </li>
 
               <!-- Comment Template -->
-              <p id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
+              <p data-comment id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
               <div id='contact-detail-inner'>
                 <h1 id='org-title'></h1>
                 <ul id='details-list'>
@@ -270,11 +270,11 @@
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel" class="textfield" type="tel" value="#value#" id="number_#i#">
+                <input data-cancelable placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
+                <input data-cancelable placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" value="#carrier#" id="carrier_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
             </section>
@@ -285,11 +285,11 @@
         <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="email-type" name="email" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="email-type" name="email[#i#][type]" value="#type#" id="email_type_#i#" data-field="type">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Email" data-l10n-id="email" name="email" class="textfield" type="email" value="#value#" id="email_#i#">
+                <input data-cancelable placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
             </section>
@@ -300,23 +300,23 @@
         <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
           <fieldset class="fillflow-row">
             <legend class="action">
-              <span data-taglist="address-type" name="address" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
+              <span data-taglist="address-type" name="adr[#i#][type]" value="#type#" id="address_type_#i#" data-field="type">#type#</span>
             </legend>
             <section>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="address" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
+                <input data-cancelable placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" value="#streetAddress#" id="streetAddress_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="address" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+                <input data-cancelable placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="adr[#i#][postalCode]" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="address" class="textfield" type="text" value="#locality#" id="locality_#i#">
+                <input data-cancelable placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" value="#locality#" id="locality_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
               <p class="setbox-item">
-                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="address" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
+                <input data-cancelable placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" value="#countryName#" id="countryName_#i#">
                 <button type="reset" class="hide">Clear</button>
               </p>
             </section>
@@ -328,7 +328,7 @@
           <dl class="setbox fillflow-row">
             <dd class="setbox-body">
               <p class="setbox-item">
-               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="note" class="textfield" type="text" value="#note#" id="note_#i#">
+               <input data-cancelable placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" value="#note#" id="note_#i#">
                <button type="reset" class="hide">Clear</button>
               </p>
             </dd>
@@ -435,7 +435,7 @@
 
         <article class="view-body">
           <form class="view-body-inner">
-            <ul id="tags-list" class="selection-list">
+            <ul id="tags-list" class="selection-list compact">
             </ul>
             <p>
               <input data-cancelable class="textfield" type="text" placeholder="Custom Tag" value="" id='custom-tag' data-l10n-id="custom">
