@@ -157,11 +157,9 @@
       // We can pass Error objects or 
       // Array of {name: foo} objects
       if (!Array.isArray(list)) {
-        if (list.message) {
-          list = [{name: list.message}];
-        }
+          list = [list];
       }
-      
+   
       var i = 0;
       var len = list.length;
 

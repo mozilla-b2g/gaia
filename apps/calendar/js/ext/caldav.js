@@ -1644,6 +1644,7 @@ function write (chunk) {
       } else {
         output += ' />';
       }
+
       return output;
     }
 
@@ -2098,8 +2099,6 @@ function write (chunk) {
       xhr.onreadystatechange = function onReadyStateChange() {
         var data;
         if (xhr.readyState === 4) {
-          console.log('LOG_response_headers', xhr.status);
-          console.log('LOG_response', xhr.responseText);
           data = xhr.responseText;
           this.waiting = false;
           callback(null, xhr);
@@ -2357,7 +2356,6 @@ function write (chunk) {
     name: 'href',
 
     onopentag: function() {
-      console.log('LOG_hrefhandler', this.handler);
       if (this.currentTag.handler === this.handler) {
         this.stack.push(this.current);
         this.current = null;
@@ -2466,12 +2464,10 @@ function write (chunk) {
       'DAV:/status': HttpStatusHandler,
       'DAV:/resourcetype': ArrayHandler,
       'DAV:/current-user-privilege-set': PrivilegeSet,
-      //'DAV:/principal-URL': TextHandler,
-      //'DAV:/current-user-principal': TextHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
       'DAV:/owner': HrefHandler,
-      'DAV:/getetag': TextHandler,
+      'DAV:/getetag': HrefHandler,
       'DAV:/displayname': TextHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-home-set': HrefHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-timezone': TextHandler,
@@ -2561,9 +2557,56 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  function CaldavHttpError(code) {
+    this.code = code;
+    
+    switch(this.code) {
+      case 401:
+        this.message = 'Wrong username or/and password';//'unauthenticated';
+        break;
+      case 404:
+        this.message = 'Url not found';//'no-url'
+        break;
+      case 500:
+        this.message = 'Server error';//'internal-server-error';
+        break;
+      default:
+        this.message = this.code;
+    }
+    
+  }
+  CaldavHttpError.prototype = {
+    __proto__: Error.prototype,
+    constructor: CaldavHttpError
+  }
+  
+  // Unauthenticated error for 
+  // Google Calendar
+  function UnauthenticatedError() {
+    this.message = "Wrong username or/and password";
+  }
+  
+  UnauthenticatedError.prototype = {
+    __proto__: Error.prototype,
+    constructor: UnauthenticatedError
+  }
+  
+  module.exports = {
+    CaldavHttpError: CaldavHttpError,
+    UnauthenticatedError: UnauthenticatedError
+  };
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('request/errors'), Caldav] :
+    [module, require('../caldav')]
+));
+(function(module, ns) {
+
   var SAX = ns.require('sax');
   var XHR = ns.require('xhr');
-
+  var ERRORS = ns.require('request/errors');
 
   /**
    * Creates an (Web/Cal)Dav request.
@@ -2630,31 +2673,12 @@ function write (chunk) {
           self._processResult(req, callback);
         } else {
           // fail
-          callback(new CaldavHttpError(xhr.status));
+          callback(new ERRORS.CaldavHttpError(xhr.status));
         }
       });
     }
   };
 
-  // HTTP ERROR
-  // XXX:move it from here
-  function CaldavHttpError(code) {
-      switch(code) {
-        case 401:
-          this.message = 'unauthenticated';
-          break;
-        case 500:
-          this.message = 'internal-server-error';
-          break;
-        default:
-          this.message = code;
-      }
-      
-  }
-  CaldavHttpError.prototype = new Error();
-  CaldavHttpError.prototype.constructor = CaldavHttpError;
-
-  
   module.exports = Abstract;
 
 }.apply(
@@ -2850,7 +2874,6 @@ function write (chunk) {
      */
     prop: function(tagDesc, attr, content) {
       this._props.push(this.template.tag(tagDesc, attr, content));
-      console.log('LOG_prop', this._props[this._props.length-1]);
     },
 
     /**
@@ -2963,7 +2986,8 @@ function write (chunk) {
         content += this.filter.toString();
       }
 
-      return this.template.render(content);
+      var out = this.template.render(content);
+      return out;
     }
 
   };
@@ -2978,6 +3002,8 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  var ERRORS = ns.require('request/errors');
+  
   /**
    * Creates a propfind request.
    *
@@ -3004,7 +3030,6 @@ function write (chunk) {
     var url, results = [], prop;
 
     for (url in data) {
-      console.log('LOG_findProperty', url, data[url]);
       if (Object.hasOwnProperty.call(data, url)) {
         if (name in data[url]) {
           prop = data[url][name];
@@ -3036,7 +3061,7 @@ function write (chunk) {
 
       find.prop('current-user-principal');
       find.prop('principal-URL');
-      
+
       find.send(function(err, data) {
         var principal;
 
@@ -3046,23 +3071,18 @@ function write (chunk) {
         }
 
         principal = findProperty('current-user-principal', data, true);
-        console.log('LOG_proncipal_1', principal);
-        
+
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
-        console.log('LOG_proncipal_2', principal);
         }
-        
         if (typeof principal.unauthenticated === 'object') {
-
-          callback(new Error('unauthenticated'));
-          
+          callback(new ERRORS.UnauthenticatedError());          
         } else if (principal.href){
           callback(null, principal.href);
         } else {
-          callback(new Error('no-url'));
+          callback(new ERRORS.CaldavHttpError(404));
         }
-        
+     
       });
     },
 
@@ -3098,7 +3118,7 @@ function write (chunk) {
       var self = this;
       self._findPrincipal(self.url, function(err, url) {
 
-        if (err && !url) {
+        if (!url) {
           callback(err);
           return;
         }
@@ -3416,4 +3436,3 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
-

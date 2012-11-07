@@ -14,10 +14,10 @@
       var provider = Calendar.App.provider(
         model.providerType
       );
-
+      
       provider.getAccount(model.toJSON(), function(err, data) {
-        if (err) {
-          callback(err);
+        if (err) {          
+          callback(err);  
           return;
         }
 
