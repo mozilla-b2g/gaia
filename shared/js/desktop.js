@@ -15,7 +15,7 @@
     return;
 
   var TelephonyCalls = [];
-  if (RecentsDBManager) {
+  if (typeof(RecentsDBManager) != 'undefined' && RecentsDBManager) {
     RecentsDBManager.init(function() {
       RecentsDBManager.prepopulateDB(function() {
         RecentsDBManager.close();
@@ -75,7 +75,7 @@
       listeners = newListeners;
     }
     originalRemoveEventListener.call(this, type, listener);
-  }
+  };
 
   var KeyEventProto = {
     DOM_VK_HOME: 36
