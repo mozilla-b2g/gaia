@@ -22,7 +22,7 @@ var ApplicationsList = {
   ],
 
   container: document.querySelector('#appPermissions > ul'),
-  detailTitle: document.querySelector('#appPermissionsDetails > header > h1'),
+  detailTitle: document.querySelector('#appPermissions-details > header > h1'),
   developerName: document.querySelector('#developer-infos > a'),
   developerLink: document.querySelector('#developer-infos > small > a'),
   detailPermissionsList: document.querySelector('#permissionsListHeader + ul'),
@@ -76,7 +76,7 @@ var ApplicationsList = {
       }
 
       var item = document.createElement('li');
-      item.innerHTML = '<a href="#appPermissionsDetails">' +
+      item.innerHTML = '<a href="#appPermissions-details">' +
                        icon + app.manifest.name + '</a>';
       item.onclick = this.showAppDetails.bind(this, app);
       this.container.appendChild(item);
@@ -217,11 +217,5 @@ var ApplicationsList = {
   }
 };
 
-window.addEventListener('hashchange', function onHashChange(evt) {
-  if (!evt.newURL.endsWith('#appPermissions'))
-    return;
-
-  window.removeEventListener('hashchange', onHashChange);
-  ApplicationsList.init();
-});
+onLocalized(ApplicationsList.init.bind(ApplicationsList));
 

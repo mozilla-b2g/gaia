@@ -1165,7 +1165,8 @@ MailBody.prototype = {
       var relPart = this._relatedParts[i];
       // Related parts should all be stored as Blobs-in-IndexedDB
       if (relPart.file && !Array.isArray(relPart.file)) {
-        cidToObjectUrl[relPart.name] = useWin.URL.createObjectURL(relPart.file);
+        cidToObjectUrl[relPart.contentId] = useWin.URL.createObjectURL(
+          relPart.file);
       }
     }
     this._cleanup = function revokeURLs() {
@@ -11242,17 +11243,6 @@ function stashLinks(node, lowerTag) {
   }
 }
 
-var BLEACH_SETTINGS = {
-  tags: LEGAL_TAGS,
-  strip: true,
-  prune: PRUNE_TAGS,
-  attributes: LEGAL_ATTR_MAP,
-  styles: LEGAL_STYLES,
-  asNode: true,
-  callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
-  callback: stashLinks
-};
-
 /**
  * @args[
  *   @param[htmlString String]{
@@ -11264,13 +11254,39 @@ var BLEACH_SETTINGS = {
  *     now we don't.  This is consistent with many webmail clients who ignore
  *     style tags in the head, etc.
  *   }
+ *   @param[callback @func[
+ *     @args[
+ *       @param[node DomNode]
+ *       @param[lowerTag String]
+ *     ]
+ *     An optional callback function to be called before stashLinks.  Return
+ *     true to skip stashLinks for this node, or false to call stashLinks.
+ *   }
  * ]
  * @return[HtmlElement]{
  *   The sanitized HTML content wrapped in a div container.
  * }
  */
-exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString) {
-  var sanitizedNode = $bleach.clean(htmlString, BLEACH_SETTINGS);
+exports.sanitizeAndNormalizeHtml = function sanitizeAndNormalize(htmlString,
+                                                                 callback) {
+  var settings = {
+    tags: LEGAL_TAGS,
+    strip: true,
+    prune: PRUNE_TAGS,
+    attributes: LEGAL_ATTR_MAP,
+    styles: LEGAL_STYLES,
+    asNode: true,
+    callbackRegexp: RE_NODE_NEEDS_TRANSFORM,
+    callback: stashLinks
+  };
+  if (callback) {
+    settings.callback = function(node, lowerTag) {
+      if (!callback(node, lowerTag))
+        stashLinks(node, lowerTag);
+    }
+  }
+
+  var sanitizedNode = $bleach.clean(htmlString, settings);
   return sanitizedNode;
 };
 
@@ -13308,9 +13324,9 @@ else {
  *
  * Explanation of most recent bump:
  *
- * Bumping to 13 because we now track when we last did a folder sync.
+ * Bumping to 14 because we now support (require, really) HTML in ActiveSync
  */
-const CUR_VERSION = exports.CUR_VERSION = 13;
+const CUR_VERSION = exports.CUR_VERSION = 14;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -22972,8 +22988,11 @@ MailSlice.prototype = {
  * ]]
  * @typedef[AttachmentInfo @dict[
  *   @key[name String]{
- *     The filename of the attachment if this is an attachment, the content-id
- *     of the attachment if this is a related part for inline display.
+ *     The filename of the attachment, if any.
+ *   }
+ *   @key[contentId String]{
+ *     The content-id of the attachment if this is a related part for inline
+ *     display.
  *   }
  *   @key[type String]{
  *     The (full) mime-type of the attachment.
@@ -26197,13 +26216,10 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
       return s;
     }
 
-    // - Attachments have names and don't have id's for multipart/related
-    if (disposition === 'attachment') {
-      // We probably want to do a MIME mapping here for the extension?
-      if (!filename)
-        filename = 'unnamed-' + (++unnamedPartCounter);
-      attachments.push({
-        name: filename,
+    function makePart(partInfo, filename) {
+      return {
+        name: filename || 'unnamed-' + (++unnamedPartCounter),
+        contentId: partInfo.id ? stripArrows(partInfo.id) : null,
         type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
         part: partInfo.partID,
         encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
@@ -26215,32 +26231,21 @@ exports.chewHeaderAndBodyStructure = function chewStructure(msg) {
         textFormat: (partInfo.params && partInfo.params.format &&
                      partInfo.params.format.toLowerCase()) || undefined
          */
-      });
-      return true;
+      };
     }
-    // (must be inline)
 
-    //
-    if (partInfo.type === 'image') {
-      relatedParts.push({
-        name: stripArrows(partInfo.id), // this is the cid
-        type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
-        part: partInfo.partID,
-        encoding: partInfo.encoding && partInfo.encoding.toLowerCase(),
-        sizeEstimate: estimatePartSizeInBytes(partInfo),
-        file: null,
-        /*
-        charset: (partInfo.params && partInfo.params.charset &&
-                  partInfo.params.charset.toLowerCase()) || undefined,
-        textFormat: (partInfo.params && partInfo.params.format &&
-                     partInfo.params.format.toLowerCase()) || undefined
-         */
-      });
+    if (disposition === 'attachment') {
+      attachments.push(makePart(partInfo, filename));
       return true;
     }
 
     // - We must be an inline part or structure
     switch (partInfo.type) {
+      // - related image
+      case 'image':
+        relatedParts.push(makePart(partInfo, filename));
+        return true;
+        break;
       // - content
       case 'text':
         if (partInfo.subtype === 'plain' ||
@@ -27178,7 +27183,7 @@ console.warn('  FLAGS: "' + header.flags.toString() + '" VS "' +
         setupBodyParser(partInfo);
         msg.on('data', bodyParseBuffer);
         msg.on('end', function() {
-          bodies.push(finishBodyParsing());
+          bodies.push(new Blob([finishBodyParsing()], { type: partInfo.type }));
 
           if (--pendingFetches === 0)
             callback(anyError, bodies);
@@ -27793,8 +27798,8 @@ exports.do_download = function(op, callback) {
         done();
     };
   }
-  var gotParts = function gotParts(err, bodyBuffers) {
-    if (bodyBuffers.length !== partsToDownload.length) {
+  var gotParts = function gotParts(err, bodyBlobs) {
+    if (bodyBlobs.length !== partsToDownload.length) {
       callback(err, null, false);
       return;
     }
@@ -27803,15 +27808,17 @@ exports.do_download = function(op, callback) {
       // Because we should be under a mutex, this part should still be the
       // live representation and we can mutate it.
       var partInfo = partsToDownload[i],
-          buffer = bodyBuffers[i],
+          blob = bodyBlobs[i],
           storeTo = storePartsTo[i];
 
-      partInfo.sizeEstimate = buffer.length;
-      var blob = new Blob([buffer], { type: partInfo.type });
-      if (storeTo === 'idb')
-        partInfo.file = blob;
-      else
-        saveToStorage(blob, storeTo, partInfo.name, partInfo);
+      if (blob) {
+        partInfo.sizeEstimate = blob.length;
+        partInfo.type = blob.type;
+        if (storeTo === 'idb')
+          partInfo.file = blob;
+        else
+          saveToStorage(blob, storeTo, partInfo.name, partInfo);
+      }
     }
     if (!pendingStorageWrites)
       done();
@@ -30642,8 +30649,9 @@ MessageGenerator.prototype = {
         args[propAttrName] = aSetDef[propAttrName];
     }
 
-    var count = aSetDef.count || this.MAKE_MESSAGES_DEFAULTS.count;
-    var messagsPerThread = aSetDef.msgsPerThread || 1;
+    var count = aSetDef.hasOwnProperty('count') ? aSetDef.count :
+                this.MAKE_MESSAGES_DEFAULTS.count;
+    var messagesPerThread = aSetDef.msgsPerThread || 1;
     var rawBodies = aSetDef.hasOwnProperty('rawBodies') ? aSetDef.rawBodies
                                                         : null,
         replaceHeaders = aSetDef.hasOwnProperty('replaceHeaders') ?
@@ -30652,7 +30660,7 @@ MessageGenerator.prototype = {
     var lastMessage = null;
     for (var iMsg = 0; iMsg < count; iMsg++) {
       // primitive threading support...
-      if (lastMessage && (iMsg % messagsPerThread != 0))
+      if (lastMessage && (iMsg % messagesPerThread != 0))
         args.inReplyTo = lastMessage;
       else if (!("inReplyTo" in aSetDef))
         args.inReplyTo = null;
@@ -30885,6 +30893,7 @@ define('mailapi/activesync/folder',
     'activesync/protocol',
     'mimelib',
     '../quotechew',
+    '../htmlchew',
     '../date',
     '../syncbase',
     '../util',
@@ -30898,6 +30907,7 @@ define('mailapi/activesync/folder',
     $activesync,
     $mimelib,
     $quotechew,
+    $htmlchew,
     $date,
     $sync,
     $util,
@@ -31061,9 +31071,12 @@ ActiveSyncFolderConn.prototype = {
              .stag(as.Options)
                .tag(as.FilterType, this.filterType)
 
+      // XXX: For some servers (e.g. Hotmail), we could be smart and get the
+      // native body type (plain text or HTML), but Gmail doesn't seem to let us
+      // do this. For now, let's keep it simple and always get HTML.
       if (account.conn.currentVersion.gte('12.0'))
               w.stag(asb.BodyPreference)
-                 .tag(asb.Type, asbEnum.Type.PlainText)
+                 .tag(asb.Type, asbEnum.Type.HTML)
                .etag();
 
               w.tag(as.MIMESupport, asEnum.MIMESupport.Never)
@@ -31187,8 +31200,10 @@ ActiveSyncFolderConn.prototype = {
    * @return {object} An object containing the header and body for the message
    */
   _parseMessage: function asfc__parseMessage(node, isAdded) {
-    const asb = $ascp.AirSyncBase.Tags;
     const em = $ascp.Email.Tags;
+    const asb = $ascp.AirSyncBase.Tags;
+    const asbEnum = $ascp.AirSyncBase.Enums;
+
     let header, body, flagHeader;
 
     if (isAdded) {
@@ -31213,6 +31228,7 @@ ActiveSyncFolderConn.prototype = {
         bcc: null,
         replyTo: null,
         attachments: [],
+        relatedParts: [],
         references: null,
         bodyReps: null,
       };
@@ -31263,9 +31279,11 @@ ActiveSyncFolderConn.prototype = {
       }
     }
 
+    let bodyType, bodyText;
+
     for (let [,child] in Iterator(node.children)) {
-      let childText = child.children.length &&
-                      child.children[0].textContent;
+      let childText = child.children.length ? child.children[0].textContent :
+                                              null;
 
       switch (child.tag) {
       case em.Subject:
@@ -31297,44 +31315,47 @@ ActiveSyncFolderConn.prototype = {
         break;
       case asb.Body: // ActiveSync 12.0+
         for (let [,grandchild] in Iterator(child.children)) {
-          if (grandchild.tag === asb.Data) {
-            body.bodyReps = [
-              'plain',
-              $quotechew.quoteProcessTextBody(
-                grandchild.children[0].textContent)
-            ];
-            header.snippet = $quotechew.generateSnippet(body.bodyReps[1],
-                                                        DESIRED_SNIPPET_LENGTH);
+          switch (grandchild.tag) {
+          case asb.Type:
+            bodyType = grandchild.children[0].textContent;
+            break;
+          case asb.Data:
+            bodyText = grandchild.children[0].textContent;
+            break;
           }
         }
         break;
       case em.Body: // pre-ActiveSync 12.0
-        body.bodyReps = [
-          'plain',
-          $quotechew.quoteProcessTextBody(childText)
-        ];
-        header.snippet = $quotechew.generateSnippet(body.bodyReps[1],
-                                                    DESIRED_SNIPPET_LENGTH);
+        bodyType = asbEnum.Type.PlainText;
+        bodyText = childText;
         break;
       case asb.Attachments: // ActiveSync 12.0+
       case em.Attachments:  // pre-ActiveSync 12.0
-        header.hasAttachments = true;
-        body.attachments = [];
         for (let [,attachmentNode] in Iterator(child.children)) {
           if (attachmentNode.tag !== asb.Attachment &&
               attachmentNode.tag !== em.Attachment)
             continue;
 
-          let attachment = { name: null, type: null, part: null,
-                             sizeEstimate: null };
+          let attachment = {
+            name: null,
+            contentId: null,
+            type: null,
+            part: null,
+            encoding: null,
+            sizeEstimate: null,
+            file: null,
+          };
 
+          let isInline = false;
           for (let [,attachData] in Iterator(attachmentNode.children)) {
             let dot, ext;
+            let attachDataText = attachData.children.length ?
+                                 attachData.children[0].textContent : null;
 
             switch (attachData.tag) {
             case asb.DisplayName:
             case em.DisplayName:
-              attachment.name = attachData.children[0].textContent;
+              attachment.name = attachDataText;
 
               // Get the file's extension to look up a mimetype, but ignore it
               // if the filename is of the form '.bashrc'.
@@ -31343,16 +31364,87 @@ ActiveSyncFolderConn.prototype = {
               attachment.type = $mimelib.contentTypes[ext] ||
                                 'application/octet-stream';
               break;
+            case asb.FileReference:
+            case em.AttName:
+              attachment.part = attachDataText;
+              break;
             case asb.EstimatedDataSize:
             case em.AttSize:
-              attachment.sizeEstimate = attachData.children[0].textContent;
+              attachment.sizeEstimate = parseInt(attachDataText);
+              break;
+            case asb.ContentId:
+              attachment.contentId = attachDataText;
+              break;
+            case asb.IsInline:
+              isInline = (attachDataText === '1');
+              break;
+            case asb.FileReference:
+            case em.Att0Id:
+              attachment.part = attachData.children[0].textContent;
               break;
             }
           }
-          body.attachments.push(attachment);
+
+          if (isInline)
+            body.relatedParts.push(attachment);
+          else
+            body.attachments.push(attachment);
         }
+        header.hasAttachments = body.attachments.length > 0;
         break;
       }
+    }
+
+    // Process the body as needed.
+    if (bodyType === asbEnum.Type.PlainText) {
+      let bodyRep = $quotechew.quoteProcessTextBody(bodyText);
+      header.snippet = $quotechew.generateSnippet(bodyRep,
+                                                  DESIRED_SNIPPET_LENGTH);
+      body.bodyReps = ['plain', bodyRep];
+    }
+    else if (bodyType === asbEnum.Type.HTML) {
+      // For some reason, Gmail converts cid: URLs into a URL relative to the
+      // Gmail web site, which isn't very useful for us. Detect this sort of
+      // tomfoolery and de-munge the URLs into a proper CID reference. These
+      // URLs usually look like the following:
+      //
+      //   ?ui=pb&view=att&th=13ab448f53725ee6m&attid=0.1.1&disp=emb&zw&atsh=1
+      //
+      // |th| is the message's ServerId, and |attid| is the part number for the
+      // attachment. Conveniently, the part number is also listed at the end of
+      // the FileReference in the WBXML response, like so:
+      //
+      //   1417301890109169382/5e21a1963d098bad_0.1.1
+      //
+      // What we want to do is grab the |attid| and then iterate through all our
+      // related parts and compare to the FileReference (stored in the |part|
+      // attribute) to find our attachment info. Then set the CID on our node
+      // from said info.
+      let demungeGmailUrls = function(node, lowerTag) {
+        if (lowerTag === 'img') {
+          let m, src = node.getAttribute('src');
+          // Find the magic Gmail URLs and grab the |attid| parameter.
+          if ((m = /^\?ui=pb&view=att&.*attid=([^&]*)/.exec(src))) {
+            for (let [,part] in Iterator(body.relatedParts)) {
+              // Check if the current related part's FileReference ends in the
+              // part number we're looking for.
+              if (part.part.lastIndexOf('_' + m[1]) ===
+                  part.part.length - m[1].length - 1) {
+                node.classList.add('moz-embedded-image');
+                node.setAttribute('cid-src', part.contentId);
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      };
+
+      let htmlNode = $htmlchew.sanitizeAndNormalizeHtml(bodyText,
+                                                        demungeGmailUrls);
+      header.snippet = $htmlchew.generateSnippet(htmlNode,
+                                                 DESIRED_SNIPPET_LENGTH);
+      body.bodyReps = ['html', htmlNode.innerHTML];
     }
 
     return { header: header, body: body };
@@ -31469,6 +31561,92 @@ ActiveSyncFolderConn.prototype = {
                       'got a status of ' + status);
         callWhenDone('status:' + status);
       }
+    });
+  },
+
+  // XXX: take advantage of multipart responses here.
+  // See http://msdn.microsoft.com/en-us/library/ee159875%28v=exchg.80%29.aspx
+  downloadMessageAttachments: function(uid, partInfos, callback, progress) {
+    const io = $ascp.ItemOperations.Tags;
+    const ioStatus = $ascp.ItemOperations.Enums.Status;
+    const asb = $ascp.AirSyncBase.Tags;
+
+    let w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+    w.stag(io.ItemOperations);
+    for (let [,part] in Iterator(partInfos)) {
+      w.stag(io.Fetch)
+         .tag(io.Store, 'Mailbox')
+         .tag(asb.FileReference, part.part)
+       .etag();
+    }
+    w.etag();
+
+    this._account.conn.postCommand(w, function(aError, aResult) {
+      if (aError) {
+        console.error('postCommand error:', aError);
+        callback('unknown');
+        return;
+      }
+
+      let globalStatus;
+      let attachments = {};
+
+      let e = new $wbxml.EventParser();
+      e.addEventListener([io.ItemOperations, io.Status], function(node) {
+        globalStatus = node.children[0].textContent;
+      });
+      e.addEventListener([io.ItemOperations, io.Response, io.Fetch],
+                         function(node) {
+        let part = null, attachment = {};
+
+        for (let [,child] in Iterator(node.children)) {
+          switch (child.tag) {
+          case io.Status:
+            attachment.status = child.children[0].textContent;
+            break;
+          case asb.FileReference:
+            part = child.children[0].textContent;
+            break;
+          case io.Properties:
+            var contentType = null, data = null;
+
+            for (let [,grandchild] in Iterator(child.children)) {
+              let textContent = grandchild.children[0].textContent;
+
+              switch (grandchild.tag) {
+              case asb.ContentType:
+                contentType = textContent;
+                break;
+              case io.Data:
+                data = new Buffer(textContent, 'base64');
+                break;
+              }
+            }
+
+            if (contentType && data)
+              attachment.data = new Blob([data], { type: contentType });
+            break;
+          }
+
+          if (part)
+            attachments[part] = attachment;
+        }
+      });
+      e.run(aResult);
+
+      let error = globalStatus !== ioStatus.Success ? 'unknown' : null;
+      let bodies = [];
+      for (let [,part] in Iterator(partInfos)) {
+        if (attachments.hasOwnProperty(part.part) &&
+            attachments[part.part].status === ioStatus.Success) {
+          bodies.push(attachments[part.part].data);
+        }
+        else {
+          error = 'unknown';
+          bodies.push(null);
+        }
+      }
+      callback(error, bodies);
     });
   },
 };
@@ -31917,6 +32095,20 @@ ActiveSyncJobDriver.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
+  // download
+
+  local_do_download: $jobmixins.local_do_download,
+
+  do_download: $jobmixins.do_download,
+
+  check_download: $jobmixins.check_download,
+
+  local_undo_download: $jobmixins.local_undo_download,
+
+  undo_download: $jobmixins.undo_download,
+
+
+  //////////////////////////////////////////////////////////////////////////////
 };
 
 }); // end define
@@ -32206,13 +32398,13 @@ ActiveSyncAccount.prototype = {
 
   // Map folder type numbers from ActiveSync to Gaia's types
   _folderTypes: {
-     1: 'normal', // User-created generic folder
-     2: 'inbox',
-     3: 'drafts',
-     4: 'trash',
-     5: 'sent',
-     6: 'normal', // Outbox, actually
-    12: 'normal', // User-created mail folder
+     1: 'normal', // Generic
+     2: 'inbox',  // DefaultInbox
+     3: 'drafts', // DefaultDrafts
+     4: 'trash',  // DefaultDeleted
+     5: 'sent',   // DefaultSent
+     6: 'normal', // DefaultOutbox
+    12: 'normal', // Mail
   },
 
   /**
@@ -34427,20 +34619,8 @@ MailUniverse.prototype = {
 
     // - issue a (non-persisted) syncFolderList if needed
     var timeSinceLastFolderSync = Date.now() - account.meta.lastFolderSyncAt;
-    if (timeSinceLastFolderSync >= $syncbase.SYNC_FOLDER_LIST_EVERY_MS) {
-      this._queueAccountOp(
-        account,
-        {
-          type: 'syncFolderList',
-          // no need to track this in the mutations list
-          longtermId: 'internal',
-          lifecycle: 'do',
-          localStatus: 'done',
-          serverStatus: null,
-          tryCount: 0,
-          humanOp: 'syncFolderList'
-        });
-    }
+    if (timeSinceLastFolderSync >= $syncbase.SYNC_FOLDER_LIST_EVERY_MS)
+      this.syncFolderList(account);
 
     // - check for mutations that still need to be processed
     // This will take care of deferred mutations too because they are still
@@ -35004,6 +35184,22 @@ MailUniverse.prototype = {
       callback();
     else
       this._opCompletionListenersByAccount[account.id] = callback;
+  },
+
+  syncFolderList: function(account, callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'syncFolderList',
+        // no need to track this in the mutations list
+        longtermId: 'internal',
+        lifecycle: 'do',
+        localStatus: 'done',
+        serverStatus: null,
+        tryCount: 0,
+        humanOp: 'syncFolderList'
+      },
+      callback);
   },
 
   /**

@@ -16,17 +16,16 @@ var AppStorage = (function AppStorage() {
   }
 
   function init(callback) {
-
     _appStorage = navigator.getDeviceStorage('apps');
     _callback = callback;
-    attachEvents();
+    attachListeners();
   }
 
-  function attachEvents() {
+  function attachListeners() {
     _appStorage.addEventListener('change', handleEvent);
   }
 
-  function detachEvents() {
+  function detachListeners() {
     _appStorage.removeEventListener('change', handleEvent);
   }
 
@@ -43,16 +42,13 @@ var AppStorage = (function AppStorage() {
 
   return {
     init: init,
-    attachEvents: attachEvents,
-    detachEvents: detachEvents,
-    getSpaceInfo: getSpaceInfo
+    attachListeners: attachListeners,
+    detachListeners: detachListeners,
+    update: getSpaceInfo
   };
-
 })();
 
-
-window.addEventListener('localized', function SettingsAppStorage(evt) {
-
+onLocalized(function SettingsAppStorage() {
   function updateInfo(usedSize, freeSize) {
     var _ = navigator.mozL10n.get;
 
@@ -60,26 +56,28 @@ window.addEventListener('localized', function SettingsAppStorage(evt) {
     var totalSize = usedSize + freeSize;
     var usedPercentage = (totalSize == 0) ? 0 : (usedSize * 100 / totalSize);
 
-    if (usedPercentage > 100)
+    if (usedPercentage > 100) {
       usedPercentage = 100;
+    }
 
     var spaceBar = document.getElementById('apps-space-bar');
-    if (spaceBar && usedPercentage)
+    if (spaceBar && usedPercentage) {
       spaceBar.value = usedPercentage;
+    }
 
     function formatSize(element, size, l10nId) {
       if (!element)
         return;
 
-      if (!l10nId)
+      if (!l10nId) {
         l10nId = 'size-';
+      }
 
       // KB - 3 KB (nearest ones), MB, GB - 1.2 MB (nearest tenth)
       var fixedDigits = (size < 1024 * 1024) ? 0 : 1;
       var sizeInfo = FileSizeFormatter.getReadableFileSize(size, fixedDigits);
 
-      element.textContent = _(l10nId + sizeInfo.unit,
-                              {size: sizeInfo.size});
+      element.textContent = _(l10nId + sizeInfo.unit, { size: sizeInfo.size });
     }
 
     // Update the subtitle of device storage
@@ -87,25 +85,25 @@ window.addEventListener('localized', function SettingsAppStorage(evt) {
     formatSize(element, freeSize, 'available-size-');
 
     // Update the storage details
-    element = document.getElementById('apps-total-space').firstElementChild;
+    element = document.getElementById('apps-total-space');
     formatSize(element, totalSize);
 
-    element = document.getElementById('apps-used-space').firstElementChild;
+    element = document.getElementById('apps-used-space');
     formatSize(element, usedSize);
 
-    element = document.getElementById('apps-free-space').firstElementChild;
+    element = document.getElementById('apps-free-space');
     formatSize(element, freeSize);
   }
 
   AppStorage.init(updateInfo);
-  AppStorage.getSpaceInfo(updateInfo);
+  AppStorage.update();
 
   document.addEventListener('mozvisibilitychange', function visibilityChange() {
     if (!document.mozHidden) {
-      AppStorage.attachEvents();
-      AppStorage.getSpaceInfo(updateInfo);
+      AppStorage.attachListeners();
+      AppStorage.update();
     } else {
-      AppStorage.detachEvents();
+      AppStorage.detachListeners();
     }
   });
 });

@@ -375,6 +375,33 @@
   width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
 }
 
+/*
+  Empty message-list container
+*/
+.msg-list-empty-container {
+  background-image: url('images/mail_watermark.png');
+  background-repeat:no-repeat;
+  background-position: 50% 40%;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.msg-list-empty-message {
+  text-align: center;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  width: 27rem;
+  margin: -7rem auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: 2.26rem;
+}
+
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */
 .msg-messages-sync-container > p[role="status"],
 .msg-list-empty {

@@ -128,17 +128,6 @@ body {
   transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
 }
 
-/* Workaround OOP window issue
- * https://bugzilla.mozilla.org/show_bug.cgi?id=792351 */
-#windows > iframe.appWindow.opening {
-  top: 0 !important;
-  transform: translateY(20px) scale(1);
-}
-#windows > iframe.appWindow.closing {
-  top: 0 !important;
-  transform: translateY(20px) scale(0.6);
-}
-/* /Workaround */
 
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
