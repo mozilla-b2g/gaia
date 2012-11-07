@@ -17,6 +17,8 @@
       fields: '*[name]',
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
+      status: '#modify-account-view section[role="status"]',
+      errors: '#modify-account-view .errors',
       cancelDeleteButton: '#modify-account-view .delete-cancel',
       backButton: '#modify-account-view .cancel',
       errors: '#modify-account-view .errors'
@@ -38,10 +40,6 @@
 
     get saveButton() {
       return this._findElement('saveButton');
-    },
-
-    get errors() {
-      return this._findElement('errors');
     },
 
     get form() {
@@ -72,7 +70,8 @@
     },
 
     _displayError: function(err) {
-      this.errors.textContent = err.message;
+      this.showErrors(err);
+      //this.errors.textContent = err.message;
     },
 
     updateForm: function() {

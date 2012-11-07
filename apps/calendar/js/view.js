@@ -45,7 +45,15 @@
     get element() {
       return this._findElement('element');
     },
+    
+    get status() {
+      return this._findElement('status');
+    },
 
+    get errors() {
+      return this._findElement('errors');
+    },
+    
     calendarId: function(input) {
       if (typeof(input) !== 'string') {
         input = input.calendarId;
@@ -136,6 +144,41 @@
       return null;
     },
 
+   /**
+     * Displays a list of errors
+     *
+     * @param {Array} list error list
+     *  (see Event.validaitonErrors) or Error object
+     */
+    showErrors: function(list) {
+      var _ = navigator.mozL10n.get;
+      var errors = '';
+      
+      // We can pass Error objects or 
+      // Array of {name: foo} objects
+      if (!Array.isArray(list)) {
+          list = [list];
+      }
+   
+      var i = 0;
+      var len = list.length;
+
+      for (; i < len; i++) {
+        var name = list[i].name;
+        errors += _('error-' + name) || name;
+      }
+      
+      // populate error and display it.
+      this.errors.textContent = errors;
+      this.status.classList.add(this.activeClass);
+
+      var self = this;
+      this.status.addEventListener('animationend', function displayError() {
+        self.status.classList.remove(self.activeClass);
+        self.status.removeEventListener('animationend', displayError);
+      });
+    },
+    
     onactive: function() {
       //seen can be set to anything other
       //then false to override this behaviour

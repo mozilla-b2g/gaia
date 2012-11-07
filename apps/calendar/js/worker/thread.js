@@ -87,6 +87,7 @@ Calendar.Thread.prototype = {
     errorObject.message = err.message || err.toString();
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || 'Error';
+    errorObject.code = err.code || 0;
 
     return errorObject;
   },
