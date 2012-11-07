@@ -77,7 +77,7 @@ settings = {
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,
- "sms.ringtone": "",
+ "sms.ringtone": "sms.wav",
  "tethering.usb.enabled": False,
  "tethering.usb.ip": "192.168.0.1",
  "tethering.usb.prefix": "24",
