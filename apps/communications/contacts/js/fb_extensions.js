@@ -198,9 +198,9 @@ if (typeof Contacts.extFb === 'undefined') {
       freq.onsuccess = function() {
         contacts.List.refresh(cid);
         if (freq.result) {
+          Contacts.updateContactDetail(cid);
           contacts.List.refresh(freq.result);
         }
-        Contacts.navigation.home();
       }
 
       freq.onerror = function() {

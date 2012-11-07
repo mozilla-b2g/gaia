@@ -254,15 +254,8 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: id
-    };
-
-    var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      currentContact = request.result[0];
+    contactsList.getContactById(id, function findCallback(contact) {
+      currentContact = contact;
 
       if (!ActivityHandler.currentlyHandling) {
         contactsDetails.render(currentContact, TAG_OPTIONS);
@@ -271,7 +264,14 @@ var Contacts = (function() {
       }
 
       dataPickHandler();
-    };
+    });
+  };
+
+  var updateContactDetail = function updateContactDetail(id) {
+    contactsList.getContactById(id, function findCallback(contact) {
+      currentContact = contact;
+      contactsDetails.render(currentContact, TAG_OPTIONS);
+    });
   };
 
   var loadList = function loadList(overlay) {
@@ -382,7 +382,7 @@ var Contacts = (function() {
     customTag.onclick = function(event) {
       if (selectedTag) {
         // Remove any mark if we had selected other option
-        selectedTag.removeAttribute("class");
+        selectedTag.removeAttribute('class');
       }
       selectedTag = null;
     }
@@ -401,10 +401,10 @@ var Contacts = (function() {
     var index = link.dataset.index;
 
     if (selectedTag) {
-      selectedTag.removeAttribute("class");
+      selectedTag.removeAttribute('class');
     }
 
-    link.className = "icon icon-selected";
+    link.className = 'icon icon-selected';
     selectedTag = link;
   };
 
@@ -639,6 +639,7 @@ var Contacts = (function() {
     'showOverlay': showOverlay,
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
+    'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged
   };
 })();
