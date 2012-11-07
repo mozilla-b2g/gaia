@@ -69,16 +69,21 @@ Updatable.prototype.errorCallBack = function() {
 Updatable.prototype.successCallBack = function() {
   var target = this.target;
   if (WindowManager.getDisplayedApp() !== target.origin) {
-    this._mgmt.applyDownload(target);
+    this.applyUpdate()
   } else {
     var self = this;
     window.addEventListener('appwillclose', function waitClose() {
       window.removeEventListener('appwillclose', waitClose);
-      self._mgmt.applyDownload(target);
+      self.applyUpdate();
     });
   }
 
   UpdateManager.removeFromDownloadsQueue(this);
+};
+
+Updatable.prototype.applyUpdate = function() {
+  WindowManager.kill(this.target.origin);
+  this._mgmt.applyDownload(this.target);
 };
 
 Updatable.prototype.appliedCallBack = function() {
