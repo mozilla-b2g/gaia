@@ -54,7 +54,8 @@ var PhoneNumberManager = {
   getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      return result.nationalFormat;
+      /// XXX HACK for getting smoke test working until having in Gecko
+      return result.nationalFormat.split(' ').join('');
     } catch (e) {
       return numInput;
     }
@@ -62,7 +63,8 @@ var PhoneNumberManager = {
   getNormalizedInternationalNumber: function pnm_getNormalizedNumber(numInput) {
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      return result.internationalFormat;
+      /// XXX HACK for getting smoke test working until having in Gecko
+      return result.internationalFormat.split(' ').join('');
     } catch (e) {
       return numInput;
     }
