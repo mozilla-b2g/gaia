@@ -49,7 +49,6 @@ var PairView = {
     this.nameLabel.textContent = this._device.name;
     this.addressLabel.textContent = this._device.address;
     this.deviceInfo.className = this._device.icon;
-    //XXX this.iconImage.src = device.icon
     this.pairView.hidden = false;
     this.alertView.hidden = true;
 

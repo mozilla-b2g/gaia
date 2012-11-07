@@ -13,6 +13,7 @@
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <!-- Stable BB -->
     <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
@@ -35,185 +36,173 @@
     <!-- Shared code. We need to have 'recents_db.js' loaded before loading 'desktop'-->
     <script defer type="application/javascript" src="/shared/js/desktop.js"></script>
   <body role="application" class="hidden">
-    <article id="views" role="tablist">
-      <section id="keyboard-view" role="tabpanel">
-        <div id="phone-number-view-container">
-          <div class="grid-cell grid-v-align">
-            <div class="grid-wrapper">
-              <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
-              <div id="fake-phone-number-view"></div>
-            </div>
-          </div>
-          <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete">
-            <div>
-            </div>
-          </div>
-        </div>
-        <article id="keyboard-container">
-          <section id="keypad">
-            <div class="keypad-cell">
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="1" data-voicemail="true">
-                    <span class="keypad-number font-light">1</span>
-                    <div class="keypad-subicon voicemail"></div>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="4">
-                    <span class="keypad-number font-light">4</span>
-                    <span  class="keypad-text font-semibold">GHI</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="7">
-                    <span class="keypad-number font-light">7</span>
-                    <span class="keypad-text font-semibold">PQRS</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label keypad-key-label-centered" data-value="*">
-                    <span>
-                      <div class="asterisk"></div>
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="keypad-cell">
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="2">
-                    <span class="keypad-number font-light">2</span>
-                    <span class="keypad-text font-semibold">ABC</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="5">
-                    <span class="keypad-number font-light">5</span>
-                    <span class="keypad-text font-semibold">JKL</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="8">
-                    <span class="keypad-number font-light">8</span>
-                    <span  class="keypad-text font-semibold">TUV</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="0">
-                    <span class="keypad-number font-light">0</span>
-                    <span class="keypad-text font-semibold font-size-plus">+</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="keypad-cell">
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="3">
-                    <span class="keypad-number font-light">3</span>
-                    <span  class="keypad-text font-semibold">DEF</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="6">
-                    <span class="keypad-number font-light">6</span>
-                    <span  class="keypad-text font-semibold">MNO</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label" data-value="9">
-                    <span class="keypad-number font-light">9</span>
-                    <span  class="keypad-text font-semibold">WXYZ</span>
-                  </div>
-                </div>
-              </div>
-              <div class="keypad-key">
-                <div class="keypad-key-label-container">
-                  <div class="keypad-key-label keypad-key-label-centered" data-type="dial" data-value="#">
-                    <span>
-                      <div class="sharp"></div>
-                    </span>
-                  </div>
-                </div>
-              </div>
+    <section id="views" role="tablist" data-items="3" class="bottom">
+      <article class="view" role="tab" id="recents-view">
+        <a id="option-recents" href="#recents-view" class="icon icon-recents">recents</a>
+        <div role="tabpanel">
+          <section role="region">
+            <header class="view-header regular-header">
+              <menu type="toolbar">
+                <a id="recents-icon-edit">
+                  <span id="edit-button" class="recents-icon icon icon-edit"></span>
+                </a>
+              </menu>
+              <h1 data-l10n-id="callLog">Call log</h1>
+            </header>
+            <nav id="recents-filter-container" class="recents-filter-container">
+
+              <ul role="tablist" data-type="filter" data-items="2">
+                <li id="allFilter" role="tab"><a data-action="all" data-l10n-id="all">All</a></li>
+                <li id="missedFilter" role="tab"><a data-action="missed" data-l10n-id="missed">Missed</a></li>
+              </ul>
+            </nav>
+            <div class="view-body">
+              <div id="fixed-container" class="fixed-title"></div>
+              <article id="recents-container" class="view-body-inner">
+              </article>
             </div>
           </section>
-          <section id="keypad-callbar">
-            <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
-              <div class="icon-add-contact"></div>
-            </span>
-            <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+        </div>
+      </article>
+      <article class="view" role="tab" id="contacts-view">
+        <a id="option-contacts" href="#contacts-view" class="icon icon-contacts">contacts</a>
+        <iframe role="tabpanel" id="iframe-contacts" src="/contacts/index.html" frameBorder="no" class="grid-wrapper"></iframe>
+      </article>
+      <article id="keyboard-view" role="tab">
+        <a id="option-keypad" href="#keyboard-view" class="icon icon-keypad">keypad</a>
+        <div role="tabpanel">
+          <div id="phone-number-view-container">
+            <div class="grid-cell grid-v-align">
+              <div class="grid-wrapper">
+                <input id="phone-number-view" type="text" class="phone-number-font" readonly="readonly">
+                <div id="fake-phone-number-view"></div>
+              </div>
+            </div>
+            <div id="keypad-delete" class="grid-cell grid-v-align" data-value="delete">
               <div>
               </div>
-            </span>
-          </section>
-        </article>
-      </section>
-      <section class="view" role="tabpanel" id="contacts-view">
-        <iframe id="iframe-contacts" src="/contacts/index.html" frameBorder="no" class="grid-wrapper"></iframe>
-      </section>
-      <section class="view" role="tabpanel" id="recents-view">
-        <section role="region">
-          <header class="view-header regular-header">
-            <menu type="toolbar">
-              <a id="recents-icon-edit">
-                <span id="edit-button" class="recents-icon icon icon-edit"></span>
-              </a>
-            </menu>
-            <h1 data-l10n-id="callLog">Call log</h1>
-          </header>
-          <nav id="recents-filter-container" class="recents-filter-container">
-            <ul>
-              <li class="recents-filter-entry">
-                <button id="allFilter" type="button" data-action="all" data-l10n-id="all" class="selected">
-                  All
-                </button>
-              </li>
-              <li class="recents-filter-entry">
-                <button id="missedFilter" type="button" data-action="missed" data-l10n-id="missed">
-                  Missed
-                </button>
-              </li>
-            </ul>
-          </nav>
-          <div class="view-body">
-            <div id='fixed-container' class='fixed-title'></div>
-            <article id="recents-container" class="view-body-inner">
-            </article>
+            </div>
           </div>
-        </section>
-      </section>
-    </article>
-
-    <nav id="main-toolbar" class="toolbar grid center">
-      <a id="option-recents" href="#recents-view" class="grid-cell grid-v-align toolbar-option ">
-        <div class="icon icon-recents"></div>
-      </a>
-      <a id="option-contacts" href="#contacts-view" class="grid-cell grid-v-align toolbar-option ">
-        <div class="icon icon-contacts"></div>
-      </a>
-      <a id="option-keypad" href="#keyboard-view" class="grid-cell grid-v-align toolbar-option toolbar-option-selected">
-        <div class="icon icon-keypad"></div>
-      </a>
-    </nav>
+          <article id="keyboard-container">
+            <section id="keypad">
+              <div class="keypad-cell">
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="1" data-voicemail="true">
+                      <span class="keypad-number font-light">1</span>
+                      <div class="keypad-subicon voicemail"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="4">
+                      <span class="keypad-number font-light">4</span>
+                      <span  class="keypad-text font-semibold">GHI</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="7">
+                      <span class="keypad-number font-light">7</span>
+                      <span class="keypad-text font-semibold">PQRS</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label keypad-key-label-centered" data-value="*">
+                      <span>
+                        <div class="asterisk"></div>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="2">
+                      <span class="keypad-number font-light">2</span>
+                      <span class="keypad-text font-semibold font-semibold">ABC</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="5">
+                      <span class="keypad-number font-light">5</span>
+                      <span class="keypad-text font-semibold">JKL</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="8">
+                      <span class="keypad-number font-light">8</span>
+                      <span  class="keypad-text font-semibold">TUV</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="0">
+                      <span class="keypad-number font-light">0</span>
+                      <span class="keypad-text font-semibold font-size-plus">+</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="3">
+                      <span class="keypad-number font-light">3</span>
+                      <span  class="keypad-text font-semibold">DEF</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="6">
+                      <span class="keypad-number font-light">6</span>
+                      <span  class="keypad-text font-semibold">MNO</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label" data-value="9">
+                      <span class="keypad-number font-light">9</span>
+                      <span  class="keypad-text font-semibold">WXYZ</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="keypad-key">
+                  <div class="keypad-key-label-container">
+                    <div class="keypad-key-label keypad-key-label-centered" data-type="dial" data-value="#">
+                      <span>
+                        <div class="sharp"></div>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+            <section id="keypad-callbar">
+              <span role="button" id="keypad-callbar-add-contact" data-type="action" data-value="add-contact" >
+                <div class="icon-add-contact"></div>
+              </span>
+              <span role="button" id="keypad-callbar-call-action" data-type="action" data-value="make-call">
+                <div>
+                </div>
+              </span>
+            </section>
+          </article>
+        </div>
+      </article>
+    </section>
 
     <form role="dialog" data-type="edit">
       <section>

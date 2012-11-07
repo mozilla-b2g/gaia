@@ -54,7 +54,6 @@ var WindowManager = (function() {
   var homescreen = null;
   var homescreenURL = '';
   var homescreenManifestURL = '';
-
   // keep the reference of inline activity frame here
   var inlineActivityFrame = null;
 
@@ -204,6 +203,23 @@ var WindowManager = (function() {
     frame.style.height = appFrame.style.height;
   }
 
+  function setFrameBackgroundBlob(frame, blob)
+  {
+    URL.revokeObjectURL(frame.dataset.bgObjectURL);
+    delete frame.dataset.bgObjectURL;
+
+    var objectURL = URL.createObjectURL(blob);
+    frame.dataset.bgObjectURL = objectURL;
+    frame.style.background = '#fff url(' + objectURL + ')';
+  }
+
+  function clearFrameBackground(frame)
+  {
+    URL.revokeObjectURL(frame.dataset.bgObjectURL);
+    delete frame.dataset.bgObjectURL;
+    frame.style.background = '';
+  }
+
   var openFrame = null;
   var closeFrame = null;
   var openCallback = null;
@@ -215,6 +231,13 @@ var WindowManager = (function() {
       return;
     }
 
+    // I think calling revokeObjectURL here probably isn't necessary, but
+    // better to aggressively revoke these object URLs than to leak one!  We
+    // always clear dataset.bgObjectURL when we revoke an object URL, so we
+    // can't double-revoke a URL (which would only be a problem if we reused
+    // object URLs, which we don't).
+    URL.revokeObjectURL(openFrame.dataset.bgObjectURL);
+
     openFrame.classList.remove('opening');
     openFrame.classList.remove('closing');
     openFrame = frame;
@@ -225,6 +248,9 @@ var WindowManager = (function() {
       closeFrame = frame;
       return;
     }
+
+    // As in setOpenFrame, this revokeObjectURL call is probably unnecessary.
+    URL.revokeObjectURL(closeFrame.dataset.bgObjectURL);
 
     closeFrame.classList.remove('opening');
     closeFrame.classList.remove('closing');
@@ -260,15 +286,10 @@ var WindowManager = (function() {
               openFrame.removeEventListener(
                 'mozbrowserfirstpaint', continueSpriteTransition);
 
-              // Run getAppScreenshotFromFrame() to ensure all CSS backgrounds
-              // of the apps are loaded.
-              getAppScreenshotFromFrame(openFrame,
-                function screenshotTaken() {
-                  sprite.className = 'opened';
-                  if ('wrapper' in openFrame.dataset) {
-                    wrapperFooter.classList.add('visible');
-                  }
-                });
+              sprite.className = 'opened';
+              if ('wrapper' in openFrame.dataset) {
+                wrapperFooter.classList.add('visible');
+              }
             });
 
           return;
@@ -283,7 +304,7 @@ var WindowManager = (function() {
 
         setTimeout(openCallback);
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setOpenFrame(null);
 
@@ -304,7 +325,7 @@ var WindowManager = (function() {
         windowClosed(closeFrame);
         setTimeout(closeCallback);
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setCloseFrame(null);
 
@@ -336,7 +357,7 @@ var WindowManager = (function() {
         openFrame.setVisible(true);
         openFrame.focus();
 
-        sprite.style.background = '';
+        clearFrameBackground(sprite);
         sprite.className = '';
         setOpenFrame(null);
 
@@ -503,10 +524,8 @@ var WindowManager = (function() {
 
     var req = frame.getScreenshot(frame.offsetWidth, frame.offsetHeight);
 
-    // This serve as a workaround of
+    // This serves as a workaround for
     // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
-    // We also use this timeout to make sure transition
-    // won't stuck for too long.
     var isTimeout = false;
     var timer = setTimeout(function getScreenshotTimeout() {
       console.warn('Window Manager: getScreenshot timeout.');
@@ -587,7 +606,7 @@ var WindowManager = (function() {
     setOpenFrame(app.frame);
 
     openCallback = callback || function() {};
-    
+
     // Dispatch a appwillopen event
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillopen', true, false, { origin: origin });
@@ -622,7 +641,7 @@ var WindowManager = (function() {
           return;
         }
 
-        sprite.style.background = '#fff url(' + screenshot + ')';
+        setFrameBackgroundBlob(sprite, screenshot);
         // Make sure Gecko paint the sprite first
         afterPaint(function() {
           // Start the transition
@@ -670,7 +689,7 @@ var WindowManager = (function() {
         return;
       }
 
-      sprite.style.background = '#fff url(' + screenshot + ')';
+      setFrameBackgroundBlob(sprite, screenshot);
       // Make sure Gecko paint the sprite first
       afterPaint(function() {
         // Start the transition
@@ -708,7 +727,7 @@ var WindowManager = (function() {
           openingAppSprite.dataset.mask = false;
         } else {
           openingAppSprite.dataset.mask = isCached;
-          openingAppSprite.style.background = '#fff url(' + screenshot + ')';
+          setFrameBackgroundBlob(openingAppSprite, screenshot);
         }
       }
     );
@@ -721,7 +740,7 @@ var WindowManager = (function() {
           closingAppSprite.dataset.mask = false;
         } else {
           closingAppSprite.dataset.mask = isCached;
-          closingAppSprite.style.background = '#fff url(' + screenshot + ')';
+          setFrameBackgroundBlob(closingAppSprite, screenshot);
         }
 
         // Start the animation
@@ -737,6 +756,9 @@ var WindowManager = (function() {
               screenElement.removeChild(closingAppSprite);
               screenElement.removeChild(openingAppSprite);
 
+              URL.revokeObjectURL(openingAppSprite.dataset.bgObjectURL);
+              URL.revokeObjectURL(closingAppSprite.dataset.bgObjectURL);
+
               // Show the new app
               openWindow(newOrigin, function opened() {
                 screenElement.classList.remove('switch-app');
@@ -750,7 +772,7 @@ var WindowManager = (function() {
 
   // Ensure the homescreen is loaded and return its frame.  Restarts
   // the homescreen app if it was killed in the background.
-  function ensureHomescreen(app, reset) {
+  function ensureHomescreen(reset) {
     // If the url of the homescreen is not known at this point do nothing.
     if (!homescreen || !homescreenManifestURL) {
       return null;
@@ -776,9 +798,9 @@ var WindowManager = (function() {
     return runningApps[homescreen].frame;
   }
 
-  function launchHomescreen() {
+  function retrieveHomescreen(callback) {
     var lock = navigator.mozSettings.createLock();
-    var setting = lock.get('homescreen.manifestURllL');
+    var setting = lock.get('homescreen.manifestURL');
     setting.onsuccess = function() {
       var app =
         Applications.getByManifestURL(this.result['homescreen.manifestURL']);
@@ -797,7 +819,7 @@ var WindowManager = (function() {
         homescreen = app.origin;
         homescreenURL = app.origin + '/index.html#root';
 
-        ensureHomescreen(app);
+        callback(app);
       }
     }
   }
@@ -830,11 +852,9 @@ var WindowManager = (function() {
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin || homescreen;
-
     // Returns the frame reference of the home screen app.
     // Restarts the homescreen app if it was killed in the background.
     var homescreenFrame = ensureHomescreen();
-
     // Discard any existing activity
     stopInlineActivity();
 
@@ -844,13 +864,20 @@ var WindowManager = (function() {
       if (callback)
         callback();
     }
-    // Case 2: null->homescreen || homescreen->app
+    // Case 2: null --> app
+    else if (!currentApp && newApp != homescreen) {
+      homescreenFrame.setVisible(false);
+      setAppSize(newApp);
+      openWindow(newApp, function windowOpened() {
+        // TODO Implement FTU stuff if necessary
+      });
+    }
+    // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
       if (!currentApp) {
         homescreenFrame.setVisible(true);
       }
-
       setAppSize(newApp);
 
       openWindow(newApp, function windowOpened() {
@@ -864,7 +891,7 @@ var WindowManager = (function() {
           callback();
       });
     }
-    // Case 3: app->homescreen
+    // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // Animate the window close.  Ensure the homescreen is in the
       // foreground since it will be shown during the animation.
@@ -876,12 +903,11 @@ var WindowManager = (function() {
       setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
-    // Case 4: app-to-app transition
+    // Case 5: app-to-app transition
     else {
       setAppSize(newApp);
       switchWindow(currentApp, newApp, callback);
     }
-
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
     if ((newApp == homescreen) && homescreenFrame) {
@@ -1065,8 +1091,9 @@ var WindowManager = (function() {
         return;
       }
 
-      sprite.style.background = '#fff url(' + screenshot + ')';
-      // Make sure Gecko paint the sprite first
+      setFrameBackgroundBlob(sprite, screenshot);
+
+      // Make sure Gecko paints the sprite first
       afterPaint(function() {
         // Start the transition
         sprite.className = 'inline-activity-opening';
@@ -1081,15 +1108,16 @@ var WindowManager = (function() {
     if (frame)
       windows.removeChild(frame);
 
-    if (openFrame == frame) {
-      sprite.style.background = '';
+    if (openFrame == frame || closeFrame == frame) {
+      clearFrameBackground(sprite);
       sprite.className = '';
+    }
+
+    if (openFrame == frame) {
       setOpenFrame(null);
       setTimeout(openCallback);
     }
     if (closeFrame == frame) {
-      sprite.style.background = '';
-      sprite.className = '';
       setCloseFrame(null);
       setTimeout(closeCallback);
     }
@@ -1180,14 +1208,17 @@ var WindowManager = (function() {
       // mozApps API is asking us to launch the app
       // We will launch it in foreground
       case 'webapps-launch':
-        if (!isRunning(origin)) {
-          appendFrame(null, origin, e.detail.url,
-                      name, app.manifest, app.manifestURL);
+        if (origin == homescreen) {
+          // No need to append a frame if is homescreen
+          setDisplayedApp();
+        } else {
+          if (!isRunning(origin)) {
+            appendFrame(null, origin, e.detail.url,
+                        name, app.manifest, app.manifestURL);
+          }
+          setDisplayedApp(origin, null, 'window');
         }
-
-        setDisplayedApp(origin, null, 'window');
         break;
-
       // System Message Handler API is asking us to open the specific URL
       // that handles the pending system message.
       // We will launch it in background if it's not handling an activity.
@@ -1448,7 +1479,7 @@ var WindowManager = (function() {
     } else if (displayedApp !== homescreen) {
       setDisplayedApp(homescreen);
     } else {
-      ensureHomescreen(null, true);
+      ensureHomescreen(true);
     }
   });
 
@@ -1504,6 +1535,6 @@ var WindowManager = (function() {
     },
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
-    launchHomescreen: launchHomescreen
+    retrieveHomescreen: retrieveHomescreen
   };
 }());

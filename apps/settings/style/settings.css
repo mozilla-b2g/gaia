@@ -11,6 +11,7 @@ html, body {
   overflow: hidden;
 }
 
+
 /******************************************************************************
  * Setting panels: full-size <section role="region"> blocks
  */
@@ -60,58 +61,6 @@ section[role="region"]:not(#root) > header:first-child + * {
   margin-top: 5rem;
 }
  */
-
-
-/******************************************************************************
- * Right-to-Left layout
- */
-
-/* panel transitions */
-
-html[dir="rtl"] section[role="region"] {
-  transform: translateX(-100%);
-}
-
-html[dir="rtl"] section[role="region"].previous  {
-  transform: translateX(+100%);
-}
-
-html[dir="rtl"] section[role="region"].current {
-  transform: translateX(0);
-}
-
-/* setting lists */
-
-html[dir="rtl"] ul li > a {
-  padding-left: inherit;
-  padding-right: 3rem;
-}
-
-html[dir="rtl"] ul li > small {
-  left: auto;
-  right: 3rem;
-}
-
-html[dir="rtl"] section[role="region"] label > span {
-  left: 1rem;
-  right: auto;
-}
-
-/* root list and icons */
-
-html[dir="rtl"] #root li a[data-l10n-id] {
-  background-position: right 1.4rem top 50%;
-}
-
-html[dir="rtl"] #root ul li > a {
-  padding-left: inherit;
-  padding-right: 5.5rem;
-}
-
-html[dir="rtl"] #root ul li > small {
-  left: auto;
-  right: 5.5rem;
-}
 
 
 /******************************************************************************
@@ -166,10 +115,9 @@ section li.identity {
   display: none;
 }
 
-section.WEP li.password,
-section.WPA-PSK li.password,
-section.WPA-EAP li.password,
-section.WPA-EAP li.identity {
+section[data-security*="WEP"] li.password,
+section[data-security*="WPA"] li.password,
+section[data-security*="EAP"] li.identity {
   display: block;
 }
 
@@ -277,5 +225,37 @@ ul li > label .range-icons.brightness {
 #clock-date,
 #clock-time {
   pointer-events: none;
+}
+
+
+/******************************************************************************
+ * Improve Firefox OS
+ */
+
+#improve-firefox-os .link-text {
+  white-space: nowrap;
+}
+
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+html[dir="rtl"] section[role="region"] {
+  transform: translateX(-100%);
+}
+
+html[dir="rtl"] section[role="region"].previous  {
+  transform: translateX(+100%);
+}
+
+html[dir="rtl"] section[role="region"].current {
+  transform: translateX(0);
+}
+
+/* 'show password' checkboxes */
+html[dir="rtl"] label[for^="pwd"] {
+  padding-left: inherit;
+  padding-right: 3rem;
 }
 

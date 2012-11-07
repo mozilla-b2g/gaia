@@ -371,6 +371,8 @@ onLocalized(function bluetoothSettings() {
         }
         var text = paired[0].name;
         if (length > 1) {
+          // FIXME: don't concatenate localized strings
+          // XXX this 'bt-status-pairmore' entity should not exist
           text += _('bt-status-pairmore', {n: length - 1});
         }
         gBluetoothInfoBlock.textContent = text;

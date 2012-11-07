@@ -101,8 +101,14 @@
  *    alterKeyboard(layout): allows the IM to modify the keyboard layout
  *      by specifying a new layout name. Only used by asian ims currently.
  *
- *    setUpperCase(): allows the IM to switch between uppercase and lowercase
- *      layout on the keyboard. Used by the latin IM.
+ *    setUpperCase(upperCase, upperCaseLocked): allows the IM to switch between
+ *    uppercase and lowercase layout on the keyboard. Used by the latin IM.
+ *      upperCase: to enable the upper case or not.
+ *      upperCaseLocked: to change the caps lock state.
+ *
+ *    resetUpperCase(): allows the IM to reset the upperCase to lowerCase
+ *    without knowing the internal states like caps lock and current layout
+ *    page while keeping setUpperCase simple as it is.
  */
 
 'use strict';
@@ -693,6 +699,8 @@ function renderKeyboard(keyboardName) {
     showCandidatePanel: Keyboards[keyboardName].needsCandidatePanel
   });
 
+  IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
+
   // If needed, empty the candidate panel
   if (inputMethod.empty)
     inputMethod.empty();
@@ -701,8 +709,18 @@ function renderKeyboard(keyboardName) {
   updateLayoutParams();
 }
 
-function setUpperCase(value) {
-  isUpperCase = value;
+function setUpperCase(upperCase, upperCaseLocked) {
+
+  upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
+                     isUpperCaseLocked : upperCaseLocked;
+
+  // Do nothing if the states are not changed
+  if (isUpperCase == upperCase &&
+      isUpperCaseLocked == upperCaseLocked)
+    return;
+
+  isUpperCaseLocked = upperCaseLocked;
+  isUpperCase = upperCase;
 
   // When case changes we have to re-render the keyboard.
   // But note that we don't have to relayout the keyboard, so
@@ -716,12 +734,21 @@ function setUpperCase(value) {
   IMERender.setUpperCaseLock(isUpperCaseLocked ? 'locked' : isUpperCase);
 }
 
+function resetUpperCase() {
+  if (isUpperCase &&
+      !isUpperCaseLocked &&
+      layoutPage === LAYOUT_PAGE_DEFAULT) {
+    setUpperCase(false);
+  }
+}
+
 function setLayoutPage(newpage) {
   if (newpage === layoutPage)
     return;
 
   // When layout mode changes we have to re-render the keyboard
   layoutPage = newpage;
+
   renderKeyboard(keyboardName);
 
   if (inputMethod.setLayoutPage)
@@ -1188,8 +1215,7 @@ function onMouseUp(evt) {
     if (isWaitingForSecondTap) {
       isWaitingForSecondTap = false;
 
-      isUpperCaseLocked = true;
-      setUpperCase(true);
+      setUpperCase(true, true);
 
       // Normal behavior: set timeout for second tap and toggle caps
     } else {
@@ -1203,8 +1229,7 @@ function onMouseUp(evt) {
       );
 
       // Toggle caps
-      isUpperCaseLocked = false;
-      setUpperCase(!isUpperCase);
+      setUpperCase(!isUpperCase, false);
     }
     break;
 
@@ -1372,7 +1397,8 @@ function loadIMEngine(name) {
     alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
       renderKeyboard(keyboard);
     },
-    setUpperCase: setUpperCase
+    setUpperCase: setUpperCase,
+    resetUpperCase: resetUpperCase
   };
 
   script.addEventListener('load', function IMEngineLoaded() {

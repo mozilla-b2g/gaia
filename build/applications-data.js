@@ -27,7 +27,6 @@ let content = {
       makeURL('music'),
       makeURL('video'),
       makeURL('calculator'),
-      makeURL('pdfjs'),
       'https://marketplace-dev.allizom.org/telefonica/'
     ]
   ],
@@ -37,6 +36,13 @@ let content = {
     makeURL('communications', 'contacts'),
     makeURL('browser'),
     makeURL('feedback')
+  ],
+  hidden: [
+    makeURL('homescreen'),
+    makeURL('keyboard'),
+    makeURL('wallpaper'),
+    makeURL('system'),
+    makeURL('pdfjs')
   ]
 }
 

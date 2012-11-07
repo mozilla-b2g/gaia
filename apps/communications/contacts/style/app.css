@@ -296,6 +296,19 @@ li a[role="button"].activity > b{
   bottom: 0;
 }
 
+/* Selection tag extended from shared/style/buttons.css */
+.view-select-tag .selection-list li button {
+  background-color: #fff;
+}
+
+.view-select-tag .selection-list li button:active {
+  background-color: #008AAA;
+}
+
+.view-select-tag .selection-list li button.icon-selected:before {
+  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
+}
+
 /* Input areas customization*/
 form p + p {
   margin-top: 0.5rem;
@@ -790,44 +803,6 @@ span[role="button"].icon-arrow.icon-arrow-right {
   height: 100%;
   background: transparent no-repeat center center;
   background-size: 100% auto;
-}
-
-/* SELECTION-LIST:  Items to be selected and used in another view */
-.selection-list {
-  border-radius: 0.3rem;
-  border: solid 1px #c8c8c8;
-  overflow: hidden;
-}
-
-.selection-list, .selection-list + .textfield {
-  margin-bottom: 1rem;
-}
-
-.selection-list > li {
-  background: #fff;
-  border-bottom: solid 1px #c8c8c8;
-  font: 1.4rem/2.6em MozTT, Sans-serif;
-  font-weight: 600;
-}
-
-.selection-list > li:last-child {
-  border-bottom: none;
-}
-
-.selection-list > li > a {
-  display: block;
-  color: #333;
-  position: relative;
-  padding:  0 0 0 1.8rem;
-  }
-
-/* This elements defines if the item is selected or not */
-.selection-list .slcl-state[role=button] {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  margin-top: -1.3rem;
-  background: transparent url(gphx/bitmap/default/lists/tick.png) no-repeat center center;
 }
 
 /* ----------------------------------

@@ -17,7 +17,6 @@ var RecentsDBManager = {
       this.request = indexedDB.open(this._dbName, this._dbVersion);
       //Once DB is opened
       this.request.onsuccess = function(event) {
-        console.log('DB Opened');
         //Store DB object in RecentsDBManager
         self.db = event.target.result;
         if (callback) {
@@ -42,7 +41,6 @@ var RecentsDBManager = {
   },
   close: function rbdm_close() {
     this.db.close();
-    console.log('DB Closed');
   },
   _checkDBReady: function rdbm_checkDBReady(callback) {
     var self = this;
@@ -142,7 +140,7 @@ var RecentsDBManager = {
   // Method for retrieving all recents from DB
   get: function rdbm_get(callback) {
     var objectStore = this.db.transaction(RecentsDBManager._dbStore).
-      objectStore(RecentsDBManager._dbStore);
+                        objectStore(RecentsDBManager._dbStore);
     var recents = [];
     var cursor = objectStore.openCursor(null, 'prev');
     cursor.onsuccess = function(event) {
@@ -156,9 +154,23 @@ var RecentsDBManager = {
     };
 
     cursor.onerror = function(e) {
-      console.log('recents_db get failure: ',
-          e.message);
+      console.log('recents_db get failure: ', e.message);
+    };
+  },
+
+  getLast: function rdbm_getLast(callback) {
+    var objectStore = this.db.transaction(RecentsDBManager._dbStore).
+                        objectStore(RecentsDBManager._dbStore);
+    var cursor = objectStore.openCursor(null, 'prev');
+    cursor.onsuccess = function(event) {
+      var item = event.target.result;
+      if (item) {
+        callback(item.value);
+      }
     };
 
+    cursor.onerror = function(e) {
+      console.log('recents_db get failure: ', e.message);
+    };
   }
 };

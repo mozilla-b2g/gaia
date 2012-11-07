@@ -3,41 +3,6 @@
 
 'use strict';
 
-// create a fake mozMobileConnection if required (e.g. desktop browser)
-var gMobileConnection = (function newMobileConnection(window) {
-  var navigator = window.navigator;
-  if (('mozMobileConnection' in navigator) &&
-      navigator.mozMobileConnection &&
-      navigator.mozMobileConnection.data) {
-    return navigator.mozMobileConnection;
-  }
-
-  var initialized = false;
-  var fakeICCInfo = { shortName: 'Fake Free-Mobile', mcc: 208, mnc: 15 };
-  var fakeNetwork = { shortName: 'Fake Orange F', mcc: 208, mnc: 1 };
-
-  function fakeEventListener(type, callback, bubble) {
-    if (initialized)
-      return;
-
-    // simulates a connection to a data network;
-    setTimeout(function fakeCallback() {
-      initialized = true;
-      callback();
-    }, 5000);
-  }
-
-  //var automaticNetworkSelection = true;
-
-  return {
-    addEventListener: fakeEventListener,
-    iccInfo: fakeICCInfo,
-    get data() {
-      return initialized ? { network: fakeNetwork } : null;
-    }
-  };
-})(this);
-
 // handle carrier settings
 var Carrier = (function newCarrier(window, document, undefined) {
   var APN_FILE = 'resources/apns_conf.xml';
@@ -155,6 +120,8 @@ var Carrier = (function newCarrier(window, document, undefined) {
         rilData('apn').value = item.apn || '';
         rilData('user').value = item.user || '';
         rilData('passwd').value = item.password || '';
+        rilData('httpProxyHost').value = item.proxy || '';
+        rilData('httpProxyPort').value = item.port || '';
       };
 
       // include the radio button element in a list item
@@ -248,7 +215,6 @@ var Carrier = (function newCarrier(window, document, undefined) {
 
     // display data carrier name
     var name = data ? (data.shortName || data.longName) : '';
-    document.getElementById('data-desc').textContent = name;
     document.getElementById('dataNetwork-desc').textContent = name;
   }
 
@@ -293,7 +259,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       lock.set({ 'ril.data.apn': item.apn || '' });
       lock.set({ 'ril.data.user': item.user || '' });
       lock.set({ 'ril.data.passwd': item.password || '' });
-      lock.set({ 'ril.data.httpProxyHost': item.host || '' });
+      lock.set({ 'ril.data.httpProxyHost': item.proxy || '' });
       lock.set({ 'ril.data.httpProxyPort': item.port || '' });
       restartDataConnection(true);
 

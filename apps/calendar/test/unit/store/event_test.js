@@ -39,31 +39,11 @@ suite('store/event', function() {
   });
 
   teardown(function(done) {
-    var trans = db.transaction('events', 'readwrite');
-    var accounts = trans.objectStore('events');
-    var res = accounts.clear();
-
-    res.onerror = function() {
-      done(new Error('could not wipe events db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
-  });
-
-  teardown(function(done) {
-    var trans = db.transaction('busytimes', 'readwrite');
-    var accounts = trans.objectStore('busytimes');
-    var res = accounts.clear();
-
-    res.onerror = function() {
-      done(new Error('could not wipe busytimes db'));
-    }
-
-    res.onsuccess = function() {
-      done();
-    }
+    testSupport.calendar.clearStore(
+      subject.db,
+      ['events', 'busytimes', 'icalComponents'],
+      done
+    );
   });
 
   teardown(function() {
@@ -216,10 +196,49 @@ suite('store/event', function() {
   suite('#remove', function() {
 
     //TODO: busytime removal tests?
+    //
+    suite('remove ical component', function() {
+      var component;
+      var event;
+      var componentStore;
+
+      setup(function(done) {
+        componentStore = db.getStore('IcalComponent');
+        event = Factory('event');
+        component = Factory('icalComponent', {
+          eventId: event._id
+        });
+
+        var trans = subject.db.transaction(
+          ['events', 'icalComponents'],
+          'readwrite'
+        );
+
+        trans.oncomplete = function() {
+          done();
+        }
+
+        subject.persist(event, trans);
+        componentStore.persist(component, trans);
+      });
+
+      setup(function(done) {
+        subject.remove(event._id, done);
+      });
+
+      test('after removing the event', function(done) {
+        componentStore.get(event._id, function(err, result) {
+          done(function() {
+            assert.ok(!result, 'removes component');
+          });
+        });
+      });
+    });
 
     suite('parent items /w children', function() {
       var parentId = 'parentStuff';
       var childId = 'child';
+      var id = 'foobar1';
 
       setup(function(done) {
         var item = Factory('event', {
@@ -317,14 +336,5 @@ suite('store/event', function() {
       });
     });
   });
-
-  suite('creation of dependancies', function() {
-    suite('busytime', function() {
-      var event;
-      setup(function() {
-      });
-    });
-  });
-
 
 });

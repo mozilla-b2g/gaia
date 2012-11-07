@@ -1,8 +1,24 @@
-#phoneLock[data-enabled="false"] li.passcode-enabled {
+#phoneLock li.lockscreen-enabled {
   display: none;
 }
 
-#phoneLock[data-enabled="true"] li.passcode-enabled {
+#phoneLock[data-lockscreen-enabled="true"] li.lockscreen-enabled {
+  display: block;
+}
+
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
+  display: block;
+}
+
+#phoneLock li.passcode-enabled {
+  display: none;
+}
+
+#phoneLock[data-lockscreen-enabled="true"][data-passcode-enabled="true"] li.passcode-enabled {
   display: block;
 }
 

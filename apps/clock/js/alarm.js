@@ -495,12 +495,32 @@ var AlarmManager = {
   },
 
   onAlarmFiredHandler: function am_onAlarmFiredHandler(message) {
+    // We have to ensure the CPU doesn't sleep during the process of
+    // handling alarm message, so that it can be handled on time.
+    var cpuWakeLock = navigator.requestWakeLock('cpu');
+
+    // Set a watchdog to avoid locking the CPU wake lock too long,
+    // because it'd exhaust the battery quickly which is very bad.
+    // This could probably happen if the app failed to launch or
+    // handle the alarm message due to any unexpected reasons.
+    var unlockCpuWakeLock = function unlockCpuWakeLock() {
+      if (cpuWakeLock) {
+        cpuWakeLock.unlock();
+        cpuWakeLock = null;
+      }
+    };
+    setTimeout(unlockCpuWakeLock, 30000);
+
     // XXX receive and paser the alarm id from the message
     var id = message.data.id;
     // use the alarm id to query db
     // find out which alarm is being fired.
     var self = this;
     AlarmsDB.getAlarm(id, function am_gotAlarm(alarm) {
+      if (!alarm) {
+        unlockCpuWakeLock();
+        return;
+      }
       // clear the requested id of went off alarm to DB
       alarm.alarmId = '';
       AlarmsDB.putAlarm(alarm, function am_putAlarm(alarm) {
@@ -510,8 +530,11 @@ var AlarmManager = {
       self._onFireAlarm = alarm;
       var protocol = window.location.protocol;
       var host = window.location.host;
-      window.open(protocol + '//' + host + '/onring.html',
-                  'ring_screen', 'attention');
+      var childWindow = window.open(protocol + '//' + host + '/onring.html',
+                                    'ring_screen', 'attention');
+      childWindow.onload = function childWindowLoaded() {
+        unlockCpuWakeLock();
+      };
     });
     this.updateAlarmStatusBar();
   },
@@ -754,7 +777,7 @@ var AlarmEditView = {
       minute: now.getMinutes(), // use current minute
       enabled: true,
       repeat: '0000000',
-      sound: 'ALARM_progressive_dapple.ogg',
+      sound: 'classic_buzz.ogg',
       snooze: 5,
       color: 'Darkorange'
     };
@@ -830,7 +853,7 @@ var AlarmEditView = {
   refreshSoundMenu: function aev_refreshSoundMenu(sound) {
     // XXX: Refresh and paser the name of sound file for sound menu.
     var sound = (sound) ? this.getSoundSelect() : this.alarm.sound;
-    this.soundMenu.innerHTML = sound.slice(0, sound.lastIndexOf('.'));
+    this.soundMenu.innerHTML = _(sound.slice(0, sound.lastIndexOf('.')));
   },
 
   initSnoozeSelect: function aev_initSnoozeSelect() {

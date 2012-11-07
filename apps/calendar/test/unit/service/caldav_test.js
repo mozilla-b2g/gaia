@@ -92,7 +92,7 @@ suite('service/caldav', function() {
 
       subject[event] = function() {
         calledWith = arguments;
-      }
+      };
 
       service.emit(event, 1, 2, 3, 4);
 
@@ -617,7 +617,7 @@ suite('service/caldav', function() {
       };
 
       // This test assumes PST TZ
-      var expectedDate = new Date("Sun, 01 Jan 2012 00:00:00 PST");
+      var expectedDate = new Date('Sun, 01 Jan 2012 00:00:00 PST');
 
       var result = subject.formatInputTime(input);
       assert.deepEqual(new Date(result.toJSDate()), expectedDate);
@@ -863,7 +863,7 @@ suite('service/caldav', function() {
         assetReq[method] = cb;
 
         return assetReq;
-      }
+      };
     }
 
     function mockXhr() {
@@ -984,8 +984,12 @@ suite('service/caldav', function() {
           }
         });
 
-        update.remote.icalComponent = ICAL.parse(fixtures.singleEvent);
         update = update.remote;
+
+        var eventDetails = {
+          event: update,
+          icalComponent: ICAL.parse(fixtures.singleEvent)
+        };
 
         mockAsset('put', function() {
           var args = Array.prototype.slice.call(arguments);
@@ -993,7 +997,9 @@ suite('service/caldav', function() {
           cb(null, null, mockXhr());
         });
 
-        subject.updateEvent(account, calendar, update, function(err, result) {
+        subject.updateEvent(account, calendar, eventDetails,
+                            function(err, result) {
+
           subject.parseEvent(result.icalComponent,
                              function(parseErr, newEvent) {
 

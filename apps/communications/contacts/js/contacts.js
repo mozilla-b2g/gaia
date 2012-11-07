@@ -355,14 +355,14 @@ var Contacts = (function() {
 
     var selectedLink;
     for (var option in options) {
-      var link = document.createElement('a');
-      link.href = '#';
+      var link = document.createElement('button');
       link.dataset.index = option;
       link.textContent = options[option].value;
 
       link.onclick = function(event) {
         var index = event.target.dataset.index;
         selectTag(event.target, tagList);
+        event.preventDefault();
       };
 
       if (update.textContent == TAG_OPTIONS[tagList][option].value) {
@@ -382,7 +382,7 @@ var Contacts = (function() {
     customTag.onclick = function(event) {
       if (selectedTag) {
         // Remove any mark if we had selected other option
-        selectedTag.removeChild(selectedTag.firstChild.nextSibling);
+        selectedTag.removeAttribute("class");
       }
       selectedTag = null;
     }
@@ -401,13 +401,10 @@ var Contacts = (function() {
     var index = link.dataset.index;
 
     if (selectedTag) {
-      selectedTag.removeChild(selectedTag.firstChild.nextSibling);
+      selectedTag.removeAttribute("class");
     }
 
-    var icon = document.createElement('span');
-    icon.className = 'slcl-state icon-selected';
-    icon.setAttribute('role', 'button');
-    link.appendChild(icon);
+    link.className = "icon icon-selected";
     selectedTag = link;
   };
 
@@ -616,6 +613,11 @@ var Contacts = (function() {
     });
   };
 
+  var onLineChanged = function() {
+    contacts.Settings.onLineChanged();
+    contacts.Details.onLineChanged();
+  };
+
   return {
     'doneTag': doneTag,
     'goBack' : handleBack,
@@ -635,15 +637,21 @@ var Contacts = (function() {
     'getTags': TAG_OPTIONS,
     'onLocalized': onLocalized,
     'showOverlay': showOverlay,
-    'hideOverlay': hideOverlay
+    'hideOverlay': hideOverlay,
+    'showContactDetail': contactListClickHandler,
+    'onLineChanged': onLineChanged
   };
 })();
 
 window.addEventListener('localized', function initContacts(evt) {
+
   fb.init(function contacts_init() {
     Contacts.onLocalized();
 
     contacts.Settings.init();
+
+    window.addEventListener('online', Contacts.onLineChanged);
+    window.addEventListener('offline', Contacts.onLineChanged);
 
     if (window.navigator.mozSetMessageHandler && window.self == window.top) {
       var actHandler = ActivityHandler.handle.bind(ActivityHandler);
@@ -659,6 +667,5 @@ window.addEventListener('localized', function initContacts(evt) {
       }
       Contacts.checkCancelableActivity();
     });
-  });
-
-});
+  }); // fb.init
+}); // addEventListener

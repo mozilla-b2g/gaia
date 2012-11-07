@@ -391,6 +391,21 @@ section.view[data-state="active"] {
     position: relative;
 }
 
+#view-settings ul li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+#view-settings ul li[aria-disabled="true"] {
+  pointer-events: none;
+}
+
 #view-settings ul li > label:not([for]) {
     height: 100%;
     left: 0;

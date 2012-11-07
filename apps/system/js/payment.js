@@ -80,8 +80,7 @@ var Payment = (function Payment() {
 
         // The payment request confirmation screen is shown within the trusted
         // UI.
-        TrustedUIManager.open('payment-confirmation', frame,
-                              kPaymentConfirmationScreen, chromeEventId);
+        TrustedUIManager.open('payment-confirmation', frame, chromeEventId);
         break;
 
       // Chrome asks Gaia to show the payment flow according to the
@@ -110,8 +109,7 @@ var Payment = (function Payment() {
         });
 
         // The payment flow is shown within the trusted UI.
-        TrustedUIManager.open('PaymentFlow', frame, e.detail.uri,
-                              chromeEventId);
+        TrustedUIManager.open('PaymentFlow', frame, chromeEventId);
         break;
 
       case 'close-payment-flow-dialog':

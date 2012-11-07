@@ -160,6 +160,7 @@
 .bluetooth-device {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+  padding-right: 3rem;
 }
 
 /* device icons */
@@ -285,3 +286,42 @@
 .privacy-everythingME {
   background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
 }
+
+
+/******************************************************************************
+ * Right-To-Left layout
+ */
+
+/* #root icons */
+
+html[dir="rtl"] #root li a[data-l10n-id] {
+  background-position: right 1.4rem top 50%;
+}
+
+html[dir="rtl"] #root ul a {
+  padding-left: inherit;
+  padding-right: 5.5rem;
+}
+
+html[dir="rtl"] #root li small {
+  left: auto;
+  right: 5.5rem;
+}
+
+/* other icons */
+
+html[dir="rtl"] #wifi-availableNetworks li,
+html[dir="rtl"] #bluetooth .devices li,
+html[dir="rtl"] #about-yourPrivacy li {
+  background-position: left 3rem top 50%;
+}
+
+html[dir="rtl"] #wifi-availableNetworks a.wifi-secure {
+  background-position: left center;
+}
+
+html[dir="rtl"] #bluetooth .devices li {
+  padding-left: 3rem;
+  padding-right: inherit;
+}
+

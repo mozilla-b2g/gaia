@@ -64,6 +64,7 @@ contacts.Search = (function() {
         contact.classList.remove('hide');
         count++;
       }
+      document.dispatchEvent(new CustomEvent('onupdate'));
     }
 
     if (count == 0) {

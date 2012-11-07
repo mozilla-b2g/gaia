@@ -30,155 +30,16 @@
     <!-- Specific code -->
     <script type="application/javascript" defer src="js/utils.js"></script>
     <script type="application/javascript" defer src="js/settings.js"></script>
+
+    <!-- Required to update the status of the root panel -->
+    <script type="application/javascript" defer src="js/battery.js"></script>
+    <script type="application/javascript" defer src="js/app_storage.js"></script>
+    <script type="application/javascript" defer src="js/media_storage.js"></script>
+    <script type="application/javascript" defer src="js/connectivity.js"></script>
+
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
   <body class="skin-organic">
-
-    <!-- Main List -->
-    <section role="region" id="root">
-      <header>
-        <h1 data-l10n-id="settings"> Settings </h1>
-      </header>
-
-      <!-- Main :: Network & Connectivity -->
-      <header>
-        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.radio.disabled" />
-            <span></span>
-          </label>
-          <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="geolocation.enabled" />
-            <span></span>
-          </label>
-          <a id="menuItem-gps" class="menu-item" data-l10n-id="gps">GPS</a>
-        </li>
-        <li>
-          <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
-          <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
-        </li>
-        <li>
-          <small id="data-desc" class="menu-item-desc"></small>
-          <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
-        </li>
-        <li>
-          <small id="bluetooth-desc" class="menu-item-desc"></small>
-          <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
-        </li>
-        <li>
-          <small id="internetSharing-desc" class="menu-item-desc"></small>
-          <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Personalization -->
-      <header>
-        <h2 data-l10n-id="personalization">Personalization</h2>
-      </header>
-      <ul>
-        <li>
-          <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
-        </li>
-        <li>
-          <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
-        </li>
-        <li>
-          <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
-        </li>
-        <li>
-          <small id="time-desc" class="menu-item-desc"></small>
-          <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
-        </li>
-        <li>
-          <small id="language-desc" class="menu-item-desc"></small>
-          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
-        </li>
-        <li>
-          <small id="keyboard-desc" class="menu-item-desc"></small>
-          <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Accounts -->
-      <header hidden>
-        <h2 data-l10n-id="accounts">Accounts</h2>
-      </header>
-      <ul hidden>
-        <li>
-          <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
-        </li>
-        <li>
-          <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Security & Privacy -->
-      <header>
-        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
-      </header>
-      <ul>
-        <li>
-          <small id="phoneLock-desc" class="menu-item-desc"></small>
-          <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
-        </li>
-        <li>
-          <small id="simCardLock-desc" class="menu-item-desc"></small>
-          <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
-        </li>
-        <li>
-          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
-        </li>
-        <li>
-          <small id="doNotTrack-desc" class="menu-item-desc"></small>
-          <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
-        </li>
-      </ul>
-
-      <!-- Main :: Device -->
-      <header>
-        <h2 data-l10n-id="device">Device</h2>
-      </header>
-      <ul>
-        <li>
-          <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
-        </li>
-        <li>
-          <small id="battery-desc" class="menu-item-desc"></small>
-          <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
-        </li>
-        <li>
-          <small id="device-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
-        </li>
-        <li id="media-storage-section">
-          <small id="media-storage-desc" class="menu-item-desc"></small>
-          <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
-        </li>
-        <li hidden>
-          <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
-        </li>
-        <li>
-          <a id="menuItem-helpAndFeedback" class="menu-item" href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
-        </li>
-      </ul>
-
-      <!-- Main :: SIM Toolkit -->
-      <header>
-        <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
-      </header>
-      <ul>
-        <li>
-          <small id="icc-desc" class="menu-item-desc"></small>
-          <a id="menuItem-icc" class="menu-item" href="#icc" data-l10n-id="simToolkit">SIM Toolkit</a>
-        </li>
-      </ul>
-    </section>
 
     <!--
       - Lazy-Loading: to avoid parsing all settings panels before necessary, the
@@ -193,67 +54,11 @@
       - Long story short: BE VERY CAREFUL WHEN CHANGING A SECTION ID!
       -->
 
-    <!-- Connectivity :: Wi-Fi -->
-    <section role="region" hidden id="wifi">
-      <!--
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="wifi"> Wi-Fi </h1>
-      </header>
-
-      <ul>
-        <li id="wifi-enabled">
-          <label>
-            <input type="checkbox" data-type="switch" />
-            <span></span>
-          </label>
-          <a data-l10n-id="wifi">Wi-Fi</a>
-        </li>
-        <li hidden>
-          <label>
-            <input type="checkbox" name="wifi.notification"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
-          <a data-l10n-id="networkNotification">Network notification</a>
-        </li>
-        <li id="wps-column">
-          <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
-          <a data-l10n-id="wpsMessage">Connect with WPS</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
-      </header>
-      <ul id="wifi-availableNetworks" data-state="off">
-        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
-          Turn Wi-Fi on to view available networks.
-        </li>
-        <li class="explanation" data-state="on" data-l10n-id="scanning">
-          Searching…
-        </li>
-        <li data-state="ready">
-          <label>
-            <button data-l10n-id="scanNetworks">Search Again</button>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
-          </label>
-        </li>
-      </ul>
-
-      <script type="application/javascript" src="js/wifi.js"></script>
+    <!--
+      - Note: the panels are stacked in reverse order on purpose - the main
+      - panel always comes last.  With this order, no 'z-index' rule is required
+      - to handle the panel transitions.
       -->
-    </section>
 
     <!-- Connectivity :: Wi-Fi :: Network Status -->
     <section role="region" hidden id="wifi-status">
@@ -457,47 +262,50 @@
       -->
     </section>
 
-    <!-- Connectivity :: Cellular & Data -->
-    <section role="region" hidden id="carrier">
+    <!-- Connectivity :: Wi-Fi -->
+    <section role="region" hidden id="wifi">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
+        <h1 data-l10n-id="wifi"> Wi-Fi </h1>
       </header>
 
       <ul>
-        <li>
-          <small id="dataNetwork-desc"></small>
-          <a data-l10n-id="dataNetwork">Carrier</a>
-        </li>
-        <li>
+        <li id="wifi-enabled">
           <label>
-            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+            <input type="checkbox" data-type="switch" />
             <span></span>
           </label>
-          <a data-l10n-id="callWaiting">Call Waiting</a>
+          <a data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li hidden>
+          <label>
+            <input type="checkbox" name="wifi.notification"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
+          <a data-l10n-id="networkNotification">Network notification</a>
+        </li>
+        <li id="wps-column">
+          <small data-l10n-id="wpsDescription">Automatic wireless network configuration</small>
+          <a data-l10n-id="wpsMessage">Connect with WPS</a>
         </li>
       </ul>
 
       <header>
-        <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
+        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
       </header>
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dataConnection">Data Connection</a>
+      <ul id="wifi-availableNetworks" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+          Turn Wi-Fi on to view available networks.
         </li>
-        <li>
-          <label>
-            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
-            <span></span>
-          </label>
-          <a data-l10n-id="dataRoaming">Data Roaming</a>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
         </li>
-        <li id="dataRoaming-expl" class="explanation">
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
         </li>
       </ul>
 
@@ -507,25 +315,12 @@
       <ul>
         <li>
           <label>
-            <button data-href="#carrier-operatorSettings"
-              data-l10n-id="networkOperator"> Network Operator </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#carrier-apnSettings"
-              data-l10n-id="apnSettings">APN Settings</button>
-          </label>
-        </li>
-        <li hidden>
-          <label>
-            <button data-href="#carrier-mmsSettings"
-              data-l10n-id="mmsSettings">MMS Settings</button>
+            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
           </label>
         </li>
       </ul>
 
-      <script type="application/javascript" defer src="js/carrier.js"></script>
+      <script type="application/javascript" src="js/wifi.js"></script>
       -->
     </section>
 
@@ -644,6 +439,78 @@
       -->
     </section>
 
+    <!-- Connectivity :: Cellular & Data -->
+    <section role="region" hidden id="carrier">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="cellularAndData"> Cellular &amp; Data </h1>
+      </header>
+
+      <ul>
+        <li>
+          <small id="dataNetwork-desc"></small>
+          <a data-l10n-id="dataNetwork">Carrier</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.callwaiting.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="dataConnectivity"> Data Connectivity </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="dataConnection">Data Connection</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.data.roaming_enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="dataRoaming">Data Roaming</a>
+        </li>
+        <li id="dataRoaming-expl" class="explanation">
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button data-href="#carrier-operatorSettings"
+              data-l10n-id="networkOperator"> Network Operator </button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button data-href="#carrier-apnSettings"
+              data-l10n-id="apnSettings">APN Settings</button>
+          </label>
+        </li>
+        <li hidden>
+          <label>
+            <button data-href="#carrier-mmsSettings"
+              data-l10n-id="mmsSettings">MMS Settings</button>
+          </label>
+        </li>
+      </ul>
+
+      <script type="application/javascript" defer src="js/carrier.js"></script>
+      -->
+    </section>
+
     <!-- Connectivity :: Bluetooth -->
     <section role="region" hidden id="bluetooth">
       <!--
@@ -714,6 +581,39 @@
       -->
     </section>
 
+    <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
+    <section role="region" hidden id="hotspot-wifiSettings">
+      <!--
+      <header>
+        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <menu type="toolbar">
+          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+        </menu>
+        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
+      </header>
+
+      <ul>
+        <li>
+          <p data-l10n-id="ssid-name">SSID Network Name</p>
+          <input type="text" data-setting="tethering.wifi.ssid" />
+        </li>
+        <li>
+          <p data-l10n-id="wifi-password">Password</p>
+          <input type="text" data-setting="tethering.wifi.security.password" />
+        </li>
+        <li>
+          <span data-l10n-id="wifi-security">Security
+            <select data-setting="tethering.wifi.security.type">
+              <option>open</option>
+              <option>WPA</option>
+              <option selected>WPA2</option>
+            </select>
+          </span>
+        </li>
+      </ul>
+      -->
+    </section>
+
     <!-- Connectivity :: Internet Sharing -->
     <section role="region" hidden id="hotspot">
       <!--
@@ -777,36 +677,60 @@
       -->
     </section>
 
-    <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
-    <section role="region" hidden id="hotspot-wifiSettings">
+    <!-- Personalization :: Sound :: Sound Selection -->
+    <section role="region" hidden id="sound-selection">
       <!--
       <header>
-        <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
         <menu type="toolbar">
-          <button type="submit"><span data-l10n-id="ok">OK</span></button>
+          <button data-l10n-id="done" type="submit">Done</button>
         </menu>
-        <h1 data-l10n-id="hotspotSettings"> HotSpot Settings </h1>
+        <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
+      <header>
+        <h2 data-l10n-id="ring-tones">Ringtones</h2>
+      </header>
       <ul>
         <li>
-          <p data-l10n-id="ssid-name">SSID Network Name</p>
-          <input type="text" data-setting="tethering.wifi.ssid" />
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="classic">Classic</a>
         </li>
         <li>
-          <p data-l10n-id="wifi-password">Password</p>
-          <input type="text" data-setting="tethering.wifi.security.password" />
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
+            <span></span>
+          </label>
+          <a data-l10n-id="oldSchool">Old School</a>
         </li>
         <li>
-          <span data-l10n-id="wifi-security">Security
-            <select data-setting="tethering.wifi.security.type">
-              <option>open</option>
-              <option>WPA</option>
-              <option selected>WPA2</option>
-            </select>
-          </span>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
+            <span></span>
+          </label>
+          <a data-l10n-id="lowBit">Low Bit</a>
         </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="alert-tones">Alert Tones</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
+            <span></span>
+          </label>
+          <a data-l10n-id="beep">Beep Beep</a>
+        </li>
+      </ul>
+
+      <audio style="display: none;" src="resources/ringtones/classic.ogg"></audio>
       -->
     </section>
 
@@ -882,63 +806,6 @@
       -->
     </section>
 
-    <!-- Personalization :: Sound :: Sound Selection -->
-    <section role="region" hidden id="sound-selection">
-      <!--
-      <header>
-        <button type="reset">
-          <span data-l10n-id="back" class="icon icon-back">Back</span>
-        </button>
-        <menu type="toolbar">
-          <button data-l10n-id="done" type="submit">Done</button>
-        </menu>
-        <h1 data-l10n-id="select-tone"> Select a Tone </h1>
-      </header>
-
-      <header>
-        <h2 data-l10n-id="ring-tones">Ringtones</h2>
-      </header>
-      <ul>
-        <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="classic.ogg" data-label="Classic" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="classic">Classic</a>
-        </li>
-        <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="old_school.ogg" data-label="Old School" />
-            <span></span>
-          </label>
-          <a data-l10n-id="oldSchool">Old School</a>
-        </li>
-        <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="low_bit.ogg" data-label="Low Bit" />
-            <span></span>
-          </label>
-          <a data-l10n-id="lowBit">Low Bit</a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="alert-tones">Alert Tones</h2>
-      </header>
-      <ul>
-        <li>
-          <label onmouseup="audioPreview(this)">
-            <input type="radio" name="tone-option" data-ignore value="sms.wav" data-label="Beep Beep" />
-            <span></span>
-          </label>
-          <a data-l10n-id="beep">Beep Beep</a>
-        </li>
-      </ul>
-
-      <audio style="display: none;" src="style/ringtones/classic.ogg"></audio>
-      -->
-    </section>
-
     <!-- Personalization :: Display -->
     <section role="region" hidden id="display">
       <!--
@@ -1007,6 +874,32 @@
       -->
     </section>
 
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
+    <section role="region" hidden id="dateTime-timezone">
+      <!--
+      <header>
+        <a href="#dateTime-continent"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
+      </header>
+
+      <ul id="timezone-zones-list">
+      </ul>
+      -->
+    </section>
+
+    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
+    <section role="region" hidden id="dateTime-continent">
+      <!--
+      <header>
+        <a href="#dateTime"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
+      </header>
+
+      <ul id="timezone-continents">
+      </ul>
+      -->
+    </section>
+
     <!-- Personalization :: Date & Time -->
     <section role="region" hidden id="dateTime">
       <!--
@@ -1047,32 +940,6 @@
       </ul>
 
       <script type="application/javascript" src="js/date_time.js"></script>
-      -->
-    </section>
-
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) -->
-    <section role="region" hidden id="dateTime-continent">
-      <!--
-      <header>
-        <a href="#dateTime"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezoneContinent"> Select Continent </h1>
-      </header>
-
-      <ul id="timezone-continents">
-      </ul>
-      -->
-    </section>
-
-    <!-- Personalization :: Date & Time :: Time Zone (Continent) :: Time Zone (Zones) -->
-    <section role="region" hidden id="dateTime-timezone">
-      <!--
-      <header>
-        <a href="#dateTime-continent"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="selectTimezone"> Select Time Zone </h1>
-      </header>
-
-      <ul id="timezone-zones-list">
-      </ul>
       -->
     </section>
 
@@ -1216,81 +1083,12 @@
         </li>
         <li>
           <label>
-            <input type="checkbox" name="keyboard.layouts.zhuyin"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
-          <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.pinyin"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
-          <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="keyboard.layouts.japanese"/>
-            <span></span>
-          </label>
-          <small data-l10n-id="jp-kanji-desc">Kanji</small>
-          <a data-l10n-id="jp-kanji">Japanese</a>
-        </li>
-        <li>
-          <label>
             <input type="checkbox" name="keyboard.layouts.greek"/>
             <span></span>
           </label>
           <a data-l10n-id="greek">Greek</a>
         </li>
       </ul>
-      -->
-    </section>
-
-    <!-- Security :: Phone Lock -->
-    <section role="region" hidden id="phoneLock" data-enabled="false">
-      <!--
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
-      </header>
-
-      <ul>
-        <li>
-          <label>
-            <input type="checkbox" name="lockscreen.enabled" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="lockScreen">Lock Screen</a>
-        </li>
-        <li>
-          <label>
-            <input type="checkbox" name="lockscreen.passcode-lock.enabled" id="passcode-enable" checked />
-            <span></span>
-          </label>
-          <a data-l10n-id="passcode-lock">Passcode Lock</a>
-        </li>
-        <li class="passcode-enabled" id="passcode-timeout-row">
-          <p data-l10n-id="require-passcode">Require passcode</p>
-          <select name="lockscreen.passcode-lock.timeout">
-            <option value="0" data-l10n-id="immediately" selected>Immediately</option>
-            <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
-            <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
-            <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
-            <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
-            <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
-          </select>
-        </li>
-        <li class="passcode-enabled">
-          <label>
-            <button data-l10n-id="change-passcode" id="passcode-edit">Change Passcode</button>
-          </label>
-        </li>
-      </ul>
-
-      <script type="application/javascript" src="js/phone_lock.js"></script>
       -->
     </section>
 
@@ -1335,46 +1133,48 @@
       -->
     </section>
 
-    <!-- Security :: SIM Security -->
-    <section role="region" hidden id="simpin">
+    <!-- Security :: Phone Lock -->
+    <section role="region" hidden id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="simSecurity"> SIM Security </h1>
+        <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
       </header>
 
       <ul>
-        <li id="simpin-enabled">
+        <li>
           <label>
-            <input type="checkbox" data-type="switch" />
+            <input type="checkbox" data-type="switch" name="lockscreen.enabled" id="lockscreen-enable" />
             <span></span>
           </label>
-          <a data-l10n-id="simPin">SIM PIN</a>
+          <a data-l10n-id="lockScreen">Lock Screen</a>
         </li>
-      </ul>
-
-      <dl>
-        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
-        <dd data-l10n-id="simPinIntro1">
-          A SIM PIN prevents access to the SIM card cellular data networks. When
-          it’s on, any device containing the SIM card will request the PIN upon
-          restart.
-        </dd>
-        <dd data-l10n-id="simPinIntro2">
-          A SIM PIN is not the same as the Passcode used to unlock the device.
-        </dd>
-      </dl>
-
-      <ul>
-        <li id="simpin-change">
+        <li class="lockscreen-enabled">
           <label>
-            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+            <input type="checkbox" data-type="switch" name="lockscreen.passcode-lock.enabled" id="passcode-enable" />
+            <span></span>
+          </label>
+          <a data-l10n-id="passcode-lock">Passcode Lock</a>
+        </li>
+        <li class="passcode-enabled" id="passcode-timeout-row">
+          <p data-l10n-id="require-passcode">Require passcode</p>
+          <select name="lockscreen.passcode-lock.timeout">
+            <option value="0" data-l10n-id="immediately" selected>Immediately</option>
+            <option value="60" data-l10n-id="after-one-minute">After 1 minute</option>
+            <option value="300" data-l10n-id="after-five-minutes">After 5 minutes</option>
+            <option value="900" data-l10n-id="after-fifteen-minutes">After 15 minutes</option>
+            <option value="3600" data-l10n-id="after-one-hour">After 1 hour</option>
+            <option value="14400" data-l10n-id="after-four-hours">After 4 hours</option>
+          </select>
+        </li>
+        <li class="passcode-enabled">
+          <label>
+            <button data-l10n-id="change-passcode" id="passcode-edit">Change Passcode</button>
           </label>
         </li>
       </ul>
 
-      <script type="application/javascript" src="js/simcard_lock.js"></script>
-      <script type="application/javascript" src="js/simcard_dialog.js"></script>
+      <script type="application/javascript" src="js/phone_lock.js"></script>
       -->
     </section>
 
@@ -1436,19 +1236,46 @@
       -->
     </section>
 
-    <!-- Security :: Application Permissions -->
-    <section role="region" hidden id="appPermissions">
+    <!-- Security :: SIM Security -->
+    <section role="region" hidden id="simpin">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="appPermissions">
-          Application Permissions
-        </h1>
+        <h1 data-l10n-id="simSecurity"> SIM Security </h1>
       </header>
+
       <ul>
+        <li id="simpin-enabled">
+          <label>
+            <input type="checkbox" data-type="switch" />
+            <span></span>
+          </label>
+          <a data-l10n-id="simPin">SIM PIN</a>
+        </li>
       </ul>
 
-      <script type="application/javascript" src="js/apps.js"></script>
+      <dl>
+        <dt data-l10n-id="whatIsSimPin">What is a SIM PIN?</dt>
+        <dd data-l10n-id="simPinIntro1">
+          A SIM PIN prevents access to the SIM card cellular data networks. When
+          it’s on, any device containing the SIM card will request the PIN upon
+          restart.
+        </dd>
+        <dd data-l10n-id="simPinIntro2">
+          A SIM PIN is not the same as the Passcode used to unlock the device.
+        </dd>
+      </dl>
+
+      <ul>
+        <li id="simpin-change">
+          <label>
+            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+          </label>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="js/simcard_lock.js"></script>
+      <script type="application/javascript" src="js/simcard_dialog.js"></script>
       -->
     </section>
 
@@ -1492,6 +1319,22 @@
       -->
     </section>
 
+    <!-- Security :: Application Permissions -->
+    <section role="region" hidden id="appPermissions">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="appPermissions">
+          Application Permissions
+        </h1>
+      </header>
+      <ul>
+      </ul>
+
+      <script type="application/javascript" src="js/apps.js"></script>
+      -->
+    </section>
+
     <!-- Security :: Do Not Track -->
     <section role="region" hidden id="doNotTrack">
       <!--
@@ -1526,161 +1369,6 @@
           log-in information.
         </dd>
       </dl>
-      -->
-    </section>
-
-    <!-- Device :: Information -->
-    <section role="region" hidden id="about">
-      <!--
-      <header>
-        <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="deviceInfo"> Device Information </h1>
-      </header>
-      <ul>
-        <li>
-          <a id="model-name" data-l10n-id="model-name"> Model
-            <span data-name="deviceinfo.hardware"></span>
-          </a>
-        </li>
-        <li>
-          <a id="os-version" data-l10n-id="os-version"> OS Version
-            <span data-name="deviceinfo.os"></span>
-          </a>
-        </li>
-        <li>
-          <a id="last-update-date" data-l10n-id="last-updated"> Last Updated
-            <span></span>
-          </a>
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-moreInfo"
-              data-l10n-id="more-info"> More Information </button>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
-      </header>
-      <ul>
-        <li>
-          <p data-l10n-id="check-for-updates">Check for Updates</p>
-          <select>
-            <option value="1"  data-l10n-id="check-update-daily">Daily</option>
-            <option value="7"  data-l10n-id="check-update-weekly">Weekly</option>
-            <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
-            <option value="0"  data-l10n-id="never">Never</option>
-          </select>
-        </li>
-        <li>
-          <label>
-            <button id="check-update-now"
-              data-l10n-id="check-update-now"> Check Now </button>
-          </label>
-        </li>
-        <li id="update-status" class="description" hidden></li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS </h2>
-      </header>
-      <ul>
-        <li class="description" data-l10n-id="firefox-os-desc">
-          Firefox OS is the free and open source operating system from Mozilla.
-          Our mission is to promote openness, innovation and opportunity by
-          keeping the power of the Web in your hands.
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-yourRights"
-              data-l10n-id="about-your-rights"> About Your Rights </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#about-yourPrivacy"
-              data-l10n-id="about-your-privacy"> About Your Privacy </button>
-          </label>
-        </li>
-        <li>
-          <label>
-            <button data-href="#licensing"
-              data-l10n-id="licensing"> Licensing </button>
-          </label>
-        </li>
-        <li>
-          <label for="share-performance-data" class="description">
-            <span>
-              <input type="checkbox" id="share-performance-data" name="debug.peformancedata.shared" />
-              <span data-l10n-id="share-performance-data">
-                I want to help make Firefox OS faster and easier to use by
-                sharing information about my phone’s performance.
-              </span>
-              <a href="https://www.mozilla.org/" data-l10n-id="learn-more"> Learn More </a>
-            </span>
-          </label>
-        </li>
-      </ul>
-
-      <script type="application/javascript" src="js/factory_reset.js"></script>
-      -->
-    </section>
-
-    <!-- Device :: Information :: More Information -->
-    <section role="region" hidden id="about-moreInfo">
-      <!--
-      <header>
-        <button type="reset">
-          <span data-l10n-id="back" class="icon icon-back">Back</span>
-        </button>
-        <h1 data-l10n-id="more-info"> More Information </h1>
-      </header>
-
-      <ul>
-        <li>
-          <a data-l10n-id="platform_version"> Platform Version
-            <span data-name="deviceinfo.platform_version"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="build-id"> Build Identifier
-            <span data-name="deviceinfo.platform_build_id"></span>
-          </a>
-        </li>
-        <li>
-          <a data-l10n-id="update-channel"> Update Channel
-            <span data-name="deviceinfo.update_channel"></span>
-          </a>
-        </li>
-        <li>
-          <label>
-            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
-          </label>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
-      </header>
-      <ul>
-        <li>
-          <small id="gaia-commit-hash"></small>
-          <a id="gaia-commit-date"></a>
-        </li>
-      </ul>
-
-      <header>
-        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
-      </header>
-      <ul>
-        <li>
-          <label>
-            <button data-href="#about-moreInfo-developer"
-              data-l10n-id="developer">Developer</button>
-          </label>
-        </li>
-      </ul>
       -->
     </section>
 
@@ -1754,7 +1442,103 @@
           </label>
           <a data-l10n-id="remote-debugging">Remote Debugging</a>
         </li>
+        <li>
+          <label>
+            <input type="checkbox" name="wifi.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
+        </li>
       </ul>
+
+      <header>
+        <h2 data-l10n-id="keyboardLayouts">Keyboard Layouts</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" name="keyboard.layouts.zhuyin"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
+          <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="keyboard.layouts.pinyin"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
+          <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="keyboard.layouts.japanese"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="jp-kanji-desc">Kanji</small>
+          <a data-l10n-id="jp-kanji">Japanese</a>
+        </li>
+      </ul>
+      -->
+    </section>
+
+    <!-- Device :: Information :: More Information -->
+    <section role="region" hidden id="about-moreInfo">
+      <!--
+      <header>
+        <button type="reset">
+          <span data-l10n-id="back" class="icon icon-back">Back</span>
+        </button>
+        <h1 data-l10n-id="more-info"> More Information </h1>
+      </header>
+
+      <ul>
+        <li>
+          <a data-l10n-id="platform_version"> Platform Version
+            <span data-name="deviceinfo.platform_version"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="build-id"> Build Identifier
+            <span data-name="deviceinfo.platform_build_id"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="update-channel"> Update Channel
+            <span data-name="deviceinfo.update_channel"></span>
+          </a>
+        </li>
+        <li>
+          <label>
+            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="gaia-commit-hash"></small>
+          <a id="gaia-commit-date"></a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button data-href="#about-moreInfo-developer"
+              data-l10n-id="developer">Developer</button>
+          </label>
+        </li>
+      </ul>
+
+      <script type="application/javascript" src="js/factory_reset.js"></script>
       -->
     </section>
 
@@ -1858,6 +1642,90 @@
       -->
     </section>
 
+    <!-- Device :: Information -->
+    <section role="region" hidden id="about">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="deviceInfo"> Device Information </h1>
+      </header>
+      <ul>
+        <li>
+          <a id="model-name" data-l10n-id="model-name"> Model
+            <span data-name="deviceinfo.hardware"></span>
+          </a>
+        </li>
+        <li>
+          <a id="os-version" data-l10n-id="os-version"> OS Version
+            <span data-name="deviceinfo.os"></span>
+          </a>
+        </li>
+        <li>
+          <a id="last-update-date" data-l10n-id="last-updated"> Last Updated
+            <span></span>
+          </a>
+        </li>
+        <li>
+          <label>
+            <button data-href="#about-moreInfo"
+              data-l10n-id="more-info"> More Information </button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="softwareUpdates"> Software Updates </h2>
+      </header>
+      <ul>
+        <li>
+          <p data-l10n-id="check-for-updates">Check for Updates</p>
+          <select>
+            <option value="1"  data-l10n-id="check-update-daily">Daily</option>
+            <option value="7"  data-l10n-id="check-update-weekly">Weekly</option>
+            <option value="30" data-l10n-id="check-update-monthly">Monthly</option>
+            <option value="0"  data-l10n-id="never">Never</option>
+          </select>
+        </li>
+        <li>
+          <label>
+            <button id="check-update-now"
+              data-l10n-id="check-update-now"> Check Now </button>
+          </label>
+        </li>
+        <li id="update-status" class="description" hidden></li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="aboutFirefoxOS"> About Firefox OS </h2>
+      </header>
+      <ul>
+        <li class="description" data-l10n-id="firefox-os-desc">
+          Firefox OS is the free and open source operating system from Mozilla.
+          Our mission is to promote openness, innovation and opportunity by
+          keeping the power of the Web in your hands.
+        </li>
+        <li>
+          <label>
+            <button data-href="#about-yourRights"
+              data-l10n-id="about-your-rights"> About Your Rights </button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button data-href="#about-yourPrivacy"
+              data-l10n-id="about-your-privacy"> About Your Privacy </button>
+          </label>
+        </li>
+        <li>
+          <label>
+            <button data-href="#licensing"
+              data-l10n-id="licensing"> Licensing </button>
+          </label>
+        </li>
+      </ul>
+      -->
+    </section>
+
     <!-- Device :: Battery -->
     <section role="region" hidden id="battery">
       <!--
@@ -1900,8 +1768,6 @@
           services back on manually.
         </li>
       </ul>
-
-      <script type="application/javascript" src="js/battery.js"></script>
       -->
     </section>
 
@@ -1922,18 +1788,18 @@
         </li>
 
         <li>
-          <a id="apps-total-space" data-l10n-id="apps-total-space"> Total Space
-            <span></span>
+          <a data-l10n-id="apps-total-space"> Total Space
+            <span id="apps-total-space"></span>
           </a>
         </li>
         <li>
-          <a id="apps-used-space" data-l10n-id="apps-used-space"> Used
-            <span></span>
+          <a data-l10n-id="apps-used-space"> Used
+            <span id="apps-used-space"></span>
           </a>
         </li>
         <li>
-          <a id="apps-free-space" data-l10n-id="apps-free-space"> Left
-            <span></span>
+          <a data-l10n-id="apps-free-space"> Left
+            <span id="apps-free-space"></span>
           </a>
         </li>
         <li class="description" data-l10n-id="media-storage-details">
@@ -1941,8 +1807,6 @@
           See Media Storage for details.
         </li>
       </ul>
-
-      <script type="application/javascript" src="js/app_storage.js"></script>
       -->
     </section>
 
@@ -1955,23 +1819,23 @@
       </header>
       <ul>
         <li>
-          <a id="music-space" data-l10n-id="music-space"> Music
-            <span></span>
+          <a data-l10n-id="music-space"> Music
+            <span id="music-space"></span>
           </a>
         </li>
         <li>
-          <a id="pictures-space" data-l10n-id="pictures-space"> Pictures
-            <span></span>
+          <a data-l10n-id="pictures-space"> Pictures
+            <span id="pictures-space"></span>
           </a>
         </li>
         <li>
-          <a id="videos-space" data-l10n-id="videos-space"> Movies
-            <span></span>
+          <a data-l10n-id="videos-space"> Movies
+            <span id="videos-space"></span>
           </a>
         </li>
         <li>
-          <a id="media-free-space" data-l10n-id="left-space"> Space Left
-            <span></span>
+          <a data-l10n-id="left-space"> Space Left
+            <span id="media-free-space"></span>
           </a>
         </li>
       </ul>
@@ -1989,8 +1853,6 @@
           <a data-l10n-id="umsEnabled">USB Mass Storage Enabled</a>
         </li>
       </ul>
-
-      <script type="application/javascript" src="js/storage.js"></script>
       -->
     </section>
 
@@ -2016,6 +1878,74 @@
             <span></span>
           </label>
           <a data-l10n-id="screenReader">Screen Reader</a>
+        </li>
+      </ul>
+      -->
+    </section>
+
+    <!-- Device :: Improve Firefox OS -->
+    <section role="region" hidden id="improveFirefoxOS">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="improveFirefoxOS">Improve Firefox OS</h1>
+      </header>
+
+      <header>
+        <h2 data-l10n-id="performanceData">Performance Data</h2>
+      </header>
+      <ul>
+        <li>
+          <label for="" class="description">
+            <span data-l10n-id="performanceDataInfo">
+              Make Firefox OS faster and easier to use by sharing
+              information over Wi-Fi about your phone’s performance.
+            </span>
+            <a href="https://www.mozilla.org/" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.peformancedata.shared" />
+            <span></span>
+          </label>
+          <a data-l10n-id="sharePerformanceData">Submit performance data</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="crashReports">Crash Reports</h2>
+      </header>
+      <ul>
+        <li>
+          <label for="" class="description">
+            <span data-l10n-id="crashReportInfo">
+              Sending Mozilla a report when a crash occurs helps us fix the problem
+              for everyone. Reports are sent over Wi-Fi only.
+            </span>
+            <a href="https://www.mozilla.org/" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="always"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="alwaysSendReport">Always send a report</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="never" />
+            <span></span>
+          </label>
+          <a data-l10n-id="neverSendReport">Never send a report</a>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="app.reportCrashes" value="ask" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="askToSendReport">Ask me when a crash occurs</a>
         </li>
       </ul>
       -->
@@ -2081,6 +2011,155 @@
       <script type="application/javascript" src="/shared/js/notification_helper.js"></script>
       <script type="application/javascript" src="js/icc.js"></script>
       -->
+    </section>
+
+    <!-- Main List -->
+    <section role="region" id="root">
+      <header>
+        <h1 data-l10n-id="settings"> Settings </h1>
+      </header>
+
+      <!-- Main :: Network & Connectivity -->
+      <header>
+        <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="ril.radio.disabled" />
+            <span></span>
+          </label>
+          <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" data-type="switch" name="geolocation.enabled" />
+            <span></span>
+          </label>
+          <a id="menuItem-gps" class="menu-item" data-l10n-id="gps">GPS</a>
+        </li>
+        <li>
+          <small id="wifi-desc" class="menu-item-desc" data-l10n-id="fullStatus-disconnected">offline</small>
+          <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li>
+          <small id="data-desc" class="menu-item-desc"></small>
+          <a id="menuItem-cellularAndData" class="menu-item" href="#carrier" data-l10n-id="cellularAndData">Cellular &amp; Data</a>
+        </li>
+        <li>
+          <small id="bluetooth-desc" class="menu-item-desc"></small>
+          <a id="menuItem-bluetooth" class="menu-item" href="#bluetooth" data-l10n-id="bluetooth">Bluetooth</a>
+        </li>
+        <li>
+          <small id="internetSharing-desc" class="menu-item-desc"></small>
+          <a id="menuItem-internetSharing" class="menu-item" href="#hotspot" data-l10n-id="internetSharing">Internet Sharing</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Personalization -->
+      <header>
+        <h2 data-l10n-id="personalization">Personalization</h2>
+      </header>
+      <ul>
+        <li>
+          <a id="menuItem-sound" class="menu-item" href="#sound" data-l10n-id="sound">Sound</a>
+        </li>
+        <li>
+          <a id="menuItem-display" class="menu-item" href="#display" data-l10n-id="display">Display</a>
+        </li>
+        <li>
+          <a id="menuItem-notifications" class="menu-item" href="#notifications" data-l10n-id="notifications">Notifications</a>
+        </li>
+        <li>
+          <small id="time-desc" class="menu-item-desc"></small>
+          <a id="menuItem-dateAndTime" class="menu-item" href="#dateTime" data-l10n-id="dateAndTime">Date &amp; Time</a>
+        </li>
+        <li>
+          <small id="language-desc" class="menu-item-desc"></small>
+          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
+        </li>
+        <li>
+          <small id="keyboard-desc" class="menu-item-desc"></small>
+          <a id="menuItem-keyboard" class="menu-item" href="#keyboard" data-l10n-id="keyboard">Keyboard</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Accounts -->
+      <header hidden>
+        <h2 data-l10n-id="accounts">Accounts</h2>
+      </header>
+      <ul hidden>
+        <li>
+          <a id="menuItem-persona" class="menu-item" href="#persona" data-l10n-id="persona">Persona</a>
+        </li>
+        <li>
+          <a id="menuItem-mail" class="menu-item" href="#mail" data-l10n-id="mail">Mail</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Security & Privacy -->
+      <header>
+        <h2 data-l10n-id="securityAndPrivacy">Security &amp; Privacy</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="phoneLock-desc" class="menu-item-desc"></small>
+          <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
+        </li>
+        <li>
+          <small id="simCardLock-desc" class="menu-item-desc"></small>
+          <a id="menuItem-simSecurity" class="menu-item" href="#simpin" data-l10n-id="simSecurity">SIM Security</a>
+        </li>
+        <li>
+          <a id="menuItem-appPermissions" class="menu-item" href="#appPermissions" data-l10n-id="appPermissions">App Permissions</a>
+        </li>
+        <li>
+          <small id="doNotTrack-desc" class="menu-item-desc"></small>
+          <a id="menuItem-doNotTrack" class="menu-item" href="#doNotTrack" data-l10n-id="doNotTrack">Do Not Track</a>
+        </li>
+      </ul>
+
+      <!-- Main :: Device -->
+      <header>
+        <h2 data-l10n-id="device">Device</h2>
+      </header>
+      <ul>
+        <li>
+          <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+        </li>
+        <li>
+          <small id="battery-desc" class="menu-item-desc"></small>
+          <a id="menuItem-battery" class="menu-item" href="#battery" data-l10n-id="battery">Battery</a>
+        </li>
+        <li>
+          <small id="device-storage-desc" class="menu-item-desc"></small>
+          <a id="menuItem-deviceStorage" class="menu-item" href="#deviceStorage" data-l10n-id="deviceStorage">Device Storage</a>
+        </li>
+        <li id="media-storage-section">
+          <small id="media-storage-desc" class="menu-item-desc"></small>
+          <a id="menuItem-mediaStorage" class="menu-item" href="#mediaStorage" data-l10n-id="mediaStorage">Media Storage</a>
+        </li>
+        <li hidden>
+          <a id="menuItem-accessibility" class="menu-item" href="#accessibility" data-l10n-id="accessibility">Accessibility</a>
+        </li>
+        <li>
+          <a id="menuItem-helpAndFeedback" class="menu-item" href="#improveFirefoxOS" data-l10n-id="improveFirefoxOS">Improve Firefox OS</a>
+        </li>
+        <li>
+          <a id="menuItem-helpAndFeedback" class="menu-item" href="#help" data-l10n-id="helpAndFeedback">Help &amp; Feedback</a>
+        </li>
+      </ul>
+
+      <!-- Main :: SIM Toolkit -->
+      <header>
+        <h2 data-l10n-id="simToolkit">SIM Toolkit</h2>
+      </header>
+      <ul>
+        <li>
+          <small id="icc-desc" class="menu-item-desc"></small>
+          <a id="menuItem-icc" class="menu-item" href="#icc" data-l10n-id="simToolkit">SIM Toolkit</a>
+        </li>
+      </ul>
     </section>
 
   </body>

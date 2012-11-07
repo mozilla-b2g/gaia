@@ -60,7 +60,7 @@ function MessageListCard(domNode, mode, args) {
     domNode.getElementsByClassName('msg-messages-container')[0];
 
   this.messageEmptyContainer =
-    domNode.getElementsByClassName('msg-list-empty')[0];
+    domNode.getElementsByClassName('msg-list-empty-container')[0];
   // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
@@ -88,9 +88,12 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onCompose.bind(this), false);
 
   // - toolbar: non-edit mode
-  domNode.getElementsByClassName('msg-search-btn')[0]
+  this.toolbar = {};
+  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
+  this.toolbar.searchBtn
     .addEventListener('click', this.onSearchButton.bind(this), false);
-  domNode.getElementsByClassName('msg-edit-btn')[0]
+  this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
+  this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
   domNode.getElementsByClassName('msg-refresh-btn')[0]
     .addEventListener('click', this.onRefresh.bind(this), false);
@@ -294,6 +297,8 @@ MessageListCard.prototype = {
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
+    this.hideEmptyLayout();
+
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
@@ -372,6 +377,18 @@ MessageListCard.prototype = {
     }
   },
 
+  showEmptyLayout: function() {
+    this.messageEmptyContainer.classList.remove('collapsed');
+    this.toolbar.editBtn.classList.add('disabled');
+    this.toolbar.searchBtn.classList.add('disabled');
+    this._hideSearchBoxByScrolling();
+  },
+  hideEmptyLayout: function() {
+    this.messageEmptyContainer.classList.add('collapsed');
+    this.toolbar.editBtn.classList.remove('disabled');
+    this.toolbar.searchBtn.classList.remove('disabled');
+  },
+
   onSliceRequestComplete: function() {
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
@@ -382,7 +399,7 @@ MessageListCard.prototype = {
       this.syncMoreNode.classList.add('collapsed');
 
     if (this.messagesSlice.items.length === 0) {
-      this.messageEmptyContainer.classList.remove('collapsed');
+      this.showEmptyLayout();
     }
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
@@ -480,7 +497,7 @@ MessageListCard.prototype = {
 
       // Check the message count after deletion:
       if (this.messagesContainer.children.length === 0) {
-        this.messageEmptyContainer.classList.remove('collapsed');
+        this.showEmptyLayout();
       }
     }
 
@@ -499,7 +516,7 @@ MessageListCard.prototype = {
 
     // Remove the no message text while new messages added:
     if (addedItems.length > 0) {
-      this.messageEmptyContainer.classList.add('collapsed');
+      this.hideEmptyLayout();
     }
 
     addedItems.forEach(function(message) {
@@ -961,23 +978,45 @@ MessageReaderCard.prototype = {
                 attachment.mimetype);
     if (!attachment._file)
       return;
+
     try {
-      var activity = new MozActivity({
-        name: 'open',
-        data: {
-          type: attachment.mimetype,
-          filename: attachment._file[1]
-        }
-      });
-      activity.onerror = function() {
-        console.warn('Problem with "open" activity', activity.error.name);
+      // Get the file contents as a blob, so we can open the blob
+      var storageType = attachment._file[0];
+      var filename = attachment._file[1];
+      var storage = navigator.getDeviceStorage(storageType);
+      var getreq = storage.get(filename);
+
+      getreq.onerror = function() {
+        console.warn('Could not open attachment file: ', filename,
+                     getreq.error.name);
       };
-      activity.onsuccess = function() {
-        console.log('"open" activity allegedly succeeded');
+
+      getreq.onsuccess = function() {
+        try {
+          // Now that we have the file, use an activity to open it
+          var file = getreq.result;
+          var activity = new MozActivity({
+            name: 'open',
+            data: {
+              type: attachment.mimetype,
+              blob: file
+            }
+          });
+          activity.onerror = function() {
+            console.warn('Problem with "open" activity', activity.error.name);
+          };
+          activity.onsuccess = function() {
+            console.log('"open" activity allegedly succeeded');
+          };
+        }
+        catch (ex) {
+          console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+        }
       };
     }
     catch (ex) {
-      console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+      console.warn('Exception getting attachment from device storage:',
+                   attachment._file, '\n', ex, '\n', ex.stack);
     }
   },
 

@@ -187,6 +187,35 @@ suite('Render contact form', function() {
       }
     });
 
+    test('FB Contact. home address from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var fbContact = new MockFb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+
+        var content = document.body.innerHTML;
+        var toCheck = ['address'];
+        for (var i = 0; i < toCheck.length; i++) {
+          var element = 'add-' + toCheck[i];
+          assert.isTrue(content.indexOf(element + '-0') > -1);
+          assert.isTrue(content.indexOf(element + '-1') === -1);
+
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'),
+                        'Class Removed and Facebook present');
+          assert.isTrue(domElement0.querySelector('.icon-delete') === null,
+                        'Icon delete not present');
+        }
+
+        assertAddressData(0);
+
+        assert.isFalse(footer.classList.contains('hide'));
+      }
+    });
+
+
     test('FB Linked. e-mail and phone both from FB and device', function() {
       window.fb.setIsFbContact(true);
       window.fb.setIsFbLinked(true);
@@ -259,6 +288,18 @@ suite('Render contact form', function() {
     var typeEmail = document.querySelector('#email_type_' + c).textContent;
     assert.isTrue(valueEmail === mockContact.email[c].value);
     assert.isTrue(typeEmail === mockContact.email[c].type);
+  }
+
+  function assertAddressData(c) {
+    var valueType = document.querySelector('#address_type_' + c).textContent;
+    assert.isTrue(valueType === mockContact.adr[c].type[0],
+                  'Type Value as Expected');
+    valueType = document.querySelector('#locality_' + c).value;
+    assert.isTrue(valueType === mockContact.adr[c].locality,
+                  'Type Value as Expected');
+    valueType = document.querySelector('#countryName_' + c).value;
+    assert.isTrue(valueType === mockContact.adr[c].countryName,
+                  'Type Value as Expected');
   }
 
 });

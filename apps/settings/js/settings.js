@@ -5,7 +5,8 @@
 
 /**
  * Debug note: to test this app in a desktop browser, you'll have to set
- * the `dom.mozSettings.enabled' preference to false.
+ * the `dom.mozSettings.enabled' preference to false in order to avoid an
+ * `uncaught exception: 2147500033' message (= 0x80004001).
  */
 
 var Settings = {
@@ -67,7 +68,7 @@ var Settings = {
 
     // apply the HTML markup stored in the first comment node
     for (var i = 0; i < panel.childNodes.length; i++) {
-      if (panel.childNodes[i].nodeType == 8) {
+      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
         panel.innerHTML = panel.childNodes[i].nodeValue;
         break;
       }
@@ -399,11 +400,11 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
 
   // panel lazy-loading
-  function loadPanel(panel) {
+  function lazyLoad(panel) {
     if (panel.children.length) // already initialized
       return;
 
-    // load the panel and its sub-panels
+    // load the panel and its sub-panels (dependencies)
     // (load the main panel last because it contains the scripts)
     var selector = 'section[id^="' + panel.id + '-"]';
     var subPanels = document.querySelectorAll(selector);
@@ -450,44 +451,63 @@ window.addEventListener('load', function loadSettings() {
         document.querySelector('[data-l10n-id="user-guide"]').onclick =
           Settings.openUserGuide.bind(Settings);
         break;
+      case 'mediaStorage':        // full media storage status + panel startup
+        MediaStorage.initUI();
+        break;
+      case 'deviceStorage':       // full device storage status
+        AppStorage.update();
+        break;
+      case 'battery':             // full battery status
+        Battery.update();
+        break;
     }
   }
 
   // panel navigation
-  var oldHash = '#root';
+  var oldHash = window.location.hash || '#root';
   function showPanel() {
     var hash = window.location.hash;
-    if (hash == oldHash)
-      return;
-
     var oldPanel = document.querySelector(oldHash);
     var newPanel = document.querySelector(hash);
 
-    loadPanel(newPanel);
+    // load panel (+ dependencies) if necessary -- this should be synchronous
+    lazyLoad(newPanel);
 
+    // switch previous/current classes -- the timeout is required to make the
+    // transition smooth after lazy-loading a panel
     setTimeout(function switchPanel() {
       oldPanel.className = newPanel.className ? '' : 'previous';
       newPanel.className = 'current';
       oldHash = hash;
-    }, 50); // XXX should be zero
 
-    /**
-     * Most browsers now scroll content into view taking CSS transforms into
-     * account.  That's not what we want when moving between <section>s, because
-     * the being-moved-to section is offscreen when we navigate to its #hash.
-     * The transitions assume the viewport is always at document 0,0.  So add a
-     * hack here to make that assumption true again.
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
-     */
-    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
-      window.scrollTo(0, 0);
-    }
+      /**
+       * Most browsers now scroll content into view taking CSS transforms into
+       * account.  That's not what we want when moving between <section>s,
+       * because the being-moved-to section is offscreen when we navigate to its
+       * #hash.  The transitions assume the viewport is always at document 0,0.
+       * So add a hack here to make that assumption true again.
+       * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+       */
+      if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
+        window.scrollTo(0, 0);
+      }
+    });
   }
 
   // startup
   window.addEventListener('hashchange', showPanel);
-  if (!document.location.hash) {
-    document.location.hash = 'root';
+  switch (window.location.hash) {
+    case '':
+      document.location.hash = 'root';
+      break;
+    case '#root':
+      document.getElementById('root').className = 'current';
+      showPanel();
+      break;
+    default:
+      document.getElementById('root').className = 'previous';
+      showPanel();
+      break;
   }
 });
 
@@ -513,19 +533,11 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
   }
 });
 
-// startup
+// startup & language switching
 window.addEventListener('localized', function showLanguages() {
   // set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
-
-  // locale switching: (XXX might be obsolete)
-  // reset the hash to prevent weird focus bugs when switching LTR/RTL
-  if (document.location.hash == '#languages') {
-    window.setTimeout(function() {
-      document.location.hash = 'languages';
-    });
-  }
 
   // display the current locale in the main panel
   var LANGUAGES = 'resources/languages.json';

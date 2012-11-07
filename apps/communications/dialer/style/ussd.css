@@ -20,18 +20,12 @@ html, body {
 }
 
 #message-container {
-  width: 100%;
   height: -moz-calc(100% - 5rem - 5rem);
-  display: -moz-box;
-  -moz-box-orient: horizontal;
-  -moz-box-pack: center;
-  -moz-box-align: center;
 }
 
 #message {
   font-size: 2rem;
   padding: 1rem;
-  -moz-box-flex: 1;
   white-space: pre-line;
   word-wrap: break-word;
   overflow: auto;
