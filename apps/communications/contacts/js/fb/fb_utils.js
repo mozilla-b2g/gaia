@@ -16,6 +16,18 @@ if (!fb.utils) {
     var REDIRECT_LOGOUT_URI = fb.oauthflow.params['redirectLogout'];
     var STORAGE_KEY = Utils.TOKEN_DATA_KEY = 'tokenData';
 
+    function getMozContactByUid(uid, success, error) {
+      var filter = {
+        filterBy: ['category'],
+        filterValue: uid,
+        filterOp: 'contains'
+      };
+
+      var req = navigator.mozContacts.find(filter);
+      req.onsuccess = success;
+      req.onerror = error;
+    }
+
       // For controlling data synchronization
     Utils.setLastUpdate = function(value, cb) {
       window.asyncStorage.setItem(LAST_UPDATED_KEY, {
@@ -65,26 +77,42 @@ if (!fb.utils) {
     Utils.getMozContact = function(uid) {
       var outReq = new Utils.Request();
 
-      var filter = {
-        filterBy: ['category'],
-        filterValue: uid,
-        filterOp: 'contains'
-      };
+      window.setTimeout(function get_mozContact_ByUid() {
+        getMozContactByUid(uid,
+          function onsuccess(e) {
+            if (e.target.result && e.target.result.length > 0) {
+              outReq.done(e.target.result[0]);
+            } else {
+              outReq.done(null);
+            }
+          },
+          function onerror(e) {
+            outReq.failed(e.target.error);
+          }
+        );
+      }, 0);
 
-      var req = navigator.mozContacts.find(filter);
+      return outReq;
+    };
 
-      req.onsuccess = function(e) {
-        if (e.target.result && e.target.result.length > 0) {
-          outReq.done(e.target.result[0]);
-        }
-        else {
-          outReq.done(null);
-        }
-      }
+    // Returns the number of mozContacts associated to a UID in FB
+    Utils.getNumberMozContacts = function(uid) {
+      var outReq = new Utils.Request();
 
-      req.onerror = function(e) {
-        outReq.failed(e.target.error);
-      }
+      window.setTimeout(function get_mozContact_ByUid() {
+        getMozContactByUid(uid,
+          function onsuccess(e) {
+            if (e.target.result && e.target.result.length > 0) {
+              outReq.done(e.target.result.length);
+            } else {
+              outReq.done(0);
+            }
+          },
+          function onerror(e) {
+            outReq.failed(e.target.error);
+          }
+        );
+      },0);
 
       return outReq;
     };
