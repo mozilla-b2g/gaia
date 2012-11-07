@@ -27,7 +27,7 @@ var MediaStorage = {
 
   initUI: function mediaStorage_initUI() {
     this.umsEnabledCheckBox = document.querySelector('[name="ums.enabled"]');
-    this.umsEnabledInfoBlock = document.querySelector('#ums-desc');
+    this.umsEnabledInfoBlock = document.getElementById('ums-desc');
     if (!this.umsEnabledCheckBox || !this.umsEnabledInfoBlock) {
       return;
     }
@@ -165,20 +165,20 @@ var MediaStorage = {
 
     // Update the storage details
     DeviceStorageHelper.getStat('music', function(size) {
-      var element = document.querySelector('#music-space *');
+      var element = document.getElementById('music-space');
       formatSize(element, size);
     });
 
     DeviceStorageHelper.getStat('pictures', function(size) {
-      var element = document.querySelector('#pictures-space *');
+      var element = document.getElementById('pictures-space');
       formatSize(element, size);
     });
 
     DeviceStorageHelper.getStat('videos', function(size, freeSize) {
-      var element = document.querySelector('#videos-space *');
+      var element = document.getElementById('videos-space');
       formatSize(element, size);
 
-      element = document.querySelector('#media-free-space *');
+      element = document.getElementById('media-free-space');
       formatSize(element, freeSize);
 
       element = document.getElementById('media-storage-desc');

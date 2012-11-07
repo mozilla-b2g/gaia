@@ -68,7 +68,7 @@ var Settings = {
 
     // apply the HTML markup stored in the first comment node
     for (var i = 0; i < panel.childNodes.length; i++) {
-      if (panel.childNodes[i].nodeType == 8) {
+      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
         panel.innerHTML = panel.childNodes[i].nodeValue;
         break;
       }

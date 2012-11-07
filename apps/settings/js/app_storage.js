@@ -85,13 +85,13 @@ onLocalized(function SettingsAppStorage() {
     formatSize(element, freeSize, 'available-size-');
 
     // Update the storage details
-    element = document.querySelector('#apps-total-space *');
+    element = document.getElementById('apps-total-space');
     formatSize(element, totalSize);
 
-    element = document.querySelector('#apps-used-space *');
+    element = document.getElementById('apps-used-space');
     formatSize(element, usedSize);
 
-    element = document.querySelector('#apps-free-space *');
+    element = document.getElementById('apps-free-space');
     formatSize(element, freeSize);
   }
 
