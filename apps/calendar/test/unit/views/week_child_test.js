@@ -60,6 +60,18 @@ suite('views/week_child', function() {
     assert.include(out, format, 'has format');
   });
 
+  test('#_assignPosition', function() {
+      var busy = Factory('busytime', {
+        startDate: new Date(2012, 0, 1, 0, 15),
+        endDate: new Date(2012, 0, 1, 3, 30)
+      });
+      var el = document.createElement('div');
+      subject.date = new Date(2012, 0, 1);
+      subject._assignPosition(busy, el);
+
+      assert.equal(el.style.height, 'calc(325% + 6.5px)', 'height');
+  });
+
   test('#create', function() {
     var element = subject.create();
     var html = element.innerHTML;

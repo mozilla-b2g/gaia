@@ -78,7 +78,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
       settingsVManager.closeCurrentView();
       closeButton.removeEventListener('click', returnToChart);
       doneButton.removeEventListener('click', returnToChart);
-    }
+    };
 
     doneButton.addEventListener('click', returnToChart);
     closeButton.addEventListener('click', returnToChart);
@@ -164,7 +164,7 @@ viewManager.tabs[TAB_DATA_USAGE] = (function cc_setUpDataUsage() {
     base.axis.Y.get = function cc_dataToYPx(value) {
       var projection = (value - yLowerBound) / ySize;
       return base.originY * (1 - projection);
-    }
+    };
     base.axis.Y.step = base.axis.Y.get(base.axis.Y.maxValue);
 
     // Limits

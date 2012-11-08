@@ -41,6 +41,11 @@ Calendar.ns('Provider').Abstract = (function() {
     canDeleteEvent: false,
 
     /**
+     * Are there configuration options for this provider?
+     */
+    hasAccountSettings: false,
+
+    /**
      * Attempt to get account accepts
      * a single object and callback.
      * Required options vary based on

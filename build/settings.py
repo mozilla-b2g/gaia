@@ -2,9 +2,9 @@
 #
 # This script generates the settings.json file which is stored into the b2g profile
 
-import argparse
 import base64
 import json
+import optparse
 import os
 import sys
 
@@ -102,40 +102,41 @@ settings = {
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False
 }
- 
-def main():
-    parser = argparse.ArgumentParser(description="Generate initial settings.json file")
-    parser.add_argument(      "--homescreen", help="specify the homescreen URL")
-    parser.add_argument("-c", "--console", help="indicate if the console should be enabled", action="store_true")
-    parser.add_argument("-o", "--output", help="specify the name of the output file")
-    parser.add_argument("-w", "--wallpaper", help="specify the name of the wallpaper file")
-    parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
-    args = parser.parse_args(sys.argv[1:])
-    verbose = args.verbose
 
-    if args.homescreen:
-        homescreen_url = args.homescreen
+def main():
+    parser = optparse.OptionParser(description="Generate initial settings.json file")
+    parser.add_option(      "--homescreen", help="specify the homescreen URL")
+    parser.add_option("-c", "--console", help="indicate if the console should be enabled", action="store_true")
+    parser.add_option("-o", "--output", help="specify the name of the output file")
+    parser.add_option("-w", "--wallpaper", help="specify the name of the wallpaper file")
+    parser.add_option("-v", "--verbose", help="increase output verbosity", action="store_true")
+    (options, args) = parser.parse_args(sys.argv[1:])
+
+    verbose = options.verbose
+
+    if options.homescreen:
+        homescreen_url = options.homescreen
     else:
         homescreen_url = "app://homescreen.gaiamobile.org/manifest.webapp"
 
-    if args.output:
-        settings_filename = args.output
+    if options.output:
+        settings_filename = options.output
     else:
         settings_filename = "profile/settings.json"
 
-    if args.wallpaper:
-        wallpaper_filename = args.wallpaper
+    if options.wallpaper:
+        wallpaper_filename = options.wallpaper
     else:
         wallpaper_filename = "build/wallpaper.jpg"
 
     if verbose:
-        print "Console:", args.console
+        print "Console:", options.console
         print "Homescreen URL:", homescreen_url
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
 
     # Set the default console output
-    settings["debug.console.enabled"] = args.console
+    settings["debug.console.enabled"] = options.console
 
     # Set the homescreen URL
     settings["homescreen.manifestURL"] = homescreen_url
@@ -146,6 +147,6 @@ def main():
     settings["wallpaper.image"] = "data:image/jpeg;base64," + wallpaper_base64.decode("utf-8")
 
     json.dump(settings, open(settings_filename, "wb"))
-     
+
 if __name__ == "__main__":
   main()

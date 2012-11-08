@@ -879,23 +879,15 @@ MessageReaderCard.prototype = {
   },
 
   /**
-   * Distinguish clicks on contacts from clicks on the envelope to toggle its
-   * expanded state and then do the right thing.
+   * Handle peep bubble click event and trigger context menu.
    */
   onEnvelopeClick: function(event) {
     var target = event.target;
-    while (target !== this.envelopeNode &&
-           !target.classList.contains('msg-peep-bubble')) {
-      target = target.parentNode;
-    }
-    // - envelope click
-    if (target === this.envelopeNode) {
-      this.envelopeDetailsNode.classList.toggle('collapsed');
+    if (!target.classList.contains('msg-peep-bubble')) {
+      return;
     }
     // - peep click
-    else {
-      this.onPeepClick(target);
-    }
+    this.onPeepClick(target);
   },
 
   onPeepClick: function(target) {

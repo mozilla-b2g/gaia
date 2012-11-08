@@ -31,6 +31,7 @@ CalendarIntegration.prototype = {
   selectors: {
     /** views */
     settingsView: '#settings',
+    advancedSettingsView: '#advanced-settings-view',
     monthView: '#month-view',
     monthsDayView: '#months-day-view',
     weekView: '#week-view',
@@ -39,12 +40,14 @@ CalendarIntegration.prototype = {
 
     /** buttons */
     showSettingsBtn: '#time-header button.settings',
+    showAdvancedSettingsBtn: '#settings a[href="/advanced-settings/"]',
     addEventBtn: '#time-header a[href="/add/"]',
     eventSaveBtn: '#modify-event-view > header .save',
     eventDeleteBtn: '#modify-event-view .delete-record',
 
     /** lists */
     calendarList: '#settings .calendars',
+    accountList: '#advanced-settings-view .account-list',
 
     /** forms */
     eventForm: '#modify-event-view > form',

@@ -35,6 +35,8 @@ Calendar.ns('Provider').Caldav = (function() {
     canUpdateEvent: true,
     canDeleteEvent: true,
 
+    hasAccountSettings: true,
+
     /**
      * Returns the capabilities of a single event.
      */
