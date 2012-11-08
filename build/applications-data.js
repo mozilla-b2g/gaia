@@ -22,7 +22,7 @@ let hidden_apps = [
   makeManifestURL('pdfjs')
 ];
 init = getFile(GAIA_DIR, 'apps', 'homescreen', 'js', 'hiddenapps.js');
-writeContent(init, JSON.stringify(hidden_apps));
+writeContent(init, "var HIDDEN_APPS = " + JSON.stringify(hidden_apps));
 
 // Cost Control
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
