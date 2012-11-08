@@ -368,7 +368,7 @@
     if (options.isAlphabet) {
       input.type = 'text';
     } else {
-      input.type = 'number';
+      input.type = 'tel';
     }
     if (options.defaultText) {
       input.value = options.defaultText;
