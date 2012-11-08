@@ -1,7 +1,10 @@
+requireApp('system/js/app_install_manager.js');
+requireApp('system/js/system_banner.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/js/app_install_manager.js');
+requireApp('system/test/unit/mock_app.js');
+requireApp('system/test/unit/mock_system_banner.js');
 
 // prevent Mocha to choke on "leaks" that are not leaks
 if (!window.StatusBar) {
@@ -12,6 +15,7 @@ suite('system/AppInstallManager', function() {
   var realL10n;
   var realDispatchResponse;
   var realStatusBar;
+  var realSystemBanner;
 
   var fakeDialog;
 
@@ -274,9 +278,15 @@ suite('system/AppInstallManager', function() {
     var mockApp, e;
 
     setup(function() {
+      realSystemBanner = SystemBanner;
+      SystemBanner = MockSystemBanner;
       e = new CustomEvent('applicationinstall', { detail: {} });
     });
 
+    teardown(function() {
+      SystemBanner.mTearDown;
+      SystemBanner = realSystemBanner;
+    });
 
     function dispatchEvent() {
         e.detail.application = mockApp;
@@ -287,17 +297,15 @@ suite('system/AppInstallManager', function() {
       setup(function() {
         mockApp = new MockApp({
           manifest: {
-            name: 'Fake app',
-            size: 5245678,
+            name: 'Fake hosted app',
             developer: {
               name: 'Fake dev',
               url: 'http://fakesoftware.com'
-            },
-            updateManifest: null
+            }
           },
+          updateManifest: null,
           installState: 'installed'
         });
-
         dispatchEvent();
       });
 
@@ -305,22 +313,13 @@ suite('system/AppInstallManager', function() {
         assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       });
 
-      test('should do nothing if we get downloadsuccess', function() {
-        mockApp.mTriggerDownloadSuccess();
-        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      });
-
-      test('should do nothing if we get downloaderror', function() {
-        mockApp.mTriggerDownloadError();
-        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      });
     });
 
     suite('hosted app with cache', function() {
       setup(function() {
         mockApp = new MockApp({
           manifest: {
-            name: 'Fake app',
+            name: 'Fake hosted app with cache',
             developer: {
               name: 'Fake dev',
               url: 'http://fakesoftware.com'
@@ -342,9 +341,10 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       });
 
-      test('should remove the icon if we get downloaderror', function() {
+      test('should remove the icon and display error if we get downloaderror', function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+        assert.equal(SystemBanner.mMessage, 'Fake hosted app with cache download-stopped');
       });
     });
 
@@ -353,7 +353,7 @@ suite('system/AppInstallManager', function() {
         mockApp = new MockApp({
           manifest: null,
           updateManifest: {
-            name: 'Fake app',
+            name: 'Fake packaged app',
             size: 5245678,
             developer: {
               name: 'Fake dev',
@@ -375,9 +375,10 @@ suite('system/AppInstallManager', function() {
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
       });
 
-      test('should remove the icon if we get downloaderror', function() {
+      test('should remove the icon and display error if we get downloaderror', function() {
         mockApp.mTriggerDownloadError();
         assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+        assert.equal(SystemBanner.mMessage, 'Fake packaged app download-stopped');
       });
     });
   });
