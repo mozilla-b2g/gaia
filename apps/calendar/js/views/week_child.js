@@ -46,7 +46,7 @@ Calendar.ns('Views').WeekChild = (function() {
      */
     _assignHeight: function(element, hoursDuration) {
       var percHeight = hoursDuration * 100;
-      var pxHeight = hoursDuration * 2;
+      var pxHeight = hoursDuration > 1 ? hoursDuration * 2 : 0;
       element.style.height = 'calc(' + percHeight + '% + ' + pxHeight + 'px)';
     },
 
