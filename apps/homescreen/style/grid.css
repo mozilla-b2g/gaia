@@ -103,3 +103,40 @@
   font-family: 'MozTT', sans-serif;
   font-weight: 500;
 }
+
+/* Alternative icons when an app is being installed */
+.loading:after {
+  margin: 8px;
+  content: "";
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  z-index: 30000;
+  width: 60px;
+  height: 60px;
+  background: url('/style/images/loading_spinner.png');
+  animation: rotate 2.25s linear infinite;
+}
+
+.loading img {
+  margin-top: 4px;
+  margin-left: -4px;
+}
+
+.loading span {
+  margin-top: 4px;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(1deg)
+  }
+  to {
+    transform: rotate(360deg)
+  }
+}
+
+@-moz-keyframes installingSpinner {
+    from { background-position: 0px;}
+    to { background-position: -1080px;}
+}

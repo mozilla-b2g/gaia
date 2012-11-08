@@ -13,7 +13,8 @@ var Icon = function Icon(app) {
     name: Applications.getName(origin),
     icon: Applications.getIcon(origin),
     isHidden: Applications.getManifest(origin).hidden,
-    isCore: Applications.isCore(app)
+    isCore: Applications.isCore(app),
+    target: null
   };
 
   this.type = 'ApplicationIcon';
@@ -22,6 +23,17 @@ var Icon = function Icon(app) {
 Icon.prototype = {
   MIN_ICON_SIZE: 52,
   MAX_ICON_SIZE: 54,
+
+  // Renders the icon, but decides is use the traditional method
+  // or is being asked to render the default downloading icon.
+  render: function icon_render(target, page) {
+    var defaultIcon = Applications.getDownloadingIcon();
+    if (this.descriptor.icon.match(defaultIcon + '$') == defaultIcon) {
+      this.renderDownloading(target, page);
+    } else {
+      this.renderNormal(target, page);
+    }
+  },
   /*
    * Renders the icon into the page
    *
@@ -29,7 +41,7 @@ Icon.prototype = {
    *
    * @param{Object} where the draggable element should be appened
    */
-  render: function icon_render(target, page) {
+  renderNormal: function icon_renderNormal(target, page) {
     /*
      * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
      *   <div>
@@ -39,7 +51,10 @@ Icon.prototype = {
      *   <span class="options"></span>
      * </li>
      */
-    var container = this.container = document.createElement('li');
+    var container = this.hasOwnProperty('container') ? this.container : null;
+    if (container == null) {
+      container = this.container = document.createElement('li');
+    }
     container.className = 'icon';
     if (this.descriptor.isHidden) {
       container.dataset.visible = false;
@@ -98,6 +113,72 @@ Icon.prototype = {
     }
 
     target.appendChild(container);
+    this.descriptor.target = target;
+  },
+
+  /*
+    Render a default icon with an infinite animation while the
+    application download is in place.
+
+    Based on the renderNormal method
+    TODO: better refactoring of this.
+  */
+  renderDownloading: function icon_renderDownloading(target, page) {
+    /*
+     * <li role="button" aria-label="label" class="icon" dataset-origin="zzz">
+     *   <div>
+     *     <img role="presentation" src="the icon image path"></img>
+     *     <span class="label">label</span>
+     *   </div>
+     *   <span class="options"></span>
+     * </li>
+     */
+    var container = this.container = document.createElement('li');
+    container.className = 'icon';
+    container.dataset.origin = this.descriptor.origin;
+    container.setAttribute('role', 'button');
+    container.setAttribute('aria-label', this.descriptor.name);
+
+    // Icon container
+    var icon = this.icon = document.createElement('div');
+    icon.classList.add('loading');
+
+    var img = this.img = new Image();
+    img.setAttribute('role', 'presentation');
+    img.src = this.descriptor.icon;
+    img.width = 60;
+    img.height = 60;
+
+    var self = this;
+
+    img.onerror = function icon_loadError() {
+      img.src = '//' + window.location.host + '/resources/images/Unknown.png';
+    };
+
+    icon.appendChild(img);
+
+    // Label
+
+    // wrapper of the label -> overflow text should be centered
+    // in draggable mode
+    var wrapper = document.createElement('span');
+    wrapper.className = 'labelWrapper';
+    var label = this.label = document.createElement('span');
+    label.textContent = this.descriptor.name;
+    wrapper.appendChild(label);
+
+    icon.appendChild(wrapper);
+
+    container.appendChild(icon);
+
+    target.appendChild(container);
+    this.descriptor.target = target;
+  },
+
+  updateIconSrc: function(iconSrc) {
+    this.descriptor.icon = iconSrc;
+    this.container.innerHTML = '';
+    this.render(this.descriptor.target, null);
   },
 
   generateShadow: function(canvas, img) {
@@ -105,6 +186,9 @@ Icon.prototype = {
     ctx.shadowColor = 'rgba(0,0,0,0.8)';
     ctx.shadowBlur = 2;
     ctx.shadowOffsetY = 2;
+
+    // This could be reused, so clear
+    ctx.clearRect(0, 0, img.width, img.height);
 
     // Deal with very small or very large icons
     img.width =
@@ -114,6 +198,7 @@ Icon.prototype = {
 
     var width = Math.min(img.width, canvas.width - 4);
     var height = Math.min(img.width, canvas.height - 4);
+
     ctx.drawImage(img,
                   (canvas.width - width) / 2,
                   (canvas.height - height) / 2,
@@ -386,7 +471,10 @@ Page.prototype = {
         Homescreen.showAppDialog(elem.dataset.origin);
       }
     } else if (elem.className === 'icon') {
-      Applications.getByOrigin(elem.dataset.origin).launch();
+      var app = Applications.getByOrigin(elem.dataset.origin);
+      if (app.installState == 'installed') {
+        app.launch();
+      }
     }
   },
 
@@ -532,6 +620,10 @@ Page.prototype = {
         icon: icons[node.dataset.origin].descriptor.icon
       };
     });
+  },
+
+  getIconForOrigin: function pg_getIconForOrigin(origin) {
+    return this.icons[origin];
   }
 };
 
