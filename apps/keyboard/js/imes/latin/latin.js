@@ -65,6 +65,7 @@
   // Some keycodes that we use
   const SPACE = KeyEvent.DOM_VK_SPACE;
   const BACKSPACE = KeyEvent.DOM_VK_BACK_SPACE;
+  const RETURN = KeyEvent.DOM_VK_RETURN;
   const PERIOD = 46;
   const QUESTION = 63;
   const EXCLAMATION = 33;
@@ -203,6 +204,11 @@
 
     // If we're offering suggestions, ask the worker to make them now
     updateSuggestions(repeat);
+
+    // Exit symbol layout mode after space or return key is pressed.
+    if (keycode === SPACE || keycode === RETURN) {
+      keyboard.setLayoutPage(LAYOUT_PAGE_DEFAULT);
+    }
   }
 
   // If the user selections one of the suggestions offered by this input method
