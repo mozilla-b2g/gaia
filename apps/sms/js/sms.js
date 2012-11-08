@@ -9,13 +9,12 @@ var MessageManager = {
     PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
+      // Init first time
       MessageManager.getMessages(ThreadListUI.renderThreads);
     });
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
-    // Init first time
-    this.getMessages(ThreadListUI.renderThreads);
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -712,11 +711,6 @@ var ThreadUI = {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
-    // TODO: Please replace the pending icon with exclamation mark.
-    this.sendIcons = {
-      sending: 'style/images/spinningwheel_small_animation.gif',
-      pending: 'style/images/icons/clear.png'
-    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
@@ -777,13 +771,13 @@ var ThreadUI = {
 
     // Add 0.7 rem that are equal to the message box vertical padding
     var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
-    var sendButtonTranslate = (input.offsetHeight - deviationHeight) / Utils.getFontSize() + 'rem';
+    var sendButtonTranslate = (input.offsetHeight - deviationHeight) /
+      Utils.getFontSize() + 'rem';
     var bottomToolbar =
         document.querySelector('#new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
-    ThreadUI.sendButton.style.marginTop = sendButtonTranslate; //we should do this with transform, but is buggy right now
-
+    ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
   },
@@ -910,11 +904,11 @@ var ThreadUI = {
                                      ' <span></span>' +
                                    '</label>';
 
-      // Add 'gif' delivery icon if necessary
+      // Add delivery icon/progress if necessary
       deliveryIcon = '<span class="message-option icon-delivery">' +
-                                '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
-                                  ThreadUI.sendIcons.pending) + '" class="gif">' +
-                              '</span>';
+                        (message.error ? '<img src="style/images/icons/exclamation.png" class="gif">' :
+                          '<progress class="small"></progress>') +
+                      '</span>';
       } else {
       //Add edit options
       htmlStructure += '<label class="danger message-option msg-checkbox">' +
@@ -925,9 +919,9 @@ var ThreadUI = {
     }
 
     htmlStructure += '<span class="bubble-container ' + className + '">' +
-                                   '<div class="bubble">' + bodyHTML + '</div>' +
-                                    deliveryIcon +
-                                 '</span>';
+                       '<div class="bubble">' + bodyHTML + '</div>' +
+                        deliveryIcon +
+                     '</span>';
 
 
     // Add structure to DOM element

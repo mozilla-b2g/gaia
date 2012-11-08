@@ -28,11 +28,14 @@ const LandingPage = (function() {
   var clockOrigin = document.location.protocol + '//clock.' +
         document.location.host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2');
 
-  document.querySelector('#landing-time').addEventListener('click',
-    function launchClock(evt) {
-      Applications.getByOrigin(clockOrigin).launch();
-    }
-  );
+  var landingTime = document.querySelector('#landing-time');
+  landingTime.addEventListener('click', function launchClock(evt) {
+    Applications.getByOrigin(clockOrigin).launch();
+  });
+
+  landingTime.addEventListener('contextmenu', function contextMenu(evt) {
+    evt.stopImmediatePropagation();
+  });
 
   document.addEventListener('mozvisibilitychange', function mozVisChange() {
     if (!page.dataset.currentPage) {

@@ -70,7 +70,7 @@ var ScreenManager = {
               // Turn screen on if wake lock is acquire
               self.turnScreenOn();
             } else if (self.screenEnabled) {
-              self.reconfigScreenTimeout(false);
+              self.reconfigScreenTimeout();
             }
             break;
 
@@ -203,7 +203,7 @@ var ScreenManager = {
         // Cancel the dim out
         this._inTransition = false;
         this.setScreenBrightness(this._userBrightness, true);
-        this.reconfigScreenTimeout(false);
+        this.reconfigScreenTimeout();
       }
       return false;
     }
@@ -225,16 +225,16 @@ var ScreenManager = {
     if (this._deviceLightEnabled)
       window.addEventListener('devicelight', this);
 
-    this.reconfigScreenTimeout(true);
+    this.reconfigScreenTimeout();
     this.fireScreenChangeEvent();
     return true;
   },
 
-  reconfigScreenTimeout: function scm_reconfigScreenTimeout(instant) {
+  reconfigScreenTimeout: function scm_reconfigScreenTimeout() {
     // The screen should be turn off with shorter timeout if
     // it was never unlocked.
     if (LockScreen.locked) {
-      this.setIdleTimeout(10, instant);
+      this.setIdleTimeout(10, true);
       var self = this;
       var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
         window.removeEventListener('unlock', stopShortIdleTimeout);

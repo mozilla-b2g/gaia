@@ -4,14 +4,14 @@
 'use strict';
 
 /**
- * gDeviceList here because child window created for pair request
- * needs to access its method via window.opener
+ * gDeviceList is defined here because the child window created for pairing
+ * requests needs to access its method via window.opener
  */
 
 var gDeviceList = null;
 
-// handle BlueTooth settings
-window.addEventListener('localized', function bluetoothSettings(evt) {
+// handle Bluetooth settings
+onLocalized(function bluetoothSettings() {
   var _ = navigator.mozL10n.get;
   var settings = window.navigator.mozSettings;
   var bluetooth = window.navigator.mozBluetooth;
@@ -268,7 +268,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
       deviceDesc.textContent = desc;
 
       var li = document.createElement('li');
-      li.className = device.icon;
+      li.classList.add('bluetooth-device');
+      li.classList.add('bluetooth-type-' + device.icon);
       li.appendChild(deviceDesc); // should append this first
       li.appendChild(deviceName);
 
@@ -370,6 +371,8 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
         }
         var text = paired[0].name;
         if (length > 1) {
+          // FIXME: don't concatenate localized strings
+          // XXX this 'bt-status-pairmore' entity should not exist
           text += _('bt-status-pairmore', {n: length - 1});
         }
         gBluetoothInfoBlock.textContent = text;
@@ -621,6 +624,5 @@ window.addEventListener('localized', function bluetoothSettings(evt) {
   bluetooth.onadapteradded = function bt_adapterAdded() {
     initialDefaultAdapter();
   };
-
 });
 

@@ -56,3 +56,6 @@
   border: 1px solid red;
 }
 
+#trustedui-container iframe:not(.selected) {
+  display: none;
+}
