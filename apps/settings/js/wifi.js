@@ -534,6 +534,10 @@ onLocalized(function wifiSettings() {
         };
       }
 
+      if (dialogID === 'wifi-joinHidden') {
+        network.hidden = true;
+      }
+
       // disable the "OK" button if the password is too short
       if (password) {
         var checkPassword = function checkPassword() {
