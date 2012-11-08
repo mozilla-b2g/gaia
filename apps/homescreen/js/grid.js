@@ -557,21 +557,6 @@ const GridManager = (function() {
   }
 
   /*
-   * Initialize the grid from the state saved in IndexedDB.
-   */
-  function initState(dockSelector, state) {
-    // First 'page' is the dock.
-    var dockContainer = document.querySelector(dockSelector);
-    var dockState = state.shift();
-    var dock = new Dock(dockContainer, convertDescriptorsToIcons(dockState));
-    DockManager.init(dockContainer, dock);
-
-    state.forEach(function eachState(pageState) {
-      pageHelper.addPage(convertDescriptorsToIcons(pageState));
-    });
-  }
-
-  /*
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
    */
