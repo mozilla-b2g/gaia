@@ -52,15 +52,73 @@ var UssdManager = {
   },
 
   notifySuccess: function um_notifySuccess(evt) {
+
+    // Helper function to compose an informative message about a successful
+    // request to query the call forwarding status.
+    var processCf = (function processCf(result) {
+      var msg = this._('cf-status');
+
+      var voice, data, fax, sms, sync, async, packet, pad;
+
+      for (var i = 0; i < result.length; i++) {
+        if (!result[i].active) {
+          continue;
+        }
+        switch (result[i].serviceClass) {
+          case this._conn.ICC_SERVICE_CLASS_VOICE:
+            voice = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA:
+            data = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_FAX:
+            fax = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_SMS:
+            sms = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA_SYNC:
+            sync = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA_ASYNC:
+            async = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_PACKET:
+            packet = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_PAD:
+            pad = result[i].number;
+            break;
+          default:
+            return this._('cf-error');
+        }
+      }
+      msg += this._('cf-voice', {voice: voice || this._('cf-inactive')}) +
+             this._('cf-data', {data: data || this._('cf-inactive')}) +
+             this._('cf-fax', {fax: fax || this._('cf-inactive')}) +
+             this._('cf-sms', {sms: sms || this._('cf-inactive')}) +
+             this._('cf-sync', {sync: sync || this._('cf-inactive')}) +
+             this._('cf-async', {async: async || this._('cf-inactive')}) +
+             this._('cf-packet', {packet: packet || this._('cf-inactive')}) +
+             this._('cf-pad', {pad: pad || this._('cf-inactive')});
+      return msg;
+    }).bind(this);
+
     var result = evt.target.result;
-    if (this._pendingRequest == null &&
+    if (this._pendingRequest === null &&
         (!result || !result.length)) {
       result = this._('mmi-session-expired');
     }
 
+    // Call forwarding requests via MMI codes might return an array of
+    // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
+    // into a single string that can be shown on the screen.
+    var msg = '';
+    Array.isArray(result) ? msg = processCf(result) : msg = result;
+
     var message = {
       type: 'success',
-      result: result
+      result: msg
     };
 
     if (this._popup && this._popup.ready) {
