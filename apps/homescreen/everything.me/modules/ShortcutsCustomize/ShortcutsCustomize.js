@@ -1,157 +1,122 @@
 Evme.ShortcutsCustomize = new function() {
-    var _name = "ShortcutsCustomize", _this = this,
-        $el = null, $parent = null, $title = null, $subTitle = null, $list = null, $buttonDone = null,
-        scroll = null, numSelectedStartedWith = 0, numSuggestedStartedWith = 0, clicked = null, moved = null,
-        
-        title = "FROM CONFIG",
-        titleCustomize = "FROM CONFIG",
-        subTitle = "FROM CONFIG",
-        subTitleCustomize = "FROM CONFIG",
-        buttonDone = "FROM CONFIG",
-        buttonDoneSaving = "FROM CONFIG";
+    var _name = 'ShortcutsCustomize', _this = this,
+        $list = null,
+        numSelectedStartedWith = 0, numSuggestedStartedWith = 0, savedIcons = null;
         
     this.init = function(options) {
         $parent = options.$parent;
         
-        title = options.texts.title;
-        titleCustomize = options.texts.titleCustomize;
-        subTitle = options.texts.subTitle;
-        subTitleCustomize = options.texts.subTitleCustomize;
-        buttonDone = options.texts.buttonDone;
-        buttonDoneSaving = options.texts.buttonDoneSaving;
+        $list = $('<select multiple="multiple" id="shortcuts-select"></select>');
+        $list.bind('change', done);
+        $list.bind('blur', onHide);
         
-        $el = $('<div id="shortcuts-favorites">' +
-                    '<h2></h2>' +
-                    '<b class="pbutton done"></b>' +
-                    '<div class="scroll-wrapper">' +
-                        '<div>' +
-                            '<div class="subtitle"></div>' +
-                            '<ul></ul>' +
-                        '</div>' +
-                    '</div>' +
-                '</div>');
-                
-        $title = $el.find("h2");
-        $subTitle = $el.find(".subtitle");
+        $parent.append($list);
         
-        $list = $el.find("ul");
-        $list
-            .bind("touchend", touchend)
-            .bind("touchmove", touchmove);
-        
-        $buttonDone = $el.find(".done");        
-        $buttonDone.bind("click", done);
-        
-        $parent.append($el);
-        
-        scroll = new Scroll($el.find(".scroll-wrapper")[0], {
-            "hScroll": false,
-            "checkDOMChanges": false
-        });
-        
-        Evme.EventHandler.trigger(_name, "init");
+        Evme.EventHandler.trigger(_name, 'init');
     };
     
-    this.show = function(isFirstScreen) {
-        if (isFirstScreen) {
-            $title.html(title);
-            $subTitle.html(subTitle);
-        } else {
-            $title.html(titleCustomize);
-            $subTitle.html(subTitleCustomize);
-        }
+    this.show = function() {
+        $list.focus();
         
-        $buttonDone.html(buttonDone);
-        
-        $el.addClass("visible");
-        
-        Evme.EventHandler.trigger(_name, "show", {
-            "numSelected": numSelectedStartedWith,
-            "numSuggested": numSuggestedStartedWith
+        Evme.EventHandler.trigger(_name, 'show', {
+            'numSelected': numSelectedStartedWith,
+            'numSuggested': numSuggestedStartedWith
         });
     };
+    
     this.hide = function() {
-        $el.removeClass("visible");
-        
-        Evme.EventHandler.trigger(_name, "hide");
+        $('window').focus();
+        $list.blur();
     };
     
     this.get = function() {
-        var $items = $el.find("li.on"),
+        var $items = $list.find('option'),
             shortcuts = [];
         
         for (var i=0; i<$items.length; i++) {
-            shortcuts.push($items[i].innerHTML);
+            if ($items[i].selected) {
+                shortcuts.push($items[i].value);
+            }
         }
         
         return shortcuts;
     };
     
-    this.load = function(shortcuts) {
+    this.load = function(data) {
+        var shortcuts = data.shortcuts;
+            
         numSelectedStartedWith = 0;
         numSuggestedStartedWith = 0;
+        savedIcons = data.icons;
         
         $list.empty();
         _this.add(shortcuts);
         
-        Evme.EventHandler.trigger(_name, "load");
+        Evme.EventHandler.trigger(_name, 'load');
     };
     
     this.add = function(shortcuts) {
-        var htmlShortcuts = '';
+        var html = '';
         
-        for (var key in shortcuts) {
-            var shortcut = shortcuts[key],
-                query = shortcut.query,
-                checked = shortcut.checked,
-                $item = $('<li>' + query.replace(/</g,  "&lt;") + '</li>');
-                
-            $item
-                .attr("class", checked? 'on' : 'off')
-                .bind("click", clickFavoriteCategory)
+        for (var query in shortcuts) {
+            html += '<option value="' + query.replace(/"/g, '&quot;') + '"';
             
-            if (checked) {
+            if (shortcuts[query]) {
+                html += ' selected="selected"';
                 numSelectedStartedWith++;
             } else {
                 numSuggestedStartedWith++;
             }
             
-            $list.append($item);
+            html += '>' + query.replace(/</g, '&lt;') + '</option>';
         }
         
-        scroll.refresh();
+        $list.append(html);
     };
     
-    function clickFavoriteCategory(e) {
-        if (!clicked && !moved) {
-            clicked = true;
-            $(this).toggleClass("on").toggleClass("off");
-        }
-    }
-    
-    function touchmove() {
-        moved = true;
-    }
-    
-    function touchend() {
-        clicked = false;
-        setTimeout(function() {
-            moved = false;    
-        }, 50);
+    this.Loading = new function() {
+        var active = false,
+            ID = 'shortcuts-customize-loading',
+            TEXT_CANCEL = "Cancel";
         
+        this.show = function() {
+            if (active) return;
+            
+            var $el = $('<div id="' + ID + '"><menu><button>' + TEXT_CANCEL + '</button></menu></div>');
+            $('#' + Evme.Utils.getID()).append($el);
+            active = true;
+            
+            $el.find("button").bind("click", onLoadingCancel);
+        };
+        
+        this.hide = function() {
+            if (!active) return;
+            
+            $('#' + ID).remove();
+            active = false;
+        };
+    };
+    
+    function onHide() {
+        Evme.EventHandler.trigger(_name, 'hide');
+    }
+    
+    function onLoadingCancel(e) {
+        Evme.EventHandler.trigger(_name, 'loadingCancel', {
+            'e': e
+        });
     }
     
     function done() {
-        $buttonDone.html(buttonDoneSaving);
-        
         var shortcuts = _this.get();
         
-        Evme.EventHandler.trigger(_name, "done", {
-            "shortcuts": shortcuts,
-            "numSelectedStartedWith": numSelectedStartedWith,
-            "numSuggestedStartedWith": numSuggestedStartedWith,
-            "numSelected": $el.find("li.on").length,
-            "numSuggested": $el.find("li.off").length
+        Evme.EventHandler.trigger(_name, 'done', {
+            'shortcuts': shortcuts,
+            'icons': savedIcons,
+            'numSelectedStartedWith': numSelectedStartedWith,
+            'numSuggestedStartedWith': numSuggestedStartedWith,
+            'numSelected': shortcuts.length,
+            'numSuggested': $list.find('option').length - shortcuts.length
         });
     }
 };

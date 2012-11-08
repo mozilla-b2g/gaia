@@ -16,14 +16,17 @@ function Spinner(options) {
         el.style.cssText = 'position: absolute; top: 50%; left: 0; height: 18px; width: 18px; margin-top: -9px; border-radius: 9px; background: transparent url(' + IMAGE + ') 50% 50% no-repeat;-moz-transform-origin: 50% 50%; -moz-animation: ' + ANIMATION_NAME + ' linear ' + speed + 'ms infinite;';
         
         createAnimation();
+        return _this;
     };
     
     this.spin = function(elParent) {
         elParent.appendChild(el);
+        return _this;
     };
     
     this.stop = function() {
         el.parentNode.removeChild(el);
+        return _this;
     };
     
     function createAnimation() {
