@@ -159,8 +159,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
-profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output profile/settings.json
+profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -557,7 +556,7 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-gaia
+reset-gaia: purge install-gaia install-settings-defaults
 
 # remove the memories and apps on the phone
 purge:
@@ -567,6 +566,18 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
 	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+
+# Build the settings.json file from settings.py
+profile/settings.json: build/settings.py build/wallpaper.jpg
+	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+
+# push profile/settings.json to the phone
+install-settings-defaults: profile/settings.json
+	$(ADB) shell stop b2g
+	$(ADB) remount
+	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+	$(ADB) shell start b2g
+
 
 # clean out build products
 clean:
