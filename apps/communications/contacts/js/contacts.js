@@ -431,27 +431,12 @@ var Contacts = (function() {
     if (ActivityHandler.currentlyHandling) {
       ActivityHandler.postPickSuccess({ number: number });
     } else {
-      try {
-        var activity = new MozActivity({
-          name: 'dial',
-          data: {
-            type: 'webtelephony/number',
-            number: number
-          }
-        });
-
-        var reopenApp = function reopenApp() {
-          navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-            var app = evt.target.result;
-            app.launch('contacts');
-          };
-        }
-
-        activity.onerror = function error() {
-          reopenApp();
-        }
-      } catch (e) {
-        console.log('WebActivities unavailable? : ' + e);
+      var telephony = navigator.mozTelephony;
+      if (telephony) {
+        var sanitizedNumber = number.replace(/-/g, '');
+        var call = telephony.dial(sanitizedNumber);
+      } else {
+        console.log('Telephony unavailable? : ' + e);
       }
     }
   }
