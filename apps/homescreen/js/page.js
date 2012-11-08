@@ -202,14 +202,15 @@ Icon.prototype = {
     });
   },
 
-  displayRenderedIcon: function icon_displayRenderedIcon(img) {
+  displayRenderedIcon: function icon_displayRenderedIcon(img, skipRevoke) {
     img = img || this.img;
     var url = window.URL.createObjectURL(this.descriptor.renderedIcon);
     img.src = url;
     var self = this;
     img.onload = img.onerror = function cleanup() {
       img.style.visibility = 'visible';
-      window.URL.revokeObjectURL(url);
+      if (!skipRevoke)
+        window.URL.revokeObjectURL(url);
       if (self.needsShow)
         self.show();
     };
@@ -302,8 +303,12 @@ Icon.prototype = {
     var draggableElem = this.draggableElem = document.createElement('div');
     draggableElem.className = 'draggable';
 
+    // For some reason, cloning and moving a node re-triggers the blob
+    // URI to be validated. So we assign a new blob URI to the image
+    // and don't revoke it until we're finished with the animation.
+    var skipRevoke = true;
+    this.displayRenderedIcon(this.img, skipRevoke);
     draggableElem.appendChild(this.icon.cloneNode());
-    this.displayRenderedIcon(draggableElem.querySelector('img'));
 
     var container = this.container;
     container.dataset.dragging = 'true';
@@ -363,6 +368,8 @@ Icon.prototype = {
       draggableElem.removeEventListener('transitionend', draggableEnd);
       delete container.dataset.dragging;
       document.body.removeChild(draggableElem);
+      var img = icon.querySelector('img');
+      window.URL.revokeObjectURL(img.src);
       callback();
     });
   },
