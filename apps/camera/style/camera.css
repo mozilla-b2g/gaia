@@ -135,7 +135,7 @@ html, body {
 #film-strip {
   -moz-transition: 0.2s ease-in-out;
   position: absolute;
-  z-index: 50;
+  z-index: 100;
   -moz-transform: translateY(0px);
   left: 0;
   right: 0;
@@ -172,7 +172,6 @@ html, body {
 }
 
 .thumbnail img {
-  pointer-events: none;
   -moz-user-select: none; /* so the image can't be selected */
   height: 100%;
   width: 100%;
