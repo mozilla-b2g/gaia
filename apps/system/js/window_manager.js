@@ -625,6 +625,10 @@ var WindowManager = (function() {
       displayedApp = origin;
 
       return;
+    } else if (origin === ftuURL) {
+      // Add a way to identify ftu app
+      // (Used by SimLock)
+      openFrame.classList.add('ftu');
     }
 
     if (requireFullscreen(origin))
@@ -753,6 +757,9 @@ var WindowManager = (function() {
   function retrieveFTU() {
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
       if (launchFTU === false) {
+        // Eventually ask for SIM code, but only when we do not show FTU,
+        // which already asks for it!
+        SimLock.showIfLocked();
         ensureHomescreen();
         return;
       }

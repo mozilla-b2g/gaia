@@ -1,0 +1,40 @@
+#simpin-dialog {
+  background: white;
+}
+
+#simpin-dialog section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+#simpin-dialog .container {
+  padding-left: 20px;
+  font-size: 1.5em;
+}
+
+#simpin-dialog .container > div {
+  padding-top: 10px;
+}
+
+#simpin-dialog .error #messageHeader {
+  color: red;
+}
+
+#simpin-dialog .input-wrapper {
+  position: relative;
+}
+
+#simpin-dialog .input-wrapper input {
+  font-size: 2.0em;
+  display: block;
+}
+
+#simpin-dialog .input-wrapper input[type="text"] {
+  width: auto;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+}
+
