@@ -375,7 +375,7 @@ Icon.prototype = {
       draggableElem.removeEventListener('transitionend', draggableEnd);
       delete container.dataset.dragging;
       document.body.removeChild(draggableElem);
-      var img = icon.querySelector('img');
+      var img = draggableElem.querySelector('img');
       window.URL.revokeObjectURL(img.src);
       callback();
     });
