@@ -905,9 +905,6 @@ var WindowManager = (function() {
       // Requires nested content processes (bug 761935).  This is not
       // on the schedule for v1.
 
-      'Cost Control',
-      // Cross-process SMS (bug 775997)
-
       // /!\ Also remove it from outOfProcessBlackList of background_service.js
       // Once this app goes OOP. (can be done by reverting a commit)
       'Messages'
