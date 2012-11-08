@@ -362,13 +362,20 @@ button[disabled] .icon-keypad-visibility {
 
 #calls[data-count="1"] > section .duration {
   position: absolute;
-  top: 12rem;
+  top: 10rem;
   left: 0;
-  height: 8rem;
-  padding: 2rem;
-  font-size: 2.6em;
-  font-weight: 300;
-  line-height: 8rem;
+  height: 7.5rem;
+  width: 100%;
+}
+
+#calls[data-count="1"] > section .duration > span {
+  font-size: 2.9rem;
+  line-height: 11.1rem;
+}
+
+#calls[data-count="1"] > section .duration.isTimer > span {
+  font-size: 5.9rem;
+  line-height: 8.1rem;
 }
 
 #calls > section.held {
@@ -384,12 +391,6 @@ button[disabled] .icon-keypad-visibility {
   white-space: nowrap;
 }
 
-#calls > section .duration {
-  position: absolute;
-  top: 0;
-  right: 0.5rem;
-}
-
 #calls > section.held .duration {
   display: none;
 }
@@ -401,30 +402,32 @@ button[disabled] .icon-keypad-visibility {
 #calls[data-count="1"] > section .duration > .direction {
   display: inline-block;
   width: 3.5rem;
+  height: 6.5rem;
+  padding: 0;
+}
+
+#calls[data-count="1"] > section .duration > .direction > div {
+  width: 3.5rem;
   height: 3.5rem;
+  margin: 3.7rem 0 0 0;
   background-repeat: no-repeat;
-  background-position: center;
   background-size: 3.5rem 3.5rem;
 }
 
 #calls[data-count="1"] > section .duration > .direction.incoming > div {
   background-image: url('images/DialerIcon_35x35_calling.png');
-  padding: 4.825rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.outgoing > div {
   background-image: url('images/DialerIcon_35x35_calling_out.png');
-  padding: 4.825rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
   background-image: url('images/DialerIcon_35x35_incoming.png');
-  padding: 7.65rem 0 0 0;
 }
 
 #calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
   background-image: url('images/DialerIcon_35x35_outgoing.png');
-  padding: 7.65rem 0 0 0;
 }
 
 
@@ -574,24 +577,4 @@ button[disabled] .icon-keypad-visibility {
     overflow: hidden;
   }
 
-  #calls > section .duration,
-  #calls[data-count="1"] > section .duration {
-    position: absolute;
-    top: 0;
-    left: auto;
-    right: 0;
-    width: 100%;
-    height: -moz-calc(100% - 2rem);
-    padding: 1rem;
-    text-align: right;
-    font-size: 1em;
-    line-height: 100%;
-  }
-
-  #calls[data-count="1"] > section .duration .direction {
-    display: block;
-    position: absolute;
-    top: 4px;
-    left: 5px;
-  }
 }
