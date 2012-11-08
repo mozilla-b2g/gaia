@@ -24,10 +24,9 @@ var AppInstallManager = {
 
   handleAppInstallPrompt: function ai_handleInstallPrompt(detail) {
     var _ = navigator.mozL10n.get;
-
+    var app = detail.app;
     // updateManifest is used by packaged apps until they are installed
-    var manifest = detail.app.manifest ?
-      detail.app.manifest : detail.app.updateManifest;
+    var manifest = app.manifest ? app.manifest : app.updateManifest;
 
     if (!manifest)
       return;
@@ -60,6 +59,10 @@ var AppInstallManager = {
     }
 
     this.installCallback = (function ai_installCallback() {
+      app.ondownloaderror = function ai_downloadError(e) {
+        var msg = name + ' ' + _('download-stopped');
+        SystemBanner.show(msg);
+      }
       this.dispatchResponse(id, 'webapps-install-granted');
     }).bind(this);
 

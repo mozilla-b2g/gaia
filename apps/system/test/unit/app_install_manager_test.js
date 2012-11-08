@@ -1,4 +1,5 @@
 requireApp('system/js/app_install_manager.js');
+requireApp('system/js/system_banner.js');
 
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
@@ -6,11 +7,13 @@ requireApp('system/test/unit/mock_chrome_event.js');
 suite('system/AppInstallManager', function() {
   var realL10n;
   var realDispatchResponse;
+  var realSystemBannerShow;
 
   var fakeDialog;
 
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
+  var lastSystemBannerMessage = null;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
@@ -107,6 +110,10 @@ suite('system/AppInstallManager', function() {
   suite('events', function() {
     suite('webapps-ask-install', function() {
       setup(function() {
+        realSystemBannerShow = SystemBanner.show;
+        SystemBanner.show = function fakeSystemBannerShow(msg) {
+          lastSystemBannerMessage = msg;
+        };
         var evt = new MockChromeEvent({
           type: 'webapps-ask-install',
           id: 42,
@@ -123,6 +130,10 @@ suite('system/AppInstallManager', function() {
         });
 
         AppInstallManager.handleAppInstallPrompt(evt.detail);
+      });
+
+      teardown(function() {
+        SystemBanner.show = realSystemBannerShow;
       });
 
       test('should display the dialog', function() {
@@ -177,6 +188,31 @@ suite('system/AppInstallManager', function() {
         AppInstallManager.handleAppInstallPrompt(evt.detail);
         assert.equal('unknown', AppInstallManager.authorName.textContent);
         assert.equal('', AppInstallManager.authorUrl.textContent);
+      });
+
+      test('display download errors', function() {
+        var evt = new MockChromeEvent({
+          type: 'webapps-ask-install',
+          id: 42,
+          app: {
+            updateManifest: {
+              name: 'Fake app',
+              size: 5245678,
+              developer: {
+                name: 'Fake dev',
+                url: 'http://fakesoftware.com'
+              }
+            }
+          }
+        });
+
+        AppInstallManager.handleAppInstallPrompt(evt.detail);
+        AppInstallManager.installCallback();
+        var error = {'name': 'DOWNLOAD_ERROR'};
+        var app = evt.detail.app;
+        app.downloadError = error;
+        app.ondownloaderror();
+        assert.equal(lastSystemBannerMessage, 'Fake app download-stopped');
       });
 
       suite('install size', function() {
