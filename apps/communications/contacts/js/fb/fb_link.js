@@ -432,11 +432,13 @@ if (!fb.link) {
       var req = fb.contacts.get(friendUidToLink);
       req.onsuccess = function() {
         if (req.result) {
-          Curtain.hide(function() {
-            notifyParent({
-              uid: friendUidToLink
+          window.setTimeout(function delay() {
+            Curtain.hide(function hide() {
+              notifyParent({
+                uid: friendUidToLink
+              });
             });
-          });
+          }, 1000);
         }
         else {
           state = 'linking';
