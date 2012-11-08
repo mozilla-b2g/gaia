@@ -55,7 +55,6 @@ const DragDropManager = (function() {
     if (!overlapingDock && !DockManager.isFull()) {
       // I've just entered
       draggableIcon.addClassToDragElement('overDock');
-      draggableIcon.remove();
       var needsRender = false;
       DockManager.page.appendIcon(draggableIcon, needsRender);
       drop(overlapElem, DockManager.page);
@@ -77,7 +76,6 @@ const DragDropManager = (function() {
     if (overlapingDock) {
       draggableIcon.removeClassToDragElement('overDock');
       overlapingDock = false;
-      draggableIcon.remove();
       var curPageObj = pageHelper.getCurrent();
       if (curPageObj.getNumIcons() < pageHelper.maxIconsPerPage) {
         var needsRender = false;
@@ -94,14 +92,12 @@ const DragDropManager = (function() {
       var curPageObj = pageHelper.getCurrent();
       if (pageHelper.getCurrentPageNumber() <
           pageHelper.getTotalPagesNumber() - 1) {
-        draggableIcon.remove();
         pageHelper.getNext().prependIcon(draggableIcon);
         setDisabledCheckingLimits(true);
         transitioning = true;
         GridManager.goToNextPage(onNavigationEnd);
       } else if (curPageObj.getNumIcons() > 1) {
         // New page if there are two or more icons
-        draggableIcon.remove();
         pageHelper.addPage([draggableIcon]);
         setDisabledCheckingLimits(true);
         transitioning = true;
@@ -114,7 +110,6 @@ const DragDropManager = (function() {
       }
 
       var curPageObj = pageHelper.getCurrent();
-      draggableIcon.remove();
       var prevPageObj = pageHelper.getPrevious();
       if (prevPageObj.getNumIcons() === pageHelper.maxIconsPerPage) {
         prevPageObj.insertBeforeLastIcon(draggableIcon);
