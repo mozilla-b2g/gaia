@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/edit_mode.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
     <!-- Shared code -->
     <script type="application/javascript" src="/shared/js/l10n.js"></script>
     <script type="application/javascript" src="/shared/js/l10n_date.js"></script>
@@ -217,8 +218,8 @@
         </header>
       </section>
       <menu>
-        <button id="deselect-all-threads" class="edit-button danger disabled" data-l10n-id="deselectAll">Delete all</button>
-        <button id="select-all-threads" class="edit-button danger" data-l10n-id="selectAll">Delete selected</button>
+        <button id="deselect-all-threads" class="edit-button" disabled="disabled" data-l10n-id="deselectAll">Deselect all</button>
+        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">Select all</button>
       </menu>
     </form>
 
@@ -230,6 +231,17 @@
         <button id="cancel-action-menu" data-l10n-id="cancel">  Cancel  </button>
       </menu>
     </form>
+   
+    <form id="recents-deletion-confirmation" role="dialog" data-type="confirm">
+      <section>
+        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <p  data-l10n-id="confirm-deletion">Clear selected calls?</p>
+      </section>
+      <menu>
+        <button id="recents-deletion-cancel" type="reset" data-l10n-id="cancel">Cancel</button>
+        <button id="recents-deletion-confirm" data-l10n-id="delete">Delete</button>
+      </menu>
+    </form>
 
   </body>
 </html>
