@@ -163,3 +163,7 @@ li.align-center {
   margin: 1.5rem 3rem;
   width: calc(100% - 6rem);
 }
+
+.tng-email-lib-version {
+  opacity: 0;
+}
