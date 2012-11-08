@@ -219,6 +219,9 @@
   padding: 2px 0.8rem;
   font-size: 80%;
 }
+.msg-peep-bubble * {
+  pointer-events: none;
+}
 .msg-peep-name {
 }
 .msg-peep-address {
@@ -283,6 +286,7 @@
 .msg-body-content {
   color: black;
   margin: 4px 0px;
+  word-wrap: break-word;
 }
 .msg-body-signature {
   color: blue;

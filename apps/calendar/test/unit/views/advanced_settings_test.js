@@ -3,6 +3,7 @@ requireApp('calendar/test/unit/helper.js', function() {
   requireLib('templates/account.js');
   requireLib('presets.js');
   requireLib('views/advanced_settings.js');
+  requireLib('provider/caldav.js');
 });
 
 suite('views/advanced_settings', function() {
@@ -23,11 +24,19 @@ suite('views/advanced_settings', function() {
   suiteSetup(function() {
     fixtures = {
       a: Factory('account', {
-        _id: 'a'
+        _id: 'a',
+        providerType: 'Caldav'
       }),
 
       b: Factory('account', {
-        _id: 'b'
+        _id: 'b',
+        providerType: 'Caldav'
+      }),
+
+      // expected not to be displayed.
+      notRendered: Factory('account', {
+        _id: 'c',
+        providerType: 'Local'
       })
     };
   });
@@ -104,6 +113,18 @@ suite('views/advanced_settings', function() {
         item.outerHTML,
         modelHtml(object)
       );
+    });
+
+    test('add - Local provider', function() {
+      store.emit('add', 'foo', Factory('account', {
+        providerType: 'Local'
+      }));
+
+      assert.length(children, 1, 'does not add account');
+    });
+
+    test('remove - missing id', function() {
+      store.emit('remove', 'foo');
     });
 
     test('remove', function() {

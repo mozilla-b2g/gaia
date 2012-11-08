@@ -26,7 +26,7 @@
   /**
    * Init
    */
-  var iccMenuItem = document.getElementById('iccMenuItem');
+  var iccMenuItem = document.getElementById('menuItem-icc');
   var iccStkList = document.getElementById('icc-stk-list');
   var iccStkHeader = document.getElementById('icc-stk-header');
   var iccStkSubheader = document.getElementById('icc-stk-subheader');

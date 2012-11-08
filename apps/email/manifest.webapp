@@ -58,5 +58,6 @@
       "disposition": "window",
       "returnValue": true
     }
-  }
+  },
+  "orientation": "portrait-primary"
 }
