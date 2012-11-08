@@ -1,17 +1,17 @@
+/**
+* This class handles the logic to determine
+* which busytimes conflict with others and manages
+* special 'data-conflicts' and 'data-overlaps' attributes.
+*
+* We define a conflict as two events which start
+* roughly at the same time (see .conflictDistance).
+*
+* We define an overlap as events which occupy a similar
+* space to that of their counter part but do not start
+* at the same time.
+*/
 Calendar.Overlap = (function() {
 
-  /**
-   * This class handles the logic to determine
-   * which busytimes conflict with others and manages
-   * special 'data-conflicts' and 'data-overlaps' attributes.
-   *
-   * We define a conflict as two events which start
-   * roughly at the same time (see .conflictDistance).
-   *
-   * We define an overlap as events which occupy a similar
-   * space to that of their counter part but do not start
-   * at the same time.
-   */
   function Overlap() {
     this.tree = new Calendar.IntervalTree();
 
@@ -71,13 +71,16 @@ Calendar.Overlap = (function() {
         var otherDetails = this.getDetails(otherTime);
         var otherStart = otherTime._startDateMS;
 
-
         if (!otherDetails)
           continue;
 
         if (this._conflicts(start, otherStart)) {
           otherDetails.conflicts--;
           pending[otherTime._id] = true;
+          this._updateConflictIDs(
+            false, busytime, myDetails,
+            otherTime, otherDetails
+          );
         } else {
 
           // don't modify overlap details for
@@ -146,7 +149,9 @@ Calendar.Overlap = (function() {
 
     _processSet: function(busytime, related) {
       // enter record for new busytime
-      var myDetails = {};
+      var myDetails = {
+        conflictIDs: {}
+      };
       this.details[busytime._id] = myDetails;
 
       // pending for later
@@ -170,7 +175,9 @@ Calendar.Overlap = (function() {
 
         if (!otherDetails) {
           // create the other details if they do not exist.
-          otherDetails = this.details[otherTime._id] = {};
+          otherDetails = this.details[otherTime._id] = {
+            conflictIDs: {}
+          };
         }
 
         if (this._conflicts(start, otherTime._startDateMS)) {
@@ -198,6 +205,12 @@ Calendar.Overlap = (function() {
           // conflicts always share the same level
           otherDetails.conflicts = curLevel;
           myDetails.conflicts = curLevel;
+
+          // Mark the two events as in conflict with each other.
+          this._updateConflictIDs(
+            true, busytime, myDetails,
+            otherTime, otherDetails
+          );
 
           // always update both the newly found conflict
           // and the current busytime.
@@ -246,6 +259,53 @@ Calendar.Overlap = (function() {
     },
 
     /**
+     * Update the set of mutual conflict IDs maintained for two events.
+     *
+     * @param {Boolean} whether the two events conflict.
+     * @param {Object} event #1 busytime instance.
+     * @param {Object} event #1 overlap details.
+     * @param {Object} event #2 busytime instance.
+     * @param {Object} event #2 overlap details.
+     */
+    _updateConflictIDs: function(state, busytime, myDetails,
+                                 otherTime, otherDetails) {
+      var bid = busytime._id;
+      var bcIDs = myDetails.conflictIDs;
+      var oid = otherTime._id;
+      var ocIDs = otherDetails.conflictIDs;
+      if (state) {
+        // Adding is simple, just throw true into the mutual conflicts:
+        bcIDs[bid] = bcIDs[oid] = ocIDs[bid] = ocIDs[oid] = true;
+      } else {
+        // Don't bother to delete from bcIDs, since it's being removed.
+        // But, do remove from the other's details:
+        delete ocIDs[bid];
+        if (Object.keys(ocIDs).length == 1) {
+          // If there's only one conflict key left, then it's the event
+          // itself and can be removed. Leave it alone, otherwise.
+          delete ocIDs[oid];
+        }
+      }
+    },
+
+    /**
+     * Update width and position of element, based on number of conflicts and
+     * item's index relative to the sorted IDs of other conflicts.
+     */
+    _updateWidthAndPosition: function(el, id, conflictIDs) {
+      var cIDs = Object.keys(conflictIDs).sort();
+      var cIdx = cIDs.indexOf(id);
+      if (-1 == cIdx) {
+        el.style.width = '';
+        el.style.left = '';
+      } else {
+        var width = (100 / cIDs.length);
+        el.style.width = width + '%';
+        el.style.left = (width * cIdx) + '%';
+      }
+    },
+
+    /**
      * Given an object
      *
      *    {
@@ -262,6 +322,10 @@ Calendar.Overlap = (function() {
 
         if ('conflicts' in details) {
           this._updateConflictAttr(el, 'conflicts', details.conflicts);
+        }
+
+        if ('conflictIDs' in details) {
+          this._updateWidthAndPosition(el, id, details.conflictIDs);
         }
 
         if ('overlaps' in details) {
