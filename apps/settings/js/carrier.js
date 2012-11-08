@@ -261,7 +261,7 @@ var Carrier = (function newCarrier(window, document, undefined) {
       lock.set({ 'ril.data.passwd': item.password || '' });
       lock.set({ 'ril.data.httpProxyHost': item.proxy || '' });
       lock.set({ 'ril.data.httpProxyPort': item.port || '' });
-      restartDataConnection(true);
+      lock.set({ 'ril.data.enabled': dataSwitch.checked });
 
       delete(dataSwitch.onclick);
     }
