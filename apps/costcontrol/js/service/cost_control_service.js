@@ -63,7 +63,6 @@ setService(function cc_setupCostControlService() {
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_UPDATING_BALANCE = 'updatingbalance';
   var STATE_UPDATING_DATA_USAGE = 'updatingdatausage';
-  var _fte = false;
   var _missconfigured = false;
   var _state = {};
   var _onSMSReceived = {};
@@ -83,11 +82,12 @@ setService(function cc_setupCostControlService() {
       'data_limit': false,
       'data_limit_value': null,
       'data_limit_unit': 'GB',
+      'fte': true,
       'lastbalance': null,
       'lastdatausage': null,
       'lastreset': new Date(),
       'lastdatareset': new Date(),
-      'lowlimit': true,
+      'lowlimit': false,
       'lowlimit_threshold': false,
       'next_reset': null,
       'plantype': 'prepaid',
@@ -103,11 +103,12 @@ setService(function cc_setupCostControlService() {
       'data_limit': false,
       'data_limit_value': null,
       'data_limit_unit': 'GB',
+      'fte': true,
       'lastbalance': null,
       'lastdatausage': null,
       'lastreset': new Date(),
       'lastdatareset': new Date(),
-      'lowlimit': true,
+      'lowlimit': false,
       'lowlimit_threshold': false,
       'next_reset': null,
       'plantype': 'prepaid',
@@ -121,7 +122,8 @@ setService(function cc_setupCostControlService() {
     function _initializeSettings(options) {
       // No options, first time experience
       if (!options) {
-        _fte = true;
+        // It is implicit but let's make it explicit
+        _cachedOptions['fte'] = true;
         debug('First Time Experience for this SIM');
         return;
       }
@@ -174,6 +176,8 @@ setService(function cc_setupCostControlService() {
       var oldValue = _cachedOptions[key]; // retrieve from cache
       if (typeof value === 'undefined')
         return oldValue;
+
+      debug('Setting ' + key + ' to ' + value + ' (' + typeof value + ')');
 
       _cachedOptions[key] = value; // update cache
       asyncStorage.setItem(_iccid, _cachedOptions,
@@ -564,7 +568,7 @@ setService(function cc_setupCostControlService() {
       availability: false,
       roaming: null,
       detail: null,
-      fte: _fte,
+      fte: _appSettings.option('fte'),
       enabledFunctionalities: {
         balance: _enabledFunctionalities.balance,
         telephony: _enabledFunctionalities.telephony,

@@ -77,7 +77,7 @@ function setupApp() {
   }
 
   // Configure close dialog to close the current setting's  dialog.
-  // Settings dialogs include all of thenm related with selecting values from
+  // Settings dialogs include all of them related with selecting values from
   // settings and warning prompts arising from the settings view.
   function _configureCloseSettingsDialog() {
     var closeButtons = document.querySelectorAll('.close-settings-dialog');
@@ -102,13 +102,20 @@ function setupApp() {
   // updates.
   function _init() {
 
+    var status = Service.getServiceStatus();
+    if (status.fte) {
+      var fteIframe = document.getElementById('fte-view');
+      fteIframe.src = 'fte.html';
+      settingsVManager.changeViewTo('fte-view');
+    }
+
     _configureSettingsButtons();
     _configureCloseDialog();
     _configureCloseSettingsDialog();
 
     // Initialize each tab (XXX: see them in /js/views/ )
     for (var viewId in Views)
-        Views[viewId].init();
+      Views[viewId].init();
 
     // Handle web activity
     navigator.mozSetMessageHandler('activity',
@@ -117,10 +124,6 @@ function setupApp() {
         switch (name) {
           case 'costcontrol/open':
             viewManager.closeCurrentView();
-            break;
-
-          case 'costcontrol/topup':
-            Views[TAB_BALANCE].showTopUp();
             break;
         }
       }
@@ -136,7 +139,6 @@ function setupApp() {
     });
 
     // Adapt tab visibility according to available functionality
-    var status = Service.getServiceStatus();
     if (!status.enabledFunctionalities.balance &&
         !status.enabledFunctionalities.telephony) {
 
