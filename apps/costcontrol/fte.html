@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="pragma" content="no-cache">
-  <title>Cost Control</title>
+  <title>Cost Control First Time Experience</title>
 
   <!-- Building blocks Temporal -->
   <link rel="stylesheet" type="text/css" href="style/bb/filters/style.css">
@@ -21,20 +21,14 @@
 
   <!-- App and Views -->
   <link rel="stylesheet" type="text/css" href="style/app.css">
-  <link rel="stylesheet" type="text/css" href="style/views/topup.css">
-  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
-  <link rel="stylesheet" type="text/css" href="style/views/settings.css">
-  <link rel="stylesheet" type="text/css" href="style/views/datausage.css">
-  <link rel="stylesheet" type="text/css" href="style/views/balance.css">
-  <link rel="stylesheet" type="text/css" href="style/views/telephony.css">
   <link rel="stylesheet" type="text/css" href="style/views/firsttime.css">
+  <link rel="stylesheet" type="text/css" href="style/views/datalimits.css">
 
   <!-- Localization -->
   <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
   <!-- Shared code -->
   <script type="text/javascript" src="shared/js/l10n.js"></script>
-  <script type="text/javascript" src="shared/js/settings_listener.js"></script>
 
   <!-- Specific code -->
   <script type="text/javascript" src="js/utils/debug.js"></script>
@@ -43,717 +37,56 @@
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
-  <script type="text/javascript" defer src="js/views/vmanagers.js"></script>
-  <script type="text/javascript" defer src="js/views/settings.js"></script>
-  <script type="text/javascript" defer src="js/views/balance.js"></script>
-  <script type="text/javascript" defer src="js/views/telephony.js"></script>
-  <script type="text/javascript" defer src="js/views/data_usage.js"></script>
-  <script type="text/javascript" defer src="js/app.js"></script>
+  <script type="text/javascript" defer src="js/views/autosettings.js"></script>
+  <script type="text/javascript" defer src="js/views/fte.js"></script>
 </head>
 
-<body role="application">
-  <section role="region" class="window skin-organic">
-    <!-- XXX: The order of sections is important (tabs should be place above
-    the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
+<body role="application" class="skin-organic">
 
-   <!-- BALANCE TAB -->
-    <section role="region" id="balance-tab" class="view" data-viewport="behind">
+  <!-- First time experience -->
+  <section id="firsttime-view" class="view step-1">
+    <ol class="step-state">
+      <li>Select plan type</li>
+      <li>Set balance reminders</li>
+      <li>Set data report and alert</li>
+    </ol>
+
+    <!-- Step 1 -->
+    <section role="region" class="view step" data-viewport="" id="step-1">
       <header>
-        <menu type="toolbar">
-           <button class="settings-button"><span class="icon config">configuration</span></button>
-        </menu>
-        <h1 data-l10n-id="balance">Balance</h1>
+        <h1>Select your plan type</h1>
       </header>
-
-      <section class="content">
-
-        <!-- Top up countdown -->
-        <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
-          <p><span id="top-up-countdown">00:00</span> <span data-l10n-id="top-up-in-progress">Top Up in progress</span></p>
-        </div>
-
-        <!-- Error messages -->
-        <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
-          <section id="on-roaming-message" aria-hidden="true">
-            <p data-l10n-id="on-roaming-message">Roaming: Automatic balance update OFF. Additional charges may apply for update.</p>
-          </section>
-          <section id="on-topup-not-confirmed" aria-hidden="true">
-            <p data-l10n-id="on-topup-not-confirmed-title">Top up not confirmed.</p>
-            <p data-l10n-id="on-topup-not-confirmed-message">Try updating your balance or retry Top up.</p>
-          </section>
-          <p id="balance-error-message" data-l10n-id="balance-error-message" aria-hidden="true">Balance updating error, try again manually.</p>
-        </div>
-
-        <!-- Show balance zone -->
-        <div id="cost-control-info-area" class="overview">
-          <ul class="buttons-list end">
-            <li>
-              <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
-                Update
-              </button>
-            </li>
-          </ul>
-          <div class="info">
-            <div id="cost-control-icon" class="icons">
-                <span class="warning"></span>
-                <progress></progress>
-            </div>
-            <p><span id="balance-tab-currency"></span>&nbsp;<span id="balance-tab-credit"></span></p>
-            <time id="balance-tab-time"></time>
-          </div>
-        </div>
-
-        <!-- Update and top up buttons -->
-        <ul class="buttons-list">
-          <li>
-            <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button">
-              Top-Up and pay
-            </button>
-          </li>
-          <li>
-          <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button">
-            Top-Up with code
-          </button>
-          </li>
-        </ul>
-      </section>
-    </section>
-
-    <!-- TELEPHONY TAB -->
-    <section role="region" id="telephony-tab" class="view" data-viewport="behind">
-       <header>
-        <menu type="toolbar">
-           <button class="settings-button"><span class="icon config">configuration</span></button>
-        </menu>
-        <h1 data-l10n-id="phoneactivity">Phone activity</h1>
-      </header>
-      <section class="settings">
-        <ul>
-          <li>
-            <p><span id="telephony-from-date"></span> – <span id="telephony-to-date"></span></p>
-            <dl>
-              <dt data-l10n-id="call-made">Call made</dt>
-              <dd><span id="calltime">50</span> <sub>min</sub></dd>
-              <dt data-l10n-id="sms-sent">SMS Sent</dt>
-              <dd><span id="smscount">30</span> <sub>SMS</sub></dd>
-            </dl>
-          </li>
-          <li>
-            <time id="reset-date">26 Dec</time>
-            <p data-l10n-id="billing-cycle-ends">Billing cycle ends</p>
-            <span class="meta" data-l10n-id="tracking-will-reset">Tracking will reset on this date</span>
-          </li>
-        </ul>
-      </section>
-    </section>
-
-    <!-- The top up input -->
-    <section role="region" id="topup-view" class="view" data-viewport="bottom">
-      <header>
-        <menu type="toolbar">
-           <button id="topup-send-button" data-l10n-id="send">Send</button>
-        </menu>
-        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
-        <h1 data-l10n-id="top-up">Top Up</h1>
-      </header>
-      <section class="content">
-        <div class="info">
-          <h2 data-l10n-id="enter-top-up-code">Enter the top up code</h2>
-          <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation">Typically found in the scratch card or directly in your receipt</p>
-          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code">Last entered code was incorrect. Please, try again.</p>
-          <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error">Sorry, we couldn't top up at this moment.</p>
-          <section class="loading">
-            <progress id="topup-in-progress" aria-hidden="true"></progress>
-            <p id="topup-confirmation-explanation" aria-hidden="true" data-l10n-id="wait-for-confirmation">You'll receive a confirmation message</p>
-          </section>
-        </div>
-      </section>
-      <form>
-        <input id="topup-code-input" type="number" autofocus></input>
-      </form>
-    </section>
-
-    <!-- Data usage limits -->
-    <section role="region" id="datalimits-view" class="view" data-viewport="bottom">
-      <header data-theme="organic">
-        <menu type="toolbar">
-           <button id="topup-send-button" data-l10n-id="send">Send</button>
-        </menu>
-        <a class="close-dialog"><span id="topup-close-button" class="icon icon-close">close</span></a>
-        <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
-      </header>
-      <section class="content">
-        <div class="info">
-          <h2 data-l10n-id="enter-a-data-limit">Enter a mobile data usage limit</h2>
-          <p id="datalimit-explanation" data-l10n-id="datalimit-explanation">
-            Connection speeds reduces after limit.
-            <br/>
-            It will be used as a reference to check against actual mobile data usage.
-          </p>
-        </div>
-      </section>
-      <form>
-        <ul class="buttons-list">
-          <li>
-            <button class="icon icon-dialog">
-              GB
-            </button>
-          </li>
-        </ul>
-        <label for="topup-code-input">
-          <input id="topup-code-input" type="number" autofocus>
-        </label>
-      </form>
-    </section>
-
-    <!-- Dialog for service unavailable -->
-    <section role="dialog" class="view" data-viewport="bottom" id="application-error-info-dialog">
-      <div class="center">
-        <h3 data-l10n-id="application-error-title">Service unavailable</h3>
-        <p data-l10n-id="application-error-message">Contact your company representative.</p>
-      </div>
-      <menu data-items="1">
-        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
-      </menu>
-    </section>
-
-    <!-- Dialog for application error -->
-    <section role="dialog" class="view" data-viewport="bottom" id="service-unavailable-info-dialog">
-      <div class="center">
-        <h3 data-l10n-id="service-unavailable-title">Service unavailable</h3>
-        <p data-l10n-id="service-unavailable-message">Neither update nor top up is possible at the moment. Please try later.</p>
-      </div>
-      <menu data-items="1">
-        <button data-l10n-id="ok" class="recommend close-dialog">Ok</button>
-      </menu>
-    </section>
-
-    <!-- DATA USAGE TAB -->
-    <section id="datausage-tab" role="region" class="view" data-viewport="behind">
-      <header data-theme="organic">
-        <menu type="toolbar">
-           <button class="settings-button"><span class="icon config">configuration</span></button>
-        </menu>
-        <h1 data-l10n-id="settings">Data usage</h1>
-      </header>
-
-      <div class="view-scroll">
-        <section class="content">
-          <ul class="toggle-data">
-            <li id="toggleMobile">
-              <label for="mobileCheck">
-                <input type="checkbox" checked="checked" id="mobileCheck">
-                <span>3G <em id="mobileOverview">--</em></span>
-              </label>
-            </li>
-            <li id="toggleWifi">
-              <label for="wifiCheck">
-                <input type="checkbox" checked="checked" id="wifiCheck">
-                <span>Wi-Fi <em id="wifiOverview">--</em></span>
-              </label>
-            </li>
-          </ul>
-
-          <section id="graphic-area" class="graph">
-            <canvas id="background-layer"></canvas>
-            <canvas id="warning-layer"></canvas>
-            <canvas id="wifi-layer"></canvas>
-            <canvas id="mobile-layer"></canvas>
-            <canvas id="axis-layer"></canvas>
-            <canvas id="today-layer"></canvas>
-            <canvas id="limits-layer"></canvas>
-            <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="graphic-pattern"></img>
-          </section>
-        </section>
-
-      </div>
-    </section>
-
-    <!-- SETTINGS VIEW -->
-    <iframe source="/settings.html"></iframe>
-    <section id="settings-view" role="region" class="view" data-viewport="bottom">
-      <header data-theme="organic">
-        <a id="close-settings"><span id="topup-close-button" class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="settings">Settings</h1>
-      </header>
-
-      <div class="buttons-list choose-plan">
-        <button id="settings-view-plantype-setup" class="icon icon-dialog">
-          <span class="tag">Prepaid</span>
+      <ul class="content choices">
+        <li>
+          <label for="prepaid-plan">
+            <input type="radio" name="plan" id="prepaid-plan" value="prepaid">
+            <span>I'm Pre-paid</span>
+          </label>
+        </li>
+        <li>
+          <label for="postpaid-plan">
+            <input type="radio" name="plan" id="postpaid-plan" value="postpaid">
+            <span>I'm Post-paid</span>
+          </label>
+        </li>
+      </ul>
+      <menu>
+        <button id="to-step-2" class="recommend" data-navigation="next">
+          <span></span>
+          Next
         </button>
-      </div>
+      </menu>
+    </section>
 
+    <!-- Prepaid step 2 -->
+    <section role="region" class="view step" data-viewport="right" id="prepaid-step-2">
       <header>
-        <h2 data-l10n-id="balance">Balance</h2>
+        <h1>Set balance reminders</h1>
       </header>
-      <ul class="settings">
-        <li>
-            <p><span id="settings-currency"></span> <span id="settings-credit"></span></p>
-            <time id="settings-time"></time>
-        </li>
-        <li>
-          <label class="end switch">
-            <input id="settings-low-limit-switch" type="checkbox" checked="checked">
-            <span></span>
-          </label>
-          <p data-l10n-id="low-balance-alert">Low Balance alert</p>
-        </li>
-        <li id="setting-item-low-limit-setup">
-          <label class="end" for="settings-low-limit-value">
-            <span id="settings-low-limit-currency"></span>
-            <input type="number" id="settings-low-limit-value" />
-          </label>
-          <p data-l10n-id="low-balance-explanation">Alert me when I’m under</p>
-        </li>
-      </ul>
-
-<!--      <header>
-        <h2>Data usage</h2>
-      </header>
-      <ul class="settings">
-        <li>
-            <div class="end buttons-list">
-              <button>Reset</button>
-            </div>
-            <p>50MB</p>
-            <time>27 Nov - Today, 15:32</time>
-        </li>
-        <li>
-          <div class="end buttons-list">
-            <button class="icon icon-dialog">
-              Monthly
-            </button>
-          </div>
-          <p>Reset tracking</p>
-        </li>
-      </ul>-->
-
-      <header>
-        <h2 data-l10n-id="phone-and-internet-data-report">Phone and internet data report</h2>
-      </header>
-      <ul class="settings">
-        <li>
-          <div class="end buttons-list">
-            <button id="settings-view-tracking-period-setup" class="icon icon-dialog">
-              <span class="tag"></span>
-            </button>
-          </div>
-          <p data-l10n-id="reset-tracking">Reset tracking</p>
-        </li>
-        <li id="setting-item-reset-time-setup">
-        <div class="end buttons-list">
-          <button id="settings-view-reset-time-setup" class="icon icon-dialog">
-            <span class="tag"></span>
-          </button>
-        </div>
-          <p data-l10n-id="starting-on">Starting on</p>
-        </li>
-      </ul>
-
-    </section>
-
-    <!-- Plan setup dialog -->
-    <section role="dialog" class="view" data-viewport="bottom" id="plantype-setup-dialog">
-      <div class="center">
-        <h3 data-l10n-id="plantype-setup-title">My phone and internet plan is</h3>
-        <ul role="listbox">
-          <li>
-            <label for="plantype-option-prepaid">
-              <input type="radio" id="plantype-option-prepaid" name="plantype-option" checked="checked" value="prepaid">
-              <span data-l10n-id="prepaid">Prepaid</span>
-            </label>
-          </li>
-          <li>
-            <label for="plantype-option-postpaid">
-              <input type="radio" id="plantype-option-postpaid" name="plantype-option" value="postpaid">
-              <span data-l10n-id="postpaid">Postpaid</span>
-            </label>
-          </li>
-        </ul>
-      </div>
-      <menu data-items="1">
-        <button data-l10n-id="ok" class="recommend close-settings-dialog">Ok</button>
-      </menu>
-    </section>
-
-    <!-- Tracking period -->
-    <section role="dialog" class="view" data-viewport="bottom" id="tracking-period-setup-dialog">
-      <div class="center">
-        <h3 data-l10n-id="tracking-period-setup-title">Reset tracking</h3>
-        <ul role="listbox">
-          <li>
-            <label for="tracking-period-option-monthly">
-              <input type="radio" id="tracking-period-option-monthly" name="tracking-period-option" checked="checked" value="monthly">
-              <span data-l10n-id="monthly">Monthly</span>
-            </label>
-          </li>
-          <li>
-            <label for="tracking-period-option-weekly">
-              <input type="radio" id="tracking-period-option-weekly" name="tracking-period-option" value="weekly">
-              <span data-l10n-id="weekly">Weekly</span>
-            </label>
-          </li>
-          <li>
-            <label for="tracking-period-option-never">
-              <input type="radio" id="tracking-period-option-never" name="tracking-period-option" value="never">
-              <span data-l10n-id="never">Never</span>
-            </label>
-          </li>
-        </ul>
-      </div>
-      <menu data-items="2">
-        <button id="tracking-period-cancel" data-l10n-id="cancel" class="close-settings-dialog">Cancel</button>
-        <button id="tracking-period-ok" data-l10n-id="set" class="recommend close-settings-dialog">Set</button>
-      </menu>
-    </section>
-
-    <!-- Weekday reset dialog -->
-    <section role="dialog" class="view" data-viewport="bottom" id="reset-weekday-setup-dialog">
-      <div class="center">
-        <h3 data-l10n-id="weekday-reset-setup-title">Select period start day</h3>
-        <ul role="listbox">
-          <li>
-            <label for="reset-weekday-option-monday">
-              <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1">
-              <span data-l10n-id="monday">Monday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-tuesday">
-              <input type="radio" id="reset-weekday-option-tuesday" name="reset-weekday-option" checked="checked" value="2">
-              <span data-l10n-id="tuesday">Tuesday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-wednesday">
-              <input type="radio" id="reset-weekday-option-wednesday" name="reset-weekday-option" checked="checked" value="3">
-              <span data-l10n-id="wednesday">Wednesday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-thursday">
-              <input type="radio" id="reset-weekday-option-thursday" name="reset-weekday-option" checked="checked" value="4">
-              <span data-l10n-id="thursday">Thursday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-friday">
-              <input type="radio" id="reset-weekday-option-friday" name="reset-weekday-option" checked="checked" value="5">
-              <span data-l10n-id="friday">Friday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-saturday">
-              <input type="radio" id="reset-weekday-option-saturday" name="reset-weekday-option" checked="checked" value="6">
-              <span data-l10n-id="saturday">Saturday</span>
-            </label>
-          </li>
-          <li>
-            <label for="reset-weekday-option-sunday">
-              <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" checked="checked" value="0">
-              <span data-l10n-id="sunday">Sunday</span>
-            </label>
-          </li>
-        </ul>
-      </div>
-      <menu data-items="2">
-        <button id="reset-weekday-period-cancel" data-l10n-id="cancel" class="close-settings-dialog">Cancel</button>
-        <button id="reset-weekday-period-ok" data-l10n-id="set-day" class="recommend close-settings-dialog">Set day</button>
-      </menu>
-    </section>
-
-    <!-- Month day reset -->
-    <section id="reset-monthday-setup-dialog" role="dialog" class="view" data-viewport="bottom">
-      <div class="center">
-        <h3 data-l10n-id="reset-monthday-setup-title">Select period start date</h3>
-        <section class="calendar">
-          <table>
-            <thead>
-              <tr>
-                <th scope="col" data-l10n-id="monday-abbr">Mon</th>
-                <th scope="col" data-l10n-id="tuesday-abbr">Tue</th>
-                <th scope="col" data-l10n-id="wednesday-abbr">Wed</th>
-                <th scope="col" data-l10n-id="thursday-abbr">Thu</th>
-                <th scope="col" data-l10n-id="friday-abbr">Fri</th>
-                <th scope="col" data-l10n-id="saturday-abbr">Sat</th>
-                <th scope="col" data-l10n-id="sunday-abbr">Sun</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  <label for="day-1">
-                    <input type="radio" name="day" id="day-1" value='1'>
-                    <span>1</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-2">
-                    <input type="radio" name="day" id="day-2" value='2'>
-                    <span>2</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-3">
-                    <input type="radio" name="day" id="day-3" value='3'>
-                    <span>3</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-4">
-                    <input type="radio" name="day" id="day-4" value='4'>
-                    <span>4</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-5">
-                    <input type="radio" name="day" id="day-5" value='5'>
-                    <span>5</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-6">
-                    <input type="radio" name="day" id="day-6" value='6'>
-                    <span>6</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-7">
-                    <input type="radio" name="day" id="day-7" value='7'>
-                    <span>7</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <label for="day-8">
-                    <input type="radio" name="day" id="day-8" value='8'>
-                    <span>8</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-9">
-                    <input type="radio" name="day" id="day-9" value='9'>
-                    <span>9</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-10">
-                    <input type="radio" name="day" id="day-10" value='10'>
-                    <span>10</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-11">
-                    <input type="radio" name="day" id="day-11" value='11'>
-                    <span>11</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-12">
-                    <input type="radio" name="day" id="day-12" value='12'>
-                    <span>12</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-13">
-                    <input type="radio" name="day" id="day-13" value='13'>
-                    <span>13</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-14">
-                    <input type="radio" name="day" id="day-14" value='14'>
-                    <span>14</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <label for="day-15">
-                    <input type="radio" name="day" id="day-15" value='15'>
-                    <span>15</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-16">
-                    <input type="radio" name="day" id="day-16" value='16'>
-                    <span>16</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-17">
-                    <input type="radio" name="day" id="day-17" value='17'>
-                    <span>17</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-18">
-                    <input type="radio" name="day" id="day-18" value='18'>
-                    <span>18</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-19">
-                    <input type="radio" name="day" id="day-19" value='19'>
-                    <span>19</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-20">
-                    <input type="radio" name="day" id="day-20" value='20'>
-                    <span>20</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-21">
-                    <input type="radio" name="day" id="day-21" value='21'>
-                    <span>21</span>
-                  </label>
-                </td>
-              </tr>
-              <tr>
-                <td>
-                  <label for="day-22">
-                    <input type="radio" name="day" id="day-22" value='22'>
-                    <span>22</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-23">
-                    <input type="radio" name="day" id="day-23" value='23'>
-                    <span>23</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-24">
-                    <input type="radio" name="day" id="day-24" value='24'>
-                    <span>24</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-25">
-                    <input type="radio" name="day" id="day-25" value='25'>
-                    <span>25</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-26">
-                    <input type="radio" name="day" id="day-26" value='26'>
-                    <span>26</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-27">
-                    <input type="radio" name="day" id="day-27" value='27'>
-                    <span>27</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-28">
-                    <input type="radio" name="day" id="day-28" value='28'>
-                    <span>28</span>
-                  </label>
-                </td>
-               </tr>
-               <tr>
-                <td>
-                  <label for="day-29">
-                    <input type="radio" name="day" id="day-29" value='29'>
-                    <span>29</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-30">
-                    <input type="radio" name="day" id="day-30" value='30'>
-                    <span>30</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-31">
-                    <input type="radio" name="day" id="day-31" value='31'>
-                    <span>31</span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-none-1">
-                    <input type="radio" name="day" id="day-none-1">
-                    <span></span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-none-2">
-                    <input type="radio" name="day" id="day-none-2">
-                    <span></span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-none-3">
-                    <input type="radio" name="day" id="day-none-3">
-                    <span></span>
-                  </label>
-                </td>
-                <td>
-                  <label for="day-none-4">
-                    <input type="radio" name="day" id="day-none-4">
-                    <span></span>
-                  </label>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </section>
-      </div>
-      <menu data-items="2">
-        <button id="reset-monthday-period-cancel" class="close-settings-dialog" data-l10n-id="cancel">Cancel</button>
-        <button id="reset-monthday-period-ok" class="recommend close-settings-dialog" data-l10n-id="set-date">Set date</button>
-      </menu>
-    </section>
-
-    <!-- FIrst time experience -->
-    <section id="firsttime-view" class="view step-1" data-viewport="bottom">
-      <ol class="step-state">
-        <li>Select plan type</li>
-        <li>Set balance reminders</li>
-        <li>Set data report and alert</li>
-      </ol>
-
-      <!-- Step 1 -->
-      <section role="region" class="view step" data-viewport="">
-        <header>
-          <h1>Select plan type</h1>
-        </header>
-        <ul class="content choices">
-          <li>
-            <label for="ft_choice_prepaid">
-              <input type="radio" name="plan" id="ft_choice_prepaid">
-              <span>I'm Pre-paid / Controle</span>
-            </label>
-          </li>
-          <li>
-            <label for="ft_choice_postpaid">
-              <input type="radio" name="plan" id="ft_choice_postpaid">
-              <span>I'm Post-paid</span>
-            </label>
-          </li>
-        </ul>
-        <menu>
-          <button class="recommend">
-            <span></span>
-            Next
-          </button>
-        </menu>
-      </section>
-
-      <!-- Step 2 -->
-      <section role="region" class="view step" data-viewport="right">
-        <header>
-          <h1>Set balance reminders</h1>
-        </header>
-       <ul class="content settings">
+      <ul class="content settings">
         <li>
           <label class="end">
-            <input type="checkbox" checked="checked" data-type="switch">
+            <input class="localsetting" data-option="lowlimit" type="checkbox" checked="checked" data-type="switch">
             <span></span>
           </label>
           <p>Low Balance alert</p>
@@ -761,72 +94,548 @@
         <li>
           <label class="end" for="ft-balance-alert-value">
             R$
-            <input type="number" id="ft-balance-alert-value">
+            <input class="localsetting" data-option="lowlimit_threshold" data-disable-on="lowlimit=false" type="number" id="ft-balance-alert-value">
           </label>
           <p>Alert me when I’m under</p>
         </li>
       </ul>
-        <menu data-items="2">
-          <button>
-            <span></span>
-            Back
-          </button>
-          <button class="recommend">
-            <span></span>
-            Next
-          </button>
-        </menu>
-      </section>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          Back
+        </button>
+        <button class="recommend" data-navigation="next">
+          <span></span>
+          Next
+        </button>
+      </menu>
+    </section>
 
-      <!-- Step 3 -->
-      <section role="region" class="view step" data-viewport="right">
-        <header>
-          <h1>Set data report and alert</h1>
-        </header>
-       <ul class="content settings">
+    <!-- Prepaid step 3 -->
+    <section role="region" class="view step" data-viewport="right" id="prepaid-step-3">
+      <header>
+        <h1>Set internet report and reminders</h1>
+      </header>
+      <ul class="content settings">
         <li>
           <div class="end buttons-list">
-            <button class="icon icon-dialog">
-              Monthly
+            <button class="localsetting icon icon-dialog" data-option="tracking_period" data-selectdialog="selectdialog-tracking-period">
+              <span class="tag"></span>
             </button>
           </div>
           <p>Reset tracking</p>
         </li>
         <li>
           <div class="end buttons-list">
-            <button class="icon icon-dialog">
-              27th
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-hide-on="tracking_period!=weekly" data-disable-on="tracking_period!=weekly">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-hide-on="tracking_period!=monthly" data-disable-on="tracking_period!=monthly">
+              <span class="tag"></span>
             </button>
           </div>
           <p>Starting on</p>
         </li>
         <li>
           <label class="end">
-            <input type="checkbox" data-type="switch">
+            <input class="localsetting" data-option="data_limit" type="checkbox" data-type="switch">
             <span></span>
           </label>
           <p>Data use alert</p>
         </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p data-l10n-id="data-limit-value">Alert me when used</p>
+        </li>
       </ul>
-        <menu data-items="2">
-          <button>
-            <span></span>
-            Back
-          </button>
-          <button class="recommend">
-            <span></span>
-            Let's go!
-          </button>
-        </menu>
-      </section>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          Back
+        </button>
+        <button class="recommend" data-navigation="finish">
+          <span></span>
+          Let's go!
+        </button>
+      </menu>
     </section>
 
-    <!-- Bottom filters (Telephony / Cost Control and Data Usage) -->
-    <ul role="tablist" class="filter" data-items="2" data-position="bottom">
-      <li id="balance-tab-filter" aria-selected="true"><a role="tab" data-l10n-id="balance" href="#">Balance</a></li>
-      <li id="telephony-tab-filter" aria-hidden="true"><a role="tab" data-l10n-id="telephony" href="#">Telephony</a></li>
-      <li id="datausage-tab-filter"><a role="tab" data-l10n-id="data-usage" href="#">Data usage</a></li>
-    </ul>
+    <!-- Postpaid step 2 -->
+    <section role="region" class="view step" data-viewport="right" id="postpaid-step-2">
+      <header>
+        <h1>Set phone and internet report</h1>
+      </header>
+       <ul class="content settings">
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="tracking_period" data-selectdialog="selectdialog-tracking-period">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Reset tracking</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-hide-on="tracking_period!=weekly" data-disable-on="tracking_period!=weekly">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-hide-on="tracking_period!=monthly" data-disable-on="tracking_period!=monthly">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+      </ul>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          Back
+        </button>
+        <button class="recommend" data-navigation="next">
+          <span></span>
+          Next
+        </button>
+      </menu>
+    </section>
+
+    <!-- Postpaid step 3 -->
+    <section role="region" class="view step" data-viewport="right" id="postpaid-step-3">
+      <header>
+        <h1>Set internet reminders</h1>
+      </header>
+      <ul class="content settings">
+        <li>
+          <label class="end">
+            <input class="localsetting" data-option="data_limit" type="checkbox" data-type="switch">
+            <span></span>
+          </label>
+          <p>Data use alert</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p data-l10n-id="data-limit-value">Alert me when used</p>
+        </li>
+      </ul>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          Back
+        </button>
+        <button class="recommend" data-navigation="finish">
+          <span></span>
+          Let's go!
+        </button>
+      </menu>
+    </section>
+
+    <!-- Non VIVO step 1 -->
+    <section role="region" class="view step" data-viewport="right" id="non-vivo-step-1">
+      <header>
+        <h1>Set internet daata report</h1>
+      </header>
+      <ul class="content settings">
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="tracking_period" data-selectdialog="selectdialog-tracking-period">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Reset report</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-weekday" data-hide-on="tracking_period!=weekly" data-disable-on="tracking_period!=weekly">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="reset_time" data-selectdialog="selectdialog-monthday" data-hide-on="tracking_period!=monthly" data-disable-on="tracking_period!=monthly">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p>Starting on</p>
+        </li>
+      </ul>
+      <menu data-items="1">
+        <button class="recommend" data-navigation="next">
+          <span></span>
+          Next
+        </button>
+      </menu>
+    </section>
+
+    <!-- Non VIVO step 2 -->
+    <section role="region" class="view step" data-viewport="right" id="non-vivo-step-2">
+      <header>
+        <h1>Set internet reminders</h1>
+      </header>
+      <ul class="content settings">
+        <li>
+          <label class="end">
+            <input class="localsetting" data-option="data_limit" type="checkbox" data-type="switch">
+            <span></span>
+          </label>
+          <p>Data use alert</p>
+        </li>
+        <li>
+          <div class="end buttons-list">
+            <button class="localsetting icon icon-dialog" data-option="data_limit_value" data-inputdialog="data-limit-dialog" data-formatter="dataUnit" data-disable-on="data_limit=false" data-hide-on="data_limit=false">
+              <span class="tag"></span>
+            </button>
+          </div>
+          <p data-l10n-id="data-limit-value">Alert me when used</p>
+        </li>
+      </ul>
+      <menu data-items="2">
+        <button data-navigation="back">
+          <span></span>
+          Back
+        </button>
+        <button class="recommend" data-navigation="finish">
+          <span></span>
+          Let's go!
+        </button>
+      </menu>
+    </section>
+
   </section>
+
+  <!-- Data usage limits -->
+  <section role="region" id="data-limit-dialog" class="view" data-viewport="bottom">
+    <header>
+      <menu type="toolbar">
+         <button id="data-usage-done-button" data-l10n-id="Done" class="recommend">Done</button>
+      </menu>
+      <a class="cancel"><span id="data-usage-close-button" class="icon icon-close">close</span></a>
+      <h1 data-l10n-id="datalimit-title">Data usage limit</h1>
+    </header>
+    <section class="content">
+      <div class="info">
+        <h2 data-l10n-id="data-limit-dialog-title">Enter a mobile data usage limit</h2>
+        <p data-l10n-id="data-limit-dialog-explanation">
+          Enter a mobile data limit alert. Connection speeds reduces after limit. It will be used as a reference to check against actual mobile data usage.
+        </p>
+      </div>
+    </section>
+    <form>
+      <ul class="buttons-list">
+        <li>
+          <button id="switch-unit-button" type="button" class="icon icon-dialog">
+            <span class="tag"></span>
+          </button>
+        </li>
+      </ul>
+      <label for="data-limit-input">
+        <input id="data-limit-input" type="number"></input>
+      </label>
+    </form>
+  </section>
+
+  <!-- Tracking period -->
+  <section role="dialog" class="view" data-viewport="bottom" id="selectdialog-tracking-period">
+    <div class="center">
+      <h3 data-l10n-id="tracking-period-setup-title">Reset tracking</h3>
+      <ul role="listbox">
+        <li>
+          <label for="tracking-period-option-monthly">
+            <input type="radio" id="tracking-period-option-monthly" name="tracking-period-option" checked="checked" value="monthly" />
+            <span data-l10n-id="monthly">Monthly</span>
+          </label>
+        </li>
+        <li>
+          <label for="tracking-period-option-weekly">
+            <input type="radio" id="tracking-period-option-weekly" name="tracking-period-option" value="weekly" />
+            <span data-l10n-id="weekly">Weekly</span>
+          </label>
+        </li>
+        <li>
+          <label for="tracking-period-option-never">
+            <input type="radio" id="tracking-period-option-never" name="tracking-period-option" value="never" />
+            <span data-l10n-id="never">Never</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <menu data-items="2">
+      <button data-l10n-id="cancel" class="cancel">Cancel</button>
+      <button data-l10n-id="set" class="recommend">Set</button>
+    </menu>
+  </section>
+
+  <!-- Weekday reset dialog -->
+  <section role="dialog" class="view" data-viewport="bottom" id="selectdialog-weekday">
+    <div class="center">
+      <h3 data-l10n-id="weekday-reset-setup-title">Select period start day</h3>
+      <ul role="listbox">
+        <li>
+          <label for="reset-weekday-option-monday">
+            <input type="radio" id="reset-weekday-option-monday" name="reset-weekday-option" checked="checked" value="1" />
+            <span data-l10n-id="monday">Monday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-tuesday">
+            <input type="radio" id="reset-weekday-option-tuesday" name="reset-weekday-option" value="2" />
+            <span data-l10n-id="tuesday">Tuesday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-wednesday">
+            <input type="radio" id="reset-weekday-option-wednesday" name="reset-weekday-option" value="3" />
+            <span data-l10n-id="wednesday">Wednesday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-thursday">
+            <input type="radio" id="reset-weekday-option-thursday" name="reset-weekday-option" value="4" />
+            <span data-l10n-id="thursday">Thursday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-friday">
+            <input type="radio" id="reset-weekday-option-friday" name="reset-weekday-option" value="5" />
+            <span data-l10n-id="friday">Friday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-saturday">
+             <input type="radio" id="reset-weekday-option-saturday" name="reset-weekday-option" value="6" />
+            <span data-l10n-id="saturday">Saturday</span>
+          </label>
+        </li>
+        <li>
+          <label for="reset-weekday-option-sunday">
+            <input type="radio" id="reset-weekday-option-sunday" name="reset-weekday-option" value="0" />
+            <span data-l10n-id="sunday">Sunday</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <menu data-items="2">
+      <button data-l10n-id="cancel" class="cancel">Cancel</button>
+      <button data-l10n-id="set-day" class="recommend">Set day</button>
+    </menu>
+  </section>
+
+  <!-- Month day reset -->
+  <section id="selectdialog-monthday" role="dialog" class="view" data-viewport="bottom">
+    <div class="center">
+      <h3 data-l10n-id="reset-monthday-setup-title">Select period start date</h3>
+      <ul role="listbox">
+        <li>
+          <label for="day-1">
+            <input type="radio" id="day-1" name="reset-monthday-option" checked="checked" value="1" />
+            <span>1</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-2">
+            <input type="radio" id="day-2" name="reset-monthday-option" value="2" />
+            <span>2</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-3">
+            <input type="radio" id="day-3" name="reset-monthday-option" value="3" />
+            <span>3</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-4">
+            <input type="radio" id="day-4" name="reset-monthday-option" value="4" />
+            <span>4</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-5">
+            <input type="radio" id="day-5" name="reset-monthday-option" value="5" />
+            <span>5</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-6">
+            <input type="radio" id="day-6" name="reset-monthday-option" value="6" />
+            <span>6</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-7">
+            <input type="radio" id="day-7" name="reset-monthday-option" value="7" />
+            <span>7</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-8">
+            <input type="radio" id="day-8" name="reset-monthday-option" value="8" />
+            <span>8</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-9">
+            <input type="radio" id="day-9" name="reset-monthday-option" value="9" />
+            <span>9</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-10">
+            <input type="radio" id="day-10" name="reset-monthday-option" value="10" />
+            <span>10</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-11">
+            <input type="radio" id="day-11" name="reset-monthday-option" value="11" />
+            <span>11</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-12">
+            <input type="radio" id="day-12" name="reset-monthday-option" value="12" />
+            <span>12</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-13">
+            <input type="radio" id="day-13" name="reset-monthday-option" value="13" />
+            <span>13</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-14">
+            <input type="radio" id="day-14" name="reset-monthday-option" value="14" />
+            <span>14</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-15">
+            <input type="radio" id="day-15" name="reset-monthday-option" value="15" />
+            <span>15</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-16">
+            <input type="radio" id="day-16" name="reset-monthday-option" value="16" />
+            <span>16</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-17">
+            <input type="radio" id="day-17" name="reset-monthday-option" value="17" />
+            <span>17</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-18">
+            <input type="radio" id="day-18" name="reset-monthday-option" value="18" />
+            <span>18</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-19">
+            <input type="radio" id="day-19" name="reset-monthday-option" value="19" />
+            <span>19</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-20">
+            <input type="radio" id="day-20" name="reset-monthday-option" value="20" />
+            <span>20</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-21">
+            <input type="radio" id="day-21" name="reset-monthday-option" value="21" />
+            <span>21</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-22">
+            <input type="radio" id="day-22" name="reset-monthday-option" value="22" />
+            <span>22</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-23">
+            <input type="radio" id="day-23" name="reset-monthday-option" value="23" />
+            <span>23</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-24">
+            <input type="radio" id="day-24" name="reset-monthday-option" value="24" />
+            <span>24</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-25">
+            <input type="radio" id="day-25" name="reset-monthday-option" value="25" />
+            <span>25</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-26">
+            <input type="radio" id="day-26" name="reset-monthday-option" value="26" />
+            <span>26</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-27">
+            <input type="radio" id="day-27" name="reset-monthday-option" value="27" />
+            <span>27</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-28">
+            <input type="radio" id="day-28" name="reset-monthday-option" value="28" />
+            <span>28</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-29">
+            <input type="radio" id="day-29" name="reset-monthday-option" value="29" />
+            <span>29</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-30">
+            <input type="radio" id="day-30" name="reset-monthday-option" value="30" />
+            <span>30</span>
+          </label>
+        </li>
+        <li>
+          <label for="day-31">
+            <input type="radio" id="day-31" name="reset-monthday-option" value="31" />
+            <span>31</span>
+          </label>
+        </li>
+      </ul>
+    </div>
+    <menu data-items="2">
+      <button class="cancel" data-l10n-id="cancel">Cancel</button>
+      <button class="recommend" data-l10n-id="set-date">Set date</button>
+    </menu>
+  </section>
+
 </body>
 </html>
