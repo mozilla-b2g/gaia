@@ -292,12 +292,12 @@ input[type="image"] {
 }
 
 #url-button {
-  background-position: center;
-  display: block;
+  float: right;
   height: 32px;
   width: 32px;
-  float: right;
+  border: none;
   background-repeat: no-repeat;
+  background-position: center;
 }
 
 #ssl-indicator {
@@ -306,8 +306,9 @@ input[type="image"] {
   height: 34px;
   margin-right: 5px;
   text-indent: -1000em;
+  border: none;
   background-repeat: no-repeat;
-  background-position: center center;
+  background-position: center;
 }
 
 #ssl-indicator[value=secure] {
@@ -953,20 +954,6 @@ li[role="listitem"] small {
   text-transform: uppercase;
   font-size: 1.5rem;
  }
-
- #bookmark-entry-sheet input[type="text"],
- #bookmark-entry-sheet input[type="url"],
- #http-authentication-dialog input[type="text"],
- #http-authentication-dialog input[type="password"] {
-  -moz-box-sizing: border-box;
-  border: 1px solid #D1D1D1;
-  border-radius: 0.3rem;
-  display: block;
-  font: 1.4rem/4rem "MozTT", Sans-serif;
-  height: 4rem;
-  padding: 0 0.5rem;
-  width: 100%;
-}
 
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 20px (for status bar),
