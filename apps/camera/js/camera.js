@@ -181,6 +181,7 @@ var Camera = {
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
+    this.filmStrip.addEventListener('click', this.filmStripPressed.bind(this));
 
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -507,14 +508,20 @@ var Camera = {
   },
 
   filmStripPressed: function camera_filmStripPressed(e) {
-    if (this._secureMode) {
+    var camera = this;
+    var target = e.target;
+    if (target.nodeName === 'IMG') {
+      target = target.parentNode;
+    }
+
+    var filename = target.getAttribute('data-filename');
+    var filetype = target.getAttribute('data-filetype');
+
+    if (this._secureMode || !filename) {
       return;
     }
 
     // Launch the gallery with an open activity to view this specific photo
-    var camera = this;
-    var filename = e.target.getAttribute('data-filename');
-    var filetype = e.target.getAttribute('data-filetype');
     var storage = this._pictureStorage;
     var getreq = storage.get(filename);
 
@@ -671,7 +678,6 @@ var Camera = {
       wrapper.classList.add(/image/.test(image.type) ? 'image' : 'video');
       wrapper.setAttribute('data-filetype', image.type);
       wrapper.setAttribute('data-filename', image.name);
-      wrapper.onclick = this.filmStripPressed.bind(this);
       preview.src = window.URL.createObjectURL(image.blob);
       preview.onload = function() {
         window.URL.revokeObjectURL(this.src);
