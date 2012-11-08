@@ -1,19 +1,40 @@
-function MockUpdatable(aTarget) {
-  this.target = aTarget;
+function MockAppUpdatable(aApp) {
+  this.app = aApp;
 
   this.mDownloadCalled = false;
   this.mCancelCalled = false;
   this.mUninitCalled = false;
 }
 
-MockUpdatable.prototype.uninit = function() {
+MockAppUpdatable.prototype.uninit = function() {
   this.mUninitCalled = true;
 };
 
-MockUpdatable.prototype.download = function() {
+MockAppUpdatable.prototype.download = function() {
   this.mDownloadCalled = true;
 };
 
-MockUpdatable.prototype.cancelDownload = function() {
+MockAppUpdatable.prototype.cancelDownload = function() {
+  this.mCancelCalled = true;
+};
+
+function MockSystemUpdatable(downloadSize) {
+  this.size = downloadSize;
+  this.name = 'systemUpdate';
+
+  this.mDownloadCalled = false;
+  this.mCancelCalled = false;
+  this.mUninitCalled = false;
+}
+
+MockSystemUpdatable.prototype.uninit = function() {
+  this.mUninitCalled = true;
+};
+
+MockSystemUpdatable.prototype.download = function() {
+  this.mDownloadCalled = true;
+};
+
+MockSystemUpdatable.prototype.cancelDownload = function() {
   this.mCancelCalled = true;
 };

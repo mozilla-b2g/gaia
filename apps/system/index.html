@@ -282,7 +282,7 @@
         <div id="notifications-container">
           <!-- Update Manager -->
           <div id="update-manager-container">
-            <div class="count">
+            <div class="icon">
             </div>
             <div class="activity">
             </div>
@@ -572,6 +572,20 @@
         </section>
       </form>
 
+      <form id="updates-download-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-download-dialog">
+        <section>
+          <h1>
+            Updates
+          </h1>
+          <ul>
+          </ul>
+          <menu>
+            <button id="updates-later-button" type="reset" data-l10n-id="later">Later</button>
+            <button id="updates-download-button" type="submit" data-l10n-id="download">Download</button>
+          </menu>
+        </section>
+      </form>
+
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
@@ -653,7 +667,7 @@
       </div>
 
       <div id="update-manager-toaster" data-z-index-level="notification-toaster">
-        <div class="count">
+        <div class="icon">
         </div>
         <div class="message">
         </div>
