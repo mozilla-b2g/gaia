@@ -210,6 +210,7 @@ function setupSettings() {
   }
 
   // Configure each settings' control and paint the interface
+  var _initialized = false;
   function _init() {
     _configureUI();
 
@@ -222,8 +223,7 @@ function setupSettings() {
       parent.settingsVManager.closeCurrentView();
     });
 
-    // Localize interface
-    window.addEventListener('localized', _localize);
+    _initialized = true;
   }
 
   // Repaint settings interface reading from local settings and localizing
@@ -233,10 +233,15 @@ function setupSettings() {
   }
 
   // Updates the UI to match the localization
+  // First time the application runs, it also initializes the settings module
   function _localize() {
+    if (!_initialized)
+      _init();
+
     _updateUI();
   }
 
-  _init();
+  // Delay the initialization until `localized` event is triggered
+  window.addEventListener('localized', _localize);
 
 }
