@@ -217,6 +217,18 @@ suite('system/UpdateManager', function() {
       UpdateManager.init();
     });
 
+    test('should not add downloadAvailable apps pending', function(done) {
+      var pendingApp = new MockApp();
+      pendingApp.installState = 'pending';
+      MockAppsMgmt.mApps = [pendingApp];
+
+      MockAppsMgmt.mNext = function() {
+        assert.equal(0, UpdateManager.updatesQueue.length);
+        done();
+      };
+      UpdateManager.init();
+    });
+
     test('should bind dom elements', function() {
       UpdateManager.init();
       assert.equal('update-manager-container', UpdateManager.container.id);
@@ -263,12 +275,6 @@ suite('system/UpdateManager', function() {
         var lastUApp = UpdateManager.updatableApps[lastIndex];
         assert.equal(installedApp.mId, lastUApp.app.mId);
       });
-
-      test('should add to the update queue if downloadAvailable', function() {
-        var lastIndex = UpdateManager.updatesQueue.length - 1;
-        var lastUApp = UpdateManager.updatesQueue[lastIndex];
-        assert.equal(installedApp.mId, lastUApp.app.mId);
-      });
     });
 
     suite('app uninstall', function() {
@@ -276,11 +282,10 @@ suite('system/UpdateManager', function() {
 
       setup(function() {
         UpdateManager.init();
+        UpdateManager.updatableApps = updatableApps;
+        UpdateManager.addToUpdatesQueue(uAppWithDownloadAvailable);
 
-        installedApp = new MockApp();
-        installedApp.downloadAvailable = true;
-        MockAppsMgmt.mLastApp = installedApp;
-        MockAppsMgmt.mTriggerOninstall();
+        MockAppsMgmt.mLastApp = appWithDownloadAvailable;
       });
 
       test('should remove the updatable app', function() {
