@@ -249,6 +249,7 @@ suite('views/day_based', function() {
 
       assert.equal(el.style.top, '83.3333%', 'top');
       assert.equal(el.style.height, '50%', 'height');
+      assert.ok(/\bpartial-hour\b/.test(el.className));
     });
 
     test('top of hour 1.5 hours', function() {
