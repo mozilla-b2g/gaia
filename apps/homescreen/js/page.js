@@ -308,7 +308,14 @@ Icon.prototype = {
     // and don't revoke it until we're finished with the animation.
     var skipRevoke = true;
     this.displayRenderedIcon(this.img, skipRevoke);
-    draggableElem.appendChild(this.icon.cloneNode());
+
+    var icon = this.icon.cloneNode();
+    var img = icon.querySelector('img');
+    img.style.visibility = "hidden";
+    img.onload = img.onerror = function unhide() {
+      img.style.visibility = "visible";
+    };
+    draggableElem.appendChild(icon);
 
     var container = this.container;
     container.dataset.dragging = 'true';
