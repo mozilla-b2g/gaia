@@ -1,5 +1,10 @@
 'use strict';
 
+function makeManifestURL(name) {
+  return GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '') +
+         "/" + "manifest.webapp";
+}
+
 // Initial Homescreen icon descriptors.
 // TODO: we could automatically generate this by reading the
 // information from the manifest files.
@@ -7,9 +12,17 @@ let init = getFile(GAIA_DIR, 'build', 'homescreen-init.json');
 let targetDir = getFile(GAIA_DIR, 'apps', 'homescreen', 'js');
 init.copyTo(targetDir, 'init.json');
 
-init = getFile(GAIA_DIR, 'build', 'homescreen-hiddenapps.js');
-targetDir = getFile(GAIA_DIR, 'apps', 'homescreen', 'js');
-init.copyTo(targetDir, 'hiddenapps.js');
+// Apps that should never appear as icons in the homescreen grid or dock.
+let hidden_apps = [
+  makeManifestURL('homescreen'),
+  makeManifestURL('keyboard'),
+  makeManifestURL('wallpaper'),
+  makeManifestURL('bluetooth'),
+  makeManifestURL('system'),
+  makeManifestURL('pdfjs')
+];
+init = getFile(GAIA_DIR, 'apps', 'homescreen', 'js', 'hiddenapps.js');
+writeContent(init, JSON.stringify(hidden_apps));
 
 // Cost Control
 init = getFile(GAIA_DIR, 'apps', 'costcontrol', 'js', 'config.json');
