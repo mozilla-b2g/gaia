@@ -10,33 +10,47 @@
   var origin = protocol + 'costcontrol.' + domain;
 
   var widgetContainer = document.getElementById('cost-control-widget');
-  var widgetFrame = document.createElement('iframe');
-  widgetFrame.setAttribute('mozbrowser', true);
-  widgetFrame.setAttribute('mozapp', origin + '/manifest.webapp');
-  widgetFrame.src = origin + '/widget.html';
-  widgetFrame.dataset.frameOrigin = origin;
-  widgetContainer.appendChild(widgetFrame);
 
-  function _redirectToWidget(evt) {
-    widgetFrame.contentWindow.postMessage({
-      type: evt.type
-    }, '*');
+  function _ensureWidget() {
+
+    if (Applications.ready) {
+
+      // Check widget is there
+      var widgetFrame = widgetContainer.querySelector('iframe');
+      if (widgetFrame && !widgetFrame.dataset.killed)
+        return;
+
+      // Create the widget
+      if (!widgetFrame) {
+        widgetFrame = document.createElement('iframe');
+        widgetFrame.addEventListener('mozbrowsererror',
+          function ccdriver_onError(e) {
+            e.target.dataset.killed = true;
+          }
+        );
+      }
+
+      widgetFrame.dataset.frameType = 'widget';
+      widgetFrame.dataset.frameOrigin = origin;
+      delete widgetFrame.dataset.killed;
+
+      widgetFrame.setAttribute('mozbrowser', true);
+      widgetFrame.setAttribute('remote', 'true');
+      widgetFrame.setAttribute('mozapp', origin + '/manifest.webapp');
+
+      widgetFrame.src = origin + '/widget.html';
+      widgetContainer.appendChild(widgetFrame);
+
+      // TODO: Remove this when weird bug #809031 (Bugzilla) is solved
+      // See cost_control.css as well to remove the last rule
+      var offsetY = document.getElementById('notification-bar').clientHeight;
+      offsetY += 
+        document.getElementById('notifications-container').clientHeight;
+      widgetFrame.style.transform = 'translate(0, ' + offsetY + 'px)';
+    }
   }
 
   // Listen to utilitytray show
-  window.addEventListener('utilitytrayshow', _redirectToWidget);
-
-  // TODO: Remove when bug https://bugzilla.mozilla.org/show_bug.cgi?id=766873
-  // is resolved. The problem is we cannot get the background service from
-  // an application via window.open when it is launch from background_page in
-  // manifest so we need to launch the service from the widget but only when the
-  // system is aware about the application is installed.
-  //
-  // So we need to redirect the event applicationready to the widget in order
-  // to setup everything else.
-  if (Applications.ready) {
-    _redirectToWidget({ type: 'applicationready' });
-  } else {
-    window.addEventListener('applicationready', _redirectToWidget);
-  }
+  window.addEventListener('utilitytrayshow', _ensureWidget);
+  window.addEventListener('applicationready', _ensureWidget);
 }());
