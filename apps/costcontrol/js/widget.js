@@ -3,20 +3,14 @@
 
 'use strict';
 
-var Service;
-window.addEventListener('message', function ccwidget_onApplicationReady(evt) {
-  // Retrieve the service once application is ready
-  if (evt.data.type === 'applicationready') {
-    Service = getService(function ccwidget_onServiceReady(evt) {
-      // If the service is not ready, when ready it re-set the Service
-      // object and setup the widget.
-      Service = evt.detail.service;
-      setupWidget();
-    });
-    if (Service)
-      setupWidget();
-  }
+var Service = getService(function ccwidget_onServiceReady(evt) {
+  // If the service is not ready, when ready it re-set the Service
+  // object and setup the widget.
+  Service = evt.detail.service;
+  setupWidget();
 });
+if (Service)
+  setupWidget();
 
 // Cost Control widget is placed in the bottom of the utility tray, over the
 // quick settings buttons and is in charge of displaying current balance /

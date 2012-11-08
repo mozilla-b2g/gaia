@@ -89,7 +89,7 @@ var Camera = {
   },
 
   THUMB_WIDTH: 40,
-  THUBM_HEIGHT: 40,
+  THUMB_HEIGHT: 40,
 
   // Because we dont want to wait for the geolocation query
   // before we can take a photo, we keep a track of the users
@@ -181,6 +181,7 @@ var Camera = {
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
+    this.filmStrip.addEventListener('click', this.filmStripPressed.bind(this));
 
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -373,10 +374,14 @@ var Camera = {
   },
 
   generateVideoThumbnail: function camera_generateVideoThumbnail(callback) {
-    var self = this;
+    var video;
     var preview = this._videoPreview;
-    this._videoStorage.get(this._videoPath).onsuccess = function(e) {
-      var video = e.target.result;
+    var thumbGenerated = function() {
+      callback(blob, video.type);
+    }
+
+    this._videoStorage.get(this._videoPath).onsuccess = (function(e) {
+      video = e.target.result;
       // TODO: This check shouldnt be needed as we wont be recording
       // in a format we cannot play
       // https://bugzilla.mozilla.org/show_bug.cgi?id=799306
@@ -388,23 +393,29 @@ var Camera = {
       preview.preload = 'metadata';
       preview.width = self.THUMB_WIDTH + 'px';
       preview.height = self.THUMB_HEIGHT + 'px';
-      preview = url;
-      preview.onloadedmetadata = function() {
-        URL.revokeObjectURL(url);
-        var image;
-        try {
-          var canvas = document.createElement('canvas');
-          var ctx = canvas.getContext('2d');
-          canvas.width = self.THUMB_WIDTH;
-          canvas.height = self.THUMB_HEIGHT;
-          ctx.drawImage(preview, 0, 0, self.THUMB_WIDTH, self.THUMB_HEIGHT);
-          image = canvas.mozGetAsFile('poster', 'image/jpeg');
-        } catch (e) {
-          console.error('Failed to create a poster image:', e);
-        }
-        callback(image, video.type);
-      };
-    };
+      preview.src = url;
+      preview.onloadedmetadata =
+        this.generateThumbnail.bind(this, preview, thumbGenerated);
+    }).bind(this);
+  },
+
+  generateImageThumbnail: function camera_generateImageThumbnail(input, callback) {
+    var img = document.createElement('img');
+    img.src = window.URL.createObjectURL(input);
+    img.onload = this.generateThumbnail.bind(this, img, callback);
+  },
+
+  generateThumbnail: function camera_generateThumbnail(input, callback) {
+    var canvas = document.createElement('canvas');
+    canvas.width = this.THUMB_WIDTH;
+    canvas.height = this.THUMB_HEIGHT;
+    URL.revokeObjectURL(input.src);
+    try {
+      canvas.getContext('2d').drawImage(input, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(callback);
+    } catch (e) {
+      console.error('Failed to create a poster image:', e);
+    }
   },
 
   startRecordingTimer: function camera_startRecordingTimer() {
@@ -507,14 +518,20 @@ var Camera = {
   },
 
   filmStripPressed: function camera_filmStripPressed(e) {
-    if (this._secureMode) {
+    var camera = this;
+    var target = e.target;
+    if (target.nodeName === 'IMG') {
+      target = target.parentNode;
+    }
+
+    var filename = target.getAttribute('data-filename');
+    var filetype = target.getAttribute('data-filetype');
+
+    if (this._secureMode || !filename) {
       return;
     }
 
     // Launch the gallery with an open activity to view this specific photo
-    var camera = this;
-    var filename = e.target.getAttribute('data-filename');
-    var filetype = e.target.getAttribute('data-filetype');
     var storage = this._pictureStorage;
     var getreq = storage.get(filename);
 
@@ -667,13 +684,14 @@ var Camera = {
     this._photosTaken.forEach(function foreach_photos(image) {
       var wrapper = document.createElement('div');
       var preview = document.createElement('img');
+      wrapper.style.visibility = 'hidden';
       wrapper.classList.add('thumbnail');
       wrapper.classList.add(/image/.test(image.type) ? 'image' : 'video');
       wrapper.setAttribute('data-filetype', image.type);
       wrapper.setAttribute('data-filename', image.name);
-      wrapper.onclick = this.filmStripPressed.bind(this);
       preview.src = window.URL.createObjectURL(image.blob);
       preview.onload = function() {
+        wrapper.style.visibility = 'visible';
         window.URL.revokeObjectURL(this.src);
       };
       wrapper.appendChild(preview);
@@ -758,8 +776,12 @@ var Camera = {
 
           return;
         }
-        this.addToFilmStrip(name, blob, 'image/jpeg');
-        this.checkStorageSpace();
+
+        this.generateImageThumbnail(blob, (function(thumbBlob) {
+          this.addToFilmStrip(name, thumbBlob, 'image/jpeg');
+          this.checkStorageSpace();
+        }).bind(this));
+
       }).bind(this);
 
       addreq.onerror = function() {

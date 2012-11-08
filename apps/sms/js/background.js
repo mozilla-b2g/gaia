@@ -22,7 +22,7 @@
 
   var selectedSmsSound = 'style/ringtones/sms.wav';
   SettingsListener.observe('sms.ringtone', 'sms.wav', function(value) {
-    selectedSmsSound = 'style/ringtones/' + value;
+    selectedSmsSound = (value == 'disabled') ? null : 'style/ringtones/' + value;
   });
 
   var activateSMSVibration = false;

@@ -239,7 +239,7 @@
                      data-l10n-id="envelope-from">FroM</span>
             </div>
             <!-- the details starts out collapsed, but can be toggled -->
-            <div class="msg-envelope-details collapsed">
+            <div class="msg-envelope-details">
               <div class="msg-envelope-to-line msg-envelope-line">
                 <span class="msg-envelope-key"
                        data-l10n-id="envelope-to">tO</span>
@@ -525,10 +525,11 @@
               <button href="#" data-l10n-id="settings-account-add"
                 class="tng-account-add">AdD AccounT</button>
             </li>
-          <header class="tng-main-about-label">
+          <!-- Hide for v1: Hide general setting section to reduce effort-->
+          <header class="tng-main-about-label collapsed">
             <h2 data-l10n-id="settings-general-section">GeneraL SettingS</h2>
           </header>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-check-mail" class="list-text">
                 ChecK MaiL</span>
               <em class="aside end">
@@ -550,7 +551,7 @@
                 </select>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-show-images" class="list-text">
                 AlwayS ShoW ImageS</span>
               <em class="aside end">
@@ -560,7 +561,7 @@
                 </label>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-download-attachments"
                 class="list-text">DownloaD AttachmentS</span>
               <em class="aside end">
@@ -570,7 +571,7 @@
                 </label>
               </em>
             </li>
-            <li>
+            <li class="collapsed">
               <span data-l10n-id="settings-notify-mail" class="list-text">
                 NotifY ME OF NeW MaiL</span>
               <em class="aside end">

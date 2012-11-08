@@ -690,6 +690,15 @@
         <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
+      <ul>
+        <li id="tone-disabled">
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="disabled" data-label="Disabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="disabled">Disabled</a>
+        </li>
+      </ul>
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
@@ -1292,8 +1301,8 @@
       </header>
       <ul>
         <li id="developer-infos">
-          <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
-          <a target="_blank" href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
+          <small><a target="_blank" href="http://github.com/mozilla-b2g/gaia/" data-href="http://github.com/mozilla-b2g/gaia/">http://github.com/mozilla-b2g/gaia/</a></small>
+          <a target="_blank" data-href="http://github.com/mozilla-b2g/gaia/"> The Gaia Team </a>
         </li>
       </ul>
 
@@ -1448,6 +1457,13 @@
             <span></span>
           </label>
           <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="debug.console.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="console-enabled">Console Enabled</a>
         </li>
       </ul>
 

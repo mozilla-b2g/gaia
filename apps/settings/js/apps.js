@@ -122,7 +122,9 @@ var ApplicationsList = {
     var manifest = app.manifest;
     this.detailTitle.textContent = manifest.name;
     this.developerName.textContent = manifest.developer.name;
+    this.developerName.dataset.href = manifest.developer.url;
     this.developerLink.href = manifest.developer.url;
+    this.developerLink.dataset.href = manifest.developer.url;
     this.developerLink.textContent = manifest.developer.url;
 
     this.detailPermissionsList.innerHTML = '';

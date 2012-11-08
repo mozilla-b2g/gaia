@@ -1,0 +1,11 @@
+#evmeContainer .connection-message {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    padding: 0 50px;
+    
+    color: #fff;
+    font-size: 16px;
+    text-align: center;
+}

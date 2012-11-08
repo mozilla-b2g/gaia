@@ -119,7 +119,7 @@
  */
 
 /* signal levels */
-.wifi-network {
+#wifi-availableNetworks > li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
 }
@@ -128,8 +128,7 @@
   background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0);
 }
 
-.wifi-signal1,
-.wifi-search {
+.wifi-signal1 {
   background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 64, 32, 32);
 }
 

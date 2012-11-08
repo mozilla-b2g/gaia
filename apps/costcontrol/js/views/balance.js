@@ -154,7 +154,6 @@ viewManager.tabs[TAB_BALANCE] = (function cc_setUpBalanceTab() {
     btRequestUSSDTopUpButton.addEventListener('click', _requestUSSDTopUp);
   }
 
-  // TODO: remove when autofocus became available from B2G
   // Give the focus to the top up code input
   function _focusCodeInput() {
     document.getElementById('topup-code-input').focus();

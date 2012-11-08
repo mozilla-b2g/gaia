@@ -363,13 +363,47 @@ function setupSettings() {
       Service.settings.option('smscount');
   }
 
-  // Attach listener to keep the UI updated
+  // Attach listener to keep telephony information updated
   function _configureTelephonyView() {
     Service.settings.observe('calltime', _setTelephonyView);
     Service.settings.observe('smscount', _setTelephonyView);
     document.getElementById('reset-telephony').addEventListener('click',
       function ccapp_resetTelephony() {
         _showResetConfirmation(Service.resetTelephony);
+      }
+    );
+  }
+
+  // Read data-usage information
+  function _setDataUsageView() {
+    // Dates
+    var formattedTime = _('never');
+    var lastReset = Service.settings.option('lastdatareset');
+    if (lastReset !== null)
+      formattedTime = (new Date(lastReset))
+                      .toLocaleFormat(_('short-date-format'));
+    document.getElementById('data-usage-from-date').textContent = formattedTime;
+
+    var now = new Date();
+    document.getElementById('data-usage-to-date').textContent =
+      _('today') + ', ' + now.toLocaleFormat('%H:%M');
+
+    // Mobile data
+    var mobileData = 0;
+    var dataUsage = Service.settings.option('lastdatausage');
+    if (dataUsage)
+      mobileData = dataUsage.mobile.total;
+    document.getElementById('mobile-data-usage').textContent =
+      roundData(mobileData).join(' ');
+  }
+
+  // Attach listener to keep data usage information updated
+  function _configureDataUsageView() {
+    Service.settings.observe('lastdatausage', _setDataUsageView);
+    Service.settings.observe('lastdatareset', _setDataUsageView);
+    document.getElementById('reset-data-usage').addEventListener('click',
+      function ccapp_resetDataUsage() {
+        _showResetConfirmation(Service.resetDataUsage);
       }
     );
   }
@@ -400,6 +434,7 @@ function setupSettings() {
     _configureGUIWidgets();
     _configureBalanceView();
     _configureTelephonyView();
+    _configureDataUsageView();
 
     // Extra setup for this component
     _configureDataLimitDialog();
