@@ -3,50 +3,114 @@
  * Setting icons
  */
 
-#root li [data-l10n-id] {
+.menu-item {
+  padding-left: 5.5rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
 }
 
-#root li [data-l10n-id="accessibility"]     { background-image: url(images/settings/accessibility.png); }
-#root li [data-l10n-id="airplaneMode"]      { background-image: url(images/settings/airplane_mode.png); }
-#root li [data-l10n-id="applications"]      { background-image: url(images/settings/applications.png); }
-#root li [data-l10n-id="appPermissions"]    { background-image: url(images/settings/app_permissions.png); }
-#root li [data-l10n-id="battery"]           { background-image: url(images/settings/battery.png); }
-#root li [data-l10n-id="bluetooth"]         { background-image: url(images/settings/bluetooth.png); }
-#root li [data-l10n-id="cellularAndData"]   { background-image: url(images/settings/network.png); }
-#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
-#root li [data-l10n-id="developer"]         { background-image: url(images/settings/developer.png); }
-#root li [data-l10n-id="deviceInfo"]        { background-image: url(images/settings/about_phone.png); }
-#root li [data-l10n-id="deviceStorage"]     { background-image: url(images/settings/device_storage.png); }
-#root li [data-l10n-id="display"]           { background-image: url(images/settings/display.png); }
-#root li [data-l10n-id="doNotTrack"]        { background-image: url(images/settings/do_not_track.png); }
-#root li [data-l10n-id="feedback"]          { background-image: url(images/settings/feedback.png); }
-#root li [data-l10n-id="gps"]               { background-image: url(images/settings/gps.png); }
-#root li [data-l10n-id="helpAndFeedback"]   { background-image: url(images/settings/help.png); }
-#root li [data-l10n-id="internetSharing"]   { background-image: url(images/settings/hotspot.png); }
-#root li [data-l10n-id="keyboard"]          { background-image: url(images/settings/keyboard.png); }
-#root li [data-l10n-id="languageAndRegion"] { background-image: url(images/settings/languages.png); }
-#root li [data-l10n-id="mail"]              { background-image: url(images/settings/email.png); }
-#root li [data-l10n-id="mediaStorage"]      { background-image: url(images/settings/media_storage.png); }
-#root li [data-l10n-id="notifications"]     { background-image: url(images/settings/notifications.png); }
-#root li [data-l10n-id="persona"]           { background-image: url(images/settings/persona.png); }
-#root li [data-l10n-id="phoneLock"]         { background-image: url(images/settings/phone_lock.png); }
-#root li [data-l10n-id="privacyRights"]     { background-image: url(images/settings/privacy_rights.png); }
-#root li [data-l10n-id="simSecurity"]       { background-image: url(images/settings/sim_card_lock.png); }
-#root li [data-l10n-id="sound"]             { background-image: url(images/settings/sound.png); }
-#root li [data-l10n-id="storage"]           { background-image: url(images/settings/storage.png); }
-#root li [data-l10n-id="dateAndTime"]       { background-image: url(images/settings/date_time.png); }
-#root li [data-l10n-id="wallpaper"]         { background-image: url(images/settings/wallpaper.png); }
-#root li [data-l10n-id="wifi"]              { background-image: url(images/settings/wifi.png); }
-#root li [data-l10n-id="simToolkit"]        { background-image: url(images/settings/simtoolkit.png); }
-
-#root li a {
-  padding-left: 5.5rem;
+.menu-item-desc {
+  left: 5.5rem;
 }
 
-#root li small {
-  left: 5.5rem;
+#menuItem-airplaneMode {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 30, 30, 0);
+}
+
+#menuItem-gps {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 60, 30, 30);
+}
+
+#menuItem-wifi {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 90, 30, 60);
+}
+
+#menuItem-cellularAndData {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90);
+}
+
+#menuItem-bluetooth {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 0, 150, 30, 120);
+}
+
+#menuItem-internetSharing {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 30, 30, 60, 0);
+}
+
+#menuItem-sound {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 30, 60, 60, 30);
+}
+
+#menuItem-display {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 30, 90, 60, 60);
+}
+
+#menuItem-notifications {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 30, 120, 60, 90);
+}
+
+#menuItem-dateAndTime {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 30, 150, 60, 120);
+}
+
+#menuItem-languageAndRegion {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 60, 30, 90, 0);
+}
+
+#menuItem-keyboard {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 60, 60, 90, 30);
+}
+
+#menuItem-persona {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 60, 90, 90, 60);
+}
+
+#menuItem-mail {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 60, 120, 90, 90);
+}
+
+#menuItem-phoneLock {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 60, 150, 90, 120);
+}
+
+#menuItem-simSecurity {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 90, 30, 120, 0);
+}
+
+#menuItem-appPermissions {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 90, 60, 120, 30);
+}
+
+#menuItem-doNotTrack {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 90, 90, 120, 60);
+}
+
+#menuItem-deviceInfo {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 90, 120, 120, 90);
+}
+
+#menuItem-battery {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 90, 150, 120, 120);
+}
+
+#menuItem-deviceStorage {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 30, 150, 0);
+}
+
+#menuItem-mediaStorage {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 60, 150, 30);
+}
+
+#menuItem-accessibility {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 90, 150, 60);
+}
+
+#menuItem-helpAndFeedback {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 120, 150, 90);
+}
+
+#menuItem-icc {
+  background-image: -moz-image-rect(url(images/icons_sprite.png), 120, 150, 150, 120);
 }
 
 
@@ -55,27 +119,36 @@
  */
 
 /* signal levels */
-#wifi-availableNetworks li {
+#wifi-availableNetworks > li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
 }
 
-#wifi-availableNetworks li.wifi-signal0 { background-image: url(images/wifi_signal_0.png); }
-#wifi-availableNetworks li.wifi-signal1 { background-image: url(images/wifi_signal_1.png); }
-#wifi-availableNetworks li.wifi-signal2 { background-image: url(images/wifi_signal_2.png); }
-#wifi-availableNetworks li.wifi-signal3 { background-image: url(images/wifi_signal_3.png); }
-#wifi-availableNetworks li.wifi-signal4 { background-image: url(images/wifi_signal_4.png); }
+.wifi-signal0 {
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 32, 32, 0);
+}
+
+.wifi-signal1 {
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 64, 32, 32);
+}
+
+.wifi-signal2 {
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 96, 32, 64);
+}
+
+.wifi-signal3 {
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 128, 32, 96);
+}
+
+.wifi-signal4 {
+  background-image: -moz-image-rect(url(images/wifi_sprite.png), 0, 160, 32, 128);
+}
 
 /* secured networks */
-#wifi-availableNetworks a.wifi-secure {
+.wifi-secure {
   background-repeat: no-repeat;
   background-position: right 1.5rem top 50%;
   background-image: url(images/wifi_lock.png);
-}
-
-/* searching... */
-#wifi-availableNetworks .wifi-search {
-  background-image: url(images/wifi_scan.png);
 }
 
 
@@ -83,53 +156,135 @@
  * Bluetooth devices
  */
 
-#bluetooth .devices li {
+.bluetooth-device {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
   padding-right: 3rem;
 }
 
 /* device icons */
-.audio-card             { background-image: url(images/bluetooth/audio_card.png); }
-.audio-input-microphone { background-image: url(images/bluetooth/audio_input_microphone.png); }
-.battery                { background-image: url(images/bluetooth/battery.png); }
-.camera-photo           { background-image: url(images/bluetooth/camera_photo.png); }
-.camera-video           { background-image: url(images/bluetooth/camera_video.png); }
-.camera-web             { background-image: url(images/bluetooth/camera_web.png); }
-.computer               { background-image: url(images/bluetooth/computer.png); }
-.drive-harddisk         { background-image: url(images/bluetooth/drive_harddisk.png); }
-.drive-optical          { background-image: url(images/bluetooth/drive_optical.png); }
-.drive-removable-media  { background-image: url(images/bluetooth/drive_removable_media.png); }
-.input-gaming           { background-image: url(images/bluetooth/input_gaming.png); }
-.input-keyboard         { background-image: url(images/bluetooth/input_keyboard.png); }
-.input-mouse            { background-image: url(images/bluetooth/input_mouse.png); }
-.input-tablet           { background-image: url(images/bluetooth/input_tablet.png); }
-.media-flash            { background-image: url(images/bluetooth/media_flash.png); }
-.media-floppy           { background-image: url(images/bluetooth/media_floppy.png); }
-.media-optical          { background-image: url(images/bluetooth/media_optical.png); }
-.media-tape             { background-image: url(images/bluetooth/media_tape.png); }
-.modem                  { background-image: url(images/bluetooth/modem.png); }
-.multimedia-player      { background-image: url(images/bluetooth/multimedia_player.png); }
-.network-wired          { background-image: url(images/bluetooth/network_wired.png); }
-.network-wireless       { background-image: url(images/bluetooth/network_wireless.png); }
-.pda                    { background-image: url(images/bluetooth/phone_pda.png); }
-.phone                  { background-image: url(images/bluetooth/phone_pda.png); }
-.printer                { background-image: url(images/bluetooth/printer.png); }
-.scanner                { background-image: url(images/bluetooth/scanner.png); }
-.video-display          { background-image: url(images/bluetooth/video_display.png); }
+.bluetooth-type-audio-card {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 30, 30, 0);
+}
+
+.bluetooth-type-audio-input-microphone {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 60, 30, 30);
+}
+
+.bluetooth-type-battery {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 90, 30, 60);
+}
+
+.bluetooth-type-camera-photo {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 120, 30, 90);
+}
+
+.bluetooth-type-camera-video {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 150, 30, 120);
+}
+
+.bluetooth-type-camera-web {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 180, 30, 150);
+}
+
+.bluetooth-type-computer {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 210, 30, 180);
+}
+
+.bluetooth-type-drive-harddisk {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 240, 30, 210);
+}
+
+.bluetooth-type-drive-optical {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 270, 30, 240);
+}
+
+.bluetooth-type-drive-removable-media {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 300, 30, 270);
+}
+
+.bluetooth-type-input-gaming {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 330, 30, 300);
+}
+
+.bluetooth-type-input-keyboard {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 360, 30, 330);
+}
+
+.bluetooth-type-input-mouse {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 0, 390, 30, 360);
+}
+
+.bluetooth-type-input-tablet {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 30, 60, 0);
+}
+
+.bluetooth-type-media-flash {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 60, 60, 30);
+}
+
+.bluetooth-type-media-floppy {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 90, 60, 60);
+}
+
+.bluetooth-type-media-optical {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 120, 60, 90);
+}
+
+.bluetooth-type-media-tape {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 150, 60, 120);
+}
+
+.bluetooth-type-modem {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 180, 60, 150);
+}
+
+.bluetooth-type-multimedia-player {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 210, 60, 180);
+}
+
+.bluetooth-type-network-wired {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 240, 60, 210);
+}
+
+.bluetooth-type-network-wireless {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 270, 60, 240);
+}
+
+.bluetooth-type-pda,
+.bluetooth-type-phone {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 300, 60, 270);
+}
+
+.bluetooth-type-printer {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 330, 60, 300);
+}
+
+.bluetooth-type-scanner {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 360, 60, 330);
+}
+
+.bluetooth-type-video-display {
+  background-image: -moz-image-rect(url(images/bluetooth_sprite.png), 30, 390, 60, 360);
+}
 
 
 /******************************************************************************
  * Privacy icons
  */
 
-#about-yourPrivacy li {
+.privacy-menuitem {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
 }
 
-.privacy-firefoxOS    { background-image: url(images/privacy_firefox_os.png); }
-.privacy-everythingME { background-image: url(images/privacy_everything_me.png); }
+.privacy-firefoxOS {
+  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 32, 32, 0);
+}
+
+.privacy-everythingME {
+  background-image: -moz-image-rect(url(images/privacy_sprite.png), 0, 64, 32, 32);
+}
 
 
 /******************************************************************************

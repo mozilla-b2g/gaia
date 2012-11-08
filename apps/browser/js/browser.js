@@ -1454,6 +1454,8 @@ var Browser = {
       Places.clearHistory((function() {
         this.clearHistoryButton.setAttribute('disabled', 'disabled');
       }).bind(this));
+
+      this.history.innerHTML = '';
     }
   },
 

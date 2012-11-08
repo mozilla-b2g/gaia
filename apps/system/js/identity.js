@@ -37,6 +37,7 @@ var Identity = (function() {
           }
           var frame = document.createElement('iframe');
           frame.setAttribute('mozbrowser', 'true');
+          frame.setAttribute('remote', true);
           frame.classList.add('screen');
           frame.src = e.detail.showUI ? kIdentityScreen : kIdentityFrame;
           frame.addEventListener('mozbrowserloadstart', function loadStart(evt) {
