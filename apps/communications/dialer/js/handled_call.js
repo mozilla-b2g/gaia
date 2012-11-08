@@ -20,7 +20,8 @@ function HandledCall(aCall, aNode) {
     return;
 
   this.node = aNode;
-  this.durationNode = aNode.querySelector('.duration span');
+  this.durationNode = aNode.querySelector('.duration');
+  this.durationChildNode = aNode.querySelector('.duration span');
   this.directionNode = aNode.querySelector('.duration .direction');
   this.numberNode = aNode.querySelector('.numberWrapper .number');
   this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
@@ -31,8 +32,8 @@ function HandledCall(aCall, aNode) {
   var _ = navigator.mozL10n.get;
 
   var durationMessage = (this.call.state == 'incoming') ?
-                         _('incoming') : _('calling');
-  this.durationNode.textContent = durationMessage + '…';
+                         _('incoming') : _('connecting');
+  this.durationChildNode.textContent = durationMessage + '…';
 
   this.updateDirection();
 
@@ -69,9 +70,11 @@ HandledCall.prototype.startTimer = function hc_startTimer() {
   if (this._ticker)
     return;
 
+  this.durationChildNode.textContent = (new Date(0)).toLocaleFormat('%M:%S');
+  this.durationNode.classList.add("isTimer");
   this._ticker = setInterval(function hc_updateTimer(self, startTime) {
     var elapsed = new Date(Date.now() - startTime);
-    self.durationNode.textContent = elapsed.toLocaleFormat('%M:%S');
+    self.durationChildNode.textContent = elapsed.toLocaleFormat('%M:%S');
   }, 1000, this, Date.now());
 };
 

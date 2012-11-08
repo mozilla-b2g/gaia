@@ -39,6 +39,9 @@
         bottom: 0;
         left: 0;
     }
+    #evmeContainer.ffos-menu-visible #shortcuts #shortcuts-list {
+        bottom: 75px;
+    }
     #evmeContainer #shortcuts #shortcuts-list ul {
         padding-bottom: 50px;
     }
@@ -48,6 +51,7 @@
         clear: both;
     }
     #evmeContainer .shortcut {
+        position: relative;
         display: inline-block;
         vertical-align: top;
         z-index: 10;
@@ -56,18 +60,16 @@
         text-align: center;
         cursor: pointer;
     }
-    #evmeContainer .shortcut.dragging {
-        -moz-transition: none;
-        transition: none;
-        z-index: 50;
-    }
-        #evmeContainer .shortcut.dragging .thumb {
-            -moz-transform: scale(1.7);
-            transform: scale(1.7);
-        }
-        #evmeContainer .shortcut.dragging b {
-            -moz-transform: translateY(20px);
-            transform: translateY(20px);
+        #evmeContainer .shortcut .remove {
+            position: absolute;
+            top: -5px;
+            left: 0;
+            right: 0;
+            height: 25px;
+            z-index: 100;
+            display: none;
+            cursor: pointer;
+            background: transparent url('/everything.me/images/shared/close.png') 50% 0 no-repeat;
         }
     #evmeContainer .shortcut.disabled {
         opacity: 0;
@@ -100,15 +102,12 @@
             margin: 0 auto;
             z-index: 10;
             border-radius: 32px;
+            -moz-transform-origin: 50% 50%;
         }
         #evmeContainer .shortcut.add .thumb * span,
         #evmeContainer .shortcut .thumb * span {
-          transition: none !important;
-          transform: none !important;
-        }
-        #evmeContainer .shortcut.remove .thumb {
-            -moz-transform: scale(1.3);
-            transform: scale(1.3);
+            transition: none !important;
+            transform: none !important;
         }
         #evmeContainer .shortcut.add .thumb:before {
             content: "";
@@ -144,10 +143,6 @@
             transform: scale(.7) !important;
         }
         
-    #evmeContainer #shortcuts .header {
-        display: none;
-    }
-    
     #evmeContainer #category-page-name {
         text-transform: capitalize;
     }
@@ -323,4 +318,31 @@
 #evmeContainer #shortcuts #shortcuts-list ul {
     padding-top: 5px;
     padding-bottom: 0;
+}
+
+
+#evmeContainer.shortcuts-customizing #shortcuts:not(.swiping) .shortcut .thumb {
+    -moz-animation: shake 800ms infinite ease-out;
+}
+#evmeContainer.shortcuts-customizing .shortcut .remove {
+    display: block;
+}
+#evmeContainer.shortcuts-customizing .shortcut.add {
+    display: none;
+}
+
+#evmeContainer.shortcuts-customizing .shortcut.remove .thumb {
+    -moz-animation: remove 150ms 1;
+}
+
+@-moz-keyframes shake {
+  0%   { -moz-transform: scale(1) translateZ(0); }
+  25%  { -moz-transform: scale(1.05) translateZ(0); }
+  50%  { -moz-transform: scale(1) translateZ(0); }
+  75%  { -moz-transform: scale(0.95) translateZ(0); }
+  100% { -moz-transform: scale(1) translateZ(0); }
+}
+@-moz-keyframes remove {
+  0%   { -moz-transform: scale(1) translateZ(0); opacity: 1; }
+  100% { -moz-transform: scale(1.1) translateZ(0); opacity: 0; }
 }

@@ -1,9 +1,10 @@
 #header {
     position: relative;
     z-index: 50;
-    background: #666;
-    background: rgba(0, 0, 0, .3);
     min-height: 80px;
+}
+#evmeContainer:not(.empty-query) #header, #evmeContainer.keyboard-visible #header {
+    background: rgba(0, 0, 0, .3);
 }
 #search-header {
     position: absolute;
@@ -14,11 +15,6 @@
     z-index: 51;
     padding-top: 9px;
 }
-#evmeContainer #search-header.animate,
-#evmeContainer #header.animate {
-    -moz-transition: all .2s linear;
-    transition: all .2s linear;
-}
     #search-rapper {
         position: absolute;
         top: 9px;
@@ -27,18 +23,21 @@
         z-index: 25;
         vertical-align: middle;
         height: 28px;
-        line-height: 28px;
+        line-height: 30px;
     }
     .empty-query:not(.keyboard-visible) #search-rapper {
-        -moz-transform: translate3d(0, 13px, 0);
+        -moz-transform: translate3d(0, 23px, 0);
+        height: 36px;
+        line-height: 36px;
+        left: 5px;
+        right: 5px;
+    }
+    .empty-query:not(.keyboard-visible) #search-q {
         height: 36px;
         line-height: 36px;
     }
     .empty-query:not(.keyboard-visible) #search-q-bg {
         background-position: 98% 10px;
-    }
-    .empty-query:not(.keyboard-visible) #default-text {
-        top: 4px;
     }
     
     .clear-visible #search-rapper {
@@ -46,9 +45,6 @@
     }
     .keyboard-visible .clear-visible #search-rapper {
         right: 0;
-    }
-    .location-visible #search-q-bg {
-        padding-right: 86px;
     }
     
     #search-q, #search-q-bg, #search-selection {
@@ -62,10 +58,10 @@
     }
     #search-header fieldset {
         height: 100%;
+        line-height: inherit;
         background: none;
 		border-radius: 0;
 		border: none;
-		line-height: 26px;
     }
     #search-q {
         border: none;
@@ -95,30 +91,6 @@
     #search-q:focus {
         outline: none;
     }
-    #search-selection {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: -5px;
-        height: 30px;
-        padding-right: 0;
-    }
-    #search-selection {
-        z-index: 20;
-        white-space: pre;
-        overflow: hidden;
-        -moz-user-select: none;
-    }
-        #search-selection span {
-            position: relative;
-            background: #def;
-            display: inline-block;
-            padding-right: 1px;
-            left: 1px;
-            top: 0;
-            height: 20px;
-            line-height: 19px;
-        }
         
     #button-clear {
         position: absolute;
@@ -163,55 +135,10 @@
         bottom: -5px;
     }
     
-    #button-location {
-        position: absolute;
-        top: 11px;
-        right: 2px;
-        z-index: 90;
-        color: #43474a;
-        text-shadow: 0 1px 0 rgba(255, 255, 255, .8);
-        text-align: center;
-        font-size: 11px;
-        font-weight: 600;
-        width: 72px;
-        padding: 0 2px;
-        height: 22px;
-        line-height: 20px;
-        cursor: pointer;
-        border-radius: 4px;
-        border: 1px solid #c7c7c7;
-        background: #dcdcdc;
-        background: -moz-linear-gradient(center top, #e3e3e3 0%, #d7d7d7 100%);
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        overflow: hidden;
-        opacity: 0;
-        pointer-events: none;
-        -moz-transition: opacity .2s linear;
-        transition: opacity .2s linear;
-    }
-    .empty-query:not(.keyboard-visible) #button-location {
-        right: 27px;
-        top: 28px;
-    }
-        
-    .active #button-location.visible {
-        opacity: 1;
-        pointer-events: inherit;
-    }
-    .clear-visible #button-location {
-        right: 62px;
-    }
-    
-    .requesting-location #button-location {
-        display: block;
-    }
-    #button-location .doat-loading {
-        margin-left: 4px;
-    }
     #default-text {
         position: absolute;
         top: 0;
+        bottom: 0;
         left: 7px;
         color: #bbb;
         text-transform: none;

@@ -44,6 +44,32 @@ var EvmeManager = (function() {
             }
         });
     }
+    
+    function menuShow() {
+        footerStyle.MozTransform = "translateY(0)";
+    }
+    
+    function menuHide() {
+        footerStyle.MozTransform = "translateY(75px)";
+    }
+
+    var footerStyle = document.getElementById("footer").style;
+    footerStyle.MozTransition = "-moz-transform .3s ease";
+    
+    function getMenuHeight() {
+        return document.getElementById("footer").offsetHeight;
+    }
+    
+    function getApps() {
+        return Applications.getAll();
+    }
+    
+    function getAppIcon(app) {
+        return Applications.getIcon(app.origin);
+    }
+    function getAppName(app) {
+        return Applications.getName(app.origin);
+    }
 
     return {
         openApp: openApp,
@@ -53,8 +79,15 @@ var EvmeManager = (function() {
         isAppInstalled: function isAppInstalled(url) {
             return Applications.isInstalled(url);
         },
+        getApps: getApps,
+        getAppIcon: getAppIcon,
+        getAppName: getAppName,
 
-        openUrl: openUrl
+        openUrl: openUrl,
+        
+        menuShow: menuShow,
+        menuHide: menuHide,
+        getMenuHeight: getMenuHeight
     };
 }());
 

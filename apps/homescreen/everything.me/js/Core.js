@@ -9,26 +9,21 @@ window.Evme = new function() {
 
     this.init = function() {
         data = Evme.__config;
-        
+
         logger = (typeof Logger !== "undefined") ? new Logger() : console;
-        
+
         var apiHost = Evme.Utils.getUrlParam("apiHost") || data.apiHost;
         apiHost && Evme.api.setHost(apiHost);
 
         TIMEOUT_BEFORE_INIT_SESSION = data.timeoutBeforeSessionInit;
-        
+
         Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad,
             "logger": logger,
             "minimumLettersForSearch": data.minimumLettersForSearch,
             "helper": data.texts.helper,
+            "apps": data.texts.apps,
             "promptInstallAppText": data.texts.installAppPrompt,
-            "trending": {
-                "itemsPerPage": data.trending.itemsPerPage,
-                "itemsOnFirstPage": data.trending.itemsOnFirstPage,
-                "timeBeforeError": data.trending.timeBeforeError,
-                "timeBeforeCache": data.trending.timeBeforeCache
-            },
             "timeBeforeAllowingDialogsRemoval": data.timeBeforeAllowingDialogsRemoval,
             "tips": data.tips,
             "searchSources": data.searchSources,
@@ -44,39 +39,62 @@ window.Evme = new function() {
 
         initObjects(data);
     };
-    
+
     // Gaia communication methods
     this.setOpacityBackground = function(value) {
         Evme.BackgroundImage.changeOpacity(value, OPACITY_CHANGE_DURATION);
-    }
+    };
 
     this.pageMove = function(value) {
         Evme.BackgroundImage.changeOpacity(Math.floor(value*100)/100);
-    }
+    };
+    
+    this.onShow = function() {
+        Evme.Shortcuts.refreshScroll();
+        if (Evme.Searchbar.getValue() || Evme.Brain.SmartFolder.get()) {
+            Evme.Brain.FFOS.hideMenu(); 
+        } else {
+            Evme.Brain.FFOS.showMenu();
+        }
+    };
+    this.onHide = function() {
+        Evme.Brain.Shortcuts.doneEdit();
+        Evme.Brain.SmartFolder.closeCurrent();
+    };
+    
+    this.onHideStart = function(source) {
+        if (source == "homeButtonClick") {
+            if (
+                Evme.Brain.Shortcuts.hideIfEditing() ||
+                Evme.Brain.ShortcutsCustomize.isOpen() ||
+                Evme.Brain.ShortcutsCustomize.hideIfRequesting() ||
+                Evme.Brain.SmartFolder.hideIfOpen()
+            ) {
+                return true;
+            }
+        }        
+
+        Evme.Brain.Searchbar.blur();
+        return false; // allow navigation to homescreen
+    };
 
     function initObjects(data) {
         var $container = $("#" + Evme.Utils.getID());
-
-        Evme.Connection.init({
+        
+        Evme.ConnectionMessage.init({
             "$parent": $container,
             "texts": data.texts.connection
         });
-
+        
         Evme.Location.init({
-            "$elName": $(".user-location"),
-            "$elButton": $("#button-location"),
-            "$elSelectorDialog": $("#location-selector"),
-            "$elLocateMe": $("#locate-me"),
-            "$elEnterLocation": $("#enter-location"),
-            "$elDoItLater": $("#later"),
-            "texts": data.texts.location
+            
         });
-
+        
         Evme.Screens.init({
             "$screens": $(".content_page"),
             "tabs": data.texts.tabs
         });
-
+        
         Evme.Shortcuts.init({
             "$el": $("#shortcuts"),
             "$loading": $("#shortcuts-loading"),
@@ -84,7 +102,7 @@ window.Evme = new function() {
             "shortcutsFavorites": data.texts.shortcutsFavorites,
             "defaultShortcuts": data._defaultShortcuts
         });
-
+        
         Evme.ShortcutsCustomize.init({
             "$parent": $container,
             "texts": data.texts.shortcutsFavorites
@@ -104,10 +122,9 @@ window.Evme = new function() {
             "$el": $("#helper"),
             "$elTitle": $("#search-title"),
             "$tip": $("#helper-tip"),
-            "defaultSuggestions": data.defaultSuggestions,
             "texts": data.texts.helper
         });
-        
+
         Evme.Apps.init({
             "$el": $("#evmeApps"),
             "$buttonMore": $("#button-more"),
@@ -115,9 +132,6 @@ window.Evme = new function() {
             "texts": data.texts.apps,
             "design": data.design.apps,
             "appHeight": data.apps.appHeight,
-            "scrollThresholdTop": data.apps.scrollThresholdTop,
-            "scrollThresholdBottom": data.apps.scrollThresholdBottom,
-            "widthForFiveApps": data.apps.widthForFiveApps,
             "minHeightForMoreButton": data.minHeightForMoreButton,
             "defaultScreenWidth": {
                 "portrait": 320,
@@ -131,14 +145,15 @@ window.Evme = new function() {
             "defaultImage": data.defaultBGImage,
             "texts": data.texts.backgroundImage
         });
-        
+
         Evme.SearchHistory.init({
             "maxEntries": data.maxHistoryEntries
         });
-        
+
         Evme.Analytics.init({
             "config": data.analytics,
             "logger": logger,
+            "namespace": Evme,
             "DoATAPI": Evme.DoATAPI,
             "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
             "Brain": Evme.Brain,

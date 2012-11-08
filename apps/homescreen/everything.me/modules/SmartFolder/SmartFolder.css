@@ -1,0 +1,225 @@
+#evmeContainer .smart-folder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 600;
+    color: #fff;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .3);
+    opacity: 0;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    -moz-transition: all .2s ease;
+    transition: all .2s ease;
+}
+#evmeContainer .smart-folder.maxheight {
+    bottom: auto;
+    top: 50%;
+}
+#evmeContainer .smart-folder.visible {
+    opacity: 1;
+    -moz-transform: scale(1);
+    transform: scale(1);
+}
+#evmeContainer .smart-folder-screen {
+    background: rgba(0, 0, 0, .3);
+    -moz-transition: opacity .4s ease-out;
+    transition: opacity .4s ease-out;
+    opacity: 0;
+}
+#evmeContainer .smart-folder-screen.visible {
+    opacity: 1;
+}
+    #evmeContainer .smart-folder.animate .title,
+    #evmeContainer .smart-folder.animate > .close,
+    #evmeContainer .smart-folder.animate .evme-apps
+    {
+        -moz-transition: opacity .4s ease;
+        transition: opacity .4s ease;
+    }
+    #evmeContainer .smart-folder .title {
+        position: relative;
+        z-index: 50;
+        height: 55px;
+        line-height: 55px;
+        padding: 0 10px 0 32px;
+        font-size: 17px;
+        font-weight: normal;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellisis;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, .6);
+        border-bottom: 1px solid rgba(255, 255, 255, .8);
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+        #evmeContainer .smart-folder .title span {
+            color: #b4dae7;
+            text-transform: capitalize;
+        }
+        #evmeContainer .smart-folder .title em {
+            position: absolute;
+            left: 40px;
+            bottom: -5px;
+            width: 0;
+            height: 0;
+            border: 5px solid rgba(255, 255, 255, .8);
+            -moz-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+    
+    #evmeContainer .smart-folder .image {
+        position: absolute;
+        top: 55px;
+        left: 0;
+        right: 0;
+        bottom: 15px;
+        z-index: 10;
+        background-position: 50% 0;
+        background-size: cover;
+    }
+        #evmeContainer .smart-folder .image .image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+            background: rgba(0, 0, 0, .55);
+        }
+    #evmeContainer .smart-folder > .close {
+        background: rgba(0, 0, 0, .1) url('/everything.me/images/imageclose.png') 50% 50% no-repeat;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 25px;
+        height: 54px;
+        cursor: pointer;
+        z-index: 100;
+    }
+        #evmeContainer .smart-folder > .close:after {
+            content: "";
+            position: absolute;
+            top: 4px;
+            bottom: 4px;
+            right: -1px;
+            width: 1px;
+            background: rgba(0, 0, 0, .3);
+            border-right: 1px solid rgba(255, 255, 255, .3);
+        }
+    #evmeContainer .smart-folder .evme-apps {
+        position: absolute;
+        top: 55px;
+        left: 5px;
+        right: 5px;
+        bottom: 15px;
+        z-index: 50;
+        width: auto;
+        height: auto;
+    }
+        #evmeContainer .smart-folder .evme-apps ul.has-more {
+            padding-bottom: 45px;
+        }
+        #evmeContainer .smart-folder .evme-apps li {
+            width: 25%;
+        }
+        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(2) {
+            left: 0;
+        }
+        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(3) {
+            left: 25%;
+        }
+        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(4) {
+            left: 50%;
+        }
+        #evmeContainer .smart-folder .evme-apps li.installed:nth-child(5) {
+            left: 75%;
+        }
+        #evmeContainer .smart-folder .evme-apps ul li .thumb:after {
+            display: none;
+        }
+        
+    #evmeContainer .smart-folder .has-installed .connection-message {
+        -moz-transform: translateY(55px);
+        transform: translateY(55px);
+    }
+    #evmeContainer .smart-folder #bgimage-overlay {
+        top: 0;
+        bottom: 0;
+        z-index: 120;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+#evmeContainer .smart-folder .evme-apps .loadmore {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    width: 100%;
+    height: 40px;
+    line-height: 40px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0;
+    margin: 10px 0 0 0;
+    z-index: 50;
+    cursor: default;
+    box-shadow: 0 -1px 0 0 rgba(255, 255, 255, .4), 0 -2px 0 0 rgba(0, 0, 0, .4);
+    -moz-transition: none;
+    transition: none;
+    display: none;
+}
+#evmeContainer .smart-folder .loading-more .loadmore {
+    display: block;
+}
+    #evmeContainer .smart-folder .evme-apps .loadmore span {
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        margin-right: 3px;
+        top: -2px;
+    }
+    
+#evmeContainer .smart-folder.full-image {
+    
+}
+    #evmeContainer .smart-folder.full-image .evme-apps,
+    #evmeContainer .smart-folder.full-image > .close,
+    #evmeContainer .smart-folder.full-image .image-overlay {
+        pointer-events: none;
+    }
+    #evmeContainer .smart-folder.full-image #bgimage-overlay {
+        opacity: 1;
+        pointer-events: inherit;
+    }
+
+#evmeContainer.loading-app .smart-folder .title,
+#evmeContainer.loading-app .smart-folder > .close,
+#evmeContainer.loading-app .smart-folder .evme-apps li,
+#evmeContainer.loading-app.empty-query:not(.keyboard-visible) #shortcuts
+{
+    opacity: 0;
+    pointer-events: none;
+}
+#evmeContainer.loading-app .smart-folder .evme-apps {
+    pointer-events: none;
+}
+#evmeContainer.loading-app .smart-folder .evme-apps li#loading-app {
+    opacity: 1;
+}
+
+#evmeContainer.loading-app .smart-folder .connection-error .connection-message {
+    opacity: 0;
+}
+
+
+#evmeContainer.smart-folder-visible #shortcuts,
+#evmeContainer.smart-folder-visible #search {
+    display: none;
+}
