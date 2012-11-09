@@ -1253,10 +1253,12 @@ var Browser = {
     if (this.currentScreen === this.TABS_SCREEN) {
       this.screenSwipeMngr.gestureDetector.stopDetecting();
     }
-    document.body.classList.remove(this.currentScreen);
-    this.previousScreen = this.currentScreen;
-    this.currentScreen = screen;
-    document.body.classList.add(this.currentScreen);
+    if (this.currentScreen !== screen) {
+      document.body.classList.remove(this.currentScreen);
+      this.previousScreen = this.currentScreen;
+      this.currentScreen = screen;
+      document.body.classList.add(this.currentScreen);
+    }
   },
 
   showStartscreen: function browser_showStartscreen() {
@@ -1667,9 +1669,7 @@ var Browser = {
       case 'url':
         var url = this.getUrlFromInput(activity.source.data.url);
         this.selectTab(this.createTab(url));
-        if (this.currentScreen !== this.PAGE_SCREEN) {
-          this.showPageScreen();
-        }
+        this.showPageScreen();
         break;
     }
   }
