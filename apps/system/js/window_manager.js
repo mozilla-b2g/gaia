@@ -54,6 +54,9 @@ var WindowManager = (function() {
   var homescreen = null;
   var homescreenURL = '';
   var homescreenManifestURL = '';
+  var ftu = null;
+  var ftuManifestURL = '';
+  var ftuURL = '';
   // keep the reference of inline activity frame here
   var inlineActivityFrame = null;
 
@@ -360,6 +363,11 @@ var WindowManager = (function() {
 
   // Executes when app closing transition finishes.
   function windowClosed(frame) {
+    // If the FTU is closing, make sure we save this state
+    if (frame.src == ftuURL) {
+      window.asyncStorage.setItem('ftu.enabled', false);
+    }
+
     frame.classList.remove('active');
     windows.classList.remove('active');
 
@@ -733,6 +741,26 @@ var WindowManager = (function() {
         callback(app);
       }
     }
+  }
+
+  // Check if the FTU was executed or not, if not, get a
+  // reference to the app and launch it.
+  function retrieveFTU() {
+    window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
+      if (launchFTU === false) {
+        ensureHomescreen();
+        return;
+      }
+
+      var lock = navigator.mozSettings.createLock();
+      var req = lock.get('ftu.manifestURL');
+      req.onsuccess = function() {
+        ftuManifestURL = this.result['ftu.manifestURL'];
+        ftu = Applications.getByManifestURL(ftuManifestURL);
+        ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
+        ftu.launch('ftu');
+      };
+    });
   }
 
   // Hide current app
@@ -1343,7 +1371,11 @@ var WindowManager = (function() {
     } else if (inlineActivityFrame) {
       stopInlineActivity();
     } else if (displayedApp !== homescreen || openFrame) {
-      setDisplayedApp(homescreen);
+      if (displayedApp != ftuURL) {
+        setDisplayedApp(homescreen);
+      } else {
+        e.preventDefault();
+      }
     } else {
       ensureHomescreen(true);
     }
@@ -1401,6 +1433,7 @@ var WindowManager = (function() {
     },
     hideCurrentApp: hideCurrentApp,
     restoreCurrentApp: restoreCurrentApp,
-    retrieveHomescreen: retrieveHomescreen
+    retrieveHomescreen: retrieveHomescreen,
+    retrieveFTU: retrieveFTU
   };
 }());

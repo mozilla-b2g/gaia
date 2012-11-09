@@ -1,0 +1,546 @@
+html, body {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow: hidden !important;
+	font-size: 10px;
+	font-family: "Open Sans",sans-serif;
+	font-weight: 400;
+	user-select: none;
+}
+
+/*
+	Areas in our app
+*/
+
+
+/* Basics */
+
+[role=region] {
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  position: absolute;
+	top: 0;
+	left: 0;
+	overflow-x: auto;
+}
+
+[role=region].show {
+	visibility: visible;
+}
+
+[role=main] {
+	height: calc(100% - 10.4rem);
+	position: relative;
+}
+
+[role=main] > [role=region] {
+	background: url(images/bgtop.png) top left no-repeat,
+							url(images/bg_1px.png) repeat-y,
+							url(images/bgbottom.png) bottom left no-repeat;
+}
+
+[role=region]:target {
+	visibility: visible;
+}
+
+[role=navigation] {
+	border-top: .2rem solid #a6a6a6;
+	background: #DCDCD9;
+	width: 100%;
+	height: 5rem;
+	padding: .5rem 1.5rem; 
+	-moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+[role=navigation] button {
+	margin: 0;
+	padding: 0;
+	width: calc(50% - .5rem);
+	float: left;
+	margin-right: .25rem;
+}
+
+[role=navigation] .recommend {
+	margin-left: .5rem;
+}
+
+[role=navigation] button {
+	position: relative;
+}
+
+[role=navigation] button:not(.recommend) span {
+	width: 1.1rem;
+	height: 100%;
+	left: 1rem;
+	background: red;
+	position: absolute;
+	pointer-events: none;
+	background: url(images/prev.png) no-repeat 94% 50%;
+}
+
+[role=navigation] .recommend span {
+	width: 1.1rem;
+	height: 100%;
+	right: 1rem;
+	background: red;
+	position: absolute;
+	pointer-events: none;
+	background: url(images/next.png) no-repeat 94% 50%;
+}
+
+[role=navigation] #join {
+	display:none;
+}
+
+[role=navigation].forward-only #back {
+	display:none;
+}
+
+[role=navigation].forward-only .recommend {
+	width: 100%;
+	margin: 0;
+}
+
+[role=navigation].secondary-menu #forward {
+	display: none;
+}
+
+[role=navigation].secondary-menu #join {
+	display: block;
+}
+
+[role=navigation].back-only #back {
+	width: 100%;
+	margin: 0;
+}
+
+[role=navigation].back-only .recommend {
+	display:none;
+}
+
+/* Progress bar at the top */
+progress {
+  width: 100%;
+  padding: 0 1.5rem; 
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+progress[value] {
+  background: transparent;
+  border: none;
+  border-radius: 0.3rem;
+  height: 0.4rem;
+  display: block;
+  background: url(images/progress-background.png) repeat-x left bottom;
+}
+
+progress[value]::-moz-progress-bar {
+  background: #01c5ed;
+  border-radius: 0.1rem;
+  height: .5rem;
+}
+
+progress[value='100'] {
+  display: none;
+  background: none;
+}
+
+/*
+	Header conditional button
+*/
+
+.no-options header menu {
+	display: none;
+}
+
+/*
+ 	Splash screen
+*/
+
+#splash {
+	opacity: 0;
+	z-index: 3000;
+	transition: all 1s ease;
+	background-image: url(images/powered.png);
+}
+
+#splash.show {
+	opacity: 1;
+}
+/*
+	Pin code screen
+*/
+
+#pincode .pin_container {
+	height: calc(100% - 10rem);
+}
+
+#pincode section header {
+	padding: 2rem 1.5rem;
+	color: black;
+	font-size: 1.5rem;
+}
+
+#pincode .input-wrapper {
+	padding: 0 1.5rem;
+}
+
+#pincode .input-wrapper input {
+	text-align: center;
+	font-size: 2rem;
+}
+
+/*
+	Languages Styles
+*/
+
+#languages {	
+	background-image: url(images/bgbubbles.png);
+	background-repeat: no-repeat;
+}
+
+#languages ul {
+	margin-top: 14rem;
+	
+}
+
+/*
+	Wifi Styles
+*/
+#wifi ul {
+	margin-top: 1rem;
+}
+#wifi li {
+	border-bottom: .1rem solid #a6a6a6 !important;
+}
+
+/*
+	Wifi configuration
+*/
+
+#configure_network_params form {
+	padding: 1rem 1.5rem;
+}
+
+#configure_network_params form label {
+	display: block;
+	margin: 1rem 0;
+	font-size: 1.5rem;
+}
+
+.hidden {
+	display: none !important;
+}
+
+
+/*
+	Finish process
+*/
+
+#finish {
+	opacity: 0;
+	z-index: 3010;
+	transition: all 1s ease;
+	background-color: #474747 !important;
+}
+
+#finish.show {
+	opacity: 1;
+}
+
+#finish h1 {
+	margin: 0;
+	color: white;
+	font-size: 4.5rem;
+	padding: 1rem 2rem;
+	font-weight: 200;
+	line-height: 4rem;
+}
+
+#finish h2 {
+	margin: 0;
+	color: white;
+	font-size: 2rem;
+	padding: .5rem 2rem;
+	font-weight: 200;
+	line-height: 2rem;
+}
+
+
+#finish p {
+	margin: 0;
+	color: white;
+	font-size: 1.5rem;
+	padding: .5rem 2rem;
+}
+
+#finish .content {
+	background: url(images/thumb-up.png) no-repeat center 90%;
+	height: calc(100% - 5rem);
+}
+
+#finish [role=navigation] {
+	border-top: .2rem solid #a6a6a6;
+	background: #474747 !important;
+}
+
+/*
+	Date and time
+*/
+
+.change {
+	float:right; 
+	width:6.5rem;
+}
+
+#time_zone_overlay {
+	background-position: bottom;
+	background-repeat: no-repeat;
+	position: relative;
+	position: absolute;
+	z-index: 10;
+	width: 100%;
+	height: 4rem;
+	height: 21.5rem;
+}
+
+#time_zone_overlay.gmt0 {
+	background-image: url('images/timezone/+0.png') ;
+}
+#time_zone_overlay.gmt1 {
+	background-image: url('images/timezone/+1.png') ;
+}
+#time_zone_overlay.gmt2 {
+	background-image: url('images/timezone/+2.png') ;
+}
+#time_zone_overlay.gmt3 {
+	background-image: url('images/timezone/+3.png') ;
+}
+#time_zone_overlay.gmt4 {
+	background-image: url('images/timezone/+4.png') ;
+}
+#time_zone_overlay.gmt5 {
+	background-image: url('images/timezone/+5.png') ;
+}
+#time_zone_overlay.gmt6 {
+	background-image: url('images/timezone/+6.png') ;
+}
+#time_zone_overlay.gmt7 {
+	background-image: url('images/timezone/+7.png') ;
+}
+#time_zone_overlay.gmt8 {
+	background-image: url('images/timezone/+8.png') ;
+}
+#time_zone_overlay.gmt9 {
+	background-image: url('images/timezone/+9.png') ;
+}
+#time_zone_overlay.gmt10 {
+	background-image: url('images/timezone/+10.png') ;
+}
+#time_zone_overlay.gmt11 {
+	background-image: url('images/timezone/+11.png') ;
+}
+#time_zone_overlay.gmt12 {
+	background-image: url('images/timezone/+12.png') ;
+}
+#time_zone_overlay.gmt3 {
+	background-image: url('images/timezone/+3.png') ;
+}
+#time_zone_overlay.gmt4 {
+	background-image: url('images/timezone/+4.png') ;
+}
+
+#time_zone_overlay.gmt-1 {
+	background-image: url('images/timezone/-1.png') ;
+}
+#time_zone_overlay.gmt-2 {
+	background-image: url('images/timezone/-2.png') ;
+}
+#time_zone_overlay.gmt-3 {
+	background-image: url('images/timezone/-3.png') ;
+}
+#time_zone_overlay.gmt-4 {
+	background-image: url('images/timezone/-4.png') ;
+}
+#time_zone_overlay.gmt-5 {
+	background-image: url('images/timezone/-5.png') ;
+}
+#time_zone_overlay.gmt-6 {
+	background-image: url('images/timezone/-6.png') ;
+}
+#time_zone_overlay.gmt-7 {
+	background-image: url('images/timezone/-7.png') ;
+}
+#time_zone_overlay.gmt-8 {
+	background-image: url('images/timezone/-8.png') ;
+}
+
+#time_zone_map {
+	background-image: url('images/map.png') ;
+	background-position: bottom;
+	background-repeat: no-repeat;
+	position: relative;
+	height: 21.5rem;
+	width: 100%;
+	margin-bottom: -1.5rem;
+	z-index: 1;
+}
+
+
+
+#date_and_time li {
+	padding: .5rem 1.5rem;
+	margin: 0 !important;
+	min-height: 0;
+	overflow: hidden;
+	border-bottom: 1px solid #cccccc;
+	height: 5rem;
+}
+
+#date_and_time li:last-child {
+	border-bottom: none;
+}
+
+#date_and_time li:active {
+	color: white;
+
+}
+
+#date_and_time ul {
+	margin: 0;
+}
+
+#date_and_time button {
+	margin: 0;
+}
+
+#date_and_time h1 {
+	font-size: 2rem;
+	padding: 0 1.5rem 0rem 1.5rem;
+	font-weight: 300;
+}
+
+#date_and_time h2 {
+	font-size: 1.5rem;
+	padding: .2rem 1.5rem;
+	font-weight: 200;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#date_and_time h1,h2 {
+	margin: 0;
+}
+
+/*
+	Import
+*/
+
+#import_contacts ul:first-child li:last-child {
+	margin-bottom: 0;
+}
+
+/*
+	About your rights
+*/
+
+#welcome_firefox p {
+	margin-top: 0;
+	color: #6a6a6a;
+	padding: 1rem 1.5rem;
+	font-size: 1.5rem;
+}
+#welcome_firefox #firefox_logo_horizontal {
+	margin-top: 1rem;
+	text-align: center;
+}
+
+#welcome_firefox label {
+	position: absolute;
+	margin-top: -1.5rem;
+}
+
+#welcome_firefox section a {
+	display: inline-block;
+	margin-left: 5rem;
+	margin-right: 1.5rem;
+	font-size: 1.5rem;
+}
+
+#welcome_firefox #firefox_os_privacy_links {
+	padding: 0rem 1.5rem 1rem 1.5rem;
+	margin-bottom: 3rem;
+}
+
+#welcome_firefox #firefox_os_privacy_links a {
+	float: left;
+	width: 50%;
+	margin-left: 0;
+	margin-right: 0;
+}
+
+#welcome_firefox #form_share_statistics {
+	clear: both;
+}
+
+#welcome_firefox #form_share_statistics a.inline {
+	margin: 0;
+	display: inline;
+}
+
+/*
+	Privacy policies
+*/
+
+#firefox_privacy img {
+	vertical-align: middle;
+}
+
+#firefox_privacy .logo_container {
+	margin-top: 1rem;
+}
+
+#firefox_privacy .logo_title {
+	font-size: 2rem;
+	text-align: center;
+	margin-left: 1rem;
+}
+
+#firefox_privacy section {
+	padding: 0 1.5rem;
+}
+
+#firefox_privacy p {
+	margin-top: 0;
+	color: #6a6a6a;
+	padding: 1rem 1.5rem 0rem 1.5rem;
+	font-size: 1.5rem;
+}
+
+.invisible {
+	position: absolute;
+	top: 0;
+	opacity: 0;
+	height: 100%;
+}
+
+/*
+	#about-your-rights
+*/
+
+#about-your-rights p ,#about-your-privacy p {
+	margin: 0;
+	color: #6a6a6a;
+	font-size: 1.5rem;
+	padding: .5rem 2rem;
+}
+
+#about-your-rights p:first-child, #about-your-privacy p:first-child {
+	margin-top: 1rem;
+}
