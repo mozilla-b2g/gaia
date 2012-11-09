@@ -159,6 +159,7 @@ MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
 # Generate profile/
+
 profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
@@ -569,7 +570,7 @@ purge:
 
 # Build the settings.json file from settings.py
 profile/settings.json: build/settings.py build/wallpaper.jpg
-	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
 
 # push profile/settings.json to the phone
 install-settings-defaults: profile/settings.json
