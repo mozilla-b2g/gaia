@@ -23,6 +23,11 @@
         "120": "/style/icons/Contacts.png",
         "60": "/style/icons/60/Contacts.png"
       }
+    },
+    "ftu": {
+      "launch_path": "/ftu/index.html",
+      "name": "FTU",
+      "fullscreen": "true"
     }
   },
   "permissions": {
@@ -34,7 +39,10 @@
     "settings":{ "access": "readonly" },
     "desktop-notification":{},
     "alarms": {},
-    "systemXHR": {}
+    "systemXHR": {},
+    "wifi-manage":{},
+    "wifi":{},
+    "time": {}
   },
   "icons": {
     "120": "/dialer/style/icons/Dialer.png",

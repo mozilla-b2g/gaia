@@ -53,6 +53,12 @@ var BatteryManager = {
         break;
       case 'chargingchange':
         PowerSaveHandler.onBatteryChange();
+
+        var battery = window.navigator.battery;
+        // We turn the screen on if needed in order to let
+        // the user knows the device is charging
+        if (battery && battery.charging && !this._screenOn)
+          ScreenManager.turnScreenOn();
         break;
 
       case 'mousedown':

@@ -5,71 +5,52 @@
  * It takes care of the interaction with the UpdateManager and observes
  * the update itself to handle success/error cases.
  *
+ * - name of the update
+ * - size of the update
  * - download() to start the download
  * - cancelDownload() to cancel it
  */
 
-function Updatable(target) {
+/* === App Updates === */
+function AppUpdatable(app) {
   this._mgmt = navigator.mozApps.mgmt;
-  this.target = target;
+  this.app = app;
 
-  if (target === 'system') {
-    this._system = true;
-    window.addEventListener('mozChromeEvent', this);
-    return;
-  }
-
-  this._system = false;
-  target.ondownloadavailable = this.availableCallBack.bind(this);
-  target.ondownloaderror = this.errorCallBack.bind(this);
-  target.ondownloadsuccess = this.successCallBack.bind(this);
-  target.ondownloadapplied = this.appliedCallBack.bind(this);
+  this.name = app.manifest.name;
+  this.size = app.updateManifest ? app.updateManifest.size : null;
+  app.ondownloadavailable = this.availableCallBack.bind(this);
+  app.ondownloaderror = this.errorCallBack.bind(this);
+  app.ondownloadsuccess = this.successCallBack.bind(this);
+  app.ondownloadapplied = this.appliedCallBack.bind(this);
 }
 
-Updatable.prototype.download = function() {
-  if (this._system) {
-    this._dispatchEvent('update-available-result', 'download');
-  } else {
-    this.target.download();
-  }
-
+AppUpdatable.prototype.download = function() {
+  this.app.download();
   UpdateManager.addToDownloadsQueue(this);
 };
 
-Updatable.prototype.cancelDownload = function() {
-  if (this._system) {
-    // Not implemented yet https://bugzilla.mozilla.org/show_bug.cgi?id=804571
-    return;
-  }
-
-  this.target.cancelDownload();
+AppUpdatable.prototype.cancelDownload = function() {
+  this.app.cancelDownload();
   UpdateManager.removeFromDownloadsQueue(this);
 };
 
-Updatable.prototype.uninit = function() {
-  if (this._system) {
-    window.removeEventListener('mozChromeEvent', this);
-  } else {
-    this.target.ondownloadavailable = null;
-    this.target.ondownloaderror = null;
-    this.target.ondownloadsuccess = null;
-    this.target.ondownloadapplied = null;
-  }
+AppUpdatable.prototype.uninit = function() {
+  this.app.ondownloadavailable = null;
+  this.app.ondownloaderror = null;
+  this.app.ondownloadsuccess = null;
+  this.app.ondownloadapplied = null;
 };
 
-Updatable.prototype.availableCallBack = function() {
+AppUpdatable.prototype.availableCallBack = function() {
+  this.size = this.app.updateManifest ?
+    this.app.updateManifest.size : null;
   UpdateManager.addToUpdatesQueue(this);
 };
 
-Updatable.prototype.errorCallBack = function() {
-  UpdateManager.requestErrorBanner();
-  UpdateManager.removeFromDownloadsQueue(this);
-};
-
-Updatable.prototype.successCallBack = function() {
-  var target = this.target;
-  if (WindowManager.getDisplayedApp() !== target.origin) {
-    this.applyUpdate()
+AppUpdatable.prototype.successCallBack = function() {
+  var app = this.app;
+  if (WindowManager.getDisplayedApp() !== app.origin) {
+    this.applyUpdate();
   } else {
     var self = this;
     window.addEventListener('appwillclose', function waitClose() {
@@ -81,16 +62,43 @@ Updatable.prototype.successCallBack = function() {
   UpdateManager.removeFromDownloadsQueue(this);
 };
 
-Updatable.prototype.applyUpdate = function() {
-  WindowManager.kill(this.target.origin);
-  this._mgmt.applyDownload(this.target);
+AppUpdatable.prototype.applyUpdate = function() {
+  WindowManager.kill(this.app.origin);
+  this._mgmt.applyDownload(this.app);
 };
 
-Updatable.prototype.appliedCallBack = function() {
+AppUpdatable.prototype.appliedCallBack = function() {
   UpdateManager.removeFromUpdatesQueue(this);
 };
 
-Updatable.prototype.handleEvent = function(evt) {
+AppUpdatable.prototype.errorCallBack = function() {
+  UpdateManager.requestErrorBanner();
+  UpdateManager.removeFromDownloadsQueue(this);
+};
+
+
+/* === System Updates === */
+function SystemUpdatable(downloadSize) {
+  var _ = navigator.mozL10n.get;
+  this.name = _('systemUpdate');
+  this.size = downloadSize;
+  window.addEventListener('mozChromeEvent', this);
+}
+
+SystemUpdatable.prototype.download = function() {
+  this._dispatchEvent('update-available-result', 'download');
+  UpdateManager.addToDownloadsQueue(this);
+};
+
+SystemUpdatable.prototype.cancelDownload = function() {
+  // Not implemented yet https://bugzilla.mozilla.org/show_bug.cgi?id=804571
+};
+
+SystemUpdatable.prototype.uninit = function() {
+  window.removeEventListener('mozChromeEvent', this);
+};
+
+SystemUpdatable.prototype.handleEvent = function(evt) {
   if (evt.type !== 'mozChromeEvent')
     return;
 
@@ -109,7 +117,12 @@ Updatable.prototype.handleEvent = function(evt) {
   }
 };
 
-Updatable.prototype.showApplyPrompt = function() {
+SystemUpdatable.prototype.errorCallBack = function() {
+  UpdateManager.requestErrorBanner();
+  UpdateManager.removeFromDownloadsQueue(this);
+};
+
+SystemUpdatable.prototype.showApplyPrompt = function() {
   var _ = navigator.mozL10n.get;
 
   var cancel = {
@@ -126,17 +139,17 @@ Updatable.prototype.showApplyPrompt = function() {
                     cancel, confirm);
 };
 
-Updatable.prototype.declineInstall = function() {
+SystemUpdatable.prototype.declineInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'wait');
 };
 
-Updatable.prototype.acceptInstall = function() {
+SystemUpdatable.prototype.acceptInstall = function() {
   CustomDialog.hide();
   this._dispatchEvent('update-prompt-apply-result', 'restart');
 };
 
-Updatable.prototype._dispatchEvent = function(type, result) {
+SystemUpdatable.prototype._dispatchEvent = function(type, result) {
   var event = document.createEvent('CustomEvent');
   var data = { type: type };
   if (result) {
