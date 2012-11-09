@@ -15,7 +15,7 @@ textarea {
   resize: none;
   padding: 0 0.8rem;
   font: 1.4rem/4rem "MozTT", Sans-serif;
-  border: 0.1rem solid rgba(0,0,0,.2);
+  border: 0.1rem solid #ccc;
   border-radius: 0.3rem;
   box-shadow: none; /* override the box-shadow from the system (performance issue) */
   background: #fff url(input_areas/images/ui/shadow.png) repeat-x;
