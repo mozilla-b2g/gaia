@@ -1452,7 +1452,23 @@ var Browser = {
     var msg = navigator.mozL10n.get('confirm-clear-history');
     if (confirm(msg)) {
       Places.clearHistory((function() {
+
         this.clearHistoryButton.setAttribute('disabled', 'disabled');
+
+        Places.getTopSites(this.MAX_TOP_SITES, null,
+          this.showTopSiteThumbnails.bind(this));
+
+        var self = this;
+        for each(var tab in this.tabs) {
+          if (tab.dom.purgeHistory) {
+            tab.dom.purgeHistory().onsuccess = (function(e) {
+              if (self.tabs[tabId] == self.currentTab) {
+                self.refreshButtons();
+              }
+            });
+          }
+        }
+
       }).bind(this));
 
       this.history.innerHTML = '';
