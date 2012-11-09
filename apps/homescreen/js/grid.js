@@ -375,7 +375,7 @@ const GridManager = (function() {
   function ensurePagesOverflow() {
     pages.forEach(function checkIsOverflow(page, index) {
       // ignore the landing page
-      if (index <= 1) {
+      if (index < numberOfSpecialPages) {
         return;
       }
 
