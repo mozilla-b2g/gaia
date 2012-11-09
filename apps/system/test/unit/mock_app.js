@@ -2,6 +2,12 @@ var idGen = 0;
 
 function MockApp() {
   this.origin = 'https://testapp.gaiamobile.org';
+  this.manifest = {
+    name: 'Mock app'
+  };
+  this.updateManifest = {
+    size: 42
+  };
 
   this.removable = true;
   this.installState = 'installed';

@@ -1,7 +1,7 @@
 Evme.Searchbar = new function() {
     var _name = "Searchbar", _this = this,
         $el = null, $form = null, $clear = null, $defaultText = null,
-        value = "", Selection = null, focused = false,
+        value = "", isFocused = false,
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
         intervalPolling = null;
         
@@ -33,13 +33,6 @@ Evme.Searchbar = new function() {
             cbReturnPressed(e, $el.val());
         });
         
-        $("#button-back").bind("touchstart", function(){
-            $(this).addClass("down");
-        }).bind("click", function(e){
-            $(this).removeClass("down");
-            backButtonClick(e);
-        });
-        
         DEFAULT_TEXT = options.texts.defaultText;
         if (DEFAULT_TEXT) {
             $defaultText.html(DEFAULT_TEXT);
@@ -49,19 +42,15 @@ Evme.Searchbar = new function() {
         TIMEOUT_BEFORE_SENDING_PAUSE_EVENT = options.timeBeforeEventPause;
         TIMEOUT_BEFORE_SENDING_IDLE_EVENT = options.timeBeforeEventIdle;
         
-        Selection = new pseudoSelection();
-        
         $("#button-clear").html(BUTTON_CLEAR).bind("touchstart", function(e){
             e.preventDefault();
             e.stopPropagation();
             clearButtonClick();
-        });
+        }).bind("click", clearButtonClick);
         
         _this.bindEvents($el, cbFocus, inputKeyDown, inputKeyUp);
             
         $el.bind("blur", cbBlur);
-            
-        $el.bind("click", Selection.create);
 
         Evme.EventHandler.trigger(_name, "init");
     };
@@ -107,14 +96,14 @@ Evme.Searchbar = new function() {
     };
 
     this.focus = function() {
-        if (focused) return;
+        if (isFocused) return;
         
         $el[0].focus();
         cbFocus();
     };
 
     this.blur = function(e) {
-        if (!focused) return;
+        if (!isFocused) return;
         
         $el[0].blur();
         cbBlur(e);
@@ -144,86 +133,7 @@ Evme.Searchbar = new function() {
         $("#search-header").addClass("clear-visible");
     };
     
-    function backButtonClick(e) {
-        e.stopPropagation();
-        Evme.EventHandler.trigger(_name, "backButtonClick");
-    }
-    
-    function pseudoSelection(){
-        var self = this,
-            $elSelection = null;
-                
-        function onClick(e){
-            e.stopPropagation();
-            e.preventDefault();
-            _this.focus();
-            self.cancel();
-        }
-        
-        this.create = function(){
-            if ($elSelection) {
-                self.cancel();
-            } else {
-                var val = $el.val().replace(/</g, "&lt;");
-                if (val == "") {
-                    return;
-                }
-                
-                $elSelection = $('<span id="search-selection"><span>' + val + '</span></span>');
-                $elSelection.bind("touchstart", onClick)
-                            .bind("mousedown", onClick);
-                            
-                $el.parent().append($elSelection);
-                $el[0].setSelectionRange(0, 0);
-            }
-        };
-        
-        this.cancel = function(){
-            if ($elSelection) {
-                $elSelection.remove();
-                $elSelection = null;
-                $el[0].setSelectionRange(100000, 100000);
-            }
-        };
-        
-        this.isSelected = function(){
-            return ($elSelection !== null);
-        };
-    }
-    
-    function nativeSelection(){
-        var self = this,
-            isSelected = false;
-        
-        this.create = function(){
-            var end = $el.val().length;
-        
-            if (isSelected){
-                //logger.debug('nativeSelection deselected');
-                // deselect and move anchor to end
-                isSelected = false;
-            }
-            else{
-                // select
-                //logger.debug('nativeSelection selected');
-                $el[0].setSelectionRange(0, end);
-                isSelected = true;    
-            }
-        };
-        
-        this.cancel = function(){
-            //window.getSelection().getRangeAt(0).removeRange();
-            //$el[0].setSelectionRange(end, end);
-            isSelected = false;
-        };
-        
-        this.isSelected = function(){
-            return isSelected;
-        };
-    }
-
     function clearButtonClick() {
-        Selection.cancel();
         _this.setValue("", false, true);
         
         if (SET_FOCUS_ON_CLEAR) {
@@ -234,6 +144,8 @@ Evme.Searchbar = new function() {
             cbClear();
             cbEmpty();
         }, 0);
+        
+        Evme.EventHandler.trigger(_name, "clearButtonClick");
     }
     
     function inputKeyDown(e) {
@@ -242,11 +154,6 @@ Evme.Searchbar = new function() {
             e.preventDefault();
             e.stopPropagation();
             return;
-        }
-        
-        if (e.keyCode !== RETURN_KEY_CODE && Selection.isSelected()) {
-            $el.val("");
-            Selection.cancel();
         }
         
         window.clearTimeout(timeoutPause);
@@ -320,12 +227,8 @@ Evme.Searchbar = new function() {
     }
     
     function cbFocus(e) {
-        if (focused) return;
-        
-        focused = true;
-        
-        //Do not use Evme.Utils.hideAddressBar() caus it has a delay that makes the address bar pop in a nasty way
-        window.scrollTo(0,1);
+        if (isFocused) return;
+        isFocused = true;
         
         Evme.Brain && Evme.Brain[_name].onfocus({
             "e": e
@@ -333,11 +236,8 @@ Evme.Searchbar = new function() {
     }
     
     function cbBlur(e) {
-        if (!focused) return;
-        
-        focused = false;
-        
-        Selection.cancel();
+        if (!isFocused) return;
+        isFocused = false;
         
         Evme.Brain && Evme.Brain[_name].onblur({
             "e": e

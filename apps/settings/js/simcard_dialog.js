@@ -340,5 +340,5 @@ var SimPinDialog = {
   }
 };
 
-SimPinDialog.init();
+onLocalized(SimPinDialog.init.bind(SimPinDialog));
 

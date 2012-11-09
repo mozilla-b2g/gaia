@@ -105,6 +105,10 @@ body {
   background-color: #fff;
 }
 
+#windows > iframe.appWindow:not(.homescreen).default-background {
+  background: url('./images/splash_screen_generic.png') center center no-repeat #fff;
+}
+
 #windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
   visibility: hidden;
 }
@@ -119,8 +123,31 @@ body {
 }
 
 #screen.cards-view > #windows > iframe.appWindow.opening,
-#screen.cards-view > #windows > iframe.appWindow.closing {
+#screen.cards-view > #windows > iframe.appWindow.closing,
+#screen.switch-app > #windows > iframe.appWindow.opening,
+#screen.switch-app > #windows > iframe.appWindow.closing {
   transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-card {
+  transform: translateX(70%) scale(0.6);
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-switching {
+  transform: scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.closing-card {
+  transform: translateX(-70%) scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
   opacity: 1;
 }
 
@@ -128,17 +155,6 @@ body {
   transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
 }
 
-/* Workaround OOP window issue
- * https://bugzilla.mozilla.org/show_bug.cgi?id=792351 */
-#windows > iframe.appWindow.opening {
-  top: 0 !important;
-  transform: translateY(20px) scale(1);
-}
-#windows > iframe.appWindow.closing {
-  top: 0 !important;
-  transform: translateY(20px) scale(0.6);
-}
-/* /Workaround */
 
 #windows > iframe.appWindow.inlineActivity,
 #windows > iframe.appWindow.hideBottom {
@@ -153,144 +169,10 @@ body {
 
 #windows > iframe.appWindow.inlineActivity.active {
   transform: none;
-  transition: none;
 }
 
-#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
+#screen > #windows > iframe.appWindow.fullscreen-app {
   top: 0;
-}
-
-#windowSprite,
-.windowSprite {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 20px);
-  background-color: #373a3d;
-  background-size: cover;
-  pointer-events: none;
-
-  visibility: hidden;
-}
-
-.windowSprite {
-  transition: transform 0.5s ease;
-  transform: scale(0.6);
-  visibility: inherit;
-}
-
-.windowSprite.right {
-  transform: translateX(70%) scale(0.6);
-}
-
-.windowSprite.left {
-  transform: translateX(-70%) scale(0.6);
-}
-
-#screen.switch-app #windowSprite.before-close {
-  opacity: 0.99;
-}
-
-#screen.switch-app #windowSprite:not(.before-close):not(.opened) {
-  opacity: 1;
-}
-
-#screen.active-statusbar #windowSprite {
-  top: 40px;
-  height: -moz-calc(100% - 40px);
-}
-
-#screen.cards-view > div#windowSprite:not(.before-close) {
-  opacity: 1;
-}
-
-/* a dark mask on top of cached screenshot */
-#windowSprite > div {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-#screen.fullscreen-app > #windowSprite {
-  height: 100%;
-  top: 0;
-}
-
-#screen.attention > #windowSprite,
-#screen.fullscreen-app.attention > #windowSprite {
-  height: -moz-calc(100% - 40px);
-  top: 40px;
-} 
-
-#windowSprite.before-inline-activity {
-  transform: translateY(-moz-calc(100% - 1px));
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opening {
-  transition: transform 0.5s ease;
-
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opened {
-  transition: opacity 0.3s ease;
-
-  transform: translateY(0);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-open {
-  transform: scale(0.6);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.opening {
-  transition: transform 0.5s ease, opacity 0.3s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.opened {
-  transition: opacity 0.3s ease;
-
-  transform: scale(1);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-close {
-  transform: scale(1);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.closing {
-  transition: opacity 0.1s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.closed {
-  transition: transform 0.5s ease, opacity 0.3s ease;
-
-  transform: scale(0.6);
-  opacity: 0;
-  visibility: visible;
 }
 
 .accessibility-invert {

@@ -3,8 +3,7 @@
 
 'use strict';
 
-window.addEventListener('localized', function SettingsFactoryReset(evt) {
-
+onLocalized(function SettingsFactoryReset() {
   var _ = navigator.mozL10n.get;
 
   function factoryReset() {
@@ -25,14 +24,12 @@ window.addEventListener('localized', function SettingsFactoryReset(evt) {
   var resetButton = document.getElementById('reset-phone');
   if (resetButton) {
     resetButton.addEventListener('click', function reset_click(evt) {
-
-      //XXX: need to refine this part after the visual design is done
-      var msg = _('reset-warning-1') + '\n' +
-                _('reset-warning-2');
-
+      // XXX: need to refine this part when the visual design is done
+      var msg = _('reset-warning-1') + '\n' + _('reset-warning-2');
       var response = window.confirm(msg);
-      if (response)
+      if (response) {
         factoryReset();
+      }
     });
   }
 });

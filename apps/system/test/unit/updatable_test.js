@@ -30,6 +30,7 @@ suite('system/Updatable', function() {
   var realL10n;
 
   var lastDispatchedEvent = null;
+  var fakeDispatchEvent;
 
   suiteSetup(function() {
     realUpdateManager = window.UpdateManager;
@@ -59,28 +60,73 @@ suite('system/Updatable', function() {
 
   setup(function() {
     mockApp = new MockApp();
-    subject = new Updatable(mockApp);
+    subject = new AppUpdatable(mockApp);
     subject._mgmt = MockAppsMgmt;
 
-    subject._dispatchEvent = function fakeDispatch(type, value) {
+    fakeDispatchEvent = function(type, value) {
       lastDispatchedEvent = {
         type: type,
         value: value
       };
     };
+    subject._dispatchEvent = fakeDispatchEvent;
   });
 
   teardown(function() {
     MockUpdateManager.mTeardown();
     MockAppsMgmt.mTeardown();
     MockCustomDialog.mTearDown();
+    MockWindowManager.mTearDown();
 
     subject._dispatchEvent = realDispatchEvent;
+    lastDispatchedEvent = null;
   });
 
   suite('init', function() {
-    test('should keep a reference to the target', function() {
-      assert.equal(mockApp, subject.target);
+    test('should keep a reference to the app', function() {
+      assert.equal(mockApp, subject.app);
+    });
+  });
+
+  suite('infos', function() {
+    suite('name', function() {
+      test('should give a name for system updates', function() {
+        subject = new SystemUpdatable(42);
+        assert.equal('systemUpdate', subject.name);
+      });
+
+      test('should give a name for app updates', function() {
+        assert.equal('Mock app', subject.name);
+      });
+    });
+
+    suite('size', function() {
+      test('should give system update size', function() {
+        subject = new SystemUpdatable(433567);
+        assert.equal(433567, subject.size);
+      });
+
+      test('should give packaged app update size', function() {
+        assert.equal(42, subject.size);
+      });
+
+      test('should return null for hosted apps', function() {
+        mockApp.updateManifest = null;
+        subject = new AppUpdatable(mockApp);
+        assert.isNull(subject.size);
+      });
+
+      test('should update size on download available', function() {
+        mockApp.updateManifest = null;
+        subject = new AppUpdatable(mockApp);
+        assert.isNull(subject.size);
+
+        mockApp.updateManifest = {
+          size: 45678
+        };
+        mockApp.mTriggerDownloadAvailable();
+        assert.equal(45678, subject.size);
+      });
     });
   });
 
@@ -92,7 +138,7 @@ suite('system/Updatable', function() {
 
       test('should add self to active downloads', function() {
         assert.isNotNull(MockUpdateManager.mLastDownloadsAdd);
-        assert.equal(MockUpdateManager.mLastDownloadsAdd.target.mId,
+        assert.equal(MockUpdateManager.mLastDownloadsAdd.app.mId,
                      mockApp.mId);
       });
 
@@ -101,7 +147,8 @@ suite('system/Updatable', function() {
       });
 
       test('should send download message for system updates', function() {
-        subject._system = true;
+        subject = new SystemUpdatable(42);
+        subject._dispatchEvent = fakeDispatchEvent;
         subject.download();
         assert.equal('update-available-result', lastDispatchedEvent.type);
         assert.equal('download', lastDispatchedEvent.value);
@@ -109,11 +156,10 @@ suite('system/Updatable', function() {
 
       test('should add system updates to active downloads too', function() {
         MockUpdateManager.mLastDownloadsAdd = null;
-        subject.target = 'system';
-        subject._system = true;
+        subject = new SystemUpdatable(42);
         subject.download();
         assert.isNotNull(MockUpdateManager.mLastDownloadsAdd);
-        assert.equal('system', MockUpdateManager.mLastDownloadsAdd.target);
+        assert.equal(subject, MockUpdateManager.mLastDownloadsAdd);
       });
     });
 
@@ -124,7 +170,7 @@ suite('system/Updatable', function() {
 
       test('should remove self from active downloads', function() {
         assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-        assert.equal(MockUpdateManager.mLastDownloadsRemoval.target.mId,
+        assert.equal(MockUpdateManager.mLastDownloadsRemoval.app.mId,
                      mockApp.mId);
       });
 
@@ -143,7 +189,7 @@ suite('system/Updatable', function() {
 
         test('should add self to the available downloads', function() {
           assert.isNotNull(MockUpdateManager.mLastUpdatesAdd);
-          assert.equal(MockUpdateManager.mLastUpdatesAdd.target.mId,
+          assert.equal(MockUpdateManager.mLastUpdatesAdd.app.mId,
                        mockApp.mId);
         });
       });
@@ -152,7 +198,7 @@ suite('system/Updatable', function() {
         test('should remove self from active downloads', function() {
           mockApp.mTriggerDownloadSuccess();
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-          assert.equal(MockUpdateManager.mLastDownloadsRemoval.target.mId,
+          assert.equal(MockUpdateManager.mLastDownloadsRemoval.app.mId,
                        mockApp.mId);
         });
 
@@ -180,6 +226,12 @@ suite('system/Updatable', function() {
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
             assert.equal(MockAppsMgmt.mLastAppApplied.mId, mockApp.mId);
           });
+
+          test('should kill the app before applying the update', function() {
+            mockApp.mTriggerDownloadSuccess();
+            assert.equal('https://testapp.gaiamobile.org',
+                         MockWindowManager.mLastKilledOrigin);
+          });
         });
       });
 
@@ -194,7 +246,7 @@ suite('system/Updatable', function() {
 
         test('should remove self from active downloads', function() {
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-          assert.equal(MockUpdateManager.mLastDownloadsRemoval.target.mId,
+          assert.equal(MockUpdateManager.mLastDownloadsRemoval.app.mId,
                        mockApp.mId);
         });
       });
@@ -207,16 +259,20 @@ suite('system/Updatable', function() {
         test('should remove self from available downloads', function() {
           mockApp.mTriggerDownloadSuccess();
           assert.isNotNull(MockUpdateManager.mLastUpdatesRemoval);
-          assert.equal(MockUpdateManager.mLastUpdatesRemoval.target.mId,
+          assert.equal(MockUpdateManager.mLastUpdatesRemoval.app.mId,
                        mockApp.mId);
         });
       });
     });
 
     suite('system update events', function() {
+      setup(function() {
+        subject = new SystemUpdatable(42);
+        subject._dispatchEvent = fakeDispatchEvent;
+      });
+
       suite('update-downloaded', function() {
         setup(function() {
-          subject._system = true;
           var event = new MockChromeEvent({
             type: 'update-downloaded'
           });
@@ -228,7 +284,6 @@ suite('system/Updatable', function() {
 
       suite('update-prompt-apply', function() {
         setup(function() {
-          subject._system = true;
           var event = new MockChromeEvent({
             type: 'update-prompt-apply'
           });
@@ -240,8 +295,7 @@ suite('system/Updatable', function() {
 
       suite('update-error', function() {
         setup(function() {
-          subject.target = 'system';
-          subject._system = true;
+          subject = new SystemUpdatable(42);
           var event = new MockChromeEvent({
             type: 'update-error'
           });
@@ -254,8 +308,7 @@ suite('system/Updatable', function() {
 
         test('should remove self from active downloads', function() {
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
-          assert.equal(MockUpdateManager.mLastDownloadsRemoval.target,
-                       'system');
+          assert.equal(subject, MockUpdateManager.mLastDownloadsRemoval);
         });
       });
     });

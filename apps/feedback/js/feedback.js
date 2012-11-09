@@ -39,6 +39,7 @@ var Feedback = {
   send: function fb_send() {
     if (!navigator.onLine) {
       window.alert(navigator.mozL10n.get('no-internet'));
+      return;
     }
 
     var contact = document.getElementById('contact').value;
