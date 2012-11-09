@@ -1,122 +1,37 @@
 
 'use strict';
 
-var Permissions = (function() {
-  // A queue of pending requests.
-  // Callers must be careful not to create an infinite loop!
-  var pending = [];
+var UninstallDialog = (function() {
 
-  var screen = null;
-  var dialog = null;
-  var header = null;
-  var message = null;
-  var yes = null;
-  var no = null;
+  var dialog = document.getElementById('delete-dialog');
+
+  var titleElem = document.getElementById('delete-dialog-title');
+  var messageElem = document.getElementById('delete-dialog-message');
+
+  var cancelButton = document.getElementById('delete-dialog-cancel-button');
+  var confirmButton = document.getElementById('delete-dialog-confirm-button');
 
   return {
-    hide: function permissions_hide() {
-      if (screen === null)
-        return;
-
-      document.body.removeChild(screen);
-      screen = null;
-      dialog = null;
-      header = null;
-      message = null;
-      yes = null;
-      no = null;
-      pending = [];
+    hide: function dialog_hide() {
+      dialog.classList.remove('visible');
     },
 
-    show: function permissions_show(
-        title, msg, yeslabel, nolabel, yescallback, nocallback) {
-      if (screen === null) {
-        screen = document.createElement('div');
-        screen.id = 'permission-screen';
+    show: function dialog_show(title, msg, cancel, confirm) {
+      titleElem.textContent = title;
+      messageElem.textContent = msg;
 
-        dialog = document.createElement('div');
-        dialog.id = 'permission-dialog';
-        screen.appendChild(dialog);
+      cancelButton.textContent = cancel.title;
+      confirmButton.textContent = confirm.title;
 
-        header = document.createElement('p');
-        header.id = 'permission-title';
-        dialog.appendChild(header);
+      cancelButton.onclick = confirmButton.onclick = clickHandler;
 
-        message = document.createElement('p');
-        message.id = 'permission-message';
-        dialog.appendChild(message);
-
-        no = document.createElement('button');
-        no.id = 'permission-no';
-        dialog.appendChild(no);
-
-        yes = document.createElement('button');
-        yes.id = 'permission-yes';
-        dialog.appendChild(yes);
-
-        document.body.appendChild(screen);
-      }
-
-      // If there is already a pending permission request, queue this one
-      if (screen.classList.contains('visible')) {
-        pending.push({
-          header: title,
-          message: msg,
-          yeslabel: yeslabel,
-          nolabel: nolabel,
-          yescallback: yescallback,
-          nocallback: nocallback
-        });
-        return;
-      }
-
-      // Put the message in the dialog.
-      // Note plain text since this may include text from
-      // untrusted app manifests, for example.
-      header.textContent = title;
-      message.textContent = msg;
-      yes.textContent = yeslabel;
-      no.textContent = nolabel;
-
-      // Make the screen visible
-      screen.classList.add('visible');
-      // Put the dialog in the middle of the screen
-      dialog.style.marginTop = -dialog.offsetHeight / 2 + 'px';
-
-      // This is the event listener function for the buttons
       function clickHandler(evt) {
-        // cleanup the event handlers
-        yes.removeEventListener('click', clickHandler);
-        no.removeEventListener('click', clickHandler);
-
-        // Hide the dialog
-        screen.classList.remove('visible');
-
-        // Call the appropriate callback, if it is defined
-        if (evt.target === yes && yescallback) {
-          yescallback();
-        } else if (evt.target === no && nocallback) {
-          nocallback();
-        }
-
-        // And if there are pending permission requests, trigger the next one
-        if (pending.length > 0) {
-          var request = pending.shift();
-          window.setTimeout(function() {
-            Permissions.show(request.header,
-                             request.message,
-                             request.yeslabel,
-                             request.nolabel,
-                             request.yescallback,
-                             request.nocallback);
-          });
-        }
+        evt.target === confirmButton ? confirm.callback() : cancel.callback();
+        return false;
       }
 
-      // Set event listeners for the yes and no buttons
-      yes.addEventListener('click', clickHandler);
-      no.addEventListener('click', clickHandler);
+      dialog.classList.add('visible');
     }
   };
-}());
 
+}());
