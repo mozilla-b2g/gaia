@@ -21,9 +21,12 @@ var SoundSettings = {
   init: function ss_init() {
     var self = this;
     this.callSettings.button.onclick = function() {
+      //Call must have a tone ring.
+      document.getElementById('tone-disabled').hidden = true;
       self.showDialog(self.callSettings);
     };
     this.smsSettings.button.onclick = function() {
+      document.getElementById('tone-disabled').hidden = false;
       self.showDialog(self.smsSettings);
     };
 

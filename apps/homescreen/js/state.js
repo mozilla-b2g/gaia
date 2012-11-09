@@ -219,7 +219,7 @@ const HomeState = (function() {
     },
 
     saveBookmark: function st_saveBookmark(bookmark, success, error) {
-      function calback(store) {
+      function callback(store) {
         store.put({
           origin: bookmark.url,
           bookmark: {

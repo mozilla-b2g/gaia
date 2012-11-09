@@ -24,7 +24,7 @@
     }   
   },
   "permissions": {
-    "settings":{},
+    "settings":{ "access": "readwrite" },
     "bluetooth":{},
     "mozBluetooth":{},
     "device-storage:pictures":{},
