@@ -139,3 +139,11 @@ if (Gaia.engine === "xpcshell") {
   registerProfileDirectory();
 }
 
+
+function gaiaOriginURL(name) {
+  return GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+}
+
+function gaiaManifestURL(name) {
+  return gaiaOriginURL(name) + "/manifest.webapp";
+}
