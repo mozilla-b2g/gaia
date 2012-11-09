@@ -136,12 +136,6 @@ a:active {
   height: 100%;
 }
 
-#dialer-container > div:last-child {
-  border-bottom: 0.2rem solid #4D5055;
-  margin-left: -50%;
-  margin-top: 7.5rem;
-}
-
 #frequency-indicator {
   border-radius: 50%/0.1rem;
   height: 8.6rem;
