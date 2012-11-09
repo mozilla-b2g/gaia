@@ -362,6 +362,8 @@ const GridManager = (function() {
 
       if (page.getNumIcons() === 0) {
         pageHelper.remove(index);
+        if (currentPage >= index)
+          currentPage -= 1;
       }
     });
   }
