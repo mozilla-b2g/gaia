@@ -192,7 +192,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"] {
   z-index: 2147483647;
 }
 
