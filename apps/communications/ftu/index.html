@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="pragma" content="no-cache">
+
+	<!-- Common style -->
+	<link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+	<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+	<link rel="stylesheet" type="text/css" href="/shared/style/input_areas.css">
+	<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
+
+	<link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
+	<!-- TODO Use BB of list when ready -->
+	<link rel="stylesheet" type="text/css" href="/ftu/css/lists.css">
+	<link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
+  <link href="/facebook/style/curtain_frame.css" rel="stylesheet">
+
+	<title>Welcome to Firefox OS</title>
+
+	<!-- Localization -->
+	<link rel="resource" type="application/l10n" href="/ftu/locales/locales.ini"/>
+	<link rel="resource" type="application/l10n" href="/shared/locales/date.ini"/>
+	<script type="text/javascript" src="/shared/js/l10n.js"></script>
+	<script type="text/javascript" src="/shared/js/l10n_date.js"></script>
+
+	<!-- Code for FTU App -->
+	<script defer type="text/javascript" src="/ftu/js/fb_launcher.js"></script>
+	<script defer type="text/javascript" src="/contacts/js/utilities/config.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/fb/fb_utils.js"></script>
+	<script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/facebook.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/time.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/ui.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/language.js"></script>
+	<script defer type="text/javascript" src="/ftu/js/app.js"></script>
+	<script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
+
+</head>
+<body>
+	<section id="splash" role="region" class="show">
+	</section>
+	<section id="pincode" role="region" class="skin-organic">
+		<header>
+    	<h1 data-l10n-id="pincode">Pin code</h1>
+    </header>
+    <section class="pin_container">
+    	<header data-l10n-id="type_pin">Type your PIN code:</header>
+    	<section class="input-wrapper">
+        <input id="sim-pin" name="simpin" type="password" size="8" maxlength="8" />
+        <div id="pin_error"></div>
+      </section>
+    </section>
+    <nav role="navigation" class="forward-only">
+			<button class="recommend fullsize" id="done" data-l10n-id="done">
+				Done
+			</button>
+		</nav>
+	</section>
+	<section id="activation" role="region" class="skin-organic no-options">
+		<header>
+			<menu type="toolbar">
+        <button id="wifi-refresh" data-l10n-id="refresh">Refresh</button>
+      </menu>
+    	<h1 id="main_title"></h1>
+	  </header>
+    <progress id="activation_progress" value="20" max="100">
+    </progress>
+		<article role="main">
+			<section role="region" id="languages">
+				<ul>
+					<li>
+            <label>
+              <input type="radio" name="language.current" value="en-US" checked />
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="english">English (US)</a>
+          </li>
+          <li>
+            <label>
+              <input type="radio" name="language.current" value="es"/>
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="spanish">Español</a>
+          </li>
+          <li class="disabled">
+            <label>
+              <input disabled="disabled" type="radio" name="language.current" value="fr"/>
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="french">Français</a>
+          </li>
+          <li class="disabled">
+            <label>
+              <input disabled="disabled" type="radio" name="language.current" value="it"/>
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="italian">Italiano</a>
+          </li>
+          <li class="disabled">
+            <label>
+              <input disabled="disabled" type="radio" name="language.current" value="pt-BR"/>
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="portuguese">Português (do Brasil)</a>
+          </li>
+          <li class="disabled">
+            <label>
+              <input disabled="disabled" type="radio" name="language.current" value="zh-TW"/>
+              <span></span>
+            </label>
+            <a dir="ltr" data-l10n-id="traditionalChinese">正體中文</a>
+          </li>
+        </ul>
+			</section>
+			<section role="region" id="wifi">
+				<ul id="networks">
+				</ul>
+			</section>
+			<section role="region" id="configure_network">
+				<section id="configure_network_params">
+					<form>
+						<input type="text" id="wifi_ssid" class="hidden" value=""></input>
+						<label id="label_wifi_user" for="wifi_user" data-l10n-id="identity">User (optional):</label>
+						<input type="text" id="wifi_user" placeholder="User (optional)"></input>
+						<label for="wifi_password" data-l10n-id="password">Password</label>
+						<input type="text" id="wifi_password" placeholder="Password" value=""></input>
+					</form>
+				</section>
+			</section>
+			<section role="region" id="date_and_time">
+				<section id="time_zone_overlay" class="gmt0">
+				</section>
+				<section id="time_zone_map">
+					<h1 data-l10n-id="timeZone">
+						Time zone
+					</h1>
+					<h2 id="time-zone-title">
+						GMT +00:00 Greenwich Mean Time
+					</h2>
+				</section>
+				<form onsubmit="return false;">
+					<ul>
+						<li>
+							<button class="change" data-l10n-id="change">
+								<span class="icon-dialog"></span>
+								Change
+							</button>
+							<p id="timezone-configuration-label">GMT +00:00</p>
+							<select class="invisible" id="timezone-configuration">
+		            <option value="-8">GMT -08:00</option>
+		            <option value="-7">GMT -07:00</option>
+		            <option value="-6">GMT -06:00</option>
+		            <option value="-5">GMT -05:00</option>
+		            <option value="-4">GMT -04:00</option>
+		            <option value="-3">GMT -03:00</option>
+		            <option value="-2">GMT -02:00</option>
+		            <option value="-1">GMT -01:00</option>
+		            <option value="0">GMT +00:00</option>
+		            <option value="1">GMT +01:00</option>
+		            <option value="2">GMT +02:00</option>
+		            <option value="3">GMT +03:00</option>
+		            <option value="4">GMT +04:00</option>
+		            <option value="5">GMT +05:00</option>
+		            <option value="6">GMT +06:00</option>
+		            <option value="7">GMT +07:00</option>
+		            <option value="8">GMT +08:00</option>
+		            <option value="9">GMT +09:00</option>
+		            <option value="10">GMT +10:00</option>
+		            <option value="11">GMT +11:00</option>
+		            <option value="12">GMT +12:00</option>
+			         </select>
+						</li>
+						<li>
+							<button class="change" data-l10n-id="change">
+								<span class="icon-dialog"></span>
+								Change
+							</button>
+							<p id="date-configuration-label"></p>
+							<input id="date-configuration" class="invisible" type="date"></input>
+						</li>
+						<li>
+							<button class="change" data-l10n-id="change">
+								<span class="icon-dialog"></span>
+								Change
+							</button>
+							<p id="time-configuration-label">00:00</p>
+								<input id="time-configuration" class="invisible" type="time"></input>
+						</li>
+					</ul>
+				</form>
+			</section>
+			<section role="region" id="import_contacts">
+				<ul>
+					<li>
+						<small id="sim_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
+            <a id="sim_import" data-l10n-id="importSim">SIM card</a>
+          </li>
+				</ul>
+				<header>
+					<h2 data-l10n-id="otherAccount">Other accounts</h2>
+			  </header>
+			  <ul>
+					<li class="disabled">
+						<small id="fb_import_feedback" data-l10n-id="notImportedYet">Not imported yet</small>
+            <a id="fb_import" data-l10n-id="importFb">Facebook</a>
+          </li>
+        </ul>
+			</section>
+			<section role="region" id="about-your-rights">
+				<p data-l10n-id="about-your-rights-0">
+          Mozilla Firefox is free and open source software, built by a community
+          of thousands from all over the world. There are a few things you should
+          know:
+        </p>
+      	<p data-l10n-id="about-your-rights-1">
+          Firefox is made available to you under the terms of the Mozilla Public
+          License. This means you may use, copy and distribute Firefox to others.
+          You are also welcome to modify the source code of Firefox as you want to
+          meet your needs. The Mozilla Public License also gives you the right to
+          distribute your modified versions.
+        </p>
+      	<p data-l10n-id="about-your-rights-2">
+          You are not granted any trademark rights or licenses to the trademarks
+          of the Mozilla Foundation or any party, including without Temporary Text
+          limitation the Firefox name or logo. Additional information on
+          trademarks may be found Only here.
+        </p>
+     		<p data-l10n-id="about-your-rights-3">
+          Some features in Firefox, such as the Crash Reporter, give you the
+          option to provide feedback to Mozilla. By choosing to submit feedback,
+          you give Mozilla permission to use the feedback to improve its products,
+          to publish the feedback on its websites, and to distribute the feedback.
+        </p>
+			</section>
+			<section role="region" id="about-your-privacy">
+				<p data-l10n-id="aboutYourPrivacy">About you privacy</p>
+			</section>
+			<section role="region" id="firefox_privacy">
+				<section class="logo_container">
+					<img src="css/images/firefox64.png">
+					<span class="logo_title">De todos. Para Todos.</span>
+				</section>
+        <p data-l10n-id="mozillaCommunity">
+	        When you use Firefox OS, you become
+	        part of a global community helping to
+	        build a brighter future for the Web.
+	        If you’d like to know more about the
+	        Mozilla community, our other products
+	        and events near you, please enter your
+	        email address below.
+        </p>
+        <section>
+        	<input type="email" data-l10n-id="emailAddress" placeholder="Email address"></input>
+        </section>
+        <p data-l10n-id="learnHow">
+         Learn how Mozilla handle your information in our <a>privacy policy</a>.
+        </p>
+			</section>
+			<section role="region" id="welcome_firefox">
+				<section id="firefox_logo_horizontal">
+					<img src="css/images/logosmall.png">
+				</section>
+				<p data-l10n-id="welcomeFirefox">
+					Welcome to Firefox OS, the free and
+          open source operating system from
+          Mozilla. Our mission is to promote
+          openness, innovation and opportunity
+          by keeping the power of the Web in
+          your hands.
+				</p>
+				<section id="firefox_os_privacy_links">
+					<a href="#about-your-rights" data-l10n-id="aboutYourRights"> About Your Rights </a>
+          <a href="#about-your-privacy" data-l10n-id="aboutYourPrivacy"> About Your Privacy </a>
+				</section>
+				<section id="form_share_statistics">
+					<label>
+            <input type="checkbox" name="enable_statistic" />
+            <span></span>
+	        </label>
+	        <a data-l10n-id="collaborate">
+	        	I want to help make Firefox OS faster and
+	        	easier to use by sharing information about
+	        	my phone's performance. Learn more
+	        </a>
+				</section>
+			</section>
+		</article>
+		<nav role="navigation" id="nav-bar" class="forward-only">
+			<button id="back" class="button-left" data-l10n-id="back">
+				back
+				<span></span>
+			</button>
+			<button class="recommend" id="forward" data-l10n-id="next">
+				next
+				<span></span>
+			</button>
+			<button class="recommend" id="join" data-l10n-id="join">
+				join
+			</button>
+		</nav>
+	</section>
+	<section id="finish" role="region">
+		<section class="content">
+			<h1 data-l10n-id="startYourPhone">
+        Start your Phone Tour!
+      </h1>
+      <h2 data-l10n-id="enjoyYourPhone">
+        You're ready to enjoy your new phone.
+      </h2>
+      <p data-l10n-id="optionsAvailable">
+        You can alter the language, Date / Time, Wi-Fi connection in the settings area.
+      </p>
+	    </section>
+    	<nav role="navigation" class="forward-only">
+			<button class="recommend fullsize" id="end" data-l10n-id="letsGo">
+				Let's go!
+			</button>
+		</nav>
+	</section>
+
+  <iframe id="fb-curtain" src="/facebook/curtain.html"></iframe>
+  <iframe id="fb-oauth" hidden src="/facebook/fb_oauth.html"></iframe>
+  <iframe id="fb-extensions"></iframe>
+</body>
+</html>

@@ -1,6 +1,6 @@
 {
   "name": "Geoloc",
-  "description": "Testing Geolocation",
+  "description": "Geolocation Tracker",
   "type": "certified",
   "launch_path": "/index.html",
   "developer": {
@@ -8,6 +8,23 @@
     "url": "https://github.com/lissyx/gaia-geoloc"
   },
   "permissions": {
-    "geolocation":{}
-  }
+    "geolocation":{},
+    "device-storage:":{}
+  },
+  "locales": {
+    "en-US": {
+      "name": "Geoloc",
+      "description": "Geolocation Tracker"
+    },
+    "fr": {
+      "name": "Geoloc",
+      "description": "Enregistrement de géolocalisation"
+    }
+  },
+  "icons": {
+    "128": "/style/geoloc-128.png",
+    "64": "/style/geoloc-64.png"
+  },
+  "default_locale": "en-US",
+  "orientation": "portrait-primary"
 }

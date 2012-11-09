@@ -15,7 +15,8 @@ const GridManager = (function() {
 
   var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration = .3;
-  var landingOverlay;
+  var overlay, overlayStyle;
+  var overlayTransition = 'opacity ' + kPageTransitionDuration + 's ease';
 
   var numberOfSpecialPages = 0;
   var pages = [];
@@ -182,27 +183,18 @@ const GridManager = (function() {
     }
   }
 
-  function setOverlayPanning(index, deltaX, backward, duration) {
-    if (index === 1 && !backward) {
-      applyEffectOverlay(landingOverlay,
-                         (deltaX / windowWidth) * -opacityOnAppGridPageMax,
-                         duration);
-    } else if (index === 2 && backward) {
-      applyEffectOverlay(landingOverlay, opacityOnAppGridPageMax -
-                         ((deltaX / windowWidth) * opacityOnAppGridPageMax),
-                         duration);
+  function setOverlayPanning(index, deltaX, forward) {
+    if (index === 1) {
+      overlayStyle.opacity = (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+    } else if (index === 0 && !forward || index === 2 && forward) {
+      overlayStyle.opacity = opacityOnAppGridPageMax - (Math.abs(deltaX) / windowWidth)
+                              * opacityOnAppGridPageMax;
     }
   }
 
-  function applyEffectOverlay(overlay, value, duration) {
-    if (duration) {
-      overlay.style.MozTransition = 'opacity ' + duration + 's ease';
-      overlay.addEventListener('transitionend', function end(e) {
-        overlay.removeEventListener('transitionend', end);
-        overlay.style.MozTransition = '';
-      });
-    }
-    overlay.style.opacity = value;
+  function applyEffectOverlay(index) {
+    overlayStyle.MozTransition = overlayTransition;
+    overlayStyle.opacity = index === 1 ? 0 : opacityOnAppGridPageMax;
   }
 
   function onTouchEnd(deltaX) {
@@ -254,6 +246,7 @@ const GridManager = (function() {
 
       previousPage.container.dispatchEvent(new CustomEvent('gridpagehideend'));
       newPage.container.dispatchEvent(new CustomEvent('gridpageshowend'));
+      overlayStyle.MozTransition = '';
       togglePagesVisibility(index, index);
     }
 
@@ -264,13 +257,12 @@ const GridManager = (function() {
       var forward = 1;
       var start = currentPage;
       var end = index;
-      setOverlayPanning(index, 0, true, kPageTransitionDuration);
     } else {
       var forward = -1;
       var start = index;
       var end = currentPage;
-      setOverlayPanning(index, 0, false, kPageTransitionDuration);
     }
+    applyEffectOverlay(index);
 
     togglePagesVisibility(start, end);
 
@@ -550,7 +542,8 @@ const GridManager = (function() {
    * Initialize the UI.
    */
   function initUI(selector) {
-    landingOverlay = document.querySelector('#landing-overlay');
+    overlay = document.querySelector('#landing-overlay');
+    overlayStyle = overlay.style;
 
     container = document.querySelector(selector);
     container.addEventListener('contextmenu', handleEvent);
