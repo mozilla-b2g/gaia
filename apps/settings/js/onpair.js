@@ -3,7 +3,6 @@
 
 'use strict';
 
-var _ = navigator.mozL10n.get;
 
 var PairView = {
   /**
@@ -41,6 +40,7 @@ var PairView = {
   passkeyInput: document.getElementById('passkey-input'),
 
   init: function pv_init() {
+    var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
     this.okButton.addEventListener('click', this);
@@ -92,6 +92,7 @@ var PairView = {
   },
 
   handleEvent: function pv_handleEvent(evt) {
+    var _ = navigator.mozL10n.get;
     if (evt.type !== 'click' || !evt.target)
       return;
 
@@ -128,6 +129,20 @@ var PairView = {
     this.alertView.hidden = false;
   }
 };
+
+/**
+ * Fire a callback when as soon as all l10n resources are ready and the UI has
+ * been translated.
+ * Note: this could be exposed as `navigator.mozL10n.onload'...
+ */
+
+function onLocalized(callback) {
+  if (navigator.mozL10n.readyState == 'complete') {
+    callback();
+  } else {
+    window.addEventListener('localized', callback);
+  }
+}
 
 onLocalized(PairView.init.bind(PairView));
 

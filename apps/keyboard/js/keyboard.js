@@ -101,6 +101,9 @@
  *    alterKeyboard(layout): allows the IM to modify the keyboard layout
  *      by specifying a new layout name. Only used by asian ims currently.
  *
+ *    setLayoutPage(): allows the IM to switch between default and symbol
+ *      layouts on the keyboard. Used by the latin IM.
+ *
  *    setUpperCase(upperCase, upperCaseLocked): allows the IM to switch between
  *    uppercase and lowercase layout on the keyboard. Used by the latin IM.
  *      upperCase: to enable the upper case or not.
@@ -1397,6 +1400,7 @@ function loadIMEngine(name) {
     alterKeyboard: function kc_glue_alterKeyboard(keyboard) {
       renderKeyboard(keyboard);
     },
+    setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase
   };

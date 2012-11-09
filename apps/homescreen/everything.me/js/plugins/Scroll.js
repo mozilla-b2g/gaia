@@ -1,4 +1,5 @@
 function Scroll(el, options, hasFixedPositioning){
+    options["bounceBack"] = false;
     var object = hasFixedPositioning ? NativeScroll : iScroll;
     return new object(el, options);
 }

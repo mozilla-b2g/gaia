@@ -23,6 +23,10 @@ if (typeof Contacts.extFb === 'undefined') {
       }
     }
 
+    extFb.importFBFromUrl = function importFromUrl(path) {
+      load(path, 'friends');
+    }
+
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
@@ -183,7 +187,7 @@ if (typeof Contacts.extFb === 'undefined') {
           close();
 
           contacts.List.refresh(contactId);
-          if (originalFbContact) {
+          if (originalFbContact && !fb.isFbLinked(originalFbContact)) {
             contacts.List.remove(originalFbContact.id);
           }
           Contacts.showContactDetail(contactId);
@@ -226,11 +230,12 @@ if (typeof Contacts.extFb === 'undefined') {
       var freq = fbContact.unlink();
 
       freq.onsuccess = function() {
+        Contacts.updateContactDetail(cid);
         contacts.List.refresh(cid);
         if (freq.result) {
+          Contacts.updateContactDetail(cid);
           contacts.List.refresh(freq.result);
         }
-        Contacts.navigation.home();
       }
 
       freq.onerror = function() {

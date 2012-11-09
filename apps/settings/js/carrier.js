@@ -218,6 +218,10 @@ var Carrier = (function newCarrier(window, document, undefined) {
     document.getElementById('dataNetwork-desc').textContent = name;
   }
 
+  // 2G|3G network selection
+  document.getElementById('preferredNetworkType').onchange =
+    restartDataConnection;
+
   // 'Data Roaming' message
   var settings = Settings.mozSettings;
   if (settings) {

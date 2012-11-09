@@ -254,15 +254,8 @@ var Contacts = (function() {
   };
 
   var contactListClickHandler = function originalHandler(id) {
-    var options = {
-      filterBy: ['id'],
-      filterOp: 'equals',
-      filterValue: id
-    };
-
-    var request = navigator.mozContacts.find(options);
-    request.onsuccess = function findCallback() {
-      currentContact = request.result[0];
+    contactsList.getContactById(id, function findCallback(contact) {
+      currentContact = contact;
 
       if (!ActivityHandler.currentlyHandling) {
         contactsDetails.render(currentContact, TAG_OPTIONS);
@@ -271,7 +264,14 @@ var Contacts = (function() {
       }
 
       dataPickHandler();
-    };
+    });
+  };
+
+  var updateContactDetail = function updateContactDetail(id) {
+    contactsList.getContactById(id, function findCallback(contact) {
+      currentContact = contact;
+      contactsDetails.render(currentContact, TAG_OPTIONS);
+    });
   };
 
   var loadList = function loadList(overlay) {
@@ -624,6 +624,7 @@ var Contacts = (function() {
     'showOverlay': showOverlay,
     'hideOverlay': hideOverlay,
     'showContactDetail': contactListClickHandler,
+    'updateContactDetail': updateContactDetail,
     'onLineChanged': onLineChanged
   };
 })();

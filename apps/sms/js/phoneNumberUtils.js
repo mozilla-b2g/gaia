@@ -18,21 +18,19 @@
  *   is valid or not.
  *
 */
+// XXX Hack: If is the first time that we are launching SMS and there is any
+// problem with 'mozMobileConnection' we apply this as default
+// https://bugzilla.mozilla.org/show_bug.cgi?id=809057
 var PhoneNumberManager = {
+  region: 'BR',
   init: function pnm_init() {
-    // XXX Hack: If is the first time that we are launching SMS and there is any
-    // problem with 'mozMobileConnection' we apply this as default
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=809057
-    var presetMCC = 'ES';
-    // Method for retrieving the mcc
     var self = this;
+    // Method for retrieving the mcc
     function getLastMcc() {
       asyncStorage.getItem('mcc', function(mcc) {
         if (mcc) {
-          self.region = mcc;
-          return;
+          self.region = MCC_ISO3166_TABLE[mcc];
         }
-        self.region = presetMCC;
       });
     }
     // Update the MCC properly, retrieving for network
@@ -43,7 +41,7 @@ var PhoneNumberManager = {
         // Update value of latest mcc retrieved
         asyncStorage.setItem('mcc', currentMCC);
         // Retrieve region
-        this.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
+        self.region = MCC_ISO3166_TABLE[conn.voice.network.mcc];
       } else {
         getLastMcc();
       }
@@ -52,29 +50,45 @@ var PhoneNumberManager = {
     }
   },
   getNormalizedNumber: function pnm_getNormalizedNumber(numInput) {
+    if (!numInput) {
+      return null;
+    }
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
       /// XXX HACK for getting smoke test working until having in Gecko
-      return result.nationalFormat.replace(/\s/g, '');
+      if (result) {
+        return result.nationalFormat.replace(/\s|\(|\)|-/g, '');
+      } else {
+        return numInput.replace(/\s|\(|\)|-/g, '');
+      }
     } catch (e) {
-      return numInput;
+      return numInput.replace(/\s|\(|\)|-/g, '');
     }
   },
   getNormalizedInternationalNumber: function pnm_getNormalizedNumber(numInput) {
+    if (!numInput) {
+      return null;
+    }
     try {
       var result = PhoneNumber.Parse(numInput, this.region);
-      /// XXX HACK for getting smoke test working until having in Gecko
-      return result.internationalFormat.replace(/\s/g, '');
+      // XXX HACK for getting smoke test working until having in Gecko
+      if (result) {
+        return result.internationalFormat.replace(/\s|\(|\)|-/g, '');
+      } else {
+        return numInput.replace(/\s|\(|\)|-/g, '');
+      }
     } catch (e) {
-      return numInput;
+      return numInput.replace(/\s|\(|\)|-/g, '');
     }
   },
   getOptionalNumbers: function pnm_getOptionalNumbers(numInput) {
+    if (!numInput) {
+      return [numInput];
+    }
     try {
-      var result = PhoneNumber.Parse(numInput, this.region);
       /// XXX HACK for getting smoke test working until having in Gecko
-      var nationalNum = result.nationalFormat.replace(/\s/g, '');
-      var internationalNum = result.internationalFormat.replace(/\s/g, '');
+      var nationalNum = this.getNormalizedNumber(numInput);
+      var internationalNum = this.getNormalizedInternationalNumber(numInput);
       var internationalNumFormatted = internationalNum.replace('+', '00');
       return [nationalNum, internationalNum, internationalNumFormatted];
     } catch (e) {
