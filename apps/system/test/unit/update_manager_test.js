@@ -364,16 +364,52 @@ suite('system/UpdateManager', function() {
                      UpdateManager.container.className.indexOf('downloading'));
       });
 
-      test('should show the downloading message if downloading', function() {
+      test('should show the downloading progress if downloading', function() {
         UpdateManager._downloading = true;
         UpdateManager.render();
-        assert.equal('downloadingMessage', UpdateManager.message.textContent);
+        assert.equal('downloadingMessage{"progress":"0.00 bytes"}',
+                     UpdateManager.message.textContent);
       });
 
       test('should show the available message if not downloading', function() {
         UpdateManager.updatesQueue = updatableApps;
         UpdateManager.render();
         assert.equal('updatesAvailableMessage{"n":3}',
+                     UpdateManager.message.textContent);
+      });
+    });
+
+    suite('progress display', function() {
+      setup(function() {
+        UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
+
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, true);
+        UpdateManager.startAllDownloads(evt);
+
+        UpdateManager.addToDownloadsQueue(uAppWithDownloadAvailable);
+
+        UpdateManager.downloadProgressed(1234);
+      });
+
+      test('downloadedBytes should be reset by startAllDownloads', function() {
+        var evt = document.createEvent('MouseEvents');
+        evt.initEvent('click', true, true);
+        UpdateManager.startAllDownloads(evt);
+
+        assert.equal('downloadingMessage{"progress":"0.00 bytes"}',
+                     UpdateManager.message.textContent);
+      });
+
+      test('should increment the downloadedBytes', function() {
+        UpdateManager.downloadProgressed(100);
+        assert.equal('downloadingMessage{"progress":"1.30 kB"}',
+                     UpdateManager.message.textContent);
+      });
+
+      test('should not update if bytes <= 0', function() {
+        UpdateManager.downloadProgressed(-100);
+        assert.equal('downloadingMessage{"progress":"1.21 kB"}',
                      UpdateManager.message.textContent);
       });
     });
@@ -542,6 +578,10 @@ suite('system/UpdateManager', function() {
     });
 
     suite('humanizeSize', function() {
+      test('should handle 0', function() {
+        assert.equal('0.00 bytes', UpdateManager._humanizeSize(0));
+      });
+
       test('should handle bytes size', function() {
         assert.equal('42.00 bytes', UpdateManager._humanizeSize(42));
       });
@@ -847,10 +887,13 @@ suite('system/UpdateManager', function() {
         });
 
         test('should switch to downloading mode at first add', function() {
+          var incMethod = 'incSystemDownloads';
           assert.isFalse(UpdateManager._downloading);
+          assert.isUndefined(MockStatusBar.wasMethodCalled[incMethod]);
           UpdateManager.addToDownloadsQueue(updatableApp);
           assert.isTrue(UpdateManager._downloading);
           assert.include(UpdateManager.container.className, 'downloading');
+          assert.ok(MockStatusBar.wasMethodCalled[incMethod]);
         });
 
         test('should not add app if not in updatableApps array', function() {
@@ -888,11 +931,14 @@ suite('system/UpdateManager', function() {
         });
 
         test('should switch off downloading mode on last remove', function() {
+          var decMethod = 'decSystemDownloads';
           assert.isTrue(UpdateManager._downloading);
+          assert.isUndefined(MockStatusBar.wasMethodCalled[decMethod]);
           UpdateManager.removeFromDownloadsQueue(updatableApp);
           assert.isFalse(UpdateManager._downloading);
           var css = UpdateManager.container.className;
           assert.equal(-1, css.indexOf('downloading'));
+          assert.ok(MockStatusBar.wasMethodCalled[decMethod]);
         });
 
         test('should remove system updates too', function() {
