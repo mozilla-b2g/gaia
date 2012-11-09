@@ -497,6 +497,7 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 
   this._secretButtonClickCount = 0;
   this._secretButtonTimer = null;
+  // TODO: Need to remove the secret debug entry before shipping.
   domNode.getElementsByClassName('tng-email-lib-version')[0]
     .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }

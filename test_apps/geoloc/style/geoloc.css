@@ -1,0 +1,27 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+}
+
+body {
+  background: none;
+}
+
+li {
+  list-style: none;
+  margin-left: -2em;
+  text-align: right;
+}
+
+li span {
+  text-align: left;
+}
+
+fieldset legend {
+  text-transform: none;
+}
+
+span.desc {
+  padding: 1em;
+}

@@ -51,7 +51,7 @@
         // Let's start the real count down and wait for that.
         idleTimer.timer = setTimeout(function idled() {
           // remove the timer
-          idleTime.timer = undefined;
+          idleTimer.timer = undefined;
 
           // set idleFired to true
           idleFired = true;

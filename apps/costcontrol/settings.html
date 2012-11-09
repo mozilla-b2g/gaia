@@ -35,6 +35,7 @@
   <script type="text/javascript" src="js/service/service_utils.js"></script>
 
   <script type="text/javascript" defer src="js/views/view_manager.js"></script>
+  <script type="text/javascript" defer src="js/views/autosettings.js"></script>
   <script type="text/javascript" defer src="js/views/settings.js"></script>
 </head>
 
@@ -99,6 +100,15 @@
         <h2 data-l10n-id="data-usage">Data Usage</h2>
       </header>
       <ul class="settings">
+        <li>
+          <div class="end buttons-list">
+            <button data-l10n-id="reset" id="reset-data-usage">Reset</button>
+          </div>
+          <p>
+            <span id="mobile-data-usage"></span>
+          </p>
+          <p><time id="data-usage-from-date"></time> – <time id="data-usage-to-date"></time></p>
+        </li>
         <li>
           <label class="end">
             <input class="localsetting" data-option="data_limit" type="checkbox" data-type="switch" />
@@ -174,7 +184,7 @@
         </li>
       </ul>
       <label for="data-limit-input">
-        <input id="data-limit-input" type="number" autofocus></input>
+        <input id="data-limit-input" type="number"></input>
       </label>
     </form>
   </section>

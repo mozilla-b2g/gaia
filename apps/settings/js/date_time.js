@@ -24,7 +24,7 @@ var SetTime = (function SetTime() {
   };
 })();
 
-window.addEventListener('localized', function SettingsDateAndTime(evt) {
+onLocalized(function SettingsDateAndTime() {
   var _ = navigator.mozL10n.get;
 
   function updateDate() {
@@ -136,7 +136,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     var continentsID = 'timezone-continents-';
     for (var i = 0; i < _jsonData.length; i++) {
       content += '<li id="timezone-continents-' + continentsID + i + '">' +
-                 '  <a href="#timezone-zones" id="continent-item"' +
+                 '  <a href="#dateTime-timezone" id="continent-item"' +
                       'data-id="' + i + '">' + _jsonData[i].group +
                  '  </a>' +
                  '</li>';

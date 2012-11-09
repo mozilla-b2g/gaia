@@ -6,10 +6,15 @@
     bottom: 0;
     z-index: 1;
     opacity: 0;
-    background: black;
 }
 .evme-displayed #search-overlay {
     opacity: 1;
+}
+#evmeContainer #search-header.animate,
+#evmeContainer #header.animate,
+#evmeContainer #evmeApps.animate {
+    -moz-transition: opacity .3s linear;
+    transition: opacity .3s linear;
 }
     #search-overlay .img {
         position: absolute;
@@ -31,13 +36,15 @@
     #search-overlay .img.visible {
         opacity: 0.4;
     }
-    #search-overlay .img.default-image.visible {
-        opacity: 0;
+    #search-overlay .img.default-image {
+        background: #000;
     }
-    #search-overlay.default .img.default-image.visible {
+    #search-overlay .img.default-image.visible {
         opacity: 1;
     }
-
+    #search-overlay.default .img.default-image.visible {
+        opacity: .4;
+    }
 
 #bgimage-overlay {
     position: absolute;
@@ -78,7 +85,7 @@
         cursor: pointer;
         background: rgba(0, 0, 0, .8);
      }
-        #bgimage-overlay .content .image-title {
+        #bgimage-overlay .content h2 {
             font-weight: 600;
             color: #b4dae7;
             font-size: 15px;
@@ -90,12 +97,12 @@
             text-overflow: ellipsis;
             display: none;
         }
-        #bgimage-overlay.nosource .content .image-title {
+        #bgimage-overlay.nosource .content h2 {
             margin-top: 0;
             height: 43px;
             line-height: 43px;
         }
-        #bgimage-overlay .content .image-source {
+        #bgimage-overlay .content .source {
             font-weight: 600;
             color: #fff;
             font-size: 13px;
@@ -104,7 +111,7 @@
             text-overflow: ellipsis;
             -ms-text-overflow: ellipsis;
         }
-            #bgimage-overlay .content .image-source span {
+            #bgimage-overlay .content .source span {
                 text-decoration: underline;
             }
         #bgimage-overlay .content .close {

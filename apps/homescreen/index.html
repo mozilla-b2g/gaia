@@ -32,9 +32,9 @@
     <script type="text/javascript" defer src="js/landing.js"></script>
     <script type="text/javascript" defer src="js/grid.js"></script>
     <script type="text/javascript" defer src="js/dragdrop.js"></script>
+    <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/wallpaper.js"></script>
-    <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -81,7 +81,6 @@
           <div id="evmeContainer">
             <div id="search" class="active">
                 <div id="search-header">
-                    <span id="button-back"></span>
                     <form action="/#!/search" id="search-rapper">
                         <fieldset>
                             <div id="search-q-bg">
@@ -92,7 +91,6 @@
                         </fieldset>
                     </form>
                     <b id="button-clear"></b>
-                    <b id="button-location"></b>
                 </div>
                 <div id="header">
                     <div id="helper-header">
@@ -105,64 +103,16 @@
                         </div>
                     </div>
                 </div>
-                <div id="evmeApps">
+                <div id="evmeApps" class="evme-apps">
                     <ul id="evmeAppsList"></ul>
-                    <div id="apps-loading"><div></div>Loading...</div>
-                    <div id="apps-error"><div></div>You appear to be offline <b id="apps-error-retry" class="bbutton">Retry</b></div>
                 </div>
             </div>
-
+            
             <div id="shortcuts">
-                <div id="shortcuts-page">
-                    <ul class="header" id="shortcuts-header">
-                        <li id="header-categories" class="active">
-                            <b class="customize"></b>
-                            Apps
-                        </li>
-                        <li id="header-category">
-                            <span id="category-page-name"></span>
-                            <b class="back"></b>
-                        </li>
-                    </ul>
-                    <div class="pages">
-                        <div id="page-categories" class="page left active">
-                            <div id="shortcuts-list">
-                                <ul id="shortcuts-items"></ul>
-                            </div>
-                            <div id="shortcuts-loading"></div>
-                        </div>
-                        <div id="page-category" class="page right">
-                            <div class="category-scroll">
-                                <ul id="category-options"></ul>
-                                <div class="continue">
-                                    <b id="category-page-button"></b>
-                                    <em class="arrow-next"></em>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div id="shortcuts-list">
+                    <ul id="shortcuts-items"></ul>
                 </div>
-            </div>
-
-            <div class="dialog" id="location-selector">
-                <div class="options">
-                    <div class="title"></div>
-                    <div id="locate-me"></div>
-                    <div id="enter-location"></div>
-                    <div id="later"></div>
-                    <span class="tiparrow"></span>
-                </div>
-                <div class="manual">
-                    <h2></h2>
-                    <form class="search">
-                        <fieldset>
-                            <input type="text" name="search-location" id="search-location" autocorrect="on" class="textinput" />
-                        </fieldset>
-                    </form>
-                    <ul class="location-results">
-                    </ul>
-                    <b class="close"></b>
-                </div>
+                <div id="shortcuts-loading"></div>
             </div>
           </div>
       </div>

@@ -63,7 +63,6 @@ setService(function cc_setupCostControlService() {
   var STATE_TOPPING_UP = 'toppingup';
   var STATE_UPDATING_BALANCE = 'updatingbalance';
   var STATE_UPDATING_DATA_USAGE = 'updatingdatausage';
-  var _fte = false;
   var _missconfigured = false;
   var _state = {};
   var _onSMSReceived = {};
@@ -83,11 +82,12 @@ setService(function cc_setupCostControlService() {
       'data_limit': false,
       'data_limit_value': null,
       'data_limit_unit': 'GB',
+      'fte': true,
       'lastbalance': null,
       'lastdatausage': null,
       'lastreset': new Date(),
       'lastdatareset': new Date(),
-      'lowlimit': true,
+      'lowlimit': false,
       'lowlimit_threshold': false,
       'next_reset': null,
       'plantype': 'prepaid',
@@ -103,11 +103,12 @@ setService(function cc_setupCostControlService() {
       'data_limit': false,
       'data_limit_value': null,
       'data_limit_unit': 'GB',
+      'fte': true,
       'lastbalance': null,
       'lastdatausage': null,
       'lastreset': new Date(),
       'lastdatareset': new Date(),
-      'lowlimit': true,
+      'lowlimit': false,
       'lowlimit_threshold': false,
       'next_reset': null,
       'plantype': 'prepaid',
@@ -121,7 +122,8 @@ setService(function cc_setupCostControlService() {
     function _initializeSettings(options) {
       // No options, first time experience
       if (!options) {
-        _fte = true;
+        // It is implicit but let's make it explicit
+        _cachedOptions['fte'] = true;
         debug('First Time Experience for this SIM');
         return;
       }
@@ -174,6 +176,8 @@ setService(function cc_setupCostControlService() {
       var oldValue = _cachedOptions[key]; // retrieve from cache
       if (typeof value === 'undefined')
         return oldValue;
+
+      debug('Setting ' + key + ' to ' + value + ' (' + typeof value + ')');
 
       _cachedOptions[key] = value; // update cache
       asyncStorage.setItem(_iccid, _cachedOptions,
@@ -304,7 +308,7 @@ setService(function cc_setupCostControlService() {
 
         afterCallback();
       }
-    }
+    };
   }
 
   // Attach event listeners for automatic updates on balance:
@@ -537,6 +541,9 @@ setService(function cc_setupCostControlService() {
       _conn.onvoicechange = _dispatchServiceStatusChangeEvent;
       _conn.ondatachange = _dispatchServiceStatusChangeEvent;
 
+      // See service_utils.js for information
+      nowIAmReady();
+
     });
   }
 
@@ -561,7 +568,7 @@ setService(function cc_setupCostControlService() {
       availability: false,
       roaming: null,
       detail: null,
-      fte: _fte,
+      fte: _appSettings.option('fte'),
       enabledFunctionalities: {
         balance: _enabledFunctionalities.balance,
         telephony: _enabledFunctionalities.telephony,
@@ -843,7 +850,7 @@ setService(function cc_setupCostControlService() {
         debug('Wifi samples: ' + wifiSamples.length);
         debug('Request for mobile');
         requestForMobile(start, end, today);
-      }
+      };
       request.onerror = request.onsuccess;
     }
 
@@ -904,7 +911,7 @@ setService(function cc_setupCostControlService() {
             total: maxMobileData
           }
         });
-      }
+      };
       request.onerror = request.onsuccess;
     }
 
@@ -955,7 +962,7 @@ setService(function cc_setupCostControlService() {
     );
     request.onsuccess = function cc_onSuccessSendingBalanceRequest() {
       _startWaiting(STATE_UPDATING_BALANCE);
-    }
+    };
     request.onerror = function cc_onRequestError() {
       _dispatchEvent(_getEventName(STATE_UPDATING_BALANCE, 'error'),
         { reason: 'sending-error' });
@@ -976,11 +983,11 @@ setService(function cc_setupCostControlService() {
     var request = _sms.send(_config.TOP_UP_DESTINATION, messageBody);
     request.onsuccess = function cc_onSuccessSendingTopup() {
       _startWaiting(STATE_TOPPING_UP);
-    }
+    };
     request.onerror = function cc_onErrorSendingTopup() {
       _dispatchEvent(_getEventName(STATE_TOPPING_UP, 'error'),
         { reason: 'sending-error' });
-    }
+    };
   }
 
   // Request a top up via USSD, this delegates the task to the dialer
@@ -1120,6 +1127,3 @@ setService(function cc_setupCostControlService() {
   };
 }());
 window[SERVICE_NAME].init();
-
-// See service_utils.js for information
-nowIAmReady();

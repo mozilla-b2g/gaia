@@ -1,3 +1,7 @@
+html, body {
+  background: transparent;
+}
+
 #curtain {
   position: absolute;
   top: 0;

@@ -34,14 +34,14 @@ html, body {
   height: 50px;
 }
 
-#set-wallpaper {
+#buttons > #set-wallpaper {
   position: absolute;
   left: 50%;
   width: 50%;
   height: 100%;
 }
 
-#cancel {
+#buttons > #cancel {
   position: absolute;
   left: 0;
   width: 50%;

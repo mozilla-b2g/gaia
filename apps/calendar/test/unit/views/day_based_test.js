@@ -103,11 +103,11 @@ suite('views/day_based', function() {
 
       subject.add = function() {
         addCalledWith.push(arguments);
-      }
+      };
 
       controller.findAssociated = function() {
         requestCalledWith.push(arguments);
-      }
+      };
     });
 
     test('when given an object', function() {
@@ -172,7 +172,7 @@ suite('views/day_based', function() {
 
       subject._loadRecords = function() {
         calledLoadWith = arguments;
-      }
+      };
 
       subject.events.innerHTML = 'foobar';
     });
@@ -661,7 +661,7 @@ suite('views/day_based', function() {
         this,
         arguments
       );
-    }
+    };
 
     var el = subject.create();
     assert.equal(subject.id, date.valueOf(), 'id');

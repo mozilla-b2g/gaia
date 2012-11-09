@@ -144,14 +144,22 @@
   color: #888844;
   font-size: 150%;
 }
-.msg-header-star-starred:after {
-  content: "*";
+.msg-header-star-starred {
+  background: url("images/icons/message-list-star.png") no-repeat scroll center transparent;
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  top: 3rem;
 }
 .msg-header-attachments {
   display: block;
 }
-.msg-header-attachments-yes:after {
- content: "&";
+.msg-header-attachments-yes {
+  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  top: 5rem;
 }
 
 
@@ -211,6 +219,9 @@
   padding: 2px 0.8rem;
   font-size: 80%;
 }
+.msg-peep-bubble * {
+  pointer-events: none;
+}
 .msg-peep-name {
 }
 .msg-peep-address {
@@ -231,30 +242,51 @@
   display: inline-block;
 }
 .msg-attachment-icon {
+  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  margin-top: -3.5rem;
+  vertical-align: middle;
 }
 .msg-attachment-filename {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 12.5rem);
 }
 .msg-attachment-filesize {
   color: gray;
+  display: inline-block;
+  margin-top: -3.5rem;
+  max-width: 4.5rem;
+  vertical-align: middle;
 }
 .msg-attachment-download {
   display: none;
   width: 3.5rem;
-  margin-left: 2rem;
+  margin-bottom: 0;
+  position: absolute;
+  right: 1rem;
 }
 .msg-attachment-downloading {
   display: none;
-  margin-left: 2rem;
+  margin-bottom: 0;
+  position: absolute;
+  right: 1rem;
 }
 .msg-attachment-view {
   display: none;
-  width: 3.5rem;
-  margin-left: 2rem;
+  width: 4.5rem;
+  margin-bottom: 0;
+  position: absolute;
+  right: 0rem;
 }
 
 .msg-body-content {
   color: black;
   margin: 4px 0px;
+  word-wrap: break-word;
 }
 .msg-body-signature {
   color: blue;
@@ -373,6 +405,33 @@
 .msg-messages-container.show-edit .msg-header-details-section {
   left: 5.9rem;
   width: -moz-calc(100% - 4rem - 1.9rem - 2rem - 2.8rem);
+}
+
+/*
+  Empty message-list container
+*/
+.msg-list-empty-container {
+  background-image: url('images/mail_watermark.png');
+  background-repeat:no-repeat;
+  background-position: 50% 40%;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.msg-list-empty-message {
+  text-align: center;
+  line-height: 3rem;
+  position: relative;
+  top: 50%;
+  border-top: .1rem solid rgba(96,96,96,.5);
+  width: 27rem;
+  margin: -7rem auto;
+  color: #606060;
+  font-weight: 300;
+  font-size: 2.26rem;
 }
 
 /* PROGRESS LABEL BUILDING BLOCKS EXTENSION */

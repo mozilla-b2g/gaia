@@ -3,6 +3,7 @@
  function MockContactAllFields() {
   return {
     'id': '1',
+    'updated': new Date(),
     'additionalName': [''],
     'adr': [
       {
