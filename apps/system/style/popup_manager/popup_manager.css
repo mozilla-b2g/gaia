@@ -52,7 +52,7 @@
 }
 
 #popup-container > .title-container {
-  transition: transform 1.1s ease;
+  transition: transform .6s ease;
   transform: translateY(-100%);
   height: 5rem;
   width: 100%;
@@ -70,7 +70,7 @@
 
   background-color: #fff;
   transform: translateY(100%);
-  transition: transform 1.1s ease;
+  transition: transform .6s ease;
 }
 
 #popup-container[data-trusty="true"] > #frame-container {
@@ -80,6 +80,24 @@
   width: 100%;
   height: 100%;
   background-color: #fff;
+}
+
+#popup-error-dialog {
+  -moz-box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  z-index: 1024;
+  display: none;
+  background-color: black;
+  background-image: url(../modal_dialog/images/error_bk.png);
+}
+
+#frame-container > iframe {
+  z-index: 1;
+}
+
+#frame-container.error > #popup-error-dialog {
+  display: block;
 }
 
 #popup-container[data-trusty="true"] > .title-container {
