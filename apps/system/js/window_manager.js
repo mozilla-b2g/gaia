@@ -756,6 +756,11 @@ var WindowManager = (function() {
       var req = lock.get('ftu.manifestURL');
       req.onsuccess = function() {
         ftuManifestURL = this.result['ftu.manifestURL'];
+        if (!ftuManifestURL) {
+          dump('FTU manifest cannot be found skipping.\n');
+          ensureHomescreen();
+          return;
+        }
         ftu = Applications.getByManifestURL(ftuManifestURL);
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
         ftu.launch('ftu');
