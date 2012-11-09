@@ -44,11 +44,6 @@
   display: block;
 }
 
-#modal-dialog-error {
-  background-color: black;
-  background-image: url(images/error_bk.png);
-}
-
 #modal-dialog-sad-face {
   float: left;
   font-size: 72px;
