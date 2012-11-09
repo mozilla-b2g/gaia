@@ -740,6 +740,8 @@ const GridManager = (function() {
       preferredSize = max;
 
     var url = icons[preferredSize];
+    if (!url)
+      return Icon.prototype.DEFAULT_ICON_URL;
 
     // If the icon path is not an absolute URL, prepend the app's origin.
     if (url.indexOf('data:') == 0 ||
