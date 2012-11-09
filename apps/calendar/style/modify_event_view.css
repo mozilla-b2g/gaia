@@ -1,13 +1,3 @@
-@keyframes fade-status {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
 #modify-event-view form {
   margin: 1rem 1rem 0 1rem;
 }
@@ -73,15 +63,4 @@
 #modify-event-view.create .delete-record,
 #modify-event-view.readonly .delete-record {
   display: none;
-}
-
-#modify-event-view section[role="status"] {
-  display: none;
-}
-
-#modify-event-view section[role="status"].active {
-  display: block;
-  animation-name: fade-status;
-  animation-delay: 2.5s;
-  animation-duration: 1.5s;
 }
