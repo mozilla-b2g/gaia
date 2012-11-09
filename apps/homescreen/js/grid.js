@@ -485,6 +485,8 @@ const GridManager = (function() {
   var bookmarkIcons = Object.create(null);
   // Map 'manifestURL' + 'entry_point' to Icon object.
   var appIcons = Object.create(null);
+  // Map 'origin' -> app object.
+  var appsByOrigin = Object.create(null);
 
   function rememberIcon(icon) {
     var descriptor = icon.descriptor;
@@ -526,6 +528,21 @@ const GridManager = (function() {
 
   function getIconForBookmark(bookmarkURL) {
     return bookmarkIcons[bookmarkURL];
+  }
+
+  // Ways to enumerate installed apps & bookmarks and find out whether
+  // a certain "origin" is available as an existing installed app or
+  // bookmark. Only used by Everything.me at this point.
+  function getApps() {
+    var apps = [];
+    for (var origin in appsByOrigin) {
+      apps.push(appsByOrigin[origin]);
+    }
+    return apps;
+  }
+
+  function getAppByOrigin(url) {
+    return appsByOrigin[url];
   }
 
 
@@ -622,6 +639,8 @@ const GridManager = (function() {
     // Ignore system apps.
     if (HIDDEN_APPS.indexOf(app.manifestURL) != -1)
       return;
+
+    appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest;
     if (!manifest)
@@ -808,6 +827,8 @@ const GridManager = (function() {
       var updateDock = false;
       var dock = DockManager.page;
 
+      delete appsByOrigin[app.origin];
+
       if (app.isBookmark) {
         var icon = bookmarkIcons[app.bookmarkURL];
         updateDock = dock.containsIcon(icon);
@@ -848,6 +869,10 @@ const GridManager = (function() {
     getIconsForApp: getIconsForApp,
 
     getIconForBookmark: getIconForBookmark,
+
+    getApps: getApps,
+
+    getAppByOrigin: getAppByOrigin,
 
     goToPage: goToPage,
 

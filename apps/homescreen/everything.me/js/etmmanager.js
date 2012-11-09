@@ -51,14 +51,29 @@ var EvmeManager = (function() {
     }
     
     function getApps() {
-        return Applications.getAll();
+        return GridManager.getApps();
     }
-    
+
     function getAppIcon(app) {
-        return Applications.getIcon(app.origin);
+        var iconsForApp = GridManager.getIconsForApp(app);
+        for (var entryPoint in iconsForApp) {
+          return iconsForApp[entryPoint].descriptor.icon;
+        }
     }
     function getAppName(app) {
-        return Applications.getName(app.origin);
+        var manifest = app.manifest;
+        if (!manifest) {
+            return null;
+        }
+
+        if ('locales' in manifest) {
+            var locale = manifest.locales[document.documentElement.lang];
+            if (locale && locale.name) {
+                return locale.name;
+            }
+        }
+
+        return manifest.name;
     }
 
     return {
@@ -67,7 +82,7 @@ var EvmeManager = (function() {
         addBookmark: addBookmark,
 
         isAppInstalled: function isAppInstalled(url) {
-            return Applications.isInstalled(url);
+            return !!GridManager.getAppByOrigin(url);
         },
         getApps: getApps,
         getAppIcon: getAppIcon,
