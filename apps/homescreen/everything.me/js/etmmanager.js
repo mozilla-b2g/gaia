@@ -18,21 +18,11 @@ var EvmeManager = (function() {
     }
 
     function addBookmark(params) {
-        var data = {
-          url: params.originUrl,
+        GridManager.install({
+          bookmarkURL: params.originUrl,
           name: params.title,
           icon: params.icon
-        }
-
-        function success() {
-           Applications.installBookmark(new Bookmark(data));
-        }
-
-        function error() {
-            // Anything to do in case of error?
-        }
-
-        HomeState.saveBookmark(data, success, error);
+        });
     }
 
     function openUrl(url) {
