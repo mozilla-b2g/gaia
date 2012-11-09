@@ -380,15 +380,13 @@ const GridManager = (function() {
       }
 
       // if the page is not full
-      if (page.getNumIcons() <= MAX_ICONS_PER_PAGE) {
-        return;
-      }
-
-      var propagateIco = page.popIcon();
-      if (index === pages.length - 1) {
-        pageHelper.addPage([propagateIco]); // new page
-      } else {
-        pages[index + 1].prependIcon(propagateIco); // next page
+      while (page.getNumIcons() > MAX_ICONS_PER_PAGE) {
+        var propagateIco = page.popIcon();
+        if (index === pages.length - 1) {
+          pageHelper.addPage([propagateIco]); // new page
+        } else {
+          pages[index + 1].prependIcon(propagateIco); // next page
+        }
       }
     });
   }
@@ -586,6 +584,10 @@ const GridManager = (function() {
         iconsByManifestURL[manifestURL] = appIcons[manifestURL];
       }
 
+      // Add an empty page where we drop the icons for any extra apps we discover
+      // at this stage.
+      pageHelper.addPage([]);
+
       var apps = event.target.result;
       apps.forEach(function eachApp(app) {
         delete iconsByManifestURL[app.manifestURL];
@@ -600,6 +602,9 @@ const GridManager = (function() {
           GridManager.markDirtyState();
         }
       }
+
+      ensurePagesOverflow();
+      removeEmptyPages();
     };
   }
 
@@ -701,12 +706,18 @@ const GridManager = (function() {
     var icon = new Icon(descriptor, app);
     rememberIcon(icon);
 
-    var index = getFirstPageWithEmptySpace();
+    // Normally we just silently add icons to the last page, unless we're
+    // installing an app/bookmark with a visibile animation. Then we want
+    // to pick the first page with an empty space.
+    var index = pages.length - 1;
+    if (withAnimation)
+      index = getFirstPageWithEmptySpace();
+
     if (index < pages.length) {
       var needsRender = true;
       pages[index].appendIcon(icon, needsRender);
     } else {
-      pageHelper.addPage([icon], true);
+      pageHelper.addPage([icon]);
     }
 
     GridManager.markDirtyState();
