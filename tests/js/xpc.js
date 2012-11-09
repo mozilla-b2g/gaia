@@ -37,6 +37,8 @@
 
 
   require('/test_apps/test-agent/common/vendor/mocha/mocha.js');
+  require('/tests/reporters/jsonmoztest.js');
+  mocha.reporters.JSONMozTest = JSONMozTestReporter;
   process.stdout.write = window.xpcDump;
 
   //Hack to format errors

@@ -159,7 +159,7 @@ var KeypadManager = {
     var defaultFontSize = window.getComputedStyle(document.body, null)
                                 .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 18 * 0.226);
+    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 16 * 0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';

@@ -333,6 +333,15 @@
       </header>
 
       <ul>
+        <li>
+          <span data-l10n-id="operator-networkType">Network Type
+            <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
+              <option data-l10n-id="operator-networkType-auto" value="wcmda/gsm">Automatic</option>
+              <option data-l10n-id="operator-networkType-2G" value="gsm">2G only</option>
+              <option data-l10n-id="operator-networkType-3G" value="wcmda">3G only</option>
+            </select>
+          </span>
+        </li>
         <li id="operator-autoSelect">
           <label>
             <input type="checkbox" data-type="switch" />
@@ -690,6 +699,15 @@
         <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
+      <ul>
+        <li id="tone-disabled">
+          <label>
+            <input type="radio" name="tone-option" data-ignore value="disabled" data-label="Disabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="disabled">Disabled</a>
+        </li>
+      </ul>
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
@@ -2009,7 +2027,7 @@
           </p>
         </section>
         <menu>
-          <button data-l10n-id="ok" type="submit" id="icc-stk-alert-btn">Ok</button>
+          <button data-l10n-id="ok" id="icc-stk-alert-btn" class="full recommend">Ok</button>
         </menu>
       </form>
 

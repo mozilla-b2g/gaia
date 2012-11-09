@@ -130,6 +130,9 @@ var TrustedUIManager = {
     this.container.appendChild(dialog.frame);
     // make sure the trusty ui is visible
     this.show();
+
+    // ensure the frame is visible
+    dialog.frame.classList.add('selected');
   },
 
   _makeDialogHidden: function trui_makeDialogHidden(dialog) {
