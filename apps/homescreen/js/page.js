@@ -21,7 +21,7 @@ var Icon = function Icon(app) {
 
 Icon.prototype = {
   MIN_ICON_SIZE: 52,
-  MAX_ICON_SIZE: 54,
+  MAX_ICON_SIZE: 60,
   /*
    * Renders the icon into the page
    *
