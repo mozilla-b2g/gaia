@@ -55,7 +55,11 @@ function iconDescriptor(directory, app_name, entry_point) {
   originFile.append("origin");
   if (originFile.exists()) {
     origin = getFileContent(originFile).replace(/^\s+|\s+$/, '');
-    manifestURL = origin + "/manifest.webapp";
+    if (origin.slice(-1) == "/") {
+      manifestURL = origin + "manifest.webapp";
+    } else {
+      manifestURL = origin + "/manifest.webapp";
+    }
   }
 
   let manifestFile = dir.clone();
