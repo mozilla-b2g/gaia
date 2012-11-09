@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html dir="ltr">
 <head>
   <meta charset="utf-8">
 
@@ -18,14 +18,14 @@
     }
     body { background: none; }
     h2.bb-docs {
+      padding: 0.4rem 3rem;
+      margin: -0.1rem 0 0;
+      border: solid 0.1rem #e8e8e8;
+      color: #666;
       font-size: 1.8rem;
       font-family: "MozTT", Sans-serif;
       font-weight: lighter;
-      color: #666;
-      margin: -1px 0 0;
       background-color: #f5f5f5;
-      padding: 0.4rem 0.4rem 0.4rem 3rem;
-      border: solid 1px #e8e8e8;
     }
    form { margin: 1rem 2rem; }
   </style>
@@ -84,7 +84,7 @@
     <form role="search">
       <button type="submit">Cancel</button>
       <p>
-        <input placeholder="search term here..." required>
+        <input type="text" placeholder="search term here..." required>
         <button type="reset">Clear</button>
       </p>
     </form>
@@ -97,7 +97,7 @@
       <form role="search" class="full">
         <button type="submit">Send</button>
         <p>
-          <input placeholder="search term here..." required>
+          <input type="text" placeholder="search term here..." required>
           <button type="reset">Clear</button>
         </p>
       </form>
@@ -106,11 +106,18 @@
     <form role="search" class="bottom">
       <button type="submit">Send</button>
       <p>
-        <input required>
+        <input type="text" required>
         <button type="reset">Clear</button>
       </p>
     </form>
 
+    <form role="search" class="bottom">
+      <button type="submit">Send</button>
+      <p>
+        <textarea placeholder="Placeholder in textarea" required></textarea>
+        <button type="reset">Clear</button>
+      </p>
+    </form>
 
 </body>
 </html>
