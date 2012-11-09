@@ -254,6 +254,7 @@ var Browser = {
       this.deleteTab(this.currentTab.id);
       this.showTabScreen();
     }
+    this.updateSecurityIcon();
   },
 
   handleNewTab: function browserHandleNewTab(e) {
@@ -466,6 +467,7 @@ var Browser = {
     } else {
       this.setUrlButtonMode(this.GO);
     }
+    this.sslIndicator.value = '';
     this.updateAwesomeScreen(input);
   },
 
