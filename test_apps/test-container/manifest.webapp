@@ -18,7 +18,7 @@
     "telephony":{},
     "voicemail":{},
     "device-storage:pictures":{ "access": "readwrite" },
-    "settings":{},
+    "settings":{ "access": "readwrite" },
     "storage":{},
     "camera":{},
     "geolocation":{},
