@@ -714,8 +714,7 @@ const GridManager = (function() {
       index = getFirstPageWithEmptySpace();
 
     if (index < pages.length) {
-      var needsRender = true;
-      pages[index].appendIcon(icon, needsRender);
+      pages[index].appendIcon(icon);
     } else {
       pageHelper.addPage([icon]);
     }

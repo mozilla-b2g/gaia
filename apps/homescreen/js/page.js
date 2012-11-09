@@ -415,9 +415,8 @@ Page.prototype = {
    */
   render: function pg_render(icons) {
     this.olist = document.createElement('ol');
-    var needsRender = true;
     for (var i = 0; i < icons.length; i++) {
-      this.appendIcon(icons[i], needsRender);
+      this.appendIcon(icons[i]);
     }
     this.container.appendChild(this.olist);
   },
@@ -600,8 +599,8 @@ Page.prototype = {
    *
    * @param{Object} moz app or icon object
    */
-  appendIcon: function pg_appendIcon(icon, needsRender) {
-    if (needsRender) {
+  appendIcon: function pg_appendIcon(icon) {
+    if (!icon.container) {
       icon.render(this.olist, this.container);
       return;
     }
