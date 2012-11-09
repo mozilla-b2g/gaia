@@ -88,6 +88,10 @@ Calendar.Thread.prototype = {
     errorObject.type = err.type || 'Error';
     errorObject.constructorName = err.constructor.name || 'Error';
 
+    if ('code' in err) {
+      errorObject.code = err.code;
+    }
+
     return errorObject;
   },
 

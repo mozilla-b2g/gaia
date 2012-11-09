@@ -2464,8 +2464,6 @@ function write (chunk) {
       'DAV:/status': HttpStatusHandler,
       'DAV:/resourcetype': ArrayHandler,
       'DAV:/current-user-privilege-set': PrivilegeSet,
-      'DAV:/principal-URL': HrefHandler,
-      'DAV:/current-user-principal': HrefHandler,
       'urn:ietf:params:xml:ns:caldav/calendar-data': CalendarDataHandler,
       'DAV:/value': TextHandler,
       'DAV:/owner': HrefHandler,
@@ -2559,9 +2557,58 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  function CaldavHttpError(code) {
+    this.code = code;
+    var message;
+    switch(this.code) {
+      case 401:
+        message = 'Wrong username or/and password';
+        break;
+      case 404:
+        message = 'Url not found';
+        break;
+      case 500:
+        message = 'Server error';
+        break;
+      default:
+        message = this.code;
+    }
+    
+    Error.call(this, message);
+  }
+  CaldavHttpError.prototype = {
+    __proto__: Error.prototype,
+    constructor: CaldavHttpError
+  }
+  
+  // Unauthenticated error for 
+  // Google Calendar
+  function UnauthenticatedError() {
+    var message = "Wrong username or/and password";
+    Error.call(this, message);
+  }
+  
+  UnauthenticatedError.prototype = {
+    __proto__: Error.prototype,
+    constructor: UnauthenticatedError
+  }
+  
+  module.exports = {
+    CaldavHttpError: CaldavHttpError,
+    UnauthenticatedError: UnauthenticatedError
+  };
+
+}.apply(
+  this,
+  (this.Caldav) ?
+    [Caldav('request/errors'), Caldav] :
+    [module, require('../caldav')]
+));
+(function(module, ns) {
+
   var SAX = ns.require('sax');
   var XHR = ns.require('xhr');
-
+  var Errors = ns.require('request/errors');
 
   /**
    * Creates an (Web/Cal)Dav request.
@@ -2628,7 +2675,7 @@ function write (chunk) {
           self._processResult(req, callback);
         } else {
           // fail
-          callback(new Error('http error code: ' + xhr.status));
+          callback(new Errors.CaldavHttpError(xhr.status));
         }
       });
     }
@@ -2956,6 +3003,8 @@ function write (chunk) {
 ));
 (function(module, ns) {
 
+  var Errors = ns.require('request/errors');
+  
   /**
    * Creates a propfind request.
    *
@@ -3027,8 +3076,15 @@ function write (chunk) {
         if (!principal) {
           principal = findProperty('principal-URL', data, true);
         }
-
-        callback(null, principal);
+        
+        if ('unauthenticated' in principal) {
+          callback(new Errors.UnauthenticatedError());          
+        } else if (principal.href){
+          callback(null, principal.href);
+        } else {
+          callback(new Errors.CaldavHttpError(404));
+        }
+     
       });
     },
 
@@ -3065,7 +3121,7 @@ function write (chunk) {
       self._findPrincipal(self.url, function(err, url) {
 
         if (!url) {
-          callback(new Error('Cannot resolve principal url'));
+          callback(err);
           return;
         }
 
@@ -3382,4 +3438,3 @@ function write (chunk) {
     [Caldav, Caldav] :
     [module, require('./caldav')]
 ));
-
