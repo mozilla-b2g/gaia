@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lists</title>
+  <meta name="description" content="Displaying an enumeration of a set of items ">
+
+  <link rel="stylesheet" href="../../style/switches.css">
+  <link rel="stylesheet" href="../lists.css">
+  <link rel="stylesheet" href="../lists_extended.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.b2g-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", "Moz", Sans-serif;
+      font-weight: 300;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+      margin-top: 1rem;
+    }
+
+    h2.b2g-docs:first-child {
+      margin-top: 0;
+    }
+
+    /* Switches used only in edit mode 
+    label:not([for])  {
+      display: inline-block;
+      vertical-align: middle;
+      width: 4rem;
+      height: 5rem;
+      position: relative;
+    }
+
+    label:not([for]) input {
+      margin: 0;
+      opacity: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    label:not([for]) input + span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      margin: -1.1rem 0 0 -1.1rem;
+      width: 2.2rem;
+      height: 2.2rem;
+      pointer-events: none;
+    }
+
+    label:not([for]).b2g-danger input[type="checkbox"] + span {
+      background: no-repeat center top;
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAABCCAYAAABTqybaAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAASySURBVHja7JhrbBRVFMd/M33IApklliJNWVqykFioNG0DWCgtuBQqY0waG19EY6JfEEUhjYpR+UIaTFD0gyF+wJgoCAlJE5iNaENh221toY+IgPhIBXmU0A7sRKS0pVw/cKfdDvvosvrJnmSSu3NnfvfMmXv+Z84qQgiimd+tzAGWA6XAo0A60AgcBZp0S1yMdq/iBPvdCsAK4COgiNjWCGzSLdEZE+x3K6nALuAVgIzlq09mVVXvdRcWt7sLCnqUlJQ7oc7OHKurY1VP3YFqs+n7XHnrTqBGt8SdEZgQAiEEhkaqoREwNERDvrenNxB4Sgih2PMRjtTeQODVhnxvyNAQhsYhQ0O1520ohsZuQ0M0+8qOD5jmzBjAMceAaS5o9pV1S/jHTvAq6Wn3gGlmjhcaBn84zPOl4eBOQ0P0BgJrEoXaR28g8LIENwshwNDwGBqipdLXdr9QO+Ytlb5fJNyjAhUAWVXV+0nObmdVVX8lxz4VWAuQ6as4kSSYTF9FsxyuVYH5AC6P50qyYJfHY2fiIypwHWC4v38yydtUOywqcAbg1uXLs5Ol9l+4kC2HP6pAPYDZFChPFtx7pL7UVgcVaALoqTvwjFSv+7X0nroD6+T4mJ0gR2WCbEgiQTbLPVwfnnmLZEpfHwyF5iYKHQyFljTke/+W4AKnCO2QIvTbgGnmJKATpS2rV16V0HfGiJCEq4aGIT2/2hcMvhhHNqf2BYMfNOR7ByV0j6Excr1T6FOAT4DXpNCfyaqq3u8uLG6dVlR0ERgOdXbOs7o6HpdCP0Pe+hawQ7dGYdFKU7ksTcVxdkI9sFm3xKm4Nc+xSK5cpBwoA4aBBuAIENQtcWXcxfTfMpX/yCbAE+AJ8AR4AjwB/r+AFUOLOvcgUCtL/2zA/jC/CfwJBIB3dUtcSwQcBBYDaXEcGwKO65YojQculF83GaMtcZRHVcb8NIEK3RJdkWJcCLTY0LsfjNFddcxnAC1+t1IYCVwPTIrlZbQFpE2y245wcDDc0/Hagh278G7cMsZzv1sJ2jGeKmOUngjUu3ELedtq6b90iSN5s8LjPghkqMD2RJuaGRVPkretFoAzb9fc0+QA21VgTSIhcC9cRPHX+wA4u/V9eg7uixTvNSqQMyYVU6H0WAdZVevugU72zGFxnZ8Ul4uL3+zl953boq2fozqTIKNMZ1pREfNrPyTFNbppUqeks+RgPQ9kZnKttZWTG9bFerA0FRgThN4GP32Njbiys5lbUzvyFMV7v2WK18vNc+dof7qSO7fji9Cg8+TJ9S8xfOMG3jc2MWnGQyz8bA+ZKx9jyLI4Uf0EgyEr3qsYUoFu59mbF/7g563voaansyzQwaznnkcMD9PxwrP89evp8bzj86psVpy5z/ndn3KttRVX9t2G/qc3X6fv2OHYUjnK+C5mgkzJnUd5+ynOf/kFp2vWx9fgsASx1S0ILIu0n6evqMRsPEzYf4DxvG3WLVEaLpt996MXDqipW2K6U9104FakeI8TOiAZ98hmG7BUxhtFib2AY94ESnRLtI0klOP6LmA68IPso9PieD8EdOiWKBlvlS4BZgKfA2dlASWsmJ6VczMjQQH+GQBN9kpajIY+kQAAAABJRU5ErkJggg==);
+    }
+
+    label:not([for]).b2g-danger input:checked + span {
+      background-position: center bottom;
+    }
+*/
+    div[role="list"] li img[alt="placeholder"] { 
+      background: #ccc url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4NCjwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAxNS4wLjIsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiA2LjAwIEJ1aWxkIDApICAtLT4NCjwhRE9DVFlQRSBzdmcgUFVCTElDICItLy9XM0MvL0RURCBTVkcgMS4xLy9FTiIgImh0dHA6Ly93d3cudzMub3JnL0dyYXBoaWNzL1NWRy8xLjEvRFREL3N2ZzExLmR0ZCI+DQo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkNhcGFfMSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgeD0iMHB4IiB5PSIwcHgiDQoJIHdpZHRoPSI1MHB4IiBoZWlnaHQ9IjUwcHgiIHZpZXdCb3g9IjAgMCA1MCA1MCIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAwIDAgNTAgNTAiIHhtbDpzcGFjZT0icHJlc2VydmUiPg0KPGxpbmUgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHgxPSIwIiB5MT0iMCIgeDI9IjUwIiB5Mj0iNTAiLz4NCjxsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiB4MT0iNTAiIHkxPSIwIiB4Mj0iMC4wODIiIHkyPSI0OS45MTkiLz4NCjwvc3ZnPg0K);
+      background-size: 100% 100%;
+      opacity: 0.5;
+      font-size: 0;
+    }
+
+  </style>
+</head>
+
+<body role="application">
+
+  <section role="region">
+    <h2 class="b2g-docs">Extended info (e.g. Email)</h2>
+    <div role="list">
+      <ul>
+        <li>
+          <a href="#">
+            <img class="b2g-end" alt="placeholder">
+            <article>
+              <p>
+                Margherita Gomez
+                <time datetime="17:43">5:43PM</time>
+              </p>
+              <p>This is the subject of the message</p>
+              <p>Here goes the first line of the message</p>
+            </article>
+          </a>
+        </li>
+
+        <li>
+          <a href="#">
+            <aside>
+              <span class="b2g-icon b2g-icon-unread">Unread item</span>
+            </aside>
+            <article>
+              <p>
+                Margherita Gomez
+                <time datetime="17:43">5:43PM</time>
+              </p>
+              <p>This is an unread message</p>
+              <p>Here goes the first line of the message</p>
+            </article>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <h2 class="b2g-docs">Extended info - Edit mode</h2>
+    <div role="list" class="b2g-edit-mode">
+      <ul>
+        <li>
+          <label class="danger">
+            <input type="checkbox">
+            <span></span>
+          </label>
+          <a href="#">
+            <aside class="b2g-end">
+              <img alt="placeholder">
+            </aside>
+            <aside>
+              <span class="b2g-icon b2g-icon-unread">Unread item</span>
+            </aside>
+            <article>
+              <p>
+                Margherita Gomez
+                <time datetime="17:43">5:43PM</time>
+              </p>
+              <p>This is the subject of the message</p>
+              <p>Here goes the first line of the message</p>
+            </article>
+          </a>
+        </li>
+
+        <li>
+          <label class="danger">
+            <input type="checkbox">
+            <span></span>
+          </label>
+          <a href="#">
+            <aside class="b2g-end">
+              <img alt="placeholder">
+            </aside>
+            <aside>
+              <span class="b2g-icon b2g-icon-unread">Unread item</span>
+            </aside>
+            <article>
+              <p>
+                Margherita Gomez
+                <time datetime="17:43">5:43PM</time>
+              </p>
+              <p>This is the subject of the message</p>
+              <p>Here goes the first line of the message</p>
+            </article>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+</body>
+</html>

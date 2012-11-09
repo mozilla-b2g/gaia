@@ -1,0 +1,58 @@
+/* ----------------------------------
+ * Lists: Extended info
+ * ---------------------------------- */
+
+div[role="list"] ul {
+  padding: 0;
+}
+
+div[role="list"] li {
+  padding: 0;
+}
+
+div[role="list"] li a {
+  height: 8rem;
+}
+
+div[role="list"] li .b2g-end,
+div[role="list"] li .b2g-icon {
+  width: 3rem;
+  height: 8rem;
+  padding: 0;
+  margin: 0;
+}
+
+
+div[role="list"] li img {
+  height: 8rem;
+  margin-right: -3rem;
+}
+
+div[role="list"] li article {
+  padding: 0.7rem 0.5rem 0 3rem;
+}
+
+div[role="list"] li aside:not(.b2g-end) ~ article {
+  padding-left: 0;
+}
+
+div[role="list"] li p {
+  color: #000;
+}
+
+div[role="list"] li p:last-of-type {
+  color: #5b5b5b;
+}
+
+div[role="list"] li p:first-of-type time {
+  color: #008caa;
+}
+
+div[role="list"] li p:last-of-type {
+  color: #5b5b5b;
+}
+
+div[role="list"].b2g-edit-mode li > label:not([for]) {
+  height: 8rem;
+  left: 0;
+}

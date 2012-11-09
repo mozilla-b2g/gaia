@@ -1,0 +1,37 @@
+/* ----------------------------------
+ * Lists: Events
+ * ---------------------------------- */
+
+div[role="list"] h3 {
+  margin: 0;
+  padding: 0 0 0.5rem 3rem;
+}
+
+div[role="list"] h3:first-child {
+  padding: 1.5rem 0 0.5rem 3rem;
+}
+
+div[role="list"] ul {
+  padding: 0;
+}
+
+div[role="list"] li:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -0.1rem;
+  bottom: 0;
+  width: 0.4rem;
+}
+
+div[role="list"] li time {
+  width: 5.5rem;
+  padding: 1rem 0.5rem 0 3rem;
+  font-size: 1.5rem;
+  line-height: 2.3rem;
+  text-transform: uppercase;
+}
+
+div[role="list"] li p:only-child {
+  line-height: 2.2rem;
+}

@@ -1,0 +1,256 @@
+/* ----------------------------------
+ * Lists: default
+ * ---------------------------------- */
+
+div[role="list"] {
+  font-family: "MozTT", "Moz", Sans-serif;
+  font-weight: 400;
+}
+
+div[role="list"] strong {
+  font-weight: 500;
+}
+
+div[role="list"] h3 {
+  border-bottom: 0.1rem solid #ff4E00;
+  padding: 0 0 0.5rem 1.5rem;
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+  color: #ff4E00;
+  margin: 0 1.5rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+div[role="list"] h3:first-of-type {
+  padding: 1.5rem 0 0.5rem 1.5rem;
+}
+
+div[role="list"] ul {
+  list-style: none;
+  margin: 0 0 0.5rem 0;
+  padding: 0 1.5rem;
+  overflow: hidden;
+}
+
+div[role="list"] li {
+  display: inline-block;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  transition: transform 0.3s ease;
+  border-bottom: solid 0.1rem #dbd9d9;
+  margin: 0;
+  position: relative;
+}
+
+div[role="list"] li mark {
+  background-color: #cfd3d7;
+}
+
+div[role="list"] li:last-of-type {
+  border: none;
+}
+
+div[role="list"] li > a {
+  text-decoration: none;
+  color: #000;
+  display: inline-block;
+  width: 100%;
+  position: relative;
+}
+
+/* Pressed State */
+div[role="list"] li > a:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background-color: #b1f1ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+div[role="list"] li > a:active:after {
+  opacity: 0.6;
+}
+
+div[role="list"] li aside {
+  float: left;
+  display: inline;
+  position: relative;
+  width: 3rem;
+  height: 5rem;
+  padding-top: 1rem;
+  margin: 0 0.5rem 0 0;
+}
+
+div[role="list"] li aside.b2g-end {
+  float: right;
+  margin: 0;
+  padding: 0;
+  width: 6rem;
+  height: 6rem;
+}
+
+div[role="list"] li aside time {
+  font-size: 1.5rem;
+  line-height: 2.3rem;
+  text-transform: uppercase;
+  color: #000;
+}
+
+div[role="list"] li aside img {
+  display: block;
+  overflow: hidden;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+div[role="list"] li aside img.b2g-no-picture { 
+  height: 2rem;
+  padding: 4rem 0 0 4rem;
+  width: 2rem;
+  background: transparent;
+}
+
+div[role="list"] li article {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0.5rem 0 0;
+}
+
+div[role="list"] li aside:not(.b2g-end) ~ article {
+  padding: 1rem 0.5rem 0 0;
+}
+
+div[role="list"] li p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  display: block;
+  margin: 0;
+  color: #5b5b5b;
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+div[role="list"] li p:first-of-type {
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  color: #000;
+  padding-bottom: 0.1rem;
+}
+
+div[role="list"] li p:first-of-type em {
+  font-size: 1.5rem;
+  font-style: normal;
+}
+
+div[role="list"] li p strong {
+  color: #000;
+}
+
+div[role="list"] li p time {
+  font-size: 1.5rem;
+  color: #5b5b5b;
+  margin-right: 0.3rem;
+  font-weight: 500;
+}
+
+/* Icon definitions */
+div[role="list"] li .b2g-icon {
+  width: 100%;
+  height: 100%;
+  background: transparent no-repeat left center;
+  font: 0/0 a;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+div[role="list"] li .b2g-icon.b2g-icon-unread {
+  background: url(lists/images/icons/dot.png) no-repeat center;
+}
+
+/* Disabled */
+div[role="list"] li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+div[role="list"] li[aria-disabled="true"] {
+  pointer-events: none;
+}
+
+/* ----------------------------------
+ * Lists: Overlay
+ * ---------------------------------- */
+
+div[role="list"] ul {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0;
+}
+
+div[role="list"] li {
+  border-top: 0.1rem solid rgba(72, 72, 72, 1);
+  border-bottom: 0.1rem solid rgba(0, 0, 0, 1);
+  margin: 0;
+}
+
+div[role="list"] li aside {
+  margin: 0 0.5rem 0 1.5rem;
+}
+
+div[role="list"] li article {
+  color: #ccc;
+  border: none;
+  padding: 1rem 0 0 3rem;
+}
+
+div[role="list"] li aside:not(.b2g-end) ~ article {
+  padding: 1rem 0 0 0;
+}
+
+div[role="list"] li aside {
+  margin: 0 0.5rem 0 3rem;
+}
+
+div[role="list"] li p {
+  color: #ccc;
+}
+
+div[role="list"] li p:first-of-type,
+div[role="list"] li p:first-of-type strong {
+  color: #fff;
+}
+
+div[role="list"] li > a:after {
+  background: #6ea7b3;
+}
+
+div[role="list"] li aside.b2g-end {
+  width: 6.5rem;
+  text-align: right;
+  margin: 0 3rem 0 0.5rem;
+}
+
+div[role="list"] li aside.b2g-end time {
+  padding: 1rem 0 0 0;
+  display: block;
+  color: #01c6ed;
+  font-weight: 500;
+}

@@ -1,0 +1,238 @@
+/* ----------------------------------
+ * Lists: default
+ * ---------------------------------- */
+
+div[role="list"] {
+  font-family: "MozTT", "Moz", Sans-serif;
+  font-weight: 400;
+}
+
+div[role="list"] strong {
+  font-weight: 500;
+}
+
+div[role="list"] h3 {
+  border-bottom: 0.1rem solid #ff4E00;
+  padding: 0 0 0.5rem 1.5rem;
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+  color: #ff4E00;
+  margin: 0 1.5rem;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+div[role="list"] h3:first-child {
+  padding: 1.5rem 0 0.5rem 1.5rem;
+}
+
+div[role="list"] ul {
+  list-style: none;
+  margin: 0 0 0.5rem 0;
+  padding: 0 1.5rem;
+  overflow: hidden;
+}
+
+div[role="list"] li {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  transition: transform 0.3s ease;
+  border-bottom: solid 0.1rem #dbd9d9;
+  margin: 0;
+  position: relative;
+  display: block;
+}
+
+div[role="list"] li mark {
+  background-color: #cfd3d7;
+}
+
+div[role="list"] li:last-child {
+  border: none;
+}
+
+div[role="list"] li a {
+  text-decoration: none;
+  color: #000;
+  display: block;
+  overflow: hidden;
+  position: relative;
+  height: 6rem;
+}
+
+/* Pressed State */
+div[role="list"] li a:after {
+  content: "";
+  transition: opacity 0.2s ease;
+  background-color: #b1f1ff;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+}
+
+div[role="list"] li a:active:after {
+  opacity: 0.6;
+}
+
+div[role="list"] .pack-begin {
+  float: left;
+  margin: 0 0.5rem 0 0;
+}
+
+div[role="list"] .pack-begin.pack-icon {
+  width: 3rem;
+  height: 6rem;
+  background: transparent no-repeat left center;
+  font: 0/0 a;
+  display: block;
+  overflow: hidden;
+}
+
+div[role="list"] .pack-begin.pack-icon-unread {
+  background: url(lists/images/icons/dot.png) no-repeat center;
+}
+
+div[role="list"] .pack-end {
+  float: right;
+}
+
+div[role="list"] .pack-end img {
+  display: block;
+  overflow: hidden;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+div[role="list"] .pack-end img {
+  display: block;
+  overflow: hidden;
+  width: 6rem;
+  height: 6rem;
+  background: transparent center center;
+  background-size: 100% auto;
+}
+
+div[role="list"] .pack-end img.pack-no-picture {
+  height: 2rem;
+  padding: 4rem 0 0 4rem;
+  width: 2rem;
+  background: transparent;
+}
+
+div[role="list"] li time {
+  font-size: 1.5rem;
+  line-height: 2.3rem;
+  text-transform: uppercase;
+  color: #000;
+}
+
+div[role="list"] li article {
+  display: block;
+  overflow: hidden;
+  padding: 1rem 0.5rem 0 0;
+}
+
+div[role="list"] li p {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  display: block;
+  margin: 0;
+  color: #5b5b5b;
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+div[role="list"] li p:first-child {
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  color: #000;
+  padding-bottom: 0.1rem;
+}
+
+div[role="list"] li p:first-child em {
+  font-size: 1.5rem;
+  font-style: normal;
+}
+
+div[role="list"] li p:only-child {
+  line-height: 4rem;
+  padding: 0;
+}
+
+div[role="list"] li p strong {
+  color: #000;
+}
+
+div[role="list"] li p time {
+  font-size: 1.5rem;
+  color: #5b5b5b;
+  margin-right: 0.3rem;
+  font-weight: 500;
+}
+
+/* Edit mode */
+div[role="list"].pack-edit-mode li a:not(.pack-end) > * {
+  margin-left: 3.5rem;
+  transition: margin 0.6s ease;
+}
+
+div[role="list"].pack-edit-mode a {
+  pointer-events: none;
+}
+
+div[role="list"] li label:not([for]) {
+  width: 5rem;
+  height: 6rem;
+  position: absolute;
+  top: -0.1rem;
+  z-index: 100;
+  border: none;
+}
+
+div[role="list"] li label:not([for]).pack-end {
+  right: 0;
+}
+
+/* uncomment the following code to allow edit-mode animation */
+/*
+div[role="list"] li a:not(.pack-end) > * {
+  transition: margin 0.6s ease;
+}
+
+div[role="list"] li label:not([for]) {
+  opacity: 0;
+  left: -5rem;
+  transition: all 0.6s ease; 
+}
+*/
+
+div[role="list"].pack-edit-mode li label:not([for]) {
+  opacity: 1;
+  left: -1.5rem;
+  transition: all 0.6s ease;
+}
+
+/* Disabled */
+div[role="list"] li[aria-disabled="true"]:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e6e6e6;
+  opacity: 0.7;
+}
+
+div[role="list"] li[aria-disabled="true"] {
+  pointer-events: none;
+}
