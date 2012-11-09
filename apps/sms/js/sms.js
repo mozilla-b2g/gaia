@@ -146,7 +146,8 @@ var MessageManager = {
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
     if (num) {
-      filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
+      filter.numbers =
+        [PhoneNumberManager.getNormalizedInternationalNumber(num)];
     } else {
       filter.numbers = [''];
     }
@@ -906,9 +907,10 @@ var ThreadUI = {
 
       // Add delivery icon/progress if necessary
       deliveryIcon = '<span class="message-option icon-delivery">' +
-                        (message.error ? '<img src="style/images/icons/exclamation.png" class="gif">' :
-                          '<progress class="small"></progress>') +
-                      '</span>';
+          (message.error ?
+            '<img src="style/images/icons/exclamation.png" class="gif">' :
+            '<progress class="small"></progress>') +
+          '</span>';
       } else {
       //Add edit options
       htmlStructure += '<label class="danger message-option msg-checkbox">' +
@@ -1207,7 +1209,9 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
-              MessageManager.send(num, text, function onsent(msg) {
+              // XXX Once we have PhoneNumberJS in Gecko we will use num directly
+              // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
+              MessageManager.send(numNormalized, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
                   //Removing delivery spinner

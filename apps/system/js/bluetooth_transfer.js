@@ -179,6 +179,7 @@ var BluetoothTransfer = {
 
   initProgress: function bt_initProgress(evt) {
     // Create progress dynamically in notification center
+    var _ = navigator.mozL10n.get;
     var address = evt.address;
     var transferMode =
       (evt.received == true) ?
@@ -201,7 +202,6 @@ var BluetoothTransfer = {
   },
 
   updateProgress: function bt_updateProgress(value, evt) {
-    var _ = navigator.mozL10n.get;
     var address = evt.address;
     var id = 'div[data-id="' + address + '"] progress';
     var progressEl = this.transferStatusList.querySelector(id);
@@ -269,6 +269,7 @@ var BluetoothTransfer = {
   },
 
   onTransferComplete: function bt_onTransferComplete(evt) {
+    var _ = navigator.mozL10n.get;
     // Remove transferring progress
     this.removeProgress(evt);
     // Show banner and notification

@@ -13,18 +13,18 @@ form[role="dialog"][data-type="edit"] header .icon {
   pointer-events: auto;
 }
 
+/* Override Building Block [Edit mode] styles */
 form[role="dialog"][data-type="edit"] header,
 form[role="dialog"][data-type="edit"] > menu {
-  transition: transform 0.25s ease;
+  transition: all 0.4s ease;
 }
 
-form[role="dialog"][data-type="edit"],
 form[role="dialog"][data-type="edit"] header {
-  transform: translateY(-100%);
+  transform: translateY(-110%);
 }
 
 form[role="dialog"][data-type="edit"] > menu {
-  transform: translateY(100%);
+  transform: translateY(110%);
 }
 
 .disabled {
@@ -158,7 +158,7 @@ ul[role="tablist"][data-type="filter"] > [role="tab"].selected > a {
 .log-item {
   position: relative;
   overflow: visible;
-  transition: transform 0.3s ease;
+  transition: transform 0.4s ease;
 }
 
 .log-item * {
@@ -259,7 +259,6 @@ label:not([for]).call-log-selection input + span {
 }
 
 /* Edit mode state */
-.recents-edit form[role="dialog"][data-type="edit"],
 .recents-edit form[role="dialog"][data-type="edit"] header,
 .recents-edit form[role="dialog"][data-type="edit"] > menu {
   transform: translateY(0);
@@ -285,7 +284,7 @@ label:not([for]).call-log-selection input + span {
   No result container
 */
 #no-result-container {
-  background-image: url('images/SMS_200x200_bubble.png');
+  background-image: url('images/ComLog_200x200_clock.png');
   background-repeat:no-repeat;
   background-attachment:fixed;
   background-position:center;
@@ -317,4 +316,16 @@ label:not([for]).call-log-selection input + span {
 
 #add-contact-action-menu.visible {
   display: inline;
+}
+
+/*
+  Call log entries deletion confirmation
+ */
+
+#recents-deletion-confirmation {
+  display: none;
+}
+
+#recents-deletion-confirmation.visible {
+  display: inline-block;
 }

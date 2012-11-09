@@ -57,10 +57,10 @@ Evme.Analytics = new function() {
             });
             
             var requestsPerEventCount = 0;
-            
+
             // register providers
             for (name in options.providers){
-                var object = window[name],
+                var object = options.namespace[name],
                     params = options.providers[name];
                 
                 if (object && params.enabled && !(params.disableOnLowConnection && options.connectionLow)){
@@ -117,11 +117,11 @@ Evme.Analytics = new function() {
         idle.reset();
         processItem(params);
         queueArr.push(params);
-        
+
         if (immediateDispatch) {
             idle.flush();
         }
-        
+
         immediateProviders.forEach(function(provider){
             provider.dispatch([params]);
         });

@@ -1,10 +1,8 @@
 Evme.Shortcuts = new function() {
-    var _name = "Shortcuts", _this = this, scroll = null, scrollPage = null, itemsDesign = "FROM CONFIG", setDesign = false,
-        $el = null, $list = null, $header = null, $loading = null,
+    var _name = "Shortcuts", _this = this, scroll = null, itemsDesign = "FROM CONFIG", setDesign = false,
+        $el = null, $list = null, $loading = null, loadedResponse = null,
         shortcuts = [], visible = false, isSwiping = false, swiped = false, customizing = false, enabled = true,
-        defaultShortcuts = null, categoryPageData = {};
-    
-    var KEY_USER_SHORTCUTS = "userShortcuts";
+        categoryPageData = {};
     
     this.init = function(options) {
         !options && (options = {});
@@ -14,66 +12,51 @@ Evme.Shortcuts = new function() {
         $loading = options.$loading;
         itemsDesign = options.design;
         
-        defaultShortcuts = Evme.Storage.get(KEY_USER_SHORTCUTS) || options.defaultShortcuts;
-        
-        $header = $("#shortcuts-header");
-        
-        $("#header-category .back").bind("touchstart", _this.showCategories);
-        $("#category-page-button").bind("click", clickContinueButton);
-        
         scroll = new Scroll($el.find("#shortcuts-list")[0], {
             "hScroll": false,
             "checkDOMChanges": false,
-            "onBeforeScrollMove": function(e){ swiped = true; },
-            "onBeforeScrollEnd": function(){ swiped = false; }
+            "onBeforeScrollMove": function(e){ swiped = true; $el.addClass("swiping"); },
+            "onBeforeScrollEnd": function(){ swiped = false; $el.removeClass("swiping"); }
         });
-        scrollPage = new Scroll($("#page-category")[0], {
-            "hScroll": false,
-            "checkDOMChanges": false,
-            "onBeforeScrollStart": function() {}
-        });
+        
+        $el.bind("click", onListClick);
         
         Evme.EventHandler.trigger(_name, "init");
     };
     
-    this.loadDefault = function() {
-        _this.load(defaultShortcuts);
-    };
-
-    this.load = function(data, cbLoadSuccess, cbLoadError) {
-        if (!data || !("shortcuts" in data)){
-            cbLoadError && cbLoadError(data);
-        } else {
-            Evme.Storage.set(KEY_USER_SHORTCUTS, data);
+    this.load = function(data) {
+        loadedResponse = JSON.parse(JSON.stringify(data));
+        
+        var _shortcuts = data.shortcuts.splice(0),
+            icons = data.icons;
             
-            var shortcuts = data.shortcuts,
-                icons = data.icons;
-                
-            for (var id in icons) {
-                Evme.IconManager.add(id, icons[id], Evme.Utils.getIconsFormat());
-            }
-            
-            for (var i=0; i<shortcuts.length; i++) {
-                var appIds = shortcuts[i].appIds,
-                    apps = [];
-                
-                for (var j=0; j<appIds.length; j++) {
-                    apps.push({
-                        "id": appIds[j],
-                        "icon": icons[appIds[j]]
-                    });
-                }
-                
-                shortcuts[i].appIds = apps;
-            }
-            
-            setShortcutsDesign();
-            
-            _this.clear();
-            _this.draw(shortcuts);
-            cbLoadSuccess && cbLoadSuccess(_this.get());
-            cbLoaded();
+        for (var id in icons) {
+            Evme.IconManager.add(id, icons[id], Evme.Utils.getIconsFormat());
         }
+        
+        for (var i=0; i<_shortcuts.length; i++) {
+            var appIds = _shortcuts[i].appIds,
+                apps = [];
+            
+            for (var j=0; j<appIds.length; j++) {
+                apps.push({
+                    "id": appIds[j],
+                    "icon": icons[appIds[j]]
+                });
+            }
+            
+            _shortcuts[i].appIds = apps;
+        }
+        
+        setShortcutsDesign();
+        
+        _this.clear();
+        _this.draw(_shortcuts);
+        cbLoaded();
+    };
+    
+    this.getLoadedResponse = function() {
+        return loadedResponse;
     };
     
     this.add = function(_shortcuts) {
@@ -86,7 +69,7 @@ Evme.Shortcuts = new function() {
             
         for (var i=0; i<_shortcuts.length; i++) {
             var shortcut = new Evme.Shortcut();
-            var $el = shortcut.init(_shortcuts[i], i, click);
+            var $el = shortcut.init(_shortcuts[i], i);
             
             if ($el) {
                 $el.addClass("remove");
@@ -133,12 +116,11 @@ Evme.Shortcuts = new function() {
 
     this.draw = function(_shortcuts, icons) {
         for (var i=0; i<_shortcuts.length; i++) {
-            var shortcut = new Evme.Shortcut();
-            var $el = shortcut.init(_shortcuts[i], i, click, dragStart, remove);
+            var shortcut = new Evme.Shortcut(),
+                $el = shortcut.init(_shortcuts[i], i);
             
             if ($el) {
                 shortcuts.push(shortcut);
-
                 $list.append($el);
             }
         }
@@ -188,113 +170,6 @@ Evme.Shortcuts = new function() {
         return false;
     };
     
-    this.showPage = function(data) {
-        categoryPageData = data || {};
-        
-        !categoryPageData.query && (categoryPageData.query = "");
-        !categoryPageData.title && (categoryPageData.title = categoryPageData.query);
-        !categoryPageData.options && (categoryPageData.options = []);
-        
-        $("#category-page-name").html(categoryPageData.title || categoryPageData.query);
-        
-        if (categoryPageData.button) {
-            $("#category-page-button").html(categoryPageData.button).addClass("visible");
-        } else {
-            $("#category-page-button").removeClass("visible")
-        }
-        
-        var html = '';
-        for (var i=0; i<categoryPageData.options.length; i++) {
-            var o = categoryPageData.options[i];
-            
-            html += '<li class="category-item">' +
-                        '<form method="get" action="" data-type="' + o.type + '">' +
-                            '<label>' + (o.title || "") + '</label>' +
-                            '<input type="text" value="" class="textinput" name="search_' + o.type + '" id="search_' + o.type + '" placeholder="' + (o.placeholder || "") + '" />' +
-                            '<em class="arrow-next"></em>' +
-                        '</form>' +
-                    '</li>';
-        }
-        $("#category-options").html(html);
-        
-        $("#category-options input").bind("focus", function(e) {
-            $("#" + Evme.Utils.getID()).addClass("mode-edit");
-        }).bind("blur", function(e) {
-            $("#" + Evme.Utils.getID()).removeClass("mode-edit");
-        });
-        $("#category-options form").bind("submit", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            categoryQuerySearch($(this));
-        });
-        $("#category-options em").bind("click", function(e) {
-            categoryQuerySearch($(this).parent());
-        });
-        
-        $("#page-categories, #header-categories").removeClass("active");
-        $("#page-category, #header-category").addClass("active");
-        $("#shortcuts").addClass("page-category").removeClass("page-categories");
-        
-        scrollPage.refresh();
-        
-        Evme.EventHandler.trigger("Shortcuts", "categoryPageShow", {
-            "query": categoryPageData.title
-        });
-    };
-    
-    this.showCategories = function(e) {
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        $("#page-category, #header-category").removeClass("active");
-        $("#page-categories, #header-categories").addClass("active");
-        $("#shortcuts").addClass("page-categories").removeClass("page-category");
-    };
-    
-    this.setCustomTitle = function(title) {
-        $("#shortcuts-custom-title").remove();
-        var $elTitle = $('<li id="shortcuts-custom-title">' + title + '</li>');
-        $header.append($elTitle);
-        
-        
-        $header.children().removeClass("active");
-        $elTitle.addClass("active");
-    };
-    
-    this.removeCustomTitle = function() {
-        _this.showCategories();
-        $("#shortcuts-custom-title").removeClass("active");
-    };
-    
-    function categoryQuerySearch($form) {
-        var type = $form.data("type"),
-            $input = $form.find("input"),
-            query = $input.val();
-            
-        $input.blur();
-        
-        if (query) {
-            Evme.EventHandler.trigger(_name, "searchCategoryPage", {
-                "query": query,
-                "type": type
-            });
-        }
-    }
-    
-    function clickContinueButton(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var query = categoryPageData.query;
-        
-        Evme.EventHandler.trigger(_name, "clickContinue", {
-            "query": query
-        });
-    }
-    
     this.refreshScroll = function() {
         scroll && scroll.refresh();
     };
@@ -323,7 +198,7 @@ Evme.Shortcuts = new function() {
 
     this.clear = function() {
         for (var i=0; i<shortcuts.length; i++) {
-            shortcuts[i].remove();
+            shortcuts[i].remove(null, true);
         }
         shortcuts = [];
         $list.empty();
@@ -380,27 +255,11 @@ Evme.Shortcuts = new function() {
         setDesign = true;
     }
     
-    function dragStart(data) {
-        Evme.EventHandler.trigger(_name, "dragStart", {
-            "e": data.e,
-            "shortcut": data.shortcut
-        });
-    }
-    
-    function click(data) {
-        if (_this.swiped() || !_this.enabled()) {
-            return;
+    function onListClick(e) {
+        if (e.originalTarget.id == 'shortcuts-list') {
+            Evme.EventHandler.trigger(_name, "listClick", {
+            });
         }
-        
-        Evme.EventHandler.trigger(_name, "click", data);
-    }
-    
-    function remove(data) {
-        if (_this.swiped() || !_this.enabled()) {
-            return;
-        }
-        
-        Evme.EventHandler.trigger(_name, "remove", data);
     }
     
     function cbShow(bReport) {
@@ -427,16 +286,16 @@ Evme.Shortcuts = new function() {
 Evme.Shortcut = function() {
     var _name = "Shortcut", _this = this, cfg = null, id = "id"+Math.round(Math.random()*10000),
         $el = null, $thumb = null,  index = -1, query = "", image = "", imageLoadingRetry = 0,
-        onClick = null, onDragStart = null, onRemove = null, alreadyRemoved = false, tapIgnored = false,
-        timeoutDrag = null, touchStartPos = null, DISTANCE_TO_IGNORE_AS_MOVE = 5, DRAG_THRESHOLD = 100;
+        timeoutHold = null, removed = false,
+        posStart = [0, 0], timeStart = 0, fingerMoved = true;
+        
+    var THRESHOLD = 5,
+        TIME_BEFORE_CONTEXT = 600;
     
-    this.init = function(_cfg, _index, _onClick, _onDragStart, _onRemove) {
+    this.init = function(_cfg, _index) {
         cfg = _cfg;
         index = _index;
         query = cfg.query;
-        onClick = _onClick;
-        onRemove = _onRemove;
-        onDragStart = _onDragStart;
         
         if (!cfg.query) {
             return null;
@@ -451,24 +310,40 @@ Evme.Shortcut = function() {
         $thumb = $el.find(".thumb");
         
         _this.setImage(cfg.appIds);
-        
-        $el.bind("touchstart", touchstart)
-           .bind("touchmove", touchmove)
-           .bind("click", clicked);
-           
-        //$el.find(".remove").bind("click", removed);
+        if ("ontouchstart" in window) {
+            $el.bind("touchstart", onTouchStart);
+            $el.bind("touchmove", onTouchMove);
+            $el.bind("touchend", onTouchEnd);
+        } else {
+            $el.bind("click", function(e){
+                fingerMoved = false;
+                onTouchEnd(e);
+            });
+        }
+        $el.find(".remove").bind("click", function(e) {
+            _this.remove(e);
+            onRemove(e);
+        });
         
         return $el;
     };
     
-    this.remove = function() {
-        if ($el) {
-            $el.addClass("remove");
-            window.setTimeout(function() {
-                $el.remove();
-                Evme.Shortcuts.refreshScroll();
-            }, 200);
+    this.setImage = function(shortcutIcons) {
+        if ($thumb && shortcutIcons && shortcutIcons.length > 0) {
+            var $iconGroup = Evme.IconGroup.get(shortcutIcons);
+            $thumb.append($iconGroup);
         }
+    };
+    
+    this.remove = function(e) {
+        if (removed) return;
+        
+        removed = true;
+        $el && $el.addClass("remove");
+        
+        window.setTimeout(function(){
+            $el && $el.remove();
+        }, 300);
     };
     
     this.getData = function() { return cfg; };
@@ -478,73 +353,63 @@ Evme.Shortcut = function() {
     this.getQuery = function() { return query; };
     this.isCustom = function() { return cfg.isCustom; };
     
-    this.setImage = function(shortcutIcons) {
-        if ($thumb && shortcutIcons && shortcutIcons.length > 0) {
-            var $iconGroup = Evme.IconGroup.get(shortcutIcons);
-            $thumb.append($iconGroup);
-        }
-    };
-    
-    function touchstart(e) {
-        if (onDragStart) {
-            timeoutDrag = window.setTimeout(function(){
-                onDragStart && onDragStart({
-                    "e": e,
-                    "shortcut": _this
-                });
-            }, DRAG_THRESHOLD);    
-        }
-        
-        tapIgnored = false;
-        touchStartPos = getEventPoint(e);
-    }
-    
-    function touchmove(e) {
-        if (!touchStartPos) return;
-        
-        var point = getEventPoint(e),
-            distanceX = [point[0] - touchStartPos[0]];
-            
-        if (Math.abs(distanceX[0]) > DISTANCE_TO_IGNORE_AS_MOVE) {
-            tapIgnored = true;
-        }
-    }
-    
-    function clicked() {
-        if (tapIgnored) return;
-
-        window.clearTimeout(timeoutDrag);
-        
-        onClick({
+    function onRemove(e) {
+        Evme.EventHandler.trigger(_name, "remove", {
             "shortcut": _this,
             "data": cfg,
-            "$el": $el,
-            "index": index
+            "index": index,
+            "e": e
         });
     }
     
-    function removed(e) {
-        e.preventDefault();
-        e.stopPropagation();
+    function onTouchStart(e) {
+        e = (e.touches || [e])[0];
         
-        window.clearTimeout(timeoutDrag);
-        if (alreadyRemoved) {
-            return;
+        fingerMoved = false;
+        
+        posStart = [e.pageX, e.pageY];
+        timeStart = Date.now();
+        
+        window.clearTimeout(timeoutHold);
+        timeoutHold = window.setTimeout(fireLongTap, TIME_BEFORE_CONTEXT);
+    }
+    
+    function onTouchMove(e) {
+        e = (e.changedTouches || [e])[0];
+        
+        var p = [e.pageX, e.pageY];
+        if (Math.abs(p[0] - posStart[0]) > THRESHOLD || Math.abs(p[1] - posStart[1]) > THRESHOLD) {
+            fingerMoved = true;
+            window.clearTimeout(timeoutHold);
         }
+    }
+    
+    function onTouchEnd(e) {
+        window.clearTimeout(timeoutHold);
+        if (fingerMoved) return;
+        fingerMoved = false;
         
-        alreadyRemoved = true;
-        onRemove({
+        Evme.EventHandler.trigger(_name, "click", {
             "shortcut": _this,
             "data": cfg,
+            "query": cfg.query,
             "$el": $el,
-            "index": index
+            "index": index,
+            "e": e
         });
     }
     
-    function getEventPoint(e) {
-        var touch = e.touches && e.touches[0] ? e.touches[0] : e,
-            point = touch && [touch.pageX || touch.clientX, touch.pageY || touch.clientY];
+    function fireLongTap(e) {
+        window.clearTimeout(timeoutHold);
+        if (fingerMoved) return;
+        fingerMoved = false;
         
-        return point;
+        Evme.EventHandler.trigger(_name, "hold", {
+            "shortcut": _this,
+            "data": cfg,
+            "$el": $el,
+            "index": index,
+            "e": e
+        });
     }
 };

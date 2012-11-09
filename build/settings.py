@@ -77,7 +77,7 @@ settings = {
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,
- "sms.ringtone": "",
+ "sms.ringtone": "sms.wav",
  "tethering.usb.enabled": False,
  "tethering.usb.ip": "192.168.0.1",
  "tethering.usb.prefix": "24",
@@ -106,6 +106,7 @@ settings = {
 def main():
     parser = optparse.OptionParser(description="Generate initial settings.json file")
     parser.add_option(      "--homescreen", help="specify the homescreen URL")
+    parser.add_option(      "--ftu", help="specify the ftu manifest URL")
     parser.add_option("-c", "--console", help="indicate if the console should be enabled", action="store_true")
     parser.add_option("-o", "--output", help="specify the name of the output file")
     parser.add_option("-w", "--wallpaper", help="specify the name of the wallpaper file")
@@ -118,6 +119,11 @@ def main():
         homescreen_url = options.homescreen
     else:
         homescreen_url = "app://homescreen.gaiamobile.org/manifest.webapp"
+
+    if options.ftu:
+        ftu_url = options.ftu
+    else:
+        ftu_url = "app://communications.gaiamobile.org/manifest.webapp"
 
     if options.output:
         settings_filename = options.output
@@ -132,6 +138,7 @@ def main():
     if verbose:
         print "Console:", options.console
         print "Homescreen URL:", homescreen_url
+        print "Ftu URL:", ftu_url
         print "Setting Filename:",settings_filename
         print "Wallpaper Filename:", wallpaper_filename
 
@@ -140,6 +147,9 @@ def main():
 
     # Set the homescreen URL
     settings["homescreen.manifestURL"] = homescreen_url
+
+    # Set the ftu manifest URL
+    settings["ftu.manifestURL"] = ftu_url
 
     # Grab wallpaper.jpg and convert it into a base64 string
     wallpaper_file = open(wallpaper_filename, "rb")

@@ -17,10 +17,6 @@ Evme.APIStatsEvents = function(Sandbox){
                 "userEvent": "keyboardReturnClick"
             },
             
-            "Searchbar_empty": {
-                "userEvent": "searchbarEmpty"
-            },
-            
             "suggestions_click": {
                 "userEvent":"suggestionsClick",
                 "idx": "{index}",
@@ -41,13 +37,7 @@ Evme.APIStatsEvents = function(Sandbox){
                 "userEvent":"disambiguationClick",
                 "idx": "{index}"
             },
-            
-            "Shortcuts_show": {
-                "userEvent": "shortcutsShow"
-            },
-            "Shortcuts_hide": {
-                "userEvent": "shortcutsHide"
-            },
+
             "Shortcut_click": {
                 "userEvent": "shortcutsClick",
                 "idx": "{index}"
@@ -67,15 +57,6 @@ Evme.APIStatsEvents = function(Sandbox){
                 "numSuggested": "{numSuggested}",
                 "numSelectedStartedWith": "{numSelectedStartedWith}",
                 "numSuggestedStartedWith": "{numSuggestedStartedWith}"
-            },
-            
-            "HomepageTrending_click": {
-                "userEvent":"trendingClick",
-                "idx": "{index}",
-                "query": "{query}"
-            },
-            "HomepageTrending_fullCycle": {
-                "userEvent":"trendingFullCycle"
             },
             
             "HomepageTip_show": {
@@ -140,10 +121,6 @@ Evme.APIStatsEvents = function(Sandbox){
                 "tipId": "{id}"
             },
             
-            "Searchbar_focus": {
-                "userEvent": "searchbarFocus"
-            },
-            
             "Prompt_show": {
                 "userEvent": "promptShow",
                 "prompt": "{id}",
@@ -165,43 +142,7 @@ Evme.APIStatsEvents = function(Sandbox){
                 "systemText": "{systemText}",
                 "email": "{email}",
             },
-            
-            "Welcome_show": {
-                "userEvent": "welcomeShow"
-            },
-            "Welcome_getTheApp": {
-                "userEvent": "welcomeClickGetTheApp",
-                "text": "{text}"
-            },
-            "Welcome_dismiss": {
-                "userEvent": "welcomeClickToWebApp",
-                "text": "{text}",
-                "page": "{page}"
-            },
-            "Welcome_signup": {
-                "userEvent": "welcomeClickSignup",
-                "text": "{text}",
-                "link": "{href}"
-            },
-            
-            "User_loginShow": {
-                "userEvent": "fbLoginShow"
-            },
-            "User_loginLoaded": {
-                "userEvent": "fbLoginLoaded"
-            },
-            "User_loginCancel": {
-                "userEvent": "fbLoginCancel"
-            },
-            "User_loginClick": {
-                "userEvent": "fbLoginClick"
-            },
-            "User_loginSuccess": {
-                "userEvent": "fbLoginSuccess"
-            },
-            "User_loginFail": {
-                "userEvent": "fbLoginCancel"
-            },
+
             "Url_goTo": {
                 "userEvent": "pageView",
                 "page": "{page}",
