@@ -14,14 +14,13 @@ var EverythingME = {
 
       document.querySelector('#loading-overlay .loading-icon').
                                                     classList.remove('frozen');
-      
+
       EverythingME.displayed = true;
-      
+
       page.addEventListener('gridpageshowend', function onpageshowafterload() {
         if (EverythingME.displayed) return;
-        
+
         EverythingME.displayed = true;
-        EvmeFacade.setOpacityBackground(1);
         EvmeFacade.onShow();
       });
 
@@ -40,10 +39,9 @@ var EverythingME = {
 
     page.addEventListener('gridpagehideend', function onpagehide() {
       if (!EverythingME.displayed) return;
-      
+
       EverythingME.displayed = false;
       footerStyle.MozTransform = 'translateY(0)';
-      EvmeFacade.setOpacityBackground(0);
       EvmeFacade.onHide();
       EverythingME.pageHideBySwipe = false;
     });
@@ -52,7 +50,7 @@ var EverythingME = {
       EverythingME.pageHideBySwipe = true;
     });
 
-    page.addEventListener("contextmenu", function longPress(evt) {
+    page.addEventListener('contextmenu', function longPress(evt) {
         evt.stopImmediatePropagation();
     });
 
@@ -61,7 +59,8 @@ var EverythingME = {
         return;
       }
 
-      var captured = EvmeFacade.onHideStart(EverythingME.pageHideBySwipe ? "pageSwipe" : "homeButtonClick");
+      var captured = EvmeFacade.onHideStart(EverythingME.pageHideBySwipe ?
+                                            'pageSwipe' : 'homeButtonClick');
       if (captured) {
         evt.stopImmediatePropagation();
         document.location.hash = '#evme';
@@ -70,8 +69,8 @@ var EverythingME = {
   },
 
   load: function EverythingME_load(success) {
-      
-    var CB = !("ontouchstart" in window),
+
+    var CB = !('ontouchstart' in window),
         js_files = ['js/etmmanager.js',
                     'js/Core.js',
                     'config/config.js',
@@ -127,19 +126,19 @@ var EverythingME = {
       }
     }
 
-    for each (var file in js_files) {
+    for each(var file in js_files) {
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = 'everything.me/' + file + (CB? '?' + Date.now() : '');
+      script.src = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
       script.defer = true;
       script.addEventListener('load', onScriptLoad);
       head.appendChild(script);
     }
-    for each (var file in css_files) {
+    for each(var file in css_files) {
       var link = document.createElement('link');
       link.type = 'text/css';
       link.rel = 'stylesheet';
-      link.href= 'everything.me/' + file + (CB? '?' + Date.now() : '');
+      link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
       head.appendChild(link);
     }
   },
@@ -147,11 +146,6 @@ var EverythingME = {
   initEvme: function EverythingME_initEvme(success) {
     Evme.init();
     EvmeFacade = Evme;
-
-    if (this.displayed) {
-      EvmeFacade.setOpacityBackground(1);
-    }
-
     success();
   },
 
@@ -168,10 +162,9 @@ var EverythingME = {
 };
 
 var EvmeFacade = {
-  setOpacityBackground: function() {},
   onHideStart: function() {
     return false;
   }
-}
+};
 
 EverythingME.init();
