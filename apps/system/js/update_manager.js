@@ -300,18 +300,17 @@ var UpdateManager = {
 
   checkStatuses: function um_checkStatuses() {
     this.updatableApps.forEach(function(updatableApp) {
-      if (updatableApp.app.downloadAvailable) {
+      var app = updatableApp.app;
+      if (app.installState === 'installed' && app.downloadAvailable) {
         this.addToUpdatesQueue(updatableApp);
       }
     }, this);
   },
 
   oninstall: function um_oninstall(evt) {
-    var updatableApp = new AppUpdatable(evt.application);
+    var app = evt.application;
+    var updatableApp = new AppUpdatable(app);
     this.addToUpdatableApps(updatableApp);
-    if (evt.application.downloadAvailable) {
-      this.addToUpdatesQueue(updatableApp);
-    }
   },
 
   onuninstall: function um_onuninstall(evt) {
