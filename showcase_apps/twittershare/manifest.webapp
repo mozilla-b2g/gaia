@@ -9,7 +9,7 @@
   },
   "permissions": {
     "systemXHR": {},
-    "device-storage:pictures": {}
+    "device-storage:pictures": { "access": "readwrite" }
   },
   "activities": {
     "share": {

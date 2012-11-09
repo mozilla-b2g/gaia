@@ -17,7 +17,7 @@
     "bluetooth":{},
     "telephony":{},
     "voicemail":{},
-    "device-storage:pictures":{},
+    "device-storage:pictures":{ "access": "readwrite" },
     "settings":{},
     "storage":{},
     "camera":{},
