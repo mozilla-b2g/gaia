@@ -195,7 +195,13 @@ suite('system/Updatable', function() {
       });
 
       suite('ondownloadsuccess', function() {
-        test('should remove self from active downloads', function() {
+        test('should not remove self from active downloads when not updating', function() {
+          mockApp.mTriggerDownloadSuccess();
+          assert.isNull(MockUpdateManager.mLastDownloadsRemoval);
+        });
+
+        test('should remove self from active downloads after downloading', function() {
+          subject.download();
           mockApp.mTriggerDownloadSuccess();
           assert.isNotNull(MockUpdateManager.mLastDownloadsRemoval);
           assert.equal(MockUpdateManager.mLastDownloadsRemoval.app.mId,
@@ -204,6 +210,7 @@ suite('system/Updatable', function() {
 
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
+            subject.download();
             MockWindowManager.mDisplayedApp =
               'http://homescreen.gaiamobile.org';
             mockApp.mTriggerDownloadSuccess();
@@ -215,6 +222,8 @@ suite('system/Updatable', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
             MockWindowManager.mDisplayedApp = origin;
+
+            subject.download();
             mockApp.mTriggerDownloadSuccess();
             assert.isNull(MockAppsMgmt.mLastAppApplied);
 
@@ -228,6 +237,7 @@ suite('system/Updatable', function() {
           });
 
           test('should kill the app before applying the update', function() {
+            subject.download();
             mockApp.mTriggerDownloadSuccess();
             assert.equal('https://testapp.gaiamobile.org',
                          MockWindowManager.mLastKilledOrigin);
@@ -237,6 +247,7 @@ suite('system/Updatable', function() {
 
       suite('ondownloaderror', function() {
         setup(function() {
+          subject.download();
           mockApp.mTriggerDownloadError();
         });
 
@@ -253,6 +264,7 @@ suite('system/Updatable', function() {
 
       suite('ondownloadapplied', function() {
         setup(function() {
+          subject.download();
           mockApp.mTriggerDownloadApplied();
         });
 
