@@ -83,7 +83,6 @@ var UIManager = {
     return this.buttonLetsGo = document.getElementById('end');
   },
   init: function ui_init() {
-    // TODO Use l10n for dates
     var currentDate = new Date();
     var f = new navigator.mozL10n.DateTimeFormat();
     var format = _('shortTimeFormat');
@@ -127,7 +126,7 @@ var UIManager = {
         this.setTimeZone();
         break;
       default:
-        if (event.target.parentNode.parentNode.id == 'networks') {
+        if (event.target.parentNode.id == 'networks') {
           this.chooseNetwork(event);
         }
         break;
@@ -245,27 +244,26 @@ var UIManager = {
     };
   },
   chooseNetwork: function ui_cn(event) {
-    // Remove refresh option
-    UIManager.activationScreen.classList.add('no-options');
     // Retrieve SSID from dataset
     var ssid = event.target.dataset.ssid;
 
     // Do we need to type password?
     if (!WifiManager.isPasswordMandatory(ssid)) {
       WifiManager.connect(ssid);
-      WifiManager.scan(UIManager.renderNetworks);
       return;
     }
+    // Remove refresh option
+    UIManager.activationScreen.classList.add('no-options');
     // Update title
     UIManager.mainTitle.innerHTML = ssid;
-    // Undate network
+    // Update network
     var selectedNetwork = WifiManager.getNetwork(ssid);
-
     var ssidHeader = document.getElementById('wifi_ssid');
     var userLabel = document.getElementById('label_wifi_user');
     var userInput = document.getElementById('wifi_user');
-
+    var passwordInput = document.getElementById('wifi_password');
     // Update form
+    passwordInput.value = '';
     ssidHeader.value = ssid;
     // Render form taking into account the type of network
     UIManager.renderNetworkConfiguration(selectedNetwork, function() {
@@ -288,38 +286,49 @@ var UIManager = {
     var networksDOM = document.getElementById('networks');
     networksDOM.innerHTML = '';
     var networksShown = [];
-    var ssids = Object.getOwnPropertyNames(networks);
-    ssids.sort(function(a, b) {
-      return networks[b].relSignalStrength - networks[a].relSignalStrength;
+    networks.sort(function(a, b) {
+      return b.relSignalStrength - a.relSignalStrength;
     });
 
 
-    // add detected networks
-    for (var i = 0; i < ssids.length; i++) {
-      var network = networks[ssids[i]];
-
-      // ssid
-      var ssid = document.createElement('a');
-
+    // Add detected networks
+    for (var i = 0; i < networks.length; i++) {
+      // Retrieve the network
+      var network = networks[i];
       // Check if is shown
       if (networksShown.indexOf(network.ssid) == -1) {
-        ssid.textContent = network.ssid;
-        ssid.dataset.ssid = network.ssid;
-        // supported authentication methods
-        var small = document.createElement('small');
-        var keys = network.capabilities;
-        if (keys && keys.length) {
-          small.textContent = keys.join(', ');
-          ssid.className = 'wifi-secure';
-        } else {
-          small.textContent = 'open';
-        }
-        networksShown.push(network.ssid);
-        // create list item
+        // Create dom elements
         var li = document.createElement('li');
+        var icon = document.createElement('aside');
+        var ssidp = document.createElement('p');
+        var small = document.createElement('p');
+        // Set Icon
+        icon.classList.add('pack-end');
+        icon.classList.add('icon');
+        var level = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+        icon.classList.add('wifi-signal' + level);
+        // Set SSID
+        ssidp.textContent = network.ssid;
+        li.dataset.ssid = network.ssid;
+        // Show authentication method
+        var keys = network.capabilities;
+        if (network.connected) {
+          small.textContent = _('shortStatus-connected');
+        } else {
+          if (keys && keys.length) {
+            small.textContent = keys.join(', ');
+          } else {
+            small.textContent = _('securityOpen');
+          }
+        }
+        // Update list of shown netwoks
+        networksShown.push(network.ssid);
+        // Append the elements to li
         li.setAttribute('id', network.ssid);
+        li.appendChild(icon);
+        li.appendChild(ssidp);
         li.appendChild(small);
-        li.appendChild(ssid);
+        // Append to DOM
         networksDOM.appendChild(li);
       }
     }
@@ -330,6 +339,7 @@ var UIManager = {
     }
   },
   updateNetworkStatus: function uim_uns(ssid, status) {
-    document.getElementById(ssid).childNodes[0].innerHTML = status;
+    document.getElementById(ssid).
+      querySelector('p:last-child').innerHTML = status;
   }
 };
