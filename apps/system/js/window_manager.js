@@ -540,7 +540,7 @@ var WindowManager = (function() {
     store.delete(url);
   }
 
-  function getAppScreenshotFromFrame(frame, callback, longTimeout) {
+  function getAppScreenshotFromFrame(frame, callback) {
     if (!frame) {
       callback();
       return;
@@ -548,30 +548,12 @@ var WindowManager = (function() {
 
     var req = frame.getScreenshot(frame.offsetWidth, frame.offsetHeight);
 
-    // This serves as a workaround for
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=787519
-    var isTimeout = false;
-    var timer = setTimeout(function getScreenshotTimeout() {
-      console.warn('Window Manager: getScreenshot timeout.');
-      isTimeout = true;
-      callback();
-    }, longTimeout ? 10 * 1000 : 800);
-
-    req.onsuccess = function(evt) {
-      if (isTimeout)
-        return;
-
-      clearTimeout(timer);
+    req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
       callback(result, false);
     };
 
-    req.onerror = function(evt) {
-      if (isTimeout)
-        return;
-
-      clearTimeout(timer);
-
+    req.onerror = function gotScreenshotFromFrameError(evt) {
       console.warn('Window Manager: getScreenshot failed.');
       callback();
     };
@@ -589,31 +571,6 @@ var WindowManager = (function() {
 
       putAppScreenshotToDatabase(frame.src || frame.dataset.frameOrigin,
                                  screenshot);
-    }, true);
-  }
-
-  // Meta method for getting app screenshot from database, or
-  // get it from the app frame.
-  function getAppScreenshot(frame, callback) {
-    if (!callback || !frame)
-      return;
-
-    // If the frame is just being append and app content is just being loaded,
-    // let's get the screenshot from the database instead.
-    if ('unpainted' in frame.dataset) {
-      getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
-                                   callback);
-      return;
-    }
-
-    getAppScreenshotFromFrame(frame, function(screenshot, isCached) {
-      if (!screenshot) {
-        getAppScreenshotFromDatabase(frame.src || frame.dataset.frameOrigin,
-                                     callback);
-        return;
-      }
-
-      callback(screenshot, isCached);
     });
   }
 
