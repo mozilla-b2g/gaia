@@ -786,6 +786,11 @@ var WindowManager = (function() {
           return;
         }
         ftu = Applications.getByManifestURL(ftuManifestURL);
+        if (!ftu) {
+          dump('Opps, bogus FTU manifest.\n');
+          ensureHomescreen();
+          return;
+        }
         ftuURL = ftu.origin + ftu.manifest.entry_points['ftu'].launch_path;
         ftu.launch('ftu');
       };
