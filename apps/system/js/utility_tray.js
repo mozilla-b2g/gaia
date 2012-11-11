@@ -93,7 +93,13 @@ var UtilityTray = {
 
   onTouchMove: function ut_onTouchMove(touch) {
     var screenHeight = this.overlay.getBoundingClientRect().height;
-    var dy = -(this.startY - touch.pageY);
+    var y = touch.pageY;
+    if (y > this.lastY)
+      this.opening = true;
+    else if (y < this.lastY)
+      this.opening = false;
+    this.lastY = y;
+    var dy = -(this.startY - y);
     if (this.shown)
       dy += screenHeight;
     dy = Math.min(screenHeight, dy);
@@ -104,19 +110,7 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
-    var screenHeight = this.overlay.getBoundingClientRect().height;
-    var dy = -(this.startY - touch.pageY);
-    var offset = Math.abs(dy);
-
-    if (!this.shown && offset == 0)
-      this.hide(true);
-
-    if ((!this.shown && offset > screenHeight / 4) ||
-        (this.shown && offset < 10)) {
-      this.show();
-    } else {
-      this.hide();
-    }
+    this.opening ? this.show() : this.hide();
   },
 
   hide: function ut_hide(instant) {
