@@ -21,7 +21,7 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'error', 'error-back', 'error-reload', 'select-one', 'select-one-cancel',
-      'select-one-menu', 'select-one-title'];
+      'select-one-menu', 'select-one-title', 'error-title', 'error-message'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -161,8 +161,11 @@ var ModalDialog = {
 
   // Show relative dialog and set message/input value well
   show: function md_show(origin) {
-    this.currentOrigin = origin;
+    if (!(origin in this.currentEvents))
+      return;
+    
     var evt = this.currentEvents[origin];
+    this.currentOrigin = origin;
 
     var message = evt.detail.message || '';
     var elements = this.elements;
@@ -205,16 +208,33 @@ var ModalDialog = {
 
       // Error
       case 'other':
-        elements.error.classList.add('visible');
+        this.showErrorDialog();
         break;
     }
 
     this.setHeight(window.innerHeight - StatusBar.height);
   },
 
+  showErrorDialog: function md_showErrorDialog() {
+    var _ = navigator.mozL10n.get;
+    var elements = this.elements;
+    var appName = WindowManager.getCurrentDisplayedApp().name;
+    if (AirplaneMode.enabled) {
+      elements.errorTitle.textContent = _('airplane-is-on');
+      elements.errorMessage.textContent = _('airplane-is-turned-on', {name: appName});
+    } else if (!navigator.onLine) {
+      elements.errorTitle.textContent = _('network-connection-unavailable');
+      elements.errorMessage.textContent = _('network-error', {name: appName});
+    } else {
+      elements.errorTitle.textContent = _('error-title', {name: appName});
+      elements.errorMessage.textContent = _('error-message', {name: appName});
+    }
+    this.elements.error.classList.add('visible');
+  },
+
   hide: function md_hide() {
     var evt = this.currentEvents[this.currentOrigin];
-    var type = evt.detail.promptType || evt.detail.type;
+    var type = evt.detail.promptType || 'error';
     if (type == 'prompt') {
       this.elements.promptInput.blur();
     }

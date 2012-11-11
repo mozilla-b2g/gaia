@@ -61,11 +61,6 @@
 //   predict: given an input string, return the most likely
 //      completions or corrections for it.
 //
-//   dropDictionary: releases the memory used by the dictionary. This can
-//      free up memory when the keyboard is idle and predictions are not
-//      needed. When this method is called, the predict() method
-//      won't work until setDictionary() has been called again.
-//
 'use strict';
 
 var Predictions = (function() {
@@ -597,11 +592,6 @@ var Predictions = (function() {
     _start = pos;
   }
 
-  function dropDictionary() {
-    dump('predictions.js: dropping dictionary\n');
-    _dict = null;
-  }
-
   function setLayout(params) {
     // For each key, calculate the keys nearby.
     var keyWidth = params.keyWidth;
@@ -658,7 +648,6 @@ var Predictions = (function() {
 
   return {
     setDictionary: setDictionary,
-    dropDictionary: dropDictionary,
     setLayout: setLayout,
     predict: predict
   };
