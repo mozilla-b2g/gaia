@@ -78,7 +78,9 @@ var Camera = {
     height: 288
   },
 
+  _shutterKey: 'camera.shutter.enabled',
   _shutterSound: new Audio('./resources/sounds/shutter.ogg'),
+  _shutterSoundEnabled: true,
 
   _dcfConfig: {
     key: 'dcf_key',
@@ -197,6 +199,17 @@ var Camera = {
 
     if (this._secureMode) {
       this.galleryButton.setAttribute('disabled', 'disabled');
+    }
+
+    if ('mozSettings' in navigator) {
+      var req = navigator.mozSettings.createLock().get(this._shutterKey);
+      req.onsuccess = (function onsuccess() {
+        this._shutterSoundEnabled = req.result[this._shutterKey];
+      }).bind(this);
+
+      navigator.mozSettings.addObserver(this._shutterKey, (function(e) {
+        this._shutterSoundEnabled = e.settingValue;
+      }).bind(this));
     }
 
     this._pictureStorage
@@ -619,7 +632,9 @@ var Camera = {
         this.pickPictureSize(camera.capabilities.pictureSizes);
       this.enableCameraFeatures(camera.capabilities);
       camera.onShutter = (function() {
-        this._shutterSound.play();
+        if (this._shutterSoundEnabled) {
+          this._shutterSound.play();
+        }
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       camera.getPreviewStream(this._previewConfig, gotPreviewScreen.bind(this));
