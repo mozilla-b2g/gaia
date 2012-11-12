@@ -13,5 +13,5 @@ fb.oauthflow.params = {
   redirectMsg:
     'http://intense-tundra-4122.herokuapp.com/fbowd/dialogs_end.html',
   redirectLogout:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/dialogs_end.html'
+    'http://intense-tundra-4122.herokuapp.com/fbowd/logout.json'
 };
