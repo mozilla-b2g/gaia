@@ -146,11 +146,11 @@ if (!fb.link) {
           doGetRemoteProposal(acc_tk, cdata, buildQuery(cdata));
         }
         else {
-          throw ('FB: Contact to be linked not found' + contactId);
+          throw ('FB: Contact to be linked not found: ', cid);
         }
       }
       req.onerror = function() {
-        throw ('FB: Error while retrieving contact data');
+        throw ('FB: Error while retrieving contact data: ', cid);
       }
     }
 
@@ -166,7 +166,6 @@ if (!fb.link) {
 
     // Performs all the work to obtain the remote proposal
     function doGetRemoteProposal(acc_tk, contactData, query) {
-
       /*
         Phone.lookup was analysed but we were not happy about how it worked
 
@@ -339,9 +338,8 @@ if (!fb.link) {
       friendsList.appendChild(template);
     }
 
-
     link.friendsReady = function(response) {
-      if (typeof response.error === 'undefined') {
+      if (typeof response.error === 'undefined' && response.data) {
         viewButton.textContent = _('viewRecommend');
         viewButton.onclick = UI.viewRecommended;
 

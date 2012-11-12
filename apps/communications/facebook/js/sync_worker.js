@@ -10,9 +10,6 @@ importScripts('/contacts/js/fb/fb_query.js',
       access_token,
       forceUpdateUids;
 
-  var retriedTimes = 0;
-  var MAX_TIMES_TO_RETRY = 3;
-
   wutils.addEventListener('message', processMessage);
 
   debug('Worker up and running ....');
@@ -59,24 +56,32 @@ importScripts('/contacts/js/fb/fb_query.js',
   }
 
   function errorQueryCb(e) {
-    self.console.error('<<FB Sync>>: Error while trying to sync');
-    // Here it is needed to set a new alarm for the next n hours
+    self.console.error('<<FB Sync>>: Error while trying to sync', e);
+    postError({
+      type: 'query_error',
+      data: {}
+    });
   }
 
   function timeoutQueryCb(e) {
-    if (retriedTimes < MAX_TIMES_TO_RETRY) {
-      debug('Retrying ... for ', retriedTimes + 1, ' times');
-      retriedTimes++;
-      getFriendsToBeUpdated(Object.keys(uids), Object.keys(forcedUids));
-    }
-    else {
-      // Now set the alarm to do it in the near future
-    }
+    postError({
+      type: 'timeout_error'
+    });
   }
 
   function postError(e) {
+    // Message type to propagate to the worker parent
+    var type = 'query_error';
+    if (e && e.code === 190) {
+      self.console.log('This is a token error. Notifying worker parent');
+      type = 'token_error';
+    }
+    else if (e && e.type === 'timeout_error') {
+      self.console.log('This is a timeout error. Notifying worker parent');
+      type = e.type;
+    }
     wutils.postMessage({
-      type: 'error',
+      type: type,
       data: e
     });
   }
@@ -121,6 +126,7 @@ importScripts('/contacts/js/fb/fb_query.js',
       access_token = message.data.access_token;
       timestamp = message.data.timestamp;
       forceUpdateUids = message.data.imgNeedsUpdate;
+      fb.operationsTimeout = message.data.operationsTimeout;
 
       debug('Worker acks contacts to check: ', Object.keys(uids).length);
 
@@ -128,12 +134,12 @@ importScripts('/contacts/js/fb/fb_query.js',
         debug('These friends are forced to be updated: ' ,
               JSON.stringify(forceUpdateUids));
 
-      retriedTimes = 0;
       getFriendsToBeUpdated(Object.keys(uids), Object.keys(forceUpdateUids));
     }
     else if (message.type === 'startWithData') {
       debug('worker Acks start with data');
 
+      fb.operationsTimeout = message.data.operationsTimeout;
       uids = message.data.uids;
       access_token = message.data.access_token;
       getNewImgsForFriends(Object.keys(uids), access_token);
@@ -158,12 +164,11 @@ importScripts('/contacts/js/fb/fb_query.js',
     // Timestamp is captured right now to avoid problems
     // with updates in between
     var qts = Date.now();
-
-    var updateList = response.data[0].fql_result_set;
-    var removeList = response.data[1].fql_result_set;
-    // removeList = [{target_id: '100001127136581'}];
-
     if (typeof response.error === 'undefined') {
+      var updateList = response.data[0].fql_result_set;
+      var removeList = response.data[1].fql_result_set;
+      // removeList = [{target_id: '100001127136581'}];
+
       wutils.postMessage({
         type: 'totals',
         data: {
