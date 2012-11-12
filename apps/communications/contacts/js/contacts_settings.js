@@ -211,7 +211,6 @@ contacts.Settings = (function() {
         var logoutReq = fb.utils.logout();
 
         logoutReq.onsuccess = function() {
-          Contacts.hideOverlay();
           checkFbImported(false);
           // And it is needed to clear any previously set alarm
           window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
@@ -222,15 +221,16 @@ contacts.Settings = (function() {
               window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
             }
           });
+          contacts.List.load();
+          Contacts.hideOverlay();
         }
 
         logoutReq.onerror = function(e) {
+          contacts.List.load();
           Contacts.hideOverlay();
           window.console.error('Contacts: Error while FB logout: ',
                               e.target.error);
         }
-
-        contacts.List.load();
       }
 
       req.result.oncleaned = function(num) {
