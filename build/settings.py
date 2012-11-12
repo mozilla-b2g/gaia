@@ -77,7 +77,6 @@ settings = {
  "screen.automatic-brightness": True,
  "screen.brightness": 1,
  "screen.timeout": 60,
- "sms.ringtone": "sms.wav",
  "tethering.usb.enabled": False,
  "tethering.usb.ip": "192.168.0.1",
  "tethering.usb.prefix": "24",
@@ -98,6 +97,8 @@ settings = {
  "ums.enabled": False,
  "ums.mode": 0,
  "vibration.enabled": True,
+ "camera.shutter.enabled": True,
+ "alert-sound.enabled": True,
  "wifi.enabled": True,
  "wifi.disabled_by_wakelock": False,
  "wifi.notification": False

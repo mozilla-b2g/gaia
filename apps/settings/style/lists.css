@@ -137,11 +137,7 @@ ul li p + label:not([for]) {
 
 ul li p + input[type="text"],
 ul li p + input[type="password"] {
-  display: block;
   width: calc(100% - 6rem);
-  font-size: 1.8rem;
-  height: 2rem;
-  line-height: 2rem;
   margin: -1rem auto 1rem;
 }
 

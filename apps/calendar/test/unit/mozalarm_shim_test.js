@@ -28,7 +28,7 @@ suite('mozAlarms shim', function() {
   });
 
   test('round trip', function(done) {
-    this.timeout(10000);
+    this.timeout(100000);
 
     var date = new Date();
     date.setFullYear(date.getFullYear() + 1);

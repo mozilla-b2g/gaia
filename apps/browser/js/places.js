@@ -810,7 +810,9 @@ Places.db = {
         // If not one of the exceptions then delete place and icon
         if (exceptions.indexOf(place.uri) == -1) {
           placesStore.delete(place.uri);
-          iconStore.delete(place.iconUri);
+          if (place.iconUri) {
+            iconStore.delete(place.iconUri);
+          }
         } else {
           // For exceptions, just reset frecency
           Places.db.resetPlaceFrecency(place.uri);

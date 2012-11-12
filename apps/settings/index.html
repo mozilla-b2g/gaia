@@ -11,6 +11,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
 
     <!-- Specific style -->
     <link rel="stylesheet" type="text/css" href="style/lists.css"/>
@@ -36,6 +37,7 @@
     <script type="application/javascript" defer src="js/app_storage.js"></script>
     <script type="application/javascript" defer src="js/media_storage.js"></script>
     <script type="application/javascript" defer src="js/connectivity.js"></script>
+    <script type="application/javascript" defer src="js/security_privacy.js"></script>
 
     <!-- all non-#root panels will lazy-load their own scripts -->
   </head>
@@ -699,15 +701,6 @@
         <h1 data-l10n-id="select-tone"> Select a Tone </h1>
       </header>
 
-      <ul>
-        <li id="tone-disabled">
-          <label>
-            <input type="radio" name="tone-option" data-ignore value="disabled" data-label="Disabled" />
-            <span></span>
-          </label>
-          <a data-l10n-id="disabled">Disabled</a>
-        </li>
-      </ul>
       <header>
         <h2 data-l10n-id="ring-tones">Ringtones</h2>
       </header>
@@ -792,12 +785,6 @@
             <button id="call-tone-selection" class="tone-select">Old School</button>
           </span>
         </li>
-        <li>
-          <span data-l10n-id="message">Message
-            <button id="sms-tone-selection" class="tone-select">
-              Beep Beep</button>
-          </span>
-        </li>
       </ul>
 
       <header>
@@ -806,10 +793,24 @@
       <ul>
         <li>
           <label>
+            <input type="checkbox" name="alert-sound.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="alerts">Alerts</a>
+        </li>
+        <li>
+          <label>
             <input type="checkbox" name="phone.ring.keypad" checked />
             <span></span>
           </label>
           <a data-l10n-id="keypad">Keypad</a>
+        </li>
+        <li>
+          <label>
+            <input type="checkbox" name="camera.shutter.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="camera-shutter">Camera Shutter</a>
         </li>
         <li>
           <label>
@@ -962,11 +963,13 @@
     </section>
 
     <!-- Personalization :: Language & Region -->
+    <!-- We should remove 'hidden' on the region selector and set 
+         data-l10n-id to languageAndRegion after being implemented in V2. -->
     <section role="region" hidden id="languages">
       <!--
       <header>
         <a href="#root"><span class="icon icon-back">back</span></a>
-        <h1 data-l10n-id="languageAndRegion"> Language &amp; Region </h1>
+        <h1 data-l10n-id="language"> Language </h1>
       </header>
 
       <ul>
@@ -980,7 +983,7 @@
             </select>
           </span>
         </li>
-        <li>
+        <li hidden>
           <span data-l10n-id="region">Region
             <select name="region.current">
               <option value="BR">Brasil</option>
@@ -2100,7 +2103,8 @@
         </li>
         <li>
           <small id="language-desc" class="menu-item-desc"></small>
-          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="languageAndRegion">Language &amp; Region</a>
+          <!-- The data-l10n-id and title should be changed from language to languageAndRegion in V2. -->
+          <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
         </li>
         <li>
           <small id="keyboard-desc" class="menu-item-desc"></small>
