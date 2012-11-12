@@ -36,6 +36,26 @@ contacts.Form = (function() {
   var PHOTO_WIDTH = 320;
   var PHOTO_HEIGHT = 320;
 
+  var contactDeletionDialog = parent.document.getElementById(
+    'contact-deletion-dialog');
+  var contactDeletionDialogCancel = parent.document.getElementById(
+    'contact-deletion-dialog-cancel');
+  var contactDeletionDialogCancelHandler =
+    function contactDeletionDialogCancelHandler(ev) {
+      contactDeletionDialog.classList.remove('visible');
+    };
+  contactDeletionDialogCancel.addEventListener('click',
+    contactDeletionDialogCancelHandler);
+  var contactDeletionDialogConfirm = parent.document.getElementById(
+    'contact-deletion-dialog-confirm');
+  var contactDeletionDialogConfirmHandler =
+    function contactDeletionDialogConfirmHandler(ev) {
+      deleteContact(currentContact);
+      contactDeletionDialog.classList.remove('visible');
+    };
+  contactDeletionDialogConfirm.addEventListener(
+    'click', contactDeletionDialogConfirmHandler);
+
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
     thumb = dom.querySelector('#thumbnail-photo');
@@ -158,23 +178,7 @@ contacts.Form = (function() {
       renderTemplate(current, contact[current]);
     }
     deleteContactButton.onclick = function deleteClicked(event) {
-      var msg = _('deleteConfirmMsg');
-      var yesObject = {
-        title: _('remove'),
-        callback: function onAccept() {
-          deleteContact(currentContact);
-          CustomDialog.hide();
-        }
-      };
-
-      var noObject = {
-        title: _('cancel'),
-        callback: function onCancel() {
-          CustomDialog.hide();
-        }
-      };
-
-      CustomDialog.show(null, msg, noObject, yesObject);
+      contactDeletionDialog.classList.add('visible');
     };
   };
 

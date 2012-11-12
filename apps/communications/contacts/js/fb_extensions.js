@@ -13,6 +13,27 @@ if (typeof Contacts.extFb === 'undefined') {
     var canClose = true;
     var closeRequested = false;
 
+    var friendUnlinkDialog = parent.document.getElementById(
+      'friend-unlink-dialog');
+    var friendUnlinkDialogCancel = parent.document.getElementById(
+      'friend-unlink-dialog-cancel');
+    var friendUnlinkDialogCancelHandler =
+      function friendUnlinkDialogCancelHandler(ev) {
+        friendUnlinkDialog.classList.remove('visible');
+      };
+    friendUnlinkDialogCancel.addEventListener('click',
+      friendUnlinkDialogCancelHandler);
+    var friendUnlinkDialogConfirm = parent.document.getElementById(
+      'friend-unlink-dialog-confirm');
+    var contactID;
+    var friendUnlinkDialogConfirmHandler =
+      function friendUnlinkDialogConfirmHandler(ev) {
+        friendUnlinkDialog.classList.remove('visible');
+        doUnlink(contactID);
+      };
+    friendUnlinkDialogConfirm.addEventListener('click',
+      friendUnlinkDialogConfirmHandler);
+
     extFb.startLink = function(cid, linked) {
       canClose = true;
       contactId = cid;
@@ -21,21 +42,21 @@ if (typeof Contacts.extFb === 'undefined') {
       } else {
         unlink(contactId);
       }
-    }
+    };
 
     extFb.importFBFromUrl = function importFromUrl(path) {
       load(path, 'friends');
-    }
+    };
 
     extFb.importFB = function(evt) {
       closeRequested = false;
       canClose = false;
       load('fb_import.html?contacts=1', 'friends');
-    }
+    };
 
     function open() {
       extensionFrame.className = 'opening';
-    }
+    };
 
     function load(uri, from) {
       extensionFrame.dataset.animFrom = 'left';
@@ -82,22 +103,22 @@ if (typeof Contacts.extFb === 'undefined') {
         var profileUrl = 'https://m.facebook.com/' + uid;
 
         openURL(profileUrl);
-      }
+      };
 
       req.onerror = function() {
         window.console.error('Contacts FB Profile: Contact not found');
-      }
-    }
+      };
+    };
 
     extFb.wallPost = function(cid) {
       contactId = cid;
       fb.msg.ui.wallPost(contactId);
-    }
+    };
 
     extFb.sendPrivateMsg = function(cid) {
       contactId = cid;
       fb.msg.ui.sendPrivateMsg(contactId);
-    }
+    };
 
     extFb.initEventHandlers = function(socialNode, contact, linked) {
       var elements = {
@@ -132,12 +153,12 @@ if (typeof Contacts.extFb === 'undefined') {
         });
         node.addEventListener('click', elements[nodeName].callback);
       }
-    }
+    };
 
     function onClickWithId(evt, callback) {
       var contactId = evt.target.dataset['id'];
       callback(contactId);
-    }
+    };
 
     /*
       The following functons are similar,
@@ -191,37 +212,22 @@ if (typeof Contacts.extFb === 'undefined') {
             contacts.List.remove(originalFbContact.id);
           }
           Contacts.showContactDetail(contactId);
-        }
+        };
 
         req.onerror = function() {
            window.console.error('FB: Error while linking contacts', req.error);
-        }
-      }
+        };
+      };
 
       mozContReq.onerror = function() {
          window.console.error('FB: Error while linking contacts',
                               mozContReq.error);
-      }
+      };
     }
 
     function unlink(cid) {
-      var msg = _('social-unlink-confirm-title');
-      var yesObject = {
-        title: _('social-unlink-confirm-accept'),
-        callback: function onAccept() {
-          CustomDialog.hide();
-          doUnlink(cid);
-        }
-      };
-
-      var noObject = {
-        title: _('cancel'),
-        callback: function onCancel() {
-          CustomDialog.hide();
-        }
-      };
-
-      CustomDialog.show(null, msg, noObject, yesObject);
+      contactID = cid;
+      friendUnlinkDialog.classList.add('visible');
     }
 
     function doUnlink(cid) {
@@ -236,11 +242,11 @@ if (typeof Contacts.extFb === 'undefined') {
           Contacts.updateContactDetail(cid);
           contacts.List.refresh(freq.result);
         }
-      }
+      };
 
       freq.onerror = function() {
         window.console.error('FB: Error while unlinking', freq.error);
-      }
+      };
     }
 
     function notifySettings() {

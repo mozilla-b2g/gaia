@@ -92,3 +92,14 @@ body.hidden *[data-l10n-id] {
   display: none;
 }
 
+/*
+  Dialogs visualization
+ */
+
+.appdialog {
+  display: none;
+}
+
+.appdialog.visible {
+  display: inline-block;
+}
