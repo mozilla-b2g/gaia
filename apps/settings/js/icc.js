@@ -229,6 +229,10 @@
       case icc.STK_EVENT_TYPE_MT_CALL:
       case icc.STK_EVENT_TYPE_CALL_CONNECTED:
       case icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
+        debug(' STK: Registering to communications changes event');
+        var comm = navigator.mozTelephony;
+        comm.addEventListener('callschanged', handleCallsChangedEvent);
+        break;
       case icc.STK_EVENT_TYPE_LOCATION_STATUS:
       case icc.STK_EVENT_TYPE_USER_ACTIVITY:
       case icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
@@ -247,6 +251,60 @@
         break;
       }
     }
+  }
+
+  /**
+   * Handle Call Events
+   */
+  function handleCallsChangedEvent(evt) {
+    if (evt.type != 'callschanged') {
+      return;
+    }
+    debug(' STK Communication changed - ' + evt.type);
+    navigator.mozTelephony.calls.forEach(function callIterator(call) {
+      debug( ' STK:CALLS State change: ' + call.state);
+      var outgoing = call.state == 'incoming';
+      if (call.state == 'incoming') {
+        // MozStkCallEvent
+        icc.sendStkEventDownload({
+          eventType: icc.STK_EVENT_TYPE_MT_CALL,
+          number: call.number,
+          isIssuedByRemote: outgoing,
+          error: null
+        });
+      }
+      call.addEventListener('error',function callError(err) {
+        // MozStkCallEvent
+        icc.sendStkEventDownload({
+          eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+          number: call.number,
+          error: err
+        });
+      });
+      call.addEventListener('statechange',function callStateChange() {
+        debug(' STK:CALL State Change: ' + call.state);
+        switch (call.state) {
+          case 'connected':
+            // MozStkCallEvent
+            icc.sendStkEventDownload({
+              eventType: icc.STK_EVENT_TYPE_CALL_CONNECTED,
+              number: call.number,
+              isIssuedByRemote: outgoing
+            });
+            break;
+          case 'disconnected':
+            call.removeEventListener('statechange', callStateChange);
+            // MozStkCallEvent
+            icc.sendStkEventDownload({
+              eventType: icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+              number: call.number,
+              isIssuedByRemote: outgoing,
+              error: null
+            });
+            break;
+        }
+      })
+    });
   }
 
   /**
@@ -368,7 +426,7 @@
     if (options.isAlphabet) {
       input.type = 'text';
     } else {
-      input.type = 'number';
+      input.type = 'tel';
     }
     if (options.defaultText) {
       input.value = options.defaultText;
