@@ -363,6 +363,9 @@ var WindowManager = (function() {
     // Set displayedApp to the new value
     displayedApp = frame.dataset.frameOrigin;
 
+    // Set orientation for the new app
+    setOrientationForApp(displayedApp);
+
     // Dispatch an 'appopen' event.
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appopen', true, false, { origin: displayedApp });
@@ -590,6 +593,9 @@ var WindowManager = (function() {
     if ('setVisible' in openFrame)
       openFrame.setVisible(true);
 
+    // set the size of the opening app
+    setAppSize(origin);
+
     if (origin === homescreen) {
       // We cannot apply background screenshot to home screen app since
       // the screenshot is encoded in JPEG and the alpha channel is
@@ -636,6 +642,17 @@ var WindowManager = (function() {
     var homescreenFrame = ensureHomescreen();
     homescreenFrame.setVisible(true);
 
+    // Take keyboard focus away from the closing window
+    closeFrame.blur();
+
+    // set orientation for homescreen app
+    setOrientationForApp(homescreen);
+
+    // Set the size of both homescreen app and the closing app
+    // since the orientation had changed.
+    setAppSize(homescreen);
+    setAppSize(origin);
+
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
@@ -643,8 +660,6 @@ var WindowManager = (function() {
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
 
-    // Take keyboard focus away from the closing window
-    closeFrame.blur();
 
     setTimeout(function startClosingTransition() {
       // Start the transition
@@ -682,7 +697,6 @@ var WindowManager = (function() {
       var app = Applications.getByManifestURL(homescreenManifestURL);
       appendFrame(null, homescreen, homescreenURL,
                   app.manifest.name, app.manifest, app.manifestURL);
-      setAppSize(homescreen);
       openWindow(homescreen, null);
       addWrapperListener();
 
@@ -810,7 +824,6 @@ var WindowManager = (function() {
     }
     // Case 2: null --> app
     else if (!currentApp && newApp != homescreen) {
-      setAppSize(newApp);
       openWindow(newApp, function windowOpened() {
         // TODO Implement FTU stuff if necessary
       });
@@ -818,20 +831,15 @@ var WindowManager = (function() {
     // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-      setAppSize(newApp);
       openWindow(newApp, callback);
     }
     // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // For screenshot to catch current window size
-      setAppSize(currentApp);
-
-      setAppSize(newApp);
       closeWindow(currentApp, callback);
     }
     // Case 5: app-to-app transition
     else {
-      setAppSize(newApp);
       switchWindow(newApp, callback);
     }
     // Set homescreen as active,
@@ -841,9 +849,6 @@ var WindowManager = (function() {
     } else {
       homescreenFrame.classList.remove('active');
     }
-
-    // Lock orientation as needed
-    setOrientationForApp(newApp);
 
     // Record the time when app was launched,
     // need this to display apps in proper order on CardsView.
@@ -866,6 +871,7 @@ var WindowManager = (function() {
     if (!app)
       return;
     var manifest = app.manifest;
+
     if (manifest.orientation) {
       var rv = screen.mozLockOrientation(manifest.orientation);
       if (rv === false) {
