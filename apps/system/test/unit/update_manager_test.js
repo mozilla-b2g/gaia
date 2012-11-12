@@ -9,6 +9,7 @@ requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/test/unit/mock_notification_screen.js');
 
 
 // We're going to swap those with mock objects
@@ -34,6 +35,9 @@ if (!this.SettingsListener) {
 if (!this.StatusBar) {
   this.StatusBar = null;
 }
+if (!this.NotificationScreen) {
+  this.NotificationScreen = null;
+}
 
 suite('system/UpdateManager', function() {
   var realAppUpdatable;
@@ -45,6 +49,7 @@ suite('system/UpdateManager', function() {
   var realSystemBanner;
   var realSettingsListener;
   var realStatusBar;
+  var realNotificationScreen;
   var realDispatchEvent;
 
   var apps;
@@ -80,6 +85,9 @@ suite('system/UpdateManager', function() {
 
     realStatusBar = window.StatusBar;
     window.StatusBar = MockStatusBar;
+
+    realNotificationScreen = window.NotificationScreen;
+    window.NotificationScreen = MockNotificationScreen;
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -120,6 +128,7 @@ suite('system/UpdateManager', function() {
     window.SystemBanner = realSystemBanner;
     window.SettingsListener = realSettingsListener;
     window.StatusBar = realStatusBar;
+    window.NotificationScreen = realNotificationScreen;
 
     navigator.mozL10n = realL10n;
     navigator.requestWakeLock = realRequestWakeLock;
@@ -205,6 +214,7 @@ suite('system/UpdateManager', function() {
     MockSystemBanner.mTearDown();
     MockSettingsListener.mTearDown();
     MockStatusBar.mTearDown();
+    MockNotificationScreen.mTearDown();
 
     fakeNode.parentNode.removeChild(fakeNode);
     fakeToaster.parentNode.removeChild(fakeToaster);
@@ -384,7 +394,7 @@ suite('system/UpdateManager', function() {
       test('should show the downloading progress if downloading', function() {
         UpdateManager._downloading = true;
         UpdateManager.render();
-        assert.equal('downloadingMessage{"progress":"0.00 bytes"}',
+        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
                      UpdateManager.message.textContent);
       });
 
@@ -414,19 +424,19 @@ suite('system/UpdateManager', function() {
         evt.initEvent('click', true, true);
         UpdateManager.startAllDownloads(evt);
 
-        assert.equal('downloadingMessage{"progress":"0.00 bytes"}',
+        assert.equal('downloadingUpdateMessage{"progress":"0.00 bytes"}',
                      UpdateManager.message.textContent);
       });
 
       test('should increment the downloadedBytes', function() {
         UpdateManager.downloadProgressed(100);
-        assert.equal('downloadingMessage{"progress":"1.30 kB"}',
+        assert.equal('downloadingUpdateMessage{"progress":"1.30 kB"}',
                      UpdateManager.message.textContent);
       });
 
       test('should not update if bytes <= 0', function() {
         UpdateManager.downloadProgressed(-100);
-        assert.equal('downloadingMessage{"progress":"1.21 kB"}',
+        assert.equal('downloadingUpdateMessage{"progress":"1.21 kB"}',
                      UpdateManager.message.textContent);
       });
     });
@@ -514,12 +524,10 @@ suite('system/UpdateManager', function() {
           });
         });
 
-        test('should show a new statusbar notification', function(done) {
-          MockStatusBar.notificationsCount = 2;
-          assert.equal('2', MockStatusBar.notificationsCount);
+        test('should add a new statusbar notification', function(done) {
+          var method1 = 'incExternalNotifications';
           setTimeout(function() {
-            assert.equal('3', MockStatusBar.notificationsCount);
-            assert.equal(true, MockStatusBar.mNotificationUnread);
+            assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
             done();
           }, tinyTimeout * 2);
         });
@@ -527,7 +535,6 @@ suite('system/UpdateManager', function() {
 
       suite('no more updates', function() {
         setup(function() {
-          MockStatusBar.notificationsCount = 1;
           UpdateManager.container.classList.add('displayed');
           UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
           UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
@@ -538,15 +545,9 @@ suite('system/UpdateManager', function() {
           assert.isFalse(css.contains('displayed'));
         });
 
-        test('should hide the statusbar notification', function() {
-          assert.equal(0, MockStatusBar.notificationsCount);
-        });
-
-        test('should not put the status bar count to -1', function() {
-          MockStatusBar.notificationsCount = 0;
-          UpdateManager.updatesQueue = [uAppWithDownloadAvailable];
-          UpdateManager.removeFromUpdatesQueue(uAppWithDownloadAvailable);
-          assert.equal(0, MockStatusBar.notificationsCount);
+        test('should decrease the external notifications count', function() {
+          var method1 = 'decExternalNotifications';
+          assert.ok(MockNotificationScreen.wasMethodCalled[method1]);
         });
       });
     });
