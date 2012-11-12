@@ -15,30 +15,10 @@
   var ringtonePlayer = new Audio();
 
   /* === Settings === */
-  var activeSMSSound = true;
-  SettingsListener.observe('ring.enabled', true, function(value) {
-    activeSMSSound = !!value;
-  });
-
-  var selectedSmsSound = 'style/ringtones/sms.wav';
-  SettingsListener.observe('sms.ringtone', 'sms.wav', function(value) {
-    selectedSmsSound = (value == 'disabled') ? null : 'style/ringtones/' + value;
-  });
-
   var activateSMSVibration = false;
   SettingsListener.observe('vibration.enabled', true, function(value) {
     activateSMSVibration = !!value;
   });
-
-  function ring() {
-    var ringtonePlayer = new Audio();
-    ringtonePlayer.src = selectedSmsSound;
-    ringtonePlayer.play();
-    window.setTimeout(function smsRingtoneEnder() {
-      ringtonePlayer.pause();
-      ringtonePlayer.src = '';
-    }, 2000);
-  }
 
   function vibrate() {
     navigator.vibrate([200, 200, 200, 200]);
@@ -50,10 +30,6 @@
     // progress to the user. Se blackllist.js for more information.
     if (BlackList.has(message.sender))
       return;
-
-    if (activeSMSSound) {
-      ring();
-    }
 
     if (activateSMSVibration && 'vibrate' in navigator) {
       // If the screen is turned off we need to wait for it to turn on

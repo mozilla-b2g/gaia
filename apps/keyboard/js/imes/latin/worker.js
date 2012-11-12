@@ -19,10 +19,6 @@
 //  setLayout: the input method uses this message to pass a new keyboard
 //    layout to the prediction engine
 //
-//  idle: the input method uses this message to tell the worker and
-//    prediction engine that it has become idle and request that they
-//    release the dictionary so its memory can be reclaimed.
-//
 //  predict: the input method uses this message to ask the prediction
 //    engine to suggestion completions for (or corrections to) the specified
 //    string. The worker responds with a "predictions" message whose argument
@@ -80,11 +76,6 @@ var Commands = {
 
   setLayout: function setLayout(layout) {
     Predictions.setLayout(layout);
-  },
-
-  idle: function idle() {
-    currentLanguage = null;
-    Predictions.dropDictionary();
   },
 
   predict: function predict(prefix) {

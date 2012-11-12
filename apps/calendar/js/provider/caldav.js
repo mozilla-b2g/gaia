@@ -58,7 +58,42 @@ Calendar.ns('Provider').Caldav = (function() {
         'caldav',
         'getAccount',
         account,
-        callback
+        function(err, data) {
+          if (err) {
+            var error = new Error();
+            if (err.constructorName === 'UnauthenticatedError') {
+
+              error.name = 'unauthenticated';
+
+            } else if (
+              err.code !== 'undefined' &&
+              err.constructorName === 'CaldavHttpError'
+            ) {
+              switch (err.code) {
+                case 401:
+                  error.name = 'unauthenticated';
+                  break;
+                case 404:
+                  error.name = 'no-url';
+                  break;
+                case 500:
+                  error.name = 'internal-server-error';
+                  break;
+                default:
+                  error.name = 'default';
+                  break;
+              }
+
+            } else {
+
+              error.name = 'default';
+
+            }
+            callback(error);
+            return;
+          }
+          callback(null, data);
+        }
       );
     },
 

@@ -565,6 +565,8 @@ var LockScreen = {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
+    this.updateTime();
+
     this.switchPanel();
 
     this.overlay.focus();
@@ -576,8 +578,6 @@ var LockScreen = {
     this.mainScreen.classList.add('locked');
 
     screen.mozLockOrientation('portrait-primary');
-
-    this.updateTime();
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen)

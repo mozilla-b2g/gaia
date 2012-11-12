@@ -4,6 +4,8 @@
 'use strict';
 
 var AirplaneMode = {
+  enabled: false,
+
   init: function apm_init() {
     if (!window.navigator.mozSettings)
       return;
@@ -44,6 +46,7 @@ var AirplaneMode = {
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
       if (value) {
         // Entering airplane mode.
+        self.enabled = true;
 
         // Turn off mobile data
         // We toggle the mozSettings value here just for the sake of UI,
@@ -92,6 +95,7 @@ var AirplaneMode = {
         }
 
       } else {
+        self.enabled = false;
         // Don't attempt to turn on mobile data if it's already on
         if (mobileData && !mobileDataEnabled && restoreMobileData) {
           SettingsListener.getSettingsLock().set({

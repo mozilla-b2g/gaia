@@ -12,40 +12,25 @@ var SoundSettings = {
     value: null
   },
 
-  smsSettings: {
-    button: document.getElementById('sms-tone-selection'),
-    key: 'sms.ringtone',
-    value: null
-  },
-
   init: function ss_init() {
     var self = this;
     this.callSettings.button.onclick = function() {
-      //Call must have a tone ring.
-      document.getElementById('tone-disabled').hidden = true;
       self.showDialog(self.callSettings);
-    };
-    this.smsSettings.button.onclick = function() {
-      document.getElementById('tone-disabled').hidden = false;
-      self.showDialog(self.smsSettings);
     };
 
     var lock = window.navigator.mozSettings.createLock();
     var req = lock.get(this.callSettings.key);
     req.onsuccess = function ss_getDialerTone() {
-      self.callSettings.value = req.result['dialer.ringtone'] || 'classic.ogg';
+      self.callSettings.value = req.result[self.callSettings.key] || 'classic.ogg';
       self.updateButton(self.callSettings);
-    };
-    var req2 = lock.get(this.smsSettings.key);
-    req2.onsuccess = function ss_getSmsTone() {
-      self.smsSettings.value = req2.result['sms.ringtone'] || 'sms.wav';
-      self.updateButton(self.smsSettings);
     };
     // Listen to touch on tones
     var labels = this.dialog.querySelectorAll('label');
     for (var i = 0; i < labels.length; i++) {
       var label = labels[i];
-      label.onmouseup = audioPreview.bind(null, label);
+      label.onmouseup = function() { 
+        audioPreview(this);
+      };
     }
   },
 
