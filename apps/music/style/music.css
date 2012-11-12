@@ -248,11 +248,11 @@ body.player-mode #views {
 }
 
 #views-sublist-controls-play {
-  background-image: url('./images/IconAction_Media_Play_30x30.png');
+  background-image: url('./images/controls_play.png');
 }
 
 #views-sublist-controls-shuffle {
-  background-image: url('./images/IconAction_Media_ShuffleOn_30x30.png');
+  background-image: url('./images/controls_shuffle.png');
 }
 
 .album-controls-button {
@@ -546,11 +546,11 @@ body.player-mode #views {
 }
 
 #player-album-shuffle {
-  background-image: url('./images/IconAction_Media_ShuffleOn_30x30.png');
+  background-image: url('./images/controls_shuffle.png');
 }
 
 #player-album-repeat {
-  background-image: url('./images/IconAction_Media_RepeatInfinite_30x30.png');
+  background-image: url('./images/controls_repeat.png');
 }
 
 #player-album-rating {
@@ -661,15 +661,15 @@ button::-moz-focus-inner {
 }
 
 #player-controls-previous {
-  background-image: url('./images/IconAction_Media_SkipBackwards_30x30.png');
+  background-image: url('./images/controls_backward.png');
 }
 
 #player-controls-play.is-pause {
-  background-image: url('./images/IconAction_Media_Play_30x30.png');
+  background-image: url('./images/controls_play.png');
 }
 
 #player-controls-next {
-  background-image: url('./images/IconAction_Media_SkipForward_30x30.png');
+  background-image: url('./images/controls_forward.png');
 }
 
 .player-controls-button {
@@ -710,19 +710,19 @@ button::-moz-focus-inner {
 }
 
 #tabs-mix {
-  background-image: url('./images/IconAction_Camera_GridView_30x30.png');
+  background-image: url('./images/tabs_mix.png');
 }
 
 #tabs-playlists {
-  background-image: url('./images/IconAction_Media_PlayList_30x30.png');
+  background-image: url('./images/tabs_playlists.png');
 }
 
 #tabs-artists {
-  background-image: url('./images/IconAction_Media_ArtistFilter_30x30.png');
+  background-image: url('./images/tabs_artists.png');
 }
 
 #tabs-albums {
-  background-image: url('./images/IconAction_Media_AlbumFilter_30x30.png');
+  background-image: url('./images/tabs_albums.png');
 }
 
 .tabs-button {
