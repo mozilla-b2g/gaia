@@ -1,13 +1,20 @@
-requireApp('system/js/app_install_manager.js');
 requireApp('system/js/system_banner.js');
-
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
+requireApp('system/test/unit/mock_statusbar.js');
+requireApp('system/js/app_install_manager.js');
+requireApp('system/js/app_install_manager.js');
+
+// prevent Mocha to choke on "leaks" that are not leaks
+if (!window.StatusBar) {
+  window.StatusBar = null;
+}
 
 suite('system/AppInstallManager', function() {
   var realL10n;
   var realDispatchResponse;
   var realSystemBannerShow;
+  var realStatusBar;
 
   var fakeDialog;
 
@@ -31,6 +38,9 @@ suite('system/AppInstallManager', function() {
         type: type
       };
     };
+
+    realStatusBar = window.StatusBar;
+    window.StatusBar = MockStatusBar;
   });
 
   suiteTeardown(function() {
@@ -46,6 +56,9 @@ suite('system/AppInstallManager', function() {
 
     navigator.mozL10n = realL10n;
     AppInstallManager.dispatchResponse = realDispatchResponse;
+
+    window.StatusBar = realStatusBar;
+    realStatusBar = null;
   });
 
   setup(function() {
@@ -290,6 +303,119 @@ suite('system/AppInstallManager', function() {
         });
       });
     });
+  });
+
+  suite('duringInstall', function() {
+    var mockApp, e;
+
+    setup(function() {
+      e = new CustomEvent('applicationinstall', { detail: {} });
+    });
+
+
+    function dispatchEvent() {
+        e.detail.application = mockApp;
+        window.dispatchEvent(e);
+    }
+
+    suite('hosted app without cache', function() {
+      setup(function() {
+        mockApp = new MockApp({
+          manifest: {
+            name: 'Fake app',
+            size: 5245678,
+            developer: {
+              name: 'Fake dev',
+              url: 'http://fakesoftware.com'
+            },
+            updateManifest: null
+          },
+          installState: 'installed'
+        });
+
+        dispatchEvent();
+      });
+
+      test('should not show the icon', function() {
+        assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      });
+
+      test('should do nothing if we get downloadsuccess', function() {
+        mockApp.mTriggerDownloadSuccess();
+        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+
+      test('should do nothing if we get downloaderror', function() {
+        mockApp.mTriggerDownloadError();
+        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+    });
+
+    suite('hosted app with cache', function() {
+      setup(function() {
+        mockApp = new MockApp({
+          manifest: {
+            name: 'Fake app',
+            developer: {
+              name: 'Fake dev',
+              url: 'http://fakesoftware.com'
+            }
+          },
+          updateManifest: null,
+          installState: 'pending'
+        });
+
+        dispatchEvent();
+      });
+
+      test('should show the icon', function() {
+        assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      });
+
+      test('should remove the icon if we get downloadsuccess', function() {
+        mockApp.mTriggerDownloadSuccess();
+        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+
+      test('should remove the icon if we get downloaderror', function() {
+        mockApp.mTriggerDownloadError();
+        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+    });
+
+    suite('packaged app', function() {
+      setup(function() {
+        mockApp = new MockApp({
+          manifest: null,
+          updateManifest: {
+            name: 'Fake app',
+            size: 5245678,
+            developer: {
+              name: 'Fake dev',
+              url: 'http://fakesoftware.com'
+            }
+          },
+          installState: 'pending'
+        });
+
+        dispatchEvent();
+      });
+
+      test('should show the icon', function() {
+        assert.ok(MockStatusBar.wasMethodCalled['incSystemDownloads']);
+      });
+
+      test('should remove the icon if we get downloadsuccess', function() {
+        mockApp.mTriggerDownloadSuccess();
+        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+
+      test('should remove the icon if we get downloaderror', function() {
+        mockApp.mTriggerDownloadError();
+        assert.ok(MockStatusBar.wasMethodCalled['decSystemDownloads']);
+      });
+    });
+
   });
 
   suite('humanizeSize', function() {

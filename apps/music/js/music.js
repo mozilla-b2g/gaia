@@ -121,6 +121,29 @@ function hideScanProgress() {
 }
 
 //
+// Web Activities
+//
+
+// Use Web Activities to share files
+function shareFile(filename) {
+  musicdb.getFile(filename, function(file) {
+    var a = new MozActivity({
+      name: 'share',
+      data: {
+        type: file.type,
+        number: 1,
+        blobs: [file],
+        filenames: [filename]
+      }
+    });
+
+    a.onerror = function(e) {
+      console.warn('share activity error:', a.error.name);
+    };
+  });
+}
+
+//
 // Overlay messages
 //
 var currentOverlay;  // The id of the current overlay or null if none.
@@ -504,8 +527,8 @@ var ListView = {
         var artistSpan = document.createElement('span');
         albumSpan.className = 'list-main-title';
         artistSpan.className = 'list-sub-title';
-        albumSpan.textContent = result.metadata.album;
-        artistSpan.textContent = result.metadata.artist;
+        albumSpan.textContent = result.metadata.album || unknownAlbum;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(albumSpan);
         a.appendChild(artistSpan);
 
@@ -516,7 +539,7 @@ var ListView = {
       case 'artist':
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
-        artistSpan.textContent = result.metadata.artist;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(artistSpan);
 
         a.dataset.keyRange = result.metadata.artist;
@@ -526,7 +549,7 @@ var ListView = {
       case 'playlist':
         var titleSpan = document.createElement('span');
         titleSpan.className = 'list-single-title';
-        titleSpan.textContent = result.metadata.title;
+        titleSpan.textContent = result.metadata.title || unknownTitle;
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
@@ -565,11 +588,11 @@ var ListView = {
             SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
-            SubListView.setAlbumName(data.metadata.artist);
+            SubListView.setAlbumName(data.metadata.artist || unknownArtist);
           } else if (option === 'album') {
-            SubListView.setAlbumName(data.metadata.album);
+            SubListView.setAlbumName(data.metadata.album || unknownAlbum);
           } else {
-            SubListView.setAlbumName(data.metadata.title);
+            SubListView.setAlbumName(data.metadata.title || unknownTitle);
           }
 
           var targetOption =
@@ -620,6 +643,7 @@ var SubListView = {
     this.dataSource = [];
     this.index = 0;
     this.backgroundIndex = 0;
+    this.isContextmenu = false;
 
     this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
@@ -628,7 +652,8 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
-    this.view.addEventListener('click', this);
+    this.view.addEventListener('mouseup', this);
+    this.view.addEventListener('contextmenu', this);
   },
 
   clean: function slv_clean() {
@@ -727,9 +752,14 @@ var SubListView = {
   },
 
   handleEvent: function slv_handleEvent(evt) {
+    var target = evt.target;
+
     switch (evt.type) {
-      case 'click':
-        var target = evt.target;
+      case 'mouseup':
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+          return;
+        }
 
         if (target === this.shuffleButton) {
           this.shuffle();
@@ -750,6 +780,15 @@ var SubListView = {
           changeMode(MODE_PLAYER);
         }
 
+        break;
+
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        var targetIndex = parseInt(target.dataset.index);
+        var songData = this.dataSource[targetIndex];
+
+        shareFile(songData.name);
         break;
 
       default:
@@ -942,12 +981,9 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
 
-      TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : unknownTitle);
-      this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : unknownArtist;
-      this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : unknownAlbum;
+      TitleBar.changeTitleText(songData.metadata.title || unknownTitle);
+      this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.album.textContent = songData.metadata.album || unknownAlbum;
       this.currentIndex = targetIndex;
 
       // backgroundIndex is from the index of sublistView

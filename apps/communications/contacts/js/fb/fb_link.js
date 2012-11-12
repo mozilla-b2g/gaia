@@ -65,7 +65,7 @@ if (!fb.link) {
       if (contact.name && contact.name.length > 0 &&
                                       contact.name[0].length > 0) {
         // First the name condition is put there
-        NAME_COND[2] = contact.name[0].toLowerCase();
+        NAME_COND[2] = contact.name[0].trim().toLowerCase();
       }
       else {
          // The condition will be false by definition
@@ -77,7 +77,7 @@ if (!fb.link) {
       if (contact.tel && contact.tel.length > 0) {
         contact.tel.forEach(function(tel) {
           filter.push(' OR ');
-          CELL_COND[2] = tel.value;
+          CELL_COND[2] = tel.value.trim();
           filter.push(CELL_COND.join(''));
         });
       }
@@ -85,7 +85,7 @@ if (!fb.link) {
       if (contact.email && contact.email.length > 0) {
         contact.email.forEach(function(email) {
           filter.push(' OR ');
-          MAIL_COND[2] = email.value;
+          MAIL_COND[2] = email.value.trim();
           filter.push(MAIL_COND.join(''));
         });
       }
@@ -102,7 +102,7 @@ if (!fb.link) {
       if (contact.givenName && contact.givenName.length > 0 &&
                                contact.givenName[0].length > 0) {
         // First the name condition is put there
-        FIRST_NAME_COND[2] = contact.givenName[0].toLowerCase();
+        FIRST_NAME_COND[2] = contact.givenName[0].trim().toLowerCase();
       }
       else {
          // The condition will be false by definition
@@ -115,7 +115,7 @@ if (!fb.link) {
       if (contact.familyName && contact.familyName.length > 0 &&
                                 contact.familyName[0].length > 0) {
         // First the name condition is put there
-        LAST_NAME_COND[2] = contact.familyName[0].toLowerCase();
+        LAST_NAME_COND[2] = contact.familyName[0].trim().toLowerCase();
       }
       else {
          // The condition will be false by definition
@@ -146,11 +146,11 @@ if (!fb.link) {
           doGetRemoteProposal(acc_tk, cdata, buildQuery(cdata));
         }
         else {
-          throw ('FB: Contact to be linked not found' + contactId);
+          throw ('FB: Contact to be linked not found: ', cid);
         }
       }
       req.onerror = function() {
-        throw ('FB: Error while retrieving contact data');
+        throw ('FB: Error while retrieving contact data: ', cid);
       }
     }
 
@@ -166,7 +166,6 @@ if (!fb.link) {
 
     // Performs all the work to obtain the remote proposal
     function doGetRemoteProposal(acc_tk, contactData, query) {
-
       /*
         Phone.lookup was analysed but we were not happy about how it worked
 
@@ -339,9 +338,8 @@ if (!fb.link) {
       friendsList.appendChild(template);
     }
 
-
     link.friendsReady = function(response) {
-      if (typeof response.error === 'undefined') {
+      if (typeof response.error === 'undefined' && response.data) {
         viewButton.textContent = _('viewRecommend');
         viewButton.onclick = UI.viewRecommended;
 
@@ -508,6 +506,8 @@ if (!fb.link) {
       else {
         link.friendsReady(allFriends);
       }
+      
+      return false;
     }
 
     UI.viewRecommended = function(event) {

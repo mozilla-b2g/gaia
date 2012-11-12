@@ -9,7 +9,18 @@ suite('view', function() {
   setup(function() {
     el = document.createElement('div');
     el.id = 'view';
+    el.innerHTML = [
+      '<section role="status">',
+        '<div class="errors"></div>',
+      '</section>'
+    ].join('');
+
     document.body.appendChild(el);
+    subject.selectors: {
+      errors: 'section[role="status"] .errors',
+      status: 'section[role="status"]'
+    };
+
 
     subject = new Calendar.View('#view');
   });
@@ -173,6 +184,21 @@ suite('view', function() {
       triggerEvent(target, 'click');
     });
 
+  });
+
+  test('#displayErrors', function() {
+    var errors = [{ name: 'foo' }];
+    subject.showErrors(errors);
+
+    var list = subject.status.classList;
+    var errors = subject.errors.textContent;
+
+    assert.ok(errors);
+    assert.include(errors, 'foo');
+
+    assert.ok(list.contains(subject.activeClass));
+    triggerEvent(subject.status, 'animationend');
+    assert.ok(!list.contains(subject.activeClass));
   });
 
   test('#onactive', function() {
