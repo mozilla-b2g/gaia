@@ -36,13 +36,14 @@ section[role="region"] > header:first-child sup {
 /* Contact detail main section */
 
 .view-contact-profile article.view-body {
-  overflow: auto;
   position: absolute;
-  width: -moz-calc(100% + 1rem);
+  width: calc(100% + 1rem);
+  min-height: calc(100% + 2rem);
 }
 
 .view-contact-profile .view-body-inner {
-  background: transparent no-repeat center -8rem;
+  background: transparent no-repeat;
+  transform: translateY(-7rem);
   background-size: 100% auto;
   padding: 0;
   background-color: #f5f5f5;
@@ -52,18 +53,18 @@ section[role="region"] > header:first-child sup {
 }
 
 #contact-detail-inner {
-  padding-bottom: 2rem;
+  padding-bottom: 1rem;
 }
 
 .view-contact-profile .view-body-inner.up {
-  background-position: center -8rem;
-  -moz-transition: background-position 0.25s ease-out;
+  transform: translateY(-7rem);
+  transition: transform 0.25s ease-out;
 }
 
 .view-contact-profile .view-body-inner > section {
   padding: 0 2rem;
   background: #f5f5f5;
-  min-height: 100%;
+  min-height: calc(100% - 16rem);
   overflow: hidden;
   width: 100%;
   position: absolute;
@@ -79,12 +80,12 @@ section[role="region"] > header:first-child sup {
 }
 
 .view-contact-profile .view-body-inner > section.no-photo {
-  transform: translateY(0);
+  transform: translateY(8rem);
 }
 
 .view-contact-profile .view-body-inner > section.up {
-  transform: translateY(8rem);
-  -moz-transition: transform 0.5s ease-out;
+  transform: translateY(16rem);
+  transition: transform 0.5s ease-out;
 }
 
 .view-contact-profile .view-body-inner .comment-notes {
@@ -306,7 +307,7 @@ fieldset legend.action:after {
   padding: 2rem;
   opacity: 0;
   -moz-box-sizing: border-box;
-  -moz-transition: opacity 0.3s ease-out;
+  transition: opacity 0.3s ease-out;
 }
 
 .loading-container {
@@ -380,7 +381,7 @@ body[role="application"] section[role="region"] > header .icon.icon-settings
      { background-image: url(/contacts/style/gphx/bitmap/default/vw-header/icons/settings.png); }
 
 section.view[data-state="active"] {
-  -moz-transition: transform 0.5s ease;
+  transition: transform 0.5s ease;
 }
 
 #view-settings ul li {
