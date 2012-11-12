@@ -220,7 +220,6 @@ iframe.backgroundWindow {
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
-#screen.popup #dialog-overlay,
 #screen.trustedui #trustedui-container,
 #screen.trustedui #dialog-overlay {
   visibility: visible;

@@ -4,7 +4,8 @@ Calendar.ns('Service').Caldav = (function() {
 
   /* TODO: ugly hack to enable system XHR fix upstream in Caldav lib */
   var xhrOpts = {
-    mozSystem: true
+    mozSystem: true,
+    mozAnon: true
   };
 
   Caldav.Xhr.prototype.globalXhrOptions = xhrOpts;

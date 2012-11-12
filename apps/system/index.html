@@ -354,7 +354,20 @@
               <div id="popup-throbber"></div>
             </header>
           </section>
-          <div id="frame-container"></div>
+          <div id="frame-container">
+            <div id="popup-error-dialog" role="dialog">
+              <div class="inner">
+                <h3 data-l10n-id="error-title" id="popup-error-title">Hmm, the app is having problems.</h3>
+                <p>
+                <span data-l10n-id="error-message" id="popup-error-message">The app has encountered an error and is not loading properly.</span>
+                </p>
+              </div>
+              <menu data-items="2">
+                <button id="popup-error-back" data-l10n-id="close">Close</button>
+                <button id="popup-error-reload" data-l10n-id="try-again">Try again</button>
+              </menu>
+            </div>
+          </div>
         </div>
 
         <div id="trustedui-container">
@@ -393,7 +406,7 @@
         <div id="modal-dialog">
           <div id="modal-dialog-alert" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-alert-title"></h3>
               <p>
                 <span id="modal-dialog-alert-message"></span>
               </p>
@@ -405,7 +418,7 @@
 
           <div id="modal-dialog-confirm" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-confirm-title"></h3>
               <p>
                 <span id="modal-dialog-confirm-message"></span>
               </p>
@@ -418,7 +431,7 @@
 
           <div id="modal-dialog-prompt" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3></h3>
+              <h3 id="modal-dialog-prompt-title"></h3>
               <p>
                 <span id="modal-dialog-prompt-message"></span>
                 <input id="modal-dialog-prompt-input" />
@@ -432,15 +445,14 @@
 
           <div id="modal-dialog-error" role="dialog">
             <div class="modal-dialog-message-container inner">
-              <h3 data-l10n-id="error-title">Hmm, the app is having problems.</h3>
+              <h3 data-l10n-id="error-title" id="modal-dialog-error-title">Hmm, the app is having problems.</h3>
               <p>
-                <span id="modal-dialog-sad-face">:(</span>
-                <span data-l10n-id="error-message">The app has encountered an error and is not loading properly.</span>
+              <span data-l10n-id="error-message" id="modal-dialog-error-message">The app has encountered an error and is not loading properly.</span>
               </p>
             </div>
             <menu data-items="2">
-              <button id="modal-dialog-error-back" data-l10n-id="back">Back</button>
-              <button id="modal-dialog-error-reload" data-l10n-id="reload">Try Reloading</button>
+              <button id="modal-dialog-error-back" data-l10n-id="close">Close</button>
+              <button id="modal-dialog-error-reload" data-l10n-id="try-again">Try again</button>
             </menu>
           </div>
 
