@@ -508,6 +508,8 @@ if (!fb.link) {
       else {
         link.friendsReady(allFriends);
       }
+      
+      return false;
     }
 
     UI.viewRecommended = function(event) {
