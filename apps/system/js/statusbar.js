@@ -46,8 +46,10 @@ var StatusBar = {
 
   headphonesActive: false,
 
-  // JW: this keeps how many current installs/updates we do
-  // JW: it triggers the icon "systemDownloads"
+  /**
+   * this keeps how many current installs/updates we do
+   * it triggers the icon "systemDownloads"
+   */
   systemDownloadsCount: 0,
 
   /* For other app to acquire */
