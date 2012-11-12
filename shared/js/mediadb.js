@@ -747,7 +747,8 @@ var MediaDB = (function() {
         var cursor = cursorRequest.result;
         if (cursor) {
           try {
-            callback(cursor.value);
+            if (!cursor.value.fail)   // if metadata parsing succeeded
+              callback(cursor.value);
           }
           catch (e) {
             console.warn('MediaDB.enumerate(): callback threw', e);
@@ -1207,9 +1208,13 @@ var MediaDB = (function() {
       function metadataError(e) {
         console.warn('MediaDB: error parsing metadata for',
                      filename, ':', e);
-        // If we get an error parsing the metadata, treat the file
-        // as malformed, and don't insert it into the database.
-        next();
+        // If we get an error parsing the metadata, assume it is invalid
+        // and make a note in the fileinfo record that we store in the database
+        // If we don't store it in the database, we'll keep finding it
+        // on every scan. But we make sure never to return the invalid file
+        // on an enumerate call.
+        fileinfo.fail = true;
+        storeRecord(fileinfo);
       }
       function gotMetadata(metadata) {
         fileinfo.metadata = metadata;
