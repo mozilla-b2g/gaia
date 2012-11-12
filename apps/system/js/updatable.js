@@ -19,12 +19,15 @@ function AppUpdatable(app) {
   this.name = app.manifest.name;
   this.size = app.updateManifest ? app.updateManifest.size : null;
   app.ondownloadavailable = this.availableCallBack.bind(this);
-  app.ondownloaderror = this.errorCallBack.bind(this);
-  app.ondownloadsuccess = this.successCallBack.bind(this);
-  app.ondownloadapplied = this.appliedCallBack.bind(this);
 }
 
 AppUpdatable.prototype.download = function() {
+  // we add these callbacks only now to prevent interfering
+  // with other modules (especially the AppInstallManager)
+  this.app.ondownloaderror = this.errorCallBack.bind(this);
+  this.app.ondownloadsuccess = this.successCallBack.bind(this);
+  this.app.ondownloadapplied = this.appliedCallBack.bind(this);
+
   this.app.download();
   UpdateManager.addToDownloadsQueue(this);
 };
@@ -36,6 +39,10 @@ AppUpdatable.prototype.cancelDownload = function() {
 
 AppUpdatable.prototype.uninit = function() {
   this.app.ondownloadavailable = null;
+  this.cleanCallbacks();
+};
+
+AppUpdatable.prototype.cleanCallbacks = function() {
   this.app.ondownloaderror = null;
   this.app.ondownloadsuccess = null;
   this.app.ondownloadapplied = null;
@@ -69,11 +76,14 @@ AppUpdatable.prototype.applyUpdate = function() {
 
 AppUpdatable.prototype.appliedCallBack = function() {
   UpdateManager.removeFromUpdatesQueue(this);
+
+  this.cleanCallbacks();
 };
 
 AppUpdatable.prototype.errorCallBack = function() {
   UpdateManager.requestErrorBanner();
   UpdateManager.removeFromDownloadsQueue(this);
+  this.cleanCallbacks();
 };
 
 
