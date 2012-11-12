@@ -47,7 +47,7 @@
 }
 
 .day-events .event {
-  position: relative;
+  position: absolute;
   height: 6rem;
   top: 0;
   z-index: 10;
@@ -79,12 +79,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  position: absolute;
 }
 
 .day-events .event .details {
   width: calc(100% - 1rem - 6px);
-  position: absolute;
   min-height: 2rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -94,6 +92,10 @@
   color: #535353;
   font-size: 1.1rem;
   top: 3rem;
+}
+
+.day-events .event.partial-hour .details {
+  display: none;
 }
 
 .attendee {
