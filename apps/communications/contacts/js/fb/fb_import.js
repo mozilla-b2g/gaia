@@ -285,10 +285,12 @@ if (typeof fb.importer === 'undefined') {
       return currentRequest;
     }
 
+    // Invoked when friend data to be imported is ready
     Importer.importDataReady = function(response) {
       if (typeof response.error === 'undefined') {
         // Just in case this is the first contact imported
         nextUpdateTime = Date.now();
+        var photoTimeout = false;
 
         var friend = response.data[0];
         if (friend) {
@@ -297,9 +299,15 @@ if (typeof fb.importer === 'undefined') {
           var cimp = new ContactsImporter([friend]);
           cimp.start();
           cimp.onsuccess = function() {
+            var theUrl = friend.pic_big;
+            // If timeout happened then the Url must be set to null to enable
+            // later reconciliation through the sync process
+            if (photoTimeout === true) {
+              theUrl = null;
+            }
             currentRequest.done({
               uid: friend.uid,
-              url: friend.pic_big
+              url: theUrl
             });
 
             // If there is no an alarm set it has to be set
@@ -311,6 +319,9 @@ if (typeof fb.importer === 'undefined') {
               }
             });
           } // onsuccess
+          cimp.onPhotoTimeout = function() {
+            photoTimeout = true;
+          }
         } // if friend
         else {
           window.console.error('FB: No Friend data found');
@@ -487,6 +498,8 @@ if (typeof fb.importer === 'undefined') {
 
       selButton.textContent = 'Unselect All';
       selButton.onclick = UI.unSelectAll;
+
+      return false;
     }
 
     UI.back = function(e) {
@@ -504,6 +517,8 @@ if (typeof fb.importer === 'undefined') {
       selButton.onclick = UI.selectAll;
 
       selectedContacts = {};
+
+      return false;
     }
 
     /**
@@ -588,6 +603,7 @@ if (typeof fb.importer === 'undefined') {
       var total = this.pending = kcontacts.length;
       var mprogress = progress;
       var counter = 0;
+      var self = this;
 
       /**
        *  Imports a slice
@@ -680,6 +696,9 @@ if (typeof fb.importer === 'undefined') {
               // The URL is stored for synchronization purposes
               fb.setFriendPictureUrl(fbInfo, cfdata.pic_big);
             }
+          }
+          else if (typeof self.onPhotoTimeout === 'function') {
+            self.onPhotoTimeout(cfdata.uid);
           }
 
           // Facebook info is set and then contact is saved

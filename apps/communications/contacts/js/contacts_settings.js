@@ -216,9 +216,9 @@ contacts.Settings = (function() {
           // And it is needed to clear any previously set alarm
           window.asyncStorage.getItem(fb.utils.ALARM_ID_KEY, function(data) {
             if (data) {
-              navigator.mozAlarms.remove(data.id);
+              navigator.mozAlarms.remove(Number(data));
               window.asyncStorage.removeItem(fb.utils.ALARM_ID_KEY);
-              window.asyncStorage.removeItem(fb.utils.LAST_UPDATE_KEY);
+              window.asyncStorage.removeItem(fb.utils.LAST_UPDATED_KEY);
               window.asyncStorage.removeItem(fb.utils.CACHE_FRIENDS_KEY);
             }
           });
