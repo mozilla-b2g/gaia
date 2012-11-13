@@ -272,7 +272,7 @@ var Applications = (function() {
     // application to it (technically, manifests are supposed to
     // have those). Otherwise return the url directly as it could be
     // a data: url.
-    var PREFERRED_ICON_SIZE = 64;
+    var PREFERRED_ICON_SIZE = 60;
     var icon = icons[getPreferredSize(icons, PREFERRED_ICON_SIZE)];
     if (icon &&
         (icon.indexOf('data:') !== 0) &&
