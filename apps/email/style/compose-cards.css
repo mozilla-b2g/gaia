@@ -2,6 +2,7 @@
 }
 
 .cmp-addr-label, .cmp-subject-label {
+  color: #888888;
   display: table-cell;
   width: -moz-min-content;
   text-align: left;
@@ -27,10 +28,6 @@
 .cmp-peep-bubble {
   float: left;
   margin-left: 0.3rem;
-}
-
-.cmp-peep-name, .cmp-peep-address {
-  pointer-events: none;
 }
 
 .cmp-to-text-container {
@@ -67,19 +64,15 @@
   width: 2rem;
   height: 2rem;
   padding: 0.5rem;
-  visibility: hidden;
   display: inline-block;
   vertical-align: middle;
-}
-
-.cmp-contact-add.show {
-  visibility: visible;
 }
 
 .cmp-envelope-line {
   display: table;
   table-layout: fixed;
   width: calc(100% - 4rem);
+  border-top: 1px solid transparent;
   border-bottom: 1px solid lightgray;
   margin: 0 2rem;
   padding: 0.4rem 0;
@@ -87,14 +80,42 @@
 }
 
 .cmp-body-text {
-  width: calc(100% - 6px);
-  border-style: solid;
-  border-width: 1px;
-  border-color: #aaa;
-  margin: 0;
-  padding: 2px;
+  -moz-box-sizing: border-box;
+  width: calc(100% - 4rem);
+  min-height: 10rem;
+  margin: 1.5rem 2rem;
+  display: block;
+  overflow: hidden;
+  padding: 0rem;
+  font: 1.4rem/2rem "MozTT", Sans-serif;
+  font-weight: normal;
+  border: none;
+  box-shadow: none;
+  background: #fff;
 }
 
+.cmp-sending-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  background: rgba(0,0,0,.8);
+}
+
+.cmp-messages-sending{
+  position: absolute;
+  top:40%;
+  width: 80%;
+  padding: 0 10% !important;
+}
+
+.cmp-sending-text {
+  color: white;
+  font: 600 2.3rem/1em "MozTT",Sans-serif;
+  padding: 0 1rem;
+}
 /* Attachment */
 .cmp-attachments-container {
   padding: 0 1rem;
@@ -106,9 +127,29 @@
   height: 4rem;
 }
 .cmp-attachment-icon {
+  background: url("images/icons/message-list-attachment.png") no-repeat scroll center transparent;
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  margin-top: -3.5rem;
+  vertical-align: middle;
 }
 .cmp-attachment-filename {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 12.5rem);
 }
 .cmp-attachment-filesize {
   color: gray;
+  display: inline-block;
+  margin-top: -3.5rem;
+  max-width: 4.5rem;
+  vertical-align: middle;
+}
+.cmp-attachment-remove {
+  width: 3.5rem;
+  margin-bottom: 0;
+  position: absolute;
+  right: 1rem;
 }

@@ -14,7 +14,7 @@ body[role="application"] > nav {
   top: 0;
   left: 0;
   overflow: hidden;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: 'MozTT', Sans-serif;
 }
 
 /* Header in drawer */
@@ -38,7 +38,7 @@ body[role="application"] > nav > header:after {
 }
 
 body[role="application"] > nav > header h1 {
-  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
+  font: 2.2rem/4.8rem "MozTT", Sans-serif;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -49,7 +49,7 @@ body[role="application"] > nav > header h1 {
 }
 
 body[role="application"] > nav > header h1 em {
-  font: bold 1.5rem/1em "Open Sans", Sans-serif;
+  font: bold 1.5rem/1em "MozTT", Sans-serif;
 }
 
 /* Generic set of actions in toolbar */
@@ -85,7 +85,7 @@ body[role="application"] > nav > header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
+  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
   color: #fff;
 }
 

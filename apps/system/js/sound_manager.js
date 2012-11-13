@@ -11,7 +11,17 @@
     changeVolume(-1);
   });
 
-  var currentVolume = 5;
+  // This event is generated in shell.js in response to bluetooth headset.
+  // Bluetooth headset always assign audio volume to a specific value when
+  // pressing its volume-up/volume-down buttons.
+  window.addEventListener('mozChromeEvent', function(e) {
+    var type = e.detail.type;
+    if (type == 'volumeset') {
+      changeVolume(e.detail.value - currentVolume);
+    }
+  });
+
+  var currentVolume = 0.5;
   var pendingRequestCount = 0;
 
   // We have three virtual states here:
@@ -28,7 +38,7 @@
   var activeTimeout = 0;
   function changeVolume(delta) {
     if (currentVolume == 0 ||
-        (currentVolume == 1 && delta < 0)) {
+        ((currentVolume + delta) <= 0)) {
       if (delta < 0) {
         if (muteState == 'OFF') {
           muteState = 'VIBRATION';
@@ -46,7 +56,6 @@
     }
 
     var volume = currentVolume + delta;
-
     currentVolume = volume = Math.max(0, Math.min(10, volume));
 
     var overlay = document.getElementById('system-overlay');

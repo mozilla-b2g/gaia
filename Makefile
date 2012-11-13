@@ -23,7 +23,7 @@
 # Headless bot does not need the full output of wget
 # and it can cause crashes in bot.io option is here so
 # -nv can be passed and turn off verbose output.
-WGET_OPTS?=
+WGET_OPTS?=-c
 GAIA_DOMAIN?=gaiamobile.org
 
 DEBUG?=0
@@ -111,6 +111,7 @@ SHELL := /bin/bash
 # what OS are we on?
 SYS=$(shell uname -s)
 ARCH?=$(shell uname -m)
+MSYS_FIX=
 ifeq (${SYS}/${ARCH},Darwin/i386)
 ARCH=x86_64
 endif
@@ -118,6 +119,8 @@ SEP=/
 ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
+# Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
+MSYS_FIX=/
 endif
 
 ifeq ($(SYS),Darwin)
@@ -155,18 +158,9 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
-# Settings database setup
-DB_TARGET_PATH = /data/local/indexedDB
-DB_SOURCE_PATH = profile/indexedDB/chrome
-
 # Generate profile/
-profile: applications-data preferences permissions app-makefiles test-agent-config offline extensions install-xulrunner-sdk
-	@if [ ! -f $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ]; \
-	then \
-	  echo "Settings DB does not exists, creating an initial one:"; \
-	  $(call run-js-command, settings); \
-	fi ;
 
+profile: applications-data preferences app-makefiles test-agent-config offline extensions install-xulrunner-sdk profile/settings.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)profile"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -202,13 +196,18 @@ ifneq ($(DEBUG),1)
 	@echo "Done"
 endif
 
+offline-cache: webapp-manifests install-xulrunner-sdk
+	@echo "Populate external apps appcache"
+	@$(call run-js-command, offline-cache)
+	@echo "Done"
+
 # Create webapps
 offline: webapp-manifests webapp-zip
 
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
-XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/08/2012-08-07-03-05-18-mozilla-central/xulrunner-17.0a1.en-US.
+XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2012/09/2012-09-20-03-05-43-mozilla-central/xulrunner-18.0a1.en-US.
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -274,21 +273,6 @@ define run-js-command
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
 
-settingsdb: install-xulrunner-sdk
-	@echo "B2G pre-populate settings DB."
-	@$(call run-js-command, settings)
-
-.PHONY: install-settingsdb
-install-settingsdb: settingsdb install-xulrunner-sdk
-	$(ADB) start-server
-	@echo 'Stoping b2g'
-	$(ADB) shell stop b2g
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti ${DB_TARGET_PATH}/chrome/2588645841ssegtnti
-	$(ADB) push $(DB_SOURCE_PATH)/2588645841ssegtnti.sqlite ${DB_TARGET_PATH}/chrome/2588645841ssegtnti.sqlite
-	@echo 'Starting b2g'
-	$(ADB) shell start b2g
-	@echo 'Rebooting b2g now. '
-
 # Generate profile/prefs.js
 preferences: install-xulrunner-sdk
 	@echo "Generating prefs.js..."
@@ -303,13 +287,6 @@ preferences: install-xulrunner-sdk
 			cat build/payment-prefs.js >> profile/user.js; \
 		fi
 	@echo "Done"
-
-# Generate profile/permissions.sqlite
-permissions: webapp-manifests install-xulrunner-sdk
-	@echo "Generating permissions.sqlite..."
-	test -d profile || mkdir -p profile
-	@$(call run-js-command, permissions)
-	@echo "Done. If this results in an error remove the xulrunner/xulrunner-sdk folder in your gaia folder."
 
 # Generate profile/
 applications-data: install-xulrunner-sdk
@@ -340,10 +317,16 @@ INJECTED_GAIA = "$(MOZ_TESTS)/browser/gaia"
 
 TEST_PATH=gaia/tests/${TEST_FILE}
 
-TESTS := $(shell find apps -name "*_test.js" -type f | grep integration)
+ifeq ($(TESTS),)
+	ifneq ($(APP),)
+		TESTS=$(shell find apps/$(APP)/test/integration/ -name "*_test.js" -type f )
+	else
+		TESTS=$(shell find apps -name "*_test.js" -type f | grep integration)
+	endif
+endif
 .PHONY: test-integration
 test-integration:
-	@test_apps/test-agent/common/test/bin/test $(TESTS)
+	@./tests/js/bin/runner $(TESTS)
 
 .PHONY: tests
 tests: webapp-manifests offline
@@ -362,19 +345,20 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
+	# integration tests
+	rm -f tests/vendor/marionette.js
+	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js tests/js/vendor/
+
+	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/
-	mkdir -p $(TEST_COMMON)/vendor/marionette-client/
 	mkdir -p $(TEST_COMMON)/vendor/chai/
 	rm -Rf tools/xpcwindow
 	rm -f $(TEST_COMMON)/vendor/test-agent/test-agent*.js
-	rm -f $(TEST_COMMON)/vendor/marionette-client/*.js
 	rm -f $(TEST_COMMON)/vendor/chai/*.js
 	cp -R $(TEST_AGENT_DIR)/node_modules/xpcwindow tools/xpcwindow
 	rm -R tools/xpcwindow/vendor/
-
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.js $(TEST_COMMON)/vendor/test-agent/
 	cp $(TEST_AGENT_DIR)/node_modules/test-agent/test-agent.css $(TEST_COMMON)/vendor/test-agent/
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js $(TEST_COMMON)/vendor/marionette-client/
 	cp $(TEST_AGENT_DIR)/node_modules/chai/chai.js $(TEST_COMMON)/vendor/chai/
 
 # Create the json config file
@@ -468,32 +452,31 @@ lint:
 #     default target.
 stamp-commit-hash:
 	(if [ -d ./.git ]; then \
-	  git log -1 --format="%H%n%at" HEAD > apps/settings/gaia-commit.txt; \
+	  git log -1 --format="%H%n%at" HEAD > apps/settings/resources/gaia_commit.txt; \
 	else \
-	  echo 'Unknown Git commit; build date shown here.' > apps/settings/gaia-commit.txt; \
-	  date +%s >> apps/settings/gaia-commit.txt; \
+	  echo 'Unknown Git commit; build date shown here.' > apps/settings/resources/gaia_commit.txt; \
+	  date +%s >> apps/settings/resources/gaia_commit.txt; \
 	fi)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /data/local/indexedDB/*
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
 	mkdir -p screenshotdata
-	$(ADB) pull /dev/graphics/fb0 screenshotdata/fb0
+	$(ADB) pull $(MSYS_FIX)/dev/graphics/fb0 screenshotdata/fb0
 	dd bs=1920 count=800 if=screenshotdata/fb0 of=screenshotdata/fb0b
 	ffmpeg -vframes 1 -vcodec rawvideo -f rawvideo -pix_fmt rgb32 -s 480x800 -i screenshotdata/fb0b -f image2 -vcodec png screenshot.png
 	rm -rf screenshotdata
 
-
 # Forward port to use the RIL daemon from the device
 forward:
-	$(ADB) shell touch /data/local/rilproxyd
+	$(ADB) shell touch $(MSYS_FIX)/data/local/rilproxyd
 	$(ADB) shell killall rilproxy
 	$(ADB) forward tcp:6200 localreserved:rilproxyd
 
@@ -519,6 +502,7 @@ update-offline-manifests:
 		fi \
 	done
 
+
 # If your gaia/ directory is a sub-directory of the B2G directory, then
 # you should use the install-gaia target of the B2G Makefile. But if you're
 # working on just gaia itself, and you already have B2G firmware on your
@@ -529,17 +513,17 @@ install-gaia: profile
 	$(ADB) start-server
 	@echo 'Stoping b2g'
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /cache/*
+	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
 
 ifeq ($(ADB_REMOUNT),1)
 	$(ADB) remount
 endif
 
 ifeq ($(BUILD_APP_NAME),*)
-	python build/install-gaia.py "$(ADB)" "$(GAIA_INSTALL_PARENT)"
+	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)"
 else
-	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+	$(ADB) push profile/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	$(ADB) push profile/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
 	@echo "Installed gaia into profile/."
 	@echo 'Starting b2g'
@@ -552,14 +536,14 @@ install-media-samples:
 	$(ADB) shell 'if test -d /sdcard/music; then mv /sdcard/music /sdcard/music.temp; mv /sdcard/music.temp /sdcard/Music; fi'
 	$(ADB) shell 'if test -d /sdcard/videos; then mv /sdcard/videos /sdcard/Movies;	fi'
 
-	$(ADB) push media-samples/DCIM /sdcard/DCIM
-	$(ADB) push media-samples/Movies /sdcard/Movies
-	$(ADB) push media-samples/Music /sdcard/Music
+	$(ADB) push media-samples/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push media-samples/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push media-samples/Music $(MSYS_FIX)/sdcard/Music
 
 install-test-media:
-	$(ADB) push test_media/DCIM /sdcard/DCIM
-	$(ADB) push test_media/Movies /sdcard/Movies
-	$(ADB) push test_media/Music /sdcard/Music
+	$(ADB) push test_media/DCIM $(MSYS_FIX)/sdcard/DCIM
+	$(ADB) push test_media/Movies $(MSYS_FIX)/sdcard/Movies
+	$(ADB) push test_media/Music $(MSYS_FIX)/sdcard/Music
 
 dialer-demo:
 	@cp -R apps/contacts apps/dialer
@@ -573,17 +557,33 @@ demo: install-media-samples install-gaia
 production: reset-gaia
 
 # Remove everything and install a clean profile
-reset-gaia: purge install-settingsdb install-gaia
+reset-gaia: purge install-gaia install-settings-defaults
 
 # remove the memories and apps on the phone
 purge:
 	$(ADB) shell stop b2g
-	$(ADB) shell rm -r /data/local/*
-	$(ADB) shell mkdir -p /data/local/tmp
-	$(ADB) shell rm -r /cache/*
-	$(ADB) shell rm -r /data/b2g/*
-	$(ADB) shell rm -r $(GAIA_INSTALL_PARENT)/webapps
+	$(ADB) shell rm -r $(MSYS_FIX)/data/local/*
+	$(ADB) shell mkdir -p $(MSYS_FIX)/data/local/tmp
+	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
+	$(ADB) shell rm -r $(MSYS_FIX)/data/b2g/*
+	$(ADB) shell rm -r $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/webapps
+
+# Build the settings.json file from settings.py
+profile/settings.json: build/settings.py build/wallpaper.jpg
+	python build/settings.py --console --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --output $@
+
+# push profile/settings.json to the phone
+install-settings-defaults: profile/settings.json
+	$(ADB) shell stop b2g
+	$(ADB) remount
+	$(ADB) push profile/settings.json /system/b2g/defaults/settings.json
+	$(ADB) shell start b2g
+
 
 # clean out build products
 clean:
-	rm -rf profile xulrunner-sdk .xulrunner-url
+	rm -rf profile
+
+# clean out build products
+really-clean: clean
+	rm -rf xulrunner-sdk .xulrunner-url

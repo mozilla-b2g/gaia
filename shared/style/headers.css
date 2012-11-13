@@ -25,7 +25,7 @@ section[role="region"] > header:first-child:after {
 }
 
 section[role="region"] > header:first-child h1 {
-  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
+  font: 2.2rem/4.8rem "MozTT", Sans-serif;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -37,7 +37,7 @@ section[role="region"] > header:first-child h1 {
 }
 
 section[role="region"] > header:first-child h1 em {
-  font: bold 1.5rem/1em "Open Sans", Sans-serif;
+  font: bold 1.5rem/1em "MozTT", Sans-serif;
 }
 
 section[role="region"] > header:first-child form {
@@ -48,7 +48,7 @@ section[role="region"] > header:first-child form {
   margin-left: 2.5rem;
 }
 
-section[role="region"] > header:first-child input[type=text] {
+section[role="region"] > header:first-child input[type="text"] {
   width: 100%;
   height: 3rem;
   -moz-box-sizing: border-box;
@@ -57,7 +57,7 @@ section[role="region"] > header:first-child input[type=text] {
   border-top-color: #a6501e;
   border-radius: 0.3rem;
   background: #fff url(headers/images/ui/shadow.png) repeat-x left -0.1rem;
-  font: 1.35rem/3em "Open Sans", Sans-serif;
+  font: 1.35rem/3em "MozTT", Sans-serif;
   box-shadow: none;
 }
 
@@ -76,7 +76,7 @@ section[role="region"] > header:first-child form button[type="reset"] {
   background: url(headers/images/icons/clear.png) no-repeat center center;
 }
 
-section[role="region"] > header:first-child input[type=text]:valid + button[type="reset"] {
+section[role="region"] > header:first-child input[type="text"]:valid + button[type="reset"] {
   display: block;
 }
 
@@ -122,9 +122,10 @@ section[role="region"] > header:first-child button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
+  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
   color: #fff;
   border-radius: 0;
+  text-decoration: none;
 }
 
 
@@ -182,6 +183,10 @@ section[role="region"] > header:first-child .icon.icon-edit {
   background-image: url(headers/images/icons/edit.png);
 }
 
+section[role="region"] > header:first-child .icon.icon-send {
+  background-image: url(headers/images/icons/send.png);
+}
+
 section[role="region"] > header:first-child .icon.icon-close {
   background-image: url(headers/images/icons/close.png);
 }
@@ -196,6 +201,14 @@ section[role="region"] > header:first-child .icon.icon-menu {
 
 section[role="region"] > header:first-child .icon.icon-user {
   background-image: url(headers/images/icons/user.png);
+}
+
+section[role="region"] > header:first-child .icon.icon-reply {
+  background-image: url(headers/images/icons/reply.png);
+}
+
+section[role="region"] > header:first-child .icon.icon-reply-all {
+  background-image: url(headers/images/icons/reply-all.png);
 }
 
 /* Navigation links (back, cancel, etc) */
@@ -254,7 +267,7 @@ section[role="region"] > header:after {
 }
 
 section[role="region"] > header h2 {
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-weight: 600;
   margin: 0 3rem;
   font-size: 1.3rem;
@@ -324,3 +337,35 @@ section[role="region"].skin-organic > header,
   background: #7f7f7f url(headers/images/ui/organic/subheader.png) repeat-x left bottom;
   color: #fff;
 }
+
+/* ----------------------------------
+ * HEADERS: right-to-left tweaks
+ * ---------------------------------- */
+
+html[dir="rtl"] section[role="region"] > header:first-child h1 {
+  text-align: right;
+  margin: 0 3rem 0 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child button,
+html[dir="rtl"] section[role="region"] > header:first-child a {
+  left: inherit;
+  right: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child > button .icon,
+html[dir="rtl"] section[role="region"] > header:first-child > a .icon {
+  margin-left: 0;
+  margin-right: -2rem;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child > button .icon:after,
+html[dir="rtl"] section[role="region"] > header:first-child > a .icon:after {
+  left: inherit;
+  right: 0;
+}
+
+html[dir="rtl"] section[role="region"] > header:first-child .icon.icon-back {
+  background-image: url(headers/images/icons/back-rtl.png);
+}
+

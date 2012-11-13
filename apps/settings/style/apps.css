@@ -1,0 +1,41 @@
+/**
+ * Application Permissions
+ */
+
+#appPermissions ul li img {
+  float: left;
+  margin-top: calc(3rem - 15px);
+  margin-right: 1.4rem;
+  width: 30px;
+  height: 30px;
+}
+
+#permissionsListHeader + ul li select {
+  width: 25%;
+  padding: 5px;
+  border: 0;
+  background: #367fa2;
+  text-align: center;
+  color: black;
+  font-size: 1.3rem;
+}
+
+#permissionsListHeader + ul li select[value='allow'] {
+  background: #22aa22;
+}
+
+#permissionsListHeader + ul li select[value='deny'] {
+  background: #da4e49;
+}
+
+#uninstall-app {
+  display: block;
+  margin: auto;
+  position: relative;
+  top: 1rem;
+  font-size: 1.5rem;
+  line-height: 1em;
+  width: calc(100% - 5rem);
+  height: calc(60px - 2rem);
+}
+

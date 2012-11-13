@@ -5,6 +5,7 @@ var Bookmark = function Bookmark(params) {
   this.origin = params.url;
 
   this.removable = true;
+  this.isBookmark = true;
 
   this.manifest = {
     name: params.name,
@@ -16,13 +17,35 @@ var Bookmark = function Bookmark(params) {
 };
 
 Bookmark.prototype = {
-  launch: function bookmark_launch() {
+  launch: function bookmark_launch(url, name) {
     var features = {
-      name: this.manifest.name,
+      name: this.manifest.name.replace(/\s/g, '&nbsp;'),
       icon: this.manifest.icons['60']
     };
 
-    return window.open(this.origin, '_blank', JSON.stringify(features));
+    if (!Applications.isInstalled(this.origin)) {
+      features.origin = {
+        name: features.name,
+        url: encodeURIComponent(this.origin)
+      };
+    }
+
+    if (url && url !== this.origin && !Applications.isInstalled(url)) {
+      var searchName = navigator.mozL10n.get('wrapper-search-name', {
+        topic: name,
+        name: this.manifest.name
+      }).replace(/\s/g, '&nbsp;');
+
+      features.name = searchName;
+      features.search = {
+        name: searchName,
+        url: encodeURIComponent(url)
+      };
+    }
+
+    // The third parameter is received in window_manager without whitespaces
+    // so we decice replace them for &nbsp;
+    return window.open(url || this.origin, '_blank', JSON.stringify(features));
   },
 
   uninstall: function bookmark_uninstall() {

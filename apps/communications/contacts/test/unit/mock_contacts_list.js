@@ -4,6 +4,7 @@
   return [
     {
       'id': '1',
+      'updated': new Date(),
       'additionalName': [''],
       'adr': [
         {
@@ -42,6 +43,7 @@
     },
     {
       'id': '2',
+      'updated': new Date(),
       'additionalName': [''],
       'adr': [
         {
@@ -80,6 +82,7 @@
     },
     {
       'id': '3',
+      'updated': new Date(),
       'additionalName': [''],
       'adr': [
         {
@@ -97,10 +100,10 @@
         }
       ],
       'familyName': ['CC'],
-      'givenName': ['Pepito'],
+      'givenName': ['Antonio'],
       'jobTitle': [''],
       'name': [
-        'Pepito CC'
+        'Antonio CC'
       ],
       'org': ['Test'],
       'tel': [

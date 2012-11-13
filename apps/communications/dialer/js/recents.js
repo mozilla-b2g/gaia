@@ -17,7 +17,8 @@ var Recents = {
 
   get recentsIconClose() {
     delete this.recentsIconClose;
-    return this.recentsIconClose = document.getElementById('recents-icon-close');
+    return this.recentsIconClose =
+      document.getElementById('recents-icon-close');
   },
 
   get recentsIconDelete() {
@@ -63,6 +64,54 @@ var Recents = {
       getElementById('select-all-threads');
   },
 
+  get iframeContacts() {
+    delete this.iframeContacts;
+    return this.iframeContacts = document.
+      getElementById('iframe-contacts');
+  },
+
+  get addContactActionMenu() {
+    delete this.addContactActionMenu;
+    return this.addContactActionMenu = document.
+      getElementById('add-contact-action-menu');
+  },
+
+  get createNewContactMenuItem() {
+    delete this.createNewContactMenuItem;
+    return this.createNewContactMenuItem = document.
+      getElementById('create-new-contact-menuitem');
+  },
+
+  get addToExistingContactMenuItem() {
+    delete this.addToExistingContactMenuItem;
+    return this.addToExistingContactMenuItem = document.
+      getElementById('add-to-existing-contact-menuitem');
+  },
+
+  get cancelActionMenuItem() {
+    delete this.cancelActionMenuItem;
+    return this.cancelActionMenuItem = document.
+      getElementById('cancel-action-menu');
+  },
+
+  get recentsDeletionConfirmation() {
+    delete this.recentsDeletionConfirmation;
+    return this.recentsDeletionConfirmation = document.
+      getElementById('recents-deletion-confirmation');
+  },
+
+  get recentsDeletionCancel() {
+    delete this.recentsDeletionCancel;
+    return this.recentsDeletionCancel = document.
+      getElementById('recents-deletion-cancel');
+  },
+
+  get recentsDeletionConfirm() {
+    delete this.recentsDeletionConfirm;
+    return this.recentsDeletionConfirm = document.
+      getElementById('recents-deletion-confirm');
+  },
+
   init: function re_init() {
     var self = this;
     if (this.recentsFilterContainer) {
@@ -95,8 +144,40 @@ var Recents = {
         this.selectAllEntries.bind(this));
     }
     if (this.recentsContainer) {
+      this.recentsContainer.addEventListener('mousedown',
+        this.mouseDown.bind(this));
+      this.recentsContainer.addEventListener('mouseup',
+        this.mouseUp.bind(this));
       this.recentsContainer.addEventListener('click',
         this.click.bind(this));
+    }
+    if (this.addContactActionMenu) {
+      this.addContactActionMenu.addEventListener('submit',
+        this.formSubmit.bind(this));
+    }
+    if (this.createNewContactMenuItem) {
+      this.createNewContactMenuItem.addEventListener('click',
+        this.createNewContact.bind(this));
+    }
+    if (this.addToExistingContactMenuItem) {
+      this.addToExistingContactMenuItem.addEventListener('click',
+        this.addToExistingContact.bind(this));
+    }
+    if (this.cancelActionMenuItem) {
+      this.cancelActionMenuItem.addEventListener('click',
+        this.cancelActionMenu.bind(this));
+    }
+    if (this.recentsDeletionConfirmation) {
+      this.recentsDeletionConfirmation.addEventListener('submit',
+        this.formSubmit.bind(this));
+    }
+    if (this.recentsDeletionCancel) {
+      this.recentsDeletionCancel.addEventListener('click',
+        this.cancelRecentsDeletion.bind(this));
+    }
+    if (this.recentsDeletionConfirm) {
+      this.recentsDeletionConfirm.addEventListener('click',
+        this.deleteSelectedRecents.bind(this));
     }
 
     // Setting up the SimplePhoneMatcher
@@ -105,6 +186,10 @@ var Recents = {
       SimplePhoneMatcher.mcc = conn.voice.network.mcc.toString();
     }
 
+    self.refresh();
+  },
+
+  refresh: function re_refresh() {
     RecentsDBManager.init(function() {
       RecentsDBManager.get(function(recents) {
         Recents.render(recents);
@@ -130,7 +215,7 @@ var Recents = {
 
   filter: function re_filter(event) {
     // do nothing if selected tab is same that current
-    if (event.target.classList.contains('selected')) {
+    if (event.target.parentNode.classList.contains('selected')) {
       return;
     }
     var action = event.target.dataset.action;
@@ -157,7 +242,7 @@ var Recents = {
       }
       if (document.body.classList.contains('recents-edit')) {
         var selectedCalls = this.recentsContainer.
-          querySelectorAll('.log-item:not(.hide).selected');
+          querySelectorAll('.log-item:not(.hide) input:checked');
         var selectedCallsLength = selectedCalls.length;
         if (selectedCallsLength == 0) {
           this.headerEditModeText.textContent = _('edit');
@@ -191,7 +276,7 @@ var Recents = {
         }
         if (document.body.classList.contains('recents-edit')) {
           var selectedCalls = this.recentsContainer.
-            querySelectorAll('.log-item:not(.hide).selected');
+            querySelectorAll('.log-item:not(.hide) input:checked');
           var selectedCallsLength = selectedCalls.length;
           if (selectedCallsLength == 0) {
             this.headerEditModeText.textContent = _('edit');
@@ -212,43 +297,52 @@ var Recents = {
   },
 
   selectAllEntries: function re_selectAllEntries() {
-    var itemSelector = '.log-item';
+    var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var count = items.length;
     for (var i = 0; i < count; i++) {
-      items[i].classList.add('selected');
+      items[i].checked = true;
     }
     var itemShown = document.querySelectorAll('.log-item:not(.hide)');
     var itemsCounter = itemShown.length;
     this.headerEditModeText.textContent = _('edit-selected',
                                             {n: itemsCounter});
     this.recentsIconDelete.classList.remove('disabled');
-    this.deselectAllThreads.classList.remove('disabled');
+    this.deselectAllThreads.removeAttribute('disabled');
+    this.selectAllThreads.setAttribute('disabled', 'disabled');
   },
 
   deselectSelectedEntries: function re_deselectSelectedEntries() {
-    var itemSelector = '.log-item.selected';
+    var itemSelector = '.log-item input';
     var items = document.querySelectorAll(itemSelector);
     var length = items.length;
     for (var i = 0; i < length; i++) {
-      items[i].classList.remove('selected');
+      items[i].checked = false;
     }
     this.headerEditModeText.textContent = _('edit');
     this.recentsIconDelete.classList.add('disabled');
-    this.deselectAllThreads.classList.add('disabled');
+    this.selectAllThreads.removeAttribute('disabled');
+    this.selectAllThreads.textContent = _('selectAll');
+    this.deselectAllThreads.setAttribute('disabled', 'disabled');
   },
 
   executeDeletion: function re_executeDeletion() {
-    var response = window.confirm(_('confirm-deletion'));
-    if (!response) {
-      return;
-    }
+    this.recentsDeletionConfirmation.classList.add('visible');
+  },
+
+  cancelRecentsDeletion: function re_cancelRecentsDeletion() {
+    this.recentsDeletionConfirmation.classList.remove('visible');
+  },
+
+  deleteSelectedRecents: function re_deleteSelectedRecents() {
     var selectedEntries = this.getSelectedEntries(),
         selectedLength = selectedEntries.length,
         entriesInGroup, entriesInGroupLength;
     var itemsToDelete = [];
     for (var i = 0; i < selectedLength; i++) {
-      entriesInGroup = this.getEntriesInGroup(selectedEntries[i]);
+      //Selects .log-item instead the checkbox
+      var parentGroup = selectedEntries[i].parentNode.parentNode;
+      entriesInGroup = this.getEntriesInGroup(parentGroup);
       entriesInGroupLength = entriesInGroup.length;
       for (var j = 0; j < entriesInGroupLength; j++) {
         itemsToDelete.push(parseInt(entriesInGroup[j].dataset.date));
@@ -258,6 +352,7 @@ var Recents = {
     RecentsDBManager.deleteList.call(RecentsDBManager,
       itemsToDelete, function deleteCB() {
         RecentsDBManager.get(function(recents) {
+          self.recentsDeletionConfirmation.classList.remove('visible');
           self.render(recents);
           document.body.classList.remove('recents-edit');
         });
@@ -318,11 +413,29 @@ var Recents = {
     return entriesInGroup;
   },
 
+  mouseDown: function re_mouseDown(event) {
+    this._mouseDownX = event.screenX;
+    this._mouseDownY = event.screenY;
+  },
+
+  mouseUp: function re_mouseUp(event) {
+    if (Math.abs(this._mouseDownX - event.screenX) > 10 ||
+      Math.abs(this._mouseDownY - event.screenY) > 10) {
+      this._ignoreClickEvent = true;
+    } else {
+      this._ignoreClickEvent = false;
+    }
+  },
+
   click: function re_click(event) {
+    if (this._ignoreClickEvent) {
+      return;
+    }
     var target = event.target;
     if (!target) {
       return;
     }
+
     if (!document.body.classList.contains('recents-edit')) {
       if (target.classList.contains('call-log-contact-photo')) {
         event.stopPropagation();
@@ -337,24 +450,57 @@ var Recents = {
         }
       }
     } else {
+      //Edit mode
       if (target.classList.contains('call-log-contact-photo')) {
-        target.parentNode.classList.toggle('selected');
         event.stopPropagation();
-      } else if (target.classList.contains('log-item')) {
-        target.classList.toggle('selected');
       }
       var count = this.getSelectedEntries().length;
       if (count == 0) {
         this.headerEditModeText.textContent = _('edit');
         this.recentsIconDelete.classList.add('disabled');
-        this.deselectAllThreads.classList.add('disabled');
+        this.deselectAllThreads.setAttribute('disabled', 'disabled');
+        this.selectAllThreads.removeAttribute('disabled');
+        this.selectAllThreads.textContent = _('selectAll');
       } else {
         this.headerEditModeText.textContent = _('edit-selected',
                                                 {n: count});
         this.recentsIconDelete.classList.remove('disabled');
-        this.deselectAllThreads.classList.remove('disabled');
+        this.deselectAllThreads.removeAttribute('disabled');
+        var itemsShown = document.querySelectorAll('.log-item:not(.hide)');
+        var itemsCounter = itemsShown.length;
+        if (itemsCounter === count) {
+          this.selectAllThreads.setAttribute('disabled', 'disabled');
+        } else {
+          this.selectAllThreads.removeAttribute('disabled');
+        }
       }
     }
+  },
+
+  formSubmit: function formSubmit(event) {
+    return false;
+  },
+
+  createNewContact: function re_createNewContact() {
+    var src = '/contacts/index.html';
+    src += '#view-contact-form?tel=' + this.newPhoneNumber;
+    var timestamp = new Date().getTime();
+    this.iframeContacts.src = src + '&timestamp=' + timestamp;
+    window.location.hash = '#contacts-view';
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
+  addToExistingContact: function re_addToExistingContact() {
+    var src = '/contacts/index.html';
+    src += '#add-parameters?tel=' + this.newPhoneNumber;
+    var timestamp = new Date().getTime();
+    this.iframeContacts.src = src + '&timestamp=' + timestamp;
+    window.location.hash = '#contacts-view';
+    this.addContactActionMenu.classList.remove('visible');
+  },
+
+  cancelActionMenu: function re_cancelActionMenu() {
+    this.addContactActionMenu.classList.remove('visible');
   },
 
   viewOrCreate: function re_viewOrCreate(contactId, phoneNumber) {
@@ -366,34 +512,13 @@ var Recents = {
       contactsIframe.src = src + '&timestamp=' + timestamp;
       window.location.hash = '#contacts-view';
     } else {
-      var action = new ActionMenu(_('addNewNumber'), [
-      {
-        label: _('createNewContact'),
-        callback: function() {
-          src += '#view-contact-form?tel=' + phoneNumber;
-          var timestamp = new Date().getTime();
-          contactsIframe.src = src + '&timestamp=' + timestamp;
-          window.location.hash = '#contacts-view';
-          action.hide();
-        }
-      },
-      {
-        label: _('addToExistingContact'),
-        callback: function() {
-          src += '#add-parameters?tel=' + phoneNumber;
-          var timestamp = new Date().getTime();
-          contactsIframe.src = src + '&timestamp=' + timestamp;
-          window.location.hash = '#contacts-view';
-          action.hide();
-        }
-      }
-      ]);
-      action.show();
+      this.newPhoneNumber = phoneNumber;
+      this.addContactActionMenu.classList.add('visible');
     }
   },
 
   getSelectedEntries: function re_getSelectedGroups() {
-    var itemSelector = '.log-item:not(.hide).selected';
+    var itemSelector = '.log-item:not(.hide) input:checked';
     var items = document.querySelectorAll(itemSelector);
     return items;
   },
@@ -414,8 +539,10 @@ var Recents = {
       '  " data-num="' + recent.number +
       '  " data-date="' + recent.date +
       '  " data-type="' + recent.type + '">' +
-      '  <section class="call-log-selection">' +
-      '  </section>' +
+      '  <label class="call-log-selection danger">' +
+      '    <input type="checkbox" />' +
+      '    <span></span>' +
+      '  </label>' +
       '  <section class="icon-container grid center">' +
       '    <div class="grid-cell grid-v-align">' +
       '      <div class="call-type-icon ' + classes + '"></div>' +
@@ -497,13 +624,13 @@ var Recents = {
       self._missedViewGroupingPending = true;
       if (self.missedFilter.classList.contains('selected')) {
         self.missedFilter.classList.remove('selected');
-        event.target = self.missedFilter;
+        event.target = self.missedFilter.children[0];
         self.filter(event);
         self.missedFilter.classList.add('selected');
         self.allFilter.classList.remove('selected');
       } else {
         self.allFilter.classList.remove('selected');
-        event.target = self.allFilter;
+        event.target = self.allFilter.children[0];
         self.filter(event);
         self.missedFilter.classList.remove('selected');
         self.allFilter.classList.add('selected');
@@ -670,4 +797,3 @@ window.addEventListener('localized', function recentsSetup() {
     FixedHeader.init('#recents-container', '#fixed-container', headerSelector);
     Recents.init();
 });
-

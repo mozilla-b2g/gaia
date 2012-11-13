@@ -27,7 +27,7 @@ var SimPinDialog = {
 
   lockType: 'pin',
   action: 'unlock',
-  origin: 'sim',
+  origin: null,
 
   // Now we don't have a number-password type for input field
   // mimic one by binding one number input and one text input
@@ -40,7 +40,7 @@ var SimPinDialog = {
     // Workaround bug 791920 until we found the root cause.
     // https://bugzilla.mozilla.org/show_bug.cgi?id=791920
     // https://github.com/mozilla-b2g/gaia/issues/4500
-    inputField.addEventListener('click', function (evt) {
+    inputField.addEventListener('click', function(evt) {
       this.blur();
       this.focus();
     });
@@ -110,12 +110,25 @@ var SimPinDialog = {
         this.inputFieldControl(false, true, true);
         this.pukInput.focus();
         break;
-      case 'absent':
+      default:
         this.skip();
         break;
     }
     this.dialogTitle.textContent = _(this.lockType + 'Title') || '';
     this.dialogTitle.dataset.l10nId = this.lockType + 'Title';
+  },
+
+  handleError: function spl_handleLockError(evt) {
+    var retry = (evt.retryCount) ? evt.retryCount : -1;
+    this.showErrorMsg(retry, evt.lockType);
+    if (retry === -1) {
+      this.skip();
+      return;
+    }
+    if (evt.lockType === 'pin')
+      this.pinInput.focus();
+    else
+      this.pukInput.focus();
   },
 
   showErrorMsg: function spl_showErrorMsg(retry, type) {
@@ -163,7 +176,7 @@ var SimPinDialog = {
       this.errorMsg.hidden = false;
       return;
     }
-    var options = {lockType: 'puk', pin: pin, newPin: newPin };
+    var options = {lockType: 'puk', puk: puk, newPin: newPin };
     this.unlockCardLock(options);
     this.clear();
   },
@@ -175,15 +188,6 @@ var SimPinDialog = {
       self.close();
       if (self.onsuccess)
         self.onsuccess();
-    };
-    req.onerror = function sp_unlockError() {
-      var retry = (req.result && req.result.retryCount) ?
-        parseInt(req.result.retryCount, 10) : -1;
-      self.showErrorMsg(retry, self.lockType);
-      if (self.lockType === 'pin')
-        self.pinInput.focus();
-      else
-        self.pukInput.focus();
     };
   },
 
@@ -227,12 +231,6 @@ var SimPinDialog = {
       if (self.onsuccess)
         self.onsuccess();
     };
-    req.onerror = function spl_enableError() {
-      var retry = (req.result && req.result.retryCount) ?
-        parseInt(req.result.retryCount, 10) : -1;
-      self.showErrorMsg(retry, 'pin');
-      self.pinInput.focus();
-    };
   },
   inputFieldControl: function spl_inputField(isPin,  isPuk, isNewPin) {
     this.pinArea.hidden = !isPin;
@@ -271,11 +269,14 @@ var SimPinDialog = {
 
   onsuccess: null,
   oncancel: null,
-  show: function spl_show(action, onsuccess, oncancel) {
+  // the origin parameter records the dialog caller.
+  // when the dialog is closed, we can relocate back to the caller's div.
+  show: function spl_show(action, onsuccess, oncancel, origin) {
     var _ = navigator.mozL10n.get;
 
     this.dialogDone.disabled = true;
     this.action = action;
+    this.lockType = 'pin';
     switch (action) {
       case 'unlock':
         this.handleCardState();
@@ -297,18 +298,20 @@ var SimPinDialog = {
     if (oncancel && typeof oncancel === 'function')
       this.oncancel = oncancel;
 
-    this.origin = document.location.hash;
-    document.location.hash = 'simpin-dialog';
+    this.origin = origin;
+    document.location.hash = '#simpin-dialog';
 
     if (action === 'unlock' && this.lockType === 'puk')
       this.pukInput.focus();
     else
       this.pinInput.focus();
+
   },
 
   close: function spl_close() {
     this.clear();
-    document.location.hash = this.origin;
+    if (this.origin)
+      document.location.hash = this.origin;
   },
 
   skip: function spl_skip() {
@@ -323,8 +326,10 @@ var SimPinDialog = {
     this.mobileConnection = window.navigator.mozMobileConnection;
     if (!this.mobileConnection)
       return;
-    this.mobileConnection.addEventListener('cardstatechange',
-        this.handleCardState.bind(this));
+
+    this.mobileConnection.addEventListener('icccardlockerror',
+      this.handleError.bind(this));
+
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogClose.onclick = this.skip.bind(this);
 
@@ -335,5 +340,5 @@ var SimPinDialog = {
   }
 };
 
-SimPinDialog.init();
+onLocalized(SimPinDialog.init.bind(SimPinDialog));
 

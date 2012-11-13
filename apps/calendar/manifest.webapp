@@ -1,33 +1,23 @@
 {
   "name": "Calendar",
   "description": "Gaia Calendar",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "messages": ["alarm"],
-  "permissions": [
-    "systemXHR",
-    "settings",
-    "alarm",
-    "alarms",
-    "desktop-notification"
+  "messages": [
+     { "alarm": "/index.html" }
   ],
+  "permissions": {
+    "systemXHR":{},
+    "settings":{ "access": "readonly" },
+    "alarms":{},
+    "desktop-notification":{}
+  },
   "locales": {
     "ar": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "ca": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "de": {
-      "name": "Kalender",
-      "description": "Gaia Kalender"
-    },
-    "el": {
       "name": "Calendar",
       "description": "Gaia Calendar"
     },
@@ -35,29 +25,9 @@
       "name": "Calendar",
       "description": "Gaia Calendar"
     },
-    "es": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
     "fr": {
       "name": "Agenda",
       "description": "Agenda Gaia"
-    },
-    "it": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "pt-BR": {
-      "name": "Calendário",
-      "description": "Calendário do Gaia"
-    },
-    "ru": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
-    },
-    "tr": {
-      "name": "Calendar",
-      "description": "Gaia Calendar"
     },
     "zh-TW": {
       "name": "Calendar",

@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
   <link rel="stylesheet" type="text/css" href="/style/week_view.css">
+  <link rel="stylesheet" type="text/css" href="/style/modify_event_view.css">
   <link rel="stylesheet" type="text/css" href="/style/forms.css">
   <link rel="stylesheet" type="text/css" href="/style/settings.css">
   <link rel="stylesheet" type="text/css" href="/style/overlay.css">
@@ -23,6 +24,9 @@
   <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
   <link rel="stylesheet" type="text/css" href="/shared/style/switches.css" />
+  <link rel="stylesheet" type="text/css" href="/shared/style/status.css" />
+
+  <script src="/js/mozalarm_shim.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- shared scripts -->
   <script src="/shared/js/l10n.js" type="text/javascript" charset="utf-8"></script>
@@ -50,6 +54,7 @@
   <script defer src="/js/timespan.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/time_observer.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/interval_tree.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/overlap.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/input_parser.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- templates -->
@@ -73,6 +78,8 @@
   <script defer src="/js/store/calendar.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/setting.js" type="text/javascript" charset="utf-8"></script>
   <script defer src="/js/store/alarm.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/store/ical_component.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="/js/event_mutations.js" type="text/javascript" charset="utf-8"></script>
 
   <!--- models -->
   <script defer src="/js/models/account.js" type="text/javascript" charset="utf-8"></script>
@@ -106,7 +113,7 @@
   <script defer src="/js/app.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
-<body role="application" class="loading" onload="Calendar.App.init();">
+<body role="application" class="loading">
 
 <nav class="skin-organic" id="settings" role="region">
 
@@ -118,7 +125,6 @@
     </menu>
     <h1 data-l10n-id="settings-header">Calendars</h1>
   </header>
-
 
   <ol class="calendars">
   </ol>
@@ -160,6 +166,11 @@
     <h1 id="current-month-year">
     </h1>
   </header>
+
+  <div id="progress-indicator">
+    <img id="throbber" src="/style/ui/progress.png">
+  </div>
+
 
   <section id="month-view">
   </section>
@@ -207,9 +218,9 @@
 
 <section class="fullscreen-view skin-organic" id="create-account-view" role="region">
   <header>
-    <a data-l10n-id="cancel" href="javascript: window.history.go(-1);">
-      <span class="icon icon-back">Cancel</span>
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
 
     <h1 data-l10n-id="add-account">
       Add an account
@@ -218,6 +229,7 @@
 
   <ol id="create-account-presets" class="link-list">
   </ol>
+
 </section>
 
 <section
@@ -268,17 +280,14 @@
 
 <section class="fullscreen-view" id="modify-event-view" role="region">
   <header>
-
-    <a href="javascript: window.history.go(-1);">
-       <span data-l10n-id="cancel" class="icon icon-back">
-         Cancel
-       </span
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
+    </button>
 
     <menu type="toolbar">
-      <a class="save" href="#">
+      <button class="save">
         <span data-l10n-id="save">Save</span>
-      </a>
+      </button>
     </menu>
 
     <h1 data-l10n-id="add-event-header">
@@ -289,11 +298,11 @@
   <form>
     <ol>
       <li class="title">
-        <input name="title" data-l10n-id="event-title" placeholder="Title" />
+        <input name="title" data-l10n-id="event-title" inputmode="latin-prose" placeholder="Title" />
       </li>
 
       <li class="location">
-        <input name="location" data-l10n-id="event-location" placeholder="Where?" />
+        <input name="location" data-l10n-id="event-location" inputmode="latin-prose" placeholder="Where?" />
       </li>
 
       <li class="allday">
@@ -330,22 +339,28 @@
       </li>
 
       <li class="notes">
-        <textarea class="fieldbox" name="description" data-l10n-id="event-description" placeholder="Notes"></textarea>
+        <textarea class="fieldbox" name="description" data-l10n-id="event-description" inputmode="latin-prose" placeholder="Notes"></textarea>
+      </li>
+
+      <li class="delete">
+        <button data-l10n-id="event-delete" class="danger delete-record">
+          Delete Event
+        </button>
       </li>
 
     </ol>
-  </form>
 
-  <button data-l10n-id="event-delete" class="danger delete-record">
-    Delete Event
-  </button>
+    <section role="status">
+      <p class="errors"></p>
+    </section>
+  </form>
 </section>
 
 <section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
   <header>
-    <a href="javascript: window.history.go(-1);">
-      <span data-l10n-id="back" class="icon icon-back">Back</span>
-    </a>
+    <button class="cancel">
+      <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
+    </button>
 
     <menu type="toolbar">
       <button class="save">
@@ -355,7 +370,6 @@
 
     <h1 data-l10n-id="account-header">Account</h1>
   </header>
-  <div class="errors"></div>
   <form>
     <fieldset>
       <ol>
@@ -375,6 +389,11 @@
       </ol>
     </fieldset>
   </form>
+	
+	<section role="status">
+ 	  <p class="errors"></p>
+	</section>
+	
   <div class="during-progress">
   </div>
 
@@ -382,7 +401,7 @@
     Remove Local Data
   </a>
 
-  <form role="dialog" id="remove-account-dialog">
+  <form role="dialog" data-type="confirm" id="remove-account-dialog">
     <section>
       <h1 data-l10n-id="remove-account-dialog">>Remove Account</h1>
       <p data-l10n-id="remove-account-dialog-details">
@@ -390,13 +409,12 @@
       </p>
     </section>
     <menu>
-      <button type="reset" onclick="window.back()" data-l10n-id="cancel">Cancel</button>
-      <button type="submit" class="delete-confirm" data-l10n-id="confirm">Confirm</button>
+      <button class="delete-cancel" data-l10n-id="cancel">Cancel</button>
+      <button class="recommend delete-confirm" data-l10n-id="confirm">Confirm</button>
     </menu>
   </form>
 
 </section>
-
 
 </body>
 </html>

@@ -24,18 +24,8 @@ var SetTime = (function SetTime() {
   };
 })();
 
-window.addEventListener('localized', function SettingsDateAndTime(evt) {
+onLocalized(function SettingsDateAndTime() {
   var _ = navigator.mozL10n.get;
-
-  function initDatePicker() { // Date Picker need to provide init value
-    var d = new Date();
-    gDatePicker.value = d.toLocaleFormat('%Y-%m-%d');
-  }
-
-  function initTimePicker() { // Time Picker need to provide init value
-    var d = new Date();
-    gTimePicker.value = d.toLocaleFormat('%H:%M');
-  }
 
   function updateDate() {
     var d = new Date();
@@ -77,7 +67,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
         break;
 
       case 'time':
-        // Get value from time picker. %Y-%m-%d
+        // Get value from time picker.
         pDate = d.toLocaleFormat('%Y-%m-%d');
         pTime = gTimePicker.value;  // Format: 0:02, 8:05, 23:45
         break;
@@ -146,7 +136,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
     var continentsID = 'timezone-continents-';
     for (var i = 0; i < _jsonData.length; i++) {
       content += '<li id="timezone-continents-' + continentsID + i + '">' +
-                 '  <a href="#timezone-zones" id="continent-item"' +
+                 '  <a href="#dateTime-timezone" id="continent-item"' +
                       'data-id="' + i + '">' + _jsonData[i].group +
                  '  </a>' +
                  '</li>';
@@ -187,7 +177,7 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
   var _updateDateTimeout = null;
   var _updateClockTimeout = null;
   var _timezone = null;
-  var _jsonUrl = 'timezones.json';
+  var _jsonUrl = 'resources/timezones.json';
   var _jsonData = [];
 
 
@@ -222,8 +212,6 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
 
   SetTime.init();
   loadTimezoneDB(initTimezoneContinents);
-  initDatePicker();
-  initTimePicker();
   updateDate();
   updateClock();
 
@@ -241,10 +229,16 @@ window.addEventListener('localized', function SettingsDateAndTime(evt) {
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');
+    // Clean up the value of picker once we get date set by the user.
+    // It will get new date according system time when pop out again.
+    gDatePicker.value = '';
   });
 
   gTimePicker.addEventListener('input', function timePickerChange() {
     setTime('time');
+    // Clean up the value of picker once we get time set by the user.
+    // It will get new time according system time when pop out again.
+    gTimePicker.value = '';
   });
 
   window.addEventListener('moztimechange', function moztimechange() {

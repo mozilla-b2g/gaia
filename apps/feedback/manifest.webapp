@@ -1,6 +1,7 @@
 {
   "name": "Feedback",
   "default_locale": "en-US",
+  "type": "certified",
   "description": "Gaia Feedback",
   "launch_path": "/index.html",
   "locales": {
@@ -8,6 +9,10 @@
       "name": "Feedback",
       "description": "Gaia Feedback"
     }
+  },
+  "permissions": {
+    "device-storage:apps":{},
+    "webapps-manage":{}
   },
   "icons": {
     "60": "/style/icons/60/Feedback.png"

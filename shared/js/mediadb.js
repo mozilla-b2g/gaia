@@ -376,7 +376,7 @@ var MediaDB = (function() {
       // If the version number changes we just want to start over.
       var existingStoreNames = db.objectStoreNames;
       for (var i = 0; i < existingStoreNames.length; i++) {
-        db.deleteObjectStore(existingStoreNames);
+        db.deleteObjectStore(existingStoreNames[i]);
       }
 
       // Now build the database
@@ -746,7 +746,13 @@ var MediaDB = (function() {
 
         var cursor = cursorRequest.result;
         if (cursor) {
-          callback(cursor.value);
+          try {
+            if (!cursor.value.fail)   // if metadata parsing succeeded
+              callback(cursor.value);
+          }
+          catch (e) {
+            console.warn('MediaDB.enumerate(): callback threw', e);
+          }
           cursor.continue();
         }
         else {
@@ -988,7 +994,8 @@ var MediaDB = (function() {
           // 4a: date and size are the same for both: do nothing
           // 4b: file has changed: it is both a deletion and a creation
           if (dsfile.name === dbfile.name) {
-            if (dsfile.lastModifiedDate.getTime() !== dbfile.date ||
+            var lastModified = dsfile.lastModifiedDate;
+            if ((lastModified && lastModified.getTime() !== dbfile.date) ||
                 dsfile.size !== dbfile.size) {
               deleteRecord(media, dbfile.name);
               insertRecord(media, dsfile);
@@ -1201,9 +1208,13 @@ var MediaDB = (function() {
       function metadataError(e) {
         console.warn('MediaDB: error parsing metadata for',
                      filename, ':', e);
-        // If we get an error parsing the metadata, treat the file
-        // as malformed, and don't insert it into the database.
-        next();
+        // If we get an error parsing the metadata, assume it is invalid
+        // and make a note in the fileinfo record that we store in the database
+        // If we don't store it in the database, we'll keep finding it
+        // on every scan. But we make sure never to return the invalid file
+        // on an enumerate call.
+        fileinfo.fail = true;
+        storeRecord(fileinfo);
       }
       function gotMetadata(metadata) {
         fileinfo.metadata = metadata;

@@ -45,19 +45,14 @@ var LockScreen = {
   passCodeRequestTimeout: 0,
 
   /*
-  * Store the time that screen is off
+  * Store the first time the screen went off since unlocking.
   */
   _screenOffTime: 0,
 
   /*
   * Check the timeout of passcode lock
   */
-  _passcodeTimeoutCheck: false,
-
-  /*
-  * passcode to enable the smiley face easter egg.
-  */
-  smileyCode: '1337',
+  _passCodeTimeoutCheck: false,
 
   /*
   * Current passcode entered by the user
@@ -65,24 +60,9 @@ var LockScreen = {
   passCodeEntered: '',
 
   /*
-  * Number of passcode tries
-  */
-  passCodeError: 0,
-
-  /*
   * Timeout after incorrect attempt
   */
   kPassCodeErrorTimeout: 500,
-
-  /*
-  * Number of attempts allowed
-  */
-  kPassCodeTries: 3,
-
-  /*
-  * Cool down period after kPassCodeTries
-  */
-  kPassCodeTriesTimeout: 5 * 60 * 1000,
 
   /*
   * Airplane mode
@@ -210,7 +190,11 @@ var LockScreen = {
         // we would need to lock the screen again
         // when it's being turned back on
         if (!evt.detail.screenEnabled) {
-          this._screenOffTime = new Date().getTime();
+          // Don't update the time after we're already locked otherwise turning
+          // the screen off again will bypass the passcode before the timeout.
+          if (!this.locked) {
+            this._screenOffTime = new Date().getTime();
+          }
         } else {
           var _screenOffInterval = new Date().getTime() - this._screenOffTime;
           if (_screenOffInterval > this.passCodeRequestTimeout * 1000) {
@@ -247,7 +231,10 @@ var LockScreen = {
           touched: false,
           leftTarget: leftTarget,
           rightTarget: rightTarget,
-          initRailLength: this.railLeft.offsetWidth,
+          railLeftWidth: this.railLeft.offsetWidth,
+          railRightWidth: this.railRight.offsetWidth,
+          overlayWidth: this.overlay.offsetWidth,
+          handleWidth: this.areaHandle.offsetWidth,
           maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
             (handle.offsetWidth - rightTarget.offsetWidth) / 2
         };
@@ -338,6 +325,12 @@ var LockScreen = {
     }
   },
 
+  setRailWidth: function ls_setRailWidth(left, right) {
+    var touch = this._touch;
+    this.railLeft.style.transform = 'scaleX(' + (left / touch.railLeftWidth) + ')';
+    this.railRight.style.transform = 'scaleX(' + (right / touch.railRightWidth) + ')';
+  },
+
   handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
 
@@ -362,16 +355,14 @@ var LockScreen = {
     this.areaHandle.style.transform =
       'translateX(' + Math.max(- handleMax, Math.min(handleMax, dx)) + 'px)';
 
-    var railMax = touch.initRailLength;
+    var railMax = touch.railLeftWidth;
     var railLeft = railMax + dx;
     var railRight = railMax - dx;
 
-    this.railLeft.style.width =
-      Math.max(0, Math.min(railMax * 2, railLeft)) + 'px';
-    this.railRight.style.width =
-      Math.max(0, Math.min(railMax * 2, railRight)) + 'px';
+    this.setRailWidth(Math.max(0, Math.min(railMax * 2, railLeft)),
+                      Math.max(0, Math.min(railMax * 2, railRight)));
 
-    var base = this.overlay.offsetWidth / 4;
+    var base = touch.overlayWidth / 4;
     var opacity = Math.max(0.1, (base - Math.abs(dx)) / base);
 
     var leftTarget = touch.leftTarget;
@@ -389,7 +380,7 @@ var LockScreen = {
         this.railLeft.style.opacity = '';
     }
 
-    var handleWidth = this.areaHandle.offsetWidth;
+    var handleWidth = touch.handleWidth;
     var triggered = false;
 
     if (railLeft < handleWidth / 2) {
@@ -427,6 +418,7 @@ var LockScreen = {
 
     var distance = target.offsetLeft - this.areaHandle.offsetLeft -
       (this.areaHandle.offsetWidth - target.offsetWidth) / 2;
+    this.overlay.classList.add('triggered');
     this.areaHandle.classList.add('triggered');
 
     var transformDistance = 'translateX(' + distance + 'px)';
@@ -437,8 +429,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
-        this.railRight.style.width = railLength + 'px';
-        this.railLeft.style.width = '0';
+        this.setRailWidth(0, railLength);
 
         var panelOrFullApp = function panelOrFullApp() {
           if (self.passCodeEnabled) {
@@ -474,8 +465,7 @@ var LockScreen = {
         break;
 
       case this.areaUnlock:
-        this.railLeft.style.width = railLength + 'px';
-        this.railRight.style.width = '0';
+        this.setRailWidth(railLength, 0);
 
         var passcodeOrUnlock = function passcodeOrUnlock() {
           if (!self.passCodeEnabled || !self._passCodeTimeoutCheck) {
@@ -575,6 +565,8 @@ var LockScreen = {
     var wasAlreadyLocked = this.locked;
     this.locked = true;
 
+    this.updateTime();
+
     this.switchPanel();
 
     this.overlay.focus();
@@ -586,8 +578,6 @@ var LockScreen = {
     this.mainScreen.classList.add('locked');
 
     screen.mozLockOrientation('portrait-primary');
-
-    this.updateTime();
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen)
@@ -672,8 +662,9 @@ var LockScreen = {
             self.railRight.style.opacity =
             self.areaCamera.style.opacity =
             self.railLeft.style.opacity =
-            self.railRight.style.width =
-            self.railLeft.style.width = '';
+            self.railRight.style.transform =
+            self.railLeft.style.transform = '';
+          self.overlay.classList.remove('triggered');
           self.areaHandle.classList.remove('triggered');
           self.areaCamera.classList.remove('triggered');
           self.areaUnlock.classList.remove('triggered');
@@ -706,10 +697,13 @@ var LockScreen = {
     var overlay = this.overlay;
     var self = this;
     panel = panel || 'main';
+
     this.loadPanel(panel, function panelLoaded() {
       self.unloadPanel(overlay.dataset.panel, panel,
         function panelUnloaded() {
-          self.dispatchEvent('lockpanelchange');
+          if (overlay.dataset.panel !== panel)
+            self.dispatchEvent('lockpanelchange');
+
           overlay.dataset.panel = panel;
         });
     });
@@ -860,9 +854,6 @@ var LockScreen = {
   },
 
   checkPassCode: function lockscreen_checkPassCode() {
-    if (this.passCodeEntered === this.smileyCode)
-      this.overlay.classList.add('smiley');
-
     if (this.passCodeEntered === this.passCode) {
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
@@ -873,17 +864,12 @@ var LockScreen = {
       if ('vibrate' in navigator)
         navigator.vibrate([50, 50, 50]);
 
-      var timeout = this.kPassCodeErrorTimeout;
-      this.passCodeError++;
-      if (this.passCodeError >= 3)
-        timeout = this.kPassCodeTriesTimeout;
-
       var self = this;
       setTimeout(function error() {
         delete self.overlay.dataset.passcodeStatus;
         self.passCodeEntered = '';
         self.updatePassCodeUI();
-      }, timeout);
+      }, this.kPassCodeErrorTimeout);
     }
   },
 

@@ -15,6 +15,7 @@
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/MetadataParser.js"></script>
     <script type="text/javascript" defer src="js/ImageEditor.js"></script>
+    <script type="text/javascript" defer src="js/PhotoState.js"></script>
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
@@ -81,14 +82,6 @@
       </div>
     </section>
     
-    <div id="open-view" class="hidden">
-      <div id="open-frame"><img id="open-image"></div>
-      <div id="open-bottom">
-        <a id="open-camera-button" class="button"></a>
-        <a id="open-delete-button" class="button"></a>
-      </div>
-    </div>
-
     <section role="region" id="edit-view" class="hidden skin-organic">
       <header id="edit-header">
         <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
@@ -132,11 +125,15 @@
 
         <div id="edit-effect-options" class="edit-options-bar hidden"> 
           <a id="edit-effect-none" class="selected radio button bgimage"
-             data-effect="none" data-l10n-id="original"></a>
+             data-effect="none"></a>
           <a id="edit-effect-bw" class="radio button filter-bw bgimage"
-             data-effect="bw" data-l10n-id="blackandwhite"></a>
+             data-effect="bw"></a>
           <a id="edit-effect-sepia" class="radio button filter-sepia bgimage"
-             data-effect="sepia" data-l10n-id="sepia"></a>
+             data-effect="sepia"></a>
+          <a id="edit-effect-bluesteel" class="radio button filter-bluesteel bgimage"
+             data-effect="bluesteel"></a>
+          <a id="edit-effect-faded" class="radio button filter-faded bgimage"
+             data-effect="faded"></a>
         </div>
 
         <div id="edit-border-options" class="edit-options-bar hidden"> 
@@ -165,7 +162,7 @@
     <!-- A thin indeterminate progress bar to indicate scanning -->
     <!-- set class to "throb" to make it go, or hidden" to make it stop -->
     <div id="progress" class="hidden">
-      <img id="throbber" src="style/images/progress.png">
+      <div id="throbber"></div>
     </div>
 
     <!-- display messages like "No Photos" and "No SD Card" here -->
@@ -180,10 +177,10 @@
     <svg id="filters" width="0" height="0">
       <filter id="filter-bw">
         <feColorMatrix type="matrix"
-                       values="0.2126 0.7152 0.0722 0 0
-                               0.2126 0.7152 0.0722 0 0
-                               0.2126 0.7152 0.0722 0 0
-                               0      0      0      1 0"/>
+                       values="0.65 0.25 0.10 0 0
+                               0.65 0.25 0.10 0 0
+                               0.65 0.25 0.10 0 0
+                               0    0    0    1 0"/>
       </filter>
       <filter id="filter-sepia">
         <feColorMatrix type="matrix"
@@ -191,6 +188,20 @@
                                0.349 0.686 0.168 0 0
                                0.272 0.534 0.131 0 0
                                0     0     0     1 0"/>
+      </filter>
+      <filter id="filter-bluesteel">
+        <feColorMatrix type="matrix"
+                       values="1    0.25 0.65 0   0
+                               0.1  1    0.65 0   0
+                               0.1  0.25 1    0.1 0
+                               0    0    0    1   0"/>
+      </filter>
+      <filter id="filter-faded">
+        <feColorMatrix type="matrix"
+                       values="1    0.2   0.2   0.03 0
+                               0.2  0.7   0.2   0.05 0
+                               0.1  0     0.8   0    0
+                               0    0     0     1    0"/>
       </filter>
     </svg>
 

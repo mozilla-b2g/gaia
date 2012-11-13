@@ -4,6 +4,10 @@
 
   function Local() {
     Calendar.Provider.Abstract.apply(this, arguments);
+
+    this.events = this.app.store('Event');
+    this.busytimes = this.app.store('Busytime');
+    this.alarms = this.app.store('Alarm');
   }
 
   /**
@@ -55,6 +59,9 @@
       cb(null);
     },
 
+    /**
+     * @return {Calendar.EventMutations.Create} mutation object.
+     */
     createEvent: function(event, callback) {
       // most providers come with their own built in
       // id system when creating a local event we need to generate
@@ -67,7 +74,19 @@
         event.remote.id = uuid();
       }
 
-      this.app.store('Event').persist(event, callback);
+      var create = new Calendar.EventMutations.create({
+        event: event
+      });
+
+      create.commit(function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, create.busytime, create.event);
+      });
+
+      return create;
     },
 
     deleteEvent: function(event, busytime, callback) {
@@ -79,16 +98,28 @@
       this.app.store('Event').remove(event._id, callback);
     },
 
+    /**
+     * @return {Calendar.EventMutations.Update} mutation object.
+     */
     updateEvent: function(event, busytime, callback) {
       if (typeof(busytime) === 'function') {
         callback = busytime;
         busytime = null;
       }
 
-      // remove associated busytimes with previous event.
-      this.app.store('Busytime').removeEvent(event._id);
+      var update = Calendar.EventMutations.update({
+        event: event
+      });
 
-      this.app.store('Event').persist(event, callback);
+      update.commit(function(err) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        callback(null, update.busytime, update.event);
+      });
+
+      return update;
     }
 
   };

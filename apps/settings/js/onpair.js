@@ -3,7 +3,6 @@
 
 'use strict';
 
-var _ = navigator.mozL10n.get;
 
 var PairView = {
   /**
@@ -41,6 +40,7 @@ var PairView = {
   passkeyInput: document.getElementById('passkey-input'),
 
   init: function pv_init() {
+    var _ = navigator.mozL10n.get;
     this.pairButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
     this.okButton.addEventListener('click', this);
@@ -49,7 +49,6 @@ var PairView = {
     this.nameLabel.textContent = this._device.name;
     this.addressLabel.textContent = this._device.address;
     this.deviceInfo.className = this._device.icon;
-    //XXX this.iconImage.src = device.icon
     this.pairView.hidden = false;
     this.alertView.hidden = true;
 
@@ -93,6 +92,7 @@ var PairView = {
   },
 
   handleEvent: function pv_handleEvent(evt) {
+    var _ = navigator.mozL10n.get;
     if (evt.type !== 'click' || !evt.target)
       return;
 
@@ -130,7 +130,19 @@ var PairView = {
   }
 };
 
-window.addEventListener('localized', function bluetoothSettings(evt) {
-  PairView.init();
-});
+/**
+ * Fire a callback when as soon as all l10n resources are ready and the UI has
+ * been translated.
+ * Note: this could be exposed as `navigator.mozL10n.onload'...
+ */
+
+function onLocalized(callback) {
+  if (navigator.mozL10n.readyState == 'complete') {
+    callback();
+  } else {
+    window.addEventListener('localized', callback);
+  }
+}
+
+onLocalized(PairView.init.bind(PairView));
 

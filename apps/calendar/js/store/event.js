@@ -7,7 +7,7 @@
   Events.prototype = {
     __proto__: Calendar.Store.Abstract.prototype,
     _store: 'events',
-    _dependentStores: ['events', 'busytimes', 'alarms'],
+    _dependentStores: ['events', 'busytimes', 'alarms', 'icalComponents'],
 
     /** disable caching */
     _addToCache: function() {},
@@ -36,18 +36,9 @@
 
       var busy = this.db.getStore('Busytime');
       busy.removeEvent(id, trans);
-    },
 
-    /**
-     * Link dependants (busytimes) into the
-     * creation/removal process. This should
-     * keep all deps in sync as such you
-     * should _always_ use the persist/remove methods
-     * and never directly touch the db.
-     */
-    _addDependents: function(obj, trans) {
-      var busy = this.db.getStore('Busytime');
-      busy.addEvent(obj, trans);
+      var component = this.db.getStore('IcalComponent');
+      component.remove(id, trans);
     },
 
     /**
@@ -96,9 +87,16 @@
       return Calendar.App.provider(acc.providerType);
     },
 
-    busytimeIdFor: function(event) {
-      var id = event.remote.start.utc + '-' +
-               event.remote.end.utc + '-' +
+    busytimeIdFor: function(event, start, end) {
+      if (!start)
+        start = event.remote.start;
+
+      if (!end)
+        end = event.remote.end;
+
+
+      var id = start.utc + '-' +
+               end.utc + '-' +
                event._id;
 
       return id;

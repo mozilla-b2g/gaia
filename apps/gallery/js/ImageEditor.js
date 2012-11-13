@@ -561,12 +561,12 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 };
 
 // Get the pixels of the selected crop region, and resize them if width
-// and height are specifed, and return them as a data URL.
-// This function is used by the Gallery app's pick activity handler,
-// and relies on data urls because activities can't pass blobs. When
-// blob support is added, this function can change to return a blob
-// instead.
-ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
+// and height are specifed, encode them as an image file of the specified
+// type and pass that file as a blob to the specified callback
+ImageEditor.prototype.getCroppedRegionBlob = function(type,
+                                                      width, height,
+                                                      callback)
+{
   // This is similar to the code in cropImage() and getFullSizeBlob
   // but since we're doing only cropping and no pixel manipulation I
   // don't need to create an ImageProcessor object.
@@ -606,7 +606,7 @@ ImageEditor.prototype.getCroppedRegionDataURL = function(type, width, height) {
                     left, top, right - left, bottom - top,
                     0, 0, width, height);
 
-  return canvas.toDataURL(type);
+  canvas.toBlob(callback, type);
 };
 
 //
@@ -769,8 +769,22 @@ ImageProcessor.sepia_matrix = [
 ];
 
 ImageProcessor.bw_matrix = [
-  1 / 3, 1 / 3, 1 / 3, 0,
-  1 / 3, 1 / 3, 1 / 3, 0,
-  1 / 3, 1 / 3, 1 / 3, 0,
+  .65, .25, .10, 0,
+  .65, .25, .10, 0,
+  .65, .25, .10, 0,
+  0, 0, 0, 1
+];
+
+ImageProcessor.bluesteel_matrix = [
+  1, .25, .65, 0,
+  .1, 1, .65, 0,
+  .1, .25, 1, .1,
+  0, 0, 0, 1
+];
+
+ImageProcessor.faded_matrix = [
+  1, .2, .2, .03,
+  .2, .7, .2, .05,
+  .1, 0, .8, 0,
   0, 0, 0, 1
 ];

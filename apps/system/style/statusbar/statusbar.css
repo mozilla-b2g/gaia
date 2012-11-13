@@ -1,5 +1,11 @@
 /* The status bar disregard the rem rule because we have only 16px icons for now */
 
+body, html {
+  font-family: MozTT, sans-serif;
+  font-weight: 500;
+  font-size: 10px;
+}
+
 #screen.lockscreen-camera > #statusbar {
   display: none;
 }
@@ -21,7 +27,7 @@
 #statusbar > * {
   pointer-events: none;
   float: right;
-  margin: 0 2.5px;
+  margin: 0 2px;
 }
 
 #statusbar > .sb-start {
@@ -62,17 +68,17 @@
 }
 
 #statusbar-label {
-  padding: 0;
-  color: #999;
-  font: 14px/14px 'Open Sans', sans-serif;
-  font-weight: bold;
+  color: #919899;
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 1px;
 }
 
 #statusbar-time {
-  padding: 0;
   color: #fff;
-  font: 14px/14px 'Open Sans', sans-serif;
-  font-weight: 600;
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 2px;
 }
 
 .sb-icon {
@@ -347,8 +353,8 @@
   height: 16px;
   top: 0;
   right: 0;
-  font: 14px/14px 'Open Sans', sans-serif;
-  font-weight: 600;
+  padding: 0 1px;
+  font-size: 1.49rem; /* 6.5pt */
 }
 
 *[dir=rtl] .sb-icon-notification::after {
@@ -372,6 +378,13 @@
   left: 0;
   width: 100%;
   text-align: center;
-  font: 8px/8px 'Open Sans', sans-serif;
-  font-weight: 600;
+  font-size: 1.15rem; /*5pt  was 8px */
+}
+
+/* JW: should we show how many current download we have
+ * as in sb-icon-ms or sb-icon-notification ? */
+.sb-icon-system-downloads {
+  /* JW: waiting for the correct icon; in the mean time I made this one */
+  background: url('images/system-downloads.gif') no-repeat;
+  background-position: 0 0;
 }

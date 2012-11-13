@@ -107,6 +107,8 @@ contacts.List = (function() {
     var contactContainer = document.createElement('li');
     contactContainer.className = 'block-item';
     contactContainer.dataset.uuid = contact.id;
+    var timestampDate = contact.updated || contact.published || new Date();
+    contactContainer.dataset.updated = timestampDate.getTime();
     var link = document.createElement('a');
     link.href = '#';
     link.className = 'item';
@@ -132,10 +134,6 @@ contacts.List = (function() {
     });
     body.dataset['search'] = normalizeText(searchInfo.join(' '));
     body.appendChild(name);
-    var small = document.createElement('small');
-    small.className = 'block-company';
-    small.textContent = contact.org;
-    body.appendChild(small);
 
     // Label the contact concerning social networks
     if (contact.category) {
@@ -150,6 +148,11 @@ contacts.List = (function() {
         });
       }
     }
+
+    var small = document.createElement('small');
+    small.className = 'block-company';
+    small.textContent = contact.org;
+    body.appendChild(small);
 
     link.appendChild(body);
     contactContainer.appendChild(link);
@@ -210,6 +213,8 @@ contacts.List = (function() {
         contact = fbContact.merge(fbContacts[fbContact.uid]);
       }
 
+      contact.updated = contacts[i].updated || contacts[i].published ||
+                                                                    new Date();
       var group = getGroupName(contact);
       counter[group] = counter.hasOwnProperty(group) ? counter[group] + 1 : 0;
       var listContainer = document.getElementById('contacts-list-' + group);
@@ -227,7 +232,8 @@ contacts.List = (function() {
         var searchable = itemBody.dataset['search'];
         var newItemBody = newContact.querySelector('[data-search]');
         var newSearchable = newItemBody.dataset['search'];
-        var hasChanged = searchable != newSearchable;
+        var hasChanged = searchable != newSearchable ||
+                  contact.updated.getTime() > alreadyRendered.dataset.updated;
         if (currentNode.dataset['uuid'] != contact.id || hasChanged) {
           resetGroup(listContainer, counter[group]);
           listContainer.appendChild(newContact);
@@ -254,7 +260,7 @@ contacts.List = (function() {
   };
 
   var toggleNoContactsScreen = function cl_toggleNoContacs(show) {
-    if (show) {
+    if (show && !ActivityHandler.currentlyHandling) {
       noContacts.classList.remove('hide');
       return;
     }
@@ -284,7 +290,7 @@ contacts.List = (function() {
     // from the 'start' param
     var i = start || 0;
     var length = container.children.length;
-    while (length != i) {
+    while (length > i) {
       var current = container.children[i];
       container.removeChild(current);
       length = container.children.length;
@@ -332,7 +338,7 @@ contacts.List = (function() {
       return;
     }
 
-    var sortBy = orderByLastName ? 'givenName' : 'familiyName';
+    var sortBy = orderByLastName ? 'familyName' : 'givenName';
     var options = {
       sortBy: sortBy,
       sortOrder: 'ascending'

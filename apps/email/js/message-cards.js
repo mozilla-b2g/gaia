@@ -59,8 +59,8 @@ function MessageListCard(domNode, mode, args) {
   this.messagesContainer =
     domNode.getElementsByClassName('msg-messages-container')[0];
 
-  this.messageEmptyTitle =
-    domNode.getElementsByClassName('msg-list-empty')[0];
+  this.messageEmptyContainer =
+    domNode.getElementsByClassName('msg-list-empty-container')[0];
   // - message actions
   bindContainerClickAndHold(
     this.messagesContainer,
@@ -88,9 +88,12 @@ function MessageListCard(domNode, mode, args) {
     .addEventListener('click', this.onCompose.bind(this), false);
 
   // - toolbar: non-edit mode
-  domNode.getElementsByClassName('msg-search-btn')[0]
+  this.toolbar = {};
+  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
+  this.toolbar.searchBtn
     .addEventListener('click', this.onSearchButton.bind(this), false);
-  domNode.getElementsByClassName('msg-edit-btn')[0]
+  this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
+  this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
   domNode.getElementsByClassName('msg-refresh-btn')[0]
     .addEventListener('click', this.onRefresh.bind(this), false);
@@ -119,7 +122,6 @@ function MessageListCard(domNode, mode, args) {
   }
   // -- search mode
   else if (mode === 'search') {
-console.log('sf: search mode!');
     domNode.getElementsByClassName('msg-search-cancel')[0]
       .addEventListener('click', this.onCancelSearch.bind(this), false);
 
@@ -295,6 +297,8 @@ MessageListCard.prototype = {
     this.domNode.getElementsByClassName('msg-list-header-folder-label')[0]
       .textContent = folder.name;
 
+    this.hideEmptyLayout();
+
     this.messagesSlice = MailAPI.viewFolderMessages(folder);
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.updateMessageDom.bind(this, false);
@@ -304,7 +308,7 @@ MessageListCard.prototype = {
   },
 
   showSearch: function(folder, phrase, filter) {
-console.log('sf: showSearch. phrase:', phrase, phrase.length);
+    console.log('sf: showSearch. phrase:', phrase, phrase.length);
     if (this.messagesSlice) {
       this.messagesSlice.die();
       this.messagesSlice = null;
@@ -314,7 +318,7 @@ console.log('sf: showSearch. phrase:', phrase, phrase.length);
     this.curPhrase = phrase;
     this.curFilter = filter;
 
-    if (phrase.length < 3)
+    if (phrase.length < 1)
       return false;
 
     this.messagesSlice = MailAPI.searchFolderMessages(
@@ -339,7 +343,7 @@ console.log('sf: showSearch. phrase:', phrase, phrase.length);
   },
 
   onSearchTextChange: function(event) {
-console.log('sf: typed, now:', this.searchInput.value);
+    console.log('sf: typed, now:', this.searchInput.value);
     this.showSearch(this.curFolder, this.searchInput.value, this.curFilter);
   },
 
@@ -373,6 +377,18 @@ console.log('sf: typed, now:', this.searchInput.value);
     }
   },
 
+  showEmptyLayout: function() {
+    this.messageEmptyContainer.classList.remove('collapsed');
+    this.toolbar.editBtn.classList.add('disabled');
+    this.toolbar.searchBtn.classList.add('disabled');
+    this._hideSearchBoxByScrolling();
+  },
+  hideEmptyLayout: function() {
+    this.messageEmptyContainer.classList.add('collapsed');
+    this.toolbar.editBtn.classList.remove('disabled');
+    this.toolbar.searchBtn.classList.remove('disabled');
+  },
+
   onSliceRequestComplete: function() {
     // We always want our logic to fire, but complete auto-clears before firing.
     this.messagesSlice.oncomplete = this._boundSliceRequestComplete;
@@ -382,6 +398,9 @@ console.log('sf: typed, now:', this.searchInput.value);
     else
       this.syncMoreNode.classList.add('collapsed');
 
+    if (this.messagesSlice.items.length === 0) {
+      this.showEmptyLayout();
+    }
     // Consider requesting more data or discarding data based on scrolling that
     // has happened since we issued the request.  (While requests were pending,
     // onScroll ignored scroll events.)
@@ -475,17 +494,14 @@ console.log('sf: typed, now:', this.searchInput.value);
         this.scrollContainer.scrollTop -=
           (prevHeight - this.messagesContainer.clientHeight);
       }
+
+      // Check the message count after deletion:
+      if (this.messagesContainer.children.length === 0) {
+        this.showEmptyLayout();
+      }
     }
 
     // - added/existing
-    if (!addedItems.length) {
-      if (this.messagesContainer.children.length === 0) {
-        this.messageEmptyTitle.classList.add('show');
-      }
-      return;
-    } else {
-      this.messageEmptyTitle.classList.remove('show');
-    }
     var insertBuddy, self = this;
     if (index >= this.messagesContainer.childElementCount)
       insertBuddy = null;
@@ -497,6 +513,11 @@ console.log('sf: typed, now:', this.searchInput.value);
       prevHeight = this.messagesContainer.clientHeight;
     else
       prevHeight = null;
+
+    // Remove the no message text while new messages added:
+    if (addedItems.length > 0) {
+      this.hideEmptyLayout();
+    }
 
     addedItems.forEach(function(message) {
       var domMessage;
@@ -655,53 +676,7 @@ console.log('sf: typed, now:', this.searchInput.value);
   },
 
   onHoldMessage: function(messageNode, event) {
-    var header = messageNode.message;
-    Cards.popupMenuForNode(
-      this.buildEditMenuForMessage(header), messageNode,
-      ['menu-item'],
-      function(clickedNode) {
-        if (!clickedNode)
-          return;
-
-        var op = null;
-        switch (clickedNode.classList[0]) {
-          // All of these mutations are immediately reflected, easily observed
-          // and easily undone, so we don't show them as toaster actions.
-          case 'msg-edit-menu-star':
-            header.setStarred(true);
-            break;
-          case 'msg-edit-menu-unstar':
-            header.setStarred(false);
-            break;
-          case 'msg-edit-menu-mark-read':
-            header.setRead(true);
-            break;
-          case 'msg-edit-menu-mark-unread':
-            header.setRead(false);
-            break;
-          case 'msg-edit-menu-delete':
-            var req = confirm(mozL10n.get('message-edit-delete-confirm'));
-            if (!req) {
-              return;
-            }
-            op = header.deleteMessage();
-            break;
-          case 'msg-edit-menu-move':
-            // TODO: Move back-end mail api is not ready now.
-            //       Please verify this function when api landed.
-            Cards.folderSelector(function(folder) {
-              op = header.moveMessage(folder);
-              Toaster.logMutation(op);
-            });
-
-            break;
-
-          // Deletion, and moves, on the other hand, require a lot of manual
-          // labor, so we need to expose their undo op's.
-        }
-        if (op)
-          Toaster.logMutation(op);
-      }.bind(this));
+    this.setEditMode(true);
   },
 
   onRefresh: function() {
@@ -742,23 +717,6 @@ console.log('sf: typed, now:', this.searchInput.value);
       Toaster.logMutation(op);
       this.setEditMode(false);
     }.bind(this));
-  },
-
-  buildEditMenuForMessage: function(header) {
-    var contents = msgNodes['edit-menu'].cloneNode(true);
-
-    // Remove the elements that are not relevant (versus collapsing because
-    // collapsing does not make :last-child work right).
-    contents.removeChild(
-      contents.getElementsByClassName(
-        header.isStarred ? 'msg-edit-menu-star' :
-                           'msg-edit-menu-unstar')[0]);
-    contents.removeChild(
-      contents.getElementsByClassName(
-        header.isRead ? 'msg-edit-menu-mark-read' :
-                        'msg-edit-menu-mark-unread')[0]);
-
-    return contents;
   },
 
   /**
@@ -833,8 +791,6 @@ function MessageReaderCard(domNode, mode, args) {
     .addEventListener('click', this.onDelete.bind(this), false);
   domNode.getElementsByClassName('msg-star-btn')[0]
     .addEventListener('click', this.onToggleStar.bind(this), false);
-  domNode.getElementsByClassName('msg-mark-read-btn')[0]
-    .addEventListener('click', this.onToggleRead.bind(this), false);
   domNode.getElementsByClassName('msg-move-btn')[0]
     .addEventListener('click', this.onMove.bind(this), false);
   domNode.getElementsByClassName('msg-forward-btn')[0]
@@ -850,10 +806,6 @@ function MessageReaderCard(domNode, mode, args) {
   domNode.getElementsByClassName('msg-reader-load-infobar')[0]
     .addEventListener('click', this.onLoadBarClick.bind(this), false);
 
-  bindContainerHandler(
-    domNode.getElementsByClassName('msg-attachments-container')[0],
-    'click', this.onAttachmentClick.bind(this));
-
   // - mark message read (if it is not already)
   if (!this.header.isRead)
     this.header.setRead(true);
@@ -867,20 +819,6 @@ MessageReaderCard.prototype = {
     // iframes need to be linked into the DOM tree before their contentDocument
     // can be instantiated.
     this.buildBodyDom(this.domNode);
-  },
-
-  formatFileSize: function(size) {
-    // XXX: localize this!
-    const units = ['bytes', 'KB', 'MB', 'GB', 'TB'];
-    var unitSize = size;
-    var unitIndex = 0;
-
-    while ((unitSize >= 999.5) && (unitIndex < units.length)) {
-      unitSize /= 1024;
-      unitIndex++;
-    }
-    return (unitIndex == 0 ? unitSize.toFixed(0) : unitSize.toPrecision(3)) +
-           ' ' + units[unitIndex];
   },
 
   onBack: function(event) {
@@ -916,9 +854,9 @@ MessageReaderCard.prototype = {
     if (!req) {
       return;
     }
-    var op = this.header.deleteMessage();
-    Toaster.logMutation(op);
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
+    var op = this.header.deleteMessage();
+    Toaster.logMutation(op, true);
   },
 
   onToggleStar: function() {
@@ -928,47 +866,28 @@ MessageReaderCard.prototype = {
     else
       button.classList.remove('msg-btn-active');
 
-    var op = this.header.setStarred(!this.header.isStarred);
-    Toaster.logMutation(op);
-  },
-
-  onToggleRead: function() {
-    var button = this.domNode.getElementsByClassName('msg-mark-read-btn')[0];
-    if (this.header.isRead)
-      button.classList.add('msg-btn-active');
-    else
-      button.classList.remove('msg-btn-active');
-
-    var op = this.header.setRead(!this.header.isRead);
-    Toaster.logMutation(op);
+    this.header.setStarred(!this.header.isStarred);
   },
 
   onMove: function() {
     //TODO: Please verify move functionality after api landed.
     Cards.folderSelector(function(folder) {
+      Cards.removeCardAndSuccessors(this.domNode, 'animate');
       var op = this.header.moveMessage(folder);
-      Toaster.logMutation(op);
+      Toaster.logMutation(op, true);
     }.bind(this));
   },
 
   /**
-   * Distinguish clicks on contacts from clicks on the envelope to toggle its
-   * expanded state and then do the right thing.
+   * Handle peep bubble click event and trigger context menu.
    */
   onEnvelopeClick: function(event) {
     var target = event.target;
-    while (target !== this.envelopeNode &&
-           !target.classList.contains('msg-peep-bubble')) {
-      target = target.parentNode;
-    }
-    // - envelope click
-    if (target === this.envelopeNode) {
-      this.envelopeDetailsNode.classList.toggle('collapsed');
+    if (!target.classList.contains('msg-peep-bubble')) {
+      return;
     }
     // - peep click
-    else {
-      this.onPeepClick(target);
-    }
+    this.onPeepClick(target);
   },
 
   onPeepClick: function(target) {
@@ -1039,7 +958,58 @@ MessageReaderCard.prototype = {
     }
   },
 
-  onAttachmentClick: function(event) {
+  onDownloadAttachmentClick: function(node, attachment) {
+    node.setAttribute('state', 'downloading');
+    attachment.download(function downloaded() {
+      node.setAttribute('state', 'downloaded');
+    });
+  },
+
+  onViewAttachmentClick: function(node, attachment) {
+    console.log('trying to open', attachment._file, 'type:',
+                attachment.mimetype);
+    if (!attachment._file)
+      return;
+
+    try {
+      // Get the file contents as a blob, so we can open the blob
+      var storageType = attachment._file[0];
+      var filename = attachment._file[1];
+      var storage = navigator.getDeviceStorage(storageType);
+      var getreq = storage.get(filename);
+
+      getreq.onerror = function() {
+        console.warn('Could not open attachment file: ', filename,
+                     getreq.error.name);
+      };
+
+      getreq.onsuccess = function() {
+        try {
+          // Now that we have the file, use an activity to open it
+          var file = getreq.result;
+          var activity = new MozActivity({
+            name: 'open',
+            data: {
+              type: attachment.mimetype,
+              blob: file
+            }
+          });
+          activity.onerror = function() {
+            console.warn('Problem with "open" activity', activity.error.name);
+          };
+          activity.onsuccess = function() {
+            console.log('"open" activity allegedly succeeded');
+          };
+        }
+        catch (ex) {
+          console.warn('Problem creating "open" activity:', ex, '\n', ex.stack);
+        }
+      };
+    }
+    catch (ex) {
+      console.warn('Exception getting attachment from device storage:',
+                   attachment._file, '\n', ex, '\n', ex.stack);
+    }
   },
 
   onHyperlinkClick: function() {
@@ -1103,6 +1073,8 @@ MessageReaderCard.prototype = {
     dateNode.dataset.time = header.date.valueOf();
     dateNode.textContent = prettyDate(header.date);
 
+    domNode.getElementsByClassName('msg-reader-header-label')[0]
+      .textContent = header.subject;
     domNode.getElementsByClassName('msg-envelope-subject')[0]
       .textContent = header.subject;
 
@@ -1148,6 +1120,14 @@ MessageReaderCard.prototype = {
     }
 
     // -- Attachments (footer)
+    // An attachment can be in 1 of 3 possible states for UI purposes:
+    // - Not downloadable: We can't download this message because we wouldn't
+    //   be able to do anything with it if we downloaded it.  Anything that's
+    //   not a supported image type falls in this category.
+    // - Downloadable, not downloaded: The user can trigger download of the
+    //   attachment to DeviceStorage.
+    // - Downloadable, downloaded: The attachment is already fully downloaded
+    //   to DeviceStorage and we can trigger its display.
     var attachmentsContainer =
       domNode.getElementsByClassName('msg-attachments-container')[0];
     if (body.attachments && body.attachments.length) {
@@ -1157,12 +1137,28 @@ MessageReaderCard.prototype = {
           filesizeTemplate =
             attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
       for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
-        var attachment = body.attachments[iAttach];
+        var attachment = body.attachments[iAttach], state;
+        if (attachment.isDownloaded)
+          state = 'downloaded';
+        else if (/^image\//.test(attachment.mimetype))
+          state = 'downloadable';
+        else
+          state = 'nodownload';
+        attTemplate.setAttribute('state', state);
         filenameTemplate.textContent = attachment.filename;
-        // XXX perform localized mimetype translation stuff
-        filesizeTemplate.textContent = this.formatFileSize(
+        filesizeTemplate.textContent = prettyFileSize(
           attachment.sizeEstimateInBytes);
-        attachmentsContainer.appendChild(attTemplate.cloneNode(true));
+
+        var attachmentNode = attTemplate.cloneNode(true);
+        attachmentsContainer.appendChild(attachmentNode);
+        attachmentNode.getElementsByClassName('msg-attachment-download')[0]
+          .addEventListener('click',
+                            this.onDownloadAttachmentClick.bind(
+                              this, attachmentNode, attachment));
+        attachmentNode.getElementsByClassName('msg-attachment-view')[0]
+          .addEventListener('click',
+                            this.onViewAttachmentClick.bind(
+                              this, attachmentNode, attachment));
       }
     }
     else {

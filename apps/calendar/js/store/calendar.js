@@ -21,7 +21,8 @@
     _store: 'calendars',
 
     _dependentStores: [
-      'calendars', 'events', 'busytimes', 'alarms'
+      'calendars', 'events', 'busytimes',
+      'alarms', 'icalComponents'
     ],
 
     _parseId: function(id) {
@@ -93,10 +94,6 @@
     providerFor: function(calendar) {
       var acc = this.accountFor(calendar);
       return Calendar.App.provider(acc.providerType);
-    },
-
-    accountFor: function(calendar) {
-      return this.db.getStore('Account').cached[calendar.accountId];
     },
 
     /**

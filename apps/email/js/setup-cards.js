@@ -27,11 +27,6 @@ var MAIL_SERVICES = [
     name: 'OtheR EmaiL',
     l10nId: 'setup-other-email',
     domain: ''
-  },
-  {
-    name: 'Fake Account',
-    l10nId: null,
-    domain: 'example.com'
   }
 ];
 
@@ -60,11 +55,14 @@ SetupPickServiceCard.prototype = {
   _populateServices: function() {
     for (var i = 0; i < MAIL_SERVICES.length; i++) {
       var serviceDef = MAIL_SERVICES[i],
-          serviceNode = supNodes['service-choice'].cloneNode(true);
+          serviceNode = supNodes['service-choice'].cloneNode(true),
+          serviceLabel =
+            serviceNode.getElementsByClassName('sup-service-choice-label')[0];
+
       if (serviceDef.l10nId)
-        serviceNode.textContent = mozL10n.get(serviceDef.l10nId);
+        serviceLabel.textContent = mozL10n.get(serviceDef.l10nId);
       else
-        serviceNode.textContent = serviceDef.name;
+        serviceLabel.textContent = serviceDef.name;
       serviceNode.serviceDef = serviceDef;
 
       this.servicesContainer.appendChild(serviceNode);
@@ -163,11 +161,11 @@ SetupAccountInfoCard.prototype = {
   },
   onInfoInput: function(event) {
     var nameValid = this.nameNode.classList.contains('collapsed') ||
-                    this.nameNode.value.length > 0;
+                    this.nameNode.checkValidity();
     var emailValid = this.emailNode.classList.contains('collapsed') ||
-                     this.emailNode.value.length > 0;
+                     this.emailNode.checkValidity();
     var passwordValid = this.passwordNode.classList.contains('collapsed') ||
-                        this.passwordNode.value.length > 0;
+                        this.passwordNode.checkValidity();
     this.nextButton.disabled = !(nameValid && emailValid && passwordValid);
   },
   die: function() {
@@ -493,15 +491,13 @@ console.log('  CONFIG CURRENTLY:', JSON.stringify(MailAPI.config));//HACK
 
   this.accountsContainer =
     domNode.getElementsByClassName('tng-accounts-container')[0];
-  bindContainerClickAndHold(this.accountsContainer,
-                            this.onClickAccount.bind(this),
-                            this.onHoldAccount.bind(this));
 
   domNode.getElementsByClassName('tng-account-add')[0]
     .addEventListener('click', this.onClickAddAccount.bind(this), false);
 
   this._secretButtonClickCount = 0;
   this._secretButtonTimer = null;
+  // TODO: Need to remove the secret debug entry before shipping.
   domNode.getElementsByClassName('tng-email-lib-version')[0]
     .addEventListener('click', this.onClickSecretButton.bind(this), false);
 }
@@ -552,34 +548,6 @@ SettingsMainCard.prototype = {
     console.log('sync interval changed to', event.target.value);
     MailAPI.modifyConfig({
       syncCheckIntervalEnum: event.target.value });
-  },
-
-  onClickAccount: function(accountNode, event) {
-    // XXX we would show account settings if we had any...
-  },
-
-  onHoldAccount: function(accountNode, event) {
-    Cards.popupMenuForNode(
-      tngNodes['account-menu'].cloneNode(true), accountNode,
-      ['menu-item'],
-      function(clickedNode) {
-        if (!clickedNode)
-          return;
-
-        switch (clickedNode.classList[0]) {
-          case 'tng-account-menu-delete':
-            // Delete the account and re-do the startup process again in order
-            // to avoid having to deal with either of the following annoying
-            // complexities specially:
-            // - The user deleted the last account!
-            // - The user delete the account that was being displayed
-            accountNode.account.deleteAccount();
-            Cards.removeCardAndSuccessors(null, 'none');
-            App.showMessageViewOrSetup();
-            break;
-        }
-      });
-
   },
 
   onClickAddAccount: function() {
@@ -645,6 +613,9 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
 
+  domNode.getElementsByClassName('tng-account-delete')[0]
+    .addEventListener('click', this.onDelete.bind(this), false);
+
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
@@ -705,6 +676,29 @@ SettingsAccountCard.prototype = {
     if (curAccount.id === this.account.id) {
       Cards.findCardObject(['message-list', 'nonsearch']).cardImpl.onRefresh();
     }
+  },
+
+  onDelete: function() {
+    var account = this.account;
+    CustomDialog.show(
+      null,
+      mozL10n.get('settings-account-delete-prompt', { account: account.name }),
+      {
+        title: mozL10n.get('settings-account-delete-cancel'),
+        callback: function() {
+          CustomDialog.hide();
+        }
+      },
+      {
+        title: mozL10n.get('settings-account-delete-confirm'),
+        callback: function() {
+          account.deleteAccount();
+          CustomDialog.hide();
+          Cards.removeCardAndSuccessors(null, 'none');
+          App.showMessageViewOrSetup();
+        }
+      }
+    );
   },
 
   die: function() {

@@ -22,7 +22,7 @@ body[role="application"] section[role="region"] > header:after {
 }
 
 body[role="application"] section[role="region"] > header h1 {
-  font: 2.2rem/4.8rem "Open Sans", Sans-serif;
+  font: 2.2rem/4.8rem "MozTT", Sans-serif;
   text-align: left;
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -44,7 +44,7 @@ body[role="application"] section[role="region"] > header h1 sup {
 }
 
 body[role="application"] section[role="region"] > header h1 em {
-  font: bold 1.5rem/1em "Open Sans", Sans-serif;
+  font: bold 1.5rem/1em "MozTT", Sans-serif;
 }
 
 body[role="application"] section[role="region"] > header form {
@@ -67,7 +67,7 @@ body[role="application"] section[role="region"] > header input[type=text] {
   border-top-color: #a6501e;
   border-radius: 0.3rem;
   background: #fff url(images/ui/shadow.png) repeat-x left -1px;
-  font: 1.35rem/1em "Open Sans", Sans-serif;
+  font: 1.35rem/1em "MozTT", Sans-serif;
 }
 
 body[role="application"] section[role="region"] > header form .clear {
@@ -120,7 +120,7 @@ body[role="application"] section[role="region"] > header button {
   background: none;
   padding: 0;
   overflow: hidden;
-  font: 600 1.4rem/1.1em "Open Sans", Sans-serif;
+  font: 600 1.4rem/1.1em "MozTT", Sans-serif;
   color: #fff;
 }
 
@@ -224,7 +224,7 @@ body[role="application"] section[role="region"] > header[aria-level="2"]:after {
 
 body[role="application"] section[role="region"] > header[aria-level="2"] h2, 
 body[role="application"] section[role="region"] > header[aria-level="2"] h3 {
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-weight: lighter;
   margin: 0 0 0 3rem;
 }
@@ -232,7 +232,7 @@ body[role="application"] section[role="region"] > header[aria-level="2"] h3 {
 body[role="application"] section[role="region"] > header[aria-level="2"] h2 { font-size: 1.8rem; }
 body[role="application"] section[role="region"] > header[aria-level="2"] h3 { font-size: 1.4rem; }
 body[role="application"] section[role="region"] > header[aria-level="2"] p { 
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-weight: 600;
   margin: 0 3rem;
   font-size: 1.3rem;
@@ -256,7 +256,7 @@ body[role="application"] section[role="region"] > header + form.search input[typ
   border-radius: 0.3rem;
   height: 2.2rem;
   line-height: 2.2rem;
-  font-family: "Open Sans", Sans-serif;
+  font-family: "MozTT", Sans-serif;
   font-weight: 600;
   color: #333;
   text-indent: 0.5rem;

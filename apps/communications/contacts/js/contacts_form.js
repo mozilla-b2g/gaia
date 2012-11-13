@@ -26,10 +26,15 @@ contacts.Form = (function() {
       _,
       formView,
       nonEditableValues,
-      deviceContact;
+      deviceContact,
+      currentPhoto;
 
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
+
+  // The size we want our contact photos to be
+  var PHOTO_WIDTH = 320;
+  var PHOTO_HEIGHT = 320;
 
   var initContainers = function cf_initContainers() {
     deleteContactButton = dom.querySelector('#delete-contact');
@@ -121,10 +126,10 @@ contacts.Form = (function() {
     if (!contact || !contact.id) {
       return;
     }
-    formView.classList.add('skin-dark');
+    formView.classList.add('skin-organic');
     saveButton.textContent = _('update');
     currentContact = contact;
-    deleteContactButton.classList.remove('hide');
+    deleteContactButton.parentNode.classList.remove('hide');
     formTitle.innerHTML = _('editContact');
     currentContactId.value = contact.id;
     givenName.value = contact.givenName || '';
@@ -137,9 +142,8 @@ contacts.Form = (function() {
       nodeClass.add(FB_CLASS);
     }
 
-    var photo = null;
     if (contact.photo && contact.photo.length > 0) {
-      photo = contact.photo[0];
+      currentPhoto = contact.photo[0];
       // If the photo comes from FB it cannot be removed
       var button = addRemoveIconToPhoto();
       if (nonEditableValues['hasPhoto']) {
@@ -147,7 +151,7 @@ contacts.Form = (function() {
         button.classList.add('hide');
       }
     }
-    Contacts.updatePhoto(photo, thumb);
+    Contacts.updatePhoto(currentPhoto, thumb);
     var toRender = ['tel', 'email', 'adr', 'note'];
     for (var i = 0; i < toRender.length; i++) {
       var current = toRender[i];
@@ -175,13 +179,13 @@ contacts.Form = (function() {
   };
 
   var showAdd = function showAdd(params) {
-    formView.classList.remove('skin-dark');
+    formView.classList.remove('skin-organic');
     if (!params || params == -1 || !('id' in params)) {
       currentContact = {};
     }
     saveButton.setAttribute('disabled', 'disabled');
     saveButton.textContent = _('done');
-    deleteContactButton.classList.add('hide');
+    deleteContactButton.parentNode.classList.add('hide');
     formTitle.innerHTML = _('addContact');
 
     params = params || {};
@@ -232,16 +236,20 @@ contacts.Form = (function() {
 
     var default_type = tags[0].value || '';
     var currField = {};
+    var infoFromFB = false;
     for (var j = 0; j < fields.length; j++) {
       var currentElem = fields[j];
       var def = (currentElem === 'type') ? default_type : '';
       var defObj = (typeof(obj) === 'string') ? obj : obj[currentElem];
-      currField[currentElem] = defObj || def;
+      var value = currField[currentElem] = defObj || def;
+      if (!infoFromFB && value && nonEditableValues[value]) {
+        infoFromFB = true;
+      }
     }
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
 
-    if (currField.value && nonEditableValues[currField.value]) {
+    if (infoFromFB) {
       var nodeClass = rendered.classList;
       nodeClass.add(REMOVED_CLASS);
       nodeClass.add(FB_CLASS);
@@ -296,7 +304,7 @@ contacts.Form = (function() {
     var photo = [];
     var isRemoved = thumbAction.classList.contains(REMOVED_CLASS);
     if (!isRemoved) {
-      photo = currentContact.photo;
+      photo = currentPhoto;
     }
     return photo;
   }
@@ -334,7 +342,8 @@ contacts.Form = (function() {
       myContact['category'] = currentContact['category'];
     }
 
-    myContact['photo'] = getCurrentPhoto();
+    myContact['photo'] = currentContact['photo'] || [];
+    myContact['photo'][0] = getCurrentPhoto();
 
     if (myContact.givenName || myContact.familyName) {
       var name = myContact.givenName || '';
@@ -520,11 +529,16 @@ contacts.Form = (function() {
   }
 
   var resetForm = function resetForm() {
+    currentPhoto = null;
     thumbAction.querySelector('p').classList.remove('hide');
+    var removeIcon = thumbAction.querySelector('button');
+    if (removeIcon) {
+      thumbAction.removeChild(removeIcon);
+    }
     saveButton.removeAttribute('disabled');
     resetRemoved();
     currentContactId.value = '';
-    currentContact = null;
+    currentContact = {};
     givenName.value = '';
     familyName.value = '';
     company.value = '';
@@ -584,6 +598,11 @@ contacts.Form = (function() {
     delIcon.className = 'icon-delete';
     delButton.appendChild(delIcon);
     delButton.onclick = function removeElement(event) {
+      // Workaround until 809452 is fixed.
+      // What we are avoiding with this condition is removing / restoring
+      // a field when the event is simulated by a ENTER Keyboard click
+      if ((event.clientX === 0) && (event.clientY === 0))
+        return false;
       event.preventDefault();
       var elem = document.getElementById(selector);
       elem.classList.toggle(REMOVED_CLASS);
@@ -606,48 +625,53 @@ contacts.Form = (function() {
       name: 'pick',
       data: {
         type: 'image/jpeg',
-        width: 320, // The desired width of the image
-        height: 320 // The desired height of the image
+        width: PHOTO_WIDTH, // The desired width of the image
+        height: PHOTO_HEIGHT // The desired height of the image
       }
     });
 
-    var reopenApp = function reopen() {
-      navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
-        var app = evt.target.result;
-        var ep = window == top ? 'contacts' : 'dialer';
-        app.launch(ep);
-      };
-    };
-
     activity.onsuccess = function success() {
-      reopenApp();
       addRemoveIconToPhoto();
-      var dataurl = this.result.url;  // A data URL for a 320x320 JPEG image
-      dataURLToBlob(dataurl, function(blob) {
-        Contacts.updatePhoto(blob, thumb);
-        currentContact.photo = currentContact.photo || [];
-        currentContact.photo[0] = blob;
-      });
 
-      function dataURLToBlob(dataurl, callback) {
-        var img = new Image();
-        img.src = dataurl;
-        img.onload = function() {
-          var canvas = document.createElement('canvas');
-          var context = canvas.getContext('2d');
-          canvas.width = img.naturalWidth;
-          canvas.height = img.naturalHeight;
-          context.drawImage(img, 0, 0);
-          callback(canvas.mozGetAsFile('contact_' + new Date().getTime(),
-                                       'image/jpeg'));
-        }
-      }
-    }
-
-    activity.onerror = function error() {
-      reopenApp();
+      // XXX
+      // this.result.blob is valid now, but it won't stay valid
+      // (see https://bugzilla.mozilla.org/show_bug.cgi?id=806503)
+      // And it might not be the size we want, anyway, so we make
+      // our own copy that is at the right size.
+      resizeBlob(this.result.blob, PHOTO_WIDTH, PHOTO_HEIGHT,
+                 function(resized) {
+                   Contacts.updatePhoto(resized, thumb);
+                   currentPhoto = resized;
+                 });
     }
   };
+
+  function resizeBlob(blob, target_width, target_height, callback) {
+    var img = document.createElement('img');
+    var url = URL.createObjectURL(blob);
+    img.src = url;
+    img.onload = function() {
+      var image_width = img.width;
+      var image_height = img.height;
+      var scalex = image_width / target_width;
+      var scaley = image_height / target_height;
+      var scale = Math.min(scalex, scaley);
+
+      var w = target_width * scale;
+      var h = target_height * scale;
+      var x = (image_width - w) / 2;
+      var y = (image_height - h) / 2;
+
+      var canvas = document.createElement('canvas');
+      canvas.width = target_width;
+      canvas.height = target_height;
+      var context = canvas.getContext('2d');
+
+      context.drawImage(img, x, y, w, h, 0, 0, target_width, target_height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(callback, 'image/jpeg');
+    };
+  }
 
   return {
     'init': init,

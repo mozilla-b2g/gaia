@@ -189,8 +189,6 @@ Calendar.IntervalTree = (function() {
   };
 
   IntervalTree.Node = Node;
-  IntervalTree.START = START;
-  IntervalTree.END = END;
 
   /**
    * Start point for creation of the tree
@@ -214,6 +212,9 @@ Calendar.IntervalTree = (function() {
   };
 
   IntervalTree.prototype = {
+
+    START: START,
+    END: END,
 
     build: function() {
       if (!this.synced) {
@@ -242,6 +243,15 @@ Calendar.IntervalTree = (function() {
 
       if (!item[END] && item.endDate) {
         item[END] = item.endDate.valueOf();
+      }
+
+      if (!item[START] || !item[END]) {
+        console.trace();
+        console.log(
+          '(Calendar interval tree) invalid input skipping record',
+          JSON.stringify(item)
+        );
+        return;
       }
 
       var idx = Calendar.binsearch.insert(

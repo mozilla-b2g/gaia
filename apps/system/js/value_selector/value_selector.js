@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
@@ -31,6 +31,8 @@ var ValueSelector = {
       if (typeToHandle.indexOf(type) == -1)
         return;
 
+      var currentValue = evt.detail.value;
+
       switch (evt.detail.type) {
         case 'select-one':
         case 'select-multiple':
@@ -40,11 +42,11 @@ var ValueSelector = {
           break;
 
         case 'date':
-          self.showDatePicker();
+          self.showDatePicker(currentValue);
           break;
 
         case 'time':
-          self.showTimePicker();
+          self.showTimePicker(currentValue);
           break;
 
         case 'datetime':
@@ -56,6 +58,7 @@ var ValueSelector = {
 
 
     this._element = document.getElementById('value-selector');
+    this._element.addEventListener('mousedown', this);
     this._containers['select'] =
       document.getElementById('value-selector-container');
     this._containers['select'].addEventListener('click', this);
@@ -63,6 +66,7 @@ var ValueSelector = {
 
     this._popups['select'] =
       document.getElementById('select-option-popup');
+    this._popups['select'].addEventListener('submit', this);
     this._popups['time'] =
       document.getElementById('time-picker-popup');
     this._popups['date'] =
@@ -80,9 +84,20 @@ var ValueSelector = {
     this._containers['time'] = document.getElementById('picker-bar');
     this._containers['date'] = document.getElementById('date-picker-container');
 
-
     ActiveEffectHelper.enableActive(this._buttons['select']);
     ActiveEffectHelper.enableActive(this._buttons['time']);
+    ActiveEffectHelper.enableActive(this._buttons['date']);
+
+    // Prevent focus being taken away by us for time picker.
+    // The event listener on outer box will not be triggered cause
+    // there is a evt.stopPropagation() in value_picker.js
+    var pickerElements = ['value-picker-hours', 'value-picker-minutes',
+                         'value-picker-hour24-state'];
+
+    pickerElements.forEach((function pickerElements_forEach(id) {
+      var element = document.getElementById(id);
+      element.addEventListener('mousedown', this);
+    }).bind(this));
 
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
@@ -113,6 +128,13 @@ var ValueSelector = {
             this.handleSelect(evt.target);
             break;
         }
+        break;
+
+      case 'submit':
+        // Prevent the form from submit.
+      case 'mousedown':
+        // Prevent focus being taken away by us.
+        evt.preventDefault();
         break;
 
       default:
@@ -163,6 +185,7 @@ var ValueSelector = {
 
   cancel: function vs_cancel() {
     this.debug('cancel invoked');
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
@@ -209,6 +232,7 @@ var ValueSelector = {
       window.navigator.mozKeyboard.setSelectedOptions(optionIndices);
     }
 
+    window.navigator.mozKeyboard.removeFocus();
     this.hide();
   },
 
@@ -239,9 +263,13 @@ var ValueSelector = {
 
       var checked = options[i].selected ? ' aria-checked="true"' : '';
 
+      // This for attribute is created only to avoid applying
+      // a general rule in building block
+      var forAttribute = ' for="gaia-option-' + options[i].optionIndex + '"';
+
       optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
                      checked + '>' +
-                     '<label> <span>' +
+                     '<label' + forAttribute + '> <span>' +
                      escapeHTML(options[i].text) +
                      '</span></label>' +
                     '</li>';
@@ -276,7 +304,7 @@ var ValueSelector = {
     }
   },
 
-  showTimePicker: function vs_showTimePicker() {
+  showTimePicker: function vs_showTimePicker(currentValue) {
     this._currentPickerType = 'time';
     this.show();
     this.showPanel('time');
@@ -285,9 +313,40 @@ var ValueSelector = {
       TimePicker.initTimePicker();
       this._timePickerInitialized = true;
     }
+
+    var time;
+    if (!currentValue) {
+      var now = new Date();
+      time = {
+        hours: now.getHours(),
+        minutes: now.getMinutes()
+      };
+    } else {
+      var inputParser = ValueSelector.InputParser;
+      if (!inputParser)
+        console.error('Cannot get input parser for value selector');
+
+      time = inputParser.importTime(currentValue);
+    }
+
+    var timePicker = TimePicker.timePicker;
+    // Set the value of time picker according to the current value
+    if (timePicker.is12hFormat) {
+
+      var hour = (time.hours % 12);
+      hour = (hour == 0) ? 12 : hour;
+      // 24-hour state value selector: AM = 0, PM = 1
+      var hour24State = (time.hours >= 12) ? 1 : 0;
+      timePicker.hour.setSelectedIndexByDisplayedText(hour);
+      timePicker.hour24State.setSelectedIndex(hour24State);
+    } else {
+      timePicker.hour.setSelectedIndex(time.hours);
+    }
+
+    timePicker.minute.setSelectedIndex(time.minutes);
   },
 
-  showDatePicker: function vs_showDatePicker() {
+  showDatePicker: function vs_showDatePicker(currentValue) {
     this._currentPickerType = 'date';
     this.show();
     this.showPanel('date');
@@ -315,9 +374,20 @@ var ValueSelector = {
       }
       picker.onmonthchange = updateMonth;
 
-      var date = new Date();
-      picker.display(date.getFullYear(), date.getMonth());
     }
+
+    // Show current date as default value
+    var date = new Date();
+    if (currentValue) {
+      var inputParser = ValueSelector.InputParser;
+      if (!inputParser)
+        console.error('Cannot get input parser for value selector');
+
+      date = inputParser.formatInputDate(currentValue, '');
+    }
+
+    this._datePicker.display(date.getFullYear(), date.getMonth(),
+                             date.getDate());
   }
 };
 

@@ -12,7 +12,7 @@ html {
 body {
   background-color: black;
   color: #fff;
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   font-size: 10px;
   margin: 0;
   padding: 0;
@@ -30,7 +30,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #open-view, #crop-view {
+#thumbnail-list-view, #thumbnail-select-view, #photo-view, #pick-view, #edit-view, #crop-view {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -73,7 +73,7 @@ section {
   border: solid black 4px;
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Open Sans", sans-serif;
+  font-family: "MozTT", sans-serif;
   color: #fff;
   -moz-user-select: none;
 }
@@ -236,25 +236,29 @@ body.hidden *[data-l10n-id] {
 /* the indeterminate progress bar displayed while scanning */
 #progress {
   position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
-  height: 4px;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
   border: none;
   overflow: hidden;
 }
 
-#throbber.throb
-{
-  animation: .5s throb infinite steps(12);
+#throbber {
+  height: 24px;
+  background-image: url(images/progress.png);
+}
+
+#throbber.throb {
+  animation: 1s throb infinite steps(7);
 }
 
 @keyframes throb {
   from {
-    transform: translate(0px, 0px);
+    transform: translateY(0px);
   }
   to {
-    transform: translate(0px, -48px);
+    transform: translateY(-21px);
   }
 }
 
@@ -405,21 +409,9 @@ footer {
   -moz-user-select: none;
 }
 
-/* like .photoFrame */
-#open-frame {
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
-  bottom: 50px;
-  padding: 0px;
-  margin: 0px;
-  overflow: hidden;
-  -moz-user-select: none;
-}
 
 /* copied from .photoFrame > img */
-#open-image, #crop-image {
+#crop-image {
   top: 0px;  /* javascript modifies this position with a transform */
   left: 0px;
   position: relative;
@@ -429,31 +421,6 @@ footer {
   transform-origin: 0px 0px;
   pointer-events: none;
   -moz-user-select: none;
-}
-
-#open-bottom {
-  background: #888;
-  height: 50px;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-#open-camera-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 0;
-  background-image: url('images/camera.png');
-}
-
-#open-delete-button {
-  position: absolute;
-  width: 50%;
-  height: 100%;
-  left: 50%;
-  background-image: url('images/delete.png');
 }
 
 #edit-view {
@@ -513,7 +480,7 @@ footer {
 }
 
 #edit-effect-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
   outline-offset: -3px;
 }
 
@@ -534,7 +501,7 @@ footer {
 }
 
 #edit-crop-options a.selected.radio.button {
-  outline: solid orange 2px;
+  outline: solid #00aacc 2px;
   outline-offset: -2px;
 }
 
@@ -594,7 +561,7 @@ footer {
 
 /* All the effects radio buttons share these styles */
 #edit-effect-options > a.radio.button {
-  width: 33.3%;
+  width: 20%;
   padding-top: 15px;
 }
 
@@ -602,16 +569,28 @@ footer {
   left:0;
 }
 #edit-effect-bw {
-  left:33.3%
+  left:20%
 }
 #edit-effect-sepia {
-  left:66.6%
+  left:40%
+}
+#edit-effect-bluesteel {
+  left:60%
+}
+#edit-effect-faded {
+  left:80%
 }
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
 a.filter-sepia {
   filter: url(../index.html#filter-sepia);
+}
+a.filter-bluesteel {
+  filter: url(../index.html#filter-bluesteel);
+}
+a.filter-faded {
+  filter: url(../index.html#filter-faded);
 }
 
 /* All the border buttons share these styles */
@@ -628,7 +607,7 @@ a.filter-sepia {
 }
 
 #edit-border-options a.selected.radio.button {
-  outline: solid orange 3px;
+  outline: solid #00aacc 3px;
 }
 
 #edit-border-none {
@@ -662,7 +641,7 @@ a.filter-sepia {
 
 /* If the button is selected, it has a different background */
 #edit-toolbar > .button.selected {
-  background: #267594;
+  background: #02252C;
 }
 
 #edit-exposure-button {

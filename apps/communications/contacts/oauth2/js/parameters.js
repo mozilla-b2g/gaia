@@ -3,7 +3,7 @@ fb.oauthflow = window.fb.oauthflow || {};
 
 fb.oauthflow.params = {
   redirectURI:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2/flow.html',
+    'http://intense-tundra-4122.herokuapp.com/fbowd/oauth2/flow2.html',
   loginPage:
     'https://m.facebook.com/dialog/oauth/?',
   applicationId:
@@ -13,5 +13,5 @@ fb.oauthflow.params = {
   redirectMsg:
     'http://intense-tundra-4122.herokuapp.com/fbowd/dialogs_end.html',
   redirectLogout:
-    'http://intense-tundra-4122.herokuapp.com/fbowd/dialogs_end.html'
+    'http://intense-tundra-4122.herokuapp.com/fbowd/logout.json'
 };

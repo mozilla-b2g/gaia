@@ -2,6 +2,8 @@
 
   window.Calendar = {
 
+    DEBUG: false,
+
     /**
      * Creates a calendar namespace.
      *
@@ -32,6 +34,21 @@
       var args = Array.prototype.slice.call(arguments);
       args.unshift('CALENDAR:');
       console.error.apply(console, args);
+    },
+
+    debug: function(name) {
+      return function() {
+        if (!Calendar.DEBUG)
+          return;
+
+        var args = Array.prototype.slice.call(arguments);
+        args = args.map(function(item) {
+          return JSON.stringify(item);
+        });
+        args.unshift('[calendar] ');
+        args.unshift(name);
+        console.log.apply(console, args);
+      }
     },
 
     /**

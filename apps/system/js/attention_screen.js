@@ -35,6 +35,7 @@ var AttentionScreen = {
 
     this.bar.addEventListener('click', this.show.bind(this));
     window.addEventListener('home', this.hide.bind(this));
+    window.addEventListener('holdhome', this.hide.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -75,8 +76,7 @@ var AttentionScreen = {
     // We want the user attention, so we need to turn the screen on
     // if it's off. The lockscreen will grab the focus when we do that
     // so we need to do it before adding the new iframe to the dom
-    this._screenInitiallyDisabled = !ScreenManager.screenEnabled;
-    if (this._screenInitiallyDisabled)
+    if (!ScreenManager.screenEnabled)
       ScreenManager.turnScreenOn();
 
     var attentionFrame = evt.detail.frameElement;
@@ -88,16 +88,23 @@ var AttentionScreen = {
     this.attentionScreen.classList.add('displayed');
 
     // Ensuring the proper mozvisibility change on the displayed app
+    // and the attention screen app
     var displayedOrigin = WindowManager.getDisplayedApp();
-    if (displayedOrigin) {
-      var frame = WindowManager.getAppFrame(displayedOrigin);
-      if ('setVisible' in frame) {
-        frame.setVisible(false);
-      }
-    }
+    var frameOrigin = attentionFrame.dataset.frameOrigin;
+    this._setVisibility(displayedOrigin, false);
+    this._setVisibility(frameOrigin, false);
 
     this.mainScreen.classList.add('attention');
     this.dispatchEvent('attentionscreenshow');
+  },
+
+  _setVisibility: function as_setVisibility(origin, visible) {
+    if (!origin)
+      return;
+    var frame = WindowManager.getAppFrame(origin);
+    if (frame && 'setVisible' in frame) {
+      frame.setVisible(visible);
+    }
   },
 
   close: function as_close(evt) {
@@ -107,12 +114,7 @@ var AttentionScreen = {
 
     // Ensuring the proper mozvisibility changed on the displayed app
     var displayedOrigin = WindowManager.getDisplayedApp();
-    if (displayedOrigin) {
-      var frame = WindowManager.getAppFrame(displayedOrigin);
-      if ('setVisible' in frame) {
-        frame.setVisible(true);
-      }
-    }
+    this._setVisibility(displayedOrigin, true);
 
     this.mainScreen.classList.remove('active-statusbar');
     this.attentionScreen.classList.remove('status-mode');
@@ -124,9 +126,6 @@ var AttentionScreen = {
       this.dispatchEvent('attentionscreenhide');
       this.mainScreen.classList.remove('attention');
     }
-
-    if (this._screenInitiallyDisabled)
-      ScreenManager.turnScreenOff(false);
 
     // We just removed the focused window leaving the system
     // without any focused window, let's fix this.
@@ -154,9 +153,6 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (this.attentionScreen.querySelectorAll('iframe').length > 0) {
       if (!this.mainScreen.classList.contains('active-statusbar')) {
-        // The user is hiding the attention screen to use the phone we better
-        // not turn the sreen off when the attention screen is closed.
-        this._screenInitiallyDisabled = false;
 
         this.mainScreen.classList.add('active-statusbar');
 
@@ -171,7 +167,7 @@ var AttentionScreen = {
     }
   },
 
-  dispatchEvent: function ls_dispatchEvent(name) {
+  dispatchEvent: function as_dispatchEvent(name) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(name, true, true, null);
     window.dispatchEvent(evt);
@@ -188,15 +184,13 @@ var AttentionScreen = {
   },
 
   _hasAttentionPermission: function as_hasAttentionPermission(app) {
-    if (!app || !app.manifest.permissions)
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
       return false;
 
-    var keys = Object.keys(app.manifest.permissions);
-    var permissions = keys.map(function map_perm(key) {
-      return app.manifest.permissions[key];
-    });
+    var value = mozPerms.get('attention', app.manifestURL, app.origin, false);
 
-    return (permissions.indexOf('attention') != -1);
+    return (value === 'allow');
   }
 };
 

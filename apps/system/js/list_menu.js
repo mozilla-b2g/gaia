@@ -68,7 +68,7 @@ var ListMenu = {
 
         button.href = '#' + this.currentChild;
         button.textContent = item.label;
-      } else if (item.type == 'menuitem') {
+      } else if (item.type && item.type == 'menuitem') {
         button.dataset.value = item.id;
         button.textContent = item.label;
       } else {
@@ -116,11 +116,17 @@ var ListMenu = {
   },
 
   show: function lm_show() {
+    if (this.visible)
+      return;
+
     this.container.classList.remove('slidedown');
     this.element.classList.add('visible');
   },
 
   hide: function lm_hide() {
+    if (!this.visible)
+      return;
+
     var self = this;
     this.container.addEventListener('transitionend',
       function onTransitionEnd() {

@@ -16,7 +16,7 @@ body {
 
   overflow: hidden;
 
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
   color: #fff;
   font-size: 12px;
 }
@@ -105,158 +105,74 @@ body {
   background-color: #fff;
 }
 
-#screen.cards-view > #windows > iframe.appWindow:not(.homescreen) {
+#windows > iframe.appWindow:not(.homescreen).default-background {
+  background: url('./images/splash_screen_generic.png') center center no-repeat #fff;
+}
+
+#windows > iframe.appWindow:not(.active):not(.homescreen):not(.opening):not(.closing) {
   visibility: hidden;
 }
 
-#windows > iframe.appWindow:not(.active):not(.homescreen) {
-  visibility: hidden;
+#windows > iframe.appWindow:not(.homescreen):not(.active):not(.inlineActivity):not(.opening) {
+  opacity: 0;
+  transform: scale(0.6);
 }
 
-#windows > iframe.appWindow.inlineActivity {
+#windows > iframe.appWindow.opening {
+  transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+#screen.cards-view > #windows > iframe.appWindow.opening,
+#screen.cards-view > #windows > iframe.appWindow.closing,
+#screen.switch-app > #windows > iframe.appWindow.opening,
+#screen.switch-app > #windows > iframe.appWindow.closing {
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-card {
+  transform: translateX(70%) scale(0.6);
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.opening-switching {
+  transform: scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#screen.switch-app > #windows > iframe.appWindow.closing-card {
+  transform: translateX(-70%) scale(0.6);
+  transition: transform 0.5s ease;
+  visibility: inherit;
+  opacity: 1;
+}
+
+#windows > iframe.appWindow.closing {
+  transition: transform 0.5s ease, opacity 0.3s ease 0.2s;
+}
+
+
+#windows > iframe.appWindow.inlineActivity,
+#windows > iframe.appWindow.hideBottom {
   transform: translateY(100%);
   transition: transform 0.5s ease, visibility 0.5s ease;
 }
 
+#windows > iframe.appWindow.restored {
+  transform: none;
+  transition: transform 0.5s ease;
+}
+
 #windows > iframe.appWindow.inlineActivity.active {
   transform: none;
-  transition: none;
 }
 
-#screen.fullscreen-app > #windows > iframe.appWindow.active:not(.homescreen) {
+#screen > #windows > iframe.appWindow.fullscreen-app {
   top: 0;
-}
-
-#windowSprite,
-.windowSprite {
-  position: absolute;
-  top: 20px;
-  left: 0;
-  width: 100%;
-  height: -moz-calc(100% - 20px);
-  background-color: #373a3d;
-  background-size: cover;
-  pointer-events: none;
-
-  visibility: hidden;
-}
-
-.windowSprite {
-  transition: transform 0.5s ease;
-  transform: scale(0.6);
-  visibility: inherit;
-}
-
-.windowSprite.right {
-  transform: translateX(70%) scale(0.6);
-}
-
-.windowSprite.left {
-  transform: translateX(-70%) scale(0.6);
-}
-
-#screen.switch-app #windowSprite.before-close {
-  opacity: 0.99;
-}
-
-#screen.switch-app #windowSprite:not(.before-close):not(.opened) {
-  opacity: 1;
-}
-
-#screen.active-statusbar #windowSprite {
-  top: 40px;
-  height: -moz-calc(100% - 40px);
-}
-
-#screen.cards-view > div#windowSprite:not(.before-close) {
-  opacity: 1;
-}
-
-#windowSprite[data-mask="true"] > div {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-#screen.fullscreen-app > #windowSprite {
-  height: 100%;
-  top: 0;
-}
-
-#screen.attention > #windowSprite,
-#screen.fullscreen-app.attention > #windowSprite {
-  height: -moz-calc(100% - 40px);
-  top: 40px;
-} 
-
-#windowSprite.before-inline-activity {
-  transform: translateY(-moz-calc(100% - 1px));
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opening {
-  transition: transform 0.5s ease;
-
-  transform: translateY(0);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.inline-activity-opened {
-  transition: opacity 0.3s ease;
-
-  transform: translateY(0);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-open {
-  transform: scale(0.6);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.opening {
-  transition: transform 0.5s ease, opacity 0.3s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.opened {
-  transition: opacity 0.3s ease;
-
-  transform: scale(1);
-  opacity: 0;
-  visibility: visible;
-}
-
-#windowSprite.before-close {
-  transform: scale(1);
-  /* 0.01 opacity is needed to make sure Gecko paints and fire
-     MozAfterPaint event for us. */
-  opacity: 0.01;
-  visibility: visible;
-}
-
-#windowSprite.closing {
-  transition: opacity 0.1s ease;
-
-  transform: scale(1);
-  opacity: 1;
-  visibility: visible;
-}
-
-#windowSprite.closed {
-  transition: transform 0.5s ease, opacity 0.3s ease;
-
-  transform: scale(0.6);
-  opacity: 0;
-  visibility: visible;
 }
 
 .accessibility-invert {
@@ -270,37 +186,6 @@ iframe.backgroundWindow {
   width: 1px;
   height: 1px;
   visibility: hidden;
-}
-
-#keyboard-frame {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-  transform: translateY(0);
-  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
-  pointer-events: none;
-}
-
-#keyboard-frame.visible {
-  visibility: visible;
-  pointer-events: auto;
-}
-
-#keyboard-frame.hide {
-  transform: translateY(100%);
-  visibility: hidden;
-}
-
-#keyboard-overlay {
-  position: absolute;
-  top: 0px;
-  width: 100%;
-  border: 0;
-  background: -moz-element(#keyboard-frame);
-  background-position: top center;
-  pointer-events: none;
 }
 
 #dialog-overlay {
@@ -324,12 +209,19 @@ iframe.backgroundWindow {
   height: 100%;
 }
 
+#screen:not(.crash-dialog) #crash-dialog {
+  visibility: hidden;
+}
+
 #screen.authentication-dialog #dialog-overlay,
 #screen.authentication-dialog #authentication-dialog,
+#screen.crash-dialog #dialog-overlay,
+#screen.crash-dialog #crash-dialog
 #screen.modal-dialog #dialog-overlay,
 #screen.modal-dialog #modal-dialog,
 #screen.popup #popup-container,
-#screen.popup #dialog-overlay {
+#screen.trustedui #trustedui-container,
+#screen.trustedui #dialog-overlay {
   visibility: visible;
   pointer-events: auto;
 }
@@ -355,4 +247,16 @@ iframe.backgroundWindow {
 #system-banner.visible {
   animation: banner-bounce 4s;
   visibility: visible;
+}
+
+#system-banner button {
+  width: auto;
+}
+
+#system-banner[data-button="false"] button {
+  visibility: hidden;
+}
+
+#screen iframe.communication-frame {
+  visibility: hidden;
 }

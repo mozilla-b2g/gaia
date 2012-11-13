@@ -37,6 +37,11 @@ var UssdUI = {
       document.getElementById('response-text-reset');
   },
 
+  get messageScreen() {
+    delete this.messageScreen;
+    return this.messageScreen = document.getElementById('message-screen');
+  },
+
   init: function uui_init() {
     this._ = window.navigator.mozL10n.get;
     this.updateHeader(window.name);
@@ -69,6 +74,14 @@ var UssdUI = {
     document.body.classList.add('loading');
     this.responseTextNode.setAttribute('disabled', 'disabled');
     this.sendNode.setAttribute('disabled', 'disabled');
+  },
+
+  showResponseForm: function uui_showForm() {
+    this.messageScreen.classList.add('responseForm');
+  },
+
+  hideResponseForm: function uui_hideForm() {
+    this.messageScreen.classList.remove('responseForm');
   },
 
   resetResponse: function uui_resetResponse() {
@@ -104,14 +117,23 @@ var UssdUI = {
 
     switch (evt.data.type) {
       case 'success':
+        this.hideResponseForm();
         this.showMessage(evt.data.result ?
-          evt.data.result : this._('message-successfully-sent'));
+          evt.data.result : this._('mmi-successfully-sent'));
         break;
       case 'error':
         this.showMessage(evt.data.error ?
-          evt.data.error : this._('ussd-server-error'));
+          evt.data.error : this._('mmi-error'));
         break;
       case 'ussdreceived':
+        if (evt.data.sessionEnded) {
+          this.hideResponseForm();
+          if (evt.data.message == null) {
+            evt.data.message = this._('mmi-session-expired');
+          }
+        } else {
+          this.showResponseForm();
+        }
         this.showMessage(evt.data.message);
         break;
       case 'voicechange':

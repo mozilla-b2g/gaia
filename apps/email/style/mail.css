@@ -11,7 +11,7 @@ html {
   width: 100%;
   height: 100%;
   font-size: 10px;
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'MozTT', sans-serif;
 }
 
 @media screen and (min-width: 480px) {
@@ -26,32 +26,6 @@ body {
   margin: 0;
   padding: 0;
   background-color: black;
-}
-
-button {
-  background-color: #5e5e5e;
-  border-width: 1px;
-  border-style: solid;
-  border-color: #323232;
-  color: #FFFFFF;
-  font-size: 1.6rem;
-  font-weight: bold;
-  min-height: 3.2rem;
-
-  -webkit-border-radius: 3px;
-     -moz-border-radius: 3px;
-       -o-border-radius: 3px;
-          border-radius: 3px;
-}
-
-/* Remove button dotted outline */
-button::-moz-focus-inner {
-  padding: 0;
-  border: none;
-}
-
-button[disabled=""] {
-  opacity: 0.5;
 }
 
 #cardContainer {
@@ -157,16 +131,23 @@ button[disabled=""] {
   width: 100%;
   height: 4.8rem;
   background-color: rgba(0, 0, 0, 0.6);
+  z-index: 10;
 }
 .bottom-btn {
   height: 4.8rem;
   border: none;
   width: 6rem;
+  margin: 0 calc((100% - 25rem) / 8);
 }
-/* create a space the size of the toolbar since it is absolute...*/
+.bottom-btn.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+/* create a space the size of the toolbar since it is absolute...
+   9.6 rem = 4.8rem (toolbar height)  + 4.8rem (search bar height) */
 .bottom-toolbar-spacer {
   display: block;
-  height: 4.8rem;
+  height: 9.6rem;
 }
 
 .popup {
@@ -202,74 +183,41 @@ button[disabled=""] {
   background-color: #f3f3D3;
 }
 
-.icon {
-  width: 3rem;
-  height: 3rem;
-  background: transparent no-repeat center center;
-  background-size: 100% auto;
-  display: inline-block;
-  margin: -0.8rem;
-}
-
-.icon-menu {
-  background-image: url("images/icons/menu.png");
-}
-
-.icon-add {
-  background-image: url("images/icons/add.png");
-}
-
-.icon-back {
-  background-image: url("images/icons/back.png");
-}
-
-.icon-close {
-  background-image: url("images/icons/close.png");
-}
-
-.icon-edit {
-  background-image: url("images/icons/edit.png");
-}
-
-.icon-send {
-  background-image: url("images/icons/send.png");
-}
-
-.icon-account {
-  background-image: url("images/icons/user.png");
-}
-
-.icon-reply {
-  background-image: url("images/icons/reply.png");
-}
-
-.icon-reply-all {
-  background-image: url("images/icons/reply-all.png");
+.icon-download {
+  background: url("images/icons/download.png") no-repeat scroll center transparent;
+  top: 0;
+  left: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 /* Toaset banner extend class */
-section[role="dialog"].banner.customized {
+section[role="status"].customized {
   bottom: 4.8rem;
   opacity: 1;
   padding-left: 3.2rem;
 }
 
-section[role="dialog"].banner.fadeout {
+section[role="status"].fadeout {
   -moz-transition: opacity 500ms ease;
   opacity: 0;
 }
 
-section[role="dialog"].banner .toaster-cancel-btn {
+section[role="status"][title="undo"] p {
+  max-width: 65% !important;
+}
+
+section[role="status"] .toaster-cancel-btn {
   height: 8rem;
 }
 
-section[role="dialog"].banner .toaster-banner-undo,
-section[role="dialog"].banner .toaster-banner-retry {
+section[role="status"] .toaster-banner-undo {
   display: none;
-  margin-left: 1rem;
+  margin: 1rem;
+  width: auto;
 }
 
-section[role="dialog"][title="undo"].banner .toaster-banner-undo,
-section[role="dialog"][title="retry"].banner .toaster-banner-retry {
+section[role="status"][title="undo"] .toaster-banner-undo {
   display: inline;
 }

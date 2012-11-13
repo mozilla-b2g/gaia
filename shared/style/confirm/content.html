@@ -9,16 +9,16 @@
   <link rel="stylesheet" href="../confirm.css">
 
   <!--
-  This <style> and <link> is only used for the example code, is no needed for the real case use
-  -->
-  <style>
+    - This <style> element is only used for the example code;
+    - it is not required for the real use case.
+    -->
+  <style type="text/css">
     html, body {
       margin: 0;
       padding: 0;
       font-size: 10px;
       background-color: #fff;
     }
-
     body {
       background: none;
     }
@@ -27,7 +27,7 @@
 
 <body role="application">
 
-  <form role="dialog">
+  <form role="dialog" data-type="confirm">
     <section>
       <h1>Confirmation</h1>
       <p>
@@ -38,10 +38,11 @@
       <p>Do you want to download and install this application?</p>
     </section>
     <menu>
-      <button type="reset">Cancel</button>
-      <button type="submit">Yes</button>
+      <button>Cancel</button>
+      <button class="recommend">Yes</button>
     </menu>
   </form>
 
 </body>
 </html>
+

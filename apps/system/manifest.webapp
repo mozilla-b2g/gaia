@@ -1,79 +1,48 @@
 {
   "name": "System",
+  "type": "certified",
   "description": "Main System",
+  "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "alarm",
-    "alarms",
-    "browser",
-    "power",
-    "mozApps",
-    "webapps-manage",
-    "mobileconnection",
-    "mozBluetooth",
-    "bluetooth",
-    "telephony",
-    "voicemail",
-    "device-storage:pictures",
-    "settings",
-    "storage",
-    "content-camera",
-    "camera",
-    "geolocation",
-    "wifi-manage",
-    "wifi",
-    "desktop-notification",
-    "idle",
-    "network-events",
-    "embed-apps"
-  ],
+  "permissions": {
+    "alarms": {},
+    "browser":{},
+    "power":{},
+    "webapps-manage":{},
+    "mobileconnection":{},
+    "mozBluetooth":{},
+    "bluetooth":{},
+    "telephony":{},
+    "voicemail":{},
+    "device-storage:pictures":{ "access": "readcreate" },
+    "settings":{ "access": "readwrite" },
+    "storage":{},
+    "camera":{},
+    "geolocation":{},
+    "wifi-manage":{},
+    "wifi":{},
+    "desktop-notification":{},
+    "idle":{},
+    "network-events":{},
+    "embed-apps":{},
+    "background-sensors":{},
+    "permissions":{}
+  },
   "locales": {
     "ar": {
       "name": "System",
       "description": "Main System"
     },
-    "ca": {
-      "name": "Sistema",
-      "description": "Sistema principal"
-    },
-    "de": {
-      "name": "System",
-      "description": "Allgemeines System"
-    },
-    "el": {
-      "name": "Σύστημα",
-      "description": "Κύριο Σύστημα"
-    },
     "en-US": {
       "name": "System",
       "description": "Main System"
     },
-    "es": {
-      "name": "Sistema",
-      "description": "Sistema principal"
-    },
     "fr": {
       "name": "System",
       "description": "Main System"
-    },
-    "it": {
-      "name": "Sistema",
-      "description": "Sistema Principale"
-    },
-    "pt-BR": {
-      "name": "Sistema",
-      "description": "Sistema Principal"
-    },
-    "ru": {
-      "name": "System",
-      "description": "Main System"
-    },
-    "tr": {
-      "name": "Sistem",
-      "description": "Ana Sistem"
     },
     "zh-TW": {
       "name": "System",
@@ -81,5 +50,11 @@
     }
   },
   "default_locale": "en-US",
-  "messages": ["alarm"]
+  "messages": [
+     { "alarm": "/index.html" },
+     { "bluetooth-opp-transfer-complete": "/index.html" },
+     { "bluetooth-opp-update-progress": "/index.html" },
+     { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
+     { "bluetooth-opp-transfer-start": "/index.html" }
+  ]
 }

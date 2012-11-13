@@ -1,59 +1,28 @@
 {
   "name": "Music",
   "description": "Gaia Music",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "device-storage:music",
-    "settings"
-  ],
+  "permissions": {
+    "device-storage:music":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" }
+  },
   "locales": {
     "ar": {
       "name": "موسيقى",
       "description": "Gaia موسيقى"
     },
-    "ca": {
-      "name": "Música",
-      "description": "Música del Gaia"
-    },
-    "de": {
-      "name": "Musik",
-      "description": "Gaia Musik"
-    },
-    "el": {
-      "name": "Μουσική",
-      "description": "Μουσική Gaia"
-    },
     "en-US": {
       "name": "Music",
       "description": "Gaia Music"
     },
-    "es": {
-      "name": "Música",
-      "description": "Música de Gaia"
-    },
     "fr": {
       "name": "Musique",
       "description": "Lecteur audio Gaia"
-    },
-    "it": {
-      "name": "Musica",
-      "description": "Musica di Gaia"
-    },
-    "pt-BR": {
-      "name": "Música",
-      "description": "Música Gaia"
-    },
-    "ru": {
-      "name": "Музыка",
-      "description": "Музыка Gaia"
-    },
-    "tr": {
-      "name": "Müzik",
-      "description": "Gaia Müzik"
     },
     "zh-TW": {
       "name": "音樂",

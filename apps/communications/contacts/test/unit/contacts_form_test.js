@@ -16,7 +16,7 @@ var subject,
     realFb,
     mozL10n,
     mockContact,
-    deleteButton;
+    footer;
 
 suite('Render contact form', function() {
 
@@ -37,7 +37,7 @@ suite('Render contact form', function() {
     realFb = window.fb;
     window.fb = MockFb;
     document.body.innerHTML = MockFormDom;
-    deleteButton = document.getElementById('delete-contact');
+    footer = document.querySelector('footer');
     subject = contacts.Form;
     subject.init(Contacts.getTags());
   });
@@ -67,7 +67,7 @@ suite('Render contact form', function() {
         assert.isTrue(cont.indexOf(element + '-0') > -1);
         assertEmpty(element + '-0');
         assert.isTrue(cont.indexOf(element + '-1') == -1);
-        assert.isTrue(deleteButton.classList.contains('hide'));
+        assert.isTrue(footer.classList.contains('hide'));
       }
     });
 
@@ -88,7 +88,7 @@ suite('Render contact form', function() {
       var valueEmail = document.querySelector('#email_0').value;
       assert.isFalse(valueEmail === params.tel);
       assert.equal(valueEmail, '');
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
 
     test('with email params', function() {
@@ -107,7 +107,7 @@ suite('Render contact form', function() {
       var valueEmail = document.querySelector('#email_0').value;
       assert.isTrue(valueEmail === params.email);
       assert.equal(value, '');
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
 
     test('with email and tel params', function() {
@@ -127,7 +127,7 @@ suite('Render contact form', function() {
       assert.isTrue(value === params.tel);
       var valueEmail = document.querySelector('#email_0').value;
       assert.isTrue(valueEmail === params.email);
-      assert.isTrue(deleteButton.classList.contains('hide'));
+      assert.isTrue(footer.classList.contains('hide'));
     });
   });
 
@@ -145,7 +145,7 @@ suite('Render contact form', function() {
       assertPhoneData(0);
       assertEmailData(0);
 
-      assert.isFalse(deleteButton.classList.contains('hide'));
+      assert.isFalse(footer.classList.contains('hide'));
 
       // Remove Field icon on photo is present
       var thumbnail = document.querySelector('#thumbnail-action');
@@ -178,7 +178,7 @@ suite('Render contact form', function() {
         assertPhoneData(0);
         assertEmailData(0);
 
-        assert.isFalse(deleteButton.classList.contains('hide'));
+        assert.isFalse(footer.classList.contains('hide'));
 
         // Remove Field icon photo should not be present
         var thumbnail = document.querySelector('#thumbnail-action');
@@ -186,6 +186,35 @@ suite('Render contact form', function() {
                         parentNode.classList.contains('hide'));
       }
     });
+
+    test('FB Contact. home address from Facebook', function() {
+      window.fb.setIsFbContact(true);
+
+      var fbContact = new MockFb.Contact(mockContact);
+      fbContact.getDataAndValues().onsuccess = function() {
+        subject.render(mockContact, null, this.result);
+
+        var content = document.body.innerHTML;
+        var toCheck = ['address'];
+        for (var i = 0; i < toCheck.length; i++) {
+          var element = 'add-' + toCheck[i];
+          assert.isTrue(content.indexOf(element + '-0') > -1);
+          assert.isTrue(content.indexOf(element + '-1') === -1);
+
+          var domElement0 = document.querySelector('#' + element + '-' + '0');
+          assert.isTrue(domElement0.classList.contains('removed') &&
+                        domElement0.classList.contains('facebook'),
+                        'Class Removed and Facebook present');
+          assert.isTrue(domElement0.querySelector('.icon-delete') === null,
+                        'Icon delete not present');
+        }
+
+        assertAddressData(0);
+
+        assert.isFalse(footer.classList.contains('hide'));
+      }
+    });
+
 
     test('FB Linked. e-mail and phone both from FB and device', function() {
       window.fb.setIsFbContact(true);
@@ -259,6 +288,18 @@ suite('Render contact form', function() {
     var typeEmail = document.querySelector('#email_type_' + c).textContent;
     assert.isTrue(valueEmail === mockContact.email[c].value);
     assert.isTrue(typeEmail === mockContact.email[c].type);
+  }
+
+  function assertAddressData(c) {
+    var valueType = document.querySelector('#address_type_' + c).textContent;
+    assert.isTrue(valueType === mockContact.adr[c].type[0],
+                  'Type Value as Expected');
+    valueType = document.querySelector('#locality_' + c).value;
+    assert.isTrue(valueType === mockContact.adr[c].locality,
+                  'Type Value as Expected');
+    valueType = document.querySelector('#countryName_' + c).value;
+    assert.isTrue(valueType === mockContact.adr[c].countryName,
+                  'Type Value as Expected');
   }
 
 });

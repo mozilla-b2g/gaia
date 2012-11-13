@@ -32,6 +32,8 @@
         }
       }
     }
+
+    this.hideErrors = this.hideErrors.bind(this);
   }
 
   const INVALID_CSS = /([^a-zA-Z\-\_0-9])/g;
@@ -41,9 +43,18 @@
   View.prototype = {
     seen: false,
     activeClass: View.ACTIVE,
+    errorVisible: false,
 
     get element() {
       return this._findElement('element');
+    },
+
+    get status() {
+      return this._findElement('status');
+    },
+
+    get errors() {
+      return this._findElement('errors');
     },
 
     calendarId: function(input) {
@@ -136,7 +147,49 @@
       return null;
     },
 
+   /**
+     * Displays a list of errors
+     *
+     * @param {Array} list error list
+     *  (see Event.validaitonErrors) or Error object.
+     */
+    showErrors: function(list) {
+      var _ = navigator.mozL10n.get;
+      var errors = '';
+
+      // We can pass Error objects or
+      // Array of {name: foo} objects
+      if (!Array.isArray(list)) {
+          list = [list];
+      }
+
+      var i = 0;
+      var len = list.length;
+
+      for (; i < len; i++) {
+        var name = list[i].name;
+        errors += _('error-' + name) || name;
+      }
+
+      // populate error and display it.
+      this.errors.textContent = errors;
+      this.errorVisible = true;
+      this.status.classList.add(this.activeClass);
+
+      this.status.addEventListener('animationend', this.hideErrors);
+    },
+
+    hideErrors: function() {
+      this.status.classList.remove(this.activeClass);
+      this.status.removeEventListener('animationend', this.hideErrors);
+      this.errorVisible = false;
+    },
+
     onactive: function() {
+      if (this.errorVisible) {
+        this.hideErrors();
+      }
+
       //seen can be set to anything other
       //then false to override this behaviour
       if (this.seen === false) {

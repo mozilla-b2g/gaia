@@ -8,6 +8,13 @@ var UssdManager = {
   _origin: null,
   _operator: null,
   _pendingNotification: null,
+  // In same cases, the RIL doesn't provide the expected order of events
+  // while sending an MMI that triggers an interactive USSD request (specially
+  // while roaming), which should be DOMRequest.onsuccess (or .onerror) +
+  // ussdreceived. If the first event received is the ussdreceived one, we take
+  // the DOMRequest.onsuccess received subsequenty as a closure of the USSD
+  // session.
+  _pendingRequest: null,
 
   init: function um_init() {
     this._ = window.navigator.mozL10n.get;
@@ -27,7 +34,7 @@ var UssdManager = {
 
   send: function um_send(message) {
     if (this._conn) {
-      var request = this._conn.sendMMI(message);
+      var request = this._pendingRequest = this._conn.sendMMI(message);
       request.onsuccess = this.notifySuccess.bind(this);
       request.onerror = this.notifyError.bind(this);
       if (!this._popup) {
@@ -45,13 +52,75 @@ var UssdManager = {
   },
 
   notifySuccess: function um_notifySuccess(evt) {
+
+    // Helper function to compose an informative message about a successful
+    // request to query the call forwarding status.
+    var processCf = (function processCf(result) {
+      var msg = this._('cf-status');
+
+      var voice, data, fax, sms, sync, async, packet, pad;
+
+      for (var i = 0; i < result.length; i++) {
+        if (!result[i].active) {
+          continue;
+        }
+        switch (result[i].serviceClass) {
+          case this._conn.ICC_SERVICE_CLASS_VOICE:
+            voice = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA:
+            data = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_FAX:
+            fax = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_SMS:
+            sms = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA_SYNC:
+            sync = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_DATA_ASYNC:
+            async = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_PACKET:
+            packet = result[i].number;
+            break;
+          case this._conn.ICC_SERVICE_CLASS_PAD:
+            pad = result[i].number;
+            break;
+          default:
+            return this._('cf-error');
+        }
+      }
+      msg += this._('cf-voice', {voice: voice || this._('cf-inactive')}) +
+             this._('cf-data', {data: data || this._('cf-inactive')}) +
+             this._('cf-fax', {fax: fax || this._('cf-inactive')}) +
+             this._('cf-sms', {sms: sms || this._('cf-inactive')}) +
+             this._('cf-sync', {sync: sync || this._('cf-inactive')}) +
+             this._('cf-async', {async: async || this._('cf-inactive')}) +
+             this._('cf-packet', {packet: packet || this._('cf-inactive')}) +
+             this._('cf-pad', {pad: pad || this._('cf-inactive')});
+      return msg;
+    }).bind(this);
+
+    var result = evt.target.result;
+    if (this._pendingRequest === null &&
+        (!result || !result.length)) {
+      result = this._('mmi-session-expired');
+    }
+
+    // Call forwarding requests via MMI codes might return an array of
+    // nsIDOMMozMobileCFInfo objects. In that case we serialize that array
+    // into a single string that can be shown on the screen.
+    var msg = '';
+    Array.isArray(result) ? msg = processCf(result) : msg = result;
+
     var message = {
-      type: 'success'
-      // For the time being the RIL sends an Object in the
-      // DOMRequest.result with no content so we notify no result
-      // to the UI instead of:
-      // result: evt.target.result
+      type: 'success',
+      result: msg
     };
+
     if (this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
     } else {
@@ -88,10 +157,14 @@ var UssdManager = {
     var message;
     switch (evt.type) {
       case 'ussdreceived':
-        message = {
-          type: 'ussdreceived',
-          message: evt.message
-        };
+        this._pendingRequest = null;
+        // Do not notify the UI if no message to show.
+        if (evt.message != null || evt.sessionEnded)
+          message = {
+            type: 'ussdreceived',
+            message: evt.message,
+            sessionEnded: evt.sessionEnded
+          };
         break;
       case 'voicechange':
         // Even without SIM card, the mozMobileConnection.voice.network object
@@ -114,10 +187,9 @@ var UssdManager = {
             break;
         }
         return;
-        break;
     }
 
-    if (this._popup && this._popup.ready) {
+    if (message && this._popup && this._popup.ready) {
       this._popup.postMessage(message, this._origin);
     }
   }

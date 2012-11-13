@@ -5,7 +5,7 @@ var CallHandler = (function callHandler() {
   var conn = navigator.mozMobileConnection;
   var _ = navigator.mozL10n.get;
 
-  var callScreenDisplayed = false;
+  var callScreenWindow = null;
   var currentActivity = null;
 
   /* === Settings === */
@@ -55,8 +55,34 @@ var CallHandler = (function callHandler() {
   function newCall() {
     openCallScreen();
   }
-  window.navigator.mozSetMessageHandler('telephony-incoming', newCall);
-  window.navigator.mozSetMessageHandler('icc-dialing', newCall);
+  window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
+
+  /* === Bluetooth Support === */
+  function btCommandHandler(message) {
+    var command = message['bluetooth-dialer-command'];
+
+    if (command === 'BLDN') {
+      RecentsDBManager.init(function() {
+        RecentsDBManager.getLast(function(lastRecent) {
+          if (lastRecent.number) {
+            CallHandler.call(lastRecent.number);
+          }
+        });
+      });
+      return;
+    }
+
+    // Other commands needs to be handled from the call screen
+    if (!callScreenWindow)
+      return;
+
+    var origin = document.location.protocol + '//' +
+      document.location.host;
+
+    callScreenWindow.postMessage(command, origin);
+  }
+  window.navigator.mozSetMessageHandler('bluetooth-dialer-command',
+                                         btCommandHandler);
 
   /* === Calls === */
   function call(number) {
@@ -107,7 +133,7 @@ var CallHandler = (function callHandler() {
           call.ondisconnected = cb;
           call.onerror = handleError;
 
-          if (!callScreenDisplayed)
+          if (!callScreenWindow)
             openCallScreen();
         }
       }
@@ -172,22 +198,20 @@ var CallHandler = (function callHandler() {
 
   /* === Attention Screen === */
   function openCallScreen() {
-    if (callScreenDisplayed)
+    if (callScreenWindow)
       return;
-
-    callScreenDisplayed = true;
 
     var host = document.location.host;
     var protocol = document.location.protocol;
     var urlBase = protocol + '//' + host + '/dialer/oncall.html';
-    window.open(urlBase + '#' + screenState,
+    callScreenWindow = window.open(urlBase + '#' + screenState,
                 'call_screen', 'attention');
   }
 
   // We use a simple postMessage protocol to know when the call screen is closed
   function handleMessage(evt) {
     if (evt.data == 'closing') {
-      callScreenDisplayed = false;
+      callScreenWindow = null;
     }
   }
   window.addEventListener('message', handleMessage);
@@ -277,10 +301,6 @@ window.onresize = function(e) {
 // Keeping the call history up to date
 document.addEventListener('mozvisibilitychange', function visibility(e) {
   if (!document.mozHidden) {
-    RecentsDBManager.init(function dbReady() {
-      RecentsDBManager.get(function(recents) {
-        Recents.render(recents);
-      });
-    });
+    Recents.refresh();
   }
 });

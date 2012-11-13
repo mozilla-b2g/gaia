@@ -6,7 +6,7 @@ var EvmeManager = (function() {
 
     function openApp(params) {
         var evmeApp = new EvmeApp({
-            url: params.url,
+            url: params.originUrl,
             name: params.title,
             icon: params.icon
         });
@@ -14,7 +14,7 @@ var EvmeManager = (function() {
         if (currentWindow) {
             currentWindow.close();
         }
-        currentWindow = evmeApp.launch(true);
+        currentWindow = evmeApp.launch(params.url, params.urlTitle);
     }
 
     function addBookmark(params) {
@@ -44,24 +44,32 @@ var EvmeManager = (function() {
             }
         });
     }
-
-    var footerStyle = document.querySelector("#footer").style;
-    footerStyle.MozTransition = "-moz-transform .3s ease";
-
-    var page = document.querySelector("#evmePage");
-    page.addEventListener("contextmenu", function longPress(evt) {
-        evt.stopImmediatePropagation();
-    });
-
-    page.addEventListener("pageshow", function onPageShow() {
-        footerStyle.MozTransform = "translateY(75px)";
-        Evme.setOpacityBackground(1);
-    });
-
-    page.addEventListener("pagehide", function onPageHide() {
+    
+    function menuShow() {
         footerStyle.MozTransform = "translateY(0)";
-        Evme.setOpacityBackground(0);
-    });
+    }
+    
+    function menuHide() {
+        footerStyle.MozTransform = "translateY(75px)";
+    }
+
+    var footerStyle = document.getElementById("footer").style;
+    footerStyle.MozTransition = "-moz-transform .3s ease";
+    
+    function getMenuHeight() {
+        return document.getElementById("footer").offsetHeight;
+    }
+    
+    function getApps() {
+        return Applications.getAll();
+    }
+    
+    function getAppIcon(app) {
+        return Applications.getIcon(app.origin);
+    }
+    function getAppName(app) {
+        return Applications.getName(app.origin);
+    }
 
     return {
         openApp: openApp,
@@ -71,8 +79,15 @@ var EvmeManager = (function() {
         isAppInstalled: function isAppInstalled(url) {
             return Applications.isInstalled(url);
         },
-    
-        openUrl: openUrl
+        getApps: getApps,
+        getAppIcon: getAppIcon,
+        getAppName: getAppName,
+
+        openUrl: openUrl,
+        
+        menuShow: menuShow,
+        menuHide: menuHide,
+        getMenuHeight: getMenuHeight
     };
 }());
 
@@ -81,8 +96,3 @@ var EvmeApp = function createEvmeApp(params) {
 };
 
 extend(EvmeApp, Bookmark);
-
-// Initialize Evme
-window.addEventListener("load", function() {
-    Evme.init();
-});

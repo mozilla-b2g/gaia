@@ -1,25 +1,18 @@
-/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 'use strict';
 
-function startup() {
-  function launchHomescreen() {
-    var activity = new MozActivity({
-      name: 'view',
-      data: { type: 'application/x-application-list' }
-    });
-    activity.onerror = function homescreenLaunchError() {
-      console.error('Failed to launch home screen with activity.');
-    };
+window.addEventListener('load', function startup() {
+  function firstAppManager(homescreenApp) {
+    WindowManager.retrieveFTU();
   }
-
   if (Applications.ready) {
-    launchHomescreen();
+    WindowManager.retrieveHomescreen(firstAppManager);
   } else {
     window.addEventListener('applicationready', function appListReady(event) {
       window.removeEventListener('applicationready', appListReady);
-      launchHomescreen();
+      WindowManager.retrieveHomescreen(firstAppManager);
     });
   }
 
@@ -43,7 +36,7 @@ function startup() {
   window.setTimeout(function() {
     window.removeEventListener('devicemotion', dumbListener2);
   }, 2000);
-}
+});
 
 /* === Shortcuts === */
 /* For hardware key handling that doesn't belong to anywhere */

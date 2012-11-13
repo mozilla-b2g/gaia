@@ -5,6 +5,7 @@
 
     this.save = this.save.bind(this);
     this.deleteRecord = this.deleteRecord.bind(this);
+    this.cancel = this.cancel.bind(this);
   }
 
   ModifyAccount.prototype = {
@@ -16,6 +17,9 @@
       fields: '*[name]',
       saveButton: '#modify-account-view .save',
       deleteButton: '#modify-account-view .delete-confirm',
+      cancelDeleteButton: '#modify-account-view .delete-cancel',
+      backButton: '#modify-account-view .cancel',
+      status: '#modify-account-view section[role="status"]',
       errors: '#modify-account-view .errors'
     },
 
@@ -25,12 +29,16 @@
       return this._findElement('deleteButton');
     },
 
-    get saveButton() {
-      return this._findElement('saveButton');
+    get cancelDeleteButton() {
+      return this._findElement('cancelDeleteButton');
     },
 
-    get errors() {
-      return this._findElement('errors');
+    get backButton() {
+      return this._findElement('backButton');
+    },
+
+    get saveButton() {
+      return this._findElement('saveButton');
     },
 
     get form() {
@@ -61,7 +69,7 @@
     },
 
     _displayError: function(err) {
-      this.errors.textContent = err.message;
+      this.showErrors(err);
     },
 
     updateForm: function() {
@@ -98,6 +106,10 @@
         // hard coded value...
         app.router.show('/advanced-settings/');
       });
+    },
+
+    cancel: function() {
+      window.back();
     },
 
     save: function() {
@@ -167,10 +179,13 @@
       var list = this.element.classList;
 
       this.saveButton.addEventListener('click', this.save);
+      this.backButton.addEventListener('click', this.cancel);
 
       if (this.model._id) {
         this.type = 'update';
         this.deleteButton.addEventListener('click', this.deleteRecord);
+        this.cancelDeleteButton.addEventListener('click',
+                                                 this.cancel);
       } else {
         this.type = 'create';
       }
@@ -196,6 +211,10 @@
 
       this.saveButton.removeEventListener('click', this.save);
       this.deleteButton.removeEventListener('click', this.deleteRecord);
+      this.cancelDeleteButton.removeEventListener('click',
+                                                  this.cancel);
+      this.backButton.removeEventListener('click',
+                                                this.cancel);
     },
 
     dispatch: function(data) {

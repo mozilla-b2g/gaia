@@ -101,15 +101,14 @@ var BackgroundServiceManager = (function bsm() {
 
   /* Check if the app has the permission to open a background page */
   var hasBackgroundPermission = function bsm_checkPermssion(app) {
-    if (!app || !app.manifest.permissions)
+    var mozPerms = navigator.mozPermissionSettings;
+    if (!mozPerms)
       return false;
 
-    var keys = Object.keys(app.manifest.permissions);
-    var permissions = keys.map(function map_perm(key) {
-      return app.manifest.permissions[key];
-    });
+    var value = mozPerms.get('backgroundservice', app.manifestURL,
+                             app.origin, false);
 
-    return (permissions.indexOf('background') != -1);
+    return (value === 'allow');
   };
 
   /* The open function is responsible of containing the iframe */
@@ -117,16 +116,6 @@ var BackgroundServiceManager = (function bsm() {
     var app = Applications.getByManifestURL(manifestURL);
     if (!app || !hasBackgroundPermission(app))
       return false;
-
-    // These apps currently have bugs preventing them from being
-    // run out of process. All other apps will be run OOP.
-    //
-    var backgroundOutOfProcessBlackList = [
-      'Messages',
-
-      // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=783066
-      'Communications'
-    ];
 
     if (frames[manifestURL] && frames[manifestURL][name]) {
       console.error('Window with the same name is there but Gecko ' +
@@ -145,14 +134,8 @@ var BackgroundServiceManager = (function bsm() {
       frame.setAttribute('name', name);
 
       var appName = app.manifest.name;
-      if (backgroundOutOfProcessBlackList.indexOf(appName) === -1) {
-        // FIXME: content shouldn't control this directly
-        frame.setAttribute('remote', 'true');
-        console.info('%%%%% Launching', appName, 'bg service as remote (OOP)');
-      } else {
-        console.info('%%%%% Launching', appName, 'bg service as local');
-      }
-
+      frame.setAttribute('remote', 'true');
+      console.info('%%%%% Launching', appName, 'bg service as remote (OOP)');
       frame.src = url;
     }
     frame.className = 'backgroundWindow';

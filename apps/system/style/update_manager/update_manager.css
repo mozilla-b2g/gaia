@@ -1,0 +1,139 @@
+#update-manager-container {
+  position: relative;
+  height: 60px;
+
+  background-color: rgba(0, 0, 0, 0.5);
+  border-top: 1px black solid;
+  border-bottom: 1px black solid;
+
+  display: none;
+}
+
+#update-manager-container.displayed {
+  display: block;
+}
+
+#update-manager-container > .activity {
+  display: none;
+  float: left;
+  width: 40px;
+  height: 40px;
+  margin: 10px 15px 10px 10px;
+
+  background-image: url(images/loader.png);
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  animation: 0.9s rotate infinite linear;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#update-manager-container.downloading > .activity {
+  display: block;
+}
+
+#update-manager-container > .icon,
+#update-manager-toaster > .icon {
+  float: left;
+  width: 40px;
+  height: 40px;
+  margin: 10px 15px 10px 10px;
+
+  background-image: url('images/downloads.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+#update-manager-toaster > .icon {
+  width: 30px;
+  height: 30px;
+  margin: 5px 15px 5px 10px;
+}
+
+#update-manager-container.downloading > .icon {
+  display: none;
+}
+
+#update-manager-toaster > .message,
+#update-manager-container > .message {
+  margin: 10px;
+
+  line-height: 20px;
+  font-weight: 700;
+  font-size: 1.6rem;
+}
+
+#update-manager-container > .message > span {
+  display: block;
+
+  line-height: 20px;
+  font-weight: 300;
+  font-size: 1.2rem;
+}
+
+#update-manager-toaster > .message > span {
+  display: none;
+}
+
+#update-manager-toaster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+
+  overflow: hidden;
+
+  background-image: url('images/grey-noise-bg.png');
+  background-repeat: repeat-x;
+  -moz-box-sizing: border-box;
+  border-bottom: 1px #2c2c2c solid;
+
+  font-size: 1em;
+
+  -moz-transform: translateY(-40px);
+  -moz-transition: -moz-transform .3s ease-in-out;
+}
+
+#update-manager-toaster.displayed {
+  -moz-transform: translateY(0);
+}
+
+#updates-download-dialog {
+  display: none;
+}
+
+#updates-download-dialog.visible {
+  display: inline-block;
+  pointer-events: auto;
+}
+
+#updates-download-dialog section {
+  height: auto;
+  overflow-y: scroll;
+  max-height: -moz-calc(100% - 3.8rem);
+
+  font-size: 1.6rem;
+}
+
+#updates-download-dialog ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#updates-download-dialog span {
+  display: block;
+  float: right;
+
+  font-weight: bold;
+  font-size: 1.4rem;
+}

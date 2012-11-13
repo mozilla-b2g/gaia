@@ -1,26 +1,31 @@
 {
   "name": "Settings",
   "description": "Gaia Settings",
+  "type": "certified",
   "launch_path": "/index.html#root",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "mobileconnection",
-    "mozBluetooth",
-    "bluetooth",
-    "device-storage:pictures",
-    "device-storage:music",
-    "device-storage:videos",
-    "device-storage:apps",
-    "webapps-manage",
-    "settings",
-    "wifi-manage",
-    "wifi",
-    "attention",
-    "time"
-  ],
+  "permissions": {
+    "mobileconnection":{},
+    "mozBluetooth":{},
+    "bluetooth":{},
+    "device-storage:pictures":{ "access": "readonly" },
+    "device-storage:music":{ "access": "readonly" },
+    "device-storage:videos":{ "access": "readonly" },
+    "device-storage:apps":{ "access": "readonly" },
+    "webapps-manage":{},
+    "permissions":{},
+    "settings":{ "access": "readwrite" },
+    "wifi-manage":{},
+    "wifi":{},
+    "attention":{},
+    "time":{},
+    "desktop-notification":{},
+    "power":{},
+    "telephony":{}
+  },
   "activities": {
     "configure": {
       "filters": {
@@ -28,19 +33,19 @@
        },
       "disposition": "window"
     },
-    "configure": {
+    "unlock": {
       "filters": {
-        "target": "simpin-unlock"
+        "target": "sim"
        },
       "disposition": "inline",
       "href": "unlock_simpin.html",
       "returnValue": true
     }
   },
-  "messages": ["bluetooth-requestconfirmation", 
-               "bluetooth-requestpasskey", 
-               "bluetooth-requestpincode", 
-               "bluetooth-authorize", 
+  "messages": ["bluetooth-requestconfirmation",
+               "bluetooth-requestpasskey",
+               "bluetooth-requestpincode",
+               "bluetooth-authorize",
                "bluetooth-cancel",
                "bluetooth-pairedstatuschanged",
                "bluetooth-hfp-status-changed",
@@ -50,45 +55,13 @@
       "name": "الضبط",
       "description": "Gaia الضبط"
     },
-    "ca": {
-      "name": "Configuració",
-      "description": "Configuració del Gaia"
-    },
-    "de": {
-      "name": "Einstellungen",
-      "description": "Gaia Einstellungen"
-    },
-    "el": {
-      "name": "Ρυθμίσεις",
-      "description": "Ρυθμίσεις Gaia"
-    },
     "en-US": {
       "name": "Settings",
       "description": "Gaia Settings"
     },
-    "es": {
-      "name": "Configuración",
-      "description": "Configuración de Gaia"
-    },
     "fr": {
       "name": "Paramètres",
       "description": "Paramètres Gaia"
-    },
-    "nb-NO": {
-      "name": "Innstillinger",
-      "description": "Innstillinger for Gaia"
-    },
-    "it": {
-      "name": "Impostazioni",
-      "description": "Impostazioni di Gaia"
-    },
-    "pt-BR": {
-      "name": "Preferências",
-      "description": "Preferências do Gaia"
-    },
-    "ru": {
-      "name": "Настройки",
-      "description": "Настройки Gaia"
     },
     "tr": {
       "name": "Ayarlar",

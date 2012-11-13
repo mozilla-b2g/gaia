@@ -9,13 +9,12 @@ var MessageManager = {
     PhoneNumberManager.init();
     // Init Pending DB. Once it will be loaded will render threads
     PendingMsgManager.init(function() {
+      // Init first time
       MessageManager.getMessages(ThreadListUI.renderThreads);
     });
     // Init UI Managers
     ThreadUI.init();
     ThreadListUI.init();
-    // Init first time
-    this.getMessages(ThreadListUI.renderThreads);
     if (navigator.mozSms) {
       navigator.mozSms.addEventListener('received', this);
     }
@@ -68,6 +67,9 @@ var MessageManager = {
           case '#new':
             var messageInput = document.getElementById('message-to-send');
             var receiverInput = document.getElementById('receiver-input');
+            //Keep the  visible button the :last-child
+            var contactButton = document.getElementById('icon-contact');
+            contactButton.parentNode.appendChild(contactButton);
             document.getElementById('messages-container').innerHTML = '';
             messageInput.innerHTML = '';
             receiverInput.value = '';
@@ -77,6 +79,9 @@ var MessageManager = {
             });
             break;
           case '#thread-list':
+              //Keep the  visible button the :last-child
+              var editButton = document.getElementById('icon-edit');
+              editButton.parentNode.appendChild(editButton);
             if (mainWrapper.classList.contains('edit')) {
               this.getMessages(ThreadListUI.renderThreads);
               mainWrapper.classList.remove('edit');
@@ -141,7 +146,8 @@ var MessageManager = {
   createFilter: function mm_createFilter(num) {
     var filter = new MozSmsFilter();
     if (num) {
-      filter.numbers = PhoneNumberManager.getOptionalNumbers(num);
+      filter.numbers =
+        [PhoneNumberManager.getNormalizedInternationalNumber(num)];
     } else {
       filter.numbers = [''];
     }
@@ -285,6 +291,10 @@ var ThreadListUI = {
     delete this.deleteButton;
     return this.deleteButton = document.getElementById('threads-delete-button');
   },
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton = document.getElementById('threads-cancel-button');
+  },
   get iconEdit() {
     delete this.iconEdit;
     return this.iconEdit = document.getElementById('icon-edit-threads');
@@ -292,6 +302,10 @@ var ThreadListUI = {
   get pageHeader() {
     delete this.pageHeader;
     return this.pageHeader = document.getElementById('list-edit-title');
+  },
+  get editForm() {
+    delete this.editForm;
+    return this.editForm = document.getElementById('threads-edit-form');
   },
 
   init: function thlui_init() {
@@ -304,25 +318,36 @@ var ThreadListUI = {
                                             this.deselectAllThreads.bind(this));
     this.deleteButton.addEventListener('click',
                                        this.executeDeletion.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.view.addEventListener('click', this);
+    this.editForm.addEventListener('submit', this);
    },
 
   updateMsgWithContact: function thlui_updateMsgWithContact(number, contact) {
     var name =
             this.view.querySelector('a[data-num="' + number + '"] div.name');
     if (contact && contact.length > 0) {
-      var choosenContact = contact[0];
-      var name =
+      if (contact.length > 1) {
+        var contactName = contact[0].name;
+        var others = contact.length - 1;
+        name.innerHTML = _('others', {
+          name: contactName,
+          n: others
+        });
+      }else {
+        var choosenContact = contact[0];
+        var name =
               this.view.querySelector('a[data-num="' + number + '"] div.name');
-      var selector = 'a[data-num="' + number + '"] div.photo img';
-      var photo = this.view.querySelector(selector);
-      if (name && choosenContact.name && choosenContact.name != '') {
-        name.innerHTML = choosenContact.name;
-      }
+        var selector = 'a[data-num="' + number + '"] div.photo img';
+        var photo = this.view.querySelector(selector);
+        if (name && choosenContact.name && choosenContact.name != '') {
+          name.innerHTML = choosenContact.name;
+        }
 
-      if (photo && choosenContact.photo && choosenContact.photo[0]) {
-        var photoURL = URL.createObjectURL(choosenContact.photo[0]);
-        photo.src = photoURL;
+        if (photo && choosenContact.photo && choosenContact.photo[0]) {
+          var photoURL = URL.createObjectURL(choosenContact.photo[0]);
+          photo.src = photoURL;
+        }
       }
     } else {
       name.innerHTML = number;
@@ -336,6 +361,10 @@ var ThreadListUI = {
           ThreadListUI.clickInput(evt.target);
           ThreadListUI.checkInputs();
         }
+        break;
+      case 'submit':
+        evt.preventDefault();
+        return false;
         break;
     }
   },
@@ -459,6 +488,10 @@ var ThreadListUI = {
     }
   },
 
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.location.hash = '#thread-list';
+  },
+
   renderThreads: function thlui_renderThreads(messages, callback) {
     ThreadListUI.view.innerHTML = '';
     if (messages.length > 0) {
@@ -566,7 +599,7 @@ var ThreadListUI = {
             '    <img src="">' +
             '    </div>' +
             '  </a>' +
-            '  <label class="checkbox-container">' +
+            '  <label class="danger checkbox-container">' +
             '   <input type="checkbox" value="' + thread.num + '">' +
             '   <span></span>' +
             '  </label>';
@@ -649,26 +682,43 @@ var ThreadUI = {
     return this.doneButton = document.getElementById('messages-delete-button');
   },
 
+  get cancelButton() {
+    delete this.cancelButton;
+    return this.cancelButton =
+                              document.getElementById('messages-cancel-button');
+  },
+
   get pageHeader() {
-      delete this.pageHeader;
-      return this.pageHeader = document.getElementById('messages-edit-title');
+    delete this.pageHeader;
+    return this.pageHeader = document.getElementById('messages-edit-title');
+  },
+
+  get editForm() {
+    delete this.editForm;
+    return this.editForm = document.getElementById('messages-edit-form');
+  },
+
+  get telForm() {
+    delete this.telForm;
+    return this.telForm = document.getElementById('messages-tel-form');
+  },
+
+  get sendForm() {
+    delete this.sendForm;
+    return this.sendForm = document.getElementById('new-sms-form');
   },
 
   init: function thui_init() {
     this.delNumList = [];
     this.pendingDelList = [];
     this.selectedInputList = [];
-    // TODO: Please replace the pending icon with exclamation mark.
-    this.sendIcons = {
-      sending: 'style/images/spinningwheel_small_animation.gif',
-      pending: 'style/images/icons/clear.png'
-    };
     this.sendButton.addEventListener('click', this.sendMessage.bind(this));
     this.pickButton.addEventListener('click', this.pickContact.bind(this));
     this.selectAllButton.addEventListener('click',
       this.selectAllMessages.bind(this));
     this.deselectAllButton.addEventListener('click',
       this.deselectAllMessages.bind(this));
+    this.cancelButton.addEventListener('click', this.cancelEditMode.bind(this));
     this.input.addEventListener('input', this.updateInputHeight.bind(this));
     this.contactInput.addEventListener('input', this.searchContact.bind(this));
     this.deleteButton.addEventListener('click',
@@ -676,6 +726,9 @@ var ThreadUI = {
     this.title.addEventListener('click', this.activateContact.bind(this));
     this.clearButton.addEventListener('click', this.clearContact.bind(this));
     this.view.addEventListener('click', this);
+    this.editForm.addEventListener('submit', this);
+    this.telForm.addEventListener('submit', this);
+    this.sendForm.addEventListener('submit', this);
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom(animateFromPos) {
@@ -701,6 +754,8 @@ var ThreadUI = {
     var input = this.input;
     var inputCss = window.getComputedStyle(input, null);
     var inputMaxHeight = parseInt(inputCss.getPropertyValue('max-height'));
+    //Constant difference of height beteween button and growing input
+    var deviationHeight = 30;
     if (input.scrollHeight > inputMaxHeight) {
       return;
     }
@@ -711,16 +766,19 @@ var ThreadUI = {
     // with additional margin for preventing scroll bar.
     input.style.height = input.offsetHeight > input.scrollHeight ?
       input.offsetHeight / Utils.getFontSize() + 'rem' :
-      input.scrollHeight / Utils.getFontSize() + 0.8 + 'rem';
+      input.scrollHeight / Utils.getFontSize() + 'rem';
 
     var newHeight = input.getBoundingClientRect().height;
-    // Add 1 rem to fit the margin top and bottom space.
-    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 1.0) + 'rem';
+
+    // Add 0.7 rem that are equal to the message box vertical padding
+    var bottomToolbarHeight = (newHeight / Utils.getFontSize() + 0.7) + 'rem';
+    var sendButtonTranslate = (input.offsetHeight - deviationHeight) /
+      Utils.getFontSize() + 'rem';
     var bottomToolbar =
-        document.querySelector('.new-sms-form');
+        document.querySelector('#new-sms-form');
 
     bottomToolbar.style.height = bottomToolbarHeight;
-
+    ThreadUI.sendButton.style.marginTop = sendButtonTranslate;
     this.view.style.bottom = bottomToolbarHeight;
     this.scrollViewToBottom();
   },
@@ -751,24 +809,39 @@ var ThreadUI = {
     self.title.dataset.phoneNumber = number;
 
     ContactDataManager.getContactData(number, function gotContact(contacts) {
-      //TODO what if different contacts with same number?
-      Utils.getPhoneDetails(number,
-                            contacts[0],
-                            function returnedDetails(details) {
-        if (details.isContact) {
-          self.title.dataset.isContact = true;
-        } else {
-          delete self.title.dataset.isContact;
-        }
-        self.title.innerHTML = details.title || number;
-        var carrierTag = document.getElementById('contact-carrier');
-        if (details.carrier) {
-          carrierTag.innerHTML = details.carrier;
-          carrierTag.classList.remove('hide');
-        } else {
-          carrierTag.classList.add('hide');
-        }
-      });
+      var carrierTag = document.getElementById('contact-carrier');
+      /** If we have more than one contact sharing the same phone number
+       *  we show the name of the first contact and how many other contacts
+       *  share that same number. We thing it's user's responsability to correct
+       *  this mess with the agenda.
+       */
+      if (contacts.length > 1) {
+        self.title.dataset.isContact = true;
+        var contactName = contacts[0].name;
+        var numOthers = contacts.length - 1;
+        self.title.innerHTML = _('others', {
+          name: contactName,
+          n: numOthers
+        });
+        carrierTag.classList.add('hide');
+      }else {
+        Utils.getPhoneDetails(number,
+                              contacts[0],
+                              function returnedDetails(details) {
+          if (details.isContact) {
+            self.title.dataset.isContact = true;
+          } else {
+            delete self.title.dataset.isContact;
+          }
+          self.title.innerHTML = details.title || number;
+          if (details.carrier) {
+            carrierTag.innerHTML = details.carrier;
+            carrierTag.classList.remove('hide');
+          } else {
+            carrierTag.classList.add('hide');
+          }
+        });
+      }
     });
   },
 
@@ -821,33 +894,38 @@ var ThreadUI = {
     var bodyHTML = Utils.escapeHTML(bodyText);
     messageDOM.id = timestamp;
     var htmlStructure = '';
+    var deliveryIcon = '';
+
     // Adding edit options to the left side
     if (message.delivery == 'sending') {
       //Add edit options for pending
-      htmlStructure += '<label class="message-option msg-checkbox">' +
-                        '  <input value="ts_' + timestamp +
-                        '" type="checkbox">' +
-                        '  <span></span>' +
-                      '</label>';
-    } else {
-      //Add edit options
-      htmlStructure += '<label class="message-option msg-checkbox">' +
-                        '  <input value="id_' + message.id +
-                        '" type="checkbox">' +
-                        '  <span></span>' +
-                      '</label>';
-    }
-    htmlStructure += '<span class="bubble-container ' + className + '">' +
-                        '<div class="bubble">' + bodyHTML + '</div>' +
-                        '</span>';
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
+                                     ' <input value="ts_' + timestamp +
+                                     '" type="checkbox">' +
+                                     ' <span></span>' +
+                                   '</label>';
 
-    // Add 'gif' if necessary
-    if (message.delivery == 'sending') {
-      htmlStructure += '<span class="message-option">' +
-      '<img src="' + (!message.error ? ThreadUI.sendIcons.sending :
-        ThreadUI.sendIcons.pending) + '" class="gif">' +
-                        '</span>';
+      // Add delivery icon/progress if necessary
+      deliveryIcon = '<span class="message-option icon-delivery">' +
+          (message.error ?
+            '<img src="style/images/icons/exclamation.png" class="gif">' :
+            '<progress class="small"></progress>') +
+          '</span>';
+      } else {
+      //Add edit options
+      htmlStructure += '<label class="danger message-option msg-checkbox">' +
+                                     '  <input value="id_' + message.id +
+                                     '" type="checkbox">' +
+                                     '  <span></span>' +
+                                   '</label>';
     }
+
+    htmlStructure += '<span class="bubble-container ' + className + '">' +
+                       '<div class="bubble">' + bodyHTML + '</div>' +
+                        deliveryIcon +
+                     '</span>';
+
+
     // Add structure to DOM element
     messageDOM.innerHTML = htmlStructure;
     if (message.error) {
@@ -1010,6 +1088,10 @@ var ThreadUI = {
     }
   },
 
+  cancelEditMode: function thlui_cancelEditMode() {
+    window.history.go(-1);
+  },
+
   clickInput: function thui_clickInput(target) {
     if (target.checked) {
       ThreadUI.selectedInputList.push(target);
@@ -1049,7 +1131,11 @@ var ThreadUI = {
           ThreadUI.clickInput(evt.target);
           ThreadUI.checkInputs();
         }
-      break;
+        break;
+      case 'submit':
+        evt.preventDefault();
+        return false;
+        break;
     }
   },
 
@@ -1123,10 +1209,15 @@ var ThreadUI = {
                 });
               }
               MessageManager.getMessages(ThreadListUI.renderThreads);
-              MessageManager.send(num, text, function onsent(msg) {
+              // XXX Once we have PhoneNumberJS in Gecko we will use num directly
+              // https://bugzilla.mozilla.org/show_bug.cgi?id=809213
+              MessageManager.send(numNormalized, text, function onsent(msg) {
                 var root = document.getElementById(message.timestamp.getTime());
                 if (root) {
-                  root.removeChild(root.childNodes[2]);
+                  //Removing delivery spinner
+                  var deliveryIcon = root.querySelector('.icon-delivery');
+                  deliveryIcon.parentNode.removeChild(deliveryIcon);
+
                   var inputs = root.querySelectorAll('input[type="checkbox"]');
                   if (inputs) {
                     inputs[0].value = 'id_' + msg.id;
@@ -1366,8 +1457,6 @@ window.addEventListener('resize', function resize() {
     ThreadUI.scrollViewToBottom();
 });
 
-
-
 window.addEventListener('localized', function showBody() {
   MessageManager.init();
 
@@ -1400,8 +1489,14 @@ window.navigator.mozSetMessageHandler('activity', function actHandle(activity) {
         break;
       default:
         if (currentLocation.indexOf('#num=') != -1) {
-          MessageManager.activityTarget = number;
-          window.location.hash = '#thread-list';
+          // Don't switch back to thread list if we're
+          // already displaying the requested number.
+          if (currentLocation == '#num=' + number) {
+            delete MessageManager.lockActivity;
+          } else {
+            MessageManager.activityTarget = number;
+            window.location.hash = '#thread-list';
+          }
         } else {
           window.location.hash = '#num=' + number;
           delete MessageManager.lockActivity;

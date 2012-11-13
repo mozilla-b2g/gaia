@@ -68,6 +68,7 @@ Calendar.ns('Views').Day = (function() {
 
     oninactive: function() {
       Parent.prototype.oninactive.apply(this, arguments);
+      this.currentFrame = null;
 
       /**
        * We disable events here because this view
@@ -89,7 +90,17 @@ Calendar.ns('Views').Day = (function() {
       var controller = this.app.timeController;
       controller.on('dayChange', this);
       controller.on('selectedDayChange', this);
+
       controller.moveToMostRecentDay();
+
+      // ensure we change the date, if this is already
+      // the selected date the cost here is very small.
+      this.changeDate(controller.position);
+
+      if (!this.frames || !this.frames.length) {
+        console.error('(Calendar: render error) no child frames');
+        console.trace();
+      }
     }
   };
 

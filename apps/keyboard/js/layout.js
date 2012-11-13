@@ -4,7 +4,6 @@
 
 const Keyboards = {
   alternateLayout: {
-    type: 'keyboard',
     alt: {
         '0': 'º',
         '$': '€ £ ¥ R$'
@@ -30,7 +29,6 @@ const Keyboards = {
     ]
   },
   symbolLayout: {
-    type: 'keyboard',
     keys: [
       [
         { value: '`' }, { value: '~' }, { value: '_' }, { value: '^' },
@@ -53,7 +51,6 @@ const Keyboards = {
     ]
   },
   numberLayout: {
-    type: 'keyboard',
     width: 9,
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
@@ -69,7 +66,6 @@ const Keyboards = {
     }
   },
   telLayout: {
-    type: 'keyboard',
     width: 9,
     keys: [
       [{ value: '1', ratio: 3},{ value: '2', ratio: 3},{ value: '3', ratio: 3}],
@@ -90,9 +86,9 @@ const Keyboards = {
     }
   },
   en: {
-    type: 'keyboard',
     label: 'English',
-    suggestionEngine: 'latin',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     menuLabel: 'English',
     alt: {
       a: 'áàâäåãāæ',
@@ -136,7 +132,6 @@ const Keyboards = {
     }
   },
   cz: {
-    type: 'keyboard',
     label: 'Czech',
     menuLabel: 'Česká',
     alt: {
@@ -175,9 +170,10 @@ const Keyboards = {
     ]
   },
   fr: {
-    type: 'keyboard',
     label: 'French',
     menuLabel: 'français',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     alt: {
       a: 'àâæáãäåā',
       c: 'çćč',
@@ -210,9 +206,10 @@ const Keyboards = {
     ]
   },
   de: {
-    type: 'keyboard',
     label: 'German',
     menuLabel: 'Deutsch',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     alt: {
       a: 'äàáâãåāæ',
       c: 'çćč',
@@ -245,7 +242,6 @@ const Keyboards = {
     ]
   },
   he: {
-    type: 'keyboard',
     label: 'Hebrew',
     menuLabel: 'עִבְרִית',
     alt: {
@@ -271,7 +267,6 @@ const Keyboards = {
     ]
   },
   nb: {
-    type: 'keyboard',
     label: 'Norwegian Bokmal',
     menuLabel: 'Norsk',
     alt: {
@@ -314,7 +309,6 @@ const Keyboards = {
     ]
   },
   ru: {
-    type: 'keyboard',
     label: 'Russian',
     menuLabel: 'русский',
     alt: {
@@ -342,7 +336,6 @@ const Keyboards = {
     ]
   },
   'sr-Cyrl': {
-    type: 'keyboard',
     label: 'Serbian (Cyrillic)',
     menuLabel: 'српска ћирилица',
     alt: {
@@ -370,7 +363,6 @@ const Keyboards = {
     ]
   },
   sk: {
-    type: 'keyboard',
     label: 'Slovak',
     menuLabel: 'Slovenčina',
     alt: {
@@ -409,7 +401,6 @@ const Keyboards = {
     ]
   },
   tr: {
-    type: 'keyboard',
     label: 'Turkish',
     menuLabel: 'Türkçe',
     upperCase: {
@@ -447,9 +438,10 @@ const Keyboards = {
     ]
   },
   'en-Dvorak': {
-    type: 'keyboard',
     label: 'English - Dvorak',
     menuLabel: 'Dvorak',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     alt: {
       a: 'àáâãäåāæ',
       c: 'çćč',
@@ -486,7 +478,6 @@ const Keyboards = {
     ]
   },
   'zh-Hant-Zhuyin': {
-    type: 'ime',
     label: 'Chinese - Traditional - Zhuyin',
     menuLabel: '繁體注音輸入',
     needsCandidatePanel: true,
@@ -521,7 +512,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin': {
-    type: 'ime',
     label: 'Chinese - Simplified & Traditional - Pinyin',
     menuLabel: '拼音输入',
     needsCandidatePanel: true,
@@ -557,7 +547,6 @@ const Keyboards = {
     ]
   },
   'zh-Hans-Pinyin-tr': {
-    type: 'keyboard',
     width: 10,
     needsCandidatePanel: true,
     disableAlternateLayout: true,
@@ -900,6 +889,8 @@ const Keyboards = {
     type: 'keyboard',
     label: 'Portuguese',
     menuLabel: 'Português',
+    imEngine: 'latin',
+    needsCandidatePanel: 'true',
     alt: {
       a: 'áãàâäåæª',
       e: 'éêèęėēëɛ',
@@ -995,7 +986,6 @@ const Keyboards = {
     }
   },
   'jp-kanji': {
-    type: 'ime',
     label: 'Japanese - Kanji',
     menuLabel: 'Japanese - Kanji',
     imEngine: 'jskanji',
@@ -1034,7 +1024,6 @@ const Keyboards = {
     ]
   },
   'jp-kanji-en': {
-    type: 'keyboard',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
@@ -1061,7 +1050,6 @@ const Keyboards = {
 
   },
   'jp-kanji-en-caps': {
-    type: 'keyboard',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,
@@ -1088,7 +1076,6 @@ const Keyboards = {
   },
 
   'jp-kanji-number': {
-    type: 'keyboard',
     needsCandidatePanel: true,
     disableAlternateLayout: true,
     hidesSwitchKey: true,

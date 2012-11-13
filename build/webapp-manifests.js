@@ -18,6 +18,24 @@ if (!webappsTargetDir.exists())
 let manifests = {};
 let id = 1;
 
+function copyRec(source, target) {
+  let results = [];
+  let files = source.directoryEntries;
+  if (!target.exists())
+    target.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  while (files.hasMoreElements()) {
+    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
+    if (file.isDirectory()) {
+      let subFolder = target.clone();
+      subFolder.append(file.leafName);
+      copyRec(file, subFolder);
+    } else {
+      file.copyTo(target, file.leafName);
+    }
+  }
+}
+
 Gaia.webapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
   if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
@@ -47,34 +65,26 @@ Gaia.webapps.forEach(function (webapp) {
 });
 
 // Process external webapps from /gaia/external-app/ folder
-const EXTERNAL_APPS_DIR = 'external-apps';
-getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDirName) {
-  let webappSrcDir = getFile(GAIA_DIR, EXTERNAL_APPS_DIR, webappSrcDirName);
-  let manifest = webappSrcDir.clone();
-  manifest.append('manifest.webapp');
-
-  // Ignore directories without manifest
-  if (!manifest.exists())
-    return;
-
+Gaia.externalWebapps.forEach(function (webapp) {
   // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webappSrcDirName != BUILD_APP_NAME)
+  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
     return;
 
   // Compute webapp folder name in profile
-  let webappTargetDirName = webappSrcDirName;
+  let webappTargetDirName = webapp.sourceDirectoryName;
 
   // Copy webapp's manifest to the profile
   let webappTargetDir = webappsTargetDir.clone();
   webappTargetDir.append(webappTargetDirName);
-  manifest.copyTo(webappTargetDir, 'manifest.webapp');
+  webapp.manifestFile.copyTo(webappTargetDir, 'manifest.webapp');
 
-  let origin = webappSrcDir.clone();
+  let origin = webapp.sourceDirectoryFile.clone();
   origin.append('origin');
 
-  let url = getFileContent(origin);
-  // Strip any leading/ending spaces
-  url = url.replace(/^\s+|\s+$/, '');
+  let url = webapp.origin;
+  if (!origin)
+    throw new Error('External webapp `' + webapp.domain + '` doesn\'t have an' +
+                    '`origin` file.');
 
   // Add webapp's entry to the webapps global manifest
   manifests[webappTargetDirName] = {
@@ -82,9 +92,24 @@ getSubDirectories(EXTERNAL_APPS_DIR).forEach(function readManifests(webappSrcDir
     installOrigin: url,
     receipt:       null,
     installTime:   132333986000,
-    manifestURL:   url + '/manifest.webapp',
+    manifestURL:   url + 'manifest.webapp',
     localId:       id++
   };
+
+  let srcCacheFolder = webapp.sourceDirectoryFile.clone();
+  srcCacheFolder.append("cache");
+  if (srcCacheFolder.exists()) {
+    let cacheManifest = srcCacheFolder.clone();
+    cacheManifest.append("manifest.appcache");
+    if (!cacheManifest.exists())
+      throw new Error('External webapp `' + webapp.domain + '` has a cache ' +
+                      'directory without `manifest.appcache` file.');
+
+    // Copy recursively the whole cache folder to webapp folder
+    let targetCacheFolder = webappTargetDir.clone();
+    targetCacheFolder.append("cache");
+    copyRec(srcCacheFolder, targetCacheFolder);
+  }
 });
 
 // Write webapps global manifest

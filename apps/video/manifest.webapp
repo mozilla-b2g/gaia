@@ -1,59 +1,28 @@
 {
   "name": "Video",
   "description": "Gaia Video",
+  "type": "certified",
   "launch_path": "/index.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
-  "permissions": [
-    "device-storage:videos",
-    "deprecated-hwvideo"
-  ],
+  "permissions": {
+    "device-storage:videos":{ "access": "readwrite" },
+    "deprecated-hwvideo":{}
+  },
   "locales": {
     "ar": {
       "name": "فيديو",
       "description": "Gaia فيديو"
     },
-    "ca": {
-      "name": "Vídeo",
-      "description": "Vídeo del Gaia"
-    },
-    "de": {
-      "name": "Video",
-      "description": "Gaia Video"
-    },
-    "el": {
-      "name": "Βίντεο",
-      "description": "Βίντεο Gaia"
-    },
     "en-US": {
       "name": "Video",
       "description": "Gaia Video"
     },
-    "es": {
-      "name": "Video",
-      "description": "Video de Gaia"
-    },
     "fr": {
       "name": "Vidéo",
       "description": "Lecteur vidéo Gaia"
-    },
-    "it": {
-      "name": "Video",
-      "description": "Gaia Video"
-    },
-    "pt-BR": {
-      "name": "Vídeo",
-      "description": "Vídeo do Gaia"
-    },
-    "ru": {
-      "name": "Видео",
-      "description": "Видео Gaia"
-    },
-    "tr": {
-      "name": "Video",
-      "description": "Gaia Video"
     },
     "zh-TW": {
       "name": "影片",

@@ -121,6 +121,29 @@ function hideScanProgress() {
 }
 
 //
+// Web Activities
+//
+
+// Use Web Activities to share files
+function shareFile(filename) {
+  musicdb.getFile(filename, function(file) {
+    var a = new MozActivity({
+      name: 'share',
+      data: {
+        type: file.type,
+        number: 1,
+        blobs: [file],
+        filenames: [filename]
+      }
+    });
+
+    a.onerror = function(e) {
+      console.warn('share activity error:', a.error.name);
+    };
+  });
+}
+
+//
 // Overlay messages
 //
 var currentOverlay;  // The id of the current overlay or null if none.
@@ -140,13 +163,13 @@ var currentOverlay;  // The id of the current overlay or null if none.
 function showOverlay(id) {
   currentOverlay = id;
 
-  var title = navigator.mozL10n.get(id + '-title');
-  var text = navigator.mozL10n.get(id + '-text');
-
   if (id === null) {
     document.getElementById('overlay').classList.add('hidden');
     return;
   }
+
+  var title = navigator.mozL10n.get(id + '-title');
+  var text = navigator.mozL10n.get(id + '-text');
 
   document.getElementById('overlay-title').textContent = title;
   document.getElementById('overlay-text').textContent = text;
@@ -162,10 +185,10 @@ var sublistHandle = null;
 function showCurrentView() {
   TilesView.clean();
   // Enumerate existing song entries in the database
-  // List the all, and sort them in descending order by date.
-  var option = 'date';
+  // List the all, and sort them in ascending order by album.
+  var option = 'metadata.album';
 
-  tilesHandle = musicdb.enumerate(option, null, 'prev',
+  tilesHandle = musicdb.enumerate(option, null, 'nextunique',
                                   TilesView.update.bind(TilesView));
   switch (TabBar.option) {
     case 'playlist':
@@ -261,7 +284,10 @@ var TitleBar = {
 
             break;
           case 'title-text':
-            changeMode(MODE_PLAYER);
+            // We cannot to switch to player mode
+            // when there is no song in the source of player
+            if (PlayerView.audio.src)
+              changeMode(MODE_PLAYER);
 
             break;
         }
@@ -311,11 +337,11 @@ var TilesView = {
 
   setItemImage: function tv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (!fileinfo.metadata.picture)
+    if (!fileinfo.metadata.thumbnail)
       return;
 
     item.addEventListener('load', cropImage);
-    createAndSetCoverURL(item, fileinfo);
+    createAndSetCoverURL(item, fileinfo, true);
   },
 
   update: function tv_update(result) {
@@ -463,9 +489,9 @@ var ListView = {
 
   setItemImage: function lv_setItemImage(item, fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    if (fileinfo.metadata.picture) {
+    if (fileinfo.metadata.thumbnail) {
       item.addEventListener('load', cropImage);
-      createAndSetCoverURL(item, fileinfo);
+      createAndSetCoverURL(item, fileinfo, true);
     }
   },
 
@@ -501,8 +527,8 @@ var ListView = {
         var artistSpan = document.createElement('span');
         albumSpan.className = 'list-main-title';
         artistSpan.className = 'list-sub-title';
-        albumSpan.textContent = result.metadata.album;
-        artistSpan.textContent = result.metadata.artist;
+        albumSpan.textContent = result.metadata.album || unknownAlbum;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(albumSpan);
         a.appendChild(artistSpan);
 
@@ -513,7 +539,7 @@ var ListView = {
       case 'artist':
         var artistSpan = document.createElement('span');
         artistSpan.className = 'list-single-title';
-        artistSpan.textContent = result.metadata.artist;
+        artistSpan.textContent = result.metadata.artist || unknownArtist;
         a.appendChild(artistSpan);
 
         a.dataset.keyRange = result.metadata.artist;
@@ -523,7 +549,7 @@ var ListView = {
       case 'playlist':
         var titleSpan = document.createElement('span');
         titleSpan.className = 'list-single-title';
-        titleSpan.textContent = result.metadata.title;
+        titleSpan.textContent = result.metadata.title || unknownTitle;
         a.appendChild(titleSpan);
 
         a.dataset.keyRange = 'all';
@@ -558,15 +584,15 @@ var ListView = {
 
           SubListView.setAlbumDefault(index);
 
-          if (data.metadata.picture)
+          if (data.metadata.thumbnail)
             SubListView.setAlbumSrc(data);
 
           if (option === 'artist') {
-            SubListView.setAlbumName(data.metadata.artist);
+            SubListView.setAlbumName(data.metadata.artist || unknownArtist);
           } else if (option === 'album') {
-            SubListView.setAlbumName(data.metadata.album);
+            SubListView.setAlbumName(data.metadata.album || unknownAlbum);
           } else {
-            SubListView.setAlbumName(data.metadata.title);
+            SubListView.setAlbumName(data.metadata.title || unknownTitle);
           }
 
           var targetOption =
@@ -617,6 +643,7 @@ var SubListView = {
     this.dataSource = [];
     this.index = 0;
     this.backgroundIndex = 0;
+    this.isContextmenu = false;
 
     this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
@@ -625,7 +652,8 @@ var SubListView = {
     this.shuffleButton =
       document.getElementById('views-sublist-controls-shuffle');
 
-    this.view.addEventListener('click', this);
+    this.view.addEventListener('mouseup', this);
+    this.view.addEventListener('contextmenu', this);
   },
 
   clean: function slv_clean() {
@@ -676,7 +704,7 @@ var SubListView = {
 
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
     // Set source to image and crop it to be fitted when it's onloded
-    createAndSetCoverURL(this.albumImage, fileinfo);
+    createAndSetCoverURL(this.albumImage, fileinfo, true);
     this.albumImage.classList.remove('fadeIn');
     this.albumImage.addEventListener('load', slv_showImage.bind(this));
 
@@ -724,9 +752,14 @@ var SubListView = {
   },
 
   handleEvent: function slv_handleEvent(evt) {
+    var target = evt.target;
+
     switch (evt.type) {
-      case 'click':
-        var target = evt.target;
+      case 'mouseup':
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+          return;
+        }
 
         if (target === this.shuffleButton) {
           this.shuffle();
@@ -749,11 +782,28 @@ var SubListView = {
 
         break;
 
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        var targetIndex = parseInt(target.dataset.index);
+        var songData = this.dataSource[targetIndex];
+
+        shareFile(songData.name);
+        break;
+
       default:
         return;
     }
   }
 };
+
+// Repeat option for player
+var REPEAT_OFF = 0;
+var REPEAT_LIST = 1;
+var REPEAT_SONG = 2;
+
+// Key for store options of repeat and shuffle
+var SETTINGS_OPTION_KEY = 'settings_option_key';
 
 // View of Player
 var PlayerView = {
@@ -791,6 +841,9 @@ var PlayerView = {
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
 
+    this.repeatButton = document.getElementById('player-album-repeat');
+    this.shuffleButton = document.getElementById('player-album-shuffle');
+
     this.ratings = document.getElementById('player-album-rating').children;
 
     this.seekBar = document.getElementById('player-seek-bar-progress');
@@ -803,6 +856,8 @@ var PlayerView = {
     this.dataSource = [];
     this.currentIndex = 0;
     this.backgroundIndex = 0;
+
+    asyncStorage.getItem(SETTINGS_OPTION_KEY, this.setOptions.bind(this));
 
     this.view.addEventListener('click', this);
 
@@ -868,6 +923,38 @@ var PlayerView = {
     };
   },
 
+  setOptions: function pv_setOptions(settings) {
+    var repeatOption = (settings && settings.repeat) ?
+      settings.repeat : REPEAT_OFF;
+    var shuffleOption = (settings && settings.shuffle) ?
+      settings.shuffle : false;
+
+    this.setRepeat(repeatOption);
+    this.setShuffle(shuffleOption);
+  },
+
+  setRepeat: function pv_setRepeat(value) {
+    var repeatClasses = ['repeat-off', 'repeat-list', 'repeat-song'];
+
+    // Remove all repeat classes before applying a new one
+    repeatClasses.forEach(function pv_resetRepeat(targetClass) {
+      this.repeatButton.classList.remove(targetClass);
+    }.bind(this));
+
+    this.repeatOption = value;
+    this.repeatButton.classList.add(repeatClasses[this.repeatOption]);
+  },
+
+  setShuffle: function pv_setShuffle(value) {
+    this.shuffleOption = value;
+
+    if (this.shuffleOption) {
+      this.shuffleButton.classList.add('shuffle-on');
+    } else {
+      this.shuffleButton.classList.remove('shuffle-on');
+    }
+  },
+
   setRatings: function pv_setRatings(rated) {
     for (var i = 0; i < 5; i++) {
       var rating = this.ratings[i];
@@ -894,12 +981,9 @@ var PlayerView = {
       var targetIndex = parseInt(target.dataset.index);
       var songData = this.dataSource[targetIndex];
 
-      TitleBar.changeTitleText((songData.metadata.title) ?
-        songData.metadata.title : unknownTitle);
-      this.artist.textContent = (songData.metadata.artist) ?
-        songData.metadata.artist : unknownArtist;
-      this.album.textContent = (songData.metadata.album) ?
-        songData.metadata.album : unknownAlbum;
+      TitleBar.changeTitleText(songData.metadata.title || unknownTitle);
+      this.artist.textContent = songData.metadata.artist || unknownArtist;
+      this.album.textContent = songData.metadata.album || unknownAlbum;
       this.currentIndex = targetIndex;
 
       // backgroundIndex is from the index of sublistView
@@ -939,7 +1023,7 @@ var PlayerView = {
       this.audio.play();
     }
 
-    this.playControl.innerHTML = '||';
+    this.playControl.classList.remove('is-pause');
   },
 
   pause: function pv_pause() {
@@ -947,17 +1031,31 @@ var PlayerView = {
 
     this.audio.pause();
 
-    this.playControl.innerHTML = '&#9654;';
+    this.playControl.classList.add('is-pause');
   },
 
-  next: function pv_next() {
+  next: function pv_next(isAutomatic) {
     var songElements = (this.sourceType === TYPE_MIX) ?
       TilesView.view.children : SubListView.anchor.children;
 
-    if (this.currentIndex >= this.dataSource.length - 1)
+    // We only repeat a song automatically. (when the song is ended)
+    // If users click skip forward, player will go on to next one
+    if (this.repeatOption === REPEAT_SONG && isAutomatic) {
+      this.play(songElements[this.currentIndex].firstElementChild);
       return;
+    }
 
-    this.currentIndex++;
+    // If it's a last song and repeat list is OFF, ignore it.
+    // but if repeat list is ON, player will restart from the first song
+    if (this.currentIndex >= this.dataSource.length - 1) {
+      if (this.repeatOption === REPEAT_LIST) {
+        this.currentIndex = 0;
+      } else {
+        return;
+      }
+    } else {
+      this.currentIndex++;
+    }
 
     this.play(songElements[this.currentIndex].firstElementChild);
   },
@@ -966,10 +1064,22 @@ var PlayerView = {
     var songElements = (this.sourceType === TYPE_MIX) ?
       TilesView.view.children : SubListView.anchor.children;
 
-    if (this.currentIndex <= 0)
+    // If a song starts more than 3 (seconds),
+    // when users click skip backward, it will restart the current song
+    // otherwise just skip to the previous song
+    if (this.audio.currentTime > 3) {
+      this.play(songElements[this.currentIndex].firstElementChild);
       return;
+    }
 
-    this.currentIndex--;
+    // If it's a first song and repeat list is ON, go to the last one
+    // or just restart from the beginning when repeat list is OFF
+    if (this.currentIndex <= 0) {
+      this.currentIndex = (this.repeatOption === REPEAT_LIST) ?
+        this.dataSource.length - 1 : 0;
+    } else {
+      this.currentIndex--;
+    }
 
     this.play(songElements[this.currentIndex].firstElementChild);
   },
@@ -1054,9 +1164,39 @@ var PlayerView = {
             this.next();
 
             break;
+
+          case 'player-album-repeat':
+            this.showInfo();
+
+            var newValue = ++this.repeatOption % 3;
+            // Store the option when it's triggered by users
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+              repeat: newValue,
+              shuffle: this.shuffleOption
+            });
+
+            this.setRepeat(newValue);
+
+            break;
+
+          case 'player-album-shuffle':
+            this.showInfo();
+
+            var newValue = !this.shuffleOption;
+            // Store the option when it's triggered by users
+            asyncStorage.setItem(SETTINGS_OPTION_KEY, {
+              repeat: this.repeatOption,
+              shuffle: newValue
+            });
+
+            this.setShuffle(newValue);
+
+            break;
         }
 
         if (target.dataset.rating) {
+          this.showInfo();
+
           var songData = this.dataSource[this.currentIndex];
           songData.metadata.rated = parseInt(target.dataset.rating);
 
@@ -1083,7 +1223,7 @@ var PlayerView = {
           var timeToNext = (this.audio.duration - this.audio.currentTime + 1);
           this.endedTimer = setTimeout(function() {
                                          this.endedTimer = null;
-                                         this.next();
+                                         this.next(true);
                                        }.bind(this),
                                        timeToNext * 1000);
         }
@@ -1092,7 +1232,7 @@ var PlayerView = {
         // Because of the workaround above, we have to ignore real ended
         // events if we already have a timer set to emulate them
         if (!this.endedTimer)
-          this.next();
+          this.next(true);
         break;
 
       default:
@@ -1124,9 +1264,16 @@ var TabBar = {
     switch (evt.type) {
       case 'click':
         var target = evt.target;
-        this.option = target.dataset.option;
+
         if (!target)
           return;
+
+        // if users click same option, ignore it
+        if (this.option === target.dataset.option) {
+          return;
+        } else {
+          this.option = target.dataset.option;
+        }
 
         switch (target.id) {
           case 'tabs-mix':

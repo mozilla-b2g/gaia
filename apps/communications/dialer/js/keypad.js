@@ -159,7 +159,7 @@ var KeypadManager = {
     var defaultFontSize = window.getComputedStyle(document.body, null)
                                 .getPropertyValue('font-size');
     this.minFontSize = parseInt(parseInt(defaultFontSize) * 10 * 0.226);
-    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 18 * 0.226);
+    this.maxFontSize = parseInt(parseInt(defaultFontSize) * 16 * 0.226);
 
     this.phoneNumberView.value = '';
     this._phoneNumber = '';
@@ -228,6 +228,8 @@ var KeypadManager = {
       this._additionalContactInfo = additionalContactInfoNode.textContent;
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
+      this._originalPhoneNumber = this._phoneNumber;
+      this._originalAdditionalContactInfo = this._additionalContactInfo;
       if (this.callBar) {
         this.callBar.classList.add('hide');
       }
@@ -443,8 +445,6 @@ var KeypadManager = {
           contains('keypad-visible')) {
         if (!this._isKeypadClicked) {
           this._isKeypadClicked = true;
-          this._originalPhoneNumber = this._phoneNumber;
-          this._originalAdditionalContactInfo = this._additionalContactInfo;
           this._phoneNumber = key;
           this._additionalContactInfo = '';
           this._updateAdditionalContactInfoView();

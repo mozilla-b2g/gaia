@@ -3,9 +3,13 @@
 
 'use strict';
 
-var _ = navigator.mozL10n.get;
-
 var StatusBar = {
+  /* all elements that are children nodes of the status bar */
+  ELEMENTS: ['notification', 'time',
+    'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
+    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
+    'recording', 'sms', 'geolocation', 'usb', 'label', 'system-downloads'],
+
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
 
@@ -42,6 +46,12 @@ var StatusBar = {
 
   headphonesActive: false,
 
+  /**
+   * this keeps how many current installs/updates we do
+   * it triggers the icon "systemDownloads"
+   */
+  systemDownloadsCount: 0,
+
   /* For other app to acquire */
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
@@ -49,6 +59,10 @@ var StatusBar = {
     } else {
       return this.element.offsetHeight;
     }
+  },
+
+  get notificationsCount() {
+    return this.icons.notification.dataset.num;
   },
 
   init: function sb_init() {
@@ -96,6 +110,7 @@ var StatusBar = {
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
 
+    this.systemDownloadsCount = 0;
     this.setActive(true);
   },
 
@@ -249,10 +264,12 @@ var StatusBar = {
 
     time: function sb_updateTime() {
       // Schedule another clock update when a new minute rolls around
+      var _ = navigator.mozL10n.get;
       var f = new navigator.mozL10n.DateTimeFormat();
       var now = new Date();
       var sec = now.getSeconds();
-      window.clearTimeout(this._clockTimer);
+      if (this._clockTimer)
+        window.clearTimeout(this._clockTimer);
       this._clockTimer =
         window.setTimeout((this.update.time).bind(this), (59 - sec) * 1000);
 
@@ -326,7 +343,7 @@ var StatusBar = {
 
       } else {
         // "Emergency Calls Only (REASON)" / "Carrier" / "Carrier (Roaming)"
-        icon.dataset.level = Math.floor(voice.relSignalStrength / 20); // 0-5
+        icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
       }
     },
 
@@ -475,6 +492,11 @@ var StatusBar = {
     headphones: function sb_updateHeadphones() {
       var icon = this.icons.headphones;
       icon.hidden = !this.headphonesActive;
+    },
+
+    systemDownloads: function sb_updatesystemDownloads() {
+      var icon = this.icons.systemDownloads;
+      icon.hidden = (this.systemDownloadsCount === 0);
     }
   },
 
@@ -493,12 +515,21 @@ var StatusBar = {
     this.icons.notification.dataset.unread = unread;
   },
 
+  incSystemDownloads: function sb_incSystemDownloads() {
+    this.systemDownloadsCount++;
+    this.update.systemDownloads.call(this);
+  },
+
+  decSystemDownloads: function sb_decSystemDownloads() {
+    if (--this.systemDownloadsCount < 0) {
+      this.systemDownloadsCount = 0;
+    }
+
+    this.update.systemDownloads.call(this);
+  },
+
   getAllElements: function sb_getAllElements() {
     // ID of elements to create references
-    var elements = ['notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
-    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'recording', 'sms', 'geolocation', 'usb', 'label'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -506,7 +537,7 @@ var StatusBar = {
       });
     }
 
-    elements.forEach((function createElementRef(name) {
+    this.ELEMENTS.forEach((function createElementRef(name) {
       this.icons[toCamelCase(name)] =
         document.getElementById('statusbar-' + name);
     }).bind(this));

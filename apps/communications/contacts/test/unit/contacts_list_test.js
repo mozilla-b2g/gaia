@@ -10,6 +10,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
+requireApp('communications/contacts/test/unit/mock_activities.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -32,6 +33,10 @@ if (!this.mozL10n) {
   this.mozL10n = null;
 }
 
+if (!this.ActivityHandler) {
+  this.ActivityHandler = null;
+}
+
 suite('Render contacts list', function() {
   var subject,
       container,
@@ -45,6 +50,8 @@ suite('Render contacts list', function() {
       utils,
       mockContacts,
       mozL10n,
+      mockActivities,
+      realActivities,
       groupA,
       groupB,
       groupC,
@@ -90,6 +97,21 @@ suite('Render contacts list', function() {
     var markPosition = content.indexOf('icon-fb');
 
     assert.isTrue(markPosition > -1);
+  }
+
+  function getSearchStringFromContact(contact) {
+    var expected = [];
+    if (contact.givenName) {
+      expected.push(contact.givenName[0]);
+    }
+    if (contact.familyName) {
+      expected.push(contact.familyName[0]);
+    }
+    if (contact.org) {
+      expected.push(contact.org[0]);
+    }
+
+    return expected.join(' ');
   }
 
   function resetDom(document) {
@@ -160,6 +182,8 @@ suite('Render contacts list', function() {
     window.Contacts.extFb = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
+    realActivities = window.ActivityHandler;
+    window.ActivityHandler = MockActivities;
     window.utils = window.utils || {};
     window.utils.alphaScroll = MockAlphaScroll;
     subject = contacts.List;
@@ -174,6 +198,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
+    window.ActivityHandler = realActivities;
   });
 
   suite('Render list', function() {
@@ -434,6 +459,63 @@ suite('Render contacts list', function() {
       assertNoGroup(groupFav, containerFav);
       assertTotal(0, 0);
     });
+
+    test('checking no contacts when coming from activity', function() {
+      MockActivities.currentlyHandling = true;
+      subject.load([]);
+      assert.isTrue(noContacts.classList.contains('hide'));
+      assertNoGroup(groupFav, containerFav);
+      assertTotal(0, 0);
+      MockActivities.currentlyHandling = false;
+    });
+
+    test('updating photo for a contact already rendered', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      var selectorContact1 = 'li[data-uuid = "1"]';
+      var contact = container.querySelector(selectorContact1);
+
+      var img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
+      var prevUpdated = contact.dataset.updated;
+
+      mockContacts[0].updated = new Date(); // This is the key!
+      mockContacts[0].photo = ['one.png'];
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      contact = container.querySelector(selectorContact1);
+      img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'one.png',
+                    'After updating contact 1 img === "one.png"');
+
+      assert.isTrue(prevUpdated < contact.dataset.updated,
+                    'Updated date is wrong. It should be changed!');
+    });
+
+    test('reloading list of contacts without updating', function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      var selectorContact1 = 'li[data-uuid = "1"]';
+      var contact = container.querySelector(selectorContact1);
+
+      var img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
+
+      subject.load(mockContacts);
+      assertTotal(3, 3);
+
+      contact = container.querySelector(selectorContact1);
+      img = contact.querySelector('img');
+      assert.isTrue(img.getAttribute('backgroundImage') === 'test.png',
+                    'At the begining contact 1 img === "test.png"');
+    });
   });  // suite ends
 
   suite('Facebook Contacts List', function() {
@@ -506,6 +588,53 @@ suite('Render contacts list', function() {
       var hiddenContacts = container.querySelectorAll(selectorStr);
       assert.length(hiddenContacts, 3);
       assert.isFalse(noResults.classList.contains('hide'));
+    });
+  });
+
+  suite('Contacts order', function() {
+    suiteSetup(function() {
+      mockContacts = new MockContactsList();
+      subject.load(mockContacts);
+    });
+
+    suiteTeardown(function() {
+      subject.setOrderByLastName(true);
+    });
+
+    test('Order by lastname', function() {
+      var names = document.querySelectorAll('[data-search]');
+      assert.length(names, mockContacts.length);
+      for (var i = 0; i < names.length; i++) {
+        var printed = names[i];
+        var mockContact = mockContacts[i];
+        var expected = getSearchStringFromContact(mockContact);
+        assert.equal(printed.dataset['search'], expected);
+
+        // Check as well the correct highlight
+        // familyName to be in bold
+        var highlight = '<strong class="block-name">' +
+          mockContact.givenName[0] + ' <b>' +
+          mockContact.familyName[0] + '</b>';
+        assert.isTrue(printed.innerHTML.indexOf(highlight) == 0);
+      }
+    });
+    test('NOT order by lastname', function() {
+      subject.setOrderByLastName(false);
+      subject.load(mockContacts);
+
+      // First one should be the last one from the list, with the current names
+      var name = document.querySelector('[data-search]');
+      var mockContact = mockContacts[mockContacts.length - 1];
+      var expected = getSearchStringFromContact(mockContact);
+
+      assert.equal(name.dataset['search'], expected);
+
+      // Check highlight
+      // Given name to be in bold
+      var highlight = '<strong class="block-name"><b>' +
+          mockContact.givenName[0] + '</b> ' +
+          mockContact.familyName[0];
+      assert.isTrue(name.innerHTML.indexOf(highlight) == 0);
     });
   });
 });

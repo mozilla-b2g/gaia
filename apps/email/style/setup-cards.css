@@ -5,7 +5,9 @@
 
 .sup-form-label {
   text-align: center;
-  margin: 2rem;
+  margin: 2rem 3rem;
+  font-weight: normal;
+  text-align: left;
 }
 .sup-form-text {
   -moz-box-sizing: border-box;
@@ -18,16 +20,19 @@
   width: calc(100% - 6rem);
 }
 .sup-form-btn {
-  margin: 1rem 6rem;
-  width: 20rem;
+  margin: 1.5rem 3rem;
+  width: calc(100% - 6rem);
 }
 
 .sup-services-container {
   text-align: center;
 }
 .sup-service-choice {
-  margin: 1rem calc((100% - 20rem) / 2);
-  width: 20rem;
+  margin: 0 1.5rem;
+  width: calc(100% - 3rem);
+  height: auto;
+  list-style-type: none;
+  border: none;
 }
 
 .sup-progress-region {
@@ -81,8 +86,10 @@
 .tng-account-item-label {
   margin: 0;
 }
-.tng-account-add {
-  font-style: italic;
+.tng-account-add, .tng-account-delete {
+  text-align: center;
+  width: calc(100% - 6rem);
+  margin: 0.8rem 0;
 }
 
 li {
@@ -93,6 +100,7 @@ li {
   border-right: none;
   border-left: none;
   margin: -1px 0 0;
+  list-style-type: none;
 }
 
 li a:active {
@@ -132,6 +140,10 @@ li .aside.end {
   line-height: 5.5rem;
 }
 
+li.align-center {
+  text-align: center;
+}
+
 .mail-select {
   font-size: 2rem;
   vertical-align: middle;
@@ -148,7 +160,10 @@ li .aside.end {
 }
 
 .settings-button {
-  float: right;
-  margin-top: 1rem;
-  margin-right: 3rem;
+  margin: 1.5rem 3rem;
+  width: calc(100% - 6rem);
+}
+
+.tng-email-lib-version {
+  opacity: 0;
 }
