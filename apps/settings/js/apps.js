@@ -133,8 +133,6 @@ var ApplicationsList = {
       this.developerInfos.hidden = false;
       this.developerHeader.hidden = false;
       if (!developer.url) {
-        // Links started with '#' are not
-        // sent to the browser
         delete this.developerName.dataset.href;
         delete this.developerLink.href;
         this.developerLink.hidden = true;
