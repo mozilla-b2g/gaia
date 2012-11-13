@@ -69,6 +69,7 @@ var WindowManager = (function() {
   // is fixed, wait for 100ms before starting the transition so
   // we will not see opening apps/homescreen flash in.
   var kTransitionWait = 100;
+  var inTransition = false;
 
   //
   // The set of running apps.
@@ -445,14 +446,14 @@ var WindowManager = (function() {
 
       if (!screenshot) {
         // put a default background
-        openFrame.classList.add('default-background');
+        frame.classList.add('default-background');
         callback();
         return;
       }
 
       // set the screenshot as the background of the frame itself.
       // we are safe to do so since there is nothing on it yet.
-      setFrameBackgroundBlob(openFrame, screenshot, transparent);
+      setFrameBackgroundBlob(frame, screenshot, transparent);
 
       // start the transition
       callback();
@@ -795,6 +796,9 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
+    if (inTransition)
+      return;
+
     var currentApp = displayedApp, newApp = origin || homescreen;
     // Returns the frame reference of the home screen app.
     // Restarts the homescreen app if it was killed in the background.
@@ -826,22 +830,33 @@ var WindowManager = (function() {
     else if (!currentApp && newApp != homescreen) {
       openWindow(newApp, function windowOpened() {
         // TODO Implement FTU stuff if necessary
+        endTransition();
       });
     }
     // Case 3: null->homescreen || homescreen->app
     else if ((!currentApp && newApp == homescreen) ||
              (currentApp == homescreen && newApp)) {
-      openWindow(newApp, callback);
+      openWindow(newApp, endTransition);
     }
     // Case 4: app->homescreen
     else if (currentApp && currentApp != homescreen && newApp == homescreen) {
       // For screenshot to catch current window size
-      closeWindow(currentApp, callback);
+      closeWindow(currentApp, endTransition);
     }
     // Case 5: app-to-app transition
     else {
-      switchWindow(newApp, callback);
+      switchWindow(newApp, endTransition);
     }
+
+    if (!currentApp || currentApp != newApp)
+      inTransition = true;
+
+    function endTransition() {
+      inTransition = false;
+      if (callback)
+        callback();
+    }
+
     // Set homescreen as active,
     // to control the z-index between homescreen & keyboard iframe
     if ((newApp == homescreen) && homescreenFrame) {
