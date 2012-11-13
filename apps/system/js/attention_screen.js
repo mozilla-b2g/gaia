@@ -35,6 +35,7 @@ var AttentionScreen = {
 
     this.bar.addEventListener('click', this.show.bind(this));
     window.addEventListener('home', this.hide.bind(this));
+    window.addEventListener('holdhome', this.hide.bind(this));
   },
 
   resize: function as_resize(evt) {
