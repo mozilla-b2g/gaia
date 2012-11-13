@@ -61,10 +61,6 @@ var AppInstallManager = {
     }
 
     this.installCallback = (function ai_installCallback() {
-      app.ondownloaderror = function ai_downloadError(e) {
-        var msg = name + ' ' + _('download-stopped');
-        SystemBanner.show(msg);
-      }
       this.dispatchResponse(id, 'webapps-install-granted');
     }).bind(this);
 
@@ -100,7 +96,6 @@ var AppInstallManager = {
       // nothing more to do here, everything is already done
       return;
     }
-
     StatusBar.incSystemDownloads();
 
     app.ondownloadsuccess = this.handleDownloadSuccess.bind(this, app);
@@ -114,8 +109,12 @@ var AppInstallManager = {
   },
 
   handleDownloadError: function ai_handleDownloadError(app, evt) {
+    var _ = navigator.mozL10n.get;
     var manifest = app.manifest || app.updateManifest;
+    var name = manifest.name;
     StatusBar.decSystemDownloads();
+    var msg = name + ' ' + _('download-stopped');
+    SystemBanner.show(msg);
     this.cleanUp(app);
   },
 
