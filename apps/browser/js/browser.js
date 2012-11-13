@@ -1680,13 +1680,13 @@ var Browser = {
 var Utils = {
   createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
     if (!searchRegExp) {
-      return text;
+      return Utils.escapeHTML(text);
     }
     searchRegExp = new RegExp(searchRegExp, 'gi');
     var sliceStrs = text.split(searchRegExp);
     var patterns = text.match(searchRegExp);
     if (!patterns) {
-      return text;
+      return Utils.escapeHTML(text);
     }
     var str = '';
     for (var i = 0; i < patterns.length; i++) {

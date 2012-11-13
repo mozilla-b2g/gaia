@@ -1,6 +1,4 @@
-
-// XXX 'with' is deprecated...
-// 'use strict';
+'use strict';
 
 var utils = window.utils || {};
 
@@ -37,64 +35,20 @@ if (!utils.templates) {
     *
     */
     function getTemplate(target, data) {
-      var template;
+      // Multi templates temporarily disabled to avoid eval usage
+      // TODO: Implement an alternative for eval
       var templates = target.querySelectorAll('*[data-template]');
-
-      var total = templates.length;
-
-      var multi = false;
-      if (total > 1) {
-        multi = true;
+      if (templates.length === 0) {
+        throw new Error('No template declared');
+      }
+      if (templates.length > 1 && templates.item(0).dataset.condition) {
+        throw new Error('Only one template supported in this version');
       }
 
-      if (total > 0) {
-        var condition = templates.item(0).dataset.condition;
-
-        // If the first has no condition it will be selected by default
-        // The most frequent case will be that the first is the one that wins
-        if (!condition) {
-           template = templates.item(0);
-        }
-
-        var evaluation;
-        if (condition) {
-          // Condition is evaluated over the object in question
-          with (data) {
-            try {
-              evaluation = eval(condition);
-            }
-            catch (e) { evaluation = false; }
-          }
-          if (evaluation) {
-            // The rest will be ignored
-            total = 1;
-            template = templates.item(0);
-          }
-        }
-
-        for (var c = 1; c < total; c++) {
-          var condition = templates.item(c).dataset.condition;
-
-          if (condition) {
-            with (data) {
-              try {
-                 evaluation = eval(condition);
-              }
-              catch (e) { evaluation = false; }
-            }
-            if (evaluation) {
-              template = templates.item(c);
-              break;
-            }
-          } else if (!template) {
-            // Just to be sure that if there is no a condition
-            // something will be selected
-            template = templates.item(c);
-          }
-        } // Iteration trying to find a template
-      } // total templates > 0
-
-      return {template: template, isMulti: multi};
+      return {
+        template: templates.item(0),
+        isMulti: false
+      };
     }
 
     /**
@@ -107,22 +61,17 @@ if (!utils.templates) {
      */
     function templateReplace(data) {
       return function(text, property) {
-        var ret;
+        var out;
         if (property.indexOf('.') === -1) {
-          ret = data[property];
+          out = data[property];
         } else {
-          with (data) {
-            try {
-              ret = eval(property);
-            }
-            catch (e) { }
-          }
+            throw new Error('Dotted expressions not supported');
         }
 
-        if (typeof ret === 'undefined') {
-          ret = text;
+        if (typeof out === 'undefined') {
+          out = text;
         }
-        return ret;
+        return out;
       }
     }
 

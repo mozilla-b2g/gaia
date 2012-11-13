@@ -23,7 +23,8 @@
     "attention":{},
     "time":{},
     "desktop-notification":{},
-    "power":{}
+    "power":{},
+    "telephony":{}
   },
   "activities": {
     "configure": {

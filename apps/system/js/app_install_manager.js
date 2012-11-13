@@ -18,6 +18,8 @@ var AppInstallManager = {
       }
     }).bind(this));
 
+    window.addEventListener('applicationinstall', this.handleApplicationInstall.bind(this));
+
     this.installButton.onclick = this.handleInstall.bind(this);
     this.cancelButton.onclick = this.handleCancel.bind(this);
   },
@@ -83,6 +85,41 @@ var AppInstallManager = {
       this.cancelCallback();
     this.cancelCallback = null;
     this.dialog.classList.remove('visible');
+  },
+
+  handleApplicationInstall: function ai_handleApplicationInstall(e) {
+    var app = e.detail.application;
+
+    // take care that these manifests can have different properties
+    var manifest = app.manifest || app.updateManifest;
+
+    if (app.installState === 'installed') {
+      // nothing more to do here, everything is already done
+      return;
+    }
+
+    StatusBar.incSystemDownloads();
+
+    app.ondownloadsuccess = this.handleDownloadSuccess.bind(this, app);
+    app.ondownloaderror = this.handleDownloadError.bind(this, app);
+  },
+
+  handleDownloadSuccess: function ai_handleDownloadSuccess(app, evt) {
+    var manifest = app.manifest || app.updateManifest;
+    StatusBar.decSystemDownloads();
+    this.cleanUp(app);
+  },
+
+  handleDownloadError: function ai_handleDownloadError(app, evt) {
+    var manifest = app.manifest || app.updateManifest;
+    StatusBar.decSystemDownloads();
+    this.cleanUp(app);
+  },
+
+  cleanUp: function ai_cleanUp(app) {
+    app.ondownloadsuccess = null;
+    app.ondownloaderror = null;
+    app.onprogress = null;
   },
 
   dispatchResponse: function ai_dispatchResponse(id, type) {

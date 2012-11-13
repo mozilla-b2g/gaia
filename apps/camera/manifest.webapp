@@ -12,6 +12,7 @@
   "permissions": {
     "device-storage:pictures":{ "access": "createonly" },
     "device-storage:videos":{ "access": "createonly" },
+    "settings":{ "access": "readonly" },
     "camera":{},
     "geolocation":{}
   },

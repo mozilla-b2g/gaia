@@ -1,12 +1,14 @@
 var idGen = 0;
 
-function MockApp() {
+function MockApp(opts) {
+  /* default values */
   this.origin = 'https://testapp.gaiamobile.org';
   this.manifest = {
     name: 'Mock app'
   };
   this.updateManifest = {
-    size: 42
+    size: 42,
+    name: 'Mock packaged app'
   };
 
   this.removable = true;
@@ -16,6 +18,13 @@ function MockApp() {
   this.mId = idGen++;
   this.mDownloadCalled = false;
   this.mCancelCalled = false;
+
+  /* overwrite default values with whatever comes in "opts" from the test */
+  if (opts) {
+    for (var key in opts) {
+      this[key] = opts[key];
+    }
+  }
 }
 
 MockApp.prototype.download = function() {

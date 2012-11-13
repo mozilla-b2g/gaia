@@ -21,7 +21,8 @@ var ModalDialog = {
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'error', 'error-back', 'error-reload', 'select-one', 'select-one-cancel',
-      'select-one-menu', 'select-one-title', 'error-title', 'error-message'];
+      'select-one-menu', 'select-one-title', 'alert-title', 'confirm-title',
+      'prompt-title', 'error-title', 'error-message'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -164,6 +165,7 @@ var ModalDialog = {
     if (!(origin in this.currentEvents))
       return;
     
+    var _ = navigator.mozL10n.get;
     var evt = this.currentEvents[origin];
     this.currentOrigin = origin;
 
@@ -188,17 +190,25 @@ var ModalDialog = {
       case 'alert':
         elements.alertMessage.innerHTML = message;
         elements.alert.classList.add('visible');
+        this.setTitle('alert', '');
+        elements.alertOk.textContent = evt.yesText ? evt.yesText : _('ok');
         break;
 
       case 'prompt':
         elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
+        this.setTitle('prompt', '');
+        elements.promptOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.promptCancel.textContent = evt.noText ? evt.noText : _('cancel');
         break;
 
       case 'confirm':
         elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
+        this.setTitle('confirm', '');
+        elements.confirmOk.textContent = evt.yesText ? evt.yesText : _('ok');
+        elements.confirmCancel.textContent = evt.noText ? evt.noText : _('cancel');
         break;
 
       case 'selectone':
@@ -241,6 +251,10 @@ var ModalDialog = {
     this.currentOrigin = null;
     this.screen.classList.remove('modal-dialog');
     this.elements[type].classList.remove('visible');
+  },
+  
+  setTitle: function md_setTitle(type, title) {
+    this.elements[type + 'Title'].textContent = title;
   },
 
   // When user clicks OK button on alert/confirm/prompt
@@ -317,8 +331,8 @@ var ModalDialog = {
         break;
     }
 
-    if (evt.isPseudo && evt.callback) {
-      evt.callback(evt.detail.returnValue);
+    if (evt.isPseudo && evt.cancelCallback) {
+      evt.cancelCallback(evt.detail.returnValue);
     }
 
     if (evt.detail.unblock)
@@ -368,34 +382,66 @@ var ModalDialog = {
     elements.selectOneMenu.innerHTML = itemsHTML.join('');
   },
 
-  // The below is for system apps to use.
-  alert: function md_alert(text, callback) {
+  /**
+  * Method about customized alert
+  * @param  {String} title the title of the dialog. null or empty for
+  *                        no title.
+  * @param  {String} text message for the dialog.
+  * @param  {Object} confirm {title, callback} object when confirm.
+  */
+  alert: function md_alert(title, text, confirm) {
     this.showWithPseudoEvent({
       type: 'alert',
       text: text,
-      callback: callback
+      callback: confirm.callback,
+      title: title,
+      yesText: confirm.title
     });
   },
 
-  confirm: function md_confirm(text, callback, cancel) {
+  /**
+  * Method about customized confirm
+  * @param  {String} title the title of the dialog. null or empty for
+  *                        no title.
+  * @param  {String} text message for the dialog.
+  * @param  {Object} confirm {title, callback} object when confirm.
+  * @param  {Object} cancel {title, callback} object when cancel.
+  */
+  confirm: function md_confirm(title, text, confirm, cancel) {
     this.showWithPseudoEvent({
       type: 'confirm',
       text: text,
-      callback: callback,
-      cancel: cancel
+      callback: confirm.callback,
+      cancel: cancel.callback,
+      title: title,
+      yesText: confirm.title,
+      noText: cancel.title
     });
   },
 
-  prompt: function md_prompt(text, default_value, callback) {
+  /**
+  * Method about customized prompt
+  * @param  {String} title the title of the dialog. null or empty for
+  *                        no title.
+  * @param  {String} text message for the dialog.
+  * @param  {String} default_value message in the text field.
+  * @param  {Object} confirm {title, callback} object when confirm.
+  * @param  {Object} cancel {title, callback} object when cancel.
+  */
+  prompt: function md_prompt(title, text, default_value, confirm, cancel) {
     this.showWithPseudoEvent({
       type: 'prompt',
       text: text,
       initialValue: default_value,
-      callback: callback
+      callback: confirm.callback,
+      cancel: cancel.callback,
+      title: title,
+      yesText: confirm.title,
+      noText: cancel.title
     });
   },
 
-  selectOne: function md_alert(data, callback) {
+  selectOne: function md_selectOne(data, callback) {
     this.showWithPseudoEvent({
       type: 'selectone',
       text: data,
@@ -414,6 +460,9 @@ var ModalDialog = {
     pseudoEvt.detail.message = config.text;
     pseudoEvt.callback = config.callback;
     pseudoEvt.detail.promptType = config.type;
+    pseudoEvt.cancelCallback = config.cancel;
+    pseudoEvt.yesText = config.yesText;
+    pseudoEvt.noText = config.noText;
     if (config.type == 'prompt') {
       pseudoEvt.detail.initialValue = config.initialValue;
     }
@@ -422,6 +471,8 @@ var ModalDialog = {
     // since system-app uses the different way to call ModalDialog.
     this.currentEvents['system'] = pseudoEvt;
     this.show('system');
+    if (config.title)
+      this.setTitle(config.type, config.title);
   },
 
   isVisible: function md_isVisible() {
