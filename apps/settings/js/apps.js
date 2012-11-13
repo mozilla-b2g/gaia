@@ -23,8 +23,8 @@ var ApplicationsList = {
 
   container: document.querySelector('#appPermissions > ul'),
   detailTitle: document.querySelector('#appPermissions-details > header > h1'),
-  developerHeader: document.querySelector('#appPermissions-details > #developer-header'),
-  developerInfos: document.querySelector('#developer-infos'),
+  developerHeader: document.getElementById('developer-header'),
+  developerInfos: document.getElementById('developer-infos'),
   developerName: document.querySelector('#developer-infos > a'),
   developerLink: document.querySelector('#developer-infos > small > a'),
   detailPermissionsList: document.querySelector('#permissionsListHeader + ul'),
@@ -135,7 +135,8 @@ var ApplicationsList = {
       if (!developer.url) {
         // Links started with '#' are not
         // sent to the browser
-        this.developerName.dataset.href = '#';
+        delete this.developerName.dataset.href;
+        delete this.developerLink.href;
         this.developerLink.hidden = true;
       } else {
         this.developerLink.hidden = false;
