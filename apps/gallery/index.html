@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache" />
     <title>Gallery</title>
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
+    <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini" />
@@ -15,7 +16,8 @@
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/MetadataParser.js"></script>
     <script type="text/javascript" defer src="js/ImageEditor.js"></script>
-    <script type="text/javascript" defer src="js/PhotoState.js"></script>
+    <script type="text/javascript" defer src="js/VideoPlayer.js"></script>
+    <script type="text/javascript" defer src="js/Frame.js"></script>
     <script type="text/javascript" defer src="js/gallery.js"></script>
   </head>
 
@@ -45,27 +47,27 @@
       </footer>
     </section>
 
-    <section role="region" id="photo-view" class="hidden">
-      <div id="photo-frames">
+    <section role="region" id="fullscreen-view" class="hidden">
+      <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
-        <div class="photoFrame previousPhoto"><img></div>
-        <div class="photoFrame currentPhoto"><img></div>
-        <div class="photoFrame nextPhoto"><img></div>
+        <div id="frame1" class="frame"></div>
+        <div id="frame2" class="frame"></div>
+        <div id="frame3" class="frame"></div>
       </div>
 
-      <footer id="photos-toolbar">
-        <a id="photos-back-button" class="button"></a>
-        <a id="photos-camera-button" class="button"></a>
-        <a id="photos-edit-button" class="button"></a>
-        <a id="photos-share-button" class="button"></a>
-        <a id="photos-delete-button" class="button"></a>
+      <footer id="fullscreen-toolbar">
+        <a id="fullscreen-back-button" class="button"></a>
+        <a id="fullscreen-camera-button" class="button"></a>
+        <a id="fullscreen-edit-button" class="button"></a>
+        <a id="fullscreen-share-button" class="button"></a>
+        <a id="fullscreen-delete-button" class="button"></a>
       </footer>
     </section>
 
     <section role="region" id="pick-view" class="hidden skin-organic">
       <header id="pick-top">
         <button id="pick-back-button"><span class="icon icon-back"></span></button>
-        <h1 id="pick-header" data-l10n-id="pickoneimage"></h1>
+        <h1 id="pick-header" data-l10n-id="pickoneimage2"></h1>
       </header>
     </section>
 
