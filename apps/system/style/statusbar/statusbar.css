@@ -385,6 +385,6 @@ body, html {
  * as in sb-icon-ms or sb-icon-notification ? */
 .sb-icon-system-downloads {
   /* JW: waiting for the correct icon; in the mean time I made this one */
-  background: url('images/system-downloads.png') no-repeat;
+  background: url('images/system-downloads.gif') no-repeat;
   background-position: 0 0;
 }
