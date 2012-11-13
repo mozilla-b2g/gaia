@@ -312,16 +312,6 @@ suite('system/AppInstallManager', function() {
         assert.isUndefined(MockStatusBar.wasMethodCalled['incSystemDownloads']);
       });
 
-      test('should do nothing if we get downloadsuccess', function() {
-        mockApp.mTriggerDownloadSuccess();
-        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-      });
-
-      test('should do nothing and display an error if we get downloaderror', function() {
-        mockApp.mTriggerDownloadError();
-        assert.isUndefined(MockStatusBar.wasMethodCalled['decSystemDownloads']);
-        assert.equal(SystemBanner.mMessage, 'Fake hosted app download-stopped');
-      });
     });
 
     suite('hosted app with cache', function() {
