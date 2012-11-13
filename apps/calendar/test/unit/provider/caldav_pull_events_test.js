@@ -631,8 +631,12 @@ suite('provider/caldav_pull_events', function() {
       subject = createSubject();
 
       var newEvent = serviceEvent('singleEvent');
-      newEvent.syncToken = 'bbx1';
+      var expectedComponent = newEvent.icalComponent;
 
+      assert.ok(expectedComponent);
+      expectedComponent = JSON.parse(JSON.stringify(expectedComponent));
+
+      newEvent.syncToken = 'bbx1';
       assert.notEqual(
         newEvent.syncToken,
         existing.remote.syncToken,
@@ -660,7 +664,7 @@ suite('provider/caldav_pull_events', function() {
 
       assert.deepEqual(
         subject.icalQueue[0],
-        { data: newEvent.icalComponent, eventId: savedEvent._id }
+        { data: expectedComponent, eventId: savedEvent._id }
       );
     });
 

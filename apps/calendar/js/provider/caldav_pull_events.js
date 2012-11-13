@@ -204,9 +204,8 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       var component = event.remote.icalComponent;
       delete event.remote.icalComponent;
 
-
       this.icalQueue.push({
-        data: event.remote.icalComponent,
+        data: component,
         eventId: event._id
       });
 
