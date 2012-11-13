@@ -122,6 +122,7 @@
 #wifi-availableNetworks > li {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%;
+  padding-right: 3rem;
 }
 
 .wifi-signal0 {
