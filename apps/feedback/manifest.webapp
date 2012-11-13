@@ -11,7 +11,7 @@
     }
   },
   "permissions": {
-    "device-storage:apps":{},
+    "device-storage:apps":{ "access": "readwrite" },
     "webapps-manage":{}
   },
   "icons": {
